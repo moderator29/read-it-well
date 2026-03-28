@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Sparkles, BookOpen, Ticket, Music } from "lucide-react";
 import ParticleField from "@/components/shared/ParticleField";
+import shibaMascot from "@/assets/shiba-mascot.jpeg";
 
 const tools = [
   {
@@ -10,7 +11,7 @@ const tools = [
     icon: Sparkles,
     href: "/cookies",
     gradient: "from-naka-orange to-naka-red",
-    glow: "shadow-[0_0_30px_hsla(18,100%,50%,0.3)]",
+    glow: "hover:shadow-[0_0_30px_hsla(18,100%,50%,0.3)]",
   },
   {
     title: "M4NGA",
@@ -18,7 +19,7 @@ const tools = [
     icon: BookOpen,
     href: "/m4nga",
     gradient: "from-purple-500 to-pink-500",
-    glow: "shadow-[0_0_30px_hsla(280,100%,50%,0.3)]",
+    glow: "hover:shadow-[0_0_30px_hsla(280,100%,50%,0.3)]",
   },
   {
     title: "Lottery",
@@ -26,7 +27,7 @@ const tools = [
     icon: Ticket,
     href: "/lottery",
     gradient: "from-green-500 to-emerald-500",
-    glow: "shadow-[0_0_30px_hsla(140,100%,40%,0.3)]",
+    glow: "hover:shadow-[0_0_30px_hsla(140,100%,40%,0.3)]",
   },
   {
     title: "Ddergo Records",
@@ -34,7 +35,7 @@ const tools = [
     icon: Music,
     href: "/ddergo",
     gradient: "from-cyan-500 to-blue-500",
-    glow: "shadow-[0_0_30px_hsla(200,100%,50%,0.3)]",
+    glow: "hover:shadow-[0_0_30px_hsla(200,100%,50%,0.3)]",
   },
 ];
 
@@ -61,15 +62,16 @@ const AppHub = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <Link to="/" className="inline-block mb-8">
+          <Link to="/" className="inline-flex items-center gap-3 mb-8">
+            <img src={shibaMascot} alt="Naka Go" className="w-12 h-12 rounded-full border-2 border-primary/30" />
             <span className="font-display text-2xl text-foreground">NAKA GO</span>
-            <span className="font-jp text-lg text-muted-foreground ml-2">中号</span>
+            <span className="font-jp text-lg text-muted-foreground">中号</span>
           </Link>
           <h1 className="font-display text-4xl md:text-6xl text-gradient mb-4">
             Community Tools
           </h1>
           <p className="font-body text-muted-foreground text-lg max-w-xl mx-auto">
-            The interactive hub of the Naka Go ecosystem. Create, mint, win, and vibe.
+            Create cookies, mint SBTs, play lottery, vibe to music 🍦
           </p>
         </motion.div>
 
@@ -83,7 +85,7 @@ const AppHub = () => {
           {tools.map((tool) => (
             <motion.div key={tool.title} variants={item}>
               <Link to={tool.href}>
-                <div className={`glass-card p-8 group cursor-pointer hover:${tool.glow}`}>
+                <div className={`glass-card p-8 group cursor-pointer ${tool.glow} transition-all duration-300`}>
                   <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${tool.gradient} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                     <tool.icon className="w-7 h-7 text-white" />
                   </div>

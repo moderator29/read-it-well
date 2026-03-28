@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Sparkles, Calendar, Users, ArrowLeft } from "lucide-react";
+import { Sparkles, Calendar, Users, ArrowLeft, Plus, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import ParticleField from "@/components/shared/ParticleField";
+import shibaMascot from "@/assets/shiba-mascot.jpeg";
 
 const rules = [
   "Create one message that counts, for yourself",
@@ -11,7 +13,30 @@ const rules = [
   "Send only one Frame each",
 ];
 
+const communityPosts = [
+  {
+    text: "🍪 Create one message that counts, for yourself\n\n🍦 Frens are for memories\n\n🍪 Copy the cookies, and fill in your cream\n#NAKAGO",
+    author: "2021Eyezen",
+    handle: "@2021Eyezen",
+    date: "September 3, 2025",
+  },
+  {
+    text: "🍪 Create one message that counts, for yourself\n\n🍦 Enter your message above\n\n🍪 Copy the cookies, and fill in your cream\n#NAKAGO",
+    author: "x_mammal",
+    handle: "@x_mammal",
+    date: "September 3, 2025",
+  },
+  {
+    text: "🍪 Create one message that counts, for yourself\n\n🍦 Building in public, one step at a time\n\n🍪 Copy the cookies, and fill in your cream\n#NAKAGO",
+    author: "NakaGoInu",
+    handle: "@NakaGoInu",
+    date: "September 5, 2025",
+  },
+];
+
 const CookiesRules = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
       <ParticleField />
@@ -26,91 +51,119 @@ const CookiesRules = () => {
 
         {/* Header */}
         <motion.div
-          className="text-center mb-12"
+          className="text-center mb-10"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="font-display text-4xl md:text-5xl text-gradient mb-4">
-            Cookies 'n' Cream
+          <h1 className="font-display text-3xl md:text-5xl text-foreground mb-2">
+            🍪 Cookies 'n' Cream 🍦
           </h1>
-          <p className="font-body text-muted-foreground text-lg">
-            Create meaningful messages for the community
+          <p className="font-body text-muted-foreground text-base max-w-md mx-auto">
+            Create meaningful messages with our special cookie frame format. Share your thoughts and spread positivity!
           </p>
         </motion.div>
 
-        {/* Rules */}
+        {/* Create Cookie CTA */}
         <motion.div
-          className="glass-card p-8 mb-8"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <h2 className="font-display text-xl text-foreground">Frame</h2>
-          </div>
-
-          <div className="space-y-4">
-            {rules.map((rule, i) => (
-              <motion.div
-                key={i}
-                className="flex items-start gap-4 group"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + i * 0.1 }}
-                whileHover={{ x: 4 }}
-              >
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 text-primary font-display text-sm flex items-center justify-center">
-                  {i + 1}
-                </span>
-                <p className={`font-body text-foreground/90 pt-1 ${i === 1 ? "text-primary font-semibold" : ""}`}>
-                  {rule}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Info cards */}
-        <motion.div
-          className="grid grid-cols-2 gap-4 mb-8"
+          className="mb-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <div className="glass-card p-5 flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-neon-cyan" />
-            <div>
-              <p className="font-body text-sm text-muted-foreground">Full Moon</p>
-              <p className="font-display text-foreground text-sm">MUTATE! Mode</p>
-            </div>
-          </div>
-          <div className="glass-card p-5 flex items-center gap-3">
-            <Users className="w-5 h-5 text-neon-cyan" />
-            <div>
-              <p className="font-body text-sm text-muted-foreground">Tend to</p>
-              <p className="font-display text-foreground text-sm">The Thread</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.2 }}
         >
           <Link to="/cookies/create">
             <motion.button
-              className="w-full py-5 bg-gradient-naka text-primary-foreground font-display text-xl rounded-full glow-orange hover:glow-orange-intense transition-all flex items-center justify-center gap-3"
+              className="w-full max-w-sm mx-auto block py-5 px-8 bg-gradient-naka text-primary-foreground font-display text-xl rounded-2xl glow-orange hover:glow-orange-intense transition-all flex items-center justify-center gap-3"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Sparkles className="w-6 h-6" />
-              Create Your Cookie
+              <Plus className="w-6 h-6" />
+              Create Cookie
             </motion.button>
           </Link>
+        </motion.div>
+
+        {/* Community Cookies Carousel */}
+        <motion.div
+          className="mb-10"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <h2 className="font-display text-2xl text-foreground mb-6">Cookies added to our story</h2>
+
+          <div className="relative">
+            <div className="overflow-hidden">
+              <motion.div
+                className="flex gap-4"
+                animate={{ x: `-${currentSlide * 100}%` }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              >
+                {communityPosts.map((post, i) => (
+                  <div key={i} className="min-w-full">
+                    <div className="glass-card p-6">
+                      <p className="font-body text-foreground/90 whitespace-pre-line text-sm leading-relaxed mb-4">
+                        {post.text}
+                      </p>
+                      <p className="font-body text-muted-foreground text-xs">
+                        — {post.author} ({post.handle})
+                      </p>
+                      <p className="font-body text-muted-foreground text-xs">{post.date}</p>
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+
+            {/* Nav buttons */}
+            <div className="flex items-center justify-between mt-4">
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
+                className="w-10 h-10 rounded-lg border border-border flex items-center justify-center text-foreground hover:border-primary/50 transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </motion.button>
+
+              <div className="flex gap-2">
+                {communityPosts.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentSlide(i)}
+                    className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                      i === currentSlide ? "bg-primary" : "bg-muted-foreground/30"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setCurrentSlide(Math.min(communityPosts.length - 1, currentSlide + 1))}
+                className="w-10 h-10 rounded-lg border border-border flex items-center justify-center text-foreground hover:border-primary/50 transition-colors"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Show all on X */}
+        <motion.div
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <a
+            href="https://x.com/search?q=%23NAKAGO"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-border text-foreground font-body text-sm hover:border-primary/50 transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Show all Cookies on X
+          </a>
         </motion.div>
       </div>
     </div>
