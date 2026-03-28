@@ -6,6 +6,7 @@ const navLinks = [
   { label: "About", href: "#about" },
   { label: "Tokenomics", href: "#tokenomics" },
   { label: "Community", href: "#community" },
+  { label: "App", href: "/app" },
 ];
 
 const Header = () => {
