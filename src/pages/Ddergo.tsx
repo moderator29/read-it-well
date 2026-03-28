@@ -29,24 +29,24 @@ const Ddergo = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="font-display text-4xl md:text-5xl text-gradient mb-4">
-            Ddergo Records
+          <h1 className="font-display text-4xl md:text-6xl text-gradient mb-4">
+            Ddergo Records 🍦
           </h1>
           <p className="font-body text-muted-foreground text-lg">
-            The official soundtrack of the Naka Go ecosystem 🎵
+            The official Naka Go playlist. Vibes, beats, and community energy.
           </p>
         </motion.div>
 
-        {/* Spotify Embed */}
+        {/* Spotify Embed — actual NAKA GO playlist */}
         <motion.div
-          className="glass-card p-6 mb-8 overflow-hidden"
+          className="glass-card p-4 mb-8 overflow-hidden"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
           <iframe
             style={{ borderRadius: "12px" }}
-            src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M?utm_source=generator&theme=0"
+            src="https://open.spotify.com/embed/playlist/3PGFWI7Ms2PHZXbadbfhh4?utm_source=generator&theme=0"
             width="100%"
             height="352"
             frameBorder="0"
@@ -65,7 +65,12 @@ const Ddergo = () => {
         >
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-display text-2xl text-foreground">Track Listing</h2>
-            <a href="https://open.spotify.com" target="_blank" rel="noopener noreferrer" className="text-primary font-body text-sm inline-flex items-center gap-1 hover:underline">
+            <a
+              href="https://open.spotify.com/playlist/3PGFWI7Ms2PHZXbadbfhh4"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary font-body text-sm inline-flex items-center gap-1 hover:underline"
+            >
               Open in Spotify <ExternalLink className="w-3 h-3" />
             </a>
           </div>

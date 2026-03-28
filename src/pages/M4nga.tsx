@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { BookOpen, Wallet, ArrowLeft, Shield, ExternalLink } from "lucide-react";
+import { BookOpen, Wallet, ArrowLeft, Shield, ExternalLink, Sparkles } from "lucide-react";
 import ParticleField from "@/components/shared/ParticleField";
 
 const sbtCollection = [
@@ -20,6 +20,7 @@ const rarityColors: Record<string, string> = {
 
 const M4nga = () => {
   const [walletConnected] = useState(false);
+  const [selectedSbt, setSelectedSbt] = useState<number | null>(null);
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
@@ -37,7 +38,7 @@ const M4nga = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="font-display text-4xl md:text-5xl text-gradient mb-4">
+          <h1 className="font-display text-4xl md:text-6xl text-gradient mb-4">
             M4NGA — Soul-Bound Tokens
           </h1>
           <p className="font-body text-muted-foreground text-lg max-w-xl mx-auto">
@@ -45,18 +46,33 @@ const M4nga = () => {
           </p>
         </motion.div>
 
-        {/* Connect Wallet CTA */}
+        {/* Mint Interface */}
         <motion.div
-          className="glass-card p-8 mb-10 text-center"
+          className="glass-card p-8 mb-10 text-center relative overflow-hidden"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
-          <h2 className="font-display text-2xl text-foreground mb-2">Mint Your SBT</h2>
-          <p className="font-body text-muted-foreground mb-6">
-            Connect your wallet to mint a Soul-Bound Token. Once minted, it can never be transferred.
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
+          
+          <Shield className="w-14 h-14 text-primary mx-auto mb-4" />
+          <h2 className="font-display text-3xl text-foreground mb-2">Mint Your SBT</h2>
+          <p className="font-body text-muted-foreground mb-6 max-w-md mx-auto">
+            Connect your wallet to mint a Soul-Bound Token. Once minted, it can never be transferred — bound to your identity forever.
           </p>
+
+          {selectedSbt !== null && (
+            <motion.div
+              className="mb-6 inline-block"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring" }}
+            >
+              <div className="text-6xl mb-2">{sbtCollection[selectedSbt]?.image}</div>
+              <p className="font-display text-sm text-primary">{sbtCollection[selectedSbt]?.name}</p>
+            </motion.div>
+          )}
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -65,26 +81,37 @@ const M4nga = () => {
             <Wallet className="w-5 h-5" />
             {walletConnected ? "Mint SBT" : "Connect Wallet"}
           </motion.button>
-          <p className="font-body text-muted-foreground text-xs mt-4">
-            Contract: 0x9AA4...FD420{" "}
-            <a href="https://etherscan.io/address/0x9AA41B74F3D87c3A27D49736692e70F175eFD420" target="_blank" rel="noopener noreferrer" className="text-primary inline-flex items-center gap-1">
+
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <p className="font-mono text-muted-foreground text-xs">
+              Contract: 0x9AA4...FD420
+            </p>
+            <a
+              href="https://etherscan.io/address/0x9AA41B74F3D87c3A27D49736692e70F175eFD420"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:text-primary/80"
+            >
               <ExternalLink className="w-3 h-3" />
             </a>
-          </p>
+          </div>
+
+          <p className="font-body text-muted-foreground text-xs mt-2">Price: Free mint (gas only)</p>
         </motion.div>
 
         {/* SBT Gallery */}
-        <motion.h2
-          className="font-display text-2xl text-foreground mb-6"
+        <motion.div
+          className="flex items-center gap-2 mb-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          SBT Collection
-        </motion.h2>
+          <Sparkles className="w-5 h-5 text-primary" />
+          <h2 className="font-display text-2xl text-foreground">SBT Collection</h2>
+        </motion.div>
 
         <motion.div
-          className="grid sm:grid-cols-2 gap-6"
+          className="grid sm:grid-cols-2 gap-6 mb-10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
@@ -92,10 +119,14 @@ const M4nga = () => {
           {sbtCollection.map((sbt, i) => (
             <motion.div
               key={sbt.id}
-              className="glass-card p-6"
+              className={`glass-card p-6 cursor-pointer transition-all ${
+                selectedSbt === i ? "border-primary/50 shadow-[0_0_30px_hsla(18,100%,50%,0.2)]" : ""
+              }`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 + i * 0.1 }}
+              onClick={() => setSelectedSbt(i)}
+              whileHover={{ scale: 1.02 }}
             >
               <div className="text-5xl mb-4">{sbt.image}</div>
               <h3 className="font-display text-xl text-foreground mb-2">{sbt.name}</h3>
@@ -109,6 +140,19 @@ const M4nga = () => {
               </div>
             </motion.div>
           ))}
+        </motion.div>
+
+        {/* Your Collection (placeholder) */}
+        <motion.div
+          className="glass-card p-8 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <h2 className="font-display text-xl text-foreground mb-2">Your Collection</h2>
+          <p className="font-body text-muted-foreground text-sm">
+            Connect your wallet to view your minted SBTs
+          </p>
         </motion.div>
       </div>
     </div>
