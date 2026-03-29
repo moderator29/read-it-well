@@ -1,20 +1,21 @@
 import { motion } from "framer-motion";
-import { ShieldCheck, Zap, Flame, Users, Copy } from "lucide-react";
+import { ShieldCheck, Zap, Flame, Users, Copy, Check, ExternalLink } from "lucide-react";
 import { useState } from "react";
+
+const FULL_CONTRACT = "0x6967b9a8c0b14849CFE8f9E5732B401433fD2898";
 
 const badges = [
   { icon: ShieldCheck, title: "Renounced", desc: "Contract ownership renounced forever" },
   { icon: Zap, title: "0/0 Tax", desc: "Zero buy tax. Zero sell tax. Ever." },
-  { icon: Flame, title: "LP Burnt", desc: "100% liquidity burned. Rug-proof." },
+  { icon: Flame, title: "LP Burnt", desc: "100% liquidity burned. Rug proof." },
   { icon: Users, title: "Fair Launch", desc: "No presale. No team allocation. Pure community." },
 ];
 
 const Tokenomics = () => {
   const [copied, setCopied] = useState(false);
-  const contractAddress = "0x..."; // TBD
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(contractAddress);
+    navigator.clipboard.writeText(FULL_CONTRACT);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -50,22 +51,25 @@ const Tokenomics = () => {
         >
           <div>
             <span className="text-xs text-muted-foreground font-body block mb-1">Contract Address</span>
-            <span className="font-mono text-sm text-foreground break-all">{contractAddress}</span>
+            <span className="font-mono text-sm text-foreground break-all">{FULL_CONTRACT}</span>
           </div>
           <div className="flex gap-2">
-            <button
+            <motion.button
               onClick={handleCopy}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-body hover:bg-secondary/80 transition-colors"
             >
-              <Copy size={14} />
+              {copied ? <Check size={14} /> : <Copy size={14} />}
               {copied ? "Copied!" : "Copy"}
-            </button>
+            </motion.button>
             <a
-              href="https://etherscan.io"
+              href={`https://etherscan.io/token/${FULL_CONTRACT}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 rounded-lg bg-gradient-naka text-primary-foreground text-sm font-body"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-naka text-primary-foreground text-sm font-body"
             >
+              <ExternalLink size={14} />
               Etherscan
             </a>
           </div>
@@ -81,8 +85,14 @@ const Tokenomics = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 * i + 0.3 }}
+              whileHover={{ scale: 1.05 }}
             >
-              <badge.icon className="w-8 h-8 text-primary mx-auto mb-3" />
+              <motion.div
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 3, repeat: Infinity, delay: i * 0.3 }}
+              >
+                <badge.icon className="w-8 h-8 text-primary mx-auto mb-3" />
+              </motion.div>
               <h3 className="font-display text-sm text-foreground mb-1">{badge.title}</h3>
               <p className="text-xs text-muted-foreground font-body">{badge.desc}</p>
             </motion.div>
