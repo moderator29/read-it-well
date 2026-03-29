@@ -1,35 +1,39 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Ticket, ArrowLeft, Trophy, Wallet, Minus, Plus, Clock, Zap } from "lucide-react";
+import { Ticket, Home, Trophy, Wallet, Clock, Zap, Info, Construction } from "lucide-react";
 import ParticleField from "@/components/shared/ParticleField";
-
-const pastWinners = [
-  { address: "0x7a3f...8e21", prize: "2.5 ETH", date: "Mar 15, 2026" },
-  { address: "0x4b2c...1f09", prize: "1.8 ETH", date: "Mar 8, 2026" },
-  { address: "0x9d1e...3c47", prize: "3.2 ETH", date: "Mar 1, 2026" },
-];
-
-const howToPlay = [
-  { step: "1", title: "Connect Wallet", desc: "Connect your Ethereum wallet to get started", icon: Wallet },
-  { step: "2", title: "Buy Tickets", desc: "Each ticket costs 0.01 ETH. Buy 1-100 per round", icon: Ticket },
-  { step: "3", title: "Win Big", desc: "Chainlink VRF picks a provably random winner", icon: Trophy },
-];
+import { useWallet } from "@/hooks/useWallet";
 
 const Lottery = () => {
-  const [ticketCount, setTicketCount] = useState(1);
-  const ticketPrice = 0.01;
-  const prizePool = 12.45;
+  const { shortAddress, connect, disconnect, isConnected } = useWallet();
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
       <ParticleField />
 
       <div className="relative z-10 container mx-auto px-6 py-24 max-w-3xl">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <Link to="/app" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8">
-            <ArrowLeft className="w-4 h-4" /> Back to Hub
+        <motion.div className="flex items-center justify-between mb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Link to="/app" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <Home className="w-4 h-4" /> Hub
           </Link>
+          {isConnected ? (
+            <motion.button
+              onClick={disconnect}
+              className="font-mono text-xs text-primary border border-primary/30 px-3 py-1.5 rounded-full hover:bg-primary/10 transition-colors"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              {shortAddress}
+            </motion.button>
+          ) : (
+            <motion.button
+              onClick={connect}
+              className="font-display text-xs text-primary-foreground bg-gradient-naka px-4 py-1.5 rounded-full inline-flex items-center gap-2"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Wallet className="w-3.5 h-3.5" /> Connect
+            </motion.button>
+          )}
         </motion.div>
 
         <motion.div
@@ -37,146 +41,96 @@ const Lottery = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
+          <motion.div
+            animate={{ rotate: [0, 15, -15, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="inline-block mb-4"
+          >
+            <Ticket className="w-12 h-12 text-primary" />
+          </motion.div>
           <h1 className="font-display text-4xl md:text-6xl text-gradient mb-4">
             NAKA Lottery
           </h1>
           <p className="font-body text-muted-foreground text-lg">
-            On-chain lottery powered by Chainlink VRF. Provably fair, fully transparent.
+            On chain lottery powered by Chainlink VRF. Provably fair, fully transparent.
           </p>
         </motion.div>
 
-        {/* Prize Pool — Giant */}
+        {/* Coming Soon Banner */}
         <motion.div
           className="glass-card p-10 text-center mb-8 relative overflow-hidden"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, type: "spring" }}
         >
-          {/* Glow bg */}
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-          
-          <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-          <p className="font-body text-muted-foreground text-sm mb-2">Current Prize Pool</p>
-          <motion.p
-            className="font-display text-6xl md:text-8xl text-gradient"
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", delay: 0.4, stiffness: 100 }}
+
+          <motion.div
+            animate={{ y: [0, -8, 0], rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 3, repeat: Infinity }}
           >
-            {prizePool} ETH
-          </motion.p>
-          <p className="font-body text-muted-foreground text-sm mt-2">≈ ${(prizePool * 3200).toLocaleString()}</p>
-          
-          <div className="flex items-center justify-center gap-2 mt-4 text-primary">
+            <Construction className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
+          </motion.div>
+          <h2 className="font-display text-3xl text-foreground mb-2">Coming Soon</h2>
+          <p className="font-body text-muted-foreground mb-6 max-w-md mx-auto">
+            The lottery smart contract is currently under development. Once deployed, you'll be able to buy tickets and win prizes right here!
+          </p>
+
+          <div className="flex items-center justify-center gap-2 text-primary">
             <Clock className="w-4 h-4" />
-            <span className="font-mono text-sm">Next draw in 2d 14h 32m</span>
+            <span className="font-mono text-sm">Contract deployment pending</span>
           </div>
         </motion.div>
 
-        {/* How to Play */}
+        {/* How It Will Work */}
         <motion.div
-          className="grid grid-cols-3 gap-4 mb-8"
+          className="glass-card p-8 mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          {howToPlay.map((step, i) => (
-            <motion.div
-              key={step.step}
-              className="glass-card p-5 text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.1 }}
-            >
-              <step.icon className="w-8 h-8 text-primary mx-auto mb-3" />
-              <p className="font-display text-sm text-foreground mb-1">{step.title}</p>
-              <p className="font-body text-xs text-muted-foreground">{step.desc}</p>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Buy Tickets */}
-        <motion.div
-          className="glass-card p-8 mb-8"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <h2 className="font-display text-2xl text-foreground mb-6 text-center">Buy Tickets</h2>
-
-          <div className="flex items-center justify-center gap-8 mb-6">
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setTicketCount(Math.max(1, ticketCount - 1))}
-              className="w-14 h-14 rounded-full bg-secondary text-foreground flex items-center justify-center hover:bg-secondary/80 transition-colors text-xl"
-            >
-              <Minus className="w-6 h-6" />
-            </motion.button>
-            <motion.span
-              key={ticketCount}
-              className="font-display text-5xl text-foreground w-24 text-center"
-              initial={{ scale: 1.3 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              {ticketCount}
-            </motion.span>
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setTicketCount(Math.min(100, ticketCount + 1))}
-              className="w-14 h-14 rounded-full bg-secondary text-foreground flex items-center justify-center hover:bg-secondary/80 transition-colors text-xl"
-            >
-              <Plus className="w-6 h-6" />
-            </motion.button>
+          <div className="flex items-center gap-2 mb-6">
+            <Info className="w-5 h-5 text-primary" />
+            <h2 className="font-display text-2xl text-foreground">How It Will Work</h2>
           </div>
 
-          <p className="font-body text-center text-muted-foreground mb-6">
-            Total: <span className="text-foreground font-semibold text-lg">{(ticketCount * ticketPrice).toFixed(3)} ETH</span>
-            <span className="text-muted-foreground text-sm ml-2">({ticketPrice} ETH/ticket)</span>
-          </p>
-
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full py-5 bg-gradient-naka text-primary-foreground font-display text-lg rounded-full glow-orange hover:glow-orange-intense transition-all flex items-center justify-center gap-3"
-          >
-            <Wallet className="w-5 h-5" />
-            Connect Wallet to Buy
-          </motion.button>
-
-          <div className="flex items-center justify-center gap-2 mt-4 text-muted-foreground">
-            <Zap className="w-3.5 h-3.5 text-green-400" />
-            <span className="font-body text-xs">Powered by Chainlink VRF</span>
-          </div>
-        </motion.div>
-
-        {/* Past Winners */}
-        <motion.div
-          className="glass-card p-8"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <h2 className="font-display text-2xl text-foreground mb-6">🏆 Past Winners</h2>
-          <div className="space-y-4">
-            {pastWinners.map((winner, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { icon: Wallet, title: "Connect Wallet", desc: "Connect your Ethereum wallet to participate", emoji: "🔗" },
+              { icon: Ticket, title: "Buy Tickets", desc: "Purchase lottery tickets with $NAKA tokens", emoji: "🎫" },
+              { icon: Trophy, title: "Win Prizes", desc: "Chainlink VRF ensures provably fair random selection", emoji: "🏆" },
+            ].map((step, i) => (
               <motion.div
-                key={i}
-                className="flex items-center justify-between py-3 border-b border-border last:border-0"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 + i * 0.1 }}
+                key={step.title}
+                className="glass-card p-5 text-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 + i * 0.1 }}
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}</span>
-                  <span className="font-mono text-foreground text-sm">{winner.address}</span>
-                </div>
-                <div className="text-right">
-                  <p className="font-display text-primary text-sm">{winner.prize}</p>
-                  <p className="font-body text-muted-foreground text-xs">{winner.date}</p>
-                </div>
+                <motion.div
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+                >
+                  <span className="text-3xl block mb-2">{step.emoji}</span>
+                </motion.div>
+                <step.icon className="w-6 h-6 text-primary mx-auto mb-2" />
+                <p className="font-display text-sm text-foreground mb-1">{step.title}</p>
+                <p className="font-body text-xs text-muted-foreground">{step.desc}</p>
               </motion.div>
             ))}
+          </div>
+        </motion.div>
+
+        {/* Powered by */}
+        <motion.div
+          className="text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <Zap className="w-4 h-4 text-green-400" />
+            <span className="font-body text-sm">Powered by Chainlink VRF</span>
           </div>
         </motion.div>
       </div>
