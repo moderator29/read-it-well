@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { Lightbulb, Hash, LinkIcon, ArrowRight, ArrowLeft, PenTool } from "lucide-react";
+import { Lightbulb, ArrowRight, Home, PenTool, Copy, Check } from "lucide-react";
 import ParticleField from "@/components/shared/ParticleField";
-import shibaMascot from "@/assets/shiba-mascot.jpeg";
 
 const suggestions = [
   "Building in public, one step at a time",
@@ -12,6 +11,8 @@ const suggestions = [
   "Honoring the legacy, creating the future",
   "One cookie, infinite possibilities",
   "Frens are for memories",
+  "Naka Go saved the breed, now we build the legacy",
+  "Diamond hands, golden heart",
 ];
 
 const MAX_LENGTH = 200;
@@ -21,12 +22,20 @@ const CookiesCreate = () => {
   const [message, setMessage] = useState("");
   const [postUrl, setPostUrl] = useState("");
   const [activeTab, setActiveTab] = useState<"reply" | "find">("reply");
+  const [copiedSuggestion, setCopiedSuggestion] = useState<number | null>(null);
 
   const isValidUrl = /^https:\/\/(twitter\.com|x\.com)\/.*\/status\/\d+/.test(postUrl);
   const isValid = message.length > 0 && message.length <= MAX_LENGTH && isValidUrl;
 
   const handleSuggest = () => {
-    setMessage(suggestions[Math.floor(Math.random() * suggestions.length)]);
+    const suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+    setMessage(suggestion);
+  };
+
+  const handleCopySuggestion = (text: string, index: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedSuggestion(index);
+    setTimeout(() => setCopiedSuggestion(null), 2000);
   };
 
   const handleNext = () => {
@@ -42,36 +51,32 @@ const CookiesCreate = () => {
       <ParticleField />
 
       <div className="relative z-10 container mx-auto px-6 py-24 max-w-2xl">
-        {/* Top bar */}
         <motion.div
           className="flex items-center justify-between mb-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
           <Link to="/cookies" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Back
+            <Home className="w-4 h-4" /> Cookies
           </Link>
-          <Link to="/" className="inline-flex items-center gap-2">
-            <img src={shibaMascot} alt="Naka Go" className="w-8 h-8 rounded-full border border-primary/30" />
-            <span className="font-display text-sm text-foreground">NAKA GO App</span>
+          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
+            <Home className="w-3.5 h-3.5" /> Home
           </Link>
         </motion.div>
 
-        {/* Header */}
         <motion.div
           className="text-center mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <h1 className="font-display text-3xl md:text-4xl text-foreground mb-2">
-            🍪 Cookies 'n' Cream 🍦
+            🍪 Create Your Cookie 🍦
           </h1>
           <p className="font-body text-muted-foreground text-sm max-w-md mx-auto">
             Create meaningful messages with our special cookie frame format. Share your thoughts and spread positivity!
           </p>
         </motion.div>
 
-        {/* Create Form */}
         <motion.div
           className="glass-card p-8 space-y-6"
           initial={{ opacity: 0, y: 30 }}
@@ -79,36 +84,52 @@ const CookiesCreate = () => {
           transition={{ delay: 0.2 }}
         >
           <div className="flex items-center gap-2 mb-2">
-            <PenTool className="w-5 h-5 text-primary" />
-            <h2 className="font-display text-xl text-foreground">Create Your Cookie</h2>
+            <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 3, repeat: Infinity }}>
+              <PenTool className="w-5 h-5 text-primary" />
+            </motion.div>
+            <h2 className="font-display text-xl text-foreground">Your Message 🍦</h2>
           </div>
 
-          {/* Message */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="font-body text-sm text-foreground font-semibold">Your Message 🍦</label>
+          {/* Suggestions */}
+          <div className="flex flex-wrap gap-2 mb-2">
+            {suggestions.slice(0, 4).map((s, i) => (
               <motion.button
+                key={i}
+                onClick={() => setMessage(s)}
+                className="text-xs font-body px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground hover:bg-primary/20 hover:text-primary transition-colors inline-flex items-center gap-1"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={handleSuggest}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-muted-foreground text-xs font-body hover:border-primary/50 hover:text-foreground transition-colors"
               >
-                <Lightbulb className="w-3.5 h-3.5" />
-                Suggest
+                🍪 {s.slice(0, 25)}...
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleCopySuggestion(s, i); }}
+                  className="ml-1 hover:text-primary"
+                >
+                  {copiedSuggestion === i ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                </button>
               </motion.button>
-            </div>
-            <div className="relative">
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Enter your meaningful message here..."
-                maxLength={MAX_LENGTH}
-                className="w-full h-36 bg-background/80 border border-border focus:border-primary/50 rounded-xl p-4 text-foreground placeholder:text-muted-foreground/50 resize-none transition-all duration-300 focus:shadow-[0_0_20px_hsla(18,100%,50%,0.15)] outline-none font-body text-sm"
-              />
-              <span className={`absolute bottom-3 right-3 text-xs font-mono ${message.length > MAX_LENGTH * 0.9 ? "text-primary" : "text-muted-foreground"}`}>
-                {message.length}/{MAX_LENGTH}
-              </span>
-            </div>
+            ))}
+            <motion.button
+              onClick={handleSuggest}
+              className="text-xs font-body px-3 py-1.5 rounded-full border border-primary/30 text-primary hover:bg-primary/10 transition-colors inline-flex items-center gap-1"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Lightbulb className="w-3 h-3" /> Random
+            </motion.button>
+          </div>
+
+          {/* Message textarea */}
+          <div className="relative">
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="🍦 Enter your meaningful message here..."
+              maxLength={MAX_LENGTH}
+              className="w-full h-36 bg-background/80 border border-border focus:border-primary/50 rounded-xl p-4 text-foreground placeholder:text-muted-foreground/50 resize-none transition-all duration-300 focus:shadow-[0_0_20px_hsla(18,100%,50%,0.15)] outline-none font-body text-sm"
+            />
+            <span className={`absolute bottom-3 right-3 text-xs font-mono ${message.length > MAX_LENGTH * 0.9 ? "text-primary" : "text-muted-foreground"}`}>
+              {message.length}/{MAX_LENGTH}
+            </span>
           </div>
 
           {/* Tabs */}
@@ -119,7 +140,7 @@ const CookiesCreate = () => {
                 activeTab === "reply" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Reply to Post
+              🍪 Reply to Post
             </button>
             <button
               onClick={() => {
@@ -130,22 +151,13 @@ const CookiesCreate = () => {
                 activeTab === "find" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Find #NAKAGO
+              🔍 Find #NAKAGO
             </button>
           </div>
 
           {/* Post URL */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="font-body text-sm text-foreground font-semibold">Post URL to Reply To</label>
-              <button
-                onClick={() => window.open("https://x.com/search?q=%23NAKAGO", "_blank")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-muted-foreground text-xs font-body hover:border-primary/50 hover:text-foreground transition-colors"
-              >
-                <Lightbulb className="w-3.5 h-3.5" />
-                Suggest URL
-              </button>
-            </div>
+            <label className="font-body text-sm text-foreground font-semibold block mb-2">Post URL to Reply To 🍪</label>
             <div className="relative">
               <input
                 value={postUrl}
@@ -167,9 +179,9 @@ const CookiesCreate = () => {
             whileTap={isValid ? { scale: 0.98 } : {}}
             onClick={handleNext}
             disabled={!isValid}
-            className="w-full py-4 bg-gradient-naka text-primary-foreground font-display text-lg rounded-full glow-orange hover:glow-orange-intense transition-all flex items-center justify-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+            className="w-full py-4 bg-gradient-naka text-primary-foreground font-display text-lg rounded-full glow-orange transition-all flex items-center justify-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
           >
-            Preview Cookie
+            🍪 Preview Cookie 🍦
             <ArrowRight className="w-5 h-5" />
           </motion.button>
         </motion.div>

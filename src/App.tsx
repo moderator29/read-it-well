@@ -11,6 +11,7 @@ import CookiesPreview from "./pages/CookiesPreview.tsx";
 import M4nga from "./pages/M4nga.tsx";
 import Lottery from "./pages/Lottery.tsx";
 import Ddergo from "./pages/Ddergo.tsx";
+import PfpCreator from "./pages/PfpCreator.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/m4nga" element={<M4nga />} />
           <Route path="/lottery" element={<Lottery />} />
           <Route path="/ddergo" element={<Ddergo />} />
+          <Route path="/pfp" element={<PfpCreator />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

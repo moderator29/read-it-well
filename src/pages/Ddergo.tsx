@@ -1,16 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Music, ExternalLink } from "lucide-react";
+import { Home, Music, ExternalLink, Headphones, Disc } from "lucide-react";
 import ParticleField from "@/components/shared/ParticleField";
-
-const tracks = [
-  { title: "Naka Go Theme", artist: "Ddergo", duration: "3:42" },
-  { title: "Shiba Dreams", artist: "Ddergo", duration: "4:15" },
-  { title: "Akaishi Sunset", artist: "Ddergo", duration: "2:58" },
-  { title: "Breed Savior Anthem", artist: "Ddergo", duration: "3:31" },
-  { title: "1948 (Interlude)", artist: "Ddergo", duration: "1:47" },
-  { title: "Moon Phase", artist: "Ddergo ft. Community", duration: "4:02" },
-];
 
 const Ddergo = () => {
   return (
@@ -20,7 +11,7 @@ const Ddergo = () => {
       <div className="relative z-10 container mx-auto px-6 py-24 max-w-3xl">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <Link to="/app" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8">
-            <ArrowLeft className="w-4 h-4" /> Back to Hub
+            <Home className="w-4 h-4" /> Hub
           </Link>
         </motion.div>
 
@@ -29,15 +20,22 @@ const Ddergo = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
+          <motion.div
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            className="inline-block mb-4"
+          >
+            <Disc className="w-14 h-14 text-primary" />
+          </motion.div>
           <h1 className="font-display text-4xl md:text-6xl text-gradient mb-4">
-            Ddergo Records 🍦
+            Ddergo Records 🎵
           </h1>
           <p className="font-body text-muted-foreground text-lg">
             The official Naka Go playlist. Vibes, beats, and community energy.
           </p>
         </motion.div>
 
-        {/* Spotify Embed — actual NAKA GO playlist */}
+        {/* Full Spotify Embed */}
         <motion.div
           className="glass-card p-4 mb-8 overflow-hidden"
           initial={{ opacity: 0, y: 30 }}
@@ -46,9 +44,9 @@ const Ddergo = () => {
         >
           <iframe
             style={{ borderRadius: "12px" }}
-            src="https://open.spotify.com/embed/playlist/3PGFWI7Ms2PHZXbadbfhh4?utm_source=generator&theme=0"
+            src="https://open.spotify.com/embed/playlist/7i3AcSKszKG5lNrTvBtzD8?utm_source=generator&theme=0"
             width="100%"
-            height="352"
+            height="500"
             frameBorder="0"
             allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
             loading="lazy"
@@ -56,43 +54,43 @@ const Ddergo = () => {
           />
         </motion.div>
 
-        {/* Track Listing */}
+        {/* Open in Spotify */}
         <motion.div
-          className="glass-card p-8"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-display text-2xl text-foreground">Track Listing</h2>
-            <a
-              href="https://open.spotify.com/playlist/3PGFWI7Ms2PHZXbadbfhh4"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary font-body text-sm inline-flex items-center gap-1 hover:underline"
-            >
-              Open in Spotify <ExternalLink className="w-3 h-3" />
-            </a>
+          <motion.a
+            href="https://open.spotify.com/playlist/7i3AcSKszKG5lNrTvBtzD8"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 px-8 py-4 bg-[#1DB954] text-white font-display text-lg rounded-full"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Headphones className="w-5 h-5" />
+            Open Full Playlist
+            <ExternalLink className="w-4 h-4" />
+          </motion.a>
+        </motion.div>
+
+        {/* Vibes section */}
+        <motion.div
+          className="glass-card p-8 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
+              <Music className="w-6 h-6 text-primary" />
+            </motion.div>
+            <h2 className="font-display text-xl text-foreground">Community Vibes</h2>
           </div>
-          <div className="space-y-1">
-            {tracks.map((track, i) => (
-              <motion.div
-                key={i}
-                className="flex items-center gap-4 py-3 px-4 rounded-xl hover:bg-secondary/50 transition-colors group cursor-pointer"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + i * 0.05 }}
-              >
-                <span className="font-mono text-muted-foreground text-sm w-6">{i + 1}</span>
-                <Music className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                <div className="flex-1">
-                  <p className="font-body text-foreground text-sm font-semibold">{track.title}</p>
-                  <p className="font-body text-muted-foreground text-xs">{track.artist}</p>
-                </div>
-                <span className="font-mono text-muted-foreground text-xs">{track.duration}</span>
-              </motion.div>
-            ))}
-          </div>
+          <p className="font-body text-muted-foreground text-sm max-w-md mx-auto">
+            The soundtrack to the Naka Go movement. Every beat tells a story. Every track is a vibe. Hit play and feel the energy 🍦
+          </p>
         </motion.div>
       </div>
     </div>
