@@ -303,6 +303,24 @@ the three owners unless a `depends` note says otherwise.
 
 ---
 
+## 5b. Owner architecture rulings (2026-07-28, canon)
+
+- **Brand:** deep navy neon-blue canvas and glass-stride containers with
+  electric blue accents; PURPLE is the single button and action colour
+  platform wide. Dark is default; light mode is a designed first-class twin.
+- **No fees for now:** the platform charges nothing to agents or guests.
+  Nothing in any UI may claim a fee. The ledger stays ready for a future take
+  rate but records zero platform fee.
+- **Messaging trust flow:** guests DM the agent of an approved listing; text
+  and images both supported. A database trigger scans every message for
+  account numbers and payment keywords and files a flag admins review (the
+  fraud bot). Inside each chat an options sheet shows the listing's verified
+  state and lets the guest confirm they have inspected the property; product
+  copy tells guests to pay only after inspection. Payment happens directly
+  between guest and agent (e.g. account transfer), platform monitored.
+- **Wallet:** full naira wallet, ledger derived balance (never a stored
+  balance field), integer kobo, service-role writes only.
+
 ## 6. Cross-cutting invariants (never regress)
 
 Checked on every push. A break here fails the change regardless of feature value.
