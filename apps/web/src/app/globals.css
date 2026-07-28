@@ -1,0 +1,495 @@
+@import "tailwindcss";
+@import "@naijafinds/design-tokens/tokens.css";
+
+/*
+ * Bridge the semantic tokens into Tailwind so utilities and hand written CSS
+ * draw from one source. Nothing below may introduce a raw colour.
+ */
+@theme inline {
+  --color-canvas: var(--nf-surface-canvas);
+  --color-surface: var(--nf-surface-primary);
+  --color-surface-2: var(--nf-surface-secondary);
+  --color-surface-3: var(--nf-surface-elevated);
+  --color-raised: var(--nf-surface-raised);
+
+  --color-content: var(--nf-content-primary);
+  --color-content-2: var(--nf-content-secondary);
+  --color-muted: var(--nf-content-muted);
+
+  --color-brand: var(--nf-brand-primary);
+  --color-brand-strong: var(--nf-brand-primary-strong);
+  --color-brand-2: var(--nf-brand-secondary);
+  --color-accent: var(--nf-brand-accent);
+
+  --color-success: var(--nf-state-success);
+  --color-warning: var(--nf-state-warning);
+  --color-danger: var(--nf-state-error);
+  --color-info: var(--nf-state-info);
+
+  --radius-sm: var(--nf-radius-sm);
+  --radius-md: var(--nf-radius-md);
+  --radius-lg: var(--nf-radius-lg);
+  --radius-xl: var(--nf-radius-xl);
+  --radius-2xl: var(--nf-radius-2xl);
+
+  --font-sans: var(--nf-font-sans);
+}
+
+/* ---------------------------------------------------------------- base */
+
+* {
+  border-color: var(--nf-border-subtle);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background-color: var(--nf-surface-canvas);
+  color: var(--nf-content-primary);
+  font-family: var(--nf-font-sans);
+  font-size: var(--nf-text-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Every interactive element gets a visible, branded focus ring. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--nf-brand-primary);
+  outline-offset: 2px;
+  border-radius: var(--nf-radius-xs);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
+  color: #fff;
+}
+
+/* Tabular figures everywhere money or metrics appear, so columns line up. */
+.nf-numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: var(--nf-tracking-tight);
+}
+
+.nf-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 999;
+  padding: 0.75rem 1.25rem;
+  background: var(--nf-brand-primary);
+  color: #fff;
+  border-radius: 0 0 var(--nf-radius-md) 0;
+  font-weight: 600;
+}
+.nf-skip-link:focus {
+  left: 0;
+}
+
+/* -------------------------------------------------- NaijaFinds Material */
+
+/* Glass depth: floating nav, overlays, controls. */
+.nf-glass {
+  background: var(--nf-glass-fill);
+  border: 1px solid var(--nf-glass-border);
+  backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
+}
+
+/*
+ * Devices without backdrop-filter get a solid surface rather than a washed out
+ * transparent panel. This is the low end Android path, not an afterthought.
+ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nf-glass {
+    background: var(--nf-surface-elevated);
+  }
+}
+
+/* Soft depth: the default card material. */
+.nf-card {
+  background: var(--nf-surface-secondary);
+  background-image: var(--nf-gradient-surface);
+  border: 1px solid var(--nf-border-subtle);
+  border-radius: var(--nf-radius-xl);
+  box-shadow: var(--nf-shadow-card);
+}
+
+.nf-card--interactive {
+  transition:
+    transform var(--nf-duration-base) var(--nf-ease-standard),
+    border-color var(--nf-duration-base) var(--nf-ease-standard),
+    box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+}
+.nf-card--interactive:hover {
+  transform: translateY(-3px);
+  border-color: var(--nf-border-brand);
+  box-shadow: var(--nf-shadow-lifted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nf-card--interactive:hover {
+    transform: none;
+  }
+}
+
+.nf-hairline {
+  border-top: 1px solid var(--nf-border-subtle);
+}
+
+/* ------------------------------------------------------------ typography */
+
+.nf-display {
+  font-size: var(--nf-text-display);
+  line-height: 0.92;
+  font-weight: 800;
+  letter-spacing: var(--nf-tracking-display);
+}
+
+.nf-h1 {
+  font-size: var(--nf-text-h1);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: var(--nf-tracking-tight);
+}
+
+.nf-h2 {
+  font-size: var(--nf-text-h2);
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: var(--nf-tracking-tight);
+}
+
+.nf-h3 {
+  font-size: var(--nf-text-h3);
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: var(--nf-tracking-tight);
+}
+
+.nf-overline {
+  font-size: var(--nf-text-overline);
+  text-transform: uppercase;
+  letter-spacing: var(--nf-tracking-overline);
+  font-weight: 650;
+  color: var(--nf-content-muted);
+}
+
+.nf-gradient-text {
+  background: var(--nf-gradient-iridescent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --------------------------------------------------------------- buttons */
+
+.nf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: var(--nf-text-body);
+  border-radius: var(--nf-radius-md);
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    transform var(--nf-duration-fast) var(--nf-ease-standard),
+    filter var(--nf-duration-fast) var(--nf-ease-standard),
+    background-color var(--nf-duration-fast) var(--nf-ease-standard);
+}
+.nf-btn:active {
+  transform: scale(0.975);
+}
+.nf-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.nf-btn--primary {
+  background: var(--nf-gradient-brand);
+  color: var(--nf-content-on-brand);
+  box-shadow: var(--nf-glow-brand);
+}
+.nf-btn--primary:hover:not(:disabled) {
+  filter: brightness(1.09);
+}
+
+.nf-btn--glass {
+  background: var(--nf-glass-fill);
+  border: 1px solid var(--nf-glass-border);
+  color: var(--nf-content-primary);
+  backdrop-filter: blur(var(--nf-glass-blur-soft));
+  -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft));
+}
+.nf-btn--glass:hover:not(:disabled) {
+  background: var(--nf-glass-fill-strong);
+  border-color: var(--nf-border-strong);
+}
+
+.nf-btn--ghost {
+  background: transparent;
+  color: var(--nf-content-secondary);
+}
+.nf-btn--ghost:hover:not(:disabled) {
+  color: var(--nf-content-primary);
+  background: var(--nf-glass-fill);
+}
+
+.nf-btn--lg {
+  padding: 1rem 1.75rem;
+  font-size: var(--nf-text-body-lg);
+  border-radius: var(--nf-radius-lg);
+}
+
+/* ------------------------------------------------------------ form fields */
+
+.nf-field {
+  width: 100%;
+  background: var(--nf-surface-inset);
+  border: 1px solid var(--nf-border-default);
+  border-radius: var(--nf-radius-md);
+  padding: 0.875rem 1rem;
+  color: var(--nf-content-primary);
+  font-size: var(--nf-text-body);
+  transition:
+    border-color var(--nf-duration-fast) var(--nf-ease-standard),
+    box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+}
+.nf-field::placeholder {
+  color: var(--nf-content-muted);
+}
+.nf-field:focus {
+  outline: none;
+  border-color: var(--nf-brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+}
+.nf-field[aria-invalid="true"] {
+  border-color: var(--nf-state-error);
+}
+
+.nf-label {
+  display: block;
+  font-size: var(--nf-text-caption);
+  font-weight: 600;
+  color: var(--nf-content-secondary);
+  margin-bottom: 0.4rem;
+}
+
+/* ---------------------------------------------------------------- chips */
+
+.nf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--nf-radius-pill);
+  font-size: var(--nf-text-caption);
+  font-weight: 550;
+  background: var(--nf-glass-fill);
+  border: 1px solid var(--nf-glass-border);
+  color: var(--nf-content-secondary);
+  transition:
+    background-color var(--nf-duration-fast) var(--nf-ease-standard),
+    color var(--nf-duration-fast) var(--nf-ease-standard),
+    border-color var(--nf-duration-fast) var(--nf-ease-standard);
+}
+.nf-chip:hover {
+  color: var(--nf-content-primary);
+  border-color: var(--nf-border-strong);
+}
+.nf-chip[aria-pressed="true"],
+.nf-chip--active {
+  background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
+  border-color: var(--nf-border-brand);
+  color: var(--nf-content-primary);
+}
+
+.nf-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--nf-radius-pill);
+  font-size: var(--nf-text-overline);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.nf-badge--success {
+  background: var(--nf-state-success-surface);
+  color: var(--nf-state-success);
+}
+.nf-badge--brand {
+  background: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+  color: var(--nf-violet-300);
+}
+.nf-badge--warning {
+  background: var(--nf-state-warning-surface);
+  color: var(--nf-state-warning);
+}
+
+/* ----------------------------------------------------------------- logo */
+
+.nf-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.nf-logo__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+.nf-logo__word {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--nf-content-primary);
+}
+.nf-logo__word-accent {
+  background: var(--nf-gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.nf-logo__tagline {
+  font-size: 0.6875rem;
+  color: var(--nf-content-muted);
+  letter-spacing: 0.01em;
+}
+
+/* ------------------------------------------------------- ambient effects */
+
+/*
+ * The aurora field behind the hero. Pure CSS, no image payload, and it is the
+ * first thing dropped on the low end device tier.
+ */
+.nf-aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.nf-aurora::before,
+.nf-aurora::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+}
+.nf-aurora::before {
+  width: 46rem;
+  height: 46rem;
+  top: -18rem;
+  left: -10rem;
+  background: radial-gradient(circle, var(--nf-violet-600) 0%, transparent 68%);
+}
+.nf-aurora::after {
+  width: 38rem;
+  height: 38rem;
+  top: -6rem;
+  right: -12rem;
+  background: radial-gradient(circle, var(--nf-cyan-500) 0%, transparent 68%);
+}
+
+.nf-grid-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--nf-border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--nf-border-subtle) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 20%, transparent 75%);
+  opacity: 0.5;
+}
+
+/* ------------------------------------------------------------- animation */
+
+@keyframes nf-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes nf-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes nf-pulse-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+.nf-rise {
+  animation: nf-rise var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+}
+.nf-float {
+  animation: nf-float 7s var(--nf-ease-standard) infinite;
+}
+
+/*
+ * Reduced motion kills looping decorative animation outright. Entrance
+ * animations survive because their duration already collapses to 1ms, so
+ * content still appears rather than staying invisible.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .nf-float,
+  .nf-pulse-ring {
+    animation: none !important;
+  }
+}
+
+/* ------------------------------------------------------------- utilities */
+
+.nf-shell {
+  width: 100%;
+  max-width: var(--nf-content-max);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+@media (min-width: 768px) {
+  .nf-shell {
+    padding-inline: 2rem;
+  }
+}
+
+.nf-scroll-x {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nf-scroll-x::-webkit-scrollbar {
+  display: none;
+}

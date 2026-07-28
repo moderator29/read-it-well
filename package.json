@@ -1,0 +1,25 @@
+{
+  "name": "naijafinds",
+  "private": true,
+  "version": "0.1.0",
+  "description": "NaijaFinds. Nigeria-first discovery, stay, food and experience platform.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @naijafinds/web",
+    "build": "npm run build --workspace @naijafinds/web",
+    "start": "npm run start --workspace @naijafinds/web",
+    "lint": "npm run lint --workspace @naijafinds/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "overrides": {
+    "sharp": "^0.35.3",
+    "postcss": "^8.5.23"
+  }
+}
