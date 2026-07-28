@@ -80,7 +80,23 @@ export function AppRail({
         <ul className="space-y-0.5">{account.map(row)}</ul>
       </nav>
 
-      <div className="nf-card mt-4 flex items-center gap-3 p-3">
+      {/* Become an Agent, the entry point into Agent Mode from Personal Mode.
+          Reached from the rail per the design direction, so a normal user can
+          discover it without leaving the workspace (Master Rule 18). */}
+      <Link
+        href="/agents"
+        className="mt-4 flex items-center gap-3 rounded-[var(--nf-radius-lg)] border border-[color-mix(in_oklab,var(--nf-mode-agent)_40%,transparent)] p-3 transition-colors hover:bg-[color-mix(in_oklab,var(--nf-mode-agent)_10%,transparent)]"
+      >
+        <Icon name="apartment" size={34} />
+        <span className="min-w-0 flex-1 leading-tight">
+          <span className="block text-[0.8125rem] font-semibold">{t.home.agentCard.action}</span>
+          <span className="block text-[0.6875rem] text-[var(--nf-content-muted)]">
+            {t.agent.mode.manageSub}
+          </span>
+        </span>
+      </Link>
+
+      <div className="nf-card mt-2 flex items-center gap-3 p-3">
         <span
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.8125rem] font-bold text-white"
           style={{ background: "var(--nf-gradient-brand)" }}
@@ -90,7 +106,7 @@ export function AppRail({
         </span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className="block truncate text-[0.875rem] font-semibold">{userName}</span>
-          <span className="nf-badge nf-badge--brand mt-1">Personal Mode</span>
+          <span className="nf-badge nf-badge--brand mt-1">{t.agent.mode.personal}</span>
         </span>
       </div>
     </aside>
