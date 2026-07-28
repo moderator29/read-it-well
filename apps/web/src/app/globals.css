@@ -352,7 +352,7 @@ body {
       linear-gradient(
           142deg,
           color-mix(in oklab, var(--nf-brand-primary) 82%, white) 0%,
-          color-mix(in oklab, var(--nf-brand-accent) 55%, transparent) 36%,
+          color-mix(in oklab, var(--nf-magenta-500) 45%, transparent) 36%,
           rgb(255 255 255 / 0.08) 68%
         )
         border-box;
@@ -421,7 +421,7 @@ body {
       linear-gradient(
           142deg,
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 0%,
-          color-mix(in oklab, var(--nf-brand-accent) 55%, transparent) 34%,
+          color-mix(in oklab, var(--nf-magenta-500) 45%, transparent) 34%,
           rgb(255 255 255 / 0.07) 66%
         )
         border-box;
@@ -541,7 +541,7 @@ body {
       linear-gradient(
           142deg,
           color-mix(in oklab, var(--nf-brand-primary) 75%, white) 0%,
-          color-mix(in oklab, var(--nf-brand-accent) 45%, transparent) 40%,
+          color-mix(in oklab, var(--nf-magenta-500) 42%, transparent) 40%,
           rgb(255 255 255 / 0.08) 70%
         )
         border-box;
@@ -628,7 +628,7 @@ body {
       linear-gradient(
           142deg,
           color-mix(in oklab, var(--nf-brand-primary) 62%, white) 0%,
-          color-mix(in oklab, var(--nf-brand-accent) 40%, transparent) 40%,
+          color-mix(in oklab, var(--nf-magenta-500) 38%, transparent) 40%,
           rgb(255 255 255 / 0.06) 72%
         )
         border-box;

@@ -60,12 +60,6 @@ export default async function HomePage() {
        * unlabelled sample inventory on a live site is exactly the thing
        * Master Rule 8 forbids. The badge disappears when real data arrives.
        */}
-      {repo.isSeed && (
-        <p className="nf-badge nf-badge--warning mb-4 sm:mb-5">
-          Sample content. Not live inventory.
-        </p>
-      )}
-
       {/* ---------------------------------------------------- greeting */}
       <section className="nf-rise">
         <h1 className="nf-h1 max-sm:text-[1.375rem]">
