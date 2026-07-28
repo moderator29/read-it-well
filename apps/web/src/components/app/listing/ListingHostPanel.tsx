@@ -9,11 +9,20 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * Agent accounts are not connected to listings yet, so this panel shows only
  * what is true today: the listing's verification status and how to reach the
  * agent. The display name and member since rows are rendered structurally with
- * honest values rather than a fabricated identity (Master Rule 8: sample data
+ * honest values rather than a fabricated identity (Master Rule 8: seed data
  * is declared, never disguised). Real agent profiles slot straight in when the
  * agent repository joins listings to their owners.
  */
-export function ListingHostPanel({ verified, t }: { verified: boolean; t: Dictionary }) {
+export function ListingHostPanel({
+  verified,
+  t,
+  messageHref = "/messages",
+}: {
+  verified: boolean;
+  t: Dictionary;
+  /** Deep link into the conversation about this listing, when one exists. */
+  messageHref?: string;
+}) {
   return (
     <div className="nf-card p-5">
       <div className="flex items-center gap-3.5">
@@ -53,7 +62,7 @@ export function ListingHostPanel({ verified, t }: { verified: boolean; t: Dictio
         </div>
       </dl>
 
-      <Link href="/messages" className="nf-btn nf-btn--glass mt-4 w-full">
+      <Link href={messageHref} className="nf-btn nf-btn--glass mt-4 w-full">
         Message agent
       </Link>
     </div>

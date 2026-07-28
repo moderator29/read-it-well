@@ -30,7 +30,7 @@ export type Listing = {
 };
 
 export interface ListingRepository {
-  /** True when results come from local sample content rather than the platform. */
+  /** True when results come from local seed content rather than the platform. */
   readonly isSeed: boolean;
   recommended(limit?: number): Promise<Listing[]>;
   /** Single listing lookup for the detail page. Resolves null when unknown. */

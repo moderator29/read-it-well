@@ -24,12 +24,27 @@ function loadRead(): string[] {
   }
 }
 
-/** "2026-07-28T09:14" to "09:14"; deterministic, so no hydration drift. */
-function timeLabel(sentAt: string): string {
-  return sentAt.slice(11, 16);
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * "2026-07-28T09:14" renders as "09:14" when it falls on `today` and as
+ * "26 Jul" otherwise. Pure string work on the server-provided date, so the
+ * server and client always paint the same label.
+ */
+function whenLabel(sentAt: string, today: string): string {
+  if (sentAt.startsWith(today)) return sentAt.slice(11, 16);
+  const month = MONTHS[Number(sentAt.slice(5, 7)) - 1] ?? "";
+  return `${Number(sentAt.slice(8, 10))} ${month}`;
 }
 
-export function ConversationList({ conversations }: { conversations: ConversationSummary[] }) {
+export function ConversationList({
+  conversations,
+  today,
+}: {
+  conversations: ConversationSummary[];
+  /** Server-resolved local date, `YYYY-MM-DD`. */
+  today: string;
+}) {
   const [read, setRead] = useState<string[]>([]);
 
   useEffect(() => {
@@ -64,7 +79,7 @@ export function ConversationList({ conversations }: { conversations: Conversatio
                 <span className="flex items-baseline justify-between gap-3">
                   <span className="truncate text-[0.9063rem] font-semibold">{c.agentName}</span>
                   <span className="nf-numeric shrink-0 text-[0.7rem] text-[var(--nf-content-muted)]">
-                    {timeLabel(c.lastMessageAt)}
+                    {whenLabel(c.lastMessageAt, today)}
                   </span>
                 </span>
                 <span className="mt-0.5 block truncate text-[0.75rem] text-[var(--nf-content-muted)]">

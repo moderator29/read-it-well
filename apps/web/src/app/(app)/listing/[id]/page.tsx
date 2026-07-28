@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getDictionary, type Locale } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
+import { getMessageRepository } from "@/lib/messages/repository";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
@@ -70,6 +71,11 @@ export default async function ListingDetailPage({
 
   const listing = await getListingRepository().byId(id);
   if (!listing) notFound();
+
+  // Message agent deep links into the existing thread about this listing when
+  // one exists, and otherwise lands on the conversation list.
+  const conversationId = await getMessageRepository().conversationIdForListing(listing.id);
+  const messageHref = conversationId ? `/messages/${conversationId}` : "/messages";
 
   const kind = KIND_LABEL[listing.kind];
   const amenityNames: Record<string, string> = {
@@ -157,7 +163,7 @@ export default async function ListingDetailPage({
 
           {/* ------------------------------------- booking panel, mobile */}
           <div className="mt-6 lg:hidden">
-            <ListingPriceCard listing={listing} locale={locale} t={t} />
+            <ListingPriceCard listing={listing} locale={locale} t={t} messageHref={messageHref} />
           </div>
 
           {/* ------------------------------------------------- amenities */}
@@ -188,7 +194,7 @@ export default async function ListingDetailPage({
           {/* ------------------------------------------------ host panel */}
           <Reveal as="section" className="mt-8" delay={40}>
             <h3 className="nf-h3 mb-3.5">Hosted by</h3>
-            <ListingHostPanel verified={listing.verified} t={t} />
+            <ListingHostPanel verified={listing.verified} t={t} messageHref={messageHref} />
           </Reveal>
 
           {/* --------------------------------------------------- reviews */}
@@ -205,7 +211,7 @@ export default async function ListingDetailPage({
 
         {/* --------------------------------------- booking panel, desktop */}
         <aside className="hidden lg:sticky lg:top-6 lg:block">
-          <ListingPriceCard listing={listing} locale={locale} t={t} />
+          <ListingPriceCard listing={listing} locale={locale} t={t} messageHref={messageHref} />
         </aside>
       </div>
 

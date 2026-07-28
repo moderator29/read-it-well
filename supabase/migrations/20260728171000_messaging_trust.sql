@@ -36,7 +36,8 @@ create table public.message_flags (
 
 comment on table public.message_flags is 'Messages the safety scan flagged for admin review.';
 
-create index message_flags_status_idx on public.message_flags (status);
+create index message_flags_status_idx  on public.message_flags (status);
+create index message_flags_message_idx on public.message_flags (message_id);
 
 create table public.inspection_confirmations (
   id              uuid primary key default gen_random_uuid(),
@@ -48,6 +49,11 @@ create table public.inspection_confirmations (
 );
 
 comment on table public.inspection_confirmations is 'A guest''s in-chat confirmation that they have inspected the property.';
+
+-- The unique pair above already covers conversation_id lookups; the other two
+-- foreign keys get their own covering indexes.
+create index inspection_confirmations_user_idx    on public.inspection_confirmations (user_id);
+create index inspection_confirmations_listing_idx on public.inspection_confirmations (listing_id);
 
 -- Safety scan. Runs after every message insert and records a flag when the
 -- body contains a 10-digit run or payment talk. The function lives in private

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatMessage, ConversationThread } from "@/lib/messages/types";
 import { PageHeader } from "@/components/app/PageHeader";
-import { Icon } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ListingOptionsSheet } from "./ListingOptionsSheet";
 
@@ -136,9 +135,20 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
             onClick={() => setSheetOpen(true)}
             className="nf-icon-btn h-9 w-9 sm:h-10 sm:w-10"
           >
-            <span className="h-6 w-6">
-              <Icon name="secure" fill />
-            </span>
+            <svg
+              width={18}
+              height={18}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="8.6" />
+              <path d="M12 11.2v5" />
+              <circle cx="12" cy="7.9" r="0.5" fill="currentColor" stroke="none" />
+            </svg>
           </button>
         }
       />
@@ -167,7 +177,8 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
         {messages.map((m) =>
           m.author === "guest" ? (
             <div key={m.id} className="nf-rise flex justify-end">
-              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-4 py-2.5 text-white">
+              {/* Deep blue keeps white body text readable at chat sizes. */}
+              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-4 py-2.5 text-white">
                 {m.image && (
                   /* Object URLs cannot go through the image optimiser. */
                   // eslint-disable-next-line @next/next/no-img-element

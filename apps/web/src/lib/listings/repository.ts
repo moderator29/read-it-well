@@ -10,12 +10,12 @@ import type { Listing, ListingRepository } from "./types";
  * here and touches no component (Master Rules 8 and 66).
  *
  * Selected by NF_DATA_SOURCE:
- *   "seed" (default) local sample content, clearly flagged in the UI
+ *   "seed" (default) local seed content, clearly flagged in the UI
  *   "api"            the real platform API, which is not built yet
  */
 
 /**
- * Sample content for layout and design work.
+ * Seed content for layout and design work.
  *
  * Prices are in kobo. These are illustrative and are never presented to a user
  * as live inventory: the UI marks seed results explicitly outside production.

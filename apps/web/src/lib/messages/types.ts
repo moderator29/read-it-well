@@ -54,4 +54,9 @@ export interface MessageRepository {
   readonly isSeed: boolean;
   conversations(): Promise<ConversationSummary[]>;
   conversation(id: string): Promise<ConversationThread | null>;
+  /**
+   * The guest's conversation about a listing, if one exists. Lets the listing
+   * page deep link "Message agent" straight into the thread.
+   */
+  conversationIdForListing(listingId: string): Promise<string | null>;
 }

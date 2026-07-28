@@ -15,10 +15,16 @@ export const metadata: Metadata = { title: "Messages" };
 export default async function MessagesPage() {
   const conversations = await getMessageRepository().conversations();
 
+  // Today's date in the same local `YYYY-MM-DD` shape the timestamps use, so
+  // the list can show a time for today and a date for older conversations.
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Messages" subtitle="Chat with agents about their listings" />
-      <ConversationList conversations={conversations} />
+      <ConversationList conversations={conversations} today={today} />
     </div>
   );
 }

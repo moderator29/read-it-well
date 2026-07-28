@@ -3,7 +3,15 @@ import { notFound } from "next/navigation";
 import { MessageThread } from "@/components/app/messages/MessageThread";
 import { getMessageRepository } from "@/lib/messages/repository";
 
-export const metadata: Metadata = { title: "Conversation" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const thread = await getMessageRepository().conversation(id);
+  return { title: thread?.agentName ?? "Conversation" };
+}
 
 /**
  * A single conversation thread.

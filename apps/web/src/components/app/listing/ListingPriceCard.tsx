@@ -15,10 +15,13 @@ export function ListingPriceCard({
   listing,
   locale,
   t,
+  messageHref = "/messages",
 }: {
   listing: Listing;
   locale: Locale;
   t: Dictionary;
+  /** Deep link into the conversation about this listing, when one exists. */
+  messageHref?: string;
 }) {
   return (
     <div className="nf-card p-5">
@@ -40,7 +43,7 @@ export function ListingPriceCard({
         <Link href="/bookings" className="nf-btn nf-btn--primary w-full">
           Reserve
         </Link>
-        <Link href="/messages" className="nf-btn nf-btn--glass w-full">
+        <Link href={messageHref} className="nf-btn nf-btn--glass w-full">
           Message agent
         </Link>
       </div>
