@@ -14,12 +14,12 @@ export const metadata: Metadata = { title: "Wallet" };
 /**
  * Wallet.
  *
- * Balance hero, action row, then history. The balance and every entry come
- * from the wallet repository, which derives money from the ledger and never
- * invents a figure: a fresh account shows ₦0.00 and an empty history, which is
- * the truth (Master Rules 8 and 50). Add money, Withdraw and Transfer validate
- * for real on the server and say honestly that money moves once the payment
- * environment is connected.
+ * Balance hero, action deck, day-grouped history, trust strip. The balance
+ * and every entry come from the wallet repository, which derives money from
+ * the ledger with integer kobo arithmetic and never invents a figure (Master
+ * Rules 8 and 50). Add money, Withdraw and Transfer validate for real on the
+ * server and say honestly that money moves once the payment environment is
+ * connected.
  */
 export default async function WalletPage() {
   const locale = await getLocale();
@@ -31,7 +31,11 @@ export default async function WalletPage() {
       <PageHeader title={t.nav.wallet} />
 
       <Reveal>
-        <BalanceCard balanceMinor={wallet.balanceMinor} locale={locale} />
+        <BalanceCard
+          balanceMinor={wallet.balanceMinor}
+          entries={wallet.entries}
+          locale={locale}
+        />
       </Reveal>
 
       <Reveal delay={80} className="mt-4">
