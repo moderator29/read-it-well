@@ -16,20 +16,20 @@
    * ------------------------------------------------------------------ */
 
   /* Deep space neutrals, navy biased: the neon-blue night surface */
-  --nf-ink-950: #030509;
-  --nf-ink-900: #05070F;
-  --nf-ink-850: #070A14;
-  --nf-ink-800: #0A0E1A;
-  --nf-ink-750: #0D1322;
-  --nf-ink-700: #111A2E;
-  --nf-ink-600: #17233C;
-  --nf-ink-500: #22334F;
+  --nf-ink-950: #050816;
+  --nf-ink-900: #070B1A;
+  --nf-ink-850: #090E24;
+  --nf-ink-800: #0A0F2E;
+  --nf-ink-750: #0E1638;
+  --nf-ink-700: #131D48;
+  --nf-ink-600: #1B2860;
+  --nf-ink-500: #283A7E;
 
-  --nf-mist-100: #F4F8FF;
-  --nf-mist-200: #DDE7F6;
-  --nf-mist-300: #B9CBE4;
-  --nf-mist-400: #8FA5C6;
-  --nf-mist-500: #6E829E;
+  --nf-mist-100: #FFFFFF;
+  --nf-mist-200: #E4EAFF;
+  --nf-mist-300: #D5DEFF;
+  --nf-mist-400: #B4C0E0;
+  --nf-mist-500: #8E9CC4;
 
   /* Brand violet */
   --nf-violet-300: #C4B5FD;
@@ -43,19 +43,22 @@
   --nf-royal-500: #2B3FE0;
   --nf-royal-600: #2130C0;
   --nf-royal-700: #1A2596;
-  --nf-electric-300: #93C5FD;
-  --nf-electric-400: #60A5FA;
-  --nf-electric-500: #3B82F6;
-  --nf-electric-600: #2563EB;
-  --nf-electric-700: #1D4ED8;
-  --nf-cyan-400: #22D3EE;
+  --nf-electric-300: #7FB6FF;
+  --nf-electric-400: #338AFF;
+  --nf-electric-500: #0066FF;
+  --nf-electric-600: #1230B3;
+  --nf-electric-700: #0B1B70;
+  --nf-cyan-400: #00C8FF;
   --nf-cyan-500: #06B6D4;
+  --nf-crimson-400: #FF1744;
+  --nf-crimson-500: #DC143C;
+  --nf-gold-400: #FFD86B;
   --nf-magenta-400: #F472B6;
   --nf-magenta-500: #EC4899;
   --nf-amber-400: #FBBF24;
   --nf-orange-500: #F97316;
-  --nf-emerald-400: #34D399;
-  --nf-rose-400: #FB7185;
+  --nf-emerald-400: #10B981;
+  --nf-rose-400: #FF1744;
   --nf-sky-400: #38BDF8;
 
   /* ---------------------------------------------------------------------
@@ -63,19 +66,19 @@
    * ------------------------------------------------------------------ */
 
   /* Brand */
-  --nf-brand-primary: var(--nf-royal-500);
-  --nf-brand-primary-strong: var(--nf-royal-600);
-  --nf-brand-primary-soft: color-mix(in oklab, var(--nf-royal-500) 16%, transparent);
+  --nf-brand-primary: var(--nf-electric-500);
+  --nf-brand-primary-strong: var(--nf-electric-600);
+  --nf-brand-primary-soft: color-mix(in oklab, var(--nf-electric-500) 16%, transparent);
   --nf-brand-secondary: var(--nf-cyan-400);
   --nf-brand-accent: var(--nf-electric-400);
 
   /* Mode accents. Personal is violet, Agent is orange, Admin is cyan. */
-  --nf-mode-personal: var(--nf-royal-500);
+  --nf-mode-personal: var(--nf-electric-500);
   --nf-mode-agent: var(--nf-orange-500);
   --nf-mode-admin: var(--nf-cyan-400);
 
   /* Surfaces */
-  --nf-surface-canvas: var(--nf-ink-950);
+  --nf-surface-canvas: #060A12;
   --nf-surface-primary: var(--nf-ink-900);
   --nf-surface-secondary: var(--nf-ink-850);
   --nf-surface-elevated: var(--nf-ink-800);
@@ -140,7 +143,8 @@
     #F97316 80%,
     #FBBF24 100%
   );
-  --nf-gradient-brand: linear-gradient(135deg, var(--nf-royal-600) 0%, var(--nf-royal-500) 55%, var(--nf-electric-500) 100%);
+  --nf-gradient-brand: linear-gradient(135deg, var(--nf-cyan-400) 0%, var(--nf-electric-500) 100%);
+  --nf-gradient-cta: linear-gradient(135deg, #0066FF 0%, #DC143C 100%);
   --nf-gradient-iridescent: linear-gradient(
     135deg,
     var(--nf-cyan-400) 0%,
@@ -159,7 +163,7 @@
    * and alive rather than printed. These are the ingredients; the motion lives
    * in the `nf-ambient` layer in globals.css.
    * ------------------------------------------------------------------ */
-  --nf-canvas-base: radial-gradient(140% 120% at 50% -10%, #0A1B42 0%, #061026 45%, #030509 100%);
+  --nf-canvas-base: #050816;
   --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-500) 92%, transparent) 0%, transparent 62%);
   --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-600) 85%, transparent) 0%, transparent 62%);
   --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-500) 80%, transparent) 0%, transparent 62%);
@@ -181,8 +185,8 @@
   --nf-radius-xs: 6px;
   --nf-radius-sm: 10px;
   --nf-radius-md: 14px;
-  --nf-radius-lg: 16px;
-  --nf-radius-xl: 20px;
+  --nf-radius-lg: 18px;
+  --nf-radius-xl: 22px;
   --nf-radius-2xl: 32px;
   --nf-radius-pill: 999px;
 
