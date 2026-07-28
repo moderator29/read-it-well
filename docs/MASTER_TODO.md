@@ -47,8 +47,12 @@ code conflict, confirmed with `git merge-tree`. A safety branch
 `backup/feat-pre-rebase` preserves the pre-rebase tip.
 
 **Supabase:** project `uccixoonmbhrnyczyigt` is connected, `ACTIVE_HEALTHY`,
-Postgres 17, region eu-west-1. Public schema is **empty**: zero tables, zero
-migrations. Database work is greenfield.
+Postgres 17, region eu-west-1. The backend spine is landed: 4 migrations, 3
+tables (`profiles`, `user_roles`, `states`), RLS on all three, a private-schema
+role helper, and 37 seeded states. Security advisor is clean of all
+project-authored functions (one pre-existing platform event-trigger warning
+remains, not ours). Generated types live at
+`apps/web/src/lib/supabase/database.types.ts`.
 
 **What is live in the web app (20 routes):**
 
@@ -209,15 +213,15 @@ the three owners unless a `depends` note says otherwise.
 | P0-6 | Git conflict resolution + clean authorship | ADMIN/QA | DONE | `git log`, audits | linear on main, no trailers |
 | P0-7 | This MASTER_TODO | ADMIN/QA | IN PROGRESS | file present | organised plan exists |
 
-### Phase 1: Backend spine  (STATUS: READY, greenfield DB)
+### Phase 1: Backend spine  (STATUS: IN PROGRESS)
 
 | ID | Task | Owner | Status | Depends | Verify | DoD |
 |---|---|---|---|---|---|---|
-| P1-1 | Supabase migrations: identity + location tables | BACKEND | READY | B-07 | `list_tables`, `list_migrations` | tables exist with RLS |
-| P1-2 | RLS policies + cross-tenant isolation tests | BACKEND | READY | P1-1 | test run | one user cannot read another's rows |
-| P1-3 | Branded Supabase auth email templates (5) | BACKEND+FRONTEND | READY | none | render preview | NaijaFinds branding on all auth mails |
+| P1-1 | Supabase migrations: identity + location tables | BACKEND | PARTIAL | B-07 | `list_tables`, `list_migrations` | profiles, user_roles, states done with RLS; agents/listings/etc pending |
+| P1-2 | RLS policies + cross-tenant isolation tests | BACKEND | PARTIAL | P1-1 | advisor + test run | policies live; automated isolation test still to add |
+| P1-3 | Branded Supabase auth email templates (5) | BACKEND+FRONTEND | DONE | none | files render | 5 branded templates + README |
 | P1-4 | Provider adapter interfaces + seed/stub impls | BACKEND | READY | none | `npm run typecheck` | `NF_*` switches resolve |
-| P1-5 | Generate TS types from DB, wire repositories | BACKEND | READY | P1-1 | `generate_typescript_types` | repos read real schema |
+| P1-5 | Generate TS types from DB, wire repositories | BACKEND | PARTIAL | P1-1 | `generate_typescript_types` | types generated; repos still to wire |
 
 ### Phase 2: Auth and identity  (STATUS: READY)
 
@@ -321,3 +325,9 @@ Checked on every push. A break here fails the change regardless of feature value
 - 2026-07-28: Verified build health (typecheck, build, em dash, attribution,
   secret, authorship all clean). Confirmed Supabase connected and empty.
 - 2026-07-28: Authored this Master TODO.
+- 2026-07-28: Shipped five branded Supabase auth email templates plus a
+  generator and README (P1-3 done).
+- 2026-07-28: Landed the backend spine: identity core (`profiles`, `user_roles`,
+  RLS, signup trigger, private-schema role helper) and `states` (37 seeded), 4
+  migrations. Hardened function grants; security advisor clean of all
+  project-authored functions. Generated and stored DB types.
