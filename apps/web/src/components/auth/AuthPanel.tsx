@@ -170,7 +170,7 @@ export function AuthPanel({
         {isSignUp ? t.auth.haveAccount : t.auth.noAccount}{" "}
         <Link
           href={isSignUp ? "/sign-in" : "/sign-up"}
-          className="font-semibold text-[var(--nf-violet-300)] underline-offset-4 hover:underline"
+          className="font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
         >
           {isSignUp ? t.common.signIn : t.common.signUp}
         </Link>

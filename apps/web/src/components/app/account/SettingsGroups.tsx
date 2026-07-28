@@ -95,7 +95,7 @@ export function LanguageCard({ current }: { current: Locale }) {
             >
               <span className="nf-badge w-11 justify-center">{localeMeta[code].short}</span>
               <span className="min-w-0 flex-1">
-                <span className={`block text-[0.9375rem] font-medium ${active ? "text-[var(--nf-violet-300)]" : ""}`}>
+                <span className={`block text-[0.9375rem] font-medium ${active ? "text-[var(--nf-electric-300)]" : ""}`}>
                   {localeMeta[code].native}
                 </span>
                 {localeMeta[code].label !== localeMeta[code].native && (

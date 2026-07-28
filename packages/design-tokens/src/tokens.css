@@ -39,8 +39,11 @@
   --nf-violet-700: #6D28D9;
 
   /* Supporting accents, used as controlled accents and never as wallpaper */
+  --nf-electric-300: #93C5FD;
   --nf-electric-400: #60A5FA;
   --nf-electric-500: #3B82F6;
+  --nf-electric-600: #2563EB;
+  --nf-electric-700: #1D4ED8;
   --nf-cyan-400: #22D3EE;
   --nf-cyan-500: #06B6D4;
   --nf-magenta-400: #F472B6;
@@ -56,14 +59,14 @@
    * ------------------------------------------------------------------ */
 
   /* Brand */
-  --nf-brand-primary: var(--nf-violet-500);
-  --nf-brand-primary-strong: var(--nf-violet-600);
-  --nf-brand-primary-soft: color-mix(in oklab, var(--nf-violet-500) 16%, transparent);
-  --nf-brand-secondary: var(--nf-magenta-500);
+  --nf-brand-primary: var(--nf-electric-500);
+  --nf-brand-primary-strong: var(--nf-electric-600);
+  --nf-brand-primary-soft: color-mix(in oklab, var(--nf-electric-500) 16%, transparent);
+  --nf-brand-secondary: var(--nf-cyan-400);
   --nf-brand-accent: var(--nf-electric-400);
 
   /* Mode accents. Personal is violet, Agent is orange, Admin is cyan. */
-  --nf-mode-personal: var(--nf-violet-500);
+  --nf-mode-personal: var(--nf-electric-500);
   --nf-mode-agent: var(--nf-orange-500);
   --nf-mode-admin: var(--nf-cyan-400);
 
@@ -85,7 +88,7 @@
   --nf-border-subtle: rgb(255 255 255 / 0.08);
   --nf-border-default: rgb(255 255 255 / 0.13);
   --nf-border-strong: rgb(255 255 255 / 0.22);
-  --nf-border-brand: color-mix(in oklab, var(--nf-violet-500) 55%, transparent);
+  --nf-border-brand: color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
 
   /* State */
   --nf-state-success: var(--nf-emerald-400);
@@ -133,13 +136,13 @@
     #F97316 80%,
     #FBBF24 100%
   );
-  --nf-gradient-brand: linear-gradient(135deg, var(--nf-violet-600) 0%, var(--nf-violet-500) 45%, var(--nf-magenta-500) 100%);
+  --nf-gradient-brand: linear-gradient(135deg, var(--nf-electric-600) 0%, var(--nf-electric-500) 45%, var(--nf-cyan-400) 100%);
   --nf-gradient-iridescent: linear-gradient(
     135deg,
     var(--nf-cyan-400) 0%,
-    var(--nf-violet-400) 32%,
-    var(--nf-magenta-400) 64%,
-    var(--nf-amber-400) 100%
+    var(--nf-electric-400) 38%,
+    var(--nf-sky-400) 70%,
+    var(--nf-electric-300) 100%
   );
   --nf-gradient-agent: linear-gradient(135deg, #FB923C 0%, var(--nf-orange-500) 100%);
   --nf-gradient-surface: linear-gradient(180deg, rgb(255 255 255 / 0.045) 0%, rgb(255 255 255 / 0.012) 100%);
@@ -154,7 +157,7 @@
    * ------------------------------------------------------------------ */
   --nf-canvas-base: radial-gradient(140% 120% at 50% -10%, #0A1B42 0%, #061026 45%, #030816 100%);
   --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-500) 92%, transparent) 0%, transparent 62%);
-  --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-violet-600) 85%, transparent) 0%, transparent 62%);
+  --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-600) 85%, transparent) 0%, transparent 62%);
   --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-500) 80%, transparent) 0%, transparent 62%);
 
   /* ---------------------------------------------------------------------
@@ -164,8 +167,8 @@
   --nf-shadow-card: 0 4px 20px -4px rgb(0 0 0 / 0.55), 0 1px 2px rgb(0 0 0 / 0.4);
   --nf-shadow-lifted: 0 18px 48px -12px rgb(0 0 0 / 0.7), 0 4px 12px rgb(0 0 0 / 0.4);
   --nf-shadow-float: 0 32px 80px -16px rgb(0 0 0 / 0.8);
-  --nf-glow-brand: 0 0 0 1px color-mix(in oklab, var(--nf-violet-500) 35%, transparent),
-                   0 12px 40px -8px color-mix(in oklab, var(--nf-violet-500) 55%, transparent);
+  --nf-glow-brand: 0 0 0 1px color-mix(in oklab, var(--nf-electric-500) 35%, transparent),
+                   0 12px 40px -8px color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
   --nf-glow-accent: 0 12px 40px -10px color-mix(in oklab, var(--nf-cyan-400) 45%, transparent);
 
   /* ---------------------------------------------------------------------
@@ -285,7 +288,7 @@
   /* Daylight canvas: soft sky field, gentle blooms. */
   --nf-canvas-base: radial-gradient(140% 120% at 50% -10%, #DCE9FC 0%, #EFF5FE 45%, #FFFFFF 100%);
   --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-400) 30%, transparent) 0%, transparent 62%);
-  --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-violet-400) 24%, transparent) 0%, transparent 62%);
+  --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-sky-400) 24%, transparent) 0%, transparent 62%);
   --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-400) 20%, transparent) 0%, transparent 62%);
 }
 

@@ -83,7 +83,7 @@ export function MobileMenu({
                     <Link
                       href={l.href}
                       onClick={() => setOpen(false)}
-                      className="flex items-center justify-between py-4 text-[1rem] font-semibold text-[var(--nf-content-primary)] transition-colors hover:text-[var(--nf-violet-300)]"
+                      className="flex items-center justify-between py-4 text-[1rem] font-semibold text-[var(--nf-content-primary)] transition-colors hover:text-[var(--nf-electric-300)]"
                     >
                       {l.label}
                       <UiIcon name="arrow-right" size={14} className="text-[var(--nf-content-muted)]" />

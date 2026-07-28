@@ -56,7 +56,7 @@ export function ConversationList({ conversations }: { conversations: Conversatio
             >
               <span
                 aria-hidden="true"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.9375rem] font-bold text-[var(--nf-violet-300)]"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.9375rem] font-bold text-[var(--nf-electric-300)]"
               >
                 {c.agentName.charAt(0)}
               </span>

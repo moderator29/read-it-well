@@ -110,7 +110,7 @@ export default async function AgentDashboardPage() {
         <section className="nf-card p-4 sm:p-5">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="nf-h3">{a.recentBookings}</h2>
-            <Link href="/agent/bookings" className="text-[0.8125rem] font-semibold text-[var(--nf-violet-300)] hover:underline">
+            <Link href="/agent/bookings" className="text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] hover:underline">
               {t.common.viewAll}
             </Link>
           </div>
@@ -234,7 +234,7 @@ export default async function AgentDashboardPage() {
           <section className="nf-card p-4 sm:p-5">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="nf-h3">{a.guestMessages}</h2>
-              <Link href="/agent/messages" className="text-[0.8125rem] font-semibold text-[var(--nf-violet-300)] hover:underline">
+              <Link href="/agent/messages" className="text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] hover:underline">
                 {t.common.viewAll}
               </Link>
             </div>

@@ -187,7 +187,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
             <div key={m.id} className="nf-rise flex items-end gap-2.5">
               <span
                 aria-hidden="true"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-violet-300)]"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-electric-300)]"
               >
                 {thread.agentName.charAt(0)}
               </span>

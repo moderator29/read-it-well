@@ -114,7 +114,7 @@ function EntryRow({ entry, locale }: { entry: WalletEntry; locale: Locale }) {
   return (
     <li className="flex items-center gap-3 px-4 py-3.5">
       <span className="h-7 w-7 shrink-0">
-        <Icon name={KIND_ICON[entry.kind]} fill ramp={credit ? "emerald" : "violet"} />
+        <Icon name={KIND_ICON[entry.kind]} fill ramp={credit ? "emerald" : "sky"} />
       </span>
       <span className="min-w-0 flex-1 leading-tight">
         <span className="block truncate text-[0.875rem] font-semibold">

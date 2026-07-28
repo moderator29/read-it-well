@@ -124,7 +124,7 @@ export function ListingGallery({ title, hue }: { title: string; hue: number }) {
               aria-pressed={i === active}
               className={`relative block h-14 w-20 overflow-hidden rounded-xl border transition-shadow sm:h-16 sm:w-24 ${
                 i === active
-                  ? "border-transparent ring-2 ring-[var(--nf-violet-300)]"
+                  ? "border-transparent ring-2 ring-[var(--nf-electric-300)]"
                   : "border-[var(--nf-border-subtle)] opacity-80 hover:opacity-100"
               }`}
               style={{ background: `linear-gradient(${s.angle}deg, ${from} 0%, ${to} 100%)` }}
