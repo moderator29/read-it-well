@@ -84,7 +84,7 @@ export default async function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{if(localStorage.getItem('nf_theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}",
+              "try{var t=localStorage.getItem('nf_theme');if(t==='light'||(!t&&matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.dataset.theme='light'}catch(e){}",
           }}
         />
         {/* The living canvas, mounted once behind every page. */}

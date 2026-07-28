@@ -270,34 +270,39 @@
  * Tracked in KNOWN_GAPS.md before it is exposed to users.
  */
 :root[data-theme="light"] {
-  --nf-surface-canvas: #FFFFFF;
-  --nf-surface-primary: #F7FAFF;
-  --nf-surface-secondary: #EFF4FC;
+  --nf-surface-canvas: #F3F7FD;
+  --nf-surface-primary: #FBFDFF;
+  --nf-surface-secondary: #FFFFFF;
   --nf-surface-elevated: #FFFFFF;
-  --nf-surface-raised: #FFFFFF;
-  --nf-surface-inset: #E9F0FA;
+  --nf-surface-raised: #F2F6FC;
+  --nf-surface-inset: #E9F0F9;
 
-  --nf-content-primary: #0B1B33;
-  --nf-content-secondary: #3A5375;
-  --nf-content-muted: #6E829E;
+  --nf-content-primary: #0A1626;
+  --nf-content-secondary: #3D5170;
+  --nf-content-muted: #68799B;
+  --nf-content-on-brand: #FFFFFF;
 
-  --nf-border-subtle: rgb(20 16 42 / 0.08);
-  --nf-border-default: rgb(20 16 42 / 0.14);
-  --nf-border-strong: rgb(20 16 42 / 0.24);
+  /* Slightly deeper blue so the brand holds contrast on paper. */
+  --nf-brand-primary: #0057DB;
+  --nf-brand-primary-strong: #1230B3;
 
-  --nf-glass-fill: rgb(255 255 255 / 0.7);
-  --nf-glass-fill-strong: rgb(255 255 255 / 0.85);
-  --nf-glass-border: rgb(20 16 42 / 0.1);
+  --nf-border-subtle: rgb(10 22 38 / 0.08);
+  --nf-border-default: rgb(10 22 38 / 0.14);
+  --nf-border-strong: rgb(10 22 38 / 0.24);
 
-  --nf-shadow-card: 0 4px 20px -6px rgb(11 27 51 / 0.12), 0 1px 2px rgb(11 27 51 / 0.05);
-  --nf-shadow-lifted: 0 18px 48px -14px rgb(11 27 51 / 0.18);
-  --nf-shadow-float: 0 32px 80px -20px rgb(11 27 51 / 0.22);
+  --nf-glass-fill: rgb(255 255 255 / 0.72);
+  --nf-glass-fill-strong: rgb(255 255 255 / 0.86);
+  --nf-glass-border: rgb(10 22 38 / 0.1);
 
-  /* Daylight canvas: soft sky field, gentle blooms. */
-  --nf-canvas-base: radial-gradient(140% 120% at 50% -10%, #DCE9FC 0%, #EFF5FE 45%, #FFFFFF 100%);
-  --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-400) 30%, transparent) 0%, transparent 62%);
-  --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-sky-400) 24%, transparent) 0%, transparent 62%);
-  --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-400) 20%, transparent) 0%, transparent 62%);
+  --nf-shadow-card: 0 4px 20px -6px rgb(10 22 38 / 0.1), 0 1px 2px rgb(10 22 38 / 0.05);
+  --nf-shadow-lifted: 0 18px 48px -14px rgb(10 22 38 / 0.16);
+  --nf-shadow-float: 0 32px 80px -20px rgb(10 22 38 / 0.2);
+
+  /* Daylight canvas: airy sky wash, calm blooms. */
+  --nf-canvas-base: #F3F7FD;
+  --nf-canvas-bloom-1: radial-gradient(circle, rgb(0 102 255 / 0.16) 0%, transparent 62%);
+  --nf-canvas-bloom-2: radial-gradient(circle, rgb(0 200 255 / 0.12) 0%, transparent 62%);
+  --nf-canvas-bloom-3: radial-gradient(circle, rgb(18 48 179 / 0.1) 0%, transparent 62%);
 }
 
 /*
