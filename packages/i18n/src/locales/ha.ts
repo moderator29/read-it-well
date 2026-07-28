@@ -72,10 +72,10 @@ export const ha: Dictionary = {
     },
     trust: {
       multiLanguage: { title: "Harsuna da yawa", body: "EN / YO / HA / IG" },
-      secure: { title: "Tsaro da aminci", body: "Tsaronka shi ne fifikonmu" },
+      secure: { title: "Tsaro & Aminci", body: "Tsaronka shi ne fifikonmu" },
       ai: { title: "Ƙarfin AI", body: "Kwarewa mai wayo" },
-      africa: { title: "An yi don Afirka", body: "An gina da kulawa" },
-      stores: { title: "Ana samu a", body: "App Store da Play Store" },
+      africa: { title: "An yi don Afirka", body: "An gina da so ❤️" },
+      stores: { title: "Ana samu a", body: "App Store & Play Store" },
     },
     categories: {
       title: "Komai, a wuri guda",

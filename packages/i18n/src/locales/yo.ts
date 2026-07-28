@@ -72,10 +72,10 @@ export const yo: Dictionary = {
     },
     trust: {
       multiLanguage: { title: "Èdè púpọ̀", body: "EN / YO / HA / IG" },
-      secure: { title: "Ààbò àti ìgbẹ́kẹ̀lé", body: "Ààbò rẹ ni àkọ́kọ́ wa" },
+      secure: { title: "Ààbò & Ìgbẹ́kẹ̀lé", body: "Ààbò rẹ ni àkọ́kọ́ wa" },
       ai: { title: "Agbára AI", body: "Ìrírí ọlọ́gbọ́n" },
-      africa: { title: "Fún Áfíríkà", body: "Tí a kọ́ pẹ̀lú ìtọ́jú" },
-      stores: { title: "Wà lórí", body: "App Store àti Play Store" },
+      africa: { title: "Fún Áfíríkà", body: "Tí a kọ́ pẹ̀lú ìfẹ́ ❤️" },
+      stores: { title: "Wà lórí", body: "App Store & Play Store" },
     },
     categories: {
       title: "Gbogbo rẹ̀, ní ibì kan",
