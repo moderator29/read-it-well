@@ -108,9 +108,9 @@ body {
  * Everything below is a component class and lives in the components layer.
  *
  * This matters: Tailwind emits utilities in a later cascade layer, so an
- * unlayered `.nf-chip { display: inline-flex }` would beat `hidden` on the same
- * element and silently win. Layering them keeps utilities authoritative, which
- * is what anyone reading the markup will assume.
+ * unlayered chip display rule would beat `hidden` on the same element and
+ * silently win. Layering them keeps utilities authoritative, which is what
+ * anyone reading the markup will assume.
  */
 @layer components {
   /* -------------------------------------------------- NaijaFinds Material */
@@ -393,15 +393,8 @@ body {
     font-weight: 650;
     cursor: pointer;
     border: 1px solid transparent;
-    background:
-      linear-gradient(180deg, color-mix(in oklab, var(--nf-electric-500) 34%, transparent) 0%, color-mix(in oklab, var(--nf-electric-700) 30%, transparent) 100%) padding-box,
-      linear-gradient(
-          142deg,
-          color-mix(in oklab, var(--nf-brand-primary) 85%, white) 0%,
-          color-mix(in oklab, var(--nf-electric-400) 50%, transparent) 34%,
-          rgb(255 255 255 / 0.07) 66%
-        )
-        border-box;
+    background: rgb(255 255 255 / 0.04);
+    border: 1.5px solid rgb(255 255 255 / 0.14);
     backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
     box-shadow:
@@ -512,29 +505,16 @@ body {
     border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
     cursor: pointer;
-    border: 1px solid transparent;
-    background:
-      linear-gradient(180deg, rgb(255 255 255 / 0.1) 0%, rgb(255 255 255 / 0.035) 100%) padding-box,
-      linear-gradient(
-          142deg,
-          color-mix(in oklab, var(--nf-brand-primary) 75%, white) 0%,
-          color-mix(in oklab, var(--nf-electric-400) 46%, transparent) 40%,
-          rgb(255 255 255 / 0.08) 70%
-        )
-        border-box;
-    backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.2),
-      0 6px 18px -8px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+    border: 1px solid rgb(0 102 255 / 0.45);
+    background: linear-gradient(180deg, rgb(8 12 28 / 0.9), rgb(3 5 14 / 0.95));
+    box-shadow: 0 0 10px rgb(0 102 255 / 0.22), inset 0 0 10px rgb(0 102 255 / 0.1);
     transition:
       transform var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-icon-btn:hover {
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.3),
-      0 10px 26px -8px color-mix(in oklab, var(--nf-brand-primary) 85%, transparent);
+    border-color: rgb(0 102 255 / 0.9);
+    box-shadow: 0 0 18px rgb(0 102 255 / 0.4), inset 0 0 14px rgb(0 102 255 / 0.16);
   }
   .nf-icon-btn:active {
     transform: scale(0.94);
@@ -599,19 +579,9 @@ body {
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-secondary);
-    border: 1px solid transparent;
-    background:
-      linear-gradient(180deg, rgb(255 255 255 / 0.07) 0%, rgb(255 255 255 / 0.022) 100%) padding-box,
-      linear-gradient(
-          142deg,
-          color-mix(in oklab, var(--nf-brand-primary) 62%, white) 0%,
-          color-mix(in oklab, var(--nf-electric-400) 44%, transparent) 40%,
-          rgb(255 255 255 / 0.06) 72%
-        )
-        border-box;
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.14),
-      0 4px 14px -8px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+    border: 1px solid rgb(0 102 255 / 0.35);
+    background: linear-gradient(180deg, rgb(8 12 28 / 0.9), rgb(3 5 14 / 0.95));
+    box-shadow: 0 0 10px rgb(0 102 255 / 0.16), inset 0 0 10px rgb(0 102 255 / 0.07);
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
@@ -619,10 +589,9 @@ body {
   }
   .nf-chip:hover {
     color: var(--nf-content-primary);
+    border-color: rgb(0 102 255 / 0.7);
     transform: translateY(-1px);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.2),
-      0 10px 24px -10px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent);
+    box-shadow: 0 0 16px rgb(0 102 255 / 0.3), inset 0 0 12px rgb(0 102 255 / 0.1);
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-chip:hover {
@@ -632,15 +601,8 @@ body {
   .nf-chip[aria-pressed="true"],
   .nf-chip--active {
     color: var(--nf-content-primary);
-    background:
-      linear-gradient(
-          180deg,
-          color-mix(in oklab, var(--nf-brand-primary) 32%, transparent),
-          color-mix(in oklab, var(--nf-brand-primary) 18%, transparent)
-        )
-        padding-box,
-      linear-gradient(142deg, var(--nf-electric-300), color-mix(in oklab, var(--nf-brand-accent) 55%, transparent))
-        border-box;
+    border-color: rgb(0 102 255 / 0.9);
+    box-shadow: 0 0 18px rgb(0 102 255 / 0.4), inset 0 0 14px rgb(0 102 255 / 0.16);
   }
 
   .nf-badge {
