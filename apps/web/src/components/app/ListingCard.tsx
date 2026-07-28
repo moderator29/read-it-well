@@ -38,25 +38,34 @@ export function ListingCard({
   const [from, to] = HUES[listing.hue % HUES.length] ?? HUES[0]!;
 
   return (
-    <article className="nf-card nf-card--interactive overflow-hidden">
+    <article className="nf-card nf-card--interactive group overflow-hidden">
       <Link href={`/listing/${listing.slug}`} className="block">
-        <div
-          className="relative aspect-[4/3] w-full"
-          style={{ background: `linear-gradient(150deg, ${from} 0%, ${to} 100%)` }}
-        >
-          {/* Skyline silhouette, so the placeholder still reads as a place. */}
-          <svg
-            viewBox="0 0 400 300"
-            className="absolute inset-0 h-full w-full opacity-60"
-            aria-hidden="true"
-            preserveAspectRatio="none"
+        <div className="relative aspect-[4/3] w-full overflow-hidden">
+          {/* Media layer scales gently on hover; badges and scrim stay put. */}
+          <div
+            className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            style={{ background: `linear-gradient(150deg, ${from} 0%, ${to} 100%)` }}
           >
-            <path
-              d="M0 300V190h34v-52h30v52h28v-84h44v84h26v-40h38v40h30v-66h40v66h34v-30h32v30h30v-46h34v46Z"
-              fill="rgba(0,0,0,0.42)"
-            />
-            <circle cx="322" cy="62" r="26" fill="rgba(255,255,255,0.16)" />
-          </svg>
+            {/* Skyline silhouette, so the placeholder still reads as a place. */}
+            <svg
+              viewBox="0 0 400 300"
+              className="absolute inset-0 h-full w-full opacity-60"
+              aria-hidden="true"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M0 300V190h34v-52h30v52h28v-84h44v84h26v-40h38v40h30v-66h40v66h34v-30h32v30h30v-46h34v46Z"
+                fill="rgba(0,0,0,0.42)"
+              />
+              <circle cx="322" cy="62" r="26" fill="rgba(255,255,255,0.16)" />
+            </svg>
+          </div>
+
+          {/* Gradient scrim keeps the location line legible on every hue. */}
+          <div
+            className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/65 via-black/25 to-transparent"
+            aria-hidden="true"
+          />
 
           <div className="absolute left-3 top-3 flex gap-1.5">
             {listing.verified && (
@@ -67,6 +76,13 @@ export function ListingCard({
             )}
             {listing.instantBook && <span className="nf-badge nf-badge--warning">Instant</span>}
           </div>
+
+          <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">
+            <UiIcon name="location" size={13} className="shrink-0 text-white/70" />
+            <span className="truncate">
+              {listing.area}, {listing.city}
+            </span>
+          </p>
         </div>
 
         <div className="p-4">
@@ -77,14 +93,13 @@ export function ListingCard({
             <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">
               <UiIcon name="star" size={14} className="text-[var(--nf-state-warning)]" />
               {listing.rating.toFixed(1)}
+              <span className="font-normal text-[var(--nf-content-muted)]">
+                ({listing.reviewCount})
+              </span>
             </span>
           </div>
 
-          <p className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
-            {listing.area}, {listing.city}
-          </p>
-
-          <ul className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-[0.75rem] text-[var(--nf-content-secondary)]">
+          <ul className="mt-2.5 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-[0.75rem] text-[var(--nf-content-secondary)]">
             <li className="flex items-center gap-1.5">
               <UiIcon name="bed" size={15} />
               <span className="nf-numeric">{listing.bedrooms}</span>
@@ -103,7 +118,7 @@ export function ListingCard({
           </ul>
 
           <p className="mt-3.5 flex items-baseline gap-1.5">
-            <span className="nf-numeric text-[1.0625rem] font-bold text-[var(--nf-content-primary)]">
+            <span className="nf-numeric text-[1.1875rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
               {formatMoney(listing.priceMinor, locale, listing.currency)}
             </span>
             <span className="text-[0.75rem] text-[var(--nf-content-muted)]">

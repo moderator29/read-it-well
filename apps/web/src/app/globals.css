@@ -54,6 +54,8 @@ html {
 
 body {
   background-color: var(--nf-surface-canvas);
+  background-image: var(--nf-canvas-base);
+  background-attachment: fixed;
   color: var(--nf-content-primary);
   font-family: var(--nf-font-sans);
   font-size: var(--nf-text-body);
@@ -61,6 +63,9 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  /* Native app feel on touch: no grey tap flash, no rubber-band past the ends. */
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
 }
 
 /* Every interactive element gets a visible, branded focus ring. */
@@ -516,6 +521,96 @@ body {
     margin-bottom: 0.4rem;
   }
 
+  /*
+   * Round glass icon button: back controls, close controls, small actions.
+   * Same material as nf-btn--glass at a 44px touch target, icon centred.
+   */
+  .nf-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-primary);
+    cursor: pointer;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.1) 0%, rgb(255 255 255 / 0.035) 100%) padding-box,
+      linear-gradient(
+          142deg,
+          color-mix(in oklab, var(--nf-brand-primary) 75%, white) 0%,
+          color-mix(in oklab, var(--nf-brand-accent) 45%, transparent) 40%,
+          rgb(255 255 255 / 0.08) 70%
+        )
+        border-box;
+    backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.2),
+      0 6px 18px -8px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-icon-btn:hover {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.3),
+      0 10px 26px -8px color-mix(in oklab, var(--nf-brand-primary) 85%, transparent);
+  }
+  .nf-icon-btn:active {
+    transform: scale(0.94);
+  }
+
+  /*
+   * Skeleton shimmer for loading and preview states: an inset slab with a
+   * highlight sweeping across it. Static slab under reduced motion.
+   */
+  @keyframes nf-shimmer {
+    from {
+      background-position: -200% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
+  }
+  .nf-skeleton {
+    border-radius: var(--nf-radius-md);
+    background:
+      linear-gradient(
+        100deg,
+        rgb(255 255 255 / 0.04) 36%,
+        rgb(255 255 255 / 0.1) 50%,
+        rgb(255 255 255 / 0.04) 64%
+      )
+      var(--nf-surface-inset);
+    background-size: 200% 100%;
+    animation: nf-shimmer 1.8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-skeleton {
+      animation: none !important;
+    }
+  }
+
+  /* Horizontal snap rows: category pills, card carousels on phones. */
+  .nf-snap-x {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  .nf-snap-x::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-snap-x > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+
   /* ---------------------------------------------------------------- chips */
 
   .nf-chip {
@@ -671,6 +766,8 @@ body {
     backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
     box-shadow: 0 -8px 30px -12px rgb(0 0 0 / 0.7);
+    /* Clear the iPhone home indicator instead of sitting under it. */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .nf-tabbar {
@@ -679,6 +776,194 @@ body {
   }
 
   /* ------------------------------------------------------- ambient effects */
+
+  /*
+   * The living canvas. One fixed layer mounted once in the root layout, sitting
+   * behind every page, with three colour blooms drifting on slow, offset loops.
+   * This is what makes the whole product feel lit and alive from the first view
+   * rather than sitting on flat black. Pure CSS, no image payload, GPU friendly
+   * (only transform and opacity animate), and it collapses to a static field
+   * under reduced motion or on the low end device tier.
+   */
+  .nf-ambient {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .nf-ambient span {
+    position: absolute;
+    display: block;
+    border-radius: 50%;
+    filter: blur(80px);
+    will-change: transform, opacity;
+  }
+  .nf-ambient span:nth-child(1) {
+    width: 62vw;
+    height: 62vw;
+    max-width: 780px;
+    max-height: 780px;
+    top: -16vw;
+    left: -12vw;
+    background: var(--nf-canvas-bloom-1);
+    opacity: 0.5;
+    animation: nf-drift-a 26s var(--nf-ease-standard) infinite;
+  }
+  .nf-ambient span:nth-child(2) {
+    width: 54vw;
+    height: 54vw;
+    max-width: 680px;
+    max-height: 680px;
+    top: -8vw;
+    right: -14vw;
+    background: var(--nf-canvas-bloom-2);
+    opacity: 0.4;
+    animation: nf-drift-b 32s var(--nf-ease-standard) infinite;
+  }
+  .nf-ambient span:nth-child(3) {
+    width: 48vw;
+    height: 48vw;
+    max-width: 620px;
+    max-height: 620px;
+    bottom: -18vw;
+    left: 28vw;
+    background: var(--nf-canvas-bloom-3);
+    opacity: 0.32;
+    animation: nf-drift-c 38s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-drift-a {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.5; }
+    50% { transform: translate3d(8vw, 6vh, 0) scale(1.14); opacity: 0.62; }
+  }
+  @keyframes nf-drift-b {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.4; }
+    50% { transform: translate3d(-7vw, 8vh, 0) scale(1.2); opacity: 0.52; }
+  }
+  @keyframes nf-drift-c {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.3; }
+    50% { transform: translate3d(6vw, -6vh, 0) scale(1.16); opacity: 0.44; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-ambient span {
+      animation: none !important;
+    }
+  }
+
+  /*
+   * Film grain.
+   *
+   * A fixed, tiling noise field at 5 percent opacity over the whole canvas.
+   * This is the difference between a screen that looks printed and one that
+   * feels physical: the gradients underneath stop banding and every glass
+   * surface picks up a faint tooth, like real frosted material. Generated
+   * noise via SVG turbulence, inlined so it costs no request, and blended
+   * with overlay so it brightens highlights and deepens shadows equally.
+   */
+  .nf-grain {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+  }
+
+  /*
+   * The living stride.
+   *
+   * An upgrade of the card ring for hero-level containers: the gradient border
+   * slowly rotates around the box, so the container reads as lit by a light
+   * that is actually moving. Driven by a registered custom property so only
+   * the angle animates; browsers without @property simply hold the static
+   * ring, which is the normal card look, so nothing breaks.
+   */
+  @property --nf-spin {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 142deg;
+  }
+  @keyframes nf-spin {
+    to {
+      --nf-spin: 502deg;
+    }
+  }
+  .nf-card--live {
+    background:
+      linear-gradient(var(--nf-surface-secondary), var(--nf-surface-secondary)) padding-box,
+      conic-gradient(
+          from var(--nf-spin),
+          color-mix(in oklab, var(--nf-brand-primary) 85%, white) 0%,
+          color-mix(in oklab, var(--nf-brand-accent) 60%, transparent) 22%,
+          rgb(255 255 255 / 0.05) 46%,
+          color-mix(in oklab, var(--nf-magenta-500) 45%, transparent) 68%,
+          rgb(255 255 255 / 0.04) 84%,
+          color-mix(in oklab, var(--nf-brand-primary) 85%, white) 100%
+        )
+        border-box;
+    animation: nf-spin 14s linear infinite;
+  }
+
+  /*
+   * Breathing call to action.
+   *
+   * The primary button's outer bloom swells and settles on a slow cycle, like
+   * the object is drawing breath. Shadow-only, so layout never moves.
+   */
+  @keyframes nf-breathe {
+    0%,
+    100% {
+      box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.5),
+        inset 0 -3px 9px rgb(0 0 0 / 0.32),
+        0 2px 4px rgb(0 0 0 / 0.34),
+        0 12px 30px -8px color-mix(in oklab, var(--nf-brand-primary) 78%, transparent),
+        0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 42%, transparent);
+    }
+    50% {
+      box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.5),
+        inset 0 -3px 9px rgb(0 0 0 / 0.32),
+        0 2px 4px rgb(0 0 0 / 0.34),
+        0 18px 48px -6px color-mix(in oklab, var(--nf-brand-primary) 95%, transparent),
+        0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 62%, transparent);
+    }
+  }
+  .nf-breathe {
+    animation: nf-breathe 4.5s var(--nf-ease-standard) infinite;
+  }
+
+  /* Decorative floating icon field behind hero content. */
+  .nf-icon-field {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .nf-icon-field > span {
+    position: absolute;
+    opacity: 0.5;
+    filter: saturate(1.1);
+    animation: nf-float 9s var(--nf-ease-standard) infinite;
+  }
+  .nf-icon-field > span:nth-child(2n) {
+    animation-duration: 12s;
+    animation-delay: -4s;
+  }
+  .nf-icon-field > span:nth-child(3n) {
+    animation-duration: 10s;
+    animation-delay: -7s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-card--live,
+    .nf-breathe,
+    .nf-icon-field > span {
+      animation: none !important;
+    }
+  }
 
   /*
    * The aurora field behind the hero. Pure CSS, no image payload, and it is the
@@ -711,7 +996,9 @@ body {
     height: 38rem;
     top: -6rem;
     right: -12rem;
-    background: radial-gradient(circle, var(--nf-cyan-500) 0%, transparent 68%);
+    background:
+      radial-gradient(circle at 30% 70%, color-mix(in oklab, var(--nf-magenta-500) 55%, transparent) 0%, transparent 55%),
+      radial-gradient(circle, var(--nf-cyan-500) 0%, transparent 68%);
   }
 
   .nf-grid-veil {
@@ -766,6 +1053,51 @@ body {
   }
   .nf-float {
     animation: nf-float 7s var(--nf-ease-standard) infinite;
+  }
+
+  /* A second, slower float on an offset phase, for scattered accent objects. */
+  .nf-float-slow {
+    animation: nf-float 11s var(--nf-ease-standard) infinite;
+    animation-delay: -3s;
+  }
+
+  /* Scroll reveal. Hidden state lifts and fades; shown state settles. */
+  .nf-reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity var(--nf-duration-deliberate) var(--nf-ease-entrance),
+      transform var(--nf-duration-deliberate) var(--nf-ease-entrance);
+    will-change: opacity, transform;
+  }
+  .nf-reveal[data-shown="true"] {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .nf-float-slow {
+      animation: none !important;
+    }
+  }
+
+  /* Gradient sheen that sweeps across a headline, used sparingly on the hero. */
+  @keyframes nf-shine {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  .nf-shine {
+    background-size: 200% auto;
+    animation: nf-shine 6s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-shine {
+      animation: none !important;
+    }
   }
 
   /*

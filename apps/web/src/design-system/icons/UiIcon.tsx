@@ -24,6 +24,7 @@ export type UiIconName =
   | "location"
   | "chevron-down"
   | "arrow-right"
+  | "arrow-left"
   | "sparkle";
 
 const PATHS: Record<UiIconName, React.ReactNode> = {
@@ -96,6 +97,12 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
     <>
       <path d="M4.5 12h15" />
       <path d="m13.5 6 6 6-6 6" />
+    </>
+  ),
+  "arrow-left": (
+    <>
+      <path d="M19.5 12h-15" />
+      <path d="m10.5 6-6 6 6 6" />
     </>
   ),
   sparkle: (

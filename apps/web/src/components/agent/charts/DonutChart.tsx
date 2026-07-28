@@ -4,7 +4,9 @@
  * Pure SVG. Segments carry an explicit hue from the data, so colour is
  * meaningful and consistent, not decorative. The centre shows the total; a
  * legend beside it names each segment with its share, so the chart never relies
- * on colour alone to be understood (accessibility).
+ * on colour alone to be understood (accessibility). The legend sits beside the
+ * ring where the card is wide enough and wraps beneath it on narrow phones, so
+ * labels never truncate into meaninglessness.
  */
 export function DonutChart({
   segments,
@@ -30,7 +32,7 @@ export function DonutChart({
   });
 
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
       <svg viewBox="0 0 140 140" className="h-32 w-32 shrink-0" role="img" aria-label={`${centerLabel}: ${centerValue}`}>
         <g transform="rotate(-90 70 70)">
           <circle cx="70" cy="70" r={r} fill="none" stroke="var(--nf-border-subtle)" strokeWidth="14" />
@@ -57,7 +59,7 @@ export function DonutChart({
         </text>
       </svg>
 
-      <ul className="min-w-0 flex-1 space-y-2">
+      <ul className="min-w-0 flex-1 basis-48 space-y-2">
         {segments.map((s) => {
           const pct = Math.round((s.count / total) * 100);
           return (

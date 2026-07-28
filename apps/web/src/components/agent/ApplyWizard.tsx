@@ -73,8 +73,10 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
 
   return (
     <div className="mx-auto max-w-2xl">
-      {/* Stepper */}
-      <ol className="mb-8 flex items-center" aria-label={a.title}>
+      {/* Stepper: circles shrink a step on phones so all six fit without a
+          squeeze; the per-step captions are desktop only, so the current step
+          name is echoed beneath for small screens. */}
+      <ol className="mb-2 flex items-center sm:mb-8" aria-label={a.title}>
         {stepTitles.map((title, i) => {
           const done = i < step;
           const current = i === step;
@@ -88,7 +90,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
                 title={title}
               >
                 <span
-                  className="nf-numeric grid h-9 w-9 place-items-center rounded-full text-[0.8125rem] font-bold transition-colors"
+                  className="nf-numeric grid h-8 w-8 place-items-center rounded-full text-[0.75rem] font-bold transition-colors sm:h-9 sm:w-9 sm:text-[0.8125rem]"
                   style={{
                     background: done || current ? "var(--nf-gradient-agent)" : "var(--nf-surface-raised)",
                     color: done || current ? "#fff" : "var(--nf-content-muted)",
@@ -102,7 +104,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
               </button>
               {i < last && (
                 <span
-                  className="mx-1 h-0.5 flex-1"
+                  className="mx-1 h-0.5 flex-1 rounded-full transition-colors"
                   style={{ background: i < step ? "var(--nf-mode-agent)" : "var(--nf-border-subtle)" }}
                 />
               )}
@@ -110,8 +112,11 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
           );
         })}
       </ol>
+      <p className="mb-5 text-center text-[0.75rem] font-semibold text-[var(--nf-content-secondary)] sm:hidden">
+        {stepTitles[step]}
+      </p>
 
-      <form action={formAction} className="nf-card p-6 sm:p-8">
+      <form action={formAction} className="nf-card p-5 sm:p-8">
         {/* Keep every step in the DOM so all fields reach the server action;
             only the active step is shown. */}
 

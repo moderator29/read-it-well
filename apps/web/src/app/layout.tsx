@@ -80,6 +80,14 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body>
+        {/* The living canvas, mounted once behind every page. */}
+        <div className="nf-ambient" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+        {/* Film grain over everything, so surfaces feel physical, not printed. */}
+        <div className="nf-grain" aria-hidden="true" />
         <a href="#main" className="nf-skip-link">
           {t.common.skipToContent}
         </a>

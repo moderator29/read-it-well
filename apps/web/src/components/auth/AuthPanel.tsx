@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import type { AuthFormState } from "@/lib/auth/actions";
 import type { ProviderId, ProviderState } from "@/lib/auth/providers";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AppleMark, GoogleMark, MailMark, XMark } from "./ProviderMarks";
 
 const EMPTY: AuthFormState = { ok: false };
@@ -49,7 +50,32 @@ export function AuthPanel({
         {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
       </p>
 
-      <div className="mt-7 space-y-2.5">
+      {/*
+       * Demo entry. Temporary scaffold while the auth environment is not wired:
+       * it drops a short-lived demo cookie and opens the app so the whole
+       * platform can be explored and reviewed. Replace with a real session once
+       * Supabase auth env is in place.
+       */}
+      <Link
+        href="/home"
+        onClick={() => {
+          document.cookie = "nf_demo=1; path=/; max-age=86400; samesite=lax";
+        }}
+        className="nf-btn nf-btn--primary mt-6 w-full py-3.5"
+      >
+        <UiIcon name="sparkle" size={16} />
+        {t.auth.exploreDemo}
+      </Link>
+
+      <div className="my-5 flex items-center gap-3" aria-hidden="true">
+        <span className="h-px flex-1 bg-[var(--nf-border-subtle)]" />
+        <span className="text-[0.75rem] uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+          {t.auth.orContinue}
+        </span>
+        <span className="h-px flex-1 bg-[var(--nf-border-subtle)]" />
+      </div>
+
+      <div className="space-y-2.5">
         {!showEmail ? (
           <button
             type="button"
@@ -62,7 +88,9 @@ export function AuthPanel({
             <span className="flex-1 text-left">{t.auth.continueWithEmail}</span>
           </button>
         ) : (
-          <form action={formAction} className="space-y-3.5 text-left" noValidate>
+          /* The email row expands in place into the form, so the panel keeps
+             its shape and nothing jumps. */
+          <form action={formAction} className="nf-rise space-y-3.5 text-left" noValidate>
             {isSignUp && (
               <Field
                 id="fullName"
@@ -83,17 +111,20 @@ export function AuthPanel({
               autoComplete="email"
               error={state.fieldErrors?.email}
             />
-            <Field
+            <PasswordField
               id="password"
-              name="password"
-              type="password"
               label={t.auth.passwordLabel}
               placeholder={t.auth.passwordPlaceholder}
               autoComplete={isSignUp ? "new-password" : "current-password"}
               error={state.fieldErrors?.password}
             />
 
-            <button type="submit" disabled={pending} className="nf-btn nf-btn--primary w-full py-3.5">
+            <button
+              type="submit"
+              disabled={pending}
+              aria-busy={pending || undefined}
+              className="nf-btn nf-btn--primary w-full py-3.5"
+            >
               {pending ? t.common.loading : isSignUp ? t.common.signUp : t.common.signIn}
             </button>
 
@@ -113,7 +144,7 @@ export function AuthPanel({
         {state.message && (
           <p
             role="alert"
-            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-3.5 py-2.5 text-[0.8125rem] text-[var(--nf-state-warning)]"
+            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-3.5 py-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
           >
             {state.message}
           </p>
@@ -133,7 +164,7 @@ export function AuthPanel({
         )}
       </div>
 
-      <p className="mt-7 text-center text-[0.875rem] text-[var(--nf-content-secondary)]">
+      <p className="mt-6 text-center text-[0.875rem] text-[var(--nf-content-secondary)]">
         {isSignUp ? t.auth.haveAccount : t.auth.noAccount}{" "}
         <Link
           href={isSignUp ? "/sign-in" : "/sign-up"}
@@ -189,5 +220,84 @@ function Field({
         </p>
       )}
     </div>
+  );
+}
+
+/**
+ * Password field with a client-side show/hide toggle.
+ *
+ * The toggle is a real button (not a decorated span) so it is reachable by
+ * keyboard, and it announces its state via aria-pressed plus a swapped label.
+ * Toggling only flips the input type; the value never leaves the field.
+ */
+function PasswordField({
+  id,
+  label,
+  placeholder,
+  autoComplete,
+  error,
+}: {
+  id: string;
+  label: string;
+  placeholder: string;
+  autoComplete: string;
+  error?: string;
+}) {
+  const [visible, setVisible] = useState(false);
+  const errorId = `${id}-error`;
+
+  return (
+    <div>
+      <label htmlFor={id} className="nf-label">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          id={id}
+          name={id}
+          type={visible ? "text" : "password"}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          className="nf-field pr-12"
+        />
+        <button
+          type="button"
+          onClick={() => setVisible((v) => !v)}
+          aria-pressed={visible}
+          aria-label={visible ? "Hide password" : "Show password"}
+          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-[var(--nf-radius-lg)] text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
+        >
+          <EyeGlyph off={visible} />
+        </button>
+      </div>
+      {error && (
+        <p id={errorId} role="alert" className="mt-1.5 text-[0.75rem] text-[var(--nf-state-error)]">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** Minimal stroke eye, with a slash when the password is shown. */
+function EyeGlyph({ off }: { off: boolean }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="2.9" />
+      {off && <path d="m4.5 4.5 15 15" />}
+    </svg>
   );
 }

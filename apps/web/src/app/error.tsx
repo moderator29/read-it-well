@@ -2,13 +2,15 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { Icon } from "@/design-system/icons/Icon";
+import { LogoMark } from "@/design-system/brand/Logo";
 
 /**
  * Route level error boundary.
  *
- * Shows what happened and what to do next, and never leaks the raw error to the
- * user. The digest is surfaced because it is the id support needs to find the
- * matching server log, which is the whole point of having one.
+ * Same family as the 404: calm, branded, and it never leaks the raw error to
+ * the user. The digest is surfaced because it is the id support needs to find
+ * the matching server log, which is the whole point of having one.
  */
 export default function Error({
   error,
@@ -29,25 +31,42 @@ export default function Error({
     >
       <div className="nf-aurora" aria-hidden="true" />
 
-      <div className="nf-card relative z-10 max-w-md p-9">
-        <h1 className="nf-h2">Something went wrong</h1>
-        <p className="mt-3 text-[var(--nf-content-secondary)]">
-          This is on us, not on you. Try again, and if it keeps happening let support know.
-        </p>
+      {/* Floating decorative objects */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <span className="nf-float absolute left-[10%] top-[18%] block h-12 w-12 opacity-20 md:h-16 md:w-16">
+          <Icon name="help" fill />
+        </span>
+        <span className="nf-float-slow absolute bottom-[20%] right-[10%] block h-12 w-12 opacity-20 md:h-16 md:w-16">
+          <Icon name="secure" fill />
+        </span>
+      </div>
 
-        {error.digest && (
-          <p className="nf-numeric mt-4 text-[0.75rem] text-[var(--nf-content-muted)]">
-            Reference {error.digest}
+      <div className="relative z-10">
+        <Link href="/" aria-label="NaijaFinds home" className="inline-flex">
+          <LogoMark size={56} />
+        </Link>
+
+        <div className="nf-card mx-auto mt-6 max-w-md p-9">
+          <h1 className="nf-h2">Something went wrong</h1>
+          <p className="mt-3 text-[var(--nf-content-secondary)]">
+            This is on us, not on you. Try again, and if it keeps happening let
+            support know.
           </p>
-        )}
 
-        <div className="mt-7 flex flex-wrap justify-center gap-3">
-          <button type="button" onClick={reset} className="nf-btn nf-btn--primary">
-            Try again
-          </button>
-          <Link href="/" className="nf-btn nf-btn--glass">
-            Back to home
-          </Link>
+          {error.digest && (
+            <p className="nf-numeric mt-4 text-[0.75rem] text-[var(--nf-content-muted)]">
+              Reference {error.digest}
+            </p>
+          )}
+
+          <div className="mt-7 flex flex-wrap justify-center gap-3">
+            <button type="button" onClick={reset} className="nf-btn nf-btn--primary">
+              Try again
+            </button>
+            <Link href="/" className="nf-btn nf-btn--glass">
+              Back to home
+            </Link>
+          </div>
         </div>
       </div>
     </main>

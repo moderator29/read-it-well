@@ -47,8 +47,16 @@ code conflict, confirmed with `git merge-tree`. A safety branch
 `backup/feat-pre-rebase` preserves the pre-rebase tip.
 
 **Supabase:** project `uccixoonmbhrnyczyigt` is connected, `ACTIVE_HEALTHY`,
-Postgres 17, region eu-west-1. Public schema is **empty**: zero tables, zero
-migrations. Database work is greenfield.
+Postgres 17, region eu-west-1. The full domain model is landed: **10 migrations,
+24 tables, RLS on every table (0 without), 53 policies.** Identity, location,
+agents, listings, bookings and a real payments ledger, engagement (reviews,
+messaging, saved), and admin/trust (audit log, risk alerts, reports). A
+database-level GiST exclusion constraint guarantees no double booking. RLS role
+helpers live in a private, non-exposed schema. Security advisor is clean of all
+project-authored functions (one pre-existing platform event-trigger warning
+remains, not ours). App wiring is in place: env-guarded browser, server and
+service-role clients (`apps/web/src/lib/supabase/`), session-refresh middleware,
+and generated types. The agent application server action persists under RLS.
 
 **What is live in the web app (20 routes):**
 
@@ -174,9 +182,9 @@ finished until the matching decision is made. Full context in
 | ID | Decision | Blocks | Recommendation |
 |---|---|---|---|
 | B-01 | Reference count and 15/15 intake gate (13 unique vs owner count) | full implementation authorisation | reconcile the denominator; treat received refs as buildable now |
-| B-10 | Which navigation is canonical: 4 admin rails, 2 consumer rails | admin, consumer rail, routing, permissions | admin = ref 04 (owner chose the ref-04 rail); consumer to confirm |
+| B-10 | RESOLVED 2026-07-28: admin = Ref 04 (15-item rail), consumer = Refs 01/04 (12-item rail). IA frozen. | (was) admin, consumer rail, routing | settled |
 | B-11 | Is NaijaFinds Pro in scope | entitlement gating, second revenue model | defer, out of MVP |
-| B-12 | Canonical listing wizard: 7-step (ref 03) or 6-step (ref 09); video/tours/docs MVP? | `/agent/list`, media model | 7-step canonical; video/tours/docs LATER |
+| B-12 | RESOLVED 2026-07-28: 7-step wizard (Ref 03) is canonical; photos only for MVP, video/tours/docs LATER. | (was) `/agent/list`, media model | settled |
 | B-09 | Are icon source files vector, or only the contact sheet | final icon quality | need vector/Lottie source |
 | B-07 | Canonical location model (no LGA field is designed) | location tables, wizard | store State/LGA/Ward + City/Area layer |
 | B-09b | Guest-paid service fee recipient and platform take rate | payments ledger, settlement | needs commercial decision |
@@ -209,15 +217,15 @@ the three owners unless a `depends` note says otherwise.
 | P0-6 | Git conflict resolution + clean authorship | ADMIN/QA | DONE | `git log`, audits | linear on main, no trailers |
 | P0-7 | This MASTER_TODO | ADMIN/QA | IN PROGRESS | file present | organised plan exists |
 
-### Phase 1: Backend spine  (STATUS: READY, greenfield DB)
+### Phase 1: Backend spine  (STATUS: IN PROGRESS)
 
 | ID | Task | Owner | Status | Depends | Verify | DoD |
 |---|---|---|---|---|---|---|
-| P1-1 | Supabase migrations: identity + location tables | BACKEND | READY | B-07 | `list_tables`, `list_migrations` | tables exist with RLS |
-| P1-2 | RLS policies + cross-tenant isolation tests | BACKEND | READY | P1-1 | test run | one user cannot read another's rows |
-| P1-3 | Branded Supabase auth email templates (5) | BACKEND+FRONTEND | READY | none | render preview | NaijaFinds branding on all auth mails |
-| P1-4 | Provider adapter interfaces + seed/stub impls | BACKEND | READY | none | `npm run typecheck` | `NF_*` switches resolve |
-| P1-5 | Generate TS types from DB, wire repositories | BACKEND | READY | P1-1 | `generate_typescript_types` | repos read real schema |
+| P1-1 | Supabase migrations: full domain model | BACKEND | DONE | B-07 | `list_tables` (24), `list_migrations` (10) | all subsystems modelled with RLS |
+| P1-2 | RLS policies + cross-tenant isolation tests | BACKEND | PARTIAL | P1-1 | advisor + test run | 53 policies live, advisor clean; automated isolation test still to add |
+| P1-3 | Branded Supabase auth email templates (5) | BACKEND+FRONTEND | DONE | none | files render | 5 branded templates + README |
+| P1-4 | Supabase clients (browser/server/admin) + middleware | BACKEND | DONE | none | `npm run build` | env-guarded clients, session refresh |
+| P1-5 | Generate TS types from DB, wire repositories | BACKEND | PARTIAL | P1-1 | `generate_typescript_types` | types generated + stored; repos still to wire |
 
 ### Phase 2: Auth and identity  (STATUS: READY)
 
@@ -234,7 +242,7 @@ the three owners unless a `depends` note says otherwise.
 | P3-1 | Mode switch flow (ref 02) | FRONTEND | DONE | none | build | cookie switch + refresh |
 | P3-2 | Become an Agent 6-step wizard (ref 02) | FRONTEND | DONE | none | build | draft autosave, validation |
 | P3-3 | Agent dashboard (ref 02, 04) | FRONTEND | DONE | none | build | seed data labelled sample |
-| P3-4 | Agent application persisted to DB | BACKEND | READY | P1-1, P2-1 | test | application row created, status machine |
+| P3-4 | Agent application persisted to DB | BACKEND | DONE | P1-1 | server action | inserts SUBMITTED row under RLS, returns NF-AGT ref |
 | P3-5 | List Apartment 7-step wizard (ref 03) | FRONTEND | BLOCKED | B-12 | build | wizard posts a listing draft |
 | P3-6 | My Listings, Bookings, Messages, Reviews, Earnings, Analytics, Verification, Settings | FRONTEND+BACKEND | BLOCKED | P1-1, B-10 | build | each stub replaced with real data view |
 
@@ -321,3 +329,40 @@ Checked on every push. A break here fails the change regardless of feature value
 - 2026-07-28: Verified build health (typecheck, build, em dash, attribution,
   secret, authorship all clean). Confirmed Supabase connected and empty.
 - 2026-07-28: Authored this Master TODO.
+- 2026-07-28: Shipped five branded Supabase auth email templates plus a
+  generator and README (P1-3 done).
+- 2026-07-28: Landed the backend spine: identity core (`profiles`, `user_roles`,
+  RLS, signup trigger, private-schema role helper) and `states` (37 seeded), 4
+  migrations. Hardened function grants; security advisor clean of all
+  project-authored functions. Generated and stored DB types.
+- 2026-07-28: Owner resolved B-10 (admin = Ref 04 rail, consumer = Refs 01/04)
+  and B-12 (7-step listing wizard, photos-only MVP), and directed that all work
+  is buildable.
+- 2026-07-28: Completed the domain model to 24 tables across 10 migrations:
+  agents, listings/amenities/photos/availability, bookings + payments ledger
+  (with a GiST no-double-booking constraint), reviews/messaging/saved, and
+  admin audit/risk/reports. Every table RLS-enabled (53 policies); advisor clean
+  of project functions; btree_gist relocated out of public.
+- 2026-07-28: Wired the app to Supabase: env-guarded browser/server/service-role
+  clients, session-refresh middleware, and persisted the agent application server
+  action under RLS. Added Supabase env keys to `.env.example`. Build green.
+- 2026-07-28: Owner directed a total design revamp: mobile-first, next-gen,
+  the supplied images demoted to inspiration, the glossy sign-up/search button
+  language kept, a demo entry until envs land. Phase 1 shipped: vector 3D icon
+  system activated app-wide (raster pack retired), phone-tuned type scale,
+  living ambient canvas, scroll reveals, island inside the first mobile frame,
+  responsive AppShell wrapping all consumer routes with placeholder pages, demo
+  button on auth.
+- 2026-07-28: Phase 2 breathing layer: film grain overlay, living rotating
+  stride for hero containers, breathing CTA glow, floating hero icon field.
+  Four parallel agents revamping agent workspace, auth plus become-an-agent,
+  consumer home/search/placeholders, and footer plus system pages.
+- 2026-07-28: All four agents delivered with green self-audits. Agent Mode is
+  mobile responsive (slide-in drawer, stacked-card tables, scaling charts),
+  auth got its glass frame plus password toggle, the become-an-agent pitch and
+  status timeline landed, home and search are rich (snap rows, real sort
+  chips, honest sample labelling), and the footer, 404 and error pages are
+  branded. Integration pass added a mobile menu, universal back button in the
+  consumer shell, native touch feel and a facts band, and fixed a platform
+  wide SVG paint-server bug (gradient ids stolen by hidden responsive rails)
+  with per-instance ids via useId. Verified visually on phone viewports.
