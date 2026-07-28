@@ -14,26 +14,46 @@ Last updated: 2026-07-28
 
 **Status: 0 / 15 received.**
 
-| # | Received | Filename | System area informed | Notes |
-|---|----------|----------|---------------------|-------|
-| 01 | ☐ | — | — | — |
-| 02 | ☐ | — | — | — |
-| 03 | ☐ | — | — | — |
-| 04 | ☐ | — | — | — |
-| 05 | ☐ | — | — | — |
-| 06 | ☐ | — | — | — |
-| 07 | ☐ | — | — | — |
-| 08 | ☐ | — | — | — |
-| 09 | ☐ | — | — | — |
-| 10 | ☐ | — | — | — |
-| 11 | ☐ | — | — | — |
-| 12 | ☐ | — | — | — |
-| 13 | ☐ | — | — | — |
-| 14 | ☐ | — | — | — |
-| 15 | ☐ | — | — | — |
+| # | Received | Authority | Filename | System area informed | Notes |
+|---|----------|-----------|----------|---------------------|-------|
+| 01 | ☐ | — | — | — | — |
+| 02 | ☐ | — | — | — | — |
+| 03 | ☐ | — | — | — | — |
+| 04 | ☐ | — | — | — | — |
+| 05 | ☐ | — | — | — | — |
+| 06 | ☐ | — | — | — | — |
+| 07 | ☐ | — | — | — | — |
+| 08 | ☐ | — | — | — | — |
+| 09 | ☐ | — | — | — | — |
+| 10 | ☐ | — | — | — | — |
+| 11 | ☐ | — | — | — | — |
+| 12 | ☐ | — | — | — | — |
+| 13 | ☐ | — | — | — | — |
+| 14 | ☐ | — | — | — | — |
+| 15 | ☐ | — | — | — | — |
 
-Each row is filled in on receipt with the area it informs and any IA, component,
-state or navigation facts it establishes.
+Each row is filled in on receipt with the owner-assigned authority level, the
+area it informs, and any IA, component, state or navigation facts it establishes.
+
+### Authority levels (owner-assigned — see §4 C-01)
+
+**A — NaijaFinds Source of Truth.** An actual NaijaFinds screen. Preserve its
+navigation, information architecture, component structure, layout relationships,
+logo placement, icon system, typography hierarchy, spacing logic, states and
+interaction patterns. Do not redesign these core elements arbitrarily.
+
+**B — Visual Inspiration / Mood Board.** Do **not** copy its branding, logo,
+navigation, text or proprietary identity. Extract design *principles* only —
+glassmorphism, 3D depth, lighting, material treatment, gradients, neumorphism,
+card construction, motion language, spacing rhythm, visual hierarchy — and
+translate them into the established NaijaFinds design system.
+
+**C — Mixed.** Determine which parts are authoritative NaijaFinds specification
+and which parts are inspiration, and record that split explicitly in the Notes
+column.
+
+**The authority level is assigned by the owner, never inferred by Claude.** If a
+reference arrives without a stated level, ask before recording or analysing it.
 
 ---
 
@@ -91,7 +111,7 @@ Contradictions found **between the three source documents**. These must be
 resolved during the Phase-0 audit; the ones marked **BLOCKING** change how the
 design references themselves are interpreted and should be settled earlier.
 
-### C-01 — Are the 15 references *specification* or *inspiration*? — **BLOCKING**
+### C-01 — Are the 15 references *specification* or *inspiration*? — **RESOLVED**
 
 - **Design §0:** "The supplied visual references are inspiration for material
   language only. **Do not reproduce** their composition, logo, characters, icon
@@ -101,13 +121,21 @@ design references themselves are interpreted and should be settled earlier.
   truth**. Maintain: same navigation, same logo, same 3D icon family, same
   typography, same spacing, same cards…"
 
-These are opposite instructions. One says invent a new identity from principles;
-the other says preserve the references' identity exactly. This determines how
-every one of the 15 images is read, so it must be answered at or before image 01.
+**Owner ruling (2026-07-28):** the two documents are not in conflict because the
+15 references are **not all the same type**. Authority is assigned **per
+reference** by the owner, using levels **A / B / C** as defined in §1.
 
-**Working hypothesis:** Design §0 was written for third-party mood-board imagery,
-while Master §31 refers to actual NaijaFinds product mockups. If the incoming
-images are NaijaFinds screens, Master §31 governs. To be confirmed on receipt.
+**Precedence rule:** the authority level assigned to an individual reference
+**overrides the generic wording of both** the Design System prompt and the Master
+Instruction. At 15/15, the two documents are reconciled *through* these
+per-image assignments rather than by picking one document over the other.
+
+**Intent:** preserve genuine NaijaFinds design decisions, while using inspiration
+references only to raise visual quality — without absorbing another product's
+identity or structure.
+
+**Standing constraint:** Claude never infers the level. An unlabelled reference
+is queried, not guessed.
 
 ### C-02 — Three incompatible documentation naming conventions
 
@@ -303,8 +331,8 @@ Maintained from intake onward. Each expands into its Phase-0 document at 15/15.
 
 ## 7. Open questions for the owner
 
-1. **C-01 — are the 15 references NaijaFinds mockups (source of truth) or
-   third-party inspiration (principles only)?** Needed at image 01.
+1. ~~C-01 — reference authority.~~ **Resolved 2026-07-28:** per-image A/B/C
+   levels assigned by the owner; see §1 and §4 C-01.
 2. **C-06 — must Agent Mode ship on mobile, web, or both for MVP?**
 3. **C-08 — confirm the MVP surface cut** once the Phase-0 audit proposes one.
 4. Is the **Travelgate commercial agreement** signed, in progress, or not started?
