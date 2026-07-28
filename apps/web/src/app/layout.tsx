@@ -86,6 +86,8 @@ export default async function RootLayout({
           <span />
           <span />
         </div>
+        {/* Film grain over everything, so surfaces feel physical, not printed. */}
+        <div className="nf-grain" aria-hidden="true" />
         <a href="#main" className="nf-skip-link">
           {t.common.skipToContent}
         </a>

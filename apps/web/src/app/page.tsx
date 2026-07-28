@@ -68,6 +68,19 @@ export default async function LandingPage() {
           <div className="nf-aurora" aria-hidden="true" />
           <div className="nf-grid-veil" aria-hidden="true" />
 
+          {/* Floating category objects drifting in the hero air. Decorative. */}
+          <div className="nf-icon-field" aria-hidden="true">
+            <span className="left-[4%] top-[64%] h-8 w-8 sm:h-10 sm:w-10">
+              <Icon name="wallet" fill />
+            </span>
+            <span className="left-[46%] top-[8%] hidden h-9 w-9 sm:block">
+              <Icon name="experience" fill />
+            </span>
+            <span className="right-[6%] top-[56%] h-8 w-8 sm:h-10 sm:w-10 lg:right-[40%] lg:top-[74%]">
+              <Icon name="booking" fill />
+            </span>
+          </div>
+
           {/*
            * Mobile: the island is the atmosphere of the first view, rising to the
            * right of the headline and dissolving into the canvas through a scrim,
@@ -113,7 +126,7 @@ export default async function LandingPage() {
                 action="/search"
                 method="get"
                 role="search"
-                className="nf-card mt-7 flex flex-col gap-2 p-2 sm:flex-row sm:items-center"
+                className="nf-card nf-card--live mt-7 flex flex-col gap-2 p-2 sm:flex-row sm:items-center"
               >
                 <label htmlFor="hero-q" className="sr-only">
                   {t.landing.hero.searchLabel}
@@ -129,7 +142,7 @@ export default async function LandingPage() {
                     className="w-full bg-transparent py-3 text-[var(--nf-text-body-lg)] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
                   />
                 </div>
-                <button type="submit" className="nf-btn nf-btn--primary nf-btn--lg">
+                <button type="submit" className="nf-btn nf-btn--primary nf-btn--lg nf-breathe">
                   {t.common.search}
                 </button>
               </form>
@@ -303,7 +316,7 @@ export default async function LandingPage() {
         {/* ------------------------------------------------------------ cta */}
         <section className="nf-shell py-16 sm:pt-20">
           <Reveal>
-            <div className="nf-card relative overflow-hidden p-8 text-center sm:p-10 md:p-14">
+            <div className="nf-card nf-card--live relative overflow-hidden p-8 text-center sm:p-10 md:p-14">
               <div className="nf-aurora opacity-60" aria-hidden="true" />
               <div className="relative z-10">
                 <h2 className="nf-h1 mx-auto max-w-[20ch]">{t.landing.cta.title}</h2>
@@ -311,7 +324,7 @@ export default async function LandingPage() {
                   {t.landing.cta.subtitle}
                 </p>
                 <div className="mt-8 flex flex-wrap justify-center gap-3">
-                  <Link href="/sign-up" className="nf-btn nf-btn--primary nf-btn--lg">
+                  <Link href="/sign-up" className="nf-btn nf-btn--primary nf-btn--lg nf-breathe">
                     {t.landing.cta.action}
                   </Link>
                   <Link href="/search" className="nf-btn nf-btn--glass nf-btn--lg">

@@ -346,3 +346,14 @@ Checked on every push. A break here fails the change regardless of feature value
 - 2026-07-28: Wired the app to Supabase: env-guarded browser/server/service-role
   clients, session-refresh middleware, and persisted the agent application server
   action under RLS. Added Supabase env keys to `.env.example`. Build green.
+- 2026-07-28: Owner directed a total design revamp: mobile-first, next-gen,
+  the supplied images demoted to inspiration, the glossy sign-up/search button
+  language kept, a demo entry until envs land. Phase 1 shipped: vector 3D icon
+  system activated app-wide (raster pack retired), phone-tuned type scale,
+  living ambient canvas, scroll reveals, island inside the first mobile frame,
+  responsive AppShell wrapping all consumer routes with placeholder pages, demo
+  button on auth.
+- 2026-07-28: Phase 2 breathing layer: film grain overlay, living rotating
+  stride for hero containers, breathing CTA glow, floating hero icon field.
+  Four parallel agents revamping agent workspace, auth plus become-an-agent,
+  consumer home/search/placeholders, and footer plus system pages.
