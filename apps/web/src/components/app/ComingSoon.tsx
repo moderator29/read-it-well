@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/design-system/icons/Icon";
 import { Reveal } from "@/components/site/Reveal";
+import { PageHeader } from "./PageHeader";
 
 /**
  * Placeholder for consumer destinations not yet built.
@@ -24,12 +25,13 @@ export function ComingSoon({
   preview?: ReactNode;
 }) {
   return (
-    <div className="mx-auto max-w-xl py-10 text-center sm:py-14">
+    <div className="mx-auto max-w-xl">
+      <PageHeader title={title} />
+      <div className="py-4 text-center sm:py-6">
       <Reveal>
         <span className="mx-auto block h-16 w-16 sm:h-20 sm:w-20">
           <Icon name={icon} fill />
         </span>
-        <h1 className="nf-h2 mt-5">{title}</h1>
         <p className="mx-auto mt-2.5 max-w-[44ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {promise}
         </p>
@@ -38,14 +40,11 @@ export function ComingSoon({
       {preview && (
         <Reveal delay={110} className="mt-8 text-left">
           <div className="nf-card relative overflow-hidden p-5 pt-6">
-            <span className="nf-badge nf-badge--brand absolute right-4 top-4">Preview</span>
             {preview}
           </div>
-          <p className="mt-3 text-center text-[0.75rem] text-[var(--nf-content-muted)]">
-            A preview of the layout. No live data is shown.
-          </p>
         </Reveal>
       )}
+      </div>
     </div>
   );
 }

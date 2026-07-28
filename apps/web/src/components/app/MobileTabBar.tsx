@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { Icon, type IconName } from "@/design-system/icons/Icon";
 
 /**
  * Mobile tab bar.
@@ -13,15 +13,15 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  *
  * Tier one icons throughout: at 22px the 3D objects would be unreadable.
  */
-type Tab = { href: string; label: string; icon: UiIconName };
+type Tab = { href: string; label: string; icon: IconName };
 
 export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: string }) {
   const tabs: Tab[] = [
-    { href: "/home", label: t.nav.home, icon: "location" },
+    { href: "/home", label: t.nav.home, icon: "home" },
     { href: "/search", label: t.nav.explore, icon: "search" },
-    { href: "/bookings", label: t.nav.bookings, icon: "bed" },
-    { href: "/saved", label: t.nav.saved, icon: "star" },
-    { href: "/profile", label: t.nav.profile, icon: "verified" },
+    { href: "/bookings", label: t.nav.bookings, icon: "booking" },
+    { href: "/saved", label: t.nav.saved, icon: "favorites" },
+    { href: "/profile", label: t.nav.profile, icon: "profile" },
   ];
 
   return (
@@ -44,7 +44,10 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
                     : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",
                 ].join(" ")}
               >
-                <UiIcon name={tab.icon} size={21} strokeWidth={isActive ? 2.2 : 1.8} />
+                {/* The 3D family, dimmed at rest and full strength when active. */}
+                <span className={"h-6 w-6 transition-opacity " + (isActive ? "opacity-100" : "opacity-55")}>
+                  <Icon name={tab.icon} fill />
+                </span>
                 <span className="truncate">{tab.label}</span>
               </Link>
             </li>
