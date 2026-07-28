@@ -43,6 +43,8 @@ export const yo: Dictionary = {
     aiAssistant: "Olùrànlọ́wọ́ AI",
     profile: "Àkọọ́lẹ̀",
     settings: "Ètò",
+    explore: "Ṣàwárí",
+    saved: "Tí a fipamọ́",
     primaryLabel: "Àkọ́kọ́",
     accountLabel: "Àkàǹtì",
   },

@@ -44,6 +44,8 @@ export const en = {
     aiAssistant: "AI Assistant",
     profile: "Profile",
     settings: "Settings",
+    explore: "Explore",
+    saved: "Saved",
     primaryLabel: "Primary",
     accountLabel: "Account",
   },
