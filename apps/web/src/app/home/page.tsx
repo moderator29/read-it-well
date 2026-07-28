@@ -5,6 +5,8 @@ import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { AppRail } from "@/components/app/AppRail";
 import { ListingCard } from "@/components/app/ListingCard";
+import { AiAssistantBanner } from "@/components/app/AiAssistantBanner";
+import { MobileTabBar } from "@/components/app/MobileTabBar";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { Icon, type IconName } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -75,7 +77,7 @@ export default async function HomePage() {
           </div>
         </header>
 
-        <div className="px-5 pb-20 pt-8 md:px-8">
+        <div className="px-5 pb-28 pt-8 md:px-8 lg:pb-20">
           {/*
            * Sample data is declared, never disguised. Deliberately not gated on
            * NODE_ENV: a production build still defaults to the seed source, and
@@ -104,7 +106,7 @@ export default async function HomePage() {
               <label htmlFor="home-q" className="sr-only">
                 {t.home.searchPlaceholder}
               </label>
-              <div className="flex flex-1 items-center gap-2.5 px-2.5">
+              <div className="flex min-w-0 flex-1 items-center gap-2.5 px-2.5">
                 <UiIcon name="search" size={20} className="text-[var(--nf-content-muted)]" />
                 <input
                   id="home-q"
@@ -139,32 +141,9 @@ export default async function HomePage() {
           </section>
 
           {/* ----------------------------------------------------- ai card */}
-          <section className="mt-9">
-            <div className="nf-card relative overflow-hidden p-6 md:p-7">
-              <div className="nf-aurora opacity-50" aria-hidden="true" />
-              <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-center">
-                <Icon name="ai-assistant" size={64} />
-                <div className="min-w-0 flex-1">
-                  <h2 className="nf-h3 flex items-center gap-2">
-                    {t.home.aiCard.title}
-                    <span className="nf-badge nf-badge--brand">Beta</span>
-                  </h2>
-                  <p className="mt-1.5 max-w-[56ch] text-[0.9375rem] text-[var(--nf-content-secondary)]">
-                    {t.home.aiCard.body}
-                  </p>
-                  <p className="mt-3">
-                    <span className="nf-chip">
-                      <UiIcon name="search" size={13} />
-                      {t.home.aiCard.samplePrompt}
-                    </span>
-                  </p>
-                </div>
-                <Link href="/assistant" className="nf-btn nf-btn--primary shrink-0">
-                  {t.home.aiCard.action}
-                </Link>
-              </div>
-            </div>
-          </section>
+          <div className="mt-9">
+            <AiAssistantBanner t={t} />
+          </div>
 
           {/* -------------------------------------------------- recommended */}
           <section className="mt-11">
@@ -237,6 +216,8 @@ export default async function HomePage() {
           </section>
         </div>
       </main>
+
+      <MobileTabBar t={t} active="/home" />
     </div>
   );
 }

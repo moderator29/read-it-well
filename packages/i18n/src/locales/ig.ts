@@ -43,6 +43,8 @@ export const ig: Dictionary = {
     aiAssistant: "Onye enyemaka AI",
     profile: "Profaịlụ",
     settings: "Ntọala",
+    explore: "Chọgharịa",
+    saved: "Echekwara",
     primaryLabel: "Isi",
     accountLabel: "Akaụntụ",
   },

@@ -43,6 +43,8 @@ export const ha: Dictionary = {
     aiAssistant: "Mataimakin AI",
     profile: "Bayanan martaba",
     settings: "Saituna",
+    explore: "Bincika",
+    saved: "An ajiye",
     primaryLabel: "Na farko",
     accountLabel: "Asusu",
   },

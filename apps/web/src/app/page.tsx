@@ -87,7 +87,7 @@ export default async function LandingPage() {
                 <label htmlFor="hero-q" className="sr-only">
                   {t.landing.hero.searchLabel}
                 </label>
-                <div className="flex flex-1 items-center gap-2.5 px-3">
+                <div className="flex min-w-0 flex-1 items-center gap-2.5 px-3">
                   <UiIcon name="search" size={22} className="text-[var(--nf-content-muted)]" />
                   <input
                     id="hero-q"
