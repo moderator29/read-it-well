@@ -15,21 +15,21 @@
    * LAYER 1: raw palette. Internal. Do not use directly in components.
    * ------------------------------------------------------------------ */
 
-  /* Deep space neutrals, purple biased to match the product's night surface */
-  --nf-ink-950: #06040E;
-  --nf-ink-900: #0A0718;
-  --nf-ink-850: #0F0B20;
-  --nf-ink-800: #151029;
-  --nf-ink-750: #1B1534;
-  --nf-ink-700: #241D42;
-  --nf-ink-600: #332A57;
-  --nf-ink-500: #4A3F73;
+  /* Deep space neutrals, navy biased: the neon-blue night surface */
+  --nf-ink-950: #030816;
+  --nf-ink-900: #050D20;
+  --nf-ink-850: #071226;
+  --nf-ink-800: #0A182E;
+  --nf-ink-750: #0E1F3A;
+  --nf-ink-700: #132844;
+  --nf-ink-600: #1B3355;
+  --nf-ink-500: #28466E;
 
-  --nf-mist-100: #F7F5FF;
-  --nf-mist-200: #E3DEF7;
-  --nf-mist-300: #C4BCE4;
-  --nf-mist-400: #9E95C4;
-  --nf-mist-500: #7C739F;
+  --nf-mist-100: #F4F8FF;
+  --nf-mist-200: #DDE7F6;
+  --nf-mist-300: #B9CBE4;
+  --nf-mist-400: #8FA5C6;
+  --nf-mist-500: #6E829E;
 
   /* Brand violet */
   --nf-violet-300: #C4B5FD;
@@ -39,6 +39,8 @@
   --nf-violet-700: #6D28D9;
 
   /* Supporting accents, used as controlled accents and never as wallpaper */
+  --nf-electric-400: #60A5FA;
+  --nf-electric-500: #3B82F6;
   --nf-cyan-400: #22D3EE;
   --nf-cyan-500: #06B6D4;
   --nf-magenta-400: #F472B6;
@@ -58,7 +60,7 @@
   --nf-brand-primary-strong: var(--nf-violet-600);
   --nf-brand-primary-soft: color-mix(in oklab, var(--nf-violet-500) 16%, transparent);
   --nf-brand-secondary: var(--nf-magenta-500);
-  --nf-brand-accent: var(--nf-cyan-400);
+  --nf-brand-accent: var(--nf-electric-400);
 
   /* Mode accents. Personal is violet, Agent is orange, Admin is cyan. */
   --nf-mode-personal: var(--nf-violet-500);
@@ -145,15 +147,15 @@
   /* ---------------------------------------------------------------------
    * Ambient canvas
    *
-   * The living background behind the whole app. Not flat black: a deep violet
+   * The living background behind the whole app. Not flat black: a deep navy
    * to ink field with two slow drifting colour blooms, so the surface feels lit
    * and alive rather than printed. These are the ingredients; the motion lives
    * in the `nf-ambient` layer in globals.css.
    * ------------------------------------------------------------------ */
-  --nf-canvas-base: radial-gradient(140% 120% at 50% -10%, #140A2E 0%, #0B0720 42%, #06040E 100%);
-  --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-violet-600) 90%, transparent) 0%, transparent 62%);
-  --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-500) 85%, transparent) 0%, transparent 62%);
-  --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-magenta-500) 80%, transparent) 0%, transparent 62%);
+  --nf-canvas-base: radial-gradient(140% 120% at 50% -10%, #0A1B42 0%, #061026 45%, #030816 100%);
+  --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-500) 92%, transparent) 0%, transparent 62%);
+  --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-violet-600) 85%, transparent) 0%, transparent 62%);
+  --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-500) 80%, transparent) 0%, transparent 62%);
 
   /* ---------------------------------------------------------------------
    * Elevation
@@ -172,8 +174,8 @@
   --nf-radius-xs: 6px;
   --nf-radius-sm: 10px;
   --nf-radius-md: 14px;
-  --nf-radius-lg: 18px;
-  --nf-radius-xl: 24px;
+  --nf-radius-lg: 16px;
+  --nf-radius-xl: 20px;
   --nf-radius-2xl: 32px;
   --nf-radius-pill: 999px;
 
@@ -220,8 +222,8 @@
   --nf-text-h2: clamp(1.22rem, 1.05rem + 0.9vw, 1.8rem);
   --nf-text-h3: clamp(1.15rem, 1.05rem + 0.5vw, 1.375rem);
   --nf-text-h4: 1.125rem;
-  --nf-text-body-lg: 1rem;
-  --nf-text-body: 0.9063rem;
+  --nf-text-body-lg: 0.9688rem;
+  --nf-text-body: 0.875rem;
   --nf-text-body-sm: 0.875rem;
   --nf-text-caption: 0.8125rem;
   --nf-text-overline: 0.6875rem;
@@ -258,15 +260,15 @@
  */
 :root[data-theme="light"] {
   --nf-surface-canvas: #FFFFFF;
-  --nf-surface-primary: #FAF9FF;
-  --nf-surface-secondary: #F3F0FC;
+  --nf-surface-primary: #F7FAFF;
+  --nf-surface-secondary: #EFF4FC;
   --nf-surface-elevated: #FFFFFF;
   --nf-surface-raised: #FFFFFF;
-  --nf-surface-inset: #F0EDFA;
+  --nf-surface-inset: #E9F0FA;
 
-  --nf-content-primary: #14102A;
-  --nf-content-secondary: #4A4270;
-  --nf-content-muted: #7C739F;
+  --nf-content-primary: #0B1B33;
+  --nf-content-secondary: #3A5375;
+  --nf-content-muted: #6E829E;
 
   --nf-border-subtle: rgb(20 16 42 / 0.08);
   --nf-border-default: rgb(20 16 42 / 0.14);
@@ -276,9 +278,15 @@
   --nf-glass-fill-strong: rgb(255 255 255 / 0.85);
   --nf-glass-border: rgb(20 16 42 / 0.1);
 
-  --nf-shadow-card: 0 4px 20px -6px rgb(20 16 42 / 0.14), 0 1px 2px rgb(20 16 42 / 0.06);
-  --nf-shadow-lifted: 0 18px 48px -14px rgb(20 16 42 / 0.2);
-  --nf-shadow-float: 0 32px 80px -20px rgb(20 16 42 / 0.24);
+  --nf-shadow-card: 0 4px 20px -6px rgb(11 27 51 / 0.12), 0 1px 2px rgb(11 27 51 / 0.05);
+  --nf-shadow-lifted: 0 18px 48px -14px rgb(11 27 51 / 0.18);
+  --nf-shadow-float: 0 32px 80px -20px rgb(11 27 51 / 0.22);
+
+  /* Daylight canvas: soft sky field, gentle blooms. */
+  --nf-canvas-base: radial-gradient(140% 120% at 50% -10%, #DCE9FC 0%, #EFF5FE 45%, #FFFFFF 100%);
+  --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-400) 30%, transparent) 0%, transparent 62%);
+  --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-violet-400) 24%, transparent) 0%, transparent 62%);
+  --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-400) 20%, transparent) 0%, transparent 62%);
 }
 
 /*

@@ -52,8 +52,12 @@ html {
   }
 }
 
-body {
+html {
   background-color: var(--nf-surface-canvas);
+}
+
+body {
+  background-color: transparent;
   color: var(--nf-content-primary);
   font-family: var(--nf-font-sans);
   font-size: var(--nf-text-body);
@@ -350,7 +354,7 @@ body {
       linear-gradient(
           142deg,
           color-mix(in oklab, var(--nf-brand-primary) 82%, white) 0%,
-          color-mix(in oklab, var(--nf-magenta-500) 45%, transparent) 36%,
+          color-mix(in oklab, var(--nf-electric-400) 50%, transparent) 36%,
           rgb(255 255 255 / 0.08) 68%
         )
         border-box;
@@ -419,7 +423,7 @@ body {
       linear-gradient(
           142deg,
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 0%,
-          color-mix(in oklab, var(--nf-magenta-500) 45%, transparent) 34%,
+          color-mix(in oklab, var(--nf-electric-400) 50%, transparent) 34%,
           rgb(255 255 255 / 0.07) 66%
         )
         border-box;
@@ -539,7 +543,7 @@ body {
       linear-gradient(
           142deg,
           color-mix(in oklab, var(--nf-brand-primary) 75%, white) 0%,
-          color-mix(in oklab, var(--nf-magenta-500) 42%, transparent) 40%,
+          color-mix(in oklab, var(--nf-electric-400) 46%, transparent) 40%,
           rgb(255 255 255 / 0.08) 70%
         )
         border-box;
@@ -626,7 +630,7 @@ body {
       linear-gradient(
           142deg,
           color-mix(in oklab, var(--nf-brand-primary) 62%, white) 0%,
-          color-mix(in oklab, var(--nf-magenta-500) 38%, transparent) 40%,
+          color-mix(in oklab, var(--nf-electric-400) 44%, transparent) 40%,
           rgb(255 255 255 / 0.06) 72%
         )
         border-box;
@@ -898,7 +902,7 @@ body {
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 0%,
           color-mix(in oklab, var(--nf-brand-accent) 60%, transparent) 22%,
           rgb(255 255 255 / 0.05) 46%,
-          color-mix(in oklab, var(--nf-magenta-500) 45%, transparent) 68%,
+          color-mix(in oklab, var(--nf-electric-500) 55%, transparent) 68%,
           rgb(255 255 255 / 0.04) 84%,
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 100%
         )

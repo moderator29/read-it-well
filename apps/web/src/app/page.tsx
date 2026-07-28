@@ -96,14 +96,14 @@ export default async function LandingPage() {
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden lg:hidden"
           >
-            <div className="absolute right-[-16%] top-[3%] w-[74%] max-w-[420px] opacity-[0.55] nf-float">
+            <div className="absolute right-1 top-[4%] w-[52%] max-w-[300px] opacity-[0.85] nf-float">
               <HeroIsland priority />
             </div>
             <div
               className="absolute inset-0"
               style={{
                 background:
-                  "linear-gradient(180deg, rgba(6,4,14,0) 0%, rgba(6,4,14,0.15) 42%, rgba(6,4,14,0.7) 78%, rgba(6,4,14,0.95) 100%)",
+                  "linear-gradient(180deg, rgba(3,8,22,0) 0%, rgba(3,8,22,0.12) 45%, rgba(3,8,22,0.68) 78%, rgba(3,8,22,0.95) 100%)",
               }}
             />
           </div>
