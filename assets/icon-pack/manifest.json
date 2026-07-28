@@ -1,0 +1,970 @@
+{
+  "general-navigation": [
+    {
+      "name": "home",
+      "w": 66,
+      "h": 54
+    },
+    {
+      "name": "search",
+      "w": 56,
+      "h": 62
+    },
+    {
+      "name": "explore",
+      "w": 51,
+      "h": 59
+    },
+    {
+      "name": "map",
+      "w": 55,
+      "h": 63
+    },
+    {
+      "name": "location",
+      "w": 32,
+      "h": 55
+    },
+    {
+      "name": "nearby",
+      "w": 56,
+      "h": 63
+    },
+    {
+      "name": "filter",
+      "w": 51,
+      "h": 63
+    },
+    {
+      "name": "grid",
+      "w": 53,
+      "h": 63
+    },
+    {
+      "name": "list",
+      "w": 47,
+      "h": 50
+    },
+    {
+      "name": "menu",
+      "w": 50,
+      "h": 55
+    },
+    {
+      "name": "back",
+      "w": 49,
+      "h": 58
+    },
+    {
+      "name": "forward",
+      "w": 50,
+      "h": 57
+    },
+    {
+      "name": "up",
+      "w": 49,
+      "h": 60
+    },
+    {
+      "name": "down",
+      "w": 49,
+      "h": 60
+    },
+    {
+      "name": "close",
+      "w": 50,
+      "h": 58
+    },
+    {
+      "name": "check",
+      "w": 52,
+      "h": 60
+    },
+    {
+      "name": "more",
+      "w": 42,
+      "h": 55
+    },
+    {
+      "name": "options",
+      "w": 50,
+      "h": 66
+    },
+    {
+      "name": "settings",
+      "w": 42,
+      "h": 57
+    },
+    {
+      "name": "toggle",
+      "w": 46,
+      "h": 49
+    },
+    {
+      "name": "refresh",
+      "w": 46,
+      "h": 66
+    },
+    {
+      "name": "sort",
+      "w": 49,
+      "h": 65
+    },
+    {
+      "name": "minimize",
+      "w": 49,
+      "h": 65
+    },
+    {
+      "name": "maximize",
+      "w": 50,
+      "h": 65
+    },
+    {
+      "name": "dashboard",
+      "w": 54,
+      "h": 62
+    },
+    {
+      "name": "analytics",
+      "w": 46,
+      "h": 57
+    },
+    {
+      "name": "insights",
+      "w": 48,
+      "h": 69
+    },
+    {
+      "name": "stats",
+      "w": 49,
+      "h": 69
+    },
+    {
+      "name": "chart",
+      "w": 47,
+      "h": 69
+    },
+    {
+      "name": "pie-chart",
+      "w": 47,
+      "h": 62
+    },
+    {
+      "name": "bar-chart",
+      "w": 54,
+      "h": 68
+    },
+    {
+      "name": "activity",
+      "w": 50,
+      "h": 68
+    },
+    {
+      "name": "profile",
+      "w": 39,
+      "h": 66
+    },
+    {
+      "name": "user",
+      "w": 51,
+      "h": 66
+    },
+    {
+      "name": "users",
+      "w": 45,
+      "h": 65
+    },
+    {
+      "name": "add-user",
+      "w": 53,
+      "h": 72
+    },
+    {
+      "name": "id-card",
+      "w": 53,
+      "h": 63
+    },
+    {
+      "name": "verify",
+      "w": 41,
+      "h": 66
+    },
+    {
+      "name": "badge",
+      "w": 48,
+      "h": 72
+    },
+    {
+      "name": "bookmark",
+      "w": 55,
+      "h": 72
+    },
+    {
+      "name": "messages",
+      "w": 51,
+      "h": 68
+    },
+    {
+      "name": "chat",
+      "w": 39,
+      "h": 66
+    },
+    {
+      "name": "notification",
+      "w": 58,
+      "h": 67
+    },
+    {
+      "name": "bell",
+      "w": 39,
+      "h": 66
+    },
+    {
+      "name": "mail",
+      "w": 52,
+      "h": 65
+    },
+    {
+      "name": "inbox",
+      "w": 58,
+      "h": 65
+    },
+    {
+      "name": "send",
+      "w": 41,
+      "h": 64
+    },
+    {
+      "name": "help",
+      "w": 46,
+      "h": 69
+    }
+  ],
+  "travel-stay-booking": [
+    {
+      "name": "hotel",
+      "w": 56,
+      "h": 59
+    },
+    {
+      "name": "apartment",
+      "w": 57,
+      "h": 53
+    },
+    {
+      "name": "villa",
+      "w": 54,
+      "h": 53
+    },
+    {
+      "name": "house",
+      "w": 57,
+      "h": 53
+    },
+    {
+      "name": "shortlet",
+      "w": 55,
+      "h": 53
+    },
+    {
+      "name": "resort",
+      "w": 52,
+      "h": 57
+    },
+    {
+      "name": "hostel",
+      "w": 64,
+      "h": 63
+    },
+    {
+      "name": "room",
+      "w": 56,
+      "h": 62
+    },
+    {
+      "name": "bed",
+      "w": 54,
+      "h": 46
+    },
+    {
+      "name": "amenities",
+      "w": 39,
+      "h": 45
+    },
+    {
+      "name": "booking",
+      "w": 55,
+      "h": 58
+    },
+    {
+      "name": "reservations",
+      "w": 51,
+      "h": 50
+    },
+    {
+      "name": "check-in",
+      "w": 48,
+      "h": 49
+    },
+    {
+      "name": "check-out",
+      "w": 49,
+      "h": 50
+    },
+    {
+      "name": "guests",
+      "w": 42,
+      "h": 50
+    },
+    {
+      "name": "adult",
+      "w": 39,
+      "h": 51
+    },
+    {
+      "name": "child",
+      "w": 40,
+      "h": 57
+    },
+    {
+      "name": "group",
+      "w": 44,
+      "h": 56
+    },
+    {
+      "name": "calendar",
+      "w": 42,
+      "h": 56
+    },
+    {
+      "name": "date-range",
+      "w": 50,
+      "h": 56
+    },
+    {
+      "name": "today",
+      "w": 41,
+      "h": 56
+    },
+    {
+      "name": "schedule",
+      "w": 43,
+      "h": 56
+    },
+    {
+      "name": "itinerary",
+      "w": 42,
+      "h": 56
+    },
+    {
+      "name": "journey",
+      "w": 51,
+      "h": 56
+    },
+    {
+      "name": "flights",
+      "w": 37,
+      "h": 61
+    },
+    {
+      "name": "airplane",
+      "w": 42,
+      "h": 59
+    },
+    {
+      "name": "airport",
+      "w": 48,
+      "h": 69
+    },
+    {
+      "name": "boarding",
+      "w": 45,
+      "h": 56
+    },
+    {
+      "name": "luggage",
+      "w": 47,
+      "h": 60
+    },
+    {
+      "name": "baggage",
+      "w": 47,
+      "h": 60
+    },
+    {
+      "name": "car-rental",
+      "w": 54,
+      "h": 55
+    },
+    {
+      "name": "taxi",
+      "w": 48,
+      "h": 58
+    },
+    {
+      "name": "bus",
+      "w": 44,
+      "h": 71
+    },
+    {
+      "name": "train",
+      "w": 51,
+      "h": 70
+    },
+    {
+      "name": "trip",
+      "w": 49,
+      "h": 72
+    },
+    {
+      "name": "map-pin",
+      "w": 48,
+      "h": 72
+    },
+    {
+      "name": "navigation",
+      "w": 57,
+      "h": 72
+    },
+    {
+      "name": "direction",
+      "w": 46,
+      "h": 65
+    },
+    {
+      "name": "route",
+      "w": 38,
+      "h": 64
+    },
+    {
+      "name": "distance",
+      "w": 45,
+      "h": 63
+    },
+    {
+      "name": "compass",
+      "w": 49,
+      "h": 66
+    },
+    {
+      "name": "globe",
+      "w": 42,
+      "h": 70
+    },
+    {
+      "name": "world",
+      "w": 41,
+      "h": 68
+    },
+    {
+      "name": "translate",
+      "w": 47,
+      "h": 68
+    },
+    {
+      "name": "language",
+      "w": 50,
+      "h": 69
+    },
+    {
+      "name": "weather",
+      "w": 45,
+      "h": 66
+    },
+    {
+      "name": "sun",
+      "w": 42,
+      "h": 66
+    },
+    {
+      "name": "moon",
+      "w": 39,
+      "h": 67
+    }
+  ],
+  "finance-payment-wallet": [
+    {
+      "name": "wallet",
+      "w": 47,
+      "h": 63
+    },
+    {
+      "name": "my-wallet",
+      "w": 52,
+      "h": 63
+    },
+    {
+      "name": "card",
+      "w": 43,
+      "h": 63
+    },
+    {
+      "name": "credit-card",
+      "w": 58,
+      "h": 72
+    },
+    {
+      "name": "debit-card",
+      "w": 59,
+      "h": 72
+    },
+    {
+      "name": "virtual-card",
+      "w": 60,
+      "h": 72
+    },
+    {
+      "name": "bank",
+      "w": 54,
+      "h": 72
+    },
+    {
+      "name": "bank-transfer",
+      "w": 68,
+      "h": 72
+    },
+    {
+      "name": "pay",
+      "w": 41,
+      "h": 68
+    },
+    {
+      "name": "send-money",
+      "w": 62,
+      "h": 60
+    },
+    {
+      "name": "receive",
+      "w": 41,
+      "h": 63
+    },
+    {
+      "name": "top-up",
+      "w": 40,
+      "h": 62
+    },
+    {
+      "name": "add-money",
+      "w": 56,
+      "h": 64
+    },
+    {
+      "name": "withdraw",
+      "w": 49,
+      "h": 63
+    },
+    {
+      "name": "transaction",
+      "w": 59,
+      "h": 63
+    },
+    {
+      "name": "history",
+      "w": 51,
+      "h": 72
+    },
+    {
+      "name": "invoice",
+      "w": 39,
+      "h": 70
+    },
+    {
+      "name": "receipt",
+      "w": 46,
+      "h": 72
+    },
+    {
+      "name": "bill",
+      "w": 38,
+      "h": 69
+    },
+    {
+      "name": "savings",
+      "w": 41,
+      "h": 64
+    },
+    {
+      "name": "investment",
+      "w": 56,
+      "h": 72
+    },
+    {
+      "name": "profit",
+      "w": 49,
+      "h": 72
+    },
+    {
+      "name": "expense",
+      "w": 43,
+      "h": 64
+    },
+    {
+      "name": "budget",
+      "w": 38,
+      "h": 70
+    },
+    {
+      "name": "income",
+      "w": 47,
+      "h": 72
+    },
+    {
+      "name": "salary",
+      "w": 37,
+      "h": 66
+    },
+    {
+      "name": "bonus",
+      "w": 39,
+      "h": 68
+    },
+    {
+      "name": "cash",
+      "w": 52,
+      "h": 72
+    },
+    {
+      "name": "currency",
+      "w": 53,
+      "h": 71
+    },
+    {
+      "name": "exchange",
+      "w": 53,
+      "h": 71
+    },
+    {
+      "name": "rates",
+      "w": 37,
+      "h": 68
+    },
+    {
+      "name": "crypto",
+      "w": 50,
+      "h": 71
+    },
+    {
+      "name": "naira",
+      "w": 37,
+      "h": 58
+    },
+    {
+      "name": "dollar",
+      "w": 38,
+      "h": 64
+    },
+    {
+      "name": "euro",
+      "w": 39,
+      "h": 64
+    },
+    {
+      "name": "pound",
+      "w": 39,
+      "h": 64
+    },
+    {
+      "name": "yen",
+      "w": 35,
+      "h": 60
+    },
+    {
+      "name": "cedi",
+      "w": 39,
+      "h": 64
+    },
+    {
+      "name": "payment",
+      "w": 44,
+      "h": 64
+    },
+    {
+      "name": "secure",
+      "w": 49,
+      "h": 70
+    },
+    {
+      "name": "lock",
+      "w": 46,
+      "h": 70
+    },
+    {
+      "name": "unlock",
+      "w": 46,
+      "h": 70
+    },
+    {
+      "name": "refund",
+      "w": 49,
+      "h": 69
+    },
+    {
+      "name": "chargeback",
+      "w": 60,
+      "h": 69
+    },
+    {
+      "name": "pending",
+      "w": 50,
+      "h": 69
+    },
+    {
+      "name": "success",
+      "w": 50,
+      "h": 70
+    },
+    {
+      "name": "failed",
+      "w": 39,
+      "h": 61
+    },
+    {
+      "name": "warning",
+      "w": 50,
+      "h": 70
+    }
+  ],
+  "property-listing-services": [
+    {
+      "name": "add-listing",
+      "w": 60,
+      "h": 69
+    },
+    {
+      "name": "properties",
+      "w": 57,
+      "h": 70
+    },
+    {
+      "name": "my-listings",
+      "w": 57,
+      "h": 69
+    },
+    {
+      "name": "featured",
+      "w": 45,
+      "h": 68
+    },
+    {
+      "name": "verified",
+      "w": 42,
+      "h": 72
+    },
+    {
+      "name": "pending-status",
+      "w": 42,
+      "h": 68
+    },
+    {
+      "name": "approved",
+      "w": 49,
+      "h": 69
+    },
+    {
+      "name": "rejected",
+      "w": 52,
+      "h": 72
+    },
+    {
+      "name": "edit",
+      "w": 37,
+      "h": 62
+    },
+    {
+      "name": "delete",
+      "w": 36,
+      "h": 64
+    },
+    {
+      "name": "photos",
+      "w": 45,
+      "h": 64
+    },
+    {
+      "name": "gallery",
+      "w": 55,
+      "h": 64
+    },
+    {
+      "name": "image",
+      "w": 53,
+      "h": 72
+    },
+    {
+      "name": "video",
+      "w": 53,
+      "h": 72
+    },
+    {
+      "name": "virtual-tour",
+      "w": 59,
+      "h": 63
+    },
+    {
+      "name": "3d-view",
+      "w": 44,
+      "h": 68
+    },
+    {
+      "name": "floor-plan",
+      "w": 51,
+      "h": 64
+    },
+    {
+      "name": "size",
+      "w": 45,
+      "h": 72
+    },
+    {
+      "name": "beds",
+      "w": 52,
+      "h": 58
+    },
+    {
+      "name": "baths",
+      "w": 38,
+      "h": 62
+    },
+    {
+      "name": "kitchen",
+      "w": 49,
+      "h": 72
+    },
+    {
+      "name": "parking",
+      "w": 44,
+      "h": 72
+    },
+    {
+      "name": "wifi",
+      "w": 50,
+      "h": 72
+    },
+    {
+      "name": "ac",
+      "w": 37,
+      "h": 66
+    },
+    {
+      "name": "tv",
+      "w": 45,
+      "h": 62
+    },
+    {
+      "name": "security",
+      "w": 43,
+      "h": 62
+    },
+    {
+      "name": "elevator",
+      "w": 50,
+      "h": 71
+    },
+    {
+      "name": "furnished",
+      "w": 51,
+      "h": 57
+    },
+    {
+      "name": "unfurnished",
+      "w": 61,
+      "h": 61
+    },
+    {
+      "name": "balcony",
+      "w": 51,
+      "h": 72
+    },
+    {
+      "name": "garden",
+      "w": 39,
+      "h": 63
+    },
+    {
+      "name": "pool",
+      "w": 48,
+      "h": 72
+    },
+    {
+      "name": "restaurant",
+      "w": 54,
+      "h": 61
+    },
+    {
+      "name": "bar",
+      "w": 35,
+      "h": 62
+    },
+    {
+      "name": "lounge",
+      "w": 39,
+      "h": 62
+    },
+    {
+      "name": "spa",
+      "w": 47,
+      "h": 59
+    },
+    {
+      "name": "gym",
+      "w": 43,
+      "h": 57
+    },
+    {
+      "name": "cleaning",
+      "w": 53,
+      "h": 72
+    },
+    {
+      "name": "laundry",
+      "w": 52,
+      "h": 71
+    },
+    {
+      "name": "room-service",
+      "w": 64,
+      "h": 64
+    },
+    {
+      "name": "support",
+      "w": 42,
+      "h": 65
+    },
+    {
+      "name": "live-chat",
+      "w": 47,
+      "h": 65
+    },
+    {
+      "name": "ai-assistant",
+      "w": 59,
+      "h": 70
+    },
+    {
+      "name": "star",
+      "w": 39,
+      "h": 63
+    },
+    {
+      "name": "share",
+      "w": 47,
+      "h": 70
+    },
+    {
+      "name": "favorite",
+      "w": 50,
+      "h": 70
+    },
+    {
+      "name": "report",
+      "w": 47,
+      "h": 69
+    },
+    {
+      "name": "more-actions",
+      "w": 51,
+      "h": 70
+    }
+  ]
+}

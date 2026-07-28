@@ -1,0 +1,280 @@
+/*
+ * NaijaFinds design tokens.
+ *
+ * This file is the single source of truth for every colour, radius, shadow,
+ * blur and motion value in the product (Master Rules 27 and 29).
+ * Components must never hard code a raw colour or radius. If a value is needed
+ * and does not exist here, add it here first.
+ *
+ * Layer 1 is the raw palette. Never reference layer 1 from a component.
+ * Layer 2 is the semantic layer. Components reference only layer 2.
+ */
+
+:root {
+  /* ---------------------------------------------------------------------
+   * LAYER 1: raw palette. Internal. Do not use directly in components.
+   * ------------------------------------------------------------------ */
+
+  /* Deep space neutrals, purple biased to match the product's night surface */
+  --nf-ink-950: #06040E;
+  --nf-ink-900: #0A0718;
+  --nf-ink-850: #0F0B20;
+  --nf-ink-800: #151029;
+  --nf-ink-750: #1B1534;
+  --nf-ink-700: #241D42;
+  --nf-ink-600: #332A57;
+  --nf-ink-500: #4A3F73;
+
+  --nf-mist-100: #F7F5FF;
+  --nf-mist-200: #E3DEF7;
+  --nf-mist-300: #C4BCE4;
+  --nf-mist-400: #9E95C4;
+  --nf-mist-500: #7C739F;
+
+  /* Brand violet */
+  --nf-violet-300: #C4B5FD;
+  --nf-violet-400: #A78BFA;
+  --nf-violet-500: #8B5CF6;
+  --nf-violet-600: #7C3AED;
+  --nf-violet-700: #6D28D9;
+
+  /* Supporting accents, used as controlled accents and never as wallpaper */
+  --nf-cyan-400: #22D3EE;
+  --nf-cyan-500: #06B6D4;
+  --nf-magenta-400: #F472B6;
+  --nf-magenta-500: #EC4899;
+  --nf-amber-400: #FBBF24;
+  --nf-orange-500: #F97316;
+  --nf-emerald-400: #34D399;
+  --nf-rose-400: #FB7185;
+  --nf-sky-400: #38BDF8;
+
+  /* ---------------------------------------------------------------------
+   * LAYER 2: semantic tokens. Components use these.
+   * ------------------------------------------------------------------ */
+
+  /* Brand */
+  --nf-brand-primary: var(--nf-violet-500);
+  --nf-brand-primary-strong: var(--nf-violet-600);
+  --nf-brand-primary-soft: color-mix(in oklab, var(--nf-violet-500) 16%, transparent);
+  --nf-brand-secondary: var(--nf-magenta-500);
+  --nf-brand-accent: var(--nf-cyan-400);
+
+  /* Mode accents. Personal is violet, Agent is orange, Admin is cyan. */
+  --nf-mode-personal: var(--nf-violet-500);
+  --nf-mode-agent: var(--nf-orange-500);
+  --nf-mode-admin: var(--nf-cyan-400);
+
+  /* Surfaces */
+  --nf-surface-canvas: var(--nf-ink-950);
+  --nf-surface-primary: var(--nf-ink-900);
+  --nf-surface-secondary: var(--nf-ink-850);
+  --nf-surface-elevated: var(--nf-ink-800);
+  --nf-surface-raised: var(--nf-ink-750);
+  --nf-surface-inset: color-mix(in oklab, var(--nf-ink-950) 70%, black);
+
+  /* Content */
+  --nf-content-primary: var(--nf-mist-100);
+  --nf-content-secondary: var(--nf-mist-300);
+  --nf-content-muted: var(--nf-mist-500);
+  --nf-content-on-brand: #FFFFFF;
+
+  /* Borders */
+  --nf-border-subtle: rgb(255 255 255 / 0.08);
+  --nf-border-default: rgb(255 255 255 / 0.13);
+  --nf-border-strong: rgb(255 255 255 / 0.22);
+  --nf-border-brand: color-mix(in oklab, var(--nf-violet-500) 55%, transparent);
+
+  /* State */
+  --nf-state-success: var(--nf-emerald-400);
+  --nf-state-warning: var(--nf-amber-400);
+  --nf-state-error: var(--nf-rose-400);
+  --nf-state-info: var(--nf-sky-400);
+
+  /* State surfaces, for chips and badges */
+  --nf-state-success-surface: color-mix(in oklab, var(--nf-emerald-400) 15%, transparent);
+  --nf-state-warning-surface: color-mix(in oklab, var(--nf-amber-400) 15%, transparent);
+  --nf-state-error-surface: color-mix(in oklab, var(--nf-rose-400) 15%, transparent);
+  --nf-state-info-surface: color-mix(in oklab, var(--nf-sky-400) 15%, transparent);
+
+  /* ---------------------------------------------------------------------
+   * NaijaFinds Material. Four surface families (Design prompt §5).
+   * ------------------------------------------------------------------ */
+
+  /* Glass depth: used for floating nav, map controls, hero overlays */
+  --nf-glass-fill: rgb(255 255 255 / 0.055);
+  --nf-glass-fill-strong: rgb(255 255 255 / 0.09);
+  --nf-glass-border: rgb(255 255 255 / 0.11);
+  --nf-glass-blur: 22px;
+  --nf-glass-blur-soft: 12px;
+  --nf-glass-specular: linear-gradient(
+    145deg,
+    rgb(255 255 255 / 0.16) 0%,
+    rgb(255 255 255 / 0.02) 38%,
+    transparent 65%
+  );
+
+  /*
+   * Signature gradients.
+   *
+   * `--nf-gradient-primary` is the Primary Gradient from the design system
+   * sheet, sampled in order: violet, indigo, magenta, red, orange, gold. It is
+   * also the ramp running through the brand mark itself, which is why the
+   * wordmark and the mark read as one object.
+   */
+  --nf-gradient-primary: linear-gradient(
+    90deg,
+    #8B5CF6 0%,
+    #6366F1 18%,
+    #D946A6 42%,
+    #EF4444 62%,
+    #F97316 80%,
+    #FBBF24 100%
+  );
+  --nf-gradient-brand: linear-gradient(135deg, var(--nf-violet-600) 0%, var(--nf-violet-500) 45%, var(--nf-magenta-500) 100%);
+  --nf-gradient-iridescent: linear-gradient(
+    135deg,
+    var(--nf-cyan-400) 0%,
+    var(--nf-violet-400) 32%,
+    var(--nf-magenta-400) 64%,
+    var(--nf-amber-400) 100%
+  );
+  --nf-gradient-agent: linear-gradient(135deg, #FB923C 0%, var(--nf-orange-500) 100%);
+  --nf-gradient-surface: linear-gradient(180deg, rgb(255 255 255 / 0.045) 0%, rgb(255 255 255 / 0.012) 100%);
+
+  /* ---------------------------------------------------------------------
+   * Elevation
+   * ------------------------------------------------------------------ */
+  --nf-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --nf-shadow-card: 0 4px 20px -4px rgb(0 0 0 / 0.55), 0 1px 2px rgb(0 0 0 / 0.4);
+  --nf-shadow-lifted: 0 18px 48px -12px rgb(0 0 0 / 0.7), 0 4px 12px rgb(0 0 0 / 0.4);
+  --nf-shadow-float: 0 32px 80px -16px rgb(0 0 0 / 0.8);
+  --nf-glow-brand: 0 0 0 1px color-mix(in oklab, var(--nf-violet-500) 35%, transparent),
+                   0 12px 40px -8px color-mix(in oklab, var(--nf-violet-500) 55%, transparent);
+  --nf-glow-accent: 0 12px 40px -10px color-mix(in oklab, var(--nf-cyan-400) 45%, transparent);
+
+  /* ---------------------------------------------------------------------
+   * Radius
+   * ------------------------------------------------------------------ */
+  --nf-radius-xs: 6px;
+  --nf-radius-sm: 10px;
+  --nf-radius-md: 14px;
+  --nf-radius-lg: 18px;
+  --nf-radius-xl: 24px;
+  --nf-radius-2xl: 32px;
+  --nf-radius-pill: 999px;
+
+  /* ---------------------------------------------------------------------
+   * Motion. Every duration here has a reduced motion answer below.
+   * ------------------------------------------------------------------ */
+  --nf-duration-instant: 90ms;
+  --nf-duration-fast: 160ms;
+  --nf-duration-base: 240ms;
+  --nf-duration-slow: 380ms;
+  --nf-duration-deliberate: 620ms;
+
+  --nf-ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --nf-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --nf-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --nf-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ---------------------------------------------------------------------
+   * Typography scale. Roles, not raw sizes (Design prompt §4).
+   * ------------------------------------------------------------------ */
+  /*
+   * Two families, per the design system sheet: Poppins for display, Inter for
+   * text. Inter is listed after Poppins in the display stack on purpose, as a
+   * per-glyph fallback.
+   *
+   * Poppins does not carry Latin Extended Additional, which is where the Yoruba
+   * and Igbo dotted vowels live (ẹ ọ ṣ ị ụ). Without the fallback those
+   * characters would render from an arbitrary system font and the heading would
+   * look broken. See the [lang] rule below, which switches display to Inter
+   * entirely for the locales that need it, so no heading ever mixes two faces.
+   */
+  --nf-font-display: var(--nf-font-poppins), var(--nf-font-inter), ui-sans-serif, system-ui, sans-serif;
+  --nf-font-sans: var(--nf-font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --nf-font-numeric: var(--nf-font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --nf-text-display: clamp(2.75rem, 1.6rem + 5vw, 5.25rem);
+  --nf-text-hero: clamp(2.25rem, 1.4rem + 3.6vw, 4rem);
+  --nf-text-h1: clamp(1.875rem, 1.3rem + 2.2vw, 2.75rem);
+  --nf-text-h2: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  --nf-text-h3: 1.375rem;
+  --nf-text-h4: 1.125rem;
+  --nf-text-body-lg: 1.0625rem;
+  --nf-text-body: 0.9375rem;
+  --nf-text-body-sm: 0.875rem;
+  --nf-text-caption: 0.8125rem;
+  --nf-text-overline: 0.6875rem;
+
+  --nf-tracking-display: -0.035em;
+  --nf-tracking-tight: -0.02em;
+  --nf-tracking-normal: 0em;
+  --nf-tracking-overline: 0.14em;
+
+  /* Layout */
+  --nf-rail-width: 264px;
+  --nf-header-height: 76px;
+  --nf-content-max: 1440px;
+}
+
+/*
+ * Locales whose orthography Poppins cannot render. Yoruba and Igbo both need
+ * combining dot below on vowels, and Yoruba stacks a tone mark on top of that.
+ * Switching the whole display face to Inter keeps headings visually consistent
+ * instead of half Poppins and half fallback.
+ */
+:root[lang="yo"],
+:root[lang="ig"] {
+  --nf-font-display: var(--nf-font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/*
+ * Light theme scaffold.
+ *
+ * Every reference supplied so far is dark, so dark is the designed and reviewed
+ * theme. These light values keep components token driven and prevent hard coded
+ * darkness leaking into markup, but the light theme has NOT had a design pass.
+ * Tracked in KNOWN_GAPS.md before it is exposed to users.
+ */
+:root[data-theme="light"] {
+  --nf-surface-canvas: #FFFFFF;
+  --nf-surface-primary: #FAF9FF;
+  --nf-surface-secondary: #F3F0FC;
+  --nf-surface-elevated: #FFFFFF;
+  --nf-surface-raised: #FFFFFF;
+  --nf-surface-inset: #F0EDFA;
+
+  --nf-content-primary: #14102A;
+  --nf-content-secondary: #4A4270;
+  --nf-content-muted: #7C739F;
+
+  --nf-border-subtle: rgb(20 16 42 / 0.08);
+  --nf-border-default: rgb(20 16 42 / 0.14);
+  --nf-border-strong: rgb(20 16 42 / 0.24);
+
+  --nf-glass-fill: rgb(255 255 255 / 0.7);
+  --nf-glass-fill-strong: rgb(255 255 255 / 0.85);
+  --nf-glass-border: rgb(20 16 42 / 0.1);
+
+  --nf-shadow-card: 0 4px 20px -6px rgb(20 16 42 / 0.14), 0 1px 2px rgb(20 16 42 / 0.06);
+  --nf-shadow-lifted: 0 18px 48px -14px rgb(20 16 42 / 0.2);
+  --nf-shadow-float: 0 32px 80px -20px rgb(20 16 42 / 0.24);
+}
+
+/*
+ * Reduced motion (Master Rule 31, Design prompt §7).
+ * Durations collapse rather than animations being deleted, so components keep
+ * one code path and transitions simply resolve immediately.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --nf-duration-instant: 1ms;
+    --nf-duration-fast: 1ms;
+    --nf-duration-base: 1ms;
+    --nf-duration-slow: 1ms;
+    --nf-duration-deliberate: 1ms;
+    --nf-ease-spring: linear;
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "home": {
+    "w": 200,
+    "h": 200,
+    "src": "cutout"
+  },
+  "hotel": {
+    "w": 200,
+    "h": 190,
+    "src": "cutout"
+  },
+  "apartment": {
+    "w": 200,
+    "h": 186,
+    "src": "cutout"
+  },
+  "restaurant": {
+    "w": 190,
+    "h": 200,
+    "src": "cutout-clean"
+  },
+  "experience": {
+    "w": 200,
+    "h": 200,
+    "src": "cutout"
+  },
+  "car-rental": {
+    "w": 200,
+    "h": 198,
+    "src": "cutout"
+  },
+  "service": {
+    "w": 200,
+    "h": 198,
+    "src": "cutout"
+  },
+  "event": {
+    "w": 180,
+    "h": 200,
+    "src": "cutout-clean"
+  },
+  "favorites": {
+    "w": 200,
+    "h": 200,
+    "src": "cutout"
+  },
+  "wallet": {
+    "w": 200,
+    "h": 196,
+    "src": "cutout"
+  },
+  "booking": {
+    "w": 200,
+    "h": 198,
+    "src": "cutout"
+  },
+  "chat": {
+    "w": 180,
+    "h": 200,
+    "src": "cutout-clean"
+  },
+  "profile": {
+    "w": 200,
+    "h": 194,
+    "src": "cutout"
+  },
+  "language": {
+    "w": 200,
+    "h": 192,
+    "src": "cutout"
+  },
+  "settings": {
+    "w": 200,
+    "h": 192,
+    "src": "cutout"
+  },
+  "help": {
+    "w": 186,
+    "h": 200,
+    "src": "cutout-clean"
+  },
+  "ai-assistant": {
+    "w": 184,
+    "h": 200,
+    "src": "sheet"
+  },
+  "map": {
+    "w": 176,
+    "h": 200,
+    "src": "sheet"
+  },
+  "filter": {
+    "w": 172,
+    "h": 200,
+    "src": "sheet"
+  },
+  "notification": {
+    "w": 168,
+    "h": 200,
+    "src": "sheet"
+  },
+  "verified": {
+    "w": 200,
+    "h": 200,
+    "src": "pack-192 on generated tile"
+  },
+  "secure": {
+    "w": 200,
+    "h": 200,
+    "src": "pack-192 on generated tile"
+  },
+  "search": {
+    "w": 200,
+    "h": 200,
+    "src": "pack-192 on generated tile"
+  },
+  "star": {
+    "w": 200,
+    "h": 200,
+    "src": "pack-192 on generated tile"
+  },
+  "bed": {
+    "w": 200,
+    "h": 200,
+    "src": "pack-192 on generated tile"
+  },
+  "bath": {
+    "w": 200,
+    "h": 200,
+    "src": "pack-192 on generated tile"
+  },
+  "pool": {
+    "w": 200,
+    "h": 200,
+    "src": "pack-192 on generated tile"
+  },
+  "wifi": {
+    "w": 200,
+    "h": 200,
+    "src": "pack-192 on generated tile"
+  },
+  "parking": {
+    "w": 200,
+    "h": 200,
+    "src": "pack-192 on generated tile"
+  },
+  "location": {
+    "w": 200,
+    "h": 200,
+    "src": "pack-192 on generated tile"
+  },
+  "kitchen": {
+    "w": 200,
+    "h": 200,
+    "src": "pack-192 on generated tile"
+  }
+}

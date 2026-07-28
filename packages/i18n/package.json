@@ -1,0 +1,17 @@
+{
+  "name": "@naijafinds/i18n",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Translation keys and locale dictionaries for English, Yoruba, Hausa and Igbo.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
