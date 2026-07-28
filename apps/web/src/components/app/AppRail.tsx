@@ -41,6 +41,7 @@ export function AppRail({
   const account: RailItem[] = [
     { href: "/bookings", label: t.nav.bookings, icon: "booking" },
     { href: "/messages", label: t.nav.messages, icon: "chat" },
+    { href: "/notifications", label: "Notifications", icon: "notification" },
     { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
     { href: "/assistant", label: t.nav.aiAssistant, icon: "ai-assistant" },
     { href: "/profile", label: t.nav.profile, icon: "profile" },
@@ -84,7 +85,7 @@ export function AppRail({
       aria-label={t.nav.primaryLabel}
     >
       <Link href="/" aria-label={t.a11y.logoHome} className="mb-6 px-1">
-        <Logo size={38} wordSize={19} responsive />
+        <Logo size={30} wordSize={16} responsive />
       </Link>
 
       <nav aria-label={t.nav.primaryLabel} className="flex-1 overflow-y-auto">

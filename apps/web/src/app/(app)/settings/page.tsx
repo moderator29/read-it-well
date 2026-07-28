@@ -1,45 +1,65 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
-import { ComingSoon, Ske } from "@/components/app/ComingSoon";
+import { PageHeader } from "@/components/app/PageHeader";
+import {
+  AppearanceCard,
+  LanguageCard,
+  NotificationsCard,
+  AccountCard,
+} from "@/components/app/account/SettingsGroups";
+import { Reveal } from "@/components/site/Reveal";
 
 export const metadata: Metadata = { title: "Settings" };
 
 /**
- * Settings destination.
+ * Settings.
  *
- * Reserved so the rail and tab bar never dead-end here (Master Rule 55). The
- * `(app)` layout supplies the navigation; this page shows what the surface
- * will be, with a skeleton preview of the controls badged as such.
+ * Grouped working controls: appearance and motion, the live language switch
+ * (writes the locale cookie the server reads, then refreshes the tree),
+ * notification preferences, and the expanding account panels. Preferences
+ * persist on this device until real accounts land.
  */
 export default async function SettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
 
   return (
-    <ComingSoon
-      title={t.nav.settings}
-      icon="settings"
-      promise="Language, notifications, privacy and payment preferences, all in one panel."
-      preview={
-        <ul className="divide-y divide-[var(--nf-border-subtle)]">
-          {[0, 1, 2].map((i) => (
-            <li key={i} className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
-              <div className="min-w-0 flex-1 space-y-2">
-                <Ske className="h-3.5 w-2/5" />
-                <Ske className="h-3 w-3/5" />
+    <div className="mx-auto max-w-2xl">
+      <PageHeader title={t.nav.settings} />
+
+      <div className="space-y-4">
+        <Reveal>
+          <LanguageCard current={locale} />
+        </Reveal>
+        <Reveal delay={60}>
+          <AppearanceCard />
+        </Reveal>
+        <Reveal delay={120}>
+          <NotificationsCard />
+        </Reveal>
+        <Reveal delay={180}>
+          <AccountCard />
+        </Reveal>
+
+        <Reveal delay={240}>
+          <section id="legal" className="nf-card p-5">
+            <h2 className="nf-overline">About</h2>
+            <dl className="mt-3 space-y-2 text-[0.875rem]">
+              <div className="flex justify-between">
+                <dt className="text-[var(--nf-content-muted)]">Version</dt>
+                <dd className="nf-numeric">0.1.0</dd>
               </div>
-              {/* Toggle silhouette. */}
-              <div
-                aria-hidden="true"
-                className="relative h-6 w-11 shrink-0 rounded-full bg-[color-mix(in_oklab,var(--nf-content-primary)_9%,transparent)]"
-              >
-                <div className="absolute left-1 top-1 h-4 w-4 rounded-full bg-[color-mix(in_oklab,var(--nf-content-primary)_22%,transparent)]" />
-              </div>
-            </li>
-          ))}
-        </ul>
-      }
-    />
+            </dl>
+            <p className="mt-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+              NaijaFinds respects your privacy: preferences on this page stay on
+              your device, and account data is protected with row level security
+              once you sign in. Full terms and the privacy policy publish with
+              the launch release.
+            </p>
+          </section>
+        </Reveal>
+      </div>
+    </div>
   );
 }

@@ -130,8 +130,10 @@ export function AuthPanel({
 
             {!isSignUp && (
               <p className="text-center">
+                {/* No reset route exists yet, so this routes back to sign-in
+                    rather than dead-ending on a 404. */}
                 <Link
-                  href="/forgot-password"
+                  href="/sign-in"
                   className="text-[0.8125rem] text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
                 >
                   {t.auth.forgotPassword}
@@ -168,7 +170,7 @@ export function AuthPanel({
         {isSignUp ? t.auth.haveAccount : t.auth.noAccount}{" "}
         <Link
           href={isSignUp ? "/sign-in" : "/sign-up"}
-          className="font-semibold text-[var(--nf-violet-300)] underline-offset-4 hover:underline"
+          className="font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
         >
           {isSignUp ? t.common.signIn : t.common.signUp}
         </Link>

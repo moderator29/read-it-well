@@ -52,8 +52,12 @@ html {
   }
 }
 
-body {
+html {
   background-color: var(--nf-surface-canvas);
+}
+
+body {
+  background-color: transparent;
   color: var(--nf-content-primary);
   font-family: var(--nf-font-sans);
   font-size: var(--nf-text-body);
@@ -104,9 +108,9 @@ body {
  * Everything below is a component class and lives in the components layer.
  *
  * This matters: Tailwind emits utilities in a later cascade layer, so an
- * unlayered `.nf-chip { display: inline-flex }` would beat `hidden` on the same
- * element and silently win. Layering them keeps utilities authoritative, which
- * is what anyone reading the markup will assume.
+ * unlayered chip display rule would beat `hidden` on the same element and
+ * silently win. Layering them keeps utilities authoritative, which is what
+ * anyone reading the markup will assume.
  */
 @layer components {
   /* -------------------------------------------------- NaijaFinds Material */
@@ -147,34 +151,33 @@ body {
         padding-box,
       linear-gradient(
           142deg,
-          color-mix(in oklab, var(--nf-brand-primary) 88%, white) 0%,
-          color-mix(in oklab, var(--nf-brand-accent) 62%, transparent) 34%,
+          color-mix(in oklab, var(--nf-electric-500) 55%, transparent) 0%,
+          color-mix(in oklab, var(--nf-electric-500) 28%, transparent) 34%,
           rgb(255 255 255 / 0.07) 62%,
           rgb(255 255 255 / 0.03) 100%
         )
         border-box;
     box-shadow:
-      0 0 22px -8px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent),
+      0 0 16px -10px color-mix(in oklab, var(--nf-electric-500) 35%, transparent),
       var(--nf-shadow-card);
   }
 
   /* Soft depth: the default card material, now wearing the stride. */
   .nf-card {
     background:
-      linear-gradient(var(--nf-surface-secondary), var(--nf-surface-secondary)) padding-box,
-      linear-gradient(
-          142deg,
-          color-mix(in oklab, var(--nf-brand-primary) 70%, white) 0%,
-          color-mix(in oklab, var(--nf-brand-accent) 45%, transparent) 32%,
-          rgb(255 255 255 / 0.06) 60%,
-          rgb(255 255 255 / 0.025) 100%
-        )
+      radial-gradient(125% 90% at 0% 0%, rgb(0 102 255 / 0.16) 0%, transparent 44%) padding-box,
+      linear-gradient(160deg, rgb(12 18 44 / 0.72) 0%, rgb(5 8 22 / 0.86) 64%, rgb(2 4 12 / 0.92) 100%) padding-box,
+      linear-gradient(135deg,
+        rgb(0 200 255 / 0.82) 0%,
+        rgb(0 102 255 / 0.52) 20%,
+        rgb(0 102 255 / 0.06) 46%,
+        transparent 68%)
         border-box;
     border: 1px solid transparent;
-    border-radius: var(--nf-radius-xl);
+    border-radius: var(--nf-radius-lg);
     box-shadow:
-      0 0 26px -12px color-mix(in oklab, var(--nf-brand-primary) 50%, transparent),
-      var(--nf-shadow-card);
+      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      0 8px 30px rgb(0 0 0 / 0.45);
   }
 
   .nf-card--interactive {
@@ -183,10 +186,11 @@ body {
       box-shadow var(--nf-duration-base) var(--nf-ease-standard);
   }
   .nf-card--interactive:hover {
-    transform: translateY(-3px);
+    transform: translateY(-1px);
     box-shadow:
-      0 0 34px -8px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent),
-      var(--nf-shadow-lifted);
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 12px 40px rgb(0 0 0 / 0.5),
+      0 0 28px rgb(0 102 255 / 0.22);
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-card--interactive:hover {
@@ -196,6 +200,12 @@ body {
 
   .nf-hairline {
     border-top: 1px solid var(--nf-border-subtle);
+  }
+
+  /* The supplied brand mark is violet artwork; this shifts it into the blue
+     brand family without touching the source file. */
+  .nf-mark-blue {
+    filter: hue-rotate(-48deg) saturate(1.15);
   }
 
   /* ------------------------------------------------------------ typography */
@@ -292,9 +302,9 @@ body {
   .nf-btn::after {
     content: "";
     position: absolute;
-    inset: 1px 1px 46% 1px;
+    inset: 1px 1px 52% 1px;
     border-radius: inherit;
-    background: linear-gradient(180deg, rgb(255 255 255 / 0.26) 0%, rgb(255 255 255 / 0) 100%);
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.12) 0%, rgb(255 255 255 / 0) 100%);
     pointer-events: none;
     z-index: -1;
   }
@@ -303,69 +313,38 @@ body {
     transform: translateY(1px);
   }
   .nf-btn:disabled {
-    opacity: 0.45;
+    opacity: 0.24;
     cursor: not-allowed;
     transform: none;
   }
 
-  /* ---- primary: the deep glossy brand object ---- */
+  /* ---- primary: the signature gradient with the blue glow ---- */
   .nf-btn--primary {
     color: var(--nf-content-on-brand);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-violet-400) 92%, white) 0%,
-        var(--nf-brand-primary) 44%,
-        var(--nf-violet-700) 100%
-      );
-    border-color: rgb(255 255 255 / 0.2);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.5),
-      inset 0 -3px 9px rgb(0 0 0 / 0.32),
-      0 2px 4px rgb(0 0 0 / 0.34),
-      0 12px 30px -8px color-mix(in oklab, var(--nf-brand-primary) 78%, transparent),
-      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 42%, transparent);
+    background: var(--nf-gradient-cta);
+    border: 1.5px solid rgb(0 102 255 / 0.6);
+    box-shadow: 0 0 12px rgb(0 102 255 / 0.35);
   }
   .nf-btn--primary:hover:not(:disabled) {
-    filter: brightness(1.08) saturate(1.05);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.58),
-      inset 0 -3px 9px rgb(0 0 0 / 0.3),
-      0 2px 4px rgb(0 0 0 / 0.34),
-      0 18px 42px -8px color-mix(in oklab, var(--nf-brand-primary) 92%, transparent),
-      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+    box-shadow: 0 0 24px rgb(0 102 255 / 0.45);
+    transform: translateY(-1px);
   }
   .nf-btn--primary:active:not(:disabled) {
-    box-shadow:
-      inset 0 2px 6px rgb(0 0 0 / 0.4),
-      inset 0 1px 0 rgb(255 255 255 / 0.22),
-      0 6px 16px -8px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+    transform: translateY(0);
   }
 
-  /* ---- glass: dark body, luminous stride, real blur ---- */
+  /* ---- ghost: translucent white, blue-ice edge on hover ---- */
   .nf-btn--glass {
-    color: var(--nf-content-primary);
-    background:
-      linear-gradient(180deg, rgb(255 255 255 / 0.1) 0%, rgb(255 255 255 / 0.035) 100%) padding-box,
-      linear-gradient(
-          142deg,
-          color-mix(in oklab, var(--nf-brand-primary) 82%, white) 0%,
-          color-mix(in oklab, var(--nf-magenta-500) 45%, transparent) 36%,
-          rgb(255 255 255 / 0.08) 68%
-        )
-        border-box;
-    backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.22),
-      inset 0 -2px 8px rgb(0 0 0 / 0.3),
-      0 8px 24px -10px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+    color: var(--nf-content-secondary);
+    background: rgb(255 255 255 / 0.04);
+    border: 1.5px solid rgb(255 255 255 / 0.14);
+    box-shadow: none;
   }
   .nf-btn--glass:hover:not(:disabled) {
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.3),
-      inset 0 -2px 8px rgb(0 0 0 / 0.28),
-      0 14px 34px -10px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent);
+    background: rgb(255 255 255 / 0.08);
+    border-color: rgb(0 200 255 / 0.45);
+    color: var(--nf-content-primary);
+    box-shadow: 0 0 12px rgb(0 102 255 / 0.35);
   }
 
   .nf-btn--ghost {
@@ -414,15 +393,8 @@ body {
     font-weight: 650;
     cursor: pointer;
     border: 1px solid transparent;
-    background:
-      linear-gradient(180deg, color-mix(in oklab, var(--nf-violet-500) 34%, transparent) 0%, color-mix(in oklab, var(--nf-violet-700) 30%, transparent) 100%) padding-box,
-      linear-gradient(
-          142deg,
-          color-mix(in oklab, var(--nf-brand-primary) 85%, white) 0%,
-          color-mix(in oklab, var(--nf-magenta-500) 45%, transparent) 34%,
-          rgb(255 255 255 / 0.07) 66%
-        )
-        border-box;
+    background: rgb(255 255 255 / 0.04);
+    border: 1.5px solid rgb(255 255 255 / 0.14);
     backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
     box-shadow:
@@ -500,7 +472,7 @@ body {
     outline: none;
     background:
       linear-gradient(var(--nf-surface-inset), var(--nf-surface-inset)) padding-box,
-      linear-gradient(142deg, var(--nf-violet-300), color-mix(in oklab, var(--nf-brand-accent) 70%, transparent))
+      linear-gradient(142deg, var(--nf-electric-300), color-mix(in oklab, var(--nf-brand-accent) 70%, transparent))
         border-box;
     box-shadow:
       inset 0 2px 6px rgb(0 0 0 / 0.32),
@@ -533,29 +505,16 @@ body {
     border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
     cursor: pointer;
-    border: 1px solid transparent;
-    background:
-      linear-gradient(180deg, rgb(255 255 255 / 0.1) 0%, rgb(255 255 255 / 0.035) 100%) padding-box,
-      linear-gradient(
-          142deg,
-          color-mix(in oklab, var(--nf-brand-primary) 75%, white) 0%,
-          color-mix(in oklab, var(--nf-magenta-500) 42%, transparent) 40%,
-          rgb(255 255 255 / 0.08) 70%
-        )
-        border-box;
-    backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.2),
-      0 6px 18px -8px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+    border: 1px solid rgb(0 102 255 / 0.45);
+    background: linear-gradient(180deg, rgb(8 12 28 / 0.9), rgb(3 5 14 / 0.95));
+    box-shadow: 0 0 10px rgb(0 102 255 / 0.22), inset 0 0 10px rgb(0 102 255 / 0.1);
     transition:
       transform var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-icon-btn:hover {
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.3),
-      0 10px 26px -8px color-mix(in oklab, var(--nf-brand-primary) 85%, transparent);
+    border-color: rgb(0 102 255 / 0.9);
+    box-shadow: 0 0 18px rgb(0 102 255 / 0.4), inset 0 0 14px rgb(0 102 255 / 0.16);
   }
   .nf-icon-btn:active {
     transform: scale(0.94);
@@ -620,19 +579,9 @@ body {
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-secondary);
-    border: 1px solid transparent;
-    background:
-      linear-gradient(180deg, rgb(255 255 255 / 0.07) 0%, rgb(255 255 255 / 0.022) 100%) padding-box,
-      linear-gradient(
-          142deg,
-          color-mix(in oklab, var(--nf-brand-primary) 62%, white) 0%,
-          color-mix(in oklab, var(--nf-magenta-500) 38%, transparent) 40%,
-          rgb(255 255 255 / 0.06) 72%
-        )
-        border-box;
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.14),
-      0 4px 14px -8px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+    border: 1px solid rgb(0 102 255 / 0.35);
+    background: linear-gradient(180deg, rgb(8 12 28 / 0.9), rgb(3 5 14 / 0.95));
+    box-shadow: 0 0 10px rgb(0 102 255 / 0.16), inset 0 0 10px rgb(0 102 255 / 0.07);
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
@@ -640,10 +589,9 @@ body {
   }
   .nf-chip:hover {
     color: var(--nf-content-primary);
+    border-color: rgb(0 102 255 / 0.7);
     transform: translateY(-1px);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.2),
-      0 10px 24px -10px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent);
+    box-shadow: 0 0 16px rgb(0 102 255 / 0.3), inset 0 0 12px rgb(0 102 255 / 0.1);
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-chip:hover {
@@ -653,15 +601,8 @@ body {
   .nf-chip[aria-pressed="true"],
   .nf-chip--active {
     color: var(--nf-content-primary);
-    background:
-      linear-gradient(
-          180deg,
-          color-mix(in oklab, var(--nf-brand-primary) 32%, transparent),
-          color-mix(in oklab, var(--nf-brand-primary) 18%, transparent)
-        )
-        padding-box,
-      linear-gradient(142deg, var(--nf-violet-300), color-mix(in oklab, var(--nf-brand-accent) 55%, transparent))
-        border-box;
+    border-color: rgb(0 102 255 / 0.9);
+    box-shadow: 0 0 18px rgb(0 102 255 / 0.4), inset 0 0 14px rgb(0 102 255 / 0.16);
   }
 
   .nf-badge {
@@ -680,7 +621,7 @@ body {
   }
   .nf-badge--brand {
     background: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
-    color: var(--nf-violet-300);
+    color: var(--nf-electric-300);
   }
   .nf-badge--warning {
     background: var(--nf-state-warning-surface);
@@ -728,8 +669,8 @@ body {
   .nf-ai-banner {
     background:
       url("/brand/ai-robot.png") right 0 bottom 0 / auto 104% no-repeat,
-      radial-gradient(120% 160% at 8% 0%, #C64DF0 0%, transparent 55%),
-      linear-gradient(102deg, #A030E8 0%, #7C3AED 38%, #5B4BE8 70%, #4F63F0 100%);
+      radial-gradient(120% 160% at 8% 0%, #38BDF8 0%, transparent 55%),
+      linear-gradient(102deg, #1D4ED8 0%, #2563EB 38%, #3B82F6 70%, #0EA5E9 100%);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.26),
       inset 0 0 0 1px rgb(255 255 255 / 0.1),
@@ -749,8 +690,8 @@ body {
       inset: 0;
       background: linear-gradient(
         100deg,
-        color-mix(in oklab, #4C1D95 78%, transparent) 0%,
-        color-mix(in oklab, #4C1D95 46%, transparent) 52%,
+        color-mix(in oklab, #0B255E 80%, transparent) 0%,
+        color-mix(in oklab, #0B255E 48%, transparent) 52%,
         transparent 86%
       );
       pointer-events: none;
@@ -789,63 +730,62 @@ body {
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
-    /* The deep violet canvas lives here so it is truly fixed on iOS too. */
     background: var(--nf-canvas-base);
+    isolation: isolate;
   }
-  .nf-ambient span {
+  .nf-ambient span { display: none; }
+  .nf-ambient::before,
+  .nf-ambient::after {
+    content: "";
     position: absolute;
-    display: block;
-    border-radius: 50%;
-    filter: blur(80px);
-    will-change: transform, opacity;
+    inset: 0;
+    pointer-events: none;
   }
-  .nf-ambient span:nth-child(1) {
-    width: 62vw;
-    height: 62vw;
-    max-width: 780px;
-    max-height: 780px;
-    top: -16vw;
-    left: -12vw;
-    background: var(--nf-canvas-bloom-1);
-    opacity: 0.5;
-    animation: nf-drift-a 14s var(--nf-ease-standard) infinite;
+  .nf-ambient::before {
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 30%, rgb(0 102 255 / 0.3) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 80% at 80% 20%, rgb(0 200 255 / 0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 100% 60% at 50% 80%, rgb(0 200 255 / 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 40% at 70% 60%, rgb(18 48 179 / 0.16) 0%, transparent 55%);
+    animation: nf-aurora-pulse 12s ease-in-out infinite;
   }
-  .nf-ambient span:nth-child(2) {
-    width: 54vw;
-    height: 54vw;
-    max-width: 680px;
-    max-height: 680px;
-    top: -8vw;
-    right: -14vw;
-    background: var(--nf-canvas-bloom-2);
-    opacity: 0.4;
-    animation: nf-drift-b 18s var(--nf-ease-standard) infinite;
+  .nf-ambient::after {
+    inset: -50%;
+    background: conic-gradient(from 0deg at 50% 50%,
+      transparent 0deg,
+      rgb(0 102 255 / 0.28) 60deg,
+      transparent 120deg,
+      rgb(0 200 255 / 0.16) 180deg,
+      transparent 240deg,
+      rgb(18 48 179 / 0.24) 300deg,
+      transparent 360deg);
+    animation: nf-aurora-drift 30s linear infinite;
+    opacity: 0.7;
   }
-  .nf-ambient span:nth-child(3) {
-    width: 48vw;
-    height: 48vw;
-    max-width: 620px;
-    max-height: 620px;
-    bottom: -18vw;
-    left: 28vw;
-    background: var(--nf-canvas-bloom-3);
-    opacity: 0.32;
-    animation: nf-drift-c 22s var(--nf-ease-standard) infinite;
+  @keyframes nf-aurora-pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+  }
+  @keyframes nf-aurora-drift {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
   }
   @keyframes nf-drift-a {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.55; }
-    50% { transform: translate3d(16vw, 14vh, 0) scale(1.28); opacity: 0.8; }
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.3; }
+    50% { transform: translate3d(16vw, 14vh, 0) scale(1.28); opacity: 0.42; }
   }
   @keyframes nf-drift-b {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.45; }
-    50% { transform: translate3d(-15vw, 16vh, 0) scale(1.34); opacity: 0.7; }
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.24; }
+    50% { transform: translate3d(-15vw, 16vh, 0) scale(1.34); opacity: 0.36; }
   }
   @keyframes nf-drift-c {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.38; }
-    50% { transform: translate3d(13vw, -13vh, 0) scale(1.3); opacity: 0.6; }
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.2; }
+    50% { transform: translate3d(13vw, -13vh, 0) scale(1.3); opacity: 0.3; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .nf-ambient span {
+    .nf-ambient::before,
+    .nf-ambient::after {
       animation: none !important;
     }
   }
@@ -898,7 +838,7 @@ body {
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 0%,
           color-mix(in oklab, var(--nf-brand-accent) 60%, transparent) 22%,
           rgb(255 255 255 / 0.05) 46%,
-          color-mix(in oklab, var(--nf-magenta-500) 45%, transparent) 68%,
+          color-mix(in oklab, var(--nf-electric-500) 55%, transparent) 68%,
           rgb(255 255 255 / 0.04) 84%,
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 100%
         )
@@ -982,14 +922,14 @@ body {
     position: absolute;
     border-radius: 50%;
     filter: blur(90px);
-    opacity: 0.5;
+    opacity: 0.2;
   }
   .nf-aurora::before {
     width: 46rem;
     height: 46rem;
     top: -18rem;
     left: -10rem;
-    background: radial-gradient(circle, var(--nf-violet-600) 0%, transparent 68%);
+    background: radial-gradient(circle, var(--nf-electric-600) 0%, transparent 68%);
   }
   .nf-aurora::after {
     width: 38rem;
@@ -1008,11 +948,11 @@ body {
     /* Soft crossing light beams in place of the old square grid: pure glow,
        no geometry, so the canvas reads as atmosphere rather than graph paper. */
     background:
-      linear-gradient(115deg, transparent 30%, color-mix(in oklab, var(--nf-violet-500) 14%, transparent) 46%, transparent 60%),
+      linear-gradient(115deg, transparent 30%, color-mix(in oklab, var(--nf-electric-500) 14%, transparent) 46%, transparent 60%),
       linear-gradient(65deg, transparent 42%, color-mix(in oklab, var(--nf-cyan-400) 9%, transparent) 55%, transparent 68%);
     mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
     -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
-    opacity: 0.8;
+    opacity: 0.35;
   }
 
   /* ------------------------------------------------------------- animation */
@@ -1133,5 +1073,60 @@ body {
   }
   .nf-scroll-x::-webkit-scrollbar {
     display: none;
+  }
+
+  /* ------------------------------------------------- daylight adaptations */
+
+  /*
+   * Light mode is a designed twin, not an inversion: white-frost glass with
+   * the same blue edge ring at daylight intensity, controls on paper bodies,
+   * and the aurora as an airy sky wash. Everything else flows from tokens.
+   */
+  :root[data-theme="light"] .nf-card {
+    background:
+      radial-gradient(125% 90% at 0% 0%, rgb(0 102 255 / 0.08) 0%, transparent 44%) padding-box,
+      linear-gradient(160deg, rgb(255 255 255 / 0.94) 0%, rgb(247 250 255 / 0.96) 100%) padding-box,
+      linear-gradient(135deg,
+        rgb(0 160 255 / 0.55) 0%,
+        rgb(0 102 255 / 0.32) 20%,
+        rgb(0 102 255 / 0.05) 46%,
+        transparent 68%)
+        border-box;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.8),
+      0 8px 30px rgb(10 22 38 / 0.1);
+  }
+  :root[data-theme="light"] .nf-card--interactive:hover {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 12px 40px rgb(10 22 38 / 0.14),
+      0 0 28px rgb(0 102 255 / 0.14);
+  }
+  :root[data-theme="light"] .nf-chip,
+  :root[data-theme="light"] .nf-icon-btn {
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.96), rgb(244 248 254 / 0.98));
+    border-color: rgb(0 102 255 / 0.3);
+    box-shadow: 0 2px 10px rgb(10 22 38 / 0.08), inset 0 0 8px rgb(0 102 255 / 0.04);
+  }
+  :root[data-theme="light"] .nf-chip:hover,
+  :root[data-theme="light"] .nf-icon-btn:hover {
+    border-color: rgb(0 102 255 / 0.6);
+    box-shadow: 0 4px 14px rgb(10 22 38 / 0.1), 0 0 14px rgb(0 102 255 / 0.16);
+  }
+  :root[data-theme="light"] .nf-btn--glass {
+    background: rgb(10 22 38 / 0.04);
+    border-color: rgb(10 22 38 / 0.14);
+  }
+  :root[data-theme="light"] .nf-ambient::before {
+    opacity: 0.5;
+  }
+  :root[data-theme="light"] .nf-ambient::after {
+    opacity: 0.18;
+  }
+  :root[data-theme="light"] .nf-grain {
+    opacity: 0.03;
+  }
+  :root[data-theme="light"] .nf-mark-blue {
+    filter: hue-rotate(-48deg) saturate(1.05) brightness(1.02);
   }
 }

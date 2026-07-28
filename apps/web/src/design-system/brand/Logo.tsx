@@ -38,7 +38,7 @@ export function LogoMark({
       width={size}
       height={size}
       priority={priority}
-      className={className}
+      className={`nf-mark-blue ${className ?? ""}`}
       style={{ width, height: "auto" }}
     />
   );
@@ -60,7 +60,7 @@ export function LogoLockup({
       width={size}
       height={size}
       priority={priority}
-      className={className}
+      className={`nf-mark-blue ${className ?? ""}`}
       style={{ width: size, height: "auto" }}
     />
   );

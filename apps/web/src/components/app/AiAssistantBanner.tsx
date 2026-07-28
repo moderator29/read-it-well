@@ -42,7 +42,7 @@ export function AiAssistantBanner({ t }: { t: Dictionary }) {
 
           <Link
             href="/assistant"
-            className="nf-btn mt-5 inline-flex bg-white text-[var(--nf-violet-700)] shadow-[0_10px_30px_-8px_rgba(0,0,0,0.5)] hover:brightness-105 sm:mt-6"
+            className="nf-btn mt-5 inline-flex bg-white text-[var(--nf-electric-700)] shadow-[0_10px_30px_-8px_rgba(0,0,0,0.5)] hover:brightness-105 sm:mt-6"
           >
             {t.home.aiCard.action}
             <UiIcon name="arrow-right" size={16} />

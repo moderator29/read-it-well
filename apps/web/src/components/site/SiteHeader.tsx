@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 import { MobileMenu } from "./MobileMenu";
 
 /**
@@ -26,7 +27,7 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
       <div className="nf-glass border-b border-transparent">
         <div className="nf-shell flex h-[60px] items-center justify-between gap-4 sm:h-[72px] sm:gap-6">
           <Link href="/" aria-label={t.a11y.logoHome} className="shrink-0">
-            <Logo size={38} wordSize={20} responsive priority />
+            <Logo size={30} wordSize={16} responsive priority />
           </Link>
 
           <nav aria-label={t.nav.primaryLabel} className="hidden items-center gap-1 lg:flex">

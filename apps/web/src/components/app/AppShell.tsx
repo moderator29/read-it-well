@@ -7,6 +7,7 @@ import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { AppRail } from "./AppRail";
 import { MobileTabBar } from "./MobileTabBar";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
+import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { Icon } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
@@ -77,7 +78,7 @@ export function AppShell({
             >
               <span className="flex w-4 flex-col gap-[5px]" aria-hidden="true">
                 <span className="h-[2px] w-full rounded-full bg-current" />
-                <span className="h-[2px] w-3/4 rounded-full bg-current" />
+                <span className="h-[2px] w-full rounded-full bg-current" />
                 <span className="h-[2px] w-full rounded-full bg-current" />
               </span>
             </button>
@@ -88,6 +89,7 @@ export function AppShell({
 
             <div className="flex-1" />
 
+            <ThemeToggle />
             <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
 
             <Link href="/assistant" className="nf-btn nf-btn--primary gap-2 px-3 py-2 sm:px-3.5">

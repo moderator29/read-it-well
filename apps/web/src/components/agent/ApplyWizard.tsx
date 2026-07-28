@@ -85,6 +85,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
               <button
                 type="button"
                 onClick={() => i <= step && setStep(i)}
+                disabled={i > step}
                 aria-current={current ? "step" : undefined}
                 className="flex flex-col items-center gap-1.5"
                 title={title}

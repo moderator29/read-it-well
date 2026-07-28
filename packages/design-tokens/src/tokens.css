@@ -15,21 +15,21 @@
    * LAYER 1: raw palette. Internal. Do not use directly in components.
    * ------------------------------------------------------------------ */
 
-  /* Deep space neutrals, purple biased to match the product's night surface */
-  --nf-ink-950: #06040E;
-  --nf-ink-900: #0A0718;
-  --nf-ink-850: #0F0B20;
-  --nf-ink-800: #151029;
-  --nf-ink-750: #1B1534;
-  --nf-ink-700: #241D42;
-  --nf-ink-600: #332A57;
-  --nf-ink-500: #4A3F73;
+  /* Deep space neutrals, navy biased: the neon-blue night surface */
+  --nf-ink-950: #050816;
+  --nf-ink-900: #070B1A;
+  --nf-ink-850: #090E24;
+  --nf-ink-800: #0A0F2E;
+  --nf-ink-750: #0E1638;
+  --nf-ink-700: #131D48;
+  --nf-ink-600: #1B2860;
+  --nf-ink-500: #283A7E;
 
-  --nf-mist-100: #F7F5FF;
-  --nf-mist-200: #E3DEF7;
-  --nf-mist-300: #C4BCE4;
-  --nf-mist-400: #9E95C4;
-  --nf-mist-500: #7C739F;
+  --nf-mist-100: #FFFFFF;
+  --nf-mist-200: #E4EAFF;
+  --nf-mist-300: #D5DEFF;
+  --nf-mist-400: #B4C0E0;
+  --nf-mist-500: #8E9CC4;
 
   /* Brand violet */
   --nf-violet-300: #C4B5FD;
@@ -39,14 +39,26 @@
   --nf-violet-700: #6D28D9;
 
   /* Supporting accents, used as controlled accents and never as wallpaper */
-  --nf-cyan-400: #22D3EE;
+  --nf-royal-400: #4257EE;
+  --nf-royal-500: #2B3FE0;
+  --nf-royal-600: #2130C0;
+  --nf-royal-700: #1A2596;
+  --nf-electric-300: #7FB6FF;
+  --nf-electric-400: #338AFF;
+  --nf-electric-500: #0066FF;
+  --nf-electric-600: #1230B3;
+  --nf-electric-700: #0B1B70;
+  --nf-cyan-400: #00C8FF;
   --nf-cyan-500: #06B6D4;
+  --nf-crimson-400: #FF1744;
+  --nf-crimson-500: #DC143C;
+  --nf-gold-400: #FFD86B;
   --nf-magenta-400: #F472B6;
   --nf-magenta-500: #EC4899;
   --nf-amber-400: #FBBF24;
   --nf-orange-500: #F97316;
-  --nf-emerald-400: #34D399;
-  --nf-rose-400: #FB7185;
+  --nf-emerald-400: #10B981;
+  --nf-rose-400: #FF1744;
   --nf-sky-400: #38BDF8;
 
   /* ---------------------------------------------------------------------
@@ -54,19 +66,19 @@
    * ------------------------------------------------------------------ */
 
   /* Brand */
-  --nf-brand-primary: var(--nf-violet-500);
-  --nf-brand-primary-strong: var(--nf-violet-600);
-  --nf-brand-primary-soft: color-mix(in oklab, var(--nf-violet-500) 16%, transparent);
-  --nf-brand-secondary: var(--nf-magenta-500);
-  --nf-brand-accent: var(--nf-cyan-400);
+  --nf-brand-primary: var(--nf-electric-500);
+  --nf-brand-primary-strong: var(--nf-electric-600);
+  --nf-brand-primary-soft: color-mix(in oklab, var(--nf-electric-500) 16%, transparent);
+  --nf-brand-secondary: var(--nf-cyan-400);
+  --nf-brand-accent: var(--nf-electric-400);
 
   /* Mode accents. Personal is violet, Agent is orange, Admin is cyan. */
-  --nf-mode-personal: var(--nf-violet-500);
+  --nf-mode-personal: var(--nf-electric-500);
   --nf-mode-agent: var(--nf-orange-500);
   --nf-mode-admin: var(--nf-cyan-400);
 
   /* Surfaces */
-  --nf-surface-canvas: var(--nf-ink-950);
+  --nf-surface-canvas: #060A12;
   --nf-surface-primary: var(--nf-ink-900);
   --nf-surface-secondary: var(--nf-ink-850);
   --nf-surface-elevated: var(--nf-ink-800);
@@ -83,7 +95,7 @@
   --nf-border-subtle: rgb(255 255 255 / 0.08);
   --nf-border-default: rgb(255 255 255 / 0.13);
   --nf-border-strong: rgb(255 255 255 / 0.22);
-  --nf-border-brand: color-mix(in oklab, var(--nf-violet-500) 55%, transparent);
+  --nf-border-brand: color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
 
   /* State */
   --nf-state-success: var(--nf-emerald-400);
@@ -131,13 +143,14 @@
     #F97316 80%,
     #FBBF24 100%
   );
-  --nf-gradient-brand: linear-gradient(135deg, var(--nf-violet-600) 0%, var(--nf-violet-500) 45%, var(--nf-magenta-500) 100%);
+  --nf-gradient-brand: linear-gradient(135deg, var(--nf-cyan-400) 0%, var(--nf-electric-500) 100%);
+  --nf-gradient-cta: linear-gradient(135deg, #0066FF 0%, #DC143C 100%);
   --nf-gradient-iridescent: linear-gradient(
     135deg,
     var(--nf-cyan-400) 0%,
-    var(--nf-violet-400) 32%,
-    var(--nf-magenta-400) 64%,
-    var(--nf-amber-400) 100%
+    var(--nf-electric-400) 38%,
+    var(--nf-sky-400) 70%,
+    var(--nf-electric-300) 100%
   );
   --nf-gradient-agent: linear-gradient(135deg, #FB923C 0%, var(--nf-orange-500) 100%);
   --nf-gradient-surface: linear-gradient(180deg, rgb(255 255 255 / 0.045) 0%, rgb(255 255 255 / 0.012) 100%);
@@ -145,15 +158,15 @@
   /* ---------------------------------------------------------------------
    * Ambient canvas
    *
-   * The living background behind the whole app. Not flat black: a deep violet
+   * The living background behind the whole app. Not flat black: a deep navy
    * to ink field with two slow drifting colour blooms, so the surface feels lit
    * and alive rather than printed. These are the ingredients; the motion lives
    * in the `nf-ambient` layer in globals.css.
    * ------------------------------------------------------------------ */
-  --nf-canvas-base: radial-gradient(140% 120% at 50% -10%, #140A2E 0%, #0B0720 42%, #06040E 100%);
-  --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-violet-600) 90%, transparent) 0%, transparent 62%);
-  --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-500) 85%, transparent) 0%, transparent 62%);
-  --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-magenta-500) 80%, transparent) 0%, transparent 62%);
+  --nf-canvas-base: #050816;
+  --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-500) 92%, transparent) 0%, transparent 62%);
+  --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-600) 85%, transparent) 0%, transparent 62%);
+  --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-500) 80%, transparent) 0%, transparent 62%);
 
   /* ---------------------------------------------------------------------
    * Elevation
@@ -162,8 +175,8 @@
   --nf-shadow-card: 0 4px 20px -4px rgb(0 0 0 / 0.55), 0 1px 2px rgb(0 0 0 / 0.4);
   --nf-shadow-lifted: 0 18px 48px -12px rgb(0 0 0 / 0.7), 0 4px 12px rgb(0 0 0 / 0.4);
   --nf-shadow-float: 0 32px 80px -16px rgb(0 0 0 / 0.8);
-  --nf-glow-brand: 0 0 0 1px color-mix(in oklab, var(--nf-violet-500) 35%, transparent),
-                   0 12px 40px -8px color-mix(in oklab, var(--nf-violet-500) 55%, transparent);
+  --nf-glow-brand: 0 0 0 1px color-mix(in oklab, var(--nf-electric-500) 35%, transparent),
+                   0 12px 40px -8px color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
   --nf-glow-accent: 0 12px 40px -10px color-mix(in oklab, var(--nf-cyan-400) 45%, transparent);
 
   /* ---------------------------------------------------------------------
@@ -173,7 +186,7 @@
   --nf-radius-sm: 10px;
   --nf-radius-md: 14px;
   --nf-radius-lg: 18px;
-  --nf-radius-xl: 24px;
+  --nf-radius-xl: 22px;
   --nf-radius-2xl: 32px;
   --nf-radius-pill: 999px;
 
@@ -220,8 +233,8 @@
   --nf-text-h2: clamp(1.22rem, 1.05rem + 0.9vw, 1.8rem);
   --nf-text-h3: clamp(1.15rem, 1.05rem + 0.5vw, 1.375rem);
   --nf-text-h4: 1.125rem;
-  --nf-text-body-lg: 1rem;
-  --nf-text-body: 0.9063rem;
+  --nf-text-body-lg: 0.9688rem;
+  --nf-text-body: 0.875rem;
   --nf-text-body-sm: 0.875rem;
   --nf-text-caption: 0.8125rem;
   --nf-text-overline: 0.6875rem;
@@ -257,28 +270,39 @@
  * Tracked in KNOWN_GAPS.md before it is exposed to users.
  */
 :root[data-theme="light"] {
-  --nf-surface-canvas: #FFFFFF;
-  --nf-surface-primary: #FAF9FF;
-  --nf-surface-secondary: #F3F0FC;
+  --nf-surface-canvas: #F3F7FD;
+  --nf-surface-primary: #FBFDFF;
+  --nf-surface-secondary: #FFFFFF;
   --nf-surface-elevated: #FFFFFF;
-  --nf-surface-raised: #FFFFFF;
-  --nf-surface-inset: #F0EDFA;
+  --nf-surface-raised: #F2F6FC;
+  --nf-surface-inset: #E9F0F9;
 
-  --nf-content-primary: #14102A;
-  --nf-content-secondary: #4A4270;
-  --nf-content-muted: #7C739F;
+  --nf-content-primary: #0A1626;
+  --nf-content-secondary: #3D5170;
+  --nf-content-muted: #68799B;
+  --nf-content-on-brand: #FFFFFF;
 
-  --nf-border-subtle: rgb(20 16 42 / 0.08);
-  --nf-border-default: rgb(20 16 42 / 0.14);
-  --nf-border-strong: rgb(20 16 42 / 0.24);
+  /* Slightly deeper blue so the brand holds contrast on paper. */
+  --nf-brand-primary: #0057DB;
+  --nf-brand-primary-strong: #1230B3;
 
-  --nf-glass-fill: rgb(255 255 255 / 0.7);
-  --nf-glass-fill-strong: rgb(255 255 255 / 0.85);
-  --nf-glass-border: rgb(20 16 42 / 0.1);
+  --nf-border-subtle: rgb(10 22 38 / 0.08);
+  --nf-border-default: rgb(10 22 38 / 0.14);
+  --nf-border-strong: rgb(10 22 38 / 0.24);
 
-  --nf-shadow-card: 0 4px 20px -6px rgb(20 16 42 / 0.14), 0 1px 2px rgb(20 16 42 / 0.06);
-  --nf-shadow-lifted: 0 18px 48px -14px rgb(20 16 42 / 0.2);
-  --nf-shadow-float: 0 32px 80px -20px rgb(20 16 42 / 0.24);
+  --nf-glass-fill: rgb(255 255 255 / 0.72);
+  --nf-glass-fill-strong: rgb(255 255 255 / 0.86);
+  --nf-glass-border: rgb(10 22 38 / 0.1);
+
+  --nf-shadow-card: 0 4px 20px -6px rgb(10 22 38 / 0.1), 0 1px 2px rgb(10 22 38 / 0.05);
+  --nf-shadow-lifted: 0 18px 48px -14px rgb(10 22 38 / 0.16);
+  --nf-shadow-float: 0 32px 80px -20px rgb(10 22 38 / 0.2);
+
+  /* Daylight canvas: airy sky wash, calm blooms. */
+  --nf-canvas-base: #F3F7FD;
+  --nf-canvas-bloom-1: radial-gradient(circle, rgb(0 102 255 / 0.16) 0%, transparent 62%);
+  --nf-canvas-bloom-2: radial-gradient(circle, rgb(0 200 255 / 0.12) 0%, transparent 62%);
+  --nf-canvas-bloom-3: radial-gradient(circle, rgb(18 48 179 / 0.1) 0%, transparent 62%);
 }
 
 /*

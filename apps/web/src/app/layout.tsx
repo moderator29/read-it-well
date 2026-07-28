@@ -80,6 +80,13 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body>
+        {/* Apply the stored theme before first paint, so light mode never flashes dark. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('nf_theme');if(t==='light'||(!t&&matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.dataset.theme='light'}catch(e){}",
+          }}
+        />
         {/* The living canvas, mounted once behind every page. */}
         <div className="nf-ambient" aria-hidden="true">
           <span />

@@ -46,24 +46,24 @@ export type Icon3DProps = {
  * and money is always amber, trust always emerald, AI always the brand violet.
  */
 const defaultRamp: Partial<Record<GlyphName, IconRampName>> = {
-  home: "violet",
+  home: "sky",
   search: "cyan",
   explore: "cyan",
   map: "sky",
   location: "rose",
-  filter: "violet",
+  filter: "sky",
 
-  hotel: "violet",
+  hotel: "sky",
   apartment: "magenta",
   homes: "sky",
   restaurants: "orange",
   experiences: "magenta",
   services: "cyan",
 
-  bookings: "violet",
+  bookings: "sky",
   messages: "magenta",
   wallet: "amber",
-  "ai-assistant": "violet",
+  "ai-assistant": "sky",
   profile: "sky",
   settings: "slate",
 
@@ -73,7 +73,7 @@ const defaultRamp: Partial<Record<GlyphName, IconRampName>> = {
   price: "amber",
   instant: "amber",
 
-  bed: "violet",
+  bed: "sky",
   bath: "cyan",
   pool: "sky",
   wifi: "cyan",
@@ -86,7 +86,7 @@ const defaultRamp: Partial<Record<GlyphName, IconRampName>> = {
   help: "slate",
   "car-rental": "sky",
   event: "magenta",
-  "map-pin-cluster": "violet",
+  "map-pin-cluster": "sky",
 };
 
 export function Icon3D({
@@ -98,7 +98,7 @@ export function Icon3D({
   label,
   className,
 }: Icon3DProps) {
-  const family = ramp ?? defaultRamp[name] ?? "violet";
+  const family = ramp ?? defaultRamp[name] ?? "sky";
   const [light, core, dark] = iconRamp[family];
   // Widened to Glyph so the optional `detail` and `shade` layers are visible.
   // `satisfies` on the registry keeps key inference while each member stays

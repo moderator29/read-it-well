@@ -303,6 +303,24 @@ the three owners unless a `depends` note says otherwise.
 
 ---
 
+## 5b. Owner architecture rulings (2026-07-28, canon)
+
+- **Brand:** deep navy neon-blue canvas and glass-stride containers with
+  electric blue accents; PURPLE is the single button and action colour
+  platform wide. Dark is default; light mode is a designed first-class twin.
+- **No fees for now:** the platform charges nothing to agents or guests.
+  Nothing in any UI may claim a fee. The ledger stays ready for a future take
+  rate but records zero platform fee.
+- **Messaging trust flow:** guests DM the agent of an approved listing; text
+  and images both supported. A database trigger scans every message for
+  account numbers and payment keywords and files a flag admins review (the
+  fraud bot). Inside each chat an options sheet shows the listing's verified
+  state and lets the guest confirm they have inspected the property; product
+  copy tells guests to pay only after inspection. Payment happens directly
+  between guest and agent (e.g. account transfer), platform monitored.
+- **Wallet:** full naira wallet, ledger derived balance (never a stored
+  balance field), integer kobo, service-role writes only.
+
 ## 6. Cross-cutting invariants (never regress)
 
 Checked on every push. A break here fails the change regardless of feature value.
@@ -357,6 +375,20 @@ Checked on every push. A break here fails the change regardless of feature value
   stride for hero containers, breathing CTA glow, floating hero icon field.
   Four parallel agents revamping agent workspace, auth plus become-an-agent,
   consumer home/search/placeholders, and footer plus system pages.
+- 2026-07-28: Neon-blue rebrand shipped: navy ink palette, electric blue
+  accents through every stride and glass control, purple kept as the one
+  action colour, real light mode with a no-flash boot and a toggle in both
+  headers, aurora made actually visible (opaque body background was covering
+  the fixed ambient layer), island complete on phones, three line hamburger
+  with a Naka-style slide-in panel, logo and scale stepped down again.
+- 2026-07-28: Security advisor clean of all project objects; performance
+  advisor driven to zero actionable items with 17 FK covering indexes applied
+  live and mirrored in the migration set. The 46 auth_rls_initplan rewrites
+  are recorded as pre-launch hardening. 150-item strategy inbox reviewed into
+  RECOMMENDATIONS.md.
+- 2026-07-28: Naira wallet end to end: wallets plus append-only ledger with
+  derived balance applied to the live database, and the wallet page rebuilt
+  with balance hero, validated purple action panels and transaction filters.
 - 2026-07-28: All four agents delivered with green self-audits. Agent Mode is
   mobile responsive (slide-in drawer, stacked-card tables, scaling charts),
   auth got its glass frame plus password toggle, the become-an-agent pitch and
