@@ -17,10 +17,17 @@ export function AppRail({
   t,
   active = "/home",
   userName,
+  variant = "rail",
 }: {
   t: Dictionary;
   active?: string;
   userName: string;
+  /**
+   * `rail` is the sticky desktop column, hidden below lg. `drawer` renders the
+   * same navigation unconditionally for the mobile slide-in, so the IA cannot
+   * drift between the two presentations (Master Rule 17).
+   */
+  variant?: "rail" | "drawer";
 }) {
   const discovery: RailItem[] = [
     { href: "/home", label: t.nav.home, icon: "home" },
@@ -66,7 +73,11 @@ export function AppRail({
 
   return (
     <aside
-      className="sticky top-0 hidden h-dvh w-[var(--nf-rail-width)] shrink-0 flex-col border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 py-5 lg:flex"
+      className={
+        variant === "rail"
+          ? "sticky top-0 hidden h-dvh w-[var(--nf-rail-width)] shrink-0 flex-col border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 py-5 lg:flex"
+          : "flex h-full w-full flex-col px-4 py-5"
+      }
       aria-label={t.nav.primaryLabel}
     >
       <Link href="/" aria-label={t.a11y.logoHome} className="mb-6 px-1">

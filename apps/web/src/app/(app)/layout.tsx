@@ -11,7 +11,9 @@ import { AppShell } from "@/components/app/AppShell";
  * handed down; the active destination is worked out inside the shell from the
  * current path.
  */
-const PLACEHOLDER_NAME = "there";
+/* Neutral demo identity until real sessions land; reads correctly both in the
+   greeting ("Welcome back, Guest") and on the rail identity card. */
+const PLACEHOLDER_NAME = "Guest";
 
 export default async function AppLayout({
   children,

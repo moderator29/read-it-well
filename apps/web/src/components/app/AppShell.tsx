@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Dictionary, Locale } from "@naijafinds/i18n";
@@ -34,16 +35,55 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const active = usePathname();
+  const [drawer, setDrawer] = useState(false);
+
+  /* The drawer closes itself on navigation and locks page scroll while open. */
+  useEffect(() => setDrawer(false), [active]);
+  useEffect(() => {
+    document.body.style.overflow = drawer ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [drawer]);
 
   return (
     <div className="flex min-h-dvh">
       <AppRail t={t} active={active} userName={userName} />
 
+      {/* Mobile slide-in side navigation: the same rail, as a left drawer. */}
+      {drawer && (
+        <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true">
+          <button
+            type="button"
+            aria-label={t.a11y.closeMenu}
+            onClick={() => setDrawer(false)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+          <div className="nf-rise absolute inset-y-0 left-0 w-[min(84vw,var(--nf-rail-width))] overflow-y-auto border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] shadow-[var(--nf-shadow-float)]">
+            <AppRail t={t} active={active} userName={userName} variant="drawer" />
+          </div>
+        </div>
+      )}
+
       <main id="main" className="min-w-0 flex-1 pb-24 lg:pb-0">
         {/* ------------------------------------------------------- top bar */}
         <header className="nf-glass sticky top-0 z-40 border-b border-[var(--nf-border-subtle)]">
           <div className="flex h-[64px] items-center gap-3 px-4 sm:gap-4 sm:px-5 md:px-8">
-            {/* On phones, sub-pages lead with the way back; home leads with the mark. */}
+            {/* Phones lead with the side navigation, exactly like the desktop left rail. */}
+            <button
+              type="button"
+              aria-label={t.a11y.openMenu}
+              aria-expanded={drawer}
+              onClick={() => setDrawer(true)}
+              className="nf-icon-btn h-10 w-10 lg:hidden"
+            >
+              <span className="flex w-4 flex-col gap-[5px]" aria-hidden="true">
+                <span className="h-[2px] w-full rounded-full bg-current" />
+                <span className="h-[2px] w-3/4 rounded-full bg-current" />
+                <span className="h-[2px] w-full rounded-full bg-current" />
+              </span>
+            </button>
+            {/* On phones, sub-pages also carry the way back. */}
             {active !== "/home" && <BackButton className="h-10 w-10 lg:hidden" />}
             <Link
               href="/"
