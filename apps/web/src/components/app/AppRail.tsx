@@ -61,7 +61,10 @@ export function AppRail({
               : "text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
           ].join(" ")}
         >
-          <Icon name={item.icon} size={28} />
+          {/* Steps down a size in the mobile drawer, up on the desktop rail. */}
+          <span className="h-6 w-6 shrink-0 lg:h-7 lg:w-7">
+            <Icon name={item.icon} fill />
+          </span>
           <span className="flex-1">{item.label}</span>
           {item.badge ? (
             <span className="nf-numeric nf-badge nf-badge--brand">{item.badge}</span>
@@ -81,7 +84,7 @@ export function AppRail({
       aria-label={t.nav.primaryLabel}
     >
       <Link href="/" aria-label={t.a11y.logoHome} className="mb-6 px-1">
-        <Logo size={38} wordSize={19} />
+        <Logo size={38} wordSize={19} responsive />
       </Link>
 
       <nav aria-label={t.nav.primaryLabel} className="flex-1 overflow-y-auto">
@@ -98,7 +101,9 @@ export function AppRail({
         href="/agents"
         className="mt-4 flex items-center gap-3 rounded-[var(--nf-radius-lg)] border border-[color-mix(in_oklab,var(--nf-mode-agent)_40%,transparent)] p-3 transition-colors hover:bg-[color-mix(in_oklab,var(--nf-mode-agent)_10%,transparent)]"
       >
-        <Icon name="apartment" size={34} />
+        <span className="h-7 w-7 shrink-0 lg:h-8 lg:w-8">
+          <Icon name="apartment" fill />
+        </span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className="block text-[0.8125rem] font-semibold">{t.home.agentCard.action}</span>
           <span className="block text-[0.6875rem] text-[var(--nf-content-muted)]">

@@ -102,8 +102,10 @@ export function AppShell({
 
             <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
 
-            <Link href="/assistant" className="nf-btn nf-btn--glass gap-2 px-3.5 py-2">
-              <Icon name="ai-assistant" size={26} />
+            <Link href="/assistant" className="nf-btn nf-btn--glass gap-2 px-3 py-2 sm:px-3.5">
+              <span className="h-6 w-6 sm:h-7 sm:w-7">
+                <Icon name="ai-assistant" fill />
+              </span>
               <span className="hidden sm:inline">{t.nav.aiAssistant}</span>
             </Link>
           </div>
