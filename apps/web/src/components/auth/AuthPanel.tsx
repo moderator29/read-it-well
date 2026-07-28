@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import type { AuthFormState } from "@/lib/auth/actions";
 import type { ProviderId, ProviderState } from "@/lib/auth/providers";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AppleMark, GoogleMark, MailMark, XMark } from "./ProviderMarks";
 
 const EMPTY: AuthFormState = { ok: false };
@@ -49,7 +50,32 @@ export function AuthPanel({
         {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
       </p>
 
-      <div className="mt-7 space-y-2.5">
+      {/*
+       * Demo entry. Temporary scaffold while the auth environment is not wired:
+       * it drops a short-lived demo cookie and opens the app so the whole
+       * platform can be explored and reviewed. Replace with a real session once
+       * Supabase auth env is in place.
+       */}
+      <Link
+        href="/home"
+        onClick={() => {
+          document.cookie = "nf_demo=1; path=/; max-age=86400; samesite=lax";
+        }}
+        className="nf-btn nf-btn--primary mt-7 w-full py-3.5"
+      >
+        <UiIcon name="sparkle" size={16} />
+        {t.auth.exploreDemo}
+      </Link>
+
+      <div className="my-5 flex items-center gap-3" aria-hidden="true">
+        <span className="h-px flex-1 bg-[var(--nf-border-subtle)]" />
+        <span className="text-[0.75rem] uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+          {t.auth.orContinue}
+        </span>
+        <span className="h-px flex-1 bg-[var(--nf-border-subtle)]" />
+      </div>
+
+      <div className="space-y-2.5">
         {!showEmail ? (
           <button
             type="button"

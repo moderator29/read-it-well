@@ -54,6 +54,8 @@ html {
 
 body {
   background-color: var(--nf-surface-canvas);
+  background-image: var(--nf-canvas-base);
+  background-attachment: fixed;
   color: var(--nf-content-primary);
   font-family: var(--nf-font-sans);
   font-size: var(--nf-text-body);
@@ -681,6 +683,79 @@ body {
   /* ------------------------------------------------------- ambient effects */
 
   /*
+   * The living canvas. One fixed layer mounted once in the root layout, sitting
+   * behind every page, with three colour blooms drifting on slow, offset loops.
+   * This is what makes the whole product feel lit and alive from the first view
+   * rather than sitting on flat black. Pure CSS, no image payload, GPU friendly
+   * (only transform and opacity animate), and it collapses to a static field
+   * under reduced motion or on the low end device tier.
+   */
+  .nf-ambient {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .nf-ambient span {
+    position: absolute;
+    display: block;
+    border-radius: 50%;
+    filter: blur(80px);
+    will-change: transform, opacity;
+  }
+  .nf-ambient span:nth-child(1) {
+    width: 62vw;
+    height: 62vw;
+    max-width: 780px;
+    max-height: 780px;
+    top: -16vw;
+    left: -12vw;
+    background: var(--nf-canvas-bloom-1);
+    opacity: 0.5;
+    animation: nf-drift-a 26s var(--nf-ease-standard) infinite;
+  }
+  .nf-ambient span:nth-child(2) {
+    width: 54vw;
+    height: 54vw;
+    max-width: 680px;
+    max-height: 680px;
+    top: -8vw;
+    right: -14vw;
+    background: var(--nf-canvas-bloom-2);
+    opacity: 0.4;
+    animation: nf-drift-b 32s var(--nf-ease-standard) infinite;
+  }
+  .nf-ambient span:nth-child(3) {
+    width: 48vw;
+    height: 48vw;
+    max-width: 620px;
+    max-height: 620px;
+    bottom: -18vw;
+    left: 28vw;
+    background: var(--nf-canvas-bloom-3);
+    opacity: 0.32;
+    animation: nf-drift-c 38s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-drift-a {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.5; }
+    50% { transform: translate3d(8vw, 6vh, 0) scale(1.14); opacity: 0.62; }
+  }
+  @keyframes nf-drift-b {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.4; }
+    50% { transform: translate3d(-7vw, 8vh, 0) scale(1.2); opacity: 0.52; }
+  }
+  @keyframes nf-drift-c {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.3; }
+    50% { transform: translate3d(6vw, -6vh, 0) scale(1.16); opacity: 0.44; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-ambient span {
+      animation: none !important;
+    }
+  }
+
+  /*
    * The aurora field behind the hero. Pure CSS, no image payload, and it is the
    * first thing dropped on the low end device tier.
    */
@@ -766,6 +841,51 @@ body {
   }
   .nf-float {
     animation: nf-float 7s var(--nf-ease-standard) infinite;
+  }
+
+  /* A second, slower float on an offset phase, for scattered accent objects. */
+  .nf-float-slow {
+    animation: nf-float 11s var(--nf-ease-standard) infinite;
+    animation-delay: -3s;
+  }
+
+  /* Scroll reveal. Hidden state lifts and fades; shown state settles. */
+  .nf-reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity var(--nf-duration-deliberate) var(--nf-ease-entrance),
+      transform var(--nf-duration-deliberate) var(--nf-ease-entrance);
+    will-change: opacity, transform;
+  }
+  .nf-reveal[data-shown="true"] {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .nf-float-slow {
+      animation: none !important;
+    }
+  }
+
+  /* Gradient sheen that sweeps across a headline, used sparingly on the hero. */
+  @keyframes nf-shine {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  .nf-shine {
+    background-size: 200% auto;
+    animation: nf-shine 6s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-shine {
+      animation: none !important;
+    }
   }
 
   /*

@@ -1,28 +1,19 @@
-import Image from "next/image";
+import { Icon3D } from "./Icon3D";
+import type { GlyphName } from "./glyphs";
+import type { IconRampName } from "@naijafinds/design-tokens";
 
 /**
- * NaijaFinds 3D icon.
+ * NaijaFinds icon.
  *
- * These are the real pack assets, cut from the supplied sheets with their alpha
- * preserved, not redrawn approximations. Every glyph keeps the pack's own
- * neumorphic tile, lighting and material, so the set on screen is the set that
- * was designed (Master Rule 28).
- *
- * Source resolution is roughly 91 x 100 per icon, so the sensible display
- * ceiling is about 64px. Above that they soften. `size` is capped in review
- * rather than in code, because a hero treatment at 96px is a legitimate choice
- * when the surrounding art is also photographic.
+ * The platform icon is a vector signature object rendered by Icon3D: a 3D glyph
+ * on a glass-lit tile, one camera angle, one light direction, sharp at any size
+ * and density. This replaced the raster pack, which softened badly below 64px
+ * and could not be recoloured or animated. The public name set is kept stable
+ * so every call site upgrades without change; a small alias table maps the
+ * historical singular or shorthand names onto the canonical glyph keys.
  */
 
-/**
- * Primary set: the 20 icon "3D ICON STYLE" sheet, cut at roughly 91 x 100.
- * Secondary set: ten slots the primary sheet does not cover, taken from the
- * owner's larger 192 icon pack and rescaled to match. Both are the same brand,
- * so the family stays coherent; the secondary source resolution is lower, which
- * is why those slots are only used at 40px and below.
- */
 export const ICONS = [
-  // primary sheet
   "home",
   "hotel",
   "apartment",
@@ -43,7 +34,6 @@ export const ICONS = [
   "language",
   "settings",
   "help",
-  // secondary, small sizes only
   "verified",
   "secure",
   "search",
@@ -59,32 +49,37 @@ export const ICONS = [
 
 export type IconName = (typeof ICONS)[number];
 
+/** Historical names that differ from the canonical glyph key. */
+const ALIAS: Partial<Record<IconName, GlyphName>> = {
+  restaurant: "restaurants",
+  experience: "experiences",
+  booking: "bookings",
+  chat: "messages",
+  favorites: "favorite",
+  service: "services",
+};
+
 export type IconProps = {
   name: IconName;
-  /** Rendered edge length in px. */
+  /** Rendered edge length in px. Ignored when `fill` is set. */
   size?: number;
+  /** Fill the parent box so the icon can be sized responsively by a wrapper. */
+  fill?: boolean;
+  /** Override the semantic colour family. */
+  ramp?: IconRampName;
   /**
    * Accessible label. Omit for decorative icons, which are then hidden from
-   * assistive technology rather than announcing a meaningless filename.
+   * assistive technology rather than announcing a meaningless name.
    */
   label?: string;
   className?: string;
+  /** Accepted for API compatibility with the former raster icon. No effect. */
   priority?: boolean;
 };
 
-export function Icon({ name, size = 48, label, className, priority }: IconProps) {
+export function Icon({ name, size = 48, fill, ramp, label, className }: IconProps) {
+  const glyph = (ALIAS[name] ?? name) as GlyphName;
   return (
-    <Image
-      src={`/icons/${name}.png`}
-      alt={label ?? ""}
-      aria-hidden={label ? undefined : true}
-      width={size}
-      height={size}
-      priority={priority}
-      className={className}
-      style={{ width: size, height: "auto", objectFit: "contain" }}
-      // The pack ships at roughly 2x the largest display size we use.
-      sizes={`${size}px`}
-    />
+    <Icon3D name={glyph} size={size} fill={fill} ramp={ramp} label={label} className={className} />
   );
 }

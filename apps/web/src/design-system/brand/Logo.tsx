@@ -15,15 +15,21 @@ import Image from "next/image";
 
 export function LogoMark({
   size = 44,
+  responsive = false,
   className,
   title,
   priority,
 }: {
   size?: number;
+  /** Scale from a smaller phone size up to `size`, so the mark is never oversized on mobile. */
+  responsive?: boolean;
   className?: string;
   title?: string;
   priority?: boolean;
 }) {
+  const width = responsive
+    ? `clamp(${Math.round(size * 0.72)}px, 6vw, ${size}px)`
+    : size;
   return (
     <Image
       src="/brand/mark.png"
@@ -33,7 +39,7 @@ export function LogoMark({
       height={size}
       priority={priority}
       className={className}
-      style={{ width: size, height: "auto" }}
+      style={{ width, height: "auto" }}
     />
   );
 }
@@ -68,20 +74,26 @@ export function Logo({
   size = 40,
   wordSize = 21,
   tagline = false,
+  responsive = false,
   className,
   priority,
 }: {
   size?: number;
   wordSize?: number;
   tagline?: boolean;
+  /** Scale the mark and wordmark down on phones, up to the given sizes on desktop. */
+  responsive?: boolean;
   className?: string;
   priority?: boolean;
 }) {
+  const wordFontSize = responsive
+    ? `clamp(${Math.round(wordSize * 0.8)}px, 4.4vw, ${wordSize}px)`
+    : wordSize;
   return (
     <span className={`nf-logo ${className ?? ""}`}>
-      <LogoMark size={size} title="NaijaFinds" priority={priority} />
+      <LogoMark size={size} responsive={responsive} title="NaijaFinds" priority={priority} />
       <span className="nf-logo__text">
-        <span className="nf-logo__word" style={{ fontSize: wordSize }}>
+        <span className="nf-logo__word" style={{ fontSize: wordFontSize }}>
           Naija<span className="nf-logo__word-accent">Finds</span>
         </span>
         {tagline && <span className="nf-logo__tagline">Find it. Book it. Live it.</span>}

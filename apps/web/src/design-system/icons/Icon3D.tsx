@@ -18,6 +18,12 @@ export type Icon3DProps = {
   name: GlyphName;
   /** Rendered edge length in px. The tile and glyph scale together. */
   size?: number;
+  /**
+   * Fill the parent box instead of using a fixed px size. Set the size on a
+   * wrapping element (for example `h-9 w-9 md:h-12 md:w-12`) so the icon can be
+   * smaller on mobile than on desktop without duplicate markup.
+   */
+  fill?: boolean;
   /** Colour family. Defaults to the semantic mapping in `defaultRamp`. */
   ramp?: IconRampName;
   /** `tile` draws the lit container. `bare` draws only the object. */
@@ -83,6 +89,7 @@ const defaultRamp: Partial<Record<GlyphName, IconRampName>> = {
 export function Icon3D({
   name,
   size = 48,
+  fill = false,
   ramp,
   variant = "tile",
   label,
@@ -102,8 +109,8 @@ export function Icon3D({
 
   return (
     <svg
-      width={size}
-      height={size}
+      width={fill ? "100%" : size}
+      height={fill ? "100%" : size}
       viewBox="0 0 64 64"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
