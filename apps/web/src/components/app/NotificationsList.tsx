@@ -103,10 +103,13 @@ export function NotificationsList() {
                     <span className="mt-1 block text-[0.7rem] text-[var(--nf-content-muted)]">{n.when}</span>
                   </span>
                   {unread && (
-                    <span
-                      aria-label="Unread"
-                      className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[var(--nf-brand-primary)] transition-opacity"
-                    />
+                    <>
+                      <span
+                        aria-hidden="true"
+                        className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[var(--nf-brand-primary)] transition-opacity"
+                      />
+                      <span className="sr-only">Unread</span>
+                    </>
                   )}
                 </button>
               </li>

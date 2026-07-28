@@ -142,11 +142,21 @@ class SeedListingRepository implements ListingRepository {
   async recommended(limit = 6): Promise<Listing[]> {
     return SEED.slice(0, limit);
   }
+  async byId(id: string): Promise<Listing | null> {
+    // Accepts the slug as well as the id so an old deep link keeps resolving.
+    return SEED.find((l) => l.id === id || l.slug === id) ?? null;
+  }
 }
 
 class ApiListingRepository implements ListingRepository {
   readonly isSeed = false;
   async recommended(): Promise<Listing[]> {
+    throw new Error(
+      "NF_DATA_SOURCE is set to 'api' but the platform API is not implemented yet. " +
+        "Unset it to fall back to seed content.",
+    );
+  }
+  async byId(): Promise<Listing | null> {
     throw new Error(
       "NF_DATA_SOURCE is set to 'api' but the platform API is not implemented yet. " +
         "Unset it to fall back to seed content.",

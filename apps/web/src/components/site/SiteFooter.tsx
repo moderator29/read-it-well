@@ -35,26 +35,29 @@ export function SiteFooter({ t }: { t: Dictionary }) {
         { href: "/search?type=experience", label: t.nav.experiences },
       ],
     },
+    /* The dedicated marketing pages (about, careers, help centre, contact,
+       privacy, terms) do not exist yet, so until they ship every row points at
+       the closest surface that does, rather than dead-ending on a 404. */
     {
       title: t.landing.footer.company,
       links: [
-        { href: "/about", label: t.landing.footer.about },
-        { href: "/careers", label: t.landing.footer.careers },
+        { href: "/", label: t.landing.footer.about },
+        { href: "/agents", label: t.landing.footer.careers },
         { href: "/agents", label: t.landing.footer.becomeAgent },
       ],
     },
     {
       title: t.landing.footer.support,
       links: [
-        { href: "/help", label: t.landing.footer.help },
-        { href: "/contact", label: t.landing.footer.contact },
+        { href: "/assistant", label: t.landing.footer.help },
+        { href: "/assistant", label: t.landing.footer.contact },
       ],
     },
     {
       title: t.landing.footer.legal,
       links: [
-        { href: "/privacy", label: t.landing.footer.privacy },
-        { href: "/terms", label: t.landing.footer.terms },
+        { href: "/settings#legal", label: t.landing.footer.privacy },
+        { href: "/settings#legal", label: t.landing.footer.terms },
       ],
     },
   ];
@@ -87,7 +90,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
               <h2 className="nf-overline mb-3.5">{col.title}</h2>
               <ul className="space-y-2.5">
                 {col.links.map((l) => (
-                  <li key={l.href}>
+                  <li key={l.label}>
                     <Link
                       href={l.href}
                       className="text-[0.875rem] text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)]"

@@ -130,8 +130,10 @@ export function AuthPanel({
 
             {!isSignUp && (
               <p className="text-center">
+                {/* No reset route exists yet, so this routes back to sign-in
+                    rather than dead-ending on a 404. */}
                 <Link
-                  href="/forgot-password"
+                  href="/sign-in"
                   className="text-[0.8125rem] text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
                 >
                   {t.auth.forgotPassword}

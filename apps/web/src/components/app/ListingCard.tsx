@@ -39,7 +39,7 @@ export function ListingCard({
 
   return (
     <article className="nf-card nf-card--interactive group overflow-hidden">
-      <Link href={`/listing/${listing.slug}`} className="block">
+      <Link href={`/listing/${listing.id}`} className="block">
         <div className="relative aspect-[4/3] w-full overflow-hidden">
           {/* Media layer scales gently on hover; badges and scrim stay put. */}
           <div

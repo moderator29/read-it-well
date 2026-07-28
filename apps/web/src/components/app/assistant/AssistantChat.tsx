@@ -162,7 +162,7 @@ export function AssistantChat() {
                   type="button"
                   aria-pressed={tone === t}
                   onClick={() => setTone(t)}
-                  className="nf-chip"
+                  className={`nf-chip ${tone === t ? "nf-chip--active" : ""}`}
                 >
                   {t}
                 </button>
@@ -178,7 +178,7 @@ export function AssistantChat() {
                   type="button"
                   aria-pressed={language === l}
                   onClick={() => setLanguage(l)}
-                  className="nf-chip"
+                  className={`nf-chip ${language === l ? "nf-chip--active" : ""}`}
                 >
                   {l}
                 </button>
