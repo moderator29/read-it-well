@@ -6,6 +6,7 @@ import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { AppRail } from "./AppRail";
 import { MobileTabBar } from "./MobileTabBar";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
+import { BackButton } from "@/components/site/BackButton";
 import { Icon } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { LogoMark } from "@/design-system/brand/Logo";
@@ -41,8 +42,14 @@ export function AppShell({
       <main id="main" className="min-w-0 flex-1 pb-24 lg:pb-0">
         {/* ------------------------------------------------------- top bar */}
         <header className="nf-glass sticky top-0 z-40 border-b border-[var(--nf-border-subtle)]">
-          <div className="flex h-[64px] items-center gap-4 px-5 md:px-8">
-            <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
+          <div className="flex h-[64px] items-center gap-3 px-4 sm:gap-4 sm:px-5 md:px-8">
+            {/* On phones, sub-pages lead with the way back; home leads with the mark. */}
+            {active !== "/home" && <BackButton className="h-10 w-10 lg:hidden" />}
+            <Link
+              href="/"
+              className={active !== "/home" ? "hidden" : "lg:hidden"}
+              aria-label={t.a11y.logoHome}
+            >
               <LogoMark size={32} />
             </Link>
 

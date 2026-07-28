@@ -357,3 +357,12 @@ Checked on every push. A break here fails the change regardless of feature value
   stride for hero containers, breathing CTA glow, floating hero icon field.
   Four parallel agents revamping agent workspace, auth plus become-an-agent,
   consumer home/search/placeholders, and footer plus system pages.
+- 2026-07-28: All four agents delivered with green self-audits. Agent Mode is
+  mobile responsive (slide-in drawer, stacked-card tables, scaling charts),
+  auth got its glass frame plus password toggle, the become-an-agent pitch and
+  status timeline landed, home and search are rich (snap rows, real sort
+  chips, honest sample labelling), and the footer, 404 and error pages are
+  branded. Integration pass added a mobile menu, universal back button in the
+  consumer shell, native touch feel and a facts band, and fixed a platform
+  wide SVG paint-server bug (gradient ids stolen by hidden responsive rails)
+  with per-instance ids via useId. Verified visually on phone viewports.

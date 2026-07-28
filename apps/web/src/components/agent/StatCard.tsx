@@ -5,7 +5,9 @@ import { Icon, type IconName } from "@/design-system/icons/Icon";
  *
  * Icon, label, value, and a signed month-over-month delta. The delta is
  * coloured and arrowed so direction reads without parsing the number, and it
- * carries a sign so it is never ambiguous.
+ * carries a sign so it is never ambiguous. The icon and value step down a size
+ * on phones so a two-up grid stays airy rather than cramped; `className` lets
+ * the grid control spans (the odd fifth tile goes full width on phones).
  */
 export function StatCard({
   icon,
@@ -13,20 +15,24 @@ export function StatCard({
   value,
   deltaPct,
   deltaLabel,
+  className,
 }: {
   icon: IconName;
   label: string;
   value: string;
   deltaPct: number;
   deltaLabel: string;
+  className?: string;
 }) {
   const up = deltaPct >= 0;
   return (
-    <div className="nf-card flex items-start gap-3 p-4">
-      <Icon name={icon} size={42} />
+    <div className={["nf-card flex items-start gap-2.5 p-3.5 sm:gap-3 sm:p-4", className ?? ""].join(" ")}>
+      <span className="h-9 w-9 shrink-0 sm:h-[42px] sm:w-[42px]">
+        <Icon name={icon} fill />
+      </span>
       <div className="min-w-0">
         <p className="truncate text-[0.75rem] font-medium text-[var(--nf-content-muted)]">{label}</p>
-        <p className="nf-numeric mt-0.5 text-[1.375rem] font-bold leading-none text-[var(--nf-content-primary)]">
+        <p className="nf-numeric mt-0.5 text-[1.25rem] font-bold leading-none text-[var(--nf-content-primary)] sm:text-[1.375rem]">
           {value}
         </p>
         <p

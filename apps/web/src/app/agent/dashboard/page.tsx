@@ -46,8 +46,10 @@ export default async function AgentDashboardPage() {
         </Link>
       </div>
 
-      {/* Stat row */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      {/* Stat row: two-up on phones (the odd fifth tile going full width so no
+          orphan hangs in a half-empty row), three-up on tablets, five across
+          on desktop. */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard
           icon="wallet"
           label={a.totalEarnings}
@@ -82,17 +84,18 @@ export default async function AgentDashboardPage() {
           value={`${d.responsePct}%`}
           deltaPct={d.deltas.response}
           deltaLabel={a.lastMonth}
+          className="col-span-2 sm:col-span-1"
         />
       </div>
 
       {/* Earnings + recent bookings */}
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <section className="nf-card p-5">
+        <section className="nf-card p-4 sm:p-5">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="nf-h3">{a.earningsOverview}</h2>
             <span className="nf-chip">{a.thisMonth}</span>
           </div>
-          <p className="nf-numeric text-[1.75rem] font-bold text-[var(--nf-content-primary)]">
+          <p className="nf-numeric text-[1.5rem] font-bold text-[var(--nf-content-primary)] sm:text-[1.75rem]">
             {formatMoney(d.totalEarningsMinor, locale)}
           </p>
           <p
@@ -104,7 +107,7 @@ export default async function AgentDashboardPage() {
           <AreaSparkline data={d.earningsSeries} label={a.earningsOverview} className="mt-3" />
         </section>
 
-        <section className="nf-card p-5">
+        <section className="nf-card p-4 sm:p-5">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="nf-h3">{a.recentBookings}</h2>
             <Link href="/agent/bookings" className="text-[0.8125rem] font-semibold text-[var(--nf-violet-300)] hover:underline">
@@ -147,9 +150,50 @@ export default async function AgentDashboardPage() {
 
       {/* Listing performance + sources + messages */}
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <section className="nf-card overflow-hidden p-5">
+        <section className="nf-card overflow-hidden p-4 sm:p-5">
           <h2 className="nf-h3 mb-3">{a.listingPerformance}</h2>
-          <div className="nf-scroll-x">
+
+          {/* Phone: each listing as a stacked card, so nothing scrolls sideways. */}
+          <ul className="space-y-3 sm:hidden">
+            {d.listingPerformance.map((l) => (
+              <li
+                key={l.id}
+                className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-3"
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="min-w-0 truncate text-[0.8125rem] font-semibold">{l.title}</p>
+                  <p className="nf-numeric shrink-0 text-[0.8125rem] font-bold">
+                    {formatMoney(l.revenueMinor, locale, "NGN", { compact: true })}
+                  </p>
+                </div>
+                <dl className="mt-2 grid grid-cols-3 gap-2">
+                  <div>
+                    <dt className="text-[0.625rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
+                      {a.views}
+                    </dt>
+                    <dd className="nf-numeric text-[0.8125rem] font-semibold">
+                      {formatNumber(l.views, locale)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[0.625rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
+                      {t.agent.nav.bookings}
+                    </dt>
+                    <dd className="nf-numeric text-[0.8125rem] font-semibold">{l.bookings}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[0.625rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
+                      {a.occupancyRate}
+                    </dt>
+                    <dd className="nf-numeric text-[0.8125rem] font-semibold">{l.occupancyPct}%</dd>
+                  </div>
+                </dl>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tablet and up: the full comparison table. */}
+          <div className="nf-scroll-x hidden sm:block">
             <table className="w-full min-w-[34rem] text-left text-[0.8125rem]">
               <thead>
                 <tr className="text-[0.6875rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
@@ -178,7 +222,7 @@ export default async function AgentDashboardPage() {
         </section>
 
         <div className="space-y-4">
-          <section className="nf-card p-5">
+          <section className="nf-card p-4 sm:p-5">
             <h2 className="nf-h3 mb-4">{a.bookingSources}</h2>
             <DonutChart
               segments={d.bookingSources}
@@ -187,7 +231,7 @@ export default async function AgentDashboardPage() {
             />
           </section>
 
-          <section className="nf-card p-5">
+          <section className="nf-card p-4 sm:p-5">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="nf-h3">{a.guestMessages}</h2>
               <Link href="/agent/messages" className="text-[0.8125rem] font-semibold text-[var(--nf-violet-300)] hover:underline">
@@ -227,9 +271,11 @@ export default async function AgentDashboardPage() {
             <li key={q.href}>
               <Link
                 href={q.href}
-                className="nf-card nf-card--interactive flex flex-col items-center gap-2 p-5 text-center"
+                className="nf-card nf-card--interactive flex flex-col items-center gap-2 p-4 text-center sm:p-5"
               >
-                <Icon name={q.icon} size={44} />
+                <span className="h-10 w-10 sm:h-11 sm:w-11">
+                  <Icon name={q.icon} fill />
+                </span>
                 <span className="text-[0.8125rem] font-semibold">{q.label}</span>
               </Link>
             </li>

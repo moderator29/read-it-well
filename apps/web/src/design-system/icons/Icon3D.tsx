@@ -1,3 +1,6 @@
+"use client";
+
+import { useId } from "react";
 import { iconRamp, type IconRampName } from "@naijafinds/design-tokens";
 import { glyphs, type Glyph, type GlyphName } from "./glyphs";
 
@@ -102,8 +105,15 @@ export function Icon3D({
   // assignable here.
   const glyph: Glyph = glyphs[name];
 
-  // Unique per instance+family so two ramps of the same icon never collide.
-  const uid = `nf-${name}-${family}`;
+  /*
+   * Unique per INSTANCE, not per name. SVG paint servers resolve url(#id)
+   * against the whole document, first id wins, and a gradient whose defining
+   * instance sits inside a display:none subtree (a hidden responsive rail, a
+   * closed drawer) resolves to nothing, silently blanking every visible icon
+   * that shares the id. useId is stable across SSR and hydration, so each
+   * icon owns its defs outright and hidden duplicates can never steal them.
+   */
+  const uid = `nf-${useId()}-${family}`;
 
   const decorative = !label;
 
