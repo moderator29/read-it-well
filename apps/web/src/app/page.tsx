@@ -9,6 +9,10 @@ import { Icon, type IconName } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TrustIcon, type TrustIconName } from "@/design-system/icons/TrustIcon";
 import { HeroIsland } from "@/design-system/scenes/HeroIsland";
+import { HowItWorks } from "@/components/site/landing/HowItWorks";
+import { PopularDestinations } from "@/components/site/landing/PopularDestinations";
+import { AgentsBand } from "@/components/site/landing/AgentsBand";
+import { WhyNaijaFinds } from "@/components/site/landing/WhyNaijaFinds";
 
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"];
 
@@ -211,6 +215,8 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        <HowItWorks t={t} />
+
         {/* -------------------------------------------------------- facts band */}
         <section className="nf-shell pt-4">
           <Reveal>
@@ -301,6 +307,12 @@ export default async function LandingPage() {
           </ul>
         </section>
 
+        <PopularDestinations t={t} />
+
+        <AgentsBand t={t} />
+
+        <WhyNaijaFinds t={t} />
+
         {/* ---------------------------------------------------------- trust */}
         <section className="nf-shell">
           <Reveal>
@@ -334,6 +346,32 @@ export default async function LandingPage() {
               ))}
             </ul>
           </Reveal>
+        </section>
+
+        {/* ------------------------------------------------------------- faq */}
+        <section className="nf-shell pt-14">
+          <Reveal className="mb-6 max-w-[52ch]">
+            <h2 className="nf-h1">Questions, answered</h2>
+          </Reveal>
+          <div className="space-y-2.5">
+            {[
+              ["Is my payment safe?", "Yes. Payments are processed by a licensed Nigerian payment provider, and your card details never touch our servers. You are never charged before you confirm."],
+              ["Can I list my property?", "Yes. Apply in about ten minutes from the Become an Agent page. Every application is reviewed before listings go live."],
+              ["Which languages are supported?", "English, Yoruba, Hausa and Igbo, switchable at any time from the top bar."],
+              ["Where does NaijaFinds operate?", "All 36 states and the FCT from day one, with the deepest coverage growing city by city."],
+              ["How do I get help?", "The AI assistant answers instantly inside the app, and our support team is one message away."],
+            ].map(([q, a]) => (
+              <Reveal key={q}>
+                <details className="nf-card group p-0">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-[0.9375rem] font-semibold [&::-webkit-details-marker]:hidden">
+                    {q}
+                    <span className="text-[var(--nf-content-muted)] transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <p className="px-5 pb-4 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">{a}</p>
+                </details>
+              </Reveal>
+            ))}
+          </div>
         </section>
 
         {/* ------------------------------------------------------------ cta */}

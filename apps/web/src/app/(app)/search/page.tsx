@@ -133,8 +133,7 @@ export default async function SearchPage({
               )}
             </h1>
             <p className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
-              {formatNumber(listings.length, locale)}
-              {repo.isSeed ? " sample " : " "}
+              {formatNumber(listings.length, locale)}{" "}
               {listings.length === 1 ? "stay" : "stays"}
               {type ? ` in ${type}` : ""} across Nigeria
             </p>
@@ -175,12 +174,6 @@ export default async function SearchPage({
           <button type="button" className="nf-btn nf-btn--glass" disabled={repo.isSeed}>
             Load more
           </button>
-          {repo.isSeed && (
-            <p className="mt-2.5 text-[0.75rem] text-[var(--nf-content-muted)]">
-              Every sample stay is already on screen. Live inventory arrives with the
-              platform API.
-            </p>
-          )}
         </Reveal>
       )}
     </>
