@@ -211,6 +211,29 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* -------------------------------------------------------- facts band */}
+        <section className="nf-shell pt-4">
+          <Reveal>
+            <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+              {[
+                { big: "36 + FCT", small: t.landing.vision.points.everywhere.title },
+                { big: "4", small: t.landing.trust.multiLanguage.title },
+                { big: "₦", small: t.landing.features.prices.title },
+                { big: "24/7", small: t.landing.features.ai.title },
+              ].map((s) => (
+                <li key={s.small} className="nf-card px-4 py-4 text-center sm:px-5 sm:py-5">
+                  <span className="nf-gradient-text nf-numeric block font-[family-name:var(--nf-font-display)] text-[1.45rem] font-bold leading-none sm:text-[1.8rem]">
+                    {s.big}
+                  </span>
+                  <span className="mt-1.5 block truncate text-[0.72rem] text-[var(--nf-content-muted)] sm:text-[0.8125rem]">
+                    {s.small}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+        </section>
+
         {/* --------------------------------------------------- vision / mission */}
         <section className="relative overflow-hidden py-16 sm:py-20">
           <div className="nf-shell relative z-10">

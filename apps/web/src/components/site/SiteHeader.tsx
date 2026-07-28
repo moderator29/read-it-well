@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { MobileMenu } from "./MobileMenu";
 
 /**
  * Marketing header.
@@ -40,16 +41,23 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5">
             <div className="hidden sm:block">
               <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
             </div>
             <Link href="/sign-in" className="nf-btn nf-btn--glass hidden sm:inline-flex">
               {t.common.signIn}
             </Link>
-            <Link href="/sign-up" className="nf-btn nf-btn--primary">
+            <Link href="/sign-up" className="nf-btn nf-btn--primary px-4 py-2.5 text-[0.875rem] sm:px-[1.35rem] sm:py-[0.8rem] sm:text-[var(--nf-text-body)]">
               {t.common.signUp}
             </Link>
+            <MobileMenu
+              links={links}
+              signIn={t.common.signIn}
+              signUp={t.common.signUp}
+              openLabel={t.a11y.openMenu}
+              closeLabel={t.a11y.closeMenu}
+            />
           </div>
         </div>
       </div>
