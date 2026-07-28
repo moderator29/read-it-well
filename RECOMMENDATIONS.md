@@ -126,3 +126,29 @@ this swap touches no call site.
 ### R-20. Demand heatmap
 Capture search events from the first query so the business can see where users
 look before inventory exists there.
+
+
+---
+
+## Strategy pass, 2026-07-28: 150-item inbox reviewed and accepted
+
+A full product strategy pass produced 150 one-line candidates, now reviewed by
+the lead and accepted as the standing idea bank: see
+`docs/recommendations-inbox.md`. Items promote into numbered entries here as
+they enter scope. Lead's first-tier picks, flagged for the next planning round:
+
+- Pay-by-transfer and USSD as first-class checkout beside cards (NIGERIA 1).
+- Power and water disclosure fields on every listing (NIGERIA 2, 3): the two
+  questions every Nigerian guest asks first, answered structurally.
+- Estate gate access data released after confirmation (NIGERIA 4).
+- Detty December seasonal mode with a September diaspora window, plus the
+  payer/guest split for book-for-someone-else (NIGERIA 5, 6, 7).
+- Total-price-first display and a booking hold countdown that makes the
+  database no-double-booking guarantee visible product truth (UX tier).
+- Escrow-style payout release after check-in, image perceptual hashing against
+  stolen listing photos, and off-platform payment steering detection (TRUST
+  tier): these three convert the fraud-bot architecture into a moat.
+- Transactional outbox, idempotency keys and a webhook inbox with replay
+  (ARCH tier) before the first live payment.
+- Naira glyph regression test across all four locales (DESIGN tier): the
+  supplied mockups themselves show the N-fallback bug this prevents.
