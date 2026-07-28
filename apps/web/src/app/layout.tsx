@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Poppins } from "next/font/google";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import "./globals.css";
@@ -14,6 +14,18 @@ const inter = Inter({
   subsets: ["latin", "latin-ext"],
   display: "swap",
   variable: "--nf-font-inter",
+});
+
+/*
+ * Display face, per the design system sheet. Poppins does not carry the Yoruba
+ * and Igbo dotted vowels, so `tokens.css` swaps the display stack to Inter for
+ * those two locales rather than letting a heading render half in each face.
+ */
+const poppins = Poppins({
+  subsets: ["latin", "latin-ext"],
+  weight: ["500", "600", "700", "800"],
+  display: "swap",
+  variable: "--nf-font-poppins",
 });
 
 export const metadata: Metadata = {
@@ -61,7 +73,12 @@ export default async function RootLayout({
   const t = getDictionary(locale);
 
   return (
-    <html lang={locale} dir={t.meta.dir} className={inter.variable} suppressHydrationWarning>
+    <html
+      lang={locale}
+      dir={t.meta.dir}
+      className={`${inter.variable} ${poppins.variable}`}
+      suppressHydrationWarning
+    >
       <body>
         <a href="#main" className="nf-skip-link">
           {t.common.skipToContent}

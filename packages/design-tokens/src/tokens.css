@@ -114,7 +114,23 @@
     transparent 65%
   );
 
-  /* Signature gradients. The iridescent one is the brand mark's own ramp. */
+  /*
+   * Signature gradients.
+   *
+   * `--nf-gradient-primary` is the Primary Gradient from the design system
+   * sheet, sampled in order: violet, indigo, magenta, red, orange, gold. It is
+   * also the ramp running through the brand mark itself, which is why the
+   * wordmark and the mark read as one object.
+   */
+  --nf-gradient-primary: linear-gradient(
+    90deg,
+    #8B5CF6 0%,
+    #6366F1 18%,
+    #D946A6 42%,
+    #EF4444 62%,
+    #F97316 80%,
+    #FBBF24 100%
+  );
   --nf-gradient-brand: linear-gradient(135deg, var(--nf-violet-600) 0%, var(--nf-violet-500) 45%, var(--nf-magenta-500) 100%);
   --nf-gradient-iridescent: linear-gradient(
     135deg,
@@ -165,6 +181,18 @@
   /* ---------------------------------------------------------------------
    * Typography scale. Roles, not raw sizes (Design prompt §4).
    * ------------------------------------------------------------------ */
+  /*
+   * Two families, per the design system sheet: Poppins for display, Inter for
+   * text. Inter is listed after Poppins in the display stack on purpose, as a
+   * per-glyph fallback.
+   *
+   * Poppins does not carry Latin Extended Additional, which is where the Yoruba
+   * and Igbo dotted vowels live (ẹ ọ ṣ ị ụ). Without the fallback those
+   * characters would render from an arbitrary system font and the heading would
+   * look broken. See the [lang] rule below, which switches display to Inter
+   * entirely for the locales that need it, so no heading ever mixes two faces.
+   */
+  --nf-font-display: var(--nf-font-poppins), var(--nf-font-inter), ui-sans-serif, system-ui, sans-serif;
   --nf-font-sans: var(--nf-font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --nf-font-numeric: var(--nf-font-inter), ui-sans-serif, system-ui, sans-serif;
 
@@ -189,6 +217,17 @@
   --nf-rail-width: 264px;
   --nf-header-height: 76px;
   --nf-content-max: 1440px;
+}
+
+/*
+ * Locales whose orthography Poppins cannot render. Yoruba and Igbo both need
+ * combining dot below on vowels, and Yoruba stacks a tone mark on top of that.
+ * Switching the whole display face to Inter keeps headings visually consistent
+ * instead of half Poppins and half fallback.
+ */
+:root[lang="yo"],
+:root[lang="ig"] {
+  --nf-font-display: var(--nf-font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 /*

@@ -4,9 +4,9 @@ import { getLocale } from "@/lib/locale";
 import { getPlatformStats } from "@/lib/platform-stats";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { Icon3D } from "@/design-system/icons/Icon3D";
-import { IsometricIsland } from "@/design-system/scenes/IsometricIsland";
-import type { GlyphName } from "@/design-system/icons/glyphs";
+import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { HeroIsland } from "@/design-system/scenes/HeroIsland";
 
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"];
 
@@ -15,33 +15,40 @@ export default async function LandingPage() {
   const t = getDictionary(locale);
   const stats = await getPlatformStats();
 
-  const heroStats: { key: keyof typeof t.landing.stats; icon: GlyphName; value: number | null }[] = [
-    { key: "hotels", icon: "hotel", value: stats?.hotels ?? null },
-    { key: "apartments", icon: "apartment", value: stats?.apartments ?? null },
-    { key: "restaurants", icon: "restaurants", value: stats?.restaurants ?? null },
+  /* Chip placement mirrors the reference: two on the left of the island, one
+   * on the upper right. Counts stay absent until the platform can supply them. */
+  const heroChips: {
+    key: keyof typeof t.landing.stats;
+    icon: IconName;
+    value: number | null;
+    pos: string;
+  }[] = [
+    { key: "apartments", icon: "apartment", value: stats?.apartments ?? null, pos: "left-[-3%] top-[26%]" },
+    { key: "hotels", icon: "hotel", value: stats?.hotels ?? null, pos: "left-[24%] top-[6%]" },
+    { key: "restaurants", icon: "restaurant", value: stats?.restaurants ?? null, pos: "right-[-2%] top-[30%]" },
   ];
 
-  const features: { icon: GlyphName; title: string; body: string }[] = [
+  const features: { icon: IconName; title: string; body: string }[] = [
     { icon: "ai-assistant", ...t.landing.features.ai },
     { icon: "verified", ...t.landing.features.verified },
-    { icon: "price", ...t.landing.features.prices },
-    { icon: "instant", ...t.landing.features.booking },
+    { icon: "wallet", ...t.landing.features.prices },
+    { icon: "booking", ...t.landing.features.booking },
   ];
 
-  const categories: { icon: GlyphName; label: string; href: string }[] = [
+  const categories: { icon: IconName; label: string; href: string }[] = [
     { icon: "hotel", label: t.nav.hotels, href: "/search?type=hotel" },
     { icon: "apartment", label: t.nav.apartments, href: "/search?type=property" },
-    { icon: "homes", label: t.nav.homes, href: "/search?type=home" },
-    { icon: "restaurants", label: t.nav.restaurants, href: "/search?type=restaurant" },
-    { icon: "experiences", label: t.nav.experiences, href: "/search?type=experience" },
+    { icon: "home", label: t.nav.homes, href: "/search?type=home" },
+    { icon: "restaurant", label: t.nav.restaurants, href: "/search?type=restaurant" },
+    { icon: "experience", label: t.nav.experiences, href: "/search?type=experience" },
   ];
 
-  const trust: { icon: GlyphName; title: string; body: string }[] = [
+  const trust: { icon: IconName; title: string; body: string }[] = [
     { icon: "language", ...t.landing.trust.multiLanguage },
     { icon: "secure", ...t.landing.trust.secure },
     { icon: "ai-assistant", ...t.landing.trust.ai },
-    { icon: "map-pin-cluster", ...t.landing.trust.africa },
-    { icon: "instant", ...t.landing.trust.stores },
+    { icon: "map", ...t.landing.trust.africa },
+    { icon: "star", ...t.landing.trust.stores },
   ];
 
   return (
@@ -50,46 +57,34 @@ export default async function LandingPage() {
 
       <main id="main">
         {/* ----------------------------------------------------------- hero */}
-        <section className="relative overflow-hidden pb-8 pt-12 md:pt-16">
+        <section className="relative overflow-hidden pb-10 pt-10 md:pt-14">
           <div className="nf-aurora" aria-hidden="true" />
           <div className="nf-grid-veil" aria-hidden="true" />
 
-          <div className="nf-shell relative z-10 grid items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
+          <div className="nf-shell relative z-10 grid items-center gap-10 lg:grid-cols-[1fr_1.05fr]">
             <div className="nf-rise">
-              <p className="nf-overline mb-5 flex items-center gap-2">
-                <span
-                  className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--nf-state-success)]"
-                  aria-hidden="true"
-                />
-                {t.landing.hero.popularLabel}
-              </p>
-
               <h1 className="nf-display">
-                <span className="block text-[var(--nf-content-primary)]">
-                  {t.landing.hero.line1}
-                </span>
-                <span className="block text-[var(--nf-content-primary)]">
-                  {t.landing.hero.line2}
-                </span>
+                <span className="block">{t.landing.hero.line1}</span>
+                <span className="block">{t.landing.hero.line2}</span>
                 <span className="nf-gradient-text block">{t.landing.hero.line3}</span>
               </h1>
 
-              <p className="mt-6 max-w-[46ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-5 max-w-[44ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {t.landing.hero.subtitle}
               </p>
 
-              {/* Real form. Submits a GET to the search route. */}
+              {/* Real form. GET to the search route. */}
               <form
                 action="/search"
                 method="get"
                 role="search"
-                className="nf-card mt-9 flex flex-col gap-2 p-2 sm:flex-row sm:items-center"
+                className="nf-card mt-8 flex flex-col gap-2 p-2 sm:flex-row sm:items-center"
               >
                 <label htmlFor="hero-q" className="sr-only">
                   {t.landing.hero.searchLabel}
                 </label>
-                <div className="flex flex-1 items-center gap-3 px-3">
-                  <Icon3D name="search" size={30} variant="bare" />
+                <div className="flex flex-1 items-center gap-2.5 px-3">
+                  <UiIcon name="search" size={22} className="text-[var(--nf-content-muted)]" />
                   <input
                     id="hero-q"
                     name="q"
@@ -104,7 +99,7 @@ export default async function LandingPage() {
                 </button>
               </form>
 
-              <ul className="mt-5 flex flex-wrap gap-2">
+              <ul className="mt-4 flex flex-wrap gap-2">
                 {CITIES.map((city) => (
                   <li key={city}>
                     <Link href={`/search?q=${encodeURIComponent(city)}`} className="nf-chip">
@@ -118,33 +113,23 @@ export default async function LandingPage() {
             {/* ------------------------------------------------ hero object */}
             <div className="relative">
               <div className="nf-float">
-                <IsometricIsland className="w-full drop-shadow-[0_40px_80px_rgba(0,0,0,0.6)]" />
+                <HeroIsland priority className="drop-shadow-[0_50px_90px_rgba(0,0,0,0.65)]" />
               </div>
 
-              {/*
-               * Floating inventory cards. Counts appear automatically once the
-               * stats endpoint exists; until then the label carries the card so
-               * nothing fabricated is shown.
-               */}
-              <ul className="pointer-events-none absolute inset-0 hidden md:block">
-                {heroStats.map((s, i) => (
+              <ul className="pointer-events-none absolute inset-0 hidden sm:block">
+                {heroChips.map((c) => (
                   <li
-                    key={s.key}
-                    className="nf-glass absolute flex items-center gap-2.5 rounded-[var(--nf-radius-lg)] px-3.5 py-2.5 shadow-[var(--nf-shadow-lifted)]"
-                    style={{
-                      top: `${[16, 46, 6][i]}%`,
-                      left: i === 2 ? "auto" : `${[-4, -8][i]}%`,
-                      right: i === 2 ? "-2%" : "auto",
-                    }}
+                    key={c.key}
+                    className={`nf-glass absolute flex items-center gap-2 rounded-[var(--nf-radius-lg)] px-3 py-2 shadow-[var(--nf-shadow-lifted)] ${c.pos}`}
                   >
-                    <Icon3D name={s.icon} size={34} />
+                    <Icon name={c.icon} size={30} />
                     <span className="leading-tight">
                       <span className="block text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
-                        {t.landing.stats[s.key]}
+                        {t.landing.stats[c.key]}
                       </span>
-                      {s.value !== null && (
+                      {c.value !== null && (
                         <span className="nf-numeric block text-[0.75rem] text-[var(--nf-content-muted)]">
-                          {formatNumber(s.value, locale)}+
+                          {formatNumber(c.value, locale)}+
                         </span>
                       )}
                     </span>
@@ -155,11 +140,11 @@ export default async function LandingPage() {
           </div>
 
           {/* --------------------------------------------------- feature row */}
-          <div className="nf-shell relative z-10 mt-14">
+          <div className="nf-shell relative z-10 mt-10">
             <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {features.map((f) => (
-                <li key={f.title} className="nf-card nf-card--interactive flex items-center gap-3.5 p-4">
-                  <Icon3D name={f.icon} size={44} />
+                <li key={f.title} className="nf-card nf-card--interactive flex items-center gap-3 p-4">
+                  <Icon name={f.icon} size={40} />
                   <span>
                     <span className="block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                       {f.title}
@@ -175,8 +160,8 @@ export default async function LandingPage() {
         </section>
 
         {/* ----------------------------------------------------- categories */}
-        <section className="nf-shell py-16">
-          <div className="mb-9 max-w-[52ch]">
+        <section className="nf-shell py-14">
+          <div className="mb-8 max-w-[52ch]">
             <h2 className="nf-h1">{t.landing.categories.title}</h2>
             <p className="mt-3 text-[var(--nf-content-secondary)]">
               {t.landing.categories.subtitle}
@@ -190,7 +175,7 @@ export default async function LandingPage() {
                   href={c.href}
                   className="nf-card nf-card--interactive flex flex-col items-center gap-3 p-6 text-center"
                 >
-                  <Icon3D name={c.icon} size={62} />
+                  <Icon name={c.icon} size={64} />
                   <span className="text-[0.9375rem] font-semibold">{c.label}</span>
                 </Link>
               </li>
@@ -203,7 +188,7 @@ export default async function LandingPage() {
           <ul className="nf-card grid gap-6 p-7 sm:grid-cols-2 lg:grid-cols-5">
             {trust.map((item) => (
               <li key={item.title} className="flex items-center gap-3">
-                <Icon3D name={item.icon} size={40} />
+                <Icon name={item.icon} size={38} />
                 <span className="leading-tight">
                   <span className="block text-[0.875rem] font-semibold">{item.title}</span>
                   <span className="block text-[0.8125rem] text-[var(--nf-content-muted)]">
@@ -216,8 +201,8 @@ export default async function LandingPage() {
         </section>
 
         {/* ------------------------------------------------------------ cta */}
-        <section className="nf-shell pt-20">
-          <div className="nf-card relative overflow-hidden p-10 text-center md:p-16">
+        <section className="nf-shell pt-16">
+          <div className="nf-card relative overflow-hidden p-10 text-center md:p-14">
             <div className="nf-aurora opacity-60" aria-hidden="true" />
             <div className="relative z-10">
               <h2 className="nf-h1 mx-auto max-w-[20ch]">{t.landing.cta.title}</h2>

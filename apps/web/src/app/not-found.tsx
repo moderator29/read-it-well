@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Icon3D } from "@/design-system/icons/Icon3D";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { LogoMark } from "@/design-system/brand/Logo";
 
 /**
@@ -34,7 +34,7 @@ export default function NotFound() {
             Back to home
           </Link>
           <Link href="/search" className="nf-btn nf-btn--glass nf-btn--lg gap-2">
-            <Icon3D name="search" size={20} variant="bare" />
+            <UiIcon name="search" size={18} />
             Search
           </Link>
         </div>

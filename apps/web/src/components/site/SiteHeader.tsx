@@ -44,7 +44,7 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
             <div className="hidden sm:block">
               <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
             </div>
-            <Link href="/sign-in" className="nf-btn nf-btn--ghost hidden sm:inline-flex">
+            <Link href="/sign-in" className="nf-btn nf-btn--glass hidden sm:inline-flex">
               {t.common.signIn}
             </Link>
             <Link href="/sign-up" className="nf-btn nf-btn--primary">
