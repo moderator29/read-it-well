@@ -375,6 +375,20 @@ Checked on every push. A break here fails the change regardless of feature value
   stride for hero containers, breathing CTA glow, floating hero icon field.
   Four parallel agents revamping agent workspace, auth plus become-an-agent,
   consumer home/search/placeholders, and footer plus system pages.
+- 2026-07-28: Neon-blue rebrand shipped: navy ink palette, electric blue
+  accents through every stride and glass control, purple kept as the one
+  action colour, real light mode with a no-flash boot and a toggle in both
+  headers, aurora made actually visible (opaque body background was covering
+  the fixed ambient layer), island complete on phones, three line hamburger
+  with a Naka-style slide-in panel, logo and scale stepped down again.
+- 2026-07-28: Security advisor clean of all project objects; performance
+  advisor driven to zero actionable items with 17 FK covering indexes applied
+  live and mirrored in the migration set. The 46 auth_rls_initplan rewrites
+  are recorded as pre-launch hardening. 150-item strategy inbox reviewed into
+  RECOMMENDATIONS.md.
+- 2026-07-28: Naira wallet end to end: wallets plus append-only ledger with
+  derived balance applied to the live database, and the wallet page rebuilt
+  with balance hero, validated purple action panels and transaction filters.
 - 2026-07-28: All four agents delivered with green self-audits. Agent Mode is
   mobile responsive (slide-in drawer, stacked-card tables, scaling charts),
   auth got its glass frame plus password toggle, the become-an-agent pitch and
