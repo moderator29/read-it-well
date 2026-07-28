@@ -10,7 +10,6 @@ import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { BackButton } from "@/components/site/BackButton";
 import { Icon } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { LogoMark } from "@/design-system/brand/Logo";
 
 /**
  * Personal Mode shell.
@@ -85,13 +84,6 @@ export function AppShell({
             </button>
             {/* On phones, sub-pages also carry the way back. */}
             {active !== "/home" && <BackButton className="h-10 w-10 lg:hidden" />}
-            <Link
-              href="/"
-              className={active !== "/home" ? "hidden" : "lg:hidden"}
-              aria-label={t.a11y.logoHome}
-            >
-              <LogoMark size={32} />
-            </Link>
 
             <span className="nf-chip hidden sm:inline-flex">
               <UiIcon name="location" size={15} />
@@ -102,7 +94,7 @@ export function AppShell({
 
             <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
 
-            <Link href="/assistant" className="nf-btn nf-btn--glass gap-2 px-3 py-2 sm:px-3.5">
+            <Link href="/assistant" className="nf-btn nf-btn--primary gap-2 px-3 py-2 sm:px-3.5">
               <span className="h-6 w-6 sm:h-7 sm:w-7">
                 <Icon name="ai-assistant" fill />
               </span>

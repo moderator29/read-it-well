@@ -41,7 +41,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           aria-label={t.a11y.logoHome}
           className="nf-rise flex flex-col items-center"
         >
-          <LogoLockup size={148} priority />
+          <LogoLockup size={104} priority />
           <span className="mt-1 text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
             {t.landing.hero.line1} {t.landing.hero.line2} {t.landing.hero.line3}
           </span>

@@ -38,7 +38,6 @@ export function ComingSoon({
       {preview && (
         <Reveal delay={110} className="mt-8 text-left">
           <div className="nf-card relative overflow-hidden p-5 pt-6">
-            <span className="nf-badge nf-badge--brand absolute right-4 top-4">Preview</span>
             {preview}
           </div>
           <p className="mt-3 text-center text-[0.75rem] text-[var(--nf-content-muted)]">

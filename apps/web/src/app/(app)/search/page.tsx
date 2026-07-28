@@ -137,14 +137,8 @@ export default async function SearchPage({
               {repo.isSeed ? " sample " : " "}
               {listings.length === 1 ? "stay" : "stays"}
               {type ? ` in ${type}` : ""} across Nigeria
-              {repo.isSeed ? ", shown for layout only" : ""}
             </p>
           </div>
-          {repo.isSeed && (
-            <p className="nf-badge nf-badge--warning shrink-0">
-              Sample results. Not live inventory.
-            </p>
-          )}
         </div>
       </Reveal>
 
