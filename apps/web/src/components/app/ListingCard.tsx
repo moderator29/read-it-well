@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
 import type { Listing } from "@/lib/listings/types";
-import { Icon3D } from "@/design-system/icons/Icon3D";
-import type { GlyphName } from "@/design-system/icons/glyphs";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
  * Media placeholder.
@@ -20,7 +19,7 @@ const HUES: [string, string][] = [
   ["#312E81", "#0F172A"],
 ];
 
-const AMENITY_ICON: Record<string, GlyphName> = {
+const AMENITY_ICON: Record<string, UiIconName> = {
   pool: "pool",
   wifi: "wifi",
   kitchen: "kitchen",
@@ -62,7 +61,7 @@ export function ListingCard({
           <div className="absolute left-3 top-3 flex gap-1.5">
             {listing.verified && (
               <span className="nf-badge nf-badge--success">
-                <Icon3D name="verified" size={13} variant="bare" />
+                <UiIcon name="verified" size={12} strokeWidth={2.1} />
                 {t.common.verified}
               </span>
             )}
@@ -76,7 +75,7 @@ export function ListingCard({
               {listing.title}
             </h3>
             <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">
-              <Icon3D name="star" size={14} variant="bare" />
+              <UiIcon name="star" size={14} className="text-[var(--nf-state-warning)]" />
               {listing.rating.toFixed(1)}
             </span>
           </div>
@@ -87,17 +86,17 @@ export function ListingCard({
 
           <ul className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-[0.75rem] text-[var(--nf-content-secondary)]">
             <li className="flex items-center gap-1.5">
-              <Icon3D name="bed" size={16} variant="bare" />
+              <UiIcon name="bed" size={15} />
               <span className="nf-numeric">{listing.bedrooms}</span>
             </li>
             <li className="flex items-center gap-1.5">
-              <Icon3D name="bath" size={16} variant="bare" />
+              <UiIcon name="bath" size={15} />
               <span className="nf-numeric">{listing.bathrooms}</span>
             </li>
             {listing.amenities.slice(0, 2).map((a) =>
               AMENITY_ICON[a] ? (
                 <li key={a} className="flex items-center gap-1.5">
-                  <Icon3D name={AMENITY_ICON[a]!} size={16} variant="bare" />
+                  <UiIcon name={AMENITY_ICON[a]!} size={15} />
                 </li>
               ) : null,
             )}

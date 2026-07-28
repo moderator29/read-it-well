@@ -15,10 +15,10 @@ Last updated: 2026-07-28
 
 ## 1. Design reference tracker
 
-**Status: 9 unique references received. Count needs reconciling with the owner.**
+**Status: 13 unique references received. Count needs reconciling with the owner.**
 
-15 image attachments have arrived across three batches. 6 were duplicates of
-references already recorded, leaving **9 unique**. The owner's own count is
+19 image attachments have arrived across four batches. 6 were duplicates of
+references already recorded, leaving **13 unique**. The owner's own count is
 "total would be 13, so remaining 3". These do not agree, and 13 plus 3 is 16
 rather than 15. Before the 15/15 gate can be judged, the true denominator and
 the true received count must be settled. See §7 question 1.
@@ -37,10 +37,10 @@ reference 04 twice, reference 05 twice, reference 06 twice, reference 07 twice.
 | 07 | Yes | A | Desktop, Admin | Admin AI Assistant, 14 item rail. **Conflicts on IA, see C-10** |
 | 08 | Yes | A | Desktop, Consumer | "Find Your Perfect Space" search and property detail, 13 item rail. Host panel, review distribution, tabs. **Conflicts on IA, see C-10** |
 | 09 | Yes | A | Desktop, Admin or Agent | "Add New Listing" 6 step wizard, **booking flow and price breakdown**, payments overview, media manager, saved search alerts, platform health, 16 item rail. **Conflicts, see C-10 and C-12** |
-| 10 | No | | | |
-| 11 | No | | | |
-| 12 | No | | | |
-| 13 | No | | | |
+| 10 | Yes | A | Full design system sheet | **Colour system, primary gradient, typography (Poppins display, Inter text), visual language, motion, tech stack, landing, auth, mobile home, 20 icon grid, trust bar.** The single most load bearing reference |
+| 11 | Yes | A | Brand sheet | Logo lockup, category icons, 12 item consumer icon row, feature list, agent and admin dashboards |
+| 12 | Yes | A | Artwork cutout | **Island render and logo with alpha**, plus the 20 icon grid. Production source for `assets/source-sheets/` |
+| 13 | Yes | B | UI inspiration, 2 screens | Glowing gradient ring containers and deep glossy buttons. Drove the stride system, ADR-012 |
 | 14 | No | | | |
 | 15 | No | | | |
 

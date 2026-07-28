@@ -4,7 +4,7 @@ import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { Icon3D } from "@/design-system/icons/Icon3D";
+import { Icon } from "@/design-system/icons/Icon";
 
 export const metadata: Metadata = { title: "Search" };
 
@@ -31,7 +31,7 @@ export default async function SearchPage({
 
       <main id="main" className="nf-shell py-16">
         <div className="nf-card mx-auto max-w-2xl p-10 text-center">
-          <Icon3D name="map-pin-cluster" size={76} className="mx-auto" />
+          <Icon name="map" size={76} className="mx-auto" />
 
           <h1 className="nf-h2 mt-5">
             {q ? `Searching for "${q}"` : "Discovery is on the way"}

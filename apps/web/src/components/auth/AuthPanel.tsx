@@ -9,6 +9,14 @@ import { AppleMark, GoogleMark, MailMark, XMark } from "./ProviderMarks";
 
 const EMPTY: AuthFormState = { ok: false };
 
+/**
+ * Auth panel.
+ *
+ * Layout follows the supplied reference: heading, sub, then a stack of full
+ * width provider rows. The reference shows Email, Google and X. Apple is added
+ * because App Store guideline 4.8 requires Sign in with Apple wherever other
+ * third party sign in is offered, and the product ships on iOS.
+ */
 export function AuthPanel({
   mode,
   t,
@@ -33,23 +41,24 @@ export function AuthPanel({
   ];
 
   return (
-    <div className="nf-card w-full max-w-[26rem] p-7 sm:p-8">
+    <div className="w-full">
       <h1 className="nf-h2 text-center">
-        {isSignUp ? t.auth.createAccount : t.auth.welcomeBack}
+        {isSignUp ? t.auth.createAccount : `${t.auth.welcomeBack} 👋`}
       </h1>
-      <p className="mt-2 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
+      <p className="mt-1.5 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
         {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
       </p>
 
       <div className="mt-7 space-y-2.5">
-        {/* Email is a disclosure, not a separate page, so the panel stays calm. */}
         {!showEmail ? (
           <button
             type="button"
             onClick={() => setShowEmail(true)}
-            className="nf-btn nf-btn--glass w-full justify-start gap-3 px-4 py-3.5"
+            className="nf-auth-row"
           >
-            <MailMark />
+            <span className="nf-auth-row__mark nf-auth-row__mark--email">
+              <MailMark size={16} />
+            </span>
             <span className="flex-1 text-left">{t.auth.continueWithEmail}</span>
           </button>
         ) : (
@@ -101,10 +110,6 @@ export function AuthPanel({
           </form>
         )}
 
-        {/*
-         * Server response. An unconfigured backend says so out loud rather than
-         * showing a success state that did not happen.
-         */}
         {state.message && (
           <p
             role="alert"
@@ -114,30 +119,15 @@ export function AuthPanel({
           </p>
         )}
 
-        <div className="flex items-center gap-3 py-1.5" aria-hidden="true">
-          <span className="h-px flex-1 bg-[var(--nf-border-subtle)]" />
-          <span className="text-[0.75rem] text-[var(--nf-content-muted)]">{t.auth.orDivider}</span>
-          <span className="h-px flex-1 bg-[var(--nf-border-subtle)]" />
-        </div>
-
-        {oauth.map((p) => {
-          const ready = configured(p.id);
-          return (
-            <button
-              key={p.id}
-              type="button"
-              disabled={!ready}
-              aria-describedby={ready ? undefined : `${p.id}-unavailable`}
-              className="nf-btn nf-btn--glass w-full justify-start gap-3 px-4 py-3.5"
-            >
-              {p.mark}
-              <span className="flex-1 text-left">{p.label}</span>
-            </button>
-          );
-        })}
+        {oauth.map((p) => (
+          <button key={p.id} type="button" disabled={!configured(p.id)} className="nf-auth-row">
+            <span className="nf-auth-row__mark">{p.mark}</span>
+            <span className="flex-1 text-left">{p.label}</span>
+          </button>
+        ))}
 
         {oauth.some((p) => !configured(p.id)) && (
-          <p id="providers-unavailable" className="pt-1 text-center text-[0.75rem] text-[var(--nf-content-muted)]">
+          <p className="pt-1 text-center text-[0.75rem] text-[var(--nf-content-muted)]">
             {t.auth.providerUnavailable}
           </p>
         )}

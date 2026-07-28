@@ -6,9 +6,9 @@ import { getListingRepository } from "@/lib/listings/repository";
 import { AppRail } from "@/components/app/AppRail";
 import { ListingCard } from "@/components/app/ListingCard";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
-import { Icon3D } from "@/design-system/icons/Icon3D";
+import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { LogoMark } from "@/design-system/brand/Logo";
-import type { GlyphName } from "@/design-system/icons/glyphs";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -31,18 +31,18 @@ export default async function HomePage() {
   const repo = getListingRepository();
   const listings = await repo.recommended(6);
 
-  const categories: { icon: GlyphName; label: string; href: string }[] = [
+  const categories: { icon: IconName; label: string; href: string }[] = [
     { icon: "hotel", label: t.nav.hotels, href: "/search?type=hotel" },
     { icon: "apartment", label: t.nav.apartments, href: "/search?type=property" },
-    { icon: "homes", label: t.nav.homes, href: "/search?type=home" },
-    { icon: "restaurants", label: t.nav.restaurants, href: "/search?type=restaurant" },
-    { icon: "experiences", label: t.nav.experiences, href: "/search?type=experience" },
+    { icon: "home", label: t.nav.homes, href: "/search?type=home" },
+    { icon: "restaurant", label: t.nav.restaurants, href: "/search?type=restaurant" },
+    { icon: "experience", label: t.nav.experiences, href: "/search?type=experience" },
   ];
 
-  const experiences: { icon: GlyphName; label: string }[] = [
+  const experiences: { icon: IconName; label: string }[] = [
     { icon: "pool", label: t.home.experienceCategories.beach },
-    { icon: "map-pin-cluster", label: t.home.experienceCategories.city },
-    { icon: "restaurants", label: t.home.experienceCategories.dining },
+    { icon: "map", label: t.home.experienceCategories.city },
+    { icon: "restaurant", label: t.home.experienceCategories.dining },
     { icon: "car-rental", label: t.home.experienceCategories.adventure },
     { icon: "event", label: t.home.experienceCategories.events },
   ];
@@ -56,11 +56,11 @@ export default async function HomePage() {
         <header className="nf-glass sticky top-0 z-40 border-b border-[var(--nf-border-subtle)]">
           <div className="flex h-[68px] items-center gap-4 px-5 md:px-8">
             <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
-              <LogoMark size={34} glow={false} />
+              <LogoMark size={34} />
             </Link>
 
             <span className="nf-chip hidden sm:inline-flex">
-              <Icon3D name="location" size={16} variant="bare" />
+              <UiIcon name="location" size={15} />
               Lagos, Nigeria
             </span>
 
@@ -69,7 +69,7 @@ export default async function HomePage() {
             <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
 
             <Link href="/assistant" className="nf-btn nf-btn--glass gap-2 px-3.5 py-2">
-              <Icon3D name="ai-assistant" size={22} variant="bare" />
+              <Icon name="ai-assistant" size={26} />
               <span className="hidden sm:inline">{t.nav.aiAssistant}</span>
             </Link>
           </div>
@@ -105,7 +105,7 @@ export default async function HomePage() {
                 {t.home.searchPlaceholder}
               </label>
               <div className="flex flex-1 items-center gap-2.5 px-2.5">
-                <Icon3D name="search" size={26} variant="bare" />
+                <UiIcon name="search" size={20} className="text-[var(--nf-content-muted)]" />
                 <input
                   id="home-q"
                   name="q"
@@ -130,7 +130,7 @@ export default async function HomePage() {
                     href={c.href}
                     className="nf-card nf-card--interactive flex flex-col items-center gap-2.5 p-5 text-center"
                   >
-                    <Icon3D name={c.icon} size={54} />
+                    <Icon name={c.icon} size={56} />
                     <span className="text-[0.875rem] font-semibold">{c.label}</span>
                   </Link>
                 </li>
@@ -143,7 +143,7 @@ export default async function HomePage() {
             <div className="nf-card relative overflow-hidden p-6 md:p-7">
               <div className="nf-aurora opacity-50" aria-hidden="true" />
               <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-center">
-                <Icon3D name="ai-assistant" size={70} />
+                <Icon name="ai-assistant" size={64} />
                 <div className="min-w-0 flex-1">
                   <h2 className="nf-h3 flex items-center gap-2">
                     {t.home.aiCard.title}
@@ -154,7 +154,7 @@ export default async function HomePage() {
                   </p>
                   <p className="mt-3">
                     <span className="nf-chip">
-                      <Icon3D name="search" size={14} variant="bare" />
+                      <UiIcon name="search" size={13} />
                       {t.home.aiCard.samplePrompt}
                     </span>
                   </p>
@@ -180,7 +180,7 @@ export default async function HomePage() {
 
             {listings.length === 0 ? (
               <div className="nf-card p-10 text-center">
-                <Icon3D name="search" size={56} className="mx-auto" />
+                <Icon name="search" size={56} className="mx-auto" />
                 <p className="mt-4 font-semibold">Nothing to show here yet</p>
                 <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
                   Once listings are approved they will appear in this space.
@@ -205,7 +205,7 @@ export default async function HomePage() {
                 style={{ background: "var(--nf-gradient-agent)", opacity: 0.24 }}
                 aria-hidden="true"
               />
-              <Icon3D name="apartment" size={66} ramp="orange" />
+              <Icon name="apartment" size={60} />
               <div className="min-w-0 flex-1">
                 <h2 className="nf-h3">{t.home.agentCard.title}</h2>
                 <p className="mt-1.5 max-w-[58ch] text-[0.9375rem] text-[var(--nf-content-secondary)]">
@@ -228,7 +228,7 @@ export default async function HomePage() {
                     href="/search?type=experience"
                     className="nf-card nf-card--interactive flex flex-col items-center gap-2.5 p-5 text-center"
                   >
-                    <Icon3D name={e.icon} size={48} />
+                    <Icon name={e.icon} size={48} />
                     <span className="text-[0.8125rem] font-semibold">{e.label}</span>
                   </Link>
                 </li>

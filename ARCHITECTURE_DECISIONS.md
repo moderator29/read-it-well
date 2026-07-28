@@ -167,3 +167,68 @@ while the build stays green.
 **Residual.** Nine high severity advisories remain in the ESLint toolchain via
 `brace-expansion`. They are lint-time only and never reach the shipped bundle or
 the request path. Tracked rather than papered over.
+
+---
+
+## ADR-010. Use the supplied artwork, not redraws
+
+**Decision.** The brand mark, the hero island and the icon family are the
+owner's supplied artwork, cut from the source sheets with alpha preserved.
+Extraction is scripted in `scripts/extract-brand-assets.py` and
+`scripts/build-icon-assets.py`, with the sheets kept in `assets/source-sheets/`.
+
+**Why.** ADR-003 previously chose to redraw the icons as vector on resolution
+grounds. That was the wrong trade. The redraw did not match the supplied
+identity, and matching the identity is the point. Redrawn glyphs were also not
+what the owner asked for.
+
+**Supersedes.** ADR-003, which is now void. The vector glyph registry and the
+vector isometric scene have been deleted.
+
+**Consequence.** Icons are capped by source resolution at roughly 91 x 100 and
+the island at 546 x 493. Both are resampled 2x with Lanczos plus a light unsharp
+pass so high density screens get a better source than a browser bilinear
+upscale, which is where they were visibly soft. This adds no detail the source
+never had, and that limit is real: above about 64px for icons and about 550 CSS
+px for the island, softness returns.
+
+**Reversal condition.** If vector or higher resolution originals appear, rerun
+the scripts against them. No call site changes.
+
+---
+
+## ADR-011. Two icon tiers
+
+**Decision.** Tier two is the 3D signature object family, used at 32px and
+above. Tier one is `UiIcon`, a stroked set on a 24 grid inheriting
+`currentColor`, used below 32px.
+
+**Why.** The design direction asks for exactly this split, and the reason became
+concrete in review: the 3D objects carry a lit tile, and at 14px that tile
+collapses into an unreadable coloured square. Star ratings, bed and bath counts,
+amenity marks and the search affordance were all illegible. Tier one stays crisp
+at 12px and takes the colour of the text beside it.
+
+**Cost to change.** Low. Two components, clear size boundary.
+
+---
+
+## ADR-012. The stride
+
+**Decision.** Every container, button, chip and field carries a luminous
+gradient ring drawn on the border box while the fill sits on the padding box.
+One element, no wrapper, no pseudo element.
+
+**Why.** It is the single treatment that makes cards, buttons, chips, fields and
+auth rows read as one material. The ring runs brightest at the upper left and
+decays toward the lower right, matching the light direction the 3D icon family
+already uses, so painted UI and rendered artwork agree about where the light is.
+
+**Buttons** additionally stack five layers: outer bloom, vertical body gradient,
+inset top hairline, inset bottom shade, and a specular sheen over the top half.
+Pressing translates down one pixel and pulls the bloom in, so the control reads
+as physically depressing rather than just changing colour.
+
+**Fallback.** Surfaces relying on `backdrop-filter` fall back to a solid body
+where it is unsupported, so low end Android gets a legible panel rather than a
+washed out one.

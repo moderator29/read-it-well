@@ -1,8 +1,7 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { Logo } from "@/design-system/brand/Logo";
-import { Icon3D } from "@/design-system/icons/Icon3D";
-import type { GlyphName } from "@/design-system/icons/glyphs";
+import { Icon, type IconName } from "@/design-system/icons/Icon";
 
 /**
  * Personal Mode navigation rail.
@@ -12,7 +11,7 @@ import type { GlyphName } from "@/design-system/icons/glyphs";
  * brand sheet whose icon row lists exactly these twelve in this order. It must
  * not drift between screens.
  */
-type RailItem = { href: string; label: string; icon: GlyphName; badge?: number };
+type RailItem = { href: string; label: string; icon: IconName; badge?: number };
 
 export function AppRail({
   t,
@@ -27,14 +26,14 @@ export function AppRail({
     { href: "/home", label: t.nav.home, icon: "home" },
     { href: "/search?type=hotel", label: t.nav.hotels, icon: "hotel" },
     { href: "/search?type=property", label: t.nav.apartments, icon: "apartment" },
-    { href: "/search?type=home", label: t.nav.homes, icon: "homes" },
-    { href: "/search?type=restaurant", label: t.nav.restaurants, icon: "restaurants" },
-    { href: "/search?type=experience", label: t.nav.experiences, icon: "experiences" },
+    { href: "/search?type=home", label: t.nav.homes, icon: "home" },
+    { href: "/search?type=restaurant", label: t.nav.restaurants, icon: "restaurant" },
+    { href: "/search?type=experience", label: t.nav.experiences, icon: "experience" },
   ];
 
   const account: RailItem[] = [
-    { href: "/bookings", label: t.nav.bookings, icon: "bookings" },
-    { href: "/messages", label: t.nav.messages, icon: "messages" },
+    { href: "/bookings", label: t.nav.bookings, icon: "booking" },
+    { href: "/messages", label: t.nav.messages, icon: "chat" },
     { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
     { href: "/assistant", label: t.nav.aiAssistant, icon: "ai-assistant" },
     { href: "/profile", label: t.nav.profile, icon: "profile" },
@@ -55,7 +54,7 @@ export function AppRail({
               : "text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
           ].join(" ")}
         >
-          <Icon3D name={item.icon} size={30} variant={isActive ? "tile" : "bare"} />
+          <Icon name={item.icon} size={28} />
           <span className="flex-1">{item.label}</span>
           {item.badge ? (
             <span className="nf-numeric nf-badge nf-badge--brand">{item.badge}</span>
