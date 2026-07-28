@@ -16,14 +16,14 @@
    * ------------------------------------------------------------------ */
 
   /* Deep space neutrals, navy biased: the neon-blue night surface */
-  --nf-ink-950: #030816;
-  --nf-ink-900: #050D20;
-  --nf-ink-850: #071226;
-  --nf-ink-800: #0A182E;
-  --nf-ink-750: #0E1F3A;
-  --nf-ink-700: #132844;
-  --nf-ink-600: #1B3355;
-  --nf-ink-500: #28466E;
+  --nf-ink-950: #030509;
+  --nf-ink-900: #05070F;
+  --nf-ink-850: #070A14;
+  --nf-ink-800: #0A0E1A;
+  --nf-ink-750: #0D1322;
+  --nf-ink-700: #111A2E;
+  --nf-ink-600: #17233C;
+  --nf-ink-500: #22334F;
 
   --nf-mist-100: #F4F8FF;
   --nf-mist-200: #DDE7F6;
@@ -39,6 +39,10 @@
   --nf-violet-700: #6D28D9;
 
   /* Supporting accents, used as controlled accents and never as wallpaper */
+  --nf-royal-400: #4257EE;
+  --nf-royal-500: #2B3FE0;
+  --nf-royal-600: #2130C0;
+  --nf-royal-700: #1A2596;
   --nf-electric-300: #93C5FD;
   --nf-electric-400: #60A5FA;
   --nf-electric-500: #3B82F6;
@@ -59,14 +63,14 @@
    * ------------------------------------------------------------------ */
 
   /* Brand */
-  --nf-brand-primary: var(--nf-electric-500);
-  --nf-brand-primary-strong: var(--nf-electric-600);
-  --nf-brand-primary-soft: color-mix(in oklab, var(--nf-electric-500) 16%, transparent);
+  --nf-brand-primary: var(--nf-royal-500);
+  --nf-brand-primary-strong: var(--nf-royal-600);
+  --nf-brand-primary-soft: color-mix(in oklab, var(--nf-royal-500) 16%, transparent);
   --nf-brand-secondary: var(--nf-cyan-400);
   --nf-brand-accent: var(--nf-electric-400);
 
   /* Mode accents. Personal is violet, Agent is orange, Admin is cyan. */
-  --nf-mode-personal: var(--nf-electric-500);
+  --nf-mode-personal: var(--nf-royal-500);
   --nf-mode-agent: var(--nf-orange-500);
   --nf-mode-admin: var(--nf-cyan-400);
 
@@ -136,7 +140,7 @@
     #F97316 80%,
     #FBBF24 100%
   );
-  --nf-gradient-brand: linear-gradient(135deg, var(--nf-electric-600) 0%, var(--nf-electric-500) 45%, var(--nf-cyan-400) 100%);
+  --nf-gradient-brand: linear-gradient(135deg, var(--nf-royal-600) 0%, var(--nf-royal-500) 55%, var(--nf-electric-500) 100%);
   --nf-gradient-iridescent: linear-gradient(
     135deg,
     var(--nf-cyan-400) 0%,
@@ -155,7 +159,7 @@
    * and alive rather than printed. These are the ingredients; the motion lives
    * in the `nf-ambient` layer in globals.css.
    * ------------------------------------------------------------------ */
-  --nf-canvas-base: radial-gradient(140% 120% at 50% -10%, #0A1B42 0%, #061026 45%, #030816 100%);
+  --nf-canvas-base: radial-gradient(140% 120% at 50% -10%, #0A1B42 0%, #061026 45%, #030509 100%);
   --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-500) 92%, transparent) 0%, transparent 62%);
   --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-600) 85%, transparent) 0%, transparent 62%);
   --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-500) 80%, transparent) 0%, transparent 62%);
