@@ -73,10 +73,10 @@ export const en = {
     },
     trust: {
       multiLanguage: { title: "Multi-language", body: "EN / YO / HA / IG" },
-      secure: { title: "Secure and trusted", body: "Your safety is our priority" },
-      ai: { title: "AI powered", body: "Smarter experiences" },
-      africa: { title: "Made for Africa", body: "Built with care" },
-      stores: { title: "Available on", body: "App Store and Play Store" },
+      secure: { title: "Secure & Trusted", body: "Your safety is our priority" },
+      ai: { title: "AI Powered", body: "Smarter experiences" },
+      africa: { title: "Made for Africa", body: "Built with love ❤️" },
+      stores: { title: "Available on", body: "App Store & Play Store" },
     },
     categories: {
       title: "Everything, in one place",

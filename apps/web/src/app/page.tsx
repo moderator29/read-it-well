@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Icon, type IconName } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { TrustIcon, type TrustIconName } from "@/design-system/icons/TrustIcon";
 import { HeroIsland } from "@/design-system/scenes/HeroIsland";
 
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"];
@@ -43,12 +44,15 @@ export default async function LandingPage() {
     { icon: "experience", label: t.nav.experiences, href: "/search?type=experience" },
   ];
 
-  const trust: { icon: IconName; title: string; body: string }[] = [
-    { icon: "language", ...t.landing.trust.multiLanguage },
-    { icon: "secure", ...t.landing.trust.secure },
-    { icon: "ai-assistant", ...t.landing.trust.ai },
-    { icon: "map", ...t.landing.trust.africa },
-    { icon: "star", ...t.landing.trust.stores },
+  /* Trust bar. Icons drawn as vector, see TrustIcon: the Africa silhouette,
+   * the AI chip and the two store marks are not in the photographic pack, and
+   * the versions on the reference sheet are only about 35px. */
+  const trust: { icons: TrustIconName[]; title: string; body: string }[] = [
+    { icons: ["globe"], ...t.landing.trust.multiLanguage },
+    { icons: ["shield"], ...t.landing.trust.secure },
+    { icons: ["ai-chip"], ...t.landing.trust.ai },
+    { icons: ["africa"], ...t.landing.trust.africa },
+    { icons: ["app-store", "play-store"], ...t.landing.trust.stores },
   ];
 
   return (
@@ -185,13 +189,32 @@ export default async function LandingPage() {
 
         {/* ---------------------------------------------------------- trust */}
         <section className="nf-shell">
-          <ul className="nf-card grid gap-6 p-7 sm:grid-cols-2 lg:grid-cols-5">
-            {trust.map((item) => (
-              <li key={item.title} className="flex items-center gap-3">
-                <Icon name={item.icon} size={38} />
-                <span className="leading-tight">
-                  <span className="block text-[0.875rem] font-semibold">{item.title}</span>
-                  <span className="block text-[0.8125rem] text-[var(--nf-content-muted)]">
+          <ul className="nf-card grid grid-cols-1 overflow-hidden p-0 sm:grid-cols-2 lg:grid-cols-5">
+            {trust.map((item, i) => (
+              <li
+                key={item.title}
+                className={[
+                  "flex items-center gap-3 px-5 py-5",
+                  // Hairline dividers between cells, matching the reference.
+                  // They follow the grid: vertical between columns, horizontal
+                  // between rows, and never on a leading edge.
+                  i > 0 ? "sm:border-l sm:border-[var(--nf-border-subtle)]" : "",
+                  i % 2 === 0 ? "sm:border-l-0 lg:border-l" : "",
+                  i === 0 ? "lg:border-l-0" : "",
+                  i > 0 ? "border-t border-[var(--nf-border-subtle)] sm:border-t-0" : "",
+                  i > 1 ? "sm:border-t sm:lg:border-t-0" : "",
+                ].join(" ")}
+              >
+                <span className="flex shrink-0 items-center gap-1.5">
+                  {item.icons.map((n) => (
+                    <TrustIcon key={n} name={n} size={38} />
+                  ))}
+                </span>
+                <span className="min-w-0 leading-tight">
+                  <span className="block truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                    {item.title}
+                  </span>
+                  <span className="block truncate text-[0.8125rem] text-[var(--nf-content-muted)]">
                     {item.body}
                   </span>
                 </span>

@@ -72,10 +72,10 @@ export const ig: Dictionary = {
     },
     trust: {
       multiLanguage: { title: "Asụsụ dị iche iche", body: "EN / YO / HA / IG" },
-      secure: { title: "Nchekwa na ntụkwasị obi", body: "Nchekwa gị bụ ihe mbụ" },
+      secure: { title: "Nchekwa & Ntụkwasị Obi", body: "Nchekwa gị bụ ihe mbụ" },
       ai: { title: "Ike AI", body: "Ahụmahụ amamihe" },
-      africa: { title: "Emere maka Afrika", body: "Ewuru ya na nlekọta" },
-      stores: { title: "Dị na", body: "App Store na Play Store" },
+      africa: { title: "Emere maka Afrika", body: "Ewuru ya na ịhụnanya ❤️" },
+      stores: { title: "Dị na", body: "App Store & Play Store" },
     },
     categories: {
       title: "Ihe niile, n'otu ebe",
