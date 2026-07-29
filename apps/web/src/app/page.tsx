@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getDictionary, formatNumber, type Locale } from "@naijafinds/i18n";
+import { getDictionary, type Locale } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
-import { getPlatformStats } from "@/lib/platform-stats";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Reveal } from "@/components/site/Reveal";
@@ -27,18 +26,6 @@ const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"];
 export default async function LandingPage() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const stats = await getPlatformStats();
-
-  const heroChips: {
-    key: keyof typeof t.landing.stats;
-    icon: IconName;
-    value: number | null;
-    pos: string;
-  }[] = [
-    { key: "apartments", icon: "apartment", value: stats?.apartments ?? null, pos: "left-[-4%] top-[16%]" },
-    { key: "hotels", icon: "hotel", value: stats?.hotels ?? null, pos: "left-[24%] top-[-6%]" },
-    { key: "restaurants", icon: "restaurant", value: stats?.restaurants ?? null, pos: "right-[-3%] top-[24%]" },
-  ];
 
   const features: { icon: IconName; title: string; body: string }[] = [
     { icon: "ai-assistant", ...t.landing.features.ai },
@@ -94,34 +81,27 @@ export default async function LandingPage() {
           </div>
 
           {/*
-           * Mobile: the neon villa rises framed to the right of the headline,
-           * part of the opening frame. Hidden at lg, where it gets its own
-           * column instead.
+           * The villa is the hero's atmosphere, not a picture in a frame: a
+           * large masked still dissolving into the canvas behind the text, so
+           * the scene and the platform read as one surface. Its edges never
+           * print; the mask fades it out in every direction.
            */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-0 overflow-hidden lg:hidden"
-          >
-            <div className="nf-float absolute right-3 top-[4%] w-[56%] max-w-[330px]">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
+            <div className="nf-float-slow absolute right-[-18%] top-[-2%] w-[95%] max-w-[560px] sm:right-[-8%] sm:w-[70%] lg:right-[-4%] lg:top-[-12%] lg:w-[58%] lg:max-w-[900px]">
               <Image
                 src="/brand/rentme-villa.png"
                 alt=""
                 width={1536}
                 height={1024}
                 priority
-                sizes="56vw"
-                className="nf-hero-city h-auto w-full"
+                sizes="(max-width: 640px) 95vw, (max-width: 1024px) 70vw, 58vw"
+                className="nf-hero-scene h-auto w-full"
               />
             </div>
           </div>
 
-          <div className="nf-shell relative z-10 grid items-center gap-10 lg:grid-cols-[1fr_1.05fr]">
-            <div>
-              <span className="nf-rise nf-overline mb-3 inline-flex items-center gap-2">
-                <UiIcon name="sparkle" size={14} />
-                {t.landing.hero.popularLabel}
-              </span>
-
+          <div className="nf-shell relative z-10">
+            <div className="max-w-2xl">
               <h1 className="nf-display">
                 <span className="nf-rise block">{t.landing.hero.line1}</span>
                 <span className="nf-rise nf-rise-2 block">{t.landing.hero.line2}</span>
@@ -170,45 +150,6 @@ export default async function LandingPage() {
                     >
                       {city}
                     </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* -------------------------------------- the RentMe villa (desktop) */}
-            <div className="relative hidden lg:block">
-              <div className="nf-float">
-                <Image
-                  src="/brand/rentme-villa.png"
-                  alt=""
-                  aria-hidden="true"
-                  width={1536}
-                  height={1024}
-                  priority
-                  sizes="(max-width: 1280px) 46vw, 640px"
-                  className="nf-hero-city h-auto w-full"
-                />
-              </div>
-
-              <ul className="pointer-events-none absolute inset-0">
-                {heroChips.map((c) => (
-                  <li
-                    key={c.key}
-                    className={`nf-glass absolute flex items-center gap-2 rounded-[var(--nf-radius-lg)] px-3 py-2 shadow-[var(--nf-shadow-lifted)] nf-float-slow ${c.pos}`}
-                  >
-                    <span className="h-7 w-7">
-                      <Icon name={c.icon} fill />
-                    </span>
-                    <span className="leading-tight">
-                      <span className="block text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
-                        {t.landing.stats[c.key]}
-                      </span>
-                      {c.value !== null && (
-                        <span className="nf-numeric block text-[0.75rem] text-[var(--nf-content-muted)]">
-                          {formatNumber(c.value, locale)}+
-                        </span>
-                      )}
-                    </span>
                   </li>
                 ))}
               </ul>

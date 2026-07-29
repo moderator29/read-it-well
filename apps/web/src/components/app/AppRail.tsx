@@ -97,7 +97,7 @@ export function AppRail({
       aria-label={t.nav.primaryLabel}
     >
       <Link href="/" aria-label={t.a11y.logoHome} className="mb-6 px-1">
-        <Logo size={40} wordSize={19} responsive />
+        <Logo size={46} wordSize={21} responsive />
       </Link>
 
       <nav aria-label={t.nav.primaryLabel} className="flex-1 overflow-y-auto">

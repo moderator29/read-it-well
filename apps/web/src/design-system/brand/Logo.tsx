@@ -30,17 +30,30 @@ export function LogoMark({
   const width = responsive
     ? `clamp(${Math.round(size * 0.72)}px, 6vw, ${size}px)`
     : size;
+  // Two renders of the mark: the neon original for the night theme, an ink
+  // recolour for paper, toggled purely in CSS so there is no theme flash.
   return (
-    <Image
-      src="/brand/rentme-logo.png"
-      alt={title ?? ""}
-      aria-hidden={title ? undefined : true}
-      width={size}
-      height={size}
-      priority={priority}
-      className={className}
-      style={{ width, height: "auto" }}
-    />
+    <>
+      <Image
+        src="/brand/rentme-logo.png"
+        alt={title ?? ""}
+        aria-hidden={title ? undefined : true}
+        width={size}
+        height={size}
+        priority={priority}
+        className={`nf-logo-on-dark ${className ?? ""}`}
+        style={{ width, height: "auto" }}
+      />
+      <Image
+        src="/brand/rentme-logo-ink.png"
+        alt=""
+        aria-hidden="true"
+        width={size}
+        height={size}
+        className={`nf-logo-on-light ${className ?? ""}`}
+        style={{ width, height: "auto" }}
+      />
+    </>
   );
 }
 

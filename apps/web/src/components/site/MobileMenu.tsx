@@ -70,7 +70,7 @@ export function MobileMenu({
 
           <div className="nf-rise absolute inset-0 flex flex-col overflow-y-auto bg-[var(--nf-surface-primary)] px-5 pb-6 pt-5">
             <div className="mb-4 flex items-center justify-between">
-              <Logo size={36} wordSize={18} />
+              <Logo size={40} wordSize={19} />
               <button
                 type="button"
                 aria-label={closeLabel}

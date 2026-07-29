@@ -1196,17 +1196,15 @@ body {
   }
 
   /*
-   * The hero villa. A framed cinematic still: rounded, edge lit, and grounded
-   * by an electric glow so it belongs to the canvas instead of sitting on it.
+   * The hero scene. The villa dissolves into the canvas through a radial
+   * mask, so it reads as the platform's own atmosphere behind the headline
+   * rather than a picture placed on the page. No edges ever print.
    */
-  .nf-hero-city {
-    border-radius: var(--nf-radius-xl);
-    border: 1px solid rgb(92 124 255 / 0.4);
-    box-shadow:
-      0 0 0 1px rgb(12 57 239 / 0.25),
-      0 24px 70px -18px rgb(12 57 239 / 0.55),
-      0 0 44px rgb(12 57 239 / 0.28);
-    filter: saturate(1.05);
+  .nf-hero-scene {
+    opacity: 0.9;
+    filter: saturate(1.08);
+    -webkit-mask-image: radial-gradient(80% 78% at 60% 42%, rgb(0 0 0) 40%, transparent 75%);
+    mask-image: radial-gradient(80% 78% at 60% 42%, rgb(0 0 0) 40%, transparent 75%);
   }
 
   /* A second, slower float on an offset phase, for scattered accent objects. */
@@ -1344,30 +1342,35 @@ body {
   }
   :root[data-theme="light"] .nf-ambient > span:nth-child(2),
   :root[data-theme="light"] .nf-ambient > span:nth-child(3) {
-    opacity: 0.12;
+    opacity: 0.07;
   }
   :root[data-theme="light"] .nf-ambient > span:nth-child(4) {
     display: none !important;
   }
   :root[data-theme="light"] .nf-ambient::before {
-    opacity: 0.12;
+    opacity: 0.07;
   }
   :root[data-theme="light"] .nf-ambient::after {
     display: none;
   }
   :root[data-theme="light"] .nf-aurora {
-    opacity: 0.15;
+    display: none;
   }
   :root[data-theme="light"] .nf-grid-veil {
     display: none;
   }
-  :root[data-theme="light"] .nf-hero-city {
-    border-color: rgb(10 22 38 / 0.12);
-    box-shadow: 0 24px 60px -18px rgb(10 22 38 / 0.25);
+  :root[data-theme="light"] .nf-hero-scene {
+    opacity: 0.85;
   }
-  /* The mark's white strokes need an edge on paper to stay visible. */
-  :root[data-theme="light"] .nf-logo img {
-    filter: drop-shadow(0 0 1px rgb(10 22 38 / 0.55)) drop-shadow(0 2px 4px rgb(10 22 38 / 0.25));
+  /* Mark variants: neon on the night theme, ink on paper. */
+  .nf-logo-on-light {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-logo-on-dark {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-logo-on-light {
+    display: inline-block;
   }
   :root[data-theme="light"] .nf-grain {
     opacity: 0.03;

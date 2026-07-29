@@ -280,6 +280,10 @@
   --nf-brand-primary: #0010D0;
   --nf-brand-primary-strong: #1230B3;
 
+  /* Daylight CTA runs brighter than the night gradient so buttons read as
+     vivid brand blue on paper, never near-black navy. */
+  --nf-gradient-cta: linear-gradient(180deg, #2450FF 0%, #0C39EF 55%, #0010D0 100%);
+
   --nf-border-subtle: rgb(10 22 38 / 0.08);
   --nf-border-default: rgb(10 22 38 / 0.14);
   --nf-border-strong: rgb(10 22 38 / 0.24);
