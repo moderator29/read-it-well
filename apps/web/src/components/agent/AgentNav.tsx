@@ -42,7 +42,7 @@ export function AgentModePill({ label, className }: { label: string; className?:
       ].join(" ")}
       style={{
         background: "color-mix(in oklab, var(--nf-mode-agent) 20%, transparent)",
-        color: "#FDBA74",
+        color: "color-mix(in oklab, var(--nf-mode-agent) 55%, white)",
       }}
     >
       <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--nf-mode-agent)]" />

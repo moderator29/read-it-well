@@ -4,54 +4,98 @@ import { useEffect, useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { LOCALES, localeMeta, type Locale } from "@naijafinds/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
+import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { Icon, type IconName } from "@/design-system/icons/Icon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Toggle } from "./Toggle";
+import {
+  applyReduceMotion,
+  applyTextSize,
+  applyTheme,
+  readThemeChoice,
+  useNfSettings,
+  type TextSize,
+  type ThemeChoice,
+} from "./settings-store";
 
 /* ------------------------------------------------------------- appearance */
 
-const REDUCE_MOTION_KEY = "nf_reduce_motion";
+const THEME_OPTIONS: { value: ThemeChoice; label: string }[] = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
+
+const TEXT_SIZES: { value: TextSize; label: string }[] = [
+  { value: "s", label: "Small" },
+  { value: "m", label: "Medium" },
+  { value: "l", label: "Large" },
+];
 
 /**
- * Motion preference.
+ * Appearance: theme, motion and text size.
  *
- * Persists to localStorage and stamps `data-reduce-motion="1"` on the root
- * element so stylesheets can calm animations app-wide. Applied on mount too,
- * so the choice survives a reload without waiting for user input.
+ * Theme mirrors the mechanism the root layout already uses (`nf_theme` plus
+ * `data-theme` on the root), so this control and the header toggle always
+ * agree. Text size scales the root font size, which every rem measure in the
+ * app follows. All three apply instantly and persist on this device.
  */
 export function AppearanceCard() {
-  const [reduceMotion, setReduceMotion] = useState(false);
+  const { settings, set } = useNfSettings();
+  const [theme, setTheme] = useState<ThemeChoice>("system");
 
   useEffect(() => {
+    setTheme(readThemeChoice());
     try {
-      if (window.localStorage.getItem(REDUCE_MOTION_KEY) === "1") {
-        setReduceMotion(true);
-        document.documentElement.dataset.reduceMotion = "1";
-      }
+      // Migrate the flag earlier builds stored on its own key.
+      if (window.localStorage.getItem("nf_reduce_motion") === "1") set("reduceMotion", true);
     } catch {
-      // Storage unavailable. The system-level media query still applies.
+      // Storage unavailable: the settings document already has the answer.
     }
-  }, []);
+  }, [set]);
 
-  const change = (next: boolean) => {
-    setReduceMotion(next);
-    try {
-      window.localStorage.setItem(REDUCE_MOTION_KEY, next ? "1" : "0");
-    } catch {
-      // In-memory state still drives the document attribute below.
-    }
-    if (next) document.documentElement.dataset.reduceMotion = "1";
+  useEffect(() => {
+    applyTextSize(settings.textSize);
+  }, [settings.textSize]);
+
+  useEffect(() => {
+    if (settings.reduceMotion) document.documentElement.dataset.reduceMotion = "1";
     else delete document.documentElement.dataset.reduceMotion;
+  }, [settings.reduceMotion]);
+
+  const chooseTheme = (next: ThemeChoice) => {
+    setTheme(next);
+    applyTheme(next);
+  };
+
+  const changeMotion = (next: boolean) => {
+    set("reduceMotion", next);
+    applyReduceMotion(next);
   };
 
   return (
     <GroupCard overline="Appearance" icon="settings">
-      <Toggle
-        checked={reduceMotion}
-        onChange={change}
-        label="Reduce motion"
-        description="Calms entrance animations and hover movement across the app."
-      />
+      <div className="divide-y divide-[var(--nf-border-subtle)]">
+        <SegmentedRow
+          label="Theme"
+          description="System follows this device. Dark is the designed default."
+          options={THEME_OPTIONS}
+          value={theme}
+          onChange={chooseTheme}
+        />
+        <SegmentedRow
+          label="Text size"
+          description="Scales reading text across the whole app."
+          options={TEXT_SIZES}
+          value={settings.textSize}
+          onChange={(v) => set("textSize", v)}
+        />
+        <Toggle
+          checked={settings.reduceMotion}
+          onChange={changeMotion}
+          label="Reduce motion"
+          description="Calms entrance animations and hover movement across the app."
+        />
+      </div>
     </GroupCard>
   );
 }
@@ -122,248 +166,342 @@ export function LanguageCard({ current }: { current: Locale }) {
 
 /* ---------------------------------------------------------- notifications */
 
-const NOTIFY_PREFS_KEY = "nf_notify_prefs";
-
-type NotifyPrefs = { push: boolean; email: boolean; sms: boolean };
-
-const NOTIFY_DEFAULTS: NotifyPrefs = { push: true, email: true, sms: false };
+type NotifyKey = "notifyPush" | "notifyEmail" | "notifySms" | "notifyWhatsapp";
 
 export function NotificationsCard() {
-  const [prefs, setPrefs] = useState<NotifyPrefs>(NOTIFY_DEFAULTS);
+  const { settings, set } = useNfSettings();
 
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(NOTIFY_PREFS_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as Partial<NotifyPrefs>;
-      setPrefs({
-        push: typeof parsed.push === "boolean" ? parsed.push : NOTIFY_DEFAULTS.push,
-        email: typeof parsed.email === "boolean" ? parsed.email : NOTIFY_DEFAULTS.email,
-        sms: typeof parsed.sms === "boolean" ? parsed.sms : NOTIFY_DEFAULTS.sms,
-      });
-    } catch {
-      // A malformed value falls back to the defaults above.
-    }
-  }, []);
-
-  const set = (key: keyof NotifyPrefs) => (value: boolean) => {
-    setPrefs((prev) => {
-      const next = { ...prev, [key]: value };
-      try {
-        window.localStorage.setItem(NOTIFY_PREFS_KEY, JSON.stringify(next));
-      } catch {
-        // Storage unavailable, the session keeps the in-memory choice.
-      }
-      return next;
-    });
-  };
+  const row = (key: NotifyKey, label: string, description: string) => (
+    <Toggle
+      checked={settings[key]}
+      onChange={(v) => set(key, v)}
+      label={label}
+      description={description}
+    />
+  );
 
   return (
     <GroupCard overline="Notifications" icon="notification">
       <div className="divide-y divide-[var(--nf-border-subtle)]">
-        <Toggle
-          checked={prefs.push}
-          onChange={set("push")}
-          label="Push notifications"
-          description="Booking updates and replies, straight to this device."
-        />
-        <Toggle
-          checked={prefs.email}
-          onChange={set("email")}
-          label="Email"
-          description="Receipts, confirmations and occasional highlights."
-        />
-        <Toggle
-          checked={prefs.sms}
-          onChange={set("sms")}
-          label="SMS"
-          description="Time-critical booking alerts by text message."
-        />
+        {row("notifyPush", "Push notifications", "Booking updates and replies, straight to this device.")}
+        {row("notifyEmail", "Email", "Receipts, confirmations and occasional highlights.")}
+        {row("notifySms", "SMS", "Time-critical booking alerts by text message.")}
+        {row("notifyWhatsapp", "WhatsApp", "Booking confirmations and host replies on WhatsApp.")}
       </div>
     </GroupCard>
   );
 }
 
-/* ---------------------------------------------------------------- account */
+/* ---------------------------------------------------------------- privacy */
 
-type AccountPanel = "personal" | "security" | "payment";
-
-/**
- * Account rows that expand in place.
- *
- * Each row opens an inline panel instead of navigating away, so nothing on
- * this screen dead-ends. Field values are client state for now; they connect
- * to the account service once sessions exist.
- */
-export function AccountCard() {
-  const [open, setOpen] = useState<AccountPanel | null>(null);
-
-  const toggle = (panel: AccountPanel) => setOpen((v) => (v === panel ? null : panel));
+export function PrivacyCard() {
+  const { settings, set } = useNfSettings();
 
   return (
-    <GroupCard overline="Account" icon="profile">
+    <GroupCard overline="Privacy" icon="secure">
       <div className="divide-y divide-[var(--nf-border-subtle)]">
-        <AccountRow
-          icon="profile"
-          label="Personal details"
-          description="Name, email and phone number"
-          open={open === "personal"}
-          onToggle={() => toggle("personal")}
-        >
-          <Field label="Full name" type="text" autoComplete="name" placeholder="Your full name" />
-          <Field label="Email address" type="email" autoComplete="email" placeholder="you@example.com" />
-          <Field label="Phone number" type="tel" autoComplete="tel" placeholder="+234 800 000 0000" />
-          <DoneButton onClick={() => setOpen(null)} />
-        </AccountRow>
-
-        <AccountRow
-          icon="secure"
-          label="Security"
-          description="Password and sign-in options"
-          open={open === "security"}
-          onToggle={() => toggle("security")}
-        >
-          <Field
-            label="Current password"
-            type="password"
-            autoComplete="current-password"
-            placeholder="Enter current password"
-          />
-          <Field
-            label="New password"
-            type="password"
-            autoComplete="new-password"
-            placeholder="At least 8 characters"
-          />
-          <p className="text-[0.75rem] text-[var(--nf-content-muted)]">
-            Use at least 8 characters with a mix of letters and numbers.
-          </p>
-          <DoneButton onClick={() => setOpen(null)} />
-        </AccountRow>
-
-        <AccountRow
-          icon="wallet"
-          label="Payment methods"
-          description="Cards for faster checkout"
-          open={open === "payment"}
-          onToggle={() => toggle("payment")}
-        >
-          <Field label="Name on card" type="text" autoComplete="cc-name" placeholder="As printed on the card" />
-          <Field
-            label="Card number"
-            type="text"
-            autoComplete="cc-number"
-            inputMode="numeric"
-            placeholder="0000 0000 0000 0000"
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Expiry" type="text" autoComplete="cc-exp" inputMode="numeric" placeholder="MM/YY" />
-            <Field label="CVC" type="text" autoComplete="cc-csc" inputMode="numeric" placeholder="123" />
-          </div>
-          <DoneButton onClick={() => setOpen(null)} />
-        </AccountRow>
+        <SegmentedRow
+          label="Profile visibility"
+          description="Who can see your name and reviews on listings."
+          options={[
+            { value: "everyone", label: "Everyone" },
+            { value: "private", label: "Only me" },
+          ]}
+          value={settings.profileVisibility}
+          onChange={(v) => set("profileVisibility", v)}
+        />
+        <Toggle
+          checked={settings.readReceipts}
+          onChange={(v) => set("readReceipts", v)}
+          label="Read receipts"
+          description="Let hosts see when you have read their messages."
+        />
+        <Toggle
+          checked={settings.personalisedRecs}
+          onChange={(v) => set("personalisedRecs", v)}
+          label="Personalised recommendations"
+          description="Use your searches and saves to rank places you will like."
+        />
       </div>
     </GroupCard>
   );
 }
 
-function AccountRow({
-  icon,
+/* ----------------------------------------------------------------- search */
+
+export function SearchCard() {
+  const { settings, set } = useNfSettings();
+  const cityId = useId();
+
+  return (
+    <GroupCard overline="Search" icon="search">
+      <div className="divide-y divide-[var(--nf-border-subtle)]">
+        <div className="py-3.5 first:pt-0 last:pb-0">
+          <label htmlFor={cityId} className="block text-[0.9375rem] font-medium">
+            Default search area
+          </label>
+          <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
+            Search opens here first. You can always look anywhere.
+          </p>
+          <select
+            id={cityId}
+            value={settings.defaultCity}
+            onChange={(e) => set("defaultCity", e.target.value)}
+            className="nf-field mt-2.5"
+          >
+            <option value="" style={{ background: "var(--nf-surface-elevated)" }}>
+              All of Nigeria
+            </option>
+            {NIGERIAN_STATES.map((s) => (
+              <option key={s} value={s} style={{ background: "var(--nf-surface-elevated)" }}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 py-3.5">
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.9375rem] font-medium">Currency</p>
+            <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
+              Every price across NaijaFinds is shown in Naira.
+            </p>
+          </div>
+          <span className="nf-badge shrink-0">
+            <span className="nf-numeric">₦</span> NGN
+          </span>
+        </div>
+
+        <SegmentedRow
+          label="Map distances"
+          description="Units for distances on maps and listing cards."
+          options={[
+            { value: "km", label: "Kilometres" },
+            { value: "mi", label: "Miles" },
+          ]}
+          value={settings.distanceUnit}
+          onChange={(v) => set("distanceUnit", v)}
+        />
+      </div>
+    </GroupCard>
+  );
+}
+
+/* --------------------------------------------------------------- security */
+
+/**
+ * Security: the app lock preference plus a truthful view of sessions. There
+ * is exactly one session today, this device, so that is what the list shows.
+ * Sign out everywhere is wired and says plainly when it takes effect.
+ */
+export function SecurityCard() {
+  const { settings, set } = useNfSettings();
+  const [device, setDevice] = useState("This device");
+  const [signOutNote, setSignOutNote] = useState(false);
+
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    const browser = /edg\//i.test(ua)
+      ? "Edge"
+      : /opr\//i.test(ua)
+        ? "Opera"
+        : /chrome|crios/i.test(ua)
+          ? "Chrome"
+          : /firefox|fxios/i.test(ua)
+            ? "Firefox"
+            : /safari/i.test(ua)
+              ? "Safari"
+              : "Browser";
+    const os = /android/i.test(ua)
+      ? "Android"
+      : /iphone|ipad|ipod/i.test(ua)
+        ? "iOS"
+        : /mac os/i.test(ua)
+          ? "macOS"
+          : /windows/i.test(ua)
+            ? "Windows"
+            : /linux/i.test(ua)
+              ? "Linux"
+              : "this device";
+    setDevice(`${browser} on ${os}`);
+  }, []);
+
+  return (
+    <GroupCard overline="Security" icon="secure">
+      <div className="divide-y divide-[var(--nf-border-subtle)]">
+        <Toggle
+          checked={settings.appLock}
+          onChange={(v) => set("appLock", v)}
+          label="Biometric app lock"
+          description="Ask for fingerprint or face unlock when the app opens, on devices that support it."
+        />
+
+        <div className="py-3.5">
+          <p className="text-[0.9375rem] font-medium">Active sessions</p>
+          <div className="mt-2.5 flex items-center gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3.5 py-3">
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 shrink-0 rounded-full bg-[var(--nf-state-success)] shadow-[0_0_8px_color-mix(in_oklab,var(--nf-state-success)_70%,transparent)]"
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.875rem] font-medium">{device}</span>
+              <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">
+                Current session, active now
+              </span>
+            </span>
+            <span className="nf-badge nf-badge--success shrink-0">This device</span>
+          </div>
+        </div>
+
+        <div className="py-3.5 last:pb-0">
+          <button
+            type="button"
+            onClick={() => setSignOutNote(true)}
+            className="nf-btn nf-btn--glass w-full"
+          >
+            Sign out everywhere
+          </button>
+          {signOutNote && (
+            <p role="status" className="nf-rise mt-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+              This is your only session, so there is nothing else to sign out.
+              Once accounts launch, this control ends every session on every
+              device at once.
+            </p>
+          )}
+        </div>
+      </div>
+    </GroupCard>
+  );
+}
+
+/* ------------------------------------------------------------------- data */
+
+/**
+ * Data: an export request that says exactly where it stands, and a working
+ * clear-out that removes every NaijaFinds key from this device and reloads.
+ */
+export function DataCard() {
+  const [exportNote, setExportNote] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+
+  const clearLocalData = () => {
+    if (!confirmClear) {
+      setConfirmClear(true);
+      return;
+    }
+    try {
+      const doomed: string[] = [];
+      for (let i = 0; i < window.localStorage.length; i += 1) {
+        const key = window.localStorage.key(i);
+        if (key && key.startsWith("nf_")) doomed.push(key);
+      }
+      doomed.forEach((key) => window.localStorage.removeItem(key));
+    } catch {
+      // Storage unavailable: nothing was held there to begin with.
+    }
+    window.location.reload();
+  };
+
+  return (
+    <GroupCard overline="Your data" icon="wallet">
+      <div className="divide-y divide-[var(--nf-border-subtle)]">
+        <div className="py-3.5 first:pt-0">
+          <p className="text-[0.9375rem] font-medium">Download my data</p>
+          <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
+            A copy of everything NaijaFinds holds about you.
+          </p>
+          <button
+            type="button"
+            onClick={() => setExportNote(true)}
+            className="nf-btn nf-btn--glass mt-2.5 w-full"
+          >
+            Request my data
+          </button>
+          {exportNote && (
+            <p role="status" className="nf-rise mt-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+              Right now everything NaijaFinds knows about you lives in this
+              browser, and nothing has left this device. Full data export ships
+              with the launch release.
+            </p>
+          )}
+        </div>
+
+        <div className="py-3.5 last:pb-0">
+          <p className="text-[0.9375rem] font-medium">Clear local data</p>
+          <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
+            Removes your profile name, preferences and saved conversations from
+            this device, then reloads.
+          </p>
+          <button
+            type="button"
+            onClick={clearLocalData}
+            className={`nf-btn mt-2.5 w-full ${
+              confirmClear
+                ? "border border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] text-[var(--nf-state-error)]"
+                : "nf-btn--glass"
+            }`}
+          >
+            {confirmClear ? "Tap again to confirm" : "Clear local data"}
+          </button>
+        </div>
+      </div>
+    </GroupCard>
+  );
+}
+
+/* --------------------------------------------------------- shared controls */
+
+/**
+ * Segmented single-choice row. Real radio semantics so assistive tech
+ * announces the group and the checked option, with the platform chip visual.
+ */
+function SegmentedRow<T extends string>({
   label,
   description,
-  open,
-  onToggle,
-  children,
+  options,
+  value,
+  onChange,
 }: {
-  icon: IconName;
   label: string;
-  description: string;
-  open: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
+  description?: string;
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (next: T) => void;
 }) {
-  const panelId = useId();
+  const labelId = useId();
 
   return (
     <div className="py-3.5 first:pt-0 last:pb-0">
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={onToggle}
-        className="flex w-full cursor-pointer items-center gap-3 text-left"
-      >
-        <span className="block h-7 w-7 shrink-0">
-          <Icon name={icon} fill />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[0.9375rem] font-medium">{label}</span>
-          <span className="block text-[0.8125rem] text-[var(--nf-content-muted)]">{description}</span>
-        </span>
-        <UiIcon
-          name="chevron-down"
-          size={16}
-          className={`shrink-0 text-[var(--nf-content-muted)] transition-transform duration-200 ${
-            open ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-      <div id={panelId} hidden={!open}>
-        {open && (
-          <form
-            className="nf-rise mt-4 space-y-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-4"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            {children}
-          </form>
-        )}
+      <p id={labelId} className="text-[0.9375rem] font-medium">
+        {label}
+      </p>
+      {description && (
+        <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">{description}</p>
+      )}
+      <div role="radiogroup" aria-labelledby={labelId} className="mt-2.5 flex flex-wrap gap-2">
+        {options.map((o) => {
+          const active = o.value === value;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => onChange(o.value)}
+              className={`nf-chip cursor-pointer ${active ? "nf-chip--active" : ""}`}
+            >
+              {o.label}
+            </button>
+          );
+        })}
       </div>
     </div>
-  );
-}
-
-function Field({
-  label,
-  type,
-  autoComplete,
-  placeholder,
-  inputMode,
-}: {
-  label: string;
-  type: string;
-  autoComplete: string;
-  placeholder: string;
-  inputMode?: "numeric";
-}) {
-  const id = useId();
-  return (
-    <div>
-      <label htmlFor={id} className="nf-label mb-1.5 block">
-        {label}
-      </label>
-      <input
-        id={id}
-        type={type}
-        autoComplete={autoComplete}
-        inputMode={inputMode}
-        placeholder={placeholder}
-        className="nf-field"
-      />
-    </div>
-  );
-}
-
-function DoneButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button type="button" onClick={onClick} className="nf-btn nf-btn--glass w-full">
-      Done
-    </button>
   );
 }
 
 /* ------------------------------------------------------------ group shell */
 
-function GroupCard({
+export function GroupCard({
   overline,
   icon,
   children,

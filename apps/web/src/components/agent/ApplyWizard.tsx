@@ -323,9 +323,9 @@ function SelectField({
         aria-invalid={e ? true : undefined}
         className="nf-field"
       >
-        <option value="" disabled style={{ background: "#151029" }}>Select</option>
+        <option value="" disabled style={{ background: "var(--nf-surface-elevated)" }}>Select</option>
         {options.map((o) => (
-          <option key={o} value={o} style={{ background: "#151029" }}>{o}</option>
+          <option key={o} value={o} style={{ background: "var(--nf-surface-elevated)" }}>{o}</option>
         ))}
       </select>
       {e && <p role="alert" className="mt-1 text-[0.75rem] text-[var(--nf-state-error)]">{e}</p>}

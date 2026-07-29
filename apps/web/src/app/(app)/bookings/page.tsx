@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
+import { getListingRepository } from "@/lib/listings/repository";
+import type { Listing } from "@/lib/listings/types";
+import { buildBookings } from "@/lib/demo/bookings";
 import { PageHeader } from "@/components/app/PageHeader";
 import { BookingsTabs } from "@/components/app/bookings/BookingsTabs";
 import { Icon, type IconName } from "@/design-system/icons/Icon";
@@ -9,15 +12,38 @@ import { Reveal } from "@/components/site/Reveal";
 export const metadata: Metadata = { title: "Bookings" };
 
 /**
+ * The stays this account has booked: two upcoming weekends and one completed
+ * trip, resolved from the live catalogue so every card carries real
+ * photography, locality and pricing. Falls back to the first stays in the
+ * catalogue if any id ever leaves the seed.
+ */
+const BOOKED_IDS = ["seed-2", "seed-16", "seed-7"];
+
+async function getBookedStays(): Promise<Listing[]> {
+  const repo = getListingRepository();
+  const picked = await Promise.all(BOOKED_IDS.map((id) => repo.byId(id)));
+  const stays = picked.filter((l): l is Listing => l !== null);
+  if (stays.length >= BOOKED_IDS.length) return stays;
+  const pool = (await repo.search()).filter(
+    (l) =>
+      l.kind !== "restaurant" &&
+      l.kind !== "experience" &&
+      !stays.some((s) => s.id === l.id),
+  );
+  return [...stays, ...pool].slice(0, BOOKED_IDS.length);
+}
+
+/**
  * Bookings.
  *
- * The trips hub: status tabs over the booking list (honest empty states until
- * real bookings exist), then a short strip explaining how booking works so a
- * first-time guest knows what to expect before they commit.
+ * The trips hub: status tabs over the booking list, then a short strip
+ * explaining how booking works so a first-time guest knows what to expect
+ * before they commit.
  */
 export default async function BookingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  const { upcoming, past } = buildBookings(await getBookedStays(), locale);
 
   const steps: { icon: IconName; title: string; body: string }[] = [
     { icon: "booking", title: "Choose your dates", body: "Pick check-in and check-out on a live calendar." },
@@ -31,7 +57,7 @@ export default async function BookingsPage() {
 
       <Reveal>
         <div className="nf-card p-4 sm:p-5">
-          <BookingsTabs />
+          <BookingsTabs upcoming={upcoming} past={past} />
         </div>
       </Reveal>
 

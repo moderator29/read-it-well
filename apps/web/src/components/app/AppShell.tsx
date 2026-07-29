@@ -8,7 +8,6 @@ import { AppRail } from "./AppRail";
 import { MobileTabBar } from "./MobileTabBar";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
-import { Icon } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -58,7 +57,7 @@ export function AppShell({
             onClick={() => setDrawer(false)}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
-          <div className="nf-rise absolute inset-y-0 left-0 w-[min(84vw,var(--nf-rail-width))] overflow-y-auto border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] shadow-[var(--nf-shadow-float)]">
+          <div className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)]">
             <AppRail t={t} active={active} userName={userName} variant="drawer" />
           </div>
         </div>
@@ -93,9 +92,7 @@ export function AppShell({
             <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
 
             <Link href="/assistant" className="nf-btn nf-btn--primary gap-2 px-3 py-2 sm:px-3.5">
-              <span className="h-6 w-6 sm:h-7 sm:w-7">
-                <Icon name="ai-assistant" fill />
-              </span>
+              <UiIcon name="sparkle" size={18} />
               <span className="hidden sm:inline">{t.nav.aiAssistant}</span>
             </Link>
           </div>

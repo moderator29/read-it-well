@@ -168,7 +168,7 @@ function EntryRow({ entry, locale }: { entry: WalletEntry; locale: Locale }) {
       </span>
       <span className="shrink-0 text-right leading-tight">
         <span
-          className={`block text-[0.875rem] font-semibold ${credit ? "text-[#10B981]" : "text-[var(--nf-content-primary)]"}`}
+          className={`block text-[0.875rem] font-semibold ${credit ? "text-[var(--nf-state-success)]" : "text-[var(--nf-content-primary)]"}`}
         >
           {credit ? "+" : "-"}
           {amount.whole}

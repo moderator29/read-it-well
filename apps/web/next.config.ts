@@ -6,6 +6,17 @@ const nextConfig: NextConfig = {
   // Workspace packages ship raw TypeScript, so Next compiles them in place.
   transpilePackages: ["@naijafinds/design-tokens", "@naijafinds/i18n"],
 
+  // Listing photography is served from Unsplash's public CDN until the media
+  // pipeline lands. Only that host is allowed through the image optimiser.
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
+  },
+
   // Security headers. Applied at the edge for every route.
   async headers() {
     return [

@@ -43,7 +43,7 @@ export type Icon3DProps = {
  * Semantic colour assignment.
  *
  * Deliberate, not decorative: categories keep a stable hue so users learn them,
- * and money is always amber, trust always emerald, AI always the brand violet.
+ * and money is always amber, trust always emerald, AI always the brand blue.
  */
 const defaultRamp: Partial<Record<GlyphName, IconRampName>> = {
   home: "sky",
@@ -54,14 +54,14 @@ const defaultRamp: Partial<Record<GlyphName, IconRampName>> = {
   filter: "sky",
 
   hotel: "sky",
-  apartment: "magenta",
+  apartment: "cyan",
   homes: "sky",
   restaurants: "orange",
-  experiences: "magenta",
+  experiences: "cyan",
   services: "cyan",
 
   bookings: "sky",
-  messages: "magenta",
+  messages: "cyan",
   wallet: "amber",
   "ai-assistant": "sky",
   profile: "sky",
@@ -85,7 +85,7 @@ const defaultRamp: Partial<Record<GlyphName, IconRampName>> = {
   notification: "amber",
   help: "slate",
   "car-rental": "sky",
-  event: "magenta",
+  event: "cyan",
   "map-pin-cluster": "sky",
 };
 

@@ -4,7 +4,7 @@ import { getDictionary, formatDate } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getAgentRepository } from "@/lib/agent/repository";
 import { SiteHeader } from "@/components/site/SiteHeader";
-import { SiteFooter } from "@/components/site/SiteFooter";
+import { BackButton } from "@/components/site/BackButton";
 import { Icon } from "@/design-system/icons/Icon";
 
 export const metadata: Metadata = {
@@ -70,6 +70,11 @@ export default async function AgentStatusPage() {
 
       <main id="main" className="nf-shell py-12 sm:py-16">
         <div className="mx-auto max-w-md">
+          {/* Way back, top left: to wherever you came from, or the pitch. */}
+          <div className="nf-rise mb-6">
+            <BackButton fallback="/agents" />
+          </div>
+
           <div className="nf-rise text-center">
             <span
               className="mx-auto grid h-20 w-20 place-items-center rounded-full"
@@ -214,8 +219,6 @@ export default async function AgentStatusPage() {
           </div>
         </div>
       </main>
-
-      <SiteFooter t={t} />
     </>
   );
 }

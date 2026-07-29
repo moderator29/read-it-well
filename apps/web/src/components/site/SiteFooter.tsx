@@ -35,29 +35,26 @@ export function SiteFooter({ t }: { t: Dictionary }) {
         { href: "/search?type=experience", label: t.nav.experiences },
       ],
     },
-    /* The dedicated marketing pages (about, careers, help centre, contact,
-       privacy, terms) do not exist yet, so until they ship every row points at
-       the closest surface that does, rather than dead-ending on a 404. */
     {
       title: t.landing.footer.company,
       links: [
-        { href: "/", label: t.landing.footer.about },
-        { href: "/agents", label: t.landing.footer.careers },
+        { href: "/about", label: t.landing.footer.about },
+        { href: "/careers", label: t.landing.footer.careers },
         { href: "/agents", label: t.landing.footer.becomeAgent },
       ],
     },
     {
       title: t.landing.footer.support,
       links: [
-        { href: "/assistant", label: t.landing.footer.help },
-        { href: "/assistant", label: t.landing.footer.contact },
+        { href: "/help", label: t.landing.footer.help },
+        { href: "/contact", label: t.landing.footer.contact },
       ],
     },
     {
       title: t.landing.footer.legal,
       links: [
-        { href: "/settings#legal", label: t.landing.footer.privacy },
-        { href: "/settings#legal", label: t.landing.footer.terms },
+        { href: "/privacy", label: t.landing.footer.privacy },
+        { href: "/terms", label: t.landing.footer.terms },
       ],
     },
   ];

@@ -18,11 +18,11 @@ import { Icon } from "@/design-system/icons/Icon";
 
 /** Placeholder media hues, matching the listing card treatment. */
 const HUES: [string, string][] = [
-  ["#4C1D95", "#1E1B4B"],
-  ["#831843", "#1E1B4B"],
+  ["#1E3A8A", "#172554"],
+  ["#155E75", "#0F172A"],
   ["#0C4A6E", "#111827"],
-  ["#065F46", "#111827"],
-  ["#7C2D12", "#1C1917"],
+  ["#334155", "#0F172A"],
+  ["#1E40AF", "#1E1B4B"],
   ["#312E81", "#0F172A"],
 ];
 

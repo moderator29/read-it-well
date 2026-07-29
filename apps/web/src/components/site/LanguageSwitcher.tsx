@@ -44,7 +44,7 @@ export function LanguageSwitcher({
         style={{ paddingBlock: compact ? "0.35rem" : undefined }}
       >
         {LOCALES.map((l) => (
-          <option key={l} value={l} style={{ background: "#151029" }}>
+          <option key={l} value={l} style={{ background: "var(--nf-surface-elevated)" }}>
             {compact ? localeMeta[l].short : localeMeta[l].native}
           </option>
         ))}

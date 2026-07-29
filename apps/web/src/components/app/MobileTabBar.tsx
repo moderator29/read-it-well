@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
  * Mobile tab bar.
@@ -11,17 +11,18 @@ import { Icon, type IconName } from "@/design-system/icons/Icon";
  * and the reference already made that call, so the rail's remaining
  * destinations live under Profile rather than being crammed in here.
  *
- * Tier one icons throughout: at 22px the 3D objects would be unreadable.
+ * Tier one stroked glyphs throughout: at this size the 3D objects would be
+ * unreadable, and the stroke weight can step up when a tab is active.
  */
-type Tab = { href: string; label: string; icon: IconName };
+type Tab = { href: string; label: string; icon: UiIconName };
 
 export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: string }) {
   const tabs: Tab[] = [
     { href: "/home", label: t.nav.home, icon: "home" },
-    { href: "/search", label: t.nav.explore, icon: "search" },
-    { href: "/bookings", label: t.nav.bookings, icon: "booking" },
-    { href: "/saved", label: t.nav.saved, icon: "favorites" },
-    { href: "/profile", label: t.nav.profile, icon: "profile" },
+    { href: "/search", label: t.nav.explore, icon: "compass" },
+    { href: "/bookings", label: t.nav.bookings, icon: "calendar-booking" },
+    { href: "/saved", label: t.nav.saved, icon: "heart" },
+    { href: "/profile", label: t.nav.profile, icon: "user" },
   ];
 
   return (
@@ -44,10 +45,8 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
                     : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",
                 ].join(" ")}
               >
-                {/* The 3D family, dimmed at rest and full strength when active. */}
-                <span className={"h-6 w-6 transition-opacity " + (isActive ? "opacity-100" : "opacity-55")}>
-                  <Icon name={tab.icon} fill />
-                </span>
+                {/* Stroked glyph; the active tab draws a heavier line. */}
+                <UiIcon name={tab.icon} size={24} strokeWidth={isActive ? 2 : 1.8} />
                 <span className="truncate">{tab.label}</span>
               </Link>
             </li>

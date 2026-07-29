@@ -1,0 +1,120 @@
+/**
+ * Assistant conversation model and persistence.
+ *
+ * Conversations live on the device under `nf_ai_threads` as an array of
+ * threads, newest activity first when rendered. Each thread takes its title
+ * from the first user message so the history list reads like a table of
+ * contents. The original single-thread key `nf_ai_thread` is migrated into
+ * the array on first load so nobody loses an existing conversation.
+ */
+
+export type Role = "user" | "assistant";
+
+export type Message = { id: string; role: Role; text: string };
+
+export type Thread = {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+  messages: Message[];
+};
+
+export const THREADS_KEY = "nf_ai_threads";
+const LEGACY_KEY = "nf_ai_thread";
+
+const TITLE_LIMIT = 48;
+
+export function makeId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/** First user message, trimmed to a listable length. */
+export function deriveTitle(text: string): string {
+  const clean = text.trim().replace(/\s+/g, " ");
+  if (clean.length <= TITLE_LIMIT) return clean || "New chat";
+  return `${clean.slice(0, TITLE_LIMIT - 1).trimEnd()}…`;
+}
+
+function isMessage(value: unknown): value is Message {
+  if (typeof value !== "object" || value === null) return false;
+  const m = value as Message;
+  return (
+    typeof m.id === "string" &&
+    typeof m.text === "string" &&
+    (m.role === "user" || m.role === "assistant")
+  );
+}
+
+function isThread(value: unknown): value is Thread {
+  if (typeof value !== "object" || value === null) return false;
+  const t = value as Thread;
+  return (
+    typeof t.id === "string" &&
+    typeof t.title === "string" &&
+    typeof t.createdAt === "number" &&
+    typeof t.updatedAt === "number" &&
+    Array.isArray(t.messages) &&
+    t.messages.every(isMessage)
+  );
+}
+
+/** Read every stored thread, folding in the legacy single-thread key once. */
+export function loadThreads(): Thread[] {
+  let threads: Thread[] = [];
+  try {
+    const raw = window.localStorage.getItem(THREADS_KEY);
+    if (raw) {
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed)) threads = parsed.filter(isThread);
+    }
+  } catch {
+    threads = [];
+  }
+
+  try {
+    const legacyRaw = window.localStorage.getItem(LEGACY_KEY);
+    if (legacyRaw) {
+      const parsed: unknown = JSON.parse(legacyRaw);
+      if (Array.isArray(parsed)) {
+        const messages = parsed.filter(isMessage);
+        if (messages.length > 0) {
+          const now = Date.now();
+          const firstUser = messages.find((m) => m.role === "user");
+          threads = [
+            {
+              id: makeId(),
+              title: deriveTitle(firstUser ? firstUser.text : "New chat"),
+              createdAt: now,
+              updatedAt: now,
+              messages,
+            },
+            ...threads,
+          ];
+        }
+      }
+      window.localStorage.removeItem(LEGACY_KEY);
+    }
+  } catch {
+    /* A malformed legacy value is simply left behind. */
+  }
+
+  return threads;
+}
+
+export function saveThreads(threads: Thread[]): void {
+  try {
+    window.localStorage.setItem(THREADS_KEY, JSON.stringify(threads));
+  } catch {
+    /* Storage full or blocked: the conversations simply live in memory. */
+  }
+}
+
+export function clearStoredThreads(): void {
+  try {
+    window.localStorage.removeItem(THREADS_KEY);
+    window.localStorage.removeItem(LEGACY_KEY);
+  } catch {
+    /* Nothing to recover from: state is already cleared. */
+  }
+}

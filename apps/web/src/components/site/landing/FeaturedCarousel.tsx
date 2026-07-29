@@ -1,0 +1,117 @@
+import Image from "next/image";
+import Link from "next/link";
+import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { getListingRepository } from "@/lib/listings/repository";
+import { Reveal } from "@/components/site/Reveal";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { CarouselRail } from "./CarouselRail";
+
+/**
+ * Featured this week.
+ *
+ * Six recommended listings from the repository in a horizontal snap rail.
+ * Phones swipe through the cards natively; from sm up the glass prev and next
+ * controls in CarouselRail page the rail one card at a time. Every card links
+ * straight to its listing page, prices go through formatMoney on integer kobo,
+ * and the photo sits on a blue gradient tile so a slow image never leaves an
+ * empty hole.
+ */
+
+/** Blue family gradient pairs keyed by the listing's deterministic hue. */
+const HUES: [string, string][] = [
+  ["#1E3A8A", "#172554"],
+  ["#155E75", "#0F172A"],
+  ["#0C4A6E", "#111827"],
+  ["#334155", "#0F172A"],
+  ["#1E40AF", "#1E1B4B"],
+  ["#312E81", "#0F172A"],
+];
+
+export async function FeaturedCarousel({ locale }: { locale: Locale }) {
+  const listings = await getListingRepository().recommended(6);
+  if (listings.length === 0) return null;
+
+  return (
+    <section className="nf-shell py-10 sm:py-14">
+      <Reveal className="mb-6 max-w-[52ch] sm:mb-8">
+        <span className="nf-overline mb-3 inline-flex items-center gap-2">
+          <UiIcon name="sparkle" size={14} />
+          Hand picked
+        </span>
+        <h2 className="nf-h1 mt-3">Featured this week</h2>
+        <p className="mt-3 text-[var(--nf-content-secondary)]">
+          The highest rated places on the platform right now. Swipe through, or
+          step card by card.
+        </p>
+      </Reveal>
+
+      <Reveal delay={80}>
+        <CarouselRail
+          ariaLabel="Featured listings"
+          prevLabel="Previous featured listing"
+          nextLabel="Next featured listing"
+        >
+          {listings.map((l) => {
+            const [from, to] = HUES[l.hue % HUES.length] ?? HUES[0]!;
+            const photo = l.photos[0];
+            const perHead = l.kind === "restaurant" || l.kind === "experience";
+            return (
+              <li key={l.id} className="w-[16.5rem] sm:w-[19rem]">
+                <Link
+                  href={`/listing/${l.id}`}
+                  className="nf-card nf-card--interactive group block h-full overflow-hidden"
+                >
+                  <div className="relative aspect-[4/3] w-full overflow-hidden">
+                    <div
+                      className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                      style={{ background: `linear-gradient(150deg, ${from} 0%, ${to} 100%)` }}
+                    >
+                      {photo && (
+                        <Image
+                          src={photo}
+                          alt={l.title}
+                          fill
+                          sizes="(max-width: 640px) 70vw, 304px"
+                          className="object-cover"
+                        />
+                      )}
+                    </div>
+                    {/* Scrim keeps the location line legible on every photo. */}
+                    <div
+                      className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/65 via-black/25 to-transparent"
+                      aria-hidden="true"
+                    />
+                    <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">
+                      <UiIcon name="location" size={13} className="shrink-0 text-white/70" />
+                      <span className="truncate">{l.city}</span>
+                    </p>
+                  </div>
+
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="truncate text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+                        {l.title}
+                      </h3>
+                      <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">
+                        <UiIcon name="star" size={14} className="text-[var(--nf-state-warning)]" />
+                        {l.rating.toFixed(1)}
+                      </span>
+                    </div>
+                    <p className="mt-2.5 flex items-baseline gap-1.5">
+                      <span className="nf-numeric text-[1.0625rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
+                        {formatMoney(l.priceMinor, locale, l.currency)}
+                      </span>
+                      <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
+                        / {perHead ? "guest" : "night"}
+                      </span>
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+        </CarouselRail>
+      </Reveal>
+    </section>
+  );
+}

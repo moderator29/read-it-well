@@ -20,7 +20,7 @@ import type {
 
 /**
  * Conversations with the agents of published seed listings, mirroring the
- * records the listing repository serves (`seed-1`, `seed-2`, `seed-4`). Each
+ * records the listing repository serves (`seed-1`, `seed-2`, `seed-7`). Each
  * thread reads like a real enquiry: availability, parking, inspection. The
  * newest thread sits first once summarised.
  */
@@ -30,9 +30,9 @@ const SEED_THREADS: ConversationThread[] = [
     agentName: "Adaeze Okafor",
     listing: {
       id: "seed-1",
-      slug: "oceanview-3br-apartment-lekki",
-      title: "Oceanview 3BR Apartment",
-      area: "Lekki Phase 1",
+      slug: "eko-pearl-waterfront-apartment-victoria-island",
+      title: "Eko Pearl Waterfront Apartment",
+      area: "Victoria Island",
       city: "Lagos",
       approved: true,
       verified: true,
@@ -43,7 +43,7 @@ const SEED_THREADS: ConversationThread[] = [
         id: "conv-1-m1",
         author: "agent",
         body:
-          "Good morning! Thanks for your interest in the Oceanview 3BR Apartment in Lekki Phase 1. I would be glad to arrange a viewing whenever suits you, and you can ask me anything about the place here.",
+          "Good morning! Thanks for your interest in the Eko Pearl Waterfront Apartment in Victoria Island. I would be glad to arrange a viewing whenever suits you, and you can ask me anything about the place here.",
         sentAt: "2026-07-28T09:14",
       },
       {
@@ -74,9 +74,9 @@ const SEED_THREADS: ConversationThread[] = [
     agentName: "Chinedu Balogun",
     listing: {
       id: "seed-2",
-      slug: "victoria-island-luxury-stay",
-      title: "Victoria Island Luxury Stay",
-      area: "Victoria Island",
+      slug: "lekki-palm-grove-shortlet",
+      title: "Lekki Palm Grove Shortlet",
+      area: "Lekki Phase 1",
       city: "Lagos",
       approved: true,
       verified: true,
@@ -87,7 +87,7 @@ const SEED_THREADS: ConversationThread[] = [
         id: "conv-2-m1",
         author: "guest",
         body:
-          "Good evening. Is there secure parking at the Victoria Island apartment if I come with my own car?",
+          "Good evening. Is there secure parking at the Lekki shortlet if I come with my own car?",
         sentAt: "2026-07-27T18:02",
       },
       {
@@ -110,21 +110,21 @@ const SEED_THREADS: ConversationThread[] = [
     id: "conv-3",
     agentName: "Fatima Bello",
     listing: {
-      id: "seed-4",
-      slug: "executive-2br-duplex-garki",
-      title: "Executive 2BR Duplex",
-      area: "Garki",
+      id: "seed-7",
+      slug: "maitama-hilltop-residence",
+      title: "Maitama Hilltop Residence",
+      area: "Maitama",
       city: "Abuja",
       approved: true,
       verified: true,
-      hue: 3,
+      hue: 0,
     },
     messages: [
       {
         id: "conv-3-m1",
         author: "agent",
         body:
-          "Hello! Thanks for reaching out about the Executive 2BR Duplex in Garki. Happy to answer any questions about the place.",
+          "Hello! Thanks for reaching out about the Maitama Hilltop Residence. Happy to answer any questions about the place.",
         sentAt: "2026-07-26T11:05",
       },
       {

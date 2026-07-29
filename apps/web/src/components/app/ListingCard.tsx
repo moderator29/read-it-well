@@ -1,21 +1,23 @@
+import Image from "next/image";
 import Link from "next/link";
 import { formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
- * Media placeholder.
+ * Listing card media.
  *
- * Real listing photography arrives with the media pipeline. Until then this
- * draws a deterministic gradient scene rather than pulling stock imagery, which
- * would misrepresent inventory and add an external asset dependency.
+ * The lead photo renders on top of a deterministic gradient scene. When the
+ * photo cannot load (offline, CDN unreachable) the gradient and skyline
+ * silhouette are already painted underneath, so the card degrades gracefully
+ * instead of showing an empty tile.
  */
 const HUES: [string, string][] = [
-  ["#4C1D95", "#1E1B4B"],
-  ["#831843", "#1E1B4B"],
+  ["#1E3A8A", "#172554"],
+  ["#155E75", "#0F172A"],
   ["#0C4A6E", "#111827"],
-  ["#065F46", "#111827"],
-  ["#7C2D12", "#1C1917"],
+  ["#334155", "#0F172A"],
+  ["#1E40AF", "#1E1B4B"],
   ["#312E81", "#0F172A"],
 ];
 
@@ -36,6 +38,9 @@ export function ListingCard({
   t: Dictionary;
 }) {
   const [from, to] = HUES[listing.hue % HUES.length] ?? HUES[0]!;
+  const photo = listing.photos[0];
+  // Restaurants and experiences price per head; everything else is nightly.
+  const perHead = listing.kind === "restaurant" || listing.kind === "experience";
 
   return (
     <article className="nf-card nf-card--interactive group overflow-hidden">
@@ -46,7 +51,7 @@ export function ListingCard({
             className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
             style={{ background: `linear-gradient(150deg, ${from} 0%, ${to} 100%)` }}
           >
-            {/* Skyline silhouette, so the placeholder still reads as a place. */}
+            {/* Skyline silhouette, so the fallback still reads as a place. */}
             <svg
               viewBox="0 0 400 300"
               className="absolute inset-0 h-full w-full opacity-60"
@@ -59,9 +64,19 @@ export function ListingCard({
               />
               <circle cx="322" cy="62" r="26" fill="rgba(255,255,255,0.16)" />
             </svg>
+
+            {photo && (
+              <Image
+                src={photo}
+                alt=""
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover"
+              />
+            )}
           </div>
 
-          {/* Gradient scrim keeps the location line legible on every hue. */}
+          {/* Gradient scrim keeps the location line legible on every photo. */}
           <div
             className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/65 via-black/25 to-transparent"
             aria-hidden="true"
@@ -100,14 +115,18 @@ export function ListingCard({
           </div>
 
           <ul className="mt-2.5 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-[0.75rem] text-[var(--nf-content-secondary)]">
-            <li className="flex items-center gap-1.5">
-              <UiIcon name="bed" size={15} />
-              <span className="nf-numeric">{listing.bedrooms}</span>
-            </li>
-            <li className="flex items-center gap-1.5">
-              <UiIcon name="bath" size={15} />
-              <span className="nf-numeric">{listing.bathrooms}</span>
-            </li>
+            {listing.bedrooms > 0 && (
+              <li className="flex items-center gap-1.5">
+                <UiIcon name="bed" size={15} />
+                <span className="nf-numeric">{listing.bedrooms}</span>
+              </li>
+            )}
+            {listing.bathrooms > 0 && (
+              <li className="flex items-center gap-1.5">
+                <UiIcon name="bath" size={15} />
+                <span className="nf-numeric">{listing.bathrooms}</span>
+              </li>
+            )}
             {listing.amenities.slice(0, 2).map((a) =>
               AMENITY_ICON[a] ? (
                 <li key={a} className="flex items-center gap-1.5">
@@ -122,7 +141,7 @@ export function ListingCard({
               {formatMoney(listing.priceMinor, locale, listing.currency)}
             </span>
             <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-              / {t.common.night}
+              / {perHead ? "guest" : t.common.night}
             </span>
           </p>
         </div>

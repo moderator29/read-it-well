@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { SiteHeader } from "@/components/site/SiteHeader";
-import { SiteFooter } from "@/components/site/SiteFooter";
+import { BackButton } from "@/components/site/BackButton";
 import { Reveal } from "@/components/site/Reveal";
 import { Icon, type IconName } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -73,6 +73,11 @@ export default async function BecomeAgentPage() {
 
       <main id="main" className="nf-shell py-12 sm:py-16">
         <div className="mx-auto max-w-3xl">
+          {/* Way back, top left: to wherever you came from, or home. */}
+          <div className="nf-rise mb-6">
+            <BackButton fallback="/" />
+          </div>
+
           {/* ------------------------------------------------------- hero */}
           <div className="nf-rise text-center">
             <span className="nf-chip mx-auto">
@@ -214,8 +219,6 @@ export default async function BecomeAgentPage() {
           </Reveal>
         </div>
       </main>
-
-      <SiteFooter t={t} />
     </>
   );
 }

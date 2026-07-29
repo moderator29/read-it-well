@@ -72,7 +72,7 @@ function Building({ x, y, w, d, h, cols = 3, rows = 5, warm = false, roof }: Box
   ]);
 
   const lit = warm ? "#FFC978" : "#7DE7F5";
-  const litAlt = warm ? "#FF9F5A" : "#A78BFA";
+  const litAlt = warm ? "#FF9F5A" : "#7FB6FF";
 
   const windows: React.ReactElement[] = [];
   if (cols > 0 && rows > 0) {
@@ -184,12 +184,12 @@ const SKYLINE: BoxSpec[] = [
   { x: 0.4, y: -0.2, w: 1.1, d: 1.0, h: 6.6, cols: 3, rows: 8, roof: "#54409C" },
   { x: 1.8, y: -0.3, w: 1.1, d: 1.1, h: 4.4, cols: 2, rows: 5, warm: true, roof: "#7C5CD6" },
   { x: 3.1, y: -0.2, w: 1.0, d: 1.0, h: 7.8, cols: 2, rows: 9, roof: "#5B46A8" },
-  { x: 2.6, y: 3.8, w: 1.0, d: 1.0, h: 2.6, cols: 2, rows: 3, warm: true, roof: "#8B5CF6" },
+  { x: 2.6, y: 3.8, w: 1.0, d: 1.0, h: 2.6, cols: 2, rows: 3, warm: true, roof: "#338AFF" },
 ];
 
 const HOUSES = [
   { x: -1.2, y: 3.4, roof: "#F97316" },
-  { x: -1.2, y: 2.2, roof: "#EC4899" },
+  { x: -1.2, y: 2.2, roof: "#0066FF" },
   { x: -1.3, y: 1.0, roof: "#22D3EE" },
   { x: 4.4, y: 2.0, roof: "#FBBF24" },
   { x: 4.4, y: 3.2, roof: "#34D399" },
@@ -255,9 +255,9 @@ export function IsometricIsland({ className }: { className?: string }) {
         </linearGradient>
 
         <radialGradient id="nf-iso-halo" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0%" stopColor={palette.violet500} stopOpacity="0.55" />
+          <stop offset="0%" stopColor="#338AFF" stopOpacity="0.55" />
           <stop offset="55%" stopColor={palette.cyan500} stopOpacity="0.16" />
-          <stop offset="100%" stopColor={palette.violet600} stopOpacity="0" />
+          <stop offset="100%" stopColor="#0066FF" stopOpacity="0" />
         </radialGradient>
 
         <radialGradient id="nf-iso-pool" cx="0.4" cy="0.35" r="0.7">
@@ -363,7 +363,7 @@ export function IsometricIsland({ className }: { className?: string }) {
       ))}
 
       {/* Beacon on the tallest tower */}
-      <circle cx={project(2.2, 1.8, 9.6).x} cy={project(2.2, 1.8, 9.6).y - 4} r="4" fill="#F472B6">
+      <circle cx={project(2.2, 1.8, 9.6).x} cy={project(2.2, 1.8, 9.6).y - 4} r="4" fill="#00C8FF">
         <animate
           attributeName="opacity"
           values="1;0.25;1"

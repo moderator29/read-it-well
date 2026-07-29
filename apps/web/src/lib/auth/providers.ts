@@ -13,7 +13,7 @@ import "server-only";
  * bundle (Master Rule 9).
  */
 
-export type ProviderId = "email" | "google" | "apple" | "x";
+export type ProviderId = "email" | "google" | "apple";
 
 export type ProviderState = {
   id: ProviderId;
@@ -37,7 +37,6 @@ export function getProviderStates(): ProviderState[] {
       id: "apple",
       configured: has("APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY"),
     },
-    { id: "x", configured: has("X_CLIENT_ID", "X_CLIENT_SECRET") },
   ];
 }
 

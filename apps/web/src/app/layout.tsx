@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Poppins } from "next/font/google";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
+import { ScrollToTop } from "@/components/site/ScrollToTop";
 import "./globals.css";
 
 /*
@@ -60,7 +61,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#06040E",
+  themeColor: "#060A12",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -95,6 +96,7 @@ export default async function RootLayout({
         </div>
         {/* Film grain over everything, so surfaces feel physical, not printed. */}
         <div className="nf-grain" aria-hidden="true" />
+        <ScrollToTop />
         <a href="#main" className="nf-skip-link">
           {t.common.skipToContent}
         </a>

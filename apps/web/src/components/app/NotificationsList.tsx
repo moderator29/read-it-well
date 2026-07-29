@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Icon } from "@/design-system/icons/Icon";
+import Link from "next/link";
+import { Icon, type IconName } from "@/design-system/icons/Icon";
 
 /**
  * Notifications list.
  *
- * One real notification exists from day one (the welcome), so the surface is
- * genuinely functional rather than an empty promise: filters work, tapping an
- * item marks it read, mark-all clears the lot, and read state persists on this
- * device until accounts land.
+ * The inbox mirrors what is live elsewhere in the app: the confirmed Lekki
+ * booking, the agent conversation, the funded wallet. Filters work, tapping
+ * an item marks it read (and follows its link when it has one), mark-all
+ * clears the lot, and read state persists on this device until accounts land.
  */
 
 type Filter = "all" | "bookings" | "messages" | "offers";
@@ -21,13 +22,61 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "offers", label: "Offers" },
 ];
 
-const ITEMS = [
+type Item = {
+  id: string;
+  kind: Filter;
+  icon: IconName;
+  title: string;
+  body: string;
+  when: string;
+  /** Where tapping the notification leads. Absent items only mark as read. */
+  href?: string;
+};
+
+const ITEMS: Item[] = [
+  {
+    id: "booking-lekki",
+    kind: "bookings",
+    icon: "booking",
+    title: "Booking confirmed",
+    body: "Lekki Palm Grove Shortlet is locked in. Your check-in details are waiting under Bookings.",
+    when: "Today",
+    href: "/bookings",
+  },
+  {
+    id: "message-adaeze",
+    kind: "messages",
+    icon: "chat",
+    title: "New message from Adaeze Okafor",
+    body: "About Eko Pearl Waterfront Apartment: a viewing slot has opened up this week.",
+    when: "Today",
+    href: "/messages",
+  },
+  {
+    id: "offer-calabar",
+    kind: "offers",
+    icon: "experience",
+    title: "Weekend escape to Calabar",
+    body: "Waterfront hotels and the Kwa Falls day trip are trending. See what is on this weekend.",
+    when: "Yesterday",
+    href: "/search?q=Calabar",
+  },
+  {
+    id: "wallet-ready",
+    kind: "all",
+    icon: "wallet",
+    title: "Your wallet is ready",
+    body: "Fund it once and pay for any stay in seconds, all in naira.",
+    when: "Yesterday",
+    href: "/wallet",
+  },
   {
     id: "welcome",
-    kind: "all" as Filter,
+    kind: "all",
+    icon: "notification",
     title: "Welcome to NaijaFinds",
     body: "Your account is ready. Start exploring stays, food and experiences.",
-    when: "Today",
+    when: "3 days ago",
   },
 ];
 
@@ -85,33 +134,43 @@ export function NotificationsList() {
         <ul className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
           {visible.map((n) => {
             const unread = !read.includes(n.id);
+            const markRead = () => persist([...new Set([...read, n.id])]);
+            const rowClass =
+              "flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[var(--nf-glass-fill)]";
+            const inner = (
+              <>
+                <span className="h-8 w-8 shrink-0">
+                  <Icon name={n.icon} fill />
+                </span>
+                <span className="min-w-0 flex-1 leading-tight">
+                  <span className="block text-[0.9063rem] font-semibold">{n.title}</span>
+                  <span className="mt-0.5 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                    {n.body}
+                  </span>
+                  <span className="mt-1 block text-[0.7rem] text-[var(--nf-content-muted)]">{n.when}</span>
+                </span>
+                {unread && (
+                  <>
+                    <span
+                      aria-hidden="true"
+                      className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[var(--nf-brand-primary)] transition-opacity"
+                    />
+                    <span className="sr-only">Unread</span>
+                  </>
+                )}
+              </>
+            );
             return (
               <li key={n.id}>
-                <button
-                  type="button"
-                  onClick={() => persist([...new Set([...read, n.id])])}
-                  className="flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[var(--nf-glass-fill)]"
-                >
-                  <span className="h-8 w-8 shrink-0">
-                    <Icon name="notification" fill />
-                  </span>
-                  <span className="min-w-0 flex-1 leading-tight">
-                    <span className="block text-[0.9063rem] font-semibold">{n.title}</span>
-                    <span className="mt-0.5 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                      {n.body}
-                    </span>
-                    <span className="mt-1 block text-[0.7rem] text-[var(--nf-content-muted)]">{n.when}</span>
-                  </span>
-                  {unread && (
-                    <>
-                      <span
-                        aria-hidden="true"
-                        className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[var(--nf-brand-primary)] transition-opacity"
-                      />
-                      <span className="sr-only">Unread</span>
-                    </>
-                  )}
-                </button>
+                {n.href ? (
+                  <Link href={n.href} onClick={markRead} className={rowClass}>
+                    {inner}
+                  </Link>
+                ) : (
+                  <button type="button" onClick={markRead} className={rowClass}>
+                    {inner}
+                  </button>
+                )}
               </li>
             );
           })}

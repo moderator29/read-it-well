@@ -33,7 +33,7 @@ const PANELS: {
   key: PanelKey;
   label: string;
   icon: IconName;
-  ramp: "emerald" | "sky" | "violet";
+  ramp: "emerald" | "sky" | "cyan";
   title: string;
   hint: string;
 }[] = [
@@ -57,7 +57,7 @@ const PANELS: {
     key: "transfer",
     label: "Transfer",
     icon: "profile",
-    ramp: "violet",
+    ramp: "cyan",
     title: "Transfer to another user",
     hint: "Send money to any NaijaFinds user by email or phone number.",
   },
@@ -170,11 +170,11 @@ function WithdrawForm({ locale }: { locale: Locale }) {
           aria-invalid={state.fieldErrors?.bankName ? true : undefined}
           className="nf-field"
         >
-          <option value="" disabled style={{ background: "#151029" }}>
+          <option value="" disabled style={{ background: "var(--nf-surface-elevated)" }}>
             Choose your bank
           </option>
           {NIGERIAN_BANKS.map((b) => (
-            <option key={b} value={b} style={{ background: "#151029" }}>
+            <option key={b} value={b} style={{ background: "var(--nf-surface-elevated)" }}>
               {b}
             </option>
           ))}

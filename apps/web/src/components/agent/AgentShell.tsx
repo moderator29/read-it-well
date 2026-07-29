@@ -6,6 +6,7 @@ import { AgentMobileNav } from "./AgentMobileNav";
 import { AgentModePill } from "./AgentNav";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
+import { BackButton } from "@/components/site/BackButton";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -35,6 +36,9 @@ export function AgentShell({
       <main id="main" className="min-w-0 flex-1">
         <header className="nf-glass sticky top-0 z-40 border-b border-[var(--nf-border-subtle)]">
           <div className="flex h-[60px] items-center gap-2 px-3 sm:h-[64px] sm:gap-3 sm:px-5 md:px-8">
+            {/* The way back, always top left: previous screen when there is
+                one in this session, otherwise personal home. */}
+            <BackButton fallback="/home" className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
             <AgentMobileNav t={t} active={active} profile={profile} />
 
             <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
