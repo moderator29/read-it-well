@@ -13,7 +13,9 @@ const args = process.argv.slice(2);
 const light = args.includes("--light");
 const baseIdx = args.indexOf("--base");
 const base = baseIdx >= 0 ? args[baseIdx + 1] : "http://localhost:3210";
-const routes = args.filter((a, i) => !a.startsWith("--") && i !== baseIdx + 1);
+const routes = args.filter(
+  (a, i) => !a.startsWith("--") && (baseIdx < 0 || i !== baseIdx + 1),
+);
 
 if (routes.length === 0) {
   console.error("No routes given.");
