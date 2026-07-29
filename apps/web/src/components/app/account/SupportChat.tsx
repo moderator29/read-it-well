@@ -1,72 +1,45 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Icon } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { findFaqAnswer } from "@/lib/support/faq";
+import { fileSupportTicket } from "@/lib/support/actions";
 
 /**
  * Help and support.
  *
  * A card that opens an inline support conversation. The assistant answers the
- * questions people actually ask, from a built-in knowledge base covering
- * bookings, payments, listing a property, verification and refunds. Anything
- * outside that knowledge is escalated: the assistant says so plainly and shows
- * exactly what will reach the human team and when. The thread persists under
+ * questions people actually ask from the shared knowledge base in
+ * `lib/support/faq`, covering bookings, payments, the wallet, listing a
+ * property, verification, cancellations, languages, privacy and more.
+ * Anything outside that knowledge is escalated for real: the escalation card
+ * collects a name and email only, files a support ticket through the server
+ * action, and shows the returned NF-SUP reference. The thread persists under
  * `nf_support_thread` on this device and survives navigation and reloads.
  */
 
 type Role = "user" | "assistant";
-type Message = { id: string; role: Role; text: string; escalated?: boolean };
+type Message = {
+  id: string;
+  role: Role;
+  text: string;
+  escalated?: boolean;
+  /** The original question an escalated message will file as the ticket body. */
+  question?: string;
+  /** Set once the ticket is filed; the card then shows the receipt. */
+  reference?: string;
+};
 
 const THREAD_KEY = "nf_support_thread";
 const NAME_KEY = "nf_profile_name";
 const EMAIL_KEY = "nf_profile_email";
 
 const GREETING =
-  "Hello, I am the RentMe support assistant. Ask me about bookings, payments, listing a property, verification or refunds.";
+  "Hello, I am the RentMe support assistant. Ask me about bookings, payments, the wallet, listing a property, verification or cancellations.";
 
-type FaqEntry = { keywords: string[]; answer: string };
-
-const FAQ: FaqEntry[] = [
-  {
-    keywords: ["book", "reserv", "stay", "check in", "check-in", "checkin", "date"],
-    answer:
-      "To book a place, open it from Search, pick your dates and guests, then confirm on the booking screen. Every booking you make appears under Bookings, with its status and dates, and the host is notified straight away.",
-  },
-  {
-    keywords: ["pay", "card", "transfer", "wallet", "price", "charge", "naira", "ngn"],
-    answer:
-      "Payments are made in Naira through the in-app wallet or a bank card at checkout. Your money is held safely until your check-in is confirmed, and every transaction shows in Wallet with a receipt.",
-  },
-  {
-    keywords: ["list", "agent", "propert", "host", "landlord", "shortlet", "rent out"],
-    answer:
-      "To list a property, open Become an agent from your profile and complete the application: your details, your business area and a valid ID. Once approved you can publish listings, manage availability and receive bookings.",
-  },
-  {
-    keywords: ["verif", "id", "kyc", "identity", "badge", "trust"],
-    answer:
-      "Verification keeps the marketplace safe. Agents submit a government ID and proof of address, and verified listings carry the blue badge so guests know a real person stands behind them. Guest verification uses your phone number and email.",
-  },
-  {
-    keywords: ["refund", "cancel", "money back", "dispute", "complain"],
-    answer:
-      "If you cancel before the property's free-cancellation deadline, the full amount returns to your wallet. After the deadline, the listing's cancellation policy applies. If a place is not as described, report it within 24 hours of check-in for a full review.",
-  },
-  {
-    keywords: ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "how far"],
-    answer:
-      "Hello. I can help with bookings, payments, listing a property, verification and refunds. What would you like to know?",
-  },
-];
-
-function findAnswer(text: string): string | null {
-  const q = text.toLowerCase();
-  for (const entry of FAQ) {
-    if (entry.keywords.some((k) => q.includes(k))) return entry.answer;
-  }
-  return null;
-}
+const ESCALATION_TEXT =
+  "I do not have that answer in my notes, so let me file it with our human support team. Check your details below and send it over.";
 
 function makeId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -95,7 +68,7 @@ const STARTERS = [
   "How do bookings work?",
   "How do I pay?",
   "How do I list my property?",
-  "How do refunds work?",
+  "How do cancellations work?",
 ];
 
 export function SupportChat() {
@@ -123,7 +96,7 @@ export function SupportChat() {
         email: email && email.trim() ? email.trim() : "",
       });
     } catch {
-      // Defaults stand: the escalation card explains how to add details.
+      // Defaults stand: the escalation card asks for details inline.
     }
     setHydrated(true);
   }, []);
@@ -154,7 +127,7 @@ export function SupportChat() {
     setDraft("");
     setMessages((prev) => [...prev, { id: makeId(), role: "user", text }]);
     setTyping(true);
-    const answer = findAnswer(text);
+    const answer = findFaqAnswer(text);
     replyTimer.current = setTimeout(() => {
       setMessages((prev) => [
         ...prev,
@@ -164,11 +137,19 @@ export function SupportChat() {
               id: makeId(),
               role: "assistant",
               escalated: true,
-              text: "I do not have that answer in my notes, so I am escalating it to our human support team.",
+              question: text,
+              text: ESCALATION_TEXT,
             },
       ]);
       setTyping(false);
     }, 650);
+  };
+
+  /** Called by the escalation card once the server confirms the ticket. */
+  const markFiled = (messageId: string, reference: string) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === messageId ? { ...m, reference } : m)),
+    );
   };
 
   const clearConversation = () => {
@@ -238,7 +219,15 @@ export function SupportChat() {
                   </div>
                 ) : (
                   <AssistantBubble key={m.id} text={m.text}>
-                    {m.escalated && <EscalationCard name={identity.name} email={identity.email} />}
+                    {m.escalated && (
+                      <EscalationCard
+                        defaultName={identity.name}
+                        defaultEmail={identity.email}
+                        question={m.question ?? m.text}
+                        reference={m.reference}
+                        onFiled={(reference) => markFiled(m.id, reference)}
+                      />
+                    )}
                   </AssistantBubble>
                 ),
               )}
@@ -281,7 +270,7 @@ export function SupportChat() {
                 type="text"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                placeholder="Ask about bookings, payments, refunds"
+                placeholder="Ask about bookings, payments, cancellations"
                 autoComplete="off"
                 enterKeyHint="send"
                 className="nf-field min-w-0 flex-1"
@@ -328,34 +317,143 @@ function AssistantBubble({ text, children }: { text: string; children?: React.Re
   );
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /**
- * Escalation receipt. Shows exactly what is recorded and is direct about
- * timing: the report reaches the admin desk when the platform goes live, and
- * until then it stays on this device with the rest of the thread.
+ * Escalation card. Collects a name and email only, validates them, files the
+ * ticket through the server action, and shows the real NF-SUP reference the
+ * database returned. When the platform cannot file yet, the action's honest
+ * message is shown instead of pretending a ticket exists.
  */
-function EscalationCard({ name, email }: { name: string; email: string }) {
+function EscalationCard({
+  defaultName,
+  defaultEmail,
+  question,
+  reference,
+  onFiled,
+}: {
+  defaultName: string;
+  defaultEmail: string;
+  question: string;
+  reference?: string;
+  onFiled: (reference: string) => void;
+}) {
+  const [name, setName] = useState(defaultName);
+  const [email, setEmail] = useState(defaultEmail);
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; email?: string }>({});
+  const [note, setNote] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  if (reference) {
+    return (
+      <div className="mt-3 rounded-[var(--nf-radius-sm)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_8%,transparent)] p-3">
+        <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)]">
+          <UiIcon name="verified" size={14} className="shrink-0" />
+          Ticket {reference} is filed. We reply by email.
+        </p>
+        <p className="mt-2 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+          We keep only the name and email you gave here, and use them just to
+          reply to this ticket.
+        </p>
+      </div>
+    );
+  }
+
+  const submit = () => {
+    const errors: { name?: string; email?: string } = {};
+    if (!name.trim()) errors.name = "Add your name so we know who to reply to.";
+    if (!email.trim()) errors.email = "Add an email address so we can reply.";
+    else if (!EMAIL_RE.test(email.trim())) errors.email = "Enter a valid email address.";
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    setNote(null);
+    startTransition(async () => {
+      const result = await fileSupportTicket({
+        name: name.trim(),
+        email: email.trim(),
+        topic: "Support chat escalation",
+        body: question,
+      });
+      if (result.ok) {
+        onFiled(result.data.reference);
+      } else {
+        setFieldErrors({
+          ...(result.fieldErrors?.name ? { name: result.fieldErrors.name } : {}),
+          ...(result.fieldErrors?.email ? { email: result.fieldErrors.email } : {}),
+        });
+        setNote(result.error);
+      }
+    });
+  };
+
   return (
     <div className="mt-3 rounded-[var(--nf-radius-sm)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_8%,transparent)] p-3">
       <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)]">
         <UiIcon name="verified" size={14} className="shrink-0" />
-        Escalated to the human team
+        Escalate to the human team
       </p>
-      <dl className="mt-2 space-y-1 text-[0.8125rem]">
-        <div className="flex gap-2">
-          <dt className="text-[var(--nf-content-muted)]">Name</dt>
-          <dd className="min-w-0 flex-1 truncate text-right font-medium">{name}</dd>
+
+      <div className="mt-2.5 space-y-2.5">
+        <div>
+          <label
+            htmlFor="support-escalation-name"
+            className="mb-1 block text-[0.75rem] font-medium text-[var(--nf-content-muted)]"
+          >
+            Name
+          </label>
+          <input
+            id="support-escalation-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="name"
+            className="nf-field w-full py-2 text-[0.8438rem]"
+            aria-invalid={fieldErrors.name ? "true" : undefined}
+          />
+          {fieldErrors.name && (
+            <p className="mt-1 text-[0.75rem] text-[var(--nf-state-error)]">{fieldErrors.name}</p>
+          )}
         </div>
-        <div className="flex gap-2">
-          <dt className="text-[var(--nf-content-muted)]">Email</dt>
-          <dd className="min-w-0 flex-1 truncate text-right font-medium">
-            {email || "Add one on your Profile"}
-          </dd>
+        <div>
+          <label
+            htmlFor="support-escalation-email"
+            className="mb-1 block text-[0.75rem] font-medium text-[var(--nf-content-muted)]"
+          >
+            Email
+          </label>
+          <input
+            id="support-escalation-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            inputMode="email"
+            className="nf-field w-full py-2 text-[0.8438rem]"
+            aria-invalid={fieldErrors.email ? "true" : undefined}
+          />
+          {fieldErrors.email && (
+            <p className="mt-1 text-[0.75rem] text-[var(--nf-state-error)]">{fieldErrors.email}</p>
+          )}
         </div>
-      </dl>
+      </div>
+
+      {note && (
+        <p className="mt-2 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">{note}</p>
+      )}
+
+      <button
+        type="button"
+        onClick={submit}
+        disabled={pending}
+        className="nf-btn nf-btn--primary mt-3 w-full py-2 text-[0.8125rem] disabled:opacity-60"
+      >
+        {pending ? "Filing your ticket" : "File the ticket"}
+      </button>
+
       <p className="mt-2 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
-        Your report, with the details above, reaches the RentMe admin desk
-        the moment the platform goes live. Until then it stays saved on this
-        device with this conversation.
+        We collect only the name and email above, and use them just to reply to
+        this question.
       </p>
     </div>
   );
