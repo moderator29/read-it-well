@@ -3,6 +3,7 @@ import { Inter, Poppins } from "next/font/google";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
+import { LivingCanvas } from "@/components/site/LivingCanvas";
 import "./globals.css";
 
 /*
@@ -93,7 +94,9 @@ export default async function RootLayout({
           <span />
           <span />
           <span />
+          <span />
         </div>
+        <LivingCanvas />
         {/* Film grain over everything, so surfaces feel physical, not printed. */}
         <div className="nf-grain" aria-hidden="true" />
         <ScrollToTop />

@@ -16,6 +16,11 @@ import { WhyRentMe } from "@/components/site/landing/WhyRentMe";
 import { FeaturedCarousel } from "@/components/site/landing/FeaturedCarousel";
 import { MoodRow } from "@/components/site/landing/MoodRow";
 import { NumbersBand } from "@/components/site/landing/NumbersBand";
+import {
+  VillaShowcase,
+  CoverageMap,
+  AssistantShowcase,
+} from "@/components/site/landing/SignatureShowcase";
 
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"];
 
@@ -102,8 +107,8 @@ export default async function LandingPage() {
               <Image
                 src="/brand/rentme-city.png"
                 alt=""
-                width={1507}
-                height={852}
+                width={1536}
+                height={888}
                 priority
                 sizes="60vw"
                 className="nf-hero-city h-auto w-full"
@@ -178,8 +183,8 @@ export default async function LandingPage() {
                   src="/brand/rentme-city.png"
                   alt=""
                   aria-hidden="true"
-                  width={1507}
-                  height={852}
+                  width={1536}
+                  height={888}
                   priority
                   sizes="(max-width: 1280px) 46vw, 640px"
                   className="nf-hero-city h-auto w-full"
@@ -237,6 +242,9 @@ export default async function LandingPage() {
 
         {/* --------------------------------------------- featured this week */}
         <FeaturedCarousel locale={locale} />
+
+        {/* ------------------------------------------------ signature villa */}
+        <VillaShowcase />
 
         {/* -------------------------------------------------------- facts band */}
         <section className="nf-shell pt-4">
@@ -333,9 +341,15 @@ export default async function LandingPage() {
 
         <PopularDestinations t={t} />
 
+        {/* --------------------------------------------------- coverage map */}
+        <CoverageMap />
+
         <AgentsBand t={t} />
 
         <WhyRentMe t={t} />
+
+        {/* --------------------------------------------- assistant showcase */}
+        <AssistantShowcase />
 
         {/* ----------------------------------------------------- numbers band */}
         <NumbersBand />

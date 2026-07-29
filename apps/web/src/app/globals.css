@@ -188,6 +188,7 @@ body {
   }
 
   .nf-card--interactive {
+    position: relative;
     transition:
       transform var(--nf-duration-base) var(--nf-ease-standard),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard);
@@ -199,9 +200,46 @@ body {
       0 12px 40px rgb(0 0 0 / 0.5),
       0 0 28px rgb(12 57 239 / 0.22);
   }
+  /*
+   * Cursor-lit glass: a soft light spot follows the pointer across the card
+   * face, driven by --mx/--my set from a single delegated listener. Invisible
+   * until the card is hovered on a fine pointer, free on touch devices.
+   */
+  .nf-card--interactive::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
+    background: radial-gradient(
+      200px circle at var(--mx, 50%) var(--my, 40%),
+      rgb(92 124 255 / 0.14) 0%,
+      transparent 70%
+    );
+  }
+  @media (pointer: fine) {
+    .nf-card--interactive:hover::after {
+      opacity: 1;
+    }
+  }
+  /* Cinematic media: cover imagery breathes on hover, a slow Ken Burns. */
+  .nf-card--interactive img.object-cover {
+    transition: transform 900ms var(--nf-ease-standard);
+  }
+  .nf-card--interactive:hover img.object-cover {
+    transform: scale(1.05);
+  }
   @media (prefers-reduced-motion: reduce) {
     .nf-card--interactive:hover {
       transform: none;
+    }
+    .nf-card--interactive:hover img.object-cover {
+      transform: none;
+    }
+    .nf-card--interactive::after {
+      display: none;
     }
   }
 
@@ -321,10 +359,35 @@ body {
 
   /* ---- primary: the signature gradient with the blue glow ---- */
   .nf-btn--primary {
+    position: relative;
+    overflow: hidden;
     color: var(--nf-content-on-brand);
     background: var(--nf-gradient-cta);
     border: 1.5px solid rgb(12 57 239 / 0.6);
     box-shadow: 0 0 12px rgb(12 57 239 / 0.35);
+  }
+  /* The signature ripple: a band of light crosses the button on hover. */
+  .nf-btn--primary::after {
+    content: "";
+    position: absolute;
+    inset: -40% -60%;
+    pointer-events: none;
+    background: linear-gradient(
+      115deg,
+      transparent 42%,
+      rgb(255 255 255 / 0.32) 50%,
+      transparent 58%
+    );
+    transform: translateX(-130%);
+  }
+  .nf-btn--primary:hover:not(:disabled)::after {
+    transform: translateX(130%);
+    transition: transform 650ms var(--nf-ease-standard);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-btn--primary::after {
+      display: none;
+    }
   }
   .nf-btn--primary:hover:not(:disabled) {
     box-shadow: 0 0 24px rgb(12 57 239 / 0.45);
@@ -750,6 +813,42 @@ body {
     animation: nf-drift-b 21s ease-in-out infinite;
     animation-delay: -7s;
     will-change: transform, opacity;
+  }
+  /*
+   * Pointer bloom: a quiet glow that trails the cursor across the canvas,
+   * eased so it feels like the nebula reacting rather than a spotlight.
+   * Coordinates come from the LivingCanvas director; hidden on touch.
+   */
+  .nf-ambient > span:nth-child(4) {
+    inset: auto;
+    left: calc(var(--nf-px, 50) * 1% - 23vmax);
+    top: calc(var(--nf-py, 38) * 1% - 23vmax);
+    width: 46vmax;
+    height: 46vmax;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(12 57 239 / 0.2) 0%, transparent 60%);
+    transition:
+      left 1100ms var(--nf-ease-standard),
+      top 1100ms var(--nf-ease-standard);
+    display: none;
+  }
+  @media (pointer: fine) {
+    .nf-ambient > span:nth-child(4) {
+      display: block;
+    }
+  }
+  /*
+   * Daypart grading, Lagos time: dawn and daylight lift the blooms, dusk runs
+   * hotter, deep night settles darker. Set by the LivingCanvas director.
+   */
+  :root[data-daypart="day"] .nf-ambient::before {
+    opacity: 0.62;
+  }
+  :root[data-daypart="dusk"] .nf-ambient::before {
+    opacity: 0.7;
+  }
+  :root[data-daypart="night"] .nf-ambient::before {
+    opacity: 0.48;
   }
   .nf-ambient::before,
   .nf-ambient::after {

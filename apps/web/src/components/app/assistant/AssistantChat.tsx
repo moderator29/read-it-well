@@ -56,6 +56,13 @@ export function AssistantChat() {
   const [language, setLanguage] = useState<Language>("English");
   const [draft, setDraft] = useState("");
 
+  // A question can arrive from anywhere on the platform via ?q=, e.g. the home
+  // banner's quick-ask bar. It seeds the composer after mount, never auto-sends.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setDraft((d) => (d ? d : q));
+  }, []);
+
   /* Mobile drawer: `historyOpen` mounts it, `historyShown` slides it in, so
      both directions of the transition get a frame to run. */
   const [historyOpen, setHistoryOpen] = useState(false);
