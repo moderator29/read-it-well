@@ -83,11 +83,15 @@ export function ListingCard({
           />
 
           <div className="absolute left-3 top-3 flex gap-1.5">
-            {listing.verified && (
+            {/* Only first-party inventory may carry the verified badge. */}
+            {listing.verified && listing.source !== "partner" && (
               <span className="nf-badge nf-badge--success">
                 <UiIcon name="verified" size={12} strokeWidth={2.1} />
                 {t.common.verified}
               </span>
+            )}
+            {listing.kind === "rental" && (
+              <span className="nf-badge nf-badge--brand">{t.nav.rent}</span>
             )}
             {listing.instantBook && <span className="nf-badge nf-badge--warning">Instant</span>}
           </div>
@@ -141,7 +145,7 @@ export function ListingCard({
               {formatMoney(listing.priceMinor, locale, listing.currency)}
             </span>
             <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-              / {perHead ? "guest" : t.common.night}
+              / {perHead ? "guest" : listing.pricePeriod === "year" ? t.common.year : t.common.night}
             </span>
           </p>
         </div>

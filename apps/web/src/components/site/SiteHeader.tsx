@@ -15,6 +15,7 @@ import { MobileMenu } from "./MobileMenu";
 export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
   const links = [
     { href: "/", label: t.landing.navHome },
+    { href: "/rent", label: t.nav.rent },
     { href: "/search?type=property", label: t.nav.properties },
     { href: "/search?type=hotel", label: t.nav.hotels },
     { href: "/search?type=restaurant", label: t.nav.restaurants },

@@ -40,7 +40,8 @@ export type UiIconName =
   | "user"
   | "settings-gear"
   | "heart"
-  | "grid";
+  | "grid"
+  | "key";
 
 const PATHS: Record<UiIconName, React.ReactNode> = {
   search: (
@@ -219,6 +220,14 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <rect x="13.2" y="3.8" width="7" height="7" rx="1.9" />
       <rect x="3.8" y="13.2" width="7" height="7" rx="1.9" />
       <rect x="13.2" y="13.2" width="7" height="7" rx="1.9" />
+    </>
+  ),
+  key: (
+    <>
+      <circle cx="7.6" cy="15.6" r="3.6" />
+      <path d="m10.3 12.9 8.6-8.6" />
+      <path d="m15.6 4.9 3 3" />
+      <path d="m12.9 8.3 2.4 2.4" />
     </>
   ),
 };

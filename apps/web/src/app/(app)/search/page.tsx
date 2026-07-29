@@ -48,11 +48,13 @@ const KIND_NOUN: Record<ListingKind, { one: string; many: string }> = {
   villa: { one: "villa", many: "villas" },
   restaurant: { one: "restaurant", many: "restaurants" },
   experience: { one: "experience", many: "experiences" },
+  rental: { one: "rental", many: "rentals" },
 };
 
 function parseKind(type: string | undefined): ListingKind | undefined {
   if (!type) return undefined;
-  const normalised = type === "property" ? "apartment" : type;
+  const normalised =
+    type === "property" ? "apartment" : type === "rent" ? "rental" : type;
   return normalised in KIND_NOUN ? (normalised as ListingKind) : undefined;
 }
 
