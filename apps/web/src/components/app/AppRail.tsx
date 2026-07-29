@@ -63,7 +63,7 @@ export function AppRail({
             "group flex items-center gap-3 rounded-[var(--nf-radius-md)] px-3 py-2.5 text-[0.9rem] font-medium transition-colors",
             isActive
               ? "bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-content-primary)]"
-              : "text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
+              : "text-[var(--nf-content-primary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
           ].join(" ")}
         >
           {/* Stroked glyph, 22px in the drawer and 24px on the desktop rail.
@@ -75,7 +75,7 @@ export function AppRail({
               "h-[22px] w-[22px] shrink-0 transition-colors lg:h-6 lg:w-6",
               isActive
                 ? ""
-                : "text-[var(--nf-content-muted)] group-hover:text-[var(--nf-content-primary)]",
+                : "text-[var(--nf-content-primary)] group-hover:text-[var(--nf-content-primary)]",
             ].join(" ")}
           />
           <span className="flex-1">{item.label}</span>
@@ -97,7 +97,7 @@ export function AppRail({
       aria-label={t.nav.primaryLabel}
     >
       <Link href="/" aria-label={t.a11y.logoHome} className="mb-6 px-1">
-        <Logo size={30} wordSize={16} responsive />
+        <Logo size={46} wordSize={21} responsive />
       </Link>
 
       <nav aria-label={t.nav.primaryLabel} className="flex-1 overflow-y-auto">

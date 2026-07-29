@@ -8,7 +8,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  *
  * Rendered twice: inline in the mobile flow and inside the sticky desktop
  * aside. Money always goes through `formatMoney` on integer kobo. The safety
- * caption is deliberate product policy, not copy decoration: NaijaFinds users
+ * caption is deliberate product policy, not copy decoration: RentMe users
  * are told on every listing to inspect before they pay.
  */
 export function ListingPriceCard({

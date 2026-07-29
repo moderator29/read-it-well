@@ -54,8 +54,8 @@ export const en = {
     navHome: "Home",
     hero: {
       line1: "Find it.",
-      line2: "Book it.",
-      line3: "Live it.",
+      line2: "Rent it.",
+      line3: "Love it.",
       subtitle:
         "Your all-in-one platform for homes, hotels, restaurants, experiences and more.",
       searchPlaceholder: "Where do you want to go?",
@@ -65,7 +65,7 @@ export const en = {
     vision: {
       overline: "Our vision",
       title: "Nigeria at your fingertips. Africa next.",
-      body: "NaijaFinds is building the trusted home for discovery, stays, food and experiences across Nigeria, and then the continent. One account, one wallet, one assistant, made for how Africa actually moves.",
+      body: "RentMe is building the trusted home for discovery, stays, food and experiences across Nigeria, and then the continent. One account, one wallet, one assistant, made for how Africa actually moves.",
       missionOverline: "Our mission",
       missionTitle: "Make finding and booking anything effortless and safe.",
       missionBody: "Verified places, honest prices in naira, real reviews, and an assistant that understands what you want. From Lagos to every corner of the country.",
@@ -105,7 +105,7 @@ export const en = {
       secondary: "Browse without an account",
     },
     footer: {
-      tagline: "Find it. Book it. Live it. Around Nigeria.",
+      tagline: "Find it. Rent it. Love it. Around Nigeria.",
       rights: "All rights reserved.",
       product: "Product",
       company: "Company",
@@ -156,13 +156,13 @@ export const en = {
     topExperiences: "Explore top experiences",
     nearby: "Near you",
     aiCard: {
-      title: "NaijaFinds AI",
+      title: "RentMe AI",
       body: "Your smart travel buddy. Ask for anything, in plain words.",
       action: "Ask the assistant",
       samplePrompt: "2 bedroom in Lekki under 300k with a pool",
     },
     agentCard: {
-      title: "Become a NaijaFinds Agent",
+      title: "Become a RentMe Agent",
       body: "List your properties, manage bookings, earn more and grow your business.",
       action: "Become an agent",
     },
@@ -203,7 +203,7 @@ export const en = {
       settings: "Settings",
     },
     join: {
-      title: "Join the NaijaFinds Agent Community",
+      title: "Join the RentMe Agent Community",
       body: "List properties, connect with verified guests, manage bookings and earn.",
       start: "Start application",
       resume: "Continue application",
@@ -248,7 +248,7 @@ export const en = {
         bankName: "Bank",
         accountNumber: "Account number",
         accountName: "Account name",
-        agreeTerms: "I agree to the NaijaFinds Agent Terms and Payout Policy.",
+        agreeTerms: "I agree to the RentMe Agent Terms and Payout Policy.",
       },
       documents: {
         title: "Upload your documents",
@@ -310,7 +310,7 @@ export const en = {
   },
 
   a11y: {
-    logoHome: "NaijaFinds home",
+    logoHome: "RentMe home",
     openMenu: "Open menu",
     closeMenu: "Close menu",
     languageSwitcher: "Change language",

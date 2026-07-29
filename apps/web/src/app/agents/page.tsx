@@ -11,7 +11,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 export const metadata: Metadata = {
   title: "Become an Agent",
   description:
-    "List your properties on NaijaFinds, reach verified guests, manage bookings and get paid securely.",
+    "List your properties on RentMe, reach verified guests, manage bookings and get paid securely.",
 };
 
 /**
@@ -59,7 +59,7 @@ export default async function BecomeAgentPage() {
     },
     {
       q: "Does it cost anything to list?",
-      a: "No. Listing is free. NaijaFinds earns a small commission only when a booking completes, so we only do well when you do.",
+      a: "No. Listing is free. RentMe earns a small commission only when a booking completes, so we only do well when you do.",
     },
     {
       q: "When do I get paid?",

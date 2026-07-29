@@ -27,7 +27,7 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
       <div className="nf-glass border-b border-transparent">
         <div className="nf-shell flex h-[60px] items-center justify-between gap-4 sm:h-[72px] sm:gap-6">
           <Link href="/" aria-label={t.a11y.logoHome} className="shrink-0">
-            <Logo size={30} wordSize={16} responsive priority />
+            <Logo size={46} wordSize={21} responsive priority />
           </Link>
 
           <nav aria-label={t.nav.primaryLabel} className="hidden items-center gap-1 lg:flex">
@@ -35,7 +35,7 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
               <Link
                 key={l.href}
                 href={l.href}
-                className="rounded-[var(--nf-radius-sm)] px-3.5 py-2 text-[0.9rem] font-medium text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
+                className="rounded-[var(--nf-radius-sm)] px-3.5 py-2 text-[0.9rem] font-medium text-[var(--nf-content-primary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
               >
                 {l.label}
               </Link>
@@ -46,7 +46,10 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
             <div className="hidden sm:block">
               <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
             </div>
-            <Link href="/sign-in" className="nf-btn nf-btn--glass hidden sm:inline-flex">
+            <Link
+              href="/sign-in"
+              className="nf-btn nf-btn--primary hidden px-4 py-2.5 text-[0.875rem] sm:inline-flex"
+            >
               {t.common.signIn}
             </Link>
             <Link href="/sign-up" className="nf-btn nf-btn--primary px-4 py-2.5 text-[0.875rem] sm:px-[1.35rem] sm:py-[0.8rem] sm:text-[var(--nf-text-body)]">

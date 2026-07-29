@@ -64,7 +64,7 @@ export const ha: Dictionary = {
     vision: {
       overline: "Hangen nesanmu",
       title: "Najeriya a tafin hannunka. Afirka na gaba.",
-      body: "NaijaFinds na gina amintaccen gida don ganowa, wuraren zama, abinci da abubuwan more rayuwa a duk faɗin Najeriya, sannan nahiyar. Asusu ɗaya, jakar kuɗi ɗaya, mataimaki ɗaya.",
+      body: "RentMe na gina amintaccen gida don ganowa, wuraren zama, abinci da abubuwan more rayuwa a duk faɗin Najeriya, sannan nahiyar. Asusu ɗaya, jakar kuɗi ɗaya, mataimaki ɗaya.",
       missionOverline: "Manufarmu",
       missionTitle: "Sa neman da yin rijistar komai ya zama mai sauƙi da aminci.",
       missionBody: "Wuraren da aka tabbatar, farashi na gaskiya da naira, sharhi na gaskiya, da mataimaki mai fahimtar abin da kake so.",
@@ -155,13 +155,13 @@ export const ha: Dictionary = {
     topExperiences: "Bincika manyan kwarewa",
     nearby: "Kusa da kai",
     aiCard: {
-      title: "NaijaFinds AI",
+      title: "RentMe AI",
       body: "Abokin tafiyarka mai wayo. Ka tambaya da harshe mai sauƙi.",
       action: "Tambayi mataimaki",
       samplePrompt: "Ɗaki biyu a Lekki ƙasa da 300k mai wurin ninkaya",
     },
     agentCard: {
-      title: "Zama Wakilin NaijaFinds",
+      title: "Zama Wakilin RentMe",
       body: "Jera kadarorinka, sarrafa ajiye, ka ƙara samu kuma ka haɓaka kasuwancinka.",
       action: "Zama wakili",
     },
@@ -202,7 +202,7 @@ export const ha: Dictionary = {
       settings: "Saituna",
     },
     join: {
-      title: "Shiga Al'ummar Wakilan NaijaFinds",
+      title: "Shiga Al'ummar Wakilan RentMe",
       body: "Jera kadarori, hada da bakin da aka tabbatar, sarrafa ajiye ka samu kudi.",
       start: "Fara bukata",
       resume: "Ci gaba da bukata",
@@ -247,7 +247,7 @@ export const ha: Dictionary = {
         bankName: "Banki",
         accountNumber: "Lambar asusu",
         accountName: "Sunan asusu",
-        agreeTerms: "Na yarda da Sharuddan Wakilcin NaijaFinds da Manufar Biya.",
+        agreeTerms: "Na yarda da Sharuddan Wakilcin RentMe da Manufar Biya.",
       },
       documents: {
         title: "Loda takardun ka",
@@ -309,7 +309,7 @@ export const ha: Dictionary = {
   },
 
   a11y: {
-    logoHome: "Gidan NaijaFinds",
+    logoHome: "Gidan RentMe",
     openMenu: "Buɗe menu",
     closeMenu: "Rufe menu",
     languageSwitcher: "Canza harshe",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -51,8 +52,15 @@ export function MobileMenu({
         </span>
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true">
+      {/*
+       * Portalled to <body>: the sticky header's backdrop-filter makes it the
+       * containing block for fixed descendants, which trapped and clipped the
+       * panel inside the 64px header bar. From the body it truly covers the
+       * viewport and slides in like it should.
+       */}
+      {open &&
+        createPortal(
+        <div className="fixed inset-0 z-[75]" role="dialog" aria-modal="true">
           <button
             type="button"
             aria-label={closeLabel}
@@ -62,7 +70,7 @@ export function MobileMenu({
 
           <div className="nf-rise absolute inset-0 flex flex-col overflow-y-auto bg-[var(--nf-surface-primary)] px-5 pb-6 pt-5">
             <div className="mb-4 flex items-center justify-between">
-              <Logo size={28} wordSize={15} />
+              <Logo size={40} wordSize={19} />
               <button
                 type="button"
                 aria-label={closeLabel}
@@ -97,13 +105,13 @@ export function MobileMenu({
               <p className="nf-overline mb-3">Community</p>
               <div className="mb-5 flex gap-2.5">
                 <a
-                  href="mailto:hello@naijafinds.com"
-                  aria-label="Email NaijaFinds"
+                  href="mailto:hello@rentme.ng"
+                  aria-label="Email RentMe"
                   className="nf-icon-btn h-11 w-11"
                 >
-                  <UiIcon name="star" size={17} />
+                  <UiIcon name="chat-bubble" size={17} />
                 </a>
-                <Link href="/assistant" aria-label="NaijaFinds AI" className="nf-icon-btn h-11 w-11">
+                <Link href="/assistant" aria-label="RentMe AI" className="nf-icon-btn h-11 w-11">
                   <UiIcon name="sparkle" size={17} />
                 </Link>
               </div>
@@ -117,7 +125,8 @@ export function MobileMenu({
               </Link>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

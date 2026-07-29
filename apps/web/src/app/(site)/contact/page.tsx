@@ -7,7 +7,7 @@ import { ContactForm } from "./ContactForm";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Reach the NaijaFinds support team. Email support@naijafinds.com and we reply within one business day.",
+    "Reach the RentMe support team. Email support@naijafinds.com and we reply within one business day.",
 };
 
 const SUPPORT_EMAIL = "support@naijafinds.com";

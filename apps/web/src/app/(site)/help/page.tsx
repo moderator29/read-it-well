@@ -6,7 +6,7 @@ import { HelpSearch, type Faq } from "./HelpSearch";
 export const metadata: Metadata = {
   title: "Help centre",
   description:
-    "Answers about booking, payments after inspection, refunds, listing a property, verification and languages on NaijaFinds.",
+    "Answers about booking, payments after inspection, refunds, listing a property, verification and languages on RentMe.",
 };
 
 /**
@@ -21,7 +21,7 @@ const FAQS: Faq[] = [
   // ------------------------------------------------------------ booking
   {
     category: "Booking a stay",
-    q: "How do I book a stay on NaijaFinds?",
+    q: "How do I book a stay on RentMe?",
     a: "Search for the city or area you want, open a listing, pick your dates and follow the booking steps. You will see the full price in naira before you confirm anything, and your booking then appears under Bookings in your account.",
   },
   {
@@ -32,7 +32,7 @@ const FAQS: Faq[] = [
   {
     category: "Booking a stay",
     q: "Can I talk to the agent before I book?",
-    a: "Yes. Every listing has a message option, so you can ask about the area, power supply, water, parking or anything else before you commit. Keep the conversation on NaijaFinds so there is a record if anything goes wrong.",
+    a: "Yes. Every listing has a message option, so you can ask about the area, power supply, water, parking or anything else before you commit. Keep the conversation on RentMe so there is a record if anything goes wrong.",
   },
   {
     category: "Booking a stay",
@@ -44,22 +44,22 @@ const FAQS: Faq[] = [
   {
     category: "Payments and refunds",
     q: "When is my money released to the agent?",
-    a: "Not immediately. Your payment is held securely by NaijaFinds and is only released to the agent after you have checked in, or after you confirm an inspection went as described. If the place is not what was listed, report it straight away and the payment stays held while we look into it.",
+    a: "Not immediately. Your payment is held securely by RentMe and is only released to the agent after you have checked in, or after you confirm an inspection went as described. If the place is not what was listed, report it straight away and the payment stays held while we look into it.",
   },
   {
     category: "Payments and refunds",
     q: "What payment methods can I use?",
-    a: "You can pay in naira with Nigerian debit cards or by bank transfer, and from your NaijaFinds wallet. Prices are always shown in naira with no hidden conversion.",
+    a: "You can pay in naira with Nigerian debit cards or by bank transfer, and from your RentMe wallet. Prices are always shown in naira with no hidden conversion.",
   },
   {
     category: "Payments and refunds",
-    q: "Is it safe to pay through NaijaFinds?",
+    q: "Is it safe to pay through RentMe?",
     a: "Payments run through licensed Nigerian payment processors and we never store your full card details. Because money is held until after check-in or inspection, paying on the platform protects you in a way that cash or a direct transfer to a stranger cannot.",
   },
   {
     category: "Payments and refunds",
     q: "How do refunds work?",
-    a: "If you cancel within the listing's cancellation window, or a booking falls through because the property was misrepresented or unavailable, you get a refund. It goes back the way you paid, or to your NaijaFinds wallet if you prefer that for speed.",
+    a: "If you cancel within the listing's cancellation window, or a booking falls through because the property was misrepresented or unavailable, you get a refund. It goes back the way you paid, or to your RentMe wallet if you prefer that for speed.",
   },
   {
     category: "Payments and refunds",
@@ -70,13 +70,13 @@ const FAQS: Faq[] = [
   // ------------------------------------------------------------ listing
   {
     category: "Listing your property",
-    q: "How do I list my property on NaijaFinds?",
+    q: "How do I list my property on RentMe?",
     a: "Apply through the Become an agent page. The application has six short steps: personal details, identity verification, business type, documents, payout account and review. Your progress saves as you go, and once approved you can publish listings from the agent dashboard.",
   },
   {
     category: "Listing your property",
     q: "Does it cost anything to list?",
-    a: "No. Listing is free. NaijaFinds takes a small commission only when a booking completes, so we earn nothing unless you do.",
+    a: "No. Listing is free. RentMe takes a small commission only when a booking completes, so we earn nothing unless you do.",
   },
   {
     category: "Listing your property",
@@ -88,7 +88,7 @@ const FAQS: Faq[] = [
   {
     category: "Verification and trust",
     q: "What does the verified badge on a listing mean?",
-    a: "It means the agent behind the listing passed identity verification with a government issued ID or NIN, and the listing details were checked before going live. Listings that fail our checks do not appear on NaijaFinds at all.",
+    a: "It means the agent behind the listing passed identity verification with a government issued ID or NIN, and the listing details were checked before going live. Listings that fail our checks do not appear on RentMe at all.",
   },
   {
     category: "Verification and trust",
@@ -104,7 +104,7 @@ const FAQS: Faq[] = [
   // ---------------------------------------------------------- languages
   {
     category: "Languages and accessibility",
-    q: "Which languages does NaijaFinds work in?",
+    q: "Which languages does RentMe work in?",
     a: "English, Yoruba, Hausa and Igbo. You can switch language at any time from the switcher in the header, and your choice is remembered on your device.",
   },
   {

@@ -171,7 +171,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
       >
         <p className="flex items-center justify-center gap-1.5 py-1 text-center text-[0.7rem] text-[var(--nf-content-muted)]">
           <UiIcon name="verified" size={12} strokeWidth={2.1} />
-          Chats are protected by NaijaFinds fraud monitoring
+          Chats are protected by RentMe fraud monitoring
         </p>
 
         {messages.map((m) =>

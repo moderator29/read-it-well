@@ -74,7 +74,7 @@ const ITEMS: Item[] = [
     id: "welcome",
     kind: "all",
     icon: "notification",
-    title: "Welcome to NaijaFinds",
+    title: "Welcome to RentMe",
     body: "Your account is ready. Start exploring stays, food and experiences.",
     when: "3 days ago",
   },

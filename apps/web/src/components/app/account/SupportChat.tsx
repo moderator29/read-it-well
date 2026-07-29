@@ -23,7 +23,7 @@ const NAME_KEY = "nf_profile_name";
 const EMAIL_KEY = "nf_profile_email";
 
 const GREETING =
-  "Hello, I am the NaijaFinds support assistant. Ask me about bookings, payments, listing a property, verification or refunds.";
+  "Hello, I am the RentMe support assistant. Ask me about bookings, payments, listing a property, verification or refunds.";
 
 type FaqEntry = { keywords: string[]; answer: string };
 
@@ -353,7 +353,7 @@ function EscalationCard({ name, email }: { name: string; email: string }) {
         </div>
       </dl>
       <p className="mt-2 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
-        Your report, with the details above, reaches the NaijaFinds admin desk
+        Your report, with the details above, reaches the RentMe admin desk
         the moment the platform goes live. Until then it stays saved on this
         device with this conversation.
       </p>

@@ -5,7 +5,7 @@ import { Icon } from "@/design-system/icons/Icon";
 export const metadata: Metadata = {
   title: "Terms of service",
   description:
-    "The rules for using NaijaFinds: accounts, bookings, payments held until after inspection or check-in, refunds, agent listings and acceptable use.",
+    "The rules for using RentMe: accounts, bookings, payments held until after inspection or check-in, refunds, agent listings and acceptable use.",
 };
 
 /**
@@ -22,21 +22,21 @@ const sections: { title: string; body: React.ReactNode }[] = [
     title: "1. About these terms",
     body: (
       <p>
-        These terms are an agreement between you and NaijaFinds (&quot;NaijaFinds&quot;,
-        &quot;we&quot;, &quot;us&quot;) governing your use of the NaijaFinds website,
+        These terms are an agreement between you and RentMe (&quot;RentMe&quot;,
+        &quot;we&quot;, &quot;us&quot;) governing your use of the RentMe website,
         apps and services. By creating an account or using the platform you accept them.
         If you do not accept them, please do not use the platform.
       </p>
     ),
   },
   {
-    title: "2. What NaijaFinds is",
+    title: "2. What RentMe is",
     body: (
       <p>
-        NaijaFinds is a marketplace that connects guests with independent agents who
+        RentMe is a marketplace that connects guests with independent agents who
         list stays, hotels, restaurants and experiences across Nigeria. We verify
         agents, host listings, carry messages and process payments. The accommodation
-        or experience itself is provided by the agent, not by NaijaFinds, and the
+        or experience itself is provided by the agent, not by RentMe, and the
         booking contract for the stay is between you and the agent.
       </p>
     ),
@@ -45,7 +45,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
     title: "3. Accounts and eligibility",
     body: (
       <ul>
-        <li>You must be at least 18 years old to use NaijaFinds.</li>
+        <li>You must be at least 18 years old to use RentMe.</li>
         <li>
           The information on your account must be accurate and kept up to date, and you
           may hold only one personal account.
@@ -66,7 +66,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
           before you confirm a booking.
         </li>
         <li>
-          Your payment is held securely by NaijaFinds and released to the agent only
+          Your payment is held securely by RentMe and released to the agent only
           after check-in, or after you confirm that an inspection matched the listing.
           Paying an agent in cash or by direct transfer outside the platform removes
           this protection, and we cannot help recover money paid that way.
@@ -91,7 +91,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
           or unavailable, you receive a refund of what you paid for that booking.
         </li>
         <li>
-          Refunds go back the way you paid, or to your NaijaFinds wallet if you choose.
+          Refunds go back the way you paid, or to your RentMe wallet if you choose.
           Card and bank refunds typically arrive within three to ten business days.
         </li>
       </ul>
@@ -102,7 +102,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
     body: (
       <ul>
         <li>
-          Listing is free. NaijaFinds charges agents a commission only when a booking
+          Listing is free. RentMe charges agents a commission only when a booking
           completes; current rates are shown in the agent dashboard before you publish.
         </li>
         <li>
@@ -143,7 +143,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
     body: (
       <p>
         Reviews must reflect a genuine stay or visit. You keep ownership of the content
-        you post, and you grant NaijaFinds a licence to display it on the platform and
+        you post, and you grant RentMe a licence to display it on the platform and
         in connection with the service. We may remove content that is unlawful, abusive
         or misleading.
       </p>
@@ -154,7 +154,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
     body: (
       <>
         <p>
-          We work hard to keep listings honest and payments safe, but NaijaFinds is a
+          We work hard to keep listings honest and payments safe, but RentMe is a
           marketplace: we do not own, inspect daily, or control the properties and
           experiences agents list. To the extent Nigerian law allows:
         </p>
@@ -208,7 +208,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
         We may update these terms as the platform grows. The date at the top of this
         page always shows the current version, and we will notify you through the
         product or by email before significant changes take effect. Continuing to use
-        NaijaFinds after a change means you accept the updated terms.
+        RentMe after a change means you accept the updated terms.
       </p>
     ),
   },
@@ -252,7 +252,7 @@ export default function TermsPage() {
           <h1 className="nf-h1 mx-auto mt-5 max-w-[16ch]">Terms of service</h1>
           <p className="mx-auto mt-4 max-w-[52ch] text-[var(--nf-content-secondary)]">
             The rules of the platform, in plain language: what you can expect from
-            NaijaFinds, and what NaijaFinds expects from you.
+            RentMe, and what RentMe expects from you.
           </p>
           <p className="nf-chip mx-auto mt-5">Last updated: 28 July 2026</p>
         </div>

@@ -264,7 +264,7 @@ export function SearchCard() {
           <div className="min-w-0 flex-1">
             <p className="text-[0.9375rem] font-medium">Currency</p>
             <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-              Every price across NaijaFinds is shown in Naira.
+              Every price across RentMe is shown in Naira.
             </p>
           </div>
           <span className="nf-badge shrink-0">
@@ -378,7 +378,7 @@ export function SecurityCard() {
 
 /**
  * Data: an export request that says exactly where it stands, and a working
- * clear-out that removes every NaijaFinds key from this device and reloads.
+ * clear-out that removes every RentMe key from this device and reloads.
  */
 export function DataCard() {
   const [exportNote, setExportNote] = useState(false);
@@ -408,7 +408,7 @@ export function DataCard() {
         <div className="py-3.5 first:pt-0">
           <p className="text-[0.9375rem] font-medium">Download my data</p>
           <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-            A copy of everything NaijaFinds holds about you.
+            A copy of everything RentMe holds about you.
           </p>
           <button
             type="button"
@@ -419,7 +419,7 @@ export function DataCard() {
           </button>
           {exportNote && (
             <p role="status" className="nf-rise mt-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-              Right now everything NaijaFinds knows about you lives in this
+              Right now everything RentMe knows about you lives in this
               browser, and nothing has left this device. Full data export ships
               with the launch release.
             </p>

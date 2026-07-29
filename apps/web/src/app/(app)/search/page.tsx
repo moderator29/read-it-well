@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
+import { formatMoney, formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
+import { RealMap } from "@/components/app/search/RealMap";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import type { Listing, ListingKind } from "@/lib/listings/types";
@@ -73,31 +74,61 @@ function sortListings(listings: Listing[], sort: SortKey): Listing[] {
   return out;
 }
 
-function searchHref(q: string | undefined, type: string | undefined, sort: SortKey): string {
+function searchHref(
+  q: string | undefined,
+  type: string | undefined,
+  sort: SortKey,
+  view?: "map",
+): string {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
   if (type) params.set("type", type);
   if (sort !== "recommended") params.set("sort", sort);
+  if (view) params.set("view", view);
   const qs = params.toString();
   return qs ? `/search?${qs}` : "/search";
 }
 
+/** Real coordinates for the covered cities. */
+const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
+  Lagos: { lat: 6.5244, lng: 3.3792 },
+  Ibadan: { lat: 7.3775, lng: 3.947 },
+  Abuja: { lat: 9.0765, lng: 7.3986 },
+  Enugu: { lat: 6.4584, lng: 7.5464 },
+  "Port Harcourt": { lat: 4.8156, lng: 7.0498 },
+  Calabar: { lat: 4.9757, lng: 8.3417 },
+};
+
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; type?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; type?: string; sort?: string; view?: string }>;
 }) {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const { q, type, sort: rawSort } = await searchParams;
+  const { q, type, sort: rawSort, view: rawView } = await searchParams;
 
   const sort: SortKey = SORTS.some((s) => s.key === rawSort)
     ? (rawSort as SortKey)
     : "recommended";
   const kind = parseKind(type);
+  const view = rawView === "map" ? "map" : "list";
 
   const repo = getListingRepository();
   const listings = sortListings(await repo.search({ q, kind }), sort);
+
+  // The map reads the whole catalogue: every covered city keeps its pin and
+  // lowest nightly price regardless of the current text filter.
+  const cityFloor = new Map<string, { count: number; minMinor: number; currency: string }>();
+  for (const l of await repo.search({})) {
+    const entry = cityFloor.get(l.city);
+    if (!entry) {
+      cityFloor.set(l.city, { count: 1, minMinor: l.priceMinor, currency: l.currency });
+    } else {
+      entry.count += 1;
+      entry.minMinor = Math.min(entry.minMinor, l.priceMinor);
+    }
+  }
 
   const noun = kind ? KIND_NOUN[kind] : { one: "stay", many: "stays" };
 
@@ -122,10 +153,30 @@ export default async function SearchPage({
             />
           </div>
           {type && <input type="hidden" name="type" value={type} />}
+          {view === "map" && <input type="hidden" name="view" value="map" />}
           <button type="submit" className="nf-btn nf-btn--primary shrink-0 px-4 py-2 text-[0.875rem]">
             {t.common.search}
           </button>
         </form>
+
+        {/* Trip frame. Dates and guests arrive with booking search in Phase 2;
+            the controls hold the layout and say what they will do. */}
+        <div className="mx-auto mt-2.5 flex max-w-3xl items-center gap-2">
+          <button
+            type="button"
+            className="nf-chip flex-1 justify-center whitespace-nowrap text-[0.8125rem]"
+          >
+            <UiIcon name="calendar-booking" size={14} className="shrink-0 opacity-70" />
+            Any week
+          </button>
+          <button
+            type="button"
+            className="nf-chip flex-1 justify-center whitespace-nowrap text-[0.8125rem]"
+          >
+            <UiIcon name="user" size={14} className="shrink-0 opacity-70" />
+            2 guests
+          </button>
+        </div>
 
         {/* City quick picks. Links, so a tap submits instantly and is shareable. */}
         <nav aria-label="Popular destinations" className="nf-scroll-x -mx-5 mt-3 md:-mx-8">
@@ -200,18 +251,55 @@ export default async function SearchPage({
               {listings.length === 1 ? noun.one : noun.many} across Nigeria
             </p>
           </div>
-          {kind && (
+          <div className="flex items-center gap-2">
+            {kind && (
+              <Link
+                href={searchHref(q, undefined, sort, view === "map" ? "map" : undefined)}
+                className="text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+              >
+                Clear category
+              </Link>
+            )}
+            {/* List | Map. Real navigation, shareable like everything else. */}
             <Link
-              href={searchHref(q, undefined, sort)}
-              className="text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+              href={
+                view === "map" ? searchHref(q, type, sort) : searchHref(q, type, sort, "map")
+              }
+              prefetch
+              className="nf-chip whitespace-nowrap text-[0.8125rem]"
             >
-              Clear category
+              <UiIcon name={view === "map" ? "grid" : "location"} size={14} className="shrink-0" />
+              {view === "map" ? "List view" : "Map view"}
             </Link>
-          )}
+          </div>
         </div>
       </Reveal>
 
+      {/* -------------------------------------------------------- map view */}
+      {view === "map" && (
+        <Reveal className="mt-5" delay={60}>
+          <div className="nf-card relative overflow-hidden p-0">
+            <RealMap
+              active={q?.trim()}
+              pins={Object.entries(CITY_COORDS).flatMap(([city, at]) => {
+                const floor = cityFloor.get(city);
+                if (!floor) return [];
+                return [
+                  {
+                    city,
+                    ...at,
+                    count: floor.count,
+                    price: formatMoney(floor.minMinor, locale, floor.currency),
+                  },
+                ];
+              })}
+            />
+          </div>
+        </Reveal>
+      )}
+
       {/* ------------------------------------------------------ results grid */}
+      {view === "list" && (
       <Reveal className="mt-5" delay={60}>
         {listings.length === 0 ? (
           <div className="nf-card p-10 text-center">
@@ -233,9 +321,10 @@ export default async function SearchPage({
           </ul>
         )}
       </Reveal>
+      )}
 
       {/* --------------------------------------------------------- load more */}
-      {listings.length > 0 && (
+      {view === "list" && listings.length > 0 && (
         <Reveal className="mt-8 text-center" delay={90}>
           {/*
            * Visual shell for pagination. The seed catalogue is fully shown, so

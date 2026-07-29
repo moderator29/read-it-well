@@ -264,7 +264,7 @@
  * Tracked in KNOWN_GAPS.md before it is exposed to users.
  */
 :root[data-theme="light"] {
-  --nf-surface-canvas: #F3F7FD;
+  --nf-surface-canvas: #FAFCFE;
   --nf-surface-primary: #FBFDFF;
   --nf-surface-secondary: #FFFFFF;
   --nf-surface-elevated: #FFFFFF;
@@ -280,6 +280,10 @@
   --nf-brand-primary: #0010D0;
   --nf-brand-primary-strong: #1230B3;
 
+  /* Daylight CTA runs brighter than the night gradient so buttons read as
+     vivid brand blue on paper, never near-black navy. */
+  --nf-gradient-cta: linear-gradient(180deg, #2450FF 0%, #0C39EF 55%, #0010D0 100%);
+
   --nf-border-subtle: rgb(10 22 38 / 0.08);
   --nf-border-default: rgb(10 22 38 / 0.14);
   --nf-border-strong: rgb(10 22 38 / 0.24);
@@ -293,7 +297,7 @@
   --nf-shadow-float: 0 32px 80px -20px rgb(10 22 38 / 0.2);
 
   /* Daylight canvas: airy sky wash, calm blooms. */
-  --nf-canvas-base: #F3F7FD;
+  --nf-canvas-base: #FAFCFE;
   --nf-canvas-bloom-1: radial-gradient(circle, rgb(0 102 255 / 0.16) 0%, transparent 62%);
   --nf-canvas-bloom-2: radial-gradient(circle, rgb(0 200 255 / 0.12) 0%, transparent 62%);
   --nf-canvas-bloom-3: radial-gradient(circle, rgb(18 48 179 / 0.1) 0%, transparent 62%);

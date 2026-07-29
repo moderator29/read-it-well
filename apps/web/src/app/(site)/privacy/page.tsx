@@ -5,7 +5,7 @@ import { Icon } from "@/design-system/icons/Icon";
 export const metadata: Metadata = {
   title: "Privacy policy",
   description:
-    "How NaijaFinds collects, uses, protects and shares personal data, and your rights under the Nigeria Data Protection Act 2023.",
+    "How RentMe collects, uses, protects and shares personal data, and your rights under the Nigeria Data Protection Act 2023.",
 };
 
 /**
@@ -23,10 +23,10 @@ const sections: { title: string; body: React.ReactNode }[] = [
     body: (
       <>
         <p>
-          NaijaFinds (&quot;NaijaFinds&quot;, &quot;we&quot;, &quot;us&quot;) operates a
+          RentMe (&quot;RentMe&quot;, &quot;we&quot;, &quot;us&quot;) operates a
           Nigeria-first platform for discovering and booking stays, hotels, restaurants
           and experiences, on the web at naijafinds.com. For the purposes of the Nigeria
-          Data Protection Act 2023 (the &quot;NDPA&quot;), NaijaFinds is the data
+          Data Protection Act 2023 (the &quot;NDPA&quot;), RentMe is the data
           controller for the personal data described in this policy.
         </p>
         <p>
@@ -205,7 +205,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
     title: "10. Children",
     body: (
       <p>
-        NaijaFinds is for adults. You must be at least 18 years old to create an account,
+        RentMe is for adults. You must be at least 18 years old to create an account,
         book a stay or list a property. We do not knowingly collect personal data from
         children, and we delete any such data we discover.
       </p>
@@ -248,7 +248,7 @@ export default function PrivacyPage() {
           </span>
           <h1 className="nf-h1 mx-auto mt-5 max-w-[16ch]">Privacy policy</h1>
           <p className="mx-auto mt-4 max-w-[52ch] text-[var(--nf-content-secondary)]">
-            How NaijaFinds collects, uses and protects your personal data, and the
+            How RentMe collects, uses and protects your personal data, and the
             rights the Nigeria Data Protection Act 2023 gives you over it.
           </p>
           <p className="nf-chip mx-auto mt-5">Last updated: 28 July 2026</p>

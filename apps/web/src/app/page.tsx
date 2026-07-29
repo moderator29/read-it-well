@@ -1,39 +1,31 @@
+import Image from "next/image";
 import Link from "next/link";
-import { getDictionary, formatNumber, type Locale } from "@naijafinds/i18n";
+import { getDictionary, type Locale } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
-import { getPlatformStats } from "@/lib/platform-stats";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Reveal } from "@/components/site/Reveal";
 import { Icon, type IconName } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TrustIcon, type TrustIconName } from "@/design-system/icons/TrustIcon";
-import { HeroIsland } from "@/design-system/scenes/HeroIsland";
 import { HowItWorks } from "@/components/site/landing/HowItWorks";
 import { PopularDestinations } from "@/components/site/landing/PopularDestinations";
 import { AgentsBand } from "@/components/site/landing/AgentsBand";
-import { WhyNaijaFinds } from "@/components/site/landing/WhyNaijaFinds";
+import { WhyRentMe } from "@/components/site/landing/WhyRentMe";
 import { FeaturedCarousel } from "@/components/site/landing/FeaturedCarousel";
 import { MoodRow } from "@/components/site/landing/MoodRow";
 import { NumbersBand } from "@/components/site/landing/NumbersBand";
+import {
+  VillaShowcase,
+  CoverageMap,
+  AssistantShowcase,
+} from "@/components/site/landing/SignatureShowcase";
 
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"];
 
 export default async function LandingPage() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const stats = await getPlatformStats();
-
-  const heroChips: {
-    key: keyof typeof t.landing.stats;
-    icon: IconName;
-    value: number | null;
-    pos: string;
-  }[] = [
-    { key: "apartments", icon: "apartment", value: stats?.apartments ?? null, pos: "left-[-4%] top-[24%]" },
-    { key: "hotels", icon: "hotel", value: stats?.hotels ?? null, pos: "left-[22%] top-[2%]" },
-    { key: "restaurants", icon: "restaurant", value: stats?.restaurants ?? null, pos: "right-[-3%] top-[30%]" },
-  ];
 
   const features: { icon: IconName; title: string; body: string }[] = [
     { icon: "ai-assistant", ...t.landing.features.ai },
@@ -89,42 +81,36 @@ export default async function LandingPage() {
           </div>
 
           {/*
-           * Mobile: the island is the atmosphere of the first view, rising to the
-           * right of the headline and dissolving into the canvas through a scrim,
-           * so the skyscraper is part of the opening frame rather than stranded
-           * at the foot of the page. It is hidden at lg, where the island gets its
-           * own column instead.
+           * The villa is the hero's atmosphere, not a picture in a frame: a
+           * large masked still dissolving into the canvas behind the text, so
+           * the scene and the platform read as one surface. Its edges never
+           * print; the mask fades it out in every direction.
            */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-0 overflow-hidden lg:hidden"
-          >
-            <div className="absolute right-1 top-[4%] w-[52%] max-w-[300px] opacity-[0.85] nf-float">
-              <HeroIsland priority />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
+            <div className="nf-float-slow absolute right-[-18%] top-[-2%] w-[95%] max-w-[560px] sm:right-[-8%] sm:w-[70%] lg:right-[-4%] lg:top-[-12%] lg:w-[58%] lg:max-w-[900px]">
+              <Image
+                src="/brand/rentme-villa.png"
+                alt=""
+                width={1536}
+                height={1024}
+                priority
+                sizes="(max-width: 640px) 95vw, (max-width: 1024px) 70vw, 58vw"
+                className="nf-hero-scene h-auto w-full"
+              />
             </div>
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(3,8,22,0) 0%, rgba(3,8,22,0.12) 45%, rgba(3,8,22,0.68) 78%, rgba(3,8,22,0.95) 100%)",
-              }}
-            />
           </div>
 
-          <div className="nf-shell relative z-10 grid items-center gap-10 lg:grid-cols-[1fr_1.05fr]">
-            <div className="nf-rise">
-              <span className="nf-overline mb-3 inline-flex items-center gap-2">
-                <UiIcon name="sparkle" size={14} />
-                {t.landing.hero.popularLabel}
-              </span>
-
+          <div className="nf-shell relative z-10">
+            <div className="max-w-2xl">
               <h1 className="nf-display">
-                <span className="block">{t.landing.hero.line1}</span>
-                <span className="block">{t.landing.hero.line2}</span>
-                <span className="nf-gradient-text nf-shine block">{t.landing.hero.line3}</span>
+                <span className="nf-rise block">{t.landing.hero.line1}</span>
+                <span className="nf-rise nf-rise-2 block">{t.landing.hero.line2}</span>
+                <span className="nf-rise nf-rise-3 nf-gradient-text nf-shine block">
+                  {t.landing.hero.line3}
+                </span>
               </h1>
 
-              <p className="mt-4 max-w-[42ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)] sm:mt-5">
+              <p className="nf-rise nf-rise-4 mt-4 max-w-[42ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)] sm:mt-5">
                 {t.landing.hero.subtitle}
               </p>
 
@@ -133,7 +119,7 @@ export default async function LandingPage() {
                 action="/search"
                 method="get"
                 role="search"
-                className="nf-card nf-card--live mt-7 flex flex-col gap-2 p-2 sm:flex-row sm:items-center"
+                className="nf-rise nf-rise-4 nf-card nf-card--live mt-7 flex flex-col gap-2 p-2 sm:flex-row sm:items-center"
               >
                 <label htmlFor="hero-q" className="sr-only">
                   {t.landing.hero.searchLabel}
@@ -154,42 +140,16 @@ export default async function LandingPage() {
                 </button>
               </form>
 
-              <ul className="mt-4 flex flex-wrap gap-2">
+              <ul className="nf-rise nf-rise-5 mt-4 flex flex-wrap gap-2">
                 {CITIES.map((city) => (
                   <li key={city}>
-                    <Link href={`/search?q=${encodeURIComponent(city)}`} className="nf-chip">
+                    <Link
+                      href={`/search?q=${encodeURIComponent(city)}`}
+                      prefetch
+                      className="nf-chip relative z-10"
+                    >
                       {city}
                     </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* ------------------------------------------------ hero object (desktop) */}
-            <div className="relative hidden lg:block">
-              <div className="nf-float">
-                <HeroIsland priority className="drop-shadow-[0_50px_90px_rgba(0,0,0,0.65)]" />
-              </div>
-
-              <ul className="pointer-events-none absolute inset-0">
-                {heroChips.map((c) => (
-                  <li
-                    key={c.key}
-                    className={`nf-glass absolute flex items-center gap-2 rounded-[var(--nf-radius-lg)] px-3 py-2 shadow-[var(--nf-shadow-lifted)] nf-float-slow ${c.pos}`}
-                  >
-                    <span className="h-7 w-7">
-                      <Icon name={c.icon} fill />
-                    </span>
-                    <span className="leading-tight">
-                      <span className="block text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
-                        {t.landing.stats[c.key]}
-                      </span>
-                      {c.value !== null && (
-                        <span className="nf-numeric block text-[0.75rem] text-[var(--nf-content-muted)]">
-                          {formatNumber(c.value, locale)}+
-                        </span>
-                      )}
-                    </span>
                   </li>
                 ))}
               </ul>
@@ -222,6 +182,9 @@ export default async function LandingPage() {
 
         {/* --------------------------------------------- featured this week */}
         <FeaturedCarousel locale={locale} />
+
+        {/* ------------------------------------------------ signature villa */}
+        <VillaShowcase />
 
         {/* -------------------------------------------------------- facts band */}
         <section className="nf-shell pt-4">
@@ -318,9 +281,15 @@ export default async function LandingPage() {
 
         <PopularDestinations t={t} />
 
+        {/* --------------------------------------------------- coverage map */}
+        <CoverageMap />
+
         <AgentsBand t={t} />
 
-        <WhyNaijaFinds t={t} />
+        <WhyRentMe t={t} />
+
+        {/* --------------------------------------------- assistant showcase */}
+        <AssistantShowcase />
 
         {/* ----------------------------------------------------- numbers band */}
         <NumbersBand />
@@ -370,15 +339,15 @@ export default async function LandingPage() {
               ["Is my payment safe?", "Yes. Payments are processed by a licensed Nigerian payment provider, and your card details never touch our servers. You are never charged before you confirm."],
               ["Can I list my property?", "Yes. Apply in about ten minutes from the Become an Agent page. Every application is reviewed before listings go live."],
               ["Which languages are supported?", "English, Yoruba, Hausa and Igbo, switchable at any time from the top bar."],
-              ["Where does NaijaFinds operate?", "All 36 states and the FCT from day one, with the deepest coverage growing city by city."],
+              ["Where does RentMe operate?", "All 36 states and the FCT from day one, with the deepest coverage growing city by city."],
               ["How do I get help?", "The AI assistant answers instantly inside the app, and our support team is one message away."],
               ["How do payments work before launch?", "Card payments switch on at public launch. Until then you can browse, save favourites and shortlist places, and no money changes hands. When payments open they run in naira through a licensed Nigerian payment provider."],
-              ["Is there a booking fee?", "No. There are no booking fees on NaijaFinds right now. The price you see on a listing is the price you pay, with any charges shown in full before you confirm."],
+              ["Is there a booking fee?", "No. There are no booking fees on RentMe right now. The price you see on a listing is the price you pay, with any charges shown in full before you confirm."],
               ["How do agents get verified?", "Every agent submits a government issued ID and proof that they own or manage the property. Our team reviews each application by hand, and only approved agents can publish listings."],
               ["Can I pay in instalments?", "Not yet. Bookings are paid in full for now. Instalment payments are on our roadmap, and we will announce them the moment they are ready rather than promise a date."],
               ["What happens after I book?", "You get an instant confirmation with the address, check in details and the host's contact, and the booking appears in your account. Reminders arrive as your date approaches."],
               ["How do I contact a host?", "Once your booking is confirmed you can message the host directly from the booking page, and the AI assistant can help draft questions in any of our four languages."],
-              ["Is my data safe under NDPA?", "Yes. NaijaFinds is built to comply with the Nigeria Data Protection Act. Your data is encrypted in transit and at rest, is never sold, and you can request a copy or deletion at any time."],
+              ["Is my data safe under NDPA?", "Yes. RentMe is built to comply with the Nigeria Data Protection Act. Your data is encrypted in transit and at rest, is never sold, and you can request a copy or deletion at any time."],
             ].map(([q, a]) => (
               <Reveal key={q}>
                 <details className="nf-card group p-0">

@@ -7,13 +7,13 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "NaijaFinds is a Nigeria-first platform for discovering and booking verified homes, hotels, restaurants and experiences, in the languages Nigerians actually speak.",
+    "RentMe is a Nigeria-first platform for discovering and booking verified homes, hotels, restaurants and experiences, in the languages Nigerians actually speak.",
 };
 
 /**
  * About page.
  *
- * One narrative: what NaijaFinds is, why it exists (mission), where it is going
+ * One narrative: what RentMe is, why it exists (mission), where it is going
  * (vision), and the values that shape every decision. Glass cards over the
  * aurora, mobile-first, in the same voice as the landing page.
  */
@@ -27,7 +27,7 @@ export default function AboutPage() {
     {
       icon: "language",
       title: "Speak people's language",
-      body: "NaijaFinds works in English, Yoruba, Hausa and Igbo, because booking a home for your family should never require translating your own country.",
+      body: "RentMe works in English, Yoruba, Hausa and Igbo, because booking a home for your family should never require translating your own country.",
     },
     {
       icon: "wallet",
@@ -57,11 +57,11 @@ export default function AboutPage() {
             <span className="inline-grid h-4 w-4 place-items-center">
               <Icon name="home" fill />
             </span>
-            About NaijaFinds
+            About RentMe
           </span>
-          <h1 className="nf-h1 mx-auto mt-5 max-w-[16ch]">Find it. Book it. Live it.</h1>
+          <h1 className="nf-h1 mx-auto mt-5 max-w-[16ch]">Find it. Rent it. Love it.</h1>
           <p className="mx-auto mt-4 max-w-[56ch] text-[var(--nf-content-secondary)]">
-            NaijaFinds is a Nigeria-first platform for discovering and booking places to
+            RentMe is a Nigeria-first platform for discovering and booking places to
             stay, eat and explore. We bring verified homes, hotels, restaurants and
             experiences into one trusted place, in the languages Nigerians actually speak.
           </p>
@@ -100,7 +100,7 @@ export default function AboutPage() {
 
         {/* ------------------------------------------------- what we do */}
         <Reveal as="section" className="mt-14">
-          <h2 className="nf-overline text-center">What lives on NaijaFinds</h2>
+          <h2 className="nf-overline text-center">What lives on RentMe</h2>
           <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4">
             {categories.map((c, i) => (
               <Reveal key={c.title} as="li" delay={i * 70} className="h-full">

@@ -3,6 +3,7 @@ import { Inter, Poppins } from "next/font/google";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
+import { LivingCanvas } from "@/components/site/LivingCanvas";
 import "./globals.css";
 
 /*
@@ -32,12 +33,12 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: {
-    default: "NaijaFinds. Find it. Book it. Live it.",
-    template: "%s | NaijaFinds",
+    default: "RentMe. Find it. Rent it. Love it.",
+    template: "%s | RentMe",
   },
   description:
     "Discover and book homes, hotels, restaurants and experiences across Nigeria. Verified listings, secure payments and an assistant that understands what you actually want.",
-  applicationName: "NaijaFinds",
+  applicationName: "RentMe",
   keywords: [
     "Nigeria",
     "shortlet",
@@ -50,10 +51,10 @@ export const metadata: Metadata = {
     "Abuja",
   ],
   openGraph: {
-    title: "NaijaFinds. Find it. Book it. Live it.",
+    title: "RentMe. Find it. Rent it. Love it.",
     description:
       "Your all-in-one platform for homes, hotels, restaurants, experiences and more, across Nigeria.",
-    siteName: "NaijaFinds",
+    siteName: "RentMe",
     locale: "en_NG",
     type: "website",
   },
@@ -93,7 +94,9 @@ export default async function RootLayout({
           <span />
           <span />
           <span />
+          <span />
         </div>
+        <LivingCanvas />
         {/* Film grain over everything, so surfaces feel physical, not printed. */}
         <div className="nf-grain" aria-hidden="true" />
         <ScrollToTop />

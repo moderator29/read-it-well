@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 /**
- * NaijaFinds brand mark.
+ * RentMe brand mark.
  *
  * The supplied asset, not a redraw. Two forms exist because they serve
  * different jobs:
@@ -9,7 +9,7 @@ import Image from "next/image";
  *   `mark`   the liquid blob with the location pin, no wordmark. Pairs with
  *            live text so the wordmark stays selectable, translatable and
  *            crisp at any size.
- *   `lockup` the full supplied logo with NaijaFinds set inside the blob. Used
+ *   `lockup` the full supplied logo with RentMe set inside the blob. Used
  *            large and centred, on auth and hero surfaces.
  */
 
@@ -30,17 +30,30 @@ export function LogoMark({
   const width = responsive
     ? `clamp(${Math.round(size * 0.72)}px, 6vw, ${size}px)`
     : size;
+  // Two renders of the mark: the neon original for the night theme, an ink
+  // recolour for paper, toggled purely in CSS so there is no theme flash.
   return (
-    <Image
-      src="/brand/mark.png"
-      alt={title ?? ""}
-      aria-hidden={title ? undefined : true}
-      width={size}
-      height={size}
-      priority={priority}
-      className={`nf-mark-blue ${className ?? ""}`}
-      style={{ width, height: "auto" }}
-    />
+    <>
+      <Image
+        src="/brand/rentme-logo.png"
+        alt={title ?? ""}
+        aria-hidden={title ? undefined : true}
+        width={size}
+        height={size}
+        priority={priority}
+        className={`nf-logo-on-dark ${className ?? ""}`}
+        style={{ width, height: "auto" }}
+      />
+      <Image
+        src="/brand/rentme-logo-ink.png"
+        alt=""
+        aria-hidden="true"
+        width={size}
+        height={size}
+        className={`nf-logo-on-light ${className ?? ""}`}
+        style={{ width, height: "auto" }}
+      />
+    </>
   );
 }
 
@@ -55,12 +68,12 @@ export function LogoLockup({
 }) {
   return (
     <Image
-      src="/brand/logo.png"
-      alt="NaijaFinds"
+      src="/brand/rentme-logo.png"
+      alt="RentMe"
       width={size}
       height={size}
       priority={priority}
-      className={`nf-mark-blue ${className ?? ""}`}
+      className={className}
       style={{ width: size, height: "auto" }}
     />
   );
@@ -91,12 +104,12 @@ export function Logo({
     : wordSize;
   return (
     <span className={`nf-logo ${className ?? ""}`}>
-      <LogoMark size={size} responsive={responsive} title="NaijaFinds" priority={priority} />
+      <LogoMark size={size} responsive={responsive} title="RentMe" priority={priority} />
       <span className="nf-logo__text">
         <span className="nf-logo__word" style={{ fontSize: wordFontSize }}>
-          Naija<span className="nf-logo__word-accent">Finds</span>
+          Rent<span className="nf-logo__word-accent">Me</span>
         </span>
-        {tagline && <span className="nf-logo__tagline">Find it. Book it. Live it.</span>}
+        {tagline && <span className="nf-logo__tagline">Find it. Rent it. Love it.</span>}
       </span>
     </span>
   );

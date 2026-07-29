@@ -74,7 +74,7 @@ export default async function SettingsPage() {
               </div>
             </dl>
             <p className="mt-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-              NaijaFinds respects your privacy: preferences on this page stay on
+              RentMe respects your privacy: preferences on this page stay on
               your device, and account data is protected with row level security
               once you sign in. Full terms and the privacy policy publish with
               the launch release.

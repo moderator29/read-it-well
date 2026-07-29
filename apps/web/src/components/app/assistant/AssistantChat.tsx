@@ -21,7 +21,7 @@ import {
 } from "./threads";
 
 /**
- * NaijaFinds AI chat surface.
+ * RentMe AI chat surface.
  *
  * A full assistant page in the shape people know from the big chat products:
  * a conversation column with pinned composer, plus its own side navigation.
@@ -55,6 +55,13 @@ export function AssistantChat() {
   const [tone, setTone] = useState<Tone>("Concise");
   const [language, setLanguage] = useState<Language>("English");
   const [draft, setDraft] = useState("");
+
+  // A question can arrive from anywhere on the platform via ?q=, e.g. the home
+  // banner's quick-ask bar. It seeds the composer after mount, never auto-sends.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setDraft((d) => (d ? d : q));
+  }, []);
 
   /* Mobile drawer: `historyOpen` mounts it, `historyShown` slides it in, so
      both directions of the transition get a frame to run. */
@@ -230,7 +237,7 @@ export function AssistantChat() {
   return (
     <div className="mx-auto flex h-[calc(100dvh-64px-10rem)] min-h-[26rem] w-full max-w-5xl flex-col lg:h-[calc(100dvh-64px-4rem)]">
       <PageHeader
-        title="NaijaFinds AI"
+        title="RentMe AI"
         subtitle="Beta"
         actions={
           <button
@@ -319,7 +326,7 @@ export function AssistantChat() {
                 </span>
                 <div
                   className="nf-card rounded-2xl rounded-bl-md px-4 py-3.5"
-                  aria-label="NaijaFinds AI is typing"
+                  aria-label="RentMe AI is typing"
                 >
                   <span className="flex items-center gap-1.5" aria-hidden="true">
                     {[0, 1, 2].map((i) => (
@@ -344,7 +351,7 @@ export function AssistantChat() {
             className="flex items-center gap-2.5 border-t border-[var(--nf-border-subtle)] pt-3"
           >
             <label htmlFor="assistant-input" className="sr-only">
-              Message NaijaFinds AI
+              Message RentMe AI
             </label>
             <input
               id="assistant-input"
@@ -352,7 +359,7 @@ export function AssistantChat() {
               type="text"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Ask NaijaFinds AI anything"
+              placeholder="Ask RentMe AI anything"
               autoComplete="off"
               enterKeyHint="send"
               className="nf-field min-w-0 flex-1"

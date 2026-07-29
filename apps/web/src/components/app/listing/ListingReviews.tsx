@@ -29,7 +29,7 @@ export function ListingReviews({
         </span>
         <p className="mt-3.5 font-semibold text-[var(--nf-content-primary)]">No reviews yet</p>
         <p className="mx-auto mt-1 max-w-[38ch] text-[0.875rem] text-[var(--nf-content-muted)]">
-          This place has not hosted a NaijaFinds stay yet. Reviews appear here
+          This place has not hosted a RentMe stay yet. Reviews appear here
           after verified stays.
         </p>
       </div>
@@ -55,7 +55,7 @@ export function ListingReviews({
       <p className="mt-4 flex items-start gap-2 border-t border-[var(--nf-border-subtle)] pt-4 text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
         <UiIcon name="star" size={15} className="mt-0.5 shrink-0" />
         Written reviews from verified stays will appear here once guests share
-        them on NaijaFinds.
+        them on RentMe.
       </p>
     </div>
   );

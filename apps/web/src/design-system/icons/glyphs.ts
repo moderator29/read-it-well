@@ -1,5 +1,5 @@
 /**
- * NaijaFinds signature object glyphs.
+ * RentMe signature object glyphs.
  *
  * Authored as vector on a 24x24 grid so they stay razor sharp at every size and
  * on every pixel density. The supplied raster icon pack tops out at roughly

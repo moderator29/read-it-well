@@ -7,7 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 export const metadata: Metadata = {
   title: "Careers",
   description:
-    "Help build the platform Nigerians use to find, book and live. See how we work at NaijaFinds and send a speculative application.",
+    "Help build the platform Nigerians use to find, book and live. See how we work at RentMe and send a speculative application.",
 };
 
 /**
@@ -57,7 +57,7 @@ export default function CareersPage() {
             <span className="inline-grid h-4 w-4 place-items-center">
               <Icon name="star" fill />
             </span>
-            Careers at NaijaFinds
+            Careers at RentMe
           </span>
           <h1 className="nf-h1 mx-auto mt-5 max-w-[18ch]">
             Build the way Nigeria books
@@ -110,7 +110,7 @@ export default function CareersPage() {
               <ul className="mt-2 space-y-1.5 text-[0.875rem] text-[var(--nf-content-secondary)]">
                 <li className="flex items-start gap-2">
                   <UiIcon name="arrow-right" size={14} className="mt-1 shrink-0 text-[var(--nf-brand-primary)]" />
-                  A short note on what you would improve about NaijaFinds
+                  A short note on what you would improve about RentMe
                 </li>
                 <li className="flex items-start gap-2">
                   <UiIcon name="arrow-right" size={14} className="mt-1 shrink-0 text-[var(--nf-brand-primary)]" />
@@ -159,7 +159,7 @@ export default function CareersPage() {
         <Reveal as="section" className="mt-14">
           <div className="nf-card p-6 text-center sm:p-8">
             <p className="text-[0.9375rem] text-[var(--nf-content-secondary)]">
-              Not looking for a job, but want to earn on NaijaFinds?
+              Not looking for a job, but want to earn on RentMe?
             </p>
             <div className="mt-4 flex justify-center">
               <Link href="/agents" className="nf-btn nf-btn--glass">

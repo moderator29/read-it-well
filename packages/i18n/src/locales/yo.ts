@@ -64,7 +64,7 @@ export const yo: Dictionary = {
     vision: {
       overline: "Ìran wa",
       title: "Nàìjíríà ní àtẹ́lẹwọ́ rẹ. Áfíríkà tẹ̀lé.",
-      body: "NaijaFinds ń kọ́ ilé tí a lè gbẹ́kẹ̀lé fún ìwádìí, ibùgbé, oúnjẹ àti ìrírí ní gbogbo Nàìjíríà, àti kọ́ńtínẹ́ǹtì náà. Àkọọ́lẹ̀ kan, àpamọ́wọ́ kan, olùrànlọ́wọ́ kan.",
+      body: "RentMe ń kọ́ ilé tí a lè gbẹ́kẹ̀lé fún ìwádìí, ibùgbé, oúnjẹ àti ìrírí ní gbogbo Nàìjíríà, àti kọ́ńtínẹ́ǹtì náà. Àkọọ́lẹ̀ kan, àpamọ́wọ́ kan, olùrànlọ́wọ́ kan.",
       missionOverline: "Iṣẹ́ àpinnu wa",
       missionTitle: "Jẹ́ kí wíwá àti ìforúkọsílẹ̀ ohunkóhun rọrùn àti ní ààbò.",
       missionBody: "Àwọn ibi tí a ti mọ̀, iye tòótọ́ ní naira, àtúnyẹ̀wò tòótọ́, àti olùrànlọ́wọ́ tí ó lóye ohun tí o fẹ́.",
@@ -155,13 +155,13 @@ export const yo: Dictionary = {
     topExperiences: "Ṣàwárí ìrírí tó ga jù",
     nearby: "Nítòsí rẹ",
     aiCard: {
-      title: "NaijaFinds AI",
+      title: "RentMe AI",
       body: "Ọ̀rẹ́ ìrìnàjò ọlọ́gbọ́n rẹ. Béèrè ohunkóhun ní èdè tí ó rọrùn.",
       action: "Béèrè lọ́wọ́ olùrànlọ́wọ́",
       samplePrompt: "Yàrá méjì ní Lekki lábẹ́ 300k pẹ̀lú adágún",
     },
     agentCard: {
-      title: "Di Aṣojú NaijaFinds",
+      title: "Di Aṣojú RentMe",
       body: "Ṣàtòjọ ohun ìní rẹ, ṣàkóso ìfipamọ́, kí o sì gbé iṣẹ́ rẹ ga.",
       action: "Di aṣojú",
     },
@@ -202,7 +202,7 @@ export const yo: Dictionary = {
       settings: "Ètò",
     },
     join: {
-      title: "Dara pọ̀ mọ́ Àwùjọ Aṣojú NaijaFinds",
+      title: "Dara pọ̀ mọ́ Àwùjọ Aṣojú RentMe",
       body: "Ṣàtòjọ ohun ìní, so pọ̀ mọ́ àwọn àlejò tí fọwọ́sí, ṣàkóso ìfipamọ́ kí o sì jèrè.",
       start: "Bẹrẹ ìbéèrè",
       resume: "Tẹsiwaju ìbéèrè",
@@ -247,7 +247,7 @@ export const yo: Dictionary = {
         bankName: "Báńkì",
         accountNumber: "Nọ́mbà àkàǹtì",
         accountName: "Orúkọ àkàǹtì",
-        agreeTerms: "Mo gba Àdéhùn Aṣojú NaijaFinds àti Ìlànà Owó.",
+        agreeTerms: "Mo gba Àdéhùn Aṣojú RentMe àti Ìlànà Owó.",
       },
       documents: {
         title: "Gbé àwọn ìwé rẹ sókè",
@@ -309,7 +309,7 @@ export const yo: Dictionary = {
   },
 
   a11y: {
-    logoHome: "Ilé NaijaFinds",
+    logoHome: "Ilé RentMe",
     openMenu: "Ṣí àkójọ",
     closeMenu: "Ti àkójọ",
     languageSwitcher: "Yí èdè padà",
