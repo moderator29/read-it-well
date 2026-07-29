@@ -4,8 +4,10 @@ import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import type { Listing } from "@/lib/listings/types";
 import { buildBookings } from "@/lib/demo/bookings";
+import { getMyBookings } from "@/lib/bookings/queries";
 import { PageHeader } from "@/components/app/PageHeader";
 import { BookingsTabs } from "@/components/app/bookings/BookingsTabs";
+import { MyBookings } from "./MyBookings";
 import { Icon, type IconName } from "@/design-system/icons/Icon";
 import { Reveal } from "@/components/site/Reveal";
 
@@ -38,12 +40,16 @@ async function getBookedStays(): Promise<Listing[]> {
  *
  * The trips hub: status tabs over the booking list, then a short strip
  * explaining how booking works so a first-time guest knows what to expect
- * before they commit.
+ * before they commit. When Supabase is configured and a user is signed in,
+ * the list is their real bookings read under RLS, with cancellation wired to
+ * the state machine; otherwise the seeded trips keep the surface alive.
  */
 export default async function BookingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const { upcoming, past } = buildBookings(await getBookedStays(), locale);
+
+  const groups = await getMyBookings(locale);
+  const seeded = groups === null ? buildBookings(await getBookedStays(), locale) : null;
 
   const steps: { icon: IconName; title: string; body: string }[] = [
     { icon: "booking", title: "Choose your dates", body: "Pick check-in and check-out on a live calendar." },
@@ -57,7 +63,11 @@ export default async function BookingsPage() {
 
       <Reveal>
         <div className="nf-card p-4 sm:p-5">
-          <BookingsTabs upcoming={upcoming} past={past} />
+          {groups ? (
+            <MyBookings groups={groups} />
+          ) : (
+            <BookingsTabs upcoming={seeded?.upcoming ?? []} past={seeded?.past ?? []} />
+          )}
         </div>
       </Reveal>
 

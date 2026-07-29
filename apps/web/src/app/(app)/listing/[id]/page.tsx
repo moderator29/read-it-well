@@ -5,10 +5,14 @@ import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { getMessageRepository } from "@/lib/messages/repository";
 import type { Listing, ListingKind } from "@/lib/listings/types";
+import Link from "next/link";
+import { formatMoney } from "@naijafinds/i18n";
+import { getBlockedDates } from "@/lib/bookings/queries";
+import { lagosToday } from "@/lib/bookings/schema";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
-import { ListingPriceCard } from "@/components/app/listing/ListingPriceCard";
-import { ListingStickyBar } from "@/components/app/listing/ListingStickyBar";
+import { ReservePanel } from "./ReservePanel";
+import { RentalPanel } from "./RentalPanel";
 import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
 import { ListingHostPanel } from "@/components/app/listing/ListingHostPanel";
 import { ListingReviews } from "@/components/app/listing/ListingReviews";
@@ -79,6 +83,16 @@ export default async function ListingDetailPage({
   // one exists, and otherwise lands on the conversation list.
   const conversationId = await getMessageRepository().conversationIdForListing(listing.id);
   const messageHref = conversationId ? `/messages/${conversationId}` : "/messages";
+
+  // Rentals are annual tenancies: no Reserve control anywhere on the page.
+  // The path is message the agent, inspect the property, then pay.
+  const isRental = listing.kind === "rental";
+
+  // Nights a guest cannot pick: booked or blocked dates from the platform
+  // calendar. Empty for catalogue listings and when Supabase is not
+  // configured, so the picker simply has nothing to refuse.
+  const blockedDates = isRental ? [] : await getBlockedDates(listing.id);
+  const today = lagosToday();
 
   const kind = KIND_LABEL[listing.kind];
   const amenityNames: Record<string, string> = {
@@ -165,8 +179,26 @@ export default async function ListingDetailPage({
           </section>
 
           {/* ------------------------------------- booking panel, mobile */}
-          <div className="mt-6 lg:hidden">
-            <ListingPriceCard listing={listing} locale={locale} t={t} messageHref={messageHref} />
+          <div id="reserve" className="mt-6 scroll-mt-20 lg:hidden">
+            {isRental ? (
+              <RentalPanel
+                listingId={listing.id}
+                priceMinor={listing.priceMinor}
+                currency={listing.currency}
+                locale={locale}
+              />
+            ) : (
+              <ReservePanel
+                listingId={listing.id}
+                priceMinor={listing.priceMinor}
+                currency={listing.currency}
+                locale={locale}
+                instantBook={listing.instantBook}
+                messageHref={messageHref}
+                blockedDates={blockedDates}
+                today={today}
+              />
+            )}
           </div>
 
           {/* ------------------------------------------------- amenities */}
@@ -184,13 +216,20 @@ export default async function ListingDetailPage({
                 {kind} in {listing.area}, {listing.city}, {stateLabel(listing.state)}.
                 {amenitySentence}
               </p>
-              <p>
-                {listing.instantBook
-                  ? "Instant Book is available on this listing, so your dates confirm as soon as you reserve."
-                  : "The agent confirms each booking request personally, so allow a little time for a response."}{" "}
-                Reserve online, then arrange an inspection with the agent through Messages. Pay
-                only after you have inspected the property.
-              </p>
+              {isRental ? (
+                <p>
+                  This home is let on an annual tenancy. Message the agent to ask questions and
+                  arrange an inspection, then pay only after you have inspected the property.
+                </p>
+              ) : (
+                <p>
+                  {listing.instantBook
+                    ? "Instant Book is available on this listing, so your dates confirm as soon as you reserve."
+                    : "The agent confirms each booking request personally, so allow a little time for a response."}{" "}
+                  Reserve online, then arrange an inspection with the agent through Messages. Pay
+                  only after you have inspected the property.
+                </p>
+              )}
             </div>
           </Reveal>
 
@@ -214,12 +253,53 @@ export default async function ListingDetailPage({
 
         {/* --------------------------------------- booking panel, desktop */}
         <aside className="hidden lg:sticky lg:top-6 lg:block">
-          <ListingPriceCard listing={listing} locale={locale} t={t} messageHref={messageHref} />
+          {isRental ? (
+            <RentalPanel
+              listingId={listing.id}
+              priceMinor={listing.priceMinor}
+              currency={listing.currency}
+              locale={locale}
+            />
+          ) : (
+            <ReservePanel
+              listingId={listing.id}
+              priceMinor={listing.priceMinor}
+              currency={listing.currency}
+              locale={locale}
+              instantBook={listing.instantBook}
+              messageHref={messageHref}
+              blockedDates={blockedDates}
+              today={today}
+            />
+          )}
         </aside>
       </div>
 
-      {/* ------------------------------------------- mobile reserve bar */}
-      <ListingStickyBar listing={listing} locale={locale} t={t} />
+      {/* ------------------------------------------- mobile action bar */}
+      <div className="sticky bottom-20 z-30 mt-8 lg:hidden">
+        <div className="nf-card flex items-center justify-between gap-3 p-3 pl-4">
+          <p className="flex min-w-0 flex-col">
+            <span className="nf-numeric truncate text-[1.0625rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
+              {formatMoney(listing.priceMinor, locale, listing.currency)}
+            </span>
+            <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
+              {isRental ? `per ${t.common.year}` : t.common.perNight}
+            </span>
+          </p>
+          {isRental ? (
+            <Link
+              href={`/messages/new?listing=${listing.id}`}
+              className="nf-btn nf-btn--primary shrink-0"
+            >
+              Message agent
+            </Link>
+          ) : (
+            <a href="#reserve" className="nf-btn nf-btn--primary shrink-0">
+              Reserve
+            </a>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

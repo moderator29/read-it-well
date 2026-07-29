@@ -1,0 +1,325 @@
+"use client";
+
+import { useActionState, useId, useMemo, useState } from "react";
+import Link from "next/link";
+import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
+import type { ActionResult } from "@/lib/actions/envelope";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+
+/**
+ * The reserve panel on a listing detail page.
+ *
+ * Native date inputs and a guest stepper feed a live kobo price breakdown,
+ * then a server action that validates everything again and writes the booking
+ * under RLS. Nights that are already booked or blocked arrive from the server
+ * and are rejected inline the moment a clashing range is picked, before any
+ * round trip. Success replaces the form with the confirmation moment; every
+ * failure states what happened and what to do next.
+ */
+
+const MS_PER_DAY = 86_400_000;
+
+function nightsBetween(checkIn: string, checkOut: string): number {
+  const a = Date.parse(`${checkIn}T00:00:00Z`);
+  const b = Date.parse(`${checkOut}T00:00:00Z`);
+  if (Number.isNaN(a) || Number.isNaN(b)) return 0;
+  return Math.round((b - a) / MS_PER_DAY);
+}
+
+function addDaysIso(iso: string, days: number): string {
+  const t = Date.parse(`${iso}T00:00:00Z`);
+  if (Number.isNaN(t)) return iso;
+  return new Date(t + days * MS_PER_DAY).toISOString().slice(0, 10);
+}
+
+const STAY_LABEL = new Intl.DateTimeFormat("en-GB", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+});
+
+function labelDate(iso: string): string {
+  return STAY_LABEL.format(new Date(`${iso}T12:00:00Z`));
+}
+
+function Stepper({
+  label,
+  name,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (next: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-[0.875rem] text-[var(--nf-content-secondary)]">{label}</span>
+      <span className="flex items-center gap-2.5">
+        <button
+          type="button"
+          aria-label={`Fewer ${label.toLowerCase()}`}
+          disabled={value <= min}
+          onClick={() => onChange(Math.max(min, value - 1))}
+          className="nf-icon-btn h-8 w-8 disabled:opacity-40"
+        >
+          <span aria-hidden="true" className="text-[1rem] leading-none">
+            &minus;
+          </span>
+        </button>
+        <span className="nf-numeric w-5 text-center text-[0.9375rem] font-semibold">{value}</span>
+        <button
+          type="button"
+          aria-label={`More ${label.toLowerCase()}`}
+          disabled={value >= max}
+          onClick={() => onChange(Math.min(max, value + 1))}
+          className="nf-icon-btn h-8 w-8 disabled:opacity-40"
+        >
+          <span aria-hidden="true" className="text-[1rem] leading-none">
+            +
+          </span>
+        </button>
+      </span>
+      <input type="hidden" name={name} value={value} />
+    </div>
+  );
+}
+
+export function ReservePanel({
+  listingId,
+  priceMinor,
+  currency,
+  locale,
+  instantBook,
+  messageHref,
+  blockedDates,
+  today,
+}: {
+  listingId: string;
+  priceMinor: number;
+  currency: string;
+  locale: Locale;
+  instantBook: boolean;
+  /** Deep link into the conversation about this listing, when one exists. */
+  messageHref: string;
+  /** ISO dates the calendar must refuse: already booked or blocked nights. */
+  blockedDates: string[];
+  /** Today in Lagos as an ISO date, computed on the server. */
+  today: string;
+}) {
+  // The panel renders twice on one page (inline on phones, sticky aside from
+  // lg up), so input ids must be instance-unique.
+  const uid = useId();
+  const [state, formAction, pending] = useActionState<
+    ActionResult<ReserveReceipt> | null,
+    FormData
+  >(reserve, null);
+
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+
+  const blocked = useMemo(() => new Set(blockedDates), [blockedDates]);
+
+  const nights = checkIn && checkOut ? nightsBetween(checkIn, checkOut) : 0;
+
+  // A stay occupies every night in [checkIn, checkOut); any blocked night in
+  // that range makes the pick impossible and says so before the round trip.
+  const clash = useMemo(() => {
+    if (!checkIn || nights < 1 || nights > 365) return false;
+    for (let i = 0; i < nights; i += 1) {
+      if (blocked.has(addDaysIso(checkIn, i))) return true;
+    }
+    return false;
+  }, [blocked, checkIn, nights]);
+
+  const dateHint =
+    checkIn && checkIn < today
+      ? "Check-in cannot be in the past. Pick today or later."
+      : checkIn && checkOut && nights < 1
+        ? "Check-out must be after check-in."
+        : nights > 365
+          ? "Stays can be up to 365 nights. Shorten the dates."
+          : clash
+            ? "Some of those nights are already taken. Pick different dates."
+            : null;
+
+  const ready = Boolean(checkIn && checkOut) && nights >= 1 && nights <= 365 && !dateHint;
+
+  const subtotalMinor = nights >= 1 ? priceMinor * nights : 0;
+  const fieldError = (key: string): string | undefined =>
+    state && !state.ok ? state.fieldErrors?.[key] : undefined;
+
+  // ------------------------------------------------- the confirmation moment
+  if (state?.ok) {
+    const r = state.data;
+    return (
+      <div className="nf-card p-5" data-testid="reserve-success">
+        <p className="flex items-center gap-2 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+          <UiIcon name="verified" size={20} className="shrink-0 text-[var(--nf-state-success)]" />
+          Booking requested
+        </p>
+        <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          {labelDate(r.checkIn)} to {labelDate(r.checkOut)}, {r.nights}{" "}
+          {r.nights === 1 ? "night" : "nights"} for {r.adults + r.children}{" "}
+          {r.adults + r.children === 1 ? "guest" : "guests"}.
+        </p>
+        <dl className="mt-3 space-y-1.5 border-t border-[var(--nf-border-subtle)] pt-3 text-[0.875rem]">
+          {r.cleaningMinor > 0 && (
+            <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
+              <dt>Cleaning</dt>
+              <dd className="nf-numeric">{formatMoney(r.cleaningMinor, locale, currency)}</dd>
+            </div>
+          )}
+          <div className="flex items-center justify-between font-semibold text-[var(--nf-content-primary)]">
+            <dt>Total</dt>
+            <dd className="nf-numeric">{formatMoney(r.totalMinor, locale, currency)}</dd>
+          </div>
+        </dl>
+        <p className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          {instantBook
+            ? "Your dates are held. We will notify you the moment the stay is confirmed."
+            : "The agent will confirm your dates personally. We will notify you the moment they do."}
+        </p>
+        <Link href="/bookings" className="nf-btn nf-btn--primary mt-4 w-full">
+          View your bookings
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="nf-card p-5" data-testid="reserve-panel">
+      <p className="flex items-baseline gap-1.5">
+        <span className="nf-numeric text-[1.5rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
+          {formatMoney(priceMinor, locale, currency)}
+        </span>
+        <span className="text-[0.8125rem] text-[var(--nf-content-muted)]">/ night</span>
+      </p>
+
+      {instantBook && (
+        <p className="mt-2 flex items-center gap-1.5 text-[0.78rem] font-semibold text-[var(--nf-state-warning)]">
+          <UiIcon name="sparkle" size={13} />
+          Instant Book available
+        </p>
+      )}
+
+      <form action={formAction} noValidate className="mt-4">
+        <input type="hidden" name="listingId" value={listingId} />
+
+        {/* ------------------------------------------------------- dates */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <div>
+            <label htmlFor={`${uid}-checkin`} className="nf-label">
+              Check-in
+            </label>
+            <input
+              id={`${uid}-checkin`}
+              name="checkIn"
+              type="date"
+              min={today}
+              value={checkIn}
+              onChange={(e) => setCheckIn(e.target.value)}
+              aria-invalid={dateHint || fieldError("checkIn") ? true : undefined}
+              className="nf-field"
+            />
+          </div>
+          <div>
+            <label htmlFor={`${uid}-checkout`} className="nf-label">
+              Check-out
+            </label>
+            <input
+              id={`${uid}-checkout`}
+              name="checkOut"
+              type="date"
+              min={checkIn ? addDaysIso(checkIn, 1) : addDaysIso(today, 1)}
+              value={checkOut}
+              onChange={(e) => setCheckOut(e.target.value)}
+              aria-invalid={dateHint || fieldError("checkOut") ? true : undefined}
+              className="nf-field"
+            />
+          </div>
+        </div>
+        {(dateHint || fieldError("checkIn") || fieldError("checkOut")) && (
+          <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
+            {dateHint ?? fieldError("checkIn") ?? fieldError("checkOut")}
+          </p>
+        )}
+
+        {/* ------------------------------------------------------ guests */}
+        <div className="mt-3.5 space-y-2.5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3.5">
+          <Stepper label="Adults" name="adults" value={adults} min={1} max={16} onChange={setAdults} />
+          <Stepper
+            label="Children"
+            name="children"
+            value={children}
+            min={0}
+            max={10}
+            onChange={setChildren}
+          />
+        </div>
+
+        {/* ---------------------------------------------- price breakdown */}
+        {ready && (
+          <dl className="mt-3.5 space-y-1.5 border-t border-[var(--nf-border-subtle)] pt-3.5 text-[0.875rem]">
+            <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
+              <dt>
+                {formatMoney(priceMinor, locale, currency)} &times; {nights}{" "}
+                {nights === 1 ? "night" : "nights"}
+              </dt>
+              <dd className="nf-numeric">{formatMoney(subtotalMinor, locale, currency)}</dd>
+            </div>
+            <div className="flex items-center justify-between font-semibold text-[var(--nf-content-primary)]">
+              <dt>Total</dt>
+              <dd className="nf-numeric">{formatMoney(subtotalMinor, locale, currency)}</dd>
+            </div>
+          </dl>
+        )}
+
+        {/* ---------------------------------------------------- failures */}
+        {state && !state.ok && (
+          <div
+            role="alert"
+            className="mt-3.5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[color-mix(in_oklab,var(--nf-state-warning)_12%,transparent)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+          >
+            {state.error}
+            {state.error.startsWith("Sign in") && (
+              <Link
+                href="/sign-in"
+                className="mt-1 block font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+              >
+                Sign in
+              </Link>
+            )}
+          </div>
+        )}
+
+        <div className="mt-4 grid gap-2.5">
+          <button
+            type="submit"
+            disabled={pending || !ready}
+            className="nf-btn nf-btn--primary w-full disabled:opacity-60"
+          >
+            {pending ? "Reserving your dates..." : "Reserve"}
+          </button>
+          <Link href={messageHref} className="nf-btn nf-btn--glass w-full">
+            Message agent
+          </Link>
+        </div>
+      </form>
+
+      <p className="mt-3.5 flex items-start gap-1.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <UiIcon name="verified" size={14} className="mt-0.5 shrink-0 text-[var(--nf-state-success)]" />
+        Pay only after you have inspected the property
+      </p>
+    </div>
+  );
+}
