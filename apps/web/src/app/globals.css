@@ -70,6 +70,11 @@ body {
   overscroll-behavior-y: none;
 }
 
+/* Pointer clicks never draw a focus rectangle; keyboard focus keeps the ring. */
+:where(a, button, input, select, textarea, [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+
 /* Every interactive element gets a visible, branded focus ring. */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--nf-brand-primary);
@@ -743,7 +748,7 @@ body {
   }
   .nf-ambient::before {
     background:
-      radial-gradient(ellipse 80% 60% at 20% 30%, rgb(0 102 255 / 0.3) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 60% at 20% 30%, rgb(0 102 255 / 0.36) 0%, transparent 55%),
       radial-gradient(ellipse 60% 80% at 80% 20%, rgb(0 200 255 / 0.12) 0%, transparent 55%),
       radial-gradient(ellipse 100% 60% at 50% 80%, rgb(0 200 255 / 0.18) 0%, transparent 55%),
       radial-gradient(ellipse 40% 40% at 70% 60%, rgb(18 48 179 / 0.16) 0%, transparent 55%);
@@ -760,7 +765,8 @@ body {
       rgb(18 48 179 / 0.24) 300deg,
       transparent 360deg);
     animation: nf-aurora-drift 30s linear infinite;
-    opacity: 0.7;
+    opacity: 0.8;
+    will-change: transform;
   }
   @keyframes nf-aurora-pulse {
     0%, 100% { opacity: 0.7; }

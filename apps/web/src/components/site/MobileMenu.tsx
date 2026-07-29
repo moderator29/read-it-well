@@ -60,7 +60,7 @@ export function MobileMenu({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
 
-          <div className="nf-rise absolute inset-y-0 right-0 flex w-[min(88vw,360px)] flex-col overflow-y-auto border-l border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-5 pb-6 pt-5 shadow-[var(--nf-shadow-float)]">
+          <div className="nf-rise absolute inset-0 flex flex-col overflow-y-auto bg-[var(--nf-surface-primary)] px-5 pb-6 pt-5">
             <div className="mb-4 flex items-center justify-between">
               <Logo size={28} wordSize={15} />
               <button

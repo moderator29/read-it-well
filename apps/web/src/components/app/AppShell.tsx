@@ -58,7 +58,7 @@ export function AppShell({
             onClick={() => setDrawer(false)}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
-          <div className="nf-rise absolute inset-y-0 left-0 w-[min(84vw,var(--nf-rail-width))] overflow-y-auto border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] shadow-[var(--nf-shadow-float)]">
+          <div className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)]">
             <AppRail t={t} active={active} userName={userName} variant="drawer" />
           </div>
         </div>
