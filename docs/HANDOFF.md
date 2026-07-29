@@ -131,7 +131,13 @@ npm workspaces monorepo:
   `[data-theme="light"]` overrides at the end of globals.css. Light mode is
   paper-first: aurora hidden, blooms at 0.07, artwork layers off.
 
-## 6. Surfaces, as built (34 routes, all green)
+## 6. Surfaces, as built (36 page routes plus 2 API routes, all green)
+
+The two API routes: **`/api/assistant`** (POST, streams the assistant reply
+over SSE, tool loop against `search_listings`, persists threads for signed-in
+users) and **`/api/paystack/webhook`** (POST, HMAC SHA-512 signature
+verified against the raw body before anything is parsed, settles
+`rm-fund-*`/`rm-wd-*` wallet ledger references).
 
 Landing `/`: hero (masked villa scene, staggered "Find it. Rent it. Love
 it.", live search card posting GET to `/search`, city chips), feature row,
@@ -158,15 +164,30 @@ card), MobileTabBar, full-page drawer, scroll-to-top on navigation.
   alias), `sort`, `view` all server-rendered and shareable.
 - `/listing/[id]`: gallery, facts, price, Reserve + Message agent, amenities,
   host, sticky mobile bar.
-- `/bookings`: tabs with three real seeded trips (kobo totals, Friday
-  snapped). `/saved`: 4-listing grid. `/messages` + `/messages/[id]`:
-  threads, image attachments, options sheet with inspection confirm.
-  `/notifications`: 5 linked items. `/wallet`: flagship demo (balance card
-  with shimmer, sparkline, eye toggle, action deck, day-grouped
-  transactions, trust strip). `/profile`, `/settings` (9 groups +
-  SupportChat that answers or honestly escalates with name/email only).
-  `/assistant`: ChatGPT-class page with sidebar (search, history, settings),
-  multi-thread localStorage store, `?q=` seeds the composer.
+- `/bookings`: tabs UI. Signed in on a configured platform this reads the
+  guest's real bookings under RLS (`lib/bookings/queries.ts`) with a working
+  cancel action; otherwise it falls back to the three seeded trips exactly
+  as before. `/saved`: 4-listing grid, still static. `/messages` +
+  `/messages/[id]` + **`/messages/new`** (new route, `?listing=<id>`, finds
+  or creates the guest's thread with that listing's agent and redirects
+  straight in): threads, image attachments, options sheet with inspection
+  confirm, all live for signed-in users on real `conversations`/`messages`
+  rows; seeded threads still carry signed-out visitors so the surface never
+  dead-ends. `/notifications`: signed-in users get their real inbox,
+  day-grouped, with Realtime prepend on arrival and read state persisted
+  through a column-scoped grant; otherwise the seeded 5-item list.
+  `/wallet`: flagship UI now driving real fund/withdraw/transfer/statement
+  actions once `PAYSTACK_SECRET_KEY` lands (balance card with shimmer,
+  sparkline, eye toggle, action deck, day-grouped transactions, trust
+  strip). `/profile`, `/settings` (9 groups + SupportChat that answers from
+  a client-side FAQ store or honestly escalates to a real `support_tickets`
+  row with name/email only). `/assistant`: ChatGPT-class page with sidebar
+  (search, history, settings), backed by a real streaming
+  `/api/assistant` route with a listing-search tool and thread persistence
+  once signed in; still a localStorage-only store on the client
+  (`nf_ai_threads`), so a persisted thread does not yet read back into the
+  sidebar on a new device or after clearing storage - the rows exist in
+  `ai_conversations`/`ai_messages`, nothing fetches them on load.
 - Auth `/sign-in`, `/sign-up` (full validation, demo button), `/agents`
   application flow. Site pages: about, careers, contact, help, privacy,
   terms (NDPA-aware), each with SiteHeader/Footer.
@@ -180,30 +201,99 @@ Data: `lib/listings/` (17 listings, 7 kinds, Unsplash CDN photos,
 ## 7. Backend, as built
 
 Supabase project `uccixoonmbhrnyczyigt` (eu-west-1, Postgres 17,
-ACTIVE_HEALTHY). 12 migrations applied via MCP `apply_migration` after
-review: identity core, locations, agents, listings, bookings (GiST
-exclusion constraint on half-open dateranges, no double booking at the
-database level), payments ledger (wallet balance derived from the ledger,
-never stored; unique reference idempotency; kind-to-direction check),
-engagement (reviews, messaging, saved), admin/trust (audit log, risk
-alerts, reports), fk covering indexes. 27 tables, RLS on every table,
-`private.*` security-definer helpers (`has_role`, `owns_listing`,
-`in_conversation`, `wallet_balance`), `security_invoker` views. App wiring:
-env-guarded browser/server/service clients in `lib/supabase/`, session
-middleware, generated types, agent application server action persisting
-under RLS.
+ACTIVE_HEALTHY). 23 migrations applied via MCP `apply_migration` (22 files
+committed under `supabase/migrations/`; see the gotcha in section 9 about
+the one migration recorded server-side with no matching file). 35 tables,
+RLS on every one of them (verified live, 0 without), `private.*`
+security-definer helpers (`has_role`, `owns_listing`, `in_conversation`,
+`wallet_balance`, `notify`), `security_invoker` views. Security advisor is
+clean (0 lints). Performance advisor shows only expected pre-launch noise on
+empty tables (multiple permissive policies where an "own row" policy sits
+alongside an admin-all policy, and unused indexes with zero rows to serve) -
+not a regression, nothing actionable before real data lands.
 
-DRAFTED BUT NOT APPLIED: `supabase/migrations/20260728171000_messaging_trust.sql`
-(message_attachments, message_flags with reason enum, `private.scan_message`
-trigger flagging `\d{10}` account numbers and payment keywords,
-inspection_confirmations). Review it, apply via MCP, then reconcile the
-filename with the server-recorded version as done before.
+Landed since the morning snapshot, all applied and live:
+
+- **`wallet`** (20260728202225): `wallets`, `wallet_entries`, derived balance
+  only via `private.wallet_balance`, never a stored column.
+- **`messaging_trust`** (20260728222112): `message_attachments`,
+  `message_flags`, `inspection_confirmations`, `private.scan_message`
+  trigger flagging `\d{10}` account-number runs and payment keywords. This
+  was "drafted but not applied" as of the morning snapshot; it is applied
+  now, and `lib/messages/actions.ts` writes through it.
+- **`rental_pricing`** (20260729112539): adds `'rental'` to
+  `property_type`, the `price_period` enum (`night`/`year`) and column on
+  `listings`, and a `settings jsonb` column on `profiles` (not yet read or
+  written by any settings UI or action - the column exists, nothing uses it
+  yet).
+- **`notifications`** (20260729112606): the `notifications` table plus
+  `notification_kind` enum, joined to the `supabase_realtime` publication
+  (alongside `messages`, added in the same migration) so unread badges and
+  the inbox update live. The fan-out is entirely trigger-driven through one
+  private writer, `private.notify`:
+  - `private.notify_booking_change` on `bookings` insert/update - tells the
+    host of a new request, the guest their request was sent, and both sides
+    on confirm/cancel.
+  - `private.notify_message` on `messages` insert - tells the other
+    participant and bumps `conversations.last_message_at`.
+  - `private.notify_wallet_entry` on `wallet_entries` insert/update -
+    originally COMPLETED-only; extended by `wallet_notify_failures`
+    (20260729172800) to also speak on a failed withdrawal or a reversal, so
+    money that quietly reappears in the balance is explained, not silent.
+  - `private.notify_support_reply` (in `support_tickets`, below) - tells the
+    ticket owner when an admin replies.
+  Clients can select, mark their own rows read (column-scoped grant on
+  `read_at` only) and delete; there is no client insert policy anywhere -
+  rows come only from triggers and the service role.
+- **`support_tickets`** (20260729112624): `support_tickets` +
+  `support_ticket_messages`, `NF-SUP-nnnnn` references, signed-in users
+  insert as themselves under RLS, anonymous escalations go through the
+  service role (no anon insert policy by design), admins get a full-table
+  policy.
+- **`assistant_threads`** (20260729112634): `ai_conversations` +
+  `ai_messages`, owner-private (no admin read policy - assistant chats are
+  personal search intent, not moderation surface).
+- **`feature_flags`** (20260729112643): one row per switchable surface
+  (`bookings`, `wallet`, `messaging`, `assistant`, `support`,
+  `agent_listings`, `hybrid_hotels`, `hybrid_restaurants`), world-readable,
+  admin-writable, fail-open on a missing table/row/network error so flags
+  can only ever turn a feature off, never break it by being absent
+  (`lib/flags.ts`, 30s in-process TTL cache).
+- **`storage_buckets`** (20260729112658) + **`storage_policy_hardening`**
+  (20260729112722): three buckets - `listing-photos` and `avatars` (public,
+  path-scoped to `<user_id>/...`) and `message-attachments` (private, path
+  under `<conversation_id>/...`). The hardening migration replaced the
+  original broad public-read policies on `listing-photos`/`avatars` with
+  owner-scoped reads once the advisor pointed out a public bucket's objects
+  serve through their public URL regardless of RLS, so a broad SELECT policy
+  only added the ability to list every file in the bucket. It also revoked
+  client EXECUTE on the platform's `rls_auto_enable` event-trigger function,
+  closing the one pre-existing advisor warning.
+- **`stale_hold_release_fn`** (20260729173300): `private.release_stale_booking_holds()`,
+  cancels PENDING bookings unconfirmed for 48 hours so an abandoned request
+  cannot lock inventory forever under the GiST exclusion constraint. It
+  exists and can be called by the service layer today, but has **no
+  schedule**: `pg_cron` is not installed on the project (confirmed live -
+  `pg_extension` has no `pg_cron` row), so nothing calls this function yet.
+  It is a real, tested capability with no trigger.
+
+The two genuinely new `private.*` functions today, beyond the notification
+fan-out family above: `private.attachment_path_access` (turns a storage
+object path's leading `<conversation_id>` segment into an RLS decision via
+`private.in_conversation`, returning false rather than throwing on a
+malformed path) and `private.release_stale_booking_holds` (above).
 
 Envs the owner will add (everything is guarded, nothing crashes without
 them): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-`SUPABASE_SERVICE_ROLE_KEY`, auth provider secrets (Google, Apple), plus
-whatever payment provider lands later. Auth email templates in
-`supabase/templates/` must be rebuilt for RentMe before wiring.
+`SUPABASE_SERVICE_ROLE_KEY`, `PAYSTACK_SECRET_KEY` (not yet supplied - every
+wallet funding/withdrawal action checks `isPaystackConfigured()` and answers
+honestly that it switches on the moment keys land), `ANTHROPIC_API_KEY` (not
+yet supplied - `/api/assistant` answers 200 with the same honest message
+rather than pretending), auth provider secrets (Google, Apple). Auth email
+templates in `supabase/templates/`, generated by
+`scripts/build-auth-emails.mjs`, are rebuilt for RentMe (navy-black canvas,
+electric blue accents, no violet) - this was the one item marked
+NaijaFinds-branded in the morning snapshot and it is done.
 
 ## 8. The end-to-end truth: feature-by-feature audit
 
@@ -287,6 +377,43 @@ possible.
 - Image cutouts: luminance keys eat dark interiors. Use the filled
   silhouette method (threshold, largest component, hole fill, feathered
   halo) as done for `rentme-city.png`.
+- `playwright-core` is a real `devDependency` of `apps/web` (`@naijafinds/web`
+  in `apps/web/package.json`), not an ad hoc install: the four Playwright
+  golden-path specs in `apps/web/tests/*.spec.mjs` (assistant, bookings,
+  messages, wallet) and `scripts/verify-shots.mjs` (the lead's screenshot
+  harness, `node scripts/verify-shots.mjs [--light] route...`, writes
+  390x844 PNGs to `scripts/.shots/`) both import it straight from the
+  workspace; no separate global install is needed.
+- The wallet ledger's reference format is a real contract other code reads,
+  not a cosmetic prefix: `rm-fund-<uuid>` (Paystack charge, settled by
+  `charge.success`), `rm-wd-<uuid>` (withdrawal hold, settled by
+  `transfer.success`/`.failed`/`.reversed`), `rm-p2p-<uuid>-out` /
+  `-in` (paired ledger legs for an internal transfer, the sender leg
+  reversed if the recipient leg cannot land). The webhook route
+  (`app/api/paystack/webhook/route.ts`) routes purely on these prefixes, so
+  never invent a new reference shape without updating it.
+- `listings.agent_id` points at `public.agents.id`, not at the auth user id.
+  To authorise "is this caller the listing's agent", join through
+  `agents.user_id` (see `confirm` in `lib/bookings/actions.ts`:
+  `.select("agent_id, agents!inner(user_id)")`, then compare
+  `listing.agents.user_id === session.user.id`). Comparing
+  `listings.agent_id` straight against `session.user.id` is always false and
+  silently locks every agent out.
+- The database currently has 23 applied migrations but only 22 files in
+  `supabase/migrations/`: `20260729174306_rls_initplan_and_fk_index` is
+  recorded server-side (it closed the 46 `auth_rls_initplan` performance
+  warnings and added missing FK-covering indexes) with no matching committed
+  file. Reconcile it - pull the applied SQL and commit the file - before
+  trusting `list_migrations` and the repo to agree again.
+- `public.listings`, `public.agents`, `public.bookings` and `public.wallets`
+  all have **zero rows** in the live database right now (verified by direct
+  count, not the advisor's estimate). Every write path (reserve, wallet
+  actions, messaging) is real and tested, but there is no DB-backed
+  inventory to exercise it against yet: agent listings CRUD (feature 15) is
+  still not built, so nothing has created a real listing row. Everything a
+  visitor sees on `/search` and `/listing/[id]` today is still the seed
+  catalogue in `lib/listings/`. Do not read "the booking loop closed" as
+  "there is real inventory" - they are separate facts.
 
 ## 10. Verification ritual (run before every commit)
 

@@ -1,22 +1,28 @@
 import "server-only";
-import type {
-  Listing,
-  ListingKind,
-  ListingRepository,
-  ListingSearchFilter,
-} from "./types";
+import { isSupabaseConfigured } from "../supabase/env";
+import { diversePick, matchesFilter } from "./filter";
+import { SupabaseListingRepository } from "./supabase-repository";
+import type { Listing, ListingRepository, ListingSearchFilter } from "./types";
 
 /**
  * Listing data access.
  *
- * The platform API does not exist yet. Rather than hardcode listings into
- * components, discovery goes through this interface from day one. Swapping the
- * seed source for the real API is a one line change here and touches no
- * component (Master Rules 8 and 66).
+ * Discovery has gone through this one interface since day one, so every
+ * surface (home, search, the map, the rent market, listing detail, bookings,
+ * the assistant tool) widens the moment the source behind it widens, with no
+ * component changes (Master Rules 8 and 66).
  *
- * Selected by NF_DATA_SOURCE:
- *   "seed" (default) local seed catalogue
- *   "api"            the real platform API, which is not built yet
+ * What the factory returns:
+ *   Supabase configured  a merged repository: real published inventory first,
+ *                        then the seed catalogue, de-duplicated by id.
+ *   otherwise            the seed catalogue alone, exactly as before.
+ *   NF_DATA_SOURCE=api   the unimplemented platform API, left untouched.
+ *
+ * The merge is deliberately one-directional in trust: first-party rows come
+ * from Postgres and lead the results, and the seed catalogue fills the shelves
+ * behind them while agent supply grows. If the database is unreachable, or the
+ * envs are absent, the seed half answers alone and discovery is byte for byte
+ * what it is today. Widening the catalogue must never be able to empty it.
  */
 
 /** Unsplash public CDN URL for a photo id, sized for the listing grid. */
@@ -604,43 +610,94 @@ const SEED: Listing[] = [
   },
 ];
 
-/** Case-insensitive haystack for free text matching. */
-function haystack(l: Listing): string {
-  return `${l.title} ${l.area} ${l.city} ${l.state} ${l.kind}`.toLowerCase();
-}
-
 class SeedListingRepository implements ListingRepository {
   readonly isSeed = true;
 
   async recommended(limit = 6): Promise<Listing[]> {
-    // Highest rated first, but never two of the same category in a row while
-    // an alternative exists, so the rail reads as a tour of the catalogue.
-    const pool = [...SEED].sort(
-      (a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount,
-    );
-    const out: Listing[] = [];
-    while (out.length < limit && pool.length > 0) {
-      const prev: ListingKind | undefined = out[out.length - 1]?.kind;
-      const idx = pool.findIndex((l) => l.kind !== prev);
-      const pick = pool.splice(idx === -1 ? 0 : idx, 1)[0];
-      if (!pick) break;
-      out.push(pick);
-    }
-    return out;
+    // Highest rated first, never two of the same category in a row while an
+    // alternative exists, so the rail reads as a tour of the catalogue.
+    return diversePick(SEED, limit);
   }
 
   async search(filter: ListingSearchFilter = {}): Promise<Listing[]> {
-    const q = filter.q?.trim().toLowerCase();
-    return SEED.filter((l) => {
-      if (filter.kind && l.kind !== filter.kind) return false;
-      if (q && !haystack(l).includes(q)) return false;
-      return true;
-    });
+    return SEED.filter((l) => matchesFilter(l, filter));
   }
 
   async byId(id: string): Promise<Listing | null> {
     // Accepts the slug as well as the id so an old deep link keeps resolving.
     return SEED.find((l) => l.id === id || l.slug === id) ?? null;
+  }
+}
+
+/** Platform listing ids are uuids; catalogue ids are not. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Real inventory first, catalogue behind it.
+ *
+ * Every method degrades in the same direction: whatever the database cannot
+ * answer, the seed catalogue answers. A thrown query, a timeout or an empty
+ * table all reduce this repository to the seed repository, which is exactly
+ * the behaviour discovery has today.
+ */
+class MergedListingRepository implements ListingRepository {
+  /**
+   * Results still contain local catalogue content, and there is no pagination
+   * cursor behind them, so this stays true until the catalogue is retired.
+   * Search reads it to keep its Load more control disabled rather than
+   * offering a page that does not exist.
+   */
+  readonly isSeed = true;
+
+  private readonly db = new SupabaseListingRepository();
+  private readonly seed = new SeedListingRepository();
+
+  private async fromDb<T>(run: () => Promise<T>, fallback: T): Promise<T> {
+    try {
+      return await run();
+    } catch {
+      return fallback;
+    }
+  }
+
+  /** Concatenate, keeping the first occurrence of each id. */
+  private static dedupe(...groups: Listing[][]): Listing[] {
+    const seen = new Set<string>();
+    const out: Listing[] = [];
+    for (const group of groups) {
+      for (const listing of group) {
+        if (seen.has(listing.id)) continue;
+        seen.add(listing.id);
+        out.push(listing);
+      }
+    }
+    return out;
+  }
+
+  async search(filter: ListingSearchFilter = {}): Promise<Listing[]> {
+    const [live, seed] = await Promise.all([
+      this.fromDb(() => this.db.search(filter), [] as Listing[]),
+      this.seed.search(filter),
+    ]);
+    return MergedListingRepository.dedupe(live, seed);
+  }
+
+  async recommended(limit = 6): Promise<Listing[]> {
+    // Diversity is applied to each half, then the halves are concatenated, so
+    // real inventory always leads the rail even while it carries few reviews.
+    const live = await this.fromDb(() => this.db.recommended(limit), [] as Listing[]);
+    if (live.length >= limit) return live.slice(0, limit);
+    const seen = new Set(live.map((l) => l.id));
+    const seed = (await this.seed.search({})).filter((l) => !seen.has(l.id));
+    return [...live, ...diversePick(seed, limit - live.length)];
+  }
+
+  async byId(id: string): Promise<Listing | null> {
+    if (UUID_RE.test(id)) {
+      const live = await this.fromDb(() => this.db.byId(id), null);
+      if (live) return live;
+    }
+    return this.seed.byId(id);
   }
 }
 
@@ -667,7 +724,7 @@ class ApiListingRepository implements ListingRepository {
 }
 
 export function getListingRepository(): ListingRepository {
-  return process.env.NF_DATA_SOURCE === "api"
-    ? new ApiListingRepository()
-    : new SeedListingRepository();
+  if (process.env.NF_DATA_SOURCE === "api") return new ApiListingRepository();
+  if (isSupabaseConfigured()) return new MergedListingRepository();
+  return new SeedListingRepository();
 }
