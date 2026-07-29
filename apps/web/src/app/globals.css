@@ -247,6 +247,58 @@ body {
     border-top: 1px solid var(--nf-border-subtle);
   }
 
+  /* ------------------------------------------------------------- live map */
+
+  /* Price pins on the live map. Rendered by Leaflet divIcons. */
+  .nf-map-pin {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translate(-50%, -100%);
+    padding: 4px 11px;
+    border-radius: var(--nf-radius-pill);
+    background: rgb(1 1 24 / 0.88);
+    border: 1px solid rgb(92 124 255 / 0.5);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    line-height: 1.25;
+    white-space: nowrap;
+    box-shadow:
+      0 6px 18px rgb(0 0 0 / 0.4),
+      0 0 14px rgb(12 57 239 / 0.35);
+    cursor: pointer;
+  }
+  .nf-map-pin i {
+    font-style: normal;
+    font-weight: 500;
+    font-size: 0.625rem;
+    color: rgb(255 255 255 / 0.65);
+  }
+  .nf-map-pin--active {
+    border-color: var(--nf-electric-300);
+    box-shadow: 0 0 20px rgb(12 57 239 / 0.6);
+  }
+  :root[data-theme="light"] .nf-map-pin {
+    background: #ffffff;
+    color: var(--nf-content-primary);
+    border-color: rgb(10 22 38 / 0.18);
+    box-shadow: 0 6px 18px rgb(10 22 38 / 0.18);
+  }
+  :root[data-theme="light"] .nf-map-pin i {
+    color: rgb(10 22 38 / 0.55);
+  }
+  /* Leaflet chrome, restyled to the theme. */
+  .leaflet-container {
+    background: var(--nf-surface-inset);
+    font-family: inherit;
+  }
+  .leaflet-control-zoom a {
+    background: var(--nf-surface-elevated) !important;
+    color: var(--nf-content-primary) !important;
+    border-color: var(--nf-border-subtle) !important;
+  }
+
   /* ------------------------------------------------------------ typography */
 
   .nf-display,
@@ -1144,11 +1196,17 @@ body {
   }
 
   /*
-   * The hero city. The artwork is a transparent cutout, so it sits directly on
-   * the ambient waves; the drop shadow is its ground glow.
+   * The hero villa. A framed cinematic still: rounded, edge lit, and grounded
+   * by an electric glow so it belongs to the canvas instead of sitting on it.
    */
   .nf-hero-city {
-    filter: saturate(1.05) drop-shadow(0 34px 70px rgb(12 57 239 / 0.4));
+    border-radius: var(--nf-radius-xl);
+    border: 1px solid rgb(92 124 255 / 0.4);
+    box-shadow:
+      0 0 0 1px rgb(12 57 239 / 0.25),
+      0 24px 70px -18px rgb(12 57 239 / 0.55),
+      0 0 44px rgb(12 57 239 / 0.28);
+    filter: saturate(1.05);
   }
 
   /* A second, slower float on an offset phase, for scattered accent objects. */
@@ -1272,6 +1330,12 @@ body {
     background: rgb(10 22 38 / 0.04);
     border-color: rgb(10 22 38 / 0.14);
   }
+  /*
+   * Daylight is paper-first: near-white canvas, no neon wash. The waves, the
+   * ribbon and the pointer bloom belong to the night theme; daylight keeps
+   * only the faintest sky blooms so the page still has depth without ever
+   * reading blue.
+   */
   :root[data-theme="light"] .nf-ambient {
     background-image: none;
   }
@@ -1280,13 +1344,30 @@ body {
   }
   :root[data-theme="light"] .nf-ambient > span:nth-child(2),
   :root[data-theme="light"] .nf-ambient > span:nth-child(3) {
-    opacity: 0.35;
+    opacity: 0.12;
+  }
+  :root[data-theme="light"] .nf-ambient > span:nth-child(4) {
+    display: none !important;
   }
   :root[data-theme="light"] .nf-ambient::before {
-    opacity: 0.5;
+    opacity: 0.12;
   }
   :root[data-theme="light"] .nf-ambient::after {
-    opacity: 0.18;
+    display: none;
+  }
+  :root[data-theme="light"] .nf-aurora {
+    opacity: 0.15;
+  }
+  :root[data-theme="light"] .nf-grid-veil {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-hero-city {
+    border-color: rgb(10 22 38 / 0.12);
+    box-shadow: 0 24px 60px -18px rgb(10 22 38 / 0.25);
+  }
+  /* The mark's white strokes need an edge on paper to stay visible. */
+  :root[data-theme="light"] .nf-logo img {
+    filter: drop-shadow(0 0 1px rgb(10 22 38 / 0.55)) drop-shadow(0 2px 4px rgb(10 22 38 / 0.25));
   }
   :root[data-theme="light"] .nf-grain {
     opacity: 0.03;

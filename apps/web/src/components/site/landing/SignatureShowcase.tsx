@@ -61,18 +61,14 @@ export function VillaShowcase() {
             </Link>
           </div>
 
-          <div className="relative min-h-[240px] sm:min-h-[340px] lg:min-h-0">
+          <div className="relative flex min-h-[240px] items-center justify-center p-6 sm:min-h-[320px] sm:p-8">
             <Image
-              src="/brand/rentme-villa.png"
-              alt="A neon-lit RentMe waterfront villa at night"
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
-            {/* Feather the artwork into the glass on the seam side. */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-t from-[rgb(1_1_24_/_0.55)] via-transparent to-transparent lg:bg-gradient-to-r lg:from-[rgb(1_1_24_/_0.6)] lg:via-transparent lg:to-transparent"
+              src="/brand/rentme-city.png"
+              alt="The neon RentMe city island"
+              width={1536}
+              height={888}
+              sizes="(max-width: 1024px) 90vw, 46vw"
+              className="h-auto w-full max-w-[580px] drop-shadow-[0_30px_60px_rgba(12,57,239,0.45)]"
             />
           </div>
         </div>

@@ -94,23 +94,22 @@ export default async function LandingPage() {
           </div>
 
           {/*
-           * Mobile: the neon city rises to the right of the headline, part of
-           * the opening frame. The artwork is a transparent cutout, so it sits
-           * straight on the ambient waves with no rectangle and no scrim.
-           * Hidden at lg, where the city gets its own column instead.
+           * Mobile: the neon villa rises framed to the right of the headline,
+           * part of the opening frame. Hidden at lg, where it gets its own
+           * column instead.
            */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden lg:hidden"
           >
-            <div className="nf-float absolute right-0 top-[3%] w-[60%] max-w-[340px]">
+            <div className="nf-float absolute right-3 top-[4%] w-[56%] max-w-[330px]">
               <Image
-                src="/brand/rentme-city.png"
+                src="/brand/rentme-villa.png"
                 alt=""
                 width={1536}
-                height={888}
+                height={1024}
                 priority
-                sizes="60vw"
+                sizes="56vw"
                 className="nf-hero-city h-auto w-full"
               />
             </div>
@@ -176,15 +175,15 @@ export default async function LandingPage() {
               </ul>
             </div>
 
-            {/* --------------------------------------- the RentMe city (desktop) */}
+            {/* -------------------------------------- the RentMe villa (desktop) */}
             <div className="relative hidden lg:block">
               <div className="nf-float">
                 <Image
-                  src="/brand/rentme-city.png"
+                  src="/brand/rentme-villa.png"
                   alt=""
                   aria-hidden="true"
                   width={1536}
-                  height={888}
+                  height={1024}
                   priority
                   sizes="(max-width: 1280px) 46vw, 640px"
                   className="nf-hero-city h-auto w-full"

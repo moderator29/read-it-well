@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
+import { RealMap } from "@/components/app/search/RealMap";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import type { Listing, ListingKind } from "@/lib/listings/types";
@@ -89,17 +89,14 @@ function searchHref(
   return qs ? `/search?${qs}` : "/search";
 }
 
-/**
- * Where each catalogue city glows on the commissioned map artwork, as
- * percentages of its box. Hand placed against the render, not geodata.
- */
-const MAP_PINS: Record<string, { left: number; top: number }> = {
-  Lagos: { left: 16, top: 57 },
-  Ibadan: { left: 19, top: 47 },
-  Abuja: { left: 42.5, top: 42 },
-  Enugu: { left: 52, top: 63 },
-  "Port Harcourt": { left: 44.5, top: 80 },
-  Calabar: { left: 60, top: 83 },
+/** Real coordinates for the covered cities. */
+const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
+  Lagos: { lat: 6.5244, lng: 3.3792 },
+  Ibadan: { lat: 7.3775, lng: 3.947 },
+  Abuja: { lat: 9.0765, lng: 7.3986 },
+  Enugu: { lat: 6.4584, lng: 7.5464 },
+  "Port Harcourt": { lat: 4.8156, lng: 7.0498 },
+  Calabar: { lat: 4.9757, lng: 8.3417 },
 };
 
 export default async function SearchPage({
@@ -282,51 +279,21 @@ export default async function SearchPage({
       {view === "map" && (
         <Reveal className="mt-5" delay={60}>
           <div className="nf-card relative overflow-hidden p-0">
-            <Image
-              src="/brand/rentme-map.png"
-              alt="Map of Nigeria with covered cities lit"
-              width={1536}
-              height={1024}
-              sizes="(max-width: 1024px) 100vw, 1080px"
-              className="h-auto w-full"
-              priority
-            />
-            {/* Price pins. Each is a real link into that city's results. */}
-            <ul>
-              {Object.entries(MAP_PINS).map(([city, pos]) => {
+            <RealMap
+              active={q?.trim()}
+              pins={Object.entries(CITY_COORDS).flatMap(([city, at]) => {
                 const floor = cityFloor.get(city);
-                if (!floor) return null;
-                const active = q?.trim().toLowerCase() === city.toLowerCase();
-                return (
-                  <li
-                    key={city}
-                    className="absolute -translate-x-1/2 -translate-y-full"
-                    style={{ left: `${pos.left}%`, top: `${pos.top}%` }}
-                  >
-                    <Link
-                      href={searchHref(city, type, sort)}
-                      prefetch
-                      aria-label={`${city}: ${floor.count} places from ${formatMoney(floor.minMinor, locale, floor.currency)} a night`}
-                      className={`nf-glass flex flex-col items-center rounded-[var(--nf-radius-pill)] border px-2 py-1 shadow-[var(--nf-shadow-lifted)] transition-transform hover:scale-105 sm:px-3 sm:py-1.5 ${
-                        active
-                          ? "border-[var(--nf-electric-300)] shadow-[0_0_18px_rgb(12_57_239/0.5)]"
-                          : "border-[var(--nf-border-subtle)]"
-                      }`}
-                    >
-                      <span className="nf-numeric whitespace-nowrap text-[0.6875rem] font-bold leading-tight text-[var(--nf-content-primary)] sm:text-[0.8125rem]">
-                        {formatMoney(floor.minMinor, locale, floor.currency)}
-                      </span>
-                      <span className="hidden whitespace-nowrap text-[0.6875rem] text-[var(--nf-content-muted)] sm:block">
-                        {city}
-                      </span>
-                    </Link>
-                  </li>
-                );
+                if (!floor) return [];
+                return [
+                  {
+                    city,
+                    ...at,
+                    count: floor.count,
+                    price: formatMoney(floor.minMinor, locale, floor.currency),
+                  },
+                ];
               })}
-            </ul>
-            <p className="nf-glass absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-[var(--nf-radius-pill)] px-3.5 py-1.5 text-[0.75rem] text-[var(--nf-content-secondary)]">
-              Tap a price to explore that city
-            </p>
+            />
           </div>
         </Reveal>
       )}

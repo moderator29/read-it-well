@@ -42,7 +42,7 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
                   "flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-[var(--nf-radius-md)] px-1 py-1.5 text-[0.6875rem] font-semibold transition-colors",
                   isActive
                     ? "text-[var(--nf-electric-300)]"
-                    : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",
+                    : "text-[var(--nf-content-primary)] opacity-75 hover:opacity-100",
                 ].join(" ")}
               >
                 {/* Stroked glyph; the active tab draws a heavier line. */}

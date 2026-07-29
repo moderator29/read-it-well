@@ -27,7 +27,7 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
       <div className="nf-glass border-b border-transparent">
         <div className="nf-shell flex h-[60px] items-center justify-between gap-4 sm:h-[72px] sm:gap-6">
           <Link href="/" aria-label={t.a11y.logoHome} className="shrink-0">
-            <Logo size={30} wordSize={16} responsive priority />
+            <Logo size={40} wordSize={19} responsive priority />
           </Link>
 
           <nav aria-label={t.nav.primaryLabel} className="hidden items-center gap-1 lg:flex">
@@ -35,7 +35,7 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
               <Link
                 key={l.href}
                 href={l.href}
-                className="rounded-[var(--nf-radius-sm)] px-3.5 py-2 text-[0.9rem] font-medium text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
+                className="rounded-[var(--nf-radius-sm)] px-3.5 py-2 text-[0.9rem] font-medium text-[var(--nf-content-primary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
               >
                 {l.label}
               </Link>
