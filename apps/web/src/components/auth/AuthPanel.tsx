@@ -5,8 +5,10 @@ import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import type { AuthFormState } from "@/lib/auth/actions";
 import type { ProviderId, ProviderState } from "@/lib/auth/providers";
+import { HEAR_ABOUT_OPTIONS } from "@/lib/auth/signup-options";
+import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { AppleMark, GoogleMark, MailMark, XMark } from "./ProviderMarks";
+import { AppleMark, GoogleMark, MailMark } from "./ProviderMarks";
 
 const EMPTY: AuthFormState = { ok: false };
 
@@ -14,9 +16,14 @@ const EMPTY: AuthFormState = { ok: false };
  * Auth panel.
  *
  * Layout follows the supplied reference: heading, sub, then a stack of full
- * width provider rows. The reference shows Email, Google and X. Apple is added
- * because App Store guideline 4.8 requires Sign in with Apple wherever other
- * third party sign in is offered, and the product ships on iOS.
+ * width provider rows. Google and Apple are offered alongside email. Apple is
+ * kept because App Store guideline 4.8 requires Sign in with Apple wherever
+ * other third party sign in is offered, and the product ships on iOS.
+ *
+ * Sign-up collects the full profile (names, discovery source, state, optional
+ * referral); sign-in stays lean with email and password only. The extra
+ * sign-up copy is authored here in English until the auth dictionary grows the
+ * matching keys.
  */
 export function AuthPanel({
   mode,
@@ -31,6 +38,8 @@ export function AuthPanel({
 }) {
   const [state, formAction, pending] = useActionState(action, EMPTY);
   const [showEmail, setShowEmail] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const isSignUp = mode === "sign-up";
 
   const configured = (id: ProviderId) => providers.find((p) => p.id === id)?.configured ?? false;
@@ -38,8 +47,11 @@ export function AuthPanel({
   const oauth: { id: ProviderId; label: string; mark: React.ReactNode }[] = [
     { id: "google", label: t.auth.continueWithGoogle, mark: <GoogleMark /> },
     { id: "apple", label: t.auth.continueWithApple, mark: <AppleMark /> },
-    { id: "x", label: t.auth.continueWithX, mark: <XMark /> },
   ];
+
+  // Live mismatch feedback on the confirm field; the server re-checks it.
+  const mismatch = confirm.length > 0 && confirm !== password;
+  const confirmError = mismatch ? "Passwords do not match." : state.fieldErrors?.confirmPassword;
 
   return (
     <div className="w-full">
@@ -92,16 +104,40 @@ export function AuthPanel({
              its shape and nothing jumps. */
           <form action={formAction} className="nf-rise space-y-3.5 text-left" noValidate>
             {isSignUp && (
-              <Field
-                id="fullName"
-                name="fullName"
-                type="text"
-                label={t.auth.fullNameLabel}
-                placeholder={t.auth.fullNamePlaceholder}
-                autoComplete="name"
-                error={state.fieldErrors?.fullName}
-              />
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    label="First name"
+                    placeholder="Ada"
+                    autoComplete="given-name"
+                    error={state.fieldErrors?.firstName}
+                  />
+                  <Field
+                    id="surname"
+                    name="surname"
+                    type="text"
+                    label="Surname"
+                    placeholder="Okafor"
+                    autoComplete="family-name"
+                    error={state.fieldErrors?.surname}
+                  />
+                </div>
+                <Field
+                  id="nickname"
+                  name="nickname"
+                  type="text"
+                  label="Nickname"
+                  optional
+                  placeholder="What friends call you"
+                  autoComplete="nickname"
+                  error={state.fieldErrors?.nickname}
+                />
+              </>
             )}
+
             <Field
               id="email"
               name="email"
@@ -111,13 +147,59 @@ export function AuthPanel({
               autoComplete="email"
               error={state.fieldErrors?.email}
             />
+
             <PasswordField
               id="password"
               label={t.auth.passwordLabel}
               placeholder={t.auth.passwordPlaceholder}
               autoComplete={isSignUp ? "new-password" : "current-password"}
               error={state.fieldErrors?.password}
+              value={password}
+              onChange={setPassword}
             />
+            {isSignUp && <StrengthMeter password={password} />}
+
+            {isSignUp && (
+              <>
+                <PasswordField
+                  id="confirmPassword"
+                  label="Confirm password"
+                  placeholder="Repeat your password"
+                  autoComplete="new-password"
+                  error={confirmError}
+                  value={confirm}
+                  onChange={setConfirm}
+                />
+
+                <SelectField
+                  id="hearAbout"
+                  name="hearAbout"
+                  label="Where did you hear about us"
+                  placeholder="Select an option"
+                  options={HEAR_ABOUT_OPTIONS}
+                  error={state.fieldErrors?.hearAbout}
+                />
+                <SelectField
+                  id="state"
+                  name="state"
+                  label="Where do you stay"
+                  placeholder="Select your state"
+                  options={NIGERIAN_STATES}
+                  error={state.fieldErrors?.state}
+                />
+
+                <Field
+                  id="referralCode"
+                  name="referralCode"
+                  type="text"
+                  label="Referral code"
+                  optional
+                  placeholder="Enter your code"
+                  autoComplete="off"
+                  error={state.fieldErrors?.referralCode}
+                />
+              </>
+            )}
 
             <button
               type="submit"
@@ -183,6 +265,29 @@ export function AuthPanel({
   );
 }
 
+/** Label row with an optional marker chip for non-required fields. */
+function LabelRow({ htmlFor, label, optional }: { htmlFor: string; label: string; optional?: boolean }) {
+  return (
+    <span className="flex items-center justify-between gap-2">
+      <label htmlFor={htmlFor} className="nf-label">
+        {label}
+      </label>
+      {optional && (
+        <span className="nf-chip mb-1.5 px-2 py-0.5 text-[0.625rem]">Optional</span>
+      )}
+    </span>
+  );
+}
+
+function FieldError({ id, error }: { id: string; error?: string }) {
+  if (!error) return null;
+  return (
+    <p id={id} role="alert" className="mt-1.5 text-[0.75rem] text-[var(--nf-state-error)]">
+      {error}
+    </p>
+  );
+}
+
 function Field({
   id,
   name,
@@ -191,6 +296,7 @@ function Field({
   placeholder,
   autoComplete,
   error,
+  optional,
 }: {
   id: string;
   name: string;
@@ -199,13 +305,12 @@ function Field({
   placeholder: string;
   autoComplete: string;
   error?: string;
+  optional?: boolean;
 }) {
   const errorId = `${id}-error`;
   return (
     <div>
-      <label htmlFor={id} className="nf-label">
-        {label}
-      </label>
+      <LabelRow htmlFor={id} label={label} optional={optional} />
       <input
         id={id}
         name={name}
@@ -216,11 +321,72 @@ function Field({
         aria-describedby={error ? errorId : undefined}
         className="nf-field"
       />
-      {error && (
-        <p id={errorId} role="alert" className="mt-1.5 text-[0.75rem] text-[var(--nf-state-error)]">
-          {error}
-        </p>
-      )}
+      <FieldError id={errorId} error={error} />
+    </div>
+  );
+}
+
+/**
+ * Native select dressed as a platform field. The browser picker keeps the
+ * control fully accessible on mobile; only the closed face is restyled, with
+ * an inline chevron replacing the platform arrow.
+ */
+function SelectField({
+  id,
+  name,
+  label,
+  placeholder,
+  options,
+  error,
+}: {
+  id: string;
+  name: string;
+  label: string;
+  placeholder: string;
+  options: readonly string[];
+  error?: string;
+}) {
+  const errorId = `${id}-error`;
+  return (
+    <div>
+      <LabelRow htmlFor={id} label={label} />
+      <div className="relative">
+        <select
+          id={id}
+          name={name}
+          defaultValue=""
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          className="nf-field appearance-none pr-11"
+        >
+          <option value="" disabled>
+            {placeholder}
+          </option>
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-[var(--nf-content-muted)]"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </span>
+      </div>
+      <FieldError id={errorId} error={error} />
     </div>
   );
 }
@@ -230,7 +396,9 @@ function Field({
  *
  * The toggle is a real button (not a decorated span) so it is reachable by
  * keyboard, and it announces its state via aria-pressed plus a swapped label.
- * Toggling only flips the input type; the value never leaves the field.
+ * Toggling only flips the input type; the value never leaves the field. The
+ * value is controlled by the parent so the strength meter and the confirm
+ * check can react as the user types.
  */
 function PasswordField({
   id,
@@ -238,21 +406,23 @@ function PasswordField({
   placeholder,
   autoComplete,
   error,
+  value,
+  onChange,
 }: {
   id: string;
   label: string;
   placeholder: string;
   autoComplete: string;
   error?: string;
+  value: string;
+  onChange: (next: string) => void;
 }) {
   const [visible, setVisible] = useState(false);
   const errorId = `${id}-error`;
 
   return (
     <div>
-      <label htmlFor={id} className="nf-label">
-        {label}
-      </label>
+      <LabelRow htmlFor={id} label={label} />
       <div className="relative">
         <input
           id={id}
@@ -260,6 +430,8 @@ function PasswordField({
           type={visible ? "text" : "password"}
           placeholder={placeholder}
           autoComplete={autoComplete}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           className="nf-field pr-12"
@@ -274,11 +446,71 @@ function PasswordField({
           <EyeGlyph off={visible} />
         </button>
       </div>
-      {error && (
-        <p id={errorId} role="alert" className="mt-1.5 text-[0.75rem] text-[var(--nf-state-error)]">
-          {error}
-        </p>
-      )}
+      <FieldError id={errorId} error={error} />
+    </div>
+  );
+}
+
+type StrengthScore = 0 | 1 | 2 | 3 | 4;
+
+/**
+ * Client-side strength estimate from length, letter case, digits and symbols.
+ * Anything under 8 characters is always weak, matching the server minimum.
+ * This is guidance only; the server never trusts it.
+ */
+function scorePassword(pw: string): StrengthScore {
+  if (!pw) return 0;
+  if (pw.length < 8) return 1;
+  let met = 1; // length criterion already met
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) met += 1;
+  if (/\d/.test(pw)) met += 1;
+  if (/[^A-Za-z0-9]/.test(pw)) met += 1;
+  return met as StrengthScore;
+}
+
+const STRENGTH_LABELS: Record<StrengthScore, string> = {
+  0: "",
+  1: "Weak",
+  2: "Fair",
+  3: "Good",
+  4: "Strong",
+};
+
+const STRENGTH_COLOURS: Record<StrengthScore, string> = {
+  0: "transparent",
+  1: "var(--nf-state-error)",
+  2: "var(--nf-state-warning)",
+  3: "var(--nf-electric-300)",
+  4: "var(--nf-state-success)",
+};
+
+/** Four-segment strength bar with a text label, announced politely. */
+function StrengthMeter({ password }: { password: string }) {
+  const score = scorePassword(password);
+  const colour = STRENGTH_COLOURS[score];
+
+  return (
+    <div className="-mt-1.5">
+      <div className="flex items-center gap-2.5">
+        <div className="flex flex-1 gap-1.5">
+          {([1, 2, 3, 4] as const).map((segment) => (
+            <span
+              key={segment}
+              className="h-1 flex-1 rounded-full transition-colors"
+              style={{
+                background: segment <= score ? colour : "var(--nf-border-subtle)",
+              }}
+            />
+          ))}
+        </div>
+        <span
+          aria-live="polite"
+          className="min-w-[3.25rem] text-right text-[0.6875rem] font-semibold"
+          style={{ color: score === 0 ? "var(--nf-content-muted)" : colour }}
+        >
+          {STRENGTH_LABELS[score]}
+        </span>
+      </div>
     </div>
   );
 }
