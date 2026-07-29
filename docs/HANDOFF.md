@@ -274,7 +274,7 @@ NEEDS WORK, in priority order:
 ```
 cd apps/web && npx tsc --noEmit && rm -rf .next && npm run build
 grep -rn "NaijaFinds" apps/web/src packages/i18n/src   # expect none in copy
-grep -rnP "\x{2014}" apps packages docs           # em dash scan, expect none
+grep -rn "$(printf '\xe2\x80\x94')" apps packages docs   # em dash scan, expect none
 ```
 
 Then screenshot the touched surfaces at 390px dark (and light if styling
