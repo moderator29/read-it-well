@@ -478,3 +478,232 @@ stops outbound calls, contributing zero results rather than accruing
 uncontrolled spend, once it approaches the free quota, exactly matching the
 "a provider that errors or has no key contributes zero results" failure rule
 already written into the spec. **Phase.** E. **Effort.** S.
+
+---
+
+## Post-closure audit (2026-07-29, second pass)
+
+Bookings, wallet with Paystack, messaging with realtime and the trust
+scanner, and the Claude-powered assistant with support tickets have now
+shipped and were read end to end for this pass: `bookings/actions.ts`,
+`wallet/actions.ts`, `wallet/ledger.ts`, the Paystack webhook route,
+`messages/actions.ts`, `api/assistant/route.ts` and `support/actions.ts`.
+Four more builders are closing now: agent listings CRUD with the photo
+quality gate, the admin console queues, the Supabase catalogue repository
+swap with the saved loop, and profile plus settings. The twelve
+recommendations below are grounded directly in what the shipped code does
+today, not in what it is planned to do: gaps a careful reading of the
+actual files reveals, ahead of the four builds now landing on top of them.
+
+### R-41. The wallet notification trigger tells nobody when a withdrawal fails or reverses
+**Problem.** `private.notify_wallet_entry()` in
+`supabase/migrations/20260729112606_notifications.sql` only fires
+`where (tg_op = 'INSERT' and new.status = 'COMPLETED') or (tg_op = 'UPDATE'
+and new.status = 'COMPLETED' ...)`. The Paystack webhook route
+(`api/paystack/webhook/route.ts`) calls `settleWithdrawal(admin, reference,
+"FAILED")` and `settleWithdrawal(admin, reference, "REVERSED")` on
+`transfer.failed` and `transfer.reversed`, and `wallet/actions.ts` itself
+sets a hold to `FAILED` when `initiateTransfer` throws. None of those three
+status writes reach the user: the row updates silently and the wallet page
+only shows it on next visit. **Why now.** Withdrawals are live money now,
+and a failed or reversed transfer is exactly the moment a user most needs to
+know their money did not leave, or did not arrive, without refreshing the
+wallet page to find out. **Approach.** Extend the trigger's `where` clause
+to also fire on `new.status in ('FAILED', 'REVERSED')` regardless of the old
+status, with its own copy ("Your withdrawal could not be completed, and your
+balance is unaffected" for FAILED, "Your withdrawal was reversed by the
+bank, and the funds are back in your wallet" for REVERSED), reusing the
+existing direction/amount formatting already in the function. **Phase.** B.
+**Effort.** S.
+
+### R-42. Privileged actions write nothing to the audit log the schema already promises
+**Problem.** `public.audit_log` exists precisely for this
+(`supabase/migrations/20260728152539_admin_trust.sql`: "every privileged
+action gets a row, and there is no update or delete policy"), but a
+repository-wide check shows no application code writes to it: not
+`bookings/actions.ts confirm()` (an agent or admin overriding a guest's
+booking state), not the wallet withdraw or transfer paths, not
+`support/actions.ts`. The table is read-ready for admins and completely
+unfed. **Why now.** `confirm()` is exactly the kind of privileged,
+cross-user action Master Rule 13 exists to cover, and it is live today with
+zero audit trail; every further privileged surface landing this phase
+(agent approvals, listing review, admin queue actions) will repeat the same
+gap unless the pattern is set now. **Approach.** Add a small
+`recordAudit(admin, { actorId, action, entityType, entityId, metadata })`
+helper next to the ledger and wallet helpers, call it from `confirm()`
+first (action `booking.confirm`, entity the booking id), then require it in
+review for every admin-console mutation landing in this phase. **Phase.** B
+into D. **Effort.** S.
+
+### R-43. The assistant's request throttle lives in one process's memory
+**Problem.** `api/assistant/route.ts`'s `allowRequest()` reads and writes a
+module-level `Map<string, Bucket>`, keyed by the caller's IP, to cap
+requests. On any deployment that runs more than one server instance, or that
+recycles instances (cold starts, redeploys, autoscaling), each instance
+keeps its own bucket: a caller effectively gets one full `BUCKET_CAPACITY`
+allowance per instance rather than one allowance total, and every restart
+resets it to full. **Why now.** The route now calls the real Claude API and
+bills real tokens per message (the exact risk R-37 already names for the
+tool layer); the one throttle standing between a scripted caller and an
+unbounded bill is not actually global. **Approach.** Move the bucket to a
+shared store the deployment already has (a Postgres table read and written
+through the service role with a single upsert-and-check, or Redis if one is
+provisioned), keyed by IP and, once R-37's per-user counter lands, by user
+id too. Keep the in-memory map only as a same-instance fast path in front of
+it. **Phase.** C. **Effort.** S to M.
+
+### R-44. Booking reserve has no rate limit at all, unlike the messaging create-path already planned
+**Problem.** `bookings/actions.ts reserve()` validates the session, the
+feature flag and the input shape, then inserts directly. Nothing counts how
+many `PENDING` bookings one guest has created recently. R-36 already flags
+this exact class of risk for conversation creation; reserve carries the
+same shape of risk against a scarcer resource. **Why now.** Until R-23's
+hold-expiry job ships, a `PENDING` booking holds real inventory for the
+whole abandonment window; a guest (or a script using a leaked session)
+repeatedly reserving and abandoning different listings can lock out
+genuine bookers across many properties at once, at zero cost to the actor.
+**Approach.** The same shape of guard as R-36: reject `reserve()` past a
+small per-guest count of `PENDING` bookings created in the last hour
+(count `bookings` where `guest_id = auth.uid()` and `status = 'PENDING'`
+and `created_at > now() - interval '1 hour'`), with a clear client message
+rather than the generic failure. **Phase.** B. **Effort.** S.
+
+### R-45. A P2P transfer's two ledger legs can still be split by a process crash, not just a thrown error
+**Problem.** `wallet/actions.ts transferToUser()` posts the sender's
+`transfer_out` leg, then posts the recipient's `transfer_in` leg inside a
+`try`/`catch` that reverses the first leg if the second call *throws*. That
+covers a Paystack-style failure, but the two legs are still two separate
+JavaScript-level awaits: if the process is killed between them (a deploy,
+an OOM, a platform restart) rather than the second call throwing, the
+sender's leg is left `COMPLETED` with the money genuinely gone and no
+`transfer_in` row and no reversal ever runs, because the catch block that
+would reverse it never executes. R-26 already proposes the correct fix, a
+single paired-insert Postgres function; this item is the interim
+mitigation while that lands. **Why now.** P2P is live and moving real
+balances today, and this exact crash window exists in the shipped code
+right now, not just hypothetically. **Approach.** A short reconciliation
+query, run by R-21's job runway, that finds `wallet_entries` with
+`kind = 'transfer_out'` and `status = 'COMPLETED'` whose reference
+`rm-p2p-<pair_id>-out` has no matching `rm-p2p-<pair_id>-in` row after a
+short grace period (a minute or two, to avoid racing the action's own
+awaits), and reverses the orphaned leg automatically, writing a
+`risk_alerts` row so the case is visible. **Phase.** B. **Effort.** S.
+
+### R-46. Stuck PENDING withdrawal holds need a per-entry Paystack status check, not only a nightly total
+**Problem.** `withdraw()`'s own catch block says it plainly: if
+`setEntryStatus(admin, reference, "FAILED", ...)` itself fails after
+`initiateTransfer` has already thrown, "the hold stays PENDING;
+reconciliation settles it against Paystack." R-29's nightly reconciliation
+compares day-level sums against Paystack's transaction list, which will
+notice the total is off but will not identify or resolve the specific
+stuck row, and a withdrawal whose Paystack call never definitively
+succeeded or failed (a timeout mid-call, for instance) never gets a webhook
+event to settle it at all. **Why now.** This is a named, acknowledged gap
+in the code that ships with real transfers this phase, not a hypothetical.
+**Approach.** A job (R-21) distinct from the nightly totals check: list
+`wallet_entries` where `kind = 'withdrawal'` and `status = 'PENDING'` and
+`created_at` older than a short window (a few minutes, well past normal
+transfer latency), and for each, call Paystack's transfer-status endpoint
+directly by reference and settle it to `COMPLETED`, `FAILED` or `REVERSED`
+accordingly, or leave it and alert if Paystack itself has no record of the
+reference. **Phase.** B. **Effort.** M.
+
+### R-47. The P2P transfer form lets anyone probe which email addresses have a RentMe wallet
+**Problem.** `transferToUser()` returns the field error "No RentMe account
+uses that email address yet" when `findUserByEmail()` comes back empty, and
+a different, generic path otherwise. Paired with having no rate limit of
+its own, a script can iterate a list of emails against this action and
+learn, one HTTP response at a time, which ones are RentMe users. **Why
+now.** Wallet actions are the first surface this phase where account
+existence is directly and cheaply enumerable through a signed-in session.
+**Approach.** Do the recipient lookup after the amount and balance checks
+pass, and on no match, return the same shape of generic failure used
+elsewhere ("We could not complete this transfer. Check the recipient's
+email and try again.") rather than a distinguishing field error; add this
+action to whatever per-user throttle R-43's shared store ends up backing.
+**Phase.** B. **Effort.** S.
+
+### R-48. message_flags, risk_alerts and reports record no reviewer, only a status
+**Problem.** All three tables (`supabase/migrations/20260728222112_messaging_trust.sql`
+and `20260728152539_admin_trust.sql`) carry a `status` column and, for two
+of the three, a `resolved_at` timestamp, but none of them carry a
+`reviewed_by` or `resolved_by` user id. Once R-34's queue (or the full
+admin console now being built) lets an admin mark a flag reviewed or an
+alert resolved, there will be no record of which admin did it. **Why now.**
+This is a schema change, cheapest to make before the admin console's mutate
+actions are written against the current shape, not after. **Approach.** Add
+`reviewed_by uuid references auth.users(id)` to `message_flags` and
+`resolved_by uuid references auth.users(id)` to `risk_alerts` and
+`reports`, set by the admin action at the same moment as the status change,
+and surfaced in the console list so a reviewed item shows who closed it.
+Pairs directly with R-42's audit log helper, which should also fire on
+these same actions. **Phase.** D. **Effort.** S.
+
+### R-49. Nothing server-side enforces the photo quality gate that `HYBRID_INVENTORY.md` §5 specifies
+**Problem.** `supabase/migrations/20260729112658_storage_buckets.sql`
+creates the public `listing-photos` bucket with a write policy of
+`(storage.foldername(name))[1] = auth.uid()::text`: any signed-in user,
+approved agent or not, can upload any file, of any size, count or
+resolution, into their own folder in a public bucket today. None of §5's
+admission rules (minimum 4 photos, minimum 1600px wide, landscape cover,
+auto-enhance, EXIF strip, duplicate and watermark detection) exist
+anywhere in the storage layer or, since the CRUD flow is not built yet, in
+application code either. **Why now.** Agent listings CRUD is the builder
+closing right now; the bucket and its RLS already ship ahead of it, so the
+quality gate needs to land in the same slice as the submit action, not as a
+follow-up once agents are already uploading. **Approach.** Enforce the
+count, size and dimension checks in the submit server action before a
+listing can move out of draft (reading the uploaded objects back via the
+service role), run the auto-enhance and blurhash pipeline server-side on
+accept as §5 specifies, and keep the bucket write policy as the coarse
+ownership check it already is, not the quality gate. **Phase.** D.
+**Effort.** M.
+
+### R-50. Scaffold the hybrid inventory provider layer's own cache tables now, ahead of the Amadeus and Places integrations
+**Problem.** `apps/web/src/lib/inventory/` does not exist yet: none of
+`providers/rentme.ts`, `providers/amadeus.ts` or `providers/places.ts` from
+`HYBRID_INVENTORY.md` §3 have been started. Both third-party providers need
+a persistence shape the spec already implies but has not been designed:
+Amadeus needs an OAuth2 client-credentials token cached across requests
+(re-fetching a token per search call is wasteful and adds latency to every
+partner result), and Places needs the `place_id` cache §2 describes,
+distinct from a details cache, because Google's terms allow caching a
+`place_id` indefinitely but only allow caching place *details* (name,
+photos, hours) briefly. **Why now.** The catalogue repository swap landing
+in this same phase is the natural moment to also lay down the two small
+tables this needs, so the provider files land against a ready shape instead
+of inventing one under time pressure later. **Approach.** Two small tables:
+`amadeus_tokens` (a single-row or short-lived cache of the current bearer
+token and its expiry, read-and-refresh pattern) and `places_cache`
+(`place_id` primary key, cached `details jsonb`, `details_fetched_at`, with
+application code treating `details` as stale and re-fetching after a short
+TTL while the `place_id` row itself is kept indefinitely), each written
+only by the service role from the provider files R-40 and this item both
+depend on. **Phase.** E. **Effort.** M.
+
+### R-51. The notifications table has no retention job and only supports owner-delete
+**Problem.** `public.notifications` (`supabase/migrations/20260729112606_notifications.sql`)
+grows by one row per recipient for every booking, message, wallet movement
+and support reply, forever, with the only delete path being a signed-in
+user clearing their own rows one at a time from the client. Four loops
+that each fan out notifications are now live at once. **Why now.** This is
+exactly the kind of unbounded-growth table R-21's job runway is meant to
+keep in check, and it is cheap to add while the runway is being built
+rather than as a separate migration later. **Approach.** A job (R-21) that
+deletes `notifications` rows where `read_at` is not null and older than a
+set window (say ninety days), leaving unread rows untouched regardless of
+age so nothing genuinely unseen is ever silently dropped. **Phase.** B.
+**Effort.** S.
+
+### R-52. Support ticket filing has no rate limit, and the anonymous path runs through the service role
+**Problem.** `support/actions.ts fileSupportTicket()` checks the feature
+flag and validates the input, then inserts, using `createAdminClient()`
+directly for anyone not signed in, since "the tickets table has no
+anonymous insert policy by design." Nothing counts how many tickets one
+caller, signed in or not, can file. **Why now.** This is a service-role
+write path reachable by anyone on the internet with no session at all,
+and support tickets are live today. **Approach.** A lightweight per-IP (and
+per-email, for the anonymous path) throttle, the same shared mechanism
+R-43 needs for the assistant route, rejecting past a small hourly count
+with the existing honest failure copy rather than a silent flood into the
+admin queue. **Phase.** C. **Effort.** S.
