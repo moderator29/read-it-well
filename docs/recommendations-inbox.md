@@ -3,7 +3,7 @@
 Status: AWAITING LEAD REVIEW. Nothing in this file is approved scope. Each item
 is a candidate for promotion into `RECOMMENDATIONS.md` after review; promoted
 items should gain the full problem/why/approach/phase treatment there. Items
-deliberately avoid duplicating R-01 to R-20. 150 items, one line each.
+deliberately avoid duplicating R-01 to R-20. 250 items, one line each. Items 151 to 250 were added in the 2026-07-29 handoff pass, covering the surfaces built since: the live map, the assistant, the wallet demo, the trust pipeline, the motion system and the daylight theme.
 
 Prepared: 2026-07-28. Source: product strategy pass over MASTER_TODO,
 ARCHITECTURE_DECISIONS, KNOWN_GAPS, intake status, the route tree and the
@@ -161,3 +161,103 @@ migration set.
 148. [A11Y] Audit contrast of gradient text over glass in both themes against WCAG AA, because luminous-on-translucent is exactly where decorative treatments quietly fail readers.
 149. [A11Y] Announce form errors, search result counts and booking status changes via aria-live regions, because silent state changes strand assistive technology users mid-transaction.
 150. [A11Y] Require alt text on listing photos with inline guidance at upload, because accessible media must come from agents at the source, not from retrofitting.
+151. [SEARCH] Add marker clustering to the live map once listings pass roughly 50, because overlapping price pins at city zoom turn the flagship map into noise.
+152. [SEARCH] Draw the searched city's boundary softly on the map and dim outside it, because spatial focus tells users the platform actually understands "Lekki" as a place, not a keyword.
+153. [SEARCH] Sync map viewport to the URL (lat, lng, zoom), because a shareable map position is a shareable apartment hunt, and WhatsApp is the sharing medium here.
+154. [SEARCH] Add a "search this area" chip when the user pans the live map, because panning is intent, and forcing a retype throws that intent away.
+155. [SEARCH] Persist the last chosen view (list or map) per user, because view preference is a stable trait, and re-picking it every session is friction.
+156. [SEARCH] Add price histogram bars behind the future price filter slider, because seeing where the market clusters teaches users what their budget buys before they filter.
+157. [SEARCH] Support typo-tolerant city matching (Lekki/Leki, Ibadan/Ibaban), because mobile keyboards mangle place names and a zero-result page for a typo is a lost session.
+158. [SEARCH] Rank verified listings above unverified at equal relevance, because ranking is the strongest lever the platform has to make verification worth an agent's effort.
+159. [SEARCH] Show "N people viewed this week" on high-traffic listings, because social proof on discovery surfaces converts browsers into bookers without a single new feature.
+160. [SEARCH] Add recent-searches chips under the search bar from localStorage, because repeat hunting for the same city is the dominant pattern in a multi-week apartment search.
+161. [MAP] Pick and license a production tile provider (MapTiler or self-hosted OpenFreeMap) before launch, because Carto's free tier is for non-commercial use and the map is now a flagship feature.
+162. [MAP] Style map tiles to the brand (dark navy water, electric accents) via a custom vector style, because a stock basemap inside a neon platform breaks the spell the design works so hard for.
+163. [MAP] Add a locate-me control that centres on the user with permission, because "what is near me right now" is the core mobile question the green-app reference answers and ours should too.
+164. [MAP] Show a listing preview card docked at the map's foot when a pin is tapped, mirroring the reference app, because navigating away from the map to see one photo is a heavy penalty.
+165. [MAP] Cache the last map tiles in the service worker for offline glance, because a renter standing outside a building with no data should still see where they are.
+166. [ASSISTANT] Wire the assistant to the real listing repository so answers cite actual bookable places with links, because an assistant that hands back real inventory is the moat.
+167. [ASSISTANT] Add tool-call style quick actions to answers (Book it, Message agent, Open map), because an answer that ends in a tap is worth ten that end in text.
+168. [ASSISTANT] Stream responses token by token in the UI, because perceived intelligence is mostly perceived latency, and streaming makes the same answer feel twice as fast.
+169. [ASSISTANT] Persist assistant threads to Supabase once auth lands, keyed to the user, because localStorage threads die with the browser and continuity is the product.
+170. [ASSISTANT] Teach the assistant the trust rules (no fees, pay after inspection, flag account numbers), because it will be asked about payment safety and must answer as policy, not vibes.
+171. [ASSISTANT] Add voice input on mobile, because typing "2 bedroom in Surulere under 400k with prepaid meter" is exactly the query people would rather say.
+172. [ASSISTANT] Log anonymised assistant queries as demand signal, because "what people ask for and cannot find" is the highest-grade market research the platform will ever own.
+173. [WALLET] Build the fund wallet flow against the ledger with a simulated provider behind a feature flag, because the full state machine can be proven end to end before a naira moves.
+174. [WALLET] Add scheduled rent reminders with wallet balance checks, because annual rent in Nigeria is a planning problem and the wallet that helps plan it becomes the default wallet.
+175. [WALLET] Show a spend breakdown ring by category (stays, food, experiences), because reflective money features raise session depth and make the wallet feel like a financial home.
+176. [WALLET] Require a transaction PIN set-up before first wallet action, stored as a hash server-side, because device possession is not authorisation in a shared-phone market.
+177. [WALLET] Export statements as branded PDF, because proof of payment is a cultural requirement here and screenshots of an app are weak evidence.
+178. [WALLET] Add beneficiary management with nicknames for repeat transfers, because typing a 10-digit account number twice is once too many.
+179. [MONEY] Reconcile the ledger nightly with a checksum job that alerts on drift, because a derived-balance design is only as trustworthy as its invariant checks.
+180. [MONEY] Model escrow as ledger holds (authorise, capture, release) rather than balance edits, because inspection-gated payment is an escrow product and the ledger should say so.
+181. [BOOKING] Implement the reserve flow writing real bookings under the GiST constraint with clear conflict errors, because "those dates just got taken" must be a designed moment, not a 500.
+182. [BOOKING] Add a pre-booking availability calendar on listing detail, because showing blocked dates before the form saves the most common booking failure.
+183. [BOOKING] Send booking lifecycle events to notifications (requested, confirmed, upcoming, complete), because the notifications page is built and silence there reads as abandonment.
+184. [BOOKING] Add cancellation windows per listing with plain-language policy text, because disputes concentrate exactly where policies are vague.
+185. [BOOKING] Support date-flexible search (+/- 2 days), because flexible travellers are the easiest inventory-matching wins the platform can take.
+186. [TRUST] Ship the messaging trust migration and an admin flag queue in the same sprint, because a trigger that flags into a table nobody reads is compliance theatre.
+187. [TRUST] Add in-thread education cards the first time money words appear ("Never pay before inspection"), because the moment of temptation is the only moment education works.
+188. [TRUST] Rate-limit new conversations per guest per day at the database, because scraping agents' contacts through mass DMs is the obvious abuse of an open messaging surface.
+189. [TRUST] Blur images in messages from unverified counterparties until tapped, because unsolicited image spam is a known harassment vector in rental messaging.
+190. [TRUST] Add a one-tap report flow in threads that snapshots the conversation into the reports table, because evidence capture at report time is what makes moderation decidable.
+191. [TRUST] Show an inspection status timeline on the booking (requested, scheduled, confirmed), because the pay-after-inspection promise needs a visible state machine to be believed.
+192. [TRUST] Verify agent payout accounts against registered business names before first payout, because payout-name mismatch is the cleanest early fraud signal available.
+193. [AGENTS] Build the agent listings CRUD with draft, submit, approve states next, because the marketplace cannot cold-start while inventory is seed data.
+194. [AGENTS] Add a listing quality score (photos count, description length, amenities, verification) shown to the agent, because gamified completeness beats nagging for inventory quality.
+195. [AGENTS] Give agents a response-time badge computed from message latency, because renters choose fast responders and agents chase visible metrics.
+196. [AGENTS] Add a calendar sync stub (iCal import) for agents listing on multiple platforms, because double-booked inventory hurts RentMe's trust even when the clash happened elsewhere.
+197. [AGENTS] Let agents pin three showcase photos that appear in search cards, because giving agents control of their shop window raises photo quality platform-wide.
+198. [AGENTS] Build a lightweight agent mobile dashboard (today's messages, upcoming inspections, earnings), because agents run their business from a phone between viewings.
+199. [ADMIN] Stand up the admin console shell (ref 04 rail) with risk alerts, message flags, agent approvals and reports as the first four queues, because every trust feature built so far terminates there.
+200. [ADMIN] Add an admin impersonation-free "view as user" read-only mode, because support needs to see what the user sees without ever holding their session.
+201. [ADMIN] Log every admin action to the audit table with actor, target and before/after, because an admin console without an audit trail is a liability, not a tool.
+202. [ADMIN] Build a kill switch per feature (messaging, wallet, bookings) as database flags, because incident response needs a way to stop the bleeding without a deploy.
+203. [DESIGN] Add a shared page-transition system with the View Transitions API (glow hand-off between routes), because the signature ripple was promised and route changes are where it pays.
+204. [DESIGN] Convert the numbers band to odometer-roll digits, because mechanical rolling numerals read as premium in a way linear count-ups do not.
+205. [DESIGN] Add skeleton-to-content morphs on listing grids, because layout-stable loading is the difference between "fast app" and "flickering app" on 3G.
+206. [DESIGN] Introduce a subtle parallax between the ambient waves and page content on scroll, because depth between layers is the cheapest remaining "alive" upgrade.
+207. [DESIGN] Give the villa hero a slow day-night light shift tied to the daypart grading, because the scene is now the platform's face and a face should not be frozen.
+208. [DESIGN] Add hover video micro-loops on featured listing cards behind a reduced-motion and save-data gate, because motion sells rooms, but only for users who can afford the bytes.
+209. [DESIGN] Build an empty-state illustration set in the neon-blue language, because empty states are currently text-first and they are the new user's first impression.
+210. [DESIGN] Document the design system (tokens, glass, motion, icon rules) as a living styleguide route at /styleguide, because the next contributor should learn the language from the product itself.
+211. [UX] Add pull-to-refresh on home, search and messages in the installed app, because it is the universal mobile gesture for "give me the latest" and its absence reads as broken.
+212. [UX] Make the bottom tab bar auto-hide on scroll down and return on scroll up, because 52 recovered pixels of listing photo per card is worth the gesture.
+213. [UX] Add haptic feedback (vibrate API) on save, book and send actions on Android, because tactile confirmation closes loops faster than toasts.
+214. [UX] Keep search scroll position when returning from a listing, because losing your place in a 40-card list is the fastest way to end a hunting session.
+215. [UX] Add a comparison tray for up to three saved listings with a side-by-side sheet, because apartment decisions are made in pairs and triples, not singly.
+216. [UX] Offer "notify me when prices drop in Lekki" on empty and thin results, because a saved intent with a push channel converts a dead end into a future session.
+217. [UX] Let users share a listing as a branded image card (photo, price, QR), because WhatsApp status is Nigeria's biggest discovery surface and screenshots are ugly ambassadors.
+218. [UX] Add long-press quick actions on listing cards (save, share, hide), because power users grow in the dark and hiding unwanted results improves their feed permanently.
+219. [UX] Show "you viewed this 3 days ago" markers on cards, because recognition beats recall when a hunt spans two weeks and forty tabs.
+220. [UX] Add an explicit "hide my activity" privacy toggle that pauses view history and recents, because shared phones make browsing privacy a mainstream need, not an edge case.
+221. [ARCH] Introduce a typed server-action result envelope (ok, error, fieldErrors) used by every mutation, because uniform error shape is what keeps thirty forms honest.
+222. [ARCH] Add Zod schemas at every server boundary and infer the client types from them, because runtime validation at the edge is the only real defence once envs land.
+223. [ARCH] Set up Sentry (or GlitchTip) with source maps and release tags before real users, because production bugs on Tecno devices will never be reproduced at a desk.
+224. [ARCH] Add Playwright smoke tests for the six golden paths (land, search, listing, book, message, wallet) in CI, because the platform now has enough surface that regressions hide.
+225. [ARCH] Wire a feature-flag table read at layout time with an in-memory TTL cache, because shipping dark and revealing later is how a two-person team releases safely.
+226. [ARCH] Split `globals.css` into layered partials (ambient, glass, buttons, motion, light) via CSS imports, because the file passed 1,300 lines and merge accidents happen in monoliths.
+227. [ARCH] Generate an OG-image route per listing (photo, price, neon frame), because link unfurls in WhatsApp groups are the platform's real landing pages.
+228. [ARCH] Add bundle analysis to CI with a hard budget per route, because Leaflet just joined the bundle and the next library will too.
+229. [ARCH] Precompute city floor prices into a tiny JSON at build (revalidated hourly), because the map should not scan the catalogue on every request once listings are live.
+230. [ARCH] Move listing photos through an image proxy with width params and AVIF, because Unsplash today and Storage tomorrow both need the same resize pipeline.
+231. [NIGERIA] Add prepaid-meter, borehole, generator and estate-security amenity filters, because these are the amenities Nigerian renters actually shortlist by.
+232. [NIGERIA] Display service charge and caution deposit as separate labelled figures, because all-in pricing hides the two numbers that cause the most disputes.
+233. [NIGERIA] Support annual and multi-year rent terms alongside nightly, because the long-let market is the volume market and nightly-only framing excludes it.
+234. [NIGERIA] Add estate and street-level location hints without exact addresses pre-booking, because "Off Admiralty Way" is the granularity renters need and agents will share.
+235. [NIGERIA] Localise number and currency formatting per locale files already shipped, because a Yoruba UI showing English number words is a half-kept promise.
+236. [NIGERIA] Add NIN-based identity verification for agents via a KYC provider behind a flag, because government-ID verification is the trust ceiling-raiser the badge system needs.
+237. [NIGERIA] Publish area guides (power reliability, flood risk, transport) as content pages, because relocation decisions hinge on this knowledge and owning it owns the search.
+238. [NIGERIA] Partner-badge diaspora-friendly listings with virtual tour requirements, because renters abroad book sight-unseen and need a stronger evidence bar.
+239. [GROWTH] Add a referral programme with wallet credit rewards on both sides, because the wallet already exists and referral credit is its cheapest acquisition loop.
+240. [GROWTH] Build lightweight SEO city pages (stays in Lagos, restaurants in Abuja) from the catalogue, because organic search is free demand the seed data can already serve.
+241. [GROWTH] Add an email capture on the landing FAQ and coverage map for "we are coming to your city", because expansion demand should be measured before it is built.
+242. [GROWTH] Instrument the funnel (view, search, listing, message, book) with PostHog, because every growth argument from here on needs numbers, not opinions.
+243. [GROWTH] Add "recently booked in Lagos" social proof ticker to the landing facts band, because motion plus proof is the strongest first-visit trust signal available.
+244. [GROWTH] Ship a WhatsApp share button on every listing with a pre-written message, because the share is the growth loop and the pre-written text is its conversion rate.
+245. [PERF] Lazy-load Leaflet only when map view is requested (dynamic import exists, verify no eager chunk), because list-view users should never pay the map's bytes.
+246. [PERF] Add `save-data` and connection-aware media (skip Ken Burns, smaller images on 2G), because respecting the Data Saver header is respecting the actual user base.
+247. [A11Y] Add a skip-to-map and map keyboard controls (arrow pan, +/- zoom), because the map is now a primary surface and must not be pointer-only.
+248. [A11Y] Announce map pin counts and selected city via aria-live when the map filters, because visual-only state changes on the flagship feature exclude screen reader users.
+249. [TRUST] Add device fingerprint and new-device email alerts once auth lands, because account takeover in a wallet product is the breach that ends trust permanently.
+250. [TRUST] Write and publish a plain-language safety centre page (how payments work, how inspections work, how to report), because the trust pipeline deserves a front door users can read before they need it.
