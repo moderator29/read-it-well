@@ -16,14 +16,14 @@
    * ------------------------------------------------------------------ */
 
   /* Deep space neutrals, navy biased: the neon-blue night surface */
-  --nf-ink-950: #050816;
-  --nf-ink-900: #070B1A;
-  --nf-ink-850: #090E24;
-  --nf-ink-800: #0A0F2E;
-  --nf-ink-750: #0E1638;
-  --nf-ink-700: #131D48;
-  --nf-ink-600: #1B2860;
-  --nf-ink-500: #283A7E;
+  --nf-ink-950: #010118;
+  --nf-ink-900: #000020;
+  --nf-ink-850: #000030;
+  --nf-ink-800: #000040;
+  --nf-ink-750: #000050;
+  --nf-ink-700: #000060;
+  --nf-ink-600: #000080;
+  --nf-ink-500: #0010A0;
 
   --nf-mist-100: #FFFFFF;
   --nf-mist-200: #E4EAFF;
@@ -43,11 +43,11 @@
   --nf-royal-500: #2B3FE0;
   --nf-royal-600: #2130C0;
   --nf-royal-700: #1A2596;
-  --nf-electric-300: #7FB6FF;
-  --nf-electric-400: #338AFF;
-  --nf-electric-500: #0066FF;
-  --nf-electric-600: #1230B3;
-  --nf-electric-700: #0B1B70;
+  --nf-electric-300: #5C7CFF;
+  --nf-electric-400: #0C39EF;
+  --nf-electric-500: #0010E0;
+  --nf-electric-600: #0010D0;
+  --nf-electric-700: #000F98;
   --nf-cyan-400: #00C8FF;
   --nf-cyan-500: #06B6D4;
   --nf-crimson-400: #FF1744;
@@ -69,7 +69,7 @@
   --nf-brand-primary: var(--nf-electric-500);
   --nf-brand-primary-strong: var(--nf-electric-600);
   --nf-brand-primary-soft: color-mix(in oklab, var(--nf-electric-500) 16%, transparent);
-  --nf-brand-secondary: var(--nf-cyan-400);
+  --nf-brand-secondary: var(--nf-electric-300);
   --nf-brand-accent: var(--nf-electric-400);
 
   /* Mode accents. Personal is violet, Agent is orange, Admin is cyan. */
@@ -78,7 +78,7 @@
   --nf-mode-admin: var(--nf-cyan-400);
 
   /* Surfaces */
-  --nf-surface-canvas: #060A12;
+  --nf-surface-canvas: #000010;
   --nf-surface-primary: var(--nf-ink-900);
   --nf-surface-secondary: var(--nf-ink-850);
   --nf-surface-elevated: var(--nf-ink-800);
@@ -143,9 +143,9 @@
     #F97316 80%,
     #FBBF24 100%
   );
-  --nf-gradient-brand: linear-gradient(135deg, var(--nf-cyan-400) 0%, var(--nf-electric-500) 100%);
-  --nf-gradient-cta: linear-gradient(180deg, #2E6BFF 0%, #0066FF 46%, #1230B3 100%);
-  --nf-gradient-iridescent: linear-gradient(135deg, #00C8FF 0%, #338AFF 48%, #0066FF 100%);
+  --nf-gradient-brand: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
+  --nf-gradient-cta: linear-gradient(180deg, #0C39EF 0%, #0010E0 50%, #000F98 100%);
+  --nf-gradient-iridescent: linear-gradient(135deg, #5C7CFF 0%, #0C39EF 52%, #0010E0 100%);
   --nf-gradient-agent: linear-gradient(135deg, #FB923C 0%, var(--nf-orange-500) 100%);
   --nf-gradient-surface: linear-gradient(180deg, rgb(255 255 255 / 0.045) 0%, rgb(255 255 255 / 0.012) 100%);
 
@@ -157,7 +157,7 @@
    * and alive rather than printed. These are the ingredients; the motion lives
    * in the `nf-ambient` layer in globals.css.
    * ------------------------------------------------------------------ */
-  --nf-canvas-base: #050816;
+  --nf-canvas-base: #010118;
   --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-500) 92%, transparent) 0%, transparent 62%);
   --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-600) 85%, transparent) 0%, transparent 62%);
   --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-500) 80%, transparent) 0%, transparent 62%);
@@ -277,7 +277,7 @@
   --nf-content-on-brand: #FFFFFF;
 
   /* Slightly deeper blue so the brand holds contrast on paper. */
-  --nf-brand-primary: #0057DB;
+  --nf-brand-primary: #0010D0;
   --nf-brand-primary-strong: #1230B3;
 
   --nf-border-subtle: rgb(10 22 38 / 0.08);
