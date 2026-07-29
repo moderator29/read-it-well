@@ -1373,13 +1373,56 @@ body {
     box-shadow: var(--nf-shadow-card);
   }
   /*
+   * 3D icon tiles in daylight: the dark glass slab becomes a soft pastel
+   * tile of the glyph's own colour family, with a tinted hairline, so the
+   * 3D objects sit on clean coloured chips exactly like the best light
+   * platform iconography. The object's own material is untouched.
+   */
+  :root[data-theme="light"] .nf-icon3d .nf-icon3d__tile {
+    fill: color-mix(in oklab, var(--i3d-core, #0C39EF) 10%, #FFFFFF);
+  }
+  :root[data-theme="light"] .nf-icon3d .nf-icon3d__ring {
+    stroke: color-mix(in oklab, var(--i3d-core, #0C39EF) 35%, #FFFFFF);
+    stroke-opacity: 0.9;
+  }
+  :root[data-theme="light"] .nf-icon3d .nf-icon3d__spec {
+    opacity: 0.55;
+  }
+  :root[data-theme="light"] .nf-icon3d .nf-icon3d__bloom {
+    opacity: 0.35;
+  }
+  /* Header sign up: white on paper, ink label, hairline that warms to blue. */
+  :root[data-theme="light"] .nf-signup-btn {
+    background: #FFFFFF;
+    color: var(--nf-content-primary);
+    border: 1.5px solid rgb(18 21 26 / 0.14);
+    box-shadow: 0 1px 2px rgb(18 21 26 / 0.05);
+  }
+  :root[data-theme="light"] .nf-signup-btn:hover:not(:disabled) {
+    border-color: rgb(12 57 239 / 0.55);
+    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
+    transform: translateY(-1px);
+  }
+  :root[data-theme="light"] .nf-signup-btn::after {
+    display: none;
+  }
+  /*
    * Daylight is paper-first: near-white canvas, no neon wash. The waves, the
    * ribbon and the pointer bloom belong to the night theme; daylight keeps
    * only the faintest sky blooms so the page still has depth without ever
    * reading blue.
    */
+  /*
+   * The daylight canvas is a studio cloud: soft silver-white gradients with
+   * gentle depth, like a product photography sweep, never a flat grey and
+   * never a blue wash. Matches the owner's brand renders.
+   */
   :root[data-theme="light"] .nf-ambient {
-    background-image: none;
+    background:
+      radial-gradient(120% 90% at 78% -10%, #FFFFFF 0%, rgb(255 255 255 / 0) 55%),
+      radial-gradient(95% 75% at 8% 100%, #E9EBEF 0%, rgb(233 235 239 / 0) 62%),
+      radial-gradient(70% 60% at 94% 88%, #ECEEF2 0%, rgb(236 238 242 / 0) 55%),
+      linear-gradient(180deg, #F8F9FB 0%, #F2F3F6 100%);
   }
   :root[data-theme="light"] .nf-ambient > span:nth-child(1) {
     display: none;
