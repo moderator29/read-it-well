@@ -80,19 +80,21 @@ export function BalanceCard({
       aria-labelledby="nf-wallet-balance-label"
       className="nf-card relative overflow-hidden rounded-[var(--nf-radius-2xl)] p-5 sm:p-6"
     >
-      {/* Inner conic shimmer, the light source sweeping the glass. */}
+      {/* Inner conic shimmer, the light source sweeping the glass. Hidden in
+          the light theme, where it would smear a white card. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-60"
+        className="nf-wallet-sheen pointer-events-none absolute inset-0 opacity-60"
         style={{
           background:
             "conic-gradient(from 215deg at 78% 12%, rgb(0 200 255 / 0.18) 0deg, transparent 95deg, rgb(51 138 255 / 0.10) 175deg, transparent 250deg, rgb(0 102 255 / 0.16) 360deg)",
         }}
       />
-      {/* Fine grid texture, fading out towards the foot of the card. */}
+      {/* Fine grid texture, fading out towards the foot of the card. Hidden in
+          the light theme along with the sheen. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0"
+        className="nf-wallet-grid pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
             "linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px)",
@@ -170,7 +172,7 @@ export function BalanceCard({
           viewBox="0 0 100 28"
           preserveAspectRatio="none"
           aria-hidden
-          className="relative mt-4 h-9 w-full"
+          className="nf-wallet-spark relative mt-4 h-9 w-full"
         >
           <polyline
             points={points}

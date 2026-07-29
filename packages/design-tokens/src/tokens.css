@@ -307,6 +307,19 @@
   --nf-canvas-bloom-1: none;
   --nf-canvas-bloom-2: none;
   --nf-canvas-bloom-3: none;
+
+  /*
+   * Accent and state ink on paper. The airy night-theme accents fail AA on
+   * white, so daylight swaps them for deeper members of the same families:
+   * links and active accents take the vivid brand blue, and the state colours
+   * step down until small bold text passes 4.5:1 on a white card. The badge
+   * surfaces keep deriving from the bright raw palette, so chips stay light
+   * tints under the darker ink.
+   */
+  --nf-electric-300: #0C2FE8;
+  --nf-state-success: #0B8A5C;
+  --nf-state-warning: #B45309;
+  --nf-state-error: var(--nf-crimson-500);
 }
 
 /*

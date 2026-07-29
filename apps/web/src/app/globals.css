@@ -282,11 +282,11 @@ body {
   :root[data-theme="light"] .nf-map-pin {
     background: #ffffff;
     color: var(--nf-content-primary);
-    border-color: rgb(10 22 38 / 0.18);
-    box-shadow: 0 6px 18px rgb(10 22 38 / 0.18);
+    border-color: rgb(18 21 26 / 0.18);
+    box-shadow: 0 6px 18px rgb(18 21 26 / 0.18);
   }
   :root[data-theme="light"] .nf-map-pin i {
-    color: rgb(10 22 38 / 0.55);
+    color: rgb(18 21 26 / 0.6);
   }
   /* Leaflet chrome, restyled to the theme. */
   .leaflet-container {
@@ -1462,4 +1462,188 @@ body {
   :root[data-theme="light"] .nf-grain {
     opacity: 0.015;
   }
+
+  /* ---------------------------------------- daylight component sweep */
+
+  /*
+   * Auth provider rows: the night glass slab becomes a flat white row with a
+   * neutral hairline and a soft paper shadow. The specular sheen and the blue
+   * bloom belong to the night theme only; hover warms the hairline to blue.
+   */
+  :root[data-theme="light"] .nf-auth-row {
+    background: #FFFFFF;
+    border-color: rgb(18 21 26 / 0.14);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: 0 1px 2px rgb(18 21 26 / 0.05);
+  }
+  :root[data-theme="light"] .nf-auth-row::after {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-auth-row:hover:not(:disabled) {
+    border-color: rgb(12 57 239 / 0.5);
+    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
+  }
+  :root[data-theme="light"] .nf-auth-row__mark {
+    background: var(--nf-surface-inset);
+    box-shadow: inset 0 0 0 1px rgb(18 21 26 / 0.06);
+  }
+  :root[data-theme="light"] .nf-auth-row__mark--email {
+    background: var(--nf-gradient-brand);
+    box-shadow: none;
+  }
+
+  /* Skeletons shimmer with ink on paper, not white on white. */
+  :root[data-theme="light"] .nf-skeleton {
+    background:
+      linear-gradient(
+        100deg,
+        rgb(18 21 26 / 0.04) 36%,
+        rgb(18 21 26 / 0.09) 50%,
+        rgb(18 21 26 / 0.04) 64%
+      )
+      var(--nf-surface-inset);
+    background-size: 200% 100%;
+  }
+
+  /* The tab bar's heavy night shadow becomes a soft neutral lift. */
+  :root[data-theme="light"] .nf-tabbar {
+    box-shadow: 0 -8px 24px -16px rgb(18 21 26 / 0.18);
+  }
+
+  /* The AI banner artwork stays a lit render; only the frame goes neutral:
+     hairline ring and paper shadow instead of the blue bloom. */
+  :root[data-theme="light"] .nf-ai-banner {
+    box-shadow:
+      inset 0 0 0 1px rgb(18 21 26 / 0.1),
+      var(--nf-shadow-card);
+  }
+
+  /* Overlines hold AA on white: same neutral ink family, deeper step. */
+  :root[data-theme="light"] .nf-overline {
+    color: rgb(18 21 26 / 0.66);
+  }
+
+  /* Gradient headlines drop the airy #5C7CFF stop, which washes out on
+     paper, and run the deep electric ramp instead. */
+  :root[data-theme="light"] .nf-gradient-text {
+    background: linear-gradient(135deg, #0C39EF 0%, #0010D0 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* The live ring calms to a neutral hairline carrying one slow blue glint,
+     so hero frames stay premium without a neon border on paper. */
+  :root[data-theme="light"] .nf-card--live {
+    background:
+      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      conic-gradient(
+          from var(--nf-spin),
+          rgb(12 57 239 / 0.55) 0%,
+          rgb(18 21 26 / 0.1) 18%,
+          rgb(18 21 26 / 0.1) 82%,
+          rgb(12 57 239 / 0.55) 100%
+        )
+        border-box;
+  }
+
+  /* Glass tiles used as cards (moods, destinations) become true white cards:
+     no blur, hairline border, paper shadow, blue hairline on hover. Sticky
+     header bars keep their translucent glass; they never carry the
+     interactive card class. */
+  :root[data-theme="light"] .nf-glass.nf-card--interactive {
+    background: #FFFFFF;
+    border-color: rgb(18 21 26 / 0.1);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: var(--nf-shadow-card);
+  }
+  :root[data-theme="light"] .nf-glass.nf-card--interactive:hover {
+    border-color: rgb(12 57 239 / 0.35);
+    box-shadow: var(--nf-shadow-lifted);
+  }
+
+  /* Small glass chips sitting on a white card (the step numbers) need a
+     visible well instead of white on white. */
+  :root[data-theme="light"] .nf-card .nf-glass {
+    background: var(--nf-surface-inset);
+    border-color: rgb(18 21 26 / 0.1);
+  }
+
+  /* Ghost buttons get a real resting hover on paper. */
+  :root[data-theme="light"] .nf-btn--ghost:hover:not(:disabled) {
+    background: var(--nf-surface-inset);
+  }
+
+  /* The language switcher is a control, not a call to action: white pill,
+     ink label, neutral hairline. Real CTAs keep the blue. */
+  :root[data-theme="light"] select.nf-btn--primary {
+    background: #FFFFFF;
+    color: var(--nf-content-primary);
+    border-color: rgb(18 21 26 / 0.14);
+    box-shadow: 0 1px 2px rgb(18 21 26 / 0.05);
+  }
+  :root[data-theme="light"] select.nf-btn--primary:hover:not(:disabled) {
+    border-color: rgb(12 57 239 / 0.5);
+    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
+  }
+
+  /* Active map pin: brand hairline and a clean lift, no neon halo. */
+  :root[data-theme="light"] .nf-map-pin--active {
+    border-color: var(--nf-brand-primary);
+    box-shadow: 0 6px 18px rgb(18 21 26 / 0.22);
+  }
+
+  /* Wallet balance card: the cyan conic sheen and the white grid texture are
+     night-glass dressing; on a white card they read as smears, so daylight
+     removes them and inks the sparkline in brand blue. */
+  :root[data-theme="light"] .nf-wallet-sheen,
+  :root[data-theme="light"] .nf-wallet-grid {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-wallet-spark polyline {
+    stroke: var(--nf-brand-primary);
+    filter: none !important;
+  }
+}
+
+/*
+ * Daylight fixes that must outrank Tailwind utilities.
+ *
+ * Tailwind emits utilities in a later cascade layer than the components block
+ * above, so a light override of a utility-painted surface has to live outside
+ * every layer. Kept deliberately tiny and scoped to :root[data-theme="light"];
+ * the night theme never reaches these rules.
+ */
+
+/* Translucent-white wells and hairlines inside cards (the wallet balance
+   stats, the eye toggle, the ledger icon tiles) are invisible white on white
+   in daylight; they become neutral inset wells with real hairlines. */
+:root[data-theme="light"] .nf-card :is(.bg-white\/5, .bg-white\/\[0\.04\], .bg-white\/\[0\.05\]) {
+  background-color: var(--nf-surface-inset);
+}
+:root[data-theme="light"] .nf-card :is(.border-white\/10, .border-white\/15) {
+  border-color: var(--nf-border-default);
+}
+
+/* The open wallet action tile swaps its neon halo for a blue hairline and a
+   paper shadow: still unmistakably active, never a glow smear. */
+:root[data-theme="light"] button.nf-card[aria-expanded="true"] {
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(rgb(12 57 239 / 0.55), rgb(12 57 239 / 0.55)) border-box;
+  box-shadow: var(--nf-shadow-card);
+}
+
+/* Hover feedback painted with the glass fill (rail links, list rows, nav
+   items) is white on white in daylight; it becomes a quiet neutral wash. */
+:root[data-theme="light"] .hover\:bg-\[var\(--nf-glass-fill\)\]:hover {
+  background-color: rgb(18 21 26 / 0.05);
+}
+
+/* Text selection on paper: light brand tint under ink, not white on mid-blue. */
+:root[data-theme="light"] ::selection {
+  background: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
+  color: var(--nf-content-primary);
 }
