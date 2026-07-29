@@ -748,7 +748,7 @@ body {
   }
   .nf-ambient::before {
     background:
-      radial-gradient(ellipse 80% 60% at 20% 30%, rgb(0 102 255 / 0.36) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 60% at 20% 30%, rgb(0 102 255 / 0.46) 0%, transparent 58%),
       radial-gradient(ellipse 60% 80% at 80% 20%, rgb(0 200 255 / 0.12) 0%, transparent 55%),
       radial-gradient(ellipse 100% 60% at 50% 80%, rgb(0 200 255 / 0.18) 0%, transparent 55%),
       radial-gradient(ellipse 40% 40% at 70% 60%, rgb(18 48 179 / 0.16) 0%, transparent 55%);
