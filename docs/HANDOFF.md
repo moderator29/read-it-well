@@ -205,43 +205,62 @@ them): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
 whatever payment provider lands later. Auth email templates in
 `supabase/templates/` must be rebuilt for RentMe before wiring.
 
-## 8. What is DONE vs what NEEDS WORK
+## 8. The end-to-end truth: feature-by-feature audit
 
-DONE and verified: everything in sections 5-7 marked as built; 34 routes
-compile; typecheck and production build green; dark and light verified by
-screenshot at 390px and 1440px; Lagos chip click-tested end to end; menu
-open click-tested; full dark-mode tour delivered to the owner (26 shots).
+The owner's core frustration, correctly held: most features are half loops.
+A screen without a write path, or a table without a screen, is NOT a
+feature. The definition of done from now on:
 
-NEEDS WORK, in priority order:
+> A feature is DONE only when the full loop closes: UI action, validated
+> server action or route handler, database write under RLS, UI reflecting
+> the new reality after reload, the related notification or email firing,
+> and a Playwright golden-path test proving it. Anything less is HALF.
 
-1. Apply the messaging trust migration (above) and wire the flags into an
-   admin surface.
-2. Rebuild the 5 auth email templates for RentMe (blue, new logo, no
-   purple), then `node scripts/build-auth-emails.mjs`.
-3. yo/ha/ig hero and tagline lines still translate "Find it. Book it. Live
-   it."; needs native review (flagged in the locale files).
-4. Real auth wiring once envs land: session state into AppShell identity
-   card, profile, settings; swap localStorage stores to Supabase per the
-   §5b canon in MASTER_TODO.
-5. Booking write path: reserve flow posting into `bookings` under RLS with
-   the exclusion constraint (UI exists, action is demo).
-6. Wallet write path: fund/withdraw/transfer against the ledger with
-   idempotent references (UI exists, demo data).
-7. Messaging live path: conversations/messages tables exist; the thread UI
-   runs on seed data; wire send/receive + attachment upload (Storage bucket
-   needed) + the trust trigger.
-8. Admin console (ref 04 rail) not started: risk alerts, message flags,
-   agent approvals, reports.
-9. Map: tiles are Carto free tier; decide a production tile provider (or
-   MapTiler key) and add marker clustering once listings exceed ~50.
-10. Listing photos are Unsplash CDN; swap to Supabase Storage when agents
-    upload.
-11. `middleware` file uses the deprecated convention, Next wants `proxy`
-    (build warning only). Rename when convenient.
-12. PWA polish: manifest exists; add offline shell and app shortcuts.
-13. The repo still uses `NF_`/`nf-` prefixes and `@naijafinds/*` package
-    names internally (cosmetic, owner has not asked; do not churn without
-    instruction).
+The honest matrix. FE = what the user sees today. BE = what the database
+and server can do today. LOOP = the exact missing steps, in build order.
+
+| # | Feature | FE today | BE today | Missing to close the loop |
+|---|---------|----------|----------|---------------------------|
+| 1 | Auth | Full forms, validation, demo button | Supabase auth wired, env-guarded, middleware refresh | Configure providers + SMTP in dashboard (owner keys); profile row trigger on signup; session-aware shell (real name/avatar in rail, sign out); route guards; demo-mode flag distinct from real session |
+| 2 | Profile + Settings | Full 2035 UI | profiles table exists | Read/write profile from DB; settings as JSONB column or table; avatar upload to Storage; delete-account flow |
+| 3 | Discovery (home/search) | Full UI, seed repo, live sort/filter params | listings tables + indexes | SupabaseListingRepository implementing the existing interface; price/bedroom filters; real pagination; ISR caching; keep seed as fallback when env missing |
+| 4 | Live map | Real Leaflet, price pins, theme tiles | city floors computed from repo | Production tile key (MapTiler); listing-level pins with clustering; map reads same repository as list |
+| 5 | Listing detail | Full page | reviews/bookings tables | Reviews read from DB; availability calendar derived from bookings; gallery from Storage once agent uploads land |
+| 6 | RENT market | Full page, message-first, disclaimer, per-year pricing | rental kind in seed only | `kind` column value + `price_period` in listings schema (tiny migration); agent listing flow able to create rentals; rentals in Supabase repo |
+| 7 | Bookings | Tabs UI with seeded trips | Full schema incl. GiST no-double-booking | `reserve` server action (validate dates, insert pending, friendly conflict error); cancel action; status transitions; booking notifications; payment step hook |
+| 8 | Wallet | Flagship demo UI | Full ledger schema, derived balance, idempotency | Paystack init + webhook route (signature-verified) crediting ledger; withdraw via Paystack Transfers with ledger hold; P2P transfer action; statement query; transaction PIN; render REAL balance |
+| 9 | Messaging | Thread UI, attachments UI, inspection sheet, seed data | conversations/messages tables; trust migration DRAFTED NOT APPLIED | Apply trust migration; send action; Supabase Realtime subscription; attachment upload bucket + RLS; flags feed admin queue; first-money-word education card |
+| 10 | Notifications | Static list of 5 | NO TABLE YET | notifications table migration; fan-out triggers from bookings/messages/wallet; unread badge counts in rail; realtime updates; mark-read action |
+| 11 | Saved | Static grid | saved table exists | Heart toggle server action; optimistic UI; saved page reads DB |
+| 12 | AI Assistant | Full ChatGPT-class UI, threads in localStorage | nothing | `/api/assistant` streaming route on the Claude API (`claude-sonnet-5`), listing-search tool so answers cite real inventory, policy system prompt (no fees, pay after inspection), thread persistence table, rate limiting |
+| 13 | Support | Chat UI with canned escalation | nothing | FAQ content store; support_tickets table migration; escalation writes ticket (name/email only); admin queue; email notify via Resend |
+| 14 | Agent application | Full multi-step form, persists | application table under RLS | Admin review/approve flow; approval flips role; applicant notification |
+| 15 | Agent listings CRUD | NOT BUILT | listings schema ready | Create/edit forms, photo upload with quality gate (HYBRID_INVENTORY §5), draft/submit/approve states, agent dashboard real numbers |
+| 16 | Admin console | NOT BUILT | audit/risk/reports tables ready | Shell + queues: message flags, risk alerts, agent approvals, listing approvals, reports, support tickets; audit log every action; feature-flag kill switches |
+| 17 | Hybrid inventory | Spec + types + env keys | n/a | Provider layer per HYBRID_INVENTORY §3 (Amadeus hotels, Places restaurants), merge + ranking, partner badges |
+| 18 | Payments core | none | ledger ready | `lib/payments/paystack.ts` (init, verify, webhook, transfer), webhook route, reconciliation job |
+| 19 | Emails | 5 templates, WRONG BRAND | none | Rebuild templates RentMe-blue; Resend integration; booking/wallet/support sends |
+| 20 | i18n | 4 locales wired | n/a | Native review of yo/ha/ig hero lines; translate strings hardcoded in newest sections (Rent page, showcases, map copy) |
+| 21 | PWA/deploy | Manifest, icons | n/a | Offline shell, app shortcuts; rename middleware to proxy; Vercel envs + deploy checklist |
+
+### Build order that closes loops fastest
+
+- Phase A (foundations everything else needs): notifications table,
+  support_tickets, storage buckets, trust migration applied, Paystack lib,
+  typed action envelope + Zod. Nothing user-visible, everything unblocking.
+- Phase B (close the money and booking loops): bookings reserve/cancel,
+  wallet fund/withdraw/transfer, payment webhooks, their notifications.
+- Phase C (close the communication loops): messaging live send + realtime +
+  attachments + flags; assistant API with listing tool; support tickets.
+- Phase D (close the supply loop): agent listings CRUD with the photo
+  quality gate; admin console queues; approvals feeding search.
+- Phase E (widen the catalogue): Supabase repository swap, hybrid
+  providers, map clustering, reviews.
+- Phase F (polish the shell): emails, i18n completion, PWA, deploy.
+
+Each phase lands as verified vertical slices: schema, action, UI, test,
+screenshot, push. Never build two half-features when one whole feature is
+possible.
 
 ## 9. Hard-won gotchas (do not relearn these)
 

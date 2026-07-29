@@ -66,13 +66,34 @@ code.
 17. Verification ritual before every commit: typecheck, clean production
     build, em-dash scan, NaijaFinds-copy scan, screenshot touched surfaces.
 
-### Current priority queue (owner-ordered, 2026-07-29)
+### The one law: close loops, never stack halves
 
-The owner's standing order: start with the backend. Finish every backend
-structure that is missing, stand up the whole API layer, then deploy
-parallel agents across every feature that is not yet end to end, with the
-customer support AI and the assistant working diligently for real. Target
-quality: 2030-generation clean.
+The owner's sharpest and most important feedback: most features are half
+built. A beautiful screen on seed data is a half. A table with no screen is
+a half. From this session on, a feature is DONE only when the full loop
+closes: UI action, validated server action, database write under RLS, UI
+reflecting reality after reload, the related notification or email firing,
+and a Playwright golden-path test proving it. `docs/HANDOFF.md` section 8
+holds the honest feature-by-feature matrix (21 features, FE state, BE
+state, and the exact missing steps for each) plus the phase order (A to F)
+that closes the most loops fastest. Work in vertical slices: schema, then
+action, then UI wiring, then test, then screenshot, then push. Never begin
+a second half-feature while a first can be finished whole.
+
+### How to think (beyond the obvious)
+
+Before building anything, trace the entire journey as the user lives it:
+what they tap, what validates, what row appears in which table, what the
+other party sees, what notification fires, what happens on reload, what
+happens on failure, what happens on a 3G connection in Ibadan on a shared
+Android phone. Design the failure path with the same care as the success
+path. Ask what the owner would be asked by an investor about this feature
+and make the answer "yes, watch". When two designs tie, pick the one that
+closes a loop. Research how the best in the industry do it, then do it
+cleaner. Target quality: beyond industry standard, 2030-generation, end to
+end, no gibberish, no dead ends.
+
+### Current priority queue (owner-ordered, 2026-07-29)
 
 1. BACKEND FIRST. Apply
    `supabase/migrations/20260728171000_messaging_trust.sql` via MCP and
