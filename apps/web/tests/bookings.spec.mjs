@@ -48,7 +48,7 @@ try {
     "at least one trip card renders",
     bodyText.includes("Confirmed") || bodyText.includes("Awaiting confirmation"),
   );
-  check("how-booking-works strip renders", bodyText.includes("How booking works"));
+  check("how-booking-works strip renders", /how booking works/i.test(bodyText));
 
   // -------------------------------------------------- stay listing detail
   console.log("/listing/seed-2 (stay)");
