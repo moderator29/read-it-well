@@ -38,7 +38,7 @@ export default async function HomePage() {
 
   const categories: { icon: IconName; label: string; href: string }[] = [
     { icon: "hotel", label: t.nav.hotels, href: "/search?type=hotel" },
-    { icon: "apartment", label: t.nav.apartments, href: "/search?type=property" },
+    { icon: "apartment", label: t.nav.apartments, href: "/search?type=apartment" },
     { icon: "home", label: t.nav.homes, href: "/search?type=home" },
     { icon: "restaurant", label: t.nav.restaurants, href: "/search?type=restaurant" },
     { icon: "experience", label: t.nav.experiences, href: "/search?type=experience" },
@@ -54,12 +54,6 @@ export default async function HomePage() {
 
   return (
     <>
-      {/*
-       * Sample data is declared, never disguised. Deliberately not gated on
-       * NODE_ENV: a production build still defaults to the seed source, and
-       * unlabelled sample inventory on a live site is exactly the thing
-       * Master Rule 8 forbids. The badge disappears when real data arrives.
-       */}
       {/* ---------------------------------------------------- greeting */}
       <section className="nf-rise">
         <h1 className="nf-h1 max-sm:text-[1.375rem]">

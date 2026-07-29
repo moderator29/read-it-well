@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { Logo } from "@/design-system/brand/Logo";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { Icon } from "@/design-system/icons/Icon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
  * Personal Mode navigation rail.
@@ -10,8 +11,11 @@ import { Icon, type IconName } from "@/design-system/icons/Icon";
  * confirmed by three independent source-of-truth references, including the
  * brand sheet whose icon row lists exactly these twelve in this order. It must
  * not drift between screens.
+ *
+ * Navigation rows use the tier one stroked glyphs; the 3D family stays on
+ * content surfaces and the promo card below.
  */
-type RailItem = { href: string; label: string; icon: IconName; badge?: number };
+type RailItem = { href: string; label: string; icon: UiIconName; badge?: number };
 
 export function AppRail({
   t,
@@ -31,21 +35,21 @@ export function AppRail({
 }) {
   const discovery: RailItem[] = [
     { href: "/home", label: t.nav.home, icon: "home" },
-    { href: "/search?type=hotel", label: t.nav.hotels, icon: "hotel" },
-    { href: "/search?type=property", label: t.nav.apartments, icon: "apartment" },
-    { href: "/search?type=home", label: t.nav.homes, icon: "home" },
-    { href: "/search?type=restaurant", label: t.nav.restaurants, icon: "restaurant" },
-    { href: "/search?type=experience", label: t.nav.experiences, icon: "experience" },
+    { href: "/search?type=hotel", label: t.nav.hotels, icon: "building-hotel" },
+    { href: "/search?type=property", label: t.nav.apartments, icon: "building-apartment" },
+    { href: "/search?type=home", label: t.nav.homes, icon: "house" },
+    { href: "/search?type=restaurant", label: t.nav.restaurants, icon: "utensils" },
+    { href: "/search?type=experience", label: t.nav.experiences, icon: "ticket" },
   ];
 
   const account: RailItem[] = [
-    { href: "/bookings", label: t.nav.bookings, icon: "booking" },
-    { href: "/messages", label: t.nav.messages, icon: "chat" },
-    { href: "/notifications", label: "Notifications", icon: "notification" },
+    { href: "/bookings", label: t.nav.bookings, icon: "calendar-booking" },
+    { href: "/messages", label: t.nav.messages, icon: "chat-bubble" },
+    { href: "/notifications", label: "Notifications", icon: "bell" },
     { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
-    { href: "/assistant", label: t.nav.aiAssistant, icon: "ai-assistant" },
-    { href: "/profile", label: t.nav.profile, icon: "profile" },
-    { href: "/settings", label: t.nav.settings, icon: "settings" },
+    { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+    { href: "/profile", label: t.nav.profile, icon: "user" },
+    { href: "/settings", label: t.nav.settings, icon: "settings-gear" },
   ];
 
   const row = (item: RailItem) => {
@@ -62,10 +66,18 @@ export function AppRail({
               : "text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
           ].join(" ")}
         >
-          {/* Steps down a size in the mobile drawer, up on the desktop rail. */}
-          <span className="h-6 w-6 shrink-0 lg:h-7 lg:w-7">
-            <Icon name={item.icon} fill />
-          </span>
+          {/* Stroked glyph, 22px in the drawer and 24px on the desktop rail.
+              It follows the row text: muted at rest, full strength active. */}
+          <UiIcon
+            name={item.icon}
+            size={24}
+            className={[
+              "h-[22px] w-[22px] shrink-0 transition-colors lg:h-6 lg:w-6",
+              isActive
+                ? ""
+                : "text-[var(--nf-content-muted)] group-hover:text-[var(--nf-content-primary)]",
+            ].join(" ")}
+          />
           <span className="flex-1">{item.label}</span>
           {item.badge ? (
             <span className="nf-numeric nf-badge nf-badge--brand">{item.badge}</span>

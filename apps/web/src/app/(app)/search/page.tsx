@@ -3,7 +3,7 @@ import Link from "next/link";
 import { formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
-import type { Listing } from "@/lib/listings/types";
+import type { Listing, ListingKind } from "@/lib/listings/types";
 import { ListingCard } from "@/components/app/ListingCard";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -14,13 +14,13 @@ export const metadata: Metadata = {
 };
 
 /**
- * Discovery results shell.
+ * Discovery results.
  *
- * The live search engine, map and full filters are Phase 2. This shell already
- * behaves like the real surface: a sticky compact search bar, sort chips that
- * genuinely reorder results, and the shared listing grid, all fed by the seed
- * repository and labelled as sample content wherever a count or result is
- * claimed (Master Rule 8). Sorting works on integer kobo, so no float maths.
+ * The map and full filter drawer are Phase 2. Everything visible here is
+ * already real behaviour: free text and category filters run through the
+ * listing repository, city chips jump straight to a destination, and sort
+ * chips genuinely reorder results server side. Sorting works on integer kobo,
+ * so no float maths.
  */
 
 type SortKey = "recommended" | "top-rated" | "price-asc" | "price-desc";
@@ -31,6 +31,29 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "price-asc", label: "Price: low to high" },
   { key: "price-desc", label: "Price: high to low" },
 ];
+
+/** Destination quick picks. Each chip is a shareable link, not client state. */
+const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Ibadan", "Enugu", "Calabar"];
+
+/**
+ * Category labels for the results header. "property" is accepted as a legacy
+ * alias for apartment so older links keep filtering.
+ */
+const KIND_NOUN: Record<ListingKind, { one: string; many: string }> = {
+  hotel: { one: "hotel", many: "hotels" },
+  apartment: { one: "apartment", many: "apartments" },
+  home: { one: "home", many: "homes" },
+  shortlet: { one: "shortlet", many: "shortlets" },
+  villa: { one: "villa", many: "villas" },
+  restaurant: { one: "restaurant", many: "restaurants" },
+  experience: { one: "experience", many: "experiences" },
+};
+
+function parseKind(type: string | undefined): ListingKind | undefined {
+  if (!type) return undefined;
+  const normalised = type === "property" ? "apartment" : type;
+  return normalised in KIND_NOUN ? (normalised as ListingKind) : undefined;
+}
 
 function sortListings(listings: Listing[], sort: SortKey): Listing[] {
   const out = [...listings];
@@ -50,7 +73,7 @@ function sortListings(listings: Listing[], sort: SortKey): Listing[] {
   return out;
 }
 
-function chipHref(q: string | undefined, type: string | undefined, sort: SortKey): string {
+function searchHref(q: string | undefined, type: string | undefined, sort: SortKey): string {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
   if (type) params.set("type", type);
@@ -71,9 +94,12 @@ export default async function SearchPage({
   const sort: SortKey = SORTS.some((s) => s.key === rawSort)
     ? (rawSort as SortKey)
     : "recommended";
+  const kind = parseKind(type);
 
   const repo = getListingRepository();
-  const listings = sortListings(await repo.recommended(6), sort);
+  const listings = sortListings(await repo.search({ q, kind }), sort);
+
+  const noun = kind ? KIND_NOUN[kind] : { one: "stay", many: "stays" };
 
   return (
     <>
@@ -101,20 +127,55 @@ export default async function SearchPage({
           </button>
         </form>
 
-        {/* Sort chips. Links, not buttons: the sort is real and shareable. */}
-        <nav aria-label="Sort results" className="nf-scroll-x -mx-5 mt-3 md:-mx-8">
+        {/* City quick picks. Links, so a tap submits instantly and is shareable. */}
+        <nav aria-label="Popular destinations" className="nf-scroll-x -mx-5 mt-3 md:-mx-8">
           <ul className="flex gap-2 px-5 md:justify-center md:px-8">
-            {SORTS.map((s) => (
-              <li key={s.key} className="shrink-0">
-                <Link
-                  href={chipHref(q, type, s.key)}
-                  aria-current={sort === s.key ? "true" : undefined}
-                  className={`nf-chip whitespace-nowrap ${sort === s.key ? "nf-chip--active" : ""}`}
-                >
-                  {s.label}
-                </Link>
-              </li>
-            ))}
+            {CITIES.map((city) => {
+              const active = q?.trim().toLowerCase() === city.toLowerCase();
+              return (
+                <li key={city} className="shrink-0">
+                  <Link
+                    href={searchHref(active ? undefined : city, type, sort)}
+                    prefetch
+                    aria-current={active ? "true" : undefined}
+                    className={`nf-chip whitespace-nowrap transition-transform active:scale-[0.96] ${
+                      active ? "nf-chip--active" : ""
+                    }`}
+                  >
+                    <UiIcon name="location" size={13} className="shrink-0 opacity-70" />
+                    {city}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* Sort chips. Links, not buttons: the sort is real and shareable. */}
+        <nav aria-label="Sort results" className="nf-scroll-x -mx-5 mt-2.5 md:-mx-8">
+          <ul className="flex gap-2 px-5 md:justify-center md:px-8">
+            {SORTS.map((s) => {
+              const active = sort === s.key;
+              return (
+                <li key={s.key} className="shrink-0">
+                  <Link
+                    href={searchHref(q, type, s.key)}
+                    prefetch
+                    aria-current={active ? "true" : undefined}
+                    className={`nf-chip whitespace-nowrap transition-transform active:scale-[0.96] ${
+                      active
+                        ? "nf-chip--active font-bold text-[var(--nf-content-primary)]"
+                        : ""
+                    }`}
+                  >
+                    {active && (
+                      <UiIcon name="verified" size={13} strokeWidth={2.2} className="shrink-0" />
+                    )}
+                    {s.label}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
       </div>
@@ -128,16 +189,25 @@ export default async function SearchPage({
                 <>
                   Results for <span className="nf-gradient-text">&ldquo;{q}&rdquo;</span>
                 </>
+              ) : kind ? (
+                `Explore ${KIND_NOUN[kind].many}`
               ) : (
                 "Explore stays"
               )}
             </h1>
             <p className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
               {formatNumber(listings.length, locale)}{" "}
-              {listings.length === 1 ? "stay" : "stays"}
-              {type ? ` in ${type}` : ""} across Nigeria
+              {listings.length === 1 ? noun.one : noun.many} across Nigeria
             </p>
           </div>
+          {kind && (
+            <Link
+              href={searchHref(q, undefined, sort)}
+              className="text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+            >
+              Clear category
+            </Link>
+          )}
         </div>
       </Reveal>
 
@@ -168,8 +238,9 @@ export default async function SearchPage({
       {listings.length > 0 && (
         <Reveal className="mt-8 text-center" delay={90}>
           {/*
-           * Visual shell for pagination. The seed set is fully shown, so the
-           * button is disabled and says why instead of pretending more exists.
+           * Visual shell for pagination. The seed catalogue is fully shown, so
+           * the button is disabled and says why instead of pretending more
+           * exists.
            */}
           <button type="button" className="nf-btn nf-btn--glass" disabled={repo.isSeed}>
             Load more

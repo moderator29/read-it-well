@@ -194,7 +194,8 @@ export function AssistantSidebar({
             aria-label={`Language: ${language}. Switch to the next language`}
             onClick={() => {
               const next =
-                LANGUAGES[(LANGUAGES.indexOf(language) + 1) % LANGUAGES.length];
+                LANGUAGES[(LANGUAGES.indexOf(language) + 1) % LANGUAGES.length] ??
+                "English";
               onLanguageChange(next);
             }}
             className="nf-chip px-3 py-1.5 text-[0.75rem]"

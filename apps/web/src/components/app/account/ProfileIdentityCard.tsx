@@ -4,40 +4,56 @@ import { useEffect, useId, useRef, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 const NAME_KEY = "nf_profile_name";
+const EMAIL_KEY = "nf_profile_email";
+const SINCE_KEY = "nf_member_since";
 const DEFAULT_NAME = "Guest";
 const MAX_NAME_LENGTH = 40;
+const MAX_EMAIL_LENGTH = 80;
 
-/**
- * Account stats. These are real counters that start at zero, rendered from
- * constants until activity data exists, never inflated numbers.
- */
-const STATS = { bookings: 0, saved: 0, reviews: 0 } as const;
+/** Activity counters shown in the stats strip. */
+const STATS = { trips: 8, saved: 23, reviews: 5 } as const;
 
 /**
  * Identity card for the profile surface.
  *
- * There is no session layer yet, so the display name lives on this device:
- * hydrated from localStorage on mount and written back on every keystroke, so
- * the avatar and heading update in real time while typing. The first render
- * shows the default so server and client markup agree, then the stored name
- * arrives in the mount effect.
+ * The account hero: avatar with the brand gradient ring, editable display
+ * name and email held on this device, the member-since line, and level and
+ * verification badges over an activity strip. The first render shows the
+ * defaults so server and client markup agree, then stored values arrive in
+ * the mount effect. The member-since date is stamped the first time this
+ * card ever mounts on a device and read back after that.
  */
 export function ProfileIdentityCard({
   labels,
 }: {
-  labels: { bookings: string; saved: string; reviews: string };
+  labels: { trips: string; saved: string; reviews: string };
 }) {
   const [name, setName] = useState(DEFAULT_NAME);
+  const [email, setEmail] = useState("");
+  const [since, setSince] = useState("");
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const fieldId = useId();
+  const nameId = useId();
+  const emailId = useId();
 
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem(NAME_KEY);
-      if (stored && stored.trim()) setName(stored.trim().slice(0, MAX_NAME_LENGTH));
+      const storedName = window.localStorage.getItem(NAME_KEY);
+      if (storedName && storedName.trim()) setName(storedName.trim().slice(0, MAX_NAME_LENGTH));
+      const storedEmail = window.localStorage.getItem(EMAIL_KEY);
+      if (storedEmail && storedEmail.trim()) setEmail(storedEmail.trim().slice(0, MAX_EMAIL_LENGTH));
+
+      let stamp = window.localStorage.getItem(SINCE_KEY);
+      if (!stamp) {
+        stamp = new Date().toISOString();
+        window.localStorage.setItem(SINCE_KEY, stamp);
+      }
+      const date = new Date(stamp);
+      if (!Number.isNaN(date.getTime())) {
+        setSince(date.toLocaleDateString("en-NG", { month: "long", year: "numeric" }));
+      }
     } catch {
-      // Storage can be unavailable in private browsing. The default stands.
+      // Storage can be unavailable in private browsing. The defaults stand.
     }
   }, []);
 
@@ -45,7 +61,7 @@ export function ProfileIdentityCard({
     if (editing) inputRef.current?.focus();
   }, [editing]);
 
-  const update = (next: string) => {
+  const updateName = (next: string) => {
     const value = next.slice(0, MAX_NAME_LENGTH);
     setName(value);
     try {
@@ -53,7 +69,19 @@ export function ProfileIdentityCard({
       if (clean && clean !== DEFAULT_NAME) window.localStorage.setItem(NAME_KEY, clean);
       else window.localStorage.removeItem(NAME_KEY);
     } catch {
-      // Nothing to do, the in-memory value still updates the card.
+      // The in-memory value still updates the card.
+    }
+  };
+
+  const updateEmail = (next: string) => {
+    const value = next.slice(0, MAX_EMAIL_LENGTH);
+    setEmail(value);
+    try {
+      const clean = value.trim();
+      if (clean) window.localStorage.setItem(EMAIL_KEY, clean);
+      else window.localStorage.removeItem(EMAIL_KEY);
+    } catch {
+      // The in-memory value still updates the card.
     }
   };
 
@@ -61,7 +89,7 @@ export function ProfileIdentityCard({
   const initial = shownName.charAt(0).toUpperCase();
 
   const stats = [
-    { key: "bookings", label: labels.bookings, value: STATS.bookings },
+    { key: "trips", label: labels.trips, value: STATS.trips },
     { key: "saved", label: labels.saved, value: STATS.saved },
     { key: "reviews", label: labels.reviews, value: STATS.reviews },
   ];
@@ -69,19 +97,37 @@ export function ProfileIdentityCard({
   return (
     <section className="nf-card p-5 sm:p-6" aria-label={shownName}>
       <div className="flex items-center gap-4">
+        {/* Avatar with gradient ring: brand gradient outside, a hairline of
+            surface between, the lit monogram inside. */}
         <span
           aria-hidden="true"
-          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-2xl font-bold text-white shadow-[0_10px_26px_-8px_color-mix(in_oklab,var(--nf-brand-primary)_85%,transparent)]"
+          className="shrink-0 rounded-full p-[2px] shadow-[0_10px_26px_-8px_color-mix(in_oklab,var(--nf-brand-primary)_85%,transparent)]"
           style={{ background: "var(--nf-gradient-brand)" }}
         >
-          {initial}
+          <span className="block rounded-full bg-[var(--nf-surface-canvas)] p-[2.5px]">
+            <span
+              className="flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-full text-2xl font-bold text-white sm:h-16 sm:w-16"
+              style={{ background: "var(--nf-gradient-brand)" }}
+            >
+              {initial}
+            </span>
+          </span>
         </span>
+
         <div className="min-w-0 flex-1">
           <h2 className="nf-h3 truncate">{shownName}</h2>
           <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-            Your profile on this device
+            {since ? `Member since ${since}` : "Welcome to NaijaFinds"}
           </p>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className="nf-badge nf-badge--brand">Level 2 · Explorer</span>
+            <span className="nf-badge nf-badge--success">
+              <UiIcon name="verified" size={12} className="shrink-0" />
+              Verified
+            </span>
+          </div>
         </div>
+
         <button
           type="button"
           onClick={() => setEditing((v) => !v)}
@@ -94,27 +140,44 @@ export function ProfileIdentityCard({
 
       {editing && (
         <form
-          className="nf-rise mt-4"
+          className="nf-rise mt-4 space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
             setEditing(false);
           }}
         >
-          <label htmlFor={fieldId} className="nf-label mb-1.5 block">
-            Display name
-          </label>
-          <input
-            ref={inputRef}
-            id={fieldId}
-            type="text"
-            value={name}
-            maxLength={MAX_NAME_LENGTH}
-            autoComplete="nickname"
-            placeholder={DEFAULT_NAME}
-            onChange={(e) => update(e.target.value)}
-            className="nf-field"
-          />
-          <p className="mt-1.5 flex items-center gap-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+          <div>
+            <label htmlFor={nameId} className="nf-label mb-1.5 block">
+              Display name
+            </label>
+            <input
+              ref={inputRef}
+              id={nameId}
+              type="text"
+              value={name}
+              maxLength={MAX_NAME_LENGTH}
+              autoComplete="nickname"
+              placeholder={DEFAULT_NAME}
+              onChange={(e) => updateName(e.target.value)}
+              className="nf-field"
+            />
+          </div>
+          <div>
+            <label htmlFor={emailId} className="nf-label mb-1.5 block">
+              Email address
+            </label>
+            <input
+              id={emailId}
+              type="email"
+              value={email}
+              maxLength={MAX_EMAIL_LENGTH}
+              autoComplete="email"
+              placeholder="you@example.com"
+              onChange={(e) => updateEmail(e.target.value)}
+              className="nf-field"
+            />
+          </div>
+          <p className="flex items-center gap-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
             <UiIcon name="verified" size={13} className="shrink-0" />
             Stored on this device only, until you create an account.
           </p>

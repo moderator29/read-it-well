@@ -8,7 +8,6 @@ import { AppRail } from "./AppRail";
 import { MobileTabBar } from "./MobileTabBar";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
-import { Icon } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -93,9 +92,7 @@ export function AppShell({
             <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
 
             <Link href="/assistant" className="nf-btn nf-btn--primary gap-2 px-3 py-2 sm:px-3.5">
-              <span className="h-6 w-6 sm:h-7 sm:w-7">
-                <Icon name="ai-assistant" fill />
-              </span>
+              <UiIcon name="sparkle" size={18} />
               <span className="hidden sm:inline">{t.nav.aiAssistant}</span>
             </Link>
           </div>
