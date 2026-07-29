@@ -24,7 +24,7 @@ type Ramp = [string, string, string];
 const RAMPS: Record<TrustIconName, Ramp> = {
   globe: ["#67E8F9", "#38BDF8", "#0E7490"],
   shield: ["#A5B4FC", "#6366F1", "#312E81"],
-  "ai-chip": ["#C4B5FD", "#8B5CF6", "#5B21B6"],
+  "ai-chip": ["#7FB6FF", "#338AFF", "#1230B3"],
   africa: ["#FDBA74", "#F97316", "#9A3412"],
   // Apple's App Store badge gradient.
   "app-store": ["#3FC8FF", "#0A84FF", "#0040DD"],
@@ -90,7 +90,7 @@ function Glyph({ name }: { name: TrustIconName }) {
           </g>
           {/* Letterforms as geometry: an SVG text node cannot resolve a CSS
               custom property font, and the webfont may not have painted yet. */}
-          <g fill="#6D28D9">
+          <g fill="#1230B3">
             <path d="M8.5 15.1 10.35 9h1.5l1.85 6.1h-1.36l-.35-1.28h-1.79l-.34 1.28Zm2.06-2.33h1.2l-.6-2.2Z" />
             <path d="M14.3 9h1.32v6.1H14.3Z" />
           </g>

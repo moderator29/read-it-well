@@ -36,7 +36,7 @@ const SEED_DASHBOARD: AgentDashboard = {
   ].map((m) => m * 100_000),
   bookingSources: [
     { label: "NaijaFinds App", count: 158, hue: "#F97316" },
-    { label: "Website", count: 62, hue: "#8B5CF6" },
+    { label: "Website", count: 62, hue: "#338AFF" },
     { label: "Direct", count: 28, hue: "#22D3EE" },
   ],
   recentBookings: [

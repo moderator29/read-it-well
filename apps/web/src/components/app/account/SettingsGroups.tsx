@@ -249,11 +249,11 @@ export function SearchCard() {
             onChange={(e) => set("defaultCity", e.target.value)}
             className="nf-field mt-2.5"
           >
-            <option value="" style={{ background: "#151029" }}>
+            <option value="" style={{ background: "var(--nf-surface-elevated)" }}>
               All of Nigeria
             </option>
             {NIGERIAN_STATES.map((s) => (
-              <option key={s} value={s} style={{ background: "#151029" }}>
+              <option key={s} value={s} style={{ background: "var(--nf-surface-elevated)" }}>
                 {s}
               </option>
             ))}

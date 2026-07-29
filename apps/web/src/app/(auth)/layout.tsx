@@ -34,7 +34,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       </div>
 
       <div className="relative z-10 flex w-full flex-col items-center">
-        {/* Brand block. Phone-first sizing: 148px reads generous without
+        {/* Brand block. Phone-first sizing: 104px reads generous without
             pushing the panel below the fold on small screens. */}
         <Link
           href="/"

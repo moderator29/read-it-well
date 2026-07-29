@@ -86,7 +86,7 @@ export function BalanceCard({
         className="pointer-events-none absolute inset-0 opacity-60"
         style={{
           background:
-            "conic-gradient(from 215deg at 78% 12%, rgb(0 200 255 / 0.18) 0deg, transparent 95deg, rgb(255 45 85 / 0.10) 175deg, transparent 250deg, rgb(0 102 255 / 0.16) 360deg)",
+            "conic-gradient(from 215deg at 78% 12%, rgb(0 200 255 / 0.18) 0deg, transparent 95deg, rgb(51 138 255 / 0.10) 175deg, transparent 250deg, rgb(0 102 255 / 0.16) 360deg)",
         }}
       />
       {/* Fine grid texture, fading out towards the foot of the card. */}
@@ -151,7 +151,7 @@ export function BalanceCard({
           <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
             In, last 30 days
           </p>
-          <p className="mt-0.5 text-[0.9rem] font-semibold text-[#10B981]">
+          <p className="mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-success)]">
             {hidden ? "••••" : `+${flowIn.whole}${flowIn.kobo}`}
           </p>
         </div>
