@@ -5,7 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { getAgentRepository } from "@/lib/agent/repository";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { BackButton } from "@/components/site/BackButton";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 export const metadata: Metadata = {
   title: "Application status",
@@ -85,7 +85,7 @@ export default async function AgentStatusPage() {
               }}
             >
               <span className="inline-grid h-12 w-12 place-items-center">
-                <Icon name={approved ? "verified" : "booking"} fill />
+                <BrandIcon name={approved ? "shield-check" : "calendar-check"} fill />
               </span>
             </span>
 
@@ -198,7 +198,7 @@ export default async function AgentStatusPage() {
           {pending && (
             <p className="mt-5 flex items-center justify-center gap-2 text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
               <span className="inline-grid h-5 w-5 shrink-0 place-items-center">
-                <Icon name="booking" fill />
+                <BrandIcon name="calendar-check" fill />
               </span>
               {s.reviewNote}
             </p>

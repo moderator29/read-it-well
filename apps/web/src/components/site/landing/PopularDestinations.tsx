@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 /**
  * Popular destinations.
@@ -41,7 +41,7 @@ export function PopularDestinations({ t }: { t: Dictionary }) {
                 className="nf-glass nf-card--interactive flex h-full items-center gap-3.5 rounded-[var(--nf-radius-lg)] p-4 sm:p-5"
               >
                 <span className="h-11 w-11 shrink-0 sm:h-12 sm:w-12">
-                  <Icon name="location" fill />
+                  <BrandIcon name="pin-map" fill />
                 </span>
                 <span className="min-w-0">
                   <span className="block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)] sm:text-[1rem]">

@@ -4,7 +4,7 @@ import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ProfileIdentityCard } from "@/components/app/account/ProfileIdentityCard";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
 
 export const metadata: Metadata = { title: "Profile" };
@@ -22,14 +22,14 @@ export default async function ProfilePage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
 
-  const actions: { href: string; label: string; icon: IconName; sub: string }[] = [
-    { href: "/bookings", label: t.nav.bookings, icon: "booking", sub: "Trips and reservations" },
-    { href: "/saved", label: t.nav.saved, icon: "favorites", sub: "Places you have kept" },
-    { href: "/wallet", label: t.nav.wallet, icon: "wallet", sub: "Balance and payments" },
+  const actions: { href: string; label: string; icon: BrandIconName; sub: string }[] = [
+    { href: "/bookings", label: t.nav.bookings, icon: "calendar-check", sub: "Trips and reservations" },
+    { href: "/saved", label: t.nav.saved, icon: "heart-home", sub: "Places you have kept" },
+    { href: "/wallet", label: t.nav.wallet, icon: "wallet-secure", sub: "Balance and payments" },
     { href: "/messages", label: t.nav.messages, icon: "chat", sub: "Chats with hosts" },
-    { href: "/notifications", label: "Notifications", icon: "notification", sub: "Activity and alerts" },
-    { href: "/settings", label: t.nav.settings, icon: "settings", sub: "Preferences and account" },
-    { href: "/agents", label: t.landing.footer.becomeAgent, icon: "apartment", sub: "List your property" },
+    { href: "/notifications", label: "Notifications", icon: "bell-alert", sub: "Activity and alerts" },
+    { href: "/settings", label: t.nav.settings, icon: "doc-shield", sub: "Preferences and account" },
+    { href: "/agents", label: t.landing.footer.becomeAgent, icon: "homes-sparkle", sub: "List your property" },
   ];
 
   return (
@@ -53,7 +53,7 @@ export default async function ProfilePage() {
               }`}
             >
               <span className="block h-8 w-8">
-                <Icon name={a.icon} fill />
+                <BrandIcon name={a.icon} fill />
               </span>
               <span className="leading-tight">
                 <span className="block text-[0.875rem] font-semibold">{a.label}</span>

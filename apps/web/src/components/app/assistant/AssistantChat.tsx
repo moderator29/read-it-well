@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import {
   AssistantSidebar,
@@ -272,7 +272,7 @@ export function AssistantChat() {
             {empty && (
               <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
                 <span className="block h-14 w-14 sm:h-16 sm:w-16">
-                  <Icon name="ai-assistant" fill />
+                  <BrandIcon name="bot-home" fill />
                 </span>
                 <div>
                   <p className="text-[0.9375rem] font-semibold">How can I help today?</p>
@@ -301,7 +301,7 @@ export function AssistantChat() {
               ) : (
                 <div key={m.id} className="nf-rise flex items-end gap-2.5">
                   <span className="h-7 w-7 shrink-0" aria-hidden="true">
-                    <Icon name="ai-assistant" fill />
+                    <BrandIcon name="bot-home" fill />
                   </span>
                   <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md p-4">
                     <p className="text-[0.9rem] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -322,7 +322,7 @@ export function AssistantChat() {
             {typingHere && (
               <div className="nf-rise flex items-end gap-2.5">
                 <span className="h-7 w-7 shrink-0" aria-hidden="true">
-                  <Icon name="ai-assistant" fill />
+                  <BrandIcon name="bot-home" fill />
                 </span>
                 <div
                   className="nf-card rounded-2xl rounded-bl-md px-4 py-3.5"

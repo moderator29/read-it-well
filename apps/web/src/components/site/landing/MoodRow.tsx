@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 
 /**
  * Find your vibe.
@@ -11,13 +11,13 @@ import { Icon, type IconName } from "@/design-system/icons/Icon";
  * still scroll for the rest. Pure CSS scroll snap, no client code.
  */
 
-const MOODS: { label: string; icon: IconName; q: string }[] = [
-  { label: "Beach weekend", icon: "pool", q: "beach weekend" },
-  { label: "City lights", icon: "apartment", q: "city lights" },
-  { label: "Detty December", icon: "event", q: "detty december" },
-  { label: "Romantic escape", icon: "favorites", q: "romantic escape" },
-  { label: "Family time", icon: "home", q: "family time" },
-  { label: "Foodie tour", icon: "restaurant", q: "foodie tour" },
+const MOODS: { label: string; icon: BrandIconName; q: string }[] = [
+  { label: "Beach weekend", icon: "luggage-check", q: "beach weekend" },
+  { label: "City lights", icon: "homes-sparkle", q: "city lights" },
+  { label: "Detty December", icon: "gift", q: "detty december" },
+  { label: "Romantic escape", icon: "heart-home", q: "romantic escape" },
+  { label: "Family time", icon: "house-sparkle", q: "family time" },
+  { label: "Foodie tour", icon: "gift", q: "foodie tour" },
 ];
 
 export function MoodRow() {
@@ -43,7 +43,7 @@ export function MoodRow() {
                 className="nf-glass nf-card--interactive flex h-full flex-col items-start gap-3 rounded-[var(--nf-radius-lg)] p-4 sm:p-5"
               >
                 <span className="h-10 w-10 sm:h-12 sm:w-12">
-                  <Icon name={m.icon} fill />
+                  <BrandIcon name={m.icon} fill />
                 </span>
                 <span className="text-[0.875rem] font-semibold text-[var(--nf-content-primary)] sm:text-[0.9375rem]">
                   {m.label}

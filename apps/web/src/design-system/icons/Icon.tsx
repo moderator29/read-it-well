@@ -47,10 +47,10 @@ export const ICONS = [
   "kitchen",
 ] as const;
 
-export type IconName = (typeof ICONS)[number];
+export type BrandIconName = (typeof ICONS)[number];
 
 /** Historical names that differ from the canonical glyph key. */
-const ALIAS: Partial<Record<IconName, GlyphName>> = {
+const ALIAS: Partial<Record<BrandIconName, GlyphName>> = {
   restaurant: "restaurants",
   experience: "experiences",
   booking: "bookings",
@@ -60,7 +60,7 @@ const ALIAS: Partial<Record<IconName, GlyphName>> = {
 };
 
 export type IconProps = {
-  name: IconName;
+  name: BrandIconName;
   /** Rendered edge length in px. Ignored when `fill` is set. */
   size?: number;
   /** Fill the parent box so the icon can be sized responsively by a wrapper. */
@@ -80,6 +80,6 @@ export type IconProps = {
 export function Icon({ name, size = 48, fill, ramp, label, className }: IconProps) {
   const glyph = (ALIAS[name] ?? name) as GlyphName;
   return (
-    <Icon3D name={glyph} size={size} fill={fill} ramp={ramp} label={label} className={className} />
+    <Icon3D name={glyph} size={size} fill={fill} label={label} className={className} />
   );
 }

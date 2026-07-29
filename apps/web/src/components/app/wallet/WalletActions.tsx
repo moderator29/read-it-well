@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import type { Locale } from "@naijafinds/i18n";
 import { NIGERIAN_BANKS } from "@/lib/data/nigeria";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import {
   requestDeposit,
   requestTransfer,
@@ -32,7 +32,7 @@ const EMPTY: WalletActionResult = { ok: false };
 const PANELS: {
   key: PanelKey;
   label: string;
-  icon: IconName;
+  icon: BrandIconName;
   ramp: "emerald" | "sky" | "cyan";
   title: string;
   hint: string;
@@ -40,7 +40,7 @@ const PANELS: {
   {
     key: "add",
     label: "Add money",
-    icon: "wallet",
+    icon: "wallet-secure",
     ramp: "emerald",
     title: "Add money to your wallet",
     hint: "Fund your wallet by card or bank transfer once payments are connected.",
@@ -48,7 +48,7 @@ const PANELS: {
   {
     key: "withdraw",
     label: "Withdraw",
-    icon: "secure",
+    icon: "shield-lock",
     ramp: "sky",
     title: "Withdraw to your bank",
     hint: "Send wallet funds to any Nigerian bank account in your name.",
@@ -56,7 +56,7 @@ const PANELS: {
   {
     key: "transfer",
     label: "Transfer",
-    icon: "profile",
+    icon: "user-check",
     ramp: "cyan",
     title: "Transfer to another user",
     hint: "Send money to any RentMe user by email or phone number.",
@@ -92,7 +92,7 @@ export function WalletActions({ locale }: { locale: Locale }) {
             }`}
           >
             <span className="h-7 w-7">
-              <Icon name={p.icon} fill ramp={p.ramp} />
+              <BrandIcon name={p.icon} fill />
             </span>
             {p.label}
           </button>
@@ -111,7 +111,7 @@ export function WalletActions({ locale }: { locale: Locale }) {
           <div className="mb-3 flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <span className="h-7 w-7 shrink-0">
-                <Icon name={active.icon} fill ramp={active.ramp} />
+                <BrandIcon name={active.icon} fill />
               </span>
               <div>
                 <h2

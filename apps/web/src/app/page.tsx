@@ -5,7 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TrustIcon, type TrustIconName } from "@/design-system/icons/TrustIcon";
 import { HowItWorks } from "@/components/site/landing/HowItWorks";
@@ -27,26 +27,26 @@ export default async function LandingPage() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
 
-  const features: { icon: IconName; title: string; body: string }[] = [
-    { icon: "ai-assistant", ...t.landing.features.ai },
-    { icon: "verified", ...t.landing.features.verified },
-    { icon: "wallet", ...t.landing.features.prices },
-    { icon: "booking", ...t.landing.features.booking },
+  const features: { icon: BrandIconName; title: string; body: string }[] = [
+    { icon: "bot-home", ...t.landing.features.ai },
+    { icon: "shield-check", ...t.landing.features.verified },
+    { icon: "tag-percent", ...t.landing.features.prices },
+    { icon: "calendar-check", ...t.landing.features.booking },
   ];
 
-  const categories: { icon: IconName; label: string; href: string }[] = [
-    { icon: "hotel", label: t.nav.hotels, href: "/search?type=hotel" },
-    { icon: "apartment", label: t.nav.apartments, href: "/search?type=property" },
-    { icon: "home", label: t.nav.homes, href: "/search?type=home" },
-    { icon: "restaurant", label: t.nav.restaurants, href: "/search?type=restaurant" },
-    { icon: "experience", label: t.nav.experiences, href: "/search?type=experience" },
+  const categories: { icon: BrandIconName; label: string; href: string }[] = [
+    { icon: "hotel-star", label: t.nav.hotels, href: "/search?type=hotel" },
+    { icon: "homes-sparkle", label: t.nav.apartments, href: "/search?type=property" },
+    { icon: "house-sparkle", label: t.nav.homes, href: "/search?type=home" },
+    { icon: "keys-home", label: t.nav.rent, href: "/rent" },
+    { icon: "luggage-check", label: t.nav.experiences, href: "/search?type=experience" },
   ];
 
-  const visionPoints: { icon: IconName; title: string; body: string }[] = [
-    { icon: "verified", ...t.landing.vision.points.verified },
-    { icon: "wallet", ...t.landing.vision.points.naira },
-    { icon: "map", ...t.landing.vision.points.everywhere },
-    { icon: "ai-assistant", ...t.landing.vision.points.assistant },
+  const visionPoints: { icon: BrandIconName; title: string; body: string }[] = [
+    { icon: "user-verified", ...t.landing.vision.points.verified },
+    { icon: "naira-hand", ...t.landing.vision.points.naira },
+    { icon: "map-route", ...t.landing.vision.points.everywhere },
+    { icon: "bot-chat", ...t.landing.vision.points.assistant },
   ];
 
   const trust: { icons: TrustIconName[]; title: string; body: string }[] = [
@@ -70,13 +70,13 @@ export default async function LandingPage() {
           {/* Floating category objects drifting in the hero air. Decorative. */}
           <div className="nf-icon-field" aria-hidden="true">
             <span className="left-[4%] top-[64%] h-8 w-8 sm:h-10 sm:w-10">
-              <Icon name="wallet" fill />
+              <BrandIcon name="wallet-secure" fill />
             </span>
             <span className="left-[46%] top-[8%] hidden h-9 w-9 sm:block">
-              <Icon name="experience" fill />
+              <BrandIcon name="pin-map" fill />
             </span>
             <span className="right-[6%] top-[56%] h-8 w-8 sm:h-10 sm:w-10 lg:right-[40%] lg:top-[74%]">
-              <Icon name="booking" fill />
+              <BrandIcon name="keys-home" fill />
             </span>
           </div>
 
@@ -162,7 +162,7 @@ export default async function LandingPage() {
               {features.map((f) => (
                 <li key={f.title} className="nf-card nf-card--interactive flex items-center gap-3 p-3.5 sm:p-4">
                   <span className="h-9 w-9 shrink-0 sm:h-11 sm:w-11">
-                    <Icon name={f.icon} fill />
+                    <BrandIcon name={f.icon} fill />
                   </span>
                   <span className="min-w-0">
                     <span className="block text-[0.875rem] font-semibold text-[var(--nf-content-primary)] sm:text-[0.9375rem]">
@@ -234,7 +234,7 @@ export default async function LandingPage() {
                   {visionPoints.map((p) => (
                     <li key={p.title} className="nf-card nf-card--interactive p-5">
                       <span className="mb-3 block h-12 w-12">
-                        <Icon name={p.icon} fill />
+                        <BrandIcon name={p.icon} fill />
                       </span>
                       <span className="block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                         {p.title}
@@ -267,7 +267,7 @@ export default async function LandingPage() {
                   className="nf-card nf-card--interactive flex h-full flex-col items-center gap-3 p-5 text-center sm:p-6"
                 >
                   <span className="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16">
-                    <Icon name={c.icon} fill />
+                    <BrandIcon name={c.icon} fill />
                   </span>
                   <span className="text-[0.875rem] font-semibold sm:text-[0.9375rem]">{c.label}</span>
                 </Link>

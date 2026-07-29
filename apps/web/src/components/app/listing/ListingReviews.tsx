@@ -1,5 +1,5 @@
 import { formatNumber, type Dictionary, type Locale } from "@naijafinds/i18n";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -25,7 +25,7 @@ export function ListingReviews({
     return (
       <div className="nf-card p-8 text-center">
         <span className="mx-auto block h-12 w-12">
-          <Icon name="star" fill />
+          <BrandIcon name="reviews" fill />
         </span>
         <p className="mt-3.5 font-semibold text-[var(--nf-content-primary)]">No reviews yet</p>
         <p className="mx-auto mt-1 max-w-[38ch] text-[0.875rem] text-[var(--nf-content-muted)]">
@@ -40,7 +40,7 @@ export function ListingReviews({
     <div className="nf-card p-5">
       <div className="flex items-center gap-3.5">
         <span className="block h-11 w-11 shrink-0">
-          <Icon name="star" fill />
+          <BrandIcon name="reviews" fill />
         </span>
         <p className="flex items-baseline gap-2">
           <span className="nf-numeric text-[1.375rem] font-bold tracking-tight text-[var(--nf-content-primary)]">

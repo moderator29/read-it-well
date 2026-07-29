@@ -7,5 +7,5 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function Page() {
   const t = getDictionary(await getLocale());
-  return <AgentComingSoon active="/agent/verification" title={t.agent.nav.verification} icon="verified" />;
+  return <AgentComingSoon active="/agent/verification" title={t.agent.nav.verification} icon="shield-check" />;
 }

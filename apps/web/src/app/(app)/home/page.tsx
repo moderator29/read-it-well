@@ -6,7 +6,7 @@ import { getListingRepository } from "@/lib/listings/repository";
 import { ListingCard } from "@/components/app/ListingCard";
 import { AiAssistantBanner } from "@/components/app/AiAssistantBanner";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 export const metadata: Metadata = {
@@ -36,20 +36,20 @@ export default async function HomePage() {
   const repo = getListingRepository();
   const listings = await repo.recommended(6);
 
-  const categories: { icon: IconName; label: string; href: string }[] = [
-    { icon: "hotel", label: t.nav.hotels, href: "/search?type=hotel" },
-    { icon: "apartment", label: t.nav.apartments, href: "/search?type=apartment" },
-    { icon: "home", label: t.nav.homes, href: "/search?type=home" },
-    { icon: "restaurant", label: t.nav.restaurants, href: "/search?type=restaurant" },
-    { icon: "experience", label: t.nav.experiences, href: "/search?type=experience" },
+  const categories: { icon: BrandIconName; label: string; href: string }[] = [
+    { icon: "hotel-star", label: t.nav.hotels, href: "/search?type=hotel" },
+    { icon: "homes-sparkle", label: t.nav.apartments, href: "/search?type=apartment" },
+    { icon: "house-sparkle", label: t.nav.homes, href: "/search?type=home" },
+    { icon: "gift", label: t.nav.restaurants, href: "/search?type=restaurant" },
+    { icon: "luggage-check", label: t.nav.experiences, href: "/search?type=experience" },
   ];
 
-  const experiences: { icon: IconName; label: string }[] = [
-    { icon: "pool", label: t.home.experienceCategories.beach },
-    { icon: "map", label: t.home.experienceCategories.city },
-    { icon: "restaurant", label: t.home.experienceCategories.dining },
-    { icon: "car-rental", label: t.home.experienceCategories.adventure },
-    { icon: "event", label: t.home.experienceCategories.events },
+  const experiences: { icon: BrandIconName; label: string }[] = [
+    { icon: "luggage-check", label: t.home.experienceCategories.beach },
+    { icon: "map-route", label: t.home.experienceCategories.city },
+    { icon: "gift", label: t.home.experienceCategories.dining },
+    { icon: "map-route", label: t.home.experienceCategories.adventure },
+    { icon: "gift", label: t.home.experienceCategories.events },
   ];
 
   return (
@@ -99,7 +99,7 @@ export default async function HomePage() {
                 className="nf-card nf-card--interactive flex h-full flex-col items-center gap-2 p-3 text-center sm:p-4"
               >
                 <span className="block h-10 w-10 sm:h-12 sm:w-12">
-                  <Icon name={c.icon} fill />
+                  <BrandIcon name={c.icon} fill />
                 </span>
                 <span className="text-[0.8125rem] font-semibold sm:text-[0.875rem]">
                   {c.label}
@@ -130,7 +130,7 @@ export default async function HomePage() {
         {listings.length === 0 ? (
           <div className="nf-card p-10 text-center">
             <span className="mx-auto block h-14 w-14">
-              <Icon name="search" fill />
+              <BrandIcon name="home-search" fill />
             </span>
             <p className="mt-4 font-semibold">Nothing to show here yet</p>
             <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
@@ -157,7 +157,7 @@ export default async function HomePage() {
             aria-hidden="true"
           />
           <span className="block h-14 w-14 shrink-0 sm:h-[3.75rem] sm:w-[3.75rem]">
-            <Icon name="apartment" fill />
+            <BrandIcon name="homes-sparkle" fill />
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="nf-h3">{t.home.agentCard.title}</h2>
@@ -182,7 +182,7 @@ export default async function HomePage() {
                 className="nf-card nf-card--interactive flex h-full flex-col items-center gap-2 p-3 text-center sm:p-4"
               >
                 <span className="block h-11 w-11 sm:h-12 sm:w-12">
-                  <Icon name={e.icon} fill />
+                  <BrandIcon name={e.icon} fill />
                 </span>
                 <span className="text-[0.8125rem] font-semibold">{e.label}</span>
               </Link>

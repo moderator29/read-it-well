@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { ConversationListing } from "@/lib/messages/types";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 /**
  * In-chat listing options sheet.
@@ -125,7 +125,7 @@ export function ListingOptionsSheet({
         {/* --------------------------------------------- inspection and safety */}
         <div className="mt-4 flex items-start gap-3">
           <span className="h-9 w-9 shrink-0" aria-hidden="true">
-            <Icon name="secure" fill />
+            <BrandIcon name="shield-lock" fill />
           </span>
           <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
             For your safety, only pay after you have inspected the property. Conversations are

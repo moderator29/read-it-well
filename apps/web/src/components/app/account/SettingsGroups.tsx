@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { LOCALES, localeMeta, type Locale } from "@naijafinds/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Toggle } from "./Toggle";
 import {
   applyReduceMotion,
@@ -73,7 +73,7 @@ export function AppearanceCard() {
   };
 
   return (
-    <GroupCard overline="Appearance" icon="settings">
+    <GroupCard overline="Appearance" icon="doc-shield">
       <div className="divide-y divide-[var(--nf-border-subtle)]">
         <SegmentedRow
           label="Theme"
@@ -123,7 +123,7 @@ export function LanguageCard({ current }: { current: Locale }) {
   };
 
   return (
-    <GroupCard overline="Language" icon="language">
+    <GroupCard overline="Language" icon="globe-pin">
       <div role="radiogroup" aria-label="App language" className="divide-y divide-[var(--nf-border-subtle)]">
         {LOCALES.map((code) => {
           const active = selected === code;
@@ -181,7 +181,7 @@ export function NotificationsCard() {
   );
 
   return (
-    <GroupCard overline="Notifications" icon="notification">
+    <GroupCard overline="Notifications" icon="bell-alert">
       <div className="divide-y divide-[var(--nf-border-subtle)]">
         {row("notifyPush", "Push notifications", "Booking updates and replies, straight to this device.")}
         {row("notifyEmail", "Email", "Receipts, confirmations and occasional highlights.")}
@@ -198,7 +198,7 @@ export function PrivacyCard() {
   const { settings, set } = useNfSettings();
 
   return (
-    <GroupCard overline="Privacy" icon="secure">
+    <GroupCard overline="Privacy" icon="shield-lock">
       <div className="divide-y divide-[var(--nf-border-subtle)]">
         <SegmentedRow
           label="Profile visibility"
@@ -234,7 +234,7 @@ export function SearchCard() {
   const cityId = useId();
 
   return (
-    <GroupCard overline="Search" icon="search">
+    <GroupCard overline="Search" icon="home-search">
       <div className="divide-y divide-[var(--nf-border-subtle)]">
         <div className="py-3.5 first:pt-0 last:pb-0">
           <label htmlFor={cityId} className="block text-[0.9375rem] font-medium">
@@ -327,7 +327,7 @@ export function SecurityCard() {
   }, []);
 
   return (
-    <GroupCard overline="Security" icon="secure">
+    <GroupCard overline="Security" icon="shield-lock">
       <div className="divide-y divide-[var(--nf-border-subtle)]">
         <Toggle
           checked={settings.appLock}
@@ -403,7 +403,7 @@ export function DataCard() {
   };
 
   return (
-    <GroupCard overline="Your data" icon="wallet">
+    <GroupCard overline="Your data" icon="wallet-secure">
       <div className="divide-y divide-[var(--nf-border-subtle)]">
         <div className="py-3.5 first:pt-0">
           <p className="text-[0.9375rem] font-medium">Download my data</p>
@@ -507,14 +507,14 @@ export function GroupCard({
   children,
 }: {
   overline: string;
-  icon: IconName;
+  icon: BrandIconName;
   children: React.ReactNode;
 }) {
   return (
     <section className="nf-card p-5 sm:p-6" aria-label={overline}>
       <div className="mb-4 flex items-center gap-2.5">
         <span className="block h-6 w-6 shrink-0">
-          <Icon name={icon} fill />
+          <BrandIcon name={icon} fill />
         </span>
         <h2 className="nf-overline">{overline}</h2>
       </div>

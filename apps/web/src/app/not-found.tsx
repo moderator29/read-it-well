@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { LogoMark } from "@/design-system/brand/Logo";
 
@@ -22,16 +22,16 @@ export default function NotFound() {
       {/* Floating decorative objects */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <span className="nf-float absolute left-[8%] top-[16%] block h-14 w-14 opacity-25 md:h-20 md:w-20">
-          <Icon name="hotel" fill />
+          <BrandIcon name="hotel-star" fill />
         </span>
         <span className="nf-float-slow absolute right-[10%] top-[22%] block h-12 w-12 opacity-20 md:h-16 md:w-16">
-          <Icon name="restaurant" fill />
+          <BrandIcon name="gift" fill />
         </span>
         <span className="nf-float-slow absolute bottom-[24%] left-[14%] block h-11 w-11 opacity-20 md:h-14 md:w-14">
-          <Icon name="experience" fill />
+          <BrandIcon name="luggage-check" fill />
         </span>
         <span className="nf-float absolute bottom-[18%] right-[12%] block h-14 w-14 opacity-25 md:h-[4.5rem] md:w-[4.5rem]">
-          <Icon name="map" fill />
+          <BrandIcon name="map-route" fill />
         </span>
       </div>
 

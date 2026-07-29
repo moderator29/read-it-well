@@ -1,4 +1,4 @@
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 
 /**
  * Wallet trust strip.
@@ -8,19 +8,19 @@ import { Icon, type IconName } from "@/design-system/icons/Icon";
  * of implying protections that are not live yet.
  */
 
-const FEATURES: { icon: IconName; title: string; body: string }[] = [
+const FEATURES: { icon: BrandIconName; title: string; body: string }[] = [
   {
-    icon: "secure",
+    icon: "shield-lock",
     title: "Bank-level encryption",
     body: "Wallet writes happen only on our servers, never from a browser.",
   },
   {
-    icon: "verified",
+    icon: "shield-check",
     title: "Ledger-recorded to the kobo",
     body: "Every movement lives in a permanent, kobo-exact ledger.",
   },
   {
-    icon: "settings",
+    icon: "doc-shield",
     title: "PIN and 2FA at launch",
     body: "A transaction PIN and two-factor authentication ship with launch.",
   },
@@ -32,7 +32,7 @@ export function SecurityNote() {
       {FEATURES.map((f) => (
         <li key={f.title} className="nf-card flex flex-col items-center px-2.5 py-4 text-center">
           <span className="h-7 w-7">
-            <Icon name={f.icon} fill />
+            <BrandIcon name={f.icon} fill />
           </span>
           <p className="mt-2 text-[0.72rem] font-semibold leading-snug">{f.title}</p>
           <p className="mt-1 hidden text-[0.68rem] leading-relaxed text-[var(--nf-content-muted)] sm:block">

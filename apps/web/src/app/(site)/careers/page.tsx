@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 export const metadata: Metadata = {
@@ -18,14 +18,14 @@ export const metadata: Metadata = {
  * applications to careers@naijafinds.com and says exactly what to send.
  */
 export default function CareersPage() {
-  const culture: { icon: IconName; title: string; body: string }[] = [
+  const culture: { icon: BrandIconName; title: string; body: string }[] = [
     {
-      icon: "home",
+      icon: "house-sparkle",
       title: "Nigeria is the brief",
       body: "We design for NEPA outages, bank transfer receipts and four languages, not for an imagined user in another country. Local knowledge is a superpower here.",
     },
     {
-      icon: "verified",
+      icon: "shield-check",
       title: "Trust is the product",
       body: "Verification, secure payments and honest reviews are not compliance chores. They are the whole point, and everyone on the team owns them.",
     },
@@ -35,7 +35,7 @@ export default function CareersPage() {
       body: "You will ship things users touch in your first weeks. Clear writing, kind disagreement and finished work matter more than titles.",
     },
     {
-      icon: "experience",
+      icon: "luggage-check",
       title: "Craft over churn",
       body: "We would rather build one screen properly than five screens roughly. Design, engineering and support sit in the same conversations.",
     },
@@ -55,7 +55,7 @@ export default function CareersPage() {
         <div className="nf-rise text-center">
           <span className="nf-chip mx-auto">
             <span className="inline-grid h-4 w-4 place-items-center">
-              <Icon name="star" fill />
+              <BrandIcon name="reviews" fill />
             </span>
             Careers at RentMe
           </span>
@@ -77,7 +77,7 @@ export default function CareersPage() {
               <Reveal key={c.title} delay={(i % 2) * 80} className="h-full">
                 <div className="nf-card flex h-full flex-col gap-2.5 p-5 sm:p-6">
                   <span className="inline-grid h-10 w-10 place-items-center">
-                    <Icon name={c.icon} fill />
+                    <BrandIcon name={c.icon} fill />
                   </span>
                   <span className="font-semibold">{c.title}</span>
                   <span className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -94,7 +94,7 @@ export default function CareersPage() {
           <h2 className="nf-overline text-center">Open roles</h2>
           <div className="nf-card mt-4 p-7 text-center sm:p-9">
             <span className="mx-auto inline-grid h-14 w-14 place-items-center">
-              <Icon name="search" fill />
+              <BrandIcon name="home-search" fill />
             </span>
             <h3 className="nf-h3 mx-auto mt-4 max-w-[26ch]">
               No advertised openings right now
@@ -146,7 +146,7 @@ export default function CareersPage() {
               <Reveal key={w} as="li" delay={i * 60}>
                 <div className="nf-card flex items-center gap-3 p-4 sm:p-5">
                   <span className="inline-grid h-8 w-8 shrink-0 place-items-center">
-                    <Icon name="profile" fill />
+                    <BrandIcon name="user-check" fill />
                   </span>
                   <span className="text-[0.9375rem] font-medium leading-snug">{w}</span>
                 </div>

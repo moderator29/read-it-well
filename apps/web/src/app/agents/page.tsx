@@ -5,7 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { BackButton } from "@/components/site/BackButton";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 export const metadata: Metadata = {
@@ -32,19 +32,19 @@ export default async function BecomeAgentPage() {
   const j = t.agent.join;
   const steps = t.agent.apply.steps;
 
-  const stepList: { n: number; icon: IconName; label: string; blurb: string }[] = [
-    { n: 1, icon: "profile", label: steps.personal, blurb: "Tell us who you are. Two minutes, no paperwork yet." },
-    { n: 2, icon: "verified", label: steps.identity, blurb: "Verify with your NIN or a government issued ID." },
-    { n: 3, icon: "apartment", label: steps.business, blurb: "Solo agent or registered company, both are welcome." },
-    { n: 4, icon: "booking", label: steps.documents, blurb: "Upload your ID, and registration if you run a business." },
-    { n: 5, icon: "wallet", label: steps.payout, blurb: "Add the Nigerian bank account your earnings should land in." },
-    { n: 6, icon: "star", label: steps.review, blurb: "Check everything over, submit, and we take it from there." },
+  const stepList: { n: number; icon: BrandIconName; label: string; blurb: string }[] = [
+    { n: 1, icon: "user-check", label: steps.personal, blurb: "Tell us who you are. Two minutes, no paperwork yet." },
+    { n: 2, icon: "shield-check", label: steps.identity, blurb: "Verify with your NIN or a government issued ID." },
+    { n: 3, icon: "homes-sparkle", label: steps.business, blurb: "Solo agent or registered company, both are welcome." },
+    { n: 4, icon: "calendar-check", label: steps.documents, blurb: "Upload your ID, and registration if you run a business." },
+    { n: 5, icon: "wallet-secure", label: steps.payout, blurb: "Add the Nigerian bank account your earnings should land in." },
+    { n: 6, icon: "reviews", label: steps.review, blurb: "Check everything over, submit, and we take it from there." },
   ];
 
-  const benefits: { icon: IconName; text: string }[] = [
-    { icon: "verified", text: j.benefitReach },
-    { icon: "apartment", text: j.benefitTools },
-    { icon: "wallet", text: j.benefitEarn },
+  const benefits: { icon: BrandIconName; text: string }[] = [
+    { icon: "shield-check", text: j.benefitReach },
+    { icon: "homes-sparkle", text: j.benefitTools },
+    { icon: "wallet-secure", text: j.benefitEarn },
   ];
 
   const trustNotes: { q: string; a: string }[] = [
@@ -82,7 +82,7 @@ export default async function BecomeAgentPage() {
           <div className="nf-rise text-center">
             <span className="nf-chip mx-auto">
               <span className="inline-grid h-4 w-4 place-items-center">
-                <Icon name="apartment" fill />
+                <BrandIcon name="homes-sparkle" fill />
               </span>
               {t.landing.footer.becomeAgent}
             </span>
@@ -110,7 +110,7 @@ export default async function BecomeAgentPage() {
                 <Reveal key={b.text} as="li" delay={i * 80} className="h-full">
                   <div className="nf-card flex h-full items-center gap-3 p-4 sm:flex-col sm:items-start sm:gap-2.5 sm:p-5">
                     <span className="inline-grid h-10 w-10 shrink-0 place-items-center">
-                      <Icon name={b.icon} fill />
+                      <BrandIcon name={b.icon} fill />
                     </span>
                     <span className="text-[0.875rem] font-medium leading-snug">{b.text}</span>
                   </div>
@@ -162,7 +162,7 @@ export default async function BecomeAgentPage() {
             <div className="nf-card overflow-hidden p-6 sm:p-8">
               <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-7">
                 <span className="inline-grid h-16 w-16 shrink-0 place-items-center sm:h-20 sm:w-20">
-                  <Icon name="wallet" fill />
+                  <BrandIcon name="wallet-secure" fill />
                 </span>
                 <div className="min-w-0">
                   <h2 className="nf-h3">You set the price. You keep the earnings.</h2>
@@ -189,7 +189,7 @@ export default async function BecomeAgentPage() {
                   <div className="nf-card p-5">
                     <h3 className="flex items-center gap-2.5 font-semibold">
                       <span className="inline-grid h-5 w-5 shrink-0 place-items-center">
-                        <Icon name="help" fill />
+                        <BrandIcon name="support-chat" fill />
                       </span>
                       {n.q}
                     </h3>
@@ -206,7 +206,7 @@ export default async function BecomeAgentPage() {
           <Reveal as="section" className="mt-14">
             <div className="nf-card p-7 text-center sm:p-9">
               <span className="mx-auto inline-grid h-14 w-14 place-items-center">
-                <Icon name="apartment" fill />
+                <BrandIcon name="homes-sparkle" fill />
               </span>
               <h2 className="nf-h2 mx-auto mt-4 max-w-[20ch]">{j.title}</h2>
               <div className="mt-6 flex justify-center">

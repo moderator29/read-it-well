@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Locale } from "@naijafinds/i18n";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { WalletEntry } from "@/lib/wallet/types";
 import { formatKoboExact } from "./money";
 
@@ -122,7 +122,7 @@ export function BalanceCard({
             <EyeGlyph off={hidden} />
           </button>
           <span className="h-7 w-7 shrink-0">
-            <Icon name="wallet" fill />
+            <BrandIcon name="wallet-secure" fill />
           </span>
         </div>
       </div>

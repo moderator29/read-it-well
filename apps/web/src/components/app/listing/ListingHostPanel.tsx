@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -27,7 +27,7 @@ export function ListingHostPanel({
     <div className="nf-card p-5">
       <div className="flex items-center gap-3.5">
         <span className="block h-12 w-12 shrink-0">
-          <Icon name="profile" fill />
+          <BrandIcon name="user-check" fill />
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { Logo } from "@/design-system/brand/Logo";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
@@ -116,7 +116,7 @@ export function AppRail({
         className="mt-4 flex items-center gap-3 rounded-[var(--nf-radius-lg)] border border-[color-mix(in_oklab,var(--nf-mode-agent)_40%,transparent)] p-3 transition-colors hover:bg-[color-mix(in_oklab,var(--nf-mode-agent)_10%,transparent)]"
       >
         <span className="h-7 w-7 shrink-0 lg:h-8 lg:w-8">
-          <Icon name="apartment" fill />
+          <BrandIcon name="homes-sparkle" fill />
         </span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className="block text-[0.8125rem] font-semibold">{t.home.agentCard.action}</span>

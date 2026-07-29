@@ -13,7 +13,7 @@ import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
 import { ListingHostPanel } from "@/components/app/listing/ListingHostPanel";
 import { ListingReviews } from "@/components/app/listing/ListingReviews";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -99,14 +99,14 @@ export default async function ListingDetailPage({
         }.`
       : "";
 
-  const facts: { icon: IconName; label: string }[] = [
-    { icon: "profile", label: `Sleeps ${sleeps(listing)}` },
+  const facts: { icon: BrandIconName; label: string }[] = [
+    { icon: "user-check", label: `Sleeps ${sleeps(listing)}` },
     {
-      icon: "bed",
+      icon: "house-sparkle",
       label: `${listing.bedrooms} ${listing.bedrooms === 1 ? "bedroom" : "bedrooms"}`,
     },
     {
-      icon: "bath",
+      icon: "home-check",
       label: `${listing.bathrooms} ${listing.bathrooms === 1 ? "bathroom" : "bathrooms"}`,
     },
   ];
@@ -128,7 +128,7 @@ export default async function ListingDetailPage({
 
             <p className="mt-2.5 flex items-center gap-2 text-[0.9375rem] text-[var(--nf-content-secondary)]">
               <span className="block h-6 w-6 shrink-0">
-                <Icon name="location" fill />
+                <BrandIcon name="pin-map" fill />
               </span>
               <span className="truncate">
                 {listing.area}, {listing.city}, {stateLabel(listing.state)}
@@ -156,7 +156,7 @@ export default async function ListingDetailPage({
               {facts.map((f) => (
                 <li key={f.label} className="nf-chip gap-2 px-3 py-1.5">
                   <span className="block h-6 w-6 shrink-0">
-                    <Icon name={f.icon} fill />
+                    <BrandIcon name={f.icon} fill />
                   </span>
                   <span className="nf-numeric text-[0.8125rem]">{f.label}</span>
                 </li>

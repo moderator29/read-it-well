@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 export const metadata: Metadata = {
@@ -18,34 +18,34 @@ export const metadata: Metadata = {
  * aurora, mobile-first, in the same voice as the landing page.
  */
 export default function AboutPage() {
-  const values: { icon: IconName; title: string; body: string }[] = [
+  const values: { icon: BrandIconName; title: string; body: string }[] = [
     {
-      icon: "verified",
+      icon: "shield-check",
       title: "Trust before traffic",
       body: "Every listing is checked and every agent is identity-verified before a single guest sees them. We would rather grow slowly than list a place we cannot stand behind.",
     },
     {
-      icon: "language",
+      icon: "globe-pin",
       title: "Speak people's language",
       body: "RentMe works in English, Yoruba, Hausa and Igbo, because booking a home for your family should never require translating your own country.",
     },
     {
-      icon: "wallet",
+      icon: "wallet-secure",
       title: "Fair to both sides",
       body: "Guests pay securely and agents get paid promptly. Listing is free, and we earn only when a booking completes, so our incentives sit exactly where yours do.",
     },
     {
-      icon: "home",
+      icon: "house-sparkle",
       title: "Built for Nigerian reality",
       body: "Inspection before payment, naira pricing, Nigerian bank payouts, and support that understands Lagos traffic and Abuja weekends. Local is not a feature, it is the foundation.",
     },
   ];
 
-  const categories: { icon: IconName; title: string; body: string }[] = [
-    { icon: "apartment", title: "Stays", body: "Shortlets, apartments and homes for a night or a season." },
-    { icon: "hotel", title: "Hotels", body: "From boutique guesthouses to city landmarks." },
-    { icon: "restaurant", title: "Food", body: "Restaurants and kitchens worth crossing town for." },
-    { icon: "experience", title: "Experiences", body: "Events, outings and adventures across the country." },
+  const categories: { icon: BrandIconName; title: string; body: string }[] = [
+    { icon: "homes-sparkle", title: "Stays", body: "Shortlets, apartments and homes for a night or a season." },
+    { icon: "hotel-star", title: "Hotels", body: "From boutique guesthouses to city landmarks." },
+    { icon: "gift", title: "Food", body: "Restaurants and kitchens worth crossing town for." },
+    { icon: "luggage-check", title: "Experiences", body: "Events, outings and adventures across the country." },
   ];
 
   return (
@@ -55,7 +55,7 @@ export default function AboutPage() {
         <div className="nf-rise text-center">
           <span className="nf-chip mx-auto">
             <span className="inline-grid h-4 w-4 place-items-center">
-              <Icon name="home" fill />
+              <BrandIcon name="house-sparkle" fill />
             </span>
             About RentMe
           </span>
@@ -106,7 +106,7 @@ export default function AboutPage() {
               <Reveal key={c.title} as="li" delay={i * 70} className="h-full">
                 <div className="nf-card flex h-full flex-col items-start gap-2.5 p-4 sm:p-5">
                   <span className="inline-grid h-10 w-10 place-items-center">
-                    <Icon name={c.icon} fill />
+                    <BrandIcon name={c.icon} fill />
                   </span>
                   <span className="font-semibold">{c.title}</span>
                   <span className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
@@ -126,7 +126,7 @@ export default function AboutPage() {
               <Reveal key={v.title} delay={i * 60}>
                 <div className="nf-card flex items-start gap-4 p-5 sm:p-6">
                   <span className="inline-grid h-11 w-11 shrink-0 place-items-center">
-                    <Icon name={v.icon} fill />
+                    <BrandIcon name={v.icon} fill />
                   </span>
                   <span className="min-w-0">
                     <span className="block font-semibold">{v.title}</span>

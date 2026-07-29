@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Locale } from "@naijafinds/i18n";
 import { formatDate } from "@naijafinds/i18n";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
 import type { WalletEntry, WalletEntryKind } from "@/lib/wallet/types";
 import { formatKoboExact } from "./money";
@@ -30,13 +30,13 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "pending", label: "Pending" },
 ];
 
-const KIND_ICON: Record<WalletEntryKind, IconName> = {
-  deposit: "wallet",
-  withdrawal: "wallet",
-  payment: "booking",
-  refund: "verified",
-  transfer_in: "profile",
-  transfer_out: "profile",
+const KIND_ICON: Record<WalletEntryKind, BrandIconName> = {
+  deposit: "wallet-secure",
+  withdrawal: "naira-hand",
+  payment: "card-lock",
+  refund: "shield-check",
+  transfer_in: "user-check",
+  transfer_out: "user-check",
 };
 
 const KIND_LABEL: Record<WalletEntryKind, string> = {
@@ -132,7 +132,7 @@ export function TransactionsSection({
       ) : (
         <div className="nf-card flex flex-col items-center px-6 py-10 text-center">
           <span className="h-7 w-7">
-            <Icon name="wallet" fill />
+            <BrandIcon name="wallet-secure" fill />
           </span>
           <p className="mt-3 text-[0.9375rem] font-semibold">No transactions yet</p>
           <p className="mt-1 max-w-[34ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
@@ -155,7 +155,7 @@ function EntryRow({ entry, locale }: { entry: WalletEntry; locale: Locale }) {
     <li className="flex items-center gap-3 px-4 py-3.5">
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--nf-radius-md)] border border-white/10 bg-white/[0.05] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06)]">
         <span className="h-7 w-7">
-          <Icon name={KIND_ICON[entry.kind]} fill ramp={credit ? "emerald" : "sky"} />
+          <BrandIcon name={KIND_ICON[entry.kind]} fill />
         </span>
       </span>
       <span className="min-w-0 flex-1 leading-tight">

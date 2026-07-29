@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ContactForm } from "./ContactForm";
 
 export const metadata: Metadata = {
@@ -28,7 +28,7 @@ export default function ContactPage() {
         <div className="nf-rise text-center">
           <span className="nf-chip mx-auto">
             <span className="inline-grid h-4 w-4 place-items-center">
-              <Icon name="chat" fill />
+              <BrandIcon name="chat" fill />
             </span>
             Contact us
           </span>
@@ -65,7 +65,7 @@ export default function ContactPage() {
           <div className="nf-card flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
             <div className="flex items-center gap-3">
               <span className="inline-grid h-10 w-10 shrink-0 place-items-center">
-                <Icon name="help" fill />
+                <BrandIcon name="support-chat" fill />
               </span>
               <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
                 Many questions already have written answers about bookings, payments,

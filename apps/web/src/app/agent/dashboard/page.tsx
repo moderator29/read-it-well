@@ -7,7 +7,7 @@ import { AgentShell } from "@/components/agent/AgentShell";
 import { StatCard } from "@/components/agent/StatCard";
 import { AreaSparkline } from "@/components/agent/charts/AreaSparkline";
 import { DonutChart } from "@/components/agent/charts/DonutChart";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 
 export const metadata: Metadata = {
   title: "Agent Dashboard",
@@ -22,11 +22,11 @@ export default async function AgentDashboardPage() {
 
   const a = t.agent.dashboard;
 
-  const quickActions: { icon: IconName; label: string; href: string }[] = [
-    { icon: "apartment", label: a.addListing, href: "/agent/list" },
-    { icon: "booking", label: a.viewBookings, href: "/agent/bookings" },
-    { icon: "verified", label: a.manageListings, href: "/agent/listings" },
-    { icon: "wallet", label: a.earningsReport, href: "/agent/earnings" },
+  const quickActions: { icon: BrandIconName; label: string; href: string }[] = [
+    { icon: "homes-sparkle", label: a.addListing, href: "/agent/list" },
+    { icon: "calendar-check", label: a.viewBookings, href: "/agent/bookings" },
+    { icon: "shield-check", label: a.manageListings, href: "/agent/listings" },
+    { icon: "wallet-secure", label: a.earningsReport, href: "/agent/earnings" },
   ];
 
   return (
@@ -41,7 +41,7 @@ export default async function AgentDashboardPage() {
           <p className="mt-1 text-[var(--nf-content-secondary)]">{a.subtitle}</p>
         </div>
         <Link href="/agent/list" className="nf-btn nf-btn--primary">
-          <Icon name="apartment" size={22} />
+          <BrandIcon name="homes-sparkle" size={22} />
           {a.addListing}
         </Link>
       </div>
@@ -51,28 +51,28 @@ export default async function AgentDashboardPage() {
           on desktop. */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard
-          icon="wallet"
+          icon="wallet-secure"
           label={a.totalEarnings}
           value={formatMoney(d.totalEarningsMinor, locale, "NGN", { compact: true })}
           deltaPct={d.deltas.earnings}
           deltaLabel={a.lastMonth}
         />
         <StatCard
-          icon="booking"
+          icon="calendar-check"
           label={a.totalBookings}
           value={formatNumber(d.totalBookings, locale)}
           deltaPct={d.deltas.bookings}
           deltaLabel={a.lastMonth}
         />
         <StatCard
-          icon="apartment"
+          icon="homes-sparkle"
           label={a.activeListings}
           value={formatNumber(d.activeListings, locale)}
           deltaPct={d.deltas.listings}
           deltaLabel={a.lastMonth}
         />
         <StatCard
-          icon="home"
+          icon="house-sparkle"
           label={a.occupancyRate}
           value={`${d.occupancyPct}%`}
           deltaPct={d.deltas.occupancy}
@@ -121,7 +121,7 @@ export default async function AgentDashboardPage() {
                   className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)]"
                   style={{ background: "var(--nf-surface-raised)" }}
                 >
-                  <Icon name="apartment" size={26} />
+                  <BrandIcon name="homes-sparkle" size={26} />
                 </span>
                 <span className="min-w-0 flex-1 leading-tight">
                   <span className="block truncate text-[0.8125rem] font-semibold">{b.title}</span>
@@ -274,7 +274,7 @@ export default async function AgentDashboardPage() {
                 className="nf-card nf-card--interactive flex flex-col items-center gap-2 p-4 text-center sm:p-5"
               >
                 <span className="h-10 w-10 sm:h-11 sm:w-11">
-                  <Icon name={q.icon} fill />
+                  <BrandIcon name={q.icon} fill />
                 </span>
                 <span className="text-[0.8125rem] font-semibold">{q.label}</span>
               </Link>

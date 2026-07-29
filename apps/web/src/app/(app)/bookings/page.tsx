@@ -6,7 +6,7 @@ import type { Listing } from "@/lib/listings/types";
 import { buildBookings } from "@/lib/demo/bookings";
 import { PageHeader } from "@/components/app/PageHeader";
 import { BookingsTabs } from "@/components/app/bookings/BookingsTabs";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
 
 export const metadata: Metadata = { title: "Bookings" };
@@ -45,10 +45,10 @@ export default async function BookingsPage() {
   const t = getDictionary(locale);
   const { upcoming, past } = buildBookings(await getBookedStays(), locale);
 
-  const steps: { icon: IconName; title: string; body: string }[] = [
-    { icon: "booking", title: "Choose your dates", body: "Pick check-in and check-out on a live calendar." },
-    { icon: "secure", title: "Confirm and pay", body: "Secure payment in naira. You are never charged early." },
-    { icon: "experience", title: "Enjoy your stay", body: "Check-in details arrive right here and by email." },
+  const steps: { icon: BrandIconName; title: string; body: string }[] = [
+    { icon: "calendar-check", title: "Choose your dates", body: "Pick check-in and check-out on a live calendar." },
+    { icon: "shield-lock", title: "Confirm and pay", body: "Secure payment in naira. You are never charged early." },
+    { icon: "luggage-check", title: "Enjoy your stay", body: "Check-in details arrive right here and by email." },
   ];
 
   return (
@@ -67,7 +67,7 @@ export default async function BookingsPage() {
           {steps.map((s) => (
             <li key={s.title} className="nf-card flex items-start gap-3 p-4 sm:flex-col">
               <span className="h-9 w-9 shrink-0">
-                <Icon name={s.icon} fill />
+                <BrandIcon name={s.icon} fill />
               </span>
               <span className="leading-tight">
                 <span className="block text-[0.875rem] font-semibold">{s.title}</span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -188,7 +188,7 @@ export function SupportChat() {
     <section className="nf-card p-5 sm:p-6" aria-label="Help and support">
       <div className="flex items-center gap-3">
         <span className="block h-9 w-9 shrink-0">
-          <Icon name="help" fill />
+          <BrandIcon name="support-chat" fill />
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="text-[0.9375rem] font-semibold leading-tight">Help and support</h2>
@@ -246,7 +246,7 @@ export function SupportChat() {
               {typing && (
                 <div className="nf-rise flex items-end gap-2.5">
                   <span className="h-6.5 w-6.5 shrink-0" aria-hidden="true">
-                    <Icon name="help" fill />
+                    <BrandIcon name="support-chat" fill />
                   </span>
                   <div
                     className="rounded-2xl rounded-bl-md border border-[var(--nf-border-subtle)] px-3.5 py-3"
@@ -318,7 +318,7 @@ function AssistantBubble({ text, children }: { text: string; children?: React.Re
   return (
     <div className="nf-rise flex items-end gap-2.5">
       <span className="h-6.5 w-6.5 shrink-0" aria-hidden="true">
-        <Icon name="help" fill />
+        <BrandIcon name="support-chat" fill />
       </span>
       <div className="max-w-[85%] rounded-2xl rounded-bl-md border border-[var(--nf-border-subtle)] px-3.5 py-2.5">
         <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">{text}</p>

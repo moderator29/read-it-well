@@ -1,4 +1,4 @@
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 
 /**
  * Agent dashboard stat tile.
@@ -17,7 +17,7 @@ export function StatCard({
   deltaLabel,
   className,
 }: {
-  icon: IconName;
+  icon: BrandIconName;
   label: string;
   value: string;
   deltaPct: number;
@@ -28,7 +28,7 @@ export function StatCard({
   return (
     <div className={["nf-card flex items-start gap-2.5 p-3.5 sm:gap-3 sm:p-4", className ?? ""].join(" ")}>
       <span className="h-9 w-9 shrink-0 sm:h-[42px] sm:w-[42px]">
-        <Icon name={icon} fill />
+        <BrandIcon name={icon} fill />
       </span>
       <div className="min-w-0">
         <p className="truncate text-[0.75rem] font-medium text-[var(--nf-content-muted)]">{label}</p>

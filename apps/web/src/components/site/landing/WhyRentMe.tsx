@@ -1,6 +1,6 @@
 import type { Dictionary } from "@naijafinds/i18n";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 
 /**
  * "Why RentMe" value band.
@@ -10,24 +10,24 @@ import { Icon, type IconName } from "@/design-system/icons/Icon";
  * Two up on phones, four up on desktop.
  */
 export function WhyRentMe({ t }: { t: Dictionary }) {
-  const values: { icon: IconName; title: string; body: string }[] = [
+  const values: { icon: BrandIconName; title: string; body: string }[] = [
     {
-      icon: "verified",
+      icon: "shield-check",
       title: "Verified everything",
       body: t.landing.vision.points.verified.body,
     },
     {
-      icon: "wallet",
+      icon: "wallet-secure",
       title: "Honest naira pricing",
       body: t.landing.vision.points.naira.body,
     },
     {
-      icon: "language",
+      icon: "globe-pin",
       title: "Four languages",
       body: t.landing.trust.multiLanguage.body,
     },
     {
-      icon: "map",
+      icon: "map-route",
       title: "Built for Africa",
       body: "Made in and for the continent, starting with Nigeria.",
     },
@@ -47,7 +47,7 @@ export function WhyRentMe({ t }: { t: Dictionary }) {
           <Reveal as="li" key={v.title} delay={i * 70}>
             <div className="nf-card nf-card--interactive flex h-full flex-col p-4 sm:p-5">
               <span className="mb-3 block h-10 w-10 sm:h-12 sm:w-12">
-                <Icon name={v.icon} fill />
+                <BrandIcon name={v.icon} fill />
               </span>
               <span className="block text-[0.875rem] font-semibold text-[var(--nf-content-primary)] sm:text-[0.9375rem]">
                 {v.title}
