@@ -13,6 +13,9 @@ import { HowItWorks } from "@/components/site/landing/HowItWorks";
 import { PopularDestinations } from "@/components/site/landing/PopularDestinations";
 import { AgentsBand } from "@/components/site/landing/AgentsBand";
 import { WhyNaijaFinds } from "@/components/site/landing/WhyNaijaFinds";
+import { FeaturedCarousel } from "@/components/site/landing/FeaturedCarousel";
+import { MoodRow } from "@/components/site/landing/MoodRow";
+import { NumbersBand } from "@/components/site/landing/NumbersBand";
 
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"];
 
@@ -217,6 +220,9 @@ export default async function LandingPage() {
 
         <HowItWorks t={t} />
 
+        {/* --------------------------------------------- featured this week */}
+        <FeaturedCarousel locale={locale} />
+
         {/* -------------------------------------------------------- facts band */}
         <section className="nf-shell pt-4">
           <Reveal>
@@ -307,11 +313,17 @@ export default async function LandingPage() {
           </ul>
         </section>
 
+        {/* --------------------------------------------------------- mood row */}
+        <MoodRow />
+
         <PopularDestinations t={t} />
 
         <AgentsBand t={t} />
 
         <WhyNaijaFinds t={t} />
+
+        {/* ----------------------------------------------------- numbers band */}
+        <NumbersBand />
 
         {/* ---------------------------------------------------------- trust */}
         <section className="nf-shell">
@@ -360,6 +372,13 @@ export default async function LandingPage() {
               ["Which languages are supported?", "English, Yoruba, Hausa and Igbo, switchable at any time from the top bar."],
               ["Where does NaijaFinds operate?", "All 36 states and the FCT from day one, with the deepest coverage growing city by city."],
               ["How do I get help?", "The AI assistant answers instantly inside the app, and our support team is one message away."],
+              ["How do payments work before launch?", "Card payments switch on at public launch. Until then you can browse, save favourites and shortlist places, and no money changes hands. When payments open they run in naira through a licensed Nigerian payment provider."],
+              ["Is there a booking fee?", "No. There are no booking fees on NaijaFinds right now. The price you see on a listing is the price you pay, with any charges shown in full before you confirm."],
+              ["How do agents get verified?", "Every agent submits a government issued ID and proof that they own or manage the property. Our team reviews each application by hand, and only approved agents can publish listings."],
+              ["Can I pay in instalments?", "Not yet. Bookings are paid in full for now. Instalment payments are on our roadmap, and we will announce them the moment they are ready rather than promise a date."],
+              ["What happens after I book?", "You get an instant confirmation with the address, check in details and the host's contact, and the booking appears in your account. Reminders arrive as your date approaches."],
+              ["How do I contact a host?", "Once your booking is confirmed you can message the host directly from the booking page, and the AI assistant can help draft questions in any of our four languages."],
+              ["Is my data safe under NDPA?", "Yes. NaijaFinds is built to comply with the Nigeria Data Protection Act. Your data is encrypted in transit and at rest, is never sold, and you can request a copy or deletion at any time."],
             ].map(([q, a]) => (
               <Reveal key={q}>
                 <details className="nf-card group p-0">
