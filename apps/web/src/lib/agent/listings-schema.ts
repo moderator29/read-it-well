@@ -259,8 +259,10 @@ export const addPhotoSchema = z.object({
     .trim()
     .min(6, "That upload did not complete. Try the photo again.")
     .max(400, "That upload did not complete. Try the photo again.")
-    .regex(
-      /^[0-9a-zA-Z._/-]+$/,
+    .regex(/^[0-9a-zA-Z._/-]+$/, "That upload did not complete. Try the photo again.")
+    // No traversal: a path may only ever point inside the uploader's folder.
+    .refine(
+      (path) => !path.split("/").includes(".."),
       "That upload did not complete. Try the photo again.",
     ),
   position: z.preprocess(
@@ -419,3 +421,47 @@ export function gateFieldErrors(unmet: GateRequirement[]): Record<string, string
 /** The one sentence shown above the list of unmet requirements. */
 export const GATE_SUMMARY_MESSAGE =
   "A few things are still needed before this listing can go for review.";
+
+/* -------------------------------------------------------------- statuses */
+
+/**
+ * The listing status vocabulary and how it renders. These live here rather
+ * than beside the queries because the agent workspace is a client component
+ * and the query module is server-only: a value imported across that boundary
+ * would drag the server module into the browser bundle.
+ */
+export type ListingStatus =
+  | "DRAFT"
+  | "SUBMITTED"
+  | "UNDER_REVIEW"
+  | "MORE_INFO_REQUIRED"
+  | "APPROVED"
+  | "PUBLISHED"
+  | "REJECTED"
+  | "SUSPENDED";
+
+export const STATUS_LABEL: Record<ListingStatus, string> = {
+  DRAFT: "Draft",
+  SUBMITTED: "Submitted",
+  UNDER_REVIEW: "Under review",
+  MORE_INFO_REQUIRED: "More information needed",
+  APPROVED: "Approved",
+  PUBLISHED: "Live",
+  REJECTED: "Not accepted",
+  SUSPENDED: "Suspended",
+};
+
+/** Status colours reuse the existing state tokens. Never a new palette. */
+export const STATUS_TONE: Record<
+  ListingStatus,
+  "neutral" | "brand" | "warning" | "success" | "error"
+> = {
+  DRAFT: "neutral",
+  SUBMITTED: "brand",
+  UNDER_REVIEW: "brand",
+  MORE_INFO_REQUIRED: "warning",
+  APPROVED: "success",
+  PUBLISHED: "success",
+  REJECTED: "error",
+  SUSPENDED: "warning",
+};

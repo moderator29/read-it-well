@@ -1,11 +1,13 @@
-# NaijaFinds: Master TODO
+# RentMe: Master TODO
 
-The single organising document for NaijaFinds delivery. Every other plan defers
+The single organising document for RentMe delivery. Every other plan defers
 to this one. It records what is built, what is left, who owns each piece, what it
 depends on, and how each item is verified as done.
 
-Last updated: 2026-07-28. Owner: moderator29. Repository: `read-it-well`
-(rename pending, see Blocking Decision B-13).
+Last updated: 2026-07-29. Owner: moderator29. Repository: `read-it-well`. The
+NaijaFinds to RentMe rename is complete in product naming and copy; the npm
+package identifiers `@naijafinds/i18n` and `@naijafinds/design-tokens` are
+real code identifiers and are staying as-is (see `docs/HANDOFF.md` section 4).
 
 ---
 
@@ -28,16 +30,26 @@ Last updated: 2026-07-28. Owner: moderator29. Repository: `read-it-well`
 
 ## 1. Current state snapshot
 
-**Build health (verified 2026-07-28):**
+**Build health (last independently re-run 2026-07-28; not re-run this
+session, see the note below):**
 
 | Check | Command | Result |
 |---|---|---|
-| Typecheck, all workspaces | `npm run typecheck` | PASS |
-| Production build | `npm run build` | PASS, 20 routes |
-| Em dash scan | grep across `apps packages docs scripts` | clean |
-| Attribution scan | grep for co-authored / claude / anthropic | clean |
-| Secret scan | grep for key and token patterns | clean |
-| Commit authorship | `git log --format=%an origin/main..HEAD` | all `moderator29` |
+| Typecheck, all workspaces | `npm run typecheck` | PASS (as of 2026-07-28) |
+| Production build | `npm run build` | PASS, 20 routes (as of 2026-07-28; route count is stale, see below) |
+| Em dash scan | grep across `apps packages docs scripts` | clean (as of 2026-07-28) |
+| Attribution scan | grep for co-authored / claude / anthropic | clean (as of 2026-07-28) |
+| Secret scan | grep for key and token patterns | clean (as of 2026-07-28) |
+| Commit authorship | `git log --format=%an origin/main..HEAD` | all `moderator29` (as of 2026-07-28) |
+
+This session (documentation only) did not run `npm run build`, `npm run
+typecheck` or git; it verified the current state by reading the source under
+`apps/web/src`, `supabase/migrations/` and `scripts/`, and by querying the
+live Supabase project directly (migrations, tables, RLS, advisors). The route
+count, Supabase state and phase tables below reflect that direct
+verification on 2026-07-29; the build-health table above is carried forward
+from the last session that actually ran the commands and should be re-run
+before the next push.
 
 **Git:** feature history sits linearly on top of `origin/main` (`44c3744`). The
 earlier branch divergence (a duplicate "Clear repository" commit left by an
@@ -46,33 +58,57 @@ authorship rewrite) was resolved by rebasing onto `origin/main` with
 code conflict, confirmed with `git merge-tree`. A safety branch
 `backup/feat-pre-rebase` preserves the pre-rebase tip.
 
-**Supabase:** project `uccixoonmbhrnyczyigt` is connected, `ACTIVE_HEALTHY`,
-Postgres 17, region eu-west-1. The full domain model is landed: **10 migrations,
-24 tables, RLS on every table (0 without), 53 policies.** Identity, location,
-agents, listings, bookings and a real payments ledger, engagement (reviews,
-messaging, saved), and admin/trust (audit log, risk alerts, reports). A
-database-level GiST exclusion constraint guarantees no double booking. RLS role
-helpers live in a private, non-exposed schema. Security advisor is clean of all
-project-authored functions (one pre-existing platform event-trigger warning
-remains, not ours). App wiring is in place: env-guarded browser, server and
-service-role clients (`apps/web/src/lib/supabase/`), session-refresh middleware,
-and generated types. The agent application server action persists under RLS.
+**Supabase (verified live 2026-07-29):** project `uccixoonmbhrnyczyigt` is
+connected, `ACTIVE_HEALTHY`, Postgres 17, region eu-west-1. **23 migrations
+applied, 35 tables, RLS on every table (0 without), 86 policies across
+`public` and `storage`.** Identity, location, agents, listings, bookings and
+a real payments ledger, engagement (reviews, messaging, saved), admin/trust
+(audit log, risk alerts, reports), a naira wallet with a derived-only
+balance, messaging trust (attachments, flags, inspection confirmations),
+notifications with database-side fan-out, support tickets, AI assistant
+thread persistence, feature flags, and three storage buckets with
+path-scoped RLS. A database-level GiST exclusion constraint guarantees no
+double booking. RLS role helpers live in a private, non-exposed schema.
+Security advisor is clean (0 lints). Performance advisor shows only expected
+noise on still-empty tables (multiple permissive policies, unused indexes),
+not a regression. App wiring is in place: env-guarded browser, server and
+service-role clients (`apps/web/src/lib/supabase/`), session-refresh
+middleware, and generated types. Real data is thin: `listings`, `agents`,
+`bookings` and `wallets` all currently hold zero rows in the live database
+(agent listings CRUD, the write path that would populate `listings`, is not
+built yet), so every write path described above is real and tested but has
+nothing to operate on outside the seed catalogue the discovery surfaces
+still fall back to. One migration recorded server-side,
+`20260729174306_rls_initplan_and_fk_index`, has no matching committed file
+in `supabase/migrations/`; see `docs/HANDOFF.md` section 9.
 
-**What is live in the web app (20 routes):**
+**What is live in the web app (36 page routes plus 2 API routes; the 20-route
+snapshot above is well out of date):**
 
 | Area | Routes | Status |
 |---|---|---|
 | Landing | `/` | DONE |
-| Auth | `/sign-in`, `/sign-up` | DONE (UI only, no real auth) |
+| Auth | `/sign-in`, `/sign-up` | DONE (UI only; Supabase Auth wiring itself is still P2-1, READY not DONE) |
 | Personal home | `/home` | DONE |
-| Discovery | `/search` | PARTIAL (shell, no live data or map) |
-| Become an Agent | `/agents`, `/agents/apply`, `/agents/status` | DONE (form posts to a not-connected server action) |
+| Discovery | `/search`, `/listing/[id]`, `/rent` | PARTIAL (real Leaflet map and live sort/filter params; catalogue is still the seed repository, not the database, because `listings` has zero rows) |
+| Bookings | `/bookings` | PARTIAL, real loop (reads real bookings under RLS and cancels for real when signed in; seeded trips are the fallback, not the norm, for signed-out visitors) |
+| Wallet | `/wallet` | PARTIAL, real loop (fund/withdraw/transfer/statement are real actions against the ledger; blocked on `PAYSTACK_SECRET_KEY` landing before any money actually moves) |
+| Messaging | `/messages`, `/messages/[id]`, `/messages/new` | PARTIAL, real loop (send, attach, confirm inspection and mark-read are real for signed-in users; no admin queue yet for the flags the safety scan raises) |
+| Notifications | `/notifications` | PARTIAL, real loop (real inbox with Realtime for signed-in users; no unread badge count on the rail or tab bar yet) |
+| AI Assistant | `/assistant`, `/api/assistant` | PARTIAL, real loop (streams from the Claude API with a grounded listing-search tool and persists threads; the sidebar itself still only reads `localStorage`, not the persisted rows, on load) |
+| Support | in-app via Settings | PARTIAL, real loop (FAQ answers instantly; escalation files a real `support_tickets` row; no admin queue, no email) |
+| Saved | `/saved` | STUB (static grid, no write path) |
+| Payments | `/api/paystack/webhook` | DONE as code, BLOCKED on env (webhook verifies signatures and settles the ledger; no key configured yet so nothing has actually charged) |
+| Become an Agent | `/agents`, `/agents/apply`, `/agents/status` | DONE (form posts to a server action that persists under RLS) |
 | Agent dashboard | `/agent/dashboard` | DONE (seed data, labelled sample) |
-| Agent workspace | `/agent/{listings,bookings,messages,reviews,earnings,analytics,verification,settings,list}` | STUB (coming-soon) |
+| Agent workspace | `/agent/{listings,bookings,messages,reviews,earnings,analytics,verification,settings,list}` | STUB (coming-soon; this is the CRUD gap keeping `listings` at zero rows) |
+| Site pages | `/about`, `/careers`, `/contact`, `/help`, `/privacy`, `/terms` | DONE |
 
 **Shared packages:** `@naijafinds/design-tokens` (token CSS + TS mirror),
 `@naijafinds/i18n` (en, yo, ha, ig dictionaries, money and number formatters).
 Both now carry a `tsconfig.json` so their typecheck runs (fixed this session).
+These npm package identifiers keep the `naijafinds` scope deliberately; only
+product-facing naming and copy moved to RentMe.
 
 ---
 
@@ -167,9 +203,11 @@ from the canonical vocabulary in section 4, not invented per table.
 ### 3.3 Auth email redesign
 
 Supabase auth emails (confirm signup, magic link, invite, recovery, email change)
-must be reskinned to NaijaFinds branding: logo, gradient, typography, four-language
-awareness. Owner: BACKEND + FRONTEND. Status: READY. Delivered as HTML templates
-plus the Supabase Auth config to point at them.
+must be reskinned to RentMe branding: logo, gradient, typography, four-language
+awareness. Owner: BACKEND + FRONTEND. Status: DONE (2026-07-29). Delivered as
+five HTML templates in `supabase/templates/`, generated by
+`scripts/build-auth-emails.mjs`, navy-black canvas with electric blue accents,
+no violet.
 
 ---
 
@@ -183,7 +221,7 @@ finished until the matching decision is made. Full context in
 |---|---|---|---|
 | B-01 | Reference count and 15/15 intake gate (13 unique vs owner count) | full implementation authorisation | reconcile the denominator; treat received refs as buildable now |
 | B-10 | RESOLVED 2026-07-28: admin = Ref 04 (15-item rail), consumer = Refs 01/04 (12-item rail). IA frozen. | (was) admin, consumer rail, routing | settled |
-| B-11 | Is NaijaFinds Pro in scope | entitlement gating, second revenue model | defer, out of MVP |
+| B-11 | Is RentMe Pro in scope | entitlement gating, second revenue model | defer, out of MVP |
 | B-12 | RESOLVED 2026-07-28: 7-step wizard (Ref 03) is canonical; photos only for MVP, video/tours/docs LATER. | (was) `/agent/list`, media model | settled |
 | B-09 | Are icon source files vector, or only the contact sheet | final icon quality | need vector/Lottie source |
 | B-07 | Canonical location model (no LGA field is designed) | location tables, wizard | store State/LGA/Ward + City/Area layer |
@@ -217,15 +255,15 @@ the three owners unless a `depends` note says otherwise.
 | P0-6 | Git conflict resolution + clean authorship | ADMIN/QA | DONE | `git log`, audits | linear on main, no trailers |
 | P0-7 | This MASTER_TODO | ADMIN/QA | IN PROGRESS | file present | organised plan exists |
 
-### Phase 1: Backend spine  (STATUS: IN PROGRESS)
+### Phase 1: Backend spine  (STATUS: SUBSTANTIALLY DONE, up from IN PROGRESS)
 
 | ID | Task | Owner | Status | Depends | Verify | DoD |
 |---|---|---|---|---|---|---|
-| P1-1 | Supabase migrations: full domain model | BACKEND | DONE | B-07 | `list_tables` (24), `list_migrations` (10) | all subsystems modelled with RLS |
-| P1-2 | RLS policies + cross-tenant isolation tests | BACKEND | PARTIAL | P1-1 | advisor + test run | 53 policies live, advisor clean; automated isolation test still to add |
-| P1-3 | Branded Supabase auth email templates (5) | BACKEND+FRONTEND | DONE | none | files render | 5 branded templates + README |
+| P1-1 | Supabase migrations: full domain model, plus wallet, messaging trust, notifications, support, assistant threads, feature flags and storage | BACKEND | DONE | B-07 | `list_tables` (35), `list_migrations` (23) | all subsystems modelled with RLS |
+| P1-2 | RLS policies + cross-tenant isolation tests | BACKEND | PARTIAL | P1-1 | advisor + test run | 86 policies live across `public` and `storage`, security advisor clean (0 lints); automated cross-tenant isolation test still to add |
+| P1-3 | Branded Supabase auth email templates (5) | BACKEND+FRONTEND | DONE | none | files render | 5 branded templates + README, rebuilt RentMe-blue (navy-black, electric blue) 2026-07-29 |
 | P1-4 | Supabase clients (browser/server/admin) + middleware | BACKEND | DONE | none | `npm run build` | env-guarded clients, session refresh |
-| P1-5 | Generate TS types from DB, wire repositories | BACKEND | PARTIAL | P1-1 | `generate_typescript_types` | types generated + stored; repos still to wire |
+| P1-5 | Generate TS types from DB, wire repositories | BACKEND | PARTIAL | P1-1 | `generate_typescript_types` | types generated + stored; bookings, wallet, messaging and notifications read and write the database directly (`lib/bookings/queries.ts`, `lib/wallet/ledger.ts`, `lib/messages/live.ts`); the listing repository itself is still seed-only, no `SupabaseListingRepository` exists, and `listings` holds zero rows regardless |
 
 ### Phase 2: Auth and identity  (STATUS: READY)
 
@@ -252,19 +290,20 @@ the three owners unless a `depends` note says otherwise.
 |---|---|---|---|---|---|---|
 | P4-1 | Search results list + sort chips + Load more (ref 01) | FRONTEND | PARTIAL | P1-1 | build | real listings, pagination |
 | P4-2 | Filters drawer (ref 01) | FRONTEND | READY | P4-1 | build | filters query the repo |
-| P4-3 | Live map with price pins + clustering (ref 01) | FRONTEND+BACKEND | BLOCKED | MapsProvider | build | map renders listings |
-| P4-4 | Property detail page (ref 04, 08): gallery, host panel, review distribution, amenities, tabs | FRONTEND | BLOCKED | B-10, P1-1 | build | detail renders a real listing |
+| P4-3 | Live map with price pins + clustering (ref 01) | FRONTEND+BACKEND | PARTIAL, up from BLOCKED | MapsProvider | build | real Leaflet map ships (Carto dark/light tiles by theme, price-and-city pins per covered city, tap navigates to that city's results); still missing a production tile key and listing-level pins with clustering |
+| P4-4 | Property detail page (ref 04, 08): gallery, host panel, review distribution, amenities, tabs | FRONTEND | PARTIAL, up from BLOCKED | B-10, P1-1 | build | `/listing/[id]` renders in full, Reserve wired to a real `reserve` action, Message agent wired to a real conversation; reviews still read from seed, not the (empty) `reviews` table, and the gallery still serves seed photography, not Storage |
 | P4-5 | Saved items / saved searches | FRONTEND+BACKEND | LATER | P1-1 | test | save persists per user |
 
-### Phase 5: Booking and payments  (STATUS: BLOCKED)
+### Phase 5: Booking and payments  (STATUS: SUBSTANTIALLY DONE, up from BLOCKED)
 
 | ID | Task | Owner | Status | Depends | Verify | DoD |
 |---|---|---|---|---|---|---|
-| P5-1 | Booking wizard 4-step (ref 09) | FRONTEND | BLOCKED | P4-4 | build | dates, guest composition, confirm |
-| P5-2 | Price breakdown (kobo, ref 09) | BACKEND | BLOCKED | B-09b | test | gross/fees/total exact in kobo |
-| P5-3 | No double booking (per-night availability, idempotency) | BACKEND | READY | P1-1 | test | concurrent bookings cannot overlap |
-| P5-4 | Payments ledger + Paystack webhooks (replay-safe) | BACKEND | BLOCKED | B-09b, PaymentProvider | test | ledger balances, webhook idempotent |
+| P5-1 | Booking flow: dates, guest composition, confirm | FRONTEND | DONE, up from BLOCKED | P4-4 | `apps/web/tests/bookings.spec.mjs` | shipped as a single-panel reserve flow on `/listing/[id]` (`ReservePanel` + the `reserve` server action) rather than the referenced 4-step wizard; the DoD itself (dates, guest composition, confirm) is met: validated dates, adult/child counts, PENDING insert under RLS, friendly conflict message on a GiST clash |
+| P5-2 | Price breakdown (kobo) | BACKEND | DONE, up from BLOCKED | B-09b | `bookings.spec.mjs` (asserts `× 2 nights` and that the panel never suggests a charge for using the platform) | nights × price snapshot + cleaning + service columns, all integer kobo, `total_minor` database-checked equal to the sum; the service column exists for a future take rate and is 0 today, matching the no-charge rule |
+| P5-3 | No double booking (per-night availability, idempotency) | BACKEND | DONE, up from READY | P1-1 | GiST exclusion constraint live; `reserve` translates SQLSTATE 23P01 | concurrent bookings cannot overlap, verified at the database level |
+| P5-4 | Payments ledger + Paystack webhooks (replay-safe) | BACKEND | DONE as code, BLOCKED on env, up from BLOCKED | B-09b, PaymentProvider | `lib/payments/paystack.ts`, `app/api/paystack/webhook/route.ts` | ledger balances derived, never stored; webhook HMAC SHA-512 verified against the raw body, settles `rm-fund-*`/`rm-wd-*` idempotently; `PAYSTACK_SECRET_KEY` has not been supplied yet, so no live charge has happened |
 | P5-5 | Payouts, refunds, chargebacks | BACKEND | LATER | P5-4 | test | settlement rows correct |
+| P5-6 | Release stale PENDING booking holds after 48 hours | BACKEND | PARTIAL (new) | P5-3 | `private.release_stale_booking_holds()` exists and is correct | the function is written, tested by hand and safe to call; `pg_cron` is not installed on the project, so nothing schedules it yet |
 
 ### Phase 6: Admin command centre  (STATUS: BLOCKED on B-10)
 
@@ -275,14 +314,14 @@ the three owners unless a `depends` note says otherwise.
 | P6-3 | Users, Agents, Payments, Reports, Security sections | ADMIN/QA | BLOCKED | B-10, P1-1 | build | each section reads real data |
 | P6-4 | Audit log on every admin action | BACKEND | READY | P1-1 | test | action writes an immutable audit row |
 
-### Phase 7: AI assistant  (STATUS: LATER)
+### Phase 7: AI assistant  (STATUS: SUBSTANTIALLY DONE, up from LATER)
 
 | ID | Task | Owner | Status | Depends | Verify | DoD |
 |---|---|---|---|---|---|---|
-| P7-1 | Docked widget + panel + full view (ref 04) | FRONTEND | LATER | AIProvider | build | 3 surfaces render |
-| P7-2 | Grounded retrieval returns real listing cards | BACKEND | LATER | P1-1, P4-1 | test | "Found N" matches query |
-| P7-3 | Tool layer with permission enforcement + budgets | BACKEND | LATER | P2-1 | test | AI cannot exceed user's own scope |
-| P7-4 | Prompt-injection defence | BACKEND | LATER | P7-3 | test | injected instruction ignored |
+| P7-1 | Docked widget + panel + full view (ref 04) | FRONTEND | PARTIAL, up from LATER | AIProvider | `apps/web/tests/assistant.spec.mjs` | the full ChatGPT-class view ships at `/assistant`, streaming from the real Claude API; the docked-widget and panel surfaces referenced in ref 04 are not built, only the AI banner on `/home` linking into the full view |
+| P7-2 | Grounded retrieval returns real listing cards | BACKEND | DONE, up from LATER | P1-1, P4-1 | `assistant.spec.mjs` | `search_listings` tool runs the same repository search as `/search`; the model can only cite listings the tool actually returned |
+| P7-3 | Tool layer with permission enforcement + budgets | BACKEND | PARTIAL, up from LATER | P2-1 | code review | one read-only tool (`search_listings`, no write capability to overreach); an in-process IP token bucket caps requests (20 per 5 minutes) but there is no per-user cost budget and the limiter is not shared across server instances |
+| P7-4 | Prompt-injection defence | BACKEND | PARTIAL, up from LATER | P7-3 | none yet | the system prompt instructs the model never to reveal, quote or discuss its own instructions; no test proves an injected instruction is actually ignored, so this is a guardrail, not a verified defence |
 
 ### Phase 8: Mobile (Expo)  (STATUS: LATER)
 
@@ -305,9 +344,12 @@ the three owners unless a `depends` note says otherwise.
 
 ## 5b. Owner architecture rulings (2026-07-28, canon)
 
-- **Brand:** deep navy neon-blue canvas and glass-stride containers with
-  electric blue accents; PURPLE is the single button and action colour
-  platform wide. Dark is default; light mode is a designed first-class twin.
+- **Brand:** deep navy-black canvas with dark neon blue and electric blue
+  glow, glass-stride containers. Superseded later the same day by the
+  neon-blue rebrand (see the done log): purple is not used anywhere on the
+  platform any more, action colour is electric blue throughout. Dark is
+  default; light mode is a designed first-class twin. See
+  `docs/HANDOFF.md` section 2 for the current, binding brand canon.
 - **No fees for now:** the platform charges nothing to agents or guests.
   Nothing in any UI may claim a fee. The ledger stays ready for a future take
   rate but records zero platform fee.
@@ -398,3 +440,68 @@ Checked on every push. A break here fails the change regardless of feature value
   consumer shell, native touch feel and a facts band, and fixed a platform
   wide SVG paint-server bug (gradient ids stolen by hidden responsive rails)
   with per-instance ids via useId. Verified visually on phone viewports.
+- 2026-07-28: Applied the `messaging_trust` migration (message_attachments,
+  message_flags, inspection_confirmations, the `private.scan_message`
+  10-digit account-number and payment-keyword scan trigger) that had
+  previously only been drafted, and closed the bookings loop: `reserve`,
+  `cancel` and `confirm` server actions in `lib/bookings/actions.ts`, all
+  under RLS, with the GiST exclusion conflict translated into a friendly
+  message and booking notification fan-out driven entirely by database
+  triggers.
+- 2026-07-29: Closed the wallet and payments loop for real. Added
+  `lib/payments/paystack.ts` (transaction init/verify, HMAC SHA-512 webhook
+  signature verification, transfer, bank list) and
+  `app/api/paystack/webhook/route.ts`, which settles `rm-fund-<uuid>` and
+  `rm-wd-<uuid>` ledger references idempotently. Wired `fundWallet`,
+  `withdraw`, `transferToUser`, `verifyFunding` and `getStatement` in
+  `lib/wallet/actions.ts` against the real ledger. `PAYSTACK_SECRET_KEY` is
+  not supplied yet, so every action answers honestly rather than pretending
+  to charge.
+- 2026-07-29: Closed the messaging loop for real: `startConversation`,
+  `sendMessage`, `attachImage`, `confirmInspection` and `markThreadRead` in
+  `lib/messages/actions.ts`, all under RLS, plus the new
+  `/messages/new?listing=<id>` route bridging a listing straight into its
+  conversation. Applied the `storage_buckets` migration (three buckets:
+  `listing-photos`, `avatars`, `message-attachments`) and, once the security
+  advisor flagged that a public bucket serves objects through its public URL
+  regardless of RLS, the `storage_policy_hardening` migration replacing the
+  broad public-read policies with owner-scoped reads and revoking client
+  EXECUTE on the platform's `rls_auto_enable` function.
+- 2026-07-29: Applied the `notifications` migration: one table, one private
+  writer (`private.notify`), and trigger fan-out from bookings, messages and
+  wallet entries, joined to `supabase_realtime` alongside `messages` for live
+  delivery. Built `LiveNotifications` and `LiveThreadList` client components
+  reading real, day-grouped, Realtime-updating data for signed-in users.
+  Extended the wallet trigger with the `wallet_notify_failures` migration so
+  a failed withdrawal or a reversal tells the owner what happened, not just
+  a silent balance change.
+- 2026-07-29: Applied `rental_pricing` (adds the `'rental'` property type
+  value and the `price_period` night/year enum to `listings`, plus a
+  `settings jsonb` column on `profiles`, not yet wired to any UI),
+  `support_tickets` (support_tickets + support_ticket_messages, `NF-SUP`
+  references, `fileSupportTicket` action), `assistant_threads`
+  (ai_conversations + ai_messages, owner-private RLS) and `feature_flags`
+  (eight switchable surfaces, world-readable, admin-writable, fail-open via
+  `lib/flags.ts`).
+- 2026-07-29: Built `/api/assistant`: a real Server-Sent-Events route
+  against the Claude API (`claude-sonnet-5`) with a `search_listings` tool
+  bound to the same repository search `/search` uses, the full no-charge/
+  pay-after-inspection system prompt, an in-process rate limiter, and thread
+  persistence to `ai_conversations`/`ai_messages` for signed-in users. The
+  assistant sidebar (`components/app/assistant/threads.ts`) still only reads
+  `localStorage`, so a persisted thread does not yet read back on a new
+  device; that is the one genuinely open half of this loop.
+- 2026-07-29: Added `private.release_stale_booking_holds()` (cancels PENDING
+  bookings unconfirmed for 48 hours so an abandoned request cannot lock
+  inventory under the GiST exclusion constraint); it has no `pg_cron`
+  schedule yet, so it exists but nothing calls it. Rebuilt the five Supabase
+  auth email templates RentMe-blue (navy-black, electric blue, no violet) via
+  `scripts/build-auth-emails.mjs`, closing the one item still flagged
+  NaijaFinds-branded that morning. Added four Playwright golden-path specs
+  (`apps/web/tests/{assistant,bookings,messages,wallet}.spec.mjs`) and
+  `scripts/verify-shots.mjs`, the lead's 390x844 screenshot harness;
+  `playwright-core` is now a real `devDependency` of `apps/web` rather than
+  an ad hoc install. One migration recorded live against the database,
+  `20260729174306_rls_initplan_and_fk_index`, has no matching file committed
+  under `supabase/migrations/` and needs reconciling (see
+  `docs/HANDOFF.md` section 9).

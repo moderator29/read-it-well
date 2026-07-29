@@ -1,19 +1,48 @@
 import type { NextConfig } from "next";
 
+/**
+ * The Supabase storage hostname, taken from the public project URL. Returns
+ * an empty string when the URL is missing or malformed, so a build without
+ * keys never throws and simply serves the seed catalogue.
+ */
+const supabaseImageHost = (() => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  if (url.length === 0) return "";
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "";
+  }
+})();
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   // Workspace packages ship raw TypeScript, so Next compiles them in place.
   transpilePackages: ["@naijafinds/design-tokens", "@naijafinds/i18n"],
 
-  // Listing photography is served from Unsplash's public CDN until the media
-  // pipeline lands. Only that host is allowed through the image optimiser.
+  // Two image sources, both explicitly allowed through the optimiser and
+  // nothing else: the seed catalogue's Unsplash photography, and the Supabase
+  // storage CDN that serves agent-uploaded listing photos and avatars once
+  // real supply lands. The Supabase host is derived from the project URL so it
+  // follows the environment rather than being hardcoded, and the pattern is
+  // omitted entirely when the URL is absent, which keeps the allowlist tight
+  // in a build without keys.
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      ...(supabaseImageHost
+        ? ([
+            {
+              protocol: "https" as const,
+              hostname: supabaseImageHost,
+              pathname: "/storage/v1/object/public/**",
+            },
+          ])
+        : []),
     ],
   },
 

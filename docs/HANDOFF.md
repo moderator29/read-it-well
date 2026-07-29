@@ -93,9 +93,10 @@ npm workspaces monorepo:
 - `packages/i18n/src/locales/{en,yo,ha,ig}.ts`: en is the typed source of
   truth; the other three are full translations (yo/ha/ig hero lines still
   translate the OLD slogan, flagged in file comments for native review).
-- `supabase/migrations/`: 12 applied migrations plus one drafted (below).
+- `supabase/migrations/`: 23 applied migrations, 22 committed as files
+  (below).
 - `supabase/templates/` + `scripts/build-auth-emails.mjs`: 5 branded auth
-  emails, STILL NaijaFinds-branded purple, not yet rebuilt for RentMe.
+  emails, rebuilt RentMe-blue (navy-black, electric blue, no violet).
 - `docs/`: MASTER_TODO (ledger + section 5b architecture canon), this file,
   NEXT_SESSION_PROMPT, recommendations-inbox (250), intake/.
 
@@ -316,37 +317,60 @@ and server can do today. LOOP = the exact missing steps, in build order.
 | 3 | Discovery (home/search) | Full UI, seed repo, live sort/filter params | listings tables + indexes | SupabaseListingRepository implementing the existing interface; price/bedroom filters; real pagination; ISR caching; keep seed as fallback when env missing |
 | 4 | Live map | Real Leaflet, price pins, theme tiles | city floors computed from repo | Production tile key (MapTiler); listing-level pins with clustering; map reads same repository as list |
 | 5 | Listing detail | Full page | reviews/bookings tables | Reviews read from DB; availability calendar derived from bookings; gallery from Storage once agent uploads land |
-| 6 | RENT market | Full page, message-first, disclaimer, per-year pricing | rental kind in seed only | `kind` column value + `price_period` in listings schema (tiny migration); agent listing flow able to create rentals; rentals in Supabase repo |
-| 7 | Bookings | Tabs UI with seeded trips | Full schema incl. GiST no-double-booking | `reserve` server action (validate dates, insert pending, friendly conflict error); cancel action; status transitions; booking notifications; payment step hook |
-| 8 | Wallet | Flagship demo UI | Full ledger schema, derived balance, idempotency | Paystack init + webhook route (signature-verified) crediting ledger; withdraw via Paystack Transfers with ledger hold; P2P transfer action; statement query; transaction PIN; render REAL balance |
-| 9 | Messaging | Thread UI, attachments UI, inspection sheet, seed data | conversations/messages tables; trust migration DRAFTED NOT APPLIED | Apply trust migration; send action; Supabase Realtime subscription; attachment upload bucket + RLS; flags feed admin queue; first-money-word education card |
-| 10 | Notifications | Static list of 5 | NO TABLE YET | notifications table migration; fan-out triggers from bookings/messages/wallet; unread badge counts in rail; realtime updates; mark-read action |
+| 6 | RENT market | Full page, message-first, disclaimer, per-year pricing | `rental_pricing` migration applied: `'rental'` added to `property_type`, `price_period` enum (`night`/`year`) on `listings` | The schema gap is closed; still no agent listing flow to create a rental row, so RENT market listings remain seed catalogue only until feature 15 (agent listings CRUD) exists |
+| 7 | Bookings | Tabs UI reads the guest's real bookings under RLS when signed in (`lib/bookings/queries.ts`), cancel wired to a working action; seeded trips only for signed-out/unconfigured visitors | Full schema incl. GiST no-double-booking; `reserve` validates dates, snapshots price from the listing row, inserts PENDING under the guest's own RLS client, translates SQLSTATE 23P01 into a friendly conflict message; `cancel` proves ownership via RLS read then transitions via service role; `confirm` is a service-role path with agent/admin authorisation (join through `agents.user_id`, not `listings.agent_id` directly); DB triggers fan out booking notifications on insert and status change | `confirm` has no host-facing UI yet, only the callable action (feature 15/16 territory); `private.release_stale_booking_holds()` exists and correctly cancels PENDING holds over 48 hours old, but `pg_cron` is not installed on the project, so nothing calls it on a schedule - PENDING holds do not yet self-expire; no payment capture at booking time; and because `public.listings` has zero rows today, this whole loop has nothing real to book against outside a manually-inserted row |
+| 8 | Wallet | Flagship UI now drives real fund/withdraw/transfer/statement actions, not just demo chrome | Full ledger schema, derived balance, idempotency; `lib/payments/paystack.ts` (init, verify, HMAC SHA-512 webhook signature check, transfer, bank list); `app/api/paystack/webhook/route.ts` settles `rm-fund-*`/`rm-wd-*` references idempotently; `wallet_notify_failures` migration extended the notification trigger to speak on a failed withdrawal or reversal, not just success | `PAYSTACK_SECRET_KEY` is not yet supplied, so every fund/withdraw action answers honestly that it switches on the moment the key lands rather than pretending; no transaction PIN; no scheduled reconciliation job for a stuck PENDING withdrawal hold if a webhook is lost |
+| 9 | Messaging | Thread UI, attachments UI, inspection sheet now live for signed-in users on real `conversations`/`messages`; new `/messages/new?listing=<id>` bridges a listing straight into its thread; seeded threads still carry signed-out visitors | `messaging_trust` migration is applied (it was drafted-not-applied as of the morning snapshot): `message_attachments`, `message_flags`, `inspection_confirmations`, `private.scan_message` trigger flagging 10-digit account-number runs and payment keywords; `startConversation`/`sendMessage`/`attachImage`/`confirmInspection`/`markThreadRead` all live in `lib/messages/actions.ts`; `message-attachments` private storage bucket with conversation-scoped RLS via `private.attachment_path_access`; `messages` and `notifications` both joined to `supabase_realtime` | No admin queue reads `message_flags` yet (feature 16, admin console, still not built); no first-money-word education card beyond the existing inspection-confirm sheet |
+| 10 | Notifications | Signed-in users get a real inbox, day-grouped, Realtime-prepended on arrival, read state persisted through a `read_at`-only column grant; signed-out/unconfigured still shows the static seeded 5 | `notifications` table plus `notification_kind` enum, single `private.notify` writer, trigger fan-out from bookings, messages, wallet entries (including failure/reversal states) and support replies; RLS lets owners select/mark-read/delete, no client insert path anywhere | Unread badge counts are still not shown in either the desktop rail or the mobile tab bar (neither surface reads a count today); mark-all-read exists client-side in the notifications page itself, not as a rail affordance |
 | 11 | Saved | Static grid | saved table exists | Heart toggle server action; optimistic UI; saved page reads DB |
-| 12 | AI Assistant | Full ChatGPT-class UI, threads in localStorage | nothing | `/api/assistant` streaming route on the Claude API (`claude-sonnet-5`), listing-search tool so answers cite real inventory, policy system prompt (no fees, pay after inspection), thread persistence table, rate limiting |
-| 13 | Support | Chat UI with canned escalation | nothing | FAQ content store; support_tickets table migration; escalation writes ticket (name/email only); admin queue; email notify via Resend |
+| 12 | AI Assistant | Full ChatGPT-class UI backed by a real streaming route when signed in | `/api/assistant` streams over SSE from the Claude API (`claude-sonnet-5` by default, `ASSISTANT_MODEL` overridable), a `search_listings` tool that runs the same repository search as `/search` so the model can only cite real catalogue rows, the full system-prompt policy (never suggests any charge for using the platform, pay-after-inspection, never invents listings), an in-process token-bucket rate limiter (20 requests/5 minutes per IP), and thread persistence to `ai_conversations`/`ai_messages` for signed-in users; `ANTHROPIC_API_KEY` absent answers a graceful 200 message instead of pretending | Threads persist server-side but the sidebar (`components/app/assistant/threads.ts`) only ever reads `localStorage` (`nf_ai_threads`) - a persisted thread does not read back on a new device or after clearing storage, even though the rows exist; the rate limiter is in-memory per server instance, not shared across deployments |
+| 13 | Support | Chat UI answers instantly from a client-side FAQ store, or escalates | `support_tickets` + `support_ticket_messages` tables; `fileSupportTicket` writes a real `NF-SUP-nnnnn` ticket (signed-in users under their own RLS insert policy, anonymous visitors through the service role since there is no anon insert policy); an admin reply fires an in-app notification via `private.notify_support_reply` | No admin queue UI to work the ticket thread (feature 16); no email notification anywhere in the codebase - "email notify via Resend" is still entirely unbuilt, the reply notification today is in-app only |
 | 14 | Agent application | Full multi-step form, persists | application table under RLS | Admin review/approve flow; approval flips role; applicant notification |
 | 15 | Agent listings CRUD | NOT BUILT | listings schema ready | Create/edit forms, photo upload with quality gate (HYBRID_INVENTORY §5), draft/submit/approve states, agent dashboard real numbers |
 | 16 | Admin console | NOT BUILT | audit/risk/reports tables ready | Shell + queues: message flags, risk alerts, agent approvals, listing approvals, reports, support tickets; audit log every action; feature-flag kill switches |
 | 17 | Hybrid inventory | Spec + types + env keys | n/a | Provider layer per HYBRID_INVENTORY §3 (Amadeus hotels, Places restaurants), merge + ranking, partner badges |
-| 18 | Payments core | none | ledger ready | `lib/payments/paystack.ts` (init, verify, webhook, transfer), webhook route, reconciliation job |
-| 19 | Emails | 5 templates, WRONG BRAND | none | Rebuild templates RentMe-blue; Resend integration; booking/wallet/support sends |
+| 18 | Payments core | none (backend only) | `lib/payments/paystack.ts` complete (init, verify, HMAC SHA-512 webhook signature check, transfer, bank list) and `app/api/paystack/webhook/route.ts` wired end to end into the wallet ledger | `PAYSTACK_SECRET_KEY` not yet supplied by the owner, so nothing has actually charged or transferred against the real Paystack API; no scheduled reconciliation job for entries a webhook never reaches |
+| 19 | Emails | 5 Supabase auth templates (`supabase/templates/`), rebuilt RentMe-blue (navy-black, electric blue, no violet) by `scripts/build-auth-emails.mjs` | none for transactional mail | Auth-email rebrand is done; there is still no Resend integration anywhere in the codebase and no booking/wallet/support email sends - those events fire in-app notifications only (section 7, `private.notify*`), never an email |
 | 20 | i18n | 4 locales wired | n/a | Native review of yo/ha/ig hero lines; translate strings hardcoded in newest sections (Rent page, showcases, map copy) |
 | 21 | PWA/deploy | Manifest, icons | n/a | Offline shell, app shortcuts; rename middleware to proxy; Vercel envs + deploy checklist |
 
 ### Build order that closes loops fastest
 
-- Phase A (foundations everything else needs): notifications table,
-  support_tickets, storage buckets, trust migration applied, Paystack lib,
-  typed action envelope + Zod. Nothing user-visible, everything unblocking.
-- Phase B (close the money and booking loops): bookings reserve/cancel,
-  wallet fund/withdraw/transfer, payment webhooks, their notifications.
-- Phase C (close the communication loops): messaging live send + realtime +
-  attachments + flags; assistant API with listing tool; support tickets.
-- Phase D (close the supply loop): agent listings CRUD with the photo
-  quality gate; admin console queues; approvals feeding search.
-- Phase E (widen the catalogue): Supabase repository swap, hybrid
-  providers, map clustering, reviews.
-- Phase F (polish the shell): emails, i18n completion, PWA, deploy.
+- **Phase A (foundations everything else needs): COMPLETE.** Notifications
+  table and fan-out, support_tickets, storage buckets with path-scoped
+  policies, the messaging trust migration applied, `lib/payments/paystack.ts`,
+  the typed action envelope + Zod validation throughout. All landed and
+  verified live against the database (section 7).
+- **Phase B (close the money and booking loops): SUBSTANTIALLY CLOSED.**
+  `reserve`/`cancel`/`confirm` are real server actions under RLS with
+  database-enforced no-double-booking; wallet fund/withdraw/transfer are
+  real actions against a real ledger; the Paystack webhook route settles
+  both funding and withdrawal idempotently. What is left is not code but
+  configuration and scheduling: `PAYSTACK_SECRET_KEY` has not landed yet, so
+  no real charge has happened, and the stale-hold release function has no
+  `pg_cron` schedule (see section 9).
+- **Phase C (close the communication loops): SUBSTANTIALLY CLOSED.**
+  Messaging sends, attaches images, confirms inspection and marks threads
+  read, all live under RLS with Realtime delivery; the assistant streams
+  from the real Claude API with a grounded listing-search tool and persists
+  threads; support escalation writes a real ticket. What is left: the
+  assistant sidebar does not read persisted threads back on a new device
+  (client-only `localStorage` today), and there is no admin queue yet to
+  work `message_flags` or `support_tickets` - that is Phase D territory.
+- **Phase D (close the supply loop): IN FLIGHT.** The `rental_pricing`
+  migration closed the schema gap for the RENT market (feature 6). Agent
+  listings CRUD (feature 15) and the admin console (feature 16) are still
+  not built, which is why `public.listings`/`public.agents` remain at zero
+  rows in the live database despite every downstream loop (bookings,
+  messaging, wallet) being genuinely wired to write against real rows the
+  moment they exist.
+- **Phase E (widen the catalogue): IN FLIGHT.** Still blocked behind Phase D:
+  the Supabase listing repository swap, hybrid providers, map clustering and
+  DB-backed reviews all wait on real listing rows existing to widen into.
+- Phase F (polish the shell): emails (Resend integration and
+  booking/wallet/support sends), i18n completion, PWA, deploy. Not started;
+  the one email item that shipped - rebranding the five Supabase auth
+  templates - is recorded under feature 19, not this phase.
 
 Each phase lands as verified vertical slices: schema, action, UI, test,
 screenshot, push. Never build two half-features when one whole feature is

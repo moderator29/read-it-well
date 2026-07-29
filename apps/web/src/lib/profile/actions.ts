@@ -30,7 +30,6 @@ import {
   avatarPublicUrl,
   composeDisplayName,
   deleteAccountSchema,
-  mergeIdentity,
   mergeSettings,
   parseSettings,
   setAvatarSchema,
@@ -91,34 +90,21 @@ export async function updateProfile(input: unknown): Promise<ActionResult<Profil
 
   const { supabase, user } = session;
 
-  // Read the current blob so the identity block merges into it instead of
-  // replacing every other preference the person has set.
-  const { data: current, error: readError } = await supabase
-    .from("profiles")
-    .select("settings")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (readError) return fail(SAVE_FAILED_MESSAGE);
-  if (!current) return fail(NO_ROW_MESSAGE);
-
-  const identity = {
-    firstName: values.firstName,
-    surname: values.surname,
-    nickname: values.nickname,
-    stateCode: values.stateCode,
-  };
-  const settings = mergeIdentity(current.settings, identity);
-  const displayName = composeDisplayName(values.firstName, values.surname);
-
+  // Identity lives in real columns: admin support searches people by surname,
+  // the agent verification queue reads a legal name beside the documents, and
+  // emails greet by first name. display_name is derived by a database trigger
+  // from these parts, so it can never drift out of agreement with them.
   const { data: saved, error } = await supabase
     .from("profiles")
     .update({
-      display_name: displayName,
+      first_name: values.firstName,
+      surname: values.surname,
+      nickname: values.nickname === "" ? null : values.nickname,
       phone: values.phone === "" ? null : values.phone,
-      settings,
+      state_code: values.stateCode === "" ? null : values.stateCode,
     })
     .eq("id", user.id)
-    .select("display_name, phone, settings")
+    .select("display_name, first_name, surname, nickname, phone, state_code")
     .maybeSingle();
 
   if (error) return fail(SAVE_FAILED_MESSAGE);
@@ -127,14 +113,13 @@ export async function updateProfile(input: unknown): Promise<ActionResult<Profil
   revalidatePath("/profile");
   revalidatePath("/settings");
 
-  const savedIdentity = parseSettings(saved.settings).profile;
   return ok({
-    displayName: saved.display_name ?? displayName,
-    firstName: savedIdentity.firstName,
-    surname: savedIdentity.surname,
-    nickname: savedIdentity.nickname,
+    displayName: saved.display_name ?? composeDisplayName(values.firstName, values.surname),
+    firstName: saved.first_name ?? "",
+    surname: saved.surname ?? "",
+    nickname: saved.nickname ?? "",
     phone: saved.phone ?? "",
-    stateCode: savedIdentity.stateCode,
+    stateCode: saved.state_code ?? "",
   });
 }
 

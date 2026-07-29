@@ -49,15 +49,18 @@ export async function loadProfileState(): Promise<ProfileState> {
 
   const { data: row, error } = await supabase
     .from("profiles")
-    .select("display_name, avatar_url, phone, created_at, settings")
+    .select(
+      "display_name, first_name, surname, nickname, avatar_url, phone, state_code, created_at, settings",
+    )
     .eq("id", user.id)
     .maybeSingle();
 
   if (error || !row) return { state: "no-row", email: user.email ?? "" };
 
   const settings = parseSettings(row.settings);
+  // Rows created by the signup trigger before the identity columns existed
+  // carry only a display_name, so fall back to splitting it.
   const split = splitDisplayName(row.display_name);
-  const identity = settings.profile;
 
   const [trips, saved, reviews] = await Promise.all([
     readCount(
@@ -80,11 +83,11 @@ export async function loadProfileState(): Promise<ProfileState> {
       userId: user.id,
       email: user.email ?? "",
       displayName: row.display_name ?? "",
-      firstName: identity.firstName || split.firstName,
-      surname: identity.surname || split.surname,
-      nickname: identity.nickname,
+      firstName: row.first_name ?? split.firstName,
+      surname: row.surname ?? split.surname,
+      nickname: row.nickname ?? "",
       phone: row.phone ?? "",
-      stateCode: identity.stateCode,
+      stateCode: row.state_code ?? "",
       avatarUrl: row.avatar_url ?? "",
       memberSince: row.created_at,
       settings,

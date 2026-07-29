@@ -4,6 +4,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { resolveSession } from "../actions/session";
+import type { AgentProfile } from "./types";
 import {
   AMENITY_CHOICES,
   type PropertyType,
@@ -75,6 +76,22 @@ export async function getAgentContext(): Promise<AgentContext> {
       type: data.type,
       verified: data.verified,
     },
+  };
+}
+
+/**
+ * The rail's identity card, built from the real agents row rather than seed
+ * content, so a signed-in agent sees their own name in the workspace chrome.
+ */
+export function agentProfileFrom(agent: AgentIdentity): AgentProfile {
+  return {
+    id: agent.id,
+    displayName: agent.displayName,
+    status: agent.status,
+    type: agent.type,
+    verified: agent.verified,
+    applicationRef: "",
+    submittedAt: null,
   };
 }
 
@@ -392,25 +409,7 @@ export async function readAgentNumbers(
 
 /* ------------------------------------------------------------- labels */
 
-export const STATUS_LABEL: Record<ListingStatus, string> = {
-  DRAFT: "Draft",
-  SUBMITTED: "Submitted",
-  UNDER_REVIEW: "Under review",
-  MORE_INFO_REQUIRED: "More information needed",
-  APPROVED: "Approved",
-  PUBLISHED: "Live",
-  REJECTED: "Not accepted",
-  SUSPENDED: "Suspended",
-};
-
-/** Status colours reuse the existing state tokens. Never a new palette. */
-export const STATUS_TONE: Record<ListingStatus, "neutral" | "brand" | "warning" | "success" | "error"> = {
-  DRAFT: "neutral",
-  SUBMITTED: "brand",
-  UNDER_REVIEW: "brand",
-  MORE_INFO_REQUIRED: "warning",
-  APPROVED: "success",
-  PUBLISHED: "success",
-  REJECTED: "error",
-  SUSPENDED: "warning",
-};
+// The status label and tone tables live in listings-schema, which carries no
+// server-only import, because the workspace renders them from a client
+// component. Re-exported here so server callers keep one import site.
+export { STATUS_LABEL, STATUS_TONE } from "./listings-schema";

@@ -72,10 +72,14 @@
   --nf-brand-secondary: var(--nf-electric-300);
   --nf-brand-accent: var(--nf-electric-400);
 
-  /* Mode accents. Personal is violet, Agent is orange, Admin is cyan. */
+  /* Mode accents. All three stay inside the sampled blue family: the modes
+     are told apart by depth, not by hue, because the brand is one palette
+     (deep navy-black, dark neon blue, electric blue glow) and a stray orange
+     or cyan accent reads as a different product. Personal is the electric
+     mid, Agent the bright glow, Admin the deep neon. */
   --nf-mode-personal: var(--nf-electric-500);
-  --nf-mode-agent: var(--nf-orange-500);
-  --nf-mode-admin: var(--nf-cyan-400);
+  --nf-mode-agent: var(--nf-electric-400);
+  --nf-mode-admin: var(--nf-electric-700);
 
   /* Surfaces */
   --nf-surface-canvas: #000010;
@@ -146,7 +150,7 @@
   --nf-gradient-brand: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-cta: linear-gradient(180deg, #0C39EF 0%, #0010E0 50%, #000F98 100%);
   --nf-gradient-iridescent: linear-gradient(135deg, #5C7CFF 0%, #0C39EF 52%, #0010E0 100%);
-  --nf-gradient-agent: linear-gradient(135deg, #FB923C 0%, var(--nf-orange-500) 100%);
+  --nf-gradient-agent: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-surface: linear-gradient(180deg, rgb(255 255 255 / 0.045) 0%, rgb(255 255 255 / 0.012) 100%);
 
   /* ---------------------------------------------------------------------
@@ -160,7 +164,7 @@
   --nf-canvas-base: #010118;
   --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-500) 92%, transparent) 0%, transparent 62%);
   --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-600) 85%, transparent) 0%, transparent 62%);
-  --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-500) 80%, transparent) 0%, transparent 62%);
+  --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-400) 80%, transparent) 0%, transparent 62%);
 
   /* ---------------------------------------------------------------------
    * Elevation
@@ -171,7 +175,7 @@
   --nf-shadow-float: 0 32px 80px -16px rgb(0 0 0 / 0.8);
   --nf-glow-brand: 0 0 0 1px color-mix(in oklab, var(--nf-electric-500) 35%, transparent),
                    0 12px 40px -8px color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
-  --nf-glow-accent: 0 12px 40px -10px color-mix(in oklab, var(--nf-cyan-400) 45%, transparent);
+  --nf-glow-accent: 0 12px 40px -10px color-mix(in oklab, var(--nf-electric-400) 45%, transparent);
 
   /* ---------------------------------------------------------------------
    * Radius

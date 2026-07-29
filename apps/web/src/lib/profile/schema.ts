@@ -4,13 +4,12 @@ import { NIGERIAN_STATES } from "../data/nigeria";
 /**
  * Profile and settings input schemas.
  *
- * The profiles table carries display_name, avatar_url, phone, locale and a
- * settings jsonb blob. There are no first name, surname, nickname or state
- * columns, so the parts a person types are kept in two coherent places: the
- * composed display_name (what every other surface reads) and the identity
- * block inside settings.profile (what this form reads back so nothing is lost
- * to a lossy name split). Everything a client sends is validated here, on the
- * server, before a single row is touched.
+ * Identity (first name, surname, nickname, state) lives in real columns on
+ * profiles, and display_name is derived from them by a database trigger, so
+ * the rendered name can never disagree with its parts. The settings jsonb
+ * carries preferences only: notification channels, privacy, locale and the
+ * data saver. Everything a client sends is validated here, on the server,
+ * before a single row is touched.
  */
 
 /** Product locales, matching packages/i18n and the public.locale enum. */
@@ -85,20 +84,11 @@ export type PrivacySettings = {
   hideActivity: boolean;
 };
 
-/** The identity parts the profiles table has no column for. */
-export type IdentitySettings = {
-  firstName: string;
-  surname: string;
-  nickname: string;
-  stateCode: string;
-};
-
 export type ProfileSettings = {
   notifications: NotificationSettings;
   privacy: PrivacySettings;
   locale?: LocaleCode;
   dataSaver?: boolean;
-  profile?: IdentitySettings;
 };
 
 /** Settings with every optional filled in, which is what the UI renders from. */
@@ -109,7 +99,6 @@ export const SETTINGS_DEFAULTS: ResolvedProfileSettings = {
   privacy: { hideActivity: false },
   locale: "en",
   dataSaver: false,
-  profile: { firstName: "", surname: "", nickname: "", stateCode: "" },
 };
 
 /**
@@ -131,15 +120,6 @@ const storedSettingsSchema = z
     privacy: z.object({ hideActivity: z.boolean() }).partial().catch({}),
     locale: z.enum(LOCALE_CODES).optional().catch(undefined),
     dataSaver: z.boolean().optional().catch(undefined),
-    profile: z
-      .object({
-        firstName: z.string(),
-        surname: z.string(),
-        nickname: z.string(),
-        stateCode: z.string(),
-      })
-      .partial()
-      .catch({}),
   })
   .partial()
   .catch({});
@@ -151,7 +131,6 @@ export function parseSettings(raw: unknown): ResolvedProfileSettings {
     privacy: { ...SETTINGS_DEFAULTS.privacy, ...stored.privacy },
     locale: stored.locale ?? SETTINGS_DEFAULTS.locale,
     dataSaver: stored.dataSaver ?? SETTINGS_DEFAULTS.dataSaver,
-    profile: { ...SETTINGS_DEFAULTS.profile, ...stored.profile },
   };
 }
 
@@ -192,17 +171,7 @@ export function mergeSettings(
     privacy: { ...current.privacy, ...patch.privacy },
     locale: patch.locale ?? current.locale,
     dataSaver: patch.dataSaver ?? current.dataSaver,
-    profile: current.profile,
   };
-}
-
-/** Merge the identity block without disturbing any other preference. */
-export function mergeIdentity(
-  currentRaw: unknown,
-  identity: IdentitySettings,
-): ResolvedProfileSettings {
-  const current = parseSettings(currentRaw);
-  return { ...current, profile: identity };
 }
 
 /* -------------------------------------------------------------------- avatar */

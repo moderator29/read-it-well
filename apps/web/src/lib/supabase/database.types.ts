@@ -930,33 +930,53 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          first_name: string | null
           id: string
           locale: Database["public"]["Enums"]["locale"]
+          nickname: string | null
           phone: string | null
           settings: Json
+          state_code: string | null
+          surname: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
           id: string
           locale?: Database["public"]["Enums"]["locale"]
+          nickname?: string | null
           phone?: string | null
           settings?: Json
+          state_code?: string | null
+          surname?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
           id?: string
           locale?: Database["public"]["Enums"]["locale"]
+          nickname?: string | null
           phone?: string | null
           settings?: Json
+          state_code?: string | null
+          surname?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       reports: {
         Row: {
