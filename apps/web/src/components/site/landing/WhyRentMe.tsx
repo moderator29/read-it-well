@@ -3,13 +3,13 @@ import { Reveal } from "@/components/site/Reveal";
 import { Icon, type IconName } from "@/design-system/icons/Icon";
 
 /**
- * "Why NaijaFinds" value band.
+ * "Why RentMe" value band.
  *
  * Four cards stating what the platform stands for. Bodies reuse dictionary
  * copy where a matching line already exists; the rest is plain English.
  * Two up on phones, four up on desktop.
  */
-export function WhyNaijaFinds({ t }: { t: Dictionary }) {
+export function WhyRentMe({ t }: { t: Dictionary }) {
   const values: { icon: IconName; title: string; body: string }[] = [
     {
       icon: "verified",
@@ -36,7 +36,7 @@ export function WhyNaijaFinds({ t }: { t: Dictionary }) {
   return (
     <section className="nf-shell py-10 sm:py-14">
       <Reveal className="mb-6 max-w-[52ch] sm:mb-8">
-        <h2 className="nf-h1">Why NaijaFinds</h2>
+        <h2 className="nf-h1">Why RentMe</h2>
         <p className="mt-3 text-[var(--nf-content-secondary)]">
           The promises behind every search, booking and stay.
         </p>

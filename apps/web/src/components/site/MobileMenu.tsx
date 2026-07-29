@@ -98,12 +98,12 @@ export function MobileMenu({
               <div className="mb-5 flex gap-2.5">
                 <a
                   href="mailto:hello@naijafinds.com"
-                  aria-label="Email NaijaFinds"
+                  aria-label="Email RentMe"
                   className="nf-icon-btn h-11 w-11"
                 >
                   <UiIcon name="star" size={17} />
                 </a>
-                <Link href="/assistant" aria-label="NaijaFinds AI" className="nf-icon-btn h-11 w-11">
+                <Link href="/assistant" aria-label="RentMe AI" className="nf-icon-btn h-11 w-11">
                   <UiIcon name="sparkle" size={17} />
                 </Link>
               </div>

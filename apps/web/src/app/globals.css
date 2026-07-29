@@ -118,7 +118,7 @@ body {
  * anyone reading the markup will assume.
  */
 @layer components {
-  /* -------------------------------------------------- NaijaFinds Material */
+  /* ----------------------------------------------------- RentMe Material */
 
   /* Glass depth: floating nav, overlays, controls. */
   .nf-glass {
@@ -171,7 +171,7 @@ body {
   .nf-card {
     background:
       radial-gradient(125% 90% at 0% 0%, rgb(12 57 239 / 0.16) 0%, transparent 44%) padding-box,
-      linear-gradient(160deg, rgb(0 4 40 / 0.5) 0%, rgb(0 2 24 / 0.62) 64%, rgb(0 1 16 / 0.72) 100%) padding-box,
+      linear-gradient(160deg, rgb(2 8 56 / 0.42) 0%, rgb(0 3 30 / 0.52) 64%, rgb(0 2 20 / 0.6) 100%) padding-box,
       linear-gradient(135deg,
         rgb(92 124 255 / 0.82) 0%,
         rgb(12 57 239 / 0.52) 20%,
@@ -183,7 +183,7 @@ body {
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      inset 0 1px 0 rgb(255 255 255 / 0.09),
       0 8px 30px rgb(0 0 0 / 0.45);
   }
 
@@ -207,12 +207,6 @@ body {
 
   .nf-hairline {
     border-top: 1px solid var(--nf-border-subtle);
-  }
-
-  /* The supplied brand mark is violet artwork; this shifts it into the blue
-     brand family without touching the source file. */
-  .nf-mark-blue {
-    filter: hue-rotate(-48deg) saturate(1.15);
   }
 
   /* ------------------------------------------------------------ typography */
@@ -1134,8 +1128,5 @@ body {
   }
   :root[data-theme="light"] .nf-grain {
     opacity: 0.03;
-  }
-  :root[data-theme="light"] .nf-mark-blue {
-    filter: hue-rotate(-48deg) saturate(1.05) brightness(1.02);
   }
 }

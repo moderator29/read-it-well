@@ -67,7 +67,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
         {/* Brand block and link columns */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-[1.6fr_repeat(4,1fr)] md:gap-x-10">
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" aria-label="NaijaFinds home" className="inline-flex">
+            <Link href="/" aria-label="RentMe home" className="inline-flex">
               <Logo size={40} wordSize={21} />
             </Link>
             <p className="mt-4 max-w-[28ch] text-[0.9375rem] font-medium text-[var(--nf-content-secondary)]">
@@ -129,7 +129,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
         {/* Copyright line */}
         <div className="nf-hairline mt-7 flex flex-col gap-2 pt-6 text-[0.8125rem] text-[var(--nf-content-muted)] sm:flex-row sm:items-center sm:justify-between">
           <p>
-            <span className="nf-numeric">{year}</span> NaijaFinds. {t.landing.footer.rights}
+            <span className="nf-numeric">{year}</span> RentMe. {t.landing.footer.rights}
           </p>
           <p className="font-medium">
             {t.landing.hero.line1} {t.landing.hero.line2} {t.landing.hero.line3}

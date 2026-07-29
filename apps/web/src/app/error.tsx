@@ -42,7 +42,7 @@ export default function Error({
       </div>
 
       <div className="relative z-10">
-        <Link href="/" aria-label="NaijaFinds home" className="inline-flex">
+        <Link href="/" aria-label="RentMe home" className="inline-flex">
           <LogoMark size={56} />
         </Link>
 

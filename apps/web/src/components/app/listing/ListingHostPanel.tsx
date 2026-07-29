@@ -31,10 +31,10 @@ export function ListingHostPanel({
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-            NaijaFinds partner agent
+            RentMe partner agent
           </p>
           <p className="mt-0.5 truncate text-[0.78rem] text-[var(--nf-content-muted)]">
-            Manages this listing on NaijaFinds
+            Manages this listing on RentMe
           </p>
         </div>
         {verified && (

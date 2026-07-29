@@ -3,7 +3,7 @@ import type { GlyphName } from "./glyphs";
 import type { IconRampName } from "@naijafinds/design-tokens";
 
 /**
- * NaijaFinds icon.
+ * RentMe icon.
  *
  * The platform icon is a vector signature object rendered by Icon3D: a 3D glyph
  * on a glass-lit tile, one camera angle, one light direction, sharp at any size

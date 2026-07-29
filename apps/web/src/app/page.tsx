@@ -8,11 +8,10 @@ import { Reveal } from "@/components/site/Reveal";
 import { Icon, type IconName } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TrustIcon, type TrustIconName } from "@/design-system/icons/TrustIcon";
-import { HeroIsland } from "@/design-system/scenes/HeroIsland";
 import { HowItWorks } from "@/components/site/landing/HowItWorks";
 import { PopularDestinations } from "@/components/site/landing/PopularDestinations";
 import { AgentsBand } from "@/components/site/landing/AgentsBand";
-import { WhyNaijaFinds } from "@/components/site/landing/WhyNaijaFinds";
+import { WhyRentMe } from "@/components/site/landing/WhyRentMe";
 import { FeaturedCarousel } from "@/components/site/landing/FeaturedCarousel";
 import { MoodRow } from "@/components/site/landing/MoodRow";
 import { NumbersBand } from "@/components/site/landing/NumbersBand";
@@ -28,11 +27,10 @@ export default async function LandingPage() {
     key: keyof typeof t.landing.stats;
     icon: IconName;
     value: number | null;
-    pos: string;
   }[] = [
-    { key: "apartments", icon: "apartment", value: stats?.apartments ?? null, pos: "left-[-4%] top-[24%]" },
-    { key: "hotels", icon: "hotel", value: stats?.hotels ?? null, pos: "left-[22%] top-[2%]" },
-    { key: "restaurants", icon: "restaurant", value: stats?.restaurants ?? null, pos: "right-[-3%] top-[30%]" },
+    { key: "apartments", icon: "apartment", value: stats?.apartments ?? null },
+    { key: "hotels", icon: "hotel", value: stats?.hotels ?? null },
+    { key: "restaurants", icon: "restaurant", value: stats?.restaurants ?? null },
   ];
 
   const features: { icon: IconName; title: string; body: string }[] = [
@@ -88,31 +86,8 @@ export default async function LandingPage() {
             </span>
           </div>
 
-          {/*
-           * Mobile: the island is the atmosphere of the first view, rising to the
-           * right of the headline and dissolving into the canvas through a scrim,
-           * so the skyscraper is part of the opening frame rather than stranded
-           * at the foot of the page. It is hidden at lg, where the island gets its
-           * own column instead.
-           */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-0 overflow-hidden lg:hidden"
-          >
-            <div className="absolute right-1 top-[4%] w-[52%] max-w-[300px] opacity-[0.85] nf-float">
-              <HeroIsland priority />
-            </div>
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(3,8,22,0) 0%, rgba(3,8,22,0.12) 45%, rgba(3,8,22,0.68) 78%, rgba(3,8,22,0.95) 100%)",
-              }}
-            />
-          </div>
-
-          <div className="nf-shell relative z-10 grid items-center gap-10 lg:grid-cols-[1fr_1.05fr]">
-            <div className="nf-rise">
+          <div className="nf-shell relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
+            <div className="nf-rise flex w-full flex-col items-center">
               <span className="nf-overline mb-3 inline-flex items-center gap-2">
                 <UiIcon name="sparkle" size={14} />
                 {t.landing.hero.popularLabel}
@@ -133,7 +108,7 @@ export default async function LandingPage() {
                 action="/search"
                 method="get"
                 role="search"
-                className="nf-card nf-card--live mt-7 flex flex-col gap-2 p-2 sm:flex-row sm:items-center"
+                className="nf-card nf-card--live mt-7 flex w-full max-w-xl flex-col gap-2 p-2 text-left sm:flex-row sm:items-center"
               >
                 <label htmlFor="hero-q" className="sr-only">
                   {t.landing.hero.searchLabel}
@@ -154,7 +129,7 @@ export default async function LandingPage() {
                 </button>
               </form>
 
-              <ul className="mt-4 flex flex-wrap gap-2">
+              <ul className="mt-4 flex flex-wrap justify-center gap-2">
                 {CITIES.map((city) => (
                   <li key={city}>
                     <Link href={`/search?q=${encodeURIComponent(city)}`} className="nf-chip">
@@ -163,24 +138,17 @@ export default async function LandingPage() {
                   </li>
                 ))}
               </ul>
-            </div>
 
-            {/* ------------------------------------------------ hero object (desktop) */}
-            <div className="relative hidden lg:block">
-              <div className="nf-float">
-                <HeroIsland priority className="drop-shadow-[0_50px_90px_rgba(0,0,0,0.65)]" />
-              </div>
-
-              <ul className="pointer-events-none absolute inset-0">
+              <ul className="mt-8 flex flex-wrap justify-center gap-2.5 sm:gap-3">
                 {heroChips.map((c) => (
                   <li
                     key={c.key}
-                    className={`nf-glass absolute flex items-center gap-2 rounded-[var(--nf-radius-lg)] px-3 py-2 shadow-[var(--nf-shadow-lifted)] nf-float-slow ${c.pos}`}
+                    className="nf-glass flex items-center gap-2 rounded-[var(--nf-radius-lg)] px-3 py-2 shadow-[var(--nf-shadow-lifted)] nf-float-slow"
                   >
                     <span className="h-7 w-7">
                       <Icon name={c.icon} fill />
                     </span>
-                    <span className="leading-tight">
+                    <span className="text-left leading-tight">
                       <span className="block text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
                         {t.landing.stats[c.key]}
                       </span>
@@ -320,7 +288,7 @@ export default async function LandingPage() {
 
         <AgentsBand t={t} />
 
-        <WhyNaijaFinds t={t} />
+        <WhyRentMe t={t} />
 
         {/* ----------------------------------------------------- numbers band */}
         <NumbersBand />
@@ -370,15 +338,15 @@ export default async function LandingPage() {
               ["Is my payment safe?", "Yes. Payments are processed by a licensed Nigerian payment provider, and your card details never touch our servers. You are never charged before you confirm."],
               ["Can I list my property?", "Yes. Apply in about ten minutes from the Become an Agent page. Every application is reviewed before listings go live."],
               ["Which languages are supported?", "English, Yoruba, Hausa and Igbo, switchable at any time from the top bar."],
-              ["Where does NaijaFinds operate?", "All 36 states and the FCT from day one, with the deepest coverage growing city by city."],
+              ["Where does RentMe operate?", "All 36 states and the FCT from day one, with the deepest coverage growing city by city."],
               ["How do I get help?", "The AI assistant answers instantly inside the app, and our support team is one message away."],
               ["How do payments work before launch?", "Card payments switch on at public launch. Until then you can browse, save favourites and shortlist places, and no money changes hands. When payments open they run in naira through a licensed Nigerian payment provider."],
-              ["Is there a booking fee?", "No. There are no booking fees on NaijaFinds right now. The price you see on a listing is the price you pay, with any charges shown in full before you confirm."],
+              ["Is there a booking fee?", "No. There are no booking fees on RentMe right now. The price you see on a listing is the price you pay, with any charges shown in full before you confirm."],
               ["How do agents get verified?", "Every agent submits a government issued ID and proof that they own or manage the property. Our team reviews each application by hand, and only approved agents can publish listings."],
               ["Can I pay in instalments?", "Not yet. Bookings are paid in full for now. Instalment payments are on our roadmap, and we will announce them the moment they are ready rather than promise a date."],
               ["What happens after I book?", "You get an instant confirmation with the address, check in details and the host's contact, and the booking appears in your account. Reminders arrive as your date approaches."],
               ["How do I contact a host?", "Once your booking is confirmed you can message the host directly from the booking page, and the AI assistant can help draft questions in any of our four languages."],
-              ["Is my data safe under NDPA?", "Yes. NaijaFinds is built to comply with the Nigeria Data Protection Act. Your data is encrypted in transit and at rest, is never sold, and you can request a copy or deletion at any time."],
+              ["Is my data safe under NDPA?", "Yes. RentMe is built to comply with the Nigeria Data Protection Act. Your data is encrypted in transit and at rest, is never sold, and you can request a copy or deletion at any time."],
             ].map(([q, a]) => (
               <Reveal key={q}>
                 <details className="nf-card group p-0">

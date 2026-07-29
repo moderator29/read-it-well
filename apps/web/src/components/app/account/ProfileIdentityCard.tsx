@@ -117,7 +117,7 @@ export function ProfileIdentityCard({
         <div className="min-w-0 flex-1">
           <h2 className="nf-h3 truncate">{shownName}</h2>
           <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-            {since ? `Member since ${since}` : "Welcome to NaijaFinds"}
+            {since ? `Member since ${since}` : "Welcome to RentMe"}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             <span className="nf-badge nf-badge--brand">Level 2 · Explorer</span>

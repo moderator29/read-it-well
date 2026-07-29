@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AssistantChat } from "@/components/app/assistant/AssistantChat";
 
-export const metadata: Metadata = { title: "NaijaFinds AI" };
+export const metadata: Metadata = { title: "RentMe AI" };
 
 /**
  * AI Assistant destination.

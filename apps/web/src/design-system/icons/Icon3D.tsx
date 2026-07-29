@@ -5,7 +5,7 @@ import { iconRamp, type IconRampName } from "@naijafinds/design-tokens";
 import { glyphs, type Glyph, type GlyphName } from "./glyphs";
 
 /**
- * NaijaFinds Signature Object.
+ * RentMe Signature Object.
  *
  * The tier-two icon system from the design direction: a 3D object on a
  * neumorphic, glass-lit tile. Rendered entirely as vector so it is sharp at any

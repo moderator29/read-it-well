@@ -59,7 +59,7 @@ const PANELS: {
     icon: "profile",
     ramp: "cyan",
     title: "Transfer to another user",
-    hint: "Send money to any NaijaFinds user by email or phone number.",
+    hint: "Send money to any RentMe user by email or phone number.",
   },
 ];
 

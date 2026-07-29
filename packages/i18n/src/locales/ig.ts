@@ -64,7 +64,7 @@ export const ig: Dictionary = {
     vision: {
       overline: "Ọhụụ anyị",
       title: "Naịjịrịa n'aka gị. Afrịka na-esote.",
-      body: "NaijaFinds na-ewu ụlọ a pụrụ ịtụkwasị obi maka nchọpụta, ebe obibi, nri na ahụmịhe n'ofe Naịjịrịa, wee bụrụ kọntinent ahụ. Otu akaụntụ, otu obere akpa ego, otu onye enyemaka.",
+      body: "RentMe na-ewu ụlọ a pụrụ ịtụkwasị obi maka nchọpụta, ebe obibi, nri na ahụmịhe n'ofe Naịjịrịa, wee bụrụ kọntinent ahụ. Otu akaụntụ, otu obere akpa ego, otu onye enyemaka.",
       missionOverline: "Ebumnuche anyị",
       missionTitle: "Mee ka ịchọta na idebe ihe ọ bụla dị mfe ma dị mma.",
       missionBody: "Ebe akwadoro, ọnụahịa ziri ezi na naira, nyocha ziri ezi, na onye enyemaka nke ghọtara ihe ị chọrọ.",
@@ -155,13 +155,13 @@ export const ig: Dictionary = {
     topExperiences: "Chọpụta ahụmahụ kacha mma",
     nearby: "Nso gị",
     aiCard: {
-      title: "NaijaFinds AI",
+      title: "RentMe AI",
       body: "Enyi njem gị maara ihe. Jụọ ihe ọ bụla n'okwu dị mfe.",
       action: "Jụọ onye enyemaka",
       samplePrompt: "Ụlọ ime abụọ na Lekki n'okpuru 300k nwere ọdọ mmiri",
     },
     agentCard: {
-      title: "Bụrụ Onye Nnọchiteanya NaijaFinds",
+      title: "Bụrụ Onye Nnọchiteanya RentMe",
       body: "Depụta ihe onwunwe gị, jikwaa ndebe, nweta karịa ma zụlite azụmahịa gị.",
       action: "Bụrụ onye nnọchiteanya",
     },
@@ -202,7 +202,7 @@ export const ig: Dictionary = {
       settings: "Ntọala",
     },
     join: {
-      title: "Sonye na Obodo Ndị Nnọchi NaijaFinds",
+      title: "Sonye na Obodo Ndị Nnọchi RentMe",
       body: "Depụta ihe onwunwe, jikọọ na ndị ọbịa enyochara, jikwaa ndebe ma nweta ego.",
       start: "Malite arịrịọ",
       resume: "Gaa n'ihu na arịrịọ",
@@ -247,7 +247,7 @@ export const ig: Dictionary = {
         bankName: "Ụlọ akụ",
         accountNumber: "Nọmba akaụntụ",
         accountName: "Aha akaụntụ",
-        agreeTerms: "Ekwenyere m na Usoro Onye Nnọchi NaijaFinds na Iwu Ụgwọ.",
+        agreeTerms: "Ekwenyere m na Usoro Onye Nnọchi RentMe na Iwu Ụgwọ.",
       },
       documents: {
         title: "Bulite akwụkwọ gị",
@@ -309,7 +309,7 @@ export const ig: Dictionary = {
   },
 
   a11y: {
-    logoHome: "Ụlọ NaijaFinds",
+    logoHome: "Ụlọ RentMe",
     openMenu: "Mepee menu",
     closeMenu: "Mechie menu",
     languageSwitcher: "Gbanwee asụsụ",
