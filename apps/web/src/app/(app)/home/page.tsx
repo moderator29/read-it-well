@@ -67,7 +67,7 @@ export default async function HomePage() {
           action="/search"
           method="get"
           role="search"
-          className="nf-card mt-5 flex max-w-3xl items-center gap-2 p-2 sm:mt-6"
+          className="nf-card mt-5 flex max-w-2xl items-center gap-1.5 p-1.5 sm:mt-6"
         >
           <label htmlFor="home-q" className="sr-only">
             {t.home.searchPlaceholder}
@@ -80,10 +80,10 @@ export default async function HomePage() {
               type="search"
               autoComplete="off"
               placeholder={t.home.searchPlaceholder}
-              className="w-full bg-transparent py-2.5 text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
+              className="w-full bg-transparent py-2 text-[0.875rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
             />
           </div>
-          <button type="submit" className="nf-btn nf-btn--primary shrink-0">
+          <button type="submit" className="nf-btn nf-btn--primary shrink-0 px-3.5 py-2 text-[0.8125rem]">
             {t.common.search}
           </button>
         </form>
@@ -93,12 +93,12 @@ export default async function HomePage() {
       <Reveal as="section" className="mt-8 sm:mt-9">
         <ul className="nf-scroll-x -mx-5 flex snap-x snap-mandatory gap-3 px-5 pb-1 scroll-pl-5 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 sm:pb-0 lg:grid-cols-5">
           {categories.map((c) => (
-            <li key={c.href} className="w-[8.25rem] shrink-0 snap-start sm:w-auto">
+            <li key={c.href} className="w-[7.25rem] shrink-0 snap-start sm:w-auto">
               <Link
                 href={c.href}
-                className="nf-card nf-card--interactive flex h-full flex-col items-center gap-2.5 p-4 text-center sm:p-5"
+                className="nf-card nf-card--interactive flex h-full flex-col items-center gap-2 p-3 text-center sm:p-4"
               >
-                <span className="block h-12 w-12 sm:h-14 sm:w-14">
+                <span className="block h-10 w-10 sm:h-12 sm:w-12">
                   <Icon name={c.icon} fill />
                 </span>
                 <span className="text-[0.8125rem] font-semibold sm:text-[0.875rem]">
@@ -179,7 +179,7 @@ export default async function HomePage() {
             <li key={e.label} className="w-[7.75rem] shrink-0 snap-start sm:w-auto">
               <Link
                 href="/search?type=experience"
-                className="nf-card nf-card--interactive flex h-full flex-col items-center gap-2.5 p-4 text-center sm:p-5"
+                className="nf-card nf-card--interactive flex h-full flex-col items-center gap-2 p-3 text-center sm:p-4"
               >
                 <span className="block h-11 w-11 sm:h-12 sm:w-12">
                   <Icon name={e.icon} fill />
