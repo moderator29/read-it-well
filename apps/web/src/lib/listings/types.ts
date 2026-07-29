@@ -7,7 +7,13 @@ export type ListingKind =
   | "shortlet"
   | "villa"
   | "restaurant"
-  | "experience";
+  | "experience"
+  /**
+   * Long-term lettings, the serious rent market: annual tenancy, priced per
+   * year, no Reserve button. The path is message the agent, inspect, then
+   * pay. Distinct from "apartment", which is nightly lodging.
+   */
+  | "rental";
 
 export type Listing = {
   id: string;
@@ -26,6 +32,18 @@ export type Listing = {
    */
   priceMinor: number;
   currency: "NGN";
+  /**
+   * What the price covers. "night" for stays (default), "year" for rentals.
+   * Restaurants and experiences stay per head regardless of this field.
+   */
+  pricePeriod?: "night" | "year";
+  /**
+   * Where the listing comes from. "rentme" (default) is our own agent
+   * inventory and is the only source that may carry the verified badge and
+   * in-platform messaging. "partner" is third-party stock (hotel and
+   * restaurant feeds); partner cards never show the verified badge.
+   */
+  source?: "rentme" | "partner";
   bedrooms: number;
   bathrooms: number;
   rating: number;

@@ -35,6 +35,7 @@ export function AppRail({
 }) {
   const discovery: RailItem[] = [
     { href: "/home", label: t.nav.home, icon: "home" },
+    { href: "/rent", label: t.nav.rent, icon: "key" },
     { href: "/search?type=hotel", label: t.nav.hotels, icon: "building-hotel" },
     { href: "/search?type=property", label: t.nav.apartments, icon: "building-apartment" },
     { href: "/search?type=home", label: t.nav.homes, icon: "house" },

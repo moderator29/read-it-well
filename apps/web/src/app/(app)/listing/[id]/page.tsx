@@ -33,6 +33,7 @@ const KIND_LABEL: Record<ListingKind, string> = {
   villa: "villa",
   restaurant: "restaurant",
   experience: "experience",
+  rental: "rental",
 };
 
 /** "Lagos State" reads naturally; the FCT does not take the suffix. */

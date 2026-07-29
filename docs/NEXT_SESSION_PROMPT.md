@@ -100,7 +100,14 @@ quality: 2030-generation clean.
    approvals, admin console queues (risk alerts, message flags, agent
    approvals, reports), notifications fan-out. Lead reviews, commits and
    pushes green snapshots only.
-5. Rebuild the 5 auth email templates for RentMe branding; regenerate via
+5. HYBRID INVENTORY. Build the provider layer exactly per
+   `docs/HYBRID_INVENTORY.md`: Amadeus hotels and Google Places restaurants
+   as `source: "partner"` stock merged into search, first party ranked
+   above partner, verified badge and messaging first-party only, providers
+   env-guarded and silent without keys. The Rent market (`/rent`, kind
+   `rental`) stays first-party only, message-inspect-pay, with the
+   canonical safety disclaimer everywhere it renders.
+6. Rebuild the 5 auth email templates for RentMe branding; regenerate via
    `node scripts/build-auth-emails.mjs`.
 6. Native-review pass on yo/ha/ig hero and tagline lines (flagged in files).
 7. Keep drawing from `docs/recommendations-inbox.md` (250 items); promote
