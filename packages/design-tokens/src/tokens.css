@@ -264,43 +264,49 @@
  * Tracked in KNOWN_GAPS.md before it is exposed to users.
  */
 :root[data-theme="light"] {
-  --nf-surface-canvas: #FAFCFE;
-  --nf-surface-primary: #FBFDFF;
+  /*
+   * Daylight, exchange-grade: a flat neutral light-grey canvas with pure
+   * white surfaces, near-black neutral ink, hairline neutral borders and
+   * soft neutral shadows. No blue tint anywhere in backgrounds or greys;
+   * the brand blue appears only where it carries meaning: headlines,
+   * active states and calls to action.
+   */
+  --nf-surface-canvas: #F4F5F7;
+  --nf-surface-primary: #FFFFFF;
   --nf-surface-secondary: #FFFFFF;
   --nf-surface-elevated: #FFFFFF;
-  --nf-surface-raised: #F2F6FC;
-  --nf-surface-inset: #E9F0F9;
+  --nf-surface-raised: #F7F8FA;
+  --nf-surface-inset: #EFF1F4;
 
-  --nf-content-primary: #0A1626;
-  --nf-content-secondary: #3D5170;
-  --nf-content-muted: #68799B;
+  --nf-content-primary: #16181D;
+  --nf-content-secondary: #41464F;
+  --nf-content-muted: #7A8189;
   --nf-content-on-brand: #FFFFFF;
 
-  /* Slightly deeper blue so the brand holds contrast on paper. */
-  --nf-brand-primary: #0010D0;
-  --nf-brand-primary-strong: #1230B3;
+  /* Vivid brand blue that holds contrast on paper. */
+  --nf-brand-primary: #0C2FE8;
+  --nf-brand-primary-strong: #0010D0;
 
-  /* Daylight CTA runs brighter than the night gradient so buttons read as
-     vivid brand blue on paper, never near-black navy. */
-  --nf-gradient-cta: linear-gradient(180deg, #2450FF 0%, #0C39EF 55%, #0010D0 100%);
+  /* Daylight CTA is a near-flat vivid brand blue, never near-black navy. */
+  --nf-gradient-cta: linear-gradient(180deg, #2450FF 0%, #0C39EF 100%);
 
-  --nf-border-subtle: rgb(10 22 38 / 0.08);
-  --nf-border-default: rgb(10 22 38 / 0.14);
-  --nf-border-strong: rgb(10 22 38 / 0.24);
+  --nf-border-subtle: rgb(18 21 26 / 0.08);
+  --nf-border-default: rgb(18 21 26 / 0.13);
+  --nf-border-strong: rgb(18 21 26 / 0.22);
 
-  --nf-glass-fill: rgb(255 255 255 / 0.72);
-  --nf-glass-fill-strong: rgb(255 255 255 / 0.86);
-  --nf-glass-border: rgb(10 22 38 / 0.1);
+  --nf-glass-fill: rgb(255 255 255 / 0.88);
+  --nf-glass-fill-strong: rgb(255 255 255 / 0.96);
+  --nf-glass-border: rgb(18 21 26 / 0.08);
 
-  --nf-shadow-card: 0 4px 20px -6px rgb(10 22 38 / 0.1), 0 1px 2px rgb(10 22 38 / 0.05);
-  --nf-shadow-lifted: 0 18px 48px -14px rgb(10 22 38 / 0.16);
-  --nf-shadow-float: 0 32px 80px -20px rgb(10 22 38 / 0.2);
+  --nf-shadow-card: 0 1px 2px rgb(18 21 26 / 0.04), 0 4px 16px -4px rgb(18 21 26 / 0.06);
+  --nf-shadow-lifted: 0 14px 34px -14px rgb(18 21 26 / 0.14);
+  --nf-shadow-float: 0 28px 64px -20px rgb(18 21 26 / 0.18);
 
-  /* Daylight canvas: airy sky wash, calm blooms. */
-  --nf-canvas-base: #FAFCFE;
-  --nf-canvas-bloom-1: radial-gradient(circle, rgb(0 102 255 / 0.16) 0%, transparent 62%);
-  --nf-canvas-bloom-2: radial-gradient(circle, rgb(0 200 255 / 0.12) 0%, transparent 62%);
-  --nf-canvas-bloom-3: radial-gradient(circle, rgb(18 48 179 / 0.1) 0%, transparent 62%);
+  /* Flat neutral canvas. The blooms are switched off entirely in daylight. */
+  --nf-canvas-base: #F4F5F7;
+  --nf-canvas-bloom-1: none;
+  --nf-canvas-bloom-2: none;
+  --nf-canvas-bloom-3: none;
 }
 
 /*
