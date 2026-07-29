@@ -668,35 +668,11 @@ body {
    * single cover-sized background image could not avoid on a wide banner.
    */
   .nf-ai-banner {
-    background:
-      url("/brand/ai-robot.png") right 0 bottom 0 / auto 104% no-repeat,
-      radial-gradient(120% 160% at 8% 0%, #38BDF8 0%, transparent 55%),
-      linear-gradient(102deg, #1D4ED8 0%, #2563EB 38%, #3B82F6 70%, #0EA5E9 100%);
+    aspect-ratio: 2.15 / 1;
+    background: var(--nf-canvas-base);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.26),
-      inset 0 0 0 1px rgb(255 255 255 / 0.1),
+      inset 0 0 0 1px rgb(92 124 255 / 0.18),
       0 18px 46px -14px color-mix(in oklab, var(--nf-brand-primary) 85%, transparent);
-  }
-
-  /* Phones: the robot would sit under the copy, so it shrinks and the copy gets
-     a scrim that keeps contrast above 4.5:1 across the whole text column. */
-  @media (max-width: 767px) {
-    .nf-ai-banner {
-      background-size: auto 72%, auto, auto;
-      background-position: right -4% bottom 0, 0 0, 0 0;
-    }
-    .nf-ai-banner::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        100deg,
-        color-mix(in oklab, #0B255E 80%, transparent) 0%,
-        color-mix(in oklab, #0B255E 48%, transparent) 52%,
-        transparent 86%
-      );
-      pointer-events: none;
-    }
   }
 
   /* Mobile tab bar: glass slab pinned to the bottom, above the safe area. */
@@ -731,10 +707,50 @@ body {
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
-    background: var(--nf-canvas-base) url("/brand/rentme-bg.png") center / cover no-repeat;
+    background: var(--nf-canvas-base) url("/brand/rentme-bg.png") center bottom / cover no-repeat;
     isolation: isolate;
   }
-  .nf-ambient span { display: none; }
+  /*
+   * First span: the artwork mirrored onto the top of the viewport, masked to
+   * its wave half, so the neon swells crown the opening frame instead of
+   * living only at the foot of the page. The remaining spans are the drifting
+   * colour blooms that keep the whole canvas visibly alive between the waves.
+   */
+  .nf-ambient > span {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .nf-ambient > span:nth-child(1) {
+    background: url("/brand/rentme-bg.png") center bottom / cover no-repeat;
+    transform: scaleY(-1) scaleX(-1);
+    opacity: 0.8;
+    mask-image: linear-gradient(to top, rgb(0 0 0) 0%, rgb(0 0 0 / 0.55) 32%, transparent 62%);
+    -webkit-mask-image: linear-gradient(to top, rgb(0 0 0) 0%, rgb(0 0 0 / 0.55) 32%, transparent 62%);
+  }
+  .nf-ambient > span:nth-child(2) {
+    inset: auto;
+    left: -16vmax;
+    top: 6vh;
+    width: 62vmax;
+    height: 62vmax;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(12 57 239 / 0.5) 0%, transparent 62%);
+    animation: nf-drift-a 16s ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  .nf-ambient > span:nth-child(3) {
+    inset: auto;
+    right: -20vmax;
+    bottom: -6vh;
+    width: 68vmax;
+    height: 68vmax;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(92 124 255 / 0.32) 0%, transparent 64%);
+    animation: nf-drift-b 21s ease-in-out infinite;
+    animation-delay: -7s;
+    will-change: transform, opacity;
+  }
   .nf-ambient::before,
   .nf-ambient::after {
     content: "";
@@ -748,8 +764,9 @@ body {
       radial-gradient(ellipse 60% 80% at 80% 20%, rgb(92 124 255 / 0.12) 0%, transparent 55%),
       radial-gradient(ellipse 100% 60% at 50% 80%, rgb(92 124 255 / 0.18) 0%, transparent 55%),
       radial-gradient(ellipse 40% 40% at 70% 60%, rgb(18 48 179 / 0.16) 0%, transparent 55%);
-    animation: nf-aurora-pulse 12s ease-in-out infinite;
+    animation: nf-aurora-pulse 9s ease-in-out infinite;
     opacity: 0.55;
+    will-change: transform, opacity;
   }
   .nf-ambient::after {
     inset: -50%;
@@ -761,13 +778,32 @@ body {
       transparent 240deg,
       rgb(18 48 179 / 0.24) 300deg,
       transparent 360deg);
-    animation: nf-aurora-drift 30s linear infinite;
+    animation: nf-aurora-drift 20s linear infinite;
     opacity: 0.45;
     will-change: transform;
   }
+  /*
+   * Phones crop a landscape artwork to a sliver under cover sizing, which is
+   * why the waves vanished on mobile. Below the tablet break the artwork is
+   * shown at full width instead: the real waves hold the foot of the screen,
+   * the mirrored copy holds the top, and the blooms carry the middle.
+   */
+  @media (max-width: 768px) {
+    .nf-ambient,
+    .nf-ambient > span:nth-child(1) {
+      background-size: 100% auto;
+      background-position: center bottom;
+    }
+    /* The full-width artwork is only ~250px tall on a phone, so the fade has
+       to finish inside that strip or its edge prints a hard seam. */
+    .nf-ambient > span:nth-child(1) {
+      mask-image: linear-gradient(to top, rgb(0 0 0) 0%, rgb(0 0 0 / 0.5) 12%, transparent 24%);
+      -webkit-mask-image: linear-gradient(to top, rgb(0 0 0) 0%, rgb(0 0 0 / 0.5) 12%, transparent 24%);
+    }
+  }
   @keyframes nf-aurora-pulse {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
+    0%, 100% { opacity: 0.6; transform: translate3d(0, 0, 0) scale(1); }
+    50% { opacity: 1; transform: translate3d(-2%, 2%, 0) scale(1.06); }
   }
   @keyframes nf-aurora-drift {
     0% { transform: rotate(0deg) scale(1); }
@@ -788,7 +824,8 @@ body {
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-ambient::before,
-    .nf-ambient::after {
+    .nf-ambient::after,
+    .nf-ambient > span {
       animation: none !important;
     }
   }
@@ -940,8 +977,8 @@ body {
     top: -6rem;
     right: -12rem;
     background:
-      radial-gradient(circle at 30% 70%, color-mix(in oklab, var(--nf-magenta-500) 55%, transparent) 0%, transparent 55%),
-      radial-gradient(circle, var(--nf-cyan-500) 0%, transparent 68%);
+      radial-gradient(circle at 30% 70%, color-mix(in oklab, var(--nf-electric-400) 55%, transparent) 0%, transparent 55%),
+      radial-gradient(circle, var(--nf-electric-300) 0%, transparent 68%);
   }
 
   .nf-grid-veil {
@@ -995,8 +1032,24 @@ body {
   .nf-rise {
     animation: nf-rise var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
   }
+
+  /* Staggered entrances: each step lands a beat after the one before it, so
+     the hero reads as a sequence rather than a single card flip. */
+  .nf-rise-2 { animation-delay: 140ms; }
+  .nf-rise-3 { animation-delay: 280ms; }
+  .nf-rise-4 { animation-delay: 420ms; }
+  .nf-rise-5 { animation-delay: 560ms; }
+
   .nf-float {
     animation: nf-float 7s var(--nf-ease-standard) infinite;
+  }
+
+  /*
+   * The hero city. The artwork is a transparent cutout, so it sits directly on
+   * the ambient waves; the drop shadow is its ground glow.
+   */
+  .nf-hero-city {
+    filter: saturate(1.05) drop-shadow(0 34px 70px rgb(12 57 239 / 0.4));
   }
 
   /* A second, slower float on an offset phase, for scattered accent objects. */
@@ -1119,6 +1172,16 @@ body {
   :root[data-theme="light"] .nf-btn--glass {
     background: rgb(10 22 38 / 0.04);
     border-color: rgb(10 22 38 / 0.14);
+  }
+  :root[data-theme="light"] .nf-ambient {
+    background-image: none;
+  }
+  :root[data-theme="light"] .nf-ambient > span:nth-child(1) {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-ambient > span:nth-child(2),
+  :root[data-theme="light"] .nf-ambient > span:nth-child(3) {
+    opacity: 0.35;
   }
   :root[data-theme="light"] .nf-ambient::before {
     opacity: 0.5;

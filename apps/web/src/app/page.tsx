@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getDictionary, formatNumber, type Locale } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
@@ -27,10 +28,11 @@ export default async function LandingPage() {
     key: keyof typeof t.landing.stats;
     icon: IconName;
     value: number | null;
+    pos: string;
   }[] = [
-    { key: "apartments", icon: "apartment", value: stats?.apartments ?? null },
-    { key: "hotels", icon: "hotel", value: stats?.hotels ?? null },
-    { key: "restaurants", icon: "restaurant", value: stats?.restaurants ?? null },
+    { key: "apartments", icon: "apartment", value: stats?.apartments ?? null, pos: "left-[-4%] top-[16%]" },
+    { key: "hotels", icon: "hotel", value: stats?.hotels ?? null, pos: "left-[24%] top-[-6%]" },
+    { key: "restaurants", icon: "restaurant", value: stats?.restaurants ?? null, pos: "right-[-3%] top-[24%]" },
   ];
 
   const features: { icon: IconName; title: string; body: string }[] = [
@@ -86,20 +88,45 @@ export default async function LandingPage() {
             </span>
           </div>
 
-          <div className="nf-shell relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
-            <div className="nf-rise flex w-full flex-col items-center">
-              <span className="nf-overline mb-3 inline-flex items-center gap-2">
+          {/*
+           * Mobile: the neon city rises to the right of the headline, part of
+           * the opening frame. The artwork is a transparent cutout, so it sits
+           * straight on the ambient waves with no rectangle and no scrim.
+           * Hidden at lg, where the city gets its own column instead.
+           */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-0 overflow-hidden lg:hidden"
+          >
+            <div className="nf-float absolute right-0 top-[3%] w-[60%] max-w-[340px]">
+              <Image
+                src="/brand/rentme-city.png"
+                alt=""
+                width={1507}
+                height={852}
+                priority
+                sizes="60vw"
+                className="nf-hero-city h-auto w-full"
+              />
+            </div>
+          </div>
+
+          <div className="nf-shell relative z-10 grid items-center gap-10 lg:grid-cols-[1fr_1.05fr]">
+            <div>
+              <span className="nf-rise nf-overline mb-3 inline-flex items-center gap-2">
                 <UiIcon name="sparkle" size={14} />
                 {t.landing.hero.popularLabel}
               </span>
 
               <h1 className="nf-display">
-                <span className="block">{t.landing.hero.line1}</span>
-                <span className="block">{t.landing.hero.line2}</span>
-                <span className="nf-gradient-text nf-shine block">{t.landing.hero.line3}</span>
+                <span className="nf-rise block">{t.landing.hero.line1}</span>
+                <span className="nf-rise nf-rise-2 block">{t.landing.hero.line2}</span>
+                <span className="nf-rise nf-rise-3 nf-gradient-text nf-shine block">
+                  {t.landing.hero.line3}
+                </span>
               </h1>
 
-              <p className="mt-4 max-w-[42ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)] sm:mt-5">
+              <p className="nf-rise nf-rise-4 mt-4 max-w-[42ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)] sm:mt-5">
                 {t.landing.hero.subtitle}
               </p>
 
@@ -108,7 +135,7 @@ export default async function LandingPage() {
                 action="/search"
                 method="get"
                 role="search"
-                className="nf-card nf-card--live mt-7 flex w-full max-w-xl flex-col gap-2 p-2 text-left sm:flex-row sm:items-center"
+                className="nf-rise nf-rise-4 nf-card nf-card--live mt-7 flex flex-col gap-2 p-2 sm:flex-row sm:items-center"
               >
                 <label htmlFor="hero-q" className="sr-only">
                   {t.landing.hero.searchLabel}
@@ -129,26 +156,46 @@ export default async function LandingPage() {
                 </button>
               </form>
 
-              <ul className="mt-4 flex flex-wrap justify-center gap-2">
+              <ul className="nf-rise nf-rise-5 mt-4 flex flex-wrap gap-2">
                 {CITIES.map((city) => (
                   <li key={city}>
-                    <Link href={`/search?q=${encodeURIComponent(city)}`} className="nf-chip">
+                    <Link
+                      href={`/search?q=${encodeURIComponent(city)}`}
+                      prefetch
+                      className="nf-chip relative z-10"
+                    >
                       {city}
                     </Link>
                   </li>
                 ))}
               </ul>
+            </div>
 
-              <ul className="mt-8 flex flex-wrap justify-center gap-2.5 sm:gap-3">
+            {/* --------------------------------------- the RentMe city (desktop) */}
+            <div className="relative hidden lg:block">
+              <div className="nf-float">
+                <Image
+                  src="/brand/rentme-city.png"
+                  alt=""
+                  aria-hidden="true"
+                  width={1507}
+                  height={852}
+                  priority
+                  sizes="(max-width: 1280px) 46vw, 640px"
+                  className="nf-hero-city h-auto w-full"
+                />
+              </div>
+
+              <ul className="pointer-events-none absolute inset-0">
                 {heroChips.map((c) => (
                   <li
                     key={c.key}
-                    className="nf-glass flex items-center gap-2 rounded-[var(--nf-radius-lg)] px-3 py-2 shadow-[var(--nf-shadow-lifted)] nf-float-slow"
+                    className={`nf-glass absolute flex items-center gap-2 rounded-[var(--nf-radius-lg)] px-3 py-2 shadow-[var(--nf-shadow-lifted)] nf-float-slow ${c.pos}`}
                   >
                     <span className="h-7 w-7">
                       <Icon name={c.icon} fill />
                     </span>
-                    <span className="text-left leading-tight">
+                    <span className="leading-tight">
                       <span className="block text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
                         {t.landing.stats[c.key]}
                       </span>
