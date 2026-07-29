@@ -66,18 +66,45 @@ code.
 17. Verification ritual before every commit: typecheck, clean production
     build, em-dash scan, NaijaFinds-copy scan, screenshot touched surfaces.
 
-### Current priority queue (from HANDOFF §8)
+### Current priority queue (owner-ordered, 2026-07-29)
 
-1. Apply `supabase/migrations/20260728171000_messaging_trust.sql` via MCP,
-   reconcile the recorded version name, wire flags toward an admin surface.
-2. Rebuild the auth email templates for RentMe branding and regenerate.
-3. Native-review pass on yo/ha/ig hero/tagline lines (old slogan flagged).
-4. Wire real auth session state through AppShell, profile and settings when
-   envs land; migrate localStorage stores to Supabase per MASTER_TODO §5b.
-5. Booking, wallet and messaging write paths against the live schema.
-6. Admin console (risk alerts, message flags, agent approvals, reports).
-7. Keep drawing from `docs/recommendations-inbox.md` (250 items) whenever a
-   workstream opens; promote what you build into `RECOMMENDATIONS.md`.
+The owner's standing order: start with the backend. Finish every backend
+structure that is missing, stand up the whole API layer, then deploy
+parallel agents across every feature that is not yet end to end, with the
+customer support AI and the assistant working diligently for real. Target
+quality: 2030-generation clean.
+
+1. BACKEND FIRST. Apply
+   `supabase/migrations/20260728171000_messaging_trust.sql` via MCP and
+   reconcile the recorded version name. Then close every schema gap the
+   write paths need (storage buckets for listing photos and message
+   attachments with RLS policies, notification rows, assistant threads,
+   support tickets, feature flags table).
+2. API LAYER. Build the typed server-action and route-handler surface for
+   every domain: auth/session, listings CRUD (agent side), search, booking
+   (reserve, cancel, availability), wallet (fund, withdraw, transfer,
+   statement) as ledger operations, messaging (send, attach, flag),
+   notifications, reviews, saved, support. Zod-validate every boundary,
+   uniform result envelope, all env-guarded so nothing crashes before keys
+   land. `apps/web/.env.example` lists every key the owner will add.
+3. ASSISTANT AND SUPPORT, working diligently: wire the assistant to the
+   Claude API (`ANTHROPIC_API_KEY`, model `claude-sonnet-5` default) with
+   the listing repository as a tool so answers cite real bookable places;
+   stream responses; keep the no-fees and pay-after-inspection policy in
+   its system prompt. SupportChat answers from a real FAQ store and
+   escalates honestly (name and email only) into a support_tickets table
+   surfaced to admin.
+4. AGENT DEPLOYMENT. Launch parallel agents with strict non-overlapping
+   scopes to drive every not-yet-end-to-end feature to done: bookings write
+   path, wallet write path, messaging live path, agent listings CRUD and
+   approvals, admin console queues (risk alerts, message flags, agent
+   approvals, reports), notifications fan-out. Lead reviews, commits and
+   pushes green snapshots only.
+5. Rebuild the 5 auth email templates for RentMe branding; regenerate via
+   `node scripts/build-auth-emails.mjs`.
+6. Native-review pass on yo/ha/ig hero and tagline lines (flagged in files).
+7. Keep drawing from `docs/recommendations-inbox.md` (250 items); promote
+   what you build into `RECOMMENDATIONS.md`.
 
 ### How to work
 
