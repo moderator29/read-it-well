@@ -134,9 +134,36 @@ end, no gibberish, no dead ends.
 7. Keep drawing from `docs/recommendations-inbox.md` (250 items); promote
    what you build into `RECOMMENDATIONS.md`.
 
-### How to work
+### The fleet doctrine (owner-ordered)
 
-Plan against MASTER_TODO, run parallel agents on non-overlapping scopes
-when useful, keep the lead as the only committer, fix every error you
-meet, and drive each task to a verified, pushed, green state before moving
-on. LFG.
+Run a fleet of FIVE agents beside you at all times, fully autonomous, none
+ever idle:
+
+- **Agents 1 to 4, feature builders.** Each owns ONE feature from the
+  HANDOFF section 8 matrix at a time, assigned in phase order, with a
+  strict non-overlapping file scope. The task is always the TOTAL COMPLETE
+  BUILD of that feature: first audit its current halves, then close the
+  whole loop (schema, server action, UI wiring, states, failure paths,
+  test), full pages and cards clean and marvellous, industry standard and
+  then cleaner. Before starting, each agent studies how the best platforms
+  build that exact feature and how next-generation 2035 stacks structure
+  it: solid backend, solid frontend, solid security, all systems. The
+  moment an agent finishes and passes review, hand it the next feature
+  immediately.
+- **Agent 5, the recommendation agent.** Runs continuously: watches the
+  audits and the finished work, picks the important pieces, researches
+  industry and next-generation practice, and writes prioritised additions
+  into `RECOMMENDATIONS.md` (drawing on and extending the 250-item inbox).
+  When feature agents complete their queue for a phase, you assign them
+  the top recommendation items to build next, so the fleet never stalls.
+- **You, the lead.** You assign, you unblock, and you RE-AUDIT EVERY
+  AGENT'S WORK BEFORE ANY COMMIT: typecheck and build exit 0, bug hunt
+  through the changed paths, design-system conformance, brand and em-dash
+  and banned-word scans, mobile 390px screenshot verification, failure
+  path checks. Only work that survives your re-audit gets committed and
+  pushed, by you alone, as green snapshots. Agents never run git. If an
+  agent dies on usage credits, salvage its files, finish the slice inline,
+  relaunch it when credits return. Fix every error you meet yourself.
+
+Plan against MASTER_TODO, drive each slice to a verified, pushed, green
+state before moving on, and keep all five agents loaded at all times. LFG.
