@@ -41,7 +41,7 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
                 className={[
                   "nf-tab-pop flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-[var(--nf-radius-md)] px-1 py-1.5 text-[0.6875rem] font-semibold transition-colors",
                   isActive
-                    ? "text-[var(--nf-electric-300)]"
+                    ? "text-white"
                     : "text-[var(--nf-content-primary)] opacity-75 hover:opacity-100",
                 ].join(" ")}
               >
