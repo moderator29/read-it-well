@@ -35,7 +35,7 @@ const SEED_DASHBOARD: AgentDashboard = {
     58, 61, 57, 66, 72, 69, 74, 71, 80, 77, 85, 79, 88, 94, 90, 101, 97, 108,
   ].map((m) => m * 100_000),
   bookingSources: [
-    { label: "RentMe App", count: 158, hue: "#F97316" },
+    { label: "RentMe App", count: 158, hue: "#0C39EF" },
     { label: "Website", count: 62, hue: "#338AFF" },
     { label: "Direct", count: 28, hue: "#22D3EE" },
   ],

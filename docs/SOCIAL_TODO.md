@@ -63,7 +63,8 @@ bookings is untouched.
 ## 3. The visual system: what nobody has seen
 
 The reference screenshots convey the ambition, not the look. Theirs is gold and
-fantasy serif. Ours has to be unmistakably Nigerian and unmistakably ours.
+fantasy serif, and gold is exactly what ours is not. Ours has to be
+unmistakably Nigerian and unmistakably ours.
 
 ### 3.1 The Pulse Line, the thing people will describe to their friends
 
@@ -73,9 +74,9 @@ Every compound page carries a **vertical utility line down the leading edge**,
 and each post hangs off it as a node, the way a street hangs off a power line.
 That line is **alive**:
 
-- **Light on in this area**: the line carries a slow travelling filament of warm
-  amber, and it is the only place amber appears in the entire product.
-- **Light off**: the line is a dim indigo hairline, static.
+- **Light on in this area**: the line carries a slow travelling filament of
+  bright cyan, the platform's attention blue, pulsing like current in a wire.
+- **Light off**: the line is a dim indigo hairline, static and cold.
 - **Water, road, security**: three thinner companion strands beside it, each with
   its own state.
 
@@ -97,11 +98,15 @@ blue sits in that family. So the canvas leans in:
 - **Canvas**: deep indigo, with an adire resist pattern at 2 to 3% opacity,
   large scale, so it reads as texture rather than pattern.
 - **Structure**: electric blue for anything live, active or focused.
-- **Amber filament**: reserved entirely for "there is light". Amber means one
-  thing in this product and it is the good news.
+- **Cyan current**: the bright cyan is reserved for live state, and on a
+  compound page that means "there is light". There is no warm accent anywhere
+  in this product and there is not going to be one here either. The brand is
+  one blue family, and a travelling cyan filament reads as current far better
+  than a warm glow ever did.
 - **Paper twin**: the light theme is undyed cloth, warm white, with the same
   resist texture at 2% in a neutral grey. Not a blue-tinted grey anywhere.
-- **No gold.** Gold is the reference's identity, not ours.
+- **No gold, no amber, no orange.** Gold is the reference's identity. Ours is
+  indigo and electric blue, and the palette carries no warm hue at all.
 
 ### 3.3 Compound cards, not rectangles
 
@@ -457,7 +462,7 @@ Ship the wedge, not the feed. If Light works, everything else earns its way in.
 - [ ] Migration: `social_profiles` with bio, handle reservation, scanner on write
 - [ ] `reportUtility` and `disputeUtility` actions, rate limited
 - [ ] `joinCompound`, `leaveCompound`, `claimHandle`, `updateSocialProfile`
-- [ ] Design tokens: indigo canvas, adire texture, amber filament, notched card
+- [ ] Design tokens: indigo canvas, adire texture, cyan current, notched card
 - [ ] `PulseLine` component, both themes, reduced motion, `aria-hidden` with a text state
 - [ ] `/compound`, `/compound/[slug]`, `/compound/[slug]/utility`
 - [ ] `/u/[handle]` and `/u/[handle]/edit`

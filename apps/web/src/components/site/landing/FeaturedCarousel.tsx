@@ -96,7 +96,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                         {l.title}
                       </h3>
                       <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">
-                        <UiIcon name="star" size={14} className="text-[var(--nf-state-warning)]" />
+                        <UiIcon name="star" size={14} className="text-[var(--nf-rating)]" />
                         {l.rating.toFixed(1)}
                       </span>
                     </div>

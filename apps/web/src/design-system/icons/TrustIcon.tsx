@@ -25,7 +25,10 @@ const RAMPS: Record<TrustIconName, Ramp> = {
   globe: ["#67E8F9", "#38BDF8", "#0E7490"],
   shield: ["#A5B4FC", "#6366F1", "#312E81"],
   "ai-chip": ["#7FB6FF", "#338AFF", "#1230B3"],
-  africa: ["#FDBA74", "#F97316", "#9A3412"],
+  // Africa carries the brand blue like everything else. It was the last warm
+  // ramp in the product and it sat on the landing trust strip, which is the
+  // first colour a visitor ever sees.
+  africa: ["#8FA5FF", "#0C39EF", "#000F98"],
   // Apple's App Store badge gradient.
   "app-store": ["#3FC8FF", "#0A84FF", "#0040DD"],
   // Play sits on white so the four brand colours stay true.
@@ -101,10 +104,13 @@ function Glyph({ name }: { name: TrustIconName }) {
       return (
         <>
           <defs>
+            {/* Blue family through to emerald. Emerald stays because it is one
+                of the two hues that earn a place outside the family, and it is
+                what makes the continent read as land rather than as a chip. */}
             <linearGradient id="nf-africa-fill" x1="0.15" y1="0" x2="0.85" y2="1">
-              <stop offset="0%" stopColor="#FDE68A" />
-              <stop offset="38%" stopColor="#FBBF24" />
-              <stop offset="72%" stopColor="#F97316" />
+              <stop offset="0%" stopColor="#8FA5FF" />
+              <stop offset="38%" stopColor="#338AFF" />
+              <stop offset="72%" stopColor="#0C39EF" />
               <stop offset="100%" stopColor="#34D399" />
             </linearGradient>
           </defs>

@@ -660,7 +660,7 @@ function ThreadListingCard({ listing }: { listing: AssistantListingItem }) {
         <span className="mt-0.5 flex items-center gap-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
           <span className="truncate">{listing.city}</span>
           <span className="nf-numeric flex shrink-0 items-center gap-0.5">
-            <UiIcon name="star" size={11} className="text-[var(--nf-state-warning)]" />
+            <UiIcon name="star" size={11} className="text-[var(--nf-rating)]" />
             {listing.rating.toFixed(1)}
           </span>
         </span>

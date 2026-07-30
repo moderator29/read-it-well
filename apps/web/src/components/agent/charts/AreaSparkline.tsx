@@ -3,7 +3,7 @@
  *
  * Pure SVG, no charting library (Master Rule 52, no unnecessary dependencies).
  * Deterministic geometry so server and client render identically. The line
- * carries the agent-mode amber; the fill fades to transparent. Sizing is
+ * carries the agent-mode blue; the fill fades to transparent. Sizing is
  * responsive: the chart takes the container's width and its height follows the
  * viewBox aspect, capped at `height`, so it stays compact on phones without a
  * fixed pixel box forcing tall empty cards.

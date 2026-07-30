@@ -10,7 +10,7 @@ import { AgentIdentityCard, AgentModePill, AgentNavList, buildAgentNav } from ".
  *
  * Ten destinations, frozen (Master Rule 17). This IA is identical across the
  * three source-of-truth references that show the agent workspace, so it is
- * settled and must not drift. The amber "Agent Mode" pill under the logo, the
+ * settled and must not drift. The "Agent Mode" pill under the logo, the
  * identity card and the "Switch to Personal Mode" control are all part of the
  * established chrome, not decoration. Below lg the same content renders inside
  * the slide-in drawer (AgentMobileNav), built from the same shared pieces so

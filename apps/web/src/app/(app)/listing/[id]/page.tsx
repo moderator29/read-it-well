@@ -283,7 +283,7 @@ export default async function ListingDetailPage({
             <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
               {listing.rating > 0 && (
                 <span className="nf-numeric flex items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
-                  <UiIcon name="star" size={15} className="text-[var(--nf-state-warning)]" />
+                  <UiIcon name="star" size={15} className="text-[var(--nf-rating)]" />
                   {listing.rating.toFixed(1)}
                   {listing.reviewCount > 0 && (
                     <span className="font-normal text-[var(--nf-content-muted)]">
