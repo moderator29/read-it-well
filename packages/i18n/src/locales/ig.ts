@@ -306,7 +306,787 @@ export const ig: Dictionary = {
       revenue: "Ego mbata",
       confirmed: "Akwadoro",
       pending: "Na-echere",
-      sampleNote: "Data ihe atụ. Ọnụọgụ gị n'ezie ga-apụta mgbe ndepụta gị malitere ịrụ ọrụ.",
+      sampleNote: "Ọnụọgụ e haziri. Ọnụọgụ gị n'ezie ga-apụta ebe a mgbe ndepụta gị malitere ịrụ ọrụ.",
+    },
+  },
+
+  agentListings: {
+    wizard: {
+      stepsLabel: "Nzọụkwụ ndepụta",
+      stepCounter: "Nzọụkwụ {current} nke {total}",
+      stepAria: "Nzọụkwụ {number}, {name}",
+      steps: {
+        basics: "Ozi bụ isi",
+        photos: "Foto",
+        location: "Ebe",
+        // NATIVE REVIEW: "amenities" has no settled Igbo term, this reads as
+        // "things the house has".
+        amenities: "Ihe ndị dị n'ụlọ",
+        pricing: "Ọnụahịa",
+        guestView: "Ka ọbịa na-ahụ ya",
+        submit: "Izipu",
+      },
+      unconfiguredNotice:
+        "Ibipụta ga-amalite ozugbo igodo ikpo okwu rutere. Gaa n'ihu: ihe niile ị na-ede ka echekwara na ngwaọrụ a, ọ ga-echere gị.",
+      savedAt: "Echekwara na {time}",
+      saving: "Na-echekwa",
+      next: "Osote",
+      back: "Laghachi",
+      myListings: "Ndepụta m",
+    },
+
+    basics: {
+      titleLabel: "Isiokwu ndepụta",
+      titleHint: "Ihe ọbịa na-ahụ mbụ. Kpọọ aha ebe ahụ na ihe mere ọ dị mma.",
+      titlePlaceholder: "Ụlọ ime abụọ na-enwu gbaa na Lekki Phase 1",
+      propertyTypeLabel: "Ụdị ihe onwunwe",
+      rentalNote:
+        "Mgbazinye bụ ahịa afọ: ị na-ekpebi ụgwọ ụlọ kwa afọ, ndị ọbịa na-ezitere gị ozi, ha na-eleta ụlọ, mgbe ahụ ha na-akwụ ụgwọ. Enweghị ndebe abalị n'elu mgbazinye.",
+      descriptionLabel: "Nkọwa",
+      descriptionHint: "Okwu {words} nke {min}. Kọwaa ọnụ ụlọ, mpaghara na ihe dị nso.",
+      descriptionPlaceholder:
+        "Gwa ndị ọbịa gbasara ebe ahụ, ìhè ya, kichin, agbataobi na otu ha ga-esi gaghachi.",
+      counters: {
+        guests: "Ọbịa",
+        bedrooms: "Ọnụ ụlọ ihi ụra",
+        beds: "Akwa",
+        bathrooms: "Ụlọ ịsa ahụ",
+      },
+      counterFewer: "Wepụ otu {label}",
+      counterMore: "Tinye otu {label}",
+    },
+
+    propertyTypes: {
+      apartment: {
+        label: "Ụlọ obibi",
+        blurb: "Ụlọ zuru onwe ya nke a na-agbazinye kwa abalị.",
+      },
+      shortlet: {
+        label: "Shortlet",
+        blurb: "Ebe obibi nwere ngwongwo maka abalị ole na ole ma ọ bụ izu ole na ole.",
+      },
+      home: { label: "Ebe obibi", blurb: "Ụlọ zuru ezu nke ndị ọbịa na-edebe kwa abalị." },
+      villa: { label: "Villa", blurb: "Nnukwu ụlọ nkeonwe nwere ogige." },
+      hotel: { label: "Họtel", blurb: "Ọnụ ụlọ n'ime ihe onwunwe a na-elekọta." },
+      rental: {
+        label: "Mgbazinye",
+        blurb: "Ụlọ a na-agbazinye kwa afọ. Ọnụahịa ya bụ nke afọ, a na-eleta ya tupu ịkwụ ụgwọ.",
+      },
+    },
+
+    photos: {
+      intro:
+        "Tinye opekempe foto {min}, ruo {max}. Nke mbụ bụ foto mkpuchi, ya mere jiri foto sara mbara nke na-ere ebe ahụ malite.",
+      tooNarrow: "Foto ga-esara opekempe {width}px ka ha pụta ìhè n'ihu ngwaọrụ ọ bụla.",
+      choose: "Họrọ foto",
+      addMore: "Tinye foto ọzọ",
+      uploading: "Na-ebugo",
+      progress: "{count} nke {min} achọrọ",
+      empty: "Enweghị foto ugbu a. Ìhè ehihie, foto sara mbara na ọnụ ụlọ dị ọcha na-arụ ọrụ ahụ.",
+      cover: "Mkpuchi",
+      makeCover: "Mee ya mkpuchi",
+      remove: "Wepụ",
+      ceiling: "Ndepụta otu na-anagide foto {max} naanị.",
+      notAnImage: "Foto ga-abụ faịlụ onyonyo, dịka JPG ma ọ bụ PNG.",
+      notPrepared:
+        "Anyị enweghị ike ịkwadebe foto ahụ n'enweghị nsogbu, ya mere anyị ebugoghị ya. Nwaa foto ọzọ.",
+      uploadFailed: "Foto ahụ emechaghị ibugo. Biko nwaa ya ọzọ.",
+      needsKeys:
+        "Foto ga-ebugo ozugbo igodo ikpo okwu rutere. Ihe ọzọ niile ị deworo ka echekwara.",
+      needsTitle: "Tinye isiokwu na nzọụkwụ mbụ, mgbe ahụ foto gị ga-ejikọ na ndepụta a.",
+    },
+
+    location: {
+      stateLabel: "Steeti",
+      statePlaceholder: "Họrọ steeti",
+      cityLabel: "Obodo",
+      cityPlaceholder: "Lagos",
+      areaLabel: "Mpaghara",
+      areaHint: "Agbataobi ndị ọbịa na-achọ.",
+      areaPlaceholder: "Lekki Phase 1",
+      addressLabel: "Adreesị okporo ámá",
+      addressHint: "A na-ezobe ya ruo mgbe akwadoro ndebe ma ọ bụ mgbe ị kekọrọ ya na nkata.",
+      addressPlaceholder: "12 Admiralty Way",
+      landmarkLabel: "Ihe àmà ebe",
+      landmarkHint: "Ihe dị nso nke na-eme ka ebe ahụ dị mfe ịchọta.",
+      landmarkPlaceholder: "N'ihu okirikiri Lekki",
+    },
+
+    amenities: {
+      intro:
+        "Họrọ ihe niile ọbịa ga-ahụ n'ụlọ ahụ n'ezie. Ndepụta eziokwu na-enweta nyocha ka mma karịa ndepụta ogologo.",
+      names: {
+        wifi: "WiFi",
+        ac: "Igwe jụrụ oyi",
+        tv: "TV",
+        kitchen: "Kichin",
+        parking: "Ebe ndọba ụgbọala",
+        pool: "Ọdọ mmiri igwu",
+        gym: "Ebe mmega ahụ",
+        security: "Nchekwa",
+        elevator: "Lifti",
+        furnished: "Nwere ngwongwo",
+        balcony: "Balkoni",
+        garden: "Ogige",
+        laundry: "Ebe ịsa ákwà",
+        generator: "Ọkụ ndabere",
+        water: "Mmiri na-asọ",
+      },
+    },
+
+    pricing: {
+      priceNightLabel: "Ọnụahịa kwa abalị",
+      priceYearLabel: "Ụgwọ ụlọ kwa afọ",
+      priceHint: "Tinye ego ahụ na naira, dịka 85,000.",
+      priceWithPeriod: "{price} {period}",
+      priceNightPlaceholder: "85,000",
+      priceYearPlaceholder: "2,500,000",
+      perNight: "kwa abalị",
+      perYear: "kwa afọ",
+      cleaningLabel: "Nhicha",
+      cleaningHint: "Nhọrọ. A na-atụkwasị ya otu ugboro maka obibi, ọ bụghị kwa abalị.",
+      cleaningHintSet: "{amount} nke a tụkwasịrị otu ugboro maka obibi.",
+      cleaningPlaceholder: "10,000",
+      minStayLabel: "Abalị obibi kachasị nta",
+      instantTitle: "Ndebe ozugbo",
+      instantBody: "Ndị ọbịa na-edebe n'echereghị nkwenye gị.",
+      rentalNote:
+        "A na-ekpebi ọnụahịa mgbazinye kwa afọ. Ndị ọbịa na-ezitere gị ozi n'ime RentMe, ha na-eleta ụlọ, mgbe ahụ ha na-akwụ ụgwọ. Maka nchekwa gị, hapụ nkata na ịkwụ ụgwọ niile n'ime RentMe.",
+    },
+
+    guestView: {
+      intro: "Otu a ka ndepụta gị na-apụta na nchọta.",
+      addPhotos: "Tinye foto ka kaadị ahụ zuo",
+      rentBadge: "Mgbazinye",
+      instantBadge: "Ozugbo",
+      locationPlaceholder: "Tinye ebe na nzọụkwụ nke atọ",
+      titlePlaceholder: "Isiokwu ndepụta gị",
+      rooms: "Ọnụ ụlọ ihi ụra {bedrooms}, ụlọ ịsa ahụ {bathrooms}, ọ na-anagide ọbịa {guests}",
+      priceToSet: "Ọnụahịa ka a ga-ekpebi",
+      descriptionPlaceholder: "Nkọwa gị ga-apụta na peeji ndepụta.",
+    },
+
+    submit: {
+      title: "Ọ dị njikere maka izipu nyocha",
+      body:
+        "Anyị na-enyocha ndepụta ọ bụla n'aka tupu ọ rute ndị ọbịa. Zuo ndepụta nlele a, ọ ga-abanye ahịrị ozugbo.",
+      action: "Zipu maka nyocha",
+      sending: "Na-eziga",
+      note: "Nyocha na-ewe awa 24 ruo 48. Anyị ga-agwa gị ma ọ bụrụ otu ma ọ bụ ibe.",
+      checklist: {
+        title: "Isiokwu",
+        description: "Nkọwa nke okwu {min} ma ọ bụ karịa",
+        photos: "Foto {min} ma ọ bụ karịa, mkpuchi na mbụ",
+        stateCode: "Steeti",
+        city: "Obodo",
+        area: "Mpaghara",
+        amenities: "Ihe ndị dị n'ụlọ",
+        priceNight: "Ọnụahịa kwa abalị",
+        priceYear: "Ụgwọ ụlọ kwa afọ",
+        rooms: "Ọnụ ụlọ na ọbịa",
+      },
+      needsTitle: "Tinye isiokwu na nzọụkwụ mbụ, mgbe ahụ anyị nwere ike izipu ndepụta a maka nyocha.",
+      needsKeys:
+        "Izipu maka nyocha ga-amalite ozugbo igodo ikpo okwu rutere. Ọrụ gị ka echekwara na ngwaọrụ a.",
+    },
+
+    gate: {
+      titleShort: "Nye ndepụta ahụ isiokwu nke opekempe mkpụrụedemede {min}.",
+      titleLong: "Belata isiokwu ahụ ruo mkpụrụedemede {max} ma ọ bụ nke dị nta.",
+      description: "Kọwaa ihe onwunwe ahụ na opekempe okwu {min}. Ị nwere {count} ugbu a.",
+      propertyType: "Họrọ ụdị ihe onwunwe nke a bụ.",
+      photos: "Tinye opekempe foto {min}. Ị nwere {count}.",
+      cover: "Họrọ foto ga-ebute ụzọ na ndepụta ahụ. Nke mbụ bụ mkpuchi.",
+      stateCode: "Họrọ steeti ihe onwunwe ahụ dị.",
+      city: "Tinye obodo, dịka Lagos.",
+      area: "Tinye mpaghara, dịka Lekki Phase 1.",
+      amenities: "Họrọ opekempe otu ihe ndị ọbịa ga-ahụ.",
+      priceNight: "Kpebie ọnụahịa kwa abalị na naira.",
+      priceYear: "Kpebie ụgwọ ụlọ kwa afọ na naira.",
+      bedrooms: "Kwuo ọnụ ụlọ ihi ụra ole ihe onwunwe ahụ nwere.",
+      bathrooms: "Kwuo ụlọ ịsa ahụ ole ihe onwunwe ahụ nwere.",
+      maxGuests: "Kwuo ọbịa ole ihe onwunwe ahụ na-anagide.",
+    },
+
+    submitted: {
+      title: "Ndepụta gị dị n'aka ndị otu nyocha anyị",
+      body:
+        "Anyị na-enyocha ndepụta ọ bụla n'aka ka ndị ọbịa tụkwasị obi n'ihe ha na-edebe. Nyocha na-ewe awa 24 ruo 48, anyị ga-agwa gị ma ọ bụrụ otu ma ọ bụ ibe. Ọ bụrụ na ihe ọ bụla chọrọ mgbanwe, anyị ga-akọwa kpọmkwem ihe ọ bụ.",
+      goToListings: "Gaa na ndepụta m",
+      another: "Depụta ihe onwunwe ọzọ",
+    },
+
+    pitch: {
+      title: "Depụta ihe onwunwe gị na RentMe",
+      bodySignedIn:
+        "Ndepụta mepere ndị nnọchi akwadoro. Arịrịọ ahụ na-ewe ihe dịka nkeji abụọ, anyị na-enyocha n'ime awa 24 ruo 48.",
+      bodySignedOut:
+        "Banye n'akaụntụ onye nnọchi gị ka ị malite ndepụta, ma ọ bụ rịọ n'ime ihe dịka nkeji abụọ ma ọ bụrụ na ị bụ ọhụrụ ebe a.",
+      points: {
+        verified: {
+          title: "Naanị ihe onwunwe enyochara",
+          body:
+            "A na-enyocha ndepụta ọ bụla n'aka, ya mere akara dị n'ihe onwunwe gị pụtara ihe nye ndị ọbịa.",
+        },
+        inside: {
+          title: "Ndị ọbịa na-erute gị n'ime RentMe",
+          body: "Nkata, nleta ụlọ na ịkwụ ụgwọ na-anọ n'ikpo okwu, ebe a na-echekwa ha.",
+        },
+        keep: {
+          title: "Ị na-ewere ihe ị kwuru",
+          body: "RentMe anaghị anara gị ihe ọ bụla maka idepụta. Ọnụahịa gị bụ ọnụahịa gị.",
+        },
+      },
+      apply: "Bụrụ onye nnọchiteanya",
+      signIn: "Banye",
+      how: "Otu ndepụta si arụ ọrụ",
+    },
+
+    workspace: {
+      title: "Ndepụta m",
+      lede: "Ihe onwunwe niile ị nwere na RentMe, na ebe nke ọ bụla guzo.",
+      start: "Malite ndepụta",
+      unconfigured:
+        "Ndepụta gị ga-apụta ebe a ozugbo igodo ikpo okwu rutere. Ị nwere ike ịmalite iwu otu ugbu a: onye ndu ndepụta na-echekwa ọrụ gị na ngwaọrụ a ruo mgbe ahụ.",
+      emptyTitle: "Enweghị ndepụta ugbu a",
+      emptyBody:
+        "Ihe onwunwe mbụ gị na-ewe ihe dịka nkeji iri, foto bụ ihe ka ukwuu na ya. Malite mgbe ọ bụla ị dị njikere: a na-echekwa akwụkwọ mbụ ka ị na-aga.",
+      groups: {
+        live: { title: "Na-arụ ọrụ", blurb: "Ndị ọbịa nwere ike ịchọta ndị a na nchọta." },
+        review: {
+          title: "N'aka ndị otu nyocha anyị",
+          blurb: "Anyị na-enyocha ndepụta ọ bụla n'aka. Nke a na-ewe awa 24 ruo 48.",
+        },
+        attention: {
+          title: "Ọ chọrọ nlebara anya gị",
+          blurb: "Achọrọ mgbanwe tupu nke a rụọ ọrụ.",
+        },
+        drafts: { title: "Akwụkwọ mbụ", blurb: "Naanị gị nwere ike ịhụ ndị a." },
+      },
+      status: {
+        DRAFT: "Akwụkwọ mbụ",
+        SUBMITTED: "Ezigala ya",
+        UNDER_REVIEW: "A na-enyocha ya",
+        MORE_INFO_REQUIRED: "Achọrọ ozi ọzọ",
+        APPROVED: "Akwadoro",
+        PUBLISHED: "Na-arụ ọrụ",
+        REJECTED: "A nabataghị ya",
+        SUSPENDED: "Akwụsịtụrụ ya",
+      },
+      photoCount: "Foto {count}",
+      photoCountOne: "Foto otu",
+      actions: {
+        edit: "Dezie",
+        submit: "Zipu maka nyocha",
+        takeDown: "Wepụ ya",
+        delete: "Hichapụ",
+      },
+      sheets: {
+        keep: "Hapụ ya",
+        working: "Na-arụ ọrụ",
+        close: "Mechie",
+        submit: {
+          title: "Zipu ndepụta a maka nyocha?",
+          body:
+            "Ndị otu anyị na-enyocha foto, nkọwa na ebe ahụ. Ị ga-anụ site n'aka anyị n'ime awa 24 ruo 48, ma ọ bụrụ otu ma ọ bụ ibe.",
+          confirm: "Zipu maka nyocha",
+        },
+        unpublish: {
+          title: "Wepụ ndepụta a?",
+          body:
+            "Ọ na-apụ na nchọta ozugbo ma laghachi na akwụkwọ mbụ gị. Ị nwere ike idezi ya ma zipu ya maka nyocha mgbe ọ bụla ị dị njikere.",
+          confirm: "Wepụ ya",
+        },
+        delete: {
+          title: "Hichapụ akwụkwọ mbụ a?",
+          body: "A na-ewepụ akwụkwọ mbụ ahụ na foto ya kpamkpam. Enweghị ike ịkwatu nke a.",
+          confirm: "Hichapụ akwụkwọ mbụ",
+        },
+      },
+    },
+
+    dashboard: {
+      standing: "{name}, lee ebe ihe onwunwe gị guzo taa.",
+      liveListings: "Ndepụta na-arụ ọrụ",
+      withReview: "N'aka nyocha",
+      drafts: "Akwụkwọ mbụ",
+      upcomingStays: "Obibi na-abịa",
+      unreadMessages: "Ozi a gụghị",
+      noListings:
+        "Enweghị ihe onwunwe ugbu a. Ndepụta mbụ gị na-ewe ihe dịka nkeji iri, a na-echekwakwa akwụkwọ mbụ ka ị na-aga.",
+      noStays:
+        "Edebeghị obibi ọ bụla ugbu a. Ndepụta na-arụ ọrụ na nchọta bụ ndị ọbịa nwere ike idebe.",
+      stayDates: "{from} ruo {to}",
+    },
+  },
+
+  admin: {
+    console: {
+      // NATIVE REVIEW: "console" kept in English the way Nigerian staff say it.
+      title: "Console nchịkwa",
+      navLabel: "Console nchịkwa",
+      signedIn: "Abanyela",
+      // NATIVE REVIEW: "audit log" kept in English, it is a compliance term.
+      auditNote: "A na-ede mkpebi ọ bụla ị mere ebe a n'ime audit log ya na aha gị na ya.",
+    },
+
+    nav: {
+      overview: { label: "Nchịkọta", short: "Nchịkọta" },
+      // NATIVE REVIEW: "flag" kept in English, it is the safety scan's own term.
+      flags: { label: "Flag ozi", short: "Flag" },
+      alerts: { label: "Ọkwa ihe egwu", short: "Ọkwa" },
+      reports: { label: "Mkpesa", short: "Mkpesa" },
+      applications: { label: "Arịrịọ onye nnọchi", short: "Ndị nnọchi" },
+      listings: { label: "Nyocha ndepụta", short: "Ndepụta" },
+      tickets: { label: "Nkwado", short: "Nkwado" },
+      // NATIVE REVIEW: "switch" kept in English, it names a control staff use.
+      switches: { label: "Switch", short: "Switch" },
+    },
+
+    access: {
+      unconfiguredTitle: "Console emepeghị ugbu a",
+      unconfiguredBody:
+        "Console ga-amalite ozugbo igodo ikpo okwu rutere. Ọ dịghị ihe furu efu n'etiti.",
+      signedOutTitle: "Nbanye ndị ọrụ",
+      signedOutBody: "Jiri akaụntụ ọrụ gị banye ka ị gaa n'ihu.",
+      notAdminTitle: "Ị nweghị ohere ịbanye console",
+      notAdminBody: "Ebe a bụ maka ndị otu ọrụ RentMe. Akaụntụ gị anaghị ebu ọkwa ahụ.",
+      backToRentMe: "Laghachi na RentMe",
+      signIn: "Banye",
+      backToYourHome: "Laghachi n'ụlọ gị",
+      otherAccount: "Jiri akaụntụ ọzọ banye",
+    },
+
+    common: {
+      waiting: "{count} na-echere",
+      unavailableTitle: "Enweghị ike ibute ahịrị a",
+      unavailableBody:
+        "Console enweghị ike iru data ikpo okwu ugbu a, ya mere ọ naghị egosi gị ahịrị nke ọ na-enweghị ike ịkwado. Bugharịa ya n'oge na-adịghị anya.",
+      notRecorded: "Edekọghị ya",
+      notGiven: "E nyeghị ya",
+      passes: "Ọ gafere",
+      needsAttention: "Ọ chọrọ nlebara anya",
+      close: "Mechie",
+      done: "Emechara",
+      notNow: "Ọ bụghị ugbu a",
+      working: "Na-arụ ọrụ",
+      optional: "(nhọrọ)",
+      notePlaceholder: "Ha ga-agụ ya okwu maka okwu, ya mere mee ya nke doro anya na obiọma.",
+      // NATIVE REVIEW: "audit log" kept in English, it is a compliance term.
+      inAuditLog: "Mkpebi ahụ dị n'ime audit log.",
+      // NATIVE REVIEW: "audit log" kept in English, it is a compliance term.
+      noteInAuditLog: "Ndetu ahụ dị n'ime audit log.",
+      recentlyReviewed: "Enyochara nso nso a",
+      recentlyResolved: "Edozirila nso nso a",
+      recentlyDecided: "Ekpebiri nso nso a",
+      recentlyClosed: "Emechiri nso nso a",
+      status: {
+        open: "Emepere",
+        reviewed: "Enyochara",
+        reviewing: "A na-enyocha",
+        resolved: "Edozirila",
+        dismissed: "Ewepụrụ ya",
+        pending: "Na-echere nzaghachi",
+        closed: "Emechiri",
+        DRAFT: "Akwụkwọ mbụ",
+        SUBMITTED: "Ezigala ya",
+        UNDER_REVIEW: "A na-enyocha",
+        MORE_INFO_REQUIRED: "Arịọrọ mgbanwe",
+        APPROVED: "Akwadoro",
+        PUBLISHED: "Na-arụ ọrụ",
+        REJECTED: "Akwadoghị ya",
+        SUSPENDED: "Akwụsịtụrụ ya",
+      },
+    },
+
+    overview: {
+      title: "Nchịkọta ọrụ",
+      lede:
+        "Akara ntụkwasị obi ọ bụla RentMe na-emepụta na-akwụsị ebe a: ihe nyocha nchekwa jidere, ihe ndị òtù kpesara, onye na-echere nkwado, na ihe na-echere ịmalite ọrụ. Ọnụọgụ ọ bụla bụ ahịrị ị nwere ike ikpocha.",
+      queueClear: "Ahịrị a dị ọcha.",
+      tiles: {
+        // NATIVE REVIEW: "flag" kept in English, it is the safety scan's own term.
+        flags: {
+          label: "Flag ozi mepere",
+          lede: "Okwu ego nke nyocha nchekwa jidere n'ime nkata.",
+        },
+        alerts: {
+          label: "Ọkwa ihe egwu mepere",
+          lede: "Okwu ndị e welitere maka ndị otu ọrụ ka ha rụọ.",
+        },
+        applications: {
+          label: "Arịrịọ onye nnọchi",
+          lede: "Ndị na-echere mkpebi ka ha malite idepụta.",
+        },
+        listings: {
+          label: "Ndepụta nọ na nyocha",
+          lede: "Ihe ezigara na-echere nlele, nkwado na mbipụta.",
+        },
+        reports: {
+          label: "Mkpesa mepere",
+          lede: "Ọdịnaya na akaụntụ ndị òtù kpesara anyị.",
+        },
+        tickets: {
+          label: "Tiketi nkwado",
+          lede: "Ajụjụ onye enyemaka enweghị ike ịza n'onwe ya.",
+        },
+      },
+      how: {
+        title: "Otu console si arụ ọrụ",
+        // NATIVE REVIEW: "audit" kept in English, it is a compliance term.
+        audit:
+          "Mkpebi ọ bụla na-ede ahịrị audit nke bu aha gị, ihe ndekọ ị metụrụ na ọnọdụ ya tupu na mgbe emechara. Ọ dịghị onye nwere ike idezi ma ọ bụ ihichapụ log ahụ, gụnyere gị.",
+        notify:
+          "Nkwado na ajụjụ na-agwa onye ọ metụtara n'ikpo okwu, ka onye ọ bụla ghara ịnọ na-eche ihe mere arịrịọ ya ma ọ bụ ndepụta ya.",
+        invisible:
+          "Nyocha nchekwa apụtaghị ìhè ebe ọ bụla ma e wezụga console a. Ọ dịghị ihe dị na ngwa ahụ na-agwa onye òtù na e welitere ozi ya.",
+        openSwitches: "Mepee switch",
+      },
+    },
+
+    flags: {
+      // NATIVE REVIEW: "flag" kept in English throughout this queue.
+      title: "Flag ozi",
+      lede:
+        "Ihe kpaliri na data na-enyocha ozi ọ bụla maka nọmba akaụntụ nwere ọnụọgụ iri na maka okwu ego, wee tinye ihe ọ chọtara ebe a. A naghị agwa onye zitere ya mgbe ọ bụla, ya mere ahịrị a bụ naanị ebe nyocha ahụ na-egosi ọrụ ya.",
+      emptyTitle: "Enweghị flag na-echere",
+      emptyBody:
+        "Enyochala ozi ọ bụla e welitere. Ndị ọhụrụ na-apụta ebe a ozugbo nyocha ahụ tinyere ha.",
+      reason: { account_number: "Nọmba akaụntụ", payment_keyword: "Okwu ego" },
+      role: { guest: "Ọbịa", agent: "Onye nnọchi", unknown: "Onye sonyere" },
+      matched: "Nyocha ahụ jidere {fragment} n'ime ozi si n'aka {role}.",
+      context: "Ọnọdụ nkata",
+      flagged: "E welitere ya",
+      reviewed: "Enyochara ya.",
+      clear: "Kpochapụ flag a",
+      escalate: "Welite ọkwa ihe egwu",
+      clearSheet: {
+        title: "Kpochapụ flag a?",
+        body:
+          "Nyocha ahụ mere nke ọma ilele, mana nkata a dị mma. Flag ahụ ga-emechi, a ga-edekwa mkpebi ahụ n'ime audit log ya na aha gị na ya. A naghị agwa onye ọ bụla nọ na nkata ahụ.",
+        confirm: "Ee, kpochapụ ya",
+        successTitle: "Ekpochapụrụ flag",
+        successBody: "Emelitere ahịrị ahụ, audit log bukwara mkpebi gị.",
+      },
+      escalateSheet: {
+        title: "Welite ọkwa ihe egwu?",
+        body:
+          "Nke a na-emechi flag ahụ ma mepee ọkwa ihe egwu dị elu megide ozi ahụ, ka okwu ahụ nọrọ n'ahịrị ọkwa ruo mgbe mmadụ rụrụ ya. A naghị agwa onye ọ bụla nọ na nkata ahụ.",
+        confirm: "Mechie flag ma welite ọkwa",
+        successTitle: "E welitere ọkwa",
+        successBody: "Enyochara flag ahụ, ọkwa dị elu mepekwara ugbu a n'ahịrị ọkwa.",
+      },
+    },
+
+    alerts: {
+      title: "Ọkwa ihe egwu",
+      lede:
+        "Okwu ndị chọrọ mmadụ, ọ bụghị iwu: flag ozi e welitere na ihe ọ bụla ọzọ ikpo okwu chere na ọ kwesịrị nlele nke abụọ. Ọkwa na-anọ na mepere ruo mgbe mmadụ dere ihe e mere.",
+      emptyTitle: "Enweghị ọkwa mepere",
+      emptyBody: "Ọ dịghị ihe na-echere. Iwelite flag ozi na-emepe ọkwa ebe a.",
+      severity: { low: "Ala", medium: "Etiti", high: "Elu" },
+      severityChip: "Ịdị njọ {level}",
+      attachedTo: "Ejikọtara ya na {type} {id}",
+      resolvedWhen: "Edozirila {when}.",
+      resolve: "Kaa ya na edozirila",
+      sheet: {
+        title: "Dozie ọkwa a?",
+        body:
+          "Jiri nke a mgbe a rụchara okwu ahụ n'ezie. Ọkwa ahụ ga-emechi ya na oge, ndetu gị ga-abanye n'ime audit log.",
+        confirm: "Ee, dozie ya",
+        notesLabel: "Ihe e mere",
+        successTitle: "Edozirila ọkwa",
+        successBody: "Emechiri ọkwa ahụ, audit log bukwara ndetu gị.",
+      },
+    },
+
+    reports: {
+      title: "Mkpesa",
+      lede:
+        "Ihe ndị òtù gwara anyị na ọ ezighị ezi: ndepụta, nyocha, ozi ma ọ bụ akaụntụ. Onye kpesara na-ahụ naanị mkpesa nke ya, ya mere ahịrị a bụ ebe a na-aza ya n'ezie.",
+      emptyTitle: "Enweghị mkpesa mepere",
+      emptyBody: "Ọ dịghị ihe na-echere mkpebi. Mkpesa ọhụrụ na-abịa ebe a ka ndị òtù na-eweta ha.",
+      reportedBy: "{reporter} kpesara megide {type} {id}",
+      closedWhen: "Emechiri {when}.",
+      startReview: "Malite nyocha",
+      resolve: "Dozie",
+      dismiss: "Wepụ ya",
+      reviewSheet: {
+        title: "Were mkpesa a n'aka?",
+        body: "Ọ na-agafe na nyocha ka ndị otu fọdụrụ hụ na mmadụ ji ya.",
+        confirm: "Ee, m ji ya",
+        notesLabel: "Ndetu maka audit log",
+        successTitle: "E weere mkpesa",
+        successBody: "Mkpesa ahụ na-egosi ugbu a na a na-enyocha ya.",
+      },
+      resolveSheet: {
+        title: "Dozie mkpesa a?",
+        body:
+          "Jiri nke a mgbe e mere ihe gbasara ọdịnaya ma ọ bụ akaụntụ e kpesara. Mkpesa ahụ ga-emechi ya na oge.",
+        confirm: "Ee, dozie ya",
+        notesLabel: "Ihe e mere",
+        successTitle: "Edozirila mkpesa",
+        successBody: "Emechiri mkpesa ahụ, ndetu gị dịkwa n'ime audit log.",
+      },
+      dismissSheet: {
+        title: "Wepụ mkpesa a?",
+        body:
+          "Jiri nke a mgbe ọ dịghị ihe ị ga-eme. Mkpesa ahụ ga-emechi, a naghị eme ihe ọ bụla megide onye e kpesara.",
+        confirm: "Ee, wepụ ya",
+        notesLabel: "Ihe mere e wepụrụ ya",
+        successTitle: "Ewepụrụ mkpesa",
+        successBody: "Emechiri mkpesa ahụ, ndetu gị dịkwa n'ime audit log.",
+      },
+    },
+
+    applications: {
+      title: "Arịrịọ onye nnọchi",
+      lede:
+        "Ịkwado na-emepụta profaịlụ onye nnọchi, na-enye ọkwa onye nnọchi ka Ọnọdụ Onye Nnọchi mepee, ma na-agwa onye rịọrọ ya n'ikpo okwu. Izighachi otu na-arịọ kpọmkwem ihe na-efu.",
+      emptyTitle: "Enweghị arịrịọ na-echere",
+      emptyBody:
+        "Onye ọ bụla rịọrọ enwetala nzaghachi. Arịrịọ ọhụrụ na-abịa ebe a ozugbo e zigara ha.",
+      individual: "Otu onye",
+      business: "Azụmahịa",
+      nameMissing: "E nyeghị aha",
+      thisApplicant: "onye a rịọrọ",
+      submittedWhen: "Ezigara {when}",
+      decidedWhen: "Ekpebiri {when}.",
+      sections: {
+        personal: "1. Nke onwe",
+        identity: "2. Njirimara",
+        business: "3. Azụmahịa",
+        documents: "4. Akwụkwọ",
+        payout: "5. Ụgwọ",
+        review: "6. Nyocha",
+      },
+      fields: {
+        fullName: "Aha zuru ezu",
+        phone: "Ekwentị",
+        email: "Email",
+        address: "Adreesị",
+        location: "Ebe",
+        documentType: "Ụdị akwụkwọ",
+        documentNumber: "Nọmba akwụkwọ",
+        businessName: "Aha azụmahịa",
+        rcNumber: "Nọmba RC",
+        business: "Azụmahịa",
+        uploaded: "Ebugoro",
+        bank: "Ụlọ akụ",
+        accountNumber: "Nọmba akaụntụ",
+        accountName: "Aha akaụntụ",
+        terms: "Usoro",
+        applied: "Ọ rịọrọ",
+        lastNote: "Ndetu onye nyocha ikpeazụ",
+        lastReviewed: "Nyocha ikpeazụ",
+      },
+      asIndividual: "Ọ na-arịọ dịka otu onye",
+      documentsCount: "Akwụkwọ {count}",
+      documentsOne: "Akwụkwọ otu",
+      // NATIVE REVIEW: legal wording, "terms" of the platform.
+      termsAgreed: "O kwenyere na usoro ikpo okwu",
+      termsNotAgreed: "O kwenyeghị",
+      approve: "Kwado",
+      requestChanges: "Rịọ mgbanwe",
+      reject: "Jụ",
+      approveSheet: {
+        title: "Kwado {name}?",
+        body:
+          "Nke a na-emepụta profaịlụ onye nnọchi ha, na-enye ha ọkwa onye nnọchi ka Ọnọdụ Onye Nnọchi mepee maka ha, ma na-agwa ha n'ikpo okwu. A na-ede ya n'ime audit log ya na aha gị na ya.",
+        confirm: "Ee, kwado",
+        notesLabel: "Ndetu nye onye rịọrọ",
+        successTitle: "Akwadoro arịrịọ",
+        successBody: "Profaịlụ onye nnọchi ha na-arụ ọrụ, e nyere ọkwa ahụ, a gwakwara ha.",
+      },
+      changesSheet: {
+        title: "Rịọ ozi ọzọ?",
+        body:
+          "Arịrịọ ahụ na-agafe na mgbanwe arịọrọ, a ga-agwa onye rịọrọ ihe ị chọrọ. Ha nwere ike idezi ma zipu ya ọzọ.",
+        confirm: "Zighachi ya",
+        notesLabel: "Ihe onye rịọrọ ga-agbanwe",
+        successTitle: "Ezighachiri ya nye onye rịọrọ",
+        successBody: "A gwara ha, ha nwekwara ike imelite arịrịọ ha.",
+      },
+      rejectSheet: {
+        title: "Jụ {name}?",
+        body:
+          "Arịrịọ ahụ ga-emechi dịka nke akwadoghị, a ga-agwakwa onye rịọrọ. Kwuo ihe kpatara ya: ọ bụ naanị nkọwa ha ga-enweta.",
+        confirm: "Ee, jụ ya",
+        notesLabel: "Ihe kpatara ya nye onye rịọrọ",
+        successTitle: "Ajụrụ arịrịọ",
+        successBody: "A gwara onye rịọrọ, mkpebi ahụ dịkwa n'ime audit log.",
+      },
+    },
+
+    listings: {
+      title: "Nyocha ndepụta",
+      lede:
+        "Ịkwado na-ekwu na ihe ezigara gafere ndepụta nlele nnabata. Ibipụta bụ nzọụkwụ nke abụọ, nke dị iche, nke na-etinye ya na nchọta ọha. Izighachi otu na-agwa onye nnọchi kpọmkwem ahịrị ọ ga-edozi.",
+      emptyTitle: "Enweghị ndepụta na-echere",
+      emptyBody: "E lekọtara ihe ezigara niile. Ndị ọhụrụ na-apụta ebe a ka ndị nnọchi na-ezipu ha.",
+      propertyType: {
+        apartment: "Ụlọ obibi",
+        hotel: "Họtel",
+        home: "Ebe obibi",
+        villa: "Villa",
+        shortlet: "Shortlet",
+        rental: "Mgbazinye",
+      },
+      checklistLines: "Ahịrị nlele {count} ka a ga-elele",
+      checklistLineOne: "Ahịrị nlele otu ka a ga-elele",
+      submittedWhen: "Ezigara {when}",
+      locationMissing: "E nyeghị ebe",
+      perYear: "kwa afọ",
+      perNight: "kwa abalị",
+      photoAlt: "{title}, foto {number}",
+      checklistTitle: "Ndepụta nlele nnabata",
+      checks: {
+        photoCount: "Foto anọ ma ọ bụ karịa",
+        cover: "Edobere foto mkpuchi",
+        titleCase: "Isiokwu nwere mkpụrụedemede ziri ezi",
+        place: "Edekọrọ mpaghara na obodo",
+        price: "Edekọrọ ọnụahịa na naira",
+        rooms: "Edekọrọ ọnụ ụlọ ihi ụra na ụlọ ịsa ahụ",
+        amenities: "Ahọrọla ihe ndị dị n'ụlọ",
+        description: "Nkọwa nke okwu 40 ma ọ bụ karịa",
+        clean: "Enweghị nọmba kọntaktị ma ọ bụ ego n'ime ederede ahụ",
+      },
+      submission: "Ihe ezigara",
+      fields: {
+        agent: "Onye nnọchi",
+        capacity: "Ole ọ na-anagide",
+        address: "Adreesị",
+        amenities: "Ihe ndị dị n'ụlọ",
+        description: "Nkọwa",
+        lastNote: "Ndetu onye nyocha ikpeazụ",
+        lastReviewed: "Nyocha ikpeazụ",
+      },
+      capacity: "Ọbịa {guests}, ọnụ ụlọ ihi ụra {bedrooms}, akwa {beds}, ụlọ ịsa ahụ {bathrooms}",
+      amenitiesSelected: "{count} ahọrọla",
+      liveInSearch: "Ọ na-arụ ọrụ na nchọta.",
+      closed: "Emechiri.",
+      approve: "Kwado",
+      publish: "Bipụta",
+      requestChanges: "Rịọ mgbanwe",
+      reject: "Jụ",
+      approveSheet: {
+        title: "Kwado {title}?",
+        body:
+          "Ịkwado na-ekwu na ihe ezigara gafere nyocha. Ọ tinyeghị ndepụta ahụ n'ihu ndị ọbịa: ibipụta bụ nzọụkwụ nke abụọ dị iche, ka ihe ọ bụla ghara ịmalite ọrụ na mberede.",
+        confirm: "Ee, kwado",
+        notesLabel: "Ndetu nye onye nnọchi",
+        successTitle: "Akwadoro ndepụta",
+        successBody: "A gwara onye nnọchi ahụ. Bipụta ya mgbe ị dị njikere ka ndị ọbịa hụ ya.",
+      },
+      publishSheet: {
+        title: "Bipụta {title}?",
+        body:
+          "Nke a na-etinye ndepụta ahụ na nchọta ọha ozugbo, ebe onye ọ bụla nwere ike ịchọta ma debe ya. A na-agwa onye nnọchi ahụ na ọ na-arụ ọrụ.",
+        confirm: "Ee, bipụta ya",
+        notesLabel: "Ndetu nye onye nnọchi",
+        successTitle: "Ndepụta na-arụ ọrụ",
+        successBody: "Ọ dị na nchọta ugbu a, a gwakwara onye nnọchi ahụ.",
+      },
+      changesSheet: {
+        title: "Rịọ onye nnọchi maka mgbanwe?",
+        body:
+          "Ndepụta ahụ na-agafe na mgbanwe arịọrọ, a ga-agwa onye nnọchi kpọmkwem ihe ọ ga-edozi. Rụtụ aka n'ahịrị nlele nke dara.",
+        confirm: "Zighachi ya",
+        notesLabel: "Ihe onye nnọchi ga-agbanwe",
+        successTitle: "Ezighachiri ya nye onye nnọchi",
+        successBody: "A gwara ha, ha nwekwara ike imelite ndepụta ahụ.",
+      },
+      rejectSheet: {
+        title: "Jụ {title}?",
+        body: "Ndepụta ahụ ga-emechi dịka nke akwadoghị, enweghị ike idebe ya. A na-agwa onye nnọchi ahụ, ya mere kwuo ihe kpatara ya.",
+        confirm: "Ee, jụ ya",
+        notesLabel: "Ihe kpatara ya nye onye nnọchi",
+        successTitle: "Ajụrụ ndepụta",
+        successBody: "A gwara onye nnọchi ahụ, mkpebi ahụ dịkwa n'ime audit log.",
+      },
+    },
+
+    support: {
+      title: "Nkwado",
+      lede:
+        "Ihe e welitere na-ebu naanị aha na email onye ahụ nyere anyị. Nzaghachi gị na-agwa ha n'ikpo okwu ozugbo.",
+      emptyTitle: "Enweghị tiketi",
+      emptyBody: "Ọ dịghị onye chọrọ iwelite okwu. Tiketi na-abịa ebe a mgbe onye enyemaka enweghị ike ịza.",
+      generalQuestion: "Ajụjụ n'ozuzu",
+      threadCount: "Ozi {count} n'ime eriri ahụ",
+      threadCountOne: "Ozi otu n'ime eriri ahụ",
+      allTickets: "Tiketi niile",
+      whoFiled: "Onye tinyere ya",
+      fields: { name: "Aha", email: "Email", account: "Akaụntụ", filed: "Etinyere" },
+      signedInWhenFiled: "Ọ banyere mgbe o tinyere ya",
+      noAccountAttached: "Enweghị akaụntụ ejikọtara",
+      whatTheyAsked: "Ihe ha jụrụ",
+      supportSender: "Nkwado RentMe",
+      waitingOnUs: "Ọ na-echere anyị",
+      noneWaitingHeading: "Enweghị tiketi na-echere anyị",
+      nothingWaitingTitle: "Ọ dịghị ihe na-echere",
+      nothingWaitingBody: "Azara tiketi ọ bụla ma mechie ya.",
+      reply: {
+        label: "Zaghachi onye a",
+        placeholder: "Zaa n'ụzọ doro anya ma kwuo ihe na-esote.",
+        send: "Zipu nzaghachi",
+        sending: "Na-eziga",
+        sent: "Ezigara nzaghachi. A gwara ha n'ikpo okwu.",
+        note: "Izipu na-agwa onye nwe tiketi ahụ n'ikpo okwu.",
+      },
+      stateLabel: "Ọnọdụ tiketi",
+      states: {
+        open: "Emepere",
+        pending: "Na-echere nzaghachi",
+        resolved: "Edozirila",
+        closed: "Emechiri",
+      },
+    },
+
+    switches: {
+      // NATIVE REVIEW: "switch" kept in English throughout this surface.
+      title: "Switch",
+      lede:
+        "Gbanyụọ akụkụ n'ofe RentMe n'enweghị mbipụta ọhụrụ, wee gbanye ya ọzọ mgbe nsogbu ahụ gwụchara. Ọ dịghị ihe e hichapụrụ ma ọ bụrụ otu ma ọ bụ ibe.",
+      warning:
+        "Ịgbanyụ akụkụ na-ewepụ ya n'aka onye ọ bụla ozugbo, gụnyere ndị nọ n'etiti iji ya. A na-echekwa ọrụ echekwaralarị. Peeji na-ewere mgbanwe ahụ n'ime ihe dịka sekọnd iri atọ. A na-ede ntụgharị ọ bụla n'ime audit log ya na aha gị na ya.",
+      on: "Ọ gbanyere",
+      off: "Ọ gbanyụrụ",
+      defaultNote: "Akụkụ RentMe a pụrụ ịgbanyụ.",
+      switchingOff: "Ịgbanyụ ya: {consequence}",
+      lastChanged: "Mgbanwe ikpeazụ {when}",
+      switchOn: "Gbanye",
+      switchOff: "Gbanyụọ",
+      labels: {
+        bookings: "Ndebe",
+        wallet: "Akpa ego",
+        messaging: "Ozi",
+        assistant: "Onye enyemaka",
+        support: "Nkwado",
+        agent_listings: "Ndepụta ndị nnọchi",
+        hybrid_hotels: "Họtel ndị mmekọ",
+        hybrid_restaurants: "Ụlọ oriri ndị mmekọ",
+      },
+      consequences: {
+        bookings: "Ndị ọbịa enweghị ike idebe ma ọ bụ kagbuo obibi. Ndebe dị adị anaghị emetụta.",
+        wallet: "Itinye ego, iwepụ ego na ibufe ego na-akwụsị. Ego dị na akụkọ ihe mere eme anaghị emetụta.",
+        messaging:
+          "Ndị ọbịa enweghị ike izitere ndị nnọchi ozi, ndị nnọchi enweghịkwa ike ịzaghachi. Eriri gara aga ka a na-agụ.",
+        assistant: "Onye enyemaka na-akwụsị ịza. Ndị mmadụ nwere ike ịchọ ma leba anya.",
+        support: "Nkata nkwado na-akwụsị itinye tiketi ọhụrụ. Tiketi mepere na-anọ mepere.",
+        agent_listings: "Ndị nnọchi enweghị ike imepụta ma ọ bụ dezie ndepụta. Ndepụta na-arụ ọrụ na-aga n'ihu.",
+        hybrid_hotels: "Họtel ndị mmekọ na-apụ na nchọta. Ebe obibi nke anyị na-anọ.",
+        hybrid_restaurants: "Ụlọ oriri ndị mmekọ na-apụ na nchọta.",
+        generic: "Akụkụ a ga-apụ n'anya onye ọ bụla ruo mgbe a gbanyere ya ọzọ.",
+      },
+      sheet: {
+        title: "Gbanyụọ {label}?",
+        body:
+          "Onye ọ bụla ga-atụfu akụkụ RentMe a ozugbo, gụnyere ndị nọ n'etiti iji ya. A naghị ehichapụ ihe echekwaralarị, ịgbanye ya ọzọ na-eweghachi akụkụ ahụ. Mgbanwe ahụ na-eru peeji ọ bụla n'ime ihe dịka sekọnd iri atọ.",
+        confirm: "Ee, gbanyụọ ya",
+        successTitle: "Agbanyụrụ ya",
+        successBody: "Akụkụ ahụ gbanyụrụ maka onye ọ bụla, mgbanwe ahụ dịkwa n'ime audit log.",
+      },
     },
   },
 

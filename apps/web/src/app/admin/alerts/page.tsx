@@ -1,28 +1,22 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@naijafinds/i18n";
+import { getLocale } from "@/lib/locale";
 import { getRiskAlerts, type AlertView } from "@/lib/admin/queries";
 import { AlertResolve } from "../_components/AdminActions";
-import {
-  QueueEmpty,
-  QueueHeader,
-  QueueUnavailable,
-  StatusChip,
-  formatWhen,
-  type Tone,
-} from "../_components/ui";
+import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
+import { adminUi, type AdminUi, type Tone } from "../_components/ui";
 
-export const metadata: Metadata = { title: "Risk alerts", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.admin.alerts.title, robots: { index: false, follow: false } };
+}
+
 export const dynamic = "force-dynamic";
 
 const SEVERITY_TONE: Record<AlertView["severity"], Tone> = {
   low: "neutral",
   medium: "warning",
   high: "danger",
-};
-
-const SEVERITY_LABEL: Record<AlertView["severity"], string> = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
 };
 
 /**
@@ -32,14 +26,27 @@ const SEVERITY_LABEL: Record<AlertView["severity"], string> = {
  * worth a human look lands here too. An alert stays open until somebody says
  * what was done about it, which is why resolving asks for a note.
  */
-function AlertCard({ alert }: { alert: AlertView }) {
+function AlertCard({
+  alert,
+  copy,
+  common,
+  ui,
+}: {
+  alert: AlertView;
+  copy: AdminCopy["alerts"];
+  common: AdminCommon;
+  ui: AdminUi;
+}) {
   return (
     <li className="nf-card p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-2">
-        <StatusChip status={alert.status} />
-        <StatusChip label={`${SEVERITY_LABEL[alert.severity]} severity`} tone={SEVERITY_TONE[alert.severity]} />
+        <ui.StatusChip status={alert.status} />
+        <ui.StatusChip
+          label={fill(copy.severityChip, { level: copy.severity[alert.severity] })}
+          tone={SEVERITY_TONE[alert.severity]}
+        />
         <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-          {formatWhen(alert.createdAt)}
+          {ui.when(alert.createdAt)}
         </span>
       </div>
 
@@ -54,15 +61,15 @@ function AlertCard({ alert }: { alert: AlertView }) {
 
       {alert.entityType && (
         <p className="mt-2 break-words text-[0.75rem] text-[var(--nf-content-muted)]">
-          Attached to {alert.entityType} {alert.entityId ?? ""}
+          {fill(copy.attachedTo, { type: alert.entityType, id: alert.entityId ?? "" }).trim()}
         </p>
       )}
 
       {alert.status === "open" ? (
-        <AlertResolve alertId={alert.id} />
+        <AlertResolve alertId={alert.id} copy={copy} common={common} />
       ) : (
         <p className="mt-3 text-[0.75rem] text-[var(--nf-content-muted)]">
-          Resolved {formatWhen(alert.resolvedAt)}. The note is in the audit log.
+          {fill(copy.resolvedWhen, { when: ui.when(alert.resolvedAt) })} {common.noteInAuditLog}
         </p>
       )}
     </li>
@@ -70,13 +77,19 @@ function AlertCard({ alert }: { alert: AlertView }) {
 }
 
 export default async function AdminAlertsPage() {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const copy = t.admin.alerts;
+  const common = t.admin.common;
+  const ui = adminUi(t, locale);
+
   const alerts = await getRiskAlerts();
 
   if (alerts.state !== "ok") {
     return (
       <div className="mx-auto max-w-3xl">
-        <QueueHeader title="Risk alerts" lede="Cases raised for the operations team to work." />
-        <QueueUnavailable />
+        <ui.QueueHeader title={copy.title} lede={copy.lede} />
+        <ui.QueueUnavailable />
       </div>
     );
   }
@@ -86,31 +99,24 @@ export default async function AdminAlertsPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <QueueHeader
-        title="Risk alerts"
-        lede="Cases that need a person, not a rule: escalated message flags and anything else the platform judged worth a second look. An alert stays open until somebody records what was done."
-        count={open.length}
-      />
+      <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
       {open.length === 0 ? (
-        <QueueEmpty
-          title="No open alerts"
-          body="Nothing is waiting. Escalating a message flag opens an alert here."
-        />
+        <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
       ) : (
         <ul className="space-y-3">
           {open.map((alert) => (
-            <AlertCard key={alert.id} alert={alert} />
+            <AlertCard key={alert.id} alert={alert} copy={copy} common={common} ui={ui} />
           ))}
         </ul>
       )}
 
       {resolved.length > 0 && (
         <section className="mt-8">
-          <h2 className="nf-h3 mb-3 text-[1rem]">Recently resolved</h2>
+          <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyResolved}</h2>
           <ul className="space-y-3">
             {resolved.map((alert) => (
-              <AlertCard key={alert.id} alert={alert} />
+              <AlertCard key={alert.id} alert={alert} copy={copy} common={common} ui={ui} />
             ))}
           </ul>
         </section>

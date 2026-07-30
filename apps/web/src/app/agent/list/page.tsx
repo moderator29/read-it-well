@@ -15,10 +15,10 @@ import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-schema";
 import { ListingWizard } from "./ListingWizard";
 import { ListingPitch } from "./ListingPitch";
 
-export const metadata: Metadata = {
-  title: "List a property",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.agent.nav.listApartment, robots: { index: false, follow: false } };
+}
 
 /**
  * /agent/list: the supply loop's front door.
@@ -44,7 +44,10 @@ export default async function Page({
     const profile = await getAgentRepository().getProfile();
     return (
       <AgentShell t={t} locale={locale} active="/agent/list" profile={profile}>
-        <ListingPitch signedIn={context.state === "not-agent"} />
+        <ListingPitch
+          copy={t.agentListings.pitch}
+          signedIn={context.state === "not-agent"}
+        />
       </AgentShell>
     );
   }
@@ -56,6 +59,7 @@ export default async function Page({
     return (
       <AgentShell t={t} locale={locale} active="/agent/list" profile={profile}>
         <ListingWizard
+          copy={t.agentListings}
           locale={locale}
           userId={null}
           states={STATE_CODES.map((code) => ({ code, name: code }))}
@@ -83,6 +87,7 @@ export default async function Page({
       profile={agentProfileFrom(context.agent)}
     >
       <ListingWizard
+        copy={t.agentListings}
         locale={locale}
         userId={context.user.id}
         states={states.length > 0 ? states : STATE_CODES.map((code) => ({ code, name: code }))}

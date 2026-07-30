@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { Dictionary } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ADMIN_NAV } from "./nav";
+
+type NavCopy = Dictionary["admin"]["nav"];
 
 /**
  * Console navigation, one definition, two form factors.
@@ -13,17 +16,28 @@ import { ADMIN_NAV } from "./nav";
  * that keeps eight targets at thumb size on a 390px screen. The queue counts
  * ride along as badges so an operator can see where the work is without
  * opening anything.
+ *
+ * The labels arrive from the layout, which is where the locale is resolved: a
+ * client component never reads the dictionary itself.
  */
 function isActive(pathname: string, href: string): boolean {
   if (href === "/admin") return pathname === "/admin";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function AdminRail({ counts }: { counts: Record<string, number> }) {
+export function AdminRail({
+  counts,
+  labels,
+  navLabel,
+}: {
+  counts: Record<string, number>;
+  labels: NavCopy;
+  navLabel: string;
+}) {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Admin console" className="hidden lg:block">
+    <nav aria-label={navLabel} className="hidden lg:block">
       <ul className="space-y-0.5">
         {ADMIN_NAV.map((item) => {
           const active = isActive(pathname, item.href);
@@ -41,7 +55,7 @@ export function AdminRail({ counts }: { counts: Record<string, number> }) {
                 ].join(" ")}
               >
                 <UiIcon name={item.icon} size={18} className="shrink-0" />
-                <span className="flex-1 truncate">{item.label}</span>
+                <span className="flex-1 truncate">{labels[item.key].label}</span>
                 {count > 0 && (
                   <span className="nf-numeric inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--nf-brand-primary)] px-1.5 text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
                     {count}
@@ -56,12 +70,20 @@ export function AdminRail({ counts }: { counts: Record<string, number> }) {
   );
 }
 
-export function AdminTabs({ counts }: { counts: Record<string, number> }) {
+export function AdminTabs({
+  counts,
+  labels,
+  navLabel,
+}: {
+  counts: Record<string, number>;
+  labels: NavCopy;
+  navLabel: string;
+}) {
   const pathname = usePathname();
 
   return (
     <nav
-      aria-label="Admin console"
+      aria-label={navLabel}
       className="nf-scroll-x -mx-4 border-b border-[var(--nf-border-subtle)] px-4 lg:hidden"
     >
       <ul className="flex w-max items-center gap-1.5 py-2">
@@ -76,7 +98,7 @@ export function AdminTabs({ counts }: { counts: Record<string, number> }) {
                 className={`nf-chip ${active ? "nf-chip--active" : ""} !py-1.5`}
               >
                 <UiIcon name={item.icon} size={15} className="shrink-0" />
-                {item.short}
+                {labels[item.key].short}
                 {count > 0 && (
                   <span className="nf-numeric inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--nf-brand-primary)] px-1 text-[0.625rem] font-bold text-[var(--nf-content-on-brand)]">
                     {count}

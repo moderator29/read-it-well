@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { getDictionary } from "@naijafinds/i18n";
+import { getLocale } from "@/lib/locale";
 import { BackButton } from "@/components/site/BackButton";
 import { Logo, LogoMark } from "@/design-system/brand/Logo";
 import { requireAdmin } from "@/lib/admin/guard";
@@ -8,10 +10,10 @@ import { getQueueCounts } from "@/lib/admin/queries";
 import { AccessScreen } from "./_components/AccessScreen";
 import { AdminRail, AdminTabs } from "./_components/AdminNav";
 
-export const metadata: Metadata = {
-  title: "Admin console",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.admin.console.title, robots: { index: false, follow: false } };
+}
 
 /**
  * The console shell.
@@ -26,8 +28,9 @@ export const metadata: Metadata = {
  * button that follows real history the way every other RentMe surface does.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const t = getDictionary(await getLocale());
   const access = await requireAdmin();
-  if (access.state !== "admin") return <AccessScreen state={access.state} />;
+  if (access.state !== "admin") return <AccessScreen t={t} state={access.state} />;
 
   const counts = await getQueueCounts();
   const badges: Record<string, number> =
@@ -46,16 +49,19 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     <div className="flex min-h-dvh">
       <aside
         className="sticky top-0 hidden h-dvh w-[var(--nf-rail-width)] shrink-0 flex-col border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 py-5 lg:flex"
-        aria-label="Admin console"
+        aria-label={t.admin.console.navLabel}
       >
-        <Link href="/" aria-label="RentMe home" className="mb-2 px-1">
+        <Link href="/" aria-label={t.a11y.logoHome} className="mb-2 px-1">
           <Logo size={38} wordSize={19} />
         </Link>
-        <AdminPill className="mb-5 ml-1" />
-        <AdminRail counts={badges} />
+        <AdminPill label={t.admin.console.title} className="mb-5 ml-1" />
+        <AdminRail
+          counts={badges}
+          labels={t.admin.nav}
+          navLabel={t.admin.console.navLabel}
+        />
         <p className="mt-4 px-1 text-[0.6875rem] leading-relaxed text-[var(--nf-content-muted)]">
-          Every decision you make here is written to the audit log with your name
-          against it.
+          {t.admin.console.auditNote}
         </p>
       </aside>
 
@@ -63,17 +69,21 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         <header className="nf-glass sticky top-0 z-40 border-b border-[var(--nf-border-subtle)]">
           <div className="flex h-[60px] items-center gap-2 px-4 sm:h-[64px] sm:gap-3 sm:px-5 md:px-8">
             <BackButton fallback="/home" className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
-            <Link href="/" className="lg:hidden" aria-label="RentMe home">
+            <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
               <LogoMark size={30} />
             </Link>
-            <AdminPill />
+            <AdminPill label={t.admin.console.title} />
             <span className="flex-1" />
             <span className="hidden truncate text-[0.8125rem] text-[var(--nf-content-muted)] sm:block">
-              {access.user.email ?? "Signed in"}
+              {access.user.email ?? t.admin.console.signedIn}
             </span>
           </div>
           <div className="px-4 sm:px-5 md:px-8">
-            <AdminTabs counts={badges} />
+            <AdminTabs
+              counts={badges}
+              labels={t.admin.nav}
+              navLabel={t.admin.console.navLabel}
+            />
           </div>
         </header>
 
@@ -86,7 +96,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 }
 
 /** The console marker: brand blue, never a second accent colour. */
-function AdminPill({ className }: { className?: string }) {
+function AdminPill({ label, className }: { label: string; className?: string }) {
   return (
     <span
       className={[
@@ -96,7 +106,7 @@ function AdminPill({ className }: { className?: string }) {
       style={{ background: "var(--nf-brand-primary-soft)", color: "var(--nf-electric-300)" }}
     >
       <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--nf-brand-primary)]" />
-      Admin console
+      {label}
     </span>
   );
 }

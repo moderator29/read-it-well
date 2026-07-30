@@ -4,13 +4,20 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { fill } from "../_copy";
 import {
   deleteListing,
   submitListing,
   unpublishListing,
 } from "@/lib/agent/listings-actions";
-import { STATUS_LABEL, STATUS_TONE, type ListingStatus } from "@/lib/agent/listings-schema";
+import {
+  MIN_DESCRIPTION_WORDS,
+  MIN_PHOTOS,
+  MIN_TITLE_LENGTH,
+  STATUS_TONE,
+  type ListingStatus,
+} from "@/lib/agent/listings-schema";
 import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
@@ -23,35 +30,23 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * refresh, so the list always re-renders from the database rather than from an
  * optimistic guess. Unmet quality requirements come back from the submit action
  * and are shown in the sheet, in the same words the wizard checklist uses.
+ *
+ * All copy arrives from the page as a dictionary slice, so the workspace reads
+ * in the agent's language, including the status vocabulary.
  */
 
-type Group = { key: string; title: string; blurb: string; statuses: ListingStatus[] };
+export type WorkspaceCopy = Dictionary["agentListings"];
+
+type Group = {
+  key: keyof WorkspaceCopy["workspace"]["groups"];
+  statuses: ListingStatus[];
+};
 
 const GROUPS: Group[] = [
-  {
-    key: "live",
-    title: "Live",
-    blurb: "Guests can find these in search.",
-    statuses: ["PUBLISHED", "APPROVED"],
-  },
-  {
-    key: "review",
-    title: "With our review team",
-    blurb: "We check every listing by hand. This takes 24 to 48 hours.",
-    statuses: ["SUBMITTED", "UNDER_REVIEW"],
-  },
-  {
-    key: "attention",
-    title: "Needs your attention",
-    blurb: "A change is needed before this can go live.",
-    statuses: ["MORE_INFO_REQUIRED", "REJECTED", "SUSPENDED"],
-  },
-  {
-    key: "drafts",
-    title: "Drafts",
-    blurb: "Only you can see these.",
-    statuses: ["DRAFT"],
-  },
+  { key: "live", statuses: ["PUBLISHED", "APPROVED"] },
+  { key: "review", statuses: ["SUBMITTED", "UNDER_REVIEW"] },
+  { key: "attention", statuses: ["MORE_INFO_REQUIRED", "REJECTED", "SUSPENDED"] },
+  { key: "drafts", statuses: ["DRAFT"] },
 ];
 
 const EDITABLE: ListingStatus[] = ["DRAFT", "MORE_INFO_REQUIRED", "REJECTED"];
@@ -75,28 +70,56 @@ type SheetKind = "submit" | "unpublish" | "delete";
 
 type SheetState = { kind: SheetKind; listing: ListingSummary };
 
-const SHEET_COPY: Record<SheetKind, { title: string; body: string; confirm: string }> = {
-  submit: {
-    title: "Send this listing for review?",
-    body: "Our team checks the photos, the description and the location. You hear back within 24 to 48 hours, either way.",
-    confirm: "Send for review",
-  },
-  unpublish: {
-    title: "Take this listing down?",
-    body: "It leaves search straight away and returns to your drafts. You can edit it and send it back for review whenever you are ready.",
-    confirm: "Take it down",
-  },
-  delete: {
-    title: "Delete this draft?",
-    body: "The draft and its photos are removed for good. This cannot be undone.",
-    confirm: "Delete draft",
-  },
-};
+/**
+ * The submit gate's requirements, in the agent's language.
+ *
+ * The action returns which fields are unmet, keyed by field name. The counts it
+ * carried are dropped on purpose: the requirement itself is what an agent needs
+ * here, and the wizard shows the live tally. A field this map does not know
+ * falls back to the message the action sent, so nothing is ever blank.
+ */
+function requirementText(
+  copy: WorkspaceCopy,
+  field: string,
+  fallback: string,
+  yearly: boolean,
+): string {
+  switch (field) {
+    case "title":
+      return fill(copy.gate.titleShort, { min: MIN_TITLE_LENGTH });
+    case "description":
+      return fill(copy.submit.checklist.description, { min: MIN_DESCRIPTION_WORDS });
+    case "propertyType":
+      return copy.gate.propertyType;
+    case "photos":
+      return fill(copy.submit.checklist.photos, { min: MIN_PHOTOS });
+    case "stateCode":
+      return copy.gate.stateCode;
+    case "city":
+      return copy.gate.city;
+    case "area":
+      return copy.gate.area;
+    case "amenities":
+      return copy.gate.amenities;
+    case "price":
+      return yearly ? copy.gate.priceYear : copy.gate.priceNight;
+    case "bedrooms":
+      return copy.gate.bedrooms;
+    case "bathrooms":
+      return copy.gate.bathrooms;
+    case "maxGuests":
+      return copy.gate.maxGuests;
+    default:
+      return fallback;
+  }
+}
 
 function ConfirmSheet({
+  t,
   state,
   onClose,
 }: {
+  t: WorkspaceCopy;
   state: SheetState;
   onClose: () => void;
 }) {
@@ -105,7 +128,7 @@ function ConfirmSheet({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [unmet, setUnmet] = useState<string[]>([]);
-  const copy = SHEET_COPY[state.kind];
+  const copy = t.workspace.sheets[state.kind];
 
   useEffect(() => {
     panel.current?.focus();
@@ -134,7 +157,11 @@ function ConfirmSheet({
 
       if (!result.ok) {
         setError(result.error);
-        setUnmet(Object.values(result.fieldErrors ?? {}));
+        setUnmet(
+          Object.entries(result.fieldErrors ?? {}).map(([field, message]) =>
+            requirementText(t, field, message, state.listing.pricePeriod === "year"),
+          ),
+        );
         return;
       }
       onClose();
@@ -146,7 +173,7 @@ function ConfirmSheet({
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
       <button
         type="button"
-        aria-label="Close"
+        aria-label={t.workspace.sheets.close}
         className="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
@@ -192,7 +219,7 @@ function ConfirmSheet({
 
         <div className="mt-5 flex gap-3">
           <button type="button" className="nf-btn nf-btn--glass flex-1" onClick={onClose}>
-            Keep it
+            {t.workspace.sheets.keep}
           </button>
           <button
             type="button"
@@ -200,7 +227,7 @@ function ConfirmSheet({
             onClick={run}
             disabled={pending}
           >
-            {pending ? "Working" : copy.confirm}
+            {pending ? t.workspace.sheets.working : copy.confirm}
           </button>
         </div>
       </div>
@@ -210,10 +237,12 @@ function ConfirmSheet({
 }
 
 function ListingRow({
+  t,
   listing,
   locale,
   onAction,
 }: {
+  t: WorkspaceCopy;
   listing: ListingSummary;
   locale: Locale;
   onAction: (kind: SheetKind, listing: ListingSummary) => void;
@@ -244,7 +273,7 @@ function ListingRow({
           <div className="flex items-start justify-between gap-2">
             <h3 className="truncate text-[0.9375rem] font-semibold">{listing.title}</h3>
             <span className="nf-badge shrink-0" style={toneStyle(listing.status)}>
-              {STATUS_LABEL[listing.status]}
+              {t.workspace.status[listing.status]}
             </span>
           </div>
 
@@ -259,15 +288,19 @@ function ListingRow({
 
           <p className="mt-2 flex items-baseline gap-1.5">
             <span className="nf-numeric text-[0.9375rem] font-bold">
-              {listing.priceMinor > 0 ? formatMoney(listing.priceMinor, locale) : "Price to set"}
+              {listing.priceMinor > 0
+                ? formatMoney(listing.priceMinor, locale)
+                : t.guestView.priceToSet}
             </span>
             <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-              {listing.pricePeriod === "year" ? "per year" : "per night"}
+              {listing.pricePeriod === "year" ? t.pricing.perYear : t.pricing.perNight}
             </span>
           </p>
 
           <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
-            {listing.photoCount} {listing.photoCount === 1 ? "photo" : "photos"}
+            {listing.photoCount === 1
+              ? t.workspace.photoCountOne
+              : fill(t.workspace.photoCount, { count: listing.photoCount })}
           </p>
         </div>
       </div>
@@ -284,7 +317,7 @@ function ListingRow({
             href={`/agent/list?id=${listing.id}`}
             className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)]"
           >
-            Edit
+            {t.workspace.actions.edit}
             <UiIcon name="arrow-right" size={14} />
           </Link>
         )}
@@ -294,7 +327,7 @@ function ListingRow({
             className="text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]"
             onClick={() => onAction("submit", listing)}
           >
-            Send for review
+            {t.workspace.actions.submit}
           </button>
         )}
         {live && (
@@ -303,7 +336,7 @@ function ListingRow({
             className="text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]"
             onClick={() => onAction("unpublish", listing)}
           >
-            Take it down
+            {t.workspace.actions.takeDown}
           </button>
         )}
         {listing.status === "DRAFT" && (
@@ -312,7 +345,7 @@ function ListingRow({
             className="text-[0.8125rem] font-semibold text-[var(--nf-content-muted)]"
             onClick={() => onAction("delete", listing)}
           >
-            Delete
+            {t.workspace.actions.delete}
           </button>
         )}
       </div>
@@ -321,9 +354,11 @@ function ListingRow({
 }
 
 export function ListingsWorkspace({
+  t,
   listings,
   locale,
 }: {
+  t: WorkspaceCopy;
   listings: ListingSummary[];
   locale: Locale;
 }) {
@@ -338,13 +373,12 @@ export function ListingsWorkspace({
         >
           <UiIcon name="house" size={30} />
         </span>
-        <h2 className="nf-h3 mt-5">No listings yet</h2>
+        <h2 className="nf-h3 mt-5">{t.workspace.emptyTitle}</h2>
         <p className="mx-auto mt-2 max-w-[38ch] text-[0.875rem] text-[var(--nf-content-secondary)]">
-          Your first property takes about ten minutes, most of it photos. Start whenever you are
-          ready: drafts are saved as you go.
+          {t.workspace.emptyBody}
         </p>
         <Link href="/agent/list" className="nf-btn nf-btn--primary mt-6">
-          Start a listing
+          {t.workspace.start}
         </Link>
       </div>
     );
@@ -355,19 +389,23 @@ export function ListingsWorkspace({
       {GROUPS.map((group) => {
         const rows = listings.filter((l) => group.statuses.includes(l.status));
         if (rows.length === 0) return null;
+        const heading = t.workspace.groups[group.key];
         return (
           <section key={group.key}>
             <h2 className="nf-h3">
-              {group.title}
+              {heading.title}
               <span className="nf-numeric ml-2 text-[0.8125rem] font-semibold text-[var(--nf-content-muted)]">
                 {rows.length}
               </span>
             </h2>
-            <p className="mb-3 mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">{group.blurb}</p>
+            <p className="mb-3 mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+              {heading.blurb}
+            </p>
             <ul className="space-y-3">
               {rows.map((listing) => (
                 <ListingRow
                   key={listing.id}
+                  t={t}
                   listing={listing}
                   locale={locale}
                   onAction={(kind, target) => setSheet({ kind, listing: target })}
@@ -378,7 +416,7 @@ export function ListingsWorkspace({
         );
       })}
 
-      {sheet && <ConfirmSheet state={sheet} onClose={() => setSheet(null)} />}
+      {sheet && <ConfirmSheet t={t} state={sheet} onClose={() => setSheet(null)} />}
     </div>
   );
 }

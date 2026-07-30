@@ -15,10 +15,10 @@ import {
 } from "@/lib/agent/listings-queries";
 import { RealDashboard } from "./RealDashboard";
 
-export const metadata: Metadata = {
-  title: "Agent Dashboard",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.agent.dashboard.title, robots: { index: false, follow: false } };
+}
 
 export default async function AgentDashboardPage() {
   const locale = await getLocale();

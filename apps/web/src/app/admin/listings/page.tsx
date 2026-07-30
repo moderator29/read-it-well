@@ -1,28 +1,38 @@
 import type { Metadata } from "next";
-import { formatMoney } from "@naijafinds/i18n";
+import { formatMoney, getDictionary, type Locale } from "@naijafinds/i18n";
+import { getLocale } from "@/lib/locale";
 import { getListingSubmissions, type ListingReviewView } from "@/lib/admin/queries";
 import { ListingDecision } from "../_components/AdminActions";
-import {
-  CheckRow,
-  DetailRow,
-  DetailSection,
-  QueueEmpty,
-  QueueHeader,
-  QueueUnavailable,
-  StatusChip,
-  formatWhen,
-} from "../_components/ui";
+import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
+import { adminUi, type AdminUi } from "../_components/ui";
 
-export const metadata: Metadata = { title: "Listing review", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.admin.listings.title, robots: { index: false, follow: false } };
+}
+
 export const dynamic = "force-dynamic";
 
-const PROPERTY_LABEL: Record<ListingReviewView["propertyType"], string> = {
-  apartment: "Apartment",
-  hotel: "Hotel",
-  home: "Home",
-  villa: "Villa",
-  shortlet: "Shortlet",
-  rental: "Rental",
+/**
+ * The admission checklist, matched to its translation.
+ *
+ * `lib/admin/queries` builds each check as a label and a detail with no stable
+ * key on it, so the only thing available to match on is the English label it
+ * ships. That is what this table does, and an unmatched label falls through to
+ * the English it came with rather than rendering blank. Giving `QualityCheck` a
+ * key would let this table go: it belongs on the queries module, which is
+ * outside this surface's scope.
+ */
+const CHECK_KEYS: Record<string, keyof AdminCopy["listings"]["checks"]> = {
+  "Four photos or more": "photoCount",
+  "Cover photo set": "cover",
+  "Title in title case": "titleCase",
+  "Area and city recorded": "place",
+  "Price recorded in naira": "price",
+  "Bedrooms and bathrooms recorded": "rooms",
+  "Amenities chosen": "amenities",
+  "Description of 40 words or more": "description",
+  "No contact or payment details in the text": "clean",
 };
 
 /**
@@ -34,23 +44,40 @@ const PROPERTY_LABEL: Record<ListingReviewView["propertyType"], string> = {
  * live by accident, and the reviewer sees the photos and the quality checklist
  * from HYBRID_INVENTORY section 5 before either step.
  */
-function ListingCard({ listing }: { listing: ListingReviewView }) {
+function ListingCard({
+  listing,
+  copy,
+  common,
+  ui,
+  locale,
+}: {
+  listing: ListingReviewView;
+  copy: AdminCopy["listings"];
+  common: AdminCommon;
+  ui: AdminUi;
+  locale: Locale;
+}) {
   const decidable = listing.status !== "PUBLISHED" && listing.status !== "REJECTED";
   const failing = listing.checks.filter((check) => !check.pass).length;
+  const f = copy.fields;
 
   return (
     <li className="nf-card p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-2">
-        <StatusChip status={listing.status} />
-        <StatusChip label={PROPERTY_LABEL[listing.propertyType]} tone="neutral" />
+        <ui.StatusChip status={listing.status} />
+        <ui.StatusChip label={copy.propertyType[listing.propertyType]} tone="neutral" />
         {failing > 0 && (
-          <StatusChip
-            label={failing === 1 ? "1 checklist line to look at" : `${failing} checklist lines to look at`}
+          <ui.StatusChip
+            label={
+              failing === 1
+                ? copy.checklistLineOne
+                : fill(copy.checklistLines, { count: failing })
+            }
             tone="warning"
           />
         )}
         <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-          Submitted {formatWhen(listing.submittedAt)}
+          {fill(copy.submittedWhen, { when: ui.when(listing.submittedAt) })}
         </span>
       </div>
 
@@ -59,10 +86,10 @@ function ListingCard({ listing }: { listing: ListingReviewView }) {
       </h3>
       <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
         {[listing.area, listing.city, listing.stateCode].filter(Boolean).join(", ") ||
-          "Location not given"}
+          copy.locationMissing}
         {" · "}
-        {formatMoney(listing.priceMinor)}
-        {listing.pricePeriod === "year" ? " per year" : " per night"}
+        {formatMoney(listing.priceMinor, locale)}{" "}
+        {listing.pricePeriod === "year" ? copy.perYear : copy.perNight}
       </p>
 
       {listing.photos.length > 0 && (
@@ -74,7 +101,7 @@ function ListingCard({ listing }: { listing: ListingReviewView }) {
                     storage bucket, not optimised marketing imagery. */}
                 <img
                   src={photo}
-                  alt={`${listing.title}, photo ${index + 1}`}
+                  alt={fill(copy.photoAlt, { title: listing.title, number: index + 1 })}
                   loading="lazy"
                   className="h-24 w-32 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] object-cover"
                 />
@@ -84,41 +111,56 @@ function ListingCard({ listing }: { listing: ListingReviewView }) {
         </div>
       )}
 
-      <DetailSection title="Admission checklist">
+      <ui.DetailSection title={copy.checklistTitle}>
         <ul className="mt-1">
-          {listing.checks.map((check) => (
-            <CheckRow
-              key={check.label}
-              label={check.label}
-              pass={check.pass}
-              detail={check.detail}
-            />
-          ))}
+          {listing.checks.map((check) => {
+            const key = CHECK_KEYS[check.label];
+            return (
+              <ui.CheckRow
+                key={check.label}
+                label={key ? copy.checks[key] : check.label}
+                pass={check.pass}
+                detail={check.detail}
+              />
+            );
+          })}
         </ul>
-      </DetailSection>
+      </ui.DetailSection>
 
-      <DetailSection title="Submission">
-        <DetailRow label="Agent" value={listing.agentName} />
-        <DetailRow
-          label="Capacity"
-          value={`${listing.maxGuests} guests, ${listing.bedrooms} bedrooms, ${listing.beds} beds, ${listing.bathrooms} bathrooms`}
+      <ui.DetailSection title={copy.submission}>
+        <ui.DetailRow label={f.agent} value={listing.agentName} />
+        <ui.DetailRow
+          label={f.capacity}
+          value={fill(copy.capacity, {
+            guests: listing.maxGuests,
+            bedrooms: listing.bedrooms,
+            beds: listing.beds,
+            bathrooms: listing.bathrooms,
+          })}
         />
-        <DetailRow label="Address" value={listing.address} />
-        <DetailRow label="Amenities" value={`${listing.amenityCount} selected`} />
-        <DetailRow label="Description" value={listing.description} />
-        {listing.reviewNotes && <DetailRow label="Last reviewer note" value={listing.reviewNotes} />}
+        <ui.DetailRow label={f.address} value={listing.address} />
+        <ui.DetailRow
+          label={f.amenities}
+          value={fill(copy.amenitiesSelected, { count: listing.amenityCount })}
+        />
+        <ui.DetailRow label={f.description} value={listing.description} />
+        {listing.reviewNotes && <ui.DetailRow label={f.lastNote} value={listing.reviewNotes} />}
         {listing.reviewedAt && (
-          <DetailRow label="Last reviewed" value={formatWhen(listing.reviewedAt)} />
+          <ui.DetailRow label={f.lastReviewed} value={ui.when(listing.reviewedAt)} />
         )}
-      </DetailSection>
+      </ui.DetailSection>
 
       {decidable ? (
-        <ListingDecision listingId={listing.id} status={listing.status} title={listing.title} />
+        <ListingDecision
+          listingId={listing.id}
+          status={listing.status}
+          title={listing.title}
+          copy={copy}
+          common={common}
+        />
       ) : (
         <p className="mt-4 text-[0.75rem] text-[var(--nf-content-muted)]">
-          {listing.status === "PUBLISHED"
-            ? "Live in search. The decision is in the audit log."
-            : "Closed. The decision is in the audit log."}
+          {listing.status === "PUBLISHED" ? copy.liveInSearch : copy.closed} {common.inAuditLog}
         </p>
       )}
     </li>
@@ -126,13 +168,19 @@ function ListingCard({ listing }: { listing: ListingReviewView }) {
 }
 
 export default async function AdminListingsPage() {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const copy = t.admin.listings;
+  const common = t.admin.common;
+  const ui = adminUi(t, locale);
+
   const listings = await getListingSubmissions();
 
   if (listings.state !== "ok") {
     return (
       <div className="mx-auto max-w-3xl">
-        <QueueHeader title="Listing review" lede="Submissions waiting to be checked." />
-        <QueueUnavailable />
+        <ui.QueueHeader title={copy.title} lede={copy.lede} />
+        <ui.QueueUnavailable />
       </div>
     );
   }
@@ -144,31 +192,38 @@ export default async function AdminListingsPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <QueueHeader
-        title="Listing review"
-        lede="Approve says the submission passes the admission checklist. Publish is the second, separate step that puts it into public search. Sending one back tells the agent exactly which line to fix."
-        count={onUs}
-      />
+      <ui.QueueHeader title={copy.title} lede={copy.lede} count={onUs} />
 
       {waiting.length === 0 ? (
-        <QueueEmpty
-          title="No listings waiting"
-          body="Every submission has been dealt with. New ones appear here as agents submit them."
-        />
+        <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
       ) : (
         <ul className="space-y-3">
           {waiting.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
+            <ListingCard
+              key={listing.id}
+              listing={listing}
+              copy={copy}
+              common={common}
+              ui={ui}
+              locale={locale}
+            />
           ))}
         </ul>
       )}
 
       {decided.length > 0 && (
         <section className="mt-8">
-          <h2 className="nf-h3 mb-3 text-[1rem]">Recently decided</h2>
+          <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyDecided}</h2>
           <ul className="space-y-3">
             {decided.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                copy={copy}
+                common={common}
+                ui={ui}
+                locale={locale}
+              />
             ))}
           </ul>
         </section>

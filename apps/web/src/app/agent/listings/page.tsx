@@ -12,10 +12,10 @@ import {
 import { ListingPitch } from "../list/ListingPitch";
 import { ListingsWorkspace } from "./ListingsWorkspace";
 
-export const metadata: Metadata = {
-  title: "My listings",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.agent.nav.myListings, robots: { index: false, follow: false } };
+}
 
 /**
  * /agent/listings: everything the agent owns, in every status.
@@ -33,7 +33,10 @@ export default async function Page() {
     const profile = await getAgentRepository().getProfile();
     return (
       <AgentShell t={t} locale={locale} active="/agent/listings" profile={profile}>
-        <ListingPitch signedIn={context.state === "not-agent"} />
+        <ListingPitch
+          copy={t.agentListings.pitch}
+          signedIn={context.state === "not-agent"}
+        />
       </AgentShell>
     );
   }
@@ -43,13 +46,12 @@ export default async function Page() {
     return (
       <AgentShell t={t} locale={locale} active="/agent/listings" profile={profile}>
         <div className="mx-auto max-w-md py-10 text-center">
-          <h1 className="nf-h2">My listings</h1>
+          <h1 className="nf-h2">{t.agentListings.workspace.title}</h1>
           <p className="mx-auto mt-3 max-w-[40ch] text-[var(--nf-content-secondary)]">
-            Your listings appear here the moment the platform keys land. You can start building one
-            now: the wizard keeps your work on this device until then.
+            {t.agentListings.workspace.unconfigured}
           </p>
           <Link href="/agent/list" className="nf-btn nf-btn--primary mt-6">
-            Start a listing
+            {t.agentListings.workspace.start}
           </Link>
         </div>
       </AgentShell>
@@ -67,17 +69,17 @@ export default async function Page() {
     >
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="nf-h1">{t.agent.nav.myListings}</h1>
+          <h1 className="nf-h1">{t.agentListings.workspace.title}</h1>
           <p className="mt-1 text-[var(--nf-content-secondary)]">
-            Every property you have on RentMe, and where each one stands.
+            {t.agentListings.workspace.lede}
           </p>
         </div>
         <Link href="/agent/list" className="nf-btn nf-btn--primary">
-          Start a listing
+          {t.agentListings.workspace.start}
         </Link>
       </div>
 
-      <ListingsWorkspace listings={listings} locale={locale} />
+      <ListingsWorkspace t={t.agentListings} listings={listings} locale={locale} />
     </AgentShell>
   );
 }

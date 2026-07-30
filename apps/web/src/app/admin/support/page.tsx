@@ -1,19 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getDictionary } from "@naijafinds/i18n";
+import { getLocale } from "@/lib/locale";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getSupportTickets, getTicketThread, type TicketView } from "@/lib/admin/queries";
 import { TicketReply, TicketStatusControl } from "../_components/AdminActions";
-import {
-  DetailRow,
-  DetailSection,
-  QueueEmpty,
-  QueueHeader,
-  QueueUnavailable,
-  StatusChip,
-  formatWhen,
-} from "../_components/ui";
+import { fill, type AdminCopy } from "../_components/copy";
+import { adminUi, type AdminUi } from "../_components/ui";
 
-export const metadata: Metadata = { title: "Support", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.admin.support.title, robots: { index: false, follow: false } };
+}
+
 export const dynamic = "force-dynamic";
 
 /**
@@ -24,7 +23,17 @@ export const dynamic = "force-dynamic";
  * database trigger on that insert notifies the ticket owner, so the reply lands
  * on the platform they already use rather than in a queue nobody watches.
  */
-function TicketRow({ ticket, selected }: { ticket: TicketView; selected: boolean }) {
+function TicketRow({
+  ticket,
+  selected,
+  copy,
+  ui,
+}: {
+  ticket: TicketView;
+  selected: boolean;
+  copy: AdminCopy["support"];
+  ui: AdminUi;
+}) {
   return (
     <li>
       <Link
@@ -36,20 +45,22 @@ function TicketRow({ ticket, selected }: { ticket: TicketView; selected: boolean
         ].join(" ")}
       >
         <div className="flex flex-wrap items-center gap-2">
-          <StatusChip status={ticket.status} />
+          <ui.StatusChip status={ticket.status} />
           <span className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
             {ticket.reference}
           </span>
         </div>
         <p className="mt-1.5 truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-          {ticket.topic ?? "General question"}
+          {ticket.topic ?? copy.generalQuestion}
         </p>
         <p className="mt-0.5 truncate text-[0.8125rem] text-[var(--nf-content-secondary)]">
-          {ticket.name} · {formatWhen(ticket.createdAt)}
+          {ticket.name} · {ui.when(ticket.createdAt)}
         </p>
         {ticket.replyCount > 0 && (
           <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
-            {ticket.replyCount === 1 ? "1 message in the thread" : `${ticket.replyCount} messages in the thread`}
+            {ticket.replyCount === 1
+              ? copy.threadCountOne
+              : fill(copy.threadCount, { count: ticket.replyCount })}
           </p>
         )}
       </Link>
@@ -62,6 +73,12 @@ export default async function AdminSupportPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const copy = t.admin.support;
+  const common = t.admin.common;
+  const ui = adminUi(t, locale);
+
   const params = await searchParams;
   const raw = params.ticket;
   const selectedId = typeof raw === "string" ? raw : null;
@@ -71,8 +88,8 @@ export default async function AdminSupportPage({
   if (tickets.state !== "ok") {
     return (
       <div className="mx-auto max-w-3xl">
-        <QueueHeader title="Support" lede="Questions that needed a person." />
-        <QueueUnavailable />
+        <ui.QueueHeader title={copy.title} lede={copy.lede} />
+        <ui.QueueUnavailable />
       </div>
     );
   }
@@ -91,16 +108,12 @@ export default async function AdminSupportPage({
 
   return (
     <div className="mx-auto max-w-4xl">
-      <QueueHeader
-        title="Support"
-        lede="Escalations carry only the name and email the person gave us. Your reply notifies them on the platform straight away."
-        count={open.length}
-      />
+      <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
       {selected && (
         <section className="nf-card mb-6 p-4 sm:p-5">
           <div className="flex flex-wrap items-center gap-2">
-            <StatusChip status={selected.status} />
+            <ui.StatusChip status={selected.status} />
             <span className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
               {selected.reference}
             </span>
@@ -109,25 +122,25 @@ export default async function AdminSupportPage({
               className="ml-auto inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
             >
               <UiIcon name="arrow-left" size={14} />
-              All tickets
+              {copy.allTickets}
             </Link>
           </div>
 
-          <h2 className="nf-h3 mt-2.5">{selected.topic ?? "General question"}</h2>
+          <h2 className="nf-h3 mt-2.5">{selected.topic ?? copy.generalQuestion}</h2>
 
-          <DetailSection title="Who filed it">
-            <DetailRow label="Name" value={selected.name} />
-            <DetailRow label="Email" value={selected.email} />
-            <DetailRow
-              label="Account"
-              value={selected.hasAccount ? "Signed in when they filed it" : "No account attached"}
+          <ui.DetailSection title={copy.whoFiled}>
+            <ui.DetailRow label={copy.fields.name} value={selected.name} />
+            <ui.DetailRow label={copy.fields.email} value={selected.email} />
+            <ui.DetailRow
+              label={copy.fields.account}
+              value={selected.hasAccount ? copy.signedInWhenFiled : copy.noAccountAttached}
             />
-            <DetailRow label="Filed" value={formatWhen(selected.createdAt)} />
-          </DetailSection>
+            <ui.DetailRow label={copy.fields.filed} value={ui.when(selected.createdAt)} />
+          </ui.DetailSection>
 
           <div className="mt-4 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-3">
             <p className="text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
-              What they asked
+              {copy.whatTheyAsked}
             </p>
             <p className="mt-1.5 whitespace-pre-wrap break-words text-[0.875rem] leading-relaxed text-[var(--nf-content-primary)]">
               {selected.body}
@@ -150,10 +163,10 @@ export default async function AdminSupportPage({
                 >
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
-                      {message.senderRole === "admin" ? "RentMe support" : selected.name}
+                      {message.senderRole === "admin" ? copy.supportSender : selected.name}
                     </span>
                     <span className="text-[0.6875rem] text-[var(--nf-content-muted)]">
-                      {formatWhen(message.createdAt)}
+                      {ui.when(message.createdAt)}
                     </span>
                   </span>
                   <p className="mt-1 whitespace-pre-wrap break-words text-[0.875rem] leading-relaxed text-[var(--nf-content-primary)]">
@@ -164,40 +177,46 @@ export default async function AdminSupportPage({
             </ul>
           )}
 
-          <TicketReply ticketId={selected.id} />
-          <TicketStatusControl ticketId={selected.id} status={selected.status} />
+          <TicketReply ticketId={selected.id} copy={copy} />
+          <TicketStatusControl ticketId={selected.id} status={selected.status} copy={copy} />
         </section>
       )}
 
       {open.length === 0 && closed.length === 0 ? (
-        <QueueEmpty
-          title="No tickets"
-          body="Nobody has needed to escalate. Tickets arrive here when the assistant cannot answer."
-        />
+        <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
       ) : (
         <>
           <h2 className="nf-h3 mb-3 text-[1rem]">
-            {open.length > 0 ? "Waiting on us" : "No tickets waiting on us"}
+            {open.length > 0 ? copy.waitingOnUs : copy.noneWaitingHeading}
           </h2>
           {open.length === 0 ? (
-            <QueueEmpty
-              title="Nothing waiting"
-              body="Every ticket has been answered and closed."
-            />
+            <ui.QueueEmpty title={copy.nothingWaitingTitle} body={copy.nothingWaitingBody} />
           ) : (
             <ul className="space-y-2.5">
               {open.map((ticket) => (
-                <TicketRow key={ticket.id} ticket={ticket} selected={ticket.id === selectedId} />
+                <TicketRow
+                  key={ticket.id}
+                  ticket={ticket}
+                  selected={ticket.id === selectedId}
+                  copy={copy}
+                  ui={ui}
+                />
               ))}
             </ul>
           )}
 
           {closed.length > 0 && (
             <section className="mt-8">
-              <h2 className="nf-h3 mb-3 text-[1rem]">Recently closed</h2>
+              <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyClosed}</h2>
               <ul className="space-y-2.5">
                 {closed.map((ticket) => (
-                  <TicketRow key={ticket.id} ticket={ticket} selected={ticket.id === selectedId} />
+                  <TicketRow
+                    key={ticket.id}
+                    ticket={ticket}
+                    selected={ticket.id === selectedId}
+                    copy={copy}
+                    ui={ui}
+                  />
                 ))}
               </ul>
             </section>

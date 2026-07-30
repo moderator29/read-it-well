@@ -2,11 +2,8 @@ import Link from "next/link";
 import { formatDate, formatMoney, formatNumber, type Dictionary, type Locale } from "@naijafinds/i18n";
 import { Icon, type IconName } from "@/design-system/icons/Icon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import {
-  STATUS_LABEL,
-  type AgentNumbers,
-  type ListingStatus,
-} from "@/lib/agent/listings-queries";
+import type { AgentNumbers, ListingStatus } from "@/lib/agent/listings-queries";
+import { fill } from "../_copy";
 
 /**
  * The signed-in agent's real dashboard.
@@ -74,6 +71,7 @@ export function RealDashboard({
   numbers: AgentNumbers;
 }) {
   const a = t.agent.dashboard;
+  const d = t.agentListings.dashboard;
   const quickActions: { icon: IconName; label: string; href: string }[] = [
     { icon: "apartment", label: a.addListing, href: "/agent/list" },
     { icon: "booking", label: a.viewBookings, href: "/agent/bookings" },
@@ -89,7 +87,7 @@ export function RealDashboard({
         <div>
           <h1 className="nf-h1">{a.title}</h1>
           <p className="mt-1 text-[var(--nf-content-secondary)]">
-            {displayName}, here is where your properties stand today.
+            {fill(d.standing, { name: displayName })}
           </p>
         </div>
         <Link href="/agent/list" className="nf-btn nf-btn--primary">
@@ -101,31 +99,31 @@ export function RealDashboard({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <Tile
           icon="apartment"
-          label="Live listings"
+          label={d.liveListings}
           value={formatNumber(numbers.liveListings, locale)}
           href="/agent/listings"
         />
         <Tile
           icon="verified"
-          label="With review"
+          label={d.withReview}
           value={formatNumber(numbers.inReview, locale)}
           href="/agent/listings"
         />
         <Tile
           icon="home"
-          label="Drafts"
+          label={d.drafts}
           value={formatNumber(numbers.drafts, locale)}
           href="/agent/listings"
         />
         <Tile
           icon="booking"
-          label="Upcoming stays"
+          label={d.upcomingStays}
           value={formatNumber(numbers.upcomingBookingCount, locale)}
           href="/agent/bookings"
         />
         <Tile
           icon="chat"
-          label="Unread messages"
+          label={d.unreadMessages}
           value={formatNumber(numbers.unreadMessages, locale)}
           href="/agent/messages"
           className="col-span-2 sm:col-span-1"
@@ -146,15 +144,14 @@ export function RealDashboard({
 
           {numbers.totalListings === 0 ? (
             <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              No properties yet. Your first listing takes about ten minutes, and drafts are saved as
-              you go.
+              {d.noListings}
             </p>
           ) : (
             <ul className="space-y-2.5">
               {withCounts.map((status) => (
                 <li key={status} className="flex items-center justify-between gap-3">
                   <span className="text-[0.875rem] text-[var(--nf-content-secondary)]">
-                    {STATUS_LABEL[status]}
+                    {t.agentListings.workspace.status[status]}
                   </span>
                   <span className="nf-numeric text-[0.9375rem] font-bold">
                     {formatNumber(numbers.byStatus[status], locale)}
@@ -171,7 +168,7 @@ export function RealDashboard({
 
         <section className="nf-card p-4 sm:p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="nf-h3">Upcoming stays</h2>
+            <h2 className="nf-h3">{d.upcomingStays}</h2>
             <Link
               href="/agent/bookings"
               className="text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] hover:underline"
@@ -182,7 +179,7 @@ export function RealDashboard({
 
           {numbers.upcomingBookings.length === 0 ? (
             <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              No stays booked yet. Listings that are live in search are the ones guests can book.
+              {d.noStays}
             </p>
           ) : (
             <ul className="space-y-3">
@@ -199,14 +196,15 @@ export function RealDashboard({
                       {booking.listingTitle}
                     </span>
                     <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">
-                      {formatDate(new Date(`${booking.checkIn}T00:00:00Z`), locale, {
-                        day: "numeric",
-                        month: "short",
-                      })}{" "}
-                      to{" "}
-                      {formatDate(new Date(`${booking.checkOut}T00:00:00Z`), locale, {
-                        day: "numeric",
-                        month: "short",
+                      {fill(d.stayDates, {
+                        from: formatDate(new Date(`${booking.checkIn}T00:00:00Z`), locale, {
+                          day: "numeric",
+                          month: "short",
+                        }),
+                        to: formatDate(new Date(`${booking.checkOut}T00:00:00Z`), locale, {
+                          day: "numeric",
+                          month: "short",
+                        }),
                       })}
                     </span>
                   </span>

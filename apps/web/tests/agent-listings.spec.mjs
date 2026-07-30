@@ -105,7 +105,7 @@ try {
 
   const workspaceHeading = await page
     .locator("h1, h2")
-    .filter({ hasText: /My listings|List your property on RentMe/ })
+    .filter({ hasText: /my listings|list your property/i })
     .first()
     .isVisible()
     .catch(() => false);
