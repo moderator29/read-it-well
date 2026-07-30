@@ -124,7 +124,7 @@ export function ListingOptionsSheet({
 
         {/* --------------------------------------------- inspection and safety */}
         <div className="mt-4 flex items-start gap-3">
-          <span className="h-9 w-9 shrink-0" aria-hidden="true">
+          <span className="h-12 w-12 shrink-0" aria-hidden="true">
             <BrandIcon name="shield-lock" fill />
           </span>
           <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">

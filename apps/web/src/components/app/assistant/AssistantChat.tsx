@@ -424,7 +424,7 @@ export function AssistantChat() {
   );
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-64px-10rem)] min-h-[26rem] w-full max-w-5xl flex-col lg:h-[calc(100dvh-64px-4rem)]">
+    <div className="flex h-full min-h-0 w-full flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 lg:px-8">
       <PageHeader
         title="RentMe AI"
         subtitle="Beta"
@@ -441,7 +441,7 @@ export function AssistantChat() {
         }
       />
 
-      <div className="flex min-h-0 flex-1 gap-4">
+      <div className="flex min-h-0 flex-1 gap-6">
         {/* --------------------------------------------- desktop sidebar */}
         <aside
           aria-label="Assistant navigation"
@@ -454,7 +454,7 @@ export function AssistantChat() {
         <section className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-1 flex-col lg:mx-0 lg:max-w-none">
           <div
             ref={scrollerRef}
-            className="flex-1 space-y-4 overflow-y-auto pb-4 pr-1"
+            className="flex-1 space-y-5 overflow-y-auto pb-5 pr-1"
             aria-live="polite"
             aria-label="Conversation"
           >
@@ -494,7 +494,7 @@ export function AssistantChat() {
               if (!m.text.trim() && (m.listings?.length ?? 0) === 0) return null;
               return (
                 <div key={m.id} className="nf-rise flex items-end gap-2.5">
-                  <span className="h-7 w-7 shrink-0" aria-hidden="true">
+                  <span className="h-10 w-10 shrink-0" aria-hidden="true">
                     <BrandIcon name="bot-home" fill />
                   </span>
                   <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md p-4">
@@ -531,7 +531,7 @@ export function AssistantChat() {
 
             {showTyping && (
               <div className="nf-rise flex items-end gap-2.5">
-                <span className="h-7 w-7 shrink-0" aria-hidden="true">
+                <span className="h-10 w-10 shrink-0" aria-hidden="true">
                   <BrandIcon name="bot-home" fill />
                 </span>
                 <div

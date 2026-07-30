@@ -258,17 +258,48 @@ body {
    * white surface with a squircle radius and a blue-lit edge.
    */
   .nf-brand-icon {
+    display: block;
     object-fit: contain;
-    border-radius: 26%;
-    background: linear-gradient(168deg, #FFFFFF 0%, #F2F5FA 100%);
+    /* The artwork is lit on white, so it multiplies cleanly into any tile:
+       the ground disappears and only the object and its shadow survive. */
+    mix-blend-mode: multiply;
   }
-  :root[data-theme="light"] .nf-brand-icon {
-    box-shadow: inset 0 0 0 1px rgb(18 21 26 / 0.05);
-  }
-  :root:not([data-theme="light"]) .nf-brand-icon {
+
+  /*
+   * The icon tile.
+   *
+   * Every brand object sits on this chip, the same glass material the rest of
+   * the platform is built from: edge-lit translucent blue at night, a soft
+   * white chip with a hairline on paper. The object is inset so it never
+   * touches the tile wall.
+   */
+  .nf-icon-tile {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    padding: 12%;
+    border-radius: 28%;
+    background:
+      radial-gradient(120% 100% at 28% 10%, rgb(255 255 255 / 0.92) 0%, rgb(255 255 255 / 0.7) 42%, transparent 72%),
+      linear-gradient(160deg, #FFFFFF 0%, #EEF2FA 100%);
     box-shadow:
-      inset 0 0 0 1px rgb(92 124 255 / 0.35),
-      0 6px 20px -8px rgb(12 57 239 / 0.55);
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      inset 0 0 0 1px rgb(12 57 239 / 0.14),
+      0 6px 18px -10px rgb(12 57 239 / 0.45);
+  }
+  :root[data-theme="light"] .nf-icon-tile {
+    background: linear-gradient(160deg, #FFFFFF 0%, #F4F7FC 100%);
+    box-shadow:
+      inset 0 0 0 1px rgb(18 21 26 / 0.07),
+      0 1px 3px rgb(18 21 26 / 0.05);
+  }
+  :root:not([data-theme="light"]) .nf-icon-tile {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.85),
+      inset 0 0 0 1px rgb(92 124 255 / 0.5),
+      0 8px 22px -10px rgb(12 57 239 / 0.7);
   }
 
   /*
@@ -305,6 +336,17 @@ body {
   .nf-story-art {
     -webkit-mask-image: radial-gradient(76% 76% at 50% 48%, #000 62%, transparent 92%);
     mask-image: radial-gradient(76% 76% at 50% 48%, #000 62%, transparent 92%);
+  }
+
+  /* A scene shown small inside the platform gets a rounded chip, never a hard
+     square block sitting on the card. */
+  .nf-scene-chip {
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid rgb(18 21 26 / 0.07);
+    overflow: hidden;
+  }
+  :root:not([data-theme="light"]) .nf-scene-chip {
+    border-color: rgb(92 124 255 / 0.28);
   }
 
   /* Anchored headings clear the sticky header instead of hiding under it. */

@@ -196,7 +196,7 @@ export function BookingsTabs({
           aria-labelledby={`bookings-tab-${current.key}`}
           className="nf-rise flex flex-col items-center gap-4 py-10 text-center sm:py-14"
         >
-          <span className="block h-16 w-16">
+          <span className="block h-20 w-20">
             <BrandIcon name="calendar-check" fill />
           </span>
           <p className="mx-auto max-w-[38ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">

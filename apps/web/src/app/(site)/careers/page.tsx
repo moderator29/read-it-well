@@ -76,7 +76,7 @@ export default function CareersPage() {
             {culture.map((c, i) => (
               <Reveal key={c.title} delay={(i % 2) * 80} className="h-full">
                 <div className="nf-card flex h-full flex-col gap-2.5 p-5 sm:p-6">
-                  <span className="inline-grid h-10 w-10 place-items-center">
+                  <span className="inline-grid h-13 w-13 place-items-center">
                     <BrandIcon name={c.icon} fill />
                   </span>
                   <span className="font-semibold">{c.title}</span>
@@ -145,7 +145,7 @@ export default function CareersPage() {
             {wanted.map((w, i) => (
               <Reveal key={w} as="li" delay={i * 60}>
                 <div className="nf-card flex items-center gap-3 p-4 sm:p-5">
-                  <span className="inline-grid h-8 w-8 shrink-0 place-items-center">
+                  <span className="inline-grid h-11 w-11 shrink-0 place-items-center">
                     <BrandIcon name="user-check" fill />
                   </span>
                   <span className="text-[0.9375rem] font-medium leading-snug">{w}</span>

@@ -513,7 +513,7 @@ export function GroupCard({
   return (
     <section className="nf-card p-5 sm:p-6" aria-label={overline}>
       <div className="mb-4 flex items-center gap-2.5">
-        <span className="block h-6 w-6 shrink-0">
+        <span className="block h-9 w-9 shrink-0">
           <BrandIcon name={icon} fill />
         </span>
         <h2 className="nf-overline">{overline}</h2>

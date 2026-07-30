@@ -70,13 +70,13 @@ export default async function LandingPage() {
 
           {/* Floating category objects drifting in the hero air. Decorative. */}
           <div className="nf-icon-field" aria-hidden="true">
-            <span className="left-[4%] top-[64%] h-8 w-8 sm:h-10 sm:w-10">
+            <span className="left-[4%] top-[64%] h-11 w-11 sm:h-13 sm:w-13">
               <BrandIcon name="wallet-secure" fill />
             </span>
-            <span className="left-[46%] top-[8%] hidden h-9 w-9 sm:block">
+            <span className="left-[46%] top-[8%] hidden h-12 w-12 sm:block">
               <BrandIcon name="pin-map" fill />
             </span>
-            <span className="right-[6%] top-[56%] h-8 w-8 sm:h-10 sm:w-10 lg:right-[40%] lg:top-[74%]">
+            <span className="right-[6%] top-[56%] h-11 w-11 sm:h-13 sm:w-13 lg:right-[40%] lg:top-[74%]">
               <BrandIcon name="keys-home" fill />
             </span>
           </div>
@@ -162,7 +162,7 @@ export default async function LandingPage() {
             <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
               {features.map((f) => (
                 <li key={f.title} className="nf-card nf-card--interactive flex items-center gap-3 p-3.5 sm:p-4">
-                  <span className="h-9 w-9 shrink-0 sm:h-11 sm:w-11">
+                  <span className="h-12 w-12 shrink-0 sm:h-14 sm:w-14">
                     <BrandIcon name={f.icon} fill />
                   </span>
                   <span className="min-w-0">
@@ -237,7 +237,7 @@ export default async function LandingPage() {
                 <ul className="grid gap-3 sm:grid-cols-2">
                   {visionPoints.map((p) => (
                     <li key={p.title} className="nf-card nf-card--interactive p-5">
-                      <span className="mb-3 block h-12 w-12">
+                      <span className="mb-3 block h-16 w-16">
                         <BrandIcon name={p.icon} fill />
                       </span>
                       <span className="block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">

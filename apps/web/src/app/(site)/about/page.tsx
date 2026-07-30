@@ -105,7 +105,7 @@ export default function AboutPage() {
             {categories.map((c, i) => (
               <Reveal key={c.title} as="li" delay={i * 70} className="h-full">
                 <div className="nf-card flex h-full flex-col items-start gap-2.5 p-4 sm:p-5">
-                  <span className="inline-grid h-10 w-10 place-items-center">
+                  <span className="inline-grid h-13 w-13 place-items-center">
                     <BrandIcon name={c.icon} fill />
                   </span>
                   <span className="font-semibold">{c.title}</span>
@@ -125,7 +125,7 @@ export default function AboutPage() {
             {values.map((v, i) => (
               <Reveal key={v.title} delay={i * 60}>
                 <div className="nf-card flex items-start gap-4 p-5 sm:p-6">
-                  <span className="inline-grid h-11 w-11 shrink-0 place-items-center">
+                  <span className="inline-grid h-14 w-14 shrink-0 place-items-center">
                     <BrandIcon name={v.icon} fill />
                   </span>
                   <span className="min-w-0">

@@ -49,7 +49,7 @@ export function WhyRentMe({ t }: { t: Dictionary }) {
         {values.map((v, i) => (
           <Reveal as="li" key={v.title} delay={i * 70}>
             <div className="nf-card nf-card--interactive flex h-full flex-col p-4 sm:p-5">
-              <span className="mb-3 block h-10 w-10 sm:h-12 sm:w-12">
+              <span className="mb-3 block h-13 w-13 sm:h-12 sm:w-12">
                 <BrandIcon name={v.icon} fill />
               </span>
               <span className="block text-[0.875rem] font-semibold text-[var(--nf-content-primary)] sm:text-[0.9375rem]">

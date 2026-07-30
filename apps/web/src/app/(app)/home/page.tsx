@@ -98,7 +98,7 @@ export default async function HomePage() {
                 href={c.href}
                 className="nf-card nf-card--interactive flex h-full flex-col items-center gap-2 p-3 text-center sm:p-4"
               >
-                <span className="block h-10 w-10 sm:h-12 sm:w-12">
+                <span className="block h-13 w-13 sm:h-12 sm:w-12">
                   <BrandIcon name={c.icon} fill />
                 </span>
                 <span className="text-[0.8125rem] font-semibold sm:text-[0.875rem]">
@@ -181,7 +181,7 @@ export default async function HomePage() {
                 href="/search?type=experience"
                 className="nf-card nf-card--interactive flex h-full flex-col items-center gap-2 p-3 text-center sm:p-4"
               >
-                <span className="block h-11 w-11 sm:h-12 sm:w-12">
+                <span className="block h-14 w-14 sm:h-12 sm:w-12">
                   <BrandIcon name={e.icon} fill />
                 </span>
                 <span className="text-[0.8125rem] font-semibold">{e.label}</span>

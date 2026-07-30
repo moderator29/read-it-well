@@ -29,7 +29,7 @@ export function VillaShowcase() {
 
             <ul className="mt-7 space-y-5">
               <li className="flex items-center gap-4">
-                <span className="h-11 w-11 shrink-0">
+                <span className="h-14 w-14 shrink-0">
                   <BrandIcon name="home-search" fill />
                 </span>
                 <span>
@@ -42,7 +42,7 @@ export function VillaShowcase() {
                 </span>
               </li>
               <li className="flex items-center gap-4">
-                <span className="h-11 w-11 shrink-0">
+                <span className="h-14 w-14 shrink-0">
                   <BrandIcon name="shield-check" fill />
                 </span>
                 <span>

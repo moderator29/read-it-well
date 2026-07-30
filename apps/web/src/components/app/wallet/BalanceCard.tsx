@@ -121,7 +121,7 @@ export function BalanceCard({
           >
             <EyeGlyph off={hidden} />
           </button>
-          <span className="h-7 w-7 shrink-0">
+          <span className="h-10 w-10 shrink-0">
             <BrandIcon name="wallet-secure" fill />
           </span>
         </div>

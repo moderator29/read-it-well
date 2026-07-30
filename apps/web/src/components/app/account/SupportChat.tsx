@@ -168,7 +168,7 @@ export function SupportChat() {
   return (
     <section className="nf-card p-5 sm:p-6" aria-label="Help and support">
       <div className="flex items-center gap-3">
-        <span className="block h-9 w-9 shrink-0">
+        <span className="block h-12 w-12 shrink-0">
           <BrandIcon name="support-chat" fill />
         </span>
         <div className="min-w-0 flex-1">

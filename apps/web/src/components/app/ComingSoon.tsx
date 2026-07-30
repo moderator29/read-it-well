@@ -29,7 +29,7 @@ export function ComingSoon({
       <PageHeader title={title} />
       <div className="py-4 text-center sm:py-6">
       <Reveal>
-        <span className="mx-auto block h-16 w-16 sm:h-20 sm:w-20">
+        <span className="mx-auto block h-20 w-20 sm:h-24 sm:w-24">
           <BrandIcon name={icon} fill />
         </span>
         <p className="mx-auto mt-2.5 max-w-[44ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">

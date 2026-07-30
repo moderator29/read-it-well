@@ -139,7 +139,7 @@ export function NotificationsList() {
               "flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[var(--nf-glass-fill)]";
             const inner = (
               <>
-                <span className="h-8 w-8 shrink-0">
+                <span className="h-11 w-11 shrink-0">
                   <BrandIcon name={n.icon} fill />
                 </span>
                 <span className="min-w-0 flex-1 leading-tight">

@@ -197,7 +197,7 @@ export default async function AgentStatusPage() {
 
           {pending && (
             <p className="mt-5 flex items-center justify-center gap-2 text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
-              <span className="inline-grid h-5 w-5 shrink-0 place-items-center">
+              <span className="inline-grid h-8 w-8 shrink-0 place-items-center">
                 <BrandIcon name="calendar-check" fill />
               </span>
               {s.reviewNote}

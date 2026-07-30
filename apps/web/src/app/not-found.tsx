@@ -27,7 +27,7 @@ export default function NotFound() {
         <span className="nf-float-slow absolute right-[10%] top-[22%] block h-12 w-12 opacity-20 md:h-16 md:w-16">
           <BrandIcon name="gift" fill />
         </span>
-        <span className="nf-float-slow absolute bottom-[24%] left-[14%] block h-11 w-11 opacity-20 md:h-14 md:w-14">
+        <span className="nf-float-slow absolute bottom-[24%] left-[14%] block h-14 w-14 opacity-20 md:h-14 md:w-14">
           <BrandIcon name="luggage-check" fill />
         </span>
         <span className="nf-float absolute bottom-[18%] right-[12%] block h-14 w-14 opacity-25 md:h-[4.5rem] md:w-[4.5rem]">

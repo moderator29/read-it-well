@@ -338,7 +338,7 @@ export function ThreadView({
   }, []);
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-64px-10rem)] min-h-[26rem] w-full max-w-2xl flex-col lg:h-[calc(100dvh-64px-4rem)]">
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-3xl flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
       <PageHeader
         title={counterpartName}
         subtitle={listing?.title ?? "Direct message"}
@@ -390,7 +390,7 @@ export function ThreadView({
       {/* ------------------------------------------------------ chat thread */}
       <div
         ref={scrollerRef}
-        className="flex-1 space-y-4 overflow-y-auto pb-4 pr-1"
+        className="flex-1 space-y-5 overflow-y-auto pb-5 pr-1"
         aria-live="polite"
         aria-label="Conversation"
       >

@@ -24,7 +24,7 @@ export function ListingReviews({
   if (reviewCount === 0) {
     return (
       <div className="nf-card p-8 text-center">
-        <span className="mx-auto block h-12 w-12">
+        <span className="mx-auto block h-16 w-16">
           <BrandIcon name="reviews" fill />
         </span>
         <p className="mt-3.5 font-semibold text-[var(--nf-content-primary)]">No reviews yet</p>
@@ -39,7 +39,7 @@ export function ListingReviews({
   return (
     <div className="nf-card p-5">
       <div className="flex items-center gap-3.5">
-        <span className="block h-11 w-11 shrink-0">
+        <span className="block h-14 w-14 shrink-0">
           <BrandIcon name="reviews" fill />
         </span>
         <p className="flex items-baseline gap-2">

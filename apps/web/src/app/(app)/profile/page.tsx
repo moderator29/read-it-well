@@ -81,7 +81,7 @@ export default async function ProfilePage() {
                 i === actions.length - 1 ? "col-span-2 sm:col-span-1" : ""
               }`}
             >
-              <span className="block h-8 w-8">
+              <span className="block h-11 w-11">
                 <BrandIcon name={a.icon} fill />
               </span>
               <span className="leading-tight">

@@ -39,7 +39,7 @@ export function SceneBanner({
       className={`nf-card nf-card--interactive group flex items-center gap-4 overflow-hidden p-0 pr-4 sm:gap-5 sm:pr-6 ${className ?? ""}`}
     >
       <span
-        className={`nf-story-stage--${stage} flex h-[104px] w-[104px] shrink-0 items-center justify-center p-2 sm:h-[128px] sm:w-[128px] sm:p-3`}
+        className={`nf-scene-chip nf-story-stage--${stage} m-3 flex h-[92px] w-[92px] shrink-0 items-center justify-center p-2 sm:m-4 sm:h-[112px] sm:w-[112px] sm:p-2.5`}
       >
         <Image
           src={art}

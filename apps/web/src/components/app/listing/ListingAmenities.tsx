@@ -35,7 +35,7 @@ export function ListingAmenities({ amenities }: { amenities: string[] }) {
         const meta = AMENITY_META[key] ?? { icon: "service" as BrandIconName, label: prettify(key) };
         return (
           <li key={key} className="nf-chip justify-start gap-2.5 px-3 py-2.5">
-            <span className="block h-7 w-7 shrink-0">
+            <span className="block h-10 w-10 shrink-0">
               <BrandIcon name={meta.icon} fill />
             </span>
             <span className="truncate text-[0.8125rem]">{meta.label}</span>

@@ -29,7 +29,7 @@ export async function AgentComingSoon({
   return (
     <AgentShell t={t} locale={locale} active={active} profile={profile}>
       <div className="mx-auto max-w-lg py-10 text-center sm:py-16">
-        <span className="mx-auto block h-16 w-16 sm:h-[72px] sm:w-[72px]">
+        <span className="mx-auto block h-20 w-20 sm:h-[72px] sm:w-[72px]">
           <BrandIcon name={icon} fill />
         </span>
         <h1 className="nf-h2 mt-5">{title}</h1>

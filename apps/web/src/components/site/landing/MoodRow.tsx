@@ -45,7 +45,7 @@ export function MoodRow() {
                 href={`/search?q=${encodeURIComponent(m.q)}`}
                 className="nf-glass nf-card--interactive flex h-full flex-col items-start gap-3 rounded-[var(--nf-radius-lg)] p-4 sm:p-5"
               >
-                <span className="h-10 w-10 sm:h-12 sm:w-12">
+                <span className="h-13 w-13 sm:h-12 sm:w-12">
                   <BrandIcon name={m.icon} fill />
                 </span>
                 <span className="text-[0.875rem] font-semibold text-[var(--nf-content-primary)] sm:text-[0.9375rem]">

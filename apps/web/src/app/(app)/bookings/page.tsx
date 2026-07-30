@@ -76,7 +76,7 @@ export default async function BookingsPage() {
         <ul className="grid gap-2.5 sm:grid-cols-3">
           {steps.map((s) => (
             <li key={s.title} className="nf-card flex items-start gap-3 p-4 sm:flex-col">
-              <span className="h-9 w-9 shrink-0">
+              <span className="h-12 w-12 shrink-0">
                 <BrandIcon name={s.icon} fill />
               </span>
               <span className="leading-tight">

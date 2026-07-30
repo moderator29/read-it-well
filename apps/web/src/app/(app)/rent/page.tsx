@@ -70,9 +70,9 @@ export default async function RentPage({
         </div>
 
         <SceneBanner
-          art="/brand/story-verified.png"
-          alt="A neon shield holding a house, with a verification check"
-          stage="night"
+          art="/brand/story-shield.png"
+          alt="The RentMe shield mark with a verification check"
+          stage="paper"
           title="Every rental here is checked"
           body="Listings and agents are verified before they go live, and the whole conversation stays inside RentMe."
           href="/help"

@@ -43,7 +43,7 @@ export function PopularDestinations({ t }: { t: Dictionary }) {
                 href={`/search?q=${encodeURIComponent(d.city)}`}
                 className="nf-glass nf-card--interactive flex h-full items-center gap-3.5 rounded-[var(--nf-radius-lg)] p-4 sm:p-5"
               >
-                <span className="h-11 w-11 shrink-0 sm:h-12 sm:w-12">
+                <span className="h-14 w-14 shrink-0 sm:h-12 sm:w-12">
                   <BrandIcon name="pin-map" fill />
                 </span>
                 <span className="min-w-0">

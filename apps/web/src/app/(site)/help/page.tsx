@@ -141,7 +141,7 @@ export default function HelpPage() {
         {/* ------------------------------------------------ still stuck */}
         <div className="nf-card mt-14 flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div className="flex items-center gap-3">
-            <span className="inline-grid h-10 w-10 shrink-0 place-items-center">
+            <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
               <BrandIcon name="chat" fill />
             </span>
             <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">

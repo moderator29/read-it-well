@@ -35,6 +35,19 @@ export function AppShell({
   const active = usePathname();
   const [drawer, setDrawer] = useState(false);
 
+  /*
+   * Immersive surfaces.
+   *
+   * The assistant and an open message thread are conversations, not documents:
+   * they own the whole viewport the way every serious chat product does, with
+   * their own header and their own composer pinned to the bottom edge. Inside
+   * the standard shell they read as a small panel wedged between the app bar
+   * and the tab bar, which is exactly the "inner tab" feeling to avoid. Here
+   * the shell steps back: no app header, no tab bar, no page padding, and the
+   * column runs the full height so the thread scrolls inside itself.
+   */
+  const immersive = active === "/assistant" || /^\/messages\/[^/]+$/.test(active);
+
   /* The drawer closes itself on navigation and locks page scroll while open. */
   useEffect(() => setDrawer(false), [active]);
   useEffect(() => {
@@ -63,8 +76,16 @@ export function AppShell({
         </div>
       )}
 
-      <main id="main" className="min-w-0 flex-1 pb-24 lg:pb-0">
+      <main
+        id="main"
+        className={
+          immersive
+            ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden"
+            : "min-w-0 flex-1 pb-24 lg:pb-0"
+        }
+      >
         {/* ------------------------------------------------------- top bar */}
+        {!immersive && (
         <header className="nf-glass sticky top-0 z-40 border-b border-[var(--nf-border-subtle)]">
           <div className="flex h-[64px] items-center gap-3 px-4 sm:gap-4 sm:px-5 md:px-8">
             {/* Phones lead with the side navigation, exactly like the desktop left rail. */}
@@ -97,11 +118,16 @@ export function AppShell({
             </Link>
           </div>
         </header>
+        )}
 
-        <div className="nf-shell py-8">{children}</div>
+        {immersive ? (
+          <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+        ) : (
+          <div className="nf-shell py-8 sm:py-10">{children}</div>
+        )}
       </main>
 
-      <MobileTabBar t={t} active={active} />
+      {!immersive && <MobileTabBar t={t} active={active} />}
     </div>
   );
 }

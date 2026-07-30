@@ -33,7 +33,7 @@ function Tile({
       href={href}
       className={["nf-card nf-card--interactive flex items-start gap-2.5 p-3.5 sm:gap-3 sm:p-4", className ?? ""].join(" ")}
     >
-      <span className="h-9 w-9 shrink-0 sm:h-[42px] sm:w-[42px]">
+      <span className="h-12 w-12 shrink-0 sm:h-[42px] sm:w-[42px]">
         <BrandIcon name={icon} fill />
       </span>
       <span className="min-w-0">
@@ -245,7 +245,7 @@ export function RealDashboard({
                 href={action.href}
                 className="nf-card nf-card--interactive flex flex-col items-center gap-2 p-4 text-center sm:p-5"
               >
-                <span className="h-10 w-10 sm:h-11 sm:w-11">
+                <span className="h-13 w-13 sm:h-14 sm:w-14">
                   <BrandIcon name={action.icon} fill />
                 </span>
                 <span className="text-[0.8125rem] font-semibold">{action.label}</span>

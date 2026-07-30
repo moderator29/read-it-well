@@ -87,7 +87,7 @@ export function WalletActions({ locale }: { locale: Locale }) {
                 : ""
             }`}
           >
-            <span className="h-7 w-7">
+            <span className="h-10 w-10">
               <BrandIcon name={p.icon} fill />
             </span>
             {p.label}
@@ -106,7 +106,7 @@ export function WalletActions({ locale }: { locale: Locale }) {
         >
           <div className="mb-3 flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
-              <span className="h-7 w-7 shrink-0">
+              <span className="h-10 w-10 shrink-0">
                 <BrandIcon name={active.icon} fill />
               </span>
               <div>

@@ -27,7 +27,7 @@ export function StatCard({
   const up = deltaPct >= 0;
   return (
     <div className={["nf-card flex items-start gap-2.5 p-3.5 sm:gap-3 sm:p-4", className ?? ""].join(" ")}>
-      <span className="h-9 w-9 shrink-0 sm:h-[42px] sm:w-[42px]">
+      <span className="h-12 w-12 shrink-0 sm:h-[42px] sm:w-[42px]">
         <BrandIcon name={icon} fill />
       </span>
       <div className="min-w-0">

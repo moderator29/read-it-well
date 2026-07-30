@@ -319,9 +319,9 @@ export default async function SearchPage({
               </Link>
             </div>
             <SceneBanner
-              art="/brand/story-explore.png"
-              alt="A glowing map pin over a neon city map"
-              stage="night"
+              art="/brand/story-world.png"
+              alt="The RentMe world of places, keys, calendar and wallet"
+              stage="paper"
               title="Explore on the map instead"
               body="Pan across Nigeria and watch the lowest price in every covered city light up."
               href="/search?view=map"

@@ -82,7 +82,7 @@ export function WalletDeck({
             onClick={() => setOpen(tile.key)}
             className="nf-card nf-card--interactive flex flex-col items-center gap-2 px-2 py-4 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]"
           >
-            <span className="h-7 w-7">
+            <span className="h-10 w-10">
               <BrandIcon name={tile.icon} fill />
             </span>
             {tile.label}
@@ -168,7 +168,7 @@ function WalletDrawer({
               &times;
             </span>
           </button>
-          <span className="h-8 w-8">
+          <span className="h-11 w-11">
             <BrandIcon name={icon} fill />
           </span>
         </div>

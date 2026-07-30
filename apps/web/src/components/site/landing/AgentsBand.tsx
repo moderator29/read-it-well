@@ -63,7 +63,7 @@ export function AgentsBand({ t }: { t: Dictionary }) {
               <span className="nf-float absolute left-[6%] top-[8%] h-20 w-20 sm:h-24 sm:w-24 lg:h-28 lg:w-28">
                 <BrandIcon name="homes-sparkle" fill />
               </span>
-              <span className="nf-float-slow absolute bottom-[6%] left-[38%] h-16 w-16 opacity-90 sm:h-20 sm:w-20">
+              <span className="nf-float-slow absolute bottom-[6%] left-[38%] h-20 w-20 opacity-90 sm:h-24 sm:w-24">
                 <BrandIcon name="wallet-secure" fill />
               </span>
               <span className="nf-float-slow absolute right-[6%] top-[16%] h-14 w-14 opacity-80 sm:h-16 sm:w-16">

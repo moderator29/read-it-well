@@ -109,7 +109,7 @@ export default async function BecomeAgentPage() {
               {benefits.map((b, i) => (
                 <Reveal key={b.text} as="li" delay={i * 80} className="h-full">
                   <div className="nf-card flex h-full items-center gap-3 p-4 sm:flex-col sm:items-start sm:gap-2.5 sm:p-5">
-                    <span className="inline-grid h-10 w-10 shrink-0 place-items-center">
+                    <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
                       <BrandIcon name={b.icon} fill />
                     </span>
                     <span className="text-[0.875rem] font-medium leading-snug">{b.text}</span>
@@ -161,7 +161,7 @@ export default async function BecomeAgentPage() {
           <Reveal as="section" className="mt-14">
             <div className="nf-card overflow-hidden p-6 sm:p-8">
               <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-7">
-                <span className="inline-grid h-16 w-16 shrink-0 place-items-center sm:h-20 sm:w-20">
+                <span className="inline-grid h-20 w-20 shrink-0 place-items-center sm:h-24 sm:w-24">
                   <BrandIcon name="wallet-secure" fill />
                 </span>
                 <div className="min-w-0">
@@ -188,7 +188,7 @@ export default async function BecomeAgentPage() {
                 <Reveal key={n.q} delay={i * 60}>
                   <div className="nf-card p-5">
                     <h3 className="flex items-center gap-2.5 font-semibold">
-                      <span className="inline-grid h-5 w-5 shrink-0 place-items-center">
+                      <span className="inline-grid h-8 w-8 shrink-0 place-items-center">
                         <BrandIcon name="support-chat" fill />
                       </span>
                       {n.q}

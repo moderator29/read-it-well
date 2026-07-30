@@ -82,6 +82,7 @@ export function BrandIcon({
   fill,
   label,
   priority,
+  tile = true,
   className,
 }: {
   name: BrandIconName;
@@ -92,6 +93,8 @@ export function BrandIcon({
   /** Accessible name. Omit for decorative icons. */
   label?: string;
   priority?: boolean;
+  /** Draw the glass chip behind the object. On by default. */
+  tile?: boolean;
   className?: string;
 }) {
   const decorative = !label;
@@ -100,17 +103,36 @@ export function BrandIcon({
    * dimensions plus width and height of 100 percent rather than Next's
    * absolute fill mode. Absolute fill escapes any wrapper that is not
    * positioned, which silently spills icons across the card they belong to.
+   *
+   * The object is rendered inside its own tile by default. The artwork is a
+   * lit ceramic object photographed on white: without a container it floats
+   * with nothing holding it, which is exactly what a bare icon looked like.
+   * The tile is the platform's glass chip, so every object sits on the same
+   * material as the rest of the design system.
    */
-  return (
+  const img = (
     <Image
       src={`/brand/icons/${name}.png`}
       alt={label ?? ""}
       aria-hidden={decorative || undefined}
       priority={priority}
-      width={fill ? 128 : size}
-      height={fill ? 128 : size}
-      sizes={fill ? "(max-width: 640px) 22vw, 128px" : undefined}
-      className={`nf-brand-icon ${fill ? "h-full w-full" : ""} ${className ?? ""}`}
+      width={fill ? 160 : size}
+      height={fill ? 160 : size}
+      sizes={fill ? "(max-width: 640px) 26vw, 160px" : undefined}
+      className={`nf-brand-icon ${fill ? "h-full w-full" : ""}`}
     />
+  );
+
+  if (!tile) {
+    return <span className={className}>{img}</span>;
+  }
+
+  return (
+    <span
+      className={`nf-icon-tile ${fill ? "h-full w-full" : ""} ${className ?? ""}`}
+      style={fill ? undefined : { width: size, height: size }}
+    >
+      {img}
+    </span>
   );
 }

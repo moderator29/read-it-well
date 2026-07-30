@@ -31,7 +31,7 @@ export function SecurityNote() {
     <ul className="grid grid-cols-3 gap-2" aria-label="How your money is protected">
       {FEATURES.map((f) => (
         <li key={f.title} className="nf-card flex flex-col items-center px-2.5 py-4 text-center">
-          <span className="h-7 w-7">
+          <span className="h-10 w-10">
             <BrandIcon name={f.icon} fill />
           </span>
           <p className="mt-2 text-[0.72rem] font-semibold leading-snug">{f.title}</p>

@@ -303,7 +303,7 @@ export default async function AgentDashboardPage() {
                 href={q.href}
                 className="nf-card nf-card--interactive flex flex-col items-center gap-2 p-4 text-center sm:p-5"
               >
-                <span className="h-10 w-10 sm:h-11 sm:w-11">
+                <span className="h-13 w-13 sm:h-14 sm:w-14">
                   <BrandIcon name={q.icon} fill />
                 </span>
                 <span className="text-[0.8125rem] font-semibold">{q.label}</span>
