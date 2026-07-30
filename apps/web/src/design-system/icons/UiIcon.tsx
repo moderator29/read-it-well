@@ -41,9 +41,38 @@ export type UiIconName =
   | "settings-gear"
   | "heart"
   | "grid"
-  | "key";
+  | "key"
+  | "sliders"
+  | "share"
+  | "map";
 
 const PATHS: Record<UiIconName, React.ReactNode> = {
+  // Filter control. Two rails with offset handles, the convention every
+  // traveller already recognises from the apps they use daily.
+  sliders: (
+    <>
+      <path d="M3 8h5m4 0h9" />
+      <path d="M3 16h11m4 0h3" />
+      <circle cx="10" cy="8" r="2.1" />
+      <circle cx="16" cy="16" r="2.1" />
+    </>
+  ),
+  // Share. The outbound tray: a box open at the top with an arrow leaving it.
+  share: (
+    <>
+      <path d="M12 3.6v10" />
+      <path d="m8.4 7.2 3.6-3.6 3.6 3.6" />
+      <path d="M6.4 12.4H5.2A1.2 1.2 0 0 0 4 13.6v5.6a1.2 1.2 0 0 0 1.2 1.2h13.6a1.2 1.2 0 0 0 1.2-1.2v-5.6a1.2 1.2 0 0 0-1.2-1.2h-1.2" />
+    </>
+  ),
+  // Map view. A folded sheet, so it reads as a map rather than a pin.
+  map: (
+    <>
+      <path d="M9.4 4.2 4 6.4v13.4l5.4-2.2 5.2 2.2 5.4-2.2V4.2l-5.4 2.2z" />
+      <path d="M9.4 4.2v13.4" />
+      <path d="M14.6 6.4v13.4" />
+    </>
+  ),
   search: (
     <>
       <circle cx="11" cy="11" r="6.6" />
