@@ -6,6 +6,7 @@ import { getAgentRepository } from "@/lib/agent/repository";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { BackButton } from "@/components/site/BackButton";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { StatusIcon } from "./StatusIcon";
 
 export const metadata: Metadata = {
   title: "Application status",
@@ -76,18 +77,11 @@ export default async function AgentStatusPage() {
           </div>
 
           <div className="nf-rise text-center">
-            <span
-              className="mx-auto grid h-20 w-20 place-items-center rounded-full"
-              style={{
-                background: approved
-                  ? "var(--nf-state-success-surface)"
-                  : "color-mix(in oklab, var(--nf-mode-agent) 18%, transparent)",
-              }}
-            >
-              <span className="inline-grid h-14 w-14 place-items-center">
-                <BrandIcon name={approved ? "shield-check" : "calendar-check"} fill />
-              </span>
-            </span>
+            <StatusIcon
+              approved={approved}
+              applicationRef={profile.applicationRef}
+              icon={approved ? "shield-check" : "calendar-check"}
+            />
 
             <h1 className="nf-h1 mt-5">{approved ? s.approved : s.submittedTitle}</h1>
             <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">

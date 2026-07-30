@@ -19,12 +19,22 @@ export function PageHeader({
   fallback = "/home",
   backLabel = "Back",
   actions,
+  leading,
+  tone = "default",
 }: {
   title: string;
   subtitle?: string;
   fallback?: string;
   backLabel?: string;
   actions?: React.ReactNode;
+  /** A mark placed before the title, e.g. a verified-state BrandIcon. */
+  leading?: React.ReactNode;
+  /**
+   * "verified" tints the row and settles in once, for a real state change
+   * landing on the page (an inspection just confirmed, say) rather than a
+   * decorative loop. Default carries no tint.
+   */
+  tone?: "default" | "verified";
 }) {
   const router = useRouter();
 
@@ -35,10 +45,15 @@ export function PageHeader({
   };
 
   return (
-    <div className="mb-5 flex items-center gap-4 sm:mb-6">
+    <div
+      className={`mb-5 flex items-center gap-4 rounded-[var(--nf-radius-lg)] sm:mb-6 ${
+        tone === "verified" ? "nf-page-header--verified" : ""
+      }`}
+    >
       <button type="button" aria-label={backLabel} onClick={back} className="nf-icon-btn h-9 w-9 sm:h-10 sm:w-10">
         <UiIcon name="arrow-left" size={17} />
       </button>
+      {leading}
       <div className="min-w-0 flex-1">
         <h1 className="nf-h2 truncate">{title}</h1>
         {subtitle && (

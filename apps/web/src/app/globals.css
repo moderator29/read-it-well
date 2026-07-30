@@ -52,6 +52,23 @@ html {
   }
 }
 
+/*
+ * The photo camera move. A listing card and the gallery it opens into tag
+ * matching elements with the same `view-transition-name` (set inline, since
+ * it is per-listing), and the browser's own View Transitions API morphs one
+ * into the other on navigation. Nothing here is conditional on JavaScript:
+ * unsupporting browsers simply never read `view-transition-name` and never
+ * see this rule fire, which is the whole no-op fallback. Reduced motion is
+ * a second, CSS-only guard behind the JS feature check in the card itself.
+ */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 html {
   background-color: var(--nf-surface-canvas);
 }
@@ -240,6 +257,26 @@ body {
     }
     .nf-card--interactive::after {
       display: none;
+    }
+  }
+
+  /*
+   * The listing gallery's lead photo. Once the camera move from the card has
+   * landed, the same frame keeps drifting on its own: a very slow, very
+   * gentle pan and zoom, so the opening shot of a listing never sits
+   * perfectly still. The pane wrapping this image is `overflow-hidden`, so
+   * the zoom never spills past the frame the card promised.
+   */
+  .nf-gallery-kenburns {
+    animation: nf-gallery-pan 20s var(--nf-ease-standard) infinite alternate;
+  }
+  @keyframes nf-gallery-pan {
+    from { transform: scale(1) translate3d(0, 0, 0); }
+    to { transform: scale(1.06) translate3d(-1.2%, 1%, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-gallery-kenburns {
+      animation: none;
     }
   }
 
@@ -474,6 +511,186 @@ body {
     }
     .nf-just-booked {
       animation: none !important;
+    }
+  }
+
+  /* -------------------------------------------------------- conversation */
+
+  /*
+   * A message bubble springs in from the side its sender occupies: mine from
+   * the right, theirs from the left, so a reply reads as arriving from the
+   * person who sent it rather than just fading into place.
+   */
+  .nf-msg-in--mine {
+    animation: nf-msg-in-right var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  .nf-msg-in--theirs {
+    animation: nf-msg-in-left var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  @keyframes nf-msg-in-right {
+    from { opacity: 0; transform: translate3d(28px, 0, 0) scale(0.94); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes nf-msg-in-left {
+    from { opacity: 0; transform: translate3d(-28px, 0, 0) scale(0.94); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* Three breathing dots inside a real bubble shape, so "typing" reads as
+     part of the conversation rather than a spinner bolted on beside it. */
+  .nf-typing-dot {
+    animation: nf-typing-breathe 1.2s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-typing-breathe {
+    0%, 100% { transform: scale(0.72); opacity: 0.45; }
+    50% { transform: scale(1); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-typing-dot {
+      animation: none;
+      opacity: 0.8;
+    }
+  }
+
+  /*
+   * The thread header, the moment an inspection is confirmed. A real state
+   * change deserves more than new copy: the row tints the same success green
+   * the confirmed pill already uses and settles in once with the platform's
+   * own confirm pop, reusing `nf-confirm-pop` rather than inventing a second
+   * "something just landed" motion.
+   */
+  .nf-page-header--verified {
+    padding: 0.5rem 0.625rem;
+    margin-inline: -0.625rem;
+    background: color-mix(in oklab, var(--nf-state-success) 12%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-state-success) 32%, transparent);
+    animation: nf-confirm-pop var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-page-header--verified {
+      animation: none;
+    }
+  }
+
+  /*
+   * The assistant thinking, visibly. A ring spins around the avatar while a
+   * reply is actively streaming (a real signal, `streamingHere` in
+   * AssistantChat, not an idle loop), so the bot reads as reasoning rather
+   * than stalled. The ring sits on its own pseudo-element, never on the
+   * avatar tile's own transform, so it never fights the tile's parallax
+   * lean or its living-glass sheen.
+   */
+  .nf-bot-thinking {
+    position: relative;
+  }
+  .nf-bot-thinking::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    border-top-color: var(--nf-electric-300);
+    border-right-color: color-mix(in oklab, var(--nf-electric-300) 35%, transparent);
+    animation: nf-bot-spin 850ms linear infinite;
+    pointer-events: none;
+  }
+  @keyframes nf-bot-spin {
+    to { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-bot-thinking::after {
+      animation: none;
+      opacity: 0.7;
+    }
+  }
+
+  /*
+   * Real listing results fan into the thread with a staggered rise, `--i`
+   * set inline per card, rather than appearing as one flat block the moment
+   * the assistant's search resolves.
+   */
+  .nf-listing-fold-in {
+    animation: nf-listing-fold var(--nf-duration-slow) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--i, 0) * 90ms);
+    transform-origin: 50% 0%;
+  }
+  @keyframes nf-listing-fold {
+    from { opacity: 0; transform: translateY(14px) rotateX(-16deg) scale(0.96); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /*
+   * The guided flight: a brief full-screen onboarding over story-world.png
+   * on first visit (see components/site/Onboarding.tsx for the honest,
+   * localStorage-gated, reduced-motion-skipping trigger). It reuses the
+   * paper stage the artwork was actually rendered on, so text sits on real
+   * ink rather than the page's own theme colour, which would print
+   * near-white on this ground under the dark default.
+   */
+  .nf-onboarding {
+    color: rgb(18 21 26);
+    opacity: 1;
+    transition: opacity 260ms var(--nf-ease-standard);
+  }
+  .nf-onboarding .nf-overline {
+    color: rgb(18 21 26 / 0.6);
+  }
+  .nf-onboarding--leaving {
+    opacity: 0;
+  }
+  .nf-onboarding-frame {
+    filter: drop-shadow(0 24px 48px rgb(18 21 26 / 0.18));
+  }
+  .nf-onboarding-skip {
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--nf-radius-pill);
+    border: 1.5px solid rgb(18 21 26 / 0.14);
+    background: rgb(255 255 255 / 0.72);
+    backdrop-filter: blur(6px);
+    color: rgb(18 21 26 / 0.82);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-onboarding-skip:hover {
+    background: rgb(255 255 255 / 0.94);
+  }
+  /* The camera move: a slow pull back from a close crop of the world mark to
+     the full scene, so the flight opens on a detail and reveals the whole
+     promise as it settles. */
+  .nf-onboarding-image {
+    animation: nf-onboarding-pan 5.2s var(--nf-ease-standard) both;
+  }
+  @keyframes nf-onboarding-pan {
+    0% { transform: scale(1.22) translate3d(1.5%, 1%, 0); }
+    100% { transform: scale(1) translate3d(0, 0, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-onboarding-image {
+      animation: none;
+    }
+    .nf-onboarding {
+      transition: none;
+    }
+  }
+
+  /*
+   * The agent verification ceremony. The status icon assembles itself, a
+   * quick scale up from small with a slight rotate settling flat, the one
+   * time a browser renders this application as just approved (see
+   * app/agents/status/StatusIcon.tsx for the honest, one-shot trigger).
+   */
+  .nf-status-assemble {
+    animation: nf-status-assemble 600ms var(--nf-ease-spring) both;
+  }
+  @keyframes nf-status-assemble {
+    0% { opacity: 0; transform: scale(0.7) rotate(-8deg); }
+    70% { opacity: 1; transform: scale(1.05) rotate(2deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-status-assemble {
+      animation: none;
     }
   }
 
@@ -951,6 +1168,85 @@ body {
   :root[data-theme="light"] .nf-map-pin i {
     color: rgb(18 21 26 / 0.6);
   }
+
+  /*
+   * The living city. Marks are ordinary React buttons projected onto the
+   * frame every frame (see MapCanvas), not Leaflet divIcons, so their motion
+   * is plain CSS on real DOM nodes: cheap even with dozens of pins on screen,
+   * because nothing here runs a JS animation loop.
+   *
+   * Pins and clusters drop in with a small stagger on mount, `--pin-i` set
+   * inline per mark. `backwards` fill (not `forwards`) is deliberate: the
+   * animation only paints the hidden-to-settled state during its own delay
+   * and run, then gets out of the way, so a later selection's own scale
+   * (Tailwind's `scale-110`) is never left fighting a lingering animation.
+   */
+  .nf-map-pin-drop {
+    animation: nf-map-pin-drop 640ms var(--nf-ease-spring) backwards;
+    animation-delay: calc(var(--pin-i, 0) * 26ms);
+  }
+  @keyframes nf-map-pin-drop {
+    0% { opacity: 0; transform: translate(-50%, -100%) translateY(-22px) scale(0.4); }
+    60% { opacity: 1; transform: translate(-50%, -100%) translateY(3px) scale(1.08); }
+    100% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+  }
+  .nf-map-cluster-drop {
+    animation: nf-map-cluster-drop 640ms var(--nf-ease-spring) backwards;
+    animation-delay: calc(var(--pin-i, 0) * 26ms);
+  }
+  @keyframes nf-map-cluster-drop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+    60% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
+
+  /*
+   * A still map reads as a dead one. Idle marks breathe: a slow, small scale
+   * on an inner span, kept off the button's own element so it never fights
+   * the button's positioning transform or a selected pin's own scale-110.
+   * Selected pins drop the class entirely (see MapCanvas), so the moment a
+   * pin is chosen it holds still.
+   */
+  .nf-map-pin-breathe {
+    animation: nf-map-pin-breathe 5s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-map-pin-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+
+  /*
+   * The pin nearest the searched city blooms once when the map opens there:
+   * an expanding ring that fades out, marking where the search landed. Fires
+   * once (`both` fill holds the finished, invisible state) rather than
+   * looping, because a ring that never stops would stop meaning "you are
+   * here" and start meaning "something is wrong".
+   */
+  .nf-map-pin-drop[data-hero]::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border-radius: var(--nf-radius-pill);
+    border: 1.5px solid var(--nf-electric-300);
+    animation: nf-map-pin-bloom 1.5s var(--nf-ease-standard) 500ms both;
+    pointer-events: none;
+  }
+  @keyframes nf-map-pin-bloom {
+    0% { opacity: 0.85; transform: scale(0.72); }
+    100% { opacity: 0; transform: scale(2); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-map-pin-drop,
+    .nf-map-cluster-drop,
+    .nf-map-pin-breathe {
+      animation: none;
+    }
+    .nf-map-pin-drop[data-hero]::after {
+      animation: none;
+      opacity: 0;
+    }
+  }
+
   /* Leaflet chrome, restyled to the theme. */
   .leaflet-container {
     background: var(--nf-surface-inset);
@@ -1522,6 +1818,15 @@ body {
     box-shadow:
       inset 0 2px 10px rgb(0 0 0 / 0.55),
       inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  }
+
+  /* Stat card chart: the line carries a faint glow at night, flattens to a
+     plain stroke on paper so it never smears against a white card. */
+  .nf-statchart polyline {
+    filter: drop-shadow(0 0 4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent));
+  }
+  :root[data-theme="light"] .nf-statchart polyline {
+    filter: none;
   }
 
   /*

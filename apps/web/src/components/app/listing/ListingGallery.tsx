@@ -118,7 +118,15 @@ export function ListingGallery({
         {panes.map((photo, i) => (
           <div
             key={photo ?? `pane-${i}`}
-            className="relative h-full w-full shrink-0 snap-center snap-always"
+            className="relative h-full w-full shrink-0 snap-center snap-always overflow-hidden"
+            /*
+             * The lead pane carries the same view-transition-name the listing
+             * card tagged its photo box with, so a browser that supports the
+             * View Transitions API morphs the card's photo into this frame
+             * instead of cutting to it. Every other browser just never reads
+             * this property: no feature check needed on the receiving end.
+             */
+            style={i === 0 ? { viewTransitionName: `listing-photo-${listingId}` } : undefined}
           >
             <Placeholder angle={i % 2 === 0 ? 150 : 205} from={from} to={to} />
             {photo && !broken[i] && (
@@ -129,7 +137,7 @@ export function ListingGallery({
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 64rem"
                 priority={i === 0}
                 onError={() => setBroken((prev) => ({ ...prev, [i]: true }))}
-                className="object-cover"
+                className={`object-cover ${i === 0 ? "nf-gallery-kenburns" : ""}`}
               />
             )}
           </div>

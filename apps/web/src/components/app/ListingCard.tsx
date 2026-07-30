@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -100,8 +103,38 @@ export function ListingCard({
       where the entrance would be noise rather than a moment. */
   index?: number;
 }) {
+  const router = useRouter();
   const [from, to] = HUES[listing.hue % HUES.length] ?? HUES[0]!;
   const photo = listing.photos[0];
+  const href = `/listing/${listing.id}`;
+
+  /*
+   * The camera move. Both this card's photo box and the gallery's lead pane
+   * carry the same `view-transition-name`, so a supporting browser morphs one
+   * into the other instead of cutting between them. Feature detected, and a
+   * plain click event (no modifier key, no new tab) is required before the
+   * browser's own navigation is intercepted, so keyboard, middle-click and
+   * command-click all keep working exactly as the anchor already promises.
+   * Every other browser, and reduced motion, gets the ordinary Link.
+   */
+  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    if (!("startViewTransition" in document)) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    event.preventDefault();
+    document.startViewTransition(() => {
+      router.push(href);
+    });
+  };
   // Restaurants and experiences price per head; everything else is nightly.
   const perHead = listing.kind === "restaurant" || listing.kind === "experience";
   const isPartner = listing.source === "partner";
@@ -126,8 +159,11 @@ export function ListingCard({
       className={`nf-card nf-card--interactive group overflow-hidden ${index !== undefined ? "nf-card-in" : ""}`}
       style={cardStyle}
     >
-      <Link href={`/listing/${listing.id}`} className="block">
-        <div className="relative aspect-[4/3] w-full overflow-hidden">
+      <Link href={href} onClick={handleClick} className="block">
+        <div
+          className="relative aspect-[4/3] w-full overflow-hidden"
+          style={{ viewTransitionName: `listing-photo-${listing.id}` }}
+        >
           {/* Media layer scales gently on hover; badges and scrim stay put. */}
           <div
             className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100"

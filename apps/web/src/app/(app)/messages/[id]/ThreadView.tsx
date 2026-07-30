@@ -15,8 +15,13 @@ import {
   SAFETY_EDUCATION_SEEN_KEY,
 } from "@/lib/messages/education";
 import { lagosTimeLabel } from "@/lib/messages/time";
-import { useThreadRealtime, type LiveMessageRow } from "@/lib/messages/useRealtime";
+import {
+  useThreadRealtime,
+  useThreadTyping,
+  type LiveMessageRow,
+} from "@/lib/messages/useRealtime";
 import { createClient } from "@/lib/supabase/client";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
 
 /**
@@ -148,6 +153,14 @@ export function ThreadView({
      action result or an earlier event may have landed first); the other
      side's messages append and are immediately marked read, since the thread
      is on screen. */
+  // "Someone is typing", the real signal: a broadcast on the thread's own
+  // channel (see useThreadTyping), not a timer with nobody behind it. Seed
+  // mode passes null, since there is no counterpart really present there.
+  const { typing: counterpartTyping, ping: pingTyping } = useThreadTyping(
+    live ? conversationId : null,
+    meId,
+  );
+
   useThreadRealtime(live ? conversationId : null, (row: LiveMessageRow) => {
     setItems((prev) => {
       if (prev.some((m) => m.id === row.id)) return prev;
@@ -169,6 +182,7 @@ export function ThreadView({
      surfaces the canonical copy once, inline and dismissible. */
   const onDraftChange = (value: string) => {
     setDraft(value);
+    if (live && value.trim()) pingTyping();
     if (!educationOpen && MONEY_TALK_RE.test(value)) {
       try {
         if (window.sessionStorage.getItem(SAFETY_EDUCATION_SEEN_KEY)) return;
@@ -343,6 +357,14 @@ export function ThreadView({
         title={counterpartName}
         subtitle={listing?.title ?? "Direct message"}
         fallback="/messages"
+        tone={inspected ? "verified" : "default"}
+        leading={
+          inspected ? (
+            <span className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" aria-hidden="true">
+              <BrandIcon name="shield-check" state="verified" fill />
+            </span>
+          ) : undefined
+        }
         actions={
           listing ? (
             <button
@@ -401,7 +423,7 @@ export function ThreadView({
 
         {items.map((m) =>
           m.mine ? (
-            <div key={m.id} className="nf-rise flex flex-col items-end">
+            <div key={m.id} className="nf-msg-in--mine flex flex-col items-end">
               {/* Deep blue keeps white body text readable at chat sizes. */}
               <div
                 className={`max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-4 py-2.5 text-white ${
@@ -436,7 +458,7 @@ export function ThreadView({
               )}
             </div>
           ) : (
-            <div key={m.id} className="nf-rise flex items-end gap-3">
+            <div key={m.id} className="nf-msg-in--theirs flex items-end gap-3">
               <span
                 aria-hidden="true"
                 className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-electric-300)]"
@@ -463,6 +485,33 @@ export function ThreadView({
               </div>
             </div>
           ),
+        )}
+
+        {/* "Someone is typing": three breathing dots in the same bubble shape
+            a reply lands in, driven by the real broadcast above. */}
+        {counterpartTyping && (
+          <div className="nf-msg-in--theirs flex items-end gap-3">
+            <span
+              aria-hidden="true"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-electric-300)]"
+            >
+              {counterpartName.charAt(0)}
+            </span>
+            <div
+              className="nf-card flex items-center gap-1.5 rounded-2xl rounded-bl-md px-4 py-3.5"
+              role="status"
+              aria-label={`${counterpartName} is typing`}
+            >
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  aria-hidden="true"
+                  className="nf-typing-dot h-1.5 w-1.5 rounded-full bg-[var(--nf-content-muted)]"
+                  style={{ animationDelay: `${i * 160}ms` }}
+                />
+              ))}
+            </div>
+          </div>
         )}
       </div>
 

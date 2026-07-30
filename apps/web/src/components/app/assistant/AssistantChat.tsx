@@ -492,9 +492,16 @@ export function AssistantChat() {
               }
               // An assistant bubble appears once it has something to show.
               if (!m.text.trim() && (m.listings?.length ?? 0) === 0) return null;
+              // Still streaming into this exact bubble: the avatar's ring
+              // spins to signal active reasoning, real signal, no loop of
+              // its own once the turn finishes.
+              const thisStreaming = streamingHere && m.id === lastMessage?.id;
               return (
                 <div key={m.id} className="nf-rise flex items-end gap-3">
-                  <span className="h-12 w-12 shrink-0" aria-hidden="true">
+                  <span
+                    className={`h-12 w-12 shrink-0 ${thisStreaming ? "nf-bot-thinking" : ""}`}
+                    aria-hidden="true"
+                  >
                     <BrandIcon name="bot-home" fill />
                   </span>
                   <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md p-4">
@@ -504,9 +511,16 @@ export function AssistantChat() {
                       </p>
                     )}
                     {m.listings && m.listings.length > 0 && (
-                      <ul className="mt-3 space-y-2" aria-label="Matching listings">
-                        {m.listings.map((l) => (
-                          <li key={l.id}>
+                      <ul
+                        className="mt-3 space-y-2 [perspective:700px]"
+                        aria-label="Matching listings"
+                      >
+                        {m.listings.map((l, i) => (
+                          <li
+                            key={l.id}
+                            className="nf-listing-fold-in"
+                            style={{ "--i": i } as React.CSSProperties}
+                          >
                             <ThreadListingCard listing={l} />
                           </li>
                         ))}
@@ -531,7 +545,7 @@ export function AssistantChat() {
 
             {showTyping && (
               <div className="nf-rise flex items-end gap-3">
-                <span className="h-12 w-12 shrink-0" aria-hidden="true">
+                <span className="nf-bot-thinking h-12 w-12 shrink-0" aria-hidden="true">
                   <BrandIcon name="bot-home" fill />
                 </span>
                 <div

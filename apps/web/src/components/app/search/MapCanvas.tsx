@@ -111,6 +111,30 @@ export function MapCanvas({
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [savePending, startSave] = useTransition();
 
+  /*
+   * The city the search landed on. Computed once, from the props the page
+   * mounted with, never recomputed as the visitor pans or filters: it marks
+   * where the search opened, not whatever happens to be nearest later. Empty
+   * when there is no active query or it names a city we have no pin for, so
+   * the bloom simply never fires rather than guessing.
+   */
+  const heroId = useMemo(() => {
+    if (!active) return null;
+    const city = cities.find((c) => c.city.toLowerCase() === active.trim().toLowerCase());
+    if (!city) return null;
+    let best: string | null = null;
+    let bestDist = Infinity;
+    for (const l of listings) {
+      const d = (l.lat - city.lat) ** 2 + (l.lng - city.lng) ** 2;
+      if (d < bestDist) {
+        bestDist = d;
+        best = l.id;
+      }
+    }
+    return best;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ------------------------------------------------------------ measurement
   useEffect(() => {
     const frame = frameRef.current;
@@ -520,21 +544,28 @@ export function MapCanvas({
 
       {/* ------------------------------------------------------------- marks */}
       <div className="pointer-events-none absolute inset-0 z-[1000]">
-        {marks.bubbles.map((group) => (
+        {marks.bubbles.map((group, i) => (
           <button
             key={group.key}
             type="button"
             data-testid="map-cluster"
             onClick={() => expand(group)}
-            style={{ left: group.x, top: group.y, boxShadow: LIFT }}
-            className="nf-numeric pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--nf-border-brand)] bg-[var(--nf-brand-primary)] px-3 py-2 text-[0.8125rem] font-bold text-[var(--nf-content-on-brand)] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-brand-primary)] active:scale-95 motion-reduce:transition-none"
+            style={
+              {
+                left: group.x,
+                top: group.y,
+                boxShadow: LIFT,
+                "--pin-i": i,
+              } as React.CSSProperties
+            }
+            className="nf-numeric nf-map-cluster-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--nf-border-brand)] bg-[var(--nf-brand-primary)] px-3 py-2 text-[0.8125rem] font-bold text-[var(--nf-content-on-brand)] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-brand-primary)] active:scale-95 motion-reduce:transition-none"
           >
-            {group.items.length}
+            <span className="nf-map-pin-breathe inline-block">{group.items.length}</span>
             <span className="sr-only"> places grouped here, open them</span>
           </button>
         ))}
 
-        {marks.pins.map((pin) => {
+        {marks.pins.map((pin, i) => {
           const chosen = pin.id === selectedId;
           return (
             <button
@@ -542,27 +573,43 @@ export function MapCanvas({
               type="button"
               data-testid="map-pin"
               data-selected={chosen ? "true" : undefined}
+              data-hero={pin.id === heroId ? "true" : undefined}
               aria-pressed={chosen}
               onClick={() => choose(pin)}
-              style={{ left: pin.x, top: pin.y, zIndex: chosen ? 2 : 1, boxShadow: LIFT }}
-              className={`nf-numeric pointer-events-auto absolute inline-flex -translate-x-1/2 -translate-y-full items-center gap-1 whitespace-nowrap rounded-[var(--nf-radius-pill)] px-2.5 py-1.5 text-[0.75rem] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-brand-primary)] active:scale-95 motion-reduce:transition-none ${
+              style={
+                {
+                  left: pin.x,
+                  top: pin.y,
+                  zIndex: chosen ? 2 : 1,
+                  boxShadow: LIFT,
+                  "--pin-i": i,
+                } as React.CSSProperties
+              }
+              className={`nf-numeric nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-pill)] px-2.5 py-1.5 text-[0.75rem] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-brand-primary)] active:scale-95 motion-reduce:transition-none ${
                 chosen
                   ? "scale-110 border border-[var(--nf-brand-primary)] bg-[var(--nf-brand-primary)] text-[var(--nf-content-on-brand)]"
                   : "border border-[var(--nf-border-default)] bg-[var(--nf-surface-elevated)] text-[var(--nf-content-primary)] hover:border-[var(--nf-brand-primary)]"
               }`}
             >
-              {/* Partner stock never carries the verified badge, here or anywhere. */}
-              {pin.verified && !pin.partner && (
-                <UiIcon
-                  name="verified"
-                  size={11}
-                  strokeWidth={2.3}
-                  className={chosen ? undefined : "text-[var(--nf-brand-primary)]"}
-                />
-              )}
-              {pin.priceMinor > 0
-                ? formatMoney(pin.priceMinor, locale, pin.currency, { compact: true })
-                : pin.kindLabel}
+              {/* Idle pins breathe on their own inner span, so the slow scale
+                  loop never fights the button's own position or selection
+                  transform (see the CSS comment by nf-map-pin-breathe). */}
+              <span
+                className={`inline-flex items-center gap-1 ${chosen ? "" : "nf-map-pin-breathe"}`}
+              >
+                {/* Partner stock never carries the verified badge, here or anywhere. */}
+                {pin.verified && !pin.partner && (
+                  <UiIcon
+                    name="verified"
+                    size={11}
+                    strokeWidth={2.3}
+                    className={chosen ? undefined : "text-[var(--nf-brand-primary)]"}
+                  />
+                )}
+                {pin.priceMinor > 0
+                  ? formatMoney(pin.priceMinor, locale, pin.currency, { compact: true })
+                  : pin.kindLabel}
+              </span>
               <span className="sr-only">
                 {`, ${pin.title}, ${pin.area}`}
               </span>
