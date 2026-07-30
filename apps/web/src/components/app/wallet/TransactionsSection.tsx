@@ -122,8 +122,8 @@ export function TransactionsSection({
             <Reveal key={`${filter}-${group.key}`} delay={Math.min(i * 70, 280)}>
               <h3 className="nf-overline mb-2">{dayLabel(group.firstIso, locale)}</h3>
               <ul className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
-                {group.entries.map((e) => (
-                  <EntryRow key={e.id} entry={e} locale={locale} />
+                {group.entries.map((e, i) => (
+                  <EntryRow key={e.id} entry={e} locale={locale} index={i} />
                 ))}
               </ul>
             </Reveal>
@@ -146,13 +146,26 @@ export function TransactionsSection({
   );
 }
 
-function EntryRow({ entry, locale }: { entry: WalletEntry; locale: Locale }) {
+function EntryRow({
+  entry,
+  locale,
+  index,
+}: {
+  entry: WalletEntry;
+  locale: Locale;
+  /** Position within its day group; caps the stagger so a long history does
+      not keep animating for seconds after the group appears. */
+  index: number;
+}) {
   const amount = formatKoboExact(entry.amountMinor, locale);
   const credit = entry.direction === "credit";
   const settled = entry.status === "COMPLETED";
 
   return (
-    <li className="flex items-center gap-4 px-4 py-3.5">
+    <li
+      className={`flex items-center gap-4 px-4 py-3.5 ${credit ? "nf-tx-in" : "nf-tx-out"}`}
+      style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
+    >
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--nf-radius-md)] border border-white/10 bg-white/[0.05] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06)]">
         <span className="h-12 w-12">
           <BrandIcon name={KIND_ICON[entry.kind]} fill />

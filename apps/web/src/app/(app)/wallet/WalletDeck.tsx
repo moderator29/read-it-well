@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@naijafinds/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { Odometer } from "@/components/site/Odometer";
 import { formatKoboExact } from "@/components/app/wallet/money";
 import type { ActionResult } from "@/lib/actions/envelope";
 import {
@@ -463,12 +464,18 @@ function AmountField({ error, quickAmounts }: { error?: string; quickAmounts?: b
 
 function BalanceLine({ balanceMinor, locale }: { balanceMinor: number; locale: Locale }) {
   const amount = formatKoboExact(balanceMinor, locale);
+  // Same integer-kobo split as the balance card, so the figure that reacts
+  // to money on the wallet page also rolls into place here, inside the
+  // drawer where the guest is about to spend or send it.
+  const absMinor = Math.abs(balanceMinor);
+  const koboRemainder = absMinor % 100;
+  const wholeNaira = (absMinor - koboRemainder) / 100;
   return (
     <p className="rounded-[var(--nf-radius-md)] border border-white/10 bg-white/[0.04] px-3 py-2 text-[0.78rem] text-[var(--nf-content-muted)]">
       Available balance{" "}
-      <span className="font-semibold text-[var(--nf-content-primary)]">
-        {amount.whole}
-        {amount.kobo}
+      <span className="nf-numeric font-semibold text-[var(--nf-content-primary)]">
+        {"₦"}
+        <Odometer value={wholeNaira} suffix={amount.kobo} />
       </span>
     </p>
   );

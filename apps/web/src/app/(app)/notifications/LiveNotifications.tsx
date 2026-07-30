@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { markNotificationsRead } from "@/lib/messages/notifications-actions";
 import { lagosDayLabel, lagosTimeLabel } from "@/lib/messages/time";
 import { useNotificationsRealtime, type LiveNotificationRow } from "@/lib/messages/useRealtime";
@@ -83,19 +84,16 @@ export function LiveNotifications({
   if (items.length === 0) {
     return (
       <div className="nf-card nf-rise p-6 text-center">
-        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-electric-300)]">
-          <UiIcon name="bell" size={22} />
+        <span className="nf-story-art mx-auto block h-16 w-16">
+          <BrandIcon name="bell-badge" fill />
         </span>
         <h2 className="nf-h3 mt-4">You are all caught up</h2>
         <p className="mx-auto mt-2 max-w-md text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
           Bookings, messages and wallet activity will land here the moment they happen.
         </p>
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
-          <Link href="/search" className="nf-btn nf-btn--glass">
+        <div className="mt-5 flex justify-center">
+          <Link href="/search" className="nf-btn nf-btn--primary">
             Explore places
-          </Link>
-          <Link href="/messages" className="nf-btn nf-btn--primary">
-            Open Messages
           </Link>
         </div>
       </div>

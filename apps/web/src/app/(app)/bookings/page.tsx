@@ -45,9 +45,16 @@ async function getBookedStays(): Promise<Listing[]> {
  * the list is their real bookings read under RLS, with cancellation wired to
  * the state machine; otherwise the seeded trips keep the surface alive.
  */
-export default async function BookingsPage() {
+export default async function BookingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  const params = await searchParams;
+  const justBookedRaw = params.justBooked;
+  const justBooked = typeof justBookedRaw === "string" ? justBookedRaw : undefined;
 
   const groups = await getMyBookings(locale);
   const seeded = groups === null ? buildBookings(await getBookedStays(), locale) : null;
@@ -68,7 +75,7 @@ export default async function BookingsPage() {
       <Reveal>
         <div className="nf-card p-4 sm:p-5">
           {groups ? (
-            <MyBookings groups={groups} />
+            <MyBookings groups={groups} justBookedId={justBooked} />
           ) : (
             <BookingsTabs upcoming={seeded?.upcoming ?? []} past={seeded?.past ?? []} />
           )}

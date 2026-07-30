@@ -90,10 +90,15 @@ export function ListingCard({
   listing,
   locale,
   t,
+  index,
 }: {
   listing: Listing;
   locale: Locale;
   t: Dictionary;
+  /** Position in a result grid: staggers the card's rise-in entrance. Omit
+      for cards shown outside a freshly assembled list (rails, admin tables),
+      where the entrance would be noise rather than a moment. */
+  index?: number;
 }) {
   const [from, to] = HUES[listing.hue % HUES.length] ?? HUES[0]!;
   const photo = listing.photos[0];
@@ -111,8 +116,16 @@ export function ListingCard({
   // worse than none.
   const hasPrice = listing.priceMinor > 0;
 
+  const cardStyle =
+    index !== undefined
+      ? ({ "--card-i": Math.min(index, 5) } as React.CSSProperties)
+      : undefined;
+
   return (
-    <article className="nf-card nf-card--interactive group overflow-hidden">
+    <article
+      className={`nf-card nf-card--interactive group overflow-hidden ${index !== undefined ? "nf-card-in" : ""}`}
+      style={cardStyle}
+    >
       <Link href={`/listing/${listing.id}`} className="block">
         <div className="relative aspect-[4/3] w-full overflow-hidden">
           {/* Media layer scales gently on hover; badges and scrim stay put. */}

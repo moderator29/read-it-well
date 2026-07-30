@@ -25,7 +25,12 @@ export function Odometer({
 }) {
   const ref = useRef<HTMLSpanElement | null>(null);
   const [rolled, setRolled] = useState(false);
-  const digits = String(Math.max(0, Math.round(value))).split("");
+  // Thousands separators matter here: a wallet balance in the hundreds of
+  // thousands read as one unbroken run of digits is a regression from plain
+  // formatted text, so the odometer rolls the grouped string, not the bare
+  // number, and treats the separator as a static character between strips.
+  const formatted = Math.max(0, Math.round(value)).toLocaleString();
+  const chars = formatted.split("");
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -52,27 +57,40 @@ export function Odometer({
   return (
     <span ref={ref} className={`nf-odometer nf-numeric ${className ?? ""}`}>
       <span className="sr-only">
-        {value.toLocaleString()}
+        {formatted}
         {suffix}
       </span>
       <span aria-hidden="true" className="inline-flex">
-        {digits.map((d, i) => (
-          <span key={`${i}-${d}`} className="nf-odometer__slot">
-            <span
-              className="nf-odometer__strip"
-              style={{
-                transform: `translateY(-${(rolled ? Number(d) : 0) * 10}%)`,
-                transitionDelay: `${i * 90}ms`,
-              }}
-            >
-              {["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].map((n) => (
-                <span key={n} className="nf-odometer__digit">
-                  {n}
+        {(() => {
+          let digitPosition = -1;
+          return chars.map((ch, i) => {
+            if (ch < "0" || ch > "9") {
+              return (
+                <span key={`${i}-sep`} className="nf-odometer__sep">
+                  {ch}
                 </span>
-              ))}
-            </span>
-          </span>
-        ))}
+              );
+            }
+            digitPosition += 1;
+            return (
+              <span key={`${i}-${ch}`} className="nf-odometer__slot">
+                <span
+                  className="nf-odometer__strip"
+                  style={{
+                    transform: `translateY(-${(rolled ? Number(ch) : 0) * 10}%)`,
+                    transitionDelay: `${digitPosition * 90}ms`,
+                  }}
+                >
+                  {["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].map((n) => (
+                    <span key={n} className="nf-odometer__digit">
+                      {n}
+                    </span>
+                  ))}
+                </span>
+              </span>
+            );
+          });
+        })()}
         {suffix && <span>{suffix}</span>}
       </span>
     </span>

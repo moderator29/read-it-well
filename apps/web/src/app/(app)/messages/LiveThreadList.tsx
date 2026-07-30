@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { LiveConversationSummary } from "@/lib/messages/live";
 
 /**
@@ -10,8 +11,11 @@ import type { LiveConversationSummary } from "@/lib/messages/live";
 export function LiveThreadList({ conversations }: { conversations: LiveConversationSummary[] }) {
   if (conversations.length === 0) {
     return (
-      <div className="nf-card p-6 text-center">
-        <p className="text-[0.9063rem] font-semibold">No conversations yet</p>
+      <div className="nf-card p-8 text-center">
+        <span className="nf-story-art mx-auto block h-16 w-16">
+          <BrandIcon name="chat-duo" fill />
+        </span>
+        <p className="mt-3.5 text-[0.9063rem] font-semibold">No conversations yet</p>
         <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
           Message an agent from any listing and the thread will appear here.
         </p>

@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "@naijafinds/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { Odometer } from "@/components/site/Odometer";
 import type { WalletEntry } from "@/lib/wallet/types";
 import { formatKoboExact } from "./money";
 
@@ -69,16 +70,39 @@ export function BalanceCard({
   locale: Locale;
 }) {
   const [hidden, setHidden] = useState(false);
-  const { whole, kobo } = formatKoboExact(balanceMinor, locale);
+  const { kobo } = formatKoboExact(balanceMinor, locale);
+  // Integer naira, no floats: the kobo remainder is stripped by the same
+  // exact arithmetic as formatKoboExact, then the rest is a whole multiple
+  // of 100 kobo, so dividing by 100 is always exact.
+  const absMinor = Math.abs(balanceMinor);
+  const koboRemainder = absMinor % 100;
+  const wholeNaira = (absMinor - koboRemainder) / 100;
   const { inMinor, outMinor } = useMemo(() => flowsLast30Days(entries), [entries]);
   const points = useMemo(() => sparklinePoints(entries), [entries]);
   const flowIn = formatKoboExact(inMinor, locale);
   const flowOut = formatKoboExact(outMinor, locale);
 
+  // A brief light pulse plays through the card the moment the balance moves:
+  // upward when money lands, downward when it leaves. Detected client-side
+  // by comparing against the previous render's balance, since a deposit,
+  // withdrawal or transfer all arrive as a fresh server-rendered prop after
+  // the page refreshes behind its drawer.
+  const prevBalance = useRef<number | null>(null);
+  const [pulse, setPulse] = useState<"up" | "down" | null>(null);
+  useEffect(() => {
+    const prev = prevBalance.current;
+    prevBalance.current = balanceMinor;
+    if (prev === null || prev === balanceMinor) return;
+    setPulse(balanceMinor > prev ? "up" : "down");
+    const timer = setTimeout(() => setPulse(null), 1200);
+    return () => clearTimeout(timer);
+  }, [balanceMinor]);
+
   return (
     <section
       aria-labelledby="nf-wallet-balance-label"
-      className="nf-card relative overflow-hidden rounded-[var(--nf-radius-2xl)] p-5 sm:p-6"
+      data-pulse={pulse ?? undefined}
+      className="nf-card nf-balance-pulse relative overflow-hidden rounded-[var(--nf-radius-2xl)] p-5 sm:p-6"
     >
       {/* Inner conic shimmer, the light source sweeping the glass. Hidden in
           the light theme, where it would smear a white card. */}
@@ -136,7 +160,8 @@ export function BalanceCard({
         ) : (
           <>
             <span className="text-[2.25rem] font-bold leading-none tracking-tight sm:text-[2.6rem]">
-              {whole}
+              {"₦"}
+              <Odometer value={wholeNaira} className="nf-odometer-figure" />
             </span>
             <span className="text-[1.25rem] font-semibold text-[var(--nf-content-secondary)] sm:text-[1.4rem]">
               {kobo}

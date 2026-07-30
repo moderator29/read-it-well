@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
 import { RealMap } from "@/components/app/search/RealMap";
-import { SceneBanner } from "@/components/app/SceneBanner";
 import { ActiveFilters } from "@/components/app/filters/ActiveFilters";
 import { CategoryTiles } from "@/components/app/filters/CategoryTiles";
 import { FilterDrawer } from "@/components/app/filters/FilterDrawer";
@@ -26,6 +25,7 @@ import type { Listing } from "@/lib/listings/types";
 import { ListingCard } from "@/components/app/ListingCard";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -300,57 +300,48 @@ export default async function SearchPage({
       {query.view === "list" && (
         <Reveal className="mt-5" delay={60}>
           {listings.length === 0 ? (
-            <div className="grid gap-4">
-              <div className="nf-card p-10 text-center">
-                <p className="font-semibold">No places matched</p>
-                <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
-                  {narrowed
-                    ? "Your filters are narrower than the catalogue right now. Widen them and the results come straight back."
-                    : "Try a different search, or browse everything from the home screen."}
-                </p>
-                <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  {narrowed ? (
-                    <>
-                      <Link
-                        href={toSearchHref(clearedFilters(query))}
-                        prefetch
-                        data-testid="empty-clear"
-                        className="nf-btn nf-btn--primary min-h-11 inline-flex"
-                      >
-                        Clear filters
-                      </Link>
-                      {pool.length > 0 && (
-                        <span className="self-center text-[0.8125rem] text-[var(--nf-content-muted)]">
-                          {formatNumber(pool.length, locale)}{" "}
-                          {pool.length === 1 ? noun.one : noun.many} waiting without them
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <Link href="/home" className="nf-btn nf-btn--glass min-h-11 inline-flex">
-                      {t.nav.home}
-                    </Link>
-                  )}
-                </div>
+            <div className="nf-card p-10 text-center">
+              <span className="nf-story-art mx-auto block h-20 w-20">
+                <BrandIcon name="search-home" fill />
+              </span>
+              <p className="mt-4 font-semibold">No places matched</p>
+              <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
+                {narrowed
+                  ? "Your filters are narrower than the catalogue right now. Widen them and the results come straight back."
+                  : "Try a different search, or browse everything from the home screen."}
+              </p>
+              <div className="mt-6 flex justify-center">
+                {narrowed ? (
+                  <Link
+                    href={toSearchHref(clearedFilters(query))}
+                    prefetch
+                    data-testid="empty-clear"
+                    className="nf-btn nf-btn--primary min-h-11 inline-flex"
+                  >
+                    Clear filters
+                  </Link>
+                ) : (
+                  <Link href="/home" className="nf-btn nf-btn--primary min-h-11 inline-flex">
+                    {t.nav.home}
+                  </Link>
+                )}
               </div>
-              <SceneBanner
-                art="/brand/story-world.png"
-                alt="The RentMe world of places, keys, calendar and wallet"
-                stage="paper"
-                title="Explore on the map instead"
-                body="Pan across Nigeria and watch the lowest price in every covered city light up."
-                href={toSearchHref({ ...clearedFilters(query), view: "map" })}
-                action="Open the map"
-              />
+              {narrowed && pool.length > 0 && (
+                <p className="mt-3 text-[0.8125rem] text-[var(--nf-content-muted)]">
+                  {formatNumber(pool.length, locale)}{" "}
+                  {pool.length === 1 ? noun.one : noun.many} waiting without them
+                </p>
+              )}
             </div>
           ) : (
             <ul
+              key={toSearchHref(query)}
               data-testid="results-grid"
               className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
             >
-              {listings.map((l) => (
+              {listings.map((l, i) => (
                 <li key={l.id}>
-                  <ListingCard listing={l} locale={locale} t={t} />
+                  <ListingCard listing={l} locale={locale} t={t} index={i} />
                 </li>
               ))}
             </ul>

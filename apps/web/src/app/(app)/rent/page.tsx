@@ -10,6 +10,7 @@ import { PageScene } from "@/components/app/PageScene";
 import { SceneBanner } from "@/components/app/SceneBanner";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 export const metadata: Metadata = {
   title: "Rent",
@@ -111,7 +112,10 @@ export default async function RentPage({
       <Reveal className="mt-5" delay={60}>
         {rentals.length === 0 ? (
           <div className="nf-card p-10 text-center">
-            <p className="font-semibold">No rentals matched</p>
+            <span className="nf-story-art mx-auto block h-20 w-20">
+              <BrandIcon name="keys-home" fill />
+            </span>
+            <p className="mt-4 font-semibold">No rentals matched</p>
             <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
               Try another city, or browse everything for rent.
             </p>

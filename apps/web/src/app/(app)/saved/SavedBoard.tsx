@@ -13,6 +13,7 @@ import {
 } from "react";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { toggleSave } from "@/lib/saved/actions";
 import { addLocalSave, readLocalSaves, removeLocalSave, writeLocalSaves } from "@/lib/saved/local";
 
@@ -157,12 +158,10 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
     return (
       <Reveal>
         <div className="nf-card p-10 text-center">
-          <UiIcon
-            name="heart"
-            size={22}
-            className="mx-auto mb-3 text-[var(--nf-electric-300)]"
-          />
-          <p className="font-semibold">
+          <span className="nf-story-art mx-auto block h-20 w-20">
+            <BrandIcon name="heart-home" fill />
+          </span>
+          <p className="mt-4 font-semibold">
             {hydrating ? "Bringing your saves together" : "Nothing saved yet"}
           </p>
           <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">

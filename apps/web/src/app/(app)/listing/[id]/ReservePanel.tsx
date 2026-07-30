@@ -6,6 +6,7 @@ import { formatMoney, type Locale } from "@naijafinds/i18n";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 
 /**
@@ -126,20 +127,30 @@ export function ReservePanel({
     state && !state.ok ? state.fieldErrors?.[key] : undefined;
 
   // ------------------------------------------------- the confirmation moment
+  // A brief, choreographed beat rather than a flat state swap: the room
+  // behind the card dims, the confirmed calendar tile pops in on its own
+  // (CSS reacts to data-state="confirmed"), a band of light crosses the
+  // card, then the details settle in. All transform/opacity, all under 1.4s,
+  // and it collapses to the end state immediately under reduced motion.
   if (state?.ok) {
     const r = state.data;
     return (
-      <div className="nf-card p-5" data-testid="reserve-success">
-        <p className="flex items-center gap-2 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
-          <UiIcon name="verified" size={20} className="shrink-0 text-[var(--nf-state-success)]" />
-          Booking requested
-        </p>
-        <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <div className="nf-card nf-confirm-sweep p-5" data-testid="reserve-success">
+        <span aria-hidden="true" className="nf-confirm-dim" />
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="h-14 w-14 shrink-0">
+            <BrandIcon name="calendar-check" state="confirmed" fill />
+          </span>
+          <p className="text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+            Booking requested
+          </p>
+        </div>
+        <p className="nf-rise mt-2 text-center text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {labelDate(r.checkIn)} to {labelDate(r.checkOut)}, {r.nights}{" "}
           {r.nights === 1 ? "night" : "nights"} for {r.adults + r.children}{" "}
           {r.adults + r.children === 1 ? "guest" : "guests"}.
         </p>
-        <dl className="mt-3 space-y-1.5 border-t border-[var(--nf-border-subtle)] pt-3 text-[0.875rem]">
+        <dl className="nf-rise mt-3 space-y-1.5 border-t border-[var(--nf-border-subtle)] pt-3 text-[0.875rem]">
           {r.cleaningMinor > 0 && (
             <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
               <dt>Cleaning</dt>
@@ -151,12 +162,15 @@ export function ReservePanel({
             <dd className="nf-numeric">{formatMoney(r.totalMinor, locale, currency)}</dd>
           </div>
         </dl>
-        <p className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="nf-rise mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
           {instantBook
             ? "Your dates are held. We will notify you the moment the stay is confirmed."
             : "The agent will confirm your dates personally. We will notify you the moment they do."}
         </p>
-        <Link href="/bookings" className="nf-btn nf-btn--primary mt-4 w-full">
+        <Link
+          href={`/bookings?justBooked=${r.bookingId}`}
+          className="nf-btn nf-btn--primary mt-4 w-full"
+        >
           View your bookings
         </Link>
       </div>

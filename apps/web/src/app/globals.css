@@ -416,6 +416,68 @@ body {
   }
 
   /*
+   * Booking confirmation moment. A brief three-beat sequence when a
+   * reservation lands: the room behind the card dims a touch so the eye has
+   * nowhere else to go, the confirmed icon tile pops on its own (the
+   * `data-state="confirmed"` rule above), then one band of light crosses the
+   * card, echoing the primary button's hover ripple as a one-shot entrance
+   * instead of a hover loop. All three finish inside 1.1s.
+   */
+  .nf-confirm-dim {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    background: rgb(1 1 24 / 0.3);
+    animation: nf-confirm-dim 900ms var(--nf-ease-standard) both;
+  }
+  :root[data-theme="light"] .nf-confirm-dim {
+    background: rgb(18 21 26 / 0.14);
+  }
+  @keyframes nf-confirm-dim {
+    0% { opacity: 0; }
+    32% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .nf-confirm-sweep {
+    position: relative;
+    overflow: hidden;
+  }
+  .nf-confirm-sweep::after {
+    content: "";
+    position: absolute;
+    inset: -40% -60%;
+    pointer-events: none;
+    background: linear-gradient(
+      115deg,
+      transparent 42%,
+      rgb(255 255 255 / 0.32) 50%,
+      transparent 58%
+    );
+    transform: translateX(-130%);
+    animation: nf-confirm-sweep 650ms var(--nf-ease-standard) 260ms both;
+  }
+  @keyframes nf-confirm-sweep {
+    to { transform: translateX(130%); }
+  }
+  .nf-just-booked {
+    animation: nf-confirm-pop var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-confirm-dim {
+      animation: none !important;
+      display: none;
+    }
+    .nf-confirm-sweep::after {
+      animation: none !important;
+      display: none;
+    }
+    .nf-just-booked {
+      animation: none !important;
+    }
+  }
+
+  /*
    * Living glass.
    *
    * A specular highlight travels slowly across every object tile, the way
@@ -487,6 +549,10 @@ body {
     overflow: hidden;
     vertical-align: bottom;
   }
+  .nf-odometer__sep {
+    display: inline-block;
+    vertical-align: bottom;
+  }
   .nf-odometer__strip {
     display: flex;
     flex-direction: column;
@@ -501,6 +567,88 @@ body {
   @media (prefers-reduced-motion: reduce) {
     .nf-odometer__strip {
       transition: none;
+    }
+  }
+
+  /*
+   * Wallet balance pulse. A band of light travels through the card the
+   * moment the balance actually changes: upward and success-tinted for a
+   * deposit landing, downward and brand-tinted for a spend leaving. The
+   * component sets and clears data-pulse itself, so this only ever plays
+   * once per real change, never on a loop.
+   */
+  .nf-balance-pulse {
+    position: relative;
+  }
+  .nf-balance-pulse::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0;
+  }
+  .nf-balance-pulse[data-pulse="up"]::before {
+    background: linear-gradient(
+      0deg,
+      transparent 0%,
+      color-mix(in oklab, var(--nf-state-success) 35%, transparent) 45%,
+      transparent 85%
+    );
+    animation: nf-balance-pulse-up 1.1s var(--nf-ease-standard) both;
+  }
+  .nf-balance-pulse[data-pulse="down"]::before {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      color-mix(in oklab, var(--nf-brand-primary) 32%, transparent) 45%,
+      transparent 85%
+    );
+    animation: nf-balance-pulse-down 1.1s var(--nf-ease-standard) both;
+  }
+  @keyframes nf-balance-pulse-up {
+    0% { transform: translateY(22%); opacity: 0; }
+    35% { opacity: 1; }
+    100% { transform: translateY(-10%); opacity: 0; }
+  }
+  @keyframes nf-balance-pulse-down {
+    0% { transform: translateY(-22%); opacity: 0; }
+    35% { opacity: 1; }
+    100% { transform: translateY(10%); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-balance-pulse[data-pulse]::before {
+      animation: none !important;
+      display: none;
+    }
+  }
+
+  /*
+   * Transaction row entrance. Money arriving slides in from the left, money
+   * leaving slides in from the right, so the direction of a row is felt
+   * before its amount is even read. Short and small: a nudge, not a slide.
+   */
+  @keyframes nf-tx-slide-in {
+    from { opacity: 0; transform: translate3d(-14px, 0, 0); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes nf-tx-slide-out {
+    from { opacity: 0; transform: translate3d(14px, 0, 0); }
+    to { opacity: 1; transform: none; }
+  }
+  .nf-tx-in {
+    animation: nf-tx-slide-in 420ms var(--nf-ease-entrance) both;
+  }
+  .nf-tx-out {
+    animation: nf-tx-slide-out 420ms var(--nf-ease-entrance) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-tx-in,
+    .nf-tx-out {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
     }
   }
 
@@ -2121,6 +2269,35 @@ body {
     }
     .nf-float-slow {
       animation: none !important;
+    }
+  }
+
+  /*
+   * Result grid assembly. Cards in a freshly loaded or refiltered list rise
+   * and fade in on a short stagger, so the grid reads as assembling rather
+   * than dropping in as one block. The delay is read from --card-i, which
+   * the grid caps at 5 (six steps) so a long page of results does not keep
+   * animating for seconds after the first row has already settled.
+   */
+  .nf-card-in {
+    animation: nf-card-in var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--card-i, 0) * 70ms);
+  }
+  @keyframes nf-card-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 14px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-card-in {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
     }
   }
 

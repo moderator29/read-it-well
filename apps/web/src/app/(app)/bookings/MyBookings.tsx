@@ -42,13 +42,20 @@ const STATUS_BADGE: Record<BookingView["status"], { label: string; className: st
 function BookingCard({
   booking: b,
   onCancel,
+  justBooked,
 }: {
   booking: BookingView;
   onCancel: (booking: BookingView) => void;
+  /** True for the reservation that just landed here from the listing page,
+      so the confirmation moment finishes on this card rather than stopping
+      at the listing. */
+  justBooked?: boolean;
 }) {
   const badge = STATUS_BADGE[b.status];
   return (
-    <li className="nf-card overflow-hidden p-0 text-left">
+    <li
+      className={`nf-card overflow-hidden p-0 text-left ${justBooked ? "nf-confirm-sweep nf-just-booked" : ""}`}
+    >
       <div className="flex gap-4.5 p-3.5 sm:gap-4 sm:p-4">
         <Link
           href={`/listing/${b.listingId}`}
@@ -217,7 +224,15 @@ function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () =
   );
 }
 
-export function MyBookings({ groups }: { groups: BookingGroups }) {
+export function MyBookings({
+  groups,
+  justBookedId,
+}: {
+  groups: BookingGroups;
+  /** Id of a reservation that just landed here from the listing page's
+      confirmation moment, carried across the navigation as `?justBooked=`. */
+  justBookedId?: string;
+}) {
   const [active, setActive] = useState<TabKey>("upcoming");
   const [cancelling, setCancelling] = useState<BookingView | null>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -285,7 +300,12 @@ export function MyBookings({ groups }: { groups: BookingGroups }) {
           className="nf-rise grid gap-4 pt-4"
         >
           {bookings.map((b) => (
-            <BookingCard key={b.id} booking={b} onCancel={setCancelling} />
+            <BookingCard
+              key={b.id}
+              booking={b}
+              onCancel={setCancelling}
+              justBooked={b.id === justBookedId}
+            />
           ))}
         </ul>
       ) : (
