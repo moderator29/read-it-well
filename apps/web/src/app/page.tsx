@@ -16,6 +16,7 @@ import { WhyRentMe } from "@/components/site/landing/WhyRentMe";
 import { FeaturedCarousel } from "@/components/site/landing/FeaturedCarousel";
 import { MoodRow } from "@/components/site/landing/MoodRow";
 import { NumbersBand } from "@/components/site/landing/NumbersBand";
+import { PlatformConsole } from "@/components/site/landing/PlatformConsole";
 import {
   VillaShowcase,
   CoverageMap,
@@ -221,6 +222,11 @@ export default async function LandingPage() {
             </ul>
           </Reveal>
         </section>
+
+        {/* ----------------------------------------------------- console */}
+        <Reveal>
+          <PlatformConsole />
+        </Reveal>
 
         {/* --------------------------------------------------- vision / mission */}
         <section className="relative overflow-hidden py-16 sm:py-20">

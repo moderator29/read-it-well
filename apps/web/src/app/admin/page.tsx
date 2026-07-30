@@ -39,18 +39,28 @@ export default async function AdminOverviewPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <header className="mb-5">
-        <h1 className="nf-h1 text-[1.5rem] sm:text-[1.75rem]">{o.title}</h1>
-        <p className="mt-1.5 max-w-[62ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-          {o.lede}
-        </p>
+      <header className="mb-5 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="nf-h1 text-[1.5rem] sm:text-[1.75rem]">{o.title}</h1>
+          <p className="mt-1.5 max-w-[62ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            {o.lede}
+          </p>
+        </div>
+        {counts.state === "ok" && (
+          <span
+            className="nf-count-badge shrink-0"
+            title="Total open across every queue"
+          >
+            {TILES.reduce((sum, tile) => sum + (counts.data[tile.key] ?? 0), 0)}
+          </span>
+        )}
       </header>
 
       {counts.state !== "ok" ? (
         <ui.QueueUnavailable />
       ) : (
         <>
-          <ul className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          <ul className="nf-panel-sunken grid grid-cols-2 gap-4 lg:grid-cols-3">
             {TILES.map((tile) => {
               const value = counts.data[tile.key] ?? 0;
               const copy = o.tiles[tile.key];
@@ -60,10 +70,15 @@ export default async function AdminOverviewPage() {
                     href={tile.href}
                     className="nf-card nf-card--interactive flex h-full flex-col gap-2 p-4 sm:p-5"
                   >
-                    <span className="flex items-center gap-2 text-[var(--nf-content-secondary)]">
-                      <UiIcon name={tile.icon} size={18} className="shrink-0" />
-                      <span className="text-[0.75rem] font-semibold uppercase tracking-wide">
-                        {copy.label}
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-2 text-[var(--nf-content-secondary)]">
+                        <UiIcon name={tile.icon} size={18} className="shrink-0" />
+                        <span className="text-[0.75rem] font-semibold uppercase tracking-wide">
+                          {copy.label}
+                        </span>
+                      </span>
+                      <span className={`nf-tag-pill ${value > 0 ? "" : "nf-tag-pill--success"}`}>
+                        {value > 0 ? "Open" : "Clear"}
                       </span>
                     </span>
                     <span
