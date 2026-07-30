@@ -101,7 +101,7 @@ const STATE_CODE_SET = new Set<string>(STATE_CODES);
 
 /** The 15 seeded amenity codes with their labels, for chips and validation. */
 export const AMENITY_CHOICES: { code: string; label: string }[] = [
-  { code: "wifi", label: "WiFi" },
+  { code: "wifi", label: "Free WiFi" },
   { code: "ac", label: "Air Conditioning" },
   { code: "tv", label: "TV" },
   { code: "kitchen", label: "Kitchen" },
@@ -116,6 +116,9 @@ export const AMENITY_CHOICES: { code: string; label: string }[] = [
   { code: "laundry", label: "Laundry" },
   { code: "generator", label: "Backup Power" },
   { code: "water", label: "Running Water" },
+  { code: "shower", label: "Hot Shower" },
+  { code: "breakfast", label: "Breakfast" },
+  { code: "workspace", label: "Workspace" },
 ];
 
 const AMENITY_CODE_SET = new Set(AMENITY_CHOICES.map((a) => a.code));

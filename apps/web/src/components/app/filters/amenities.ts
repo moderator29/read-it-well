@@ -1,14 +1,14 @@
 /**
  * Amenity labels for discovery chips.
  *
- * The codes are the platform's own: the fifteen the agent listing flow writes
- * (`lib/agent/listings-schema.ts`) plus whatever a catalogue row already
- * carries. Nothing here invents a code, and an unknown one is prettified rather
- * than dropped, so a listing is never filtered by a chip that does not exist or
- * hidden because its amenity has no entry yet.
+ * The codes are the platform's own: the eighteen the agent listing flow
+ * writes (`lib/agent/listings-schema.ts`) plus whatever a catalogue row
+ * already carries. Nothing here invents a code, and an unknown one is
+ * prettified rather than dropped, so a listing is never filtered by a chip
+ * that does not exist or hidden because its amenity has no entry yet.
  */
 const LABELS: Record<string, string> = {
-  wifi: "Wi-Fi",
+  wifi: "Free Wi-Fi",
   ac: "Air conditioning",
   tv: "TV",
   kitchen: "Kitchen",
@@ -23,6 +23,9 @@ const LABELS: Record<string, string> = {
   laundry: "Laundry",
   generator: "Backup power",
   water: "Running water",
+  shower: "Hot shower",
+  breakfast: "Breakfast",
+  workspace: "Workspace",
 };
 
 /** Presentation order for the chips. Unknown codes follow, alphabetically. */

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@naijafinds/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
@@ -131,6 +132,19 @@ function WalletDrawer({
   children: React.ReactNode;
 }) {
   const panelRef = useRef<HTMLDivElement | null>(null);
+  // Portalled to document.body: rendered in place, a `position: fixed`
+  // drawer is only ever fixed to the nearest ancestor that establishes a
+  // containing block (a transform, a filter, a `will-change: transform`,
+  // any of which appear on animated wrappers elsewhere on this page), not
+  // reliably to the viewport. Mounting through a portal sidesteps that
+  // class of bug entirely rather than depending on every ancestor staying
+  // clean, which is why `mounted` gates the first client paint: document
+  // does not exist during the server render.
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -146,9 +160,9 @@ function WalletDrawer({
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
       ref={panelRef}
       role="dialog"
@@ -181,7 +195,8 @@ function WalletDrawer({
 
         <div className="nf-card mt-5 p-4 sm:p-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

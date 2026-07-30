@@ -2523,7 +2523,17 @@ body {
     animation-delay: -3s;
   }
 
-  /* Scroll reveal. Hidden state lifts and fades; shown state settles. */
+  /*
+   * Scroll reveal. Hidden state lifts and fades; shown state settles.
+   *
+   * `will-change` is scoped to the hidden state only, never held past it: a
+   * permanent `will-change: transform` on the settled element would leave
+   * every one of these wrappers a live CSS containing block, which silently
+   * traps any `position: fixed` descendant (a full-page drawer, a dialog)
+   * to this box instead of the viewport. That was a real bug, not a
+   * hypothetical one: the wallet's Add money drawer rendered as a sliver
+   * clipped to its trigger row because of exactly this.
+   */
   .nf-reveal {
     opacity: 0;
     transform: translateY(22px);
@@ -2535,12 +2545,21 @@ body {
   .nf-reveal[data-shown="true"] {
     opacity: 1;
     transform: none;
+    will-change: auto;
   }
   /*
    * Where scroll-driven animation exists, the reveal is handed to the
    * compositor and tied to the block's own scroll position: it lifts,
    * unblurs and settles as it enters, and replays on the way back. The
    * observer state above stays as the fallback for older engines.
+   *
+   * The range lives entirely inside "entry" (the element's own transit into
+   * the viewport), never "cover": a "cover" endpoint needs scroll distance
+   * AFTER the element is already visible to finish, which the last section
+   * on any page does not have. That was leaving whatever a guest scrolled
+   * to last permanently blurred, since there was no more page left to
+   * scroll through to complete it. Entry alone finishes the moment the
+   * element has fully entered, regardless of what does or does not follow.
    */
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
@@ -2550,7 +2569,7 @@ body {
         transition: none;
         animation: nf-reveal-in linear both;
         animation-timeline: view();
-        animation-range: entry 4% cover 30%;
+        animation-range: entry 4% entry 76%;
       }
     }
   }
