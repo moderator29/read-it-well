@@ -38,3 +38,4 @@ Thumbs.db
 next-env.d.ts
 .turbo/
 .vercel/
+scripts/.shots/

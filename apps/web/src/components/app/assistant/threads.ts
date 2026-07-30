@@ -8,9 +8,19 @@
  * the array on first load so nobody loses an existing conversation.
  */
 
+import type { AssistantListingItem } from "@/lib/assistant/types";
+
 export type Role = "user" | "assistant";
 
-export type Message = { id: string; role: Role; text: string };
+export type Message = {
+  id: string;
+  role: Role;
+  text: string;
+  /** Real catalogue results streamed alongside this assistant turn. */
+  listings?: AssistantListingItem[];
+  /** The turn failed and the bubble should offer a retry. */
+  error?: boolean;
+};
 
 export type Thread = {
   id: string;
@@ -18,6 +28,8 @@ export type Thread = {
   createdAt: number;
   updatedAt: number;
   messages: Message[];
+  /** The persisted ai_conversations id, once the server returns one. */
+  serverId?: string;
 };
 
 export const THREADS_KEY = "nf_ai_threads";

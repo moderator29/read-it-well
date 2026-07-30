@@ -45,6 +45,16 @@ export type WalletSummary = {
   entries: WalletEntry[];
 };
 
+/** What the wallet page renders: a summary plus where it came from. */
+export type ViewerWallet = WalletSummary & {
+  /**
+   * True when the figures are the signed-in user's real ledger read under
+   * RLS. False when the viewer is signed out or Supabase is unconfigured,
+   * in which case the seed dataset stands in.
+   */
+  live: boolean;
+};
+
 export interface WalletRepository {
   readonly isSeed: boolean;
   getWallet(): Promise<WalletSummary>;

@@ -8,6 +8,12 @@ import { StatCard } from "@/components/agent/StatCard";
 import { AreaSparkline } from "@/components/agent/charts/AreaSparkline";
 import { DonutChart } from "@/components/agent/charts/DonutChart";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import {
+  agentProfileFrom,
+  getAgentContext,
+  readAgentNumbers,
+} from "@/lib/agent/listings-queries";
+import { RealDashboard } from "./RealDashboard";
 
 export const metadata: Metadata = {
   title: "Agent Dashboard",
@@ -17,6 +23,30 @@ export const metadata: Metadata = {
 export default async function AgentDashboardPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
+
+  // A signed-in approved agent sees their own numbers, read live under RLS.
+  // Everyone else keeps the designed workspace on its seeded content, which is
+  // labelled as such by the panel below.
+  const context = await getAgentContext();
+  if (context.state === "agent") {
+    const numbers = await readAgentNumbers(context.supabase, context.agent.id, context.user.id);
+    return (
+      <AgentShell
+        t={t}
+        locale={locale}
+        active="/agent/dashboard"
+        profile={agentProfileFrom(context.agent)}
+      >
+        <RealDashboard
+          t={t}
+          locale={locale}
+          displayName={context.agent.displayName}
+          numbers={numbers}
+        />
+      </AgentShell>
+    );
+  }
+
   const repo = getAgentRepository();
   const [profile, d] = await Promise.all([repo.getProfile(), repo.getDashboard()]);
 

@@ -33,7 +33,6 @@ const PANELS: {
   key: PanelKey;
   label: string;
   icon: BrandIconName;
-  ramp: "emerald" | "sky" | "cyan";
   title: string;
   hint: string;
 }[] = [
@@ -41,7 +40,6 @@ const PANELS: {
     key: "add",
     label: "Add money",
     icon: "wallet-secure",
-    ramp: "emerald",
     title: "Add money to your wallet",
     hint: "Fund your wallet by card or bank transfer once payments are connected.",
   },
@@ -49,7 +47,6 @@ const PANELS: {
     key: "withdraw",
     label: "Withdraw",
     icon: "shield-lock",
-    ramp: "sky",
     title: "Withdraw to your bank",
     hint: "Send wallet funds to any Nigerian bank account in your name.",
   },
@@ -57,7 +54,6 @@ const PANELS: {
     key: "transfer",
     label: "Transfer",
     icon: "user-check",
-    ramp: "cyan",
     title: "Transfer to another user",
     hint: "Send money to any RentMe user by email or phone number.",
   },

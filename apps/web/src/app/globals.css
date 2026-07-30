@@ -1356,7 +1356,7 @@ body {
        no geometry, so the canvas reads as atmosphere rather than graph paper. */
     background:
       linear-gradient(115deg, transparent 30%, color-mix(in oklab, var(--nf-electric-500) 14%, transparent) 46%, transparent 60%),
-      linear-gradient(65deg, transparent 42%, color-mix(in oklab, var(--nf-cyan-400) 9%, transparent) 55%, transparent 68%);
+      linear-gradient(65deg, transparent 42%, color-mix(in oklab, var(--nf-electric-300) 9%, transparent) 55%, transparent 68%);
     mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
     -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
     opacity: 0.35;
