@@ -152,6 +152,13 @@ export type VerifiedTransaction = {
   status: VerifiedTransactionStatus;
   /** Integer kobo actually charged. */
   amountMinor: number;
+  /**
+   * Integer kobo Paystack kept out of the charge, when it reported one. Null
+   * means it said nothing, which the ledger records as zero rather than a
+   * guess. The platform's own take is always zero, so this is the only
+   * deduction a booking ledger row ever carries.
+   */
+  feesMinor: number | null;
   currency: string;
   reference: string;
   paidAt: string | null;
@@ -166,6 +173,7 @@ export async function verifyTransaction(reference: string): Promise<VerifiedTran
   const data = await request<{
     status: string;
     amount: number;
+    fees?: number | null;
     currency: string;
     reference: string;
     paid_at: string | null;
@@ -183,6 +191,7 @@ export async function verifyTransaction(reference: string): Promise<VerifiedTran
   return {
     status: data.status as VerifiedTransactionStatus,
     amountMinor: data.amount,
+    feesMinor: Number.isSafeInteger(data.fees) ? (data.fees as number) : null,
     currency: data.currency,
     reference: data.reference,
     paidAt: data.paid_at ?? null,

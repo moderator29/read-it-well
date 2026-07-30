@@ -622,6 +622,123 @@ export const yo: Dictionary = {
     },
   },
 
+  agentBookings: {
+    title: "Ìfiléke",
+    lede: "Gbogbo ìbéèrè àti gbogbo ìbùgbé lórí àwọn ohun ìní rẹ.",
+    unconfigured:
+      "Àwọn ìbéèrè àti ìbùgbé rẹ máa hàn níbí ní kété tí àwọn kọ́kọ́rọ́ pátákó bá dé. Kò sí ohun tí ó sọnù láàrin ìgbà náà.",
+    tabsLabel: "Àwọn ẹgbẹ́ ìfiléke",
+    waitingOn: "{count} ń dúró dè ọ́",
+    waitingOnOne: "Ọ̀kan ń dúró dè ọ́",
+    groups: {
+      requests: {
+        title: "Ìbéèrè",
+        blurb:
+          "Ń dúró de ìpinnu rẹ. Ìbéèrè kan dì àwọn alẹ́ mọ́ fún wákàtí {hours}, lẹ́yìn náà ó tú ara rẹ̀ sílẹ̀.",
+      },
+      upcoming: { title: "Tó ń bọ̀", blurb: "Àwọn ìbùgbé tí o gbà tí kò tíì dé." },
+      completed: { title: "Tí parí", blurb: "Àwọn ìbùgbé tí àwọn àlejò rẹ ti parí." },
+      cancelled: {
+        title: "Tí a fagilé",
+        blurb: "Àwọn ìbéèrè tí o kọ̀, àti àwọn ìbùgbé tí ẹnìkẹ́ni nínú ẹ̀yin méjèèjì dá dúró.",
+      },
+    },
+    card: {
+      dates: "{from} sí {to}",
+      nights: "Alẹ́ {count}",
+      nightsOne: "Alẹ́ kan",
+      guests: "Àlejò {count}",
+      guestsOne: "Àlejò kan",
+      composition: "Àgbàlagbà {adults}, ọmọdé {children}",
+      total: "Àpapọ̀",
+      requested: "A béèrè ní {date}",
+      waiting: "Ó ti dúró {duration}",
+      waitingNew: "Ó ṣẹ̀ṣẹ̀ dé",
+      releasesIn: "Ó máa tú ara rẹ̀ sílẹ̀ ní {duration}",
+      releasingNow: "Ó ti kọjá ìdìmọ́ wákàtí {hours} rẹ̀, ó lè tú sílẹ̀ nígbàkigbà",
+      hours: "Wákàtí {count}",
+      hoursOne: "Wákàtí kan",
+      days: "Ọjọ́ {count}",
+      daysOne: "Ọjọ́ kan",
+      settled: "Owó ti wọlé",
+      awaiting: "Owó kò tíì wọlé",
+      unknown: "A kò lè sọ ipò owó náà báyìí",
+    },
+    status: {
+      PENDING: "Ń dúró de ìpinnu rẹ",
+      CONFIRMED: "A ti fọwọ́sí",
+      CANCELLED: "A ti fagilé",
+    },
+    actions: {
+      accept: "Gbà",
+      decline: "Kọ̀",
+      working: "Ń ṣiṣẹ́",
+      back: "Padà sẹ́yìn",
+      close: "Ti",
+    },
+    accept: {
+      title: "Ṣé kí o gbà ìbéèrè yìí?",
+      body:
+        "Àlejò náà máa gbọ́ lẹ́sẹ̀kẹsẹ̀, a ó sì dì àwọn alẹ́ náà mọ́ fún un lórí kàlẹ́ńdà rẹ. Ṣàyẹ̀wò pé ohun ìní náà wà ní ọ̀fẹ́ ní tòótọ́ kí o tó gbà.",
+      confirm: "Gbà ìbéèrè náà",
+    },
+    decline: {
+      title: "Ṣé kí o kọ̀ ìbéèrè yìí?",
+      body:
+        "Àwọn alẹ́ náà máa padà sí kàlẹ́ńdà rẹ, a ó sì sọ fún àlejò náà. Kò sí owó tí a gbà bákan náà.",
+      reasonLabel: "Kí ló dí kí o gbà àwọn ọjọ́ wọ̀nyí?",
+      reasonHint: "Àlejò náà máa kà á ọ̀rọ̀ sí ọ̀rọ̀, nítorí náà jẹ́ kí ó rọrùn àti pẹ̀lú ìwà pẹ̀lẹ́.",
+      reasonPlaceholder: "A ti gba iyẹ̀wù náà ní àwọn alẹ́ wọ̀nyẹn.",
+      suggestionsLabel: "Tàbí bẹ̀rẹ̀ láti ọ̀kan nínú ìwọ̀nyí",
+      suggestions: {
+        taken: "A ti gba iyẹ̀wù náà ní àwọn alẹ́ wọ̀nyẹn.",
+        maintenance: "Wọ́n ń ṣe iṣẹ́ àtúnṣe ní ohun ìní náà ní ọ̀sẹ̀ náà.",
+        guests: "Ohun ìní náà kò lè gba iye àlejò bẹ́ẹ̀ ní ìtẹ́lọ́rùn.",
+      },
+      confirm: "Kọ̀ ìbéèrè náà",
+    },
+    empty: {
+      requestsTitle: "Kò sí ohun tí ń dúró dè ọ́",
+      requestsBody:
+        "Kò sí àlejò tí ń dúró de ìpinnu báyìí. Àwọn ìbéèrè tuntun máa dé sí ibí, wọ́n á sì dì àwọn alẹ́ mọ́ fún wákàtí {hours} nígbà tí o ń dáhùn.",
+      upcomingTitle: "Kò sí ìbùgbé tí a fi pamọ́ síbẹ̀",
+      upcomingBody:
+        "Àwọn ìbéèrè tí o gbà máa hàn níbí pẹ̀lú àwọn ọjọ́, àwọn àlejò àti àpapọ̀ owó.",
+      completedTitle: "Kò sí ohun tí ó parí síbẹ̀",
+      completedBody: "Ìbùgbé kan máa wá síbí ní ọjọ́ kejì tí àlejò rẹ jáde.",
+      cancelledTitle: "Kò sí ohun tí a fagilé",
+      cancelledBody:
+        "Àwọn ìbéèrè tí o kọ̀, àti àwọn ìbùgbé tí ẹnìkẹ́ni dá dúró, wà níbí fún àkọsílẹ̀ rẹ.",
+      openListings: "Ṣàkóso àtòjọ mi",
+    },
+  },
+
+  agentEarnings: {
+    title: "Owó tí o rí",
+    lede: "Ohun tí ó ti wọlé láti àwọn ìbùgbé rẹ, tààrà láti inú ìwé ìṣírò.",
+    unconfigured: "Owó tí o rí máa hàn níbí ní kété tí àwọn kọ́kọ́rọ́ pátákó bá dé.",
+    unavailable:
+      "A kò lè kà ìwé ìṣírò náà báyìí, nítorí náà a kò fi iye kan hàn dípò kí a fi èyí tí kò tọ́ hàn. Tún ojú-ìwé yìí kó ní ìṣẹ́jú kan.",
+    totals: {
+      yourShare: "Ìpín rẹ tí ó ti wọlé",
+      guestsPaid: "Ohun tí àwọn àlejò san",
+      settledStays: "Ìbùgbé tí owó rẹ̀ wọlé",
+      thisMonth: "Oṣù yìí",
+    },
+    byMonth: "Ní oṣù kọ̀ọ̀kan",
+    monthShare: "Ìpín rẹ",
+    monthGross: "Ohun tí àwọn àlejò san",
+    stays: "Ìbùgbé {count}",
+    staysOne: "Ìbùgbé kan",
+    emptyTitle: "Owó kò tíì rìn síbẹ̀",
+    emptyBody:
+      "Gbogbo owó tí ó wọlé ni a kọ sínú ìwé ìṣírò, ó sì máa hàn níbí pẹ̀lú ìpín rẹ lórí rẹ̀. A kò díwọ̀n ohunkóhun lórí ojú-ìwé yìí, nítorí náà títí owó ìbùgbé kan bá wọlé, ó máa wà ní òfìfo lọ́nà mímọ̀ọ́mọ̀.",
+    emptyAction: "Wo àwọn ìfiléke rẹ",
+    howTitle: "Bí a ṣe ṣírò ìpín rẹ",
+    howBody:
+      "A pín owó tí ó wọlé ní ọ̀nà mẹ́ta: ìpín rẹ, ìpín pátákó náà, àti ohun tí ẹni tó ń gbé owó náà kọjá mú. Àwọn mẹ́tẹ̀ẹ̀ta ń papọ̀ dé ohun tí àlejò san, ìdí nìyẹn tí ìlà kọ̀ọ̀kan níbí ń bá ara rẹ̀ mu.",
+  },
+
   admin: {
     console: {
       // NATIVE REVIEW: "console" kept in English the way Nigerian staff say it.

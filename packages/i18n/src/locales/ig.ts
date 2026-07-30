@@ -620,6 +620,124 @@ export const ig: Dictionary = {
     },
   },
 
+  agentBookings: {
+    title: "Ndebe",
+    lede: "Arịrịọ ọ bụla na obibi ọ bụla n'ihe onwunwe gị niile.",
+    unconfigured:
+      "Arịrịọ gị na obibi gị ga-apụta ebe a ozugbo igodo nke ikpo okwu rutere. Ọ dịghị ihe furu efu n'etiti oge ahụ.",
+    tabsLabel: "Ụdị ndebe",
+    waitingOn: "{count} na-eche gị",
+    waitingOnOne: "Otu na-eche gị",
+    groups: {
+      requests: {
+        title: "Arịrịọ",
+        blurb:
+          "Na-eche mkpebi gị. Arịrịọ na-ejide abalị ruo elekere {hours}, mgbe ahụ ọ na-atọhapụ onwe ya.",
+      },
+      upcoming: { title: "Na-abịa", blurb: "Obibi ị nabatara nke na-abịabeghị." },
+      completed: { title: "Emechara", blurb: "Obibi ndị ọbịa gị gwụchara." },
+      cancelled: {
+        title: "Akagburu",
+        blurb: "Arịrịọ ị jụrụ, na obibi nke akụkụ ọ bụla kwụsịrị.",
+      },
+    },
+    card: {
+      dates: "{from} ruo {to}",
+      nights: "Abalị {count}",
+      nightsOne: "Otu abalị",
+      guests: "Ọbịa {count}",
+      guestsOne: "Otu ọbịa",
+      composition: "Ndị okenye {adults}, ụmụaka {children}",
+      total: "Mkpokọta",
+      requested: "Arịọrọ ya {date}",
+      waiting: "Na-eche {duration}",
+      waitingNew: "Ka rutere",
+      releasesIn: "Ọ ga-atọhapụ onwe ya n'ime {duration}",
+      releasingNow: "Ọ gafere ijide elekere {hours} ya, ya mere ọ nwere ike tọhapụ mgbe ọ bụla",
+      hours: "Elekere {count}",
+      hoursOne: "Otu elekere",
+      days: "Ụbọchị {count}",
+      daysOne: "Otu ụbọchị",
+      settled: "Ego abanyela",
+      awaiting: "Ego abanyebeghị",
+      unknown: "Enweghị ike ịkọ ọnọdụ ego ugbu a",
+    },
+    status: {
+      PENDING: "Na-eche mkpebi gị",
+      CONFIRMED: "Akwadoro ya",
+      CANCELLED: "Akagburu",
+    },
+    actions: {
+      accept: "Nabata",
+      decline: "Jụ",
+      working: "Na-arụ ọrụ",
+      back: "Laghachi azụ",
+      close: "Mechie",
+    },
+    accept: {
+      title: "Ị nabata arịrịọ a?",
+      body:
+        "Ọbịa ahụ na-anụ ozugbo, a na-ejidekwa abalị ndị ahụ na kalenda gị maka ya. Lelee na ihe onwunwe ahụ nwere ohere n'ezie tupu ị nabata.",
+      confirm: "Nabata arịrịọ",
+    },
+    decline: {
+      title: "Ị jụ arịrịọ a?",
+      body:
+        "Abalị ndị ahụ na-alaghachi na kalenda gị ma a gwa ọbịa ahụ. Ọ dịghị ego a napụrụ onye ọ bụla.",
+      reasonLabel: "Gịnị mere na ị pụghị inabata ụbọchị ndị a?",
+      reasonHint: "Ọbịa ahụ na-agụ nke a okwu site n'okwu, ya mere mee ka ọ dị mfe ma dị obiọma.",
+      reasonPlaceholder: "E werela ụlọ ahụ n'abalị ndị ahụ.",
+      suggestionsLabel: "Ma ọ bụ malite site n'otu n'ime ndị a",
+      suggestions: {
+        taken: "E werela ụlọ ahụ n'abalị ndị ahụ.",
+        maintenance: "A na-arụ ọrụ nrụzi n'ihe onwunwe ahụ n'izu ahụ.",
+        guests: "Ihe onwunwe ahụ enweghị ike ịnabata ọbịa ndị dị otú ahụ n'udo.",
+      },
+      confirm: "Jụ arịrịọ",
+    },
+    empty: {
+      requestsTitle: "Ọ dịghị ihe na-eche gị",
+      requestsBody:
+        "Ọ dịghị ọbịa na-eche mkpebi ugbu a. Arịrịọ ọhụrụ na-arute ebe a ma na-ejide abalị ruo elekere {hours} ka ị na-aza.",
+      upcomingTitle: "Edebeghị obibi ọ bụla ugbu a",
+      upcomingBody:
+        "Arịrịọ ị nabatara ga-apụta ebe a ya na ụbọchị, ọbịa na mkpokọta ego.",
+      completedTitle: "Ọ dịghị ihe emechara ugbu a",
+      completedBody: "Obibi na-akwaga ebe a n'echi ụbọchị ọbịa gị si pụọ.",
+      cancelledTitle: "Ọ dịghị ihe akagburu",
+      cancelledBody:
+        "Arịrịọ ị jụrụ, na obibi nke akụkụ ọ bụla kwụsịrị, na-anọ ebe a maka ndekọ gị.",
+      openListings: "Jikwaa ndepụta m",
+    },
+  },
+
+  agentEarnings: {
+    title: "Ego",
+    lede: "Ihe abanyela site n'obibi gị, kpọmkwem site n'akwụkwọ ndekọ ego.",
+    unconfigured: "Ego gị ga-apụta ebe a ozugbo igodo nke ikpo okwu rutere.",
+    unavailable:
+      "Anyị enweghị ike ịgụ akwụkwọ ndekọ ego ugbu a, ya mere anaghị egosi ọnụọgụ ọ bụla kama igosi nke na-ezighị ezi. Megharịa ibe a n'ime nkeji.",
+    totals: {
+      yourShare: "Òkè gị nke abanyela",
+      guestsPaid: "Ihe ndị ọbịa kwụrụ",
+      settledStays: "Obibi nke ego ha abanyela",
+      thisMonth: "Ọnwa a",
+    },
+    byMonth: "Kwa ọnwa",
+    monthShare: "Òkè gị",
+    monthGross: "Ihe ndị ọbịa kwụrụ",
+    stays: "Obibi {count}",
+    staysOne: "Otu obibi",
+    emptyTitle: "Ego ọ bụla emegharịbeghị",
+    emptyBody:
+      "A na-ede ego ọ bụla abanyela n'akwụkwọ ndekọ ma ọ na-apụta ebe a ya na òkè gị. Ọ dịghị ihe a na-atụ atụ n'ibe a, ya mere ruo mgbe obibi kwụrụ ụgwọ, ọ na-anọ efu ya na nzube.",
+    emptyAction: "Lee ndebe gị",
+    howTitle: "Otú a na-agbakọ òkè gị",
+    howBody:
+      // NATIVE REVIEW: "processor" kept in English, it names the payment company.
+      "A na-kewa ego abanyela ụzọ atọ: òkè gị, òkè ikpo okwu, na ihe processor nke ịkwụ ụgwọ na-ewere. Atọ ahụ na-agbakọ mgbe niile ruo ihe ọbịa kwụrụ, nke ahụ bụ ihe mere ahịrị ọ bụla ebe a na-adaba.",
+  },
+
   admin: {
     console: {
       // NATIVE REVIEW: "console" kept in English the way Nigerian staff say it.

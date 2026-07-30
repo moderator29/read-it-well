@@ -205,6 +205,23 @@ export async function signUpWithEmail(
  * Begin an OAuth handshake. Returns the provider URL for the client to visit,
  * rather than redirecting here, so the caller can report a refusal in place.
  */
+/**
+ * Form-action wrappers.
+ *
+ * A `<form action={...}>` hands the action a FormData argument, so the bare
+ * startOAuth signature cannot be bound to a form directly. These two exist so
+ * the provider is fixed on the server rather than being submitted by the
+ * browser, which means a crafted form cannot ask for a provider we never
+ * enabled.
+ */
+export async function startGoogleOAuth(): Promise<void> {
+  await startOAuth("google");
+}
+
+export async function startAppleOAuth(): Promise<void> {
+  await startOAuth("apple");
+}
+
 export async function startOAuth(provider: "google" | "apple"): Promise<AuthFormState> {
   const states = getProviderStates();
   if (!states.some((p) => p.id === provider && p.configured)) {
