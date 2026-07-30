@@ -30,11 +30,14 @@ export function AuthPanel({
   t,
   providers,
   action,
+  notice,
 }: {
   mode: "sign-in" | "sign-up";
   t: Dictionary;
   providers: ProviderState[];
   action: (prev: AuthFormState, formData: FormData) => Promise<AuthFormState>;
+  /** A message from the auth callback, for example an expired link. */
+  notice?: string | undefined;
 }) {
   const [state, formAction, pending] = useActionState(action, EMPTY);
   const [showEmail, setShowEmail] = useState(false);
@@ -61,6 +64,15 @@ export function AuthPanel({
       <p className="mt-1.5 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
         {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
       </p>
+
+      {notice ? (
+        <p
+          role="status"
+          className="nf-card mt-4 px-4 py-3 text-center text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+        >
+          {notice}
+        </p>
+      ) : null}
 
       {/*
        * Demo entry. Temporary scaffold while the auth environment is not wired:

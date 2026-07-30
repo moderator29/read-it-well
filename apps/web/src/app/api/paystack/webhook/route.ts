@@ -4,11 +4,17 @@ import {
   verifyWebhookSignature,
 } from "@/lib/payments/paystack";
 import {
+  availableBalanceMinor,
+  ensureWalletId,
   getAdminClient,
   recordFunding,
   settleWithdrawal,
+  walletOwnerId,
   type AdminClient,
 } from "@/lib/wallet/ledger";
+import { bestEffortEmail, sendEmail } from "@/lib/email/client";
+import { walletFunded, withdrawalFailed } from "@/lib/email/messages";
+import { contactForUser } from "@/lib/email/recipients";
 import type { Json } from "@/lib/supabase/database.types";
 
 /**
@@ -72,7 +78,7 @@ async function handleChargeSuccess(
   const userId = metadata["user_id"];
   if (typeof userId !== "string" || userId.length === 0) return;
 
-  await recordFunding(admin, {
+  const posted = await recordFunding(admin, {
     userId,
     amountMinor,
     reference,
@@ -81,6 +87,20 @@ async function handleChargeSuccess(
       paid_at: (data.paid_at ?? null) as Json,
       purpose: "wallet_fund",
     },
+  });
+
+  // This is the settlement path that actually runs in production: most
+  // fundings arrive here, not through the redirect. The receipt is gated on
+  // "posted" so a replayed delivery credits nothing and emails nothing.
+  if (posted !== "posted") return;
+
+  await bestEffortEmail(async () => {
+    const owner = await contactForUser(admin, userId);
+    if (!owner) return;
+    const walletId = await ensureWalletId(admin, userId);
+    const balanceMinor = await availableBalanceMinor(admin, walletId);
+    const message = walletFunded({ ownerName: owner.name, amountMinor, balanceMinor });
+    await sendEmail({ to: owner.email, subject: message.subject, html: message.html });
   });
 }
 
@@ -94,11 +114,39 @@ async function handleTransferEvent(
 
   if (event === "transfer.success") {
     await settleWithdrawal(admin, reference, "COMPLETED");
-  } else if (event === "transfer.failed") {
-    await settleWithdrawal(admin, reference, "FAILED");
-  } else if (event === "transfer.reversed") {
-    await settleWithdrawal(admin, reference, "REVERSED");
+    return;
   }
+
+  const outcome =
+    event === "transfer.failed" ? "FAILED" : event === "transfer.reversed" ? "REVERSED" : null;
+  if (!outcome) return;
+
+  const settled = await settleWithdrawal(admin, reference, outcome);
+  // Null means nothing moved, which is what a replayed delivery looks like:
+  // stay silent rather than tell someone twice that their money came back.
+  if (!settled) return;
+
+  await bestEffortEmail(async () => {
+    const ownerId = await walletOwnerId(admin, settled.walletId);
+    if (!ownerId) return;
+    const owner = await contactForUser(admin, ownerId);
+    if (!owner) return;
+
+    // The withdrawal's own metadata carries where it was headed, written when
+    // the hold was placed. Absent or malformed, the email simply omits it.
+    const meta = metadataRecord(settled.metadata);
+    const bankName = typeof meta["bank_name"] === "string" ? meta["bank_name"] : null;
+    const accountLast4 =
+      typeof meta["account_last4"] === "string" ? meta["account_last4"] : null;
+
+    const message = withdrawalFailed({
+      ownerName: owner.name,
+      amountMinor: settled.amountMinor,
+      bankName,
+      accountLast4,
+    });
+    await sendEmail({ to: owner.email, subject: message.subject, html: message.html });
+  });
 }
 
 export async function POST(request: Request): Promise<NextResponse> {

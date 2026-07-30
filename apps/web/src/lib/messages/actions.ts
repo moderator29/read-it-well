@@ -12,6 +12,10 @@
  * code path here can forget either. Marking a thread read is the one place the
  * service role appears, because participants deliberately hold no UPDATE
  * policy on messages; membership is proven through an RLS read first.
+ *
+ * One durable throttle lives here: how many brand new conversations a guest may
+ * open in a day, so mass first-message scraping of agents' contacts is not free.
+ * Sending inside an existing thread is never throttled.
  */
 
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
@@ -22,6 +26,7 @@ import {
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
 import { getListingRepository } from "../listings/repository";
+import { consume, subjectForUser } from "../security/rate-limit";
 import { createAdminClient } from "../supabase/admin";
 import {
   attachImageSchema,
@@ -47,6 +52,30 @@ const SEND_FAILED_MESSAGE = "Your message did not send. Tap retry to send it aga
 
 /** The body a photo-only message carries. */
 const PHOTO_BODY = "\u{1F4F7} Photo";
+
+/**
+ * How many brand new conversations one guest may open in a day
+ * (RECOMMENDATIONS R-36).
+ *
+ * The abuse this prices is scraping agents' contact details through mass first
+ * messages: opening a thread is what costs an agent their attention, so opening
+ * threads is what gets counted. Twenty in a day is far above any real search
+ * (a guest comparing hard messages a handful of agents about a handful of
+ * places) and far below anything worth scripting.
+ *
+ * What is deliberately NOT limited: sending inside a conversation that already
+ * exists. A real negotiation over a Lagos shortlet is chatty, runs over hours,
+ * and gets re-sent whenever the network drops. Throttling that would punish
+ * exactly the users the platform wants. Only creation is counted, and only when
+ * a row is actually about to be created: reopening a thread that already exists
+ * costs a guest nothing.
+ */
+const NEW_CONVERSATION_LIMIT = 20;
+const NEW_CONVERSATION_WINDOW_SECONDS = 24 * 60 * 60;
+
+function newConversationLimitMessage(retryIn: string): string {
+  return `You have opened ${NEW_CONVERSATION_LIMIT} new conversations today, which is the daily limit while we keep agents' inboxes usable. Your existing chats are unaffected, and you can open new ones ${retryIn}.`;
+}
 
 /**
  * Find or create the guest's conversation with the agent of a listing.
@@ -119,6 +148,17 @@ export async function startConversation(input: {
     .maybeSingle();
   if (findError) return fail("Messaging is unavailable just now. Please try again shortly.");
   if (existing) return ok({ conversationId: existing.id });
+
+  // A row is genuinely about to be created, so this is the moment the daily
+  // count applies. The limiter fails open, so a limiter outage can never stop a
+  // guest reaching an agent.
+  const verdict = await consume({
+    bucket: "conversation_new",
+    subject: subjectForUser(session.user.id),
+    limit: NEW_CONVERSATION_LIMIT,
+    windowSeconds: NEW_CONVERSATION_WINDOW_SECONDS,
+  });
+  if (!verdict.allowed) return fail(newConversationLimitMessage(verdict.retryIn));
 
   const { data: created, error: insertError } = await session.supabase
     .from("conversations")

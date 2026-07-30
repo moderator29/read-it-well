@@ -4,6 +4,7 @@ import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
+import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
 import "./globals.css";
 
 /*
@@ -59,10 +60,44 @@ export const metadata: Metadata = {
     type: "website",
   },
   robots: { index: true, follow: true },
+
+  /*
+   * Installable app metadata. Emitted by Next rather than hand written tags:
+   * the manifest link points at the typed route in `app/manifest.ts`, and
+   * `appleWebApp` produces apple-mobile-web-app-capable plus the status bar
+   * style. `black-translucent` is the right pairing with the viewport's
+   * `viewportFit: "cover"` already set below, so the navy canvas runs under
+   * the status bar instead of leaving a pale strip above the brand.
+   * Next renders `appleWebApp.capable` as the standards-track
+   * `mobile-web-app-capable`, not the apple-prefixed name, so the Apple tag is
+   * added through `other`. iOS Safari still reads the apple-prefixed tag to
+   * decide whether an installed page opens standalone, and without it an iPhone
+   * install would open in a browser chrome instead of as an app. Setting
+   * `mobile-web-app-capable` here as well would emit it twice.
+   */
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "RentMe",
+    statusBarStyle: "black-translucent",
+  },
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+  },
+  icons: {
+    icon: [
+      { url: "/pwa/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/pwa/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/pwa/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#060A12",
+  // The brand base navy, matching `background_color` and `theme_color` in the
+  // manifest so the Android status bar, the splash screen and the app canvas
+  // are one continuous colour instead of three near-misses.
+  themeColor: "#010118",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -100,6 +135,8 @@ export default async function RootLayout({
         {/* Film grain over everything, so surfaces feel physical, not printed. */}
         <div className="nf-grain" aria-hidden="true" />
         <ScrollToTop />
+        {/* Installs the offline shell after load, in production only. Renders nothing. */}
+        <ServiceWorkerRegistrar />
         <a href="#main" className="nf-skip-link">
           {t.common.skipToContent}
         </a>

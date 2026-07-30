@@ -1,4 +1,10 @@
 import "server-only";
+import {
+  isPartnerId,
+  partnerListingById,
+  partnerListings,
+  partnerProvidersConfigured,
+} from "../inventory";
 import { isSupabaseConfigured } from "../supabase/env";
 import { diversePick, matchesFilter } from "./filter";
 import { SupabaseListingRepository } from "./supabase-repository";
@@ -723,8 +729,91 @@ class ApiListingRepository implements ListingRepository {
   }
 }
 
+/**
+ * First-party inventory, with partner stock behind it.
+ *
+ * A decorator rather than a fourth repository, because the merge rule is the
+ * same whatever answers first: whatever the base repository returns keeps its
+ * order and its place at the top of the results, and partner listings are
+ * appended after it. Verification earns reach (docs/HYBRID_INVENTORY.md
+ * section 3), so a partner hotel can never outrank a verified one at equal
+ * relevance; it can only fill the shelf below.
+ *
+ * The decorator is only ever applied when a provider key exists. With no keys
+ * `getListingRepository()` returns exactly the repository it returned before
+ * this file knew partners existed, so keyless behaviour is unchanged by
+ * construction rather than by a runtime check inside each method.
+ *
+ * `recommended()` is deliberately NOT widened. The home rail is a curation
+ * surface, and partner stock carries no verification, no reviews of ours and no
+ * inspection path, so it has not earned a place there. It also keeps the home
+ * page free of any outbound partner call.
+ */
+class PartnerAugmentedRepository implements ListingRepository {
+  readonly isSeed: boolean;
+
+  constructor(private readonly base: ListingRepository) {
+    this.isSeed = base.isSeed;
+  }
+
+  async search(filter: ListingSearchFilter = {}): Promise<Listing[]> {
+    // First party is fetched first and never waits on a partner: both halves run
+    // in parallel, and the partner half has its own hard timeout inside.
+    const [first, partner] = await Promise.all([
+      this.base.search(filter),
+      partnerListings(filter).catch(() => [] as Listing[]),
+    ]);
+
+    // The shared matcher decides for partner stock exactly as it decides for
+    // ours, so a blended result set cannot filter two different ways.
+    const eligible = partner.filter((l) => matchesFilter(l, filter));
+    return PartnerAugmentedRepository.appendPartners(first, eligible);
+  }
+
+  async recommended(limit = 6): Promise<Listing[]> {
+    return this.base.recommended(limit);
+  }
+
+  async byId(id: string): Promise<Listing | null> {
+    // Partner ids are minted by the provider layer and cannot collide with a
+    // uuid or a catalogue slug, so the routing is unambiguous and costs one
+    // string comparison on the first-party path.
+    if (isPartnerId(id)) {
+      return partnerListingById(id).catch(() => null);
+    }
+    return this.base.byId(id);
+  }
+
+  /**
+   * Partner listings after first-party ones, de-duplicated twice over: by id,
+   * and by the same property showing up in both halves. A hotel we have
+   * admitted ourselves must not appear again through a feed, so a partner
+   * listing whose title and city already exist first party is dropped.
+   */
+  private static appendPartners(first: Listing[], partner: Listing[]): Listing[] {
+    const ids = new Set(first.map((l) => l.id));
+    const fingerprints = new Set(first.map((l) => PartnerAugmentedRepository.fingerprint(l)));
+    const out = [...first];
+    for (const listing of partner) {
+      if (ids.has(listing.id)) continue;
+      const fingerprint = PartnerAugmentedRepository.fingerprint(listing);
+      if (fingerprints.has(fingerprint)) continue;
+      ids.add(listing.id);
+      fingerprints.add(fingerprint);
+      out.push(listing);
+    }
+    return out;
+  }
+
+  /** Same name, same city, same category: the same place. */
+  private static fingerprint(l: Listing): string {
+    return `${l.kind}|${l.title.toLowerCase().replace(/[^a-z0-9]+/g, "")}|${l.city.toLowerCase()}`;
+  }
+}
+
 export function getListingRepository(): ListingRepository {
   if (process.env.NF_DATA_SOURCE === "api") return new ApiListingRepository();
-  if (isSupabaseConfigured()) return new MergedListingRepository();
-  return new SeedListingRepository();
+  const base = isSupabaseConfigured() ? new MergedListingRepository() : new SeedListingRepository();
+  // No partner keys, no decorator, no behaviour change of any kind.
+  return partnerProvidersConfigured() ? new PartnerAugmentedRepository(base) : base;
 }

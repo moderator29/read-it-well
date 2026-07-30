@@ -123,6 +123,9 @@ export default async function SearchPage({
   // lowest nightly price regardless of the current text filter.
   const cityFloor = new Map<string, { count: number; minMinor: number; currency: string }>();
   for (const l of await repo.search({})) {
+    // A floor needs a real price. Partner venues that come with a price level
+    // rather than an amount carry 0 and must not become a city's "from" figure.
+    if (l.priceMinor <= 0) continue;
     const entry = cityFloor.get(l.city);
     if (!entry) {
       cityFloor.set(l.city, { count: 1, minMinor: l.priceMinor, currency: l.currency });
