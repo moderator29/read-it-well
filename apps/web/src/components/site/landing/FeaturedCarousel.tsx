@@ -5,6 +5,7 @@ import { getListingRepository } from "@/lib/listings/repository";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CarouselRail } from "./CarouselRail";
+import { Words } from "@/components/site/Words";
 
 /**
  * Featured this week.
@@ -38,7 +39,9 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
           <UiIcon name="sparkle" size={14} />
           Hand picked
         </span>
-        <h2 className="nf-h1 mt-3">Featured this week</h2>
+        <h2 className="nf-h1 mt-3">
+          <Words text="Featured this week" accentFrom={1} />
+        </h2>
         <p className="mt-3 text-[var(--nf-content-secondary)]">
           The highest rated places on the platform right now. Swipe through, or
           step card by card.

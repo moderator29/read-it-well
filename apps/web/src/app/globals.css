@@ -271,6 +271,198 @@ body {
       0 6px 20px -8px rgb(12 57 239 / 0.55);
   }
 
+  /*
+   * Story stage.
+   *
+   * The commissioned character scenes are lit product shots on white, so
+   * they get a studio ground rather than a dark panel: a soft silver-white
+   * sweep with a faint blue floor glow, which reads as the same photographic
+   * space the artwork was rendered in. At night the stage keeps its bright
+   * ground so the character stays the light source of the card.
+   */
+  /*
+   * Story stages.
+   *
+   * Each commissioned scene was lit on its own ground: some are studio white
+   * product shots, some are neon objects on black. Cutting either one out
+   * leaves halos on the opposite ground, so instead the stage adopts the
+   * light the artwork was rendered in, and the image edges are feathered so
+   * the square dissolves into it. The result is seamless in both themes.
+   */
+  .nf-story-stage--paper {
+    background:
+      radial-gradient(75% 55% at 50% 100%, rgb(12 57 239 / 0.1) 0%, transparent 70%),
+      radial-gradient(120% 90% at 70% -10%, #FFFFFF 0%, rgb(255 255 255 / 0) 62%),
+      linear-gradient(180deg, #FBFCFD 0%, #F1F3F7 100%);
+    border-bottom: 1px solid rgb(18 21 26 / 0.07);
+  }
+  .nf-story-stage--night {
+    background:
+      radial-gradient(70% 50% at 50% 100%, rgb(12 57 239 / 0.3) 0%, transparent 70%),
+      linear-gradient(180deg, #05060F 0%, #01010A 100%);
+    border-bottom: 1px solid rgb(92 124 255 / 0.28);
+  }
+  .nf-story-art {
+    -webkit-mask-image: radial-gradient(76% 76% at 50% 48%, #000 62%, transparent 92%);
+    mask-image: radial-gradient(76% 76% at 50% 48%, #000 62%, transparent 92%);
+  }
+
+  /* Anchored headings clear the sticky header instead of hiding under it. */
+  [id^="nf-"] {
+    scroll-margin-top: 5.5rem;
+  }
+
+  /* ------------------------------------------------ landing motion system */
+
+  /*
+   * The living page.
+   *
+   * Below the hero, the landing tells its story in movement: sections lift
+   * into place as they enter, headlines wipe in word by word, rails drift,
+   * numbers breathe and edges catch light. Every effect is scroll driven or
+   * pure CSS, GPU friendly (transform and opacity only), and every one of
+   * them collapses under reduced motion.
+   */
+
+  /* Scroll-driven entrance. Sections animate against their own scroll
+     position where supported, so scrubbing back up replays them. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-enter {
+        animation: nf-enter-up linear both;
+        animation-timeline: view();
+        animation-range: entry 8% cover 34%;
+      }
+      .nf-enter-scale {
+        animation: nf-enter-scale linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 40%;
+      }
+      /* Rails drift a touch as the page scrolls past them, which reads as
+         depth without any JavaScript scroll listener. */
+      .nf-parallax-soft {
+        animation: nf-parallax-soft linear both;
+        animation-timeline: view();
+        animation-range: cover 0% cover 100%;
+      }
+    }
+  }
+  @keyframes nf-enter-up {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 34px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-enter-scale {
+    from {
+      opacity: 0;
+      transform: scale(0.965);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-parallax-soft {
+    from {
+      transform: translate3d(0, 18px, 0);
+    }
+    to {
+      transform: translate3d(0, -18px, 0);
+    }
+  }
+
+  /*
+   * Word by word headline wipe. Each word is a span that lifts and fades in
+   * on a stagger set inline, so a heading assembles itself rather than
+   * appearing whole.
+   */
+  .nf-words > span {
+    display: inline-block;
+    animation: nf-word-in var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-words > span {
+        animation-timeline: view();
+        animation-range: entry 10% cover 30%;
+        animation-delay: 0s;
+        animation-duration: calc(1s + var(--i, 0) * 0.18s);
+      }
+    }
+  }
+  @keyframes nf-word-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.5em, 0) rotate(1.5deg);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  /* A hairline that draws itself across a section as it arrives. */
+  .nf-rule-draw {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--nf-brand-primary) 50%,
+      transparent 100%
+    );
+    transform-origin: center;
+    animation: nf-rule-draw var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-rule-draw {
+        animation-timeline: view();
+        animation-range: entry 0% cover 26%;
+      }
+    }
+  }
+  @keyframes nf-rule-draw {
+    from {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+    to {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+  }
+
+  /* Slow ambient drift for decorative objects sitting inside sections. */
+  .nf-drift {
+    animation: nf-drift 14s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-drift {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    50% { transform: translate3d(0, -10px, 0) rotate(-1.2deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-enter,
+    .nf-enter-scale,
+    .nf-parallax-soft,
+    .nf-words > span,
+    .nf-rule-draw,
+    .nf-drift {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
+  }
+
   /* ------------------------------------------------------------- live map */
 
   /* Price pins on the live map. Rendered by Leaflet divIcons. */
@@ -1249,6 +1441,36 @@ body {
   .nf-reveal[data-shown="true"] {
     opacity: 1;
     transform: none;
+  }
+  /*
+   * Where scroll-driven animation exists, the reveal is handed to the
+   * compositor and tied to the block's own scroll position: it lifts,
+   * unblurs and settles as it enters, and replays on the way back. The
+   * observer state above stays as the fallback for older engines.
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+        animation: nf-reveal-in linear both;
+        animation-timeline: view();
+        animation-range: entry 4% cover 30%;
+      }
+    }
+  }
+  @keyframes nf-reveal-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 30px, 0) scale(0.988);
+      filter: blur(3px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-reveal {

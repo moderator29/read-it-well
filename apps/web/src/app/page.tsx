@@ -20,6 +20,7 @@ import {
   CoverageMap,
   AssistantShowcase,
 } from "@/components/site/landing/SignatureShowcase";
+import { StoryRail } from "@/components/site/landing/StoryRail";
 
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"];
 
@@ -177,6 +178,9 @@ export default async function LandingPage() {
             </ul>
           </div>
         </section>
+
+        {/* ------------------------------------------------ the story rail */}
+        <StoryRail />
 
         <HowItWorks t={t} />
 

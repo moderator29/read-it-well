@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { Words } from "@/components/site/Words";
 
 /**
  * Popular destinations.
@@ -26,7 +27,9 @@ export function PopularDestinations({ t }: { t: Dictionary }) {
     <section className="nf-shell py-10 sm:py-14">
       <Reveal className="mb-6 max-w-[52ch] sm:mb-8">
         <span className="nf-overline">{t.landing.hero.popularLabel}</span>
-        <h2 className="nf-h1 mt-3">Popular destinations</h2>
+        <h2 className="nf-h1 mt-3">
+          <Words text="Popular destinations" accentFrom={1} />
+        </h2>
         <p className="mt-3 text-[var(--nf-content-secondary)]">
           Six cities to start with. Search reaches every state.
         </p>

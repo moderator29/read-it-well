@@ -1,6 +1,7 @@
 import type { Dictionary } from "@naijafinds/i18n";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { Words } from "@/components/site/Words";
 
 /**
  * "Why RentMe" value band.
@@ -36,7 +37,9 @@ export function WhyRentMe({ t }: { t: Dictionary }) {
   return (
     <section className="nf-shell py-10 sm:py-14">
       <Reveal className="mb-6 max-w-[52ch] sm:mb-8">
-        <h2 className="nf-h1">Why RentMe</h2>
+        <h2 className="nf-h1">
+          <Words text="Why RentMe" accentFrom={1} />
+        </h2>
         <p className="mt-3 text-[var(--nf-content-secondary)]">
           The promises behind every search, booking and stay.
         </p>

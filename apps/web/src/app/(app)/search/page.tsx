@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
 import { RealMap } from "@/components/app/search/RealMap";
+import { SceneBanner } from "@/components/app/SceneBanner";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import type { Listing, ListingKind } from "@/lib/listings/types";
@@ -304,14 +305,25 @@ export default async function SearchPage({
       {view === "list" && (
       <Reveal className="mt-5" delay={60}>
         {listings.length === 0 ? (
-          <div className="nf-card p-10 text-center">
-            <p className="font-semibold">No places matched</p>
-            <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
-              Try a different search, or browse everything from the home screen.
-            </p>
-            <Link href="/home" className="nf-btn nf-btn--glass mt-6 inline-flex">
-              {t.nav.home}
-            </Link>
+          <div className="grid gap-4">
+            <div className="nf-card p-10 text-center">
+              <p className="font-semibold">No places matched</p>
+              <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
+                Try a different search, or browse everything from the home screen.
+              </p>
+              <Link href="/home" className="nf-btn nf-btn--glass mt-6 inline-flex">
+                {t.nav.home}
+              </Link>
+            </div>
+            <SceneBanner
+              art="/brand/story-explore.png"
+              alt="A glowing map pin over a neon city map"
+              stage="night"
+              title="Explore on the map instead"
+              body="Pan across Nigeria and watch the lowest price in every covered city light up."
+              href="/search?view=map"
+              action="Open the map"
+            />
           </div>
         ) : (
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

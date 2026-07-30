@@ -6,6 +6,7 @@ import { getListingRepository } from "@/lib/listings/repository";
 import { getMessageRepository } from "@/lib/messages/repository";
 import { ListingCard } from "@/components/app/ListingCard";
 import { PageHeader } from "@/components/app/PageHeader";
+import { SceneBanner } from "@/components/app/SceneBanner";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
@@ -67,6 +68,17 @@ export default async function RentPage({
             you have inspected the property.
           </p>
         </div>
+
+        <SceneBanner
+          art="/brand/story-verified.png"
+          alt="A neon shield holding a house, with a verification check"
+          stage="night"
+          title="Every rental here is checked"
+          body="Listings and agents are verified before they go live, and the whole conversation stays inside RentMe."
+          href="/help"
+          action="How we protect you"
+          className="mt-4"
+        />
 
         <nav aria-label="Rent by city" className="nf-scroll-x -mx-5 mt-4 md:-mx-8">
           <ul className="flex gap-2 px-5 md:px-8">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { Words } from "@/components/site/Words";
 
 /**
  * Find your vibe.
@@ -25,7 +26,9 @@ export function MoodRow() {
     <section className="nf-shell py-10 sm:py-14">
       <Reveal className="mb-6 max-w-[52ch] sm:mb-8">
         <span className="nf-overline">Moods</span>
-        <h2 className="nf-h1 mt-3">Find your vibe</h2>
+        <h2 className="nf-h1 mt-3">
+          <Words text="Find your vibe" accentFrom={2} />
+        </h2>
         <p className="mt-3 text-[var(--nf-content-secondary)]">
           Start from a feeling and let search do the rest.
         </p>

@@ -1,6 +1,7 @@
 import type { Dictionary } from "@naijafinds/i18n";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { Words } from "@/components/site/Words";
 
 /**
  * "How it works" band.
@@ -34,7 +35,9 @@ export function HowItWorks({ t }: { t: Dictionary }) {
     <section className="nf-shell py-10 sm:py-14">
       <Reveal className="mb-7 max-w-[52ch] sm:mb-9">
         <span className="nf-overline">Three steps</span>
-        <h2 className="nf-h1 mt-3">How it works</h2>
+        <h2 className="nf-h1 mt-3">
+          <Words text="How it works" accentFrom={2} />
+        </h2>
         <p className="mt-3 text-[var(--nf-content-secondary)]">
           From first search to checked in, the whole journey lives in one account.
         </p>
