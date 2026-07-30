@@ -999,6 +999,14 @@ export const ha: Dictionary = {
       asIndividual: "Yana nema a matsayin mutum ɗaya",
       documentsCount: "Takardu {count}",
       documentsOne: "Takarda ɗaya",
+      documentsNone: "Ba a loda takardu ba, don haka ba za a iya tabbatar da wannan buƙatar ba tukuna",
+      documentOpen: "Buɗe",
+      documentUnavailable: "Hanyar bata samu",
+      documentKinds: {
+        idFront: "Shaida, gaba",
+        idBack: "Shaida, baya",
+        registration: "Rajistar CAC",
+      },
       // NATIVE REVIEW: legal wording, "terms" of the platform.
       termsAgreed: "Ya yarda da sharuɗɗan dandalin",
       termsNotAgreed: "Bai yarda ba",

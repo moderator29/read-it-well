@@ -1596,6 +1596,17 @@ body {
   }
 
   /*
+   * The square variant. A round control reads as "one more action"; a square
+   * one reads as a panel you open, which is what the filter drawer is. The
+   * radius is deliberately the card radius, not the pill, so the opener looks
+   * like the surface it summons rather than like the search button beside it.
+   * Everything else is inherited, so the two shapes stay one material.
+   */
+  .nf-icon-btn--square {
+    border-radius: var(--nf-radius-md);
+  }
+
+  /*
    * Skeleton shimmer for loading and preview states: an inset slab with a
    * highlight sweeping across it. Static slab under reduced motion.
    */
@@ -2643,6 +2654,21 @@ body {
         animation: nf-reveal-in linear both;
         animation-timeline: view();
         animation-range: entry 4% entry 76%;
+      }
+      /*
+       * A block already on screen at first paint has no entry transit left to
+       * animate through, so it holds at whatever point of the range its
+       * position happens to fall on: the first result card on /search sat at
+       * 56% opacity behind a 1.3px blur until the visitor scrolled. An
+       * animation outranks a normal declaration in the cascade, so this has to
+       * cancel the animation outright rather than restate the end state.
+       * Reveal marks those blocks on mount.
+       */
+      .nf-reveal[data-instant="true"] {
+        animation: none;
+        opacity: 1;
+        transform: none;
+        filter: none;
       }
     }
   }

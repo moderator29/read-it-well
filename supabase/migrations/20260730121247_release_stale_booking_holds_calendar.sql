@@ -1,10 +1,6 @@
 -- Releasing a stale booking hold must release its calendar nights too.
 --
--- NOT APPLIED. This file lives in supabase/migrations_pending on purpose: the
--- lead applies migrations. Move it into supabase/migrations with a timestamp
--- prefix when applying.
---
--- WHY THIS IS NOW A BUG WITHOUT THIS CHANGE. Until this round, availability
+-- WHY THIS WAS A BUG WITHOUT THIS CHANGE. Until this round, availability
 -- rows were only written when a booking was confirmed, so a PENDING hold left
 -- no calendar trace and cancelling it needed no cleanup. Reserve now closes the
 -- nights immediately (lib/bookings/actions.ts), because otherwise two guests see

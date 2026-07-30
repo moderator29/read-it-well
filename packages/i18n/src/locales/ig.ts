@@ -1001,6 +1001,14 @@ export const ig: Dictionary = {
       asIndividual: "Ọ na-arịọ dịka otu onye",
       documentsCount: "Akwụkwọ {count}",
       documentsOne: "Akwụkwọ otu",
+      documentsNone: "Ebugoteghị akwụkwọ ọ bụla, ya mere enweghị ike ịkwado ngwa a ugbu a",
+      documentOpen: "Mepee",
+      documentUnavailable: "Njikọ adịghị",
+      documentKinds: {
+        idFront: "Njirimara, ihu",
+        idBack: "Njirimara, azụ",
+        registration: "Ndebanye aha CAC",
+      },
       // NATIVE REVIEW: legal wording, "terms" of the platform.
       termsAgreed: "O kwenyere na usoro ikpo okwu",
       termsNotAgreed: "O kwenyeghị",

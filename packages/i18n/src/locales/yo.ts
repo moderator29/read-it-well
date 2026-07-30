@@ -1006,6 +1006,14 @@ export const yo: Dictionary = {
       asIndividual: "Ó ń béèrè bí ẹnìkọ̀ọ̀kan",
       documentsCount: "Ìwé {count}",
       documentsOne: "Ìwé kan",
+      documentsNone: "Kò sí ìwé tí a gbé sókè, nítorí náà a kò lè ṣàyẹ̀wò ìbéèrè yìí síbẹ̀",
+      documentOpen: "Ṣí",
+      documentUnavailable: "Ìjápọ̀ kò sí",
+      documentKinds: {
+        idFront: "Ìwé ìdánimọ̀, iwájú",
+        idBack: "Ìwé ìdánimọ̀, ẹ̀yìn",
+        registration: "Ìforúkọsílẹ̀ CAC",
+      },
       // NATIVE REVIEW: legal wording, "terms" of the platform.
       termsAgreed: "Ó gba àdéhùn pátákó",
       termsNotAgreed: "Kò gbà",

@@ -552,7 +552,7 @@ export function FilterDrawer({
           activeCount === 0 ? "Filters" : `Filters, ${activeCount} active`
         }
         onClick={() => setOpen(true)}
-        className="nf-icon-btn relative h-[3.25rem] w-[3.25rem] shrink-0"
+        className="nf-icon-btn nf-icon-btn--square relative h-[3.25rem] w-[3.25rem] shrink-0"
       >
         <UiIcon name="sliders" size={18} />
         {activeCount > 0 && (

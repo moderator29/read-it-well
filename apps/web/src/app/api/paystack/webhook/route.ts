@@ -149,9 +149,12 @@ async function handleBookingChargeSuccess(
     fallbackBookingId,
   });
 
-  // Only a transition that actually happened here is worth announcing. This is
-  // what makes a replay silent as well as harmless.
-  if (settlement.outcome !== "settled" || !settlement.confirmed) return;
+  // Only a payment that actually landed on THIS call is worth announcing, which
+  // is what makes a replay silent as well as harmless. The test is the outcome,
+  // not settlement.confirmed: a request-to-book stay the host already accepted
+  // is CONFIRMED before the money arrives, so gating on the status change would
+  // take a guest's card and never send them a receipt.
+  if (settlement.outcome !== "settled") return;
 
   await bestEffortEmail(async () => {
     const { data: booking } = await admin

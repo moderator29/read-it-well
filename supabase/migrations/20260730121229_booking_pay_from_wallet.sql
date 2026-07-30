@@ -1,9 +1,5 @@
 -- Paying a booking from the RentMe wallet, as one indivisible fact.
 --
--- NOT APPLIED. This file lives in supabase/migrations_pending on purpose: the
--- lead applies migrations. Move it into supabase/migrations with a timestamp
--- prefix when applying.
---
 -- Why a database function rather than a sequence of service-layer writes. A
 -- wallet payment is six writes that must all be true together: the wallet is
 -- debited, the payment attempt is recorded, the ledger row that accounts for it
@@ -23,12 +19,11 @@
 -- rm-book-<uuid> string, so replaying one payment collides with itself and the
 -- whole function reports 'duplicate' having moved nothing.
 --
--- THE COMMERCIAL RULE, encoded. The platform charges nothing
--- (docs/MASTER_TODO.md section 5b). A wallet payment involves no processor
--- either, so the ledger row reads: gross = the booking total,
--- platform_fee_minor = 0, processor_fee_minor = 0, agent_share_minor = gross.
--- That satisfies ledger_balances_chk exactly in integer kobo:
--- gross = 0 + gross + 0.
+-- THE COMMERCIAL RULE, encoded. The platform charges nothing. A wallet payment
+-- involves no processor either, so the ledger row reads: gross = the booking
+-- total, platform_fee_minor = 0, processor_fee_minor = 0,
+-- agent_share_minor = gross. That satisfies ledger_balances_chk exactly in
+-- integer kobo: gross = 0 + gross + 0.
 
 -- One accounting entry per settled payment attempt, enforced rather than
 -- assumed. Both this function and the webhook settlement write ledger_entries

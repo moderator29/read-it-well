@@ -182,7 +182,13 @@ export async function getCheckoutView(
         totalMinor: booking.total_minor,
         totalDisplay: money(booking.total_minor),
         status: booking.status,
-        paid: (settledRead.data?.length ?? 0) > 0 || booking.status === "CONFIRMED",
+        // A settled payment attempt is the ONLY thing that means paid. This used
+        // to also treat any CONFIRMED booking as paid, which was false and
+        // costly: a host accepting a request-to-book stay confirms it without
+        // any money arriving, so the guest was shown "This stay is paid for" and
+        // the host was never paid. The status is reported separately, just below,
+        // for surfaces that want to say who confirmed it.
+        paid: (settledRead.data?.length ?? 0) > 0,
         holdExpiresAt,
         holdExpired: holdExpiresAtMs <= Date.now(),
         cardAvailable: isPaystackConfigured(),

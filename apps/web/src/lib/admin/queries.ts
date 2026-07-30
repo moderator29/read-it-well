@@ -314,6 +314,15 @@ export type ApplicationView = {
   accountName: string | null;
   agreedTerms: boolean;
   documentCount: number;
+  /**
+   * The uploaded documents, each with a short-lived signed URL.
+   *
+   * The bucket is private, so there is no public URL to fall back on and a
+   * reviewer who cannot open the file cannot do the job. `url` is null when the
+   * signature could not be minted, which the console says out loud rather than
+   * rendering a link that leads nowhere.
+   */
+  documents: { id: string; kind: string; url: string | null }[];
   submittedAt: string | null;
   reviewedAt: string | null;
   reviewNotes: string | null;
@@ -321,7 +330,7 @@ export type ApplicationView = {
 };
 
 const APPLICATION_COLUMNS =
-  "id, reference, status, type, full_name, phone, email, residential_address, state_code, city, id_type, id_number, business_name, business_rc, bank_name, account_number, account_name, agree_terms, submitted_at, reviewed_at, review_notes, created_at, agent_documents ( id )";
+  "id, reference, status, type, full_name, phone, email, residential_address, state_code, city, id_type, id_number, business_name, business_rc, bank_name, account_number, account_name, agree_terms, submitted_at, reviewed_at, review_notes, created_at, agent_documents ( id, kind, storage_path )";
 
 type ApplicationRow = {
   id: string;
@@ -346,11 +355,49 @@ type ApplicationRow = {
   reviewed_at: string | null;
   review_notes: string | null;
   created_at: string;
-  agent_documents: { id: string }[];
+  agent_documents: { id: string; kind: string; storage_path: string }[];
 };
 
-function toApplicationView(row: ApplicationRow): ApplicationView {
+/** How long a reviewer's link to an identity document stays valid. */
+const DOCUMENT_URL_TTL_SECONDS = 600;
+
+/**
+ * Mint one signed URL per uploaded document.
+ *
+ * These objects are identity documents in a private bucket, so they are never
+ * linked directly and never handed a long life. Ten minutes is enough to open
+ * one during a review and short enough that a copied console URL is worthless
+ * soon after. A failure yields a null url rather than an exception, because a
+ * missing signature must not take the whole applications queue down.
+ */
+async function signDocuments(
+  admin: SupabaseClient<Database>,
+  rows: { id: string; kind: string; storage_path: string }[],
+): Promise<ApplicationView["documents"]> {
+  if (rows.length === 0) return [];
+  try {
+    const { data } = await admin.storage
+      .from("agent-documents")
+      .createSignedUrls(
+        rows.map((r) => r.storage_path),
+        DOCUMENT_URL_TTL_SECONDS,
+      );
+    return rows.map((row, index) => ({
+      id: row.id,
+      kind: row.kind,
+      url: data?.[index]?.signedUrl ?? null,
+    }));
+  } catch {
+    return rows.map((row) => ({ id: row.id, kind: row.kind, url: null }));
+  }
+}
+
+function toApplicationView(
+  row: ApplicationRow,
+  documents: ApplicationView["documents"] = [],
+): ApplicationView {
   return {
+    documents,
     id: row.id,
     reference: row.reference,
     status: row.status,
@@ -400,11 +447,18 @@ export async function getAgentApplications(): Promise<AdminRead<ApplicationQueue
     ]);
     if (waiting.error || decided.error) return UNAVAILABLE;
 
+    // Signed one application at a time, so a single unreadable object cannot
+    // blank the documents on every other application in the queue.
+    const withDocuments = async (rows: ApplicationRow[]): Promise<ApplicationView[]> =>
+      Promise.all(
+        rows.map(async (row) => toApplicationView(row, await signDocuments(admin, row.agent_documents))),
+      );
+
     return {
       state: "ok",
       data: {
-        waiting: (waiting.data ?? []).map(toApplicationView),
-        decided: (decided.data ?? []).map(toApplicationView),
+        waiting: await withDocuments(waiting.data ?? []),
+        decided: await withDocuments(decided.data ?? []),
       },
     };
   } catch {

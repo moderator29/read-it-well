@@ -18,8 +18,14 @@ import type { AdminClient } from "../wallet/ledger";
  *     one caller can win that update, so only one caller writes the ledger.
  *     A replay reads back zero moved rows and stops.
  *  2. The booking transition is guarded on `status = 'PENDING'`, so a booking
- *     already CONFIRMED is never touched again and its state event, calendar
- *     write and confirmation email happen exactly once.
+ *     already CONFIRMED is never moved again and its calendar write happens
+ *     exactly once.
+ *
+ * Key 1 is the one that makes this safe to call repeatedly. Key 2 is only about
+ * the status: a stay can be CONFIRMED and still unpaid, because a host accepting
+ * a request-to-book stay confirms it without any money arriving. So "did the
+ * status change" is not the same question as "did money move on this call", and
+ * a receipt must be gated on the second one. Anything past Key 1 moved money.
  *
  * THE COMMERCIAL RULE. The platform charges nothing (docs/MASTER_TODO.md
  * section 5b), so every ledger row reads: gross is the booking total,
@@ -125,7 +131,13 @@ export type ChargeSettlement =
   | {
       outcome: "settled";
       bookingId: string;
-      /** True only when THIS call moved the booking PENDING to CONFIRMED. */
+      /**
+       * True only when THIS call moved the booking PENDING to CONFIRMED. False
+       * means the stay was already CONFIRMED, by a host accepting a request,
+       * and this call is what paid for it. Either way `outcome: "settled"` is
+       * the flag that says money moved on this call and exactly once, so a
+       * receipt should be gated on the outcome and never on this field.
+       */
       confirmed: boolean;
       amountMinor: number;
       ledger: ChargeDecomposition;
@@ -246,6 +258,18 @@ export async function settleBookingCharge(
       note: "Payment received, so the stay is confirmed.",
     });
     await writeBookedNights(admin, booking.listing_id, booking.check_in, booking.check_out);
+  } else {
+    // The booking did not move, and by this point that cannot mean a replay:
+    // Key 1 above already turned every replay back. It means the stay was
+    // CONFIRMED before the money arrived, which is exactly what a request-to-book
+    // stay looks like once the host has accepted it. The payment is still this
+    // call's own work, so it belongs in the history rather than vanishing.
+    await admin.from("booking_state_events").insert({
+      booking_id: row.booking_id,
+      from_status: "CONFIRMED",
+      to_status: "CONFIRMED",
+      note: "Payment received. The host had already accepted this stay.",
+    });
   }
 
   return {

@@ -219,7 +219,23 @@ export default async function CheckoutPage({
       ) : (
         <>
           <Reveal delay={80} className="mt-4">
-            <HoldCountdown expiresAt={view.holdExpiresAt} />
+            {view.status === "CONFIRMED" ? (
+              /* Confirmed and still unpaid means the host accepted a request to
+                 book. There is no hold running out, so counting one down would
+                 be a fiction. What this guest needs to know is that the stay is
+                 theirs and the money is what is outstanding. */
+              <p className="nf-card flex items-start gap-3 p-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <span className="mt-0.5 block h-5 w-5 shrink-0">
+                  <BrandIcon name="calendar-check" fill tile={false} />
+                </span>
+                <span>
+                  The host has accepted these dates, so the stay is yours. All that is left is
+                  paying for it, and your dates are not counting down while you do.
+                </span>
+              </p>
+            ) : (
+              <HoldCountdown expiresAt={view.holdExpiresAt} />
+            )}
           </Reveal>
 
           <Reveal delay={140} className="mt-6">

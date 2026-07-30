@@ -72,6 +72,12 @@ const ALREADY_PAID_MESSAGE = "This booking is already paid, so there is nothing 
 const CANCELLED_MESSAGE =
   "This booking was cancelled, so it cannot be paid. Search again and pick new dates.";
 
+/**
+ * Kept for the one case that still means it: the database refused because the
+ * booking left a payable state between the guard's read and the write. It is no
+ * longer said about a CONFIRMED booking, because a confirmed stay can still be
+ * unpaid and telling that guest "nothing further is needed" was simply false.
+ */
 const CONFIRMED_MESSAGE = "This booking is already confirmed. Nothing further is needed.";
 
 const SERVICE_DOWN_MESSAGE =
@@ -182,7 +188,12 @@ async function guardPayable(bookingId: string): Promise<Guarded> {
   if (error) return { ok: false, result: fail(SERVICE_DOWN_MESSAGE) };
   if (!booking) return { ok: false, result: fail(NOT_FOUND_MESSAGE) };
   if (booking.status === "CANCELLED") return { ok: false, result: fail(CANCELLED_MESSAGE) };
-  if (booking.status !== "PENDING") return { ok: false, result: fail(CONFIRMED_MESSAGE) };
+  // CONFIRMED is deliberately payable. A request-to-book stay is confirmed by
+  // the host accepting it, not by money arriving, so refusing CONFIRMED here
+  // meant an accepted stay could never be paid on the platform at all: the
+  // guest was told "nothing further is needed" while the host was never paid.
+  // What decides whether there is anything left to pay is a settled payment
+  // attempt, checked a few lines below, and that is the only honest test.
   if (booking.currency !== "NGN") {
     return {
       ok: false,
@@ -396,6 +407,7 @@ async function payWithWalletWork(
       `Your available wallet balance is ${nairaExact(exact)}, and this stay comes to ${nairaExact(amountMinor)}. Add money to your wallet or pay by card.`,
     );
   }
+  if (outcome.status === "not_payable") return fail(CANCELLED_MESSAGE);
   if (outcome.status === "not_pending") return fail(CONFIRMED_MESSAGE);
   if (outcome.status === "not_found") return fail(NOT_FOUND_MESSAGE);
   if (outcome.status === "already_paid") return fail(ALREADY_PAID_MESSAGE);
