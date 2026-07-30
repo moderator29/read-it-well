@@ -73,12 +73,12 @@ the one thing a general social network can never replicate.
 A single primary reaction, with a brand gesture rather than a thumb: a **pulse
 that lights** on tap, echoing the glow language. Long press opens a small set:
 
-- **Vibe** — the general positive signal.
-- **Helpful** — the important one. On an Ask post this is the currency, and
+- **Vibe**: the general positive signal.
+- **Helpful**: the important one. On an Ask post this is the currency, and
   it is what feeds reputation. Usefulness is scored, not volume.
-- **Been there** — place-specific social proof, only on posts bound to a
+- **Been there**: place-specific social proof, only on posts bound to a
   location. Cheap to give, genuinely informative.
-- **Save** — reuses the existing saved concept.
+- **Save**: reuses the existing saved concept.
 
 **Replies**, not comments, and the count shows live participants rather than a
 raw number, because "6 people talking" is a stronger invitation than "6".
