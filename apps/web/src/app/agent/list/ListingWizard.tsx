@@ -389,6 +389,50 @@ export function ListingWizard({
     });
   }
 
+  /**
+   * Re-encode a photo before it leaves the phone.
+   *
+   * A camera photo carries EXIF, and on a phone that usually includes GPS
+   * coordinates. Listing photos are served from a public bucket, so uploading
+   * the original file would publish the exact location of the property to
+   * anyone who downloads the image, which is precisely what the platform
+   * promises not to do before an inspection. Drawing the image onto a canvas
+   * and exporting it produces pixels with no metadata at all, so the tag
+   * cannot survive.
+   *
+   * The long edge is capped at 2560px, comfortably above the 1600px minimum
+   * the quality gate demands, which also cuts the upload down for someone on
+   * a slow connection. If anything about the re-encode fails the original file
+   * is refused rather than uploaded, because publishing a geotagged photo is
+   * worse than asking for another one.
+   */
+  async function stripMetadata(file: File): Promise<Blob | null> {
+    const MAX_EDGE = 2560;
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+      const width = Math.round(bitmap.width * scale);
+      const height = Math.round(bitmap.height * scale);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        bitmap.close();
+        return null;
+      }
+      context.drawImage(bitmap, 0, 0, width, height);
+      bitmap.close();
+
+      return await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.9);
+      });
+    } catch {
+      return null;
+    }
+  }
+
   async function onFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
     setPhotoNotice(null);
@@ -426,12 +470,21 @@ export function ListingWizard({
           continue;
         }
 
-        const extension = (file.name.split(".").pop() ?? "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
-        const path = `${userId}/${id}/${crypto.randomUUID()}.${extension || "jpg"}`;
+        // Strip location metadata before the photo leaves the device. The
+        // re-encode always produces a JPEG, so the stored extension follows.
+        const clean = await stripMetadata(file);
+        if (!clean) {
+          setPhotoNotice(
+            "We could not prepare that photo safely, so it was not uploaded. Try a different photo.",
+          );
+          continue;
+        }
+
+        const path = `${userId}/${id}/${crypto.randomUUID()}.jpg`;
 
         const upload = await supabase.storage
           .from("listing-photos")
-          .upload(path, file, { contentType: file.type, upsert: false });
+          .upload(path, clean, { contentType: "image/jpeg", upsert: false });
         if (upload.error) {
           setPhotoNotice("That photo did not finish uploading. Please try it again.");
           continue;
