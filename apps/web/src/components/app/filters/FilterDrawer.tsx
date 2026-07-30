@@ -210,14 +210,19 @@ export function FilterDrawer({
   query,
   facts,
   locale,
+  openOnMount = false,
 }: {
   query: DiscoveryQuery;
+  /** Open immediately, for arrivals from ?filters=open. */
+  openOnMount?: boolean;
   /** The candidate pool: this text and category, before any structured bound. */
   facts: ListingFacts[];
   locale: Locale;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  // A link from a surface with no pool (landing, home) arrives with
+  // ?filters=open, so the drawer opens where the bounds are real.
+  const [open, setOpen] = useState(openOnMount);
   const [mounted, setMounted] = useState(false);
   const [draft, setDraft] = useState<Draft>(() => draftFrom(query));
   const openerRef = useRef<HTMLButtonElement | null>(null);
@@ -542,7 +547,7 @@ export function FilterDrawer({
           activeCount === 0 ? "Filters" : `Filters, ${activeCount} active`
         }
         onClick={() => setOpen(true)}
-        className="nf-icon-btn relative h-11 w-11 shrink-0"
+        className="nf-icon-btn relative h-[3.25rem] w-[3.25rem] shrink-0"
       >
         <UiIcon name="sliders" size={18} />
         {activeCount > 0 && (
