@@ -1,17 +1,24 @@
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
- * Amenities grid.
+ * The amenity row.
  *
- * Driven entirely by the listing's amenity keys. Known keys get their signature
- * 3D icon and a proper label; an unknown key still renders honestly with a
- * generic icon and a prettified name rather than being silently dropped.
+ * The dense strip of marks a traveller scans before reading anything else:
+ * the room counts first, then whatever the listing actually offers. These are
+ * small marks in a scrolling row, so they are stroked UiIcon glyphs, never the
+ * 3D pack, which needs 40px and a tile to read at all.
+ *
+ * Nothing here is invented. Only keys the listing carries are rendered, a key
+ * with no glyph of its own still appears under a generic feature mark with its
+ * name prettified, and a listing with no amenities on file says so plainly
+ * rather than filling the row with guesses.
  */
-const AMENITY_META: Record<string, { icon: BrandIconName; label: string }> = {
-  pool: { icon: "luggage-check", label: "Swimming pool" },
-  wifi: { icon: "home-cam", label: "Wi-Fi" },
-  kitchen: { icon: "home-check", label: "Fitted kitchen" },
-  parking: { icon: "map-spot", label: "Parking on site" },
+
+const AMENITY_MARK: Record<string, { icon: UiIconName; label: string }> = {
+  pool: { icon: "pool", label: "Swimming pool" },
+  wifi: { icon: "wifi", label: "Wi-Fi" },
+  kitchen: { icon: "kitchen", label: "Fitted kitchen" },
+  parking: { icon: "parking", label: "Parking on site" },
 };
 
 function prettify(key: string): string {
@@ -19,29 +26,62 @@ function prettify(key: string): string {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-export function ListingAmenities({ amenities }: { amenities: string[] }) {
-  if (amenities.length === 0) {
+type Mark = { key: string; icon: UiIconName; label: string };
+
+export function ListingAmenities({
+  bedrooms,
+  bathrooms,
+  amenities,
+}: {
+  bedrooms: number;
+  bathrooms: number;
+  amenities: string[];
+}) {
+  const marks: Mark[] = [];
+
+  if (bedrooms > 0) {
+    marks.push({
+      key: "bedrooms",
+      icon: "bed",
+      label: `${bedrooms} ${bedrooms === 1 ? "bedroom" : "bedrooms"}`,
+    });
+  }
+  if (bathrooms > 0) {
+    marks.push({
+      key: "bathrooms",
+      icon: "bath",
+      label: `${bathrooms} ${bathrooms === 1 ? "bathroom" : "bathrooms"}`,
+    });
+  }
+  for (const key of amenities) {
+    const known = AMENITY_MARK[key];
+    marks.push(
+      known
+        ? { key, icon: known.icon, label: known.label }
+        : { key, icon: "sparkle", label: prettify(key) },
+    );
+  }
+
+  if (marks.length === 0) {
     return (
       <p className="text-[0.875rem] text-[var(--nf-content-muted)]">
-        The agent has not listed amenities for this place yet. Ask about them in
-        Messages before you book.
+        The agent has not listed what this place offers yet. Ask in Messages
+        before you book.
       </p>
     );
   }
 
   return (
-    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {amenities.map((key) => {
-        const meta = AMENITY_META[key] ?? { icon: "service" as BrandIconName, label: prettify(key) };
-        return (
-          <li key={key} className="nf-chip justify-start gap-3 px-3 py-2.5">
-            <span className="block h-12 w-12 shrink-0">
-              <BrandIcon name={meta.icon} fill />
-            </span>
-            <span className="truncate text-[0.8125rem]">{meta.label}</span>
-          </li>
-        );
-      })}
+    <ul
+      data-testid="amenity-row"
+      className="nf-scroll-x -mx-5 flex gap-2 px-5 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+    >
+      {marks.map((mark) => (
+        <li key={mark.key} className="nf-chip shrink-0 gap-2 px-3.5 py-2">
+          <UiIcon name={mark.icon} size={16} className="shrink-0" />
+          <span className="whitespace-nowrap text-[0.8125rem]">{mark.label}</span>
+        </li>
+      ))}
     </ul>
   );
 }

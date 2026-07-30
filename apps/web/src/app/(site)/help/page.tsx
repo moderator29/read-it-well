@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SupportChat } from "@/components/app/account/SupportChat";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { HelpSearch, type Faq } from "./HelpSearch";
 
@@ -136,6 +137,11 @@ export default function HelpPage() {
         {/* --------------------------------------------- searchable list */}
         <div className="nf-rise mt-10" style={{ animationDelay: "100ms" }}>
           <HelpSearch faqs={FAQS} />
+        </div>
+
+        {/* ------------------------------------------- ask the agent */}
+        <div className="nf-rise mt-10" style={{ animationDelay: "160ms" }}>
+          <SupportChat />
         </div>
 
         {/* ------------------------------------------------ still stuck */}

@@ -1,9 +1,23 @@
-"use client";
+import { getDictionary } from "@naijafinds/i18n";
+import { getListingRepository } from "@/lib/listings/repository";
+import type { Listing, ListingKind } from "@/lib/listings/types";
+import { getLocale } from "@/lib/locale";
+import { MapCanvas, type MapCity } from "./MapCanvas";
+import { localityFor, spreadCoincident } from "./mapGeo";
+import type { MapListing } from "./mapTypes";
 
-import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import "leaflet/dist/leaflet.css";
-
+/**
+ * One covered city, as the search page hands it over.
+ *
+ * The shape is unchanged, and the page is unchanged with it: `price` is the
+ * already formatted floor for that city and `count` how many places sit there.
+ * This component now reads the catalogue itself and draws a pin per place, so
+ * it uses the city entries for their coordinates and for the opening view.
+ * What it would rather receive is the result set the page has already
+ * computed, so the map and the results header can never disagree; that is a
+ * prop change on a file another agent owns, so it is proposed rather than
+ * taken (see the handover note in the report).
+ */
 export type CityPin = {
   city: string;
   lat: number;
@@ -13,66 +27,107 @@ export type CityPin = {
   count: number;
 };
 
+/** Category nouns, for a listing whose source published no amount. */
+const KIND_LABEL: Record<ListingKind, string> = {
+  hotel: "Hotel",
+  apartment: "Apartment",
+  home: "Home",
+  shortlet: "Shortlet",
+  villa: "Villa",
+  restaurant: "Restaurant",
+  experience: "Experience",
+  rental: "Rental",
+};
+
+function periodFor(listing: Listing): MapListing["period"] {
+  if (listing.kind === "restaurant" || listing.kind === "experience") return "guest";
+  return listing.pricePeriod === "year" ? "year" : "night";
+}
+
 /**
- * The live map. Real tiles, real pan and zoom, price pins per covered city;
- * tapping a pin runs that city's search. Tiles follow the active theme: dark
- * cartography at night, paper in daylight. Leaflet loads lazily on the client
- * so the map costs nothing until this view is opened.
+ * The live map.
+ *
+ * A server component so the catalogue is read where the catalogue lives, and
+ * only the handful of fields a pin and a docked card need cross to the client.
+ * Placement happens here too: the catalogue names a locality, never a
+ * coordinate, so each listing is put on the real centroid of its area when we
+ * know it and on its city when we do not, and pins that would land on the very
+ * same point are fanned out by about six hundred metres so a pair in Victoria
+ * Island stays readable. The surface says which of the two it is doing.
  */
-export function RealMap({ pins, active }: { pins: CityPin[]; active?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+export async function RealMap({
+  pins,
+  active,
+  listings,
+}: {
+  pins: CityPin[];
+  active?: string;
+  /** Escape hatch for a caller that has already resolved the result set. */
+  listings?: Listing[];
+}) {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
 
-  useEffect(() => {
-    let map: import("leaflet").Map | undefined;
-    let disposed = false;
+  // The map follows the text query it was given, so it shows the same places
+  // the results header counts rather than the whole country every time.
+  const catalogue = listings ?? (await getListingRepository().search({ q: active }));
 
-    void (async () => {
-      const L = (await import("leaflet")).default;
-      if (disposed || !ref.current) return;
+  const cityAt = new Map(pins.map((pin) => [pin.city.toLowerCase(), pin]));
+  const placed: { listing: Listing; at: { lat: number; lng: number }; byArea: boolean }[] = [];
+  for (const listing of catalogue) {
+    const city = cityAt.get(listing.city.toLowerCase());
+    // No coordinate for the city means no honest place to draw it.
+    if (!city) continue;
+    const { at, byArea } = localityFor(listing.city, listing.area, {
+      lat: city.lat,
+      lng: city.lng,
+    });
+    placed.push({ listing, at, byArea });
+  }
 
-      map = L.map(ref.current, { scrollWheelZoom: true });
-      const dark = document.documentElement.dataset.theme !== "light";
-      L.tileLayer(
-        dark
-          ? "https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          : "https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-        {
-          maxZoom: 19,
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        },
-      ).addTo(map);
+  const mapListings: MapListing[] = spreadCoincident(placed).map(
+    ({ listing, at, byArea }) => ({
+      id: listing.id,
+      title: listing.title,
+      area: listing.area,
+      city: listing.city,
+      kindLabel: KIND_LABEL[listing.kind],
+      priceMinor: listing.priceMinor,
+      currency: listing.currency,
+      period: periodFor(listing),
+      rating: listing.rating,
+      reviewCount: listing.reviewCount,
+      ...(listing.photos[0] ? { photo: listing.photos[0] } : {}),
+      hue: listing.hue,
+      // Partner stock never carries verification, whatever the row says.
+      verified: listing.verified && listing.source !== "partner",
+      partner: listing.source === "partner",
+      lat: at.lat,
+      lng: at.lng,
+      byArea,
+    }),
+  );
 
-      map.fitBounds(
-        L.latLngBounds(pins.map((p) => [p.lat, p.lng] as [number, number])),
-        { padding: [56, 56] },
-      );
-
-      for (const p of pins) {
-        const icon = L.divIcon({
-          className: "nf-map-anchor",
-          iconSize: [0, 0],
-          html: `<span class="nf-map-pin${p.city === active ? " nf-map-pin--active" : ""}">${p.price}<i>${p.city}</i></span>`,
-        });
-        L.marker([p.lat, p.lng], { icon, title: `${p.city}: ${p.count} places` })
-          .addTo(map)
-          .on("click", () => router.push(`/search?q=${encodeURIComponent(p.city)}`));
-      }
-    })();
-
-    return () => {
-      disposed = true;
-      map?.remove();
-    };
-  }, [pins, active, router]);
+  const cities: MapCity[] = pins.map((pin) => ({
+    city: pin.city,
+    lat: pin.lat,
+    lng: pin.lng,
+    count: pin.count,
+  }));
 
   return (
-    <div
-      ref={ref}
-      role="application"
-      aria-label="Map of covered cities"
-      className="h-[420px] w-full sm:h-[560px]"
+    <MapCanvas
+      listings={mapListings}
+      cities={cities}
+      {...(active ? { active } : {})}
+      locale={locale}
+      copy={{
+        night: t.common.night,
+        year: t.common.year,
+        guest: "guest",
+        verified: t.common.verified,
+      }}
+      wholeMapHref="/search?view=map"
     />
   );
 }

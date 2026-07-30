@@ -1,8 +1,10 @@
 "use server";
 
 import { randomInt } from "node:crypto";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
+import type { Database } from "../supabase/database.types";
 import { NOT_CONFIGURED_MESSAGE, resolveSession } from "../actions/session";
 import { bestEffortEmail, sendEmail } from "../email/client";
 import { supportTicketFiled } from "../email/messages";
@@ -36,6 +38,12 @@ const ticketSchema = z.object({
     .max(200),
   topic: z.string().trim().max(140).optional(),
   body: z.string().trim().min(1, "Tell us what you need help with.").max(4000),
+  /**
+   * The AI agent's short account of the conversation, written when support
+   * escalates itself. It becomes the first message on the ticket thread so
+   * the human picking it up starts with context rather than one line.
+   */
+  summary: z.string().trim().max(4000).optional(),
 });
 
 export type SupportTicketInput = z.infer<typeof ticketSchema>;
@@ -49,6 +57,37 @@ function makeReference(): string {
   return `NF-SUP-${String(randomInt(0, 100_000)).padStart(5, "0")}`;
 }
 
+/**
+ * Open the ticket thread with the escalation summary.
+ *
+ * Deliberately not exported: a "use server" export is a callable endpoint, and
+ * an endpoint that writes an arbitrary message to an arbitrary ticket id is a
+ * hole. It runs on the same client that just wrote the ticket, so a signed-in
+ * caller's message goes in under their own insert policy (sender_role user,
+ * sender_id themselves) and an anonymous ticket is opened by the same service
+ * path that created it. The row is authored by the platform, so the sender is
+ * the person the ticket belongs to and the admin-reply notification trigger,
+ * which only fires on admin messages, stays quiet.
+ */
+async function attachFirstMessage(
+  client: SupabaseClient<Database>,
+  ticketId: string,
+  userId: string | null,
+  body: string,
+): Promise<void> {
+  try {
+    await client.from("support_ticket_messages").insert({
+      ticket_id: ticketId,
+      sender_role: "user",
+      sender_id: userId,
+      body,
+    });
+  } catch {
+    // The ticket is filed and the reference is real; a missing opening
+    // message is a smaller loss than pretending the escalation failed.
+  }
+}
+
 export async function fileSupportTicket(
   input: SupportTicketInput,
 ): Promise<ActionResult<{ reference: string }>> {
@@ -59,27 +98,38 @@ export async function fileSupportTicket(
   if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED_MESSAGE);
 
   const session = await resolveSession();
-  const { name, email, topic, body } = parsed.data;
+  const { name, email, topic, body, summary } = parsed.data;
 
   try {
     // Signed-in users file as themselves under RLS; everyone else goes through
     // the service role with no user attached.
-    const client = session.state === "signed-in" ? session.supabase : createAdminClient();
+    const client: SupabaseClient<Database> =
+      session.state === "signed-in" ? session.supabase : createAdminClient();
     const userId = session.state === "signed-in" ? session.user.id : null;
 
     // The reference is random; on the rare collision, roll again.
     for (let attempt = 0; attempt < 3; attempt += 1) {
       const reference = makeReference();
-      const { error } = await client.from("support_tickets").insert({
-        reference,
-        user_id: userId,
-        name,
-        email,
-        topic: topic && topic.length > 0 ? topic : null,
-        body,
-        status: "open",
-      });
+      const { data, error } = await client
+        .from("support_tickets")
+        .insert({
+          reference,
+          user_id: userId,
+          name,
+          email,
+          topic: topic && topic.length > 0 ? topic : null,
+          body,
+          status: "open",
+        })
+        .select("id")
+        .single();
       if (!error) {
+        // The row exists, so the reference we are about to return is real.
+        // The opening message is best effort on top of that, never a reason
+        // to tell somebody their ticket did not file.
+        if (summary && data?.id) {
+          await attachFirstMessage(client, data.id, userId, summary);
+        }
         // The ticket row is written. The acknowledgement is best effort, and
         // goes only to the address Zod has already validated on this form.
         await bestEffortEmail(async () => {

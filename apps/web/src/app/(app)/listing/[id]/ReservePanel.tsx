@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useId, useMemo, useState } from "react";
+import { useActionState, useId } from "react";
 import Link from "next/link";
 import { formatMoney, type Locale } from "@naijafinds/i18n";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 
 /**
  * The reserve panel on a listing detail page.
@@ -16,22 +17,11 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * and are rejected inline the moment a clashing range is picked, before any
  * round trip. Success replaces the form with the confirmation moment; every
  * failure states what happened and what to do next.
+ *
+ * The dates themselves live in `StayDates`, one level up, because the sticky
+ * bottom bar has to quote the same total this form is about to submit and the
+ * panel renders twice on one page.
  */
-
-const MS_PER_DAY = 86_400_000;
-
-function nightsBetween(checkIn: string, checkOut: string): number {
-  const a = Date.parse(`${checkIn}T00:00:00Z`);
-  const b = Date.parse(`${checkOut}T00:00:00Z`);
-  if (Number.isNaN(a) || Number.isNaN(b)) return 0;
-  return Math.round((b - a) / MS_PER_DAY);
-}
-
-function addDaysIso(iso: string, days: number): string {
-  const t = Date.parse(`${iso}T00:00:00Z`);
-  if (Number.isNaN(t)) return iso;
-  return new Date(t + days * MS_PER_DAY).toISOString().slice(0, 10);
-}
 
 const STAY_LABEL = new Intl.DateTimeFormat("en-GB", {
   weekday: "short",
@@ -94,25 +84,17 @@ function Stepper({
 
 export function ReservePanel({
   listingId,
-  priceMinor,
   currency,
   locale,
   instantBook,
   messageHref,
-  blockedDates,
-  today,
 }: {
   listingId: string;
-  priceMinor: number;
   currency: string;
   locale: Locale;
   instantBook: boolean;
   /** Deep link into the conversation about this listing, when one exists. */
   messageHref: string;
-  /** ISO dates the calendar must refuse: already booked or blocked nights. */
-  blockedDates: string[];
-  /** Today in Lagos as an ISO date, computed on the server. */
-  today: string;
 }) {
   // The panel renders twice on one page (inline on phones, sticky aside from
   // lg up), so input ids must be instance-unique.
@@ -122,39 +104,24 @@ export function ReservePanel({
     FormData
   >(reserve, null);
 
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
+  const stay = useStayDates();
+  const {
+    checkIn,
+    checkOut,
+    adults,
+    children,
+    setCheckIn,
+    setCheckOut,
+    setAdults,
+    setChildren,
+    today,
+    priceMinor,
+    nights,
+    hint,
+    ready,
+    totalMinor,
+  } = stay;
 
-  const blocked = useMemo(() => new Set(blockedDates), [blockedDates]);
-
-  const nights = checkIn && checkOut ? nightsBetween(checkIn, checkOut) : 0;
-
-  // A stay occupies every night in [checkIn, checkOut); any blocked night in
-  // that range makes the pick impossible and says so before the round trip.
-  const clash = useMemo(() => {
-    if (!checkIn || nights < 1 || nights > 365) return false;
-    for (let i = 0; i < nights; i += 1) {
-      if (blocked.has(addDaysIso(checkIn, i))) return true;
-    }
-    return false;
-  }, [blocked, checkIn, nights]);
-
-  const dateHint =
-    checkIn && checkIn < today
-      ? "Check-in cannot be in the past. Pick today or later."
-      : checkIn && checkOut && nights < 1
-        ? "Check-out must be after check-in."
-        : nights > 365
-          ? "Stays can be up to 365 nights. Shorten the dates."
-          : clash
-            ? "Some of those nights are already taken. Pick different dates."
-            : null;
-
-  const ready = Boolean(checkIn && checkOut) && nights >= 1 && nights <= 365 && !dateHint;
-
-  const subtotalMinor = nights >= 1 ? priceMinor * nights : 0;
   const fieldError = (key: string): string | undefined =>
     state && !state.ok ? state.fieldErrors?.[key] : undefined;
 
@@ -198,19 +165,21 @@ export function ReservePanel({
 
   return (
     <div className="nf-card p-5" data-testid="reserve-panel">
-      <p className="flex items-baseline gap-1.5">
-        <span className="nf-numeric text-[1.5rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-          {formatMoney(priceMinor, locale, currency)}
-        </span>
-        <span className="text-[0.8125rem] text-[var(--nf-content-muted)]">/ night</span>
-      </p>
-
-      {instantBook && (
-        <p className="mt-2 flex items-center gap-1.5 text-[0.78rem] font-semibold text-[var(--nf-state-warning)]">
-          <UiIcon name="sparkle" size={13} />
-          Instant Book available
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <p className="flex items-baseline gap-1.5">
+          <span className="nf-numeric text-[1.5rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
+            {formatMoney(priceMinor, locale, currency)}
+          </span>
+          <span className="text-[0.8125rem] text-[var(--nf-content-muted)]">/ night</span>
         </p>
-      )}
+
+        {instantBook && (
+          <p className="flex items-center gap-1.5 text-[0.78rem] font-semibold text-[var(--nf-state-warning)]">
+            <UiIcon name="sparkle" size={13} />
+            Instant Book available
+          </p>
+        )}
+      </div>
 
       <form action={formAction} noValidate className="mt-4">
         <input type="hidden" name="listingId" value={listingId} />
@@ -228,7 +197,7 @@ export function ReservePanel({
               min={today}
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
-              aria-invalid={dateHint || fieldError("checkIn") ? true : undefined}
+              aria-invalid={hint || fieldError("checkIn") ? true : undefined}
               className="nf-field"
             />
           </div>
@@ -243,14 +212,14 @@ export function ReservePanel({
               min={checkIn ? addDaysIso(checkIn, 1) : addDaysIso(today, 1)}
               value={checkOut}
               onChange={(e) => setCheckOut(e.target.value)}
-              aria-invalid={dateHint || fieldError("checkOut") ? true : undefined}
+              aria-invalid={hint || fieldError("checkOut") ? true : undefined}
               className="nf-field"
             />
           </div>
         </div>
-        {(dateHint || fieldError("checkIn") || fieldError("checkOut")) && (
+        {(hint || fieldError("checkIn") || fieldError("checkOut")) && (
           <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
-            {dateHint ?? fieldError("checkIn") ?? fieldError("checkOut")}
+            {hint ?? fieldError("checkIn") ?? fieldError("checkOut")}
           </p>
         )}
 
@@ -275,11 +244,11 @@ export function ReservePanel({
                 {formatMoney(priceMinor, locale, currency)} &times; {nights}{" "}
                 {nights === 1 ? "night" : "nights"}
               </dt>
-              <dd className="nf-numeric">{formatMoney(subtotalMinor, locale, currency)}</dd>
+              <dd className="nf-numeric">{formatMoney(totalMinor, locale, currency)}</dd>
             </div>
             <div className="flex items-center justify-between font-semibold text-[var(--nf-content-primary)]">
               <dt>Total</dt>
-              <dd className="nf-numeric">{formatMoney(subtotalMinor, locale, currency)}</dd>
+              <dd className="nf-numeric">{formatMoney(totalMinor, locale, currency)}</dd>
             </div>
           </dl>
         )}

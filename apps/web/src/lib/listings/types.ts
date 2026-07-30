@@ -97,6 +97,33 @@ export type ListingSearchFilter = {
   q?: string;
   /** Restrict results to a single category. */
   kind?: ListingKind;
+  /**
+   * Budget floor and ceiling in MINOR UNITS (kobo), matched against
+   * `priceMinor` in its own period: per night for stays, per year for rentals,
+   * per head for restaurants and experiences. A listing that carries no real
+   * price (a partner venue with a price level rather than an amount) is
+   * excluded the moment either bound is asked for, because nothing can promise
+   * it fits a budget.
+   */
+  minPriceMinor?: number;
+  maxPriceMinor?: number;
+  /** Minimum bedrooms. A place with none never satisfies a bedroom minimum. */
+  bedrooms?: number;
+  /** Minimum bathrooms, same rule. */
+  bathrooms?: number;
+  /**
+   * Minimum party size the place must take. The catalogue has no sleeps
+   * column, so capacity is derived from bedrooms by the shared matcher; a
+   * listing with no bedrooms at all (a restaurant table, an experience) has no
+   * capacity to judge and is never excluded by this.
+   */
+  guests?: number;
+  /** Amenity codes that must ALL be present. Same codes the agent flow writes. */
+  amenities?: string[];
+  /** Only places that can be booked without waiting for an agent to reply. */
+  instantBook?: boolean;
+  /** Only first-party verified inventory. Partner stock can never satisfy it. */
+  verifiedOnly?: boolean;
 };
 
 export interface ListingRepository {

@@ -707,3 +707,1213 @@ per-email, for the anonymous path) throttle, the same shared mechanism
 R-43 needs for the assistant route, rejecting past a small hourly count
 with the existing honest failure copy rather than a silent flood into the
 admin queue. **Phase.** C. **Effort.** S.
+
+---
+
+## Scale pass (2026-07-30)
+
+Every loop named in the last two passes has now shipped and was read for this
+one: bookings reserve/cancel/confirm with the GiST guarantee, the append-only
+kobo wallet with Paystack and the atomic paired transfer, messaging with
+realtime and the `private.scan_message` trigger, the streaming Claude
+assistant with its `search_listings` tool, support tickets, agent listings
+CRUD with the photo gate and the client-side re-encode that strips EXIF, the
+admin console at `/admin` with `audit_log` writes on every decision, the
+Supabase catalogue repository merged with the seed, the Amadeus and Places
+partner providers, transactional email through Resend, the PWA with its
+hand-written offline shell, durable Postgres rate limiting and idempotency,
+four locales, and RLS everywhere with the init-plan rewrite applied.
+
+That is a platform. This pass is about what happens next: the trajectory
+moves (A), the genuine but unhurried improvements (B), and the small pieces
+that separate a good product from a great one (C). Every item below names
+something real in this repository. Nothing here proposes charging anyone
+anything: the platform charges nothing, and the recommendations that touch
+revenue take it from the supplier side or from measurement, never from a
+guest or an agent.
+
+---
+
+### A. High value, 25 items
+
+The moves a founder would reorder the roadmap for.
+
+#### R-53. Reserve takes no money, so the money loop is still open
+
+**Problem.** `lib/bookings/actions.ts reserve()` validates the session and
+the flag, resolves the listing, computes integer kobo, inserts a `PENDING`
+`bookings` row under the guest's own RLS client and sends two emails. It
+never writes a `transactions` row, never calls `initTransaction` from
+`lib/payments/paystack.ts`, and never debits the wallet. A repository-wide
+check confirms `public.transactions` and `public.ledger_entries` have no
+application writer at all. **Why now.** Every money item already in this
+backlog reads rows nothing creates: R-28's payout hold sits on
+`ledger_entries`, R-29's reconciliation compares `transactions` against
+Paystack, R-30's refund needs a `SUCCESSFUL` transaction to reverse. None of
+them can be built or tested until a booking can actually be paid for, and the
+copy on `/bookings` already promises a payment step ("Confirm and pay") that
+does not exist. **Approach.** Extend `reserve()` to write a `transactions`
+row in the same call (`booking_id`, `provider 'paystack'`, `amount_minor =
+total_minor`, `status 'PENDING'`), then offer two settlement routes on the
+booking step: pay from the wallet, which posts a `wallet_entries` debit and
+flips the transaction to `SUCCESSFUL` inside one service-role function so the
+two can never disagree; or pay by card through `initTransaction`, settled by
+the existing `/api/paystack/webhook` route on `charge.success` against a new
+`rm-book-<uuid>` reference alongside the `rm-fund-*` and `rm-wd-*` prefixes
+that route already dispatches on. Nothing here is a charge by RentMe: the
+amount is exactly `bookings.total_minor`, the guest paying the host for the
+stay, and no other number ever appears anywhere in the flow. **Phase.** B.
+**Effort.** L.
+
+#### R-54. Pin the platform share to zero in the schema, permanently
+
+**Problem.** `public.listings` and `public.bookings` each carry a money
+column, sitting between the cleaning amount and the total, whose very name
+asserts a charge by the platform. `bookings_total_chk` folds it into
+`total_minor`, and `reserve()` selects it straight off the listing row into
+the booking snapshot. The platform charges nothing, so a schema that reserves
+a slot for a charge is a loaded gun pointed at Master Rule 13.
+**Why now.** R-53 is about to turn `total_minor` into a number a real person
+is asked to pay, and agent listings CRUD is already live. The moment an agent
+can set that column, or an admin sees it in the `/admin/listings` queue, the
+promise breaks in public and in writing. **Approach.** Append only, nothing
+destructive: a check constraint forcing that column to zero on `listings` and
+on `bookings`, so the database itself enforces the rule that no copy review
+can be trusted to catch. Drop it from the select list in `reserve()` and from
+the projection in `lib/admin/queries.ts getListingSubmissions()`, keep it
+absent from `draftInputSchema` where it already is, and add its name to the
+banned-word scan in the HANDOFF section 10 verification ritual so no future
+surface can render it. Deliberately leave the matching column on
+`ledger_entries` free: that one records supplier-paid commission (R-55),
+which never appears in any guest total. **Phase.** B. **Effort.** S.
+
+#### R-55. Recognise partner commission as the revenue line that already exists
+
+**Problem.** `HYBRID_INVENTORY.md` section 2 states it plainly: partner hotel
+revenue is commission per booking, paid by the supplier.
+`lib/inventory/providers/amadeus.ts` searches, maps offers into `Listing`
+with `source: "partner"`, and stops. There is no Hotel Booking call, no order
+record, and nothing anywhere that says a commission was earned.
+**Why now.** Partner stock is the only inventory that can carry revenue with
+no charge to any guest, and it is also the only inventory available at volume
+while `public.listings` is still filling from agent supply. Building the
+booking path later, across live orders, means retrofitting accounting onto
+money that has already moved. **Approach.** Add the Amadeus Hotel Booking
+call behind the existing `hybrid_hotels` feature flag; persist each order in
+a `partner_orders` table (provider, provider order reference, guest id,
+`amount_minor`, `commission_minor`, status, timestamps) since partner stock
+has no `listings` row to hang off; and write one `ledger_entries` row per
+settled order with the commission in the platform column and
+`agent_share_minor` at zero. The guest pays the hotel's own quoted rate,
+unchanged, which is the whole point: the money arrives from the supplier and
+the guest never sees a different figure from the one the offer showed.
+**Phase.** E. **Effort.** L.
+
+#### R-56. Supplier-paid adjacent services, starting with the airport transfer
+
+**Problem.** R-17 already names airport pickup and car rental as post-launch
+ideas and notes the icon family anticipates them. Left as a page idea they
+are a distraction; built as a fourth thing under `lib/inventory/` they are
+supplier-paid revenue attached to demand that already exists.
+**Why now.** The diaspora guest landing at Murtala Muhammed at 4am, with a
+confirmed booking in Lekki and no safe way to get there, is the single
+sharpest unserved moment on the platform, and it happens at the exact point
+where RentMe already holds the guest's attention: the confirmed booking page.
+**Approach.** An extras block on the confirmed booking view, fed by a partner
+transfer provider registered the same way Amadeus and Places are in
+`lib/inventory/index.ts`, deep linking to the operator with the booking's
+own airport, date and destination area prefilled. Settlement is a
+`partner_orders` row (R-55) with the operator's per-transfer commission in
+`commission_minor`. Guarded by its own feature flag so it contributes nothing
+until a real operator agreement exists, exactly like the existing providers.
+**Phase.** E. **Effort.** M.
+
+#### R-57. One rollup the business can steer by
+
+**Problem.** There is no aggregate anywhere in the platform.
+`lib/admin/queries.ts getQueueCounts()` reports moderation work in progress,
+which is operational load, not marketplace health. Nobody can answer how many
+listings went live this week, what share of `PENDING` bookings ever reach
+`CONFIRMED`, or which searches returned nothing. **Why now.** R-53, R-58 and
+R-63 are each about to change a conversion number, and without a baseline
+recorded before they ship, none of them can be shown to have worked.
+**Approach.** A nightly job on R-21's runway writing one `marketplace_daily`
+row: listings by `listing_status`, agents approved, reserve attempts,
+`PENDING` to `CONFIRMED` conversion, cancellations by actor, wallet volume in
+and out from `wallet_entries`, partner orders, message threads opened, and
+the ten most searched terms that returned zero results, which is the clearest
+supply-gap signal RentMe can produce (it also feeds R-20's heatmap). Render
+it at `/admin/metrics` next to the queue counts, reading through the same
+`requireAdmin()` guard. Search and view counts need R-102's event table; the
+booking and wallet figures need nothing new. **Phase.** D. **Effort.** M.
+
+#### R-58. No host can accept a booking, because `/agent/bookings` is a placeholder
+
+**Problem.** `lib/bookings/actions.ts confirm()` is a complete, correctly
+authorised server action: it joins through `agents.user_id` exactly as the
+HANDOFF section 9 gotcha demands, and it has no caller anywhere.
+`app/agent/bookings/page.tsx` is eleven lines rendering `AgentComingSoon`. A
+guest can reserve; nobody can say yes. **Why now.** The entire supply half of
+the booking loop is one screen from working, and it compounds badly with
+R-23: once the stale-hold job runs, requests will be auto-cancelled that no
+host was ever shown. **Approach.** Replace the placeholder with the real
+queue: `bookings` joined to `listings` for the caller's `agents.id`, grouped
+Awaiting, Upcoming and Past, each awaiting row carrying Confirm and Decline
+wired to `confirm()` and `cancel()`, with the guest's dates, party size and
+`total_minor` on the card. Show the response deadline from R-24's
+`held_until` so the host understands the clock, and derive a host response
+time from `booking_state_events` onto `agents` so R-63's quality signals and
+future ranking have something honest to read. **Phase.** D. **Effort.** M.
+
+#### R-59. `/agent/earnings` and the payout tables nobody writes
+
+**Problem.** `public.payout_accounts` has zero application code,
+`public.ledger_entries` has zero writers, and `app/agent/earnings/page.tsx`
+is another `AgentComingSoon`. An agent who lists, hosts and completes a stay
+has nowhere to see what they earned and no way to take it.
+**Why now.** Supply grows on the strength of agents telling other agents they
+got paid. That sentence cannot be said yet. It also blocks R-05 and R-32,
+both of which assume a payout surface exists to attach to. **Approach.**
+Earnings reads `ledger_entries.agent_share_minor` joined through `bookings`
+to the caller's listings, split into released and held using R-28's
+`payout_available_at`. The payout action credits the agent's own `wallets`
+row through the atomic transfer function added in
+`20260730011651_wallet_atomic_transfer_and_reconciliation.sql`, so a payout
+is an internal paired-leg transfer and the existing `withdraw()` path takes
+it to a bank with no new money movement code at all. Account management
+writes `payout_accounts` and hands R-32 the row it needs to name-check.
+**Phase.** D. **Effort.** M.
+
+#### R-60. Bulk intake for agencies that already hold a portfolio
+
+**Problem.** `app/agent/list/ListingWizard.tsx` is a careful one-listing-at-a-
+time flow: a 40 word description minimum, four photos minimum, per-photo
+canvas re-encode, amenity selection, then `submitListing()`'s gate. An agency
+with sixty flats across Lekki and Ikoyi will not do that sixty times, and
+those agencies are precisely where supply density comes from.
+**Why now.** Supply is the binding constraint (`public.listings` is still at
+zero rows in the live database) and the wizard, though excellent, is priced
+for an individual landlord rather than for the accounts that would move the
+number. **Approach.** A `/agent/list/bulk` route that accepts a pasted
+spreadsheet mapped column by column onto `draftInputSchema` fields, creating
+one `DRAFT` listing per row through the existing `saveDraft()` path, followed
+by a photo drop that assigns uploads to drafts by a reference column and
+still routes every file through `stripMetadata()` and `addPhoto()`. Each
+draft then passes `submitListing()`'s gate individually, so admission quality
+is untouched: only the typing disappears. **Phase.** D. **Effort.** L.
+
+#### R-61. `/agent/verification` and the documents table with no writer
+
+**Problem.** `public.agent_documents` exists with RLS and has zero
+application code. `app/agent/verification/page.tsx` is a placeholder. R-05's
+BVN or NIN standard, on the backlog since the first pass, has nowhere to
+land, so agent approval at `/admin/agents` currently rests on a form and a
+human's judgement of it. **Why now.** R-59 is about to let money leave the
+platform to an agent, and R-32's payout name check needs an identity on file
+to compare against. Verification is the prerequisite for both.
+**Approach.** A verification surface uploading identity documents into a
+private bucket following the pattern `message-attachments` already
+establishes (path-scoped RLS through a `private.*` helper that returns false
+rather than throwing on a malformed path), writing `agent_documents` rows,
+plus a NIN or BVN field resolved through Paystack's identity endpoints with
+the outcome stored as a verification tier on `agents`. `/admin/agents` gains
+the documents and the resolution result inside the existing review panel, and
+`reviewAgentApplication()` records the tier in its `audit_log` detail.
+**Phase.** D. **Effort.** M.
+
+#### R-62. The date picker never shows a booked night, because nothing writes `availability`
+
+**Problem.** `lib/bookings/queries.ts getBlockedDates()` reads
+`public.availability` alone, filtered to `booked` and `unavailable`, and that
+is the only source the calendar on `/listing/[id]` consults. Only `confirm()`
+ever writes those rows, upserting `booked` nights after a host accepts, and
+`confirm()` has no caller at all today (R-58). `reserve()` writes nothing, so
+a `PENDING` booking, which the `bookings_no_overlap` exclusion constraint
+absolutely does block, is invisible on the calendar. The result: two guests
+see identical open calendars for the same nights, both fill in the entire
+reserve form, and the second one meets the `23P01` refusal at the very end.
+**Why now.** The GiST constraint is the platform's proudest correctness
+guarantee and today it reaches the guest as an arbitrary failure after all the
+work is done, which is the worst possible way to present a strength. It also
+means an agent cannot block a weekend for repairs or for a friend, so
+`availability_status`'s `unavailable` value has no writer anywhere.
+**Approach.** Two halves. Server side, have `reserve()` upsert the range as
+`booked` in the same service-role step R-53 adds, so the hold is visible
+immediately and the deletion already written into `cancel()` and the
+stale-hold job finally has the rows it expects. Agent side, a calendar on the
+agent listing detail writing `unavailable` rows directly, which is what turns
+the third enum value into a feature. **Phase.** D. **Effort.** M.
+
+#### R-63. Nobody can review a stay
+
+**Problem.** `public.reviews` has an insert policy, a unique `booking_id`,
+and is read for aggregates in `lib/listings/supabase-repository.ts` and in
+`lib/profile/queries.ts`. Nothing writes one. Every rating and review count
+visible on a card today comes from the seed catalogue.
+**Why now.** The first genuinely completed bookings arrive days after R-53
+lands, and a review that is not asked for within about two days of checkout
+is never written at all. Reviews are also the only supply-quality signal that
+costs no admin time, which matters while `/admin` triage is one small team.
+**Approach.** A job on R-21's runway that, the day after `check_out` on a
+`CONFIRMED` booking, writes a `notifications` row and sends a transactional
+email through `lib/email/messages.ts` (which already carries the booking
+family) linking to a review form; the form posts through the guest's own RLS
+insert policy, so the database decides who may review what. Add a host reply
+column and surface it in `ListingReviews`, because an unanswered bad review
+does more damage than the review itself, and route review text through the
+same `private.scan_message` classification so an account number cannot be
+smuggled into a public field. **Phase.** D. **Effort.** M.
+
+#### R-64. Perceptual hashing against stolen and duplicated listing photos
+
+**Problem.** `HYBRID_INVENTORY.md` section 5 lists duplicate photos across
+listings as an admin rejection criterion, and no mechanism exists:
+`addPhoto()` stores a path and a position, `submitListing()` counts rows. The
+most common property scam in this market is a real agent's photographs
+appearing on a fraudulent agent's listing. **Why now.** Photos are being
+uploaded now, and a hash computed at upload time is free while a hash
+backfilled across a catalogue is a migration. Every day of delay makes the
+comparison corpus more expensive to build. **Approach.** Compute a perceptual
+hash server side when a photo is attached; the client re-encode in
+`stripMetadata()` already hands the server a normalised JPEG, so the hash is
+stable. Store it on `listing_photos`, and in `submitListing()` compare every
+photo against the stored corpus within a small Hamming distance. A collision
+with another agent's listing writes a `risk_alerts` row at high severity and
+routes the submission into `/admin/listings` with both images shown side by
+side, rather than auto-rejecting, because an agency genuinely relisting its
+own property is a real and frequent case. **Phase.** D. **Effort.** M.
+
+#### R-65. Score the conversation, not only the message
+
+**Problem.** `private.scan_message` flags a ten-digit run or a payment
+keyword, per message, in isolation. A patient operator sends the digits
+across several messages, writes the number in words, or simply says "call
+me". Per-message regex cannot see a pattern that only exists across a thread.
+**Why now.** Messaging is live and the flag table is filling; `/admin/alerts`
+and `/admin/flags` are staffed by people whose time is the scarce resource,
+and one alert per conversation is far cheaper to work than a list of
+individually innocuous messages. **Approach.** A `conversation_risk` table
+maintained by the same trigger, holding per conversation: flag count,
+distinct `message_flag_reason` values seen, count of messages containing
+digit runs of any length, whether payment language appeared before any
+`inspection_confirmations` row exists for that conversation, and elapsed time
+from first message to first money word. Past a threshold, write one
+`risk_alerts` row for the conversation and surface it in `/admin/alerts` with
+the thread inline, resolvable through the existing `resolveRiskAlert()`
+action so the audit trail and R-48's `resolved_by` come for free.
+**Phase.** D. **Effort.** M.
+
+#### R-66. Turn a confirmed inspection into a recorded agreement for the RENT market
+
+**Problem.** `inspection_confirmations` records that a guest inspected a
+property. Then the trail stops. The RENT market has no Reserve button by
+design (`HYBRID_INVENTORY.md` section 4), so the annual tenancy payment, by
+far the largest single sum anyone will move in this market, happens entirely
+outside anything RentMe records, at precisely the moment the canonical safety
+copy tells people to stay inside the platform. **Why now.** The safety
+promise is currently asymmetric: RentMe protects the conversation and then
+waves goodbye at the transaction. The wallet already has atomic paired-leg
+transfers and reconciliation, so the missing piece is the agreement, not the
+money movement. **Approach.** Once an `inspection_confirmations` row exists
+on a rental conversation, offer both sides an agreement step: the agent
+states the annual amount and the term, the guest accepts, and the payment
+moves through the existing atomic transfer function into a held state
+released on a move-in confirmation from the guest (the same shape as R-28's
+payout hold). RentMe charges nothing for any of it; the entire value is that
+the sum is recorded, evidenced and reversible, which is exactly what the RENT
+market has never had. **Phase.** D into E. **Effort.** L.
+
+#### R-67. Identity tiers in front of the actions that can hurt someone
+
+**Problem.** An email address is currently enough to open a conversation with
+any agent, reserve real nights, and move wallet money.
+`20260729175409_profile_identity_columns.sql` added identity columns to
+`profiles` and nothing gates on them. **Why now.** R-36 and R-44 both propose
+counting abuse after the fact; a phone number verified once is a cheaper and
+more permanent answer than a rate limit, because it prices the creation of
+the account rather than the use of it. It is also the prerequisite for
+R-66's agreements to mean anything. **Approach.** Three tiers recorded on
+`profiles` and enforced inside the server actions next to the existing
+`resolveSession()` check, never in the UI: email only (browse, save, search,
+ask the assistant), phone verified by OTP (start a conversation, reserve),
+identity verified by NIN (wallet transfers above a threshold, rent
+agreements). Every refusal returns the existing honest `fail()` envelope
+naming the one step needed, and the tier is shown on the profile so nobody
+discovers it mid-transaction. **Phase.** C into D. **Effort.** M.
+
+#### R-68. A trip timeline, not a status badge
+
+**Problem.** `app/(app)/bookings/MyBookings.tsx` shows three states through
+`STATUS_BADGE`: Awaiting confirmation, Confirmed, Cancelled. Everything
+between confirmation and arrival, which is exactly where a Nigerian guest's
+real anxiety lives (is the address right, will the gate let me in, is there
+power tonight, who do I call), is silent. **Why now.** `booking_state_events`
+already records the transitions, `lib/email/messages.ts` already has the
+booking family, and `private.notify` already fans out. The parts exist; only
+the schedule and the presentation are missing, and retention is decided in
+this gap. **Approach.** A timeline on the booking card driven by
+`booking_state_events` plus dated steps from R-21's runway: confirmed, host
+contact released, three days out with directions and R-73's estate access,
+arrival day with the check-in window, day after checkout with R-63's review
+prompt. Each step is one `notifications` row and one email, reusing the
+writers already in place. **Phase.** D. **Effort.** M.
+
+#### R-69. The referral field collects intent and nothing happens
+
+**Problem.** Sign-up carries a referral input and a hear-about-us answer
+(HANDOFF section 3, rule 11). Neither is joined to anything: no code is
+issued, no attribution is recorded, no referrer ever learns their friend
+joined. **Why now.** The field is already in front of every new user, so the
+habit of entering a code is being trained with no payoff attached, which
+teaches people it does not matter. Fixing it later means asking an existing
+base to start doing something they have learnt to ignore.
+**Approach.** A generated `referral_code` on `profiles` at signup and a
+`referred_by` recorded when a code is entered, attributed through to first
+booking in R-57's rollup so the loop is measured before it is tuned. The
+reward costs the platform nothing to promise: the referred guest's first
+conversation is marked as introduced, which agents see and answer faster, and
+the referrer's stays inherit the same marker. If a monetary reward is ever
+wanted it is platform-funded wallet credit, never a charge to any user.
+**Phase.** E. **Effort.** M.
+
+#### R-70. Rent savings goals, the reason to keep a balance
+
+**Problem.** Nigerian annual rent is paid as one large lump saved for across
+a year, usually in a thrift arrangement or a separate bank account. The
+wallet is an append-only kobo ledger with a genuinely good surface
+(`WalletDeck`, `BalanceCard`, `TransactionsSection`) and today it only ever
+holds money between a funding and a spend. **Why now.** R-53 gives the wallet
+its first real spend, which is the moment a balance stops being decorative,
+and the RENT market is the one place where the saving behaviour already
+exists offline and is waiting for somewhere better to live.
+**Approach.** A `wallet_goals` table (owner, `target_minor`, target date,
+optional `listing_id` for a specific rental) and a goal card in `WalletDeck`
+that ring-fences part of the derived balance from the available figure R-25
+computes, so a goal cannot be accidentally spent. Reminders on the user's own
+chosen day through `private.notify`. Money remains fully withdrawable at any
+time and the platform takes nothing for holding it; the value to RentMe is
+that the wallet becomes the account people fund rather than the account they
+pass through. **Phase.** E. **Effort.** M.
+
+#### R-71. Power, as structure rather than a tick box
+
+**Problem.** `AMENITY_CHOICES` in `lib/agent/listings-schema.ts` offers
+`generator` labelled "Backup Power": one boolean for the first question every
+Nigerian guest asks. It cannot distinguish "Band A, roughly twenty hours a
+day" from "generator between 7pm and 11pm only" from "solar and inverter, no
+generator at all", and those are three completely different products.
+**Why now.** Agent listings CRUD is live and drafts are being created now.
+Every listing written before the fields exist has to be revisited by its
+agent, which is the one thing agents will not do twice.
+**Approach.** Real columns on `listings`: `power_band` (A to E or unknown),
+`power_hours_typical`, `power_backup` (none, shared generator, dedicated
+generator, inverter, solar), `power_backup_hours`, `power_metered` (prepaid,
+postpaid, included). Required by `submitRequirements()` for lodging and
+rental alike, rendered as their own facts block on `/listing/[id]` above
+amenities, exposed in `ListingSearchFilter` so `/search` can filter on them,
+and included in the `search_listings` tool projection so the assistant can
+answer the question directly. No competitor in this market answers it
+structurally, and every guest asks. **Phase.** D. **Effort.** M.
+
+#### R-72. Water, the same treatment
+
+**Problem.** `water` labelled "Running Water" is the other single boolean in
+`AMENITY_CHOICES`, standing in for a question with four genuinely different
+answers and a large price consequence. **Why now.** Same reason as R-71: the
+fields must exist before the catalogue fills, and both changes are one
+migration and one wizard step if done together. **Approach.** Columns on
+`listings`: `water_source` (borehole, mains, tanker delivery, well),
+`water_storage_litres`, `water_heating` (none, electric, solar, instant),
+`water_pump` boolean. Same rendering in the `/listing/[id]` facts block, same
+`ListingSearchFilter` entry, same exposure to the assistant tool, same
+`submitRequirements()` enforcement. **Phase.** D. **Effort.** S.
+
+#### R-73. Estate access, released the moment a booking is confirmed
+
+**Problem.** A large share of Nigerian shortlets sit inside gated estates
+where arrival fails at the gate, not at the door: the guest's name is not on
+the list, the security post has no record, a visitor's pass is demanded, or
+entry closes at 10pm. `listings` carries `address` and `landmark` and nothing
+at all about the gate. **Why now.** R-53 and R-58 together produce the first
+real arrivals, and the first arrival that fails at a gate at 11pm is a review
+the platform never recovers from. It is also a trust mechanic in its own
+right: withholding the access details until confirmation is exactly the
+"inspect before you pay" logic applied to arrival. **Approach.** Estate
+columns on `listings` (`estate_name`, `gate_access`, `access_notes`,
+`access_curfew_time`) deliberately excluded from the public listing
+projection in `lib/listings/supabase-repository.ts`, plus a `booking_access`
+row written when a booking becomes `CONFIRMED` carrying the code or the
+security desk instruction, readable only by that booking's guest under RLS,
+surfaced on their own booking detail and in the confirmation email, and
+expiring at checkout. The public page shows only "gated estate, access
+details on confirmation", which is honest and reassuring at once.
+**Phase.** D. **Effort.** M.
+
+#### R-74. Detty December as a first-class season
+
+**Problem.** Nigerian inbound demand is not evenly distributed. It is a spike
+from mid December to early January driven by diaspora return, with the search
+intent starting in September and the inventory decision made even earlier.
+The platform has no concept of a season anywhere in the schema or the
+surfaces. **Why now.** The September intent window for this December is
+weeks away. A season built in November is a season missed.
+**Approach.** A `seasons` table (name, slug, search window, stay window,
+cities) and three concrete behaviours reading it: `/search` offers the
+December window as a preset date chip once R-79's real date filter exists;
+`recommended()` in the repository weights Lagos, Abuja, Port Harcourt and
+Calabar listings with open December availability during the September window;
+and `/agent/listings` shows a September prompt to open the December calendar
+through R-62, because stock that is not open in September is not found in
+December. Measure the whole thing through R-57's rollup.
+**Phase.** E. **Effort.** M.
+
+#### R-75. Book for someone else, because the payer is often not the guest
+
+**Problem.** `bookings.guest_id` is a single auth user, and every email goes
+to `contactFromSession(session.user)`. The defining diaspora case is a
+sibling in London paying for a cousin arriving in Lagos, and the platform
+currently sends the arrival directions to London. **Why now.** It lands with
+R-73 and R-68 or it lands as a rewrite of both: all three change who receives
+which message about a booking. **Approach.** Optional columns on `bookings`
+(`guest_name`, `guest_phone`, `guest_email`) captured in `ReservePanel`
+behind a "this stay is for someone else" toggle, with `lib/email/messages.ts`
+splitting the sends so the payer receives the confirmation and the arriving
+guest receives the directions and R-73's access details. The arriving guest
+opens the booking through a signed link with no account required, and the
+host sees who is actually arriving, which is a safety improvement as much as
+a convenience. **Phase.** D. **Effort.** M.
+
+#### R-76. Campus, NYSC and festival demand, which arrive on a calendar
+
+**Problem.** Three recurring, dated, geographically precise demand events the
+catalogue cannot serve: university resumption and graduation weekends in
+Ibadan, Nsukka, Ile Ife and Zaria; NYSC camp intake and passing out parades
+on a published national calendar; and festivals fixed to a city and a date,
+Calabar Carnival in December, Ojude Oba in Ijebu Ode after Eid, Argungu, the
+Lagos concert season. **Why now.** `/search` carries
+`robots: { index: false, follow: false }`, so RentMe currently has no
+indexable demand-capture page at all, and these events are searched for by
+name months ahead. **Approach.** Reuse R-74's `seasons` rows for each event,
+seed the dates from published calendars, and give each one a real indexable
+route `/season/[slug]` rendering that city's stock for that window with the
+`ListingCard` the rest of discovery uses. It is the cheapest organic demand
+available to this platform, and the cheapest supply pitch too: an agent in
+Ijebu Ode has exactly one weekend a year that matters, and this is how they
+hear that RentMe knows it. **Phase.** E. **Effort.** M.
+
+#### R-77. Give the assistant the caller's own context, without breaking R-37
+
+**Problem.** `/api/assistant` has exactly one tool, `search_listings`, and
+R-37 rightly insists the tool layer never be argued into reaching bookings,
+wallet or messages. The consequence is a concierge that cannot answer the
+three things people actually open an in-app assistant to ask: where is my
+booking, what is my balance, has the agent replied. A search box with a
+personality is not a moat. **Why now.** The assistant is the most
+differentiated surface RentMe has and currently the least useful one to a
+signed-in user with a live trip. Competitors can copy a chat box in a week;
+they cannot copy a chat box that knows your trip, your gate code and your
+balance. **Approach.** Keep R-37's rule exactly and satisfy it a different
+way: add tools that take no identity argument at all, `my_upcoming_bookings`,
+`my_wallet_summary`, `my_unread_threads`. Each executes against the caller's
+own RLS-bound client resolved server side from the session inside the route,
+so the model cannot name another person's row even if a crafted prompt asks
+it to, and each returns a deliberately narrow projection: never an account
+number, never a message body, never R-73's `booking_access`. Every one of
+them refuses outright when the session is signed out, before any tool result
+is produced. **Phase.** C. **Effort.** M.
+
+---
+
+### B. Lower value, 30 items
+
+Genuine improvements that are not urgent. Quality of life, secondary
+surfaces, content and discoverability, analytics depth, agent tooling.
+
+#### R-78. No route has a `loading.tsx`
+
+**Problem.** There is not one `loading.tsx` anywhere under
+`apps/web/src/app`. `/search`, `/listing/[id]`, `/bookings`, `/saved` and
+`/notifications` are all async server components that now hit Supabase, so a
+tap on a city chip holds the previous screen with no acknowledgement until the
+query returns, which on a 3G connection reads as a dead button.
+**Why now.** Not urgent, but it is the cheapest perceived-performance win
+available and it gets harder to retrofit as each route grows.
+**Approach.** A `loading.tsx` per app route rendering the same glass card
+skeletons R-117 defines, using the existing `.nf-card` material so the
+transition is a fade rather than a flash. `/search` gets a results-grid
+skeleton, `/listing/[id]` a gallery-and-facts skeleton, `/wallet` deliberately
+gets none, because a skeleton where a balance goes invites misreading.
+**Phase.** F. **Effort.** S.
+
+#### R-79. Discovery has every filter except the one about dates
+
+**Problem.** `lib/listings/search-params.ts` now carries budget, bedrooms,
+bathrooms, party size, amenities, instant book and verified-only, all in the
+address bar, all counted honestly by `matchesFacts` through `FilterDrawer`.
+It carries no check-in and no check-out. `getBlockedDates()` and
+`public.availability` exist, so a guest can be shown a stay that cannot take
+their nights and only discover it in `ReservePanel`.
+**Why now.** Not urgent while the catalogue is small, but R-74's December
+preset has nothing to attach to without it, and it is far cheaper to add to
+`DiscoveryQuery` while the contract is newly written than after links
+carrying the current parameter set are in circulation. **Approach.** Add
+`checkIn` and `checkOut` to `DiscoveryQuery` and to `toFilter`/`toPoolFilter`
+so they behave exactly like the existing bounds, have
+`SupabaseListingRepository` exclude listings with a blocked night in the range
+using the same union R-62 builds, and add the range as a first chip in
+`ActiveFilters`. Dates belong in the pool filter, not the strict filter, so
+the "waiting without them" count keeps working. **Phase.** E. **Effort.** M.
+
+#### R-80. The map still plots cities, not listings
+
+**Problem.** `RealMap` renders one pin per covered city from the
+`CITY_COORDS` table hardcoded in the search page, with the city's price floor
+on it. `listings.latitude` and `longitude` exist and are never populated
+(R-100), so there is no listing-level geography anywhere, and the tile layer
+runs on public Carto tiles with no production key.
+**Why now.** Sequenced behind R-100; pointless before listings carry
+coordinates. **Approach.** Once R-100 fills the columns, plot listing pins
+from the same filtered result set the list view renders, clustered by
+proximity so Lekki does not become one illegible blob, with the cluster
+opening to the same `ListingCard`. Move the tiles to a keyed provider so the
+map does not depend on an unmetered public endpoint, keeping the dark and
+light tile choice the theme already drives. **Phase.** E. **Effort.** M.
+
+#### R-81. `/search` has no pagination
+
+**Problem.** `repo.search({ q, kind })` returns everything matching and the
+page renders all of it. At seed scale that is 17 rows; at catalogue scale it
+is an unbounded payload to a phone on a metered bundle, which is exactly the
+user the service worker was written to protect. **Why now.** Only matters
+once real listings exist in volume, which R-60 is designed to cause.
+**Approach.** Cursor pagination on the repository interface (keyed on
+`created_at` plus `id`, not offset, so a new listing cannot shift a page), a
+Load more control that appends, and a hard page size. `recommended()` stays
+uncapped since it already takes a limit. **Phase.** E. **Effort.** M.
+
+#### R-82. `/search` runs three repository searches on every request
+
+**Problem.** The page awaits `repo.search(toFilter(query))` for the results,
+`repo.search(toPoolFilter(query))` for the filter drawer's honest counts, and
+`repo.search({})` for the whole catalogue behind the city price floors, in one
+`Promise.all`, on every request. The third runs even when `view` is not `map`
+and the floors are never rendered. **Why now.** Harmless against the seed
+repository, triples the database work per search once
+`SupabaseListingRepository` is serving real volume, and search is the busiest
+route on the platform. **Approach.** Keep the results and pool reads, which
+both earn their keep, and lift the whole-catalogue read into one cached
+computation (`unstable_cache` or an ISR-revalidated segment) since city floors
+change only when listings do; skip it entirely when the request is not the map
+view. **Phase.** E. **Effort.** S.
+
+#### R-83. No `sitemap.ts` and no `robots.ts`
+
+**Problem.** `app/manifest.ts` exists; neither `app/sitemap.ts` nor
+`app/robots.ts` does. Nothing tells a crawler which of the 36 routes matter,
+and nothing states the crawl rules for `/admin`, `/agent` and the app shell,
+which are all currently discoverable in principle.
+**Why now.** Post-launch work, but it is an afternoon and it gates every
+other content item in this section. **Approach.** `app/robots.ts` disallowing
+`/admin`, `/agent`, `/api` and the `(app)` shell while allowing the `(site)`
+pages and the future `/season/[slug]` and city routes; `app/sitemap.ts`
+enumerating the site pages plus published listings read through the
+repository, with `lastModified` from `listings.published_at`.
+**Phase.** F. **Effort.** S.
+
+#### R-84. No structured data on listing pages
+
+**Problem.** `/listing/[id]` has a `generateMetadata` implementation and no
+JSON-LD. A property page with no structured data is invisible to every rich
+result that would otherwise carry its price, rating and location.
+**Why now.** Only worth doing once real listings are indexable, which needs
+R-83 first. **Approach.** Emit `Product` or `LodgingBusiness` JSON-LD from
+`/listing/[id]` built from the same `Listing` the page already has, with
+`priceMinor` divided once through `formatMoney`'s own convention and the
+aggregate rating taken from the `reviews` aggregate rather than the seed
+value. Partner listings are excluded, since RentMe does not own that data and
+`PartnerMeta.attribution` already signals whose it is. **Phase.** F.
+**Effort.** S.
+
+#### R-85. No per-listing social image
+
+**Problem.** Sharing a listing link into WhatsApp, which is how property
+links actually travel in Nigeria, produces whatever the root layout supplies.
+`ListingCard` renders a gradient fallback tile with a deterministic `hue`, so
+the ingredients for a decent card image exist. **Why now.** Cheap, and it
+compounds with every share once R-60 fills the catalogue.
+**Approach.** An `opengraph-image.tsx` under `app/(app)/listing/[id]/`
+rendering the cover photo, title, area, city and price on the brand canvas
+using the sampled palette anchors, falling back to the `hue` gradient when the
+listing has no photo. **Phase.** F. **Effort.** S.
+
+#### R-86. No indexable city pages
+
+**Problem.** `/search` is explicitly `robots: { index: false, follow: false }`
+and the `CITIES` list in that file (Lagos, Abuja, Port Harcourt, Ibadan,
+Enugu, Calabar) is the only place the covered cities are enumerated as
+destinations. There is no page a search engine can rank for "shortlet in
+Lekki". **Why now.** Sequenced behind R-83 and shares its structure with
+R-76's season routes. **Approach.** `/city/[slug]` reading the same
+repository, seeded from `CITY_COORDS` and the `states` table, each page
+carrying real content: the city's stock, its price floor, its areas, and the
+`RealMap` centred on it. Link them from `PopularDestinations` and
+`CoverageMap` on the landing page, which already exist. **Phase.** F.
+**Effort.** M.
+
+#### R-87. Grow the help centre from what people actually ask
+
+**Problem.** `lib/support/faq.ts` answers from a hand-written client-side
+store, and `support_tickets` is now accumulating the real questions that store
+failed to answer. Nothing connects the two. **Why now.** Only useful once
+ticket volume is real, but every ticket answered without feeding the FAQ is a
+ticket the team will answer again. **Approach.** A recurring review surfaced
+at `/admin/support`: tickets grouped by the FAQ match that failed, with a
+one-click "this should be an FAQ entry" that drafts the entry. Then the
+`(site)/help` page renders the same store so the public page and the in-app
+chat can never diverge. **Phase.** F. **Effort.** M.
+
+#### R-88. The assistant sidebar still cannot see persisted threads
+
+**Problem.** `components/app/assistant/threads.ts` reads and writes
+`localStorage` under `nf_ai_threads`. The route already persists to
+`ai_conversations` and `ai_messages` for signed-in callers, so the rows exist
+and nothing ever fetches them: a thread does not reappear on a second device
+or after clearing storage. R-38 covers writing them; this is the read.
+**Why now.** Lower value than it looks, because the thread that matters is
+usually the current one, but it is the one place the assistant visibly forgets
+something it demonstrably knows. **Approach.** A server read of the caller's
+`ai_conversations` with the last message preview, merged with the local store
+by id in `AssistantSidebar`, local-only threads keeping their existing offer
+to import on sign-in. **Phase.** C. **Effort.** S.
+
+#### R-89. Let the assistant act, not only answer
+
+**Problem.** The assistant can find a listing and link to it and cannot do
+the two things a person immediately wants next: save it, or remember the
+search. `toggleSave()` and `saved_searches` both exist.
+**Why now.** After R-77, not before: the context tools are what make an
+acting assistant coherent. **Approach.** Two more no-identity-argument tools,
+`save_listing` and `remember_search`, executing against the caller's own
+RLS-bound client, each returning a plain confirmation the model reads back.
+Both refuse when signed out. `remember_search` writes `saved_searches` and so
+gives R-14's alerting foundation its first real writer. **Phase.** E.
+**Effort.** S.
+
+#### R-90. Let the assistant answer in Nigerian Pidgin
+
+**Problem.** `SYSTEM_PROMPT` in `app/api/assistant/route.ts` specifies
+British spelling and a warm brief voice, and the platform ships four locales,
+none of which is the language a very large share of the audience is most
+comfortable being helped in. **Why now.** Purely additive and needs no new
+translation files, unlike the yo/ha/ig review R-08 covers.
+**Approach.** Detect Pidgin in the incoming turn and add a single system
+instruction permitting a Pidgin reply when the user writes in it, while
+keeping listing names, prices and route paths verbatim. No dictionary work and
+no change to `packages/i18n`, since this is generated voice rather than
+interface copy. **Phase.** F. **Effort.** S.
+
+#### R-91. Hand a stuck assistant conversation to support
+
+**Problem.** `SupportChat` escalates into a real `support_tickets` row with
+`fileSupportTicket()`. The assistant, which is where a confused person
+actually is, has no escalation at all: it can only say it cannot help.
+**Why now.** Small, and it converts the assistant's honest refusals into
+resolved problems rather than abandoned sessions. **Approach.** An escalation
+control in `AssistantChat` that calls `fileSupportTicket()` with the last few
+turns attached as the ticket body and the `ai_conversations` id in the
+metadata, so `/admin/support` can read the whole context. Rate-limited on the
+same `consume()` bucket the route already uses. **Phase.** F. **Effort.** S.
+
+#### R-92. Bulk actions on the admin listing queue
+
+**Problem.** `reviewListing()` handles one listing per call, and
+`/admin/listings` renders one decision per row. R-60's bulk intake will
+produce sixty submissions from one agency in an afternoon, all with the same
+photographer and the same estate. **Why now.** Sequenced directly behind
+R-60; pointless before it. **Approach.** Multi-select in the queue calling
+`reviewListing()` per selection inside one server action, writing one
+`audit_log` row per listing (never one summary row, since the audit table's
+whole value is per-entity granularity) and one notification per agent rather
+than one per listing. Reject and request-changes keep their mandatory note.
+**Phase.** F. **Effort.** M.
+
+#### R-93. Queue ageing, so nothing rots quietly
+
+**Problem.** `getQueueCounts()` returns counts. A count of eleven open flags
+does not distinguish eleven arrived this morning from one that has been open
+for nine days, and `message_flags`, `risk_alerts`, `reports` and
+`support_tickets` all carry `created_at` already.
+**Why now.** Matters as soon as volume is real, and it is a query change
+rather than a schema change. **Approach.** Add oldest-open age to each queue
+count on `/admin`, sort every queue oldest first by default rather than
+newest, and colour past a threshold using the existing `alert_severity`
+palette. **Phase.** F. **Effort.** S.
+
+#### R-94. Reviewer assignment on the admin queues
+
+**Problem.** R-48 adds `reviewed_by` and `resolved_by`, recorded at the moment
+of decision. Nothing records who is currently working an item, so two admins
+open the same flag and one of them wastes the effort.
+**Why now.** Only once there is more than one admin, which is why it sits
+here rather than in section A. **Approach.** A nullable `claimed_by` and
+`claimed_at` on the four queue tables, claimed on open and released on
+decision or after a short timeout, shown as an avatar in the row. The claim is
+advisory, never an authorisation boundary: `requireAdmin()` remains the only
+gate. **Phase.** F. **Effort.** S.
+
+#### R-95. `/agent/analytics` is a placeholder with nothing to show
+
+**Problem.** `app/agent/analytics/page.tsx` renders `AgentComingSoon`, and
+even if it did not, there is no view or impression data anywhere to render.
+**Why now.** Depends on R-102's event table, and agents will ask for it the
+week after R-58 gives them bookings to compare against.
+**Approach.** Once R-102 exists, an analytics surface per listing: views,
+saves from `saved_items`, conversations started, reserve attempts, and
+conversion between them, with a comparison against the median for the same
+city and property type so the number means something. Read only, no
+projections, no promises. **Phase.** F. **Effort.** M.
+
+#### R-96. `/agent/reviews` is a placeholder, and the reply belongs there
+
+**Problem.** Another `AgentComingSoon`. R-63 adds the review and the host
+reply column; the agent needs somewhere to write it.
+**Why now.** Strictly after R-63. **Approach.** The agent's reviews across
+all their listings, newest first, with the reply composer inline, the reply
+passing through the same text classification listing copy does so an account
+number cannot be posted into a public field, and a rating trend per listing.
+**Phase.** F. **Effort.** S.
+
+#### R-97. `/agent/settings` is a placeholder
+
+**Problem.** `app/agent/settings/page.tsx` renders `AgentComingSoon`. There
+is no surface for the things an agent genuinely needs to set: their public
+display name and photo, the areas they cover, their working hours for R-58's
+response expectations, and their notification preferences.
+**Why now.** Low urgency, real friction. **Approach.** An agent settings
+surface writing to `agents` and to the `profiles.settings` jsonb column added
+by `20260729112539_rental_pricing.sql`, reusing `SettingsGroups` and `Toggle`
+from `components/app/account/` so the two settings surfaces stay visually
+identical. **Phase.** F. **Effort.** S.
+
+#### R-98. `/agent/messages` is a placeholder while the host side is live
+
+**Problem.** Agents receive real conversations under RLS through
+`private.in_conversation` and can only read them at `/messages`, the guest
+surface, with no host framing: no listing context column, no unanswered
+filter, no way to see which enquiry has been waiting longest.
+**Why now.** The threads work today, so this is presentation rather than
+capability. **Approach.** Reuse `ConversationList` and `MessageThread` with a
+host-side wrapper grouping threads by listing, an Unanswered filter reading
+`conversations.last_message_at` against the last message author, and the
+inspection sheet from `ListingOptionsSheet` available from the host side too.
+**Phase.** F. **Effort.** M.
+
+#### R-99. Draft autosave and resume in the listing wizard
+
+**Problem.** `ListingWizard` persists through `saveDraft()` and the agent has
+to reach the step that triggers it. A ten-step form on an Android phone over
+a patchy connection loses work, and that agent does not come back.
+**Why now.** Compounds with R-60: bulk intake is worthless if the manual path
+still loses drafts. **Approach.** Debounced autosave on field blur into the
+existing `saveDraft()` (which already upserts by id), a saved-just-now
+indicator, and a resume banner on `/agent/list` listing `DRAFT` rows with the
+first unmet requirement from `submitRequirements()` named on each, so the
+agent knows what is left rather than reopening to find out. **Phase.** F.
+**Effort.** M.
+
+#### R-100. Address to map pin in the wizard
+
+**Problem.** `listings` carries `latitude` and `longitude`, `draftInputSchema`
+collects neither, and `RealMap` places pins from the hardcoded `CITY_COORDS`
+table in the search page. Every listing in Lagos therefore sits on the same
+point. **Why now.** Needed before listing-level pins and clustering are worth
+building. **Approach.** A pin step in the wizard: geocode the entered address
+once server side, show the result on a small `RealMap` instance, and let the
+agent drag to correct it, writing `latitude` and `longitude`. Store the
+approximate point only for the public projection, since an exact pin before
+inspection is the same disclosure R-73 is careful about. **Phase.** F.
+**Effort.** M.
+
+#### R-101. Sweep orphaned uploads out of `listing-photos`
+
+**Problem.** `removePhoto()` and `deleteListing()` both remove storage objects
+alongside their rows, which is right. What neither can catch is a file
+uploaded by the wizard whose `addPhoto()` call never completed, or whose agent
+closed the tab: the object sits in a public bucket forever with no row
+pointing at it. **Why now.** Grows slowly and quietly, and R-21's runway makes
+it a few lines. **Approach.** A weekly job listing objects under
+`listing-photos` older than a day with no matching `listing_photos.storage_path`
+and removing them, writing the count to the `job_runs` table R-21 defines.
+**Phase.** F. **Effort.** S.
+
+#### R-102. There is no first-party event table
+
+**Problem.** Nothing records a search, a listing view, a card impression or a
+reserve attempt that failed. Every recommendation in this section that needs
+behaviour (R-95, R-57's search and view figures, R-20's heatmap) is blocked on
+its absence, and `sortListings()`'s "recommended" order is currently a
+placeholder because there is no signal to rank on.
+**Why now.** Cheap now, and every week without it is a week of behaviour that
+cannot be recovered later. **Approach.** One append-only `events` table
+(kind, subject id, session id, user id nullable, `params jsonb`,
+`created_at`), written from server components and server actions only, never
+from the client, with no personal data beyond the user id and no third-party
+script involved. RLS admin-read only. Aggregate through R-57's nightly job
+and retain raw rows on a short window, the way R-51 treats notifications.
+**Phase.** E. **Effort.** M.
+
+#### R-103. No Web Vitals measurement on the real audience
+
+**Problem.** The design system leans hard on `backdrop-filter`, multi-layer
+backgrounds, a conic ribbon and Ken Burns transforms. R-11 proposes a device
+tier ladder to degrade them and there is no measurement to decide the tiers
+by. **Why now.** R-11 cannot be built correctly without it.
+**Approach.** Report `web-vitals` INP, LCP and CLS into R-102's `events`
+table, bucketed by device memory, connection type and theme, so the tier
+ladder is set from what mid-range Android in Nigeria actually does rather
+than from a laptop. **Phase.** F. **Effort.** S.
+
+#### R-104. Server action failures are invisible
+
+**Problem.** The action envelope in `lib/actions/envelope.ts` returns honest
+`fail()` messages to users, and several paths deliberately swallow errors as
+best effort: `bestEffortEmail()`, the `catch` blocks around notification and
+audit writes in `lib/admin/actions.ts`, the storage removals. Nothing anywhere
+records that a swallowed failure happened. **Why now.** The swallowing is
+correct behaviour and the blindness is not, and the gap widens with every new
+best-effort path. **Approach.** A small server-side error sink writing to a
+table or to structured logs with the action name, a correlation id and the
+error, called from every existing `catch` that currently discards. Surfaced as
+a count on `/admin` so a silent regression in email delivery or audit writing
+is visible within a day. **Phase.** F. **Effort.** M.
+
+#### R-105. Notification preferences per kind
+
+**Problem.** `notification_kind` distinguishes booking, message, wallet,
+listing, support and system rows, and every one of them is delivered to every
+recipient with no control. `profiles.settings` is a jsonb column sitting
+unused for exactly this. **Why now.** Becomes a real irritation once R-68's
+timeline multiplies the volume. **Approach.** A preferences group in
+`SettingsGroups` writing per-kind in-app and email switches into
+`profiles.settings`, read by `private.notify` before it inserts and by the
+email senders before they send. Two kinds are deliberately not switchable:
+wallet movements and security notices, because silence there is a safety
+problem rather than a preference. **Phase.** F. **Effort.** M.
+
+#### R-106. A weekly performance email for agents
+
+**Problem.** `lib/email/` is a complete Resend integration with a typed
+message family, and every message it sends is transactional and reactive.
+Nothing ever tells an agent how their week went, so the only reason to open
+the agent surfaces is a booking notification.
+**Why now.** After R-95, when there is something true to put in it.
+**Approach.** A weekly job composing one message per approved agent from
+R-102's aggregates and their own `bookings` and `ledger_entries` rows: views,
+enquiries, bookings, earnings released, and the single most useful next action
+(open December availability, add the fourth photo, answer the thread waiting
+three days). Honours R-105's preferences and carries a working unsubscribe.
+**Phase.** F. **Effort.** M.
+
+#### R-107. The newest surfaces are hardcoded English
+
+**Problem.** `packages/i18n` is the typed source of truth and four locales are
+wired, yet `ListingWizard`, the `/admin` console, `WalletActions`, the
+booking steps on `/bookings` and the `EMPTY_COPY` and `STATUS_BADGE` tables in
+`MyBookings` all carry English string literals inline.
+**Why now.** Not urgent (the admin console is an internal surface and can stay
+English deliberately), but the guest-facing strings should not have drifted
+out of the dictionary, and each one that stays makes R-08's native review of
+yo, ha and ig less complete. **Approach.** Move the guest-facing literals into
+`packages/i18n/src/locales/en.ts` and translate them across yo, ha and ig,
+leaving `/admin` explicitly and deliberately out of scope with a comment
+saying so, so the omission reads as a decision rather than as an oversight.
+**Phase.** F. **Effort.** M.
+
+---
+
+### C. Small pieces, 30 items
+
+An hour or an afternoon each. The details that separate a good product from a
+great one. Each names the file it lands in.
+
+#### R-108. `formatDate` renders in the server's timezone, not Lagos
+
+`packages/i18n/src/index.ts formatDate()` passes no `timeZone` to
+`Intl.DateTimeFormat`, so on a UTC server a date near midnight in Lagos
+renders as the previous day. Four call sites have already worked around it
+individually with an inline `timeZone: "Africa/Lagos"`
+(`LivingCanvas`, `app/admin/_components/ui.tsx`, `/profile`, and
+`lagosToday()`), which is the tell. Default `timeZone` to `Africa/Lagos` in
+`formatDate` and delete the four workarounds.
+**Phase.** F. **Effort.** S.
+
+#### R-109. Booking dates render in `en-GB` whatever the locale
+
+`lib/bookings/queries.ts` builds `DAY_LABEL` as a module-level
+`Intl.DateTimeFormat("en-GB", ...)`, then `getMyBookings(locale)` takes a
+`Locale` argument it never gives to it, so a Yoruba speaker's trip dates come
+back English. Build the formatter from the locale's own tag the way
+`formatDate` does, and set `timeZone: "Africa/Lagos"` rather than the current
+`"UTC"` plus midday-anchor trick. **Phase.** F. **Effort.** S.
+
+#### R-110. `formatMoney` silently discards kobo
+
+`packages/i18n/src/index.ts` sets `maximumFractionDigits: 0`, so a price of
+8,500,050 kobo renders as the same figure as 8,500,000. The wallet already
+solved this properly with `formatKoboExact` in
+`components/app/wallet/money.ts`, which returns whole and kobo parts
+separately. Give `formatMoney` an `exact` option that keeps a non-zero
+remainder, and use it wherever a stored amount rather than a rounded display
+figure is shown: `ReservePanel`'s total, the booking receipt, the admin
+listing queue. **Phase.** F. **Effort.** S.
+
+#### R-111. A naira glyph regression test across all four locales
+
+The supplied mockups themselves showed the N-fallback bug, where a font
+without the naira glyph renders a plain N. Add a spec beside the four existing
+Playwright golden paths in `apps/web/tests/` that renders a money figure
+through `formatMoney` in en, yo, ha and ig and asserts the naira sign is
+present in each, dark and light. Cheap, and it catches a font or `Intl` data
+regression that no typecheck can. **Phase.** F. **Effort.** S.
+
+#### R-112. Compact notation is unverified in yo, ha and ig
+
+`formatMoney`'s `compact` option maps to `notation: "compact"` against
+`yo-NG`, `ha-NG` and `ig-NG` tags. Compact notation depends on per-locale CLDR
+data that may not exist for all three, in which case the output silently falls
+back to something that is not what the layout was measured against. Assert the
+compact output for each locale in the same spec as R-111 and pin an explicit
+fallback in `formatMoney` rather than trusting the runtime.
+**Phase.** F. **Effort.** S.
+
+#### R-113. The unread badge exists in the type and is never fed
+
+`components/app/AppRail.tsx` declares `type RailItem = { ...; badge?: number }`
+and renders `{item.badge ? <span className="nf-badge nf-badge--brand">` , and
+no item literal anywhere sets `badge`. `MobileTabBar` has none at all.
+Feed both from one count of `notifications` where `read_at is null`, which
+`loadNotifications` already reads, and let the existing realtime subscription
+on `/notifications` update it. **Phase.** F. **Effort.** S.
+
+#### R-114. `reserve()` never checks the listing's minimum stay
+
+`listings.min_stay_nights` exists, has a `> 0` check constraint, and is read
+by nothing outside `database.types.ts`. A guest can reserve one night at a
+property whose agent set a three-night minimum, and the agent finds out at
+`confirm()`. Add it to the select in `reserve()` and refuse below it with a
+message naming the number. **Phase.** B. **Effort.** S.
+
+#### R-115. The `23514` refusal in `reserve()` says nothing useful
+
+`lib/bookings/actions.ts` maps a check-constraint violation to "Those dates do
+not work for this stay. Check them and try again." Four different constraints
+can raise it (`bookings_dates_chk`, `bookings_nights_chk`,
+`bookings_subtotal_chk`, `bookings_total_chk`) and only the first two are ever
+the guest's doing. Branch on the constraint name in `insertError.message` and
+say the true thing: check-out must be after check-in, or an honest service
+failure for the two arithmetic ones, which are our bug and not theirs.
+**Phase.** B. **Effort.** S.
+
+#### R-116. The `/bookings` explainer promises a payment step that does not run
+
+`app/(app)/bookings/page.tsx` renders three steps, the second being "Confirm
+and pay: Secure payment in naira. You are never charged early." `reserve()`
+takes no payment at all (R-53), so the copy describes a flow the platform does
+not perform. Either ship R-53 or reword to what actually happens, that the
+request goes to the host and payment is arranged once they accept. Never leave
+a payment promise standing on a path with no payment.
+**Phase.** B. **Effort.** S.
+
+#### R-117. No route has a loading skeleton shaped like its content
+
+`.nf-skeleton` exists in `globals.css` and is used only by `ComingSoon`.
+Add a `ListingCardSkeleton` matching `ListingCard`'s real proportions (the
+4:3 image frame, two text lines, the price row) so R-78's `loading.tsx` files
+have something honest to render, and a `BookingCardSkeleton` for
+`MyBookings`. A skeleton of the wrong shape is worse than none, because the
+layout jumps when the content lands. **Phase.** F. **Effort.** S.
+
+#### R-118. Two overlays predate the focus standard the newer ones set
+
+`FilterDrawer`, `ListingOptionsSheet` and `AgentMobileNav` all do it properly:
+`role="dialog"`, `aria-modal`, focus moved in on open, focus returned to the
+opener on close, and `inert` on the closed drawer. `components/site/MobileMenu.tsx`
+and the mobile drawer in `components/app/AppShell.tsx` have `role="dialog"`
+and `aria-modal` and none of the focus handling. Bring both up to the pattern
+the other three already prove. **Phase.** F. **Effort.** S.
+
+#### R-119. Escape does not close the app shell drawer or the mobile menu
+
+Same two components. Every full-page drawer should close on Escape, and both
+of these are reachable on a phone with a keyboard attached and on any desktop
+narrow enough to show them. One `keydown` listener each, removed on unmount.
+**Phase.** F. **Effort.** S.
+
+#### R-120. `ListingCard` has no image error fallback
+
+`ListingGallery` handles a broken photo with an `onError` that flips into the
+gradient tile. `ListingCard`, which renders the same remote CDN photos far
+more often, passes the URL to `next/image` with no `onError`, so a dead URL
+leaves a blank frame in the middle of a results grid. Reuse the same fallback,
+keyed on the listing's deterministic `hue`. **Phase.** F. **Effort.** S.
+
+#### R-121. Chips are below the 44px touch target the icon buttons already meet
+
+`.nf-icon-btn` in `globals.css` is documented as a 44px target. `.nf-chip` is
+`padding: 0.45rem 0.9rem` at caption size, which lands near 30px tall, and
+chips are the primary control on `/search` (sort, city, category) and on
+`ActiveFilters`. Raise the chip to a 44px minimum hit area using padding or a
+transparent `::before` inset so the visual size is unchanged and the target is
+not. **Phase.** F. **Effort.** S.
+
+#### R-122. No haptic feedback anywhere
+
+`navigator.vibrate` appears zero times in the repository, on a platform whose
+audience is overwhelmingly Android. Add a single tiny helper and call it at
+exactly four moments where something irreversible completed: a booking
+reserved in `ReservePanel`, a booking cancelled in `MyBookings`, a transfer
+completed in `WalletDeck`, and an inspection confirmed in
+`ListingOptionsSheet`. Respect `prefers-reduced-motion` and never buzz on an
+error, which is what makes haptics feel cheap. **Phase.** F. **Effort.** S.
+
+#### R-123. No keyboard shortcuts on the surfaces built for repeat use
+
+`/admin` and `/agent` are worked all day by the same few people and have no
+shortcuts at all. Two are enough to matter: `/` focuses the search input
+(`#search-q` on `/search`, the queue filter on `/admin`), and `j`/`k` move
+through the current queue list in `/admin/flags`, `/admin/alerts` and
+`/admin/listings`. No shortcut may perform a decision; navigation only, so a
+stray keypress can never approve a listing. **Phase.** F. **Effort.** S.
+
+#### R-124. Same-month date ranges repeat the month
+
+`labelDate` in `lib/bookings/queries.ts` produces "Fri 14 Aug to Sun 16 Aug".
+For a range inside one month that should read "Fri 14 to Sun 16 Aug", and for
+a range crossing a year boundary it should carry the year, which it never
+does. One formatting function, used by `MyBookings`, the confirmation emails
+in `lib/email/messages.ts` and R-58's host queue. **Phase.** F. **Effort.** S.
+
+#### R-125. Pluralisation is done by hand and only in one place
+
+`KIND_NOUN` in `lib/listings/search-params.ts` carries a proper `one`/`many`
+pair per listing kind, and it is the only pluralisation contract in the
+codebase. `BookingView.nights` and `guests`, the photo counts in
+`lib/agent/listings-schema.ts`, and the queue counts on `/admin` all build
+their plurals inline or not at all. Add one `plural(count, one, many, locale)`
+helper to `packages/i18n` and route all four through it, so yo, ha and ig get
+a place to differ. **Phase.** F. **Effort.** S.
+
+#### R-126. The agent phone field takes any string
+
+`AccountProfile` sets `inputMode="tel"` and `ApplyWizard` collects a phone
+with no formatting or validation, so `08012345678`, `+2348012345678` and
+`234 801 234 5678` all land as different strings for the same person, which
+breaks any future OTP (R-67) and any duplicate detection. Normalise to E.164
+on blur, display in the local grouping, and store one canonical form.
+**Phase.** F. **Effort.** S.
+
+#### R-127. The bank account field does not look like a bank account field
+
+`WalletActions` sets `inputMode="numeric"` on the account number and does
+nothing else. Nigerian NUBAN numbers are exactly ten digits: enforce the
+length in the input, group the display as `0123 456 789` while keeping the
+stored value bare, and show the resolved account name from Paystack's resolve
+call inline before the transfer button becomes active, which is the single
+best mis-transfer prevention available and is already how every Nigerian
+banking app behaves. **Phase.** F. **Effort.** S.
+
+#### R-128. Wallet references cannot be copied
+
+`rm-fund-<uuid>`, `rm-wd-<uuid>` and `rm-p2p-<uuid>-out` are a real contract
+the webhook routes on, and they are the string a user needs when they contact
+support about a missing payment. `TransactionsSection` renders them as plain
+text. Add a copy control with a confirmation, and put the same reference in
+the wallet email bodies in `lib/email/messages.ts` so it is reachable without
+opening the app. **Phase.** F. **Effort.** S.
+
+#### R-129. The offline page does not say what is unavailable
+
+`app/offline/page.tsx` is the designed screen behind `sw.js`, and `sw.js`
+carries an explicit `NEVER_CACHE_SEGMENTS` list: api, admin, agent, wallet,
+messages, notifications, auth. The page should name that truth in plain words
+(balances, messages and bookings need a connection because a stale one would
+be worse than none) rather than a generic apology, since the honesty is the
+whole reason the blocklist exists. **Phase.** F. **Effort.** S.
+
+#### R-130. `SAFETY_EDUCATION_COPY` is canon in one place and paraphrased in others
+
+`lib/messages/education.ts` holds the owner-canonical safety wording verbatim
+with a comment saying it must not be edited. `GUEST_SAFETY_LINE` and
+`HOST_SAFETY_LINE` in `lib/email/messages.ts`, and the disclaimer on
+`/rent`, each carry their own phrasing of the same promise. Import the one
+constant everywhere it is quoted whole, and where a shorter line is genuinely
+needed, define it once beside the canonical one rather than in the file that
+happens to need it. **Phase.** F. **Effort.** S.
+
+#### R-131. One `error.tsx` for the whole application
+
+`app/error.tsx` and `app/not-found.tsx` sit at the root and are the only error
+boundaries in the tree. A thrown error inside `/admin/flags` or `/agent/list`
+therefore unmounts the operations navigation and drops the person onto the
+consumer error screen, with no way back into the queue or the wizard they were
+in. Add a segment-level `error.tsx` to `app/admin/` and `app/agent/` that
+keeps `AdminNav` and `AgentNav` mounted and offers a retry, which is the whole
+reason Next allows nested boundaries. **Phase.** F. **Effort.** S.
+
+#### R-132. Admin and agent routes should carry explicit robots metadata
+
+`/search` sets `robots: { index: false, follow: false }` deliberately. The
+`/admin/*` and `/agent/*` routes set page titles and no robots directive at
+all, relying entirely on R-83's future `robots.ts`. Belt and braces: set the
+directive in each route's own `metadata`, so a misconfigured
+`robots.ts` cannot expose an operations console.
+**Phase.** F. **Effort.** S.
+
+#### R-133. The wallet is the one surface that does not use `.nf-numeric`
+
+`.nf-numeric` exists so figures do not jitter as their digits change, and it
+is applied in around ninety places across the platform, including
+`ListingCard`, `ReservePanel`, `MyBookings`, `AppRail` and every admin table.
+It appears exactly zero times in `components/app/wallet/` and in
+`app/(app)/wallet/`: not in `BalanceCard`, not in `TransactionsSection`, not
+in `WalletActions`, not in `WalletDeck`. The flagship money surface, whose
+digits change while a transfer settles and whose balance card already
+shimmers, is the only place where the amounts are set in proportional
+figures. Apply it to every `formatKoboExact` output.
+**Phase.** F. **Effort.** S.
+
+#### R-134. `sleeps()` invents a guest capacity the database already stores
+
+`app/(app)/listing/[id]/page.tsx` derives capacity as
+`Math.max(2, listing.bedrooms * 2)` with a comment saying guest capacity is
+not a stored field yet. `listings.max_guests` exists, is collected by
+`draftInputSchema`, and is checked `> 0`. Carry it on the `Listing` type and
+render the real number, keeping the derivation only as the fallback for seed
+catalogue entries. **Phase.** F. **Effort.** S.
+
+#### R-135. `stateLabel` handles the FCT and nothing else handles states
+
+`stateLabel()` on the listing page correctly renders "the FCT" rather than
+"FCT State", and it is a local function on one page while
+`lib/data/nigeria.ts` is the canonical list and `public.states` is the
+canonical table. Move it next to the data it describes so `/search`, the
+season pages from R-76 and the agent wizard all read a state the same way.
+**Phase.** F. **Effort.** S.
+
+#### R-136. The photo width refusal does not say which photo
+
+`PHOTO_TOO_NARROW_MESSAGE` in `lib/agent/listings-schema.ts` reads "Photos
+must be at least 1600px wide so they look sharp on every screen." An agent
+dropping eight files at once is told that one of them failed and not which,
+and `ListingWizard` measures each file's `naturalWidth` individually, so the
+information exists at the moment of refusal. Name the file and its actual
+width. **Phase.** F. **Effort.** S.
+
+#### R-137. Nothing tells an agent their draft is one field from submittable
+
+`submitRequirements()` returns exactly the unmet list, and `submitListing()`
+returns it as `fieldErrors` only when the agent presses submit and fails.
+`ListingsWorkspace` shows a `DRAFT` row with no indication of distance. Render
+the count and the single most impactful unmet requirement on each draft row,
+from the same function, so the checklist is visible before the refusal rather
+than after it. **Phase.** F. **Effort.** S.

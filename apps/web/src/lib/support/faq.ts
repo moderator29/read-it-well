@@ -112,10 +112,47 @@ export const SUPPORT_FAQ: FaqEntry[] = [
 ];
 
 /** First entry whose keywords appear in the question, or null to escalate. */
-export function findFaqAnswer(text: string): string | null {
+export function findFaqEntry(text: string): FaqEntry | null {
   const q = text.toLowerCase();
   for (const entry of SUPPORT_FAQ) {
-    if (entry.keywords.some((k) => q.includes(k))) return entry.answer;
+    if (entry.keywords.some((k) => q.includes(k))) return entry;
   }
   return null;
+}
+
+/** The answer for the first matching entry, or null to escalate. */
+export function findFaqAnswer(text: string): string | null {
+  return findFaqEntry(text)?.answer ?? null;
+}
+
+/** Look up the canonical answer for one entry, e.g. "cancellations". */
+export function faqAnswerById(id: string): string | null {
+  return SUPPORT_FAQ.find((entry) => entry.id === id)?.answer ?? null;
+}
+
+/**
+ * Ranked search over the same store, for the AI agent's search_help tool.
+ *
+ * `findFaqAnswer` answers a question with the first keyword hit, which is the
+ * right behaviour for the keyword fallback but too blunt to ground a model:
+ * an agent needs the best few entries, not the first plausible one. Scoring is
+ * deliberately simple and explainable: a keyword the question contains counts
+ * heavily, a meaningful word shared with the answer counts a little, and
+ * anything scoring zero is left out rather than padded with filler.
+ */
+export function searchFaq(text: string, limit = 3): FaqEntry[] {
+  const q = text.toLowerCase();
+  const words = q.split(/[^a-z0-9]+/).filter((w) => w.length > 3);
+
+  const scored = SUPPORT_FAQ.map((entry) => {
+    let score = 0;
+    for (const keyword of entry.keywords) if (q.includes(keyword)) score += 10;
+    const answer = entry.answer.toLowerCase();
+    for (const word of words) if (answer.includes(word)) score += 1;
+    return { entry, score };
+  })
+    .filter((row) => row.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, Math.max(1, limit)).map((row) => row.entry);
 }

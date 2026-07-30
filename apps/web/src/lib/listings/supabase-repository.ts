@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
-import { diversePick, matchesFilter } from "./filter";
+import { bedroomsForGuests, diversePick, matchesFilter } from "./filter";
 import type { Listing, ListingKind, ListingRepository, ListingSearchFilter } from "./types";
 
 /**
@@ -154,6 +154,59 @@ async function getAmenityCodes(supabase: Client): Promise<Map<string, string>> {
   return map;
 }
 
+/**
+ * Published listing ids carrying EVERY requested amenity, through the join
+ * table.
+ *
+ * The join is the only place this can be answered in SQL: one filtered read of
+ * `listing_amenities`, then the ids that turned up with the full set. It is
+ * pushed down rather than filtered in memory because a listing that fails it
+ * should never occupy one of the catalogue page's rows.
+ *
+ * Returns an empty list, never a throw: an unknown code, an unreachable table
+ * or an empty reference table all mean "the database half contributes nothing",
+ * and the seed half still answers with the same rule applied by the matcher.
+ */
+async function listingIdsWithAllAmenities(
+  supabase: Client,
+  codes: string[],
+): Promise<string[]> {
+  try {
+    const codeById = await getAmenityCodes(supabase);
+    const idByCode = new Map<string, string>();
+    for (const [id, code] of codeById) idByCode.set(code, id);
+
+    const wanted: string[] = [];
+    for (const code of codes) {
+      const id = idByCode.get(code);
+      if (!id) return [];
+      wanted.push(id);
+    }
+    if (wanted.length === 0) return [];
+
+    const { data, error } = await supabase
+      .from("listing_amenities")
+      .select("listing_id, amenity_id")
+      .in("amenity_id", wanted)
+      .limit(5000);
+    if (error || !data) return [];
+
+    const found = new Map<string, Set<string>>();
+    for (const row of data) {
+      const set = found.get(row.listing_id) ?? new Set<string>();
+      set.add(row.amenity_id);
+      found.set(row.listing_id, set);
+    }
+    const out: string[] = [];
+    for (const [listingId, set] of found) {
+      if (set.size === wanted.length) out.push(listingId);
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
 /** Rating average and count per listing, in one query for the whole page. */
 async function getReviewStats(
   supabase: Client,
@@ -274,16 +327,37 @@ export class SupabaseListingRepository implements ListingRepository {
   /**
    * The published catalogue, newest and featured first.
    *
-   * The category filter is pushed into SQL because it maps onto an indexed
-   * column. Free text is applied in memory against the same haystack the seed
-   * catalogue uses, so a blended result set cannot filter two different ways.
-   * When the catalogue outgrows one page this is the line to replace with a
-   * Postgres full text index, not the shared matcher.
+   * What runs where, and why:
+   *
+   *   In SQL   category, price floor and ceiling, bedroom, bathroom and guest
+   *            minimums, instant book, and the amenity set through the
+   *            `listing_amenities` join. Every one of them is a column
+   *            predicate, so a row that cannot match must never be read, let
+   *            alone occupy one of the page's rows.
+   *   In memory  free text (the same haystack the seed catalogue uses, until a
+   *            Postgres full text index exists) and verified-only, which needs
+   *            no predicate here: RLS publishes first-party rows only and
+   *            admission is what makes them verified, so every row this query
+   *            can return already satisfies it. The shared matcher still
+   *            enforces it, because it is also what holds partner stock and
+   *            unverified catalogue rows to the same request.
+   *
+   * The matcher runs over the results either way, so SQL is an optimisation
+   * and never the authority: the two halves cannot disagree.
    */
   async search(filter: ListingSearchFilter = {}): Promise<Listing[]> {
     if (filter.kind && propertyTypeFor(filter.kind) === null) return [];
     try {
       const supabase = await createClient();
+
+      // The amenity join is resolved first: with no listing carrying the whole
+      // set there is nothing to ask the catalogue for.
+      let amenityIds: string[] | null = null;
+      if (filter.amenities && filter.amenities.length > 0) {
+        amenityIds = await listingIdsWithAllAmenities(supabase, filter.amenities);
+        if (amenityIds.length === 0) return [];
+      }
+
       let query = supabase
         .from("listings")
         .select(LISTING_SELECT)
@@ -297,6 +371,31 @@ export class SupabaseListingRepository implements ListingRepository {
           );
         }
       }
+      if (amenityIds) query = query.in("id", amenityIds);
+
+      const wantsBudget =
+        filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
+      if (wantsBudget) {
+        // Kobo in, kobo compared. A row with no amount cannot be shown to fit a
+        // budget, which is exactly what the shared matcher decides too.
+        query = query.gt("price_per_night_minor", 0);
+        if (filter.minPriceMinor !== undefined) {
+          query = query.gte("price_per_night_minor", filter.minPriceMinor);
+        }
+        if (filter.maxPriceMinor !== undefined) {
+          query = query.lte("price_per_night_minor", filter.maxPriceMinor);
+        }
+      }
+      if (filter.bedrooms !== undefined) query = query.gte("bedrooms", filter.bedrooms);
+      if (filter.bathrooms !== undefined) query = query.gte("bathrooms", filter.bathrooms);
+      if (filter.guests !== undefined) {
+        // Capacity is derived from bedrooms, and a row with no bedrooms has no
+        // capacity to judge, so it stays in. Same rule as `sleeps` in the
+        // matcher, written as a predicate.
+        query = query.or(`bedrooms.eq.0,bedrooms.gte.${bedroomsForGuests(filter.guests)}`);
+      }
+      if (filter.instantBook) query = query.eq("instant_book", true);
+
       const { data, error } = await query
         .order("featured", { ascending: false })
         .order("published_at", { ascending: false, nullsFirst: false })
