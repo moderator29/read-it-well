@@ -20,6 +20,12 @@
  *    COMPLETED, reversing the first if the second cannot land.
  *
  * Completion notifications fire from the database trigger, never from here.
+ *
+ * Email is the one thing this file does after the ledger, never instead of it:
+ * a credited funding and a withdrawal that has been marked FAILED each send
+ * one message through bestEffortEmail, which does nothing without
+ * RESEND_API_KEY and swallows every failure. No email can move money, and no
+ * email failure can change what the ledger says or what the caller is told.
  */
 
 import { randomUUID } from "node:crypto";
@@ -39,6 +45,9 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
+import { bestEffortEmail, sendEmail } from "../email/client";
+import { walletFunded, withdrawalFailed } from "../email/messages";
+import { contactForUser, contactFromSession } from "../email/recipients";
 import { isFeatureEnabled } from "../flags";
 import {
   PaystackError,
@@ -58,6 +67,7 @@ import {
   postEntry,
   recordFunding,
   setEntryStatus,
+  type AdminClient,
 } from "./ledger";
 import { readStatement } from "./repository";
 import {
@@ -79,6 +89,20 @@ function nairaExact(minor: number): string {
   const kobo = abs % 100;
   const whole = formatMoney(abs - kobo);
   return kobo === 0 ? whole : `${whole}.${String(kobo).padStart(2, "0")}`;
+}
+
+/**
+ * The balance the wallet screen shows, read for email copy: the derived
+ * balance from wallet_balances, so the figure in the inbox and the figure on
+ * screen are the same number. Zero when the wallet has no rows yet.
+ */
+async function shownBalanceMinor(admin: AdminClient, userId: string): Promise<number> {
+  const { data } = await admin
+    .from("wallet_balances")
+    .select("balance_minor")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return data?.balance_minor ?? 0;
 }
 
 /** Where callbacks land: explicit site URL first, else the request's origin. */
@@ -240,13 +264,32 @@ export async function withdraw(
       reason: "RentMe wallet withdrawal",
     });
   } catch (e) {
+    let markedFailed = false;
     try {
       await setEntryStatus(admin, reference, "FAILED", {
         failure: e instanceof PaystackError ? e.message : "Transfer initiation failed.",
       });
+      markedFailed = true;
     } catch {
       // The hold stays PENDING; reconciliation settles it against Paystack.
     }
+
+    // Only once the hold is genuinely FAILED is it true to say the money is
+    // back in the wallet, so only then does the email go.
+    if (markedFailed) {
+      await bestEffortEmail(async () => {
+        const owner = contactFromSession(session.user);
+        if (!owner) return;
+        const message = withdrawalFailed({
+          ownerName: owner.name,
+          amountMinor,
+          bankName: bank.name,
+          accountLast4,
+        });
+        await sendEmail({ to: owner.email, subject: message.subject, html: message.html });
+      });
+    }
+
     return fail(
       describePaystackError(
         e,
@@ -431,8 +474,12 @@ export async function verifyFunding(
     return fail("This payment could not be matched to a wallet. Our team reconciles it automatically.");
   }
 
+  // "posted" means this call wrote the credit; "duplicate" means the webhook
+  // got there first. The receipt email follows the write, so only a posted
+  // credit sends one and a redirect racing its webhook cannot email twice.
+  let posted: "posted" | "duplicate" = "duplicate";
   try {
-    await recordFunding(admin, {
+    posted = await recordFunding(admin, {
       userId: ownerId,
       amountMinor: tx.amountMinor,
       reference: parsedReference.data,
@@ -447,6 +494,25 @@ export async function verifyFunding(
       "The payment succeeded but could not be recorded just now. Your balance updates automatically in a moment.",
     );
   }
+
+  // The credit is in the ledger. Receipting it by email is best effort. The
+  // owner is usually the signed-in user, whose address comes from their
+  // session; when the payment metadata names someone else, that address is
+  // read through the service role, never taken from the request.
+  await bestEffortEmail(async () => {
+    if (posted !== "posted") return;
+    const owner =
+      ownerId === session.user.id
+        ? contactFromSession(session.user)
+        : await contactForUser(admin, ownerId);
+    if (!owner) return;
+    const message = walletFunded({
+      ownerName: owner.name,
+      amountMinor: tx.amountMinor,
+      balanceMinor: await shownBalanceMinor(admin, ownerId),
+    });
+    await sendEmail({ to: owner.email, subject: message.subject, html: message.html });
+  });
 
   revalidatePath("/wallet");
   return ok({ credited: true, amountMinor: tx.amountMinor });

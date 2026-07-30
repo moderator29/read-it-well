@@ -16,10 +16,28 @@
  *
  * All money is integer kobo. Price snapshots come from the listing row at the
  * moment of booking, never from the client.
+ *
+ * Email is layered on top of that, never inside it. Every send happens after
+ * the database write has committed, runs through bestEffortEmail (which does
+ * nothing at all without RESEND_API_KEY and swallows every failure), and can
+ * therefore never turn a saved booking into an error the guest sees.
  */
 
 import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
+import { bestEffortEmail, sendEmail } from "../email/client";
+import {
+  bookingCancelled,
+  bookingConfirmed,
+  bookingRequested,
+  bookingRequestedHost,
+} from "../email/messages";
+import {
+  adminOrNull,
+  contactForAgent,
+  contactForUser,
+  contactFromSession,
+} from "../email/recipients";
 import {
   NOT_CONFIGURED_MESSAGE,
   SIGNED_OUT_MESSAGE,
@@ -91,11 +109,16 @@ export async function reserve(
   let priceMinor: number | null = null;
   let cleaningMinor = 0;
   let serviceMinor = 0;
+  // Read for the emails sent once the booking has saved, nothing else.
+  let listingTitle = "your stay";
+  let listingAgentId: string | null = null;
 
   if (UUID_RE.test(input.listingId)) {
     const { data: row, error } = await session.supabase
       .from("listings")
-      .select("id, price_per_night_minor, cleaning_fee_minor, service_fee_minor, price_period")
+      .select(
+        "id, title, agent_id, price_per_night_minor, cleaning_fee_minor, service_fee_minor, price_period",
+      )
       .eq("id", input.listingId)
       .maybeSingle();
     if (error) return fail(GENERIC_RESERVE_MESSAGE);
@@ -104,6 +127,8 @@ export async function reserve(
       priceMinor = row.price_per_night_minor;
       cleaningMinor = row.cleaning_fee_minor;
       serviceMinor = row.service_fee_minor;
+      listingTitle = row.title;
+      listingAgentId = row.agent_id;
     }
   }
 
@@ -150,6 +175,46 @@ export async function reserve(
   }
 
   revalidatePath("/bookings");
+
+  // ------------------------------------------------------------- email
+  // The booking exists. Both sends are best effort from here: the guest gets
+  // their request back in writing, the host gets something to act on.
+  await bestEffortEmail(async () => {
+    const guest = contactFromSession(session.user);
+    const stay = {
+      listingTitle,
+      checkIn: input.checkIn,
+      checkOut: input.checkOut,
+      nights,
+      adults: input.adults,
+      children: input.children,
+      totalMinor,
+    };
+
+    const jobs: Promise<unknown>[] = [];
+
+    if (guest) {
+      const message = bookingRequested({ guestName: guest.name, ...stay });
+      jobs.push(sendEmail({ to: guest.email, subject: message.subject, html: message.html }));
+    }
+
+    // The host's address needs the service role. Without it, their email is
+    // skipped quietly and the guest's still goes.
+    const admin = adminOrNull();
+    if (admin && listingAgentId) {
+      const host = await contactForAgent(admin, listingAgentId);
+      if (host) {
+        const message = bookingRequestedHost({
+          agentName: host.name,
+          guestName: guest?.name ?? null,
+          ...stay,
+        });
+        jobs.push(sendEmail({ to: host.email, subject: message.subject, html: message.html }));
+      }
+    }
+
+    await Promise.allSettled(jobs);
+  });
 
   return ok({
     bookingId: created.id,
@@ -223,8 +288,43 @@ export async function cancel(
     return fail(SERVICE_DOWN_MESSAGE);
   }
 
+  // The cancellation has committed. Telling the guest is best effort.
+  await bestEffortEmail(async () => {
+    const guest = contactFromSession(session.user);
+    if (!guest) return;
+    const message = bookingCancelled({
+      guestName: guest.name,
+      listingTitle: await listingTitleFor(booking.listing_id),
+      checkIn: booking.check_in,
+      checkOut: booking.check_out,
+    });
+    await sendEmail({ to: guest.email, subject: message.subject, html: message.html });
+  });
+
   revalidatePath("/bookings");
   return ok(null);
+}
+
+/**
+ * A listing's title for email copy, with a neutral fallback. Read through the
+ * service role because the caller may no longer be able to see the row, and
+ * never allowed to fail: an email with a plain "your stay" in it is far better
+ * than no email.
+ */
+async function listingTitleFor(listingId: string): Promise<string> {
+  const admin = adminOrNull();
+  if (!admin) return "your stay";
+  try {
+    const { data } = await admin
+      .from("listings")
+      .select("title")
+      .eq("id", listingId)
+      .maybeSingle();
+    const title = (data?.title ?? "").trim();
+    return title.length > 0 ? title : "your stay";
+  } catch {
+    return "your stay";
+  }
 }
 
 /** Every calendar date in [checkIn, checkOut), ISO strings. */
@@ -262,7 +362,7 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
 
     const { data: booking, error: readError } = await admin
       .from("bookings")
-      .select("id, listing_id, status, check_in, check_out")
+      .select("id, listing_id, guest_id, status, check_in, check_out, nights, total_minor")
       .eq("id", parsed.data.bookingId)
       .maybeSingle();
     if (readError) return fail("Confirming is temporarily unavailable. Please try again shortly.");
@@ -274,7 +374,7 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
     const [{ data: listing }, { data: roles }] = await Promise.all([
       admin
         .from("listings")
-        .select("agent_id, agents!inner(user_id)")
+        .select("agent_id, title, agents!inner(user_id)")
         .eq("id", booking.listing_id)
         .maybeSingle(),
       admin
@@ -316,6 +416,23 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
     if (rows.length > 0) {
       await admin.from("availability").upsert(rows, { onConflict: "listing_id,date" });
     }
+
+    // The booking is CONFIRMED in the database. Telling the guest is best
+    // effort: the confirmation stands whether or not the email leaves.
+    await bestEffortEmail(async () => {
+      const guest = await contactForUser(admin, booking.guest_id);
+      if (!guest) return;
+      const title = (listing?.title ?? "").trim();
+      const message = bookingConfirmed({
+        guestName: guest.name,
+        listingTitle: title.length > 0 ? title : "your stay",
+        checkIn: booking.check_in,
+        checkOut: booking.check_out,
+        nights: booking.nights,
+        totalMinor: booking.total_minor,
+      });
+      await sendEmail({ to: guest.email, subject: message.subject, html: message.html });
+    });
   } catch {
     return fail("Confirming is temporarily unavailable. Please try again shortly.");
   }

@@ -155,22 +155,46 @@ export async function setEntryStatus(
   if (error) throw new Error(error.message);
 }
 
+/** The entry a settlement actually moved, for the caller to notify against. */
+export type SettledWithdrawal = {
+  walletId: string;
+  amountMinor: number;
+  metadata: Json;
+};
+
 /**
  * Settle a PENDING withdrawal after Paystack reports the transfer's fate.
  * Only PENDING rows move, so a replayed webhook cannot flip a settled entry.
+ *
+ * Returns the row it moved, or null when there was nothing to move. That
+ * distinction is what lets a caller email the owner exactly once: a replayed
+ * webhook settles nothing and therefore says nothing.
  */
 export async function settleWithdrawal(
   admin: AdminClient,
   reference: string,
   status: Extract<EntryStatus, "COMPLETED" | "FAILED" | "REVERSED">,
-): Promise<void> {
-  const { error } = await admin
+): Promise<SettledWithdrawal | null> {
+  const { data, error } = await admin
     .from("wallet_entries")
     .update({ status })
     .eq("reference", reference)
     .eq("kind", "withdrawal")
-    .eq("status", "PENDING");
+    .eq("status", "PENDING")
+    .select("wallet_id, amount_minor, metadata");
   if (error) throw new Error(error.message);
+  const row = data?.[0];
+  if (!row) return null;
+  return { walletId: row.wallet_id, amountMinor: row.amount_minor, metadata: row.metadata };
+}
+
+/** The user who owns a wallet, or null. For notifying against a ledger row. */
+export async function walletOwnerId(
+  admin: AdminClient,
+  walletId: string,
+): Promise<string | null> {
+  const { data } = await admin.from("wallets").select("user_id").eq("id", walletId).maybeSingle();
+  return data?.user_id ?? null;
 }
 
 /**

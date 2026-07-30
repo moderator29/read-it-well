@@ -306,7 +306,786 @@ export const ha: Dictionary = {
       revenue: "Kudin shiga",
       confirmed: "An tabbatar",
       pending: "Ana jira",
-      sampleNote: "Bayanan misali. Lambobin ka na gaskiya za su bayyana idan jerin ka ya fara aiki.",
+      sampleNote: "Lambobin da aka tsara. Lambobinka na gaskiya za su bayyana nan idan jerinka ya fara aiki.",
+    },
+  },
+
+  agentListings: {
+    wizard: {
+      stepsLabel: "Matakan jeri",
+      stepCounter: "Mataki {current} cikin {total}",
+      stepAria: "Mataki {number}, {name}",
+      steps: {
+        basics: "Bayanan farko",
+        photos: "Hotuna",
+        location: "Wuri",
+        amenities: "Kayan more rayuwa",
+        pricing: "Farashi",
+        guestView: "Yadda baƙo ke gani",
+        submit: "Aikawa",
+      },
+      unconfiguredNotice:
+        "Bugawa zai fara aiki daidai lokacin da mabuɗan dandalin suka iso. Ci gaba: duk abin da ka rubuta yana ajiye a wannan na'urar, zai jira ka.",
+      savedAt: "An ajiye da {time}",
+      saving: "Ana ajiyewa",
+      next: "Na gaba",
+      back: "Koma",
+      myListings: "Jerina",
+    },
+
+    basics: {
+      titleLabel: "Taken jeri",
+      titleHint: "Abin da baƙo ke fara gani. Ka ba wurin suna da abin da ya sa ya yi kyau.",
+      titlePlaceholder: "Gida mai ɗaki biyu mai haske a Lekki Phase 1",
+      propertyTypeLabel: "Nau'in kadara",
+      rentalNote:
+        "Haya kasuwar shekara ce: kai ka sa kuɗin haya na shekara, baƙi su tuntuɓe ka, su duba gidan, sannan su biya. Babu ajiyar dare a kan haya.",
+      descriptionLabel: "Bayani",
+      descriptionHint: "Kalmomi {words} cikin {min}. Ka bayyana ɗakuna, yankin da abin da ke kusa.",
+      descriptionPlaceholder:
+        "Ka gaya wa baƙi game da wurin, hasken sa, kicin, unguwar da yadda za su yi zirga-zirga.",
+      counters: {
+        guests: "Baƙi",
+        bedrooms: "Ɗakunan kwana",
+        beds: "Gadaje",
+        bathrooms: "Ɗakunan wanka",
+      },
+      counterFewer: "Rage {label} ɗaya",
+      counterMore: "Ƙara {label} ɗaya",
+    },
+
+    propertyTypes: {
+      apartment: {
+        label: "Gida mai ɗaki",
+        blurb: "Gidan da ya cika da kansa, ana hayarsa kowane dare.",
+      },
+      shortlet: {
+        label: "Shortlet",
+        blurb: "Wurin zama mai kayan gida na 'yan kwanaki ko makonni.",
+      },
+      home: { label: "Muhalli", blurb: "Cikakken gida da baƙi ke ajiye kowane dare." },
+      villa: { label: "Villa", blurb: "Babban gida na kai kaɗai da filin sa." },
+      hotel: { label: "Otal", blurb: "Ɗakuna cikin kadarar da ake sarrafa." },
+      rental: {
+        label: "Haya",
+        blurb: "Gidan da ake haya na shekara. Farashi na shekara, ana duba kafin biya.",
+      },
+    },
+
+    photos: {
+      intro:
+        "Ka ƙara aƙalla hotuna {min}, har zuwa {max}. Na farko shi ne hoton gaba, don haka ka fara da hoto mai faɗi da ke sayar da wurin.",
+      tooNarrow: "Hotuna dole su kai faɗin {width}px domin su bayyana sarai a kowace na'ura.",
+      choose: "Zaɓi hotuna",
+      addMore: "Ƙara ƙarin hotuna",
+      uploading: "Ana lodawa",
+      progress: "{count} cikin {min} da ake buƙata",
+      empty: "Babu hoto tukuna. Hasken rana, faɗin hoto da ɗaki mai tsafta suna yin aikin.",
+      cover: "Hoton gaba",
+      makeCover: "Mai da shi hoton gaba",
+      remove: "Cire",
+      ceiling: "Jeri ɗaya yana ɗaukar hotuna {max} kacal.",
+      notAnImage: "Hotuna dole su zama fayilolin hoto, misali JPG ko PNG.",
+      notPrepared:
+        "Ba mu iya shirya wannan hoton lafiya ba, don haka ba a loda shi ba. Ka gwada wani hoto.",
+      uploadFailed: "Wannan hoton bai gama lodawa ba. Don Allah ka sake gwadawa.",
+      needsKeys:
+        "Hotuna za su loda idan mabuɗan dandalin suka iso. Duk sauran abin da ka rubuta na ajiye.",
+      needsTitle: "Ka sa take a mataki na ɗaya tukuna, sannan hotunanka za su haɗu da wannan jeri.",
+    },
+
+    location: {
+      stateLabel: "Jiha",
+      statePlaceholder: "Zaɓi jiha",
+      cityLabel: "Birni",
+      cityPlaceholder: "Lagos",
+      areaLabel: "Yanki",
+      areaHint: "Unguwar da baƙi ke nema.",
+      areaPlaceholder: "Lekki Phase 1",
+      addressLabel: "Adireshin titi",
+      addressHint: "Ana ɓoye shi har sai an tabbatar da ajiye ko kai ka raba shi cikin hira.",
+      addressPlaceholder: "12 Admiralty Way",
+      landmarkLabel: "Alamar wuri",
+      landmarkHint: "Wani abu kusa da ke sa wurin ya zama mai sauƙin samu.",
+      landmarkPlaceholder: "Gaban zoben Lekki",
+    },
+
+    amenities: {
+      intro:
+        "Ka zaɓi duk abin da baƙo zai samu a gidan da gaske. Jerin gaskiya yana samun sharhi mai kyau fiye da jeri mai tsawo.",
+      names: {
+        wifi: "WiFi",
+        ac: "Na'urar sanyaya iska",
+        tv: "TV",
+        kitchen: "Kicin",
+        parking: "Wurin ajiye mota",
+        pool: "Wurin ninkaya",
+        gym: "Wurin motsa jiki",
+        security: "Tsaro",
+        elevator: "Lif",
+        furnished: "Da kayan gida",
+        balcony: "Baranda",
+        garden: "Lambu",
+        laundry: "Wurin wanki",
+        generator: "Wutar madadin",
+        water: "Ruwa mai gudana",
+      },
+    },
+
+    pricing: {
+      priceNightLabel: "Farashin kowane dare",
+      priceYearLabel: "Kuɗin haya na shekara",
+      priceHint: "Ka shigar da adadin da naira, misali 85,000.",
+      priceWithPeriod: "{price} {period}",
+      priceNightPlaceholder: "85,000",
+      priceYearPlaceholder: "2,500,000",
+      perNight: "kowane dare",
+      perYear: "kowace shekara",
+      cleaningLabel: "Tsaftace",
+      cleaningHint: "Na zabi. Ana ƙara shi sau ɗaya ga zaman, ba kowane dare ba.",
+      cleaningHintSet: "{amount} da aka ƙara sau ɗaya ga zaman.",
+      cleaningPlaceholder: "10,000",
+      minStayLabel: "Mafi ƙarancin daren zama",
+      instantTitle: "Ajiye nan take",
+      instantBody: "Baƙi za su ajiye ba tare da jiran tabbatarwarka ba.",
+      rentalNote:
+        "Ana sa farashin haya na shekara. Baƙi za su tuntuɓe ka cikin RentMe, su duba gidan, sannan su biya. Domin tsaronka, ka bar kowace hira da kowane biya cikin RentMe.",
+    },
+
+    guestView: {
+      intro: "Haka jerinka ke bayyana cikin bincike.",
+      addPhotos: "Ka ƙara hotuna don kammala katin",
+      rentBadge: "Haya",
+      instantBadge: "Nan take",
+      locationPlaceholder: "Ka ƙara wuri a mataki na uku",
+      titlePlaceholder: "Taken jerinka",
+      rooms: "Ɗakin kwana {bedrooms}, ɗakin wanka {bathrooms}, yana ɗaukar baƙi {guests}",
+      priceToSet: "Farashin da za a sa",
+      descriptionPlaceholder: "Bayaninka zai bayyana a shafin jeri.",
+    },
+
+    submit: {
+      title: "A shirye don aikawa nazari",
+      body:
+        "Muna duba kowane jeri da hannu kafin ya isa ga baƙi. Ka cika wannan jerin dubawa, sai ya shiga layi kai tsaye.",
+      action: "Aika don nazari",
+      sending: "Ana aikawa",
+      note: "Nazari yana ɗaukar sa'o'i 24 zuwa 48. Za mu sanar da kai ko ta yaya.",
+      checklist: {
+        title: "Take",
+        description: "Bayani na kalmomi {min} ko fiye",
+        photos: "Hotuna {min} ko fiye, hoton gaba na farko",
+        stateCode: "Jiha",
+        city: "Birni",
+        area: "Yanki",
+        amenities: "Kayan more rayuwa",
+        priceNight: "Farashin kowane dare",
+        priceYear: "Kuɗin haya na shekara",
+        rooms: "Ɗakuna da baƙi",
+      },
+      needsTitle: "Ka sa take a mataki na ɗaya tukuna, sannan za mu iya aika wannan jeri don nazari.",
+      needsKeys:
+        "Aikawa don nazari zai fara aiki daidai lokacin da mabuɗan dandalin suka iso. Aikinka na ajiye a wannan na'urar.",
+    },
+
+    gate: {
+      titleShort: "Ka ba jerin take na aƙalla haruffa {min}.",
+      titleLong: "Ka rage taken zuwa haruffa {max} ko ƙasa.",
+      description: "Ka bayyana kadarar da aƙalla kalmomi {min}. Kana da {count} yanzu.",
+      propertyType: "Ka zaɓi irin kadarar da wannan yake.",
+      photos: "Ka ƙara aƙalla hotuna {min}. Kana da {count}.",
+      cover: "Ka zaɓi hoton da zai jagoranci jerin. Na farko shi ne hoton gaba.",
+      stateCode: "Ka zaɓi jihar da kadarar take.",
+      city: "Ka shigar da birni, misali Lagos.",
+      area: "Ka shigar da yanki, misali Lekki Phase 1.",
+      amenities: "Ka zaɓi aƙalla kaya ɗaya da baƙi za su samu.",
+      priceNight: "Ka sa farashin kowane dare da naira.",
+      priceYear: "Ka sa kuɗin haya na shekara da naira.",
+      bedrooms: "Ka faɗi ɗakunan kwana nawa kadarar take da su.",
+      bathrooms: "Ka faɗi ɗakunan wanka nawa kadarar take da su.",
+      maxGuests: "Ka faɗi baƙi nawa kadarar ke ɗauka.",
+    },
+
+    submitted: {
+      title: "Jerinka na hannun ƙungiyar nazarinmu",
+      body:
+        "Muna duba kowane jeri da hannu domin baƙi su amince da abin da suke ajiye. Nazari yana ɗaukar sa'o'i 24 zuwa 48 kuma za mu sanar da kai ko ta yaya. Idan wani abu na buƙatar canji, za mu faɗi ainihin abin.",
+      goToListings: "Je zuwa jerina",
+      another: "Jera wata kadara",
+    },
+
+    pitch: {
+      title: "Jera kadararka a RentMe",
+      bodySignedIn:
+        "Jeri na buɗe ga wakilan da aka amince da su. Bukatar tana ɗaukar kusan minti biyu, muna nazari cikin sa'o'i 24 zuwa 48.",
+      bodySignedOut:
+        "Ka shiga asusun wakilcinka don fara jeri, ko ka nemi cikin kusan minti biyu idan sabo ne ka nan.",
+      points: {
+        verified: {
+          title: "Kadarar da aka tabbatar kaɗai",
+          body:
+            "Ana duba kowane jeri da hannu, don haka alamar da ke kan kadararka na nufin wani abu ga baƙi.",
+        },
+        inside: {
+          title: "Baƙi na iso gare ka cikin RentMe",
+          body: "Hira, dubawa da biya duk suna cikin dandalin, inda ake kare su.",
+        },
+        keep: {
+          title: "Kai ke riƙe abin da ka sa",
+          body: "RentMe ba ya karɓar ko sisi a hannunka don jeri. Farashinka nasa ne.",
+        },
+      },
+      apply: "Zama wakili",
+      signIn: "Shiga",
+      how: "Yadda jeri ke aiki",
+    },
+
+    workspace: {
+      title: "Jerina",
+      lede: "Duk kadarar da kake da ita a RentMe, da inda kowacce ta tsaya.",
+      start: "Fara jeri",
+      unconfigured:
+        "Jerinka zai bayyana nan daidai lokacin da mabuɗan dandalin suka iso. Kana iya fara gina ɗaya yanzu: mai jeri yana ajiye aikinka a wannan na'urar har sai lokacin.",
+      emptyTitle: "Babu jeri tukuna",
+      emptyBody:
+        "Kadarar farko tana ɗaukar kusan minti goma, mafi yawansa hotuna. Ka fara duk lokacin da ka shirya: ana ajiye daftari yayin da kake tafiya.",
+      groups: {
+        live: { title: "Yana aiki", blurb: "Baƙi na iya samun waɗannan cikin bincike." },
+        review: {
+          title: "Hannun ƙungiyar nazarinmu",
+          blurb: "Muna duba kowane jeri da hannu. Wannan yana ɗaukar sa'o'i 24 zuwa 48.",
+        },
+        attention: {
+          title: "Yana buƙatar hankalinka",
+          blurb: "Ana buƙatar canji kafin wannan ya fara aiki.",
+        },
+        drafts: { title: "Daftari", blurb: "Kai kaɗai kake ganin waɗannan." },
+      },
+      status: {
+        DRAFT: "Daftari",
+        SUBMITTED: "An aika",
+        UNDER_REVIEW: "Ana nazari",
+        MORE_INFO_REQUIRED: "Ana buƙatar ƙarin bayani",
+        APPROVED: "An amince",
+        PUBLISHED: "Yana aiki",
+        REJECTED: "Ba a karɓa ba",
+        SUSPENDED: "An dakatar",
+      },
+      photoCount: "Hotuna {count}",
+      photoCountOne: "Hoto ɗaya",
+      actions: {
+        edit: "Gyara",
+        submit: "Aika don nazari",
+        takeDown: "Cire shi",
+        delete: "Share",
+      },
+      sheets: {
+        keep: "Bar shi haka",
+        working: "Ana aiki",
+        close: "Rufe",
+        submit: {
+          title: "A aika wannan jeri don nazari?",
+          body:
+            "Ƙungiyarmu tana duba hotuna, bayani da wurin. Za ka ji daga gare mu cikin sa'o'i 24 zuwa 48, ko ta yaya.",
+          confirm: "Aika don nazari",
+        },
+        unpublish: {
+          title: "A cire wannan jeri?",
+          body:
+            "Zai bar bincike nan take ya koma daftarinka. Kana iya gyara shi ka sake aika don nazari duk lokacin da ka shirya.",
+          confirm: "Cire shi",
+        },
+        delete: {
+          title: "A share wannan daftari?",
+          body: "Ana cire daftarin da hotunansa gaba ɗaya. Ba za a iya mayar da wannan ba.",
+          confirm: "Share daftari",
+        },
+      },
+    },
+
+    dashboard: {
+      standing: "{name}, ga inda kadarorinka suka tsaya yau.",
+      liveListings: "Jeri masu aiki",
+      withReview: "Hannun nazari",
+      drafts: "Daftari",
+      upcomingStays: "Zaman da ke tafe",
+      unreadMessages: "Saƙonnin da ba a karanta",
+      noListings:
+        "Babu kadara tukuna. Jerinka na farko yana ɗaukar kusan minti goma, kuma ana ajiye daftari yayin da kake tafiya.",
+      noStays:
+        "Ba a ajiye wani zama tukuna. Jerin da ke aiki cikin bincike su ne baƙi ke iya ajiyewa.",
+      stayDates: "{from} zuwa {to}",
+    },
+  },
+
+  admin: {
+    console: {
+      // NATIVE REVIEW: "console" kept in English the way Nigerian staff say it.
+      title: "Console na masu gudanarwa",
+      navLabel: "Console na masu gudanarwa",
+      signedIn: "An shiga",
+      // NATIVE REVIEW: "audit log" kept in English, it is a compliance term.
+      auditNote: "Ana rubuta kowane hukuncin da ka yanke nan a audit log da sunanka a kansa.",
+    },
+
+    nav: {
+      overview: { label: "Taƙaitawa", short: "Taƙaitawa" },
+      // NATIVE REVIEW: "flag" kept in English, it is the safety scan's own term.
+      flags: { label: "Flag na saƙonni", short: "Flag" },
+      alerts: { label: "Faɗakarwar haɗari", short: "Faɗakarwa" },
+      reports: { label: "Ƙorafi", short: "Ƙorafi" },
+      applications: { label: "Bukatun wakilci", short: "Wakilai" },
+      listings: { label: "Nazarin jeri", short: "Jeri" },
+      tickets: { label: "Tallafi", short: "Tallafi" },
+      // NATIVE REVIEW: "switch" kept in English, it names a control staff use.
+      switches: { label: "Switch", short: "Switch" },
+    },
+
+    access: {
+      unconfiguredTitle: "Console bai buɗe ba tukuna",
+      unconfiguredBody:
+        "Console zai fara aiki daidai lokacin da mabuɗan dandalin suka iso. Ba a rasa komai a tsakani.",
+      signedOutTitle: "Shigar ma'aikata",
+      signedOutBody: "Ka shiga da asusun aikinka don ci gaba.",
+      notAdminTitle: "Ba ka da damar shiga console",
+      notAdminBody: "Wannan wurin na ƙungiyar aikin RentMe ne. Asusunka ba ya ɗauke da wannan matsayi.",
+      backToRentMe: "Koma RentMe",
+      signIn: "Shiga",
+      backToYourHome: "Koma gidanka",
+      otherAccount: "Shiga da wani asusu",
+    },
+
+    common: {
+      waiting: "{count} na jira",
+      unavailableTitle: "Ba a iya loda wannan layi ba",
+      unavailableBody:
+        "Console bai iya kai ga bayanan dandalin yanzu ba, don haka ba ya nuna maka layin da ba zai iya tabbatar da shi ba. Ka sake lodawa cikin ɗan lokaci.",
+      notRecorded: "Ba a rubuta ba",
+      notGiven: "Ba a bayar ba",
+      passes: "Ya wuce",
+      needsAttention: "Yana buƙatar hankali",
+      close: "Rufe",
+      done: "An gama",
+      notNow: "Ba yanzu",
+      working: "Ana aiki",
+      optional: "(na zabi)",
+      notePlaceholder: "Za su karanta shi kalma bayan kalma, don haka ka yi shi keɓaɓɓe da kirki.",
+      // NATIVE REVIEW: "audit log" kept in English, it is a compliance term.
+      inAuditLog: "Hukuncin yana cikin audit log.",
+      // NATIVE REVIEW: "audit log" kept in English, it is a compliance term.
+      noteInAuditLog: "Bayanin yana cikin audit log.",
+      recentlyReviewed: "Waɗanda aka yi nazari kwanan nan",
+      recentlyResolved: "Waɗanda aka warware kwanan nan",
+      recentlyDecided: "Waɗanda aka yanke kwanan nan",
+      recentlyClosed: "Waɗanda aka rufe kwanan nan",
+      status: {
+        open: "A buɗe",
+        reviewed: "An yi nazari",
+        reviewing: "Ana nazari",
+        resolved: "An warware",
+        dismissed: "An yar da shi",
+        pending: "Ana jiran amsa",
+        closed: "An rufe",
+        DRAFT: "Daftari",
+        SUBMITTED: "An aika",
+        UNDER_REVIEW: "Ana nazari",
+        MORE_INFO_REQUIRED: "An nemi canji",
+        APPROVED: "An amince",
+        PUBLISHED: "Yana aiki",
+        REJECTED: "Ba a amince ba",
+        SUSPENDED: "An dakatar",
+      },
+    },
+
+    overview: {
+      title: "Taƙaitawar aiki",
+      lede:
+        "Kowace alamar amincin da RentMe ke samarwa tana ƙarewa nan: abin da binciken tsaro ya kama, abin da mambobi suka ƙorafta, wanda ke jiran amincewa, da abin da ke jiran fara aiki. Kowace lamba layi ce da za ka iya kammalawa.",
+      queueClear: "Wannan layin babu abu.",
+      tiles: {
+        // NATIVE REVIEW: "flag" kept in English, it is the safety scan's own term.
+        flags: {
+          label: "Flag na saƙonni a buɗe",
+          lede: "Maganar kuɗi da binciken tsaro ya kama cikin hira.",
+        },
+        alerts: {
+          label: "Faɗakarwar haɗari a buɗe",
+          lede: "Al'amuran da aka ɗaga wa ƙungiyar aiki don su yi aiki a kansu.",
+        },
+        applications: {
+          label: "Bukatun wakilci",
+          lede: "Mutanen da ke jiran hukunci don fara jeri.",
+        },
+        listings: {
+          label: "Jerin da ke nazari",
+          lede: "Abubuwan da aka aika suna jiran dubawa, amincewa da bugawa.",
+        },
+        reports: {
+          label: "Ƙorafi a buɗe",
+          lede: "Abun ciki da asusun da mambobi suka ƙorafta mana.",
+        },
+        tickets: {
+          label: "Tikitin tallafi",
+          lede: "Tambayoyin da mataimaki bai iya amsa da kansa ba.",
+        },
+      },
+      how: {
+        title: "Yadda console ke aiki",
+        // NATIVE REVIEW: "audit" kept in English, it is a compliance term.
+        audit:
+          "Kowane hukunci yana rubuta layin audit mai ɗauke da sunanka, bayanin da ka taɓa da matsayinsa kafin da bayan. Ba wanda zai iya gyara ko share log, har da kai.",
+        notify:
+          "Amincewa da ƙi suna sanar da wanda abin ya shafa a dandalin, don kada wani ya zauna cikin shakkar abin da ya faru da bukatarsa ko jerinsa.",
+        invisible:
+          "Binciken tsaro ba ya bayyana a wani wuri sai wannan console. Babu abin da ke gaya wa mamba cewa an ɗaga saƙonsa.",
+        openSwitches: "Buɗe switch",
+      },
+    },
+
+    flags: {
+      // NATIVE REVIEW: "flag" kept in English throughout this queue.
+      title: "Flag na saƙonni",
+      lede:
+        "Wani abu a cikin bayanan yana bincika kowane saƙo don lambar asusu mai lambobi goma da maganar kuɗi, sannan yana ajiye abin da ya samu nan. Ba a taɓa gaya wa mai aikawa ba, don haka wannan layin shi ne kawai wurin da binciken ke nuna aikinsa.",
+      emptyTitle: "Babu flag da ke jira",
+      emptyBody:
+        "An yi nazarin kowane saƙon da aka ɗaga. Sababbi za su bayyana nan daidai lokacin da binciken ya ajiye su.",
+      reason: { account_number: "Lambar asusu", payment_keyword: "Maganar kuɗi" },
+      role: { guest: "Baƙo", agent: "Wakili", unknown: "Mai halarta" },
+      matched: "Binciken ya kama {fragment} cikin saƙo daga {role}.",
+      context: "Yanayin hirar",
+      flagged: "An ɗaga",
+      reviewed: "An yi nazari.",
+      clear: "Kammala wannan flag",
+      escalate: "Ɗaga faɗakarwar haɗari",
+      clearSheet: {
+        title: "A kammala wannan flag?",
+        body:
+          "Binciken ya yi daidai da ya duba, amma wannan hirar tana lafiya. Flag zai rufe kuma za a rubuta hukuncin a audit log da sunanka a kansa. Ba a gaya wa kowa cikin hirar ba.",
+        confirm: "Ee, ka kammala shi",
+        successTitle: "An kammala flag",
+        successBody: "An sabunta layin kuma audit log na ɗauke da hukuncinka.",
+      },
+      escalateSheet: {
+        title: "A ɗaga faɗakarwar haɗari?",
+        body:
+          "Wannan yana rufe flag kuma yana buɗe faɗakarwar haɗari mai tsanani a kan saƙon, don al'amarin ya zauna a layin faɗakarwa har sai wani ya yi aiki a kansa. Ba a gaya wa kowa cikin hirar ba.",
+        confirm: "Rufe flag ka ɗaga faɗakarwa",
+        successTitle: "An ɗaga faɗakarwa",
+        successBody: "An yi nazarin flag kuma faɗakarwa mai tsanani na buɗe a layin faɗakarwa yanzu.",
+      },
+    },
+
+    alerts: {
+      title: "Faɗakarwar haɗari",
+      lede:
+        "Al'amuran da ke buƙatar mutum, ba doka ba: flag na saƙonni da aka ɗaga da duk abin da dandalin ya ga ya cancanci duba na biyu. Faɗakarwa tana zama a buɗe har sai wani ya rubuta abin da aka yi.",
+      emptyTitle: "Babu faɗakarwa a buɗe",
+      emptyBody: "Babu abin da ke jira. Ɗaga flag na saƙo yana buɗe faɗakarwa nan.",
+      severity: { low: "Ƙasa", medium: "Matsakaici", high: "Sama" },
+      severityChip: "Tsanani {level}",
+      attachedTo: "An haɗa da {type} {id}",
+      resolvedWhen: "An warware {when}.",
+      resolve: "Yi alama an warware",
+      sheet: {
+        title: "A warware wannan faɗakarwa?",
+        body:
+          "Ka yi amfani da wannan bayan an yi aiki a kan al'amarin da gaske. Faɗakarwa za ta rufe da lokaci kuma bayaninka zai shiga audit log.",
+        confirm: "Ee, ka warware shi",
+        notesLabel: "Abin da aka yi",
+        successTitle: "An warware faɗakarwa",
+        successBody: "An rufe faɗakarwa kuma audit log na ɗauke da bayaninka.",
+      },
+    },
+
+    reports: {
+      title: "Ƙorafi",
+      lede:
+        "Abin da mambobi suka gaya mana bai yi daidai ba: jeri, sharhi, saƙo ko asusu. Mai ƙorafi na ganin ƙorafinsa kaɗai, don haka wannan layin shi ne inda ake amsa shi da gaske.",
+      emptyTitle: "Babu ƙorafi a buɗe",
+      emptyBody: "Babu abin da ke jiran hukunci. Sababbin ƙorafi na iso nan yayin da mambobi ke ɗaga su.",
+      reportedBy: "{reporter} ya ƙorafta a kan {type} {id}",
+      closedWhen: "An rufe {when}.",
+      startReview: "Fara nazari",
+      resolve: "Warware",
+      dismiss: "Yar da shi",
+      reviewSheet: {
+        title: "Ka ɗauki wannan ƙorafi?",
+        body: "Zai koma cikin nazari don sauran ƙungiyar su gani wani ya ɗauka.",
+        confirm: "Ee, ina kansa",
+        notesLabel: "Bayani don audit log",
+        successTitle: "An ɗauki ƙorafi",
+        successBody: "Ƙorafin yanzu yana nunawa cikin nazari.",
+      },
+      resolveSheet: {
+        title: "A warware wannan ƙorafi?",
+        body:
+          "Ka yi amfani da wannan idan an ɗauki mataki a kan abun cikin ko asusun da aka ƙorafta. Ƙorafin zai rufe da lokaci.",
+        confirm: "Ee, ka warware shi",
+        notesLabel: "Abin da aka yi",
+        successTitle: "An warware ƙorafi",
+        successBody: "An rufe ƙorafin kuma bayaninka na cikin audit log.",
+      },
+      dismissSheet: {
+        title: "A yar da wannan ƙorafi?",
+        body:
+          "Ka yi amfani da wannan idan babu abin da za a yi. Ƙorafin zai rufe kuma ba a ɗaukar mataki a kan wanda aka ƙorafta.",
+        confirm: "Ee, ka yar da shi",
+        notesLabel: "Dalilin yar da shi",
+        successTitle: "An yar da ƙorafi",
+        successBody: "An rufe ƙorafin kuma bayaninka na cikin audit log.",
+      },
+    },
+
+    applications: {
+      title: "Bukatun wakilci",
+      lede:
+        "Amincewa yana ƙirƙirar bayanan wakilcin, yana ba da matsayin wakili don Yanayin Wakili ya buɗe, kuma yana sanar da mai bukata a dandalin. Mayar da ɗaya yana neman ainihin abin da ya ɓace.",
+      emptyTitle: "Babu bukata da ke jira",
+      emptyBody:
+        "Duk wanda ya nemi ya sami amsa. Sababbin bukatu na iso nan daidai lokacin da aka aika su.",
+      individual: "Mutum ɗaya",
+      business: "Kasuwanci",
+      nameMissing: "Ba a bayar da suna ba",
+      thisApplicant: "wannan mai bukata",
+      submittedWhen: "An aika {when}",
+      decidedWhen: "An yanke {when}.",
+      sections: {
+        personal: "1. Na kai",
+        identity: "2. Shaida",
+        business: "3. Kasuwanci",
+        documents: "4. Takardu",
+        payout: "5. Biya",
+        review: "6. Nazari",
+      },
+      fields: {
+        fullName: "Cikakken suna",
+        phone: "Waya",
+        email: "Imel",
+        address: "Adireshi",
+        location: "Wuri",
+        documentType: "Nau'in takarda",
+        documentNumber: "Lambar takarda",
+        businessName: "Sunan kasuwanci",
+        rcNumber: "Lambar RC",
+        business: "Kasuwanci",
+        uploaded: "An loda",
+        bank: "Banki",
+        accountNumber: "Lambar asusu",
+        accountName: "Sunan asusu",
+        terms: "Sharuɗɗa",
+        applied: "Ya nemi",
+        lastNote: "Bayanin mai nazari na ƙarshe",
+        lastReviewed: "Nazari na ƙarshe",
+      },
+      asIndividual: "Yana nema a matsayin mutum ɗaya",
+      documentsCount: "Takardu {count}",
+      documentsOne: "Takarda ɗaya",
+      // NATIVE REVIEW: legal wording, "terms" of the platform.
+      termsAgreed: "Ya yarda da sharuɗɗan dandalin",
+      termsNotAgreed: "Bai yarda ba",
+      approve: "Amince",
+      requestChanges: "Nemi canji",
+      reject: "Ƙi",
+      approveSheet: {
+        title: "A amince da {name}?",
+        body:
+          "Wannan yana ƙirƙirar bayanan wakilcinsu, yana ba su matsayin wakili don Yanayin Wakili ya buɗe gare su, kuma yana gaya musu a dandalin. Ana rubuta shi a audit log da sunanka a kansa.",
+        confirm: "Ee, ka amince",
+        notesLabel: "Bayani ga mai bukata",
+        successTitle: "An amince da bukata",
+        successBody: "Bayanan wakilcinsu na aiki, an ba da matsayin kuma an sanar da su.",
+      },
+      changesSheet: {
+        title: "A nemi ƙarin bayani?",
+        body:
+          "Bukatar za ta koma canjin da aka nema kuma za a gaya wa mai bukata abin da kake buƙata. Za su iya gyara su sake aikawa.",
+        confirm: "Mayar da shi",
+        notesLabel: "Abin da mai bukata dole ya canja",
+        successTitle: "An mayar wa mai bukata",
+        successBody: "An sanar da su kuma za su iya sabunta bukatarsu.",
+      },
+      rejectSheet: {
+        title: "A ƙi {name}?",
+        body:
+          "Bukatar za ta rufe a matsayin ba a amince ba kuma za a gaya wa mai bukata. Ka faɗi dalili: shi ne kawai bayanin da za su samu.",
+        confirm: "Ee, ka ƙi",
+        notesLabel: "Dalili ga mai bukata",
+        successTitle: "An ƙi bukata",
+        successBody: "An sanar da mai bukata kuma hukuncin na cikin audit log.",
+      },
+    },
+
+    listings: {
+      title: "Nazarin jeri",
+      lede:
+        "Amincewa na nufin abin da aka aika ya cika jerin shigar. Bugawa shi ne mataki na biyu, daban, wanda ke saka shi cikin bincike na kowa. Mayar da ɗaya yana gaya wa wakili ainihin layin da zai gyara.",
+      emptyTitle: "Babu jeri da ke jira",
+      emptyBody: "An kula da kowane abin da aka aika. Sababbi za su bayyana nan yayin da wakilai ke aika su.",
+      propertyType: {
+        apartment: "Gida mai ɗaki",
+        hotel: "Otal",
+        home: "Muhalli",
+        villa: "Villa",
+        shortlet: "Shortlet",
+        rental: "Haya",
+      },
+      checklistLines: "Layukan jerin dubawa {count} da za a duba",
+      checklistLineOne: "Layin jerin dubawa ɗaya da za a duba",
+      submittedWhen: "An aika {when}",
+      locationMissing: "Ba a bayar da wuri ba",
+      perYear: "kowace shekara",
+      perNight: "kowane dare",
+      photoAlt: "{title}, hoto {number}",
+      checklistTitle: "Jerin dubawar shiga",
+      checks: {
+        photoCount: "Hotuna huɗu ko fiye",
+        cover: "An sa hoton gaba",
+        titleCase: "Take da manyan haruffa daidai",
+        place: "An rubuta yanki da birni",
+        price: "An rubuta farashi da naira",
+        rooms: "An rubuta ɗakunan kwana da wanka",
+        amenities: "An zaɓi kayan more rayuwa",
+        description: "Bayani na kalmomi 40 ko fiye",
+        clean: "Babu lambar tuntuɓa ko biya cikin rubutun",
+      },
+      submission: "Abin da aka aika",
+      fields: {
+        agent: "Wakili",
+        capacity: "Yawan da yake ɗauka",
+        address: "Adireshi",
+        amenities: "Kayan more rayuwa",
+        description: "Bayani",
+        lastNote: "Bayanin mai nazari na ƙarshe",
+        lastReviewed: "Nazari na ƙarshe",
+      },
+      capacity: "Baƙi {guests}, ɗakunan kwana {bedrooms}, gadaje {beds}, ɗakunan wanka {bathrooms}",
+      amenitiesSelected: "{count} da aka zaɓa",
+      liveInSearch: "Yana aiki cikin bincike.",
+      closed: "An rufe.",
+      approve: "Amince",
+      publish: "Buga",
+      requestChanges: "Nemi canji",
+      reject: "Ƙi",
+      approveSheet: {
+        title: "A amince da {title}?",
+        body:
+          "Amincewa na nufin abin da aka aika ya wuce nazari. Bai riga ya sa jerin gaban baƙi ba: bugawa shi ne mataki na biyu daban, don kada wani abu ya fara aiki ba tare da niyya ba.",
+        confirm: "Ee, ka amince",
+        notesLabel: "Bayani ga wakili",
+        successTitle: "An amince da jeri",
+        successBody: "An gaya wa wakilin. Ka buga shi idan ka shirya baƙi su gani.",
+      },
+      publishSheet: {
+        title: "A buga {title}?",
+        body:
+          "Wannan yana saka jerin cikin bincike na kowa nan take, inda kowa zai iya samu ya ajiye. Ana gaya wa wakilin cewa yana aiki.",
+        confirm: "Ee, ka buga shi",
+        notesLabel: "Bayani ga wakili",
+        successTitle: "Jerin yana aiki",
+        successBody: "Yanzu yana cikin bincike kuma an sanar da wakilin.",
+      },
+      changesSheet: {
+        title: "A nemi canji daga wakili?",
+        body:
+          "Jerin zai koma canjin da aka nema kuma za a gaya wa wakilin ainihin abin da zai gyara. Ka nuna layin jerin dubawa da bai cika ba.",
+        confirm: "Mayar da shi",
+        notesLabel: "Abin da wakili dole ya canja",
+        successTitle: "An mayar wa wakilin",
+        successBody: "An sanar da su kuma za su iya sabunta jerin.",
+      },
+      rejectSheet: {
+        title: "A ƙi {title}?",
+        body: "Jerin zai rufe a matsayin ba a amince ba kuma ba za a iya ajiye shi ba. Ana gaya wa wakilin, don haka ka faɗi dalili.",
+        confirm: "Ee, ka ƙi",
+        notesLabel: "Dalili ga wakili",
+        successTitle: "An ƙi jeri",
+        successBody: "An sanar da wakilin kuma hukuncin na cikin audit log.",
+      },
+    },
+
+    support: {
+      title: "Tallafi",
+      lede:
+        "Abubuwan da aka ɗaga suna ɗauke da suna da imel kaɗai da mutumin ya ba mu. Amsarka tana sanar da su a dandalin nan take.",
+      emptyTitle: "Babu tikiti",
+      emptyBody: "Ba wanda ya buƙaci ɗagawa. Tikiti na iso nan idan mataimaki bai iya amsa ba.",
+      generalQuestion: "Tambaya ta gama gari",
+      threadCount: "Saƙonni {count} cikin zaren",
+      threadCountOne: "Saƙo ɗaya cikin zaren",
+      allTickets: "Duk tikiti",
+      whoFiled: "Wanda ya shigar da shi",
+      fields: { name: "Suna", email: "Imel", account: "Asusu", filed: "An shigar" },
+      signedInWhenFiled: "Ya shiga lokacin da ya shigar da shi",
+      noAccountAttached: "Babu asusun da aka haɗa",
+      whatTheyAsked: "Abin da suka tambaya",
+      supportSender: "Tallafin RentMe",
+      waitingOnUs: "Yana jiran mu",
+      noneWaitingHeading: "Babu tikitin da ke jiran mu",
+      nothingWaitingTitle: "Babu abin da ke jira",
+      nothingWaitingBody: "An amsa kowane tikiti kuma an rufe shi.",
+      reply: {
+        label: "Amsa wannan mutum",
+        placeholder: "Ka amsa a fili ka faɗi abin da zai biyo baya.",
+        send: "Aika amsa",
+        sending: "Ana aikawa",
+        sent: "An aika amsa. An sanar da su a dandalin.",
+        note: "Aikawa yana sanar da mai tikitin a dandalin.",
+      },
+      stateLabel: "Matsayin tikiti",
+      states: {
+        open: "A buɗe",
+        pending: "Ana jiran amsa",
+        resolved: "An warware",
+        closed: "An rufe",
+      },
+    },
+
+    switches: {
+      // NATIVE REVIEW: "switch" kept in English throughout this surface.
+      title: "Switch",
+      lede:
+        "Ka kashe wani sashe a duk RentMe ba tare da sabon deploy ba, sannan ka kunna shi idan matsalar ta ƙare. Ba a share komai ko ta yaya.",
+      warning:
+        "Kashe wani sashe yana cire shi ga kowa nan take, har da mutanen da ke tsakiyar amfani da shi. Ana kiyaye aikin da aka ajiye. Shafuka suna ɗaukar canjin cikin kusan daƙiƙa talatin. Ana rubuta kowane juyi a audit log da sunanka a kansa.",
+      on: "A kunne",
+      off: "A kashe",
+      defaultNote: "Sashen RentMe da ake iya kashewa.",
+      switchingOff: "Kashe shi: {consequence}",
+      lastChanged: "Canji na ƙarshe {when}",
+      switchOn: "Kunna",
+      switchOff: "Kashe",
+      labels: {
+        bookings: "Ajiye",
+        wallet: "Walat",
+        messaging: "Saƙonni",
+        assistant: "Mataimaki",
+        support: "Tallafi",
+        agent_listings: "Jerin wakilai",
+        hybrid_hotels: "Otal na abokan haɗin gwiwa",
+        hybrid_restaurants: "Gidan abinci na abokan haɗin gwiwa",
+      },
+      consequences: {
+        bookings: "Baƙi ba za su iya ajiye ko soke zama ba. Ba a taɓa ajiyen da ke akwai.",
+        wallet: "Shigar da kuɗi, cirewa da tura kuɗi za su tsaya. Ba a taɓa ma'auni da tarihi.",
+        messaging:
+          "Baƙi ba za su iya tura saƙo ga wakilai ba kuma wakilai ba za su iya amsa ba. Zaren baya sun kasance ana karantawa.",
+        assistant: "Mataimaki zai daina amsa. Mutane har yanzu za su iya nema su duba.",
+        support: "Hirar tallafi za ta daina shigar da sababbin tikiti. Tikitin da ke buɗe sun kasance a buɗe.",
+        agent_listings: "Wakilai ba za su iya ƙirƙira ko gyara jeri ba. Jerin da ke aiki sun ci gaba da aiki.",
+        hybrid_hotels:
+          "Otal na abokan haɗin gwiwa za su fita daga bincike. Wuraren zama namu sun kasance.",
+        hybrid_restaurants: "Gidajen abinci na abokan haɗin gwiwa za su fita daga bincike.",
+        generic: "Wannan sashen zai ɓace ga kowa har sai an sake kunna shi.",
+      },
+      sheet: {
+        title: "A kashe {label}?",
+        body:
+          "Kowa zai rasa wannan sashen RentMe nan take, har da mutanen da ke tsakiyar amfani da shi. Ba a share abin da aka ajiye ba, kuma sake kunna shi yana mayar da sashen. Canjin yana kai kowane shafi cikin kusan daƙiƙa talatin.",
+        confirm: "Ee, ka kashe shi",
+        successTitle: "An kashe",
+        successBody: "Sashen a kashe ne ga kowa kuma canjin na cikin audit log.",
+      },
     },
   },
 

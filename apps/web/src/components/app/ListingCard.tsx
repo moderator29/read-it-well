@@ -28,6 +28,64 @@ const AMENITY_ICON: Record<string, UiIconName> = {
   parking: "parking",
 };
 
+/**
+ * Partner cards, per docs/HYBRID_INVENTORY.md section 4.
+ *
+ * Third-party stock never shows the verified badge and never opens in-platform
+ * messaging, because there is no agent behind it and no inspection path. The
+ * action always leaves the platform: a hotel is booked with the partner, a
+ * restaurant links to directions and its own page and is never bookable here.
+ * The links sit outside the card's own link so an anchor never nests inside one.
+ */
+function PartnerActions({ listing }: { listing: Listing }) {
+  const partner = listing.partner;
+  const book = listing.kind === "hotel" ? partner?.bookUrl : undefined;
+  const directions = listing.kind === "restaurant" ? partner?.directionsUrl : undefined;
+  const venue = listing.kind === "restaurant" ? partner?.venueUrl : undefined;
+  const hasAction = Boolean(book ?? directions ?? venue);
+  if (!hasAction && !partner?.attribution) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 px-4 pb-4">
+      {book && (
+        <a
+          href={book}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="nf-btn nf-btn--glass h-9 px-3.5 text-[0.8125rem]"
+        >
+          Book
+        </a>
+      )}
+      {directions && (
+        <a
+          href={directions}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="nf-btn nf-btn--glass h-9 px-3.5 text-[0.8125rem]"
+        >
+          Directions
+        </a>
+      )}
+      {venue && (
+        <a
+          href={venue}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="nf-btn nf-btn--glass h-9 px-3.5 text-[0.8125rem]"
+        >
+          Menu
+        </a>
+      )}
+      {partner?.attribution === "Google" && (
+        <span className="ml-auto text-[0.6875rem] text-[var(--nf-content-muted)]">
+          Powered by Google
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function ListingCard({
   listing,
   locale,
@@ -41,6 +99,17 @@ export function ListingCard({
   const photo = listing.photos[0];
   // Restaurants and experiences price per head; everything else is nightly.
   const perHead = listing.kind === "restaurant" || listing.kind === "experience";
+  const isPartner = listing.source === "partner";
+  // Partner feeds place a venue by city without an area below it. Printing
+  // "Lagos, Lagos" would read as a bug, so a repeated locality collapses to one.
+  const where =
+    listing.area && listing.area !== listing.city
+      ? `${listing.area}, ${listing.city}`
+      : (listing.area || listing.city);
+  // A price is shown only when there is a real one. Partner restaurants come
+  // with a price level rather than an amount, and a guessed naira figure is
+  // worse than none.
+  const hasPrice = listing.priceMinor > 0;
 
   return (
     <article className="nf-card nf-card--interactive group overflow-hidden">
@@ -90,6 +159,15 @@ export function ListingCard({
                 {t.common.verified}
               </span>
             )}
+            {/* Neutral, never a trust signal: it states where the stock is from. */}
+            {isPartner && (
+              <span
+                data-partner-tag
+                className="nf-badge bg-black/45 text-white/90 backdrop-blur-sm"
+              >
+                Partner
+              </span>
+            )}
             {listing.kind === "rental" && (
               <span className="nf-badge nf-badge--brand">{t.nav.rent}</span>
             )}
@@ -98,9 +176,7 @@ export function ListingCard({
 
           <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">
             <UiIcon name="location" size={13} className="shrink-0 text-white/70" />
-            <span className="truncate">
-              {listing.area}, {listing.city}
-            </span>
+            <span className="truncate">{where}</span>
           </p>
         </div>
 
@@ -109,13 +185,16 @@ export function ListingCard({
             <h3 className="text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
               {listing.title}
             </h3>
-            <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">
-              <UiIcon name="star" size={14} className="text-[var(--nf-state-warning)]" />
-              {listing.rating.toFixed(1)}
-              <span className="font-normal text-[var(--nf-content-muted)]">
-                ({listing.reviewCount})
+            {/* A rating is shown when one exists. Never a 0.0 stand-in. */}
+            {listing.rating > 0 && (
+              <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">
+                <UiIcon name="star" size={14} className="text-[var(--nf-state-warning)]" />
+                {listing.rating.toFixed(1)}
+                <span className="font-normal text-[var(--nf-content-muted)]">
+                  ({listing.reviewCount})
+                </span>
               </span>
-            </span>
+            )}
           </div>
 
           <ul className="mt-2.5 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-[0.75rem] text-[var(--nf-content-secondary)]">
@@ -140,16 +219,20 @@ export function ListingCard({
             )}
           </ul>
 
-          <p className="mt-3.5 flex items-baseline gap-1.5">
-            <span className="nf-numeric text-[1.1875rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-              {formatMoney(listing.priceMinor, locale, listing.currency)}
-            </span>
-            <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-              / {perHead ? "guest" : listing.pricePeriod === "year" ? t.common.year : t.common.night}
-            </span>
-          </p>
+          {hasPrice && (
+            <p className="mt-3.5 flex items-baseline gap-1.5">
+              <span className="nf-numeric text-[1.1875rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
+                {formatMoney(listing.priceMinor, locale, listing.currency)}
+              </span>
+              <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
+                /{" "}
+                {perHead ? "guest" : listing.pricePeriod === "year" ? t.common.year : t.common.night}
+              </span>
+            </p>
+          )}
         </div>
       </Link>
+      {isPartner && <PartnerActions listing={listing} />}
     </article>
   );
 }

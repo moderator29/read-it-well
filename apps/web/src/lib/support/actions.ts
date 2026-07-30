@@ -4,6 +4,8 @@ import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, resolveSession } from "../actions/session";
+import { bestEffortEmail, sendEmail } from "../email/client";
+import { supportTicketFiled } from "../email/messages";
 import { isFeatureEnabled } from "../flags";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createAdminClient } from "../supabase/admin";
@@ -18,6 +20,10 @@ import { createAdminClient } from "../supabase/admin";
  * visitors are filed through the service role, because the tickets table has
  * no anonymous insert policy by design. When Supabase is not configured the
  * action says so honestly instead of inventing a reference.
+ *
+ * Once the row exists, the acknowledgement email goes to the validated address
+ * on the form and nowhere else. It is best effort: the ticket is filed and the
+ * reference is real whether or not the email leaves.
  */
 
 const ticketSchema = z.object({
@@ -73,7 +79,20 @@ export async function fileSupportTicket(
         body,
         status: "open",
       });
-      if (!error) return ok({ reference });
+      if (!error) {
+        // The ticket row is written. The acknowledgement is best effort, and
+        // goes only to the address Zod has already validated on this form.
+        await bestEffortEmail(async () => {
+          const message = supportTicketFiled({
+            name,
+            reference,
+            topic: topic ?? null,
+            body,
+          });
+          await sendEmail({ to: email, subject: message.subject, html: message.html });
+        });
+        return ok({ reference });
+      }
       if (error.code !== "23505") return fail(FILE_FAILED_MESSAGE);
     }
     return fail(FILE_FAILED_MESSAGE);

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { ActionResult } from "@/lib/actions/envelope";
+import { fill, type AdminCommon, type AdminCopy } from "./copy";
 import {
   replySupportTicket,
   resolveReport,
@@ -24,11 +25,16 @@ import {
  * note, run the server action, then either show the plain-language refusal the
  * envelope carried or refresh the page so the queue re-renders from the
  * database rather than from optimistic guesswork.
+ *
+ * Every string arrives as a dictionary slice from the queue page that renders
+ * the control: these are client components, so none of them resolves a locale
+ * or reads a dictionary itself.
  */
 
 type Runner = (notes: string) => Promise<ActionResult<null>>;
 
 type SheetProps = {
+  common: AdminCommon;
   title: string;
   description: string;
   confirmLabel: string;
@@ -43,6 +49,7 @@ type SheetProps = {
 };
 
 function ActionSheet({
+  common,
   title,
   description,
   confirmLabel,
@@ -51,7 +58,7 @@ function ActionSheet({
   run,
   onClose,
   withNotes = false,
-  notesLabel = "Note to the applicant",
+  notesLabel,
   notesRequired = false,
   destructive = false,
 }: SheetProps) {
@@ -93,7 +100,7 @@ function ActionSheet({
     <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center">
       <button
         type="button"
-        aria-label="Close"
+        aria-label={common.close}
         onClick={onClose}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       />
@@ -115,7 +122,7 @@ function ActionSheet({
               {successBody}
             </p>
             <button type="button" onClick={onClose} className="nf-btn nf-btn--primary mt-4 w-full">
-              Done
+              {common.done}
             </button>
           </div>
         ) : (
@@ -129,7 +136,7 @@ function ActionSheet({
               <label className="mt-4 block">
                 <span className="nf-label">
                   {notesLabel}
-                  {notesRequired ? "" : " (optional)"}
+                  {notesRequired ? "" : ` ${common.optional}`}
                 </span>
                 <textarea
                   value={notes}
@@ -137,7 +144,7 @@ function ActionSheet({
                   rows={3}
                   maxLength={2000}
                   className="nf-field mt-1 w-full resize-y"
-                  placeholder="They will read this word for word, so keep it specific and kind."
+                  placeholder={common.notePlaceholder}
                 />
               </label>
             )}
@@ -163,10 +170,10 @@ function ActionSheet({
                     : undefined
                 }
               >
-                {pending ? "Working..." : confirmLabel}
+                {pending ? common.working : confirmLabel}
               </button>
               <button type="button" onClick={onClose} className="nf-btn nf-btn--glass w-full">
-                Not now
+                {common.notNow}
               </button>
             </div>
           </>
@@ -183,27 +190,36 @@ function Row({ children }: { children: ReactNode }) {
 
 /** ------------------------------------------------------------ message flags */
 
-export function FlagDecision({ flagId }: { flagId: string }) {
+export function FlagDecision({
+  flagId,
+  copy,
+  common,
+}: {
+  flagId: string;
+  copy: AdminCopy["flags"];
+  common: AdminCommon;
+}) {
   const [sheet, setSheet] = useState<null | "cleared" | "escalated">(null);
 
   return (
     <>
       <Row>
         <button type="button" onClick={() => setSheet("cleared")} className="nf-btn nf-btn--primary">
-          Clear this flag
+          {copy.clear}
         </button>
         <button type="button" onClick={() => setSheet("escalated")} className="nf-btn nf-btn--glass">
-          Raise a risk alert
+          {copy.escalate}
         </button>
       </Row>
 
       {sheet === "cleared" && (
         <ActionSheet
-          title="Clear this flag?"
-          description="The scan was right to look, but this conversation is fine. The flag closes and the reviewed decision is written to the audit log with your name against it. Nobody in the conversation is told."
-          confirmLabel="Yes, clear it"
-          successTitle="Flag cleared"
-          successBody="The queue has been updated and the audit log carries your decision."
+          common={common}
+          title={copy.clearSheet.title}
+          description={copy.clearSheet.body}
+          confirmLabel={copy.clearSheet.confirm}
+          successTitle={copy.clearSheet.successTitle}
+          successBody={copy.clearSheet.successBody}
           run={() => reviewMessageFlag({ flagId, resolution: "cleared" })}
           onClose={() => setSheet(null)}
         />
@@ -211,11 +227,12 @@ export function FlagDecision({ flagId }: { flagId: string }) {
 
       {sheet === "escalated" && (
         <ActionSheet
-          title="Raise a risk alert?"
-          description="This closes the flag and opens a high severity risk alert against the message, so the case stays on the alerts queue until someone works it. Nobody in the conversation is told."
-          confirmLabel="Close the flag and raise an alert"
-          successTitle="Alert raised"
-          successBody="The flag is reviewed and a high severity alert is now open on the alerts queue."
+          common={common}
+          title={copy.escalateSheet.title}
+          description={copy.escalateSheet.body}
+          confirmLabel={copy.escalateSheet.confirm}
+          successTitle={copy.escalateSheet.successTitle}
+          successBody={copy.escalateSheet.successBody}
           run={() => reviewMessageFlag({ flagId, resolution: "escalated" })}
           onClose={() => setSheet(null)}
         />
@@ -226,26 +243,35 @@ export function FlagDecision({ flagId }: { flagId: string }) {
 
 /** -------------------------------------------------------------- risk alerts */
 
-export function AlertResolve({ alertId }: { alertId: string }) {
+export function AlertResolve({
+  alertId,
+  copy,
+  common,
+}: {
+  alertId: string;
+  copy: AdminCopy["alerts"];
+  common: AdminCommon;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <Row>
         <button type="button" onClick={() => setOpen(true)} className="nf-btn nf-btn--primary">
-          Mark resolved
+          {copy.resolve}
         </button>
       </Row>
 
       {open && (
         <ActionSheet
-          title="Resolve this alert?"
-          description="Use this once the case has actually been worked. The alert closes with a timestamp and your note goes into the audit log."
-          confirmLabel="Yes, resolve it"
-          successTitle="Alert resolved"
-          successBody="The alert is closed and the audit log carries your note."
+          common={common}
+          title={copy.sheet.title}
+          description={copy.sheet.body}
+          confirmLabel={copy.sheet.confirm}
+          successTitle={copy.sheet.successTitle}
+          successBody={copy.sheet.successBody}
           withNotes
-          notesLabel="What was done"
+          notesLabel={copy.sheet.notesLabel}
           run={(notes) => resolveRiskAlert({ alertId, notes })}
           onClose={() => setOpen(false)}
         />
@@ -256,7 +282,17 @@ export function AlertResolve({ alertId }: { alertId: string }) {
 
 /** ------------------------------------------------------------------ reports */
 
-export function ReportDecision({ reportId, status }: { reportId: string; status: string }) {
+export function ReportDecision({
+  reportId,
+  status,
+  copy,
+  common,
+}: {
+  reportId: string;
+  status: string;
+  copy: AdminCopy["reports"];
+  common: AdminCommon;
+}) {
   const [sheet, setSheet] = useState<null | "reviewing" | "resolved" | "dismissed">(null);
 
   return (
@@ -268,26 +304,27 @@ export function ReportDecision({ reportId, status }: { reportId: string; status:
             onClick={() => setSheet("reviewing")}
             className="nf-btn nf-btn--glass"
           >
-            Start reviewing
+            {copy.startReview}
           </button>
         )}
         <button type="button" onClick={() => setSheet("resolved")} className="nf-btn nf-btn--primary">
-          Resolve
+          {copy.resolve}
         </button>
         <button type="button" onClick={() => setSheet("dismissed")} className="nf-btn nf-btn--glass">
-          Dismiss
+          {copy.dismiss}
         </button>
       </Row>
 
       {sheet === "reviewing" && (
         <ActionSheet
-          title="Take this report on?"
-          description="It moves to in review so the rest of the team can see somebody has it."
-          confirmLabel="Yes, I am on it"
-          successTitle="Report picked up"
-          successBody="The report now shows as in review."
+          common={common}
+          title={copy.reviewSheet.title}
+          description={copy.reviewSheet.body}
+          confirmLabel={copy.reviewSheet.confirm}
+          successTitle={copy.reviewSheet.successTitle}
+          successBody={copy.reviewSheet.successBody}
           withNotes
-          notesLabel="Note for the audit log"
+          notesLabel={copy.reviewSheet.notesLabel}
           run={(notes) => resolveReport({ reportId, decision: "reviewing", notes })}
           onClose={() => setSheet(null)}
         />
@@ -295,13 +332,14 @@ export function ReportDecision({ reportId, status }: { reportId: string; status:
 
       {sheet === "resolved" && (
         <ActionSheet
-          title="Resolve this report?"
-          description="Use this when action has been taken on the reported content or account. The report closes with a timestamp."
-          confirmLabel="Yes, resolve it"
-          successTitle="Report resolved"
-          successBody="The report is closed and your note is in the audit log."
+          common={common}
+          title={copy.resolveSheet.title}
+          description={copy.resolveSheet.body}
+          confirmLabel={copy.resolveSheet.confirm}
+          successTitle={copy.resolveSheet.successTitle}
+          successBody={copy.resolveSheet.successBody}
           withNotes
-          notesLabel="What was done"
+          notesLabel={copy.resolveSheet.notesLabel}
           run={(notes) => resolveReport({ reportId, decision: "resolved", notes })}
           onClose={() => setSheet(null)}
         />
@@ -309,13 +347,14 @@ export function ReportDecision({ reportId, status }: { reportId: string; status:
 
       {sheet === "dismissed" && (
         <ActionSheet
-          title="Dismiss this report?"
-          description="Use this when there is nothing to act on. The report closes and no action is taken against the reported party."
-          confirmLabel="Yes, dismiss it"
-          successTitle="Report dismissed"
-          successBody="The report is closed and your note is in the audit log."
+          common={common}
+          title={copy.dismissSheet.title}
+          description={copy.dismissSheet.body}
+          confirmLabel={copy.dismissSheet.confirm}
+          successTitle={copy.dismissSheet.successTitle}
+          successBody={copy.dismissSheet.successBody}
           withNotes
-          notesLabel="Why it was dismissed"
+          notesLabel={copy.dismissSheet.notesLabel}
           run={(notes) => resolveReport({ reportId, decision: "dismissed", notes })}
           onClose={() => setSheet(null)}
         />
@@ -329,9 +368,13 @@ export function ReportDecision({ reportId, status }: { reportId: string; status:
 export function ApplicationDecision({
   applicationId,
   applicantName,
+  copy,
+  common,
 }: {
   applicationId: string;
   applicantName: string;
+  copy: AdminCopy["applications"];
+  common: AdminCommon;
 }) {
   const [sheet, setSheet] = useState<null | "approve" | "request_changes" | "reject">(null);
 
@@ -339,14 +382,14 @@ export function ApplicationDecision({
     <>
       <Row>
         <button type="button" onClick={() => setSheet("approve")} className="nf-btn nf-btn--primary">
-          Approve
+          {copy.approve}
         </button>
         <button
           type="button"
           onClick={() => setSheet("request_changes")}
           className="nf-btn nf-btn--glass"
         >
-          Request changes
+          {copy.requestChanges}
         </button>
         <button
           type="button"
@@ -354,19 +397,20 @@ export function ApplicationDecision({
           className="nf-btn nf-btn--glass"
           style={{ color: "var(--nf-state-error)" }}
         >
-          Reject
+          {copy.reject}
         </button>
       </Row>
 
       {sheet === "approve" && (
         <ActionSheet
-          title={`Approve ${applicantName}?`}
-          description="This creates their agent profile, grants the agent role so Agent Mode opens for them, and tells them on the platform. It is written to the audit log with your name against it."
-          confirmLabel="Yes, approve"
-          successTitle="Application approved"
-          successBody="Their agent profile is live, the role is granted and they have been notified."
+          common={common}
+          title={fill(copy.approveSheet.title, { name: applicantName })}
+          description={copy.approveSheet.body}
+          confirmLabel={copy.approveSheet.confirm}
+          successTitle={copy.approveSheet.successTitle}
+          successBody={copy.approveSheet.successBody}
           withNotes
-          notesLabel="Note to the applicant"
+          notesLabel={copy.approveSheet.notesLabel}
           run={(notes) => reviewAgentApplication({ applicationId, decision: "approve", notes })}
           onClose={() => setSheet(null)}
         />
@@ -374,14 +418,15 @@ export function ApplicationDecision({
 
       {sheet === "request_changes" && (
         <ActionSheet
-          title="Ask for more information?"
-          description="The application moves to changes requested and the applicant is told what you need. They can edit and resubmit."
-          confirmLabel="Send it back"
-          successTitle="Sent back to the applicant"
-          successBody="They have been notified and can update their application."
+          common={common}
+          title={copy.changesSheet.title}
+          description={copy.changesSheet.body}
+          confirmLabel={copy.changesSheet.confirm}
+          successTitle={copy.changesSheet.successTitle}
+          successBody={copy.changesSheet.successBody}
           withNotes
           notesRequired
-          notesLabel="What the applicant must change"
+          notesLabel={copy.changesSheet.notesLabel}
           run={(notes) =>
             reviewAgentApplication({ applicationId, decision: "request_changes", notes })
           }
@@ -391,13 +436,14 @@ export function ApplicationDecision({
 
       {sheet === "reject" && (
         <ActionSheet
-          title={`Reject ${applicantName}?`}
-          description="The application closes as not approved and the applicant is told. Say why: it is the only explanation they will get."
-          confirmLabel="Yes, reject"
-          successTitle="Application rejected"
-          successBody="The applicant has been notified and the decision is in the audit log."
+          common={common}
+          title={fill(copy.rejectSheet.title, { name: applicantName })}
+          description={copy.rejectSheet.body}
+          confirmLabel={copy.rejectSheet.confirm}
+          successTitle={copy.rejectSheet.successTitle}
+          successBody={copy.rejectSheet.successBody}
           withNotes
-          notesLabel="Reason for the applicant"
+          notesLabel={copy.rejectSheet.notesLabel}
           destructive
           run={(notes) => reviewAgentApplication({ applicationId, decision: "reject", notes })}
           onClose={() => setSheet(null)}
@@ -413,10 +459,14 @@ export function ListingDecision({
   listingId,
   status,
   title,
+  copy,
+  common,
 }: {
   listingId: string;
   status: string;
   title: string;
+  copy: AdminCopy["listings"];
+  common: AdminCommon;
 }) {
   const [sheet, setSheet] = useState<null | "approve" | "publish" | "request_changes" | "reject">(
     null,
@@ -427,11 +477,11 @@ export function ListingDecision({
       <Row>
         {status === "APPROVED" ? (
           <button type="button" onClick={() => setSheet("publish")} className="nf-btn nf-btn--primary">
-            Publish
+            {copy.publish}
           </button>
         ) : (
           <button type="button" onClick={() => setSheet("approve")} className="nf-btn nf-btn--primary">
-            Approve
+            {copy.approve}
           </button>
         )}
         <button
@@ -439,7 +489,7 @@ export function ListingDecision({
           onClick={() => setSheet("request_changes")}
           className="nf-btn nf-btn--glass"
         >
-          Request changes
+          {copy.requestChanges}
         </button>
         <button
           type="button"
@@ -447,19 +497,20 @@ export function ListingDecision({
           className="nf-btn nf-btn--glass"
           style={{ color: "var(--nf-state-error)" }}
         >
-          Reject
+          {copy.reject}
         </button>
       </Row>
 
       {sheet === "approve" && (
         <ActionSheet
-          title={`Approve ${title}?`}
-          description="Approving says the submission passes review. It does not put the listing in front of guests yet: publish is the separate second step, so nothing goes live by accident."
-          confirmLabel="Yes, approve"
-          successTitle="Listing approved"
-          successBody="The agent has been told. Publish it when you are ready for guests to see it."
+          common={common}
+          title={fill(copy.approveSheet.title, { title })}
+          description={copy.approveSheet.body}
+          confirmLabel={copy.approveSheet.confirm}
+          successTitle={copy.approveSheet.successTitle}
+          successBody={copy.approveSheet.successBody}
           withNotes
-          notesLabel="Note to the agent"
+          notesLabel={copy.approveSheet.notesLabel}
           run={(notes) => reviewListing({ listingId, decision: "approve", notes })}
           onClose={() => setSheet(null)}
         />
@@ -467,13 +518,14 @@ export function ListingDecision({
 
       {sheet === "publish" && (
         <ActionSheet
-          title={`Publish ${title}?`}
-          description="This puts the listing into public search immediately, where anyone can find and book it. The agent is told it is live."
-          confirmLabel="Yes, publish it"
-          successTitle="Listing is live"
-          successBody="It is now in search and the agent has been notified."
+          common={common}
+          title={fill(copy.publishSheet.title, { title })}
+          description={copy.publishSheet.body}
+          confirmLabel={copy.publishSheet.confirm}
+          successTitle={copy.publishSheet.successTitle}
+          successBody={copy.publishSheet.successBody}
           withNotes
-          notesLabel="Note to the agent"
+          notesLabel={copy.publishSheet.notesLabel}
           run={(notes) => reviewListing({ listingId, decision: "publish", notes })}
           onClose={() => setSheet(null)}
         />
@@ -481,14 +533,15 @@ export function ListingDecision({
 
       {sheet === "request_changes" && (
         <ActionSheet
-          title="Ask the agent for changes?"
-          description="The listing moves to changes requested and the agent is told exactly what to fix. Point at the checklist line that failed."
-          confirmLabel="Send it back"
-          successTitle="Sent back to the agent"
-          successBody="They have been notified and can update the listing."
+          common={common}
+          title={copy.changesSheet.title}
+          description={copy.changesSheet.body}
+          confirmLabel={copy.changesSheet.confirm}
+          successTitle={copy.changesSheet.successTitle}
+          successBody={copy.changesSheet.successBody}
           withNotes
           notesRequired
-          notesLabel="What the agent must change"
+          notesLabel={copy.changesSheet.notesLabel}
           run={(notes) => reviewListing({ listingId, decision: "request_changes", notes })}
           onClose={() => setSheet(null)}
         />
@@ -496,13 +549,14 @@ export function ListingDecision({
 
       {sheet === "reject" && (
         <ActionSheet
-          title={`Reject ${title}?`}
-          description="The listing closes as not approved and cannot be booked. The agent is told, so say why."
-          confirmLabel="Yes, reject"
-          successTitle="Listing rejected"
-          successBody="The agent has been notified and the decision is in the audit log."
+          common={common}
+          title={fill(copy.rejectSheet.title, { title })}
+          description={copy.rejectSheet.body}
+          confirmLabel={copy.rejectSheet.confirm}
+          successTitle={copy.rejectSheet.successTitle}
+          successBody={copy.rejectSheet.successBody}
           withNotes
-          notesLabel="Reason for the agent"
+          notesLabel={copy.rejectSheet.notesLabel}
           destructive
           run={(notes) => reviewListing({ listingId, decision: "reject", notes })}
           onClose={() => setSheet(null)}
@@ -514,7 +568,13 @@ export function ListingDecision({
 
 /** ---------------------------------------------------------- support tickets */
 
-export function TicketReply({ ticketId }: { ticketId: string }) {
+export function TicketReply({
+  ticketId,
+  copy,
+}: {
+  ticketId: string;
+  copy: AdminCopy["support"];
+}) {
   const router = useRouter();
   const [body, setBody] = useState("");
   const [result, setResult] = useState<ActionResult<null> | null>(null);
@@ -534,14 +594,14 @@ export function TicketReply({ ticketId }: { ticketId: string }) {
   return (
     <div className="mt-4">
       <label className="block">
-        <span className="nf-label">Reply to this person</span>
+        <span className="nf-label">{copy.reply.label}</span>
         <textarea
           value={body}
           onChange={(event) => setBody(event.target.value)}
           rows={4}
           maxLength={4000}
           className="nf-field mt-1 w-full resize-y"
-          placeholder="Answer plainly and say what happens next."
+          placeholder={copy.reply.placeholder}
         />
       </label>
 
@@ -554,9 +614,7 @@ export function TicketReply({ ticketId }: { ticketId: string }) {
         </p>
       )}
       {result?.ok && (
-        <p className="mt-2 text-[0.8125rem] text-[var(--nf-state-success)]">
-          Reply sent. They have been notified on the platform.
-        </p>
+        <p className="mt-2 text-[0.8125rem] text-[var(--nf-state-success)]">{copy.reply.sent}</p>
       )}
 
       <div className="mt-2.5 flex flex-wrap items-center gap-3">
@@ -566,35 +624,30 @@ export function TicketReply({ ticketId }: { ticketId: string }) {
           disabled={pending || body.trim().length < 2}
           className="nf-btn nf-btn--primary disabled:opacity-60"
         >
-          {pending ? "Sending..." : "Send reply"}
+          {pending ? copy.reply.sending : copy.reply.send}
         </button>
-        <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-          Sending notifies the ticket owner on the platform.
-        </span>
+        <span className="text-[0.75rem] text-[var(--nf-content-muted)]">{copy.reply.note}</span>
       </div>
     </div>
   );
 }
 
-const TICKET_STATES: { value: "open" | "pending" | "resolved" | "closed"; label: string }[] = [
-  { value: "open", label: "Open" },
-  { value: "pending", label: "Awaiting reply" },
-  { value: "resolved", label: "Resolved" },
-  { value: "closed", label: "Closed" },
-];
+const TICKET_STATES = ["open", "pending", "resolved", "closed"] as const;
 
 export function TicketStatusControl({
   ticketId,
   status,
+  copy,
 }: {
   ticketId: string;
   status: string;
+  copy: AdminCopy["support"];
 }) {
   const router = useRouter();
   const [result, setResult] = useState<ActionResult<null> | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const move = (next: "open" | "pending" | "resolved" | "closed") => {
+  const move = (next: (typeof TICKET_STATES)[number]) => {
     startTransition(async () => {
       const outcome = await setTicketStatus({ ticketId, status: next });
       setResult(outcome);
@@ -604,18 +657,18 @@ export function TicketStatusControl({
 
   return (
     <div className="mt-4">
-      <span className="nf-label">Ticket state</span>
+      <span className="nf-label">{copy.stateLabel}</span>
       <div className="mt-1.5 flex flex-wrap gap-2">
         {TICKET_STATES.map((state) => (
           <button
-            key={state.value}
+            key={state}
             type="button"
-            disabled={pending || state.value === status}
-            onClick={() => move(state.value)}
-            aria-pressed={state.value === status}
-            className={`nf-chip ${state.value === status ? "nf-chip--active" : ""} disabled:opacity-70`}
+            disabled={pending || state === status}
+            onClick={() => move(state)}
+            aria-pressed={state === status}
+            className={`nf-chip ${state === status ? "nf-chip--active" : ""} disabled:opacity-70`}
           >
-            {state.label}
+            {copy.states[state]}
           </button>
         ))}
       </div>
@@ -634,10 +687,14 @@ export function SwitchControl({
   flagKey,
   label,
   enabled,
+  copy,
+  common,
 }: {
   flagKey: string;
   label: string;
   enabled: boolean;
+  copy: AdminCopy["switches"];
+  common: AdminCommon;
 }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
@@ -661,7 +718,7 @@ export function SwitchControl({
           className="nf-btn nf-btn--glass shrink-0"
           style={{ color: "var(--nf-state-error)" }}
         >
-          Switch off
+          {copy.switchOff}
         </button>
       ) : (
         <button
@@ -670,7 +727,7 @@ export function SwitchControl({
           disabled={pending}
           className="nf-btn nf-btn--primary shrink-0 disabled:opacity-60"
         >
-          {pending ? "Working..." : "Switch on"}
+          {pending ? common.working : copy.switchOn}
         </button>
       )}
 
@@ -682,11 +739,12 @@ export function SwitchControl({
 
       {confirming && (
         <ActionSheet
-          title={`Switch off ${label}?`}
-          description="Everyone loses this part of RentMe straight away, including people in the middle of using it. Nothing already saved is deleted, and switching it back on restores the surface. The change reaches every page within about thirty seconds."
-          confirmLabel="Yes, switch it off"
-          successTitle="Switched off"
-          successBody="The surface is off for everyone and the change is in the audit log."
+          common={common}
+          title={fill(copy.sheet.title, { label })}
+          description={copy.sheet.body}
+          confirmLabel={copy.sheet.confirm}
+          successTitle={copy.sheet.successTitle}
+          successBody={copy.sheet.successBody}
           destructive
           run={() => toggleFeatureFlag({ key: flagKey, enabled: false })}
           onClose={() => setConfirming(false)}

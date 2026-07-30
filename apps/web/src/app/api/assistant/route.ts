@@ -3,6 +3,12 @@ import { formatMoney } from "@naijafinds/i18n";
 import { getListingRepository } from "@/lib/listings/repository";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { isFeatureEnabled } from "@/lib/flags";
+import {
+  consume,
+  ipFromHeaders,
+  subjectForIp,
+  subjectForUser,
+} from "@/lib/security/rate-limit";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -40,8 +46,15 @@ const UNCONFIGURED_MESSAGE =
   "The assistant wakes the moment its key lands. Meanwhile, search is live and every listing page answers the essentials.";
 const PAUSED_MESSAGE =
   "The assistant is paused for a moment of maintenance. Search is live and every listing page answers the essentials.";
-const PACE_MESSAGE =
-  "You are moving faster than the assistant can think. Give it a few minutes and try again.";
+/**
+ * The 429 body. The UI reads `message` off a 429 and renders it as an ordinary
+ * assistant bubble (see AssistantChat: `setText(j?.message ?? PACE_FALLBACK_MESSAGE)`),
+ * so this stays a friendly sentence that names what happened and when the
+ * assistant picks up again, never a code or a bare "too many requests".
+ */
+function paceMessage(retryIn: string): string {
+  return `You have reached the assistant's limit of questions for the moment, so it is pausing rather than rushing you. Ask again ${retryIn} and your conversation is still here.`;
+}
 const UPSTREAM_MESSAGE =
   "The assistant could not finish that thought. Your message is kept; please try again.";
 
@@ -175,32 +188,27 @@ async function runListingSearch(
 
 /* -------------------------------------------------------------- rate limit */
 
-const BUCKET_CAPACITY = 20;
-const BUCKET_WINDOW_MS = 5 * 60_000;
-const REFILL_PER_MS = BUCKET_CAPACITY / BUCKET_WINDOW_MS;
-
-type Bucket = { tokens: number; last: number };
-const buckets = new Map<string, Bucket>();
-
-function allowRequest(ip: string): boolean {
-  const now = Date.now();
-  // Keep the map bounded: drop buckets that have fully refilled.
-  if (buckets.size > 2_000) {
-    for (const [key, b] of buckets) {
-      if (now - b.last > BUCKET_WINDOW_MS) buckets.delete(key);
-    }
-  }
-  const bucket = buckets.get(ip) ?? { tokens: BUCKET_CAPACITY, last: now };
-  bucket.tokens = Math.min(BUCKET_CAPACITY, bucket.tokens + (now - bucket.last) * REFILL_PER_MS);
-  bucket.last = now;
-  if (bucket.tokens < 1) {
-    buckets.set(ip, bucket);
-    return false;
-  }
-  bucket.tokens -= 1;
-  buckets.set(ip, bucket);
-  return true;
-}
+/**
+ * Durable throttle, shared by every instance (RECOMMENDATIONS R-43).
+ *
+ * This route bills real tokens per message, so the throttle in front of it has
+ * to survive a redeploy and be one allowance rather than one per instance. The
+ * counter lives in Postgres; see lib/security/rate-limit.ts, including why it
+ * fails open.
+ *
+ * Two limits in one bucket, because the two subjects are not comparable:
+ *   - Signed in, keyed by user id: a generous but real ceiling on one account.
+ *     Twenty four questions in five minutes is far more than a person asking
+ *     about places to stay ever needs, and far less than a script wants.
+ *   - Signed out, keyed by IP: deliberately looser. Nigerian mobile networks
+ *     put very large numbers of genuine users behind a handful of carrier NAT
+ *     addresses, so a tight per-IP number would refuse a whole neighbourhood on
+ *     MTN because one person was curious. An address is a weak identity, so it
+ *     buys a weak limit; the strong one applies the moment somebody signs in.
+ */
+const ASSISTANT_WINDOW_SECONDS = 5 * 60;
+const ASSISTANT_LIMIT_PER_USER = 24;
+const ASSISTANT_LIMIT_PER_IP = 40;
 
 /* ------------------------------------------------------- anthropic streaming */
 
@@ -333,10 +341,37 @@ async function streamOneRound(
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TITLE_LIMIT = 60;
 
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
 type Persistence = {
-  supabase: Awaited<ReturnType<typeof createClient>>;
+  supabase: SupabaseServerClient;
   conversationId: string;
 };
+
+/**
+ * Who is asking. Resolved once per request, because both the throttle (which
+ * keys on the user id when there is one) and thread persistence need it, and
+ * one auth round trip is enough.
+ */
+type Caller =
+  | { signedIn: false }
+  | { signedIn: true; supabase: SupabaseServerClient; userId: string };
+
+async function resolveCaller(): Promise<Caller> {
+  if (!isSupabaseConfigured()) return { signedIn: false };
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { signedIn: false };
+    return { signedIn: true, supabase, userId: user.id };
+  } catch {
+    // An auth read that cannot run means we treat the caller as anonymous: they
+    // still get an answer, throttled by address rather than by account.
+    return { signedIn: false };
+  }
+}
 
 /**
  * Signed-in callers get durable threads under RLS: upsert the conversation,
@@ -345,17 +380,14 @@ type Persistence = {
  * so persistence can never break the conversation itself.
  */
 async function beginPersistence(
+  caller: Caller,
   threadId: string | undefined,
   title: string,
   userText: string,
 ): Promise<Persistence | null> {
-  if (!isSupabaseConfigured()) return null;
+  if (!caller.signedIn) return null;
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return null;
+    const { supabase, userId } = caller;
 
     let conversationId: string | null = null;
     if (threadId && UUID_RE.test(threadId)) {
@@ -369,7 +401,7 @@ async function beginPersistence(
     if (!conversationId) {
       const { data, error } = await supabase
         .from("ai_conversations")
-        .insert({ user_id: user.id, title })
+        .insert({ user_id: userId, title })
         .select("id")
         .single();
       if (error || !data) return null;
@@ -451,9 +483,29 @@ export async function POST(req: NextRequest) {
     return Response.json({ configured: false, message: PAUSED_MESSAGE });
   }
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  if (!allowRequest(ip)) {
-    return Response.json({ message: PACE_MESSAGE }, { status: 429 });
+  const caller = await resolveCaller();
+  const verdict = await consume(
+    caller.signedIn
+      ? {
+          bucket: "assistant",
+          subject: subjectForUser(caller.userId),
+          limit: ASSISTANT_LIMIT_PER_USER,
+          windowSeconds: ASSISTANT_WINDOW_SECONDS,
+        }
+      : {
+          bucket: "assistant",
+          subject: subjectForIp(ipFromHeaders(req.headers)),
+          limit: ASSISTANT_LIMIT_PER_IP,
+          windowSeconds: ASSISTANT_WINDOW_SECONDS,
+        },
+  );
+  if (!verdict.allowed) {
+    // Same body shape the UI already handles on a 429: a plain `message` string.
+    // Retry-After is added for well-behaved clients; the UI ignores it.
+    return Response.json(
+      { message: paceMessage(verdict.retryIn) },
+      { status: 429, headers: { "Retry-After": String(verdict.retryAfterSeconds) } },
+    );
   }
 
   const model = process.env.ASSISTANT_MODEL ?? DEFAULT_MODEL;
@@ -474,7 +526,12 @@ export async function POST(req: NextRequest) {
         }
       };
 
-      const persistence = await beginPersistence(threadId, title, lastUser?.content ?? "");
+      const persistence = await beginPersistence(
+        caller,
+        threadId,
+        title,
+        lastUser?.content ?? "",
+      );
       if (persistence) emit({ type: "thread", id: persistence.conversationId });
 
       const convo: unknown[] = turns.map((t) => ({ role: t.role, content: t.content }));

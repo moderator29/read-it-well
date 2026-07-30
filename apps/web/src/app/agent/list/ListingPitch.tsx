@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Dictionary } from "@naijafinds/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
@@ -6,26 +7,19 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  *
  * Two honest variants of one design: sign in, or apply. Neither pretends the
  * wizard is one tap away, and both give the next step rather than a dead end.
+ *
+ * Every string arrives as a dictionary slice from the page, which is where the
+ * locale is resolved. The icons stay here because a glyph is not copy.
  */
-const POINTS: { icon: UiIconName; title: string; body: string }[] = [
-  {
-    icon: "verified",
-    title: "Verified supply only",
-    body: "Every listing is checked by hand, so the badge on your property means something to guests.",
-  },
-  {
-    icon: "chat-bubble",
-    title: "Guests reach you inside RentMe",
-    body: "Chats, inspections and payments stay on the platform, where they are protected.",
-  },
-  {
-    icon: "wallet",
-    title: "You keep what you charge",
-    body: "RentMe charges you nothing to list. Your price is your price.",
-  },
-];
+export type PitchCopy = Dictionary["agentListings"]["pitch"];
 
-export function ListingPitch({ signedIn }: { signedIn: boolean }) {
+export function ListingPitch({ copy, signedIn }: { copy: PitchCopy; signedIn: boolean }) {
+  const points: { icon: UiIconName; title: string; body: string }[] = [
+    { icon: "verified", ...copy.points.verified },
+    { icon: "chat-bubble", ...copy.points.inside },
+    { icon: "wallet", ...copy.points.keep },
+  ];
+
   return (
     <div className="mx-auto max-w-lg py-6 text-center sm:py-10">
       <span
@@ -35,15 +29,13 @@ export function ListingPitch({ signedIn }: { signedIn: boolean }) {
         <UiIcon name="key" size={30} strokeWidth={1.9} />
       </span>
 
-      <h1 className="nf-h2 mt-5">List your property on RentMe</h1>
+      <h1 className="nf-h2 mt-5">{copy.title}</h1>
       <p className="mx-auto mt-3 max-w-[44ch] text-[var(--nf-content-secondary)]">
-        {signedIn
-          ? "Listing is open to approved agents. The application takes about two minutes and we review within 24 to 48 hours."
-          : "Sign in to your agent account to start a listing, or apply in about two minutes if you are new here."}
+        {signedIn ? copy.bodySignedIn : copy.bodySignedOut}
       </p>
 
       <ul className="mt-7 space-y-3 text-left">
-        {POINTS.map((point) => (
+        {points.map((point) => (
           <li key={point.title} className="nf-card flex items-start gap-3 p-4">
             <span
               className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)]"
@@ -63,15 +55,15 @@ export function ListingPitch({ signedIn }: { signedIn: boolean }) {
 
       <div className="mt-7 flex flex-col gap-3">
         <Link href="/agents/apply" className="nf-btn nf-btn--primary">
-          Become an agent
+          {copy.apply}
         </Link>
         {!signedIn && (
           <Link href="/sign-in" className="nf-btn nf-btn--glass">
-            Sign in
+            {copy.signIn}
           </Link>
         )}
         <Link href="/agents" className="nf-btn nf-btn--glass">
-          How listing works
+          {copy.how}
         </Link>
       </div>
     </div>

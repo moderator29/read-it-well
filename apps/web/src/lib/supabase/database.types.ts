@@ -480,6 +480,36 @@ export type Database = {
         }
         Relationships: []
       }
+      idempotency_records: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          expires_at: string
+          key: string
+          result: Json | null
+          scope: string
+          subject: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at: string
+          key: string
+          result?: Json | null
+          scope: string
+          subject: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          key?: string
+          result?: Json | null
+          scope?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       inspection_confirmations: {
         Row: {
           confirmed_at: string
@@ -925,6 +955,30 @@ export type Database = {
           },
         ]
       }
+      places_cache: {
+        Row: {
+          city: string
+          first_seen_at: string
+          found_for: string
+          last_seen_at: string
+          place_id: string
+        }
+        Insert: {
+          city: string
+          first_seen_at?: string
+          found_for: string
+          last_seen_at?: string
+          place_id: string
+        }
+        Update: {
+          city?: string
+          first_seen_at?: string
+          found_for?: string
+          last_seen_at?: string
+          place_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -977,6 +1031,27 @@ export type Database = {
             referencedColumns: ["code"]
           },
         ]
+      }
+      rate_limits: {
+        Row: {
+          bucket: string
+          count: number
+          subject: string
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          subject: string
+          window_start: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          subject?: string
+          window_start?: string
+        }
+        Relationships: []
       }
       reports: {
         Row: {
@@ -1405,7 +1480,32 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      claim_idempotency: {
+        Args: {
+          key: string
+          scope: string
+          subject: string
+          ttl_seconds: number
+        }
+        Returns: Json
+      }
+      consume_rate_limit: {
+        Args: {
+          bucket: string
+          limit_count: number
+          subject: string
+          window_seconds: number
+        }
+        Returns: boolean
+      }
+      record_idempotency_result: {
+        Args: { key: string; result: Json; scope: string; subject: string }
+        Returns: boolean
+      }
+      release_idempotency: {
+        Args: { key: string; scope: string; subject: string }
+        Returns: boolean
+      }
     }
     Enums: {
       agent_application_status:

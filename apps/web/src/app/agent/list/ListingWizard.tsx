@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { formatDate, formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
 import {
   addPhoto,
@@ -16,15 +17,15 @@ import {
 import type { WizardDraft } from "@/lib/agent/listings-queries";
 import {
   MAX_PHOTOS,
+  MAX_TITLE_LENGTH,
   MIN_DESCRIPTION_WORDS,
   MIN_PHOTOS,
   MIN_PHOTO_WIDTH,
-  PHOTO_TOO_NARROW_MESSAGE,
-  PROPERTY_TYPES,
+  MIN_TITLE_LENGTH,
+  collapseSpaces,
   countWords,
   isRental,
   parseNairaToKobo,
-  pricePeriodLabel,
   submitRequirements,
   type PropertyType,
 } from "@/lib/agent/listings-schema";
@@ -44,17 +45,28 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * agent's own folder. The first photo is the cover. Anything narrower than
  * 1600px is refused here, and the server enforces the count at submit, so the
  * quality gate holds from both sides.
+ *
+ * Every string comes from the dictionary slice the page hands down, so the
+ * whole wizard reads in the agent's language. The submit gate stays the
+ * authority on WHICH requirements are unmet; the dictionary only decides how
+ * each one reads, which is why the checklist and the server can never disagree.
  */
 
-const STEPS = [
-  "Basic info",
-  "Photos",
-  "Location",
-  "Amenities",
-  "Pricing",
-  "Preview",
-  "Submit",
-] as const;
+type WizardCopy = Dictionary["agentListings"];
+
+/** The seven steps, in order. The names come from the dictionary. */
+const STEP_KEYS = [
+  "basics",
+  "photos",
+  "location",
+  "amenities",
+  "pricing",
+  "guestView",
+  "submit",
+] as const satisfies readonly (keyof WizardCopy["wizard"]["steps"])[];
+
+/** Display order of the type cards, which is not the schema's storage order. */
+const TYPE_ORDER: PropertyType[] = ["apartment", "shortlet", "home", "villa", "hotel", "rental"];
 
 const DRAFT_KEY = "nf_listing_draft";
 
@@ -150,12 +162,16 @@ function Field({
 /** Big plus and minus counter: a comfortable one-handed control. */
 function Counter({
   label,
+  fewerLabel,
+  moreLabel,
   value,
   min,
   max,
   onChange,
 }: {
   label: string;
+  fewerLabel: string;
+  moreLabel: string;
   value: number;
   min: number;
   max: number;
@@ -168,7 +184,7 @@ function Counter({
         <button
           type="button"
           className="nf-icon-btn"
-          aria-label={`One fewer ${label.toLowerCase()}`}
+          aria-label={fewerLabel}
           disabled={value <= min}
           onClick={() => onChange(Math.max(min, value - 1))}
         >
@@ -180,7 +196,7 @@ function Counter({
         <button
           type="button"
           className="nf-icon-btn"
-          aria-label={`One more ${label.toLowerCase()}`}
+          aria-label={moreLabel}
           disabled={value >= max}
           onClick={() => onChange(Math.min(max, value + 1))}
         >
@@ -196,6 +212,7 @@ function Counter({
 /* ------------------------------------------------------------- the wizard */
 
 export function ListingWizard({
+  copy,
   locale,
   userId,
   states,
@@ -203,6 +220,7 @@ export function ListingWizard({
   initial,
   canPersist,
 }: {
+  copy: WizardCopy;
   locale: Locale;
   userId: string | null;
   states: { code: string; name: string }[];
@@ -231,6 +249,9 @@ export function ListingWizard({
   const priceMinor = parseNairaToKobo(values.priceNaira) ?? 0;
   const cleaningMinor = parseNairaToKobo(values.cleaningNaira) ?? 0;
   const words = countWords(values.description);
+  const stepNames = STEP_KEYS.map((key) => copy.wizard.steps[key]);
+  const amenityNames = copy.amenities.names as Record<string, string | undefined>;
+  const pricePeriod = rental ? copy.pricing.perYear : copy.pricing.perNight;
 
   const unmet = useMemo(
     () =>
@@ -251,6 +272,62 @@ export function ListingWizard({
       }),
     [values, priceMinor, chosenAmenities.length, photos.length],
   );
+
+  /**
+   * The gate's verdict, in the agent's language.
+   *
+   * `submitRequirements` decides which fields are unmet; this decides how each
+   * one reads. Where one field can fail two ways (a title too short or too
+   * long, photos too few or no cover) the same local values that fed the gate
+   * pick the sentence, so the wording always matches the actual failure. A
+   * field the gate grows later falls through to the message it carried, which
+   * is English but never blank.
+   */
+  function gateText(field: string, fallback: string): string {
+    const g = copy.gate;
+    switch (field) {
+      case "title":
+        return collapseSpaces(values.title).length > MAX_TITLE_LENGTH
+          ? fill(g.titleLong, { max: MAX_TITLE_LENGTH })
+          : fill(g.titleShort, { min: MIN_TITLE_LENGTH });
+      case "description":
+        return fill(g.description, { min: MIN_DESCRIPTION_WORDS, count: words });
+      case "propertyType":
+        return g.propertyType;
+      case "photos":
+        return photos.length < MIN_PHOTOS
+          ? fill(g.photos, { min: MIN_PHOTOS, count: photos.length })
+          : g.cover;
+      case "stateCode":
+        return g.stateCode;
+      case "city":
+        return g.city;
+      case "area":
+        return g.area;
+      case "amenities":
+        return g.amenities;
+      case "price":
+        return rental ? g.priceYear : g.priceNight;
+      case "bedrooms":
+        return g.bedrooms;
+      case "bathrooms":
+        return g.bathrooms;
+      case "maxGuests":
+        return g.maxGuests;
+      default:
+        return fallback;
+    }
+  }
+
+  /**
+   * Screen reader wording for the two counter buttons. The label is lowercased
+   * in the active locale so "One more bedrooms" reads as a sentence rather
+   * than a heading, and so a language with its own casing rules keeps them.
+   */
+  function counterAria(direction: "fewer" | "more", label: string): string {
+    const template = direction === "fewer" ? copy.basics.counterFewer : copy.basics.counterMore;
+    return fill(template, { label: label.toLocaleLowerCase(locale) });
+  }
 
   /* ---------------------------------------------------------- draft safety */
 
@@ -326,7 +403,7 @@ export function ListingWizard({
     setNotice(null);
     setFieldErrors({});
     setListingId(result.data.id);
-    setSavedAt(new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }));
+    setSavedAt(formatDate(new Date(), locale, { hour: "2-digit", minute: "2-digit" }));
 
     const amenityResult = await setAmenities({
       listingId: result.data.id,
@@ -338,7 +415,7 @@ export function ListingWizard({
   }, [canPersist, chosenAmenities, listingId, values]);
 
   function go(next: number) {
-    const target = Math.min(STEPS.length - 1, Math.max(0, next));
+    const target = Math.min(STEP_KEYS.length - 1, Math.max(0, next));
 
     // The title is the one thing asked for before moving on, and the sentence
     // shown is the gate's own, so step one and the submit checklist never
@@ -346,7 +423,7 @@ export function ListingWizard({
     // before we stop, because a refusal must never cost the agent their work.
     const titleIssue = unmet.find((item) => item.field === "title");
     if (target > step && step === 0 && titleIssue) {
-      setFieldErrors((prev) => ({ ...prev, title: titleIssue.message }));
+      setFieldErrors((prev) => ({ ...prev, title: gateText("title", titleIssue.message) }));
       startTransition(async () => {
         await persist();
       });
@@ -438,9 +515,7 @@ export function ListingWizard({
     setPhotoNotice(null);
 
     if (!canPersist || !userId) {
-      setPhotoNotice(
-        "Photos upload once the platform keys land. Everything else you have typed is saved.",
-      );
+      setPhotoNotice(copy.photos.needsKeys);
       return;
     }
 
@@ -448,7 +523,7 @@ export function ListingWizard({
     try {
       const id = listingId ?? (await persist());
       if (!id) {
-        setPhotoNotice("Add a title on step one first, then your photos attach to this listing.");
+        setPhotoNotice(copy.photos.needsTitle);
         return;
       }
 
@@ -457,16 +532,16 @@ export function ListingWizard({
 
       for (const file of Array.from(files)) {
         if (slot >= MAX_PHOTOS) {
-          setPhotoNotice(`A listing holds up to ${MAX_PHOTOS} photos.`);
+          setPhotoNotice(fill(copy.photos.ceiling, { max: MAX_PHOTOS }));
           break;
         }
         if (!file.type.startsWith("image/")) {
-          setPhotoNotice("Photos need to be image files, for example JPG or PNG.");
+          setPhotoNotice(copy.photos.notAnImage);
           continue;
         }
         const width = await widthOf(file);
         if (width < MIN_PHOTO_WIDTH) {
-          setPhotoNotice(PHOTO_TOO_NARROW_MESSAGE);
+          setPhotoNotice(fill(copy.photos.tooNarrow, { width: MIN_PHOTO_WIDTH }));
           continue;
         }
 
@@ -474,9 +549,7 @@ export function ListingWizard({
         // re-encode always produces a JPEG, so the stored extension follows.
         const clean = await stripMetadata(file);
         if (!clean) {
-          setPhotoNotice(
-            "We could not prepare that photo safely, so it was not uploaded. Try a different photo.",
-          );
+          setPhotoNotice(copy.photos.notPrepared);
           continue;
         }
 
@@ -486,7 +559,7 @@ export function ListingWizard({
           .from("listing-photos")
           .upload(path, clean, { contentType: "image/jpeg", upsert: false });
         if (upload.error) {
-          setPhotoNotice("That photo did not finish uploading. Please try it again.");
+          setPhotoNotice(copy.photos.uploadFailed);
           continue;
         }
 
@@ -554,11 +627,7 @@ export function ListingWizard({
     startTransition(async () => {
       const id = listingId ?? (await persist());
       if (!id) {
-        setNotice(
-          canPersist
-            ? "Add a title on step one first, then we can send this listing for review."
-            : "Sending for review switches on the moment the platform keys land. Your work is saved on this device.",
-        );
+        setNotice(canPersist ? copy.submit.needsTitle : copy.submit.needsKeys);
         return;
       }
       const result = await submitListing({ listingId: id });
@@ -590,17 +659,16 @@ export function ListingWizard({
         >
           <UiIcon name="verified" size={32} strokeWidth={2.2} />
         </span>
-        <h1 className="nf-h2 mt-5">Your listing is with our review team</h1>
+        <h1 className="nf-h2 mt-5">{copy.submitted.title}</h1>
         <p className="mx-auto mt-3 max-w-[44ch] text-[var(--nf-content-secondary)]">
-          We check every listing by hand so guests can trust what they book. Reviews take 24 to 48
-          hours and you hear from us either way. If anything needs changing we will say exactly what.
+          {copy.submitted.body}
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link href="/agent/listings" className="nf-btn nf-btn--primary">
-            Go to my listings
+            {copy.submitted.goToListings}
           </Link>
           <Link href="/agent/list" className="nf-btn nf-btn--glass">
-            List another property
+            {copy.submitted.another}
           </Link>
         </div>
       </div>
@@ -613,8 +681,8 @@ export function ListingWizard({
   return (
     <div className="mx-auto max-w-2xl pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
       {/* Step rail: seven dots stay legible at 390px, the name sits beneath. */}
-      <ol className="flex items-center gap-1.5" aria-label="Listing steps">
-        {STEPS.map((name, index) => {
+      <ol className="flex items-center gap-1.5" aria-label={copy.wizard.stepsLabel}>
+        {stepNames.map((name, index) => {
           const done = index < step;
           const current = index === step;
           return (
@@ -624,7 +692,7 @@ export function ListingWizard({
                 onClick={() => index <= step && go(index)}
                 disabled={index > step}
                 aria-current={current ? "step" : undefined}
-                aria-label={`Step ${index + 1}, ${name}`}
+                aria-label={fill(copy.wizard.stepAria, { number: index + 1, name })}
                 className="block h-1.5 w-full rounded-full transition-colors"
                 style={{
                   background:
@@ -635,17 +703,21 @@ export function ListingWizard({
           );
         })}
       </ol>
-      <p className="mt-3 flex items-baseline justify-between gap-3">
-        <span className="nf-h3">{STEPS[step]}</span>
+      {/* The step name is the page's heading: a seven step form needs a real
+          document outline, and a screen reader announcing the step is how
+          someone knows where they are. aria-live tells them it changed. */}
+      <div className="mt-3 flex items-baseline justify-between gap-3">
+        <h1 className="nf-h3" aria-live="polite">
+          {stepNames[step]}
+        </h1>
         <span className="nf-numeric shrink-0 text-[0.75rem] text-[var(--nf-content-muted)]">
-          Step {step + 1} of {STEPS.length}
+          {fill(copy.wizard.stepCounter, { current: step + 1, total: STEP_KEYS.length })}
         </span>
-      </p>
+      </div>
 
       {!canPersist && (
         <p className="nf-card mt-4 p-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-          Publishing switches on the moment the platform keys land. Keep going: everything you type
-          is kept on this device and will be waiting for you.
+          {copy.wizard.unconfiguredNotice}
         </p>
       )}
 
@@ -664,30 +736,31 @@ export function ListingWizard({
         {step === 0 && (
           <div className="space-y-5">
             <Field
-              label="Listing title"
-              hint="What a guest sees first. Name the place and what makes it good."
+              label={copy.basics.titleLabel}
+              hint={copy.basics.titleHint}
               error={fieldErrors.title}
             >
               <input
                 className="nf-field"
                 value={values.title}
                 onChange={(e) => set("title", e.target.value)}
-                placeholder="Bright 2 bedroom flat in Lekki Phase 1"
+                placeholder={copy.basics.titlePlaceholder}
                 maxLength={80}
                 aria-invalid={fieldErrors.title ? "true" : undefined}
               />
             </Field>
 
             <div>
-              <span className="nf-label">Property type</span>
+              <span className="nf-label">{copy.basics.propertyTypeLabel}</span>
               <div className="grid grid-cols-2 gap-2">
-                {PROPERTY_TYPES.map((type) => {
-                  const active = values.propertyType === type.value;
+                {TYPE_ORDER.map((type) => {
+                  const active = values.propertyType === type;
+                  const card = copy.propertyTypes[type];
                   return (
                     <button
-                      key={type.value}
+                      key={type}
                       type="button"
-                      onClick={() => set("propertyType", type.value)}
+                      onClick={() => set("propertyType", type)}
                       aria-pressed={active}
                       className="nf-card nf-card--interactive p-3 text-left"
                       style={
@@ -696,9 +769,9 @@ export function ListingWizard({
                           : undefined
                       }
                     >
-                      <span className="block text-[0.875rem] font-semibold">{type.label}</span>
+                      <span className="block text-[0.875rem] font-semibold">{card.label}</span>
                       <span className="mt-0.5 block text-[0.6875rem] leading-snug text-[var(--nf-content-muted)]">
-                        {type.blurb}
+                        {card.blurb}
                       </span>
                     </button>
                   );
@@ -706,50 +779,60 @@ export function ListingWizard({
               </div>
               {rental && (
                 <p className="mt-2 text-[0.75rem] text-[var(--nf-content-secondary)]">
-                  Rentals are the yearly market: you set the rent per year, guests message you,
-                  inspect the property, then pay. There is no nightly booking on a rental.
+                  {copy.basics.rentalNote}
                 </p>
               )}
             </div>
 
             <Field
-              label="Description"
+              label={copy.basics.descriptionLabel}
               error={fieldErrors.description}
-              hint={`${words} of ${MIN_DESCRIPTION_WORDS} words. Describe the rooms, the area and what is nearby.`}
+              hint={fill(copy.basics.descriptionHint, {
+                words,
+                min: MIN_DESCRIPTION_WORDS,
+              })}
             >
               <textarea
                 className="nf-field min-h-[9rem]"
                 value={values.description}
                 onChange={(e) => set("description", e.target.value)}
-                placeholder="Tell guests about the space, the light, the kitchen, the neighbourhood and how to get around."
+                placeholder={copy.basics.descriptionPlaceholder}
                 aria-invalid={fieldErrors.description ? "true" : undefined}
               />
             </Field>
 
             <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3">
               <Counter
-                label="Guests"
+                label={copy.basics.counters.guests}
+                fewerLabel={counterAria("fewer", copy.basics.counters.guests)}
+                moreLabel={counterAria("more", copy.basics.counters.guests)}
                 value={values.maxGuests}
                 min={1}
                 max={30}
                 onChange={(v) => set("maxGuests", v)}
               />
               <Counter
-                label="Bedrooms"
+                label={copy.basics.counters.bedrooms}
+                fewerLabel={counterAria("fewer", copy.basics.counters.bedrooms)}
+                moreLabel={counterAria("more", copy.basics.counters.bedrooms)}
                 value={values.bedrooms}
                 min={0}
                 max={20}
                 onChange={(v) => set("bedrooms", v)}
               />
               <Counter
-                label="Beds"
+                label={copy.basics.counters.beds}
+                fewerLabel={counterAria("fewer", copy.basics.counters.beds)}
+                moreLabel={counterAria("more", copy.basics.counters.beds)}
                 value={values.beds}
                 min={1}
                 max={30}
                 onChange={(v) => set("beds", v)}
               />
               <Counter
-                label="Bathrooms"
+                label={copy.basics.counters.bathrooms}
+                fewerLabel={counterAria("fewer", copy.basics.counters.bathrooms)}
+                moreLabel={counterAria("more", copy.basics.counters.bathrooms)}
                 value={values.bathrooms}
                 min={1}
                 max={20}
@@ -763,8 +846,8 @@ export function ListingWizard({
         {step === 1 && (
           <div className="space-y-4">
             <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              Add at least {MIN_PHOTOS} photos, up to {MAX_PHOTOS}. The first one is the cover, so
-              lead with the wide shot that sells the place. {PHOTO_TOO_NARROW_MESSAGE}
+              {fill(copy.photos.intro, { min: MIN_PHOTOS, max: MAX_PHOTOS })}{" "}
+              {fill(copy.photos.tooNarrow, { width: MIN_PHOTO_WIDTH })}
             </p>
 
             <input
@@ -782,7 +865,11 @@ export function ListingWizard({
               disabled={uploading}
             >
               <UiIcon name="grid" size={18} />
-              {uploading ? "Uploading" : photos.length > 0 ? "Add more photos" : "Choose photos"}
+              {uploading
+                ? copy.photos.uploading
+                : photos.length > 0
+                  ? copy.photos.addMore
+                  : copy.photos.choose}
             </button>
 
             {photoNotice && (
@@ -799,12 +886,12 @@ export function ListingWizard({
             )}
 
             <p className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
-              {photos.length} of {MIN_PHOTOS} needed
+              {fill(copy.photos.progress, { count: photos.length, min: MIN_PHOTOS })}
             </p>
 
             {photos.length === 0 ? (
               <div className="rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-subtle)] p-8 text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
-                No photos yet. Daylight, wide angles and a tidy room do most of the work.
+                {copy.photos.empty}
               </div>
             ) : (
               <ul className="grid grid-cols-2 gap-3">
@@ -816,7 +903,9 @@ export function ListingWizard({
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={photo.url} alt="" className="h-full w-full object-cover" />
                       {index === 0 && (
-                        <span className="nf-badge nf-badge--brand absolute left-2 top-2">Cover</span>
+                        <span className="nf-badge nf-badge--brand absolute left-2 top-2">
+                          {copy.photos.cover}
+                        </span>
                       )}
                     </div>
                     <div className="mt-1.5 flex items-center justify-between gap-2">
@@ -826,14 +915,14 @@ export function ListingWizard({
                         onClick={() => makeCover(index)}
                         disabled={index === 0}
                       >
-                        Make cover
+                        {copy.photos.makeCover}
                       </button>
                       <button
                         type="button"
                         className="text-[0.75rem] font-semibold text-[var(--nf-content-muted)]"
                         onClick={() => dropPhoto(index)}
                       >
-                        Remove
+                        {copy.photos.remove}
                       </button>
                     </div>
                   </li>
@@ -846,13 +935,13 @@ export function ListingWizard({
         {/* ------------------------------------------------------ 3 location */}
         {step === 2 && (
           <div className="space-y-5">
-            <Field label="State" error={fieldErrors.stateCode}>
+            <Field label={copy.location.stateLabel} error={fieldErrors.stateCode}>
               <select
                 className="nf-field"
                 value={values.stateCode}
                 onChange={(e) => set("stateCode", e.target.value)}
               >
-                <option value="">Choose a state</option>
+                <option value="">{copy.location.statePlaceholder}</option>
                 {states.map((s) => (
                   <option key={s.code} value={s.code}>
                     {s.name}
@@ -860,39 +949,40 @@ export function ListingWizard({
                 ))}
               </select>
             </Field>
-            <Field label="City" error={fieldErrors.city}>
+            <Field label={copy.location.cityLabel} error={fieldErrors.city}>
               <input
                 className="nf-field"
                 value={values.city}
                 onChange={(e) => set("city", e.target.value)}
-                placeholder="Lagos"
+                placeholder={copy.location.cityPlaceholder}
               />
             </Field>
-            <Field label="Area" error={fieldErrors.area} hint="The neighbourhood guests search for.">
+            <Field
+              label={copy.location.areaLabel}
+              error={fieldErrors.area}
+              hint={copy.location.areaHint}
+            >
               <input
                 className="nf-field"
                 value={values.area}
                 onChange={(e) => set("area", e.target.value)}
-                placeholder="Lekki Phase 1"
+                placeholder={copy.location.areaPlaceholder}
               />
             </Field>
-            <Field
-              label="Street address"
-              hint="Kept private until a booking is confirmed or you share it in chat."
-            >
+            <Field label={copy.location.addressLabel} hint={copy.location.addressHint}>
               <input
                 className="nf-field"
                 value={values.address}
                 onChange={(e) => set("address", e.target.value)}
-                placeholder="12 Admiralty Way"
+                placeholder={copy.location.addressPlaceholder}
               />
             </Field>
-            <Field label="Landmark" hint="Something nearby that makes the place easy to find.">
+            <Field label={copy.location.landmarkLabel} hint={copy.location.landmarkHint}>
               <input
                 className="nf-field"
                 value={values.landmark}
                 onChange={(e) => set("landmark", e.target.value)}
-                placeholder="Opposite the Lekki roundabout"
+                placeholder={copy.location.landmarkPlaceholder}
               />
             </Field>
           </div>
@@ -902,8 +992,7 @@ export function ListingWizard({
         {step === 3 && (
           <div>
             <p className="mb-4 text-[0.8125rem] text-[var(--nf-content-secondary)]">
-              Choose everything a guest will actually find at the property. Honest lists earn better
-              reviews than long ones.
+              {copy.amenities.intro}
             </p>
             {fieldErrors.amenities && (
               <p className="mb-3 text-[0.75rem] font-medium text-[var(--nf-state-error)]">
@@ -928,7 +1017,7 @@ export function ListingWizard({
                     }
                   >
                     {active && <UiIcon name="verified" size={14} strokeWidth={2.2} />}
-                    {amenity.label}
+                    {amenityNames[amenity.code] ?? amenity.label}
                   </button>
                 );
               })}
@@ -940,14 +1029,14 @@ export function ListingWizard({
         {step === 4 && (
           <div className="space-y-5">
             <Field
-              label={rental ? "Yearly rent" : "Price per night"}
+              label={rental ? copy.pricing.priceYearLabel : copy.pricing.priceNightLabel}
               // The gate names this "price"; the draft schema names the raw
               // input "priceNaira". Either can arrive, and both mean this box.
               error={fieldErrors.price ?? fieldErrors.priceNaira}
               hint={
                 price
-                  ? `${price} ${pricePeriodLabel(values.propertyType)}`
-                  : "Enter the amount in naira, for example 85,000."
+                  ? fill(copy.pricing.priceWithPeriod, { price, period: pricePeriod })
+                  : copy.pricing.priceHint
               }
             >
               <input
@@ -955,19 +1044,23 @@ export function ListingWizard({
                 inputMode="decimal"
                 value={values.priceNaira}
                 onChange={(e) => set("priceNaira", e.target.value)}
-                placeholder={rental ? "2,500,000" : "85,000"}
+                placeholder={
+                  rental ? copy.pricing.priceYearPlaceholder : copy.pricing.priceNightPlaceholder
+                }
               />
             </Field>
 
             {!rental && (
               <>
                 <Field
-                  label="Cleaning"
+                  label={copy.pricing.cleaningLabel}
                   error={fieldErrors.cleaningNaira}
                   hint={
                     cleaningMinor > 0
-                      ? `${formatMoney(cleaningMinor, locale)} added once per stay.`
-                      : "Optional. Added once per stay, not per night."
+                      ? fill(copy.pricing.cleaningHintSet, {
+                          amount: formatMoney(cleaningMinor, locale),
+                        })
+                      : copy.pricing.cleaningHint
                   }
                 >
                   <input
@@ -975,13 +1068,15 @@ export function ListingWizard({
                     inputMode="decimal"
                     value={values.cleaningNaira}
                     onChange={(e) => set("cleaningNaira", e.target.value)}
-                    placeholder="10,000"
+                    placeholder={copy.pricing.cleaningPlaceholder}
                   />
                 </Field>
 
                 <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3">
                   <Counter
-                    label="Shortest stay in nights"
+                    label={copy.pricing.minStayLabel}
+                    fewerLabel={counterAria("fewer", copy.pricing.minStayLabel)}
+                    moreLabel={counterAria("more", copy.pricing.minStayLabel)}
                     value={values.minStayNights}
                     min={1}
                     max={365}
@@ -996,9 +1091,11 @@ export function ListingWizard({
                   onClick={() => set("instantBook", !values.instantBook)}
                 >
                   <span>
-                    <span className="block text-[0.9375rem] font-medium">Instant book</span>
+                    <span className="block text-[0.9375rem] font-medium">
+                      {copy.pricing.instantTitle}
+                    </span>
                     <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">
-                      Guests book without waiting for you to confirm.
+                      {copy.pricing.instantBody}
                     </span>
                   </span>
                   <span
@@ -1020,18 +1117,17 @@ export function ListingWizard({
 
             {rental && (
               <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                Rentals are priced per year. Guests message you inside RentMe, inspect the property,
-                then pay. For your safety, keep every chat and payment inside RentMe.
+                {copy.pricing.rentalNote}
               </p>
             )}
           </div>
         )}
 
-        {/* ------------------------------------------------------- 6 preview */}
+        {/* ---------------------------------------------------- 6 guest view */}
         {step === 5 && (
           <div>
             <p className="mb-4 text-[0.8125rem] text-[var(--nf-content-secondary)]">
-              This is how your listing appears in search.
+              {copy.guestView.intro}
             </p>
             <article className="nf-card overflow-hidden">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
@@ -1040,7 +1136,7 @@ export function ListingWizard({
                   <img src={photos[0].url} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <div className="grid h-full w-full place-items-center text-[0.75rem] text-[var(--nf-content-muted)]">
-                    Add photos to complete the card
+                    {copy.guestView.addPhotos}
                   </div>
                 )}
                 <div
@@ -1048,39 +1144,51 @@ export function ListingWizard({
                   aria-hidden="true"
                 />
                 {rental && (
-                  <span className="nf-badge nf-badge--brand absolute left-3 top-3">Rent</span>
+                  <span className="nf-badge nf-badge--brand absolute left-3 top-3">
+                    {copy.guestView.rentBadge}
+                  </span>
                 )}
                 {values.instantBook && !rental && (
-                  <span className="nf-badge nf-badge--warning absolute left-3 top-3">Instant</span>
+                  <span className="nf-badge nf-badge--warning absolute left-3 top-3">
+                    {copy.guestView.instantBadge}
+                  </span>
                 )}
                 <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">
                   <UiIcon name="location" size={13} className="shrink-0 text-white/70" />
                   <span className="truncate">
                     {[values.area, values.city, stateName].filter(Boolean).join(", ") ||
-                      "Add a location on step three"}
+                      copy.guestView.locationPlaceholder}
                   </span>
                 </p>
               </div>
               <div className="p-4">
                 <h3 className="text-[0.9375rem] font-semibold leading-snug">
-                  {values.title || "Your listing title"}
+                  {values.title || copy.guestView.titlePlaceholder}
                 </h3>
                 <p className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
-                  {values.bedrooms} bed &middot; {values.bathrooms} bath &middot; sleeps{" "}
-                  {values.maxGuests}
+                  {fill(copy.guestView.rooms, {
+                    bedrooms: values.bedrooms,
+                    bathrooms: values.bathrooms,
+                    guests: values.maxGuests,
+                  })}
                 </p>
                 <p className="mt-2.5 flex items-baseline gap-1.5">
                   <span className="nf-numeric text-[1.0625rem] font-bold">
-                    {price ?? "Price to set"}
+                    {price ?? copy.guestView.priceToSet}
                   </span>
                   <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-                    {pricePeriodLabel(values.propertyType)}
+                    {pricePeriod}
                   </span>
                 </p>
                 {chosenAmenities.length > 0 && (
                   <p className="mt-2 text-[0.75rem] text-[var(--nf-content-secondary)]">
                     {chosenAmenities
-                      .map((code) => amenities.find((a) => a.code === code)?.label ?? code)
+                      .map(
+                        (code) =>
+                          amenityNames[code] ??
+                          amenities.find((a) => a.code === code)?.label ??
+                          code,
+                      )
                       .slice(0, 4)
                       .join(" · ")}
                   </p>
@@ -1088,7 +1196,7 @@ export function ListingWizard({
               </div>
             </article>
             <p className="mt-4 whitespace-pre-line text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              {values.description || "Your description appears on the listing page."}
+              {values.description || copy.guestView.descriptionPlaceholder}
             </p>
           </div>
         )}
@@ -1096,23 +1204,33 @@ export function ListingWizard({
         {/* -------------------------------------------------------- 7 submit */}
         {step === 6 && (
           <div>
-            <h2 className="nf-h3">Ready to send for review</h2>
+            <h2 className="nf-h3">{copy.submit.title}</h2>
             <p className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              We check every listing by hand before it reaches guests. Clear that checklist and it
-              goes straight into the queue.
+              {copy.submit.body}
             </p>
 
             <ul className="mt-4 space-y-2.5">
               {[
-                { field: "title", label: "Title" },
-                { field: "description", label: `Description of ${MIN_DESCRIPTION_WORDS} words or more` },
-                { field: "photos", label: `${MIN_PHOTOS} photos or more, cover first` },
-                { field: "stateCode", label: "State" },
-                { field: "city", label: "City" },
-                { field: "area", label: "Area" },
-                { field: "amenities", label: "Amenities" },
-                { field: "price", label: rental ? "Yearly rent" : "Price per night" },
-                { field: "bathrooms", label: "Rooms and guests" },
+                { field: "title", label: copy.submit.checklist.title },
+                {
+                  field: "description",
+                  label: fill(copy.submit.checklist.description, { min: MIN_DESCRIPTION_WORDS }),
+                },
+                {
+                  field: "photos",
+                  label: fill(copy.submit.checklist.photos, { min: MIN_PHOTOS }),
+                },
+                { field: "stateCode", label: copy.submit.checklist.stateCode },
+                { field: "city", label: copy.submit.checklist.city },
+                { field: "area", label: copy.submit.checklist.area },
+                { field: "amenities", label: copy.submit.checklist.amenities },
+                {
+                  field: "price",
+                  label: rental
+                    ? copy.submit.checklist.priceYear
+                    : copy.submit.checklist.priceNight,
+                },
+                { field: "bathrooms", label: copy.submit.checklist.rooms },
               ].map((item) => {
                 const problem = unmet.find((u) => u.field === item.field);
                 return (
@@ -1132,7 +1250,7 @@ export function ListingWizard({
                       <span className="block text-[0.875rem] font-medium">{item.label}</span>
                       {problem && (
                         <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">
-                          {problem.message}
+                          {gateText(problem.field, problem.message)}
                         </span>
                       )}
                     </span>
@@ -1147,10 +1265,10 @@ export function ListingWizard({
               onClick={send}
               disabled={pending || unmet.length > 0}
             >
-              {pending ? "Sending" : "Send for review"}
+              {pending ? copy.submit.sending : copy.submit.action}
             </button>
             <p className="mt-3 text-center text-[0.75rem] text-[var(--nf-content-muted)]">
-              Reviews take 24 to 48 hours. You hear from us either way.
+              {copy.submit.note}
             </p>
           </div>
         )}
@@ -1158,7 +1276,7 @@ export function ListingWizard({
 
       {savedAt && (
         <p className="mt-3 text-center text-[0.75rem] text-[var(--nf-content-muted)]">
-          Saved at {savedAt}
+          {fill(copy.wizard.savedAt, { time: savedAt })}
         </p>
       )}
 
@@ -1171,20 +1289,20 @@ export function ListingWizard({
             onClick={() => go(step - 1)}
             disabled={step === 0 || pending}
           >
-            Back
+            {copy.wizard.back}
           </button>
-          {step < STEPS.length - 1 ? (
+          {step < STEP_KEYS.length - 1 ? (
             <button
               type="button"
               className="nf-btn nf-btn--primary flex-1"
               onClick={() => go(step + 1)}
               disabled={pending}
             >
-              {pending ? "Saving" : "Next"}
+              {pending ? copy.wizard.saving : copy.wizard.next}
             </button>
           ) : (
             <Link href="/agent/listings" className="nf-btn nf-btn--glass flex-1">
-              My listings
+              {copy.wizard.myListings}
             </Link>
           )}
         </div>

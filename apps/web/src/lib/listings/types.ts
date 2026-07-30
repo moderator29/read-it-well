@@ -15,6 +15,33 @@ export type ListingKind =
    */
   | "rental";
 
+/**
+ * Everything a partner listing carries that a first-party listing does not.
+ *
+ * Present only when `source` is "partner", and it is what the card and the
+ * detail page read to decide the call to action: there is no agent to message
+ * and no booking of ours to reserve, so the action always leaves the platform
+ * (docs/HYBRID_INVENTORY.md section 4).
+ */
+export type PartnerMeta = {
+  /** Which feed supplied the listing. */
+  provider: "amadeus" | "places";
+  /**
+   * Attribution the data source requires wherever its data is shown. Google
+   * Places content must render "powered by Google" on the surfaces it appears
+   * on, so the mapped listing carries the obligation with it.
+   */
+  attribution?: "Google";
+  /** Where a partner stay is booked. Off platform, opens in a new tab. */
+  bookUrl?: string;
+  /** Map deep link to a partner venue. */
+  directionsUrl?: string;
+  /** The venue's own page (menu, opening times) when the feed supplies one. */
+  venueUrl?: string;
+  /** Opaque upstream reference for the offer this price came from. */
+  offerRef?: string;
+};
+
 export type Listing = {
   id: string;
   slug: string;
@@ -44,6 +71,11 @@ export type Listing = {
    * restaurant feeds); partner cards never show the verified badge.
    */
   source?: "rentme" | "partner";
+  /**
+   * Provenance and off-platform actions for third-party stock. Set by the
+   * inventory provider layer, absent on every first-party listing.
+   */
+  partner?: PartnerMeta;
   bedrooms: number;
   bathrooms: number;
   rating: number;

@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { getDictionary } from "@naijafinds/i18n";
+import { getLocale } from "@/lib/locale";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getQueueCounts } from "@/lib/admin/queries";
-import { ADMIN_NAV } from "./_components/nav";
-import { QueueUnavailable } from "./_components/ui";
+import type { UiIconName } from "@/design-system/icons/UiIcon";
+import { adminUi } from "./_components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -14,79 +16,44 @@ export const dynamic = "force-dynamic";
  * reads zero, that queue really is empty.
  */
 type Tile = {
-  key: string;
+  key: "flags" | "alerts" | "applications" | "listings" | "reports" | "tickets";
   href: string;
-  label: string;
-  lede: string;
-  icon: (typeof ADMIN_NAV)[number]["icon"];
+  icon: UiIconName;
 };
 
 const TILES: Tile[] = [
-  {
-    key: "flags",
-    href: "/admin/flags",
-    label: "Open message flags",
-    lede: "Payment talk the safety scan caught in a conversation.",
-    icon: "chat-bubble",
-  },
-  {
-    key: "alerts",
-    href: "/admin/alerts",
-    label: "Open risk alerts",
-    lede: "Cases raised for the operations team to work.",
-    icon: "bell",
-  },
-  {
-    key: "applications",
-    href: "/admin/agents",
-    label: "Agent applications",
-    lede: "People waiting on a decision to start listing.",
-    icon: "user",
-  },
-  {
-    key: "listings",
-    href: "/admin/listings",
-    label: "Listings in review",
-    lede: "Submissions waiting to be checked, approved and published.",
-    icon: "building-apartment",
-  },
-  {
-    key: "reports",
-    href: "/admin/reports",
-    label: "Open reports",
-    lede: "Content and accounts members have reported to us.",
-    icon: "search",
-  },
-  {
-    key: "tickets",
-    href: "/admin/support",
-    label: "Support tickets",
-    lede: "Questions the assistant could not answer on its own.",
-    icon: "ticket",
-  },
+  { key: "flags", href: "/admin/flags", icon: "chat-bubble" },
+  { key: "alerts", href: "/admin/alerts", icon: "bell" },
+  { key: "applications", href: "/admin/agents", icon: "user" },
+  { key: "listings", href: "/admin/listings", icon: "building-apartment" },
+  { key: "reports", href: "/admin/reports", icon: "search" },
+  { key: "tickets", href: "/admin/support", icon: "ticket" },
 ];
 
 export default async function AdminOverviewPage() {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const o = t.admin.overview;
+  const ui = adminUi(t, locale);
   const counts = await getQueueCounts();
 
   return (
     <div className="mx-auto max-w-5xl">
       <header className="mb-5">
-        <h1 className="nf-h1 text-[1.5rem] sm:text-[1.75rem]">Operations overview</h1>
+        <h1 className="nf-h1 text-[1.5rem] sm:text-[1.75rem]">{o.title}</h1>
         <p className="mt-1.5 max-w-[62ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-          Every trust signal RentMe produces ends here: what the safety scan
-          caught, what members reported, who is waiting to be approved, and what
-          is waiting to go live. Each number is a queue you can clear.
+          {o.lede}
         </p>
       </header>
 
       {counts.state !== "ok" ? (
-        <QueueUnavailable />
+        <ui.QueueUnavailable />
       ) : (
         <>
           <ul className="grid grid-cols-2 gap-3 lg:grid-cols-3">
             {TILES.map((tile) => {
-              const value = counts.data[tile.key as keyof typeof counts.data] ?? 0;
+              const value = counts.data[tile.key] ?? 0;
+              const copy = o.tiles[tile.key];
               return (
                 <li key={tile.key}>
                   <Link
@@ -96,7 +63,7 @@ export default async function AdminOverviewPage() {
                     <span className="flex items-center gap-2 text-[var(--nf-content-secondary)]">
                       <UiIcon name={tile.icon} size={18} className="shrink-0" />
                       <span className="text-[0.75rem] font-semibold uppercase tracking-wide">
-                        {tile.label}
+                        {copy.label}
                       </span>
                     </span>
                     <span
@@ -108,7 +75,7 @@ export default async function AdminOverviewPage() {
                       {value}
                     </span>
                     <span className="text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
-                      {value > 0 ? tile.lede : "This queue is clear."}
+                      {value > 0 ? copy.lede : o.queueClear}
                     </span>
                   </Link>
                 </li>
@@ -117,31 +84,24 @@ export default async function AdminOverviewPage() {
           </ul>
 
           <section className="nf-card mt-4 p-4 sm:p-5">
-            <h2 className="nf-h3">How the console works</h2>
+            <h2 className="nf-h3">{o.how.title}</h2>
             <ul className="mt-2 space-y-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              <li className="flex gap-2.5">
-                <UiIcon name="verified" size={16} className="mt-0.5 shrink-0 text-[var(--nf-state-success)]" />
-                Every decision writes an audit row carrying your name, the record
-                you touched and the status before and after. The log cannot be
-                edited or deleted by anyone, including you.
-              </li>
-              <li className="flex gap-2.5">
-                <UiIcon name="verified" size={16} className="mt-0.5 shrink-0 text-[var(--nf-state-success)]" />
-                Approvals and rejections tell the person involved on the
-                platform, so nobody is left guessing what happened to their
-                application or their listing.
-              </li>
-              <li className="flex gap-2.5">
-                <UiIcon name="verified" size={16} className="mt-0.5 shrink-0 text-[var(--nf-state-success)]" />
-                The safety scan is invisible outside this console. Nothing in the
-                app tells a member their message was flagged.
-              </li>
+              {[o.how.audit, o.how.notify, o.how.invisible].map((line) => (
+                <li key={line} className="flex gap-2.5">
+                  <UiIcon
+                    name="verified"
+                    size={16}
+                    className="mt-0.5 shrink-0 text-[var(--nf-state-success)]"
+                  />
+                  {line}
+                </li>
+              ))}
             </ul>
             <Link
               href="/admin/switches"
               className="mt-3 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
             >
-              Open the switches
+              {o.how.openSwitches}
               <UiIcon name="arrow-right" size={14} />
             </Link>
           </section>
