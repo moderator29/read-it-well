@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -25,9 +25,9 @@ export function ListingHostPanel({
 }) {
   return (
     <div className="nf-card p-5">
-      <div className="flex items-center gap-3.5">
-        <span className="block h-12 w-12 shrink-0">
-          <Icon name="profile" fill />
+      <div className="flex items-center gap-4.5">
+        <span className="block h-14 w-14 shrink-0">
+          <BrandIcon name="user-check" fill />
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
@@ -47,14 +47,14 @@ export function ListingHostPanel({
 
       <dl className="mt-4 grid gap-2 border-t border-[var(--nf-border-subtle)] pt-4 text-[0.8125rem]">
         {verified && (
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-4">
             <dt className="text-[var(--nf-content-muted)]">Identity</dt>
             <dd className="font-semibold text-[var(--nf-content-secondary)]">
               Checked before going live
             </dd>
           </div>
         )}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-4">
           <dt className="shrink-0 text-[var(--nf-content-muted)]">Member since</dt>
           <dd className="text-right text-[var(--nf-content-secondary)]">
             Shown when the agent profile connects

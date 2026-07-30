@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ContactForm } from "./ContactForm";
 
 export const metadata: Metadata = {
@@ -28,7 +28,7 @@ export default function ContactPage() {
         <div className="nf-rise text-center">
           <span className="nf-chip mx-auto">
             <span className="inline-grid h-4 w-4 place-items-center">
-              <Icon name="chat" fill />
+              <BrandIcon name="chat" fill />
             </span>
             Contact us
           </span>
@@ -63,9 +63,9 @@ export default function ContactPage() {
         {/* --------------------------------------------- help centre first */}
         <Reveal as="section" className="mt-6">
           <div className="nf-card flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-            <div className="flex items-center gap-3">
-              <span className="inline-grid h-10 w-10 shrink-0 place-items-center">
-                <Icon name="help" fill />
+            <div className="flex items-center gap-4">
+              <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
+                <BrandIcon name="support-chat" fill />
               </span>
               <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
                 Many questions already have written answers about bookings, payments,
@@ -88,7 +88,7 @@ export default function ContactPage() {
 
         {/* ------------------------------------------------ other routes */}
         <Reveal as="section" className="mt-12">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <div className="nf-card p-5">
               <p className="nf-overline">Careers</p>
               <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">

@@ -23,7 +23,7 @@ export function ContactForm({ supportEmail }: { supportEmail: string }) {
       className="space-y-4"
       aria-describedby="contact-form-note"
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2">
         <label className="block">
           <span className="nf-overline mb-1.5 block">Your name</span>
           <input type="text" name="name" autoComplete="name" className="nf-field" placeholder="Amaka Obi" />

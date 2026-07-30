@@ -52,6 +52,23 @@ html {
   }
 }
 
+/*
+ * The photo camera move. A listing card and the gallery it opens into tag
+ * matching elements with the same `view-transition-name` (set inline, since
+ * it is per-listing), and the browser's own View Transitions API morphs one
+ * into the other on navigation. Nothing here is conditional on JavaScript:
+ * unsupporting browsers simply never read `view-transition-name` and never
+ * see this rule fire, which is the whole no-op fallback. Reduced motion is
+ * a second, CSS-only guard behind the JS feature check in the card itself.
+ */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 html {
   background-color: var(--nf-surface-canvas);
 }
@@ -243,8 +260,871 @@ body {
     }
   }
 
+  /*
+   * The listing gallery's lead photo. Once the camera move from the card has
+   * landed, the same frame keeps drifting on its own: a very slow, very
+   * gentle pan and zoom, so the opening shot of a listing never sits
+   * perfectly still. The pane wrapping this image is `overflow-hidden`, so
+   * the zoom never spills past the frame the card promised.
+   */
+  .nf-gallery-kenburns {
+    animation: nf-gallery-pan 20s var(--nf-ease-standard) infinite alternate;
+  }
+  @keyframes nf-gallery-pan {
+    from { transform: scale(1) translate3d(0, 0, 0); }
+    to { transform: scale(1.06) translate3d(-1.2%, 1%, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-gallery-kenburns {
+      animation: none;
+    }
+  }
+
   .nf-hairline {
     border-top: 1px solid var(--nf-border-subtle);
+  }
+
+  /*
+   * Brand icon objects.
+   *
+   * The commissioned pack is rendered on a white ground, which is exactly
+   * how this style of iconography is meant to be used: the object sits on
+   * its own bright tile. On paper the tile is nearly invisible and the
+   * object simply floats. On the night canvas the same tile becomes the
+   * thing that makes it pop, so the image element itself carries a soft
+   * white surface with a squircle radius and a blue-lit edge.
+   */
+  .nf-brand-icon {
+    display: block;
+    object-fit: contain;
+    /* The artwork is lit on white, so it multiplies cleanly into any tile:
+       the ground disappears and only the object and its shadow survive. */
+    mix-blend-mode: multiply;
+  }
+
+  /*
+   * The icon tile.
+   *
+   * Every brand object sits on this chip, the same glass material the rest of
+   * the platform is built from: edge-lit translucent blue at night, a soft
+   * white chip with a hairline on paper. The object is inset so it never
+   * touches the tile wall.
+   */
+  /*
+   * The object tile, built the way the reference platform builds glass: an
+   * outer shell carrying the edge-lit stride, an inner well the object sits
+   * in, and a corner light running off the upper left. The stride is drawn
+   * with the padding-box and border-box trick so one element gets a true ring
+   * that decays around the corner rather than a flat outline.
+   */
+  .nf-icon-tile {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    padding: 9%;
+    border: 1.5px solid transparent;
+    border-radius: 30%;
+    background:
+      radial-gradient(125% 100% at 24% 8%, rgb(255 255 255 / 0.95) 0%, rgb(244 247 253 / 0.86) 45%, transparent 74%) padding-box,
+      linear-gradient(158deg, #FFFFFF 0%, #EDF1F9 100%) padding-box,
+      linear-gradient(135deg,
+        rgb(92 124 255 / 0.95) 0%,
+        rgb(12 57 239 / 0.62) 22%,
+        rgb(12 57 239 / 0.12) 52%,
+        transparent 74%)
+        border-box;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      0 8px 22px -12px rgb(12 57 239 / 0.5);
+  }
+  /* The inner well: a soft inset ring so the object reads as seated in the
+     tile rather than pasted on top of it. */
+  .nf-icon-tile::before {
+    content: "";
+    position: absolute;
+    inset: 7%;
+    border-radius: 26%;
+    pointer-events: none;
+    box-shadow:
+      inset 0 0 0 1px rgb(12 57 239 / 0.1),
+      inset 0 2px 6px rgb(12 57 239 / 0.09);
+  }
+  .nf-icon-tile > img {
+    position: relative;
+    z-index: 1;
+  }
+  :root[data-theme="light"] .nf-icon-tile {
+    background:
+      radial-gradient(125% 100% at 24% 8%, #FFFFFF 0%, rgb(248 250 253 / 0.9) 48%, transparent 76%) padding-box,
+      linear-gradient(158deg, #FFFFFF 0%, #F3F6FB 100%) padding-box,
+      linear-gradient(135deg,
+        rgb(12 57 239 / 0.55) 0%,
+        rgb(12 57 239 / 0.28) 26%,
+        rgb(18 21 26 / 0.07) 60%,
+        rgb(18 21 26 / 0.05) 100%)
+        border-box;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      0 2px 6px -2px rgb(18 21 26 / 0.09);
+  }
+  :root:not([data-theme="light"]) .nf-icon-tile {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      0 0 0 1px rgb(12 57 239 / 0.2),
+      0 10px 26px -12px rgb(12 57 239 / 0.75),
+      0 0 20px -8px rgb(12 57 239 / 0.5);
+  }
+  /*
+   * Tile parallax. The pointer director writes --tilt-x and --tilt-y, and the
+   * tile leans toward the cursor in real perspective. Defaults are zero, so a
+   * tile that is never hovered simply sits flat.
+   */
+  .nf-icon-tile {
+    transform-style: preserve-3d;
+    transform: perspective(420px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  /* The object inside floats a touch above the tile face, so the lean reads
+     as depth rather than as the whole chip skewing. */
+  .nf-icon-tile > img {
+    transform: translateZ(10px);
+  }
+  /* Objects lift and their stride brightens when the card they sit on is
+     hovered, so the whole tile feels lit rather than static. */
+  .nf-card--interactive:hover .nf-icon-tile {
+    transform: perspective(420px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+      translateY(-2px) scale(1.04);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-icon-tile,
+    .nf-card--interactive:hover .nf-icon-tile {
+      transform: none;
+    }
+    .nf-icon-tile > img {
+      transform: none;
+    }
+  }
+
+  /*
+   * Event states.
+   *
+   * An object that reacts to something real is worth more than any amount of
+   * ambient motion, so these fire on state rather than on a loop: a bell that
+   * rings when something is unread, a calendar that settles when a booking is
+   * confirmed, a shield that pulses once when verification lands.
+   */
+  .nf-icon-tile[data-state="alert"] > img {
+    animation: nf-ring 2.4s var(--nf-ease-standard) infinite;
+    transform-origin: 50% 18%;
+  }
+  @keyframes nf-ring {
+    0%, 62%, 100% { transform: translateZ(10px) rotate(0deg); }
+    68% { transform: translateZ(10px) rotate(11deg); }
+    74% { transform: translateZ(10px) rotate(-9deg); }
+    80% { transform: translateZ(10px) rotate(6deg); }
+    86% { transform: translateZ(10px) rotate(-4deg); }
+    92% { transform: translateZ(10px) rotate(2deg); }
+  }
+  .nf-icon-tile[data-state="confirmed"] {
+    animation: nf-confirm-pop var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-confirm-pop {
+    0% { transform: perspective(420px) scale(0.86); opacity: 0; }
+    60% { transform: perspective(420px) scale(1.06); opacity: 1; }
+    100% { transform: perspective(420px) scale(1); opacity: 1; }
+  }
+  .nf-icon-tile[data-state="verified"]::before {
+    animation: nf-verify-pulse 2.8s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-verify-pulse {
+    0%, 70%, 100% { box-shadow: inset 0 0 0 1px rgb(12 57 239 / 0.1), inset 0 2px 6px rgb(12 57 239 / 0.09); }
+    82% { box-shadow: inset 0 0 0 2px rgb(12 57 239 / 0.55), inset 0 2px 10px rgb(12 57 239 / 0.3); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-icon-tile[data-state] > img,
+    .nf-icon-tile[data-state],
+    .nf-icon-tile[data-state]::before {
+      animation: none !important;
+    }
+  }
+
+  /*
+   * Booking confirmation moment. A brief three-beat sequence when a
+   * reservation lands: the room behind the card dims a touch so the eye has
+   * nowhere else to go, the confirmed icon tile pops on its own (the
+   * `data-state="confirmed"` rule above), then one band of light crosses the
+   * card, echoing the primary button's hover ripple as a one-shot entrance
+   * instead of a hover loop. All three finish inside 1.1s.
+   */
+  .nf-confirm-dim {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    background: rgb(1 1 24 / 0.3);
+    animation: nf-confirm-dim 900ms var(--nf-ease-standard) both;
+  }
+  :root[data-theme="light"] .nf-confirm-dim {
+    background: rgb(18 21 26 / 0.14);
+  }
+  @keyframes nf-confirm-dim {
+    0% { opacity: 0; }
+    32% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .nf-confirm-sweep {
+    position: relative;
+    overflow: hidden;
+  }
+  .nf-confirm-sweep::after {
+    content: "";
+    position: absolute;
+    inset: -40% -60%;
+    pointer-events: none;
+    background: linear-gradient(
+      115deg,
+      transparent 42%,
+      rgb(255 255 255 / 0.32) 50%,
+      transparent 58%
+    );
+    transform: translateX(-130%);
+    animation: nf-confirm-sweep 650ms var(--nf-ease-standard) 260ms both;
+  }
+  @keyframes nf-confirm-sweep {
+    to { transform: translateX(130%); }
+  }
+  .nf-just-booked {
+    animation: nf-confirm-pop var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-confirm-dim {
+      animation: none !important;
+      display: none;
+    }
+    .nf-confirm-sweep::after {
+      animation: none !important;
+      display: none;
+    }
+    .nf-just-booked {
+      animation: none !important;
+    }
+  }
+
+  /* -------------------------------------------------------- conversation */
+
+  /*
+   * A message bubble springs in from the side its sender occupies: mine from
+   * the right, theirs from the left, so a reply reads as arriving from the
+   * person who sent it rather than just fading into place.
+   */
+  .nf-msg-in--mine {
+    animation: nf-msg-in-right var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  .nf-msg-in--theirs {
+    animation: nf-msg-in-left var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  @keyframes nf-msg-in-right {
+    from { opacity: 0; transform: translate3d(28px, 0, 0) scale(0.94); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes nf-msg-in-left {
+    from { opacity: 0; transform: translate3d(-28px, 0, 0) scale(0.94); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* Three breathing dots inside a real bubble shape, so "typing" reads as
+     part of the conversation rather than a spinner bolted on beside it. */
+  .nf-typing-dot {
+    animation: nf-typing-breathe 1.2s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-typing-breathe {
+    0%, 100% { transform: scale(0.72); opacity: 0.45; }
+    50% { transform: scale(1); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-typing-dot {
+      animation: none;
+      opacity: 0.8;
+    }
+  }
+
+  /*
+   * The thread header, the moment an inspection is confirmed. A real state
+   * change deserves more than new copy: the row tints the same success green
+   * the confirmed pill already uses and settles in once with the platform's
+   * own confirm pop, reusing `nf-confirm-pop` rather than inventing a second
+   * "something just landed" motion.
+   */
+  .nf-page-header--verified {
+    padding: 0.5rem 0.625rem;
+    margin-inline: -0.625rem;
+    background: color-mix(in oklab, var(--nf-state-success) 12%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-state-success) 32%, transparent);
+    animation: nf-confirm-pop var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-page-header--verified {
+      animation: none;
+    }
+  }
+
+  /*
+   * The assistant thinking, visibly. A ring spins around the avatar while a
+   * reply is actively streaming (a real signal, `streamingHere` in
+   * AssistantChat, not an idle loop), so the bot reads as reasoning rather
+   * than stalled. The ring sits on its own pseudo-element, never on the
+   * avatar tile's own transform, so it never fights the tile's parallax
+   * lean or its living-glass sheen.
+   */
+  .nf-bot-thinking {
+    position: relative;
+  }
+  .nf-bot-thinking::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    border-top-color: var(--nf-electric-300);
+    border-right-color: color-mix(in oklab, var(--nf-electric-300) 35%, transparent);
+    animation: nf-bot-spin 850ms linear infinite;
+    pointer-events: none;
+  }
+  @keyframes nf-bot-spin {
+    to { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-bot-thinking::after {
+      animation: none;
+      opacity: 0.7;
+    }
+  }
+
+  /*
+   * Real listing results fan into the thread with a staggered rise, `--i`
+   * set inline per card, rather than appearing as one flat block the moment
+   * the assistant's search resolves.
+   */
+  .nf-listing-fold-in {
+    animation: nf-listing-fold var(--nf-duration-slow) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--i, 0) * 90ms);
+    transform-origin: 50% 0%;
+  }
+  @keyframes nf-listing-fold {
+    from { opacity: 0; transform: translateY(14px) rotateX(-16deg) scale(0.96); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /*
+   * The guided flight: a brief full-screen onboarding over story-world.png
+   * on first visit (see components/site/Onboarding.tsx for the honest,
+   * localStorage-gated, reduced-motion-skipping trigger). It reuses the
+   * paper stage the artwork was actually rendered on, so text sits on real
+   * ink rather than the page's own theme colour, which would print
+   * near-white on this ground under the dark default.
+   */
+  .nf-onboarding {
+    color: rgb(18 21 26);
+    opacity: 1;
+    transition: opacity 260ms var(--nf-ease-standard);
+  }
+  .nf-onboarding .nf-overline {
+    color: rgb(18 21 26 / 0.6);
+  }
+  .nf-onboarding--leaving {
+    opacity: 0;
+  }
+  .nf-onboarding-frame {
+    filter: drop-shadow(0 24px 48px rgb(18 21 26 / 0.18));
+  }
+  .nf-onboarding-skip {
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--nf-radius-pill);
+    border: 1.5px solid rgb(18 21 26 / 0.14);
+    background: rgb(255 255 255 / 0.72);
+    backdrop-filter: blur(6px);
+    color: rgb(18 21 26 / 0.82);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-onboarding-skip:hover {
+    background: rgb(255 255 255 / 0.94);
+  }
+  /* The camera move: a slow pull back from a close crop of the world mark to
+     the full scene, so the flight opens on a detail and reveals the whole
+     promise as it settles. */
+  .nf-onboarding-image {
+    animation: nf-onboarding-pan 5.2s var(--nf-ease-standard) both;
+  }
+  @keyframes nf-onboarding-pan {
+    0% { transform: scale(1.22) translate3d(1.5%, 1%, 0); }
+    100% { transform: scale(1) translate3d(0, 0, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-onboarding-image {
+      animation: none;
+    }
+    .nf-onboarding {
+      transition: none;
+    }
+  }
+
+  /*
+   * The agent verification ceremony. The status icon assembles itself, a
+   * quick scale up from small with a slight rotate settling flat, the one
+   * time a browser renders this application as just approved (see
+   * app/agents/status/StatusIcon.tsx for the honest, one-shot trigger).
+   */
+  .nf-status-assemble {
+    animation: nf-status-assemble 600ms var(--nf-ease-spring) both;
+  }
+  @keyframes nf-status-assemble {
+    0% { opacity: 0; transform: scale(0.7) rotate(-8deg); }
+    70% { opacity: 1; transform: scale(1.05) rotate(2deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-status-assemble {
+      animation: none;
+    }
+  }
+
+  /*
+   * Living glass.
+   *
+   * A specular highlight travels slowly across every object tile, the way
+   * light moves over real glass when you turn it. Long cycle and low opacity,
+   * so it registers as the surface being alive rather than as an animation
+   * demanding attention. Staggered per tile by index so a grid never pulses
+   * in lockstep.
+   */
+  .nf-icon-tile::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    overflow: hidden;
+    background: linear-gradient(
+      115deg,
+      transparent 38%,
+      rgb(255 255 255 / 0.6) 47%,
+      rgb(160 190 255 / 0.35) 52%,
+      transparent 62%
+    );
+    background-size: 260% 100%;
+    background-position: 160% 0;
+    animation: nf-tile-sheen 7s var(--nf-ease-standard) infinite;
+    animation-delay: calc(var(--tile-i, 0) * 900ms);
+    mix-blend-mode: screen;
+    opacity: 0.75;
+  }
+  :root[data-theme="light"] .nf-icon-tile::after {
+    mix-blend-mode: normal;
+    opacity: 0.5;
+  }
+  @keyframes nf-tile-sheen {
+    0%, 62% { background-position: 160% 0; }
+    92%, 100% { background-position: -60% 0; }
+  }
+
+  /*
+   * Page scene anchor. The artwork dissolves into the canvas behind a page's
+   * opening lines: masked in every direction, low contrast, and drifting, so
+   * it belongs to the surface rather than sitting on it.
+   */
+  .nf-page-scene {
+    opacity: 0.4;
+    filter: saturate(1.1);
+    -webkit-mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
+    mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
+    animation: nf-scene-live 20s var(--nf-ease-standard) infinite;
+  }
+  :root[data-theme="light"] .nf-page-scene {
+    opacity: 0.3;
+  }
+
+  /* ---------------------------------------------------------- odometer */
+
+  /* Figures paint solid brand ink: a clipped gradient cannot cross the
+     transformed digit strips, which leaves the numbers invisible. */
+  .nf-odometer-figure {
+    color: var(--nf-electric-300);
+  }
+  :root[data-theme="light"] .nf-odometer-figure {
+    color: var(--nf-brand-primary);
+  }
+
+  .nf-odometer__slot {
+    display: inline-block;
+    height: 1em;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+  .nf-odometer__sep {
+    display: inline-block;
+    vertical-align: bottom;
+  }
+  .nf-odometer__strip {
+    display: flex;
+    flex-direction: column;
+    transition: transform 1.15s var(--nf-ease-entrance);
+    will-change: transform;
+  }
+  .nf-odometer__digit {
+    display: block;
+    height: 1em;
+    line-height: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-odometer__strip {
+      transition: none;
+    }
+  }
+
+  /*
+   * Wallet balance pulse. A band of light travels through the card the
+   * moment the balance actually changes: upward and success-tinted for a
+   * deposit landing, downward and brand-tinted for a spend leaving. The
+   * component sets and clears data-pulse itself, so this only ever plays
+   * once per real change, never on a loop.
+   */
+  .nf-balance-pulse {
+    position: relative;
+  }
+  .nf-balance-pulse::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0;
+  }
+  .nf-balance-pulse[data-pulse="up"]::before {
+    background: linear-gradient(
+      0deg,
+      transparent 0%,
+      color-mix(in oklab, var(--nf-state-success) 35%, transparent) 45%,
+      transparent 85%
+    );
+    animation: nf-balance-pulse-up 1.1s var(--nf-ease-standard) both;
+  }
+  .nf-balance-pulse[data-pulse="down"]::before {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      color-mix(in oklab, var(--nf-brand-primary) 32%, transparent) 45%,
+      transparent 85%
+    );
+    animation: nf-balance-pulse-down 1.1s var(--nf-ease-standard) both;
+  }
+  @keyframes nf-balance-pulse-up {
+    0% { transform: translateY(22%); opacity: 0; }
+    35% { opacity: 1; }
+    100% { transform: translateY(-10%); opacity: 0; }
+  }
+  @keyframes nf-balance-pulse-down {
+    0% { transform: translateY(-22%); opacity: 0; }
+    35% { opacity: 1; }
+    100% { transform: translateY(10%); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-balance-pulse[data-pulse]::before {
+      animation: none !important;
+      display: none;
+    }
+  }
+
+  /*
+   * Transaction row entrance. Money arriving slides in from the left, money
+   * leaving slides in from the right, so the direction of a row is felt
+   * before its amount is even read. Short and small: a nudge, not a slide.
+   */
+  @keyframes nf-tx-slide-in {
+    from { opacity: 0; transform: translate3d(-14px, 0, 0); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes nf-tx-slide-out {
+    from { opacity: 0; transform: translate3d(14px, 0, 0); }
+    to { opacity: 1; transform: none; }
+  }
+  .nf-tx-in {
+    animation: nf-tx-slide-in 420ms var(--nf-ease-entrance) both;
+  }
+  .nf-tx-out {
+    animation: nf-tx-slide-out 420ms var(--nf-ease-entrance) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-tx-in,
+    .nf-tx-out {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
+  /*
+   * Scroll-linked hero. The villa grows and its glow deepens across the first
+   * viewport, so page motion drives the artwork instead of the artwork just
+   * looping beside it. Falls back to the ambient drift where scroll timelines
+   * are unavailable.
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-hero-scene {
+        animation: nf-hero-scroll linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 70%;
+      }
+    }
+  }
+  @keyframes nf-hero-scroll {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+      filter: saturate(1) brightness(0.98);
+    }
+    to {
+      transform: translate3d(0, -34px, 0) scale(1.1);
+      filter: saturate(1.2) brightness(1.1);
+    }
+  }
+
+  /* Scene artwork breathes very slightly, so a still render never looks dead
+     next to the moving canvas behind it. */
+  .nf-story-art {
+    animation: nf-art-breathe 12s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-art-breathe {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(0, -6px, 0) scale(1.015); }
+  }
+
+  /* The hero scene drifts and its light shifts, tying the artwork to the
+     ambient canvas instead of sitting on top of it. */
+  .nf-hero-scene {
+    animation: nf-scene-live 18s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-scene-live {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); filter: saturate(1.05) brightness(1); }
+    50% { transform: translate3d(0, -14px, 0) scale(1.02); filter: saturate(1.12) brightness(1.05); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-icon-tile::after,
+    .nf-story-art,
+    .nf-hero-scene {
+      animation: none !important;
+    }
+    .nf-icon-tile::after { display: none; }
+  }
+
+  /*
+   * Story stage.
+   *
+   * The commissioned character scenes are lit product shots on white, so
+   * they get a studio ground rather than a dark panel: a soft silver-white
+   * sweep with a faint blue floor glow, which reads as the same photographic
+   * space the artwork was rendered in. At night the stage keeps its bright
+   * ground so the character stays the light source of the card.
+   */
+  /*
+   * Story stages.
+   *
+   * Each commissioned scene was lit on its own ground: some are studio white
+   * product shots, some are neon objects on black. Cutting either one out
+   * leaves halos on the opposite ground, so instead the stage adopts the
+   * light the artwork was rendered in, and the image edges are feathered so
+   * the square dissolves into it. The result is seamless in both themes.
+   */
+  .nf-story-stage--paper {
+    background:
+      radial-gradient(75% 55% at 50% 100%, rgb(12 57 239 / 0.1) 0%, transparent 70%),
+      radial-gradient(120% 90% at 70% -10%, #FFFFFF 0%, rgb(255 255 255 / 0) 62%),
+      linear-gradient(180deg, #FBFCFD 0%, #F1F3F7 100%);
+    border-bottom: 1px solid rgb(18 21 26 / 0.07);
+  }
+  .nf-story-stage--night {
+    background:
+      radial-gradient(70% 50% at 50% 100%, rgb(12 57 239 / 0.3) 0%, transparent 70%),
+      linear-gradient(180deg, #05060F 0%, #01010A 100%);
+    border-bottom: 1px solid rgb(92 124 255 / 0.28);
+  }
+  .nf-story-art {
+    -webkit-mask-image: radial-gradient(76% 76% at 50% 48%, #000 62%, transparent 92%);
+    mask-image: radial-gradient(76% 76% at 50% 48%, #000 62%, transparent 92%);
+  }
+
+  /* A scene shown small inside the platform gets a rounded chip, never a hard
+     square block sitting on the card. */
+  .nf-scene-chip {
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid rgb(18 21 26 / 0.07);
+    overflow: hidden;
+  }
+  :root:not([data-theme="light"]) .nf-scene-chip {
+    border-color: rgb(92 124 255 / 0.28);
+  }
+
+  /* Anchored headings clear the sticky header instead of hiding under it. */
+  [id^="nf-"] {
+    scroll-margin-top: 5.5rem;
+  }
+
+  /* ------------------------------------------------ landing motion system */
+
+  /*
+   * The living page.
+   *
+   * Below the hero, the landing tells its story in movement: sections lift
+   * into place as they enter, headlines wipe in word by word, rails drift,
+   * numbers breathe and edges catch light. Every effect is scroll driven or
+   * pure CSS, GPU friendly (transform and opacity only), and every one of
+   * them collapses under reduced motion.
+   */
+
+  /* Scroll-driven entrance. Sections animate against their own scroll
+     position where supported, so scrubbing back up replays them. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-enter {
+        animation: nf-enter-up linear both;
+        animation-timeline: view();
+        animation-range: entry 8% cover 34%;
+      }
+      .nf-enter-scale {
+        animation: nf-enter-scale linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 40%;
+      }
+      /* Rails drift a touch as the page scrolls past them, which reads as
+         depth without any JavaScript scroll listener. */
+      .nf-parallax-soft {
+        animation: nf-parallax-soft linear both;
+        animation-timeline: view();
+        animation-range: cover 0% cover 100%;
+      }
+    }
+  }
+  @keyframes nf-enter-up {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 34px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-enter-scale {
+    from {
+      opacity: 0;
+      transform: scale(0.965);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-parallax-soft {
+    from {
+      transform: translate3d(0, 18px, 0);
+    }
+    to {
+      transform: translate3d(0, -18px, 0);
+    }
+  }
+
+  /*
+   * Word by word headline wipe. Each word is a span that lifts and fades in
+   * on a stagger set inline, so a heading assembles itself rather than
+   * appearing whole.
+   */
+  .nf-words > span {
+    display: inline-block;
+    animation: nf-word-in var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-words > span {
+        animation-timeline: view();
+        animation-range: entry 10% cover 30%;
+        animation-delay: 0s;
+        animation-duration: calc(1s + var(--i, 0) * 0.18s);
+      }
+    }
+  }
+  @keyframes nf-word-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.5em, 0) rotate(1.5deg);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  /* A hairline that draws itself across a section as it arrives. */
+  .nf-rule-draw {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--nf-brand-primary) 50%,
+      transparent 100%
+    );
+    transform-origin: center;
+    animation: nf-rule-draw var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-rule-draw {
+        animation-timeline: view();
+        animation-range: entry 0% cover 26%;
+      }
+    }
+  }
+  @keyframes nf-rule-draw {
+    from {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+    to {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+  }
+
+  /* Slow ambient drift for decorative objects sitting inside sections. */
+  .nf-drift {
+    animation: nf-drift 14s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-drift {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    50% { transform: translate3d(0, -10px, 0) rotate(-1.2deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-enter,
+    .nf-enter-scale,
+    .nf-parallax-soft,
+    .nf-words > span,
+    .nf-rule-draw,
+    .nf-drift {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
   }
 
   /* ------------------------------------------------------------- live map */
@@ -282,12 +1162,91 @@ body {
   :root[data-theme="light"] .nf-map-pin {
     background: #ffffff;
     color: var(--nf-content-primary);
-    border-color: rgb(10 22 38 / 0.18);
-    box-shadow: 0 6px 18px rgb(10 22 38 / 0.18);
+    border-color: rgb(18 21 26 / 0.18);
+    box-shadow: 0 6px 18px rgb(18 21 26 / 0.18);
   }
   :root[data-theme="light"] .nf-map-pin i {
-    color: rgb(10 22 38 / 0.55);
+    color: rgb(18 21 26 / 0.6);
   }
+
+  /*
+   * The living city. Marks are ordinary React buttons projected onto the
+   * frame every frame (see MapCanvas), not Leaflet divIcons, so their motion
+   * is plain CSS on real DOM nodes: cheap even with dozens of pins on screen,
+   * because nothing here runs a JS animation loop.
+   *
+   * Pins and clusters drop in with a small stagger on mount, `--pin-i` set
+   * inline per mark. `backwards` fill (not `forwards`) is deliberate: the
+   * animation only paints the hidden-to-settled state during its own delay
+   * and run, then gets out of the way, so a later selection's own scale
+   * (Tailwind's `scale-110`) is never left fighting a lingering animation.
+   */
+  .nf-map-pin-drop {
+    animation: nf-map-pin-drop 640ms var(--nf-ease-spring) backwards;
+    animation-delay: calc(var(--pin-i, 0) * 26ms);
+  }
+  @keyframes nf-map-pin-drop {
+    0% { opacity: 0; transform: translate(-50%, -100%) translateY(-22px) scale(0.4); }
+    60% { opacity: 1; transform: translate(-50%, -100%) translateY(3px) scale(1.08); }
+    100% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+  }
+  .nf-map-cluster-drop {
+    animation: nf-map-cluster-drop 640ms var(--nf-ease-spring) backwards;
+    animation-delay: calc(var(--pin-i, 0) * 26ms);
+  }
+  @keyframes nf-map-cluster-drop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+    60% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
+
+  /*
+   * A still map reads as a dead one. Idle marks breathe: a slow, small scale
+   * on an inner span, kept off the button's own element so it never fights
+   * the button's positioning transform or a selected pin's own scale-110.
+   * Selected pins drop the class entirely (see MapCanvas), so the moment a
+   * pin is chosen it holds still.
+   */
+  .nf-map-pin-breathe {
+    animation: nf-map-pin-breathe 5s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-map-pin-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+
+  /*
+   * The pin nearest the searched city blooms once when the map opens there:
+   * an expanding ring that fades out, marking where the search landed. Fires
+   * once (`both` fill holds the finished, invisible state) rather than
+   * looping, because a ring that never stops would stop meaning "you are
+   * here" and start meaning "something is wrong".
+   */
+  .nf-map-pin-drop[data-hero]::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border-radius: var(--nf-radius-pill);
+    border: 1.5px solid var(--nf-electric-300);
+    animation: nf-map-pin-bloom 1.5s var(--nf-ease-standard) 500ms both;
+    pointer-events: none;
+  }
+  @keyframes nf-map-pin-bloom {
+    0% { opacity: 0.85; transform: scale(0.72); }
+    100% { opacity: 0; transform: scale(2); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-map-pin-drop,
+    .nf-map-cluster-drop,
+    .nf-map-pin-breathe {
+      animation: none;
+    }
+    .nf-map-pin-drop[data-hero]::after {
+      animation: none;
+      opacity: 0;
+    }
+  }
+
   /* Leaflet chrome, restyled to the theme. */
   .leaflet-container {
     background: var(--nf-surface-inset);
@@ -744,6 +1703,303 @@ body {
     color: var(--nf-state-warning);
   }
 
+  /*
+   * A pill that rides the corner of whatever it is pinned to (a selected plan
+   * card, a segmented option), the way a "Save 40%" ribbon sits half on and
+   * half off a pricing tile. The parent needs `position: relative`; nothing
+   * else has to change about it.
+   */
+  .nf-badge-overlap {
+    position: absolute;
+    top: -0.65rem;
+    right: -0.5rem;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-overline);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #fff;
+    background: var(--nf-gradient-brand);
+    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent),
+      0 0 0 3px var(--nf-surface-canvas);
+  }
+  .nf-badge-overlap--success {
+    background: var(--nf-state-success);
+    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-state-success) 60%, transparent),
+      0 0 0 3px var(--nf-surface-canvas);
+  }
+
+  /* Small circular count badge riding next to a section header ("Messages 3"). */
+  .nf-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.375rem;
+    height: 1.375rem;
+    padding: 0 0.4rem;
+    border-radius: var(--nf-radius-pill);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-electric-300);
+    background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
+  }
+
+  /*
+   * Hero figure: the huge tabular number a screen is built around (a wallet
+   * balance, a price, a countdown). One display size, always tabular, always
+   * tight tracking so digits read as one mass rather than loose type.
+   */
+  .nf-hero-figure {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-size: clamp(2.75rem, 11vw, 4.25rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    color: var(--nf-content-primary);
+  }
+  .nf-hero-figure__unit {
+    font-size: 0.32em;
+    font-weight: 700;
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * Colour-coded tag pill for a compact identifier a card wants to surface as
+   * data rather than prose ("P2 · ROW F", "Studio · 2BR"). Small, monospaced
+   * rhythm, brand tint by default with state variants for the same shape.
+   */
+  .nf-tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.55rem;
+    border-radius: var(--nf-radius-sm);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--nf-electric-300);
+    background: color-mix(in oklab, var(--nf-brand-primary) 15%, transparent);
+    border: 1px solid color-mix(in oklab, var(--nf-brand-primary) 28%, transparent);
+  }
+  .nf-tag-pill--success {
+    color: var(--nf-state-success);
+    background: var(--nf-state-success-surface);
+    border-color: color-mix(in oklab, var(--nf-state-success) 32%, transparent);
+  }
+  .nf-tag-pill--warning {
+    color: var(--nf-state-warning);
+    background: var(--nf-state-warning-surface);
+    border-color: color-mix(in oklab, var(--nf-state-warning) 32%, transparent);
+  }
+  .nf-tag-pill--neutral {
+    color: var(--nf-content-secondary);
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-subtle);
+  }
+
+  /*
+   * Sunken well for a live meter or timer, cut into the surface rather than
+   * sitting on it. Near black in the dark theme, near white and inset in
+   * daylight; either way the content inside reads as recessed, not raised.
+   */
+  .nf-panel-sunken {
+    border-radius: var(--nf-radius-lg);
+    padding: 1.1rem 1.25rem;
+    background: linear-gradient(180deg, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.68));
+    box-shadow:
+      inset 0 2px 10px rgb(0 0 0 / 0.55),
+      inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  }
+
+  /* Stat card chart: the line carries a faint glow at night, flattens to a
+     plain stroke on paper so it never smears against a white card. */
+  .nf-statchart polyline {
+    filter: drop-shadow(0 0 4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent));
+  }
+  :root[data-theme="light"] .nf-statchart polyline {
+    filter: none;
+  }
+
+  /*
+   * Circular icon action button: the Scan / Send / Receive row, two or three
+   * primary actions given equal weight as icon-first, label-under controls
+   * instead of a row of rectangular pills.
+   */
+  .nf-action-circle {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--nf-content-secondary);
+    cursor: pointer;
+  }
+  .nf-action-circle__ring {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-primary);
+    border: 1px solid rgb(12 57 239 / 0.45);
+    background: linear-gradient(180deg, rgb(0 3 32 / 0.55), rgb(0 1 16 / 0.7));
+    box-shadow: 0 0 10px rgb(12 57 239 / 0.22), inset 0 0 10px rgb(12 57 239 / 0.1);
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-action-circle__ring--solid {
+    border-color: transparent;
+    background: var(--nf-gradient-brand);
+    color: #fff;
+    box-shadow: 0 10px 24px -8px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
+  }
+  .nf-action-circle:hover .nf-action-circle__ring {
+    transform: translateY(-2px);
+    border-color: rgb(12 57 239 / 0.9);
+    box-shadow: 0 0 18px rgb(12 57 239 / 0.4), inset 0 0 14px rgb(12 57 239 / 0.16);
+  }
+  .nf-action-circle:active .nf-action-circle__ring {
+    transform: scale(0.94);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-action-circle:hover .nf-action-circle__ring {
+      transform: none;
+    }
+  }
+  .nf-action-circle__label {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+
+  /*
+   * Three-tier bottom action bar: a ghost icon circle, a ghost pill and a
+   * solid pill sharing one row, safe-area aware. The row itself carries no
+   * material of its own; it is a layout convention over the existing button
+   * primitives so it drops into any sticky footer.
+   */
+  .nf-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .nf-action-bar__fill {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /*
+   * Full-bleed moment screen: the one-thing-happened surface (payment landed,
+   * booking confirmed, verification passed). A glowing badge, a headline, an
+   * optional line under it, and the actions pinned near the bottom. No card,
+   * no list, the whole viewport is the message.
+   */
+  @keyframes nf-moment-badge-in {
+    from {
+      opacity: 0;
+      transform: scale(0.7);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .nf-moment {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 60vh;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    position: relative;
+  }
+  .nf-moment__glow {
+    position: absolute;
+    top: 12%;
+    left: 50%;
+    width: 20rem;
+    height: 20rem;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--nf-moment-color, var(--nf-brand-primary)) 32%, transparent) 0%,
+      transparent 68%
+    );
+    filter: blur(4px);
+    pointer-events: none;
+  }
+  .nf-moment__badge {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1.75rem;
+    animation: nf-moment-badge-in 0.5s var(--nf-ease-standard) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-moment__badge {
+      animation: none;
+    }
+  }
+  .nf-moment__title {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+    max-width: 26rem;
+  }
+  .nf-moment__description {
+    position: relative;
+    z-index: 1;
+    margin-top: 0.6rem;
+    max-width: 24rem;
+    color: var(--nf-content-secondary);
+    line-height: 1.5;
+  }
+  .nf-moment__actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 22rem;
+    margin-top: 2.25rem;
+  }
+  .nf-moment__footnote {
+    position: relative;
+    z-index: 1;
+    margin-top: 1rem;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-moment--success {
+    --nf-moment-color: var(--nf-state-success);
+  }
+  .nf-moment--warning {
+    --nf-moment-color: var(--nf-state-warning);
+  }
+  .nf-moment--brand {
+    --nf-moment-color: var(--nf-brand-primary);
+  }
+
   /* ----------------------------------------------------------------- logo */
 
   .nf-logo {
@@ -804,6 +2060,127 @@ body {
     .nf-tabbar {
       background: var(--nf-surface-elevated);
     }
+  }
+
+  /*
+   * The tab bar's active destination pops a soft brand pill in behind it
+   * rather than only recolouring text. The pill's opacity and scale are
+   * driven off `aria-current`, so switching tabs always plays the same
+   * settle-in motion on whichever tab just became active.
+   */
+  @keyframes nf-tab-pop-in {
+    0% {
+      transform: scale(0.82);
+    }
+    55% {
+      transform: scale(1.06);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  .nf-tab-pop {
+    position: relative;
+  }
+  .nf-tab-pop__pill {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--nf-radius-md);
+    opacity: 0;
+    transform: scale(0.82);
+    background: var(--nf-gradient-brand);
+    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
+    transition:
+      opacity var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-tab-pop[aria-current="page"] .nf-tab-pop__pill {
+    opacity: 1;
+    transform: scale(1);
+    animation: nf-tab-pop-in 0.4s var(--nf-ease-standard);
+  }
+  .nf-tab-pop__icon {
+    position: relative;
+    display: flex;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-tab-pop[aria-current="page"] .nf-tab-pop__icon {
+    transform: translateY(-1px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-tab-pop[aria-current="page"] .nf-tab-pop__pill {
+      animation: none;
+    }
+    .nf-tab-pop[aria-current="page"] .nf-tab-pop__icon {
+      transform: none;
+    }
+  }
+
+  /*
+   * The desktop dock: a small floating capsule of quick-access icons, fixed
+   * to the bottom centre on `lg` and up. Same dark glass material as the
+   * mobile tab bar, at a fraction of the footprint, since the rail already
+   * carries full navigation here and this is reach, not a second menu.
+   */
+  .nf-dock {
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-glass-fill-strong);
+    border: 1px solid var(--nf-border-subtle);
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
+    box-shadow:
+      0 12px 32px -10px rgb(0 0 0 / 0.55),
+      inset 0 1px 0 rgb(255 255 255 / 0.06);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nf-dock {
+      background: var(--nf-surface-elevated);
+    }
+  }
+  .nf-dock__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-secondary);
+    transition:
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-dock__btn:hover {
+    color: var(--nf-content-primary);
+    background: rgb(255 255 255 / 0.06);
+    transform: translateY(-1px);
+  }
+  .nf-dock__btn[aria-current="page"] {
+    color: var(--nf-electric-300);
+    background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-dock__btn:hover {
+      transform: none;
+    }
+  }
+  :root[data-theme="light"] .nf-dock {
+    background: rgb(18 21 26 / 0.92);
+    border-color: rgb(18 21 26 / 0.92);
+  }
+  :root[data-theme="light"] .nf-dock__btn {
+    color: rgb(255 255 255 / 0.7);
+  }
+  :root[data-theme="light"] .nf-dock__btn:hover {
+    color: #fff;
+    background: rgb(255 255 255 / 0.12);
+  }
+  :root[data-theme="light"] .nf-dock__btn[aria-current="page"] {
+    color: var(--nf-electric-300);
+    background: rgb(255 255 255 / 0.14);
   }
 
   /* ------------------------------------------------------- ambient effects */
@@ -1140,7 +2517,7 @@ body {
        no geometry, so the canvas reads as atmosphere rather than graph paper. */
     background:
       linear-gradient(115deg, transparent 30%, color-mix(in oklab, var(--nf-electric-500) 14%, transparent) 46%, transparent 60%),
-      linear-gradient(65deg, transparent 42%, color-mix(in oklab, var(--nf-cyan-400) 9%, transparent) 55%, transparent 68%);
+      linear-gradient(65deg, transparent 42%, color-mix(in oklab, var(--nf-electric-300) 9%, transparent) 55%, transparent 68%);
     mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
     -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
     opacity: 0.35;
@@ -1213,7 +2590,17 @@ body {
     animation-delay: -3s;
   }
 
-  /* Scroll reveal. Hidden state lifts and fades; shown state settles. */
+  /*
+   * Scroll reveal. Hidden state lifts and fades; shown state settles.
+   *
+   * `will-change` is scoped to the hidden state only, never held past it: a
+   * permanent `will-change: transform` on the settled element would leave
+   * every one of these wrappers a live CSS containing block, which silently
+   * traps any `position: fixed` descendant (a full-page drawer, a dialog)
+   * to this box instead of the viewport. That was a real bug, not a
+   * hypothetical one: the wallet's Add money drawer rendered as a sliver
+   * clipped to its trigger row because of exactly this.
+   */
   .nf-reveal {
     opacity: 0;
     transform: translateY(22px);
@@ -1225,6 +2612,45 @@ body {
   .nf-reveal[data-shown="true"] {
     opacity: 1;
     transform: none;
+    will-change: auto;
+  }
+  /*
+   * Where scroll-driven animation exists, the reveal is handed to the
+   * compositor and tied to the block's own scroll position: it lifts,
+   * unblurs and settles as it enters, and replays on the way back. The
+   * observer state above stays as the fallback for older engines.
+   *
+   * The range lives entirely inside "entry" (the element's own transit into
+   * the viewport), never "cover": a "cover" endpoint needs scroll distance
+   * AFTER the element is already visible to finish, which the last section
+   * on any page does not have. That was leaving whatever a guest scrolled
+   * to last permanently blurred, since there was no more page left to
+   * scroll through to complete it. Entry alone finishes the moment the
+   * element has fully entered, regardless of what does or does not follow.
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+        animation: nf-reveal-in linear both;
+        animation-timeline: view();
+        animation-range: entry 4% entry 76%;
+      }
+    }
+  }
+  @keyframes nf-reveal-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 30px, 0) scale(0.988);
+      filter: blur(3px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-reveal {
@@ -1234,6 +2660,35 @@ body {
     }
     .nf-float-slow {
       animation: none !important;
+    }
+  }
+
+  /*
+   * Result grid assembly. Cards in a freshly loaded or refiltered list rise
+   * and fade in on a short stagger, so the grid reads as assembling rather
+   * than dropping in as one block. The delay is read from --card-i, which
+   * the grid caps at 5 (six steps) so a long page of results does not keep
+   * animating for seconds after the first row has already settled.
+   */
+  .nf-card-in {
+    animation: nf-card-in var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--card-i, 0) * 70ms);
+  }
+  @keyframes nf-card-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 14px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-card-in {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
     }
   }
 
@@ -1289,44 +2744,122 @@ body {
   /* ------------------------------------------------- daylight adaptations */
 
   /*
-   * Light mode is a designed twin, not an inversion: white-frost glass with
-   * the same blue edge ring at daylight intensity, controls on paper bodies,
-   * and the aurora as an airy sky wash. Everything else flows from tokens.
+   * Daylight, exchange-grade: flat pure-white cards on a neutral light-grey
+   * canvas, hairline neutral borders, soft neutral shadows, no glass blur
+   * and no blue wash. The brand blue appears only on active states,
+   * headlines and calls to action. Modelled on the cleanest exchange light
+   * themes; recoloured to our blue.
    */
   :root[data-theme="light"] .nf-card {
     background:
-      radial-gradient(125% 90% at 0% 0%, rgb(12 57 239 / 0.08) 0%, transparent 44%) padding-box,
-      linear-gradient(160deg, rgb(255 255 255 / 0.94) 0%, rgb(247 250 255 / 0.96) 100%) padding-box,
-      linear-gradient(135deg,
-        rgb(92 124 255 / 0.55) 0%,
-        rgb(12 57 239 / 0.32) 20%,
-        rgb(12 57 239 / 0.05) 46%,
-        transparent 68%)
-        border-box;
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.8),
-      0 8px 30px rgb(10 22 38 / 0.1);
+      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      linear-gradient(rgb(18 21 26 / 0.09), rgb(18 21 26 / 0.09)) border-box;
+    box-shadow: var(--nf-shadow-card);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   :root[data-theme="light"] .nf-card--interactive:hover {
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.9),
-      0 12px 40px rgb(10 22 38 / 0.14),
-      0 0 28px rgb(12 57 239 / 0.14);
+    background:
+      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      linear-gradient(rgb(12 57 239 / 0.35), rgb(12 57 239 / 0.35)) border-box;
+    box-shadow: var(--nf-shadow-lifted);
+  }
+  :root[data-theme="light"] .nf-card--interactive::after {
+    background: radial-gradient(
+      200px circle at var(--mx, 50%) var(--my, 40%),
+      rgb(12 57 239 / 0.05) 0%,
+      transparent 70%
+    );
   }
   :root[data-theme="light"] .nf-chip,
   :root[data-theme="light"] .nf-icon-btn {
-    background: linear-gradient(180deg, rgb(255 255 255 / 0.96), rgb(244 248 254 / 0.98));
-    border-color: rgb(12 57 239 / 0.3);
-    box-shadow: 0 2px 10px rgb(10 22 38 / 0.08), inset 0 0 8px rgb(12 57 239 / 0.04);
+    background: #FFFFFF;
+    border-color: rgb(18 21 26 / 0.12);
+    color: var(--nf-content-primary);
+    box-shadow: 0 1px 2px rgb(18 21 26 / 0.04);
   }
   :root[data-theme="light"] .nf-chip:hover,
   :root[data-theme="light"] .nf-icon-btn:hover {
-    border-color: rgb(12 57 239 / 0.6);
-    box-shadow: 0 4px 14px rgb(10 22 38 / 0.1), 0 0 14px rgb(12 57 239 / 0.16);
+    border-color: rgb(12 57 239 / 0.55);
+    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
+  }
+  /* Active filter chips go solid brand blue with white text, table-header
+     style, so the selected state is unmistakable on paper. */
+  :root[data-theme="light"] .nf-chip[aria-pressed="true"],
+  :root[data-theme="light"] .nf-chip--active {
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-primary);
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgb(12 47 232 / 0.3);
   }
   :root[data-theme="light"] .nf-btn--glass {
-    background: rgb(10 22 38 / 0.04);
-    border-color: rgb(10 22 38 / 0.14);
+    background: #FFFFFF;
+    border-color: rgb(18 21 26 / 0.14);
+    color: var(--nf-content-primary);
+  }
+  :root[data-theme="light"] .nf-btn--glass:hover:not(:disabled) {
+    background: #FFFFFF;
+    border-color: rgb(12 57 239 / 0.5);
+  }
+  :root[data-theme="light"] .nf-btn--primary {
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgb(12 47 232 / 0.28);
+  }
+  :root[data-theme="light"] .nf-btn--primary:hover:not(:disabled) {
+    box-shadow: 0 6px 18px rgb(12 47 232 / 0.34);
+  }
+  /* Inputs: flat white wells with neutral hairlines; blue only on focus. */
+  :root[data-theme="light"] .nf-field {
+    background:
+      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      linear-gradient(rgb(18 21 26 / 0.14), rgb(18 21 26 / 0.14)) border-box;
+    box-shadow: inset 0 1px 2px rgb(18 21 26 / 0.04);
+  }
+  :root[data-theme="light"] .nf-field:focus {
+    background:
+      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      linear-gradient(rgb(12 57 239 / 0.7), rgb(12 57 239 / 0.7)) border-box;
+    box-shadow:
+      inset 0 1px 2px rgb(18 21 26 / 0.04),
+      0 0 0 3px rgb(12 57 239 / 0.14);
+  }
+  /* The breathing live ring quiets down to a hairline on paper. */
+  :root[data-theme="light"] .nf-card--live {
+    box-shadow: var(--nf-shadow-card);
+  }
+  /*
+   * 3D icon tiles in daylight: the dark glass slab becomes a soft pastel
+   * tile of the glyph's own colour family, with a tinted hairline, so the
+   * 3D objects sit on clean coloured chips exactly like the best light
+   * platform iconography. The object's own material is untouched.
+   */
+  :root[data-theme="light"] .nf-icon3d .nf-icon3d__tile {
+    fill: color-mix(in oklab, var(--i3d-core, #0C39EF) 10%, #FFFFFF);
+  }
+  :root[data-theme="light"] .nf-icon3d .nf-icon3d__ring {
+    stroke: color-mix(in oklab, var(--i3d-core, #0C39EF) 35%, #FFFFFF);
+    stroke-opacity: 0.9;
+  }
+  :root[data-theme="light"] .nf-icon3d .nf-icon3d__spec {
+    opacity: 0.55;
+  }
+  :root[data-theme="light"] .nf-icon3d .nf-icon3d__bloom {
+    opacity: 0.35;
+  }
+  /* Header sign up: white on paper, ink label, hairline that warms to blue. */
+  :root[data-theme="light"] .nf-signup-btn {
+    background: #FFFFFF;
+    color: var(--nf-content-primary);
+    border: 1.5px solid rgb(18 21 26 / 0.14);
+    box-shadow: 0 1px 2px rgb(18 21 26 / 0.05);
+  }
+  :root[data-theme="light"] .nf-signup-btn:hover:not(:disabled) {
+    border-color: rgb(12 57 239 / 0.55);
+    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
+    transform: translateY(-1px);
+  }
+  :root[data-theme="light"] .nf-signup-btn::after {
+    display: none;
   }
   /*
    * Daylight is paper-first: near-white canvas, no neon wash. The waves, the
@@ -1334,21 +2867,30 @@ body {
    * only the faintest sky blooms so the page still has depth without ever
    * reading blue.
    */
+  /*
+   * The daylight canvas is a studio cloud: soft silver-white gradients with
+   * gentle depth, like a product photography sweep, never a flat grey and
+   * never a blue wash. Matches the owner's brand renders.
+   */
   :root[data-theme="light"] .nf-ambient {
-    background-image: none;
+    background:
+      radial-gradient(120% 90% at 78% -10%, #FFFFFF 0%, rgb(255 255 255 / 0) 55%),
+      radial-gradient(95% 75% at 8% 100%, #E9EBEF 0%, rgb(233 235 239 / 0) 62%),
+      radial-gradient(70% 60% at 94% 88%, #ECEEF2 0%, rgb(236 238 242 / 0) 55%),
+      linear-gradient(180deg, #F8F9FB 0%, #F2F3F6 100%);
   }
   :root[data-theme="light"] .nf-ambient > span:nth-child(1) {
     display: none;
   }
   :root[data-theme="light"] .nf-ambient > span:nth-child(2),
   :root[data-theme="light"] .nf-ambient > span:nth-child(3) {
-    opacity: 0.07;
+    display: none;
   }
   :root[data-theme="light"] .nf-ambient > span:nth-child(4) {
     display: none !important;
   }
   :root[data-theme="light"] .nf-ambient::before {
-    opacity: 0.07;
+    display: none;
   }
   :root[data-theme="light"] .nf-ambient::after {
     display: none;
@@ -1373,6 +2915,221 @@ body {
     display: inline-block;
   }
   :root[data-theme="light"] .nf-grain {
-    opacity: 0.03;
+    opacity: 0.015;
   }
+
+  /* ---------------------------------------- daylight component sweep */
+
+  /*
+   * Auth provider rows: the night glass slab becomes a flat white row with a
+   * neutral hairline and a soft paper shadow. The specular sheen and the blue
+   * bloom belong to the night theme only; hover warms the hairline to blue.
+   */
+  :root[data-theme="light"] .nf-auth-row {
+    background: #FFFFFF;
+    border-color: rgb(18 21 26 / 0.14);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: 0 1px 2px rgb(18 21 26 / 0.05);
+  }
+  :root[data-theme="light"] .nf-auth-row::after {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-auth-row:hover:not(:disabled) {
+    border-color: rgb(12 57 239 / 0.5);
+    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
+  }
+  :root[data-theme="light"] .nf-auth-row__mark {
+    background: var(--nf-surface-inset);
+    box-shadow: inset 0 0 0 1px rgb(18 21 26 / 0.06);
+  }
+  :root[data-theme="light"] .nf-auth-row__mark--email {
+    background: var(--nf-gradient-brand);
+    box-shadow: none;
+  }
+
+  /* Skeletons shimmer with ink on paper, not white on white. */
+  :root[data-theme="light"] .nf-skeleton {
+    background:
+      linear-gradient(
+        100deg,
+        rgb(18 21 26 / 0.04) 36%,
+        rgb(18 21 26 / 0.09) 50%,
+        rgb(18 21 26 / 0.04) 64%
+      )
+      var(--nf-surface-inset);
+    background-size: 200% 100%;
+  }
+
+  /* The tab bar's heavy night shadow becomes a soft neutral lift. */
+  :root[data-theme="light"] .nf-tabbar {
+    box-shadow: 0 -8px 24px -16px rgb(18 21 26 / 0.18);
+  }
+  :root[data-theme="light"] .nf-tab-pop__pill {
+    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+  }
+
+  /* The AI banner artwork stays a lit render; only the frame goes neutral:
+     hairline ring and paper shadow instead of the blue bloom. */
+  :root[data-theme="light"] .nf-ai-banner {
+    box-shadow:
+      inset 0 0 0 1px rgb(18 21 26 / 0.1),
+      var(--nf-shadow-card);
+  }
+
+  /* Overlines hold AA on white: same neutral ink family, deeper step. */
+  :root[data-theme="light"] .nf-overline {
+    color: rgb(18 21 26 / 0.66);
+  }
+
+  /* Gradient headlines drop the airy #5C7CFF stop, which washes out on
+     paper, and run the deep electric ramp instead. */
+  :root[data-theme="light"] .nf-gradient-text {
+    background: linear-gradient(135deg, #0C39EF 0%, #0010D0 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* The live ring calms to a neutral hairline carrying one slow blue glint,
+     so hero frames stay premium without a neon border on paper. */
+  :root[data-theme="light"] .nf-card--live {
+    background:
+      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      conic-gradient(
+          from var(--nf-spin),
+          rgb(12 57 239 / 0.55) 0%,
+          rgb(18 21 26 / 0.1) 18%,
+          rgb(18 21 26 / 0.1) 82%,
+          rgb(12 57 239 / 0.55) 100%
+        )
+        border-box;
+  }
+
+  /* Glass tiles used as cards (moods, destinations) become true white cards:
+     no blur, hairline border, paper shadow, blue hairline on hover. Sticky
+     header bars keep their translucent glass; they never carry the
+     interactive card class. */
+  :root[data-theme="light"] .nf-glass.nf-card--interactive {
+    background: #FFFFFF;
+    border-color: rgb(18 21 26 / 0.1);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: var(--nf-shadow-card);
+  }
+  :root[data-theme="light"] .nf-glass.nf-card--interactive:hover {
+    border-color: rgb(12 57 239 / 0.35);
+    box-shadow: var(--nf-shadow-lifted);
+  }
+
+  /* Small glass chips sitting on a white card (the step numbers) need a
+     visible well instead of white on white. */
+  :root[data-theme="light"] .nf-card .nf-glass {
+    background: var(--nf-surface-inset);
+    border-color: rgb(18 21 26 / 0.1);
+  }
+
+  /* Ghost buttons get a real resting hover on paper. */
+  :root[data-theme="light"] .nf-btn--ghost:hover:not(:disabled) {
+    background: var(--nf-surface-inset);
+  }
+
+  /* The language switcher is a control, not a call to action: white pill,
+     ink label, neutral hairline. Real CTAs keep the blue. */
+  :root[data-theme="light"] select.nf-btn--primary {
+    background: #FFFFFF;
+    color: var(--nf-content-primary);
+    border-color: rgb(18 21 26 / 0.14);
+    box-shadow: 0 1px 2px rgb(18 21 26 / 0.05);
+  }
+  :root[data-theme="light"] select.nf-btn--primary:hover:not(:disabled) {
+    border-color: rgb(12 57 239 / 0.5);
+    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
+  }
+
+  /* Active map pin: brand hairline and a clean lift, no neon halo. */
+  :root[data-theme="light"] .nf-map-pin--active {
+    border-color: var(--nf-brand-primary);
+    box-shadow: 0 6px 18px rgb(18 21 26 / 0.22);
+  }
+
+  /* Wallet balance card: the cyan conic sheen and the white grid texture are
+     night-glass dressing; on a white card they read as smears, so daylight
+     removes them and inks the sparkline in brand blue. */
+  :root[data-theme="light"] .nf-wallet-sheen,
+  :root[data-theme="light"] .nf-wallet-grid {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-wallet-spark polyline {
+    stroke: var(--nf-brand-primary);
+    filter: none !important;
+  }
+
+  /*
+   * New premium primitives in daylight: the dark glass rings and sunken
+   * blacks read as smudges on paper, so they become flat white rings and a
+   * neutral inset well, same shapes, same behaviour.
+   */
+  :root[data-theme="light"] .nf-badge-overlap {
+    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 35%, transparent),
+      0 0 0 3px var(--nf-surface-canvas);
+  }
+  :root[data-theme="light"] .nf-panel-sunken {
+    background: var(--nf-surface-inset);
+    box-shadow:
+      inset 0 2px 8px rgb(18 21 26 / 0.1),
+      inset 0 0 0 1px var(--nf-border-subtle);
+  }
+  :root[data-theme="light"] .nf-action-circle__ring {
+    background: #FFFFFF;
+    border-color: rgb(18 21 26 / 0.12);
+    box-shadow: 0 1px 2px rgb(18 21 26 / 0.04);
+  }
+  :root[data-theme="light"] .nf-action-circle:hover .nf-action-circle__ring {
+    border-color: rgb(12 57 239 / 0.55);
+    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
+  }
+  :root[data-theme="light"] .nf-action-circle__ring--solid {
+    box-shadow: 0 8px 20px -6px rgb(12 47 232 / 0.32);
+  }
+}
+
+/*
+ * Daylight fixes that must outrank Tailwind utilities.
+ *
+ * Tailwind emits utilities in a later cascade layer than the components block
+ * above, so a light override of a utility-painted surface has to live outside
+ * every layer. Kept deliberately tiny and scoped to :root[data-theme="light"];
+ * the night theme never reaches these rules.
+ */
+
+/* Translucent-white wells and hairlines inside cards (the wallet balance
+   stats, the eye toggle, the ledger icon tiles) are invisible white on white
+   in daylight; they become neutral inset wells with real hairlines. */
+:root[data-theme="light"] .nf-card :is(.bg-white\/5, .bg-white\/\[0\.04\], .bg-white\/\[0\.05\]) {
+  background-color: var(--nf-surface-inset);
+}
+:root[data-theme="light"] .nf-card :is(.border-white\/10, .border-white\/15) {
+  border-color: var(--nf-border-default);
+}
+
+/* The open wallet action tile swaps its neon halo for a blue hairline and a
+   paper shadow: still unmistakably active, never a glow smear. */
+:root[data-theme="light"] button.nf-card[aria-expanded="true"] {
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(rgb(12 57 239 / 0.55), rgb(12 57 239 / 0.55)) border-box;
+  box-shadow: var(--nf-shadow-card);
+}
+
+/* Hover feedback painted with the glass fill (rail links, list rows, nav
+   items) is white on white in daylight; it becomes a quiet neutral wash. */
+:root[data-theme="light"] .hover\:bg-\[var\(--nf-glass-fill\)\]:hover {
+  background-color: rgb(18 21 26 / 0.05);
+}
+
+/* Text selection on paper: light brand tint under ink, not white on mid-blue. */
+:root[data-theme="light"] ::selection {
+  background: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
+  color: var(--nf-content-primary);
 }

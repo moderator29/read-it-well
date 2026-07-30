@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import type { AgentProfile } from "@/lib/agent/types";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -14,21 +14,21 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * so they render on the server inside AgentRail and in the client bundle
  * inside the drawer without any boundary friction.
  */
-export type AgentNavItem = { href: string; label: string; icon: IconName; badge?: number };
+export type AgentNavItem = { href: string; label: string; icon: BrandIconName; badge?: number };
 
 /** The ten frozen destinations, in reference order. */
 export function buildAgentNav(t: Dictionary): AgentNavItem[] {
   return [
-    { href: "/agent/dashboard", label: t.agent.nav.dashboard, icon: "home" },
-    { href: "/agent/listings", label: t.agent.nav.myListings, icon: "apartment" },
-    { href: "/agent/list", label: t.agent.nav.listApartment, icon: "booking" },
-    { href: "/agent/bookings", label: t.agent.nav.bookings, icon: "booking" },
+    { href: "/agent/dashboard", label: t.agent.nav.dashboard, icon: "house-sparkle" },
+    { href: "/agent/listings", label: t.agent.nav.myListings, icon: "homes-sparkle" },
+    { href: "/agent/list", label: t.agent.nav.listApartment, icon: "calendar-check" },
+    { href: "/agent/bookings", label: t.agent.nav.bookings, icon: "calendar-check" },
     { href: "/agent/messages", label: t.agent.nav.messages, icon: "chat", badge: 3 },
-    { href: "/agent/reviews", label: t.agent.nav.reviews, icon: "favorites" },
-    { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet" },
-    { href: "/agent/analytics", label: t.agent.nav.analytics, icon: "map" },
-    { href: "/agent/verification", label: t.agent.nav.verification, icon: "verified" },
-    { href: "/agent/settings", label: t.agent.nav.settings, icon: "settings" },
+    { href: "/agent/reviews", label: t.agent.nav.reviews, icon: "heart-home" },
+    { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet-secure" },
+    { href: "/agent/analytics", label: t.agent.nav.analytics, icon: "map-route" },
+    { href: "/agent/verification", label: t.agent.nav.verification, icon: "shield-check" },
+    { href: "/agent/settings", label: t.agent.nav.settings, icon: "doc-shield" },
   ];
 }
 
@@ -90,7 +90,7 @@ export function AgentNavList({
                 }
               >
                 <span className="h-[26px] w-[26px] shrink-0">
-                  <Icon name={item.icon} fill />
+                  <BrandIcon name={item.icon} fill />
                 </span>
                 <span className="flex-1">{item.label}</span>
                 {item.badge ? (
@@ -119,7 +119,7 @@ export function AgentIdentityCard({
   verifiedLabel: string;
 }) {
   return (
-    <div className="nf-card flex items-center gap-3 p-3">
+    <div className="nf-card flex items-center gap-4 p-3">
       <span
         className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.8125rem] font-bold text-white"
         style={{ background: "var(--nf-gradient-agent)" }}

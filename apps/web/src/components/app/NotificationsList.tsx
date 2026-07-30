@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 
 /**
  * Notifications list.
@@ -25,7 +25,7 @@ const FILTERS: { key: Filter; label: string }[] = [
 type Item = {
   id: string;
   kind: Filter;
-  icon: IconName;
+  icon: BrandIconName;
   title: string;
   body: string;
   when: string;
@@ -37,7 +37,7 @@ const ITEMS: Item[] = [
   {
     id: "booking-lekki",
     kind: "bookings",
-    icon: "booking",
+    icon: "calendar-check",
     title: "Booking confirmed",
     body: "Lekki Palm Grove Shortlet is locked in. Your check-in details are waiting under Bookings.",
     when: "Today",
@@ -55,7 +55,7 @@ const ITEMS: Item[] = [
   {
     id: "offer-calabar",
     kind: "offers",
-    icon: "experience",
+    icon: "luggage-check",
     title: "Weekend escape to Calabar",
     body: "Waterfront hotels and the Kwa Falls day trip are trending. See what is on this weekend.",
     when: "Yesterday",
@@ -64,7 +64,7 @@ const ITEMS: Item[] = [
   {
     id: "wallet-ready",
     kind: "all",
-    icon: "wallet",
+    icon: "wallet-secure",
     title: "Your wallet is ready",
     body: "Fund it once and pay for any stay in seconds, all in naira.",
     when: "Yesterday",
@@ -73,7 +73,7 @@ const ITEMS: Item[] = [
   {
     id: "welcome",
     kind: "all",
-    icon: "notification",
+    icon: "bell-alert",
     title: "Welcome to RentMe",
     body: "Your account is ready. Start exploring stays, food and experiences.",
     when: "3 days ago",
@@ -110,7 +110,7 @@ export function NotificationsList() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex items-center justify-between gap-4">
         <ul className="nf-scroll-x flex gap-2">
           {FILTERS.map((f) => (
             <li key={f.key}>
@@ -139,8 +139,8 @@ export function NotificationsList() {
               "flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[var(--nf-glass-fill)]";
             const inner = (
               <>
-                <span className="h-8 w-8 shrink-0">
-                  <Icon name={n.icon} fill />
+                <span className="h-13 w-13 shrink-0">
+                  <BrandIcon name={n.icon} fill />
                 </span>
                 <span className="min-w-0 flex-1 leading-tight">
                   <span className="block text-[0.9063rem] font-semibold">{n.title}</span>

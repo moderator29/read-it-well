@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import type { Locale } from "@naijafinds/i18n";
 import { NIGERIAN_BANKS } from "@/lib/data/nigeria";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import {
   requestDeposit,
   requestTransfer,
@@ -32,32 +32,28 @@ const EMPTY: WalletActionResult = { ok: false };
 const PANELS: {
   key: PanelKey;
   label: string;
-  icon: IconName;
-  ramp: "emerald" | "sky" | "cyan";
+  icon: BrandIconName;
   title: string;
   hint: string;
 }[] = [
   {
     key: "add",
     label: "Add money",
-    icon: "wallet",
-    ramp: "emerald",
+    icon: "wallet-secure",
     title: "Add money to your wallet",
     hint: "Fund your wallet by card or bank transfer once payments are connected.",
   },
   {
     key: "withdraw",
     label: "Withdraw",
-    icon: "secure",
-    ramp: "sky",
+    icon: "shield-lock",
     title: "Withdraw to your bank",
     hint: "Send wallet funds to any Nigerian bank account in your name.",
   },
   {
     key: "transfer",
     label: "Transfer",
-    icon: "profile",
-    ramp: "cyan",
+    icon: "user-check",
     title: "Transfer to another user",
     hint: "Send money to any RentMe user by email or phone number.",
   },
@@ -91,8 +87,8 @@ export function WalletActions({ locale }: { locale: Locale }) {
                 : ""
             }`}
           >
-            <span className="h-7 w-7">
-              <Icon name={p.icon} fill ramp={p.ramp} />
+            <span className="h-12 w-12">
+              <BrandIcon name={p.icon} fill />
             </span>
             {p.label}
           </button>
@@ -108,10 +104,10 @@ export function WalletActions({ locale }: { locale: Locale }) {
           aria-labelledby={`nf-wallet-panel-${active.key}-title`}
           className="nf-card mt-3 p-4 outline-none sm:p-5"
         >
-          <div className="mb-3 flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <span className="h-7 w-7 shrink-0">
-                <Icon name={active.icon} fill ramp={active.ramp} />
+          <div className="mb-3 flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <span className="h-12 w-12 shrink-0">
+                <BrandIcon name={active.icon} fill />
               </span>
               <div>
                 <h2

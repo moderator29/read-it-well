@@ -7,26 +7,56 @@ import { AgentShell } from "@/components/agent/AgentShell";
 import { StatCard } from "@/components/agent/StatCard";
 import { AreaSparkline } from "@/components/agent/charts/AreaSparkline";
 import { DonutChart } from "@/components/agent/charts/DonutChart";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import {
+  agentProfileFrom,
+  getAgentContext,
+  readAgentNumbers,
+} from "@/lib/agent/listings-queries";
+import { RealDashboard } from "./RealDashboard";
 
-export const metadata: Metadata = {
-  title: "Agent Dashboard",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.agent.dashboard.title, robots: { index: false, follow: false } };
+}
 
 export default async function AgentDashboardPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
+
+  // A signed-in approved agent sees their own numbers, read live under RLS.
+  // Everyone else keeps the designed workspace on its seeded content, which is
+  // labelled as such by the panel below.
+  const context = await getAgentContext();
+  if (context.state === "agent") {
+    const numbers = await readAgentNumbers(context.supabase, context.agent.id, context.user.id);
+    return (
+      <AgentShell
+        t={t}
+        locale={locale}
+        active="/agent/dashboard"
+        profile={agentProfileFrom(context.agent)}
+      >
+        <RealDashboard
+          t={t}
+          locale={locale}
+          displayName={context.agent.displayName}
+          numbers={numbers}
+        />
+      </AgentShell>
+    );
+  }
+
   const repo = getAgentRepository();
   const [profile, d] = await Promise.all([repo.getProfile(), repo.getDashboard()]);
 
   const a = t.agent.dashboard;
 
-  const quickActions: { icon: IconName; label: string; href: string }[] = [
-    { icon: "apartment", label: a.addListing, href: "/agent/list" },
-    { icon: "booking", label: a.viewBookings, href: "/agent/bookings" },
-    { icon: "verified", label: a.manageListings, href: "/agent/listings" },
-    { icon: "wallet", label: a.earningsReport, href: "/agent/earnings" },
+  const quickActions: { icon: BrandIconName; label: string; href: string }[] = [
+    { icon: "homes-sparkle", label: a.addListing, href: "/agent/list" },
+    { icon: "calendar-check", label: a.viewBookings, href: "/agent/bookings" },
+    { icon: "shield-check", label: a.manageListings, href: "/agent/listings" },
+    { icon: "wallet-secure", label: a.earningsReport, href: "/agent/earnings" },
   ];
 
   return (
@@ -35,13 +65,13 @@ export default async function AgentDashboardPage() {
         <p className="nf-badge nf-badge--warning mb-5">{a.sampleNote}</p>
       )}
 
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="nf-h1">{a.title}</h1>
           <p className="mt-1 text-[var(--nf-content-secondary)]">{a.subtitle}</p>
         </div>
         <Link href="/agent/list" className="nf-btn nf-btn--primary">
-          <Icon name="apartment" size={22} />
+          <BrandIcon name="homes-sparkle" size={22} />
           {a.addListing}
         </Link>
       </div>
@@ -49,30 +79,30 @@ export default async function AgentDashboardPage() {
       {/* Stat row: two-up on phones (the odd fifth tile going full width so no
           orphan hangs in a half-empty row), three-up on tablets, five across
           on desktop. */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard
-          icon="wallet"
+          icon="wallet-secure"
           label={a.totalEarnings}
           value={formatMoney(d.totalEarningsMinor, locale, "NGN", { compact: true })}
           deltaPct={d.deltas.earnings}
           deltaLabel={a.lastMonth}
         />
         <StatCard
-          icon="booking"
+          icon="calendar-check"
           label={a.totalBookings}
           value={formatNumber(d.totalBookings, locale)}
           deltaPct={d.deltas.bookings}
           deltaLabel={a.lastMonth}
         />
         <StatCard
-          icon="apartment"
+          icon="homes-sparkle"
           label={a.activeListings}
           value={formatNumber(d.activeListings, locale)}
           deltaPct={d.deltas.listings}
           deltaLabel={a.lastMonth}
         />
         <StatCard
-          icon="home"
+          icon="house-sparkle"
           label={a.occupancyRate}
           value={`${d.occupancyPct}%`}
           deltaPct={d.deltas.occupancy}
@@ -116,12 +146,12 @@ export default async function AgentDashboardPage() {
           </div>
           <ul className="space-y-3">
             {d.recentBookings.map((b) => (
-              <li key={b.id} className="flex items-center gap-3">
+              <li key={b.id} className="flex items-center gap-4">
                 <span
                   className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)]"
                   style={{ background: "var(--nf-surface-raised)" }}
                 >
-                  <Icon name="apartment" size={26} />
+                  <BrandIcon name="homes-sparkle" size={26} />
                 </span>
                 <span className="min-w-0 flex-1 leading-tight">
                   <span className="block truncate text-[0.8125rem] font-semibold">{b.title}</span>
@@ -160,7 +190,7 @@ export default async function AgentDashboardPage() {
                 key={l.id}
                 className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-3"
               >
-                <div className="flex items-baseline justify-between gap-3">
+                <div className="flex items-baseline justify-between gap-4">
                   <p className="min-w-0 truncate text-[0.8125rem] font-semibold">{l.title}</p>
                   <p className="nf-numeric shrink-0 text-[0.8125rem] font-bold">
                     {formatMoney(l.revenueMinor, locale, "NGN", { compact: true })}
@@ -240,7 +270,7 @@ export default async function AgentDashboardPage() {
             </div>
             <ul className="space-y-3">
               {d.guestMessages.map((m) => (
-                <li key={m.id} className="flex items-center gap-3">
+                <li key={m.id} className="flex items-center gap-4">
                   <span
                     className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.75rem] font-bold text-white"
                     style={{ background: "var(--nf-gradient-brand)" }}
@@ -266,15 +296,15 @@ export default async function AgentDashboardPage() {
       {/* Quick actions */}
       <section className="mt-4">
         <h2 className="nf-h3 mb-3">{a.quickActions}</h2>
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {quickActions.map((q) => (
             <li key={q.href}>
               <Link
                 href={q.href}
                 className="nf-card nf-card--interactive flex flex-col items-center gap-2 p-4 text-center sm:p-5"
               >
-                <span className="h-10 w-10 sm:h-11 sm:w-11">
-                  <Icon name={q.icon} fill />
+                <span className="h-13 w-13 sm:h-16 sm:w-16">
+                  <BrandIcon name={q.icon} fill />
                 </span>
                 <span className="text-[0.8125rem] font-semibold">{q.label}</span>
               </Link>

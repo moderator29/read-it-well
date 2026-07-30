@@ -30,11 +30,14 @@ export function AuthPanel({
   t,
   providers,
   action,
+  notice,
 }: {
   mode: "sign-in" | "sign-up";
   t: Dictionary;
   providers: ProviderState[];
   action: (prev: AuthFormState, formData: FormData) => Promise<AuthFormState>;
+  /** A message from the auth callback, for example an expired link. */
+  notice?: string | undefined;
 }) {
   const [state, formAction, pending] = useActionState(action, EMPTY);
   const [showEmail, setShowEmail] = useState(false);
@@ -62,6 +65,15 @@ export function AuthPanel({
         {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
       </p>
 
+      {notice ? (
+        <p
+          role="status"
+          className="nf-card mt-4 px-4 py-3 text-center text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+        >
+          {notice}
+        </p>
+      ) : null}
+
       {/*
        * Demo entry. Temporary scaffold while the auth environment is not wired:
        * it drops a short-lived demo cookie and opens the app so the whole
@@ -79,7 +91,7 @@ export function AuthPanel({
         {t.auth.exploreDemo}
       </Link>
 
-      <div className="my-5 flex items-center gap-3" aria-hidden="true">
+      <div className="my-5 flex items-center gap-4" aria-hidden="true">
         <span className="h-px flex-1 bg-[var(--nf-border-subtle)]" />
         <span className="text-[0.75rem] uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
           {t.auth.orContinue}
@@ -105,7 +117,7 @@ export function AuthPanel({
           <form action={formAction} className="nf-rise space-y-3.5 text-left" noValidate>
             {isSignUp && (
               <>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <Field
                     id="firstName"
                     name="firstName"
@@ -491,7 +503,7 @@ function StrengthMeter({ password }: { password: string }) {
 
   return (
     <div className="-mt-1.5">
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-3">
         <div className="flex flex-1 gap-1.5">
           {([1, 2, 3, 4] as const).map((segment) => (
             <span

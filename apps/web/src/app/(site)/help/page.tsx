@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Icon } from "@/design-system/icons/Icon";
+import { SupportChat } from "@/components/app/account/SupportChat";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { HelpSearch, type Faq } from "./HelpSearch";
 
 export const metadata: Metadata = {
@@ -122,7 +123,7 @@ export default function HelpPage() {
         <div className="nf-rise text-center">
           <span className="nf-chip mx-auto">
             <span className="inline-grid h-4 w-4 place-items-center">
-              <Icon name="help" fill />
+              <BrandIcon name="support-chat" fill />
             </span>
             Help centre
           </span>
@@ -138,11 +139,16 @@ export default function HelpPage() {
           <HelpSearch faqs={FAQS} />
         </div>
 
+        {/* ------------------------------------------- ask the agent */}
+        <div className="nf-rise mt-10" style={{ animationDelay: "160ms" }}>
+          <SupportChat />
+        </div>
+
         {/* ------------------------------------------------ still stuck */}
         <div className="nf-card mt-14 flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-          <div className="flex items-center gap-3">
-            <span className="inline-grid h-10 w-10 shrink-0 place-items-center">
-              <Icon name="chat" fill />
+          <div className="flex items-center gap-4">
+            <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
+              <BrandIcon name="chat" fill />
             </span>
             <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
               Still stuck? A person replies within one business day.

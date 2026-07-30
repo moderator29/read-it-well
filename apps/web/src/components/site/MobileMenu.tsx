@@ -103,7 +103,7 @@ export function MobileMenu({
 
             <div className="mt-6">
               <p className="nf-overline mb-3">Community</p>
-              <div className="mb-5 flex gap-2.5">
+              <div className="mb-5 flex gap-3">
                 <a
                   href="mailto:hello@rentme.ng"
                   aria-label="Email RentMe"

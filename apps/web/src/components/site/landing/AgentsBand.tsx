@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -35,7 +35,7 @@ export function AgentsBand({ t }: { t: Dictionary }) {
 
               <ul className="mt-5 space-y-2.5">
                 {points.map((p) => (
-                  <li key={p} className="flex items-start gap-2.5">
+                  <li key={p} className="flex items-start gap-3">
                     <UiIcon
                       name="verified"
                       size={18}
@@ -61,13 +61,13 @@ export function AgentsBand({ t }: { t: Dictionary }) {
               className="relative mx-auto h-44 w-full max-w-[18rem] sm:h-52 lg:h-64"
             >
               <span className="nf-float absolute left-[6%] top-[8%] h-20 w-20 sm:h-24 sm:w-24 lg:h-28 lg:w-28">
-                <Icon name="apartment" fill />
+                <BrandIcon name="homes-sparkle" fill />
               </span>
-              <span className="nf-float-slow absolute bottom-[6%] left-[38%] h-16 w-16 opacity-90 sm:h-20 sm:w-20">
-                <Icon name="wallet" fill />
+              <span className="nf-float-slow absolute bottom-[6%] left-[38%] h-20 w-20 opacity-90 sm:h-24 sm:w-24">
+                <BrandIcon name="wallet-secure" fill />
               </span>
-              <span className="nf-float-slow absolute right-[6%] top-[16%] h-14 w-14 opacity-80 sm:h-16 sm:w-16">
-                <Icon name="verified" fill />
+              <span className="nf-float-slow absolute right-[6%] top-[16%] h-16 w-16 opacity-80 sm:h-16 sm:w-16">
+                <BrandIcon name="shield-check" fill />
               </span>
             </div>
           </div>

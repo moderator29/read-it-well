@@ -39,14 +39,17 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
                 href={tab.href}
                 aria-current={isActive ? "page" : undefined}
                 className={[
-                  "flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-[var(--nf-radius-md)] px-1 py-1.5 text-[0.6875rem] font-semibold transition-colors",
+                  "nf-tab-pop flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-[var(--nf-radius-md)] px-1 py-1.5 text-[0.6875rem] font-semibold transition-colors",
                   isActive
-                    ? "text-[var(--nf-electric-300)]"
+                    ? "text-white"
                     : "text-[var(--nf-content-primary)] opacity-75 hover:opacity-100",
                 ].join(" ")}
               >
+                <span className="nf-tab-pop__pill" aria-hidden="true" />
                 {/* Stroked glyph; the active tab draws a heavier line. */}
-                <UiIcon name={tab.icon} size={24} strokeWidth={isActive ? 2 : 1.8} />
+                <span className="nf-tab-pop__icon">
+                  <UiIcon name={tab.icon} size={24} strokeWidth={isActive ? 2 : 1.8} />
+                </span>
                 <span className="truncate">{tab.label}</span>
               </Link>
             </li>

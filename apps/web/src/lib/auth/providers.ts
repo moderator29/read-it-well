@@ -1,16 +1,22 @@
-import "server-only";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 /**
- * Auth provider availability.
+ * Which sign-in methods the platform can honestly offer right now.
  *
- * Each provider is enabled only when its credentials are actually present in
- * the environment. Nothing here fakes a working sign in: an unconfigured
- * provider renders as a disabled control with an honest explanation, rather
- * than a button that looks live and then fails (Master Rule 8).
+ * Auth runs on Supabase, which means the OAuth client secrets live in the
+ * Supabase dashboard and never in this application. An earlier version of this
+ * file asked the app for GOOGLE_CLIENT_SECRET and friends, which it will never
+ * hold, so those buttons could never light up no matter how correctly the
+ * dashboard was configured. That was the bug.
  *
- * Only the presence of a variable is ever read here. No secret value is
- * returned, and this module is server only so none of it can reach the client
- * bundle (Master Rule 9).
+ * The honest signals are:
+ *  - email and password work as soon as Supabase itself is configured, because
+ *    Supabase issues the session and sends the confirmation mail.
+ *  - a social provider works only once the owner has enabled it in the
+ *    Supabase dashboard, which this application cannot detect. So it is an
+ *    explicit opt-in through NEXT_PUBLIC_AUTH_PROVIDERS, a comma separated
+ *    list, set once the dashboard side is done. Offering a provider that is
+ *    not enabled would send someone to an error page, so the default is off.
  */
 
 export type ProviderId = "email" | "google" | "apple";
@@ -20,23 +26,29 @@ export type ProviderState = {
   configured: boolean;
 };
 
-function has(...keys: string[]): boolean {
-  return keys.every((k) => {
-    const v = process.env[k];
-    return typeof v === "string" && v.trim().length > 0;
-  });
+const SOCIAL_IDS = ["google", "apple"] as const;
+
+/** The opt-in list, lowercased and trimmed. Empty when unset. */
+function enabledSocials(): Set<string> {
+  const raw = process.env.NEXT_PUBLIC_AUTH_PROVIDERS ?? "";
+  return new Set(
+    raw
+      .split(",")
+      .map((entry) => entry.trim().toLowerCase())
+      .filter((entry) => entry.length > 0),
+  );
 }
 
 export function getProviderStates(): ProviderState[] {
+  const supabaseReady = isSupabaseConfigured();
+  const socials = enabledSocials();
+
   return [
-    // Email sign in needs somewhere to put the user and something to send mail.
-    { id: "email", configured: has("AUTH_DATABASE_URL", "RESEND_API_KEY") },
-    { id: "google", configured: has("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") },
-    // Apple additionally needs the signing key, team and key identifiers.
-    {
-      id: "apple",
-      configured: has("APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY"),
-    },
+    { id: "email", configured: supabaseReady },
+    ...SOCIAL_IDS.map((id) => ({
+      id,
+      configured: supabaseReady && socials.has(id),
+    })),
   ];
 }
 

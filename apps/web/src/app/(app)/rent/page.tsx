@@ -6,8 +6,11 @@ import { getListingRepository } from "@/lib/listings/repository";
 import { getMessageRepository } from "@/lib/messages/repository";
 import { ListingCard } from "@/components/app/ListingCard";
 import { PageHeader } from "@/components/app/PageHeader";
+import { PageScene } from "@/components/app/PageScene";
+import { SceneBanner } from "@/components/app/SceneBanner";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 export const metadata: Metadata = {
   title: "Rent",
@@ -46,7 +49,10 @@ export default async function RentPage({
 
   return (
     <>
+      <div className="relative">
+        <PageScene art="/brand/story-search.png" />
       <PageHeader title={t.nav.rent} />
+      </div>
 
       <Reveal as="section" className="mt-2">
         <p className="max-w-[52ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -55,7 +61,7 @@ export default async function RentPage({
         </p>
 
         {/* The safety rule of the rent market, stated up front. */}
-        <div className="nf-card mt-4 flex items-start gap-3 p-4">
+        <div className="nf-card mt-4 flex items-start gap-4 p-4">
           <UiIcon
             name="verified"
             size={18}
@@ -67,6 +73,17 @@ export default async function RentPage({
             you have inspected the property.
           </p>
         </div>
+
+        <SceneBanner
+          art="/brand/story-shield.png"
+          alt="The RentMe shield mark with a verification check"
+          stage="paper"
+          title="Every rental here is checked"
+          body="Listings and agents are verified before they go live, and the whole conversation stays inside RentMe."
+          href="/help"
+          action="How we protect you"
+          className="mt-4"
+        />
 
         <nav aria-label="Rent by city" className="nf-scroll-x -mx-5 mt-4 md:-mx-8">
           <ul className="flex gap-2 px-5 md:px-8">
@@ -95,7 +112,10 @@ export default async function RentPage({
       <Reveal className="mt-5" delay={60}>
         {rentals.length === 0 ? (
           <div className="nf-card p-10 text-center">
-            <p className="font-semibold">No rentals matched</p>
+            <span className="nf-story-art mx-auto block h-20 w-20">
+              <BrandIcon name="keys-home" fill />
+            </span>
+            <p className="mt-4 font-semibold">No rentals matched</p>
             <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
               Try another city, or browse everything for rent.
             </p>
@@ -104,9 +124,9 @@ export default async function RentPage({
             </Link>
           </div>
         ) : (
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {rentals.map((r) => (
-              <li key={r.id} className="flex flex-col gap-2.5">
+              <li key={r.id} className="flex flex-col gap-3">
                 <ListingCard listing={r} locale={locale} t={t} />
                 <Link
                   href={messageHrefs.get(r.id) ?? "/messages"}

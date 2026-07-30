@@ -1,12 +1,3 @@
-/**
- * Generated database types. Do not edit by hand.
- *
- * Regenerate after every migration with the Supabase type generator against
- * project uccixoonmbhrnyczyigt, then paste the output here. This file is the
- * single source of truth for table, row and enum shapes on the client and
- * server.
- */
-
 export type Json =
   | string
   | number
@@ -187,6 +178,62 @@ export type Database = {
             columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "agent_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -412,6 +459,96 @@ export type Database = {
           },
         ]
       }
+      feature_flags: {
+        Row: {
+          enabled: boolean
+          key: string
+          note: string | null
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          key: string
+          note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          key?: string
+          note?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      idempotency_records: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          expires_at: string
+          key: string
+          result: Json | null
+          scope: string
+          subject: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at: string
+          key: string
+          result?: Json | null
+          scope: string
+          subject: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          key?: string
+          result?: Json | null
+          scope?: string
+          subject?: string
+        }
+        Relationships: []
+      }
+      inspection_confirmations: {
+        Row: {
+          confirmed_at: string
+          conversation_id: string
+          id: string
+          listing_id: string
+          user_id: string
+        }
+        Insert: {
+          confirmed_at?: string
+          conversation_id: string
+          id?: string
+          listing_id: string
+          user_id: string
+        }
+        Update: {
+          confirmed_at?: string
+          conversation_id?: string
+          id?: string
+          listing_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_confirmations_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_confirmations_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ledger_entries: {
         Row: {
           agent_share_minor: number
@@ -546,6 +683,7 @@ export type Database = {
           max_guests: number
           min_stay_nights: number
           price_per_night_minor: number
+          price_period: Database["public"]["Enums"]["price_period"]
           property_type: Database["public"]["Enums"]["property_type"]
           published_at: string | null
           review_notes: string | null
@@ -578,6 +716,7 @@ export type Database = {
           max_guests?: number
           min_stay_nights?: number
           price_per_night_minor?: number
+          price_period?: Database["public"]["Enums"]["price_period"]
           property_type: Database["public"]["Enums"]["property_type"]
           published_at?: string | null
           review_notes?: string | null
@@ -610,6 +749,7 @@ export type Database = {
           max_guests?: number
           min_stay_nights?: number
           price_per_night_minor?: number
+          price_period?: Database["public"]["Enums"]["price_period"]
           property_type?: Database["public"]["Enums"]["property_type"]
           published_at?: string | null
           review_notes?: string | null
@@ -636,6 +776,76 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "states"
             referencedColumns: ["code"]
+          },
+        ]
+      }
+      message_attachments: {
+        Row: {
+          created_at: string
+          height: number | null
+          id: string
+          message_id: string
+          storage_path: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          message_id: string
+          storage_path: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          message_id?: string
+          storage_path?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_flags: {
+        Row: {
+          created_at: string
+          id: string
+          matched: string
+          message_id: string
+          reason: Database["public"]["Enums"]["message_flag_reason"]
+          status: Database["public"]["Enums"]["message_flag_status"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          matched: string
+          message_id: string
+          reason: Database["public"]["Enums"]["message_flag_reason"]
+          status?: Database["public"]["Enums"]["message_flag_status"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          matched?: string
+          message_id?: string
+          reason?: Database["public"]["Enums"]["message_flag_reason"]
+          status?: Database["public"]["Enums"]["message_flag_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_flags_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -673,6 +883,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          href: string | null
+          id: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          href?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          href?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["notification_kind"]
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       payout_accounts: {
         Row: {
@@ -712,33 +955,101 @@ export type Database = {
           },
         ]
       }
+      places_cache: {
+        Row: {
+          city: string
+          first_seen_at: string
+          found_for: string
+          last_seen_at: string
+          place_id: string
+        }
+        Insert: {
+          city: string
+          first_seen_at?: string
+          found_for: string
+          last_seen_at?: string
+          place_id: string
+        }
+        Update: {
+          city?: string
+          first_seen_at?: string
+          found_for?: string
+          last_seen_at?: string
+          place_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          first_name: string | null
           id: string
           locale: Database["public"]["Enums"]["locale"]
+          nickname: string | null
           phone: string | null
+          settings: Json
+          state_code: string | null
+          surname: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
           id: string
           locale?: Database["public"]["Enums"]["locale"]
+          nickname?: string | null
           phone?: string | null
+          settings?: Json
+          state_code?: string | null
+          surname?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
           id?: string
           locale?: Database["public"]["Enums"]["locale"]
+          nickname?: string | null
           phone?: string | null
+          settings?: Json
+          state_code?: string | null
+          surname?: string | null
           updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      rate_limits: {
+        Row: {
+          bucket: string
+          count: number
+          subject: string
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          subject: string
+          window_start: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          subject?: string
+          window_start?: string
         }
         Relationships: []
       }
@@ -933,6 +1244,80 @@ export type Database = {
         }
         Relationships: []
       }
+      support_ticket_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender_id: string | null
+          sender_role: string
+          ticket_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender_id?: string | null
+          sender_role: string
+          ticket_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender_id?: string | null
+          sender_role?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          body: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          reference: string
+          status: Database["public"]["Enums"]["support_ticket_status"]
+          topic: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          reference: string
+          status?: Database["public"]["Enums"]["support_ticket_status"]
+          topic?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          reference?: string
+          status?: Database["public"]["Enums"]["support_ticket_status"]
+          topic?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount_minor: number
@@ -995,12 +1380,132 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_entries: {
+        Row: {
+          amount_minor: number
+          created_at: string
+          direction: Database["public"]["Enums"]["wallet_entry_direction"]
+          id: string
+          kind: Database["public"]["Enums"]["wallet_entry_kind"]
+          metadata: Json
+          reference: string
+          status: Database["public"]["Enums"]["wallet_entry_status"]
+          wallet_id: string
+        }
+        Insert: {
+          amount_minor: number
+          created_at?: string
+          direction: Database["public"]["Enums"]["wallet_entry_direction"]
+          id?: string
+          kind: Database["public"]["Enums"]["wallet_entry_kind"]
+          metadata?: Json
+          reference: string
+          status?: Database["public"]["Enums"]["wallet_entry_status"]
+          wallet_id: string
+        }
+        Update: {
+          amount_minor?: number
+          created_at?: string
+          direction?: Database["public"]["Enums"]["wallet_entry_direction"]
+          id?: string
+          kind?: Database["public"]["Enums"]["wallet_entry_kind"]
+          metadata?: Json
+          reference?: string
+          status?: Database["public"]["Enums"]["wallet_entry_status"]
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_entries_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_balances"
+            referencedColumns: ["wallet_id"]
+          },
+          {
+            foreignKeyName: "wallet_entries_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          created_at: string
+          currency: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      wallet_balances: {
+        Row: {
+          balance_minor: number | null
+          currency: string | null
+          user_id: string | null
+          wallet_id: string | null
+        }
+        Insert: {
+          balance_minor?: never
+          currency?: string | null
+          user_id?: string | null
+          wallet_id?: string | null
+        }
+        Update: {
+          balance_minor?: never
+          currency?: string | null
+          user_id?: string | null
+          wallet_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      claim_idempotency: {
+        Args: {
+          key: string
+          scope: string
+          subject: string
+          ttl_seconds: number
+        }
+        Returns: Json
+      }
+      consume_rate_limit: {
+        Args: {
+          bucket: string
+          limit_count: number
+          subject: string
+          window_seconds: number
+        }
+        Returns: boolean
+      }
+      record_idempotency_result: {
+        Args: { key: string; result: Json; scope: string; subject: string }
+        Returns: boolean
+      }
+      release_idempotency: {
+        Args: { key: string; scope: string; subject: string }
+        Returns: boolean
+      }
     }
     Enums: {
       agent_application_status:
@@ -1034,9 +1539,36 @@ export type Database = {
         | "REJECTED"
         | "SUSPENDED"
       locale: "en" | "yo" | "ha" | "ig"
-      property_type: "apartment" | "hotel" | "home" | "villa" | "shortlet"
+      message_flag_reason: "account_number" | "payment_keyword"
+      message_flag_status: "open" | "reviewed"
+      notification_kind:
+        | "booking"
+        | "message"
+        | "wallet"
+        | "listing"
+        | "agent"
+        | "support"
+        | "system"
+      price_period: "night" | "year"
+      property_type:
+        | "apartment"
+        | "hotel"
+        | "home"
+        | "villa"
+        | "shortlet"
+        | "rental"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
+      support_ticket_status: "open" | "pending" | "resolved" | "closed"
       transaction_status: "SUCCESSFUL" | "PENDING" | "FAILED" | "REFUNDED"
+      wallet_entry_direction: "credit" | "debit"
+      wallet_entry_kind:
+        | "deposit"
+        | "withdrawal"
+        | "payment"
+        | "refund"
+        | "transfer_in"
+        | "transfer_out"
+      wallet_entry_status: "PENDING" | "COMPLETED" | "FAILED" | "REVERSED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1198,9 +1730,39 @@ export const Constants = {
         "SUSPENDED",
       ],
       locale: ["en", "yo", "ha", "ig"],
-      property_type: ["apartment", "hotel", "home", "villa", "shortlet"],
+      message_flag_reason: ["account_number", "payment_keyword"],
+      message_flag_status: ["open", "reviewed"],
+      notification_kind: [
+        "booking",
+        "message",
+        "wallet",
+        "listing",
+        "agent",
+        "support",
+        "system",
+      ],
+      price_period: ["night", "year"],
+      property_type: [
+        "apartment",
+        "hotel",
+        "home",
+        "villa",
+        "shortlet",
+        "rental",
+      ],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
+      support_ticket_status: ["open", "pending", "resolved", "closed"],
       transaction_status: ["SUCCESSFUL", "PENDING", "FAILED", "REFUNDED"],
+      wallet_entry_direction: ["credit", "debit"],
+      wallet_entry_kind: [
+        "deposit",
+        "withdrawal",
+        "payment",
+        "refund",
+        "transfer_in",
+        "transfer_out",
+      ],
+      wallet_entry_status: ["PENDING", "COMPLETED", "FAILED", "REVERSED"],
     },
   },
 } as const

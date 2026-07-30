@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Locale } from "@naijafinds/i18n";
 import { formatDate } from "@naijafinds/i18n";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
 import type { WalletEntry, WalletEntryKind } from "@/lib/wallet/types";
 import { formatKoboExact } from "./money";
@@ -30,13 +30,13 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "pending", label: "Pending" },
 ];
 
-const KIND_ICON: Record<WalletEntryKind, IconName> = {
-  deposit: "wallet",
-  withdrawal: "wallet",
-  payment: "booking",
-  refund: "verified",
-  transfer_in: "profile",
-  transfer_out: "profile",
+const KIND_ICON: Record<WalletEntryKind, BrandIconName> = {
+  deposit: "wallet-secure",
+  withdrawal: "naira-hand",
+  payment: "card-lock",
+  refund: "shield-check",
+  transfer_in: "user-check",
+  transfer_out: "user-check",
 };
 
 const KIND_LABEL: Record<WalletEntryKind, string> = {
@@ -96,7 +96,7 @@ export function TransactionsSection({
 
   return (
     <section aria-labelledby="nf-wallet-tx-title">
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="mb-3 flex items-center justify-between gap-4">
         <h2 id="nf-wallet-tx-title" className="nf-overline">
           Transactions
         </h2>
@@ -122,8 +122,8 @@ export function TransactionsSection({
             <Reveal key={`${filter}-${group.key}`} delay={Math.min(i * 70, 280)}>
               <h3 className="nf-overline mb-2">{dayLabel(group.firstIso, locale)}</h3>
               <ul className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
-                {group.entries.map((e) => (
-                  <EntryRow key={e.id} entry={e} locale={locale} />
+                {group.entries.map((e, i) => (
+                  <EntryRow key={e.id} entry={e} locale={locale} index={i} />
                 ))}
               </ul>
             </Reveal>
@@ -131,8 +131,8 @@ export function TransactionsSection({
         </div>
       ) : (
         <div className="nf-card flex flex-col items-center px-6 py-10 text-center">
-          <span className="h-7 w-7">
-            <Icon name="wallet" fill />
+          <span className="h-12 w-12">
+            <BrandIcon name="wallet-secure" fill />
           </span>
           <p className="mt-3 text-[0.9375rem] font-semibold">No transactions yet</p>
           <p className="mt-1 max-w-[34ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
@@ -146,16 +146,29 @@ export function TransactionsSection({
   );
 }
 
-function EntryRow({ entry, locale }: { entry: WalletEntry; locale: Locale }) {
+function EntryRow({
+  entry,
+  locale,
+  index,
+}: {
+  entry: WalletEntry;
+  locale: Locale;
+  /** Position within its day group; caps the stagger so a long history does
+      not keep animating for seconds after the group appears. */
+  index: number;
+}) {
   const amount = formatKoboExact(entry.amountMinor, locale);
   const credit = entry.direction === "credit";
   const settled = entry.status === "COMPLETED";
 
   return (
-    <li className="flex items-center gap-3 px-4 py-3.5">
+    <li
+      className={`flex items-center gap-4 px-4 py-3.5 ${credit ? "nf-tx-in" : "nf-tx-out"}`}
+      style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
+    >
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--nf-radius-md)] border border-white/10 bg-white/[0.05] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06)]">
-        <span className="h-7 w-7">
-          <Icon name={KIND_ICON[entry.kind]} fill ramp={credit ? "emerald" : "sky"} />
+        <span className="h-12 w-12">
+          <BrandIcon name={KIND_ICON[entry.kind]} fill />
         </span>
       </span>
       <span className="min-w-0 flex-1 leading-tight">

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
 import { PageHeader } from "./PageHeader";
 
@@ -18,7 +18,7 @@ export function ComingSoon({
   preview,
 }: {
   title: string;
-  icon: IconName;
+  icon: BrandIconName;
   /** One line on what this destination will do once it ships. */
   promise: string;
   /** A small mocked-up slice of the future surface, badged as a preview. */
@@ -29,8 +29,8 @@ export function ComingSoon({
       <PageHeader title={title} />
       <div className="py-4 text-center sm:py-6">
       <Reveal>
-        <span className="mx-auto block h-16 w-16 sm:h-20 sm:w-20">
-          <Icon name={icon} fill />
+        <span className="mx-auto block h-20 w-20 sm:h-24 sm:w-24">
+          <BrandIcon name={icon} fill />
         </span>
         <p className="mx-auto mt-2.5 max-w-[44ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {promise}

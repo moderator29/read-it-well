@@ -3,7 +3,7 @@ import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getAgentRepository } from "@/lib/agent/repository";
 import { AgentShell } from "./AgentShell";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 
 /**
  * Placeholder for agent destinations not yet built.
@@ -20,7 +20,7 @@ export async function AgentComingSoon({
 }: {
   active: string;
   title: string;
-  icon: IconName;
+  icon: BrandIconName;
 }) {
   const locale = await getLocale();
   const t = getDictionary(locale);
@@ -29,8 +29,8 @@ export async function AgentComingSoon({
   return (
     <AgentShell t={t} locale={locale} active={active} profile={profile}>
       <div className="mx-auto max-w-lg py-10 text-center sm:py-16">
-        <span className="mx-auto block h-16 w-16 sm:h-[72px] sm:w-[72px]">
-          <Icon name={icon} fill />
+        <span className="mx-auto block h-20 w-20 sm:h-[72px] sm:w-[72px]">
+          <BrandIcon name={icon} fill />
         </span>
         <h1 className="nf-h2 mt-5">{title}</h1>
         <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">

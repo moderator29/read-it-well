@@ -1,6 +1,7 @@
 import type { Dictionary } from "@naijafinds/i18n";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { Words } from "@/components/site/Words";
 
 /**
  * "How it works" band.
@@ -12,19 +13,19 @@ import { Icon, type IconName } from "@/design-system/icons/Icon";
  * English until keys land.
  */
 export function HowItWorks({ t }: { t: Dictionary }) {
-  const steps: { icon: IconName; title: string; body: string }[] = [
+  const steps: { icon: BrandIconName; title: string; body: string }[] = [
     {
-      icon: "search",
+      icon: "home-search",
       title: "Search and discover",
       body: `${t.landing.hero.line1} Hotels, apartments, homes, restaurants and experiences across Nigeria, in one search.`,
     },
     {
-      icon: "booking",
+      icon: "calendar-check",
       title: "Book and pay securely",
       body: `${t.landing.hero.line2} Clear naira totals and secure payment before anything is confirmed.`,
     },
     {
-      icon: "experience",
+      icon: "luggage-check",
       title: "Live the experience",
       body: `${t.landing.hero.line3} Check in, eat well, explore, and keep every booking in one place.`,
     },
@@ -34,7 +35,9 @@ export function HowItWorks({ t }: { t: Dictionary }) {
     <section className="nf-shell py-10 sm:py-14">
       <Reveal className="mb-7 max-w-[52ch] sm:mb-9">
         <span className="nf-overline">Three steps</span>
-        <h2 className="nf-h1 mt-3">How it works</h2>
+        <h2 className="nf-h1 mt-3">
+          <Words text="How it works" accentFrom={2} />
+        </h2>
         <p className="mt-3 text-[var(--nf-content-secondary)]">
           From first search to checked in, the whole journey lives in one account.
         </p>
@@ -56,12 +59,12 @@ export function HowItWorks({ t }: { t: Dictionary }) {
                   className="mx-auto block h-6 w-px bg-[var(--nf-border-subtle)] lg:hidden"
                 />
               )}
-              <div className="nf-card nf-card--interactive relative flex h-full flex-col items-center gap-3 p-5 text-center sm:p-6">
+              <div className="nf-card nf-card--interactive relative flex h-full flex-col items-center gap-4 p-5 text-center sm:p-6">
                 <span className="nf-glass nf-numeric absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-[0.8125rem] font-bold text-[var(--nf-content-primary)]">
                   {i + 1}
                 </span>
-                <span className="h-12 w-12 sm:h-14 sm:w-14">
-                  <Icon name={s.icon} fill />
+                <span className="h-14 w-14 sm:h-14 sm:w-14">
+                  <BrandIcon name={s.icon} fill />
                 </span>
                 <span className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)] sm:text-[1rem]">
                   {s.title}

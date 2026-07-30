@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { Dictionary } from "@naijafinds/i18n";
 import { MODE_COOKIE, type Mode } from "@/lib/mode.constants";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 /**
  * Mode switch control, matching the "Choose your mode" sheet in the reference.
@@ -46,7 +46,7 @@ export function ModeSwitcher({
         onClick={() => choose(other)}
         className="flex w-full items-center gap-2.5 rounded-[var(--nf-radius-md)] px-3 py-2.5 text-[0.875rem] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] disabled:opacity-60"
       >
-        <Icon name={other === "agent" ? "apartment" : "profile"} size={26} />
+        <BrandIcon name={other === "agent" ? "homes-sparkle" : "user-check"} size={26} />
         <span className="flex-1 text-left leading-tight">
           {other === "agent" ? t.agent.mode.switchToAgent : t.agent.mode.switchToPersonal}
           <span className="block text-[0.75rem] font-normal text-[var(--nf-content-muted)]">
@@ -58,9 +58,9 @@ export function ModeSwitcher({
   }
 
   // Full picker: the "Choose your mode" card.
-  const options: { mode: Mode; icon: "profile" | "apartment"; label: string; desc: string }[] = [
-    { mode: "personal", icon: "profile", label: t.agent.mode.personal, desc: t.agent.mode.personalDesc },
-    { mode: "agent", icon: "apartment", label: t.agent.mode.agent, desc: t.agent.mode.agentDesc },
+  const options: { mode: Mode; icon: "user-check" | "homes-sparkle"; label: string; desc: string }[] = [
+    { mode: "personal", icon: "user-check", label: t.agent.mode.personal, desc: t.agent.mode.personalDesc },
+    { mode: "agent", icon: "homes-sparkle", label: t.agent.mode.agent, desc: t.agent.mode.agentDesc },
   ];
 
   return (
@@ -71,7 +71,7 @@ export function ModeSwitcher({
         aria-expanded={open}
         className="nf-chip"
       >
-        <Icon name={current === "agent" ? "apartment" : "profile"} size={18} />
+        <BrandIcon name={current === "agent" ? "homes-sparkle" : "user-check"} size={18} />
         {current === "agent" ? t.agent.mode.agent : t.agent.mode.personal}
       </button>
 
@@ -98,7 +98,7 @@ export function ModeSwitcher({
                       : "border-[var(--nf-border-subtle)] hover:border-[var(--nf-border-default)]",
                   ].join(" ")}
                 >
-                  <Icon name={o.icon} size={40} />
+                  <BrandIcon name={o.icon} size={40} />
                   <span className="min-w-0 flex-1">
                     <span className="block text-[0.875rem] font-semibold">{o.label}</span>
                     <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">

@@ -1,10 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import type {
+  AssistantListingItem,
+  AssistantStreamEvent,
+  AssistantTurn,
+} from "@/lib/assistant/types";
 import {
   AssistantSidebar,
   type Language,
@@ -17,6 +23,7 @@ import {
   loadThreads,
   makeId,
   saveThreads,
+  type Message,
   type Thread,
 } from "./threads";
 
@@ -31,13 +38,18 @@ import {
  * assistant settings. Conversations live under `nf_ai_threads` on this
  * device and switching threads swaps the visible messages.
  *
- * The assistant stays honest about its current reach: every reply states
- * plainly what it can do today and routes the user to Search, so nothing on
- * this screen ever pretends to be a live result.
+ * Replies stream live from /api/assistant: text lands token by token in the
+ * bubble, and when the concierge searches the catalogue the real results
+ * render as tappable listing cards inside the thread. Sending again or
+ * leaving the page aborts any in-flight stream. When the caller is signed in
+ * the server returns a durable conversation id, kept on the thread as
+ * `serverId` so future turns append to the same row.
  */
 
-const ASSISTANT_REPLY =
-  "I can search stays, restaurants and experiences for you once my tools come online. For now, try Search to browse the catalogue.";
+const NETWORK_ERROR_MESSAGE =
+  "The assistant could not reach the network. Your message is kept; tap retry.";
+const PACE_FALLBACK_MESSAGE =
+  "You are moving faster than the assistant can think. Give it a few minutes and try again.";
 
 const STARTERS = [
   "2 bedroom in Lekki under 300k",
@@ -47,11 +59,18 @@ const STARTERS = [
 
 const DRAWER_EXIT_MS = 240;
 
+/** Turns a thread's visible messages into the wire history for the route. */
+function toTurns(messages: Message[]): AssistantTurn[] {
+  return messages
+    .filter((m) => m.text.trim().length > 0)
+    .map((m) => ({ role: m.role, content: m.text }));
+}
+
 export function AssistantChat() {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
-  const [typingThread, setTypingThread] = useState<string | null>(null);
+  const [streamingThread, setStreamingThread] = useState<string | null>(null);
   const [tone, setTone] = useState<Tone>("Concise");
   const [language, setLanguage] = useState<Language>("English");
   const [draft, setDraft] = useState("");
@@ -70,8 +89,9 @@ export function AssistantChat() {
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const replyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const drawerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const streamSeq = useRef(0);
 
   /* Restore saved conversations once on mount, then persist every change. */
   useEffect(() => {
@@ -89,19 +109,19 @@ export function AssistantChat() {
 
   const active = activeId ? threads.find((t) => t.id === activeId) : undefined;
   const messages = active?.messages ?? [];
-  const typing = typingThread !== null;
-  const typingHere = typingThread !== null && typingThread === activeId;
+  const streamingHere = streamingThread !== null && streamingThread === activeId;
 
   /* Keep the newest bubble in view as the thread grows or switches. */
   useEffect(() => {
     const el = scrollerRef.current;
     if (el) el.scrollTo({ top: el.scrollHeight });
-  }, [messages, typingHere, activeId]);
+  }, [messages, streamingHere, activeId]);
 
+  /* Abort any in-flight stream on navigation away from the page. */
   useEffect(() => {
     return () => {
-      if (replyTimer.current) clearTimeout(replyTimer.current);
       if (drawerTimer.current) clearTimeout(drawerTimer.current);
+      abortRef.current?.abort();
     };
   }, []);
 
@@ -132,16 +152,176 @@ export function AssistantChat() {
     return () => window.removeEventListener("keydown", onKey);
   }, [historyOpen, closeHistory]);
 
+  /** Patch one message inside one thread, bumping the thread's activity time. */
+  const patchMessage = useCallback(
+    (threadId: string, messageId: string, patch: (m: Message) => Message) => {
+      setThreads((prev) =>
+        prev.map((t) =>
+          t.id === threadId
+            ? {
+                ...t,
+                updatedAt: Date.now(),
+                messages: t.messages.map((m) => (m.id === messageId ? patch(m) : m)),
+              }
+            : t,
+        ),
+      );
+    },
+    [],
+  );
+
+  const dropMessageIfEmpty = useCallback((threadId: string, messageId: string) => {
+    setThreads((prev) =>
+      prev.map((t) =>
+        t.id === threadId
+          ? {
+              ...t,
+              messages: t.messages.filter(
+                (m) =>
+                  m.id !== messageId ||
+                  m.text.trim().length > 0 ||
+                  (m.listings?.length ?? 0) > 0,
+              ),
+            }
+          : t,
+      ),
+    );
+  }, []);
+
+  /**
+   * Stream one assistant turn into `threadId`. `history` already ends with
+   * the user's newest message. Any previous stream is aborted first.
+   */
+  const runAssistant = useCallback(
+    async (threadId: string, history: AssistantTurn[], serverId?: string) => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const seq = ++streamSeq.current;
+
+      const assistantId = makeId();
+      setThreads((prev) =>
+        prev.map((t) =>
+          t.id === threadId
+            ? {
+                ...t,
+                messages: [...t.messages, { id: assistantId, role: "assistant", text: "" }],
+              }
+            : t,
+        ),
+      );
+      setStreamingThread(threadId);
+
+      const setText = (text: string, error = false) =>
+        patchMessage(threadId, assistantId, (m) => ({ ...m, text, error }));
+      const appendText = (text: string) =>
+        patchMessage(threadId, assistantId, (m) => ({ ...m, text: m.text + text }));
+      const addListings = (items: AssistantListingItem[]) =>
+        patchMessage(threadId, assistantId, (m) => {
+          const seen = new Set((m.listings ?? []).map((l) => l.id));
+          const merged = [...(m.listings ?? []), ...items.filter((l) => !seen.has(l.id))];
+          return { ...m, listings: merged };
+        });
+
+      try {
+        const res = await fetch("/api/assistant", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: history,
+            ...(serverId ? { threadId: serverId } : {}),
+          }),
+          signal: controller.signal,
+        });
+
+        if (res.status === 429) {
+          const j = (await res.json().catch(() => null)) as { message?: string } | null;
+          setText(j?.message ?? PACE_FALLBACK_MESSAGE);
+          return;
+        }
+        if (!res.ok || !res.body) {
+          setText(NETWORK_ERROR_MESSAGE, true);
+          return;
+        }
+
+        const contentType = res.headers.get("content-type") ?? "";
+        if (contentType.includes("application/json")) {
+          // The graceful no-key answer renders as an ordinary assistant bubble.
+          const j = (await res.json().catch(() => null)) as { message?: string } | null;
+          setText(j?.message ?? NETWORK_ERROR_MESSAGE, !j?.message);
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let split: number;
+          while ((split = buffer.indexOf("\n\n")) !== -1) {
+            const chunk = buffer.slice(0, split);
+            buffer = buffer.slice(split + 2);
+            for (const line of chunk.split("\n")) {
+              if (!line.startsWith("data:")) continue;
+              let event: AssistantStreamEvent;
+              try {
+                event = JSON.parse(line.slice(5).trim()) as AssistantStreamEvent;
+              } catch {
+                continue;
+              }
+              if (event.type === "text") {
+                appendText(event.text);
+              } else if (event.type === "listings") {
+                addListings(event.items);
+              } else if (event.type === "thread") {
+                const id = event.id;
+                setThreads((prev) =>
+                  prev.map((t) => (t.id === threadId ? { ...t, serverId: id } : t)),
+                );
+              } else if (event.type === "error") {
+                const message = event.message;
+                patchMessage(threadId, assistantId, (m) =>
+                  m.text.trim() ? m : { ...m, text: message, error: true },
+                );
+              }
+            }
+          }
+        }
+
+        // A stream that ended with nothing to show still deserves an answer.
+        patchMessage(threadId, assistantId, (m) =>
+          m.text.trim() || (m.listings?.length ?? 0) > 0
+            ? m
+            : { ...m, text: NETWORK_ERROR_MESSAGE, error: true },
+        );
+      } catch {
+        if (controller.signal.aborted) {
+          dropMessageIfEmpty(threadId, assistantId);
+          return;
+        }
+        setText(NETWORK_ERROR_MESSAGE, true);
+      } finally {
+        if (streamSeq.current === seq) setStreamingThread(null);
+      }
+    },
+    [dropMessageIfEmpty, patchMessage],
+  );
+
   const send = useCallback(
     (raw: string) => {
       const text = raw.trim();
-      if (!text || typing) return;
+      if (!text) return;
       setDraft("");
 
-      const userMessage = { id: makeId(), role: "user" as const, text };
-      let targetId = activeId;
+      const userMessage: Message = { id: makeId(), role: "user", text };
+      let targetId: string;
+      let history: AssistantTurn[];
+      let serverId: string | undefined;
 
-      if (!targetId || !threads.some((t) => t.id === targetId)) {
+      const existing = activeId ? threads.find((t) => t.id === activeId) : undefined;
+      if (!existing) {
         targetId = makeId();
         const now = Date.now();
         const fresh: Thread = {
@@ -153,36 +333,39 @@ export function AssistantChat() {
         };
         setThreads((prev) => [fresh, ...prev]);
         setActiveId(targetId);
+        history = toTurns([userMessage]);
       } else {
+        targetId = existing.id;
+        serverId = existing.serverId;
         setThreads((prev) =>
           prev.map((t) =>
-            t.id === targetId
+            t.id === existing.id
               ? { ...t, updatedAt: Date.now(), messages: [...t.messages, userMessage] }
               : t,
           ),
         );
+        history = toTurns([...existing.messages, userMessage]);
       }
 
-      setTypingThread(targetId);
-      replyTimer.current = setTimeout(() => {
-        setThreads((prev) =>
-          prev.map((t) =>
-            t.id === targetId
-              ? {
-                  ...t,
-                  updatedAt: Date.now(),
-                  messages: [
-                    ...t.messages,
-                    { id: makeId(), role: "assistant" as const, text: ASSISTANT_REPLY },
-                  ],
-                }
-              : t,
-          ),
-        );
-        setTypingThread(null);
-      }, 600);
+      void runAssistant(targetId, history, serverId);
     },
-    [activeId, threads, typing],
+    [activeId, threads, runAssistant],
+  );
+
+  /** Re-run the last turn after a failure: drop the failed bubble, resend. */
+  const retry = useCallback(
+    (threadId: string, failedMessageId: string) => {
+      const thread = threads.find((t) => t.id === threadId);
+      if (!thread) return;
+      const remaining = thread.messages.filter((m) => m.id !== failedMessageId);
+      const history = toTurns(remaining);
+      if (history.length === 0 || history[history.length - 1]?.role !== "user") return;
+      setThreads((prev) =>
+        prev.map((t) => (t.id === threadId ? { ...t, messages: remaining } : t)),
+      );
+      void runAssistant(threadId, history, thread.serverId);
+    },
+    [threads, runAssistant],
   );
 
   const selectThread = (id: string) => {
@@ -198,17 +381,17 @@ export function AssistantChat() {
   };
 
   const deleteThread = (id: string) => {
-    if (typingThread === id) {
-      if (replyTimer.current) clearTimeout(replyTimer.current);
-      setTypingThread(null);
+    if (streamingThread === id) {
+      abortRef.current?.abort();
+      setStreamingThread(null);
     }
     setThreads((prev) => prev.filter((t) => t.id !== id));
     if (activeId === id) setActiveId(null);
   };
 
   const clearAll = () => {
-    if (replyTimer.current) clearTimeout(replyTimer.current);
-    setTypingThread(null);
+    abortRef.current?.abort();
+    setStreamingThread(null);
     setThreads([]);
     setActiveId(null);
     clearStoredThreads();
@@ -217,6 +400,12 @@ export function AssistantChat() {
   };
 
   const empty = hydrated && messages.length === 0;
+  const lastMessage = messages[messages.length - 1];
+  const showTyping =
+    streamingHere &&
+    (!lastMessage ||
+      lastMessage.role === "user" ||
+      (lastMessage.text === "" && (lastMessage.listings?.length ?? 0) === 0));
 
   const sidebar = (idPrefix: string) => (
     <AssistantSidebar
@@ -235,7 +424,7 @@ export function AssistantChat() {
   );
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-64px-10rem)] min-h-[26rem] w-full max-w-5xl flex-col lg:h-[calc(100dvh-64px-4rem)]">
+    <div className="flex h-full min-h-0 w-full flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 lg:px-8">
       <PageHeader
         title="RentMe AI"
         subtitle="Beta"
@@ -252,7 +441,7 @@ export function AssistantChat() {
         }
       />
 
-      <div className="flex min-h-0 flex-1 gap-4">
+      <div className="flex min-h-0 flex-1 gap-6">
         {/* --------------------------------------------- desktop sidebar */}
         <aside
           aria-label="Assistant navigation"
@@ -265,14 +454,14 @@ export function AssistantChat() {
         <section className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-1 flex-col lg:mx-0 lg:max-w-none">
           <div
             ref={scrollerRef}
-            className="flex-1 space-y-4 overflow-y-auto pb-4 pr-1"
+            className="flex-1 space-y-5 overflow-y-auto pb-5 pr-1"
             aria-live="polite"
             aria-label="Conversation"
           >
             {empty && (
               <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
-                <span className="block h-14 w-14 sm:h-16 sm:w-16">
-                  <Icon name="ai-assistant" fill />
+                <span className="block h-16 w-16 sm:h-16 sm:w-16">
+                  <BrandIcon name="bot-home" fill />
                 </span>
                 <div>
                   <p className="text-[0.9375rem] font-semibold">How can I help today?</p>
@@ -291,38 +480,73 @@ export function AssistantChat() {
               </div>
             )}
 
-            {messages.map((m) =>
-              m.role === "user" ? (
-                <div key={m.id} className="nf-rise flex justify-end">
-                  <p className="max-w-[85%] rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-4 py-2.5 text-[0.9rem] leading-relaxed text-white">
-                    {m.text}
-                  </p>
-                </div>
-              ) : (
-                <div key={m.id} className="nf-rise flex items-end gap-2.5">
-                  <span className="h-7 w-7 shrink-0" aria-hidden="true">
-                    <Icon name="ai-assistant" fill />
-                  </span>
-                  <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md p-4">
-                    <p className="text-[0.9rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            {messages.map((m) => {
+              if (m.role === "user") {
+                return (
+                  <div key={m.id} className="nf-rise flex justify-end">
+                    <p className="max-w-[85%] rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-4 py-2.5 text-[0.9rem] leading-relaxed text-white">
                       {m.text}
                     </p>
-                    <Link
-                      href="/search"
-                      className="nf-btn nf-btn--glass mt-3 gap-2 px-3.5 py-2 text-[0.8125rem]"
-                    >
-                      <UiIcon name="search" size={15} />
-                      Open Search
-                    </Link>
+                  </div>
+                );
+              }
+              // An assistant bubble appears once it has something to show.
+              if (!m.text.trim() && (m.listings?.length ?? 0) === 0) return null;
+              // Still streaming into this exact bubble: the avatar's ring
+              // spins to signal active reasoning, real signal, no loop of
+              // its own once the turn finishes.
+              const thisStreaming = streamingHere && m.id === lastMessage?.id;
+              return (
+                <div key={m.id} className="nf-rise flex items-end gap-3">
+                  <span
+                    className={`h-12 w-12 shrink-0 ${thisStreaming ? "nf-bot-thinking" : ""}`}
+                    aria-hidden="true"
+                  >
+                    <BrandIcon name="bot-home" fill />
+                  </span>
+                  <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md p-4">
+                    {m.text.trim() && (
+                      <p className="whitespace-pre-wrap text-[0.9rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                        {m.text}
+                      </p>
+                    )}
+                    {m.listings && m.listings.length > 0 && (
+                      <ul
+                        className="mt-3 space-y-2 [perspective:700px]"
+                        aria-label="Matching listings"
+                      >
+                        {m.listings.map((l, i) => (
+                          <li
+                            key={l.id}
+                            className="nf-listing-fold-in"
+                            style={{ "--i": i } as React.CSSProperties}
+                          >
+                            <ThreadListingCard listing={l} />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {m.error && activeId && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (activeId) retry(activeId, m.id);
+                        }}
+                        className="nf-btn nf-btn--glass mt-3 gap-2 px-3.5 py-2 text-[0.8125rem]"
+                      >
+                        <UiIcon name="arrow-right" size={14} />
+                        Retry
+                      </button>
+                    )}
                   </div>
                 </div>
-              ),
-            )}
+              );
+            })}
 
-            {typingHere && (
-              <div className="nf-rise flex items-end gap-2.5">
-                <span className="h-7 w-7 shrink-0" aria-hidden="true">
-                  <Icon name="ai-assistant" fill />
+            {showTyping && (
+              <div className="nf-rise flex items-end gap-3">
+                <span className="nf-bot-thinking h-12 w-12 shrink-0" aria-hidden="true">
+                  <BrandIcon name="bot-home" fill />
                 </span>
                 <div
                   className="nf-card rounded-2xl rounded-bl-md px-4 py-3.5"
@@ -367,7 +591,7 @@ export function AssistantChat() {
             <button
               type="submit"
               aria-label="Send message"
-              disabled={!draft.trim() || typing}
+              disabled={!draft.trim()}
               className="nf-btn nf-btn--primary h-11 w-11 shrink-0 rounded-full p-0"
             >
               <UiIcon name="arrow-right" size={18} className="-rotate-90" />
@@ -411,5 +635,44 @@ export function AssistantChat() {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * A real catalogue result inside the thread: thumbnail, title, city, price
+ * and an arrow, the whole row tappable through to the listing page.
+ */
+function ThreadListingCard({ listing }: { listing: AssistantListingItem }) {
+  return (
+    <Link
+      href={listing.href}
+      className="nf-card nf-card--interactive flex items-center gap-4 rounded-xl p-2.5"
+    >
+      <span className="relative block h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[var(--nf-glass-fill)]">
+        {listing.photo && (
+          <Image src={listing.photo} alt="" fill sizes="56px" className="object-cover" />
+        )}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+          {listing.title}
+        </span>
+        <span className="mt-0.5 flex items-center gap-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+          <span className="truncate">{listing.city}</span>
+          <span className="nf-numeric flex shrink-0 items-center gap-0.5">
+            <UiIcon name="star" size={11} className="text-[var(--nf-state-warning)]" />
+            {listing.rating.toFixed(1)}
+          </span>
+        </span>
+        <span className="nf-numeric mt-0.5 block truncate text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
+          {listing.price}
+        </span>
+      </span>
+      <UiIcon
+        name="arrow-right"
+        size={16}
+        className="shrink-0 text-[var(--nf-content-muted)]"
+      />
+    </Link>
   );
 }

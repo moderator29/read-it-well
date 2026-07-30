@@ -4,9 +4,12 @@ import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import type { Listing } from "@/lib/listings/types";
 import { buildBookings } from "@/lib/demo/bookings";
+import { getMyBookings } from "@/lib/bookings/queries";
 import { PageHeader } from "@/components/app/PageHeader";
+import { PageScene } from "@/components/app/PageScene";
 import { BookingsTabs } from "@/components/app/bookings/BookingsTabs";
-import { Icon, type IconName } from "@/design-system/icons/Icon";
+import { MyBookings } from "./MyBookings";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
 
 export const metadata: Metadata = { title: "Bookings" };
@@ -38,36 +41,54 @@ async function getBookedStays(): Promise<Listing[]> {
  *
  * The trips hub: status tabs over the booking list, then a short strip
  * explaining how booking works so a first-time guest knows what to expect
- * before they commit.
+ * before they commit. When Supabase is configured and a user is signed in,
+ * the list is their real bookings read under RLS, with cancellation wired to
+ * the state machine; otherwise the seeded trips keep the surface alive.
  */
-export default async function BookingsPage() {
+export default async function BookingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const { upcoming, past } = buildBookings(await getBookedStays(), locale);
+  const params = await searchParams;
+  const justBookedRaw = params.justBooked;
+  const justBooked = typeof justBookedRaw === "string" ? justBookedRaw : undefined;
 
-  const steps: { icon: IconName; title: string; body: string }[] = [
-    { icon: "booking", title: "Choose your dates", body: "Pick check-in and check-out on a live calendar." },
-    { icon: "secure", title: "Confirm and pay", body: "Secure payment in naira. You are never charged early." },
-    { icon: "experience", title: "Enjoy your stay", body: "Check-in details arrive right here and by email." },
+  const groups = await getMyBookings(locale);
+  const seeded = groups === null ? buildBookings(await getBookedStays(), locale) : null;
+
+  const steps: { icon: BrandIconName; title: string; body: string }[] = [
+    { icon: "calendar-check", title: "Choose your dates", body: "Pick check-in and check-out on a live calendar." },
+    { icon: "shield-lock", title: "Confirm and pay", body: "Secure payment in naira. You are never charged early." },
+    { icon: "luggage-check", title: "Enjoy your stay", body: "Check-in details arrive right here and by email." },
   ];
 
   return (
     <div className="mx-auto max-w-2xl">
+      <div className="relative">
+        <PageScene art="/brand/story-booking.png" />
       <PageHeader title={t.nav.bookings} />
+      </div>
 
       <Reveal>
         <div className="nf-card p-4 sm:p-5">
-          <BookingsTabs upcoming={upcoming} past={past} />
+          {groups ? (
+            <MyBookings groups={groups} justBookedId={justBooked} />
+          ) : (
+            <BookingsTabs upcoming={seeded?.upcoming ?? []} past={seeded?.past ?? []} />
+          )}
         </div>
       </Reveal>
 
       <Reveal delay={100}>
         <h2 className="nf-overline mb-3 mt-8">How booking works</h2>
-        <ul className="grid gap-2.5 sm:grid-cols-3">
+        <ul className="grid gap-3 sm:grid-cols-3">
           {steps.map((s) => (
-            <li key={s.title} className="nf-card flex items-start gap-3 p-4 sm:flex-col">
-              <span className="h-9 w-9 shrink-0">
-                <Icon name={s.icon} fill />
+            <li key={s.title} className="nf-card flex items-start gap-4 p-4 sm:flex-col">
+              <span className="h-14 w-14 shrink-0">
+                <BrandIcon name={s.icon} fill />
               </span>
               <span className="leading-tight">
                 <span className="block text-[0.875rem] font-semibold">{s.title}</span>

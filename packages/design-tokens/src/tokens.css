@@ -72,10 +72,14 @@
   --nf-brand-secondary: var(--nf-electric-300);
   --nf-brand-accent: var(--nf-electric-400);
 
-  /* Mode accents. Personal is violet, Agent is orange, Admin is cyan. */
+  /* Mode accents. All three stay inside the sampled blue family: the modes
+     are told apart by depth, not by hue, because the brand is one palette
+     (deep navy-black, dark neon blue, electric blue glow) and a stray orange
+     or cyan accent reads as a different product. Personal is the electric
+     mid, Agent the bright glow, Admin the deep neon. */
   --nf-mode-personal: var(--nf-electric-500);
-  --nf-mode-agent: var(--nf-orange-500);
-  --nf-mode-admin: var(--nf-cyan-400);
+  --nf-mode-agent: var(--nf-electric-400);
+  --nf-mode-admin: var(--nf-electric-700);
 
   /* Surfaces */
   --nf-surface-canvas: #000010;
@@ -146,7 +150,7 @@
   --nf-gradient-brand: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-cta: linear-gradient(180deg, #0C39EF 0%, #0010E0 50%, #000F98 100%);
   --nf-gradient-iridescent: linear-gradient(135deg, #5C7CFF 0%, #0C39EF 52%, #0010E0 100%);
-  --nf-gradient-agent: linear-gradient(135deg, #FB923C 0%, var(--nf-orange-500) 100%);
+  --nf-gradient-agent: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-surface: linear-gradient(180deg, rgb(255 255 255 / 0.045) 0%, rgb(255 255 255 / 0.012) 100%);
 
   /* ---------------------------------------------------------------------
@@ -160,7 +164,7 @@
   --nf-canvas-base: #010118;
   --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-500) 92%, transparent) 0%, transparent 62%);
   --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-600) 85%, transparent) 0%, transparent 62%);
-  --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-cyan-500) 80%, transparent) 0%, transparent 62%);
+  --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-400) 80%, transparent) 0%, transparent 62%);
 
   /* ---------------------------------------------------------------------
    * Elevation
@@ -171,7 +175,7 @@
   --nf-shadow-float: 0 32px 80px -16px rgb(0 0 0 / 0.8);
   --nf-glow-brand: 0 0 0 1px color-mix(in oklab, var(--nf-electric-500) 35%, transparent),
                    0 12px 40px -8px color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
-  --nf-glow-accent: 0 12px 40px -10px color-mix(in oklab, var(--nf-cyan-400) 45%, transparent);
+  --nf-glow-accent: 0 12px 40px -10px color-mix(in oklab, var(--nf-electric-400) 45%, transparent);
 
   /* ---------------------------------------------------------------------
    * Radius
@@ -264,43 +268,62 @@
  * Tracked in KNOWN_GAPS.md before it is exposed to users.
  */
 :root[data-theme="light"] {
-  --nf-surface-canvas: #FAFCFE;
-  --nf-surface-primary: #FBFDFF;
+  /*
+   * Daylight, exchange-grade: a flat neutral light-grey canvas with pure
+   * white surfaces, near-black neutral ink, hairline neutral borders and
+   * soft neutral shadows. No blue tint anywhere in backgrounds or greys;
+   * the brand blue appears only where it carries meaning: headlines,
+   * active states and calls to action.
+   */
+  --nf-surface-canvas: #F4F5F7;
+  --nf-surface-primary: #FFFFFF;
   --nf-surface-secondary: #FFFFFF;
   --nf-surface-elevated: #FFFFFF;
-  --nf-surface-raised: #F2F6FC;
-  --nf-surface-inset: #E9F0F9;
+  --nf-surface-raised: #F7F8FA;
+  --nf-surface-inset: #EFF1F4;
 
-  --nf-content-primary: #0A1626;
-  --nf-content-secondary: #3D5170;
-  --nf-content-muted: #68799B;
+  --nf-content-primary: #16181D;
+  --nf-content-secondary: #41464F;
+  --nf-content-muted: #7A8189;
   --nf-content-on-brand: #FFFFFF;
 
-  /* Slightly deeper blue so the brand holds contrast on paper. */
-  --nf-brand-primary: #0010D0;
-  --nf-brand-primary-strong: #1230B3;
+  /* Vivid brand blue that holds contrast on paper. */
+  --nf-brand-primary: #0C2FE8;
+  --nf-brand-primary-strong: #0010D0;
 
-  /* Daylight CTA runs brighter than the night gradient so buttons read as
-     vivid brand blue on paper, never near-black navy. */
-  --nf-gradient-cta: linear-gradient(180deg, #2450FF 0%, #0C39EF 55%, #0010D0 100%);
+  /* Daylight CTA is a near-flat vivid brand blue, never near-black navy. */
+  --nf-gradient-cta: linear-gradient(180deg, #2450FF 0%, #0C39EF 100%);
 
-  --nf-border-subtle: rgb(10 22 38 / 0.08);
-  --nf-border-default: rgb(10 22 38 / 0.14);
-  --nf-border-strong: rgb(10 22 38 / 0.24);
+  --nf-border-subtle: rgb(18 21 26 / 0.08);
+  --nf-border-default: rgb(18 21 26 / 0.13);
+  --nf-border-strong: rgb(18 21 26 / 0.22);
 
-  --nf-glass-fill: rgb(255 255 255 / 0.72);
-  --nf-glass-fill-strong: rgb(255 255 255 / 0.86);
-  --nf-glass-border: rgb(10 22 38 / 0.1);
+  --nf-glass-fill: rgb(255 255 255 / 0.88);
+  --nf-glass-fill-strong: rgb(255 255 255 / 0.96);
+  --nf-glass-border: rgb(18 21 26 / 0.08);
 
-  --nf-shadow-card: 0 4px 20px -6px rgb(10 22 38 / 0.1), 0 1px 2px rgb(10 22 38 / 0.05);
-  --nf-shadow-lifted: 0 18px 48px -14px rgb(10 22 38 / 0.16);
-  --nf-shadow-float: 0 32px 80px -20px rgb(10 22 38 / 0.2);
+  --nf-shadow-card: 0 1px 2px rgb(18 21 26 / 0.04), 0 4px 16px -4px rgb(18 21 26 / 0.06);
+  --nf-shadow-lifted: 0 14px 34px -14px rgb(18 21 26 / 0.14);
+  --nf-shadow-float: 0 28px 64px -20px rgb(18 21 26 / 0.18);
 
-  /* Daylight canvas: airy sky wash, calm blooms. */
-  --nf-canvas-base: #FAFCFE;
-  --nf-canvas-bloom-1: radial-gradient(circle, rgb(0 102 255 / 0.16) 0%, transparent 62%);
-  --nf-canvas-bloom-2: radial-gradient(circle, rgb(0 200 255 / 0.12) 0%, transparent 62%);
-  --nf-canvas-bloom-3: radial-gradient(circle, rgb(18 48 179 / 0.1) 0%, transparent 62%);
+  /* Flat neutral canvas. The blooms are switched off entirely in daylight. */
+  --nf-canvas-base: #F4F5F7;
+  --nf-canvas-bloom-1: none;
+  --nf-canvas-bloom-2: none;
+  --nf-canvas-bloom-3: none;
+
+  /*
+   * Accent and state ink on paper. The airy night-theme accents fail AA on
+   * white, so daylight swaps them for deeper members of the same families:
+   * links and active accents take the vivid brand blue, and the state colours
+   * step down until small bold text passes 4.5:1 on a white card. The badge
+   * surfaces keep deriving from the bright raw palette, so chips stay light
+   * tints under the darker ink.
+   */
+  --nf-electric-300: #0C2FE8;
+  --nf-state-success: #0B8A5C;
+  --nf-state-warning: #B45309;
+  --nf-state-error: var(--nf-crimson-500);
 }
 
 /*

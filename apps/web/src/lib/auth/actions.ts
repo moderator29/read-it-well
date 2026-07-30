@@ -1,6 +1,10 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
+import { createClient } from "@/lib/supabase/server";
+import { siteUrl } from "@/lib/site";
 import { getProviderStates } from "./providers";
 import { HEAR_ABOUT_OPTIONS, REFERRAL_CODE_RE } from "./signup-options";
 
@@ -95,6 +99,36 @@ function emailConfigured(): boolean {
   return getProviderStates().some((p) => p.id === "email" && p.configured);
 }
 
+const NOT_CONNECTED_MESSAGE =
+  "Accounts switch on the moment the platform keys land. Nothing you typed was lost.";
+
+/**
+ * Translate a Supabase auth error into something a person can act on.
+ *
+ * Supabase deliberately keeps sign-in failures vague to avoid confirming which
+ * email addresses exist, and that is the right behaviour to preserve, so the
+ * credentials case stays deliberately non-specific about which half was wrong.
+ */
+function authMessage(raw: string): string {
+  const text = raw.toLowerCase();
+  if (text.includes("invalid login credentials")) {
+    return "That email and password do not match. Check them and try again.";
+  }
+  if (text.includes("email not confirmed")) {
+    return "Confirm your email first. Open the link we sent you, then sign in.";
+  }
+  if (text.includes("already registered") || text.includes("already been registered")) {
+    return "An account already uses that email address. Sign in instead, or reset your password.";
+  }
+  if (text.includes("rate limit") || text.includes("too many")) {
+    return "Too many attempts just now. Wait a minute, then try again.";
+  }
+  if (text.includes("password")) {
+    return "That password was refused. Use at least 8 characters, mixing letters and numbers.";
+  }
+  return "We could not complete that just now. Please try again in a moment.";
+}
+
 export async function signInWithEmail(
   _prev: AuthFormState,
   formData: FormData,
@@ -102,18 +136,20 @@ export async function signInWithEmail(
   const fieldErrors = validateCredentials(formData);
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
-  if (!emailConfigured()) {
-    return {
-      ok: false,
-      message:
-        "Email sign in is not connected yet. Set AUTH_DATABASE_URL and RESEND_API_KEY to enable it.",
-    };
-  }
+  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
 
-  // Real session issuing lands with the auth service in Phase 1. Until the
-  // backend exists this deliberately refuses rather than returning a fake
-  // success and redirecting to a signed out home screen.
-  return { ok: false, message: "Sign in service is not available yet." };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: field(formData, "email").trim(),
+    password: field(formData, "password"),
+  });
+
+  if (error) return { ok: false, message: authMessage(error.message) };
+
+  // The session cookies are set. Drop every cached render so the shell picks
+  // up the real identity instead of the signed out view.
+  revalidatePath("/", "layout");
+  redirect("/home");
 }
 
 export async function signUpWithEmail(
@@ -123,13 +159,72 @@ export async function signUpWithEmail(
   const fieldErrors = validateSignUp(formData);
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
-  if (!emailConfigured()) {
+  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+
+  const firstName = field(formData, "firstName").trim();
+  const surname = field(formData, "surname").trim();
+  const nickname = field(formData, "nickname").trim();
+
+  const supabase = await createClient();
+  // The metadata here is what the database signup trigger reads into the
+  // profile row, so nothing the person typed has to be asked for twice.
+  const { data, error } = await supabase.auth.signUp({
+    email: field(formData, "email").trim(),
+    password: field(formData, "password"),
+    options: {
+      emailRedirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent("/home")}`,
+      data: {
+        first_name: firstName,
+        surname,
+        nickname: nickname.length > 0 ? nickname : null,
+        state_code: field(formData, "state"),
+        display_name: nickname.length > 0 ? nickname : [firstName, surname].join(" ").trim(),
+        hear_about: field(formData, "hearAbout"),
+        referral_code: field(formData, "referralCode").trim() || null,
+      },
+    },
+  });
+
+  if (error) return { ok: false, message: authMessage(error.message) };
+
+  // With email confirmation switched on in Supabase there is no session yet,
+  // and saying so is the honest outcome rather than sending someone to a
+  // signed out home screen and letting them wonder.
+  if (!data.session) {
     return {
-      ok: false,
-      message:
-        "Account creation is not connected yet. Set AUTH_DATABASE_URL and RESEND_API_KEY to enable it.",
+      ok: true,
+      message: "Check your email to confirm your address, then sign in. The link expires shortly.",
     };
   }
 
-  return { ok: false, message: "Account creation is not available yet." };
+  revalidatePath("/", "layout");
+  redirect("/home");
 }
+
+/**
+ * Begin an OAuth handshake. Returns the provider URL for the client to visit,
+ * rather than redirecting here, so the caller can report a refusal in place.
+ */
+export async function startOAuth(provider: "google" | "apple"): Promise<AuthFormState> {
+  const states = getProviderStates();
+  if (!states.some((p) => p.id === provider && p.configured)) {
+    return {
+      ok: false,
+      message: "That sign-in method is not switched on yet. Use your email address for now.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent("/home")}`,
+    },
+  });
+
+  if (error || !data.url) return { ok: false, message: authMessage(error?.message ?? "") };
+  redirect(data.url);
+}
+
+// Signing out lives in lib/profile/actions.ts, which the settings screen
+// already calls. One session-ending path, one place.

@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Booking } from "@/lib/demo/bookings";
 
@@ -34,7 +34,7 @@ function BookingCard({ booking: b }: { booking: Booking }) {
   const confirmed = b.status === "confirmed";
   return (
     <li className="nf-card overflow-hidden p-0 text-left">
-      <div className="flex gap-3.5 p-3.5 sm:gap-4 sm:p-4">
+      <div className="flex gap-4.5 p-3.5 sm:gap-4 sm:p-4">
         <Link
           href={`/listing/${b.listingId}`}
           aria-label={b.title}
@@ -182,7 +182,7 @@ export function BookingsTabs({
           role="tabpanel"
           id={`bookings-panel-${current.key}`}
           aria-labelledby={`bookings-tab-${current.key}`}
-          className="nf-rise grid gap-3 pt-4"
+          className="nf-rise grid gap-4 pt-4"
         >
           {bookings.map((b) => (
             <BookingCard key={b.id} booking={b} />
@@ -196,8 +196,8 @@ export function BookingsTabs({
           aria-labelledby={`bookings-tab-${current.key}`}
           className="nf-rise flex flex-col items-center gap-4 py-10 text-center sm:py-14"
         >
-          <span className="block h-16 w-16">
-            <Icon name="booking" fill />
+          <span className="block h-20 w-20">
+            <BrandIcon name="calendar-check" fill />
           </span>
           <p className="mx-auto max-w-[38ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
             {EMPTY_COPY[current.key]}

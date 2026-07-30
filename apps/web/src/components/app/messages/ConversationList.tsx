@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { ConversationSummary } from "@/lib/messages/types";
 
 /**
@@ -53,9 +54,18 @@ export function ConversationList({
 
   if (conversations.length === 0) {
     return (
-      <p className="nf-card p-6 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
-        No conversations yet. Message an agent from any listing to start one.
-      </p>
+      <div className="nf-card p-8 text-center">
+        <span className="nf-story-art mx-auto block h-16 w-16">
+          <BrandIcon name="chat-duo" fill />
+        </span>
+        <p className="mt-3.5 text-[0.9063rem] font-semibold">No conversations yet</p>
+        <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          Message an agent from any listing and the thread will appear here.
+        </p>
+        <Link href="/search" className="nf-btn nf-btn--primary mt-4 inline-flex">
+          Explore places
+        </Link>
+      </div>
     );
   }
 
@@ -76,7 +86,7 @@ export function ConversationList({
                 {c.agentName.charAt(0)}
               </span>
               <span className="min-w-0 flex-1 leading-tight">
-                <span className="flex items-baseline justify-between gap-3">
+                <span className="flex items-baseline justify-between gap-4">
                   <span className="truncate text-[0.9063rem] font-semibold">{c.agentName}</span>
                   <span className="nf-numeric shrink-0 text-[0.7rem] text-[var(--nf-content-muted)]">
                     {whenLabel(c.lastMessageAt, today)}

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { LogoMark } from "@/design-system/brand/Logo";
 
 /**
@@ -29,8 +29,8 @@ export function VillaShowcase() {
 
             <ul className="mt-7 space-y-5">
               <li className="flex items-center gap-4">
-                <span className="h-11 w-11 shrink-0">
-                  <Icon name="search" fill />
+                <span className="h-16 w-16 shrink-0">
+                  <BrandIcon name="home-search" fill />
                 </span>
                 <span>
                   <span className="block font-semibold text-[var(--nf-content-primary)]">
@@ -42,8 +42,8 @@ export function VillaShowcase() {
                 </span>
               </li>
               <li className="flex items-center gap-4">
-                <span className="h-11 w-11 shrink-0">
-                  <Icon name="verified" fill />
+                <span className="h-16 w-16 shrink-0">
+                  <BrandIcon name="shield-check" fill />
                 </span>
                 <span>
                   <span className="block font-semibold text-[var(--nf-content-primary)]">

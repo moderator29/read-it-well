@@ -7,5 +7,5 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function Page() {
   const t = getDictionary(await getLocale());
-  return <AgentComingSoon active="/agent/reviews" title={t.agent.nav.reviews} icon="favorites" />;
+  return <AgentComingSoon active="/agent/reviews" title={t.agent.nav.reviews} icon="heart-home" />;
 }

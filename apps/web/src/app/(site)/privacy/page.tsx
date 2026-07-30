@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 export const metadata: Metadata = {
   title: "Privacy policy",
@@ -242,7 +242,7 @@ export default function PrivacyPage() {
         <div className="nf-rise text-center">
           <span className="nf-chip mx-auto">
             <span className="inline-grid h-4 w-4 place-items-center">
-              <Icon name="secure" fill />
+              <BrandIcon name="shield-lock" fill />
             </span>
             Legal
           </span>

@@ -124,7 +124,8 @@ export function Icon3D({
       viewBox="0 0 64 64"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
+      className={`nf-icon3d ${className ?? ""}`}
+      style={{ "--i3d-core": core, "--i3d-light": light } as React.CSSProperties}
       role={decorative ? undefined : "img"}
       aria-label={label}
       aria-hidden={decorative || undefined}
@@ -166,8 +167,17 @@ export function Icon3D({
 
       {variant === "tile" && (
         <>
-          <rect x="1" y="1" width="62" height="62" rx="18" fill={`url(#${uid}-tile)`} />
           <rect
+            className="nf-icon3d__tile"
+            x="1"
+            y="1"
+            width="62"
+            height="62"
+            rx="18"
+            fill={`url(#${uid}-tile)`}
+          />
+          <rect
+            className="nf-icon3d__ring"
             x="1"
             y="1"
             width="62"
@@ -178,13 +188,21 @@ export function Icon3D({
             strokeWidth="1"
           />
           <path
+            className="nf-icon3d__spec"
             d="M19 1h26a18 18 0 0 1 18 18v6C55 12 40 3 19 1Z"
             fill={`url(#${uid}-spec)`}
           />
         </>
       )}
 
-      <ellipse cx="32" cy="36" rx="19" ry="17" fill={`url(#${uid}-bloom)`} />
+      <ellipse
+        className="nf-icon3d__bloom"
+        cx="32"
+        cy="36"
+        rx="19"
+        ry="17"
+        fill={`url(#${uid}-bloom)`}
+      />
 
       {/* Object drawn on a 24 grid, centred and scaled into the tile */}
       <g transform="translate(14 14) scale(1.5)">

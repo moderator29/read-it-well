@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { Icon } from "@/design-system/icons/Icon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { LogoMark } from "@/design-system/brand/Logo";
 
 /**
@@ -33,11 +33,11 @@ export default function Error({
 
       {/* Floating decorative objects */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <span className="nf-float absolute left-[10%] top-[18%] block h-12 w-12 opacity-20 md:h-16 md:w-16">
-          <Icon name="help" fill />
+        <span className="nf-float absolute left-[10%] top-[18%] block h-14 w-14 opacity-20 md:h-16 md:w-16">
+          <BrandIcon name="support-chat" fill />
         </span>
-        <span className="nf-float-slow absolute bottom-[20%] right-[10%] block h-12 w-12 opacity-20 md:h-16 md:w-16">
-          <Icon name="secure" fill />
+        <span className="nf-float-slow absolute bottom-[20%] right-[10%] block h-14 w-14 opacity-20 md:h-16 md:w-16">
+          <BrandIcon name="shield-lock" fill />
         </span>
       </div>
 
@@ -59,7 +59,7 @@ export default function Error({
             </p>
           )}
 
-          <div className="mt-7 flex flex-wrap justify-center gap-3">
+          <div className="mt-7 flex flex-wrap justify-center gap-4">
             <button type="button" onClick={reset} className="nf-btn nf-btn--primary">
               Try again
             </button>
