@@ -78,8 +78,9 @@ export default async function AgentDashboardPage() {
 
       {/* Stat row: two-up on phones (the odd fifth tile going full width so no
           orphan hangs in a half-empty row), three-up on tablets, five across
-          on desktop. */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          on desktop. Cut into a sunken well so the deck reads as one
+          instrument panel rather than five loose cards. */}
+      <div className="nf-panel-sunken grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard
           icon="wallet-secure"
           label={a.totalEarnings}
@@ -139,7 +140,12 @@ export default async function AgentDashboardPage() {
 
         <section className="nf-card p-4 sm:p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="nf-h3">{a.recentBookings}</h2>
+            <span className="flex items-center gap-2">
+              <h2 className="nf-h3">{a.recentBookings}</h2>
+              {d.recentBookings.length > 0 && (
+                <span className="nf-count-badge">{d.recentBookings.length}</span>
+              )}
+            </span>
             <Link href="/agent/bookings" className="text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] hover:underline">
               {t.common.viewAll}
             </Link>

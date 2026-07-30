@@ -392,12 +392,10 @@ export function ListingsWorkspace({
         const heading = t.workspace.groups[group.key];
         return (
           <section key={group.key}>
-            <h2 className="nf-h3">
-              {heading.title}
-              <span className="nf-numeric ml-2 text-[0.8125rem] font-semibold text-[var(--nf-content-muted)]">
-                {rows.length}
-              </span>
-            </h2>
+            <span className="flex items-center gap-2">
+              <h2 className="nf-h3">{heading.title}</h2>
+              <span className="nf-count-badge">{rows.length}</span>
+            </span>
             <p className="mb-3 mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
               {heading.blurb}
             </p>
