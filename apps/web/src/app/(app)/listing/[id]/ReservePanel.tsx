@@ -60,9 +60,9 @@ function Stepper({
   onChange: (next: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex items-center justify-between gap-4">
       <span className="text-[0.875rem] text-[var(--nf-content-secondary)]">{label}</span>
-      <span className="flex items-center gap-2.5">
+      <span className="flex items-center gap-3">
         <button
           type="button"
           aria-label={`Fewer ${label.toLowerCase()}`}
@@ -216,7 +216,7 @@ export function ReservePanel({
         <input type="hidden" name="listingId" value={listingId} />
 
         {/* ------------------------------------------------------- dates */}
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <label htmlFor={`${uid}-checkin`} className="nf-label">
               Check-in
@@ -302,7 +302,7 @@ export function ReservePanel({
           </div>
         )}
 
-        <div className="mt-4 grid gap-2.5">
+        <div className="mt-4 grid gap-3">
           <button
             type="submit"
             disabled={pending || !ready}

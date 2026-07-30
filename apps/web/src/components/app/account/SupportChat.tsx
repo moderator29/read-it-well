@@ -167,8 +167,8 @@ export function SupportChat() {
 
   return (
     <section className="nf-card p-5 sm:p-6" aria-label="Help and support">
-      <div className="flex items-center gap-3">
-        <span className="block h-12 w-12 shrink-0">
+      <div className="flex items-center gap-4">
+        <span className="block h-14 w-14 shrink-0">
           <BrandIcon name="support-chat" fill />
         </span>
         <div className="min-w-0 flex-1">
@@ -233,7 +233,7 @@ export function SupportChat() {
               )}
 
               {typing && (
-                <div className="nf-rise flex items-end gap-2.5">
+                <div className="nf-rise flex items-end gap-3">
                   <span className="h-6.5 w-6.5 shrink-0" aria-hidden="true">
                     <BrandIcon name="support-chat" fill />
                   </span>
@@ -305,7 +305,7 @@ export function SupportChat() {
 
 function AssistantBubble({ text, children }: { text: string; children?: React.ReactNode }) {
   return (
-    <div className="nf-rise flex items-end gap-2.5">
+    <div className="nf-rise flex items-end gap-3">
       <span className="h-6.5 w-6.5 shrink-0" aria-hidden="true">
         <BrandIcon name="support-chat" fill />
       </span>

@@ -104,7 +104,7 @@ export function BalanceCard({
         }}
       />
 
-      <div className="relative flex items-start justify-between gap-3">
+      <div className="relative flex items-start justify-between gap-4">
         <p
           id="nf-wallet-balance-label"
           className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[var(--nf-content-muted)]"
@@ -121,7 +121,7 @@ export function BalanceCard({
           >
             <EyeGlyph off={hidden} />
           </button>
-          <span className="h-10 w-10 shrink-0">
+          <span className="h-12 w-12 shrink-0">
             <BrandIcon name="wallet-secure" fill />
           </span>
         </div>

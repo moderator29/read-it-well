@@ -35,7 +35,7 @@ export function PageHeader({
   };
 
   return (
-    <div className="mb-5 flex items-center gap-3 sm:mb-6">
+    <div className="mb-5 flex items-center gap-4 sm:mb-6">
       <button type="button" aria-label={backLabel} onClick={back} className="nf-icon-btn h-9 w-9 sm:h-10 sm:w-10">
         <UiIcon name="arrow-left" size={17} />
       </button>

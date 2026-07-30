@@ -50,7 +50,7 @@ export default async function AdminOverviewPage() {
         <ui.QueueUnavailable />
       ) : (
         <>
-          <ul className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+          <ul className="grid grid-cols-2 gap-4 lg:grid-cols-3">
             {TILES.map((tile) => {
               const value = counts.data[tile.key] ?? 0;
               const copy = o.tiles[tile.key];
@@ -87,7 +87,7 @@ export default async function AdminOverviewPage() {
             <h2 className="nf-h3">{o.how.title}</h2>
             <ul className="mt-2 space-y-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
               {[o.how.audit, o.how.notify, o.how.invisible].map((line) => (
-                <li key={line} className="flex gap-2.5">
+                <li key={line} className="flex gap-3">
                   <UiIcon
                     name="verified"
                     size={16}

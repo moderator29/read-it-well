@@ -118,7 +118,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
   }) {
     return (
       <header className="mb-5">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-4">
           <h1 className="nf-h1 text-[1.5rem] sm:text-[1.75rem]">{title}</h1>
           {typeof count === "number" && count > 0 && (
             <span className="nf-badge nf-badge--brand nf-numeric">

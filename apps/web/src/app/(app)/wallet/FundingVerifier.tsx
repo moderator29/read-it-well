@@ -60,7 +60,7 @@ export function FundingVerifier({ reference, locale }: { reference: string; loca
     <div
       role="status"
       aria-live="polite"
-      className="nf-card mb-4 flex items-start justify-between gap-3 p-4"
+      className="nf-card mb-4 flex items-start justify-between gap-4 p-4"
     >
       <div className="min-w-0 flex-1">
         {state.phase === "verifying" && (

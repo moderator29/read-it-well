@@ -32,7 +32,7 @@ export default async function AgentApplyPage() {
             <UiIcon name="arrow-right" size={16} className="rotate-180" />
             {t.agent.apply.title}
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
             <Link href="/" aria-label={t.a11y.logoHome}>
               <LogoMark size={34} />

@@ -90,7 +90,7 @@ export function LiveNotifications({
         <p className="mx-auto mt-2 max-w-md text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
           Bookings, messages and wallet activity will land here the moment they happen.
         </p>
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
           <Link href="/search" className="nf-btn nf-btn--glass">
             Explore places
           </Link>
@@ -113,7 +113,7 @@ export function LiveNotifications({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex items-center justify-between gap-4">
         <p className="text-[0.8125rem] text-[var(--nf-content-muted)]">
           {unreadCount > 0
             ? `${unreadCount} unread ${unreadCount === 1 ? "notification" : "notifications"}`

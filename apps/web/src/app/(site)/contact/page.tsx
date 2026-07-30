@@ -63,7 +63,7 @@ export default function ContactPage() {
         {/* --------------------------------------------- help centre first */}
         <Reveal as="section" className="mt-6">
           <div className="nf-card flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
                 <BrandIcon name="support-chat" fill />
               </span>
@@ -88,7 +88,7 @@ export default function ContactPage() {
 
         {/* ------------------------------------------------ other routes */}
         <Reveal as="section" className="mt-12">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <div className="nf-card p-5">
               <p className="nf-overline">Careers</p>
               <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">

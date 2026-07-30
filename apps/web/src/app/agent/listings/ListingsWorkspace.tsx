@@ -217,7 +217,7 @@ function ConfirmSheet({
           </ul>
         )}
 
-        <div className="mt-5 flex gap-3">
+        <div className="mt-5 flex gap-4">
           <button type="button" className="nf-btn nf-btn--glass flex-1" onClick={onClose}>
             {t.workspace.sheets.keep}
           </button>
@@ -252,7 +252,7 @@ function ListingRow({
 
   return (
     <li className="nf-card overflow-hidden p-0">
-      <div className="flex gap-3.5 p-3.5">
+      <div className="flex gap-4.5 p-3.5">
         <span
           className="relative block h-[5.25rem] w-[5.25rem] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]"
           style={{ background: "var(--nf-surface-raised)" }}

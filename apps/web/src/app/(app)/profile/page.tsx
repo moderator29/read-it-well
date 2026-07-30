@@ -72,16 +72,16 @@ export default async function ProfilePage() {
       )}
 
       <Reveal delay={80}>
-        <nav aria-label="Account shortcuts" className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <nav aria-label="Account shortcuts" className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
           {actions.map((a, i) => (
             <Link
               key={a.href}
               href={a.href}
-              className={`nf-card nf-card--interactive flex flex-col gap-2.5 p-4 ${
+              className={`nf-card nf-card--interactive flex flex-col gap-3 p-4 ${
                 i === actions.length - 1 ? "col-span-2 sm:col-span-1" : ""
               }`}
             >
-              <span className="block h-11 w-11">
+              <span className="block h-13 w-13">
                 <BrandIcon name={a.icon} fill />
               </span>
               <span className="leading-tight">

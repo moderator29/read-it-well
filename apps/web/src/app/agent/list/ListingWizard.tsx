@@ -180,7 +180,7 @@ function Counter({
   return (
     <div className="flex items-center justify-between gap-3 border-b border-[var(--nf-border-subtle)] py-3 last:border-b-0">
       <span className="text-[0.9375rem] font-medium text-[var(--nf-content-primary)]">{label}</span>
-      <span className="flex items-center gap-3">
+      <span className="flex items-center gap-4">
         <button
           type="button"
           className="nf-icon-btn"
@@ -663,7 +663,7 @@ export function ListingWizard({
         <p className="mx-auto mt-3 max-w-[44ch] text-[var(--nf-content-secondary)]">
           {copy.submitted.body}
         </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:justify-center">
           <Link href="/agent/listings" className="nf-btn nf-btn--primary">
             {copy.submitted.goToListings}
           </Link>
@@ -706,7 +706,7 @@ export function ListingWizard({
       {/* The step name is the page's heading: a seven step form needs a real
           document outline, and a screen reader announcing the step is how
           someone knows where they are. aria-live tells them it changed. */}
-      <div className="mt-3 flex items-baseline justify-between gap-3">
+      <div className="mt-3 flex items-baseline justify-between gap-4">
         <h1 className="nf-h3" aria-live="polite">
           {stepNames[step]}
         </h1>
@@ -894,7 +894,7 @@ export function ListingWizard({
                 {copy.photos.empty}
               </div>
             ) : (
-              <ul className="grid grid-cols-2 gap-3">
+              <ul className="grid grid-cols-2 gap-4">
                 {photos.map((photo, index) => (
                   <li key={photo.id} className="overflow-hidden rounded-[var(--nf-radius-md)]">
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
@@ -1234,7 +1234,7 @@ export function ListingWizard({
               ].map((item) => {
                 const problem = unmet.find((u) => u.field === item.field);
                 return (
-                  <li key={item.field} className="flex items-start gap-2.5">
+                  <li key={item.field} className="flex items-start gap-3">
                     <span
                       className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full"
                       style={{
@@ -1282,7 +1282,7 @@ export function ListingWizard({
 
       {/* Sticky step footer: the way forward never moves. */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 lg:left-[var(--nf-rail-width)]">
-        <div className="mx-auto flex max-w-2xl items-center gap-3">
+        <div className="mx-auto flex max-w-2xl items-center gap-4">
           <button
             type="button"
             className="nf-btn nf-btn--glass flex-1"

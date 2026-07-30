@@ -38,8 +38,8 @@ export function ListingReviews({
 
   return (
     <div className="nf-card p-5">
-      <div className="flex items-center gap-3.5">
-        <span className="block h-14 w-14 shrink-0">
+      <div className="flex items-center gap-4.5">
+        <span className="block h-16 w-16 shrink-0">
           <BrandIcon name="reviews" fill />
         </span>
         <p className="flex items-baseline gap-2">

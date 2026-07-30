@@ -84,7 +84,7 @@ export default async function AgentStatusPage() {
                   : "color-mix(in oklab, var(--nf-mode-agent) 18%, transparent)",
               }}
             >
-              <span className="inline-grid h-12 w-12 place-items-center">
+              <span className="inline-grid h-14 w-14 place-items-center">
                 <BrandIcon name={approved ? "shield-check" : "calendar-check"} fill />
               </span>
             </span>
@@ -197,7 +197,7 @@ export default async function AgentStatusPage() {
 
           {pending && (
             <p className="mt-5 flex items-center justify-center gap-2 text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
-              <span className="inline-grid h-8 w-8 shrink-0 place-items-center">
+              <span className="inline-grid h-10 w-10 shrink-0 place-items-center">
                 <BrandIcon name="calendar-check" fill />
               </span>
               {s.reviewNote}
@@ -205,7 +205,7 @@ export default async function AgentStatusPage() {
           )}
 
           <div
-            className="nf-rise mt-8 flex flex-wrap justify-center gap-3"
+            className="nf-rise mt-8 flex flex-wrap justify-center gap-4"
             style={{ animationDelay: "240ms" }}
           >
             {approved ? (

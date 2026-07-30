@@ -39,7 +39,7 @@ function Fallback({
         <p className="mx-auto mt-2 max-w-md text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
           {message}
         </p>
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
           <Link href={`/listing/${listingId}`} className="nf-btn nf-btn--glass">
             Back to the listing
           </Link>
@@ -86,7 +86,7 @@ export default async function NewMessagePage({
             Chat with the agent, arrange an inspection and keep every step of the deal in one
             protected place.
           </p>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
             <Link href={`/listing/${listing}`} className="nf-btn nf-btn--glass">
               Back to the listing
             </Link>

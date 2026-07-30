@@ -47,7 +47,7 @@ export function CarouselRail({
       <ul
         ref={railRef}
         aria-label={ariaLabel}
-        className="nf-snap-x -mx-5 gap-3 px-5 pb-1 sm:mx-0 sm:gap-4 sm:px-0"
+        className="nf-snap-x -mx-5 gap-4 px-5 pb-1 sm:mx-0 sm:gap-4 sm:px-0"
       >
         {children}
       </ul>

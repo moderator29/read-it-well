@@ -65,7 +65,7 @@ export default async function AgentDashboardPage() {
         <p className="nf-badge nf-badge--warning mb-5">{a.sampleNote}</p>
       )}
 
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="nf-h1">{a.title}</h1>
           <p className="mt-1 text-[var(--nf-content-secondary)]">{a.subtitle}</p>
@@ -79,7 +79,7 @@ export default async function AgentDashboardPage() {
       {/* Stat row: two-up on phones (the odd fifth tile going full width so no
           orphan hangs in a half-empty row), three-up on tablets, five across
           on desktop. */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard
           icon="wallet-secure"
           label={a.totalEarnings}
@@ -146,7 +146,7 @@ export default async function AgentDashboardPage() {
           </div>
           <ul className="space-y-3">
             {d.recentBookings.map((b) => (
-              <li key={b.id} className="flex items-center gap-3">
+              <li key={b.id} className="flex items-center gap-4">
                 <span
                   className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)]"
                   style={{ background: "var(--nf-surface-raised)" }}
@@ -190,7 +190,7 @@ export default async function AgentDashboardPage() {
                 key={l.id}
                 className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-3"
               >
-                <div className="flex items-baseline justify-between gap-3">
+                <div className="flex items-baseline justify-between gap-4">
                   <p className="min-w-0 truncate text-[0.8125rem] font-semibold">{l.title}</p>
                   <p className="nf-numeric shrink-0 text-[0.8125rem] font-bold">
                     {formatMoney(l.revenueMinor, locale, "NGN", { compact: true })}
@@ -270,7 +270,7 @@ export default async function AgentDashboardPage() {
             </div>
             <ul className="space-y-3">
               {d.guestMessages.map((m) => (
-                <li key={m.id} className="flex items-center gap-3">
+                <li key={m.id} className="flex items-center gap-4">
                   <span
                     className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.75rem] font-bold text-white"
                     style={{ background: "var(--nf-gradient-brand)" }}
@@ -296,14 +296,14 @@ export default async function AgentDashboardPage() {
       {/* Quick actions */}
       <section className="mt-4">
         <h2 className="nf-h3 mb-3">{a.quickActions}</h2>
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {quickActions.map((q) => (
             <li key={q.href}>
               <Link
                 href={q.href}
                 className="nf-card nf-card--interactive flex flex-col items-center gap-2 p-4 text-center sm:p-5"
               >
-                <span className="h-13 w-13 sm:h-14 sm:w-14">
+                <span className="h-13 w-13 sm:h-16 sm:w-16">
                   <BrandIcon name={q.icon} fill />
                 </span>
                 <span className="text-[0.8125rem] font-semibold">{q.label}</span>

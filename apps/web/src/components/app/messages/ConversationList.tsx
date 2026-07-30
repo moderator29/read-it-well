@@ -76,7 +76,7 @@ export function ConversationList({
                 {c.agentName.charAt(0)}
               </span>
               <span className="min-w-0 flex-1 leading-tight">
-                <span className="flex items-baseline justify-between gap-3">
+                <span className="flex items-baseline justify-between gap-4">
                   <span className="truncate text-[0.9063rem] font-semibold">{c.agentName}</span>
                   <span className="nf-numeric shrink-0 text-[0.7rem] text-[var(--nf-content-muted)]">
                     {whenLabel(c.lastMessageAt, today)}

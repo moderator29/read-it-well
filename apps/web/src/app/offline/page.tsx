@@ -53,7 +53,7 @@ export default function OfflinePage() {
           </p>
 
           <ul className="mt-6 space-y-3 text-left text-[0.875rem] text-[var(--nf-content-secondary)]">
-            <li className="flex gap-3">
+            <li className="flex gap-4">
               <span
                 aria-hidden="true"
                 className="mt-[0.4rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-brand-primary)]"
@@ -63,7 +63,7 @@ export default function OfflinePage() {
                 screen, so you never land on a browser error page.
               </span>
             </li>
-            <li className="flex gap-3">
+            <li className="flex gap-4">
               <span
                 aria-hidden="true"
                 className="mt-[0.4rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-brand-primary)]"
@@ -74,7 +74,7 @@ export default function OfflinePage() {
                 one.
               </span>
             </li>
-            <li className="flex gap-3">
+            <li className="flex gap-4">
               <span
                 aria-hidden="true"
                 className="mt-[0.4rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-brand-primary)]"

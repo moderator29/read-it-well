@@ -436,7 +436,7 @@ export function ThreadView({
               )}
             </div>
           ) : (
-            <div key={m.id} className="nf-rise flex items-end gap-2.5">
+            <div key={m.id} className="nf-rise flex items-end gap-3">
               <span
                 aria-hidden="true"
                 className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-electric-300)]"
@@ -521,7 +521,7 @@ export function ThreadView({
           e.preventDefault();
           send();
         }}
-        className={`flex items-center gap-2.5 pt-3 ${
+        className={`flex items-center gap-3 pt-3 ${
           pendingFile || educationOpen ? "" : "border-t border-[var(--nf-border-subtle)]"
         }`}
       >

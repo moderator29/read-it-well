@@ -139,7 +139,7 @@ export function AccountProfile({
 
       {editing && (
         <form action={formAction} className="nf-rise mt-4 space-y-3" data-testid="profile-form">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Field
               id={firstId}
               name="firstName"

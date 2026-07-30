@@ -30,7 +30,7 @@ export function RentalPanel({
         <span className="text-[0.8125rem] text-[var(--nf-content-muted)]">/ year</span>
       </p>
 
-      <div className="mt-4 grid gap-2.5">
+      <div className="mt-4 grid gap-3">
         <Link
           href={`/messages/new?listing=${listingId}`}
           className="nf-btn nf-btn--primary w-full"

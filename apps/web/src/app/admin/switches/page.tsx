@@ -44,7 +44,7 @@ function SwitchRow({
   const label = labels[flag.key] ?? flag.key;
 
   return (
-    <li className="nf-card flex flex-wrap items-start gap-3 p-4 sm:p-5">
+    <li className="nf-card flex flex-wrap items-start gap-4 p-4 sm:p-5">
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-2">
           <span className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">{label}</span>

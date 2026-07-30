@@ -214,7 +214,7 @@ export function StoryRail() {
                         key={p.label}
                         className="nf-chip gap-2 px-2.5 py-1.5 text-[0.75rem]"
                       >
-                        <span className="block h-8 w-8 shrink-0">
+                        <span className="block h-10 w-10 shrink-0">
                           <BrandIcon name={p.icon} fill />
                         </span>
                         {p.label}

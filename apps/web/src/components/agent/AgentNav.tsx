@@ -119,7 +119,7 @@ export function AgentIdentityCard({
   verifiedLabel: string;
 }) {
   return (
-    <div className="nf-card flex items-center gap-3 p-3">
+    <div className="nf-card flex items-center gap-4 p-3">
       <span
         className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.8125rem] font-bold text-white"
         style={{ background: "var(--nf-gradient-agent)" }}

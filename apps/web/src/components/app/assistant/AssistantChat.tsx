@@ -460,7 +460,7 @@ export function AssistantChat() {
           >
             {empty && (
               <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
-                <span className="block h-14 w-14 sm:h-16 sm:w-16">
+                <span className="block h-16 w-16 sm:h-16 sm:w-16">
                   <BrandIcon name="bot-home" fill />
                 </span>
                 <div>
@@ -493,8 +493,8 @@ export function AssistantChat() {
               // An assistant bubble appears once it has something to show.
               if (!m.text.trim() && (m.listings?.length ?? 0) === 0) return null;
               return (
-                <div key={m.id} className="nf-rise flex items-end gap-2.5">
-                  <span className="h-10 w-10 shrink-0" aria-hidden="true">
+                <div key={m.id} className="nf-rise flex items-end gap-3">
+                  <span className="h-12 w-12 shrink-0" aria-hidden="true">
                     <BrandIcon name="bot-home" fill />
                   </span>
                   <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md p-4">
@@ -530,8 +530,8 @@ export function AssistantChat() {
             })}
 
             {showTyping && (
-              <div className="nf-rise flex items-end gap-2.5">
-                <span className="h-10 w-10 shrink-0" aria-hidden="true">
+              <div className="nf-rise flex items-end gap-3">
+                <span className="h-12 w-12 shrink-0" aria-hidden="true">
                   <BrandIcon name="bot-home" fill />
                 </span>
                 <div
@@ -632,7 +632,7 @@ function ThreadListingCard({ listing }: { listing: AssistantListingItem }) {
   return (
     <Link
       href={listing.href}
-      className="nf-card nf-card--interactive flex items-center gap-3 rounded-xl p-2.5"
+      className="nf-card nf-card--interactive flex items-center gap-4 rounded-xl p-2.5"
     >
       <span className="relative block h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[var(--nf-glass-fill)]">
         {listing.photo && (

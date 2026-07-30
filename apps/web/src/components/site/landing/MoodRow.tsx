@@ -37,7 +37,7 @@ export function MoodRow() {
       <Reveal delay={60}>
         <ul
           aria-label="Browse by mood"
-          className="nf-snap-x -mx-5 gap-3 px-5 pb-1 sm:mx-0 sm:px-0 sm:pb-0"
+          className="nf-snap-x -mx-5 gap-4 px-5 pb-1 sm:mx-0 sm:px-0 sm:pb-0"
         >
           {MOODS.map((m) => (
             <li key={m.label} className="w-[11.5rem] sm:w-[13rem]">

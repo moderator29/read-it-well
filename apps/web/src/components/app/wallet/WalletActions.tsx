@@ -87,7 +87,7 @@ export function WalletActions({ locale }: { locale: Locale }) {
                 : ""
             }`}
           >
-            <span className="h-10 w-10">
+            <span className="h-12 w-12">
               <BrandIcon name={p.icon} fill />
             </span>
             {p.label}
@@ -104,9 +104,9 @@ export function WalletActions({ locale }: { locale: Locale }) {
           aria-labelledby={`nf-wallet-panel-${active.key}-title`}
           className="nf-card mt-3 p-4 outline-none sm:p-5"
         >
-          <div className="mb-3 flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <span className="h-10 w-10 shrink-0">
+          <div className="mb-3 flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <span className="h-12 w-12 shrink-0">
                 <BrandIcon name={active.icon} fill />
               </span>
               <div>

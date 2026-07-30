@@ -158,7 +158,7 @@ function ActionSheet({
               </p>
             )}
 
-            <div className="mt-4 grid gap-2.5">
+            <div className="mt-4 grid gap-3">
               <button
                 type="button"
                 onClick={submit}
@@ -617,7 +617,7 @@ export function TicketReply({
         <p className="mt-2 text-[0.8125rem] text-[var(--nf-state-success)]">{copy.reply.sent}</p>
       )}
 
-      <div className="mt-2.5 flex flex-wrap items-center gap-3">
+      <div className="mt-2.5 flex flex-wrap items-center gap-4">
         <button
           type="button"
           onClick={send}

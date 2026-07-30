@@ -126,7 +126,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
           <Legend title={a.steps.personal} />
           <div>
             <span className="nf-label">{a.agentType}</span>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {(["individual", "business"] as AgentType[]).map((tp) => (
                 <button
                   type="button"
@@ -151,7 +151,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
             </div>
             <input type="hidden" name="agentType" value={agentType} />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <Field name="firstName" label={a.fields.firstName} value={values} set={set} err={err} autoComplete="given-name" />
             <Field name="lastName" label={a.fields.lastName} value={values} set={set} err={err} autoComplete="family-name" />
           </div>
@@ -170,12 +170,12 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
         <fieldset hidden={step !== 2} className="space-y-4">
           <Legend title={a.steps.business} />
           {agentType === "business" && (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
               <Field name="businessName" label={a.fields.businessName} value={values} set={set} err={err} />
               <Field name="rcNumber" label={a.fields.rcNumber} value={values} set={set} err={err} />
             </div>
           )}
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <SelectField name="state" label={a.fields.state} value={values} set={set} err={err} options={[...NIGERIAN_STATES]} />
             <Field name="city" label={a.fields.city} value={values} set={set} err={err} />
           </div>
@@ -185,7 +185,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
         {/* Step 4: Documents */}
         <fieldset hidden={step !== 3} className="space-y-4">
           <Legend title={a.documents.title} sub={a.documents.body} />
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <UploadZone id="idFront" label={a.documents.idFront} hint={a.documents.chooseFile} preview={docs.idFront} onFile={onFile} />
             <UploadZone id="idBack" label={a.documents.idBack} hint={a.documents.chooseFile} preview={docs.idBack} onFile={onFile} />
             {agentType === "business" && (
@@ -198,7 +198,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
         <fieldset hidden={step !== 4} className="space-y-4">
           <Legend title={a.steps.payout} />
           <SelectField name="bankName" label={a.fields.bankName} value={values} set={set} err={err} options={[...NIGERIAN_BANKS]} />
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <Field name="accountNumber" label={a.fields.accountNumber} value={values} set={set} err={err} inputMode="numeric" />
             <Field name="accountName" label={a.fields.accountName} value={values} set={set} err={err} />
           </div>
@@ -235,7 +235,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
         </fieldset>
 
         {/* Nav */}
-        <div className="mt-7 flex items-center justify-between gap-3">
+        <div className="mt-7 flex items-center justify-between gap-4">
           <button
             type="button"
             onClick={() => setStep((s) => Math.max(0, s - 1))}

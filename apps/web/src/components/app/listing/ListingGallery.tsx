@@ -114,7 +114,7 @@ export function ListingGallery({ title, hue }: { title: string; hue: number }) {
       </div>
 
       {/* --------------------------------------------------- thumbnail strip */}
-      <ul className="nf-scroll-x mt-3 flex gap-2.5 overflow-x-auto pb-1">
+      <ul className="nf-scroll-x mt-3 flex gap-3 overflow-x-auto pb-1">
         {SCENES.map((s, i) => (
           <li key={s.label} className="shrink-0">
             <button

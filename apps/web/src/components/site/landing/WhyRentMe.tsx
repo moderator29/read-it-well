@@ -45,7 +45,7 @@ export function WhyRentMe({ t }: { t: Dictionary }) {
         </p>
       </Reveal>
 
-      <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {values.map((v, i) => (
           <Reveal as="li" key={v.title} delay={i * 70}>
             <div className="nf-card nf-card--interactive flex h-full flex-col p-4 sm:p-5">

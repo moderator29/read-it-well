@@ -96,7 +96,7 @@ export function TransactionsSection({
 
   return (
     <section aria-labelledby="nf-wallet-tx-title">
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="mb-3 flex items-center justify-between gap-4">
         <h2 id="nf-wallet-tx-title" className="nf-overline">
           Transactions
         </h2>
@@ -131,7 +131,7 @@ export function TransactionsSection({
         </div>
       ) : (
         <div className="nf-card flex flex-col items-center px-6 py-10 text-center">
-          <span className="h-10 w-10">
+          <span className="h-12 w-12">
             <BrandIcon name="wallet-secure" fill />
           </span>
           <p className="mt-3 text-[0.9375rem] font-semibold">No transactions yet</p>
@@ -152,9 +152,9 @@ function EntryRow({ entry, locale }: { entry: WalletEntry; locale: Locale }) {
   const settled = entry.status === "COMPLETED";
 
   return (
-    <li className="flex items-center gap-3 px-4 py-3.5">
+    <li className="flex items-center gap-4 px-4 py-3.5">
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--nf-radius-md)] border border-white/10 bg-white/[0.05] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06)]">
-        <span className="h-10 w-10">
+        <span className="h-12 w-12">
           <BrandIcon name={KIND_ICON[entry.kind]} fill />
         </span>
       </span>

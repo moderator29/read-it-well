@@ -187,7 +187,7 @@ export function AssistantSidebar({
             ))}
           </div>
         </div>
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-4">
           <p className="nf-overline">Language</p>
           <button
             type="button"

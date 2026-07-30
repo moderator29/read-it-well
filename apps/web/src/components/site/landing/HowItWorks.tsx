@@ -59,11 +59,11 @@ export function HowItWorks({ t }: { t: Dictionary }) {
                   className="mx-auto block h-6 w-px bg-[var(--nf-border-subtle)] lg:hidden"
                 />
               )}
-              <div className="nf-card nf-card--interactive relative flex h-full flex-col items-center gap-3 p-5 text-center sm:p-6">
+              <div className="nf-card nf-card--interactive relative flex h-full flex-col items-center gap-4 p-5 text-center sm:p-6">
                 <span className="nf-glass nf-numeric absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-[0.8125rem] font-bold text-[var(--nf-content-primary)]">
                   {i + 1}
                 </span>
-                <span className="h-12 w-12 sm:h-14 sm:w-14">
+                <span className="h-14 w-14 sm:h-14 sm:w-14">
                   <BrandIcon name={s.icon} fill />
                 </span>
                 <span className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)] sm:text-[1rem]">

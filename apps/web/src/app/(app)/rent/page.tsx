@@ -56,7 +56,7 @@ export default async function RentPage({
         </p>
 
         {/* The safety rule of the rent market, stated up front. */}
-        <div className="nf-card mt-4 flex items-start gap-3 p-4">
+        <div className="nf-card mt-4 flex items-start gap-4 p-4">
           <UiIcon
             name="verified"
             size={18}
@@ -116,9 +116,9 @@ export default async function RentPage({
             </Link>
           </div>
         ) : (
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {rentals.map((r) => (
-              <li key={r.id} className="flex flex-col gap-2.5">
+              <li key={r.id} className="flex flex-col gap-3">
                 <ListingCard listing={r} locale={locale} t={t} />
                 <Link
                   href={messageHrefs.get(r.id) ?? "/messages"}

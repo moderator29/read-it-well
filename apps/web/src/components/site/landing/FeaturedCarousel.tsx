@@ -91,7 +91,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                   </div>
 
                   <div className="p-4">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start justify-between gap-4">
                       <h3 className="truncate text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
                         {l.title}
                       </h3>

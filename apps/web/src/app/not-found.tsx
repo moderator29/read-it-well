@@ -21,16 +21,16 @@ export default function NotFound() {
 
       {/* Floating decorative objects */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <span className="nf-float absolute left-[8%] top-[16%] block h-14 w-14 opacity-25 md:h-20 md:w-20">
+        <span className="nf-float absolute left-[8%] top-[16%] block h-16 w-16 opacity-25 md:h-20 md:w-20">
           <BrandIcon name="hotel-star" fill />
         </span>
-        <span className="nf-float-slow absolute right-[10%] top-[22%] block h-12 w-12 opacity-20 md:h-16 md:w-16">
+        <span className="nf-float-slow absolute right-[10%] top-[22%] block h-14 w-14 opacity-20 md:h-16 md:w-16">
           <BrandIcon name="gift" fill />
         </span>
-        <span className="nf-float-slow absolute bottom-[24%] left-[14%] block h-14 w-14 opacity-20 md:h-14 md:w-14">
+        <span className="nf-float-slow absolute bottom-[24%] left-[14%] block h-16 w-16 opacity-20 md:h-14 md:w-14">
           <BrandIcon name="luggage-check" fill />
         </span>
-        <span className="nf-float absolute bottom-[18%] right-[12%] block h-14 w-14 opacity-25 md:h-[4.5rem] md:w-[4.5rem]">
+        <span className="nf-float absolute bottom-[18%] right-[12%] block h-16 w-16 opacity-25 md:h-[4.5rem] md:w-[4.5rem]">
           <BrandIcon name="map-route" fill />
         </span>
       </div>
@@ -53,7 +53,7 @@ export default function NotFound() {
         <div className="mx-auto mt-8 max-w-md">
           <Link
             href="/search"
-            className="nf-btn nf-btn--glass flex w-full items-center justify-start gap-3 rounded-full px-5 py-3.5 text-left"
+            className="nf-btn nf-btn--glass flex w-full items-center justify-start gap-4 rounded-full px-5 py-3.5 text-left"
           >
             <UiIcon name="search" size={18} className="shrink-0 text-[var(--nf-content-muted)]" />
             <span className="text-[0.9375rem] text-[var(--nf-content-secondary)]">
@@ -62,7 +62,7 @@ export default function NotFound() {
           </Link>
         </div>
 
-        <div className="mt-5 flex flex-wrap justify-center gap-3">
+        <div className="mt-5 flex flex-wrap justify-center gap-4">
           <Link href="/" className="nf-btn nf-btn--primary nf-btn--lg">
             Back to home
           </Link>

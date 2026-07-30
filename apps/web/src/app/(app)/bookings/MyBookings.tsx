@@ -49,7 +49,7 @@ function BookingCard({
   const badge = STATUS_BADGE[b.status];
   return (
     <li className="nf-card overflow-hidden p-0 text-left">
-      <div className="flex gap-3.5 p-3.5 sm:gap-4 sm:p-4">
+      <div className="flex gap-4.5 p-3.5 sm:gap-4 sm:p-4">
         <Link
           href={`/listing/${b.listingId}`}
           aria-label={b.title}
@@ -94,7 +94,7 @@ function BookingCard({
           </span>
           <span className="text-[0.75rem] text-[var(--nf-content-muted)]">total</span>
         </p>
-        <span className="flex items-center gap-3">
+        <span className="flex items-center gap-4">
           {b.cancellable && (
             <button
               type="button"
@@ -196,7 +196,7 @@ function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () =
               </p>
             )}
 
-            <form action={formAction} className="mt-4 grid gap-2.5">
+            <form action={formAction} className="mt-4 grid gap-3">
               <input type="hidden" name="bookingId" value={booking.id} />
               <button
                 type="submit"
@@ -282,7 +282,7 @@ export function MyBookings({ groups }: { groups: BookingGroups }) {
           role="tabpanel"
           id={`bookings-panel-${current.key}`}
           aria-labelledby={`bookings-tab-${current.key}`}
-          className="nf-rise grid gap-3 pt-4"
+          className="nf-rise grid gap-4 pt-4"
         >
           {bookings.map((b) => (
             <BookingCard key={b.id} booking={b} onCancel={setCancelling} />

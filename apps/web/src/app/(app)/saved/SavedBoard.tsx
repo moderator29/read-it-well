@@ -196,7 +196,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
       </Reveal>
 
       <Reveal delay={60}>
-        <ul data-testid="saved-grid" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <ul data-testid="saved-grid" className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {rendered.map(({ id, item, state }) => (
             <li key={id}>
               {state === undefined && item ? (
@@ -217,7 +217,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
               ) : (
                 <div
                   data-testid="undo-chip"
-                  className="nf-card flex h-full items-center justify-between gap-3 p-4"
+                  className="nf-card flex h-full items-center justify-between gap-4 p-4"
                 >
                   <p className="text-[0.875rem] text-[var(--nf-content-secondary)]">
                     {state === "restoring" ? "Putting it back" : "Removed from saved"}

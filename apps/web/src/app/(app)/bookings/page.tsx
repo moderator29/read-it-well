@@ -73,10 +73,10 @@ export default async function BookingsPage() {
 
       <Reveal delay={100}>
         <h2 className="nf-overline mb-3 mt-8">How booking works</h2>
-        <ul className="grid gap-2.5 sm:grid-cols-3">
+        <ul className="grid gap-3 sm:grid-cols-3">
           {steps.map((s) => (
-            <li key={s.title} className="nf-card flex items-start gap-3 p-4 sm:flex-col">
-              <span className="h-12 w-12 shrink-0">
+            <li key={s.title} className="nf-card flex items-start gap-4 p-4 sm:flex-col">
+              <span className="h-14 w-14 shrink-0">
                 <BrandIcon name={s.icon} fill />
               </span>
               <span className="leading-tight">

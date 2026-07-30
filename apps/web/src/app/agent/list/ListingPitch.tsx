@@ -36,7 +36,7 @@ export function ListingPitch({ copy, signedIn }: { copy: PitchCopy; signedIn: bo
 
       <ul className="mt-7 space-y-3 text-left">
         {points.map((point) => (
-          <li key={point.title} className="nf-card flex items-start gap-3 p-4">
+          <li key={point.title} className="nf-card flex items-start gap-4 p-4">
             <span
               className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)]"
               style={{ background: "var(--nf-surface-raised)", color: "var(--nf-electric-300)" }}
@@ -53,7 +53,7 @@ export function ListingPitch({ copy, signedIn }: { copy: PitchCopy; signedIn: bo
         ))}
       </ul>
 
-      <div className="mt-7 flex flex-col gap-3">
+      <div className="mt-7 flex flex-col gap-4">
         <Link href="/agents/apply" className="nf-btn nf-btn--primary">
           {copy.apply}
         </Link>

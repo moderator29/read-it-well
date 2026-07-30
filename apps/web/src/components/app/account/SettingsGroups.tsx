@@ -135,7 +135,7 @@ export function LanguageCard({ current }: { current: Locale }) {
               aria-checked={active}
               disabled={pending}
               onClick={() => choose(code)}
-              className="flex w-full cursor-pointer items-center gap-3 py-3.5 text-left transition-opacity first:pt-0 last:pb-0 disabled:cursor-wait disabled:opacity-60"
+              className="flex w-full cursor-pointer items-center gap-4 py-3.5 text-left transition-opacity first:pt-0 last:pb-0 disabled:cursor-wait disabled:opacity-60"
             >
               <span className="nf-badge w-11 justify-center">{localeMeta[code].short}</span>
               <span className="min-w-0 flex-1">
@@ -512,8 +512,8 @@ export function GroupCard({
 }) {
   return (
     <section className="nf-card p-5 sm:p-6" aria-label={overline}>
-      <div className="mb-4 flex items-center gap-2.5">
-        <span className="block h-9 w-9 shrink-0">
+      <div className="mb-4 flex items-center gap-3">
+        <span className="block h-11 w-11 shrink-0">
           <BrandIcon name={icon} fill />
         </span>
         <h2 className="nf-overline">{overline}</h2>

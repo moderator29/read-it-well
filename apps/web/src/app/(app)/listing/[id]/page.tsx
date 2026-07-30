@@ -170,7 +170,7 @@ export default async function ListingDetailPage({
             <h2 className="nf-h1 max-sm:text-[1.375rem]">{listing.title}</h2>
 
             <p className="mt-2.5 flex items-center gap-2 text-[0.9375rem] text-[var(--nf-content-secondary)]">
-              <span className="block h-9 w-9 shrink-0">
+              <span className="block h-11 w-11 shrink-0">
                 <BrandIcon name="pin-map" fill />
               </span>
               <span className="truncate">{where}</span>
@@ -212,7 +212,7 @@ export default async function ListingDetailPage({
             <ul className="mt-4 flex flex-wrap gap-2">
               {facts.map((f) => (
                 <li key={f.label} className="nf-chip gap-2 px-3 py-1.5">
-                  <span className="block h-9 w-9 shrink-0">
+                  <span className="block h-11 w-11 shrink-0">
                     <BrandIcon name={f.icon} fill />
                   </span>
                   <span className="nf-numeric text-[0.8125rem]">{f.label}</span>
@@ -339,7 +339,7 @@ export default async function ListingDetailPage({
 
       {/* ------------------------------------------- mobile action bar */}
       <div className="sticky bottom-20 z-30 mt-8 lg:hidden">
-        <div className="nf-card flex items-center justify-between gap-3 p-3 pl-4">
+        <div className="nf-card flex items-center justify-between gap-4 p-3 pl-4">
           <p className="flex min-w-0 flex-col">
             {listing.priceMinor > 0 ? (
               <>

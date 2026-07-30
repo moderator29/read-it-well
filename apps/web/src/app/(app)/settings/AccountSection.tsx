@@ -166,7 +166,7 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
 
       <div className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)] px-5 pb-8 pt-5">
         <div className="mx-auto max-w-lg">
-          <div className="mb-5 flex items-center justify-between gap-3">
+          <div className="mb-5 flex items-center justify-between gap-4">
             <h2 className="nf-h3">Delete account</h2>
             <button
               type="button"
@@ -194,15 +194,15 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
             <div className="nf-card p-5">
               <p className="text-[0.9375rem] font-semibold">This is permanent</p>
               <ul className="mt-3 space-y-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                <li className="flex gap-2.5">
+                <li className="flex gap-3">
                   <span aria-hidden="true" className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-error)]" />
                   Your profile, photo and preferences are removed.
                 </li>
-                <li className="flex gap-2.5">
+                <li className="flex gap-3">
                   <span aria-hidden="true" className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-error)]" />
                   Your saved places, messages and reviews go with them.
                 </li>
-                <li className="flex gap-2.5">
+                <li className="flex gap-3">
                   <span aria-hidden="true" className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-error)]" />
                   Bookings already made stay on record with the host, as the law
                   requires, but are no longer linked to you here.
@@ -212,7 +212,7 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
                 If something has gone wrong, talk to us first. Most things can
                 be fixed without losing your history.
               </p>
-              <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <button type="button" onClick={onClose} className="nf-btn nf-btn--primary w-full">
                   Keep my account
                 </button>
@@ -257,7 +257,7 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
                 </p>
               )}
 
-              <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <button type="button" onClick={onClose} className="nf-btn nf-btn--primary w-full">
                   Keep my account
                 </button>

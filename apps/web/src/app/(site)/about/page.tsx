@@ -101,10 +101,10 @@ export default function AboutPage() {
         {/* ------------------------------------------------- what we do */}
         <Reveal as="section" className="mt-14">
           <h2 className="nf-overline text-center">What lives on RentMe</h2>
-          <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4">
+          <ul className="mt-4 grid grid-cols-2 gap-4 sm:gap-4">
             {categories.map((c, i) => (
               <Reveal key={c.title} as="li" delay={i * 70} className="h-full">
-                <div className="nf-card flex h-full flex-col items-start gap-2.5 p-4 sm:p-5">
+                <div className="nf-card flex h-full flex-col items-start gap-3 p-4 sm:p-5">
                   <span className="inline-grid h-13 w-13 place-items-center">
                     <BrandIcon name={c.icon} fill />
                   </span>
@@ -125,7 +125,7 @@ export default function AboutPage() {
             {values.map((v, i) => (
               <Reveal key={v.title} delay={i * 60}>
                 <div className="nf-card flex items-start gap-4 p-5 sm:p-6">
-                  <span className="inline-grid h-14 w-14 shrink-0 place-items-center">
+                  <span className="inline-grid h-16 w-16 shrink-0 place-items-center">
                     <BrandIcon name={v.icon} fill />
                   </span>
                   <span className="min-w-0">
@@ -148,7 +148,7 @@ export default function AboutPage() {
               Whether you are looking for your next stay, want to list a property, or
               want to join the team, there is a place for you here.
             </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
               <Link href="/agents" className="nf-btn nf-btn--primary nf-btn--lg">
                 Become an agent
                 <UiIcon name="arrow-right" size={18} />

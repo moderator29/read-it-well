@@ -273,33 +273,154 @@ body {
    * white chip with a hairline on paper. The object is inset so it never
    * touches the tile wall.
    */
+  /*
+   * The object tile, built the way the reference platform builds glass: an
+   * outer shell carrying the edge-lit stride, an inner well the object sits
+   * in, and a corner light running off the upper left. The stride is drawn
+   * with the padding-box and border-box trick so one element gets a true ring
+   * that decays around the corner rather than a flat outline.
+   */
   .nf-icon-tile {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex: none;
-    padding: 12%;
-    border-radius: 28%;
+    padding: 9%;
+    border: 1.5px solid transparent;
+    border-radius: 30%;
     background:
-      radial-gradient(120% 100% at 28% 10%, rgb(255 255 255 / 0.92) 0%, rgb(255 255 255 / 0.7) 42%, transparent 72%),
-      linear-gradient(160deg, #FFFFFF 0%, #EEF2FA 100%);
+      radial-gradient(125% 100% at 24% 8%, rgb(255 255 255 / 0.95) 0%, rgb(244 247 253 / 0.86) 45%, transparent 74%) padding-box,
+      linear-gradient(158deg, #FFFFFF 0%, #EDF1F9 100%) padding-box,
+      linear-gradient(135deg,
+        rgb(92 124 255 / 0.95) 0%,
+        rgb(12 57 239 / 0.62) 22%,
+        rgb(12 57 239 / 0.12) 52%,
+        transparent 74%)
+        border-box;
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.9),
-      inset 0 0 0 1px rgb(12 57 239 / 0.14),
-      0 6px 18px -10px rgb(12 57 239 / 0.45);
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      0 8px 22px -12px rgb(12 57 239 / 0.5);
+  }
+  /* The inner well: a soft inset ring so the object reads as seated in the
+     tile rather than pasted on top of it. */
+  .nf-icon-tile::before {
+    content: "";
+    position: absolute;
+    inset: 7%;
+    border-radius: 26%;
+    pointer-events: none;
+    box-shadow:
+      inset 0 0 0 1px rgb(12 57 239 / 0.1),
+      inset 0 2px 6px rgb(12 57 239 / 0.09);
+  }
+  .nf-icon-tile > img {
+    position: relative;
+    z-index: 1;
   }
   :root[data-theme="light"] .nf-icon-tile {
-    background: linear-gradient(160deg, #FFFFFF 0%, #F4F7FC 100%);
+    background:
+      radial-gradient(125% 100% at 24% 8%, #FFFFFF 0%, rgb(248 250 253 / 0.9) 48%, transparent 76%) padding-box,
+      linear-gradient(158deg, #FFFFFF 0%, #F3F6FB 100%) padding-box,
+      linear-gradient(135deg,
+        rgb(12 57 239 / 0.55) 0%,
+        rgb(12 57 239 / 0.28) 26%,
+        rgb(18 21 26 / 0.07) 60%,
+        rgb(18 21 26 / 0.05) 100%)
+        border-box;
     box-shadow:
-      inset 0 0 0 1px rgb(18 21 26 / 0.07),
-      0 1px 3px rgb(18 21 26 / 0.05);
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      0 2px 6px -2px rgb(18 21 26 / 0.09);
   }
   :root:not([data-theme="light"]) .nf-icon-tile {
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.85),
-      inset 0 0 0 1px rgb(92 124 255 / 0.5),
-      0 8px 22px -10px rgb(12 57 239 / 0.7);
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      0 0 0 1px rgb(12 57 239 / 0.2),
+      0 10px 26px -12px rgb(12 57 239 / 0.75),
+      0 0 20px -8px rgb(12 57 239 / 0.5);
+  }
+  /* Objects lift and their stride brightens when the card they sit on is
+     hovered, so the whole tile feels lit rather than static. */
+  .nf-card--interactive:hover .nf-icon-tile {
+    transform: translateY(-1px) scale(1.03);
+  }
+  .nf-icon-tile {
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-card--interactive:hover .nf-icon-tile {
+      transform: none;
+    }
+  }
+
+  /*
+   * Living glass.
+   *
+   * A specular highlight travels slowly across every object tile, the way
+   * light moves over real glass when you turn it. Long cycle and low opacity,
+   * so it registers as the surface being alive rather than as an animation
+   * demanding attention. Staggered per tile by index so a grid never pulses
+   * in lockstep.
+   */
+  .nf-icon-tile::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    overflow: hidden;
+    background: linear-gradient(
+      115deg,
+      transparent 38%,
+      rgb(255 255 255 / 0.6) 47%,
+      rgb(160 190 255 / 0.35) 52%,
+      transparent 62%
+    );
+    background-size: 260% 100%;
+    background-position: 160% 0;
+    animation: nf-tile-sheen 7s var(--nf-ease-standard) infinite;
+    animation-delay: calc(var(--tile-i, 0) * 900ms);
+    mix-blend-mode: screen;
+    opacity: 0.75;
+  }
+  :root[data-theme="light"] .nf-icon-tile::after {
+    mix-blend-mode: normal;
+    opacity: 0.5;
+  }
+  @keyframes nf-tile-sheen {
+    0%, 62% { background-position: 160% 0; }
+    92%, 100% { background-position: -60% 0; }
+  }
+
+  /* Scene artwork breathes very slightly, so a still render never looks dead
+     next to the moving canvas behind it. */
+  .nf-story-art {
+    animation: nf-art-breathe 12s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-art-breathe {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(0, -6px, 0) scale(1.015); }
+  }
+
+  /* The hero scene drifts and its light shifts, tying the artwork to the
+     ambient canvas instead of sitting on top of it. */
+  .nf-hero-scene {
+    animation: nf-scene-live 18s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-scene-live {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); filter: saturate(1.05) brightness(1); }
+    50% { transform: translate3d(0, -14px, 0) scale(1.02); filter: saturate(1.12) brightness(1.05); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-icon-tile::after,
+    .nf-story-art,
+    .nf-hero-scene {
+      animation: none !important;
+    }
+    .nf-icon-tile::after { display: none; }
   }
 
   /*

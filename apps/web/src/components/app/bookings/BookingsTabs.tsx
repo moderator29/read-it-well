@@ -34,7 +34,7 @@ function BookingCard({ booking: b }: { booking: Booking }) {
   const confirmed = b.status === "confirmed";
   return (
     <li className="nf-card overflow-hidden p-0 text-left">
-      <div className="flex gap-3.5 p-3.5 sm:gap-4 sm:p-4">
+      <div className="flex gap-4.5 p-3.5 sm:gap-4 sm:p-4">
         <Link
           href={`/listing/${b.listingId}`}
           aria-label={b.title}
@@ -182,7 +182,7 @@ export function BookingsTabs({
           role="tabpanel"
           id={`bookings-panel-${current.key}`}
           aria-labelledby={`bookings-tab-${current.key}`}
-          className="nf-rise grid gap-3 pt-4"
+          className="nf-rise grid gap-4 pt-4"
         >
           {bookings.map((b) => (
             <BookingCard key={b.id} booking={b} />

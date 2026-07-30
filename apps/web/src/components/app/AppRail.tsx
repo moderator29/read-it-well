@@ -115,7 +115,7 @@ export function AppRail({
         href="/agents"
         className="mt-4 flex items-center gap-3 rounded-[var(--nf-radius-lg)] border border-[color-mix(in_oklab,var(--nf-mode-agent)_40%,transparent)] p-3 transition-colors hover:bg-[color-mix(in_oklab,var(--nf-mode-agent)_10%,transparent)]"
       >
-        <span className="h-10 w-10 shrink-0 lg:h-8 lg:w-8">
+        <span className="h-12 w-12 shrink-0 lg:h-8 lg:w-8">
           <BrandIcon name="homes-sparkle" fill />
         </span>
         <span className="min-w-0 flex-1 leading-tight">
@@ -126,7 +126,7 @@ export function AppRail({
         </span>
       </Link>
 
-      <div className="nf-card mt-2 flex items-center gap-3 p-3">
+      <div className="nf-card mt-2 flex items-center gap-4 p-3">
         <span
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.8125rem] font-bold text-white"
           style={{ background: "var(--nf-gradient-brand)" }}

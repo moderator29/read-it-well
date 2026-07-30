@@ -44,7 +44,7 @@ export function ListingPriceCard({
         </p>
       )}
 
-      <div className="mt-4 grid gap-2.5">
+      <div className="mt-4 grid gap-3">
         {isRental ? (
           <Link href={messageHref} className="nf-btn nf-btn--primary w-full">
             Message agent

@@ -91,7 +91,7 @@ export function ThreadOptionsSheet({
         tabIndex={-1}
         className="nf-rise relative w-full rounded-t-3xl border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] p-5 shadow-[var(--nf-shadow-float)] outline-none sm:max-w-md sm:rounded-3xl"
       >
-        <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="mb-4 flex items-start justify-between gap-4">
           <div>
             <h2 id="thread-options-title" className="nf-h3">
               Listing and safety
@@ -108,7 +108,7 @@ export function ThreadOptionsSheet({
         </div>
 
         {/* ------------------------------------------------ listing mini view */}
-        <div className="nf-card flex items-center gap-3 p-3">
+        <div className="nf-card flex items-center gap-4 p-3">
           <div
             aria-hidden="true"
             className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl"
@@ -145,8 +145,8 @@ export function ThreadOptionsSheet({
         </div>
 
         {/* --------------------------------------------- inspection and safety */}
-        <div className="mt-4 flex items-start gap-3">
-          <span className="h-12 w-12 shrink-0" aria-hidden="true">
+        <div className="mt-4 flex items-start gap-4">
+          <span className="h-14 w-14 shrink-0" aria-hidden="true">
             <BrandIcon name="shield-lock" fill />
           </span>
           <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">

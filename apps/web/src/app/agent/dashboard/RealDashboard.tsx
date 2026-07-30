@@ -31,9 +31,9 @@ function Tile({
   return (
     <Link
       href={href}
-      className={["nf-card nf-card--interactive flex items-start gap-2.5 p-3.5 sm:gap-3 sm:p-4", className ?? ""].join(" ")}
+      className={["nf-card nf-card--interactive flex items-start gap-3 p-3.5 sm:gap-4 sm:p-4", className ?? ""].join(" ")}
     >
-      <span className="h-12 w-12 shrink-0 sm:h-[42px] sm:w-[42px]">
+      <span className="h-14 w-14 shrink-0 sm:h-[42px] sm:w-[42px]">
         <BrandIcon name={icon} fill />
       </span>
       <span className="min-w-0">
@@ -83,7 +83,7 @@ export function RealDashboard({
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="nf-h1">{a.title}</h1>
           <p className="mt-1 text-[var(--nf-content-secondary)]">
@@ -96,7 +96,7 @@ export function RealDashboard({
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <Tile
           icon="homes-sparkle"
           label={d.liveListings}
@@ -149,7 +149,7 @@ export function RealDashboard({
           ) : (
             <ul className="space-y-2.5">
               {withCounts.map((status) => (
-                <li key={status} className="flex items-center justify-between gap-3">
+                <li key={status} className="flex items-center justify-between gap-4">
                   <span className="text-[0.875rem] text-[var(--nf-content-secondary)]">
                     {t.agentListings.workspace.status[status]}
                   </span>
@@ -184,7 +184,7 @@ export function RealDashboard({
           ) : (
             <ul className="space-y-3">
               {numbers.upcomingBookings.map((booking) => (
-                <li key={booking.id} className="flex items-center gap-3">
+                <li key={booking.id} className="flex items-center gap-4">
                   <span
                     className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)]"
                     style={{ background: "var(--nf-surface-raised)" }}
@@ -238,14 +238,14 @@ export function RealDashboard({
 
       <section className="mt-4">
         <h2 className="nf-h3 mb-3">{a.quickActions}</h2>
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {quickActions.map((action) => (
             <li key={action.href}>
               <Link
                 href={action.href}
                 className="nf-card nf-card--interactive flex flex-col items-center gap-2 p-4 text-center sm:p-5"
               >
-                <span className="h-13 w-13 sm:h-14 sm:w-14">
+                <span className="h-13 w-13 sm:h-16 sm:w-16">
                   <BrandIcon name={action.icon} fill />
                 </span>
                 <span className="text-[0.8125rem] font-semibold">{action.label}</span>

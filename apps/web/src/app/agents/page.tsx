@@ -89,7 +89,7 @@ export default async function BecomeAgentPage() {
             <h1 className="nf-h1 mx-auto mt-5 max-w-[18ch]">{j.title}</h1>
             <p className="mx-auto mt-3 max-w-[52ch] text-[var(--nf-content-secondary)]">{j.body}</p>
 
-            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-4">
               <Link href="/agents/apply" className="nf-btn nf-btn--primary nf-btn--lg">
                 {j.start}
                 <UiIcon name="arrow-right" size={18} />
@@ -105,10 +105,10 @@ export default async function BecomeAgentPage() {
           {/* -------------------------------------------------- what you get */}
           <Reveal as="section" className="mt-14">
             <h2 className="nf-overline text-center">{j.whatYouGet}</h2>
-            <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+            <ul className="mt-4 grid gap-4 sm:grid-cols-3">
               {benefits.map((b, i) => (
                 <Reveal key={b.text} as="li" delay={i * 80} className="h-full">
-                  <div className="nf-card flex h-full items-center gap-3 p-4 sm:flex-col sm:items-start sm:gap-2.5 sm:p-5">
+                  <div className="nf-card flex h-full items-center gap-4 p-4 sm:flex-col sm:items-start sm:gap-3 sm:p-5">
                     <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
                       <BrandIcon name={b.icon} fill />
                     </span>
@@ -129,7 +129,7 @@ export default async function BecomeAgentPage() {
             {/* One markup, two shapes: a connector line between cards makes it
                 a vertical timeline on phones; the connector hides at sm and
                 the same cards flow into a 3x2 grid. */}
-            <ol className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ol className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {stepList.map((s, i) => (
                 <Reveal key={s.n} as="li" delay={(i % 3) * 80} className="relative h-full">
                   {i < stepList.length - 1 && (
@@ -187,8 +187,8 @@ export default async function BecomeAgentPage() {
               {trustNotes.map((n, i) => (
                 <Reveal key={n.q} delay={i * 60}>
                   <div className="nf-card p-5">
-                    <h3 className="flex items-center gap-2.5 font-semibold">
-                      <span className="inline-grid h-8 w-8 shrink-0 place-items-center">
+                    <h3 className="flex items-center gap-3 font-semibold">
+                      <span className="inline-grid h-10 w-10 shrink-0 place-items-center">
                         <BrandIcon name="support-chat" fill />
                       </span>
                       {n.q}
@@ -205,7 +205,7 @@ export default async function BecomeAgentPage() {
           {/* --------------------------------------------------- final call */}
           <Reveal as="section" className="mt-14">
             <div className="nf-card p-7 text-center sm:p-9">
-              <span className="mx-auto inline-grid h-14 w-14 place-items-center">
+              <span className="mx-auto inline-grid h-16 w-16 place-items-center">
                 <BrandIcon name="homes-sparkle" fill />
               </span>
               <h2 className="nf-h2 mx-auto mt-4 max-w-[20ch]">{j.title}</h2>

@@ -21,7 +21,7 @@ export function ListingStickyBar({
 }) {
   return (
     <div className="sticky bottom-20 z-30 mt-8 lg:hidden">
-      <div className="nf-card flex items-center justify-between gap-3 p-3 pl-4">
+      <div className="nf-card flex items-center justify-between gap-4 p-3 pl-4">
         <p className="flex min-w-0 flex-col">
           <span className="nf-numeric truncate text-[1.0625rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
             {formatMoney(listing.priceMinor, locale, listing.currency)}

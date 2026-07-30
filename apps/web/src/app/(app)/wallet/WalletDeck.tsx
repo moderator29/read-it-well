@@ -82,7 +82,7 @@ export function WalletDeck({
             onClick={() => setOpen(tile.key)}
             className="nf-card nf-card--interactive flex flex-col items-center gap-2 px-2 py-4 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]"
           >
-            <span className="h-10 w-10">
+            <span className="h-12 w-12">
               <BrandIcon name={tile.icon} fill />
             </span>
             {tile.label}
@@ -157,7 +157,7 @@ function WalletDrawer({
       className="fixed inset-0 z-[80] overflow-y-auto bg-[var(--nf-surface-primary)] outline-none"
     >
       <div className="mx-auto w-full max-w-md px-4 pb-10 pt-5 sm:px-6">
-        <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="mb-5 flex items-center justify-between gap-4">
           <button
             type="button"
             aria-label="Close"
@@ -168,7 +168,7 @@ function WalletDrawer({
               &times;
             </span>
           </button>
-          <span className="h-11 w-11">
+          <span className="h-13 w-13">
             <BrandIcon name={icon} fill />
           </span>
         </div>

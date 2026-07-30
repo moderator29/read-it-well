@@ -70,13 +70,13 @@ export default async function LandingPage() {
 
           {/* Floating category objects drifting in the hero air. Decorative. */}
           <div className="nf-icon-field" aria-hidden="true">
-            <span className="left-[4%] top-[64%] h-11 w-11 sm:h-13 sm:w-13">
+            <span className="left-[4%] top-[64%] h-13 w-13 sm:h-13 sm:w-13">
               <BrandIcon name="wallet-secure" fill />
             </span>
-            <span className="left-[46%] top-[8%] hidden h-12 w-12 sm:block">
+            <span className="left-[46%] top-[8%] hidden h-14 w-14 sm:block">
               <BrandIcon name="pin-map" fill />
             </span>
-            <span className="right-[6%] top-[56%] h-11 w-11 sm:h-13 sm:w-13 lg:right-[40%] lg:top-[74%]">
+            <span className="right-[6%] top-[56%] h-13 w-13 sm:h-13 sm:w-13 lg:right-[40%] lg:top-[74%]">
               <BrandIcon name="keys-home" fill />
             </span>
           </div>
@@ -125,7 +125,7 @@ export default async function LandingPage() {
                 <label htmlFor="hero-q" className="sr-only">
                   {t.landing.hero.searchLabel}
                 </label>
-                <div className="flex min-w-0 flex-1 items-center gap-2.5 px-3">
+                <div className="flex min-w-0 flex-1 items-center gap-3 px-3">
                   <UiIcon name="search" size={20} className="text-[var(--nf-content-muted)]" />
                   <input
                     id="hero-q"
@@ -159,17 +159,22 @@ export default async function LandingPage() {
 
           {/* --------------------------------------------------- feature row */}
           <div className="nf-shell relative z-10 mt-10">
-            <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+            <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+              {/* Two columns on a phone leave no room for an object beside
+                  text, so the object sits above it and the card breathes. */}
               {features.map((f) => (
-                <li key={f.title} className="nf-card nf-card--interactive flex items-center gap-3 p-3.5 sm:p-4">
-                  <span className="h-12 w-12 shrink-0 sm:h-14 sm:w-14">
+                <li
+                  key={f.title}
+                  className="nf-card nf-card--interactive flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-5"
+                >
+                  <span className="h-14 w-14 shrink-0 sm:h-14 sm:w-14">
                     <BrandIcon name={f.icon} fill />
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-[0.875rem] font-semibold text-[var(--nf-content-primary)] sm:text-[0.9375rem]">
+                    <span className="block text-[0.875rem] font-semibold leading-snug text-[var(--nf-content-primary)] sm:text-[0.9375rem]">
                       {f.title}
                     </span>
-                    <span className="block text-[0.75rem] text-[var(--nf-content-muted)] sm:text-[0.8125rem]">
+                    <span className="mt-0.5 block text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)] sm:text-[0.8125rem]">
                       {f.body}
                     </span>
                   </span>
@@ -193,7 +198,7 @@ export default async function LandingPage() {
         {/* -------------------------------------------------------- facts band */}
         <section className="nf-shell pt-4">
           <Reveal>
-            <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+            <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
               {[
                 { big: "36 + FCT", small: t.landing.vision.points.everywhere.title },
                 { big: "4", small: t.landing.trust.multiLanguage.title },
@@ -234,7 +239,7 @@ export default async function LandingPage() {
               </Reveal>
 
               <Reveal delay={80}>
-                <ul className="grid gap-3 sm:grid-cols-2">
+                <ul className="grid gap-5 sm:grid-cols-2">
                   {visionPoints.map((p) => (
                     <li key={p.title} className="nf-card nf-card--interactive p-5">
                       <span className="mb-3 block h-16 w-16">
@@ -263,14 +268,14 @@ export default async function LandingPage() {
             </p>
           </Reveal>
 
-          <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
             {categories.map((c, i) => (
               <Reveal as="li" key={c.href} delay={i * 60}>
                 <Link
                   href={c.href}
-                  className="nf-card nf-card--interactive flex h-full flex-col items-center gap-3 p-5 text-center sm:p-6"
+                  className="nf-card nf-card--interactive flex h-full flex-col items-center gap-4 p-5 text-center sm:p-6"
                 >
-                  <span className="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16">
+                  <span className="h-14 w-14 sm:h-14 sm:w-14 lg:h-16 lg:w-16">
                     <BrandIcon name={c.icon} fill />
                   </span>
                   <span className="text-[0.875rem] font-semibold sm:text-[0.9375rem]">{c.label}</span>
@@ -306,7 +311,7 @@ export default async function LandingPage() {
                 <li
                   key={item.title}
                   className={[
-                    "flex items-center gap-3 px-5 py-5",
+                    "flex items-center gap-4 px-5 py-5",
                     i > 0 ? "sm:border-l sm:border-[var(--nf-border-subtle)]" : "",
                     i % 2 === 0 ? "sm:border-l-0 lg:border-l" : "",
                     i === 0 ? "lg:border-l-0" : "",
@@ -376,7 +381,7 @@ export default async function LandingPage() {
                 <p className="mx-auto mt-4 max-w-[52ch] text-[var(--nf-content-secondary)]">
                   {t.landing.cta.subtitle}
                 </p>
-                <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <div className="mt-8 flex flex-wrap justify-center gap-4">
                   <Link href="/sign-up" className="nf-btn nf-btn--primary nf-btn--lg nf-breathe">
                     {t.landing.cta.action}
                   </Link>

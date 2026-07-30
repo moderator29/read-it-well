@@ -31,7 +31,7 @@ export function RetryButton() {
   }, []);
 
   return (
-    <div className="mt-7 flex flex-col items-center gap-3">
+    <div className="mt-7 flex flex-col items-center gap-4">
       <button
         type="button"
         className="nf-btn nf-btn--primary nf-btn--lg w-full"

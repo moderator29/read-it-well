@@ -146,7 +146,7 @@ export default async function SearchPage({
           <label htmlFor="search-q" className="sr-only">
             {t.home.searchPlaceholder}
           </label>
-          <div className="flex min-w-0 flex-1 items-center gap-2.5 px-2.5">
+          <div className="flex min-w-0 flex-1 items-center gap-3 px-2.5">
             <UiIcon name="search" size={18} className="shrink-0 text-[var(--nf-content-muted)]" />
             <input
               id="search-q"
@@ -329,7 +329,7 @@ export default async function SearchPage({
             />
           </div>
         ) : (
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {listings.map((l) => (
               <li key={l.id}>
                 <ListingCard listing={l} locale={locale} t={t} />

@@ -72,10 +72,10 @@ export default function CareersPage() {
         {/* ----------------------------------------------- how we work */}
         <Reveal as="section" className="mt-14">
           <h2 className="nf-overline text-center">How we work</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="mt-4 grid gap-5 sm:grid-cols-2">
             {culture.map((c, i) => (
               <Reveal key={c.title} delay={(i % 2) * 80} className="h-full">
-                <div className="nf-card flex h-full flex-col gap-2.5 p-5 sm:p-6">
+                <div className="nf-card flex h-full flex-col gap-3 p-5 sm:p-6">
                   <span className="inline-grid h-13 w-13 place-items-center">
                     <BrandIcon name={c.icon} fill />
                   </span>
@@ -93,7 +93,7 @@ export default function CareersPage() {
         <Reveal as="section" className="mt-14">
           <h2 className="nf-overline text-center">Open roles</h2>
           <div className="nf-card mt-4 p-7 text-center sm:p-9">
-            <span className="mx-auto inline-grid h-14 w-14 place-items-center">
+            <span className="mx-auto inline-grid h-16 w-16 place-items-center">
               <BrandIcon name="home-search" fill />
             </span>
             <h3 className="nf-h3 mx-auto mt-4 max-w-[26ch]">
@@ -144,8 +144,8 @@ export default function CareersPage() {
           <ul className="mt-4 space-y-3">
             {wanted.map((w, i) => (
               <Reveal key={w} as="li" delay={i * 60}>
-                <div className="nf-card flex items-center gap-3 p-4 sm:p-5">
-                  <span className="inline-grid h-11 w-11 shrink-0 place-items-center">
+                <div className="nf-card flex items-center gap-4 p-4 sm:p-5">
+                  <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
                     <BrandIcon name="user-check" fill />
                   </span>
                   <span className="text-[0.9375rem] font-medium leading-snug">{w}</span>

@@ -43,7 +43,7 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden sm:block">
               <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
             </div>
