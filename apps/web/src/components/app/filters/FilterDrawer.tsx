@@ -404,21 +404,26 @@ export function FilterDrawer({
                   />
                 </div>
               </div>
-              <p
-                aria-live="polite"
-                className="mt-2.5 text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]"
-              >
-                {minInNaira === undefined && maxInNaira === undefined
-                  ? "Any price"
-                  : minInNaira === undefined
-                    ? `Up to ${formatMoney(nairaToKobo(maxInNaira ?? 0), locale)}`
-                    : maxInNaira === undefined
-                      ? `${formatMoney(nairaToKobo(minInNaira), locale)} and above`
-                      : `${formatMoney(nairaToKobo(minInNaira), locale)} to ${formatMoney(
-                          nairaToKobo(maxInNaira),
-                          locale,
-                        )}`}
-              </p>
+              <div className="nf-panel-sunken mt-3 flex items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_16%,transparent)] text-[var(--nf-electric-300)]">
+                  <UiIcon name="wallet" size={17} />
+                </span>
+                <p
+                  aria-live="polite"
+                  className="nf-numeric min-w-0 text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
+                >
+                  {minInNaira === undefined && maxInNaira === undefined
+                    ? "Any price"
+                    : minInNaira === undefined
+                      ? `Up to ${formatMoney(nairaToKobo(maxInNaira ?? 0), locale)}`
+                      : maxInNaira === undefined
+                        ? `${formatMoney(nairaToKobo(minInNaira), locale)} and above`
+                        : `${formatMoney(nairaToKobo(minInNaira), locale)} to ${formatMoney(
+                            nairaToKobo(maxInNaira),
+                            locale,
+                          )}`}
+                </p>
+              </div>
             </section>
 
             {/* ------------------------------------------------- rooms */}
@@ -554,7 +559,7 @@ export function FilterDrawer({
           <span
             data-testid="filters-count"
             aria-hidden="true"
-            className="nf-numeric absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--nf-brand-primary)] px-1 text-[0.6875rem] font-bold leading-none text-[var(--nf-content-on-brand)]"
+            className="nf-badge-overlap nf-numeric top-[-0.4rem] right-[-0.4rem] min-w-5 justify-center px-1 py-0.5 text-[0.6875rem]"
           >
             {activeCount}
           </span>

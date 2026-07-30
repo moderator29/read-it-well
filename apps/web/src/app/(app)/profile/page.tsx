@@ -33,10 +33,23 @@ export default async function ProfilePage() {
   const account = await loadProfileState();
 
   const labels = { trips: "Trips", saved: t.nav.saved, reviews: "Reviews" };
+  const counts = account.state === "signed-in" ? account.profile.counts : undefined;
 
-  const actions: { href: string; label: string; icon: BrandIconName; sub: string }[] = [
-    { href: "/bookings", label: t.nav.bookings, icon: "calendar-check", sub: "Trips and reservations" },
-    { href: "/saved", label: t.nav.saved, icon: "heart-home", sub: "Places you have kept" },
+  const actions: { href: string; label: string; icon: BrandIconName; sub: string; count?: number }[] = [
+    {
+      href: "/bookings",
+      label: t.nav.bookings,
+      icon: "calendar-check",
+      sub: "Trips and reservations",
+      count: counts?.trips,
+    },
+    {
+      href: "/saved",
+      label: t.nav.saved,
+      icon: "heart-home",
+      sub: "Places you have kept",
+      count: counts?.saved,
+    },
     { href: "/wallet", label: t.nav.wallet, icon: "wallet-secure", sub: "Balance and payments" },
     { href: "/messages", label: t.nav.messages, icon: "chat", sub: "Chats with hosts" },
     { href: "/notifications", label: "Notifications", icon: "bell-alert", sub: "Activity and alerts" },
@@ -85,7 +98,10 @@ export default async function ProfilePage() {
                 <BrandIcon name={a.icon} fill />
               </span>
               <span className="leading-tight">
-                <span className="block text-[0.875rem] font-semibold">{a.label}</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="block text-[0.875rem] font-semibold">{a.label}</span>
+                  {!!a.count && <span className="nf-count-badge">{a.count}</span>}
+                </span>
                 <span className="mt-0.5 block text-[0.75rem] text-[var(--nf-content-muted)]">
                   {a.sub}
                 </span>
