@@ -6,6 +6,7 @@ import type { Listing } from "@/lib/listings/types";
 import { buildBookings } from "@/lib/demo/bookings";
 import { getMyBookings } from "@/lib/bookings/queries";
 import { PageHeader } from "@/components/app/PageHeader";
+import { PageScene } from "@/components/app/PageScene";
 import { BookingsTabs } from "@/components/app/bookings/BookingsTabs";
 import { MyBookings } from "./MyBookings";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
@@ -59,7 +60,10 @@ export default async function BookingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <div className="relative">
+        <PageScene art="/brand/story-booking.png" />
       <PageHeader title={t.nav.bookings} />
+      </div>
 
       <Reveal>
         <div className="nf-card p-4 sm:p-5">

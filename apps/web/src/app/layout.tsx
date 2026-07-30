@@ -4,6 +4,7 @@ import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
+import { TiltField } from "@/components/site/TiltField";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
 import "./globals.css";
 
@@ -132,6 +133,7 @@ export default async function RootLayout({
           <span />
         </div>
         <LivingCanvas />
+        <TiltField />
         {/* Film grain over everything, so surfaces feel physical, not printed. */}
         <div className="nf-grain" aria-hidden="true" />
         <ScrollToTop />

@@ -339,19 +339,79 @@ body {
       0 10px 26px -12px rgb(12 57 239 / 0.75),
       0 0 20px -8px rgb(12 57 239 / 0.5);
   }
-  /* Objects lift and their stride brightens when the card they sit on is
-     hovered, so the whole tile feels lit rather than static. */
-  .nf-card--interactive:hover .nf-icon-tile {
-    transform: translateY(-1px) scale(1.03);
-  }
+  /*
+   * Tile parallax. The pointer director writes --tilt-x and --tilt-y, and the
+   * tile leans toward the cursor in real perspective. Defaults are zero, so a
+   * tile that is never hovered simply sits flat.
+   */
   .nf-icon-tile {
+    transform-style: preserve-3d;
+    transform: perspective(420px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
     transition:
       transform var(--nf-duration-base) var(--nf-ease-standard),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard);
   }
+  /* The object inside floats a touch above the tile face, so the lean reads
+     as depth rather than as the whole chip skewing. */
+  .nf-icon-tile > img {
+    transform: translateZ(10px);
+  }
+  /* Objects lift and their stride brightens when the card they sit on is
+     hovered, so the whole tile feels lit rather than static. */
+  .nf-card--interactive:hover .nf-icon-tile {
+    transform: perspective(420px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+      translateY(-2px) scale(1.04);
+  }
   @media (prefers-reduced-motion: reduce) {
+    .nf-icon-tile,
     .nf-card--interactive:hover .nf-icon-tile {
       transform: none;
+    }
+    .nf-icon-tile > img {
+      transform: none;
+    }
+  }
+
+  /*
+   * Event states.
+   *
+   * An object that reacts to something real is worth more than any amount of
+   * ambient motion, so these fire on state rather than on a loop: a bell that
+   * rings when something is unread, a calendar that settles when a booking is
+   * confirmed, a shield that pulses once when verification lands.
+   */
+  .nf-icon-tile[data-state="alert"] > img {
+    animation: nf-ring 2.4s var(--nf-ease-standard) infinite;
+    transform-origin: 50% 18%;
+  }
+  @keyframes nf-ring {
+    0%, 62%, 100% { transform: translateZ(10px) rotate(0deg); }
+    68% { transform: translateZ(10px) rotate(11deg); }
+    74% { transform: translateZ(10px) rotate(-9deg); }
+    80% { transform: translateZ(10px) rotate(6deg); }
+    86% { transform: translateZ(10px) rotate(-4deg); }
+    92% { transform: translateZ(10px) rotate(2deg); }
+  }
+  .nf-icon-tile[data-state="confirmed"] {
+    animation: nf-confirm-pop var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-confirm-pop {
+    0% { transform: perspective(420px) scale(0.86); opacity: 0; }
+    60% { transform: perspective(420px) scale(1.06); opacity: 1; }
+    100% { transform: perspective(420px) scale(1); opacity: 1; }
+  }
+  .nf-icon-tile[data-state="verified"]::before {
+    animation: nf-verify-pulse 2.8s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-verify-pulse {
+    0%, 70%, 100% { box-shadow: inset 0 0 0 1px rgb(12 57 239 / 0.1), inset 0 2px 6px rgb(12 57 239 / 0.09); }
+    82% { box-shadow: inset 0 0 0 2px rgb(12 57 239 / 0.55), inset 0 2px 10px rgb(12 57 239 / 0.3); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-icon-tile[data-state] > img,
+    .nf-icon-tile[data-state],
+    .nf-icon-tile[data-state]::before {
+      animation: none !important;
     }
   }
 
@@ -392,6 +452,82 @@ body {
   @keyframes nf-tile-sheen {
     0%, 62% { background-position: 160% 0; }
     92%, 100% { background-position: -60% 0; }
+  }
+
+  /*
+   * Page scene anchor. The artwork dissolves into the canvas behind a page's
+   * opening lines: masked in every direction, low contrast, and drifting, so
+   * it belongs to the surface rather than sitting on it.
+   */
+  .nf-page-scene {
+    opacity: 0.4;
+    filter: saturate(1.1);
+    -webkit-mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
+    mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
+    animation: nf-scene-live 20s var(--nf-ease-standard) infinite;
+  }
+  :root[data-theme="light"] .nf-page-scene {
+    opacity: 0.3;
+  }
+
+  /* ---------------------------------------------------------- odometer */
+
+  /* Figures paint solid brand ink: a clipped gradient cannot cross the
+     transformed digit strips, which leaves the numbers invisible. */
+  .nf-odometer-figure {
+    color: var(--nf-electric-300);
+  }
+  :root[data-theme="light"] .nf-odometer-figure {
+    color: var(--nf-brand-primary);
+  }
+
+  .nf-odometer__slot {
+    display: inline-block;
+    height: 1em;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+  .nf-odometer__strip {
+    display: flex;
+    flex-direction: column;
+    transition: transform 1.15s var(--nf-ease-entrance);
+    will-change: transform;
+  }
+  .nf-odometer__digit {
+    display: block;
+    height: 1em;
+    line-height: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-odometer__strip {
+      transition: none;
+    }
+  }
+
+  /*
+   * Scroll-linked hero. The villa grows and its glow deepens across the first
+   * viewport, so page motion drives the artwork instead of the artwork just
+   * looping beside it. Falls back to the ambient drift where scroll timelines
+   * are unavailable.
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-hero-scene {
+        animation: nf-hero-scroll linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 70%;
+      }
+    }
+  }
+  @keyframes nf-hero-scroll {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+      filter: saturate(1) brightness(0.98);
+    }
+    to {
+      transform: translate3d(0, -34px, 0) scale(1.1);
+      filter: saturate(1.2) brightness(1.1);
+    }
   }
 
   /* Scene artwork breathes very slightly, so a still render never looks dead

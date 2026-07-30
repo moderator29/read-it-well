@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
+import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
 import { BalanceCard } from "@/components/app/wallet/BalanceCard";
 import { TransactionsSection } from "@/components/app/wallet/TransactionsSection";
@@ -44,7 +45,10 @@ export default async function WalletPage({
 
   return (
     <div className="mx-auto max-w-2xl">
+      <div className="relative">
+        <PageScene art="/brand/story-wallet.png" />
       <PageHeader title={t.nav.wallet} />
+      </div>
 
       {verifying && <FundingVerifier reference={verifying} locale={locale} />}
 

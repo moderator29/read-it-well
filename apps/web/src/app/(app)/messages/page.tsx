@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/PageHeader";
+import { PageScene } from "@/components/app/PageScene";
 import { ConversationList } from "@/components/app/messages/ConversationList";
 import { resolveSession } from "@/lib/actions/session";
 import { isFeatureEnabled } from "@/lib/flags";
@@ -24,7 +25,10 @@ export default async function MessagesPage() {
     if (!(await isFeatureEnabled("messaging"))) {
       return (
         <div className="mx-auto max-w-2xl">
+          <div className="relative">
+            <PageScene art="/brand/story-assistant.png" />
           <PageHeader title="Messages" subtitle="Chat with agents about their listings" />
+          </div>
           <p className="nf-card p-6 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
             Messaging is paused for maintenance. Your conversations are safe and will be back
             shortly.

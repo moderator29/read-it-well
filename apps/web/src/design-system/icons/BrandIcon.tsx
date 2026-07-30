@@ -83,6 +83,8 @@ export function BrandIcon({
   label,
   priority,
   tile = true,
+  state,
+  index,
   className,
 }: {
   name: BrandIconName;
@@ -95,6 +97,14 @@ export function BrandIcon({
   priority?: boolean;
   /** Draw the glass chip behind the object. On by default. */
   tile?: boolean;
+  /**
+   * React to something real rather than to a loop: "alert" rings the object
+   * while something is unread, "confirmed" pops it once when a booking lands,
+   * "verified" pulses its inner ring while a check is in force.
+   */
+  state?: "alert" | "confirmed" | "verified";
+  /** Position in a grid, so a row of tiles staggers its light sweep. */
+  index?: number;
   className?: string;
 }) {
   const decorative = !label;
@@ -129,8 +139,14 @@ export function BrandIcon({
 
   return (
     <span
+      data-state={state}
+      style={
+        {
+          ...(fill ? {} : { width: size, height: size }),
+          ...(index !== undefined ? { "--tile-i": index } : {}),
+        } as React.CSSProperties
+      }
       className={`nf-icon-tile ${fill ? "h-full w-full" : ""} ${className ?? ""}`}
-      style={fill ? undefined : { width: size, height: size }}
     >
       {img}
     </span>

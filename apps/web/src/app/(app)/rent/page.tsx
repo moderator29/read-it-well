@@ -6,6 +6,7 @@ import { getListingRepository } from "@/lib/listings/repository";
 import { getMessageRepository } from "@/lib/messages/repository";
 import { ListingCard } from "@/components/app/ListingCard";
 import { PageHeader } from "@/components/app/PageHeader";
+import { PageScene } from "@/components/app/PageScene";
 import { SceneBanner } from "@/components/app/SceneBanner";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -47,7 +48,10 @@ export default async function RentPage({
 
   return (
     <>
+      <div className="relative">
+        <PageScene art="/brand/story-search.png" />
       <PageHeader title={t.nav.rent} />
+      </div>
 
       <Reveal as="section" className="mt-2">
         <p className="max-w-[52ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">

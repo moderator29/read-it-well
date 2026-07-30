@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
+import { PageScene } from "@/components/app/PageScene";
 import { ListingCard } from "@/components/app/ListingCard";
 import { SAVED_COOKIE, parseSavedCookie } from "@/lib/saved/keys";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -41,7 +42,10 @@ export default async function SavedPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
+      <div className="relative">
+        <PageScene art="/brand/story-world.png" />
       <PageHeader title={t.nav.saved} />
+      </div>
       <SavedBoard items={items} />
     </div>
   );
