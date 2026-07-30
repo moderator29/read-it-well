@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { AppRail } from "./AppRail";
 import { MobileTabBar } from "./MobileTabBar";
+import { DesktopDock } from "./DesktopDock";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -81,7 +82,7 @@ export function AppShell({
         className={
           immersive
             ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden"
-            : "min-w-0 flex-1 pb-24 lg:pb-0"
+            : "min-w-0 flex-1 pb-24 lg:pb-20"
         }
       >
         {/* ------------------------------------------------------- top bar */}
@@ -128,6 +129,7 @@ export function AppShell({
       </main>
 
       {!immersive && <MobileTabBar t={t} active={active} />}
+      {!immersive && <DesktopDock t={t} active={active} />}
     </div>
   );
 }
