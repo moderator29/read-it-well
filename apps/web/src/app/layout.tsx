@@ -118,11 +118,22 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body>
-        {/* Apply the stored theme before first paint, so light mode never flashes dark. */}
+        {/*
+          Apply the stored theme before first paint, so a chosen light mode
+          never flashes dark.
+
+          DARK IS THE DEFAULT AND NOTHING OVERRIDES IT SILENTLY. This used to
+          fall back to the operating system when nothing was stored, which meant
+          almost every first-time visitor opened RentMe in light: phones ship
+          set to light, so the brand's own theme was the one people saw least.
+          Now only an explicit choice moves it. No key, or "dark", is dark.
+          "light" is light. "system" follows the OS, and it is something someone
+          has to go into Settings and ask for.
+        */}
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{var t=localStorage.getItem('nf_theme');if(t==='light'||(!t&&matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.dataset.theme='light'}catch(e){}",
+              "try{var t=localStorage.getItem('nf_theme');if(t==='light'||(t==='system'&&matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.dataset.theme='light'}catch(e){}",
           }}
         />
         {/* The living canvas, mounted once behind every page. */}

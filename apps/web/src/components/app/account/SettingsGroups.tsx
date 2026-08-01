@@ -41,7 +41,9 @@ const TEXT_SIZES: { value: TextSize; label: string }[] = [
  */
 export function AppearanceCard() {
   const { settings, set } = useNfSettings();
-  const [theme, setTheme] = useState<ThemeChoice>("system");
+  // Dark is the platform default, so that is what this shows selected until the
+  // effect below reads whatever this device actually chose.
+  const [theme, setTheme] = useState<ThemeChoice>("dark");
 
   useEffect(() => {
     setTheme(readThemeChoice());

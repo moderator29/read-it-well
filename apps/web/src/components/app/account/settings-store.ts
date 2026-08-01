@@ -127,14 +127,19 @@ export function applyTextSize(size: TextSize): void {
 
 /**
  * Theme uses the same key and attribute the root layout's before-paint script
- * reads: `nf_theme` in storage, `data-theme="light"` on the root for light,
- * no attribute for dark. System removes the stored choice and follows the
- * OS preference from that moment on.
+ * reads: `nf_theme` in storage, `data-theme="light"` on the root for light, no
+ * attribute for dark.
+ *
+ * Dark is the platform default and only an explicit choice moves it. "system"
+ * is now WRITTEN to storage rather than clearing it, which matters: the
+ * before-paint script cannot tell "chose system" from "never chose anything" if
+ * both look like an empty key, and it has to render dark for the second one.
+ * Storing the word keeps someone who genuinely wants to follow their OS from
+ * getting a flash of dark on every page load.
  */
 export function applyTheme(choice: ThemeChoice): void {
   try {
-    if (choice === "system") window.localStorage.removeItem("nf_theme");
-    else window.localStorage.setItem("nf_theme", choice);
+    window.localStorage.setItem("nf_theme", choice);
   } catch {
     // The attribute below still flips this session's appearance.
   }
@@ -148,9 +153,10 @@ export function applyTheme(choice: ThemeChoice): void {
 export function readThemeChoice(): ThemeChoice {
   try {
     const stored = window.localStorage.getItem("nf_theme");
-    if (stored === "light" || stored === "dark") return stored;
+    if (stored === "light" || stored === "dark" || stored === "system") return stored;
   } catch {
-    // Fall through to system.
+    // Fall through to the platform default below.
   }
-  return "system";
+  // Nothing chosen means the brand's own theme, not the operating system's.
+  return "dark";
 }
