@@ -116,6 +116,20 @@ async function inspect(page, label) {
 async function walk(colorScheme) {
   console.log(`\n================ ${colorScheme} ================`);
   const context = await browser.newContext({ colorScheme, viewport: VIEWPORT });
+  /*
+   * Dark is the platform default and only an explicit choice moves it, so
+   * emulating a light operating system no longer produces a light page. A light
+   * pass has to make the choice the way a visitor would, in storage, before the
+   * before-paint script reads it.
+   */
+  await context.addInitScript((mode) => {
+    try {
+      window.localStorage.setItem("nf_theme", mode);
+    } catch {
+      /* storage unavailable, the page falls back to the dark default */
+    }
+  }, colorScheme === "light" ? "light" : "dark");
+
   const page = await context.newPage();
 
   try {
