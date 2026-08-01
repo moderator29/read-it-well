@@ -102,7 +102,8 @@ export default async function SearchPage({
 }) {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const query = parseDiscoveryQuery(await searchParams);
+  const raw = await searchParams;
+  const query = parseDiscoveryQuery(raw);
 
   const repo = getListingRepository();
   /*
@@ -144,11 +145,16 @@ export default async function SearchPage({
     <>
       {/* ------------------------------------------------ sticky search bar */}
       <div className="nf-glass sticky top-16 z-30 -mx-5 -mt-4 border-b border-[var(--nf-border-subtle)] px-5 py-3 md:-mx-8 md:px-8">
+        {/* The bar and its filter control are siblings: the pill holds the
+            query and its submit, the filter control sits beside it as its own
+            glass square, which is how the reference reads and keeps the typing
+            area uncluttered. */}
+        <div className="mx-auto flex max-w-3xl items-center gap-2">
         <form
           action="/search"
           method="get"
           role="search"
-          className="nf-card mx-auto flex max-w-3xl items-center gap-2 p-1.5"
+          className="nf-card flex min-w-0 flex-1 items-center gap-2 p-1.5"
         >
           <label htmlFor="search-q" className="sr-only">
             {t.home.searchPlaceholder}
@@ -169,15 +175,26 @@ export default async function SearchPage({
           {carriedParams(query).map(([key, value]) => (
             <input key={key} type="hidden" name={key} value={value} />
           ))}
-          {/* The filter control lives inside the search bar, on the same glass. */}
-          <FilterDrawer query={query} facts={pool.map(factsOf)} locale={locale} />
+          {/* At 390px the word plus the filter square left the field reading
+              "Search places, ho...", so on phones the submit is its glyph and
+              the words return once there is room for them. The accessible name
+              is the word either way. */}
           <button
             type="submit"
-            className="nf-btn nf-btn--primary min-h-11 shrink-0 px-4 py-2 text-[0.875rem]"
+            aria-label={t.common.search}
+            className="nf-btn nf-btn--primary min-h-11 shrink-0 px-3 py-2 text-[0.875rem] sm:px-4"
           >
-            {t.common.search}
+            <UiIcon name="search" size={18} className="sm:hidden" />
+            <span className="hidden sm:inline">{t.common.search}</span>
           </button>
         </form>
+        <FilterDrawer
+          query={query}
+          facts={pool.map(factsOf)}
+          locale={locale}
+          openOnMount={raw.filters === "open"}
+        />
+        </div>
 
         {/* Categories: the markets we actually run, each one a link. */}
         <div className="mx-auto mt-3 max-w-3xl">

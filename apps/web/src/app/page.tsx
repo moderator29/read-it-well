@@ -8,6 +8,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { Onboarding } from "@/components/site/Onboarding";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { FilterLink } from "@/components/app/filters/FilterLink";
 import { TrustIcon, type TrustIconName } from "@/design-system/icons/TrustIcon";
 import { HowItWorks } from "@/components/site/landing/HowItWorks";
 import { PopularDestinations } from "@/components/site/landing/PopularDestinations";
@@ -121,11 +122,12 @@ export default async function LandingPage() {
               </p>
 
               {/* Real form. GET to the search route. */}
+              <div className="nf-rise nf-rise-4 mt-7 flex items-start gap-2 sm:items-center">
               <form
                 action="/search"
                 method="get"
                 role="search"
-                className="nf-rise nf-rise-4 nf-card nf-card--live mt-7 flex flex-col gap-2 p-2 sm:flex-row sm:items-center"
+                className="nf-card nf-card--live flex min-w-0 flex-1 flex-col gap-2 p-2 sm:flex-row sm:items-center"
               >
                 <label htmlFor="hero-q" className="sr-only">
                   {t.landing.hero.searchLabel}
@@ -145,6 +147,10 @@ export default async function LandingPage() {
                   {t.common.search}
                 </button>
               </form>
+              {/* Filters live beside the bar here too, so the control is in the
+                  same place on every search surface. */}
+              <FilterLink label={t.common.search} />
+              </div>
 
               <ul className="nf-rise nf-rise-5 mt-4 flex flex-wrap gap-2">
                 {CITIES.map((city) => (

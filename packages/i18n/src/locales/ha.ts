@@ -618,6 +618,124 @@ export const ha: Dictionary = {
     },
   },
 
+  agentBookings: {
+    title: "Ajiye",
+    lede: "Kowane buƙata da kowane zama a kan kadarorinka.",
+    unconfigured:
+      "Buƙatunka da zamanka za su bayyana a nan da zarar maɓallan dandalin suka iso. Babu abin da ya ɓace a tsakani.",
+    tabsLabel: "Rukunan ajiye",
+    waitingOn: "{count} suna jiran ka",
+    waitingOnOne: "Ɗaya yana jiran ka",
+    groups: {
+      requests: {
+        title: "Buƙatu",
+        blurb:
+          "Suna jiran shawararka. Buƙata tana riƙe darare na awa {hours}, sannan ta saki kanta.",
+      },
+      upcoming: { title: "Masu zuwa", blurb: "Zaman da ka karɓa waɗanda ba su zo ba tukuna." },
+      completed: { title: "An kammala", blurb: "Zaman da baƙinka suka gama." },
+      cancelled: {
+        title: "An soke",
+        blurb: "Buƙatun da ka ƙi, da zaman da kowanne ɓangare ya kawo ƙarshe.",
+      },
+    },
+    card: {
+      dates: "{from} zuwa {to}",
+      nights: "Darare {count}",
+      nightsOne: "Dare ɗaya",
+      guests: "Baƙi {count}",
+      guestsOne: "Baƙo ɗaya",
+      composition: "Manya {adults}, yara {children}",
+      total: "Jimilla",
+      requested: "An buƙata {date}",
+      waiting: "Yana jira {duration}",
+      waitingNew: "Sabon isowa",
+      releasesIn: "Zai saki kansa cikin {duration}",
+      releasingNow: "Ya wuce riƙon awa {hours}, don haka zai iya sakewa kowane lokaci",
+      hours: "Awa {count}",
+      hoursOne: "Awa ɗaya",
+      days: "Kwana {count}",
+      daysOne: "Kwana ɗaya",
+      settled: "Kuɗin ya shiga",
+      awaiting: "Kuɗin bai shiga ba tukuna",
+      unknown: "Ba a iya sanin matsayin kuɗin yanzu",
+    },
+    status: {
+      PENDING: "Yana jiran shawararka",
+      CONFIRMED: "An tabbatar",
+      CANCELLED: "An soke",
+    },
+    actions: {
+      accept: "Karɓa",
+      decline: "Ƙi",
+      working: "Ana aiki",
+      back: "Koma baya",
+      close: "Rufe",
+    },
+    accept: {
+      title: "Ka karɓi wannan buƙata?",
+      body:
+        "Baƙon zai ji nan take, kuma za a riƙe dararen a kalandarka gare shi. Tabbatar kadarar tana da sauƙi da gaske kafin ka karɓa.",
+      confirm: "Karɓi buƙatar",
+    },
+    decline: {
+      title: "Ka ƙi wannan buƙata?",
+      body:
+        "Dararen za su koma kalandarka kuma za a sanar da baƙon. Ba a cajin kowa ko ta yaya.",
+      reasonLabel: "Me ya sa ba za ka iya karɓar waɗannan kwanakin ba?",
+      reasonHint: "Baƙon zai karanta wannan kalma da kalma, don haka ka sa shi sauƙi da kirki.",
+      reasonPlaceholder: "An riga an ɗauki gidan a waɗannan dararen.",
+      suggestionsLabel: "Ko fara daga ɗaya daga cikin waɗannan",
+      suggestions: {
+        taken: "An riga an ɗauki gidan a waɗannan dararen.",
+        maintenance: "Ana yin gyara a kadarar a wannan makon.",
+        guests: "Kadarar ba ta iya ɗaukar baƙi da yawa haka a cikin nutsuwa.",
+      },
+      confirm: "Ƙi buƙatar",
+    },
+    empty: {
+      requestsTitle: "Babu abin da ke jiran ka",
+      requestsBody:
+        "Babu baƙo da ke jiran shawara yanzu. Sabbin buƙatu za su sauka a nan kuma za su riƙe dararen na awa {hours} yayin da kake amsa.",
+      upcomingTitle: "Ba a ajiye wani zama tukuna",
+      upcomingBody:
+        "Buƙatun da ka karɓa za su bayyana a nan tare da kwanakin, baƙin da jimillar.",
+      completedTitle: "Babu abin da aka kammala tukuna",
+      completedBody: "Zama yana matsawa nan washegari bayan baƙonka ya fita.",
+      cancelledTitle: "Babu abin da aka soke",
+      cancelledBody:
+        "Buƙatun da ka ƙi, da zaman da kowanne ɓangare ya kawo ƙarshe, suna nan don tarihinka.",
+      openListings: "Sarrafa jerina",
+    },
+  },
+
+  agentEarnings: {
+    title: "Samun kudi",
+    lede: "Abin da ya shiga daga zamanka, kai tsaye daga littafin lissafi.",
+    unconfigured: "Kuɗin da ka samu zai bayyana a nan da zarar maɓallan dandalin suka iso.",
+    unavailable:
+      "Ba mu iya karanta littafin lissafi yanzu ba, don haka ba a nuna wani adadi maimakon nuna wanda ba daidai ba. Sake buɗe shafin cikin ɗan lokaci.",
+    totals: {
+      yourShare: "Rabonka da ya shiga",
+      guestsPaid: "Abin da baƙi suka biya",
+      settledStays: "Zaman da kuɗinsu ya shiga",
+      thisMonth: "Wannan watan",
+    },
+    byMonth: "Kowane wata",
+    monthShare: "Rabonka",
+    monthGross: "Abin da baƙi suka biya",
+    stays: "Zama {count}",
+    staysOne: "Zama ɗaya",
+    emptyTitle: "Babu kuɗin da ya motsa tukuna",
+    emptyBody:
+      "Kowane kuɗin da ya shiga ana rubuta shi a littafin lissafi kuma yana bayyana a nan tare da rabonka. Ba a ƙididdige komai a wannan shafin, don haka har sai wani zama ya shiga, zai zauna babu komai da gangan.",
+    emptyAction: "Duba ajiyenka",
+    howTitle: "Yadda ake aiki da rabonka",
+    howBody:
+      // NATIVE REVIEW: "processor" kept in English, it names the payment company.
+      "Ana raba kuɗin da ya shiga hanya uku: rabonka, rabon dandalin, da abin da processor na biyan kuɗi ya ɗauka. Ukun kullum suna haɗuwa zuwa abin da baƙon ya biya, shi ya sa kowane layi a nan yana daidaita.",
+  },
+
   admin: {
     console: {
       // NATIVE REVIEW: "console" kept in English the way Nigerian staff say it.
@@ -881,6 +999,14 @@ export const ha: Dictionary = {
       asIndividual: "Yana nema a matsayin mutum ɗaya",
       documentsCount: "Takardu {count}",
       documentsOne: "Takarda ɗaya",
+      documentsNone: "Ba a loda takardu ba, don haka ba za a iya tabbatar da wannan buƙatar ba tukuna",
+      documentOpen: "Buɗe",
+      documentUnavailable: "Hanyar bata samu",
+      documentKinds: {
+        idFront: "Shaida, gaba",
+        idBack: "Shaida, baya",
+        registration: "Rajistar CAC",
+      },
       // NATIVE REVIEW: legal wording, "terms" of the platform.
       termsAgreed: "Ya yarda da sharuɗɗan dandalin",
       termsNotAgreed: "Bai yarda ba",

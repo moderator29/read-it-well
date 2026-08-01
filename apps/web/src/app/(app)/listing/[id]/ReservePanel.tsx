@@ -164,14 +164,23 @@ export function ReservePanel({
         </dl>
         <p className="nf-rise mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
           {instantBook
-            ? "Your dates are held. We will notify you the moment the stay is confirmed."
-            : "The agent will confirm your dates personally. We will notify you the moment they do."}
+            ? "Your dates are held. Paying now confirms the stay straight away."
+            : "The agent will confirm your dates personally. You can pay now to secure them, and we will notify you the moment the agent confirms."}
         </p>
+        {/* Paying is the primary act, so it is the primary button. Leaving this
+            moment with only a link to a list was the one gap between reserving
+            and paying: the guest had to go and find the pay button themselves. */}
         <Link
-          href={`/bookings?justBooked=${r.bookingId}`}
+          href={`/checkout/${r.bookingId}`}
           className="nf-btn nf-btn--primary mt-4 w-full"
         >
-          View your bookings
+          Pay {formatMoney(r.totalMinor, locale, currency)} for this stay
+        </Link>
+        <Link
+          href={`/bookings?justBooked=${r.bookingId}`}
+          className="nf-btn nf-btn--ghost mt-2 w-full"
+        >
+          Pay later, view your bookings
         </Link>
       </div>
     );

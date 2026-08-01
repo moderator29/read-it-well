@@ -3,6 +3,11 @@
 Thinking document, not a build order. Nothing here is implemented. It exists
 so the shape can be argued with before a line of it is written.
 
+**Superseded in part by `docs/SOCIAL_TODO.md`**, which is the build order: the
+same place-rooted idea, taken further into Nigerian culture, with the visual
+system, the full data model and the sequenced checklist. Where the two disagree,
+SOCIAL_TODO wins. This file is kept for the reasoning behind the shape.
+
 Owner brief, 2026-07-30: a social layer where people post, meet neighbours,
 find friends, reach people nearby and message each other. Agents may post
 house previews and carry an agent mark beside their name. Our AI answers in

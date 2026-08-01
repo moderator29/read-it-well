@@ -119,7 +119,24 @@ export function BrandIcon({
    * with nothing holding it, which is exactly what a bare icon looked like.
    * The tile is the platform's glass chip, so every object sits on the same
    * material as the rest of the design system.
+   *
+   * WHY A FIXED-SIZE TILE OVERRIDES ITS OWN PADDING. The tile is styled with
+   * `padding: 9%`, and a percentage padding resolves against the width of the
+   * CONTAINING BLOCK, never against the element's own width. When the tile
+   * fills a sized wrapper that is harmless, because the wrapper is the same
+   * small box. But a `size`d tile sitting directly in something wide, a button
+   * or a flex row, resolved 9% against that wide parent: a 22px chip inside a
+   * 330px button was handed roughly 30px of padding per side, which crushed its
+   * content box to zero and rendered a 0 by 0 image. The result was an empty
+   * white chip, which is exactly what "Add New Listing" on the agent dashboard
+   * was showing, and it affected every non-fill BrandIcon on the platform.
+   *
+   * So when this component owns the tile's dimensions it also owns its padding,
+   * in pixels derived from that size. Same proportion, no dependence on whatever
+   * the tile happens to sit inside.
    */
+  const tilePadding = Math.max(2, Math.round(size * 0.09));
+  const insideTile = tile;
   const img = (
     <Image
       src={`/brand/icons/${name}.png`}
@@ -129,7 +146,7 @@ export function BrandIcon({
       width={fill ? 160 : size}
       height={fill ? 160 : size}
       sizes={fill ? "(max-width: 640px) 26vw, 160px" : undefined}
-      className={`nf-brand-icon ${fill ? "h-full w-full" : ""}`}
+      className={`nf-brand-icon ${fill || insideTile ? "h-full w-full" : ""}`}
     />
   );
 
@@ -142,7 +159,7 @@ export function BrandIcon({
       data-state={state}
       style={
         {
-          ...(fill ? {} : { width: size, height: size }),
+          ...(fill ? {} : { width: size, height: size, padding: tilePadding }),
           ...(index !== undefined ? { "--tile-i": index } : {}),
         } as React.CSSProperties
       }

@@ -52,6 +52,7 @@ import {
   nightsBetween,
   reserveInputSchema,
 } from "./schema";
+import { releaseBookedNights, writeBookedNights } from "./settlement";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -174,7 +175,27 @@ export async function reserve(
     return fail(GENERIC_RESERVE_MESSAGE);
   }
 
+  // ------------------------------------------------- hold the calendar
+  // A PENDING booking is already a real hold: the GiST exclusion constraint
+  // refuses a second overlapping stay. The calendar has to say so straight
+  // away, or a second guest sees the nights open, fills in the whole form and
+  // only then meets the database refusal. Written through the service role
+  // because guests hold no write grant on availability, and best effort
+  // because the constraint, not this write, is what actually prevents the
+  // double booking: a lost calendar row is a cosmetic gap, not an oversell.
+  try {
+    await writeBookedNights(
+      createAdminClient(),
+      input.listingId,
+      input.checkIn,
+      input.checkOut,
+    );
+  } catch {
+    // The hold stands on the database constraint regardless.
+  }
+
   revalidatePath("/bookings");
+  revalidatePath(`/listing/${input.listingId}`);
 
   // ------------------------------------------------------------- email
   // The booking exists. Both sends are best effort from here: the guest gets
@@ -257,6 +278,23 @@ export async function cancel(
     return fail("This stay has already started, so it cannot be cancelled here. Contact support and we will sort it out.");
   }
 
+  // A stay that has been paid for cannot be cancelled by this path, because
+  // there is no refund path behind it yet (MASTER_TODO P5-5). Cancelling here
+  // would release the dates and quietly keep the guest's money, which is the
+  // one outcome this platform must never produce. Read through the guest's own
+  // client, so it can only ever see their own payments.
+  const { data: settled } = await session.supabase
+    .from("transactions")
+    .select("id")
+    .eq("booking_id", booking.id)
+    .eq("status", "SUCCESSFUL")
+    .limit(1);
+  if ((settled?.length ?? 0) > 0) {
+    return fail(
+      "This stay has already been paid for, so it cannot be cancelled here. Contact support and we will sort out your money with you.",
+    );
+  }
+
   // The transition itself is service-role work: guests hold no UPDATE grant.
   try {
     const admin = createAdminClient();
@@ -277,13 +315,12 @@ export async function cancel(
       to_status: "CANCELLED",
       actor_id: session.user.id,
     });
-    await admin
-      .from("availability")
-      .delete()
-      .eq("listing_id", booking.listing_id)
-      .eq("status", "booked")
-      .gte("date", booking.check_in)
-      .lt("date", booking.check_out);
+    await releaseBookedNights(
+      admin,
+      booking.listing_id,
+      booking.check_in,
+      booking.check_out,
+    );
   } catch {
     return fail(SERVICE_DOWN_MESSAGE);
   }
@@ -325,18 +362,6 @@ async function listingTitleFor(listingId: string): Promise<string> {
   } catch {
     return "your stay";
   }
-}
-
-/** Every calendar date in [checkIn, checkOut), ISO strings. */
-function nightsOf(checkIn: string, checkOut: string): string[] {
-  const out: string[] = [];
-  let cursor = Date.parse(`${checkIn}T00:00:00Z`);
-  const end = Date.parse(`${checkOut}T00:00:00Z`);
-  while (cursor < end) {
-    out.push(new Date(cursor).toISOString().slice(0, 10));
-    cursor += 86_400_000;
-  }
-  return out;
 }
 
 /**
@@ -408,14 +433,9 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
       actor_id: session.user.id,
     });
 
-    const rows = nightsOf(booking.check_in, booking.check_out).map((date) => ({
-      listing_id: booking.listing_id,
-      date,
-      status: "booked" as const,
-    }));
-    if (rows.length > 0) {
-      await admin.from("availability").upsert(rows, { onConflict: "listing_id,date" });
-    }
+    // The nights were already closed at reserve; this is the same upsert over
+    // rows that already say the same thing, so it is safe either way.
+    await writeBookedNights(admin, booking.listing_id, booking.check_in, booking.check_out);
 
     // The booking is CONFIRMED in the database. Telling the guest is best
     // effort: the confirmation stands whether or not the email leaves.

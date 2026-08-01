@@ -169,7 +169,7 @@ export function MapDock({
             <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
               {listing.rating > 0 && (
                 <span className="nf-numeric flex items-center gap-1 text-[0.75rem] font-semibold text-[var(--nf-content-primary)]">
-                  <UiIcon name="star" size={12} className="text-[var(--nf-state-warning)]" />
+                  <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />
                   {listing.rating.toFixed(1)}
                   <span className="font-normal text-[var(--nf-content-muted)]">
                     ({listing.reviewCount})

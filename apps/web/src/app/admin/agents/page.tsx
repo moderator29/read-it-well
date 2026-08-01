@@ -89,11 +89,46 @@ function ApplicationCard({
         <ui.DetailRow
           label={f.uploaded}
           value={
-            application.documentCount === 1
-              ? copy.documentsOne
-              : fill(copy.documentsCount, { count: application.documentCount })
+            application.documentCount === 0
+              ? copy.documentsNone
+              : application.documentCount === 1
+                ? copy.documentsOne
+                : fill(copy.documentsCount, { count: application.documentCount })
           }
         />
+        {/* The whole point of a verification queue is seeing the document, so
+            each one is a real link. The bucket is private and these signatures
+            are short lived, so nothing here is a durable public URL. */}
+        {application.documents.length > 0 && (
+          <ul className="mt-2 flex flex-wrap gap-2 px-4 pb-3">
+            {application.documents.map((doc) => {
+              const label =
+                copy.documentKinds[doc.kind as keyof typeof copy.documentKinds] ?? doc.kind;
+              return (
+                <li key={doc.id}>
+                  {doc.url ? (
+                    <a
+                      href={doc.url}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="nf-chip text-[0.75rem]"
+                    >
+                      {label}
+                      <span className="text-[var(--nf-content-muted)]">{copy.documentOpen}</span>
+                    </a>
+                  ) : (
+                    <span className="nf-chip text-[0.75rem] opacity-60">
+                      {label}
+                      <span className="text-[var(--nf-content-muted)]">
+                        {copy.documentUnavailable}
+                      </span>
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </ui.DetailSection>
 
       <ui.DetailSection title={copy.sections.payout}>

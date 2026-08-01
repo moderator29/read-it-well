@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import type { AuthFormState } from "@/lib/auth/actions";
+import { startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
 import type { ProviderId, ProviderState } from "@/lib/auth/providers";
 import { HEAR_ABOUT_OPTIONS } from "@/lib/auth/signup-options";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
@@ -246,11 +247,20 @@ export function AuthPanel({
           </p>
         )}
 
+        {/* Each provider is its own form posting to the OAuth start action.
+            A form rather than an onClick so the handshake begins on the server,
+            where the redirect belongs: a client-side redirect would have to
+            know the callback URL, and only the server does. Until a provider is
+            switched on in the Supabase dashboard and named in
+            NEXT_PUBLIC_AUTH_PROVIDERS, the control stays disabled and says so
+            below, rather than sending someone to an error page. */}
         {oauth.map((p) => (
-          <button key={p.id} type="button" disabled={!configured(p.id)} className="nf-auth-row">
-            <span className="nf-auth-row__mark">{p.mark}</span>
-            <span className="flex-1 text-left">{p.label}</span>
-          </button>
+          <form key={p.id} action={p.id === "google" ? startGoogleOAuth : startAppleOAuth}>
+            <button type="submit" disabled={!configured(p.id)} className="nf-auth-row w-full">
+              <span className="nf-auth-row__mark">{p.mark}</span>
+              <span className="flex-1 text-left">{p.label}</span>
+            </button>
+          </form>
         ))}
 
         {oauth.some((p) => !configured(p.id)) && (

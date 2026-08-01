@@ -237,7 +237,7 @@ export function ListingCard({
             {/* A rating is shown when one exists. Never a 0.0 stand-in. */}
             {listing.rating > 0 && (
               <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">
-                <UiIcon name="star" size={14} className="text-[var(--nf-state-warning)]" />
+                <UiIcon name="star" size={14} className="text-[var(--nf-rating)]" />
                 {listing.rating.toFixed(1)}
                 <span className="font-normal text-[var(--nf-content-muted)]">
                   ({listing.reviewCount})

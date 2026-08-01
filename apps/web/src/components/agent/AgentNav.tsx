@@ -32,7 +32,7 @@ export function buildAgentNav(t: Dictionary): AgentNavItem[] {
   ];
 }
 
-/** The amber "Agent Mode" marker pill from the reference. */
+/** The "Agent Mode" marker pill. Brand blue, like every other accent. */
 export function AgentModePill({ label, className }: { label: string; className?: string }) {
   return (
     <span

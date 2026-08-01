@@ -5,14 +5,16 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 /**
  * Mobile tab bar.
  *
- * Five destinations, exactly as the mobile reference shows: Home, Explore,
- * Bookings, Favourites, Profile. This is deliberately NOT the twelve item
- * desktop rail. A phone tab bar tops out at five before targets get too small,
- * and the reference already made that call, so the rail's remaining
- * destinations live under Profile rather than being crammed in here.
+ * Five destinations: Home, Explore, Bookings, Favourites, Profile. This is
+ * deliberately NOT the twelve item desktop rail; a phone tab bar tops out at
+ * five before targets get too small, so the rail's remaining destinations
+ * live under Profile rather than being crammed in here.
  *
- * Tier one stroked glyphs throughout: at this size the 3D objects would be
- * unreadable, and the stroke weight can step up when a tab is active.
+ * A floating icon-only dock, lifted clear of every edge rather than an
+ * edge-to-edge bar: same shape language as the desktop dock, just wide
+ * enough to carry primary navigation instead of quick-access shortcuts.
+ * Labels are spoken, not printed (`aria-label`), so the dock stays compact
+ * without losing accessibility.
  */
 type Tab = { href: string; label: string; icon: UiIconName };
 
@@ -28,18 +30,20 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
   return (
     <nav
       aria-label={t.nav.primaryLabel}
-      className="nf-tabbar fixed inset-x-0 bottom-0 z-50 lg:hidden"
+      className="nf-tabbar fixed inset-x-4 bottom-[max(0.9rem,env(safe-area-inset-bottom))] z-50 mx-auto w-fit lg:hidden"
     >
-      <ul className="flex items-stretch justify-around px-1.5 pb-[env(safe-area-inset-bottom)] pt-1.5">
+      <ul className="flex items-center gap-1 px-1.5 py-1.5">
         {tabs.map((tab) => {
           const isActive = tab.href === active;
           return (
-            <li key={tab.href} className="flex-1">
+            <li key={tab.href}>
               <Link
                 href={tab.href}
                 aria-current={isActive ? "page" : undefined}
+                aria-label={tab.label}
+                title={tab.label}
                 className={[
-                  "nf-tab-pop flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-[var(--nf-radius-md)] px-1 py-1.5 text-[0.6875rem] font-semibold transition-colors",
+                  "nf-tab-pop flex h-12 w-12 items-center justify-center rounded-full transition-colors",
                   isActive
                     ? "text-white"
                     : "text-[var(--nf-content-primary)] opacity-75 hover:opacity-100",
@@ -48,9 +52,8 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
                 <span className="nf-tab-pop__pill" aria-hidden="true" />
                 {/* Stroked glyph; the active tab draws a heavier line. */}
                 <span className="nf-tab-pop__icon">
-                  <UiIcon name={tab.icon} size={24} strokeWidth={isActive ? 2 : 1.8} />
+                  <UiIcon name={tab.icon} size={22} strokeWidth={isActive ? 2 : 1.8} />
                 </span>
-                <span className="truncate">{tab.label}</span>
               </Link>
             </li>
           );

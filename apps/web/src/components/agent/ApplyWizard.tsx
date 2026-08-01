@@ -1,16 +1,55 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import type { Dictionary } from "@naijafinds/i18n";
 import { submitAgentApplication, type ApplicationResult } from "@/lib/agent/application";
 import { NIGERIAN_BANKS, NIGERIAN_STATES } from "@/lib/data/nigeria";
+import { createClient } from "@/lib/supabase/client";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 const EMPTY: ApplicationResult = { ok: false };
 const DRAFT_KEY = "nf_agent_application_draft";
+const DOCUMENT_BUCKET = "agent-documents";
+
+/** Refuse a file too big to be a photo of an ID, before it leaves the phone. */
+const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
 
 type Values = Record<string, string>;
 type AgentType = "individual" | "business";
+
+/**
+ * One document slot's state.
+ *
+ * `path` is the only field that matters to the server: it is the object in the
+ * private bucket. `preview` is a local blob URL purely so the applicant can see
+ * what they picked, and it is deliberately not what proves the upload happened.
+ * The wizard used to hold nothing but that preview, which is why every
+ * application ever filed arrived with no documents attached to it.
+ */
+type DocumentSlot = {
+  preview?: string;
+  path?: string;
+  fileName: string;
+  isPdf: boolean;
+  uploading: boolean;
+  error?: string;
+};
+
+/** A stable folder per wizard session, so retries do not scatter objects. */
+function newBatchId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `b-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+  }
+}
+
+/** The file extension to store under, from the type rather than the name. */
+function extensionFor(file: File): string {
+  if (file.type === "application/pdf") return "pdf";
+  if (file.type === "image/png") return "png";
+  return "jpg";
+}
 
 const TEXT_FIELDS = [
   "firstName", "lastName", "phone", "idType", "idNumber",
@@ -25,9 +64,21 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
   const [step, setStep] = useState(0);
   const [agentType, setAgentType] = useState<AgentType>("individual");
   const [values, setValues] = useState<Values>({});
-  const [docs, setDocs] = useState<Record<string, string>>({});
+  const [docs, setDocs] = useState<Record<string, DocumentSlot>>({});
   const [state, formAction, pending] = useActionState(submitAgentApplication, EMPTY);
   const restored = useRef(false);
+  const batchId = useMemo(newBatchId, []);
+
+  // What the server action is actually given: the objects that exist in the
+  // bucket, never the local previews.
+  const manifest = useMemo(
+    () =>
+      Object.entries(docs)
+        .filter(([, slot]) => typeof slot.path === "string")
+        .map(([kind, slot]) => ({ kind, path: slot.path })),
+    [docs],
+  );
+  const uploading = Object.values(docs).some((slot) => slot.uploading);
 
   // Restore draft once, on mount (Master Rule 57).
   useEffect(() => {
@@ -58,14 +109,79 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
     setValues((prev) => ({ ...prev, [name]: v }));
   }
 
-  function onFile(name: string, file: File | undefined) {
+  /**
+   * Take a chosen file and actually put it somewhere.
+   *
+   * The upload goes straight from the browser into the private agent-documents
+   * bucket, under `<auth uid>/<batch>/<kind>.<ext>`, which storage RLS restricts
+   * to this user's own folder. The preview is shown immediately so the wizard
+   * feels instant, but the slot only counts as filled once the object exists and
+   * a real path came back. Every failure says what happened in one sentence and
+   * leaves the slot empty, so nobody submits believing a document went through.
+   */
+  async function onFile(name: string, file: File | undefined) {
     if (!file) return;
+
+    if (file.size > MAX_DOCUMENT_BYTES) {
+      setDocs((prev) => ({
+        ...prev,
+        [name]: {
+          fileName: file.name,
+          isPdf: false,
+          uploading: false,
+          error: "That file is over 10MB. Please choose a smaller photo or PDF.",
+        },
+      }));
+      return;
+    }
+
+    const isPdf = file.type === "application/pdf";
+    const preview = isPdf ? undefined : URL.createObjectURL(file);
+
     setDocs((prev) => {
-      const next = { ...prev };
-      if (prev[name]) URL.revokeObjectURL(prev[name]!);
-      next[name] = URL.createObjectURL(file);
-      return next;
+      const old = prev[name];
+      if (old?.preview) URL.revokeObjectURL(old.preview);
+      return {
+        ...prev,
+        [name]: { fileName: file.name, isPdf, uploading: true, ...(preview ? { preview } : {}) },
+      };
     });
+
+    const finish = (patch: Partial<DocumentSlot>) => {
+      setDocs((prev) => {
+        const slot = prev[name];
+        if (!slot) return prev;
+        return { ...prev, [name]: { ...slot, uploading: false, ...patch } };
+      });
+    };
+
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        finish({
+          error: "Please sign in before uploading, so the file is filed to your account.",
+        });
+        return;
+      }
+
+      const path = `${user.id}/${batchId}/${name}.${extensionFor(file)}`;
+      const upload = await supabase.storage
+        .from(DOCUMENT_BUCKET)
+        .upload(path, file, { contentType: file.type, upsert: true });
+
+      if (upload.error) {
+        finish({ error: "That upload did not go through. Please try again." });
+        return;
+      }
+
+      finish({ path });
+    } catch {
+      finish({ error: "That upload did not go through. Please try again." });
+    }
   }
 
   const last = stepTitles.length - 1;
@@ -120,6 +236,10 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
       <form action={formAction} className="nf-card p-5 sm:p-8">
         {/* Keep every step in the DOM so all fields reach the server action;
             only the active step is shown. */}
+
+        {/* The uploaded objects, as one field. Paths only: the server re-checks
+            that every one sits under the caller's own uid before recording it. */}
+        <input type="hidden" name="documents" value={JSON.stringify(manifest)} />
 
         {/* Step 1: Personal */}
         <fieldset hidden={step !== 0} className="space-y-4">
@@ -186,12 +306,21 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
         <fieldset hidden={step !== 3} className="space-y-4">
           <Legend title={a.documents.title} sub={a.documents.body} />
           <div className="grid gap-5 sm:grid-cols-2">
-            <UploadZone id="idFront" label={a.documents.idFront} hint={a.documents.chooseFile} preview={docs.idFront} onFile={onFile} />
-            <UploadZone id="idBack" label={a.documents.idBack} hint={a.documents.chooseFile} preview={docs.idBack} onFile={onFile} />
+            <UploadZone id="idFront" label={a.documents.idFront} hint={a.documents.chooseFile} slot={docs.idFront} onFile={onFile} />
+            <UploadZone id="idBack" label={a.documents.idBack} hint={a.documents.chooseFile} slot={docs.idBack} onFile={onFile} />
             {agentType === "business" && (
-              <UploadZone id="registration" label={a.documents.registration} hint={a.documents.chooseFile} preview={docs.registration} onFile={onFile} />
+              <UploadZone id="registration" label={a.documents.registration} hint={a.documents.chooseFile} slot={docs.registration} onFile={onFile} />
             )}
           </div>
+          {err?.documents && (
+            <p role="alert" className="text-[0.75rem] text-[var(--nf-state-error)]">
+              {err.documents}
+            </p>
+          )}
+          <p className="text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+            These files are stored privately and are only ever seen by the RentMe team reviewing
+            your application. They are never shown on your public profile.
+          </p>
         </fieldset>
 
         {/* Step 5: Payout */}
@@ -256,8 +385,8 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
               <UiIcon name="arrow-right" size={16} />
             </button>
           ) : (
-            <button type="submit" disabled={pending} className="nf-btn nf-btn--primary">
-              {pending ? a.submitting : a.submit}
+            <button type="submit" disabled={pending || uploading} className="nf-btn nf-btn--primary">
+              {uploading ? "Finishing your uploads..." : pending ? a.submitting : a.submit}
             </button>
           )}
         </div>
@@ -333,35 +462,81 @@ function SelectField({
   );
 }
 
+/**
+ * One document slot.
+ *
+ * The three states it can be in are all visible, because "did my ID actually
+ * upload" is the single question this step has to answer honestly: uploading,
+ * uploaded (a tick, not just a picture), or failed with the reason. A preview
+ * alone would look identical whether the bytes reached the bucket or not.
+ */
 function UploadZone({
-  id, label, hint, preview, onFile,
+  id, label, hint, slot, onFile,
 }: {
-  id: string; label: string; hint: string; preview?: string;
+  id: string; label: string; hint: string; slot?: DocumentSlot;
   onFile: (name: string, file: File | undefined) => void;
 }) {
+  const done = typeof slot?.path === "string";
   return (
     <div>
       <span className="nf-label">{label}</span>
       <label
         htmlFor={id}
-        className="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-default)] bg-[var(--nf-surface-inset)] text-center transition-colors hover:border-[var(--nf-border-brand)]"
+        aria-busy={slot?.uploading ? true : undefined}
+        className={[
+          "relative flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-[var(--nf-radius-lg)] border border-dashed bg-[var(--nf-surface-inset)] text-center transition-colors",
+          slot?.error
+            ? "border-[var(--nf-state-error)]"
+            : done
+              ? "border-[var(--nf-border-brand)]"
+              : "border-[var(--nf-border-default)] hover:border-[var(--nf-border-brand)]",
+        ].join(" ")}
       >
-        {preview ? (
+        {slot?.preview ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="" className="h-full w-full object-cover" />
+          <img src={slot.preview} alt="" className="h-full w-full object-cover" />
+        ) : slot?.isPdf ? (
+          /* A PDF has no thumbnail to show, so the file itself is the label. */
+          <>
+            <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-1.5 py-0.5 text-[0.625rem] font-bold tracking-wide text-[var(--nf-content-secondary)]">
+              PDF
+            </span>
+            <span className="max-w-full truncate px-3 text-[0.6875rem] text-[var(--nf-content-secondary)]">
+              {slot.fileName}
+            </span>
+          </>
         ) : (
           <>
             <UiIcon name="sparkle" size={26} className="text-[var(--nf-content-muted)]" />
             <span className="px-3 text-[0.6875rem] text-[var(--nf-content-muted)]">{hint}</span>
           </>
         )}
+
+        {slot?.uploading && (
+          <span className="absolute inset-0 grid place-items-center bg-[color-mix(in_oklab,var(--nf-surface-inset)_82%,transparent)] text-[0.6875rem] font-semibold text-[var(--nf-content-secondary)]">
+            Uploading...
+          </span>
+        )}
+        {done && !slot?.uploading && (
+          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-[var(--nf-radius-pill)] bg-[var(--nf-brand-primary)] px-2 py-0.5 text-[0.625rem] font-bold text-[var(--nf-content-on-brand)]">
+            <UiIcon name="verified" size={11} strokeWidth={2.6} />
+            Uploaded
+          </span>
+        )}
       </label>
+      {slot?.error && (
+        <p role="alert" className="mt-1 text-[0.6875rem] text-[var(--nf-state-error)]">
+          {slot.error}
+        </p>
+      )}
       <input
         id={id}
         type="file"
         accept="image/png,image/jpeg,application/pdf"
         className="sr-only"
-        onChange={(e) => onFile(id, e.target.files?.[0])}
+        onChange={(e) => {
+          void onFile(id, e.target.files?.[0]);
+        }}
       />
     </div>
   );

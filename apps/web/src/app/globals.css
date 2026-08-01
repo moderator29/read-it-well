@@ -1596,6 +1596,17 @@ body {
   }
 
   /*
+   * The square variant. A round control reads as "one more action"; a square
+   * one reads as a panel you open, which is what the filter drawer is. The
+   * radius is deliberately the card radius, not the pill, so the opener looks
+   * like the surface it summons rather than like the search button beside it.
+   * Everything else is inherited, so the two shapes stay one material.
+   */
+  .nf-icon-btn--square {
+    border-radius: var(--nf-radius-md);
+  }
+
+  /*
    * Skeleton shimmer for loading and preview states: an inset slab with a
    * highlight sweeping across it. Static slab under reduced motion.
    */
@@ -2047,14 +2058,20 @@ body {
   }
 
   /* Mobile tab bar: glass slab pinned to the bottom, above the safe area. */
+  /*
+   * A floating dock, not an edge-to-edge bar: lifted clear of the bottom
+   * edge with margin on every side, same material as the desktop dock so
+   * the two read as one family. Position (the margin and the safe-area
+   * clearance) is set by the component via Tailwind utilities; this class
+   * only carries the material.
+   */
   .nf-tabbar {
     background: var(--nf-glass-fill-strong);
-    border-top: 1px solid var(--nf-border-subtle);
+    border: 1px solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-pill);
     backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
-    box-shadow: 0 -8px 30px -12px rgb(0 0 0 / 0.7);
-    /* Clear the iPhone home indicator instead of sitting under it. */
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 16px 36px -12px rgb(0 0 0 / 0.6);
   }
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .nf-tabbar {
@@ -2085,7 +2102,7 @@ body {
   .nf-tab-pop__pill {
     position: absolute;
     inset: 0;
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-radius-pill);
     opacity: 0;
     transform: scale(0.82);
     background: var(--nf-gradient-brand);
@@ -2638,6 +2655,21 @@ body {
         animation-timeline: view();
         animation-range: entry 4% entry 76%;
       }
+      /*
+       * A block already on screen at first paint has no entry transit left to
+       * animate through, so it holds at whatever point of the range its
+       * position happens to fall on: the first result card on /search sat at
+       * 56% opacity behind a 1.3px blur until the visitor scrolled. An
+       * animation outranks a normal declaration in the cascade, so this has to
+       * cancel the animation outright rather than restate the end state.
+       * Reveal marks those blocks on mount.
+       */
+      .nf-reveal[data-instant="true"] {
+        animation: none;
+        opacity: 1;
+        transform: none;
+        filter: none;
+      }
     }
   }
   @keyframes nf-reveal-in {
@@ -2963,7 +2995,7 @@ body {
 
   /* The tab bar's heavy night shadow becomes a soft neutral lift. */
   :root[data-theme="light"] .nf-tabbar {
-    box-shadow: 0 -8px 24px -16px rgb(18 21 26 / 0.18);
+    box-shadow: 0 16px 32px -14px rgb(18 21 26 / 0.28);
   }
   :root[data-theme="light"] .nf-tab-pop__pill {
     box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);

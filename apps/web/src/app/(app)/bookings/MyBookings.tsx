@@ -102,6 +102,17 @@ function BookingCard({
           <span className="text-[0.75rem] text-[var(--nf-content-muted)]">total</span>
         </p>
         <span className="flex items-center gap-4">
+          {/* A PENDING stay is reserved, not paid. Until this link existed the
+              guest had nowhere to complete it, which is exactly the gap
+              checkout closes. */}
+          {b.status === "PENDING" && (
+            <Link
+              href={`/checkout/${b.id}`}
+              className="nf-btn nf-btn--primary px-3 py-1.5 text-[0.8125rem]"
+            >
+              Pay now
+            </Link>
+          )}
           {b.cancellable && (
             <button
               type="button"

@@ -60,7 +60,7 @@ migration set.
 47. [DESIGN] Deliver seasonal skins (Detty December) purely through layer-2 token overrides, because festive theming must never fork components or leak stray colours past the token system.
 48. [DESIGN] Commission a custom dark map style matched to the design tokens, because a default Google map dropped inside the stride system would shatter the material language.
 49. [DESIGN] Design a branded, naira-correct booking receipt as PDF and email, because the receipt is the artefact guests keep, forward and show at the gate.
-50. [DESIGN] Lock status colour semantics (pending amber, approved green, rejected red, verified blue) into layer-2 tokens, because the states already exist in the schema and icon pack and must never drift per screen.
+50. [DESIGN] Lock status colour semantics (pending cyan, approved green, rejected red, verified brand blue) into layer-2 tokens, because the states already exist in the schema and icon pack and must never drift per screen.
 51. [DESIGN] Choreograph the booking confirmation moment with restrained celebratory motion, because it is the emotional peak of the entire product and currently no motion system covers it.
 52. [DESIGN] Extend the five branded auth emails into a full lifecycle set (confirmed, reminder, check-in day, review ask), because transactional email is the brand surface users see most often.
 53. [DESIGN] Standardise compact naira display ("₦1.2m") for glanceable UI with exact kobo in breakdowns, all through formatMoney, because two ad hoc formats side by side read as a bug.

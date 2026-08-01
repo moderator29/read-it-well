@@ -628,6 +628,142 @@ export const en = {
   },
 
   /**
+   * The host's bookings console: the surface where a guest's request becomes a
+   * stay, or an honest no.
+   *
+   * Two words carry weight here and are chosen on purpose. A request "holds"
+   * nights, because that is literally true: no other guest can take them while
+   * it waits. And it "releases itself" after 48 hours, because the database does
+   * that on its own and the agent deserves to know before it happens rather than
+   * after. The 48 is filled from one constant, so the copy can never quote a
+   * window the platform does not keep.
+   */
+  agentBookings: {
+    title: "Bookings",
+    lede: "Every request and every stay across your properties.",
+    unconfigured:
+      "Your requests and stays appear here the moment the platform keys land. Nothing is lost in the meantime.",
+    tabsLabel: "Booking groups",
+    waitingOn: "{count} waiting on you",
+    waitingOnOne: "1 waiting on you",
+    groups: {
+      requests: {
+        title: "Requests",
+        blurb:
+          "Waiting on your decision. A request holds the nights for {hours} hours, then releases itself.",
+      },
+      upcoming: { title: "Upcoming", blurb: "Accepted stays still to come." },
+      completed: { title: "Completed", blurb: "Stays your guests have finished." },
+      cancelled: {
+        title: "Cancelled",
+        blurb: "Requests you declined, and stays ended by either side.",
+      },
+    },
+    card: {
+      dates: "{from} to {to}",
+      nights: "{count} nights",
+      nightsOne: "1 night",
+      guests: "{count} guests",
+      guestsOne: "1 guest",
+      composition: "{adults} adults, {children} children",
+      total: "Total",
+      requested: "Requested {date}",
+      waiting: "Waiting {duration}",
+      waitingNew: "Just arrived",
+      releasesIn: "Releases itself in {duration}",
+      releasingNow: "Past its {hours} hour hold, so it can release at any moment",
+      hours: "{count} hours",
+      hoursOne: "1 hour",
+      days: "{count} days",
+      daysOne: "1 day",
+      settled: "Payment settled",
+      awaiting: "Payment not settled yet",
+      unknown: "Payment status unavailable",
+    },
+    status: {
+      PENDING: "Awaiting your decision",
+      CONFIRMED: "Confirmed",
+      CANCELLED: "Cancelled",
+    },
+    actions: {
+      accept: "Accept",
+      decline: "Decline",
+      working: "Working",
+      back: "Go back",
+      close: "Close",
+    },
+    accept: {
+      title: "Accept this request?",
+      body:
+        "The guest hears straight away and the nights are held on your calendar for them. Check the property is genuinely free before you accept.",
+      confirm: "Accept request",
+    },
+    decline: {
+      title: "Decline this request?",
+      body:
+        "The nights go back on your calendar and the guest is told. Nothing is charged either way.",
+      reasonLabel: "Why can you not take these dates?",
+      reasonHint: "The guest reads this word for word, so keep it plain and kind.",
+      reasonPlaceholder: "The flat is already taken on those nights.",
+      suggestionsLabel: "Or start from one of these",
+      suggestions: {
+        taken: "The flat is already taken on those nights.",
+        maintenance: "The property is having work done that week.",
+        guests: "The property does not sleep that many guests comfortably.",
+      },
+      confirm: "Decline request",
+    },
+    empty: {
+      requestsTitle: "Nothing waiting on you",
+      requestsBody:
+        "No guest is waiting on a decision right now. New requests land here and hold the nights for {hours} hours while you answer.",
+      upcomingTitle: "No stays booked yet",
+      upcomingBody:
+        "Requests you accept appear here with the dates, the guests and the total.",
+      completedTitle: "Nothing completed yet",
+      completedBody: "A stay moves here the day after your guest checks out.",
+      cancelledTitle: "Nothing cancelled",
+      cancelledBody:
+        "Requests you decline, and stays ended by either side, are kept here for your records.",
+      openListings: "Manage my listings",
+    },
+  },
+
+  /**
+   * Earnings, read from the ledger and nowhere else.
+   *
+   * Every figure on this surface is a sum of settled ledger rows. There is no
+   * projection, no running estimate and no "expected" column, which is why the
+   * empty state can be written with a straight face: before a payment settles
+   * there is genuinely nothing to show, and saying so is the honest design.
+   */
+  agentEarnings: {
+    title: "Earnings",
+    lede: "What has settled from your stays, taken straight from the ledger.",
+    unconfigured: "Your earnings appear here the moment the platform keys land.",
+    unavailable:
+      "We could not read the ledger just now, so no figure is shown rather than a wrong one. Reload in a moment.",
+    totals: {
+      yourShare: "Your share, settled",
+      guestsPaid: "Guests paid",
+      settledStays: "Settled stays",
+      thisMonth: "This month",
+    },
+    byMonth: "By month",
+    monthShare: "Your share",
+    monthGross: "Guests paid",
+    stays: "{count} stays",
+    staysOne: "1 stay",
+    emptyTitle: "No money has moved yet",
+    emptyBody:
+      "Every settled payment is written to the ledger and appears here with your share on it. Nothing on this page is estimated, so until a stay settles it stays empty on purpose.",
+    emptyAction: "See your bookings",
+    howTitle: "How your share is worked out",
+    howBody:
+      "A settled payment is split three ways: your share, the platform's share and what the payment processor takes. The three always add up to what the guest paid, which is why every line here reconciles.",
+  },
+
+  /**
    * The admin console. Staff-only copy, but copy all the same: an operator in
    * Kano works the same queues as an operator in Lagos.
    */
@@ -883,6 +1019,14 @@ export const en = {
       asIndividual: "Applying as an individual",
       documentsCount: "{count} documents",
       documentsOne: "1 document",
+      documentsNone: "No documents uploaded, so this application cannot be verified yet",
+      documentOpen: "Open",
+      documentUnavailable: "Link unavailable",
+      documentKinds: {
+        idFront: "ID, front",
+        idBack: "ID, back",
+        registration: "CAC registration",
+      },
       termsAgreed: "Agreed to the platform terms",
       termsNotAgreed: "Not agreed",
       approve: "Approve",

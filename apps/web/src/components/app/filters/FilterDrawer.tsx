@@ -210,14 +210,19 @@ export function FilterDrawer({
   query,
   facts,
   locale,
+  openOnMount = false,
 }: {
   query: DiscoveryQuery;
+  /** Open immediately, for arrivals from ?filters=open. */
+  openOnMount?: boolean;
   /** The candidate pool: this text and category, before any structured bound. */
   facts: ListingFacts[];
   locale: Locale;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  // A link from a surface with no pool (landing, home) arrives with
+  // ?filters=open, so the drawer opens where the bounds are real.
+  const [open, setOpen] = useState(openOnMount);
   const [mounted, setMounted] = useState(false);
   const [draft, setDraft] = useState<Draft>(() => draftFrom(query));
   const openerRef = useRef<HTMLButtonElement | null>(null);
@@ -399,21 +404,26 @@ export function FilterDrawer({
                   />
                 </div>
               </div>
-              <p
-                aria-live="polite"
-                className="mt-2.5 text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]"
-              >
-                {minInNaira === undefined && maxInNaira === undefined
-                  ? "Any price"
-                  : minInNaira === undefined
-                    ? `Up to ${formatMoney(nairaToKobo(maxInNaira ?? 0), locale)}`
-                    : maxInNaira === undefined
-                      ? `${formatMoney(nairaToKobo(minInNaira), locale)} and above`
-                      : `${formatMoney(nairaToKobo(minInNaira), locale)} to ${formatMoney(
-                          nairaToKobo(maxInNaira),
-                          locale,
-                        )}`}
-              </p>
+              <div className="nf-panel-sunken mt-3 flex items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_16%,transparent)] text-[var(--nf-electric-300)]">
+                  <UiIcon name="wallet" size={17} />
+                </span>
+                <p
+                  aria-live="polite"
+                  className="nf-numeric min-w-0 text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
+                >
+                  {minInNaira === undefined && maxInNaira === undefined
+                    ? "Any price"
+                    : minInNaira === undefined
+                      ? `Up to ${formatMoney(nairaToKobo(maxInNaira ?? 0), locale)}`
+                      : maxInNaira === undefined
+                        ? `${formatMoney(nairaToKobo(minInNaira), locale)} and above`
+                        : `${formatMoney(nairaToKobo(minInNaira), locale)} to ${formatMoney(
+                            nairaToKobo(maxInNaira),
+                            locale,
+                          )}`}
+                </p>
+              </div>
             </section>
 
             {/* ------------------------------------------------- rooms */}
@@ -542,14 +552,14 @@ export function FilterDrawer({
           activeCount === 0 ? "Filters" : `Filters, ${activeCount} active`
         }
         onClick={() => setOpen(true)}
-        className="nf-icon-btn relative h-11 w-11 shrink-0"
+        className="nf-icon-btn nf-icon-btn--square relative h-[3.25rem] w-[3.25rem] shrink-0"
       >
         <UiIcon name="sliders" size={18} />
         {activeCount > 0 && (
           <span
             data-testid="filters-count"
             aria-hidden="true"
-            className="nf-numeric absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--nf-brand-primary)] px-1 text-[0.6875rem] font-bold leading-none text-[var(--nf-content-on-brand)]"
+            className="nf-badge-overlap nf-numeric top-[-0.4rem] right-[-0.4rem] min-w-5 justify-center px-1 py-0.5 text-[0.6875rem]"
           >
             {activeCount}
           </span>

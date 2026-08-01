@@ -1,11 +1,88 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
-import { AgentComingSoon } from "@/components/agent/AgentComingSoon";
+import { getAgentRepository } from "@/lib/agent/repository";
+import { AgentShell } from "@/components/agent/AgentShell";
+import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
+import { readAgentEarnings, type AgentEarnings } from "@/lib/agent/earnings-queries";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { ListingPitch } from "../list/ListingPitch";
+import { EarningsWorkspace } from "./EarningsWorkspace";
 
-export const metadata: Metadata = { robots: { index: false, follow: false } };
-
-export default async function Page() {
+export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
-  return <AgentComingSoon active="/agent/earnings" title={t.agent.nav.earnings} icon="wallet-secure" />;
+  return { title: t.agentEarnings.title, robots: { index: false, follow: false } };
+}
+
+const UNREADABLE_EARNINGS: AgentEarnings = {
+  months: [],
+  totalGrossMinor: 0,
+  totalAgentShareMinor: 0,
+  totalNetMinor: 0,
+  settledStays: 0,
+  currentMonth: null,
+  readable: false,
+};
+
+/**
+ * /agent/earnings: what has settled from the host's stays, read straight
+ * from the ledger.
+ *
+ * Shaped like /agent/listings and /agent/bookings: the server page resolves
+ * who is asking and reads under their own RLS-bound client, then hands the
+ * figures to a plain rendering component. Nothing here mutates, so the
+ * workspace stays a server component with no client JavaScript to ship.
+ */
+export default async function Page() {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const context = await getAgentContext();
+
+  if (context.state === "signed-out" || context.state === "not-agent") {
+    const profile = await getAgentRepository().getProfile();
+    return (
+      <AgentShell t={t} locale={locale} active="/agent/earnings" profile={profile}>
+        <ListingPitch copy={t.agentListings.pitch} signedIn={context.state === "not-agent"} />
+      </AgentShell>
+    );
+  }
+
+  if (context.state === "unconfigured") {
+    const profile = await getAgentRepository().getProfile();
+    return (
+      <AgentShell t={t} locale={locale} active="/agent/earnings" profile={profile}>
+        <div className="mx-auto max-w-md py-10 text-center">
+          <span className="mx-auto block h-20 w-20">
+            <BrandIcon name="wallet-secure" fill />
+          </span>
+          <h1 className="nf-h2 mt-5">{t.agentEarnings.title}</h1>
+          <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">
+            {t.agentEarnings.unconfigured}
+          </p>
+          <Link href="/agent/dashboard" className="nf-btn nf-btn--glass mt-6">
+            {t.agent.nav.dashboard}
+          </Link>
+        </div>
+      </AgentShell>
+    );
+  }
+
+  const earnings = (await readAgentEarnings(context)) ?? UNREADABLE_EARNINGS;
+
+  return (
+    <AgentShell
+      t={t}
+      locale={locale}
+      active="/agent/earnings"
+      profile={agentProfileFrom(context.agent)}
+    >
+      <div className="mb-6">
+        <h1 className="nf-h1">{t.agentEarnings.title}</h1>
+        <p className="mt-1 text-[var(--nf-content-secondary)]">{t.agentEarnings.lede}</p>
+      </div>
+
+      <EarningsWorkspace t={t.agentEarnings} earnings={earnings} locale={locale} />
+    </AgentShell>
+  );
 }

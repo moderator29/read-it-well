@@ -8,6 +8,7 @@ import { AiAssistantBanner } from "@/components/app/AiAssistantBanner";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { FilterLink } from "@/components/app/filters/FilterLink";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -63,11 +64,12 @@ export default async function HomePage() {
           {t.home.prompt}
         </p>
 
+        <div className="mt-5 flex max-w-2xl items-center gap-2 sm:mt-6">
         <form
           action="/search"
           method="get"
           role="search"
-          className="nf-card mt-5 flex max-w-2xl items-center gap-1.5 p-1.5 sm:mt-6"
+          className="nf-card flex min-w-0 flex-1 items-center gap-1.5 p-1.5"
         >
           <label htmlFor="home-q" className="sr-only">
             {t.home.searchPlaceholder}
@@ -83,10 +85,19 @@ export default async function HomePage() {
               className="w-full bg-transparent py-2 text-[0.875rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
             />
           </div>
-          <button type="submit" className="nf-btn nf-btn--primary shrink-0 px-3.5 py-2 text-[0.8125rem]">
-            {t.common.search}
+          {/* Same reasoning as /search: on a phone the glyph carries the
+              action so the field keeps its width, and the word returns at sm. */}
+          <button
+            type="submit"
+            aria-label={t.common.search}
+            className="nf-btn nf-btn--primary shrink-0 px-3 py-2 text-[0.8125rem] sm:px-3.5"
+          >
+            <UiIcon name="search" size={16} className="sm:hidden" />
+            <span className="hidden sm:inline">{t.common.search}</span>
           </button>
         </form>
+        <FilterLink label={t.common.search} />
+        </div>
       </section>
 
       {/* -------------------------------------------------- categories */}

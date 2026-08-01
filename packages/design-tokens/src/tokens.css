@@ -31,13 +31,6 @@
   --nf-mist-400: #B4C0E0;
   --nf-mist-500: #8E9CC4;
 
-  /* Brand violet */
-  --nf-violet-300: #C4B5FD;
-  --nf-violet-400: #A78BFA;
-  --nf-violet-500: #8B5CF6;
-  --nf-violet-600: #7C3AED;
-  --nf-violet-700: #6D28D9;
-
   /* Supporting accents, used as controlled accents and never as wallpaper */
   --nf-royal-400: #4257EE;
   --nf-royal-500: #2B3FE0;
@@ -52,14 +45,25 @@
   --nf-cyan-500: #06B6D4;
   --nf-crimson-400: #FF1744;
   --nf-crimson-500: #DC143C;
-  --nf-gold-400: #FFD86B;
-  --nf-magenta-400: #F472B6;
-  --nf-magenta-500: #EC4899;
-  --nf-amber-400: #FBBF24;
-  --nf-orange-500: #F97316;
   --nf-emerald-400: #10B981;
   --nf-rose-400: #FF1744;
   --nf-sky-400: #38BDF8;
+
+  /*
+   * There is no orange, amber, gold, magenta or violet in this palette, and
+   * that is a decision rather than an omission. The brand is ONE family: deep
+   * navy-black, dark neon blue, electric blue glow. A warm or purple accent
+   * anywhere reads as a different product, and every time one has appeared it
+   * has had to be hunted back out of the tree.
+   *
+   * Only three hues sit outside the blue family, each earning it by carrying
+   * meaning no blue could: emerald for success, rose for error, and nothing
+   * else. Attention states use the bright cyan below, which is inside the
+   * family.
+   *
+   * If a new accent feels necessary, the answer is a different depth of blue,
+   * not a different hue.
+   */
 
   /* ---------------------------------------------------------------------
    * LAYER 2: semantic tokens. Components use these.
@@ -101,15 +105,26 @@
   --nf-border-strong: rgb(255 255 255 / 0.22);
   --nf-border-brand: color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
 
-  /* State */
+  /* State
+   *
+   * Warning is the bright cyan, not an amber, because the brand has no warm
+   * accent. Cyan reads as "look at this" while staying inside the blue family,
+   * and it is a full step brighter than the sky used for info, so the two do
+   * not collapse into each other.
+   *
+   * Rating is its own token and no longer borrows the warning one. Stars were
+   * reaching for warning purely to obtain a gold, which welded two unrelated
+   * things together: every change to a warning colour silently restyled every
+   * rating on the platform. */
   --nf-state-success: var(--nf-emerald-400);
-  --nf-state-warning: var(--nf-amber-400);
+  --nf-state-warning: var(--nf-cyan-400);
   --nf-state-error: var(--nf-rose-400);
   --nf-state-info: var(--nf-sky-400);
+  --nf-rating: var(--nf-electric-300);
 
   /* State surfaces, for chips and badges */
   --nf-state-success-surface: color-mix(in oklab, var(--nf-emerald-400) 15%, transparent);
-  --nf-state-warning-surface: color-mix(in oklab, var(--nf-amber-400) 15%, transparent);
+  --nf-state-warning-surface: color-mix(in oklab, var(--nf-cyan-400) 15%, transparent);
   --nf-state-error-surface: color-mix(in oklab, var(--nf-rose-400) 15%, transparent);
   --nf-state-info-surface: color-mix(in oklab, var(--nf-sky-400) 15%, transparent);
 
@@ -133,19 +148,21 @@
   /*
    * Signature gradients.
    *
-   * `--nf-gradient-primary` is the Primary Gradient from the design system
-   * sheet, sampled in order: violet, indigo, magenta, red, orange, gold. It is
-   * also the ramp running through the brand mark itself, which is why the
-   * wordmark and the mark read as one object.
+   * `--nf-gradient-primary` is the ramp running through the brand mark, which is
+   * why the wordmark and the mark read as one object.
+   *
+   * It used to run violet, indigo, magenta, red, orange, gold: six hues, five of
+   * them outside the brand, in the one gradient that carries the logo. It now
+   * travels the blue family from the pale electric through to the deep neon, so
+   * the mark is the palette rather than a contradiction of it.
    */
   --nf-gradient-primary: linear-gradient(
     90deg,
-    #8B5CF6 0%,
-    #6366F1 18%,
-    #D946A6 42%,
-    #EF4444 62%,
-    #F97316 80%,
-    #FBBF24 100%
+    var(--nf-electric-300) 0%,
+    var(--nf-royal-400) 22%,
+    var(--nf-electric-400) 48%,
+    var(--nf-electric-500) 72%,
+    var(--nf-electric-700) 100%
   );
   --nf-gradient-brand: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-cta: linear-gradient(180deg, #0C39EF 0%, #0010E0 50%, #000F98 100%);
@@ -322,8 +339,13 @@
    */
   --nf-electric-300: #0C2FE8;
   --nf-state-success: #0B8A5C;
-  --nf-state-warning: #B45309;
+  /* Deep cyan, not the burnt orange this used to be. The bright cyan the dark
+     theme uses is invisible on white, so daylight steps it down until small
+     bold text clears 4.5:1, exactly as success and error do. */
+  --nf-state-warning: #0E6E8C;
   --nf-state-error: var(--nf-crimson-500);
+  /* Rating rides --nf-electric-300, so it follows this deeper blue on paper
+     without needing its own daylight value. */
 }
 
 /*

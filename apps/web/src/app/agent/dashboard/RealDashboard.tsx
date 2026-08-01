@@ -96,7 +96,7 @@ export function RealDashboard({
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="nf-panel-sunken grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <Tile
           icon="homes-sparkle"
           label={d.liveListings}
@@ -133,7 +133,12 @@ export function RealDashboard({
       <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_1.4fr]">
         <section className="nf-card p-4 sm:p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="nf-h3">{t.agent.nav.myListings}</h2>
+            <span className="flex items-center gap-2">
+              <h2 className="nf-h3">{t.agent.nav.myListings}</h2>
+              {numbers.totalListings > 0 && (
+                <span className="nf-count-badge">{formatNumber(numbers.totalListings, locale)}</span>
+              )}
+            </span>
             <Link
               href="/agent/listings"
               className="text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] hover:underline"

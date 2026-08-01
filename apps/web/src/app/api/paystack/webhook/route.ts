@@ -13,8 +13,15 @@ import {
   type AdminClient,
 } from "@/lib/wallet/ledger";
 import { bestEffortEmail, sendEmail } from "@/lib/email/client";
-import { walletFunded, withdrawalFailed } from "@/lib/email/messages";
+import { bookingConfirmed, walletFunded, withdrawalFailed } from "@/lib/email/messages";
 import { contactForUser } from "@/lib/email/recipients";
+import { markChargeFailed, settleBookingCharge } from "@/lib/bookings/settlement";
+import {
+  BOOKING_PREFIX,
+  FUND_PREFIX,
+  WITHDRAW_PREFIX,
+  isBookingReference,
+} from "@/lib/payments/references";
 import type { Json } from "@/lib/supabase/database.types";
 
 /**
@@ -26,26 +33,32 @@ import type { Json } from "@/lib/supabase/database.types";
  * Every path answers 200 quickly so Paystack never retries into a crash, and
  * nothing sensitive is logged.
  *
- * Routing is by reference format, the contract this platform generates:
+ * Routing is by reference format, the contract this platform generates. The
+ * whole family is documented in one place, lib/payments/references.ts, which
+ * also owns the prefixes this file matches on:
  *  - rm-fund-<uuid>: wallet funding. charge.success credits the ledger with a
  *    COMPLETED deposit, idempotent on the unique reference, so a replayed
  *    webhook or the verify-on-redirect fallback can never double-post.
  *  - rm-wd-<uuid>: withdrawal. transfer.success / transfer.failed /
  *    transfer.reversed settle the matching PENDING debit hold.
+ *  - rm-book-<uuid>: a card payment against a booking. charge.success settles
+ *    it through lib/bookings/settlement.ts, the same function the return path
+ *    calls, so whichever arrives first wins and the second is a no-op.
+ *    charge.failed marks the attempt FAILED and leaves the booking PENDING, so
+ *    the guest keeps their dates and can try again.
  *
  * Completion notifications fire from the database trigger, never from here.
  */
 
 export const runtime = "nodejs";
 
-const FUND_PREFIX = "rm-fund-";
-const WITHDRAW_PREFIX = "rm-wd-";
-
 type WebhookEvent = {
   event?: string;
   data?: {
     reference?: string;
     amount?: number;
+    /** Kobo the processor kept, when it reports one. */
+    fees?: number | null;
     currency?: string;
     channel?: string | null;
     paid_at?: string | null;
@@ -102,6 +115,92 @@ async function handleChargeSuccess(
     const message = walletFunded({ ownerName: owner.name, amountMinor, balanceMinor });
     await sendEmail({ to: owner.email, subject: message.subject, html: message.html });
   });
+}
+
+/**
+ * A card payment against a booking succeeded.
+ *
+ * The whole settlement lives in lib/bookings/settlement.ts and is shared with
+ * the return-from-Paystack path, so there is exactly one implementation of
+ * "this booking is now paid". Replay safety comes from that module's two keys:
+ * the conditional flip of the unique provider_ref row to SUCCESSFUL, and the
+ * PENDING guard on the booking transition. A replayed delivery therefore moves
+ * nothing, writes no second ledger row and sends no second email.
+ */
+async function handleBookingChargeSuccess(
+  admin: AdminClient,
+  data: NonNullable<WebhookEvent["data"]>,
+): Promise<void> {
+  const reference = data.reference ?? "";
+  if (!isBookingReference(reference)) return;
+  if (data.currency !== undefined && data.currency !== "NGN") return;
+
+  const amountMinor = Number.isSafeInteger(data.amount) ? (data.amount as number) : 0;
+  if (amountMinor <= 0) return;
+
+  const metadata = metadataRecord(data.metadata);
+  const metaBookingId = metadata["booking_id"];
+  const fallbackBookingId = typeof metaBookingId === "string" ? metaBookingId : null;
+
+  const settlement = await settleBookingCharge(admin, {
+    reference,
+    amountMinor,
+    processorFeeMinor: typeof data.fees === "number" ? data.fees : null,
+    fallbackBookingId,
+  });
+
+  // Only a payment that actually landed on THIS call is worth announcing, which
+  // is what makes a replay silent as well as harmless. The test is the outcome,
+  // not settlement.confirmed: a request-to-book stay the host already accepted
+  // is CONFIRMED before the money arrives, so gating on the status change would
+  // take a guest's card and never send them a receipt.
+  if (settlement.outcome !== "settled") return;
+
+  await bestEffortEmail(async () => {
+    const { data: booking } = await admin
+      .from("bookings")
+      .select("guest_id, listing_id, check_in, check_out, nights")
+      .eq("id", settlement.bookingId)
+      .maybeSingle();
+    if (!booking) return;
+
+    const guest = await contactForUser(admin, booking.guest_id);
+    if (!guest) return;
+
+    const { data: listing } = await admin
+      .from("listings")
+      .select("title")
+      .eq("id", booking.listing_id)
+      .maybeSingle();
+    const title = (listing?.title ?? "").trim();
+
+    const message = bookingConfirmed({
+      guestName: guest.name,
+      listingTitle: title.length > 0 ? title : "your stay",
+      checkIn: booking.check_in,
+      checkOut: booking.check_out,
+      nights: booking.nights,
+      totalMinor: settlement.ledger.grossMinor,
+    });
+    await sendEmail({ to: guest.email, subject: message.subject, html: message.html });
+  });
+}
+
+/**
+ * A card payment against a booking failed.
+ *
+ * The attempt is marked FAILED and the booking is deliberately left PENDING:
+ * the guest still holds their dates and can try again, by card or from their
+ * wallet. Only a PENDING attempt moves, so a late failure delivery cannot
+ * unpick a payment that already succeeded.
+ */
+async function handleBookingChargeFailed(
+  admin: AdminClient,
+  data: NonNullable<WebhookEvent["data"]>,
+): Promise<void> {
+  const reference = data.reference ?? "";
+  if (!isBookingReference(reference)) return;
+  await markChargeFailed(admin, reference);
 }
 
 async function handleTransferEvent(
@@ -176,9 +275,20 @@ export async function POST(request: Request): Promise<NextResponse> {
   const data = payload.data;
   if (!data) return acknowledged(true);
 
+  const reference = data.reference ?? "";
+
   try {
     if (event === "charge.success") {
-      await handleChargeSuccess(admin, data);
+      // Two charge families share this event, told apart by their reference.
+      if (reference.startsWith(BOOKING_PREFIX)) {
+        await handleBookingChargeSuccess(admin, data);
+      } else if (reference.startsWith(FUND_PREFIX)) {
+        await handleChargeSuccess(admin, data);
+      }
+    } else if (event === "charge.failed") {
+      if (reference.startsWith(BOOKING_PREFIX)) {
+        await handleBookingChargeFailed(admin, data);
+      }
     } else if (event.startsWith("transfer.")) {
       await handleTransferEvent(admin, event, data);
     }

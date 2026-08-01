@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
+import { MomentScreen } from "@/components/app/MomentScreen";
 import {
   addPhoto,
   removePhoto,
@@ -652,26 +653,21 @@ export function ListingWizard({
 
   if (submitted) {
     return (
-      <div className="mx-auto max-w-lg py-8 text-center">
-        <span
-          className="mx-auto grid h-16 w-16 place-items-center rounded-full"
-          style={{ background: "var(--nf-state-success-surface)", color: "var(--nf-state-success)" }}
-        >
-          <UiIcon name="verified" size={32} strokeWidth={2.2} />
-        </span>
-        <h1 className="nf-h2 mt-5">{copy.submitted.title}</h1>
-        <p className="mx-auto mt-3 max-w-[44ch] text-[var(--nf-content-secondary)]">
-          {copy.submitted.body}
-        </p>
-        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Link href="/agent/listings" className="nf-btn nf-btn--primary">
-            {copy.submitted.goToListings}
-          </Link>
-          <Link href="/agent/list" className="nf-btn nf-btn--glass">
-            {copy.submitted.another}
-          </Link>
-        </div>
-      </div>
+      <MomentScreen
+        variant="success"
+        title={copy.submitted.title}
+        description={copy.submitted.body}
+        actions={
+          <>
+            <Link href="/agent/listings" className="nf-btn nf-btn--primary">
+              {copy.submitted.goToListings}
+            </Link>
+            <Link href="/agent/list" className="nf-btn nf-btn--glass">
+              {copy.submitted.another}
+            </Link>
+          </>
+        }
+      />
     );
   }
 
