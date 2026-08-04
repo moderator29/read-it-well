@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PostCard, type PostView } from "@/components/social/feed/PostCard";
 import { Composer } from "@/components/social/feed/Composer";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import { ActionSheet, actionsForPost } from "@/components/social/ActionSheet";
 import { PostEditor } from "@/components/social/feed/PostEditor";
 import {
   blockUser,
@@ -43,6 +44,8 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
   /* The post currently being changed. One at a time: two open editors on one
      screen is two drafts somebody can lose. */
   const [editing, setEditing] = useState<string | null>(null);
+  /* One sheet for the whole thread, holding the post it was opened for. */
+  const [sheetFor, setSheetFor] = useState<PostView | null>(null);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -99,10 +102,21 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
 
   const onMenuAction = (
     post: PostView,
-    action: "copy" | "save" | "mute" | "block" | "report" | "delete" | "edit",
+    action: string,
   ) => {
-    if (action === "copy") {
-      void navigator.clipboard?.writeText(`${window.location.origin}/post/${post.id}`);
+    if (action === "copy" || action === "share") {
+      const url = `${window.location.origin}/post/${post.id}`;
+      if (
+        action === "share" &&
+        typeof navigator !== "undefined" &&
+        typeof navigator.share === "function"
+      ) {
+        void navigator.share({ url }).catch(() => {
+          /* Cancelling a share sheet is not a failure and gets no message. */
+        });
+        return;
+      }
+      void navigator.clipboard?.writeText(url);
       setNotice(POST_COPY.copied);
       return;
     }
@@ -127,6 +141,16 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
         if (!window.confirm(POST_COPY.deleteConfirm)) return;
         const result = await removePost({ postId: post.id });
         setNotice(result.ok ? null : result.error);
+        router.refresh();
+        return;
+      }
+      /* See the note in Feed: "Not interested" is a mute on the person, which
+         is the only honest thing this product can do with it today. */
+      if (action === "hide") {
+        const target = post.author?.id;
+        if (!target) return setNotice("There is nobody to do that to on this post.");
+        const result = await muteTarget({ targetKind: "USER", targetId: target });
+        setNotice(result.ok ? POST_COPY.mutedDone : result.error);
         router.refresh();
         return;
       }
@@ -156,8 +180,9 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
       onLike={() => onLike(post)}
       onRepost={() => onRepost(post)}
       onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
-      onShare={() => onMenuAction(post, "copy")}
-      onMenuAction={(action) => onMenuAction(post, action)}
+      onShare={() => onMenuAction(post, "share")}
+      onSave={() => onMenuAction(post, "save")}
+      onMenu={() => setSheetFor(post)}
       editor={
         editing === post.id ? (
           <PostEditor
@@ -222,6 +247,21 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
           ) : null}
         </div>
       ))}
+
+      {sheetFor ? (
+        <ActionSheet
+          label="What would you like to do?"
+          actions={actionsForPost({
+            isMine: sheetFor.isMine,
+            isAgentAuthor: Boolean(sheetFor.author?.isAgent),
+            hasListing: Boolean(sheetFor.listing),
+            saved: sheetFor.saved,
+            who: sheetFor.author?.handle ? `@${sheetFor.author.handle}` : "this person",
+          })}
+          onChoose={(key) => onMenuAction(sheetFor, key)}
+          onClose={() => setSheetFor(null)}
+        />
+      ) : null}
 
       {reporting ? (
         <ReportSheet

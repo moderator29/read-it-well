@@ -68,7 +68,13 @@ export function MobileTabBar({
                   href={tab.href}
                   aria-current={isActive ? "page" : undefined}
                   aria-label={tab.label}
-                  className="flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full border border-[color-mix(in_oklab,var(--nf-brand-primary)_60%,transparent)] bg-[var(--nf-gradient-cta,var(--nf-brand-primary))] text-[var(--nf-content-on-brand)] shadow-[0_0_18px_rgb(12_57_239_/_0.5)] transition-transform active:translate-y-px"
+                  /* The fill is an inline style, not a Tailwind arbitrary
+                     value: `var(--nf-gradient-cta)` contains commas, and an
+                     arbitrary value carrying a comma does not survive the
+                     class parser. It rendered as a transparent pill, which
+                     made the raised tab the quietest thing in the dock. */
+                  style={{ background: "var(--nf-gradient-cta)" }}
+                  className="flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full border border-[color-mix(in_oklab,var(--nf-brand-primary)_60%,transparent)] text-[var(--nf-content-on-brand)] shadow-[0_0_18px_rgb(12_57_239_/_0.5)] transition-transform active:translate-y-px"
                 >
                   <UiIcon name={tab.icon} size={21} strokeWidth={2} />
                   <span className="text-[0.5625rem] font-bold uppercase tracking-[0.06em]">

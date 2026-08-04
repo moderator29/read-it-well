@@ -129,7 +129,7 @@ export function ReportSheet({
                     </p>
                     <p className="mx-auto mt-2 max-w-[42ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                       Our team reviews every report. You will not have to chase this,
-                      and the host is not told who reported them.
+                      and the host is never told who reported them.
                     </p>
                     <button type="button" onClick={close} className="nf-btn nf-btn--glass mt-5">
                       Back to the listing
@@ -145,7 +145,8 @@ export function ReportSheet({
                     </p>
                     <p className="mx-auto mt-2 max-w-[42ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                       A report belongs to somebody, which is what stops the queue filling
-                      with noise and what lets us come back to you about it.
+                      with noise and what lets us come back to you about it. The host is
+                      never told who reported them.
                     </p>
                     <Link href="/sign-in" className="nf-btn nf-btn--primary mt-5">
                       Sign in

@@ -50,7 +50,11 @@ const page = await context.newPage();
 console.log("1. /messages renders threads");
 await page.goto(`${BASE_URL}/messages`, { waitUntil: "load", timeout: 45000 });
 await page.waitForTimeout(1500);
-await expectVisible(page, page.getByRole("heading", { name: "Messages" }), "Messages heading");
+/* The surface is called Inbox now, everywhere a person can see it. The route
+   stays /messages, because a URL people have shared should not break to rename
+   a heading. The product changed; this expectation was right about the old
+   name and is now right about the new one. */
+await expectVisible(page, page.getByRole("heading", { name: "Inbox" }), "Inbox heading");
 await expectVisible(page, page.getByText("Adaeze Okafor"), "thread row: Adaeze Okafor");
 await expectVisible(
   page,

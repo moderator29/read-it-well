@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { PostGlyph } from "./PostGlyph";
@@ -115,31 +114,47 @@ function Avatar({ author }: { author: PostAuthor | null }) {
   );
 }
 
+/**
+ * The metric row.
+ *
+ * Like, comment, share, then the view count, then a bookmark pushed to the far
+ * right. That order is the board's and it is also the order of intent: the two
+ * you do to the writer, the one you do to somebody else, the fact about the
+ * post, and the one you do for yourself.
+ *
+ * Views are a plain number and they are not a button. A count of how many
+ * people saw something is a fact about it, not something anybody can do to it,
+ * and rendering it as a control would promise an action that does not exist.
+ *
+ * Repost is not here. It is a real write with a real counter, and it lives in
+ * the action sheet rather than in this row, because five controls plus a number
+ * do not fit at 390px without every one of them becoming too small to hit.
+ */
 function ActionRow({
   post,
   onLike,
-  onRepost,
   onReply,
   onShare,
+  onSave,
 }: {
   post: PostView;
   onLike: () => void;
-  onRepost: () => void;
   onReply: () => void;
   onShare: () => void;
+  onSave: () => void;
 }) {
   return (
     <div className="nf-post__actions">
-      {/* Views first and unpressable: it is a fact about the post, not
-          something you can do to it. */}
-      <span
+      <button
+        type="button"
         className="nf-post__act"
-        title={`${post.viewCount.toLocaleString("en-NG")} views`}
+        aria-pressed={post.liked}
+        onClick={onLike}
       >
-        <PostGlyph name="views" />
-        <span className="nf-numeric">{compact(post.viewCount)}</span>
-        <span className="sr-only">views</span>
-      </span>
+        <PostGlyph name="like" active={post.liked} />
+        <span className="nf-numeric">{compact(post.likeCount)}</span>
+        <span className="sr-only">{post.liked ? "liked, undo" : "likes, like this"}</span>
+      </button>
 
       <button type="button" className="nf-post__act" onClick={onReply}>
         <PostGlyph name="reply" />
@@ -152,130 +167,31 @@ function ActionRow({
       <button
         type="button"
         className="nf-post__act"
-        aria-pressed={post.reposted}
-        onClick={onRepost}
-      >
-        <PostGlyph name="repost" active={post.reposted} />
-        <span className="nf-numeric">{compact(post.repostCount)}</span>
-        <span className="sr-only">
-          {post.reposted ? "reposted, undo" : "reposts, repost this"}
-        </span>
-      </button>
-
-      <button
-        type="button"
-        className="nf-post__act"
-        aria-pressed={post.liked}
-        onClick={onLike}
-      >
-        <PostGlyph name="like" active={post.liked} />
-        <span className="nf-numeric">{compact(post.likeCount)}</span>
-        <span className="sr-only">{post.liked ? "liked, undo" : "likes, like this"}</span>
-      </button>
-
-      <button
-        type="button"
-        className="nf-post__act ms-auto"
         onClick={onShare}
         aria-label="Share this post"
       >
         <PostGlyph name="share" />
       </button>
-    </div>
-  );
-}
 
-function PostMenu({
-  post,
-  onClose,
-  onAction,
-}: {
-  post: PostView;
-  onClose: () => void;
-  onAction: (
-    action: "copy" | "save" | "mute" | "block" | "report" | "delete" | "edit",
-  ) => void;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
+      <span
+        className="nf-post__act nf-post__act--fact"
+        title={`${post.viewCount.toLocaleString("en-NG")} views`}
+      >
+        <PostGlyph name="views" />
+        <span className="nf-numeric">{compact(post.viewCount)}</span>
+        <span className="sr-only">views</span>
+      </span>
 
-  // Escape closes, and focus moves in on open then back to the opener on close.
-  // Two overlays in this codebase already do this properly and two do not; this
-  // one is on the right side of that line.
-  useEffect(() => {
-    ref.current?.querySelector<HTMLButtonElement>("button")?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  const who = post.author?.handle ? `@${post.author.handle}` : "this person";
-
-  return (
-    <>
       <button
         type="button"
-        aria-label="Close menu"
-        className="fixed inset-0 z-20 cursor-default"
-        onClick={onClose}
-      />
-      <div ref={ref} role="menu" aria-label="Post actions" className="nf-post__menu">
-        <button type="button" role="menuitem" className="nf-post__menu-item" onClick={() => onAction("copy")}>
-          Copy link
-        </button>
-        <button type="button" role="menuitem" className="nf-post__menu-item" onClick={() => onAction("save")}>
-          {post.saved ? "Remove from saved" : "Save"}
-        </button>
-        {post.isMine ? (
-          <>
-            {/* Edit is offered only while the database would actually allow it.
-                A control that is present and always refused teaches people to
-                distrust the menu it sits in. */}
-            {post.editable ? (
-              <button
-                type="button"
-                role="menuitem"
-                className="nf-post__menu-item"
-                onClick={() => onAction("edit")}
-              >
-                Edit this post
-              </button>
-            ) : null}
-            <button
-              type="button"
-              role="menuitem"
-              className="nf-post__menu-item nf-post__menu-item--danger"
-              onClick={() => onAction("delete")}
-            >
-              Delete this post
-            </button>
-          </>
-        ) : (
-          <>
-            <button type="button" role="menuitem" className="nf-post__menu-item" onClick={() => onAction("mute")}>
-              Mute {who}
-            </button>
-            <button
-              type="button"
-              role="menuitem"
-              className="nf-post__menu-item nf-post__menu-item--danger"
-              onClick={() => onAction("report")}
-            >
-              Report post
-            </button>
-            <button
-              type="button"
-              role="menuitem"
-              className="nf-post__menu-item nf-post__menu-item--danger"
-              onClick={() => onAction("block")}
-            >
-              Block {who}
-            </button>
-          </>
-        )}
-      </div>
-    </>
+        className="nf-post__act ms-auto"
+        aria-pressed={post.saved}
+        onClick={onSave}
+        aria-label={post.saved ? "Saved, remove it" : "Save this"}
+      >
+        <PostGlyph name="bookmark" active={post.saved} />
+      </button>
+    </div>
   );
 }
 
@@ -285,7 +201,8 @@ export function PostCard({
   onRepost,
   onReply,
   onShare,
-  onMenuAction,
+  onSave,
+  onMenu,
   editor,
 }: {
   post: PostView;
@@ -293,14 +210,13 @@ export function PostCard({
   onRepost: () => void;
   onReply: () => void;
   onShare: () => void;
-  onMenuAction: (
-    action: "copy" | "save" | "mute" | "block" | "report" | "delete" | "edit",
-  ) => void;
+  onSave: () => void;
+  /** Opens the action sheet. The sheet itself belongs to the surface, so one
+      sheet exists per screen rather than one per card. */
+  onMenu: () => void;
   /** Rendered in place of the body while this post is being changed. */
   editor?: React.ReactNode;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   const isSystem = post.authorKind === "SYSTEM";
   const isBot = post.authorKind === "BOT";
   const hasPlate = Boolean(post.listing?.photoUrl);
@@ -375,13 +291,16 @@ export function PostCard({
           type="button"
           className="nf-post__act -me-1 ms-auto shrink-0"
           aria-label="More actions"
-          aria-haspopup="menu"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((open) => !open)}
+          aria-haspopup="dialog"
+          onClick={onMenu}
         >
           <PostGlyph name="more" />
         </button>
       </div>
+
+      {post.kind === "ASK" || post.listing ? (
+        <p className="nf-post__kind">{post.listing ? "Apartment" : "Question"}</p>
+      ) : null}
 
       {post.replyingTo ? (
         <p className="mt-2 text-[0.78rem] text-[var(--nf-content-muted)]">
@@ -436,9 +355,9 @@ export function PostCard({
         <ActionRow
           post={post}
           onLike={onLike}
-          onRepost={onRepost}
           onReply={onReply}
           onShare={onShare}
+          onSave={onSave}
         />
       )}
     </>
@@ -464,16 +383,6 @@ export function PostCard({
         body
       )}
 
-      {menuOpen ? (
-        <PostMenu
-          post={post}
-          onClose={() => setMenuOpen(false)}
-          onAction={(action) => {
-            setMenuOpen(false);
-            onMenuAction(action);
-          }}
-        />
-      ) : null}
     </article>
   );
 }

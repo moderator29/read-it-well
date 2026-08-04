@@ -3,28 +3,32 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { PostGlyph } from "./feed/PostGlyph";
 import { Composer } from "./feed/Composer";
+import { CreateRing } from "./CreateRing";
 
 /**
- * The dock, and the sheet behind it.
+ * The dock, and the composer behind it.
  *
- * The button is a single control at the thumb's corner on a phone and at the
- * same corner on a desktop, where the rail already owns the other side. It
- * opens two choices and no more: **Drop gist**, which is writing, and **Ask
- * RentMe AI**, which is the assistant this platform already has. Neither is a
- * new destination invented for a menu.
+ * One control at the thumb's corner on a phone and at the same corner on a
+ * desktop, where the rail already owns the other side. It opens the create
+ * ring, which is where the six things somebody can make actually live.
  *
- * Drop gist opens a full page rather than a half sheet, which is the house rule
- * and is also right here: choosing a place and writing into it is a task, not a
- * confirmation, and a task pushed into the bottom third of a phone screen ends
- * up with the keyboard on top of it.
+ * Two of those, Update and Question, are written here rather than on a page of
+ * their own, because both are a paragraph into a place somebody is already in
+ * and a page load to say one line is a page load too many. The ring hands back
+ * which kind was chosen, so Question never lands on a form headed "Say
+ * something".
  *
  * The place picker exists because the dock travels. On an area page the place
- * is already known and the picker collapses to a line naming it, with a way to
- * change it. Somewhere else, it is the first decision, because posting into the
- * wrong place is the mistake this whole product is built to avoid.
+ * is already known and the picker collapses to a line naming it. Somewhere
+ * else it is the first decision, because posting into the wrong place is the
+ * mistake this whole product is built to avoid. Where somebody is in exactly
+ * one place, there is no choice to make and the picker does not appear.
+ *
+ * A full page rather than a half sheet, which is the house rule and is also
+ * right here: a task pushed into the bottom third of a phone ends up with the
+ * keyboard on top of it.
  */
 
 export type FabArea = { id: string; name: string; city: string };
@@ -47,21 +51,10 @@ export function FabDock({
   const opening = currentAreaId ?? only;
   const [areaId, setAreaId] = useState<string | undefined>(opening);
   const [picking, setPicking] = useState(!opening);
-  const menuRef = useRef<HTMLDivElement>(null);
+  /* Which kind the ring asked for. The composer opens straight onto it, so
+     "Question" never lands somebody on a form that says "Say something". */
+  const [composeKind, setComposeKind] = useState<"GIST" | "ASK">("GIST");
   const buttonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    menuRef.current?.querySelector<HTMLElement>("a, button")?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpen(false);
-        buttonRef.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
 
   useEffect(() => {
     if (!composing) return;
@@ -77,88 +70,55 @@ export function FabDock({
     };
   }, [composing]);
 
-  const startWriting = () => {
-    setOpen(false);
-    if (!signedIn) {
-      router.push("/sign-in");
-      return;
-    }
-    setAreaId(opening);
-    setPicking(!opening);
-    setComposing(true);
-  };
-
   const chosen = areas.find((area) => area.id === areaId) ?? null;
 
   return (
     <>
       <div className="nf-fab">
-        {open ? (
-          <>
-            <button
-              type="button"
-              aria-label="Close menu"
-              className="fixed inset-0 z-[-1] cursor-default"
-              onClick={() => setOpen(false)}
-            />
-            <div ref={menuRef} role="menu" aria-label="Write or ask" className="nf-fab__menu">
-              <button
-                type="button"
-                role="menuitem"
-                className="nf-fab__item"
-                onClick={startWriting}
-              >
-                <BrandIcon name="chat" size={30} />
-                <span>
-                  <span className="nf-fab__item-title">Drop gist</span>
-                  <span className="nf-fab__item-note">
-                    Say something around a place you are in
-                  </span>
-                </span>
-              </button>
-
-              <Link
-                role="menuitem"
-                href="/assistant"
-                className="nf-fab__item"
-                onClick={() => setOpen(false)}
-              >
-                <BrandIcon name="bot" size={30} />
-                <span>
-                  <span className="nf-fab__item-title">Ask RentMe AI</span>
-                  <span className="nf-fab__item-note">
-                    Stays, places and how any of this works
-                  </span>
-                </span>
-              </Link>
-            </div>
-          </>
-        ) : null}
-
         <button
           ref={buttonRef}
           type="button"
           className="nf-fab__button"
-          aria-haspopup="menu"
+          aria-haspopup="dialog"
           aria-expanded={open}
-          aria-label={open ? "Close the write menu" : "Write something, or ask RentMe AI"}
+          aria-label="Create something"
           onClick={() => setOpen((value) => !value)}
         >
           <PostGlyph name={open ? "close" : "compose"} size={24} />
         </button>
       </div>
 
+      <CreateRing
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          buttonRef.current?.focus();
+        }}
+        onCompose={(kind) => {
+          if (!signedIn) {
+            router.push("/sign-in");
+            return;
+          }
+          setComposeKind(kind);
+          setAreaId(opening);
+          setPicking(!opening);
+          setComposing(true);
+        }}
+      />
+
       {composing ? (
         <div
           className="nf-social-sheet"
           role="dialog"
           aria-modal="true"
-          aria-label="Drop gist"
+          aria-label={composeKind === "ASK" ? "Ask a question" : "Say something"}
         >
           <div className="nf-social-sheet__panel">
             <header className="mb-5 flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="nf-h3 text-[1.15rem]">Drop gist</h2>
+                <h2 className="nf-h3 text-[1.15rem]">
+                  {composeKind === "ASK" ? "Ask a question" : "Say something"}
+                </h2>
                 <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
                   {chosen && !picking
                     ? `Around ${chosen.name}, ${chosen.city}`
@@ -181,8 +141,8 @@ export function FabDock({
                  place is a deliberate act. */
               <>
                 <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                  You are not in any place yet, and a gist belongs to a place.
-                  Join one and you can write in it straight away.
+                  You are not in any place yet, and what you write belongs to a
+                  place. Join one and you can write in it straight away.
                 </p>
                 <Link
                   href="/around"
@@ -228,6 +188,7 @@ export function FabDock({
                   signedIn={signedIn}
                   isMember
                   autoFocus
+                  initialKind={composeKind}
                   onDone={() => {
                     setComposing(false);
                     router.refresh();

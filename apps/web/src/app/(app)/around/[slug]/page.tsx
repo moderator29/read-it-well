@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/app/PageHeader";
 import { getArea } from "@/lib/social/areas-queries";
 import { getAreaFeed } from "@/lib/social/posts-queries";
+import { listStories } from "@/lib/social/stories-queries";
+import { listMyAreas } from "@/lib/social/areas-queries";
 import { POST_COPY } from "@/lib/social/posts-schema";
 import { Feed } from "@/components/social/feed/Feed";
 import { AroundFab } from "@/components/social/AroundFab";
@@ -68,7 +70,11 @@ export default async function AreaPage({
   if (!detail) notFound();
 
   const { area, viewer, moderators } = detail;
-  const feed = await getAreaFeed(area.id);
+  const [feed, stories, mine] = await Promise.all([
+    getAreaFeed(area.id),
+    listStories({ areaId: area.id, limit: 12 }),
+    listMyAreas(),
+  ]);
   const isModerator = viewer.role === "MODERATOR";
 
   return (
@@ -169,9 +175,6 @@ export default async function AreaPage({
       ) : null}
 
       <section className="mb-6">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
-          What is happening
-        </h2>
         <Feed
           initial={feed.posts}
           signedIn={viewer.signedIn}
@@ -181,6 +184,14 @@ export default async function AreaPage({
           emptyMessage={
             viewer.signedIn ? POST_COPY.emptyFeed : POST_COPY.emptyFeedSignedOut
           }
+          district={{
+            city: area.city,
+            slug: area.slug,
+            places: mine
+              .filter((place) => place.status === "ACTIVE")
+              .map((place) => ({ slug: place.slug, name: place.name, city: place.city })),
+            stories,
+          }}
         />
         {feed.ended && feed.posts.length > 0 ? (
           <p

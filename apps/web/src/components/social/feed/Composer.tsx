@@ -33,6 +33,7 @@ export function Composer({
   isMember,
   areaName,
   autoFocus = false,
+  initialKind = "GIST",
   onDone,
 }: {
   areaId?: string;
@@ -41,11 +42,13 @@ export function Composer({
   isMember?: boolean;
   areaName?: string;
   autoFocus?: boolean;
+  /** Chosen before the composer opened, by the create ring. */
+  initialKind?: ComposableKind;
   onDone?: () => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [kind, setKind] = useState<ComposableKind>("GIST");
+  const [kind, setKind] = useState<ComposableKind>(initialKind);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [held, setHeld] = useState(false);

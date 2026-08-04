@@ -35,7 +35,8 @@ export type PostGlyphName =
      no cross, and adding to the platform's navigation set is not this layer's
      to do. */
   | "compose"
-  | "close";
+  | "close"
+  | "bookmark";
 
 const STROKE = {
   fill: "none",
@@ -144,6 +145,19 @@ export function PostGlyph({
         <>
           <path d="M7.2 7.2 16.8 16.8" {...STROKE} strokeWidth={2} />
           <path d="M16.8 7.2 7.2 16.8" {...STROKE} strokeWidth={2} />
+        </>
+      ) : null}
+
+      {name === "bookmark" ? (
+        /* A stroke folded back on itself. Keeping something is holding one end
+           of it, so the mark is one line that turns rather than a tag or a
+           ribbon borrowed from somebody else's set. */
+        <>
+          <path
+            d="M7 5.4h10v13.2l-5-3.4-5 3.4z"
+            {...STROKE}
+            fill={active ? "currentColor" : "none"}
+          />
         </>
       ) : null}
 

@@ -112,8 +112,22 @@ for (const colorScheme of ["dark", "light"]) {
     );
 
     // ----------------------------------------------------- a maximum price
-    await page.locator('[data-testid="filter-max"]').fill("100000");
-    await page.waitForTimeout(200);
+    /* The two naira text boxes are gone: the price is one two-handle slider
+       now, so the ceiling is set by driving the maximum handle rather than by
+       typing. The product changed shape; the thing being proved did not, which
+       is that a ceiling reaches the address bar and narrows the results. */
+    const maxHandle = page.locator('[data-testid="filter-range-max"]');
+    await maxHandle.evaluate((el) => {
+      const input = el;
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(input, "100000");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await page.waitForTimeout(250);
     await page.locator('[data-testid="filters-apply"]').click();
     await page.waitForTimeout(WAIT);
 

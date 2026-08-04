@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { PostCard, type PostView } from "./PostCard";
 import { Composer } from "./Composer";
 import { ReportSheet } from "../ReportSheet";
+import { ActionSheet, actionsForPost } from "../ActionSheet";
+import { DistrictChips, DistrictHeader, type DistrictChip } from "./DistrictHeader";
+import { StoryGrid } from "../story/StoryGrid";
+import type { StoryCard } from "@/lib/social/stories-queries";
 import { PostEditor } from "./PostEditor";
 import {
   blockUser,
@@ -38,6 +42,7 @@ export function Feed({
   areaId,
   areaName,
   emptyMessage,
+  district,
 }: {
   initial: PostView[];
   signedIn: boolean;
@@ -45,6 +50,14 @@ export function Feed({
   areaId?: string;
   areaName?: string;
   emptyMessage: string;
+  /** Present only on a district feed. Absent on a profile, where the header
+      and the chip row would be answering a question nobody asked. */
+  district?: {
+    city: string;
+    slug: string;
+    places: { slug: string; name: string; city: string }[];
+    stories: StoryCard[];
+  };
 }) {
   const router = useRouter();
   const [posts, setPosts] = useState(initial);
@@ -57,6 +70,10 @@ export function Feed({
   /* The post currently being changed. One at a time: two open editors on one
      screen is two drafts somebody can lose. */
   const [editing, setEditing] = useState<string | null>(null);
+  /* One sheet per screen, holding the post it was opened for. One per card
+     would be one modal per row in the document. */
+  const [sheetFor, setSheetFor] = useState<PostView | null>(null);
+  const [chip, setChip] = useState<DistrictChip>("all");
   const [, startTransition] = useTransition();
 
   // The server is the truth. When a refresh brings new props, take them.
@@ -109,8 +126,20 @@ export function Feed({
 
   const onMenuAction = (
     post: PostView,
-    action: "copy" | "save" | "mute" | "block" | "report" | "delete" | "edit",
+    action: string,
   ) => {
+    if (action === "share") {
+      const url = `${window.location.origin}/post/${post.id}`;
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+        void navigator.share({ url }).catch(() => {
+          /* Cancelling a share sheet is not a failure and gets no message. */
+        });
+        return;
+      }
+      void navigator.clipboard?.writeText(url);
+      setNotice(POST_COPY.copied);
+      return;
+    }
     if (action === "copy") {
       void navigator.clipboard?.writeText(`${window.location.origin}/post/${post.id}`);
       setNotice(POST_COPY.copied);
@@ -148,6 +177,19 @@ export function Feed({
       // not the post's. Passing the post id would have blocked a uuid that is
       // nobody, silently succeeded, and shown "Blocked" for an action that did
       // nothing at all.
+      /* "Not interested" is a mute on the person, which is the only thing this
+         product can honestly do with it today: there is no per-post ranking
+         signal to feed, and a control that silently does nothing is worse than
+         one that does something smaller than its label suggests. The label says
+         "see less from them" for that reason. */
+      if (action === "hide") {
+        const target = post.author?.id;
+        if (!target) return setNotice("There is nobody to do that to on this post.");
+        const result = await muteTarget({ targetKind: "USER", targetId: target });
+        setNotice(result.ok ? POST_COPY.mutedDone : result.error);
+        router.refresh();
+        return;
+      }
       if (action === "mute" || action === "block") {
         const target = post.author?.id;
         if (!target) return setNotice("There is nobody to do that to on this post.");
@@ -168,9 +210,60 @@ export function Feed({
     });
   };
 
+  /*
+   * Filtered in the browser over what the page already holds, so moving
+   * between chips costs nothing. Apartments are posts carrying a listing;
+   * Updates are everything a person wrote that is not one; Stories are their
+   * own object and come from their own read. Reviews are the one chip with no
+   * source yet: there is no read for reviews in an area, and it says so rather
+   * than quietly showing nothing.
+   */
+  const shown =
+    chip === "apartments"
+      ? posts.filter((post) => Boolean(post.listing))
+      : chip === "updates"
+        ? posts.filter((post) => !post.listing && post.authorKind === "USER")
+        : posts;
+
+  const counts: Partial<Record<DistrictChip, number>> = district
+    ? {
+        apartments: posts.filter((post) => Boolean(post.listing)).length,
+        stories: district.stories.length,
+        updates: posts.filter((post) => !post.listing && post.authorKind === "USER").length,
+      }
+    : {};
+
   return (
     <div className="flex flex-col gap-[var(--nf-feed-gap)]">
-      {areaId ? (
+      {district && areaName ? (
+        <>
+          <DistrictHeader
+            name={areaName}
+            city={district.city}
+            places={district.places}
+            currentSlug={district.slug}
+            filtersOn={chip !== "all"}
+            onFilter={() => setChip(chip === "all" ? "apartments" : "all")}
+          />
+          <DistrictChips active={chip} counts={counts} onPick={setChip} />
+        </>
+      ) : null}
+
+      {district && chip === "stories" ? (
+        <StoryGrid stories={district.stories} handle={areaName ?? "this place"} isOwner={false} />
+      ) : null}
+
+      {district && chip === "reviews" ? (
+        <div className="nf-card nf-post p-6 text-center">
+          <p className="text-sm leading-relaxed text-[var(--nf-content-muted)]">
+            Reviews of the stays around here are on each place&rsquo;s own page.
+            They arrive in this feed once a review can name the place it is
+            about rather than only the flat.
+          </p>
+        </div>
+      ) : null}
+
+      {areaId && chip !== "stories" && chip !== "reviews" ? (
         <Composer
           areaId={areaId}
           areaName={areaName}
@@ -188,7 +281,7 @@ export function Feed({
         </p>
       ) : null}
 
-      {posts.length === 0 ? (
+      {chip !== "stories" && chip !== "reviews" && shown.length === 0 ? (
         <div className="nf-card nf-post p-6 text-center">
           <p className="text-sm leading-relaxed text-[var(--nf-content-muted)]">
             {emptyMessage}
@@ -196,7 +289,7 @@ export function Feed({
         </div>
       ) : null}
 
-      {posts.map((post) => (
+      {(chip === "stories" || chip === "reviews" ? [] : shown).map((post) => (
         <div key={post.id} className="flex flex-col gap-[var(--nf-feed-gap)]">
           <ViewportPost post={post}>
             <PostCard
@@ -204,8 +297,9 @@ export function Feed({
               onLike={() => onLike(post)}
               onRepost={() => onRepost(post)}
               onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
-              onShare={() => onMenuAction(post, "copy")}
-              onMenuAction={(action) => onMenuAction(post, action)}
+              onShare={() => onMenuAction(post, "share")}
+              onSave={() => onMenuAction(post, "save")}
+              onMenu={() => setSheetFor(post)}
               editor={
                 editing === post.id ? (
                   <PostEditor
@@ -236,6 +330,21 @@ export function Feed({
           ) : null}
         </div>
       ))}
+
+      {sheetFor ? (
+        <ActionSheet
+          label="What would you like to do?"
+          actions={actionsForPost({
+            isMine: sheetFor.isMine,
+            isAgentAuthor: Boolean(sheetFor.author?.isAgent),
+            hasListing: Boolean(sheetFor.listing),
+            saved: sheetFor.saved,
+            who: sheetFor.author?.handle ? `@${sheetFor.author.handle}` : "this person",
+          })}
+          onChoose={(key) => onMenuAction(sheetFor, key)}
+          onClose={() => setSheetFor(null)}
+        />
+      ) : null}
 
       {reporting ? (
         <ReportSheet
