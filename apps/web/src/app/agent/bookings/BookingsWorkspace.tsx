@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatMoney, formatDate, type Dictionary, type Locale } from "@naijafinds/i18n";
 import { fill } from "../_copy";
@@ -10,6 +9,7 @@ import { acceptBooking, declineBooking } from "@/lib/agent/bookings-actions";
 import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-schema";
 import type { BookingStatus, HostBooking, HostBookingBoard } from "@/lib/agent/bookings-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 /**
@@ -192,17 +192,18 @@ function DecisionSheet({
         )}
 
         <div className="mt-5 flex gap-4">
-          <button type="button" className="nf-btn nf-btn--glass flex-1" onClick={onClose}>
+          <Button variant="secondary" className="flex-1" onClick={onClose}>
             {t.actions.back}
-          </button>
-          <button
-            type="button"
-            className="nf-btn nf-btn--primary flex-1"
+          </Button>
+          <Button
+            variant="primary"
+            className="flex-1"
             onClick={run}
-            disabled={pending || declineDisabled}
+            disabled={declineDisabled}
+            loading={pending}
           >
-            {pending ? t.actions.working : copy.confirm}
-          </button>
+            {copy.confirm}
+          </Button>
         </div>
       </div>
     </div>,
@@ -319,20 +320,12 @@ function BookingCard({
         </p>
         {pending && (
           <span className="flex items-center gap-3">
-            <button
-              type="button"
-              className="nf-btn nf-btn--glass px-3.5 py-1.5 text-[0.8125rem]"
-              onClick={() => onDecide("decline", booking)}
-            >
+            <Button variant="secondary" size="sm" onClick={() => onDecide("decline", booking)}>
               {t.actions.decline}
-            </button>
-            <button
-              type="button"
-              className="nf-btn nf-btn--primary px-3.5 py-1.5 text-[0.8125rem]"
-              onClick={() => onDecide("accept", booking)}
-            >
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => onDecide("accept", booking)}>
               {t.actions.accept}
-            </button>
+            </Button>
           </span>
         )}
       </div>
@@ -428,9 +421,9 @@ export function BookingsWorkspace({
             <p className="mx-auto max-w-[38ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
               {emptyCopy[active].body}
             </p>
-            <Link href="/agent/listings" className="nf-btn nf-btn--glass">
+            <ButtonLink href="/agent/listings" variant="secondary">
               {t.empty.openListings}
-            </Link>
+            </ButtonLink>
           </div>
         )}
       </div>
