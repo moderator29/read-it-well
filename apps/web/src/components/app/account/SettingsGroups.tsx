@@ -137,7 +137,7 @@ export function LanguageCard({ current }: { current: Locale }) {
               aria-checked={active}
               disabled={pending}
               onClick={() => choose(code)}
-              className="flex w-full cursor-pointer items-center gap-4 py-3.5 text-left transition-opacity first:pt-0 last:pb-0 disabled:cursor-wait disabled:opacity-60"
+              className="flex min-h-11 w-full cursor-pointer items-center gap-4 py-3.5 text-left transition-opacity first:pt-0 last:pb-0 disabled:cursor-wait disabled:opacity-60"
             >
               <span className="nf-badge w-11 justify-center">{localeMeta[code].short}</span>
               <span className="min-w-0 flex-1">

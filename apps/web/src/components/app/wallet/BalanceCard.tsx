@@ -141,7 +141,7 @@ export function BalanceCard({
             onClick={() => setHidden((h) => !h)}
             aria-pressed={hidden}
             aria-label={hidden ? "Show balance" : "Hide balance"}
-            className="rounded-full border border-white/15 bg-white/5 p-1.5 text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
+            className="grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-white/5 text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
           >
             <EyeGlyph off={hidden} />
           </button>

@@ -1703,6 +1703,17 @@ body {
   /*
    * Round glass icon button: back controls, close controls, small actions.
    * Same material as nf-btn--glass at a 44px touch target, icon centred.
+   *
+   * THE MINIMUMS ARE LOAD BEARING. This comment has always claimed a 44px
+   * target and the rule set 2.6rem, which is 41.6px, so the class missed its
+   * own promise by 2.4px everywhere. Worse, call sites routinely override with
+   * `h-9 w-9` (36px) and `h-8 w-8` (32px), and a measuring sweep across
+   * fifteen routes found those two sizes on the back control, the theme
+   * toggle, the gallery arrows, the assistant history opener and the guest
+   * steppers. `min-width`/`min-height` are a different property from the
+   * `width`/`height` those utilities set, and a minimum beats a length, so
+   * this one declaration lifts every instance to 44px without touching a
+   * single call site or changing any icon.
    */
   .nf-icon-btn {
     display: inline-flex;
@@ -1710,6 +1721,8 @@ body {
     justify-content: center;
     width: 2.6rem;
     height: 2.6rem;
+    min-width: 44px;
+    min-height: 44px;
     flex-shrink: 0;
     border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
@@ -1790,9 +1803,18 @@ body {
 
   /* ---------------------------------------------------------------- chips */
 
+  /*
+   * Chips are the primary control on /search: city, sort, type, every active
+   * filter. They measured 37px tall, which is a miss on a thumb and the single
+   * most-tapped control in discovery. The minimum lifts them to 44px; the
+   * padding is left alone so the drawn pill keeps its proportions and simply
+   * centres inside a taller box.
+   */
   .nf-chip {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    min-height: 44px;
     gap: 0.45rem;
     padding: 0.45rem 0.9rem;
     border-radius: var(--nf-radius-pill);

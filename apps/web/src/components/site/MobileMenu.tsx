@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Logo } from "@/design-system/brand/Logo";
@@ -28,13 +29,11 @@ export function MobileMenu({
   closeLabel: string;
 }) {
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
+  const panel = useRef<HTMLDivElement | null>(null);
+  const close = useCallback(() => setOpen(false), []);
+  /* This panel carried aria-modal and no Escape handler, so a keyboard could
+     open it and not get out. One hook, the same contract everywhere. */
+  useOverlay({ open, onClose: close, panelRef: panel });
 
   return (
     <div className="lg:hidden">
@@ -60,7 +59,13 @@ export function MobileMenu({
        */}
       {open &&
         createPortal(
-        <div className="fixed inset-0 z-[75]" role="dialog" aria-modal="true">
+        <div
+          ref={panel}
+          tabIndex={-1}
+          className="fixed inset-0 z-[75] outline-none"
+          role="dialog"
+          aria-modal="true"
+        >
           <button
             type="button"
             aria-label={closeLabel}

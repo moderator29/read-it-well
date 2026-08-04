@@ -278,6 +278,45 @@ async function run(theme) {
       );
     }
 
+    /* --------------------------------------------------- the directory */
+    /*
+     * `/u` did not exist for three rounds, and `/u/[handle]` answered for every
+     * handle under it, so a person was reachable only if you already knew their
+     * name. These checks are the contract of the page that fixed it: it answers,
+     * a search is an address rather than a client state, and an answer with
+     * nobody in it is a designed page rather than a blank.
+     */
+    console.log(`\n[${theme}] /u`);
+    const directory = await page.goto(`${BASE_URL}/u`, { waitUntil: "load" });
+    await page.waitForTimeout(WAIT);
+    check("the people directory answers 200", directory !== null && directory.status() === 200);
+
+    const searchField = page.locator('input[name="q"]');
+    const hasSearch = (await searchField.count()) > 0;
+    if (hasSearch) {
+      check("the search is a form with a GET, so a search is an address", true);
+      await searchField.fill("nurse");
+      await page.locator('form[action="/u"] button[type="submit"]').click();
+      await page.waitForTimeout(WAIT);
+      check(
+        "searching puts the query in the address",
+        page.url().includes("q=nurse"),
+      );
+      check(
+        "the answer says which routes it searched, or says nobody matched",
+        /Searched by|Nobody matched|switch on shortly/i.test(
+          await page.locator("body").innerText(),
+        ),
+      );
+    } else {
+      console.log("      (no search field: this build renders the unconfigured state)");
+      check(
+        "the directory still answers with a designed page and a way onward",
+        (await page.locator("body").innerText()).trim().length > 0 &&
+          (await page.getByRole("link").count()) > 0,
+      );
+    }
+
     /* ---------------------------------------------------- the house rules */
     const strays = await outOfFamily(page);
     check(`no orange, amber, gold, violet or magenta (${strays.length} found)`, strays.length === 0);

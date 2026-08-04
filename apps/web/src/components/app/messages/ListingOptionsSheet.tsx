@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import type { ConversationListing } from "@/lib/messages/types";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -43,15 +44,11 @@ export function ListingOptionsSheet({
 }) {
   const panelRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    panelRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  /* Escape, the focus trap, the scroll lock and returning focus to the trigger,
+     in one place. This sheet handled Escape by hand and let the page scroll
+     behind it, which on a phone means flicking to dismiss and watching the
+     conversation underneath move instead. */
+  useOverlay({ open, onClose, panelRef });
 
   if (!open) return null;
 

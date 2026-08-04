@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Dictionary, Locale } from "@naijafinds/i18n";
@@ -59,14 +60,13 @@ export function AppShell({
    */
   const immersive = active === "/assistant" || /^\/messages\/[^/]+$/.test(active);
 
-  /* The drawer closes itself on navigation and locks page scroll while open. */
+  /* The drawer closes itself on navigation. Escape, the scroll lock, the focus
+     trap and returning focus to the opener are all useOverlay's, because this
+     drawer carried aria-modal and none of the behaviour it promises. */
   useEffect(() => setDrawer(false), [active]);
-  useEffect(() => {
-    document.body.style.overflow = drawer ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [drawer]);
+  const drawerPanel = useRef<HTMLDivElement | null>(null);
+  const closeDrawer = useCallback(() => setDrawer(false), []);
+  useOverlay({ open: drawer, onClose: closeDrawer, panelRef: drawerPanel });
 
   return (
     <div className="flex min-h-dvh">
@@ -79,7 +79,13 @@ export function AppShell({
 
       {/* Mobile slide-in side navigation: the same rail, as a left drawer. */}
       {drawer && (
-        <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true">
+        <div
+          ref={drawerPanel}
+          tabIndex={-1}
+          className="fixed inset-0 z-[60] outline-none lg:hidden"
+          role="dialog"
+          aria-modal="true"
+        >
           <button
             type="button"
             aria-label={t.a11y.closeMenu}

@@ -325,7 +325,7 @@ export function MyBookings({
             tabIndex={active === tab.key ? 0 : -1}
             onClick={() => setActive(tab.key)}
             className={[
-              "py-2.5 text-[0.875rem] font-medium transition-colors",
+              "min-h-11 py-2.5 text-[0.875rem] font-medium transition-colors",
               active === tab.key
                 ? "text-[var(--nf-content-primary)]"
                 : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",

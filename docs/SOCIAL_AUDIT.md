@@ -360,57 +360,72 @@ re-opens them: naming yourself in your own post notifies nobody, and `@rentme`
 resolves to no `social_profiles` row so the assistant's own name never becomes a
 notification to a person.
 
-### 9.3 For the lead: what the AI summon path needs
+### 9.3 The AI summon, built
 
-`@rentme` is a reserved handle with no account behind it. `bot_invocations`
-exists, `author_kind = 'BOT'` with a null author is allowed by check constraint,
-`/api/assistant` is a working 597-line route with a system prompt, a listing
-search tool and streaming, and nothing joins any of it up. **This was not built
-this round and here is the honest reason**: it needs a settings row that does not
-exist, a migration that is not this scope's to write, and a refactor of the
-assistant route into something callable outside a request handler. Half of it is
-worse than none, because a summon that answers once and then silently stops is a
-product that looks like it has an assistant.
+Round two specified this and did not build it, because the ceiling did not exist
+and a summon with no ceiling is an open spending surface pointed at a paid API.
+The lead built `public.bot_settings` and `private.bot_may_run`, so it is built:
+`lib/social/bot-schema.ts` and `lib/social/bot-actions.ts`.
 
-What it needs, in the order it would be built.
+**How it works.** Somebody writes `@rentme` in a post or a reply. The composer
+posts first and summons second, so an ordinary post never waits on a model call
+and a failed summon can never cost anybody their words. `summonBot` reads the
+post through the caller's own client, refuses anything not LIVE, refuses a fourth
+level of thread because the depth cap is three and an answer needs a level, and
+refuses a second answer for ever by looking for one rather than remembering it.
+Then it asks `private.bot_may_run`, which answers `ok`, `off`, `month`, `day` or
+`person`, and either answers or says why.
 
-**1. A settings row, and it is the gate.** A monthly kobo ceiling, a per-user
-daily limit, a per-area hourly limit, and the slow-mode default. Without the
-ceiling the summon surface is an open spending surface pointed at a paid API by
-anybody with an account. `bot_invocations.cost_minor` already exists to be summed
-against it. **Nothing else on this list should be built first.**
+**A refusal is a reply.** Each reason has its own sentence in the assistant's
+voice, plus one for a place in slow mode and one for a missing key. A summon that
+answers once and then goes quiet reads as a broken product; one that says "not
+today" reads as a paused one. `BOT_REFUSALS` is keyed on the exact strings
+`bot_may_run` returns, so a new reason added to that function is a missing key at
+compile time rather than a silent fallback in production.
 
-**2. A writer for a BOT post.** `posts_insert_self` requires
-`author_id = auth.uid()` and `author_kind = 'USER'`, so a bot reply cannot be
-written by the caller's client, correctly. It is a service-role insert through
-the one narrow door at `lib/security/service-rpc.ts`, and that door is the only
-place in the layer that should ever hold the service role.
+**It never holds a service role for reading.** The listing tool runs through the
+ordinary repository `/search` uses and takes no identity argument, so the model
+sees only what a signed-out visitor could. The admin client appears twice: to ask
+`bot_may_run`, granted to nobody else, and to write a row whose `author_kind` no
+policy will accept from a person, correctly.
 
-**3. The assistant, callable without a request.** `runListingSearch`,
-`SYSTEM_PROMPT` and the streaming loop live inside `app/api/assistant/route.ts`.
-The summon needs one non-streaming call that returns a complete answer plus the
-listings it cited, so those three want lifting into `lib/assistant/` first. **The
-tools take no identity argument and execute against the caller's own RLS-bound
-client**, which is the R-77 pattern and is what keeps the bot from becoming a way
-to read somebody else's rows.
+**Every call is priced.** `costMinorFor` turns real token counts into integer
+kobo and writes them to `bot_invocations.cost_minor`, the column the ceilings
+sum. A call that records zero is a ceiling that does not exist, so this is load
+bearing rather than bookkeeping. The rate is a documented constant overridable by
+environment, the token counts are stored beside it so the true cost stays
+recomputable at any rate, and nobody is ever shown the number: it is an internal
+spend ledger, not a price, and the platform charges for nothing.
 
-**4. The refusals, every one of them a test.** One reply per summon. Never in a
-held thread, never on a held post, never in an area in slow mode. Never a
-utility state it cannot source: if nobody has reported, it says nobody has
-reported and offers the report action. Every factual claim carries its source
-count. No disputes, no refunds, no unsourced prices, no medical or legal advice.
-And it must refuse honestly when the ceiling is reached rather than falling
-silent, because a silent bot and a broken bot look identical.
+**Proven at the database level, which is where the owner's requirement lives.**
+In one rolled back transaction on the live database: a USER question naming
+`@rentme`, a BOT reply written the way the action writes it, then, as a real
+second person through `private.probe_as` with `set local role authenticated`, a
+like, a repost and a reply against that bot row.
 
-**5. The summon itself.** The parser from section 9.2 already finds `@rentme`;
-the action fires on a post or reply whose body names it, rate limited on
-`private.consume_rate_limit`, behind the `social` flag like everything else.
+```
+author_kind BOT | kind REPLY | depth 1 | root is the question | area inherited
+status LIVE | like_count 1 | repost_count 1 | reply_count 1
+source note "Answered from 1 published listing around Yaba."
+invocations 1 | month to date 240 kobo
+```
 
-**6. The owner's actual requirement, which is the acceptance test.** A bot reply
-is a row in `posts`, so it must be likeable, repostable, quote-repostable and
-replyable with **no special casing anywhere**. That is three assertions in
-`social-bot.spec.mjs` and it is the reason the single-table decision was made.
-Probe it at the database level before any UI exists.
+Like, repost and reply against the assistant's own words with no special casing
+anywhere, which is the whole reason the single-table decision was made. The
+placement trigger filled the area and the root, and the scanner read the bot's
+words the same way it reads anybody's.
+
+**Two things it does not do, deliberately.** It does not stream, because a reply
+is a row and not a conversation. And it never claims a utility state: the system
+prompt tells it plainly that nobody has reported the power, water, road or safety
+to it, and to say so and ask the people in the thread, who live there.
+
+**What the lead still owns.** `bot_settings` and `bot_may_run` are applied and
+missing from `lib/supabase/database.types.ts`, so `bot-actions.ts` carries one
+named escape hatch in one place with the deletion instruction in it. Regenerating
+the types removes it. Third time applied migrations and generated types have
+drifted, and still the good kind of failure: a red build rather than a wrong
+answer.
 
 ### 9.4 What round two was verified against
 
@@ -439,3 +454,53 @@ not a description of it.
 - `social-mentions.spec.mjs` imports `mentions-schema.ts` directly through Node's
   type stripping, so it tests the module the product ships rather than a copy of
   its logic. Thirteen checks, including the email address that must name nobody.
+
+---
+
+## 10. Round three
+
+### 10.1 Findings
+
+| # | Severity | Finding | Evidence | What changed |
+|---|----------|---------|----------|--------------|
+| N17 | SERIOUS | **An email address in a post notifies a stranger and quotes the payment ask at them.** `private.fan_out_post` matches `@handle` with nothing in front of it. The shipped renderer refuses to link exactly that, so the client and the database now disagree about what a mention is | Probed live and rolled back: `send it to ade@probestranger.example` produced a notification to `@probestranger` titled "You were mentioned" with the body quoted. Probed at the same time and found correct: naming yourself notifies nobody, and `@rentme` resolves to no profile row | **The lead's.** One character class, given in full in section 9.2, matching the expression `lib/social/mentions-schema.ts` already uses and `social-mentions.spec.mjs` proves against thirteen cases |
+| N18 | SERIOUS | **`/u/rentme` offered a visitor a name the database refuses.** `private.validate_social_handle` refuses any handle containing `rentme` or `naijafinds` with RM002, and the claimable page offered "Claim @rentme" regardless. Round three made it worse before better, by writing `@rentme` into threads as the summon | `validate_social_handle`, read live | `isOfficialHandle()` in `profiles-schema.ts`, said before the round trip rather than after it, and the page now explains what `@rentme` is. **Deliberately not the whole rule**: `private.reserved_handles` and the ninety day release lock are not readable from a page and still surface as the database's own sentence in the editor, which is the right place for a rule this screen cannot know |
+| N19 | SERIOUS | **`/u` did not exist**, so a person was reachable only if you already knew their handle. Every profile link on the platform assumed you already knew the name. A follow graph with no discovery surface is the criticism `SOCIAL_DESIGN.md` levelled at the follow graph it originally cut, and it sat in section 7 for three rounds | `find apps/web/src/app -path '*u/page.tsx'` returned nothing | `lib/social/people-queries.ts` and `/u`. **Four ways in**: name, handle, what somebody does, where they are. The last three are columns a trigger projects from `public.profiles`, so nobody can type themselves an occupation or a state, which is the only reason searching by either is worth anything. `citext` is not installed, so every comparison is `ilike` on both the profile columns and the two reference tables. A form with a GET, so a search is an address somebody can send, reload or go back to, and typing costs no JavaScript. Newest first when nothing is typed rather than most followed. Linked from `/around`, which had no front door to the other half of the layer |
+| N20 | MINOR | `post.sourceNote` was a field on every card, rendered by a block that had always been ready for it, and hard-coded null in `toView`. `payload` was read from the database and mapped nowhere | `posts-queries.ts` | Both real now: the assistant writes its citation line and the ids it cited into `payload`, and the card renders the line plus the cited listings as plain rows. `jsonb` is whatever was put there, so every step is checked and a malformed payload renders as a post with no citations rather than taking a feed down |
+| N21 | MINOR | The directory's closing note sat under the floating dock and the tab bar, so its last line was covered | 390px screenshot, both themes | Cut rather than padded around. The page already had a header, a search, a section label, rows and a sign-in line; a sixth voice at the bottom was the jam the owner has asked twice to be rid of, and removing it also removed the collision |
+
+### 10.2 Still open, and whose
+
+1. **The mention regex** (N17). One character class in `private.fan_out_post`,
+   and the same in the story comment fan-out.
+2. **Regenerate `database.types.ts`.** `bot_settings` and `bot_may_run` are
+   applied and absent from it. Third occurrence.
+3. **`area_members.residency_source` and `residency_verified_at` are written by
+   nothing**, so `RESIDENT` cannot be earned. **It is not currently a dead end in
+   the product**: `grep` over the whole application finds `RESIDENT` in exactly
+   one place, the `AREA_ROLES` constant, and no screen shows the role or offers
+   to earn it. So this is schema ahead of product, which is harmless, rather than
+   a promise the product cannot keep. It stops being harmless the day the utility
+   record ships, because every defence in `SOCIAL_DESIGN` section 6 rests on
+   residency being earned and the only writer of `area_members` is `joinArea`,
+   which pins `role = 'MEMBER'`. The three earning paths are already specified
+   there: a completed stay, an invite from a weighted resident, or reports across
+   fourteen distinct days spanning thirty. **Not built here because all three are
+   triggers.**
+
+### 10.3 What round three was verified against
+
+- **The people search, proven against real reference data under `anon` RLS**, in
+  one rolled back transaction: a profile with `occupation_code = nurse`,
+  `lga_code = la_ikeja`, `state_code = LA`. Searching by name returned 1, by
+  occupation 1, by local government 1, by state 1, and `%ADUKE%` matched the
+  handle `adukeb`, which is the case-insensitivity `citext` would have given for
+  free and does not, because it is not installed.
+- **The bot reply, proven likeable, repostable and replyable** by a real second
+  person under RLS. Section 9.3 carries the row.
+- **The directory rendered with rows**, through a stand-in for PostgREST, at
+  390px in both themes, and looked at. Two defects were caught only by looking:
+  an avatar centred against a four line block, and a closing note underneath the
+  dock.
+- Every probe rolled back. `auth.users`, `profiles`, `social_profiles`, `posts`,
+  `bot_invocations` and `notifications` all read 0 afterwards.
