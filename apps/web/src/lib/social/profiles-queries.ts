@@ -124,13 +124,17 @@ export type PublicProfileState =
   /** The handle is not one a person could ever hold. */
   | { state: "malformed"; handle: string }
   /**
-   * You blocked this person. The page answers as if nobody holds the handle,
-   * because a page that says "you blocked them" is a page that invites you to
-   * unblock them, and blocking is meant to end the conversation rather than
-   * keep offering it back.
+   * Nothing to show here, which is two situations wearing one face.
+   *
+   * Either nobody holds this handle, or somebody does and a block in one
+   * direction or the other makes their row invisible to this viewer, because
+   * `social_profiles_select` carries `not private.blocked_with(user_id)`.
+   *
+   * Nothing in an exposed schema can tell those apart, and the copy is written
+   * so it does not have to: it never asserts the handle is free. That is
+   * deliberate. A blocked visitor being told "this name is available" would be
+   * a lie, and it would send them into a claim the unique index then refuses.
    */
-  | { state: "blocked"; handle: string }
-  /** Nobody holds this handle. Offered to the viewer when they have none. */
   | { state: "claimable"; handle: string; canClaim: boolean; signedIn: boolean }
   | {
       state: "found";
@@ -138,6 +142,10 @@ export type PublicProfileState =
       isOwner: boolean;
       /** The viewer's own handle, when they have claimed one. */
       viewerHandle: string | null;
+      /** True when the viewer already follows this person. */
+      viewerFollows: boolean;
+      /** False for a signed-out visitor, so the button can ask them to sign in. */
+      signedIn: boolean;
       homeArea: { slug: string; name: string; city: string } | null;
       moderatorOf: ModeratorOf[];
     };
@@ -202,54 +210,59 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
   const isOwner = viewerId === row.user_id;
 
   /*
-   * A block, as far as this route can see it.
+   * There is no block check here any more, and that is not an omission.
    *
-   * `blocks_select_own` lets a person read only the blocks they made, so this
-   * covers one direction honestly and cannot cover the other: if THEY blocked
-   * ME, the row is invisible to me and nothing in an exposed schema can answer
-   * the question. `private.blocked_with()` does exactly that job inside the
-   * policies on `posts`, but `private` is not a schema PostgREST exposes, so a
-   * server action cannot call it.
+   * `social_profiles_select` now carries `not private.blocked_with(user_id)`,
+   * which is bidirectional, so a blocked profile in either direction never
+   * reaches this line at all: the row simply is not returned. Re-asking the
+   * `blocks` table would be a round trip that can only ever answer no.
    *
-   * Reported to the lead rather than worked around: the reverse direction needs
-   * either a `public` wrapper over `private.blocked_with`, or the same helper
-   * applied to `social_profiles_select` the way it is already applied to
-   * `posts_select`. Half a block is stated here rather than quietly implied.
+   * The consequence lands in the `!data` branch above, and it is stated in the
+   * copy there rather than hidden.
    */
-  if (viewerId && !isOwner && (await viewerBlocked(supabase, viewerId, row.user_id))) {
-    return { state: "blocked", handle };
-  }
-
   const profile = toView(row, isOwner);
 
-  const [homeArea, moderatorOf, viewerHandle] = await Promise.all([
+  const [homeArea, moderatorOf, viewerHandle, viewerFollows] = await Promise.all([
     readHomeArea(supabase, row.home_area_id),
     readModeratorOf(supabase, row.user_id),
     readViewerHandle(supabase, viewerId, row.handle, isOwner),
+    readViewerFollows(supabase, viewerId, row.user_id, isOwner),
   ]);
 
-  return { state: "found", profile, isOwner, viewerHandle, homeArea, moderatorOf };
+  return {
+    state: "found",
+    profile,
+    isOwner,
+    viewerHandle,
+    viewerFollows,
+    signedIn: Boolean(viewerId),
+    homeArea,
+    moderatorOf,
+  };
 }
 
 /**
- * Did the viewer block this person?
+ * Does the viewer already follow this person?
  *
- * A failure reads as "no block", deliberately. A profile that disappears
- * because a query wobbled is worse than a profile that stays up, and the
- * consequence of a false positive here is somebody's page vanishing for no
- * reason they can see.
+ * `follows_select` is public, so this is one small read and it is the truth
+ * rather than a guess the button has to hold. A failure reads as "not
+ * following", which is the state whose control does something useful: the worst
+ * case is a Follow button on somebody you already follow, and the insert then
+ * answers 23505 and settles.
  */
-async function viewerBlocked(
+async function readViewerFollows(
   supabase: SupabaseClient<Database>,
-  viewerId: string,
+  viewerId: string | null,
   otherId: string,
+  isOwner: boolean,
 ): Promise<boolean> {
+  if (!viewerId || isOwner) return false;
   try {
     const { data, error } = await supabase
-      .from("blocks")
-      .select("other_id")
-      .eq("user_id", viewerId)
-      .eq("other_id", otherId)
+      .from("follows")
+      .select("followee_id")
+      .eq("follower_id", viewerId)
+      .eq("followee_id", otherId)
       .maybeSingle();
     if (error) return false;
     return Boolean(data);

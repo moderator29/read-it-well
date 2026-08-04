@@ -27,6 +27,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -182,6 +183,83 @@ export async function saveSocialProfile(
   if (existing && existing.handle !== handle) revalidatePath(`/u/${existing.handle}`);
 
   return ok({ handle, bioStatus, claimed: isClaim });
+}
+
+/* ---------------------------------------------------------------- the cover */
+
+/**
+ * Point a profile at a cover object, or take the cover away.
+ *
+ * The upload itself happens in the browser, straight into the public
+ * `social-covers` bucket, where storage policy already restricts a write to the
+ * caller's own `<uid>/` folder. What this action does is the part storage
+ * cannot: it decides that the path a client is asking us to REMEMBER is one
+ * that client is entitled to.
+ *
+ * That check matters more than it looks. `cover_path` is plain text rendered
+ * into a public URL, so without it a crafted call could point somebody's cover
+ * at any object in the bucket, including another person's. The first path
+ * segment must be the caller's own user id, so it cannot.
+ */
+const coverPathSchema = z
+  .string()
+  .trim()
+  .regex(
+    /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.jpg$/i,
+    "That photo could not be filed. Please try again.",
+  );
+
+export async function setSocialCover(input: {
+  storagePath: string | null;
+}): Promise<ActionResult<{ coverPath: string | null }>> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  const { supabase, user } = session;
+
+  let coverPath: string | null = null;
+  if (input.storagePath !== null) {
+    const parsed = coverPathSchema.safeParse(input.storagePath);
+    if (!parsed.success) {
+      return fail(parsed.error.issues[0]?.message ?? "That photo could not be filed.");
+    }
+    if (!parsed.data.toLowerCase().startsWith(`${user.id.toLowerCase()}/`)) {
+      return fail("That photo does not belong to this account.");
+    }
+    coverPath = parsed.data;
+  }
+
+  const verdict = await consume({
+    bucket: "social_profile_update",
+    subject: subjectForUser(user.id),
+    limit: PROFILE_UPDATE_LIMIT,
+    windowSeconds: PROFILE_UPDATE_WINDOW_SECONDS,
+  });
+  if (!verdict.allowed) {
+    return fail(
+      `You have changed your profile ${PROFILE_UPDATE_LIMIT} times today. You can change it again ${verdict.retryIn}.`,
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("social_profiles")
+    .update({ cover_path: coverPath })
+    .eq("user_id", user.id)
+    .select("handle, cover_path")
+    .single();
+
+  if (error || !data) {
+    if (error?.code === "PGRST116") {
+      return fail("Claim your handle first, then a cover has somewhere to live.");
+    }
+    return fail(SERVICE_DOWN_MESSAGE);
+  }
+
+  revalidatePath(`/u/${data.handle}`);
+  revalidatePath(`/u/${data.handle}/edit`);
+
+  return ok({ coverPath: data.cover_path });
 }
 
 /**

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
+import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
 import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
 import { ProfileTabs } from "@/components/social/profile/ProfileTabs";
@@ -47,6 +48,15 @@ export default async function SocialProfilePage({
           homeArea={view.homeArea}
           moderatorOf={view.moderatorOf}
           locale={locale}
+          actions={
+            view.isOwner ? undefined : (
+              <FollowButton
+                handle={view.profile.handle}
+                initialFollowing={view.viewerFollows}
+                signedIn={view.signedIn}
+              />
+            )
+          }
         />
         <ProfileTabs
           handle={view.profile.handle}
@@ -73,16 +83,6 @@ export default async function SocialProfilePage({
         />
       )}
 
-      {view.state === "blocked" && (
-        <ProfileNotice
-          icon="shield-check"
-          title="This page is not available to you"
-          body="You blocked this person, so their page stays out of your way. Nothing about this is shown to them."
-          primary={{ href: "/home", label: "Back to home" }}
-          secondary={{ href: "/around", label: "Look around" }}
-        />
-      )}
-
       {view.state === "malformed" && (
         <ProfileNotice
           icon="home-search"
@@ -93,16 +93,24 @@ export default async function SocialProfilePage({
         />
       )}
 
+      {/*
+        The copy here never says the handle is free, and that is deliberate.
+        `social_profiles_select` hides a profile from anybody a block touches in
+        either direction, so this one screen covers two situations and nothing in
+        an exposed schema can tell them apart. Telling a blocked visitor that a
+        name is available would be a lie and would send them into a claim the
+        unique index then refuses.
+      */}
       {view.state === "claimable" && (
         <ProfileNotice
           icon="user-verified"
-          title={`@${handle} is free`}
+          title={`Nothing to show at @${handle}`}
           body={
             view.canClaim
-              ? "Nobody holds this handle. Take it and it becomes your address on RentMe, with your bio, the place you call home and everything you say around it."
+              ? "Either nobody holds this handle, or its owner is not reachable from your account. If it is going spare, you can take it and it becomes your address on RentMe."
               : view.signedIn
-                ? "Nobody holds this handle yet. You already have a page of your own, and a person keeps one handle at a time."
-                : "Nobody holds this handle. Sign in and it can be yours, with your bio, the place you call home and everything you say around it."
+                ? "Either nobody holds this handle, or its owner is not reachable from your account. You already have a page of your own, and a person keeps one handle at a time."
+                : "Nobody we can show you is at this handle. Sign in to claim it, or to see whose it is."
           }
           primary={
             view.canClaim
