@@ -301,7 +301,14 @@
 
   --nf-content-primary: #16181D;
   --nf-content-secondary: #41464F;
-  --nf-content-muted: #7A8189;
+  /*
+   * Muted ink was #7A8189, which measured 3.94:1 on white and 3.61:1 on the
+   * canvas and so failed WCAG AA at ~290 call sites, 30 of them at 10-11px.
+   * Only .nf-overline had been patched; the token itself stayed broken.
+   * #676E76 measures 5.16:1 on white, 4.73:1 on canvas and 4.60:1 on inset,
+   * so it clears AA on every light surface the product actually paints on.
+   */
+  --nf-content-muted: #676E76;
   --nf-content-on-brand: #FFFFFF;
 
   /* Vivid brand blue that holds contrast on paper. */
@@ -338,12 +345,33 @@
    * tints under the darker ink.
    */
   --nf-electric-300: #0C2FE8;
-  --nf-state-success: #0B8A5C;
+  /* 5.36:1 on white, 4.85:1 on its own tint. Was #0B8A5C, which measured
+     4.37:1 on white and dropped to 3.79:1 once the badge tint sat under it. */
+  --nf-state-success: #0A7A51;
   /* Deep cyan, not the burnt orange this used to be. The bright cyan the dark
      theme uses is invisible on white, so daylight steps it down until small
      bold text clears 4.5:1, exactly as success and error do. */
   --nf-state-warning: #0E6E8C;
-  --nf-state-error: var(--nf-crimson-500);
+  /* 6.22:1 on white. Was --nf-crimson-500 (#DC143C), which cleared white at
+     4.99:1 but fell to 3.95:1 on the rose badge tint. */
+  --nf-state-error: #C10E32;
+  /*
+   * Info was the one state colour the daylight contrast pass missed entirely:
+   * it stayed on --nf-sky-400 (#38BDF8) at 2.14:1, less than half the AA floor.
+   * #0369A1 measures 5.93:1 on white and 5.44:1 on canvas.
+   */
+  --nf-state-info: #0369A1;
+
+  /*
+   * Badge tints derive from the daylight inks above rather than the Layer 1
+   * raw palette. Deriving from the raw brights meant the tint was mixed from
+   * one colour and the label painted in another, which is what pushed the
+   * success and error badges under AA even after their inks were stepped down.
+   */
+  --nf-state-success-surface: color-mix(in oklab, var(--nf-state-success) 12%, transparent);
+  --nf-state-warning-surface: color-mix(in oklab, var(--nf-state-warning) 12%, transparent);
+  --nf-state-error-surface: color-mix(in oklab, var(--nf-state-error) 12%, transparent);
+  --nf-state-info-surface: color-mix(in oklab, var(--nf-state-info) 12%, transparent);
   /* Rating rides --nf-electric-300, so it follows this deeper blue on paper
      without needing its own daylight value. */
 }

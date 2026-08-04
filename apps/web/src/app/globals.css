@@ -92,11 +92,18 @@ body {
   outline: none;
 }
 
-/* Every interactive element gets a visible, branded focus ring. */
+/*
+ * Every interactive element gets a visible, branded focus ring.
+ *
+ * This deliberately does NOT set border-radius. It used to, and because the
+ * rule is unlayered it beat Tailwind's layered utilities, so every pill-shaped
+ * nav item and chip visibly squared off to 6px the moment it took keyboard
+ * focus. `outline` already follows the element's own border-radius in every
+ * browser we support, so the ring hugs the real shape without reshaping it.
+ */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--nf-brand-primary);
   outline-offset: 2px;
-  border-radius: var(--nf-radius-xs);
 }
 
 ::selection {
@@ -748,6 +755,17 @@ body {
   :root[data-theme="light"] .nf-page-scene {
     opacity: 0.3;
   }
+  /*
+   * The one hole in an otherwise thorough reduced-motion story. Duration
+   * tokens collapse to 1ms everywhere else, but this animation hard-codes its
+   * own 20s and loops forever, so it kept drifting for users who asked for
+   * stillness. The artwork keeps its mask and opacity; only the drift stops.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-page-scene {
+      animation: none;
+    }
+  }
 
   /* ---------------------------------------------------------- odometer */
 
@@ -1339,6 +1357,8 @@ body {
     letter-spacing: -0.005em;
     border-radius: var(--nf-radius-lg);
     padding: 0.72rem 1.2rem;
+    /* Padding alone resolved to 43px, one pixel under the HIG 44pt floor. */
+    min-height: 2.75rem;
     cursor: pointer;
     white-space: nowrap;
     border: 1px solid transparent;
@@ -1574,8 +1594,10 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.6rem;
-    height: 2.6rem;
+    /* 2.75rem = 44px, the Apple HIG minimum. This was 2.6rem (41.6px) while
+       the comment above already claimed 44px. */
+    width: 2.75rem;
+    height: 2.75rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
@@ -1672,6 +1694,32 @@ body {
       color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  /*
+   * A chip paints at 36.6px because that is the right visual weight in a filter
+   * row, but a tappable chip still owes the user a 44pt target. Rather than
+   * inflating every chip and breaking the rows, interactive chips grow their
+   * hit area with a centred overlay. Visual size is unchanged; only the touch
+   * region grows. Non-interactive status pills are excluded deliberately.
+   */
+  a.nf-chip,
+  button.nf-chip,
+  label.nf-chip {
+    position: relative;
+  }
+
+  a.nf-chip::after,
+  button.nf-chip::after,
+  label.nf-chip::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    translate: 0 -50%;
+    min-height: 2.75rem;
+    height: 100%;
   }
   .nf-chip:hover {
     color: var(--nf-content-primary);
@@ -1914,6 +1962,27 @@ body {
   }
 
   /*
+   * Safe-area top.
+   *
+   * layout.tsx sets viewportFit:"cover" and apple-mobile-web-app-status-bar-style
+   * black-translucent, which together extend the viewport up into the status bar
+   * area. Anything pinned to top:0 therefore paints *underneath* the notch and
+   * the clock. Bottom insets were handled in thirteen places; the top inset was
+   * honoured in exactly one file on the whole platform.
+   *
+   * Sticky chrome carries .nf-safe-top so its own padding absorbs the inset and
+   * its material still extends edge to edge behind the status bar. Full-bleed
+   * overlays carry .nf-safe-top-inset when their *content* needs clearing but
+   * their background should stay full-bleed.
+   */
+  .nf-safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .nf-safe-top-inset {
+    top: env(safe-area-inset-top, 0px);
+  }
+
+  /*
    * Full-bleed moment screen: the one-thing-happened surface (payment landed,
    * booking confirmed, verification passed). A glowing badge, a headline, an
    * optional line under it, and the actions pinned near the bottom. No card,
@@ -2065,6 +2134,17 @@ body {
    * clearance) is set by the component via Tailwind utilities; this class
    * only carries the material.
    */
+  /*
+   * How much bottom space the floating tab bar occupies, measured from the
+   * viewport edge: its own offset (0.9rem + the home-indicator inset), its
+   * height, and a gap so anything stacking above it does not touch it.
+   * Sticky footers on tab-bar routes offset by this instead of guessing.
+   * The previous guess was a flat 80px, which cleared nothing on a notch.
+   */
+  :root {
+    --nf-tabbar-clearance: calc(0.9rem + env(safe-area-inset-bottom, 0px) + 3.5rem + 0.75rem);
+  }
+
   .nf-tabbar {
     background: var(--nf-glass-fill-strong);
     border: 1px solid var(--nf-border-subtle);

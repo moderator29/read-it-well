@@ -30,7 +30,14 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
   return (
     <nav
       aria-label={t.nav.primaryLabel}
-      className="nf-tabbar fixed inset-x-4 bottom-[max(0.9rem,env(safe-area-inset-bottom))] z-50 mx-auto w-fit lg:hidden"
+      /*
+       * `max(0.9rem, env(...))` looked safe but collapsed the bar's own margin
+       * on exactly the devices that need it: on a notched iPhone the bottom
+       * inset is 34px, so max() returned the inset and the bar landed flush on
+       * the home indicator with zero visual gap. Adding the inset to the margin
+       * keeps a real 0.9rem of air below the pill on every device.
+       */
+      className="nf-tabbar fixed inset-x-4 bottom-[calc(0.9rem+env(safe-area-inset-bottom))] z-50 mx-auto w-fit lg:hidden"
     >
       <ul className="flex items-center gap-1 px-1.5 py-1.5">
         {tabs.map((tab) => {

@@ -85,8 +85,16 @@ export const metadata: Metadata = {
   other: {
     "apple-mobile-web-app-capable": "yes",
   },
+  /*
+   * The platform previously shipped no favicon at all: the smallest declared
+   * icon was 192px, so every browser tab downscaled it 12:1 and rendered a
+   * blurred smear at 16px. The set now starts at the sizes tabs actually
+   * request and keeps the large ones for install surfaces.
+   */
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+      { url: "/pwa/icon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/pwa/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/pwa/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
@@ -95,10 +103,19 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // The brand base navy, matching `background_color` and `theme_color` in the
-  // manifest so the Android status bar, the splash screen and the app canvas
-  // are one continuous colour instead of three near-misses.
-  themeColor: "#010118",
+  /*
+   * One theme-color per theme.
+   *
+   * This used to be a single navy for both, so a user on the light theme got a
+   * near-black browser chrome above a #F4F5F7 canvas — a hard seam exactly
+   * where the reference set expects the chrome to disappear into the page.
+   * The dark value still matches `background_color` and `theme_color` in the
+   * manifest, so install, splash and canvas remain one continuous colour.
+   */
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#010118" },
+    { media: "(prefers-color-scheme: light)", color: "#F4F5F7" },
+  ],
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

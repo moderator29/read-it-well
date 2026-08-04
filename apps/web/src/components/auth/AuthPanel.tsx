@@ -60,7 +60,7 @@ export function AuthPanel({
   return (
     <div className="w-full">
       <h1 className="nf-h2 text-center">
-        {isSignUp ? t.auth.createAccount : `${t.auth.welcomeBack} 👋`}
+        {isSignUp ? t.auth.createAccount : t.auth.welcomeBack}
       </h1>
       <p className="mt-1.5 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
         {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
@@ -76,23 +76,16 @@ export function AuthPanel({
       ) : null}
 
       {/*
-       * Demo entry. Temporary scaffold while the auth environment is not wired:
-       * it drops a short-lived demo cookie and opens the app so the whole
-       * platform can be explored and reviewed. Replace with a real session once
-       * Supabase auth env is in place.
+       * The demo entry that used to sit here has been removed. It was a
+       * scaffold from before the auth environment was wired, and it had gone
+       * stale in three separate ways: lib/auth/actions.ts now ships real
+       * password and OAuth sign-in, the nf_demo cookie it dropped was read by
+       * nothing anywhere in the repo, and "Explore the demo" broke the standing
+       * rule that no sample, preview or demo string appears in UI copy. It was
+       * also the single most prominent control on both auth screens, which is
+       * the first thing an App Store reviewer sees after install.
        */}
-      <Link
-        href="/home"
-        onClick={() => {
-          document.cookie = "nf_demo=1; path=/; max-age=86400; samesite=lax";
-        }}
-        className="nf-btn nf-btn--primary mt-6 w-full py-3.5"
-      >
-        <UiIcon name="sparkle" size={16} />
-        {t.auth.exploreDemo}
-      </Link>
-
-      <div className="my-5 flex items-center gap-4" aria-hidden="true">
+      <div className="mt-6 flex items-center gap-4" aria-hidden="true">
         <span className="h-px flex-1 bg-[var(--nf-border-subtle)]" />
         <span className="text-[0.75rem] uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
           {t.auth.orContinue}

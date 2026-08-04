@@ -23,7 +23,13 @@ export function buildAgentNav(t: Dictionary): AgentNavItem[] {
     { href: "/agent/listings", label: t.agent.nav.myListings, icon: "homes-sparkle" },
     { href: "/agent/list", label: t.agent.nav.listApartment, icon: "calendar-check" },
     { href: "/agent/bookings", label: t.agent.nav.bookings, icon: "calendar-check" },
-    { href: "/agent/messages", label: t.agent.nav.messages, icon: "chat", badge: 3 },
+    /*
+     * No badge. This carried a hardcoded `badge: 3`, so every agent saw three
+     * permanent unread messages that pointed at a route which is still a
+     * coming-soon stub. The `badge` field stays on the type and the renderer
+     * stays wired, ready for a real unread count once /agent/messages ships.
+     */
+    { href: "/agent/messages", label: t.agent.nav.messages, icon: "chat" },
     { href: "/agent/reviews", label: t.agent.nav.reviews, icon: "heart-home" },
     { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet-secure" },
     { href: "/agent/analytics", label: t.agent.nav.analytics, icon: "map-route" },

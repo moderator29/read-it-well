@@ -127,7 +127,6 @@ export const ig: Dictionary = {
     signInToContinue: "Banye ka ị gaa n'ihu",
     createAccount: "Mepụta akaụntụ gị",
     signUpToStart: "Malite ịchọpụta n'ime otu nkeji",
-    exploreDemo: "Nyochaa ihe nlere",
     orContinue: "ma ọ bụ jiri",
     continueWithEmail: "Jiri Email gaa n'ihu",
     continueWithGoogle: "Jiri Google gaa n'ihu",

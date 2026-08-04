@@ -533,9 +533,7 @@ export function ThreadView({
             onClick={() => setEducationOpen(false)}
             className="nf-icon-btn h-8 w-8 shrink-0"
           >
-            <span aria-hidden="true" className="text-[1rem] leading-none">
-              &times;
-            </span>
+            <UiIcon name="close" size={15} />
           </button>
         </div>
       )}
