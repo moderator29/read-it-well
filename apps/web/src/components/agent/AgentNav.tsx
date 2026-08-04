@@ -31,6 +31,20 @@ export function buildAgentNav(t: Dictionary, unreadMessages = 0): AgentNavItem[]
     { href: "/agent/listings", label: t.agent.nav.myListings, icon: "homes-sparkle" },
     { href: "/agent/list", label: t.agent.nav.listApartment, icon: "calendar-check" },
     { href: "/agent/bookings", label: t.agent.nav.bookings, icon: "calendar-check" },
+    /*
+     * A REAL unread count, and this is the one place the premium UI branch and
+     * this one reached different answers.
+     *
+     * That branch deleted the badge outright, and it was right to: it carried a
+     * hardcoded `badge: 3`, so every agent saw three permanent unread messages
+     * pointing at what was then a coming-soon stub. Its own note said the field
+     * and the renderer should stay "ready for a real unread count once
+     * /agent/messages ships".
+     *
+     * It has shipped. So the badge is back with the count behind it, which is
+     * that branch's stated intent rather than a reversal of its work. Zero
+     * renders nothing, so the fabricated three cannot return.
+     */
     {
       href: "/agent/messages",
       label: t.agent.nav.messages,

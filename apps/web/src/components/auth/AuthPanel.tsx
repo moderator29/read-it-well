@@ -9,7 +9,7 @@ import type { ProviderId, ProviderState } from "@/lib/auth/providers";
 import { HEAR_ABOUT_OPTIONS } from "@/lib/auth/signup-options";
 import { PlaceFields, type PlaceValues } from "@/components/app/place/PlaceFields";
 import type { StateOption } from "@/lib/places/reference";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 import { AppleMark, GoogleMark, MailMark } from "./ProviderMarks";
 
 const EMPTY: AuthFormState = { ok: false };
@@ -75,7 +75,7 @@ export function AuthPanel({
   return (
     <div className="w-full">
       <h1 className="nf-h2 text-center">
-        {isSignUp ? t.auth.createAccount : `${t.auth.welcomeBack} 👋`}
+        {isSignUp ? t.auth.createAccount : t.auth.welcomeBack}
       </h1>
       <p className="mt-1.5 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
         {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
@@ -91,30 +91,16 @@ export function AuthPanel({
       ) : null}
 
       {/*
-       * Browse without an account. Anonymous browsing is a product decision,
-       * not a stopgap: the gate belongs in front of value, at save and at book,
-       * never in front of the front door.
-       *
-       * The label used to read "Explore the demo", which broke the house rule
-       * that no UI copy anywhere says demo, sample, preview or not live. The
-       * word was also simply wrong: this opens the real product, with real
-       * listings, and only the writes ask for an account.
+       * The demo entry that used to sit here has been removed. It was a
+       * scaffold from before the auth environment was wired, and it had gone
+       * stale in three separate ways: lib/auth/actions.ts now ships real
+       * password and OAuth sign-in, the nf_demo cookie it dropped was read by
+       * nothing anywhere in the repo, and "Explore the demo" broke the standing
+       * rule that no sample, preview or demo string appears in UI copy. It was
+       * also the single most prominent control on both auth screens, which is
+       * the first thing an App Store reviewer sees after install.
        */}
-      <Link
-        href="/home"
-        onClick={() => {
-          document.cookie = "nf_demo=1; path=/; max-age=86400; samesite=lax";
-        }}
-        className="nf-btn nf-btn--primary mt-6 w-full py-3.5"
-      >
-        <UiIcon name="sparkle" size={16} />
-        {t.auth.exploreDemo}
-      </Link>
-      <p className="mt-2 text-center text-[0.75rem] text-[var(--nf-content-muted)]">
-        Browse everything. You only need an account to save, message or book.
-      </p>
-
-      <div className="my-5 flex items-center gap-4" aria-hidden="true">
+      <div className="mt-6 flex items-center gap-4" aria-hidden="true">
         <span className="h-px flex-1 bg-[var(--nf-border-subtle)]" />
         <span className="text-[0.75rem] uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
           {t.auth.orContinue}
@@ -265,14 +251,15 @@ export function AuthPanel({
               </>
             )}
 
-            <button
-              type="submit"
-              disabled={pending}
-              aria-busy={pending || undefined}
-              className={`nf-btn nf-btn--primary w-full py-3.5 ${isSignUp ? "mt-7" : ""}`}
-            >
-              {pending ? t.common.loading : isSignUp ? t.common.signUp : t.common.signIn}
-            </button>
+            {/*
+              The label no longer swaps to "Loading" while pending. It stays and
+              dims behind a spinner, so the button keeps its width and the user
+              keeps their place. Height, radius, press feedback and haptics all
+              come from the primitive.
+            */}
+            <Button type="submit" variant="primary" size="lg" full loading={pending}>
+              {isSignUp ? t.common.signUp : t.common.signIn}
+            </Button>
 
             {!isSignUp && (
               <p className="text-center">

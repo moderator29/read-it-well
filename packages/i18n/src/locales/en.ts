@@ -130,7 +130,6 @@ export const en = {
     signInToContinue: "Sign in to continue",
     createAccount: "Create your account",
     signUpToStart: "Start discovering in under a minute",
-    exploreDemo: "Look around first",
     orContinue: "or continue with",
     continueWithEmail: "Continue with Email",
     continueWithGoogle: "Continue with Google",

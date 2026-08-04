@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatMoney, type Locale, formatRating } from "@naijafinds/i18n";
+import { formatMoney, type Locale, formatRating, formatMoneyGlance } from "@naijafinds/i18n";
 import { getListingRepository } from "@/lib/listings/repository";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -105,7 +105,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                     </div>
                     <p className="mt-2.5 flex items-baseline gap-1.5">
                       <span className="nf-numeric text-[1.0625rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-                        {formatMoney(l.priceMinor, locale, l.currency)}
+                        {formatMoneyGlance(l.priceMinor, locale, l.currency)}
                       </span>
                       <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
                         / {perHead ? "guest" : "night"}

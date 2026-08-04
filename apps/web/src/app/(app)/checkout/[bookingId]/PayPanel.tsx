@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { payWithWallet, startCardCheckout } from "@/lib/bookings/checkout";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { MomentScreen } from "@/components/app/MomentScreen";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
@@ -130,12 +130,12 @@ export function PayPanel({ view }: { view: CheckoutView }) {
         description={`${view.totalDisplay} left your wallet and these dates are yours. The details are in your bookings.`}
         actions={
           <>
-            <Link href="/bookings" className="nf-btn nf-btn--primary nf-btn--lg">
+            <ButtonLink href="/bookings" variant="primary" size="lg">
               View my booking
-            </Link>
-            <Link href={`/listing/${view.listingId}`} className="nf-btn nf-btn--glass nf-btn--lg">
+            </ButtonLink>
+            <ButtonLink href={`/listing/${view.listingId}`} variant="secondary" size="lg">
               Back to the stay
-            </Link>
+            </ButtonLink>
           </>
         }
         footnote="Paid inside RentMe, recorded to the kobo."
@@ -166,18 +166,15 @@ export function PayPanel({ view }: { view: CheckoutView }) {
             title="Pay by card"
             body="A secure page in naira, then straight back here. Your card details never touch RentMe."
             action={
-              <button
-                type="button"
+              <Button
+                variant="primary"
+                full
                 onClick={payByCard}
                 disabled={busy}
-                className="nf-btn nf-btn--primary w-full disabled:opacity-60"
+                loading={phase.kind === "card-starting" || phase.kind === "card-redirecting"}
               >
-                {phase.kind === "card-starting"
-                  ? "Opening the secure page..."
-                  : phase.kind === "card-redirecting"
-                    ? "Taking you to pay..."
-                    : `Pay ${view.totalDisplay} by card`}
-              </button>
+                {`Pay ${view.totalDisplay} by card`}
+              </Button>
             }
           />
         ) : (
@@ -195,16 +192,15 @@ export function PayPanel({ view }: { view: CheckoutView }) {
             title="Pay from your RentMe wallet"
             body={`Your wallet holds ${view.walletBalanceDisplay}. Paying from it confirms this stay straight away.`}
             action={
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                full
                 onClick={payFromWallet}
                 disabled={busy}
-                className="nf-btn nf-btn--glass w-full disabled:opacity-60"
+                loading={phase.kind === "wallet-paying"}
               >
-                {phase.kind === "wallet-paying"
-                  ? "Paying from your wallet..."
-                  : `Pay ${view.totalDisplay} from my wallet`}
-              </button>
+                {`Pay ${view.totalDisplay} from my wallet`}
+              </Button>
             }
           />
         ) : (
@@ -214,10 +210,9 @@ export function PayPanel({ view }: { view: CheckoutView }) {
             body={`Your wallet holds ${view.walletBalanceDisplay}, and this stay comes to ${view.totalDisplay}.`}
             note="Add money to your wallet first, or pay by card."
             action={
-              <Link href="/wallet" className="nf-btn nf-btn--ghost w-full">
+              <ButtonLink href="/wallet" variant="ghost" full trailingIcon="arrow-right">
                 Open my wallet
-                <UiIcon name="arrow-right" size={16} />
-              </Link>
+              </ButtonLink>
             }
           />
         )}

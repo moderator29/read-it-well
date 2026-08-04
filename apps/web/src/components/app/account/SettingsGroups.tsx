@@ -6,6 +6,7 @@ import { LOCALES, localeMeta, type Locale } from "@naijafinds/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { Button } from "@/components/ui/Button";
 import { Toggle } from "./Toggle";
 import {
   applyReduceMotion,
@@ -356,13 +357,9 @@ export function SecurityCard() {
         </div>
 
         <div className="py-3.5 last:pb-0">
-          <button
-            type="button"
-            onClick={() => setSignOutNote(true)}
-            className="nf-btn nf-btn--glass w-full"
-          >
+          <Button variant="secondary" full onClick={() => setSignOutNote(true)}>
             Sign out everywhere
-          </button>
+          </Button>
           {signOutNote && (
             <p role="status" className="nf-rise mt-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
               This is your only session, so there is nothing else to sign out.
@@ -412,13 +409,9 @@ export function DataCard() {
           <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
             A copy of everything RentMe holds about you.
           </p>
-          <button
-            type="button"
-            onClick={() => setExportNote(true)}
-            className="nf-btn nf-btn--glass mt-2.5 w-full"
-          >
+          <Button variant="secondary" full className="mt-2.5" onClick={() => setExportNote(true)}>
             Request my data
-          </button>
+          </Button>
           {exportNote && (
             <p role="status" className="nf-rise mt-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
               Right now everything RentMe knows about you lives in this
@@ -434,17 +427,14 @@ export function DataCard() {
             Removes your profile name, preferences and saved conversations from
             this device, then reloads.
           </p>
-          <button
-            type="button"
+          <Button
+            variant={confirmClear ? "dangerQuiet" : "secondary"}
+            full
+            className="mt-2.5"
             onClick={clearLocalData}
-            className={`nf-btn mt-2.5 w-full ${
-              confirmClear
-                ? "border border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] text-[var(--nf-state-error)]"
-                : "nf-btn--glass"
-            }`}
           >
             {confirmClear ? "Tap again to confirm" : "Clear local data"}
-          </button>
+          </Button>
         </div>
       </div>
     </GroupCard>

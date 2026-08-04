@@ -122,16 +122,24 @@ body {
 /*
  * Every interactive element gets a visible focus ring, in both themes.
  *
- * Two things were wrong here. The ring was drawn in --nf-brand-primary, a deep
- * electric blue that sits at roughly 1.4:1 against the near-black canvas, so on
- * the default theme it was a ring nobody could see. And the selector listed
- * only the five native element names, which missed `summary` and every ARIA
- * control the app builds out of a div.
+ * Three things were wrong here, and one of them was ours.
  *
- * The colour now comes from --nf-focus-ring, which resolves to the member of
- * the same blue family that clears 3:1 in both themes. The offset is what makes
- * it work over any material: the ring floats clear of the control, so a
- * brand-blue CTA does not swallow a brand-blue ring.
+ * The ring was drawn in --nf-brand-primary, a deep electric blue that measures
+ * 2.11:1 against the near-black canvas, so on the DEFAULT theme it was a ring
+ * nobody could see. And the selector listed only the five native element names,
+ * which missed `summary` and every ARIA control the app builds out of a div.
+ *
+ * The third was introduced by the fix for the first two: setting border-radius
+ * here. This rule is unlayered, so it beats Tailwind's layered utilities, and
+ * every pill-shaped nav item and chip visibly squared off to 6px the moment it
+ * took keyboard focus. `outline` already follows the element's own radius in
+ * every browser we support, so the ring hugs the real shape without reshaping
+ * it. That line is gone and this comment is why it must not come back.
+ *
+ * The colour comes from --nf-focus-ring, the member of the same blue family
+ * that clears 3:1 in both themes: 5.68:1 on night, 7.44:1 on paper. The offset
+ * is what makes it work over any material, floating the ring clear so a
+ * brand-blue button does not swallow a brand-blue ring.
  */
 :where(
     a,
@@ -148,7 +156,6 @@ body {
   ):focus-visible {
   outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
   outline-offset: var(--nf-focus-ring-offset);
-  border-radius: var(--nf-radius-xs);
 }
 
 /*
@@ -203,11 +210,18 @@ body {
   color: #fff;
 }
 
-/* Tabular figures everywhere money or metrics appear, so columns line up. */
+/*
+ * Tabular figures everywhere money or metrics appear, so columns line up.
+ *
+ * The letter-spacing that used to live here has been split out into
+ * .nf-numeric--tight below. This rule is unlayered, so it beat every Tailwind
+ * utility: fourteen `tracking-*` utilities across the app were dead code, and
+ * one page asked for +0.04em on a reference ID and silently rendered -0.02em.
+ * Tabular figures are the job; tracking is a separate decision.
+ */
 .nf-numeric {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  letter-spacing: var(--nf-tracking-tight);
 }
 
 .nf-skip-link {
@@ -236,12 +250,87 @@ body {
 @layer components {
   /* ----------------------------------------------------- RentMe Material */
 
-  /* Glass depth: floating nav, overlays, controls. */
+  /*
+   * Glass depth: floating nav, overlays, controls.
+   *
+   * One class, four ingredients, no exceptions: blurred and saturated
+   * material, a bright inner rim on the top edge, a hairline border, and a
+   * two-layer ambient shadow. This used to ship only the material and the
+   * border, which is why 28 sticky headers read as flat translucent panels
+   * rather than glass.
+   *
+   * ::before carries the specular sweep so the fill stays a flat token and the
+   * highlight can be masked or animated on its own. isolation on the host plus
+   * z-index on the pseudo keeps it under content without needing a z-index on
+   * every child.
+   */
   .nf-glass {
+    position: relative;
+    isolation: isolate;
     background: var(--nf-glass-fill);
     border: 1px solid var(--nf-glass-border);
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow);
+  }
+  .nf-glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background: var(--nf-glass-specular);
+    opacity: 0.85;
+    pointer-events: none;
+  }
+  .nf-glass > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Depth modifiers. Blur, fill and shadow move together or the illusion breaks. */
+  .nf-glass--thin {
+    background: var(--nf-glass-fill-thin);
+    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+  }
+  .nf-glass--strong {
+    background: var(--nf-glass-fill-strong);
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow-lifted);
+  }
+
+  /*
+   * Sticky chrome. The reference standard is "content visibly scrolls under the
+   * nav behind a blur and a gradient scrim". The scrim is a separate strip
+   * below the bar so the blur has a soft exit instead of a hard seam, and the
+   * side and top borders are dropped because the bar spans the viewport.
+   */
+  .nf-glass--chrome {
+    border-inline: 0;
+    border-top: 0;
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 1px 0 var(--nf-glass-border);
+  }
+  .nf-glass--chrome::after {
+    content: "";
+    position: absolute;
+    inset: 100% 0 auto 0;
+    height: 1.5rem;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 0%,
+      transparent 100%
+    );
   }
 
   /*
@@ -249,8 +338,76 @@ body {
    * transparent panel. This is the low end Android path, not an afterthought.
    */
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .nf-glass {
+    .nf-glass,
+    .nf-glass--thin,
+    .nf-glass--strong {
       background: var(--nf-surface-elevated);
+    }
+    .nf-glass::before {
+      display: none;
+    }
+  }
+
+  /*
+   * Elevation ladder consumption. One class per rung. Raising a surface is a
+   * rung change, never a bespoke hover shadow written at the call site.
+   */
+  .nf-elev-1,
+  .nf-elev-2,
+  .nf-elev-3,
+  .nf-elev-4,
+  .nf-elev-5 {
+    border: 1px solid var(--nf-elev-border);
+    box-shadow: var(--nf-elev-rim), var(--nf-elev-shadow);
+    transition: box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-elev-1 {
+    --nf-elev-shadow: var(--nf-elev-1);
+    --nf-elev-rim: var(--nf-elev-1-rim);
+    --nf-elev-border: var(--nf-elev-1-border);
+    background: var(--nf-surface-primary);
+    border-radius: var(--nf-radius-lg);
+  }
+  .nf-elev-2 {
+    --nf-elev-shadow: var(--nf-elev-2);
+    --nf-elev-rim: var(--nf-elev-2-rim);
+    --nf-elev-border: var(--nf-elev-2-border);
+    background: var(--nf-surface-elevated);
+    border-radius: var(--nf-radius-lg);
+  }
+  .nf-elev-3 {
+    --nf-elev-shadow: var(--nf-elev-3);
+    --nf-elev-rim: var(--nf-elev-3-rim);
+    --nf-elev-border: var(--nf-elev-3-border);
+    background: var(--nf-surface-elevated);
+    border-radius: var(--nf-radius-2xl) var(--nf-radius-2xl) 0 0;
+  }
+  .nf-elev-4 {
+    --nf-elev-shadow: var(--nf-elev-4);
+    --nf-elev-rim: var(--nf-elev-4-rim);
+    --nf-elev-border: var(--nf-elev-4-border);
+    background: var(--nf-surface-raised);
+    border-radius: var(--nf-radius-2xl);
+  }
+  .nf-elev-5 {
+    --nf-elev-shadow: var(--nf-elev-5);
+    --nf-elev-rim: var(--nf-elev-5-rim);
+    --nf-elev-border: var(--nf-elev-5-border);
+    background: var(--nf-surface-raised);
+    border-radius: var(--nf-radius-xl);
+  }
+  .nf-elev-1.nf-elev--hoverable:hover {
+    --nf-elev-shadow: var(--nf-elev-2);
+    --nf-elev-rim: var(--nf-elev-2-rim);
+    --nf-elev-border: var(--nf-elev-2-border);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-elev-1,
+    .nf-elev-2,
+    .nf-elev-3,
+    .nf-elev-4,
+    .nf-elev-5 {
+      transition: none;
     }
   }
 
@@ -298,9 +455,23 @@ body {
     border-radius: var(--nf-radius-lg);
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.09),
-      0 8px 30px rgb(0 0 0 / 0.45);
+    /*
+     * Rung 1 of the ladder rather than a hand-written drop. The card keeps its
+     * own gradient border and corner glow - that layered material is the best
+     * surface on the platform and the template the rest is being rebuilt from -
+     * but its depth now comes from the same source as every other surface, so
+     * raising a card is a rung change instead of a bespoke shadow.
+     */
+    box-shadow: var(--nf-elev-1-rim), var(--nf-elev-1);
+    transition: box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-card.nf-elev--hoverable:hover {
+    box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-card {
+      transition: none;
+    }
   }
 
   .nf-card--interactive {
@@ -850,6 +1021,17 @@ body {
   }
   :root[data-theme="light"] .nf-page-scene {
     opacity: 0.3;
+  }
+  /*
+   * The one hole in an otherwise thorough reduced-motion story. Duration
+   * tokens collapse to 1ms everywhere else, but this animation hard-codes its
+   * own 20s and loops forever, so it kept drifting for users who asked for
+   * stillness. The artwork keeps its mask and opacity; only the drift stops.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-page-scene {
+      animation: none;
+    }
   }
 
   /* ---------------------------------------------------------- odometer */
@@ -1440,8 +1622,15 @@ body {
     font-weight: 650;
     font-size: var(--nf-text-body);
     letter-spacing: -0.005em;
-    border-radius: var(--nf-radius-lg);
+    /*
+     * Pill, not an 18px rounded rectangle. --nf-radius-pill already existed and
+     * was already used by chips; buttons were the odd one out. Every primary CTA
+     * across the fifteen reference screens is a full pill.
+     */
+    border-radius: var(--nf-radius-pill);
     padding: 0.72rem 1.2rem;
+    /* Padding alone resolved to 43px, one pixel under the HIG 44pt floor. */
+    min-height: 2.75rem;
     cursor: pointer;
     white-space: nowrap;
     border: 1px solid transparent;
@@ -1462,13 +1651,75 @@ body {
     z-index: -1;
   }
 
-  .nf-btn:active:not(:disabled) {
-    transform: translateY(1px);
+  /*
+   * Press.
+   *
+   * This was `translateY(1px)` and the primary's ripple and glow lived entirely
+   * on :hover, which means a touch user - the whole App Store audience - got no
+   * feedback at all from any button on the platform. Press is now a scale plus
+   * a shadow compression that springs back, and it is defined once here rather
+   * than negotiated at 140 call sites.
+   */
+  .nf-btn:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: scale(0.965);
   }
-  .nf-btn:disabled {
-    opacity: 0.24;
+
+  /*
+   * One disabled recipe. There were seven different `disabled:opacity-*` values
+   * across the codebase. `aria-disabled` is included so the Button primitive can
+   * keep a control focusable while inert, which is what a form-level disabled
+   * submit should do for screen reader users.
+   */
+  .nf-btn:disabled,
+  .nf-btn[aria-disabled="true"] {
+    opacity: 0.38;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
+  }
+
+  /* Size scale. Three heights exist; nothing else is a button height. */
+  .nf-btn--sm {
+    min-height: 2.5rem;
+    padding: 0.5rem 0.95rem;
+    font-size: var(--nf-text-caption);
+  }
+  .nf-btn--md {
+    min-height: 3rem;
+    padding: 0.72rem 1.2rem;
+  }
+
+  /* Icon-only buttons are square at their size, never a padded rectangle. */
+  .nf-btn--icon {
+    padding: 0;
+    aspect-ratio: 1;
+    width: auto;
+  }
+  .nf-btn--icon.nf-btn--sm {
+    min-width: 2.5rem;
+  }
+  .nf-btn--icon.nf-btn--md {
+    min-width: 3rem;
+  }
+  .nf-btn--icon.nf-btn--lg {
+    min-width: 3.5rem;
+  }
+
+  .nf-btn--full {
+    width: 100%;
+  }
+
+  /*
+   * Loading. The label stays and dims rather than being swapped for the word
+   * "Saving...", which is what all eighteen pending buttons used to do and why
+   * they visibly jumped width mid-press. The spinner takes the leading icon
+   * slot, so the geometry never moves.
+   */
+  .nf-btn[data-loading="true"] {
+    cursor: progress;
+  }
+  .nf-btn[data-loading="true"] .nf-btn__label {
+    opacity: 0.7;
   }
 
   /* ---- primary: the signature gradient with the blue glow ---- */
@@ -1507,8 +1758,65 @@ body {
     box-shadow: 0 0 24px rgb(12 57 239 / 0.45);
     transform: translateY(-1px);
   }
+  /*
+   * The signature ripple fires on press as well as hover, so it finally reaches
+   * touch devices. Hover stays as the desktop bonus it always was.
+   */
+  .nf-btn--primary:active:not(:disabled)::after {
+    transform: translateX(130%);
+    transition: transform 480ms var(--nf-ease-standard);
+  }
   .nf-btn--primary:active:not(:disabled) {
-    transform: translateY(0);
+    transform: scale(0.965);
+    box-shadow: 0 0 6px rgb(12 57 239 / 0.22);
+  }
+
+  /*
+   * ---- danger: the variant that did not exist ----
+   *
+   * Reject, suspend, delete and cancel were being faked with inline
+   * `style={{background: var(--nf-state-error)}}` painted over a blue-sheen
+   * primary, or as red text on neutral glass, and in one case agent Delete was
+   * the lowest-contrast element in its own row. Destructive actions get real
+   * destructive material.
+   */
+  .nf-btn--danger {
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-state-error) 92%, white) 0%,
+      var(--nf-state-error) 100%
+    );
+    border: 1.5px solid color-mix(in oklab, var(--nf-state-error) 70%, transparent);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--nf-state-error) 30%, transparent);
+  }
+  .nf-btn--danger::after {
+    content: none;
+  }
+  .nf-btn--danger:hover:not(:disabled) {
+    box-shadow: 0 0 24px color-mix(in oklab, var(--nf-state-error) 42%, transparent);
+    transform: translateY(-1px);
+  }
+  .nf-btn--danger:active:not(:disabled) {
+    transform: scale(0.965);
+    box-shadow: 0 0 6px color-mix(in oklab, var(--nf-state-error) 22%, transparent);
+  }
+
+  /* Quiet destructive: the confirm step inside a sheet, where a solid red
+     button would shout louder than the decision deserves. */
+  .nf-btn--danger-quiet {
+    background: color-mix(in oklab, var(--nf-state-error) 14%, transparent);
+    color: var(--nf-state-error);
+    border: 1.5px solid color-mix(in oklab, var(--nf-state-error) 34%, transparent);
+    box-shadow: none;
+  }
+  .nf-btn--danger-quiet::after {
+    content: none;
+  }
+  .nf-btn--danger-quiet:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--nf-state-error) 22%, transparent);
   }
 
   /* ---- ghost: translucent white, blue-ice edge on hover ---- */
@@ -1539,9 +1847,41 @@ body {
   }
 
   .nf-btn--lg {
+    min-height: 3.5rem;
     padding: 0.92rem 1.65rem;
     font-size: var(--nf-text-body-lg);
-    border-radius: var(--nf-radius-xl);
+  }
+
+  /*
+   * Spinner.
+   *
+   * No spinner existed anywhere in the codebase. Every pending button swapped
+   * its label for different text, so the button changed width mid-press. This
+   * one occupies the leading icon slot, inherits currentColor, and collapses to
+   * a static ring under reduced motion rather than disappearing.
+   */
+  @keyframes nf-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .nf-spinner {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    opacity: 0.9;
+    animation: nf-spin 620ms linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-spinner {
+      animation: none;
+      border-right-color: currentColor;
+      opacity: 0.45;
+    }
   }
 
   /*
@@ -1810,10 +2150,10 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.6rem;
-    height: 2.6rem;
-    min-width: 44px;
-    min-height: 44px;
+    /* 2.75rem = 44px, the Apple HIG minimum. This was 2.6rem (41.6px) while
+       the comment above already claimed 44px. */
+    width: 2.75rem;
+    height: 2.75rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
@@ -1919,6 +2259,32 @@ body {
       color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  /*
+   * A chip paints at 36.6px because that is the right visual weight in a filter
+   * row, but a tappable chip still owes the user a 44pt target. Rather than
+   * inflating every chip and breaking the rows, interactive chips grow their
+   * hit area with a centred overlay. Visual size is unchanged; only the touch
+   * region grows. Non-interactive status pills are excluded deliberately.
+   */
+  a.nf-chip,
+  button.nf-chip,
+  label.nf-chip {
+    position: relative;
+  }
+
+  a.nf-chip::after,
+  button.nf-chip::after,
+  label.nf-chip::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    translate: 0 -50%;
+    min-height: 2.75rem;
+    height: 100%;
   }
   .nf-chip:hover {
     color: var(--nf-content-primary);
@@ -2192,6 +2558,52 @@ body {
   }
 
   /*
+   * The pinned variant used by <ActionBar>. Rounds nothing, spans the viewport,
+   * drops its side and bottom borders, and absorbs the home-indicator inset so
+   * the CTA never sits on top of it.
+   */
+  .nf-action-bar-pinned {
+    border-inline: 0;
+    border-bottom: 0;
+    border-radius: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  /* The scrim above it, so content dissolves into the bar instead of hitting a seam. */
+  .nf-action-bar-pinned::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 100% 0;
+    height: 1.75rem;
+    pointer-events: none;
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 0%,
+      transparent 100%
+    );
+  }
+
+  /*
+   * Safe-area top.
+   *
+   * layout.tsx sets viewportFit:"cover" and apple-mobile-web-app-status-bar-style
+   * black-translucent, which together extend the viewport up into the status bar
+   * area. Anything pinned to top:0 therefore paints *underneath* the notch and
+   * the clock. Bottom insets were handled in thirteen places; the top inset was
+   * honoured in exactly one file on the whole platform.
+   *
+   * Sticky chrome carries .nf-safe-top so its own padding absorbs the inset and
+   * its material still extends edge to edge behind the status bar. Full-bleed
+   * overlays carry .nf-safe-top-inset when their *content* needs clearing but
+   * their background should stay full-bleed.
+   */
+  .nf-safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .nf-safe-top-inset {
+    top: env(safe-area-inset-top, 0px);
+  }
+
+  /*
    * Full-bleed moment screen: the one-thing-happened surface (payment landed,
    * booking confirmed, verification passed). A glowing badge, a headline, an
    * optional line under it, and the actions pinned near the bottom. No card,
@@ -2343,6 +2755,17 @@ body {
    * clearance) is set by the component via Tailwind utilities; this class
    * only carries the material.
    */
+  /*
+   * How much bottom space the floating tab bar occupies, measured from the
+   * viewport edge: its own offset (0.9rem + the home-indicator inset), its
+   * height, and a gap so anything stacking above it does not touch it.
+   * Sticky footers on tab-bar routes offset by this instead of guessing.
+   * The previous guess was a flat 80px, which cleared nothing on a notch.
+   */
+  :root {
+    --nf-tabbar-clearance: calc(0.9rem + env(safe-area-inset-bottom, 0px) + 3.5rem + 0.75rem);
+  }
+
   .nf-tabbar {
     background: var(--nf-glass-fill-strong);
     border: 1px solid var(--nf-border-subtle);

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { formatMoney, type Locale, formatRating } from "@naijafinds/i18n";
+import { formatMoney, type Locale, formatRating, formatMoneyGlance } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MapCopy, MapListing } from "./mapTypes";
 
@@ -194,7 +194,7 @@ export function MapDock({
               {hasPrice ? (
                 <>
                   <span className="nf-numeric text-[1.0625rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-                    {formatMoney(listing.priceMinor, locale, listing.currency)}
+                    {formatMoneyGlance(listing.priceMinor, locale, listing.currency)}
                   </span>
                   <span className="text-[0.6875rem] text-[var(--nf-content-muted)]">/ {per}</span>
                 </>

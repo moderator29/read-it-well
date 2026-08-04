@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getLocale } from "@/lib/locale";
 import { getCheckoutView } from "@/lib/bookings/checkout-view";
 import { isBookingReference } from "@/lib/payments/references";
@@ -7,6 +6,7 @@ import { MomentScreen } from "@/components/app/MomentScreen";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
+import { ButtonLink } from "@/components/ui/Button";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { HoldCountdown } from "./HoldCountdown";
@@ -63,9 +63,9 @@ export default async function CheckoutPage({
           title="Payment switches on shortly"
           description="This platform is still waiting on its payment keys, so there is nothing to pay against yet. Nothing you did was lost."
           actions={
-            <Link href="/search" className="nf-btn nf-btn--primary nf-btn--lg">
+            <ButtonLink href="/search" variant="primary" size="lg">
               Explore stays
-            </Link>
+            </ButtonLink>
           }
         />
       </Shell>
@@ -81,9 +81,9 @@ export default async function CheckoutPage({
           title="Sign in to pay for this stay"
           description="Your booking and its dates are kept safe. Sign in and you land straight back here."
           actions={
-            <Link href="/sign-in" className="nf-btn nf-btn--primary nf-btn--lg">
+            <ButtonLink href="/sign-in" variant="primary" size="lg">
               Sign in
-            </Link>
+            </ButtonLink>
           }
         />
       </Shell>
@@ -99,9 +99,9 @@ export default async function CheckoutPage({
           title="We could not find that booking"
           description="It may have been cancelled, or it belongs to another account. Your trips are all in one place."
           actions={
-            <Link href="/bookings" className="nf-btn nf-btn--primary nf-btn--lg">
+            <ButtonLink href="/bookings" variant="primary" size="lg">
               My bookings
-            </Link>
+            </ButtonLink>
           }
         />
       </Shell>
@@ -117,9 +117,9 @@ export default async function CheckoutPage({
           title="Checkout is unavailable for a moment"
           description="Your booking is unchanged and nothing has been charged. Please try again shortly."
           actions={
-            <Link href="/bookings" className="nf-btn nf-btn--primary nf-btn--lg">
+            <ButtonLink href="/bookings" variant="primary" size="lg">
               My bookings
-            </Link>
+            </ButtonLink>
           }
         />
       </Shell>
@@ -196,9 +196,9 @@ export default async function CheckoutPage({
             title="This stay is paid for"
             description={`${view.totalDisplay} has been received and your dates are confirmed.`}
             actions={
-              <Link href="/bookings" className="nf-btn nf-btn--primary nf-btn--lg">
+              <ButtonLink href="/bookings" variant="primary" size="lg">
                 View my booking
-              </Link>
+              </ButtonLink>
             }
           />
         </Reveal>
@@ -210,9 +210,9 @@ export default async function CheckoutPage({
             title="This booking was cancelled"
             description="Cancelled stays cannot be paid for. The dates are open again, so search and reserve them afresh if you still want them."
             actions={
-              <Link href={`/listing/${view.listingId}`} className="nf-btn nf-btn--primary nf-btn--lg">
+              <ButtonLink href={`/listing/${view.listingId}`} variant="primary" size="lg">
                 Back to the stay
-              </Link>
+              </ButtonLink>
             }
           />
         </Reveal>

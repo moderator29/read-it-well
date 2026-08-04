@@ -25,6 +25,7 @@ import type { Listing } from "@/lib/listings/types";
 import { ListingCard } from "@/components/app/ListingCard";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 export const metadata: Metadata = {
@@ -179,14 +180,15 @@ export default async function SearchPage({
               "Search places, ho...", so on phones the submit is its glyph and
               the words return once there is room for them. The accessible name
               is the word either way. */}
-          <button
+          <Button
             type="submit"
+            variant="primary"
             aria-label={t.common.search}
-            className="nf-btn nf-btn--primary min-h-11 shrink-0 px-3 py-2 text-[0.875rem] sm:px-4"
+            className="shrink-0"
           >
             <UiIcon name="search" size={20} className="sm:hidden" />
             <span className="hidden sm:inline">{t.common.search}</span>
-          </button>
+          </Button>
         </form>
         <FilterDrawer
           query={query}
@@ -329,18 +331,18 @@ export default async function SearchPage({
               </p>
               <div className="mt-6 flex justify-center">
                 {narrowed ? (
-                  <Link
+                  <ButtonLink
                     href={toSearchHref(clearedFilters(query))}
                     prefetch
                     data-testid="empty-clear"
-                    className="nf-btn nf-btn--primary min-h-11 inline-flex"
+                    variant="primary"
                   >
                     Clear filters
-                  </Link>
+                  </ButtonLink>
                 ) : (
-                  <Link href="/home" className="nf-btn nf-btn--primary min-h-11 inline-flex">
+                  <ButtonLink href="/home" variant="primary">
                     {t.nav.home}
-                  </Link>
+                  </ButtonLink>
                 )}
               </div>
               {narrowed && pool.length > 0 && (
@@ -373,9 +375,9 @@ export default async function SearchPage({
            * Visual shell for pagination. The catalogue is fully shown, so the
            * button is disabled and says why instead of pretending more exists.
            */}
-          <button type="button" className="nf-btn nf-btn--glass" disabled={repo.isSeed}>
+          <Button variant="secondary" disabled={repo.isSeed}>
             Load more
-          </button>
+          </Button>
         </Reveal>
       )}
     </>

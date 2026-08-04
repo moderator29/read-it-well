@@ -32,7 +32,14 @@ export const localeMeta: Record<Locale, { label: string; native: string; short: 
  * BCP 47 tags. Yoruba, Hausa and Igbo all resolve to Nigeria, which is what
  * `Intl` needs for correct number and date grouping.
  */
-const intlTag: Record<Locale, string> = {
+/**
+ * BCP 47 tags for Intl. Exported because the `<Amount>` primitive builds money
+ * from `formatToParts` rather than a formatted string, and it must resolve the
+ * same tag this file does. A second private copy would drift, which is exactly
+ * how the naira sign ended up hard-coded in five places disagreeing with each
+ * other about whether ha-NG puts a space after the symbol.
+ */
+export const intlTag: Record<Locale, string> = {
   en: "en-NG",
   yo: "yo-NG",
   ha: "ha-NG",
@@ -95,6 +102,32 @@ export function formatMoney(
     minimumFractionDigits: hasKobo ? 2 : 0,
     maximumFractionDigits: hasKobo ? 2 : 0,
   }).format(major);
+}
+
+/**
+ * Money at a glance: compact once, and only once, the figure needs it.
+ *
+ * `{ compact: true }` is unconditional and belongs where the SPACE is fixed and
+ * tiny: a map pin, a stat tile. A card in a scrolling list is different. A stay
+ * at ₦95,000 a night must read ₦95,000, because that is the number somebody is
+ * comparing against the card below it, but a rental at ₦4,500,000 a year is
+ * written ₦4.5m by every Nigerian who has ever advertised one, and it was
+ * arriving as seven digits and a slash and a word on a 390px card.
+ *
+ * One threshold, one million naira, applied in one place: a search page that
+ * mixes nightly stays and yearly rents then gets both right with no per-card
+ * decision anywhere.
+ */
+const GLANCE_COMPACT_FROM_MINOR = 100_000_000;
+
+export function formatMoneyGlance(
+  minorUnits: number,
+  locale: Locale = DEFAULT_LOCALE,
+  currency = "NGN",
+): string {
+  return formatMoney(minorUnits, locale, currency, {
+    compact: Math.abs(minorUnits) >= GLANCE_COMPACT_FROM_MINOR,
+  });
 }
 
 export function formatNumber(

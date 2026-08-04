@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { formatMoney, type Locale } from "@naijafinds/i18n";
 import "leaflet/dist/leaflet.css";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { toggleSave } from "@/lib/saved/actions";
 import { addLocalSave, readLocalSaves, removeLocalSave } from "@/lib/saved/local";
 import { MapDock } from "./MapDock";
@@ -644,15 +644,16 @@ export function MapCanvas({
           </p>
 
           {panned && !areaBox && (
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              size="sm"
               data-testid="map-search-area"
               onClick={searchThisArea}
-              className="nf-btn nf-btn--primary pointer-events-auto ml-auto h-8 shrink-0 whitespace-nowrap px-3 text-[0.75rem]"
+              leadingIcon="search"
+              className="pointer-events-auto ml-auto shrink-0 whitespace-nowrap"
             >
-              <UiIcon name="search" size={12} />
               Search this area
-            </button>
+            </Button>
           )}
           {areaBox && (
             <button
@@ -683,13 +684,13 @@ export function MapCanvas({
                 : "This search matched no place we can put on the map."}
             </p>
             {areaBox ? (
-              <button type="button" onClick={clearArea} className="nf-btn nf-btn--glass mt-4">
+              <Button variant="secondary" onClick={clearArea} className="mt-4">
                 Show every place
-              </button>
+              </Button>
             ) : (
-              <Link href={wholeMapHref} className="nf-btn nf-btn--glass mt-4 inline-flex">
+              <ButtonLink href={wholeMapHref} variant="secondary" className="mt-4">
                 Show every place
-              </Link>
+              </ButtonLink>
             )}
           </div>
         )}

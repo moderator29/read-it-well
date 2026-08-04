@@ -18,6 +18,7 @@ import {
   type WithdrawReceipt,
 } from "@/lib/wallet/actions";
 import { WALLET_BANKS } from "@/lib/wallet/banks";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * Wallet action deck: Add money, Withdraw, Transfer.
@@ -173,9 +174,7 @@ function WalletDrawer({
             onClick={onClose}
             className="nf-icon-btn h-10 w-10"
           >
-            <span aria-hidden="true" className="text-[1.15rem] leading-none">
-              &times;
-            </span>
+            <UiIcon name="close" size={18} />
           </button>
           <span className="h-13 w-13">
             <BrandIcon name={icon} fill />

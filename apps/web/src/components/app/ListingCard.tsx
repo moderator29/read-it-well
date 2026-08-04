@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Dictionary, type Locale, formatRating } from "@naijafinds/i18n";
+import { formatMoney, type Dictionary, type Locale, formatRating, formatMoneyGlance } from "@naijafinds/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * Listing card media.
@@ -51,34 +52,19 @@ function PartnerActions({ listing }: { listing: Listing }) {
   return (
     <div className="flex flex-wrap items-center gap-2 px-4 pb-4">
       {book && (
-        <a
-          href={book}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="nf-btn nf-btn--glass h-9 px-3.5 text-[0.8125rem]"
-        >
+        <ButtonLink href={book} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
           Book
-        </a>
+        </ButtonLink>
       )}
       {directions && (
-        <a
-          href={directions}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="nf-btn nf-btn--glass h-9 px-3.5 text-[0.8125rem]"
-        >
+        <ButtonLink href={directions} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
           Directions
-        </a>
+        </ButtonLink>
       )}
       {venue && (
-        <a
-          href={venue}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="nf-btn nf-btn--glass h-9 px-3.5 text-[0.8125rem]"
-        >
+        <ButtonLink href={venue} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
           Menu
-        </a>
+        </ButtonLink>
       )}
       {partner?.attribution === "Google" && (
         <span className="ml-auto text-[0.6875rem] text-[var(--nf-content-muted)]">
@@ -271,7 +257,7 @@ export function ListingCard({
           {hasPrice && (
             <p className="mt-3.5 flex items-baseline gap-1.5">
               <span className="nf-numeric text-[1.1875rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-                {formatMoney(listing.priceMinor, locale, listing.currency)}
+                {formatMoneyGlance(listing.priceMinor, locale, listing.currency)}
               </span>
               <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
                 /{" "}

@@ -5,7 +5,7 @@ import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Dictionary, type Locale, formatMoneyGlance } from "@naijafinds/i18n";
 import { fill } from "../_copy";
 import {
   deleteListing,
@@ -275,7 +275,7 @@ function ListingRow({
           <p className="mt-2 flex items-baseline gap-1.5">
             <span className="nf-numeric text-[0.9375rem] font-bold">
               {listing.priceMinor > 0
-                ? formatMoney(listing.priceMinor, locale)
+                ? formatMoneyGlance(listing.priceMinor, locale)
                 : t.guestView.priceToSet}
             </span>
             <span className="text-[0.75rem] text-[var(--nf-content-muted)]">

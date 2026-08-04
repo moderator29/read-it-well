@@ -41,7 +41,7 @@ export async function AgentShell({
       <AgentRail t={t} active={active} profile={profile} unreadMessages={unreadMessages} />
 
       <main id="main" className="min-w-0 flex-1">
-        <header className="nf-glass sticky top-0 z-40 border-b border-[var(--nf-border-subtle)]">
+        <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
           <div className="flex h-[60px] items-center gap-2 px-3 sm:h-[64px] sm:gap-4 sm:px-5 md:px-8">
             {/* The way back, always top left: previous screen when there is
                 one in this session, otherwise personal home. */}

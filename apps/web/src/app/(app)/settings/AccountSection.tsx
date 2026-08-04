@@ -3,9 +3,9 @@
 import { useActionState, useEffect, useId, useRef, useState, useTransition } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GroupCard } from "@/components/app/account/SettingsGroups";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { deleteAccountAction, signOut } from "@/lib/profile/actions";
 import { DELETE_CONFIRM_PHRASE } from "@/lib/profile/schema";
@@ -63,14 +63,15 @@ export function AccountSection({
 
           {state === "signed-in" ? (
             <>
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                full
+                className="mt-2.5"
                 onClick={leave}
-                disabled={signingOut}
-                className="nf-btn nf-btn--glass mt-2.5 w-full"
+                loading={signingOut}
               >
-                {signingOut ? "Signing out..." : "Sign out"}
-              </button>
+                Sign out
+              </Button>
               {signOutError && (
                 <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-error)]">
                   {signOutError}
@@ -78,9 +79,9 @@ export function AccountSection({
               )}
             </>
           ) : state === "signed-out" ? (
-            <Link href="/sign-in" className="nf-btn nf-btn--primary mt-2.5 w-full">
+            <ButtonLink href="/sign-in" variant="primary" full className="mt-2.5">
               Sign in
-            </Link>
+            </ButtonLink>
           ) : null}
         </div>
 
@@ -90,14 +91,15 @@ export function AccountSection({
             Removes your profile, preferences, saved places and message history
             for good. This cannot be undone.
           </p>
-          <button
-            type="button"
+          <Button
+            variant="dangerQuiet"
+            full
+            className="mt-2.5"
             data-testid="delete-open"
             onClick={() => setDrawer(true)}
-            className="nf-btn mt-2.5 w-full border border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] text-[var(--nf-state-error)]"
           >
             Delete my account
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -209,17 +211,17 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
                 be fixed without losing your history.
               </p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <button type="button" onClick={onClose} className="nf-btn nf-btn--primary w-full">
+                <Button variant="primary" full onClick={onClose}>
                   Keep my account
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="dangerQuiet"
+                  full
                   data-testid="delete-continue"
                   onClick={() => setStep("confirm")}
-                  className="nf-btn w-full border border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] text-[var(--nf-state-error)]"
                 >
                   Continue
-                </button>
+                </Button>
               </div>
             </div>
           ) : (
@@ -254,17 +256,19 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
               )}
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <button type="button" onClick={onClose} className="nf-btn nf-btn--primary w-full">
+                <Button variant="primary" full onClick={onClose}>
                   Keep my account
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
+                  variant="dangerQuiet"
+                  full
                   data-testid="delete-confirm"
-                  disabled={!ready || pending}
-                  className="nf-btn w-full border border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] text-[var(--nf-state-error)] disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!ready}
+                  loading={pending}
                 >
-                  {pending ? "Deleting..." : "Delete for good"}
-                </button>
+                  Delete for good
+                </Button>
               </div>
             </form>
           )}
