@@ -1,7 +1,7 @@
-import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * Host panel.
@@ -62,9 +62,9 @@ export function ListingHostPanel({
         </div>
       </dl>
 
-      <Link href={messageHref} className="nf-btn nf-btn--glass mt-4 w-full">
+      <ButtonLink href={messageHref} variant="secondary" full className="mt-4">
         Message agent
-      </Link>
+      </ButtonLink>
     </div>
   );
 }

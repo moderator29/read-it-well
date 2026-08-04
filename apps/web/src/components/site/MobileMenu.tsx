@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * Marketing header menu for phones.
@@ -116,13 +117,15 @@ export function MobileMenu({
                 </Link>
               </div>
 
-              <Link
+              <ButtonLink
                 href="/sign-up"
                 onClick={() => setOpen(false)}
-                className="nf-btn nf-btn--primary nf-breathe w-full py-3.5 text-[0.9375rem]"
+                variant="primary"
+                full
+                className="nf-breathe"
               >
                 {signUp}
-              </Link>
+              </ButtonLink>
             </div>
           </div>
         </div>,

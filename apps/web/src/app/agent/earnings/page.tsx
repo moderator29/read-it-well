@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getAgentRepository } from "@/lib/agent/repository";
@@ -9,6 +8,7 @@ import { readAgentEarnings, type AgentEarnings } from "@/lib/agent/earnings-quer
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ListingPitch } from "../list/ListingPitch";
 import { EarningsWorkspace } from "./EarningsWorkspace";
+import { ButtonLink } from "@/components/ui/Button";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -60,9 +60,9 @@ export default async function Page() {
           <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">
             {t.agentEarnings.unconfigured}
           </p>
-          <Link href="/agent/dashboard" className="nf-btn nf-btn--glass mt-6">
+          <ButtonLink href="/agent/dashboard" variant="secondary" className="mt-6">
             {t.agent.nav.dashboard}
-          </Link>
+          </ButtonLink>
         </div>
       </AgentShell>
     );

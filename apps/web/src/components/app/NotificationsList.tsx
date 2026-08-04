@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Notifications list.
@@ -125,9 +126,9 @@ export function NotificationsList() {
             </li>
           ))}
         </ul>
-        <button type="button" onClick={markAll} className="nf-btn nf-btn--ghost px-3 py-2 text-[0.8125rem]">
+        <Button variant="ghost" size="sm" onClick={markAll}>
           Mark all read
-        </button>
+        </Button>
       </div>
 
       {visible.length > 0 ? (

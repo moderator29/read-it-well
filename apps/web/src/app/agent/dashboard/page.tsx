@@ -14,6 +14,7 @@ import {
   readAgentNumbers,
 } from "@/lib/agent/listings-queries";
 import { RealDashboard } from "./RealDashboard";
+import { ButtonLink } from "@/components/ui/Button";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -70,10 +71,10 @@ export default async function AgentDashboardPage() {
           <h1 className="nf-h1">{a.title}</h1>
           <p className="mt-1 text-[var(--nf-content-secondary)]">{a.subtitle}</p>
         </div>
-        <Link href="/agent/list" className="nf-btn nf-btn--primary">
+        <ButtonLink href="/agent/list" variant="primary">
           <BrandIcon name="homes-sparkle" size={22} />
           {a.addListing}
-        </Link>
+        </ButtonLink>
       </div>
 
       {/* Stat row: two-up on phones (the odd fifth tile going full width so no

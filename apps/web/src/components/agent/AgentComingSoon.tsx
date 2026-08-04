@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getAgentRepository } from "@/lib/agent/repository";
 import { AgentShell } from "./AgentShell";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * Placeholder for agent destinations not yet built.
@@ -48,9 +48,9 @@ export async function AgentComingSoon({
           This part of the agent workspace is being built. The navigation is final, so
           this destination is reserved and will fill in shortly.
         </p>
-        <Link href="/agent/dashboard" className="nf-btn nf-btn--glass mt-6">
+        <ButtonLink href="/agent/dashboard" variant="secondary" className="mt-6">
           {t.agent.nav.dashboard}
-        </Link>
+        </ButtonLink>
       </div>
     </AgentShell>
   );

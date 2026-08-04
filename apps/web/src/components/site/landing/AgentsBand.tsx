@@ -1,8 +1,8 @@
-import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * "For agents" band.
@@ -49,9 +49,9 @@ export function AgentsBand({ t }: { t: Dictionary }) {
               </ul>
 
               <div className="mt-7">
-                <Link href="/agents" className="nf-btn nf-btn--primary nf-btn--lg">
+                <ButtonLink href="/agents" variant="primary" size="lg">
                   {t.home.agentCard.action}
-                </Link>
+                </ButtonLink>
               </div>
             </div>
 

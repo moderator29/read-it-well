@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { AppRail } from "./AppRail";
@@ -10,6 +9,7 @@ import { DesktopDock } from "./DesktopDock";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * Personal Mode shell.
@@ -113,10 +113,10 @@ export function AppShell({
             <ThemeToggle />
             <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
 
-            <Link href="/assistant" className="nf-btn nf-btn--primary gap-2 px-3 py-2 sm:px-3.5">
+            <ButtonLink href="/assistant" variant="primary" size="sm">
               <UiIcon name="sparkle" size={18} />
               <span className="hidden sm:inline">{t.nav.aiAssistant}</span>
-            </Link>
+            </ButtonLink>
           </div>
         </header>
         )}

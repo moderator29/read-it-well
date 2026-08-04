@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * What everyone who is not staff sees at /admin.
@@ -61,9 +62,9 @@ export function AccessScreen({
           {copy.body}
         </p>
 
-        <Link href={copy.action.href} className="nf-btn nf-btn--primary mt-6 w-full">
+        <ButtonLink href={copy.action.href} variant="primary" full className="mt-6">
           {copy.action.label}
-        </Link>
+        </ButtonLink>
 
         {state !== "signed-out" && (
           <Link

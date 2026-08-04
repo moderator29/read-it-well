@@ -1,8 +1,8 @@
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
-import Link from "next/link";
 import { fill } from "../_copy";
 import type { AgentEarnings } from "@/lib/agent/earnings-queries";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * The host's earnings console: what has actually settled, read straight from
@@ -78,9 +78,9 @@ export function EarningsWorkspace({
         <p className="mx-auto max-w-[40ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.emptyBody}
         </p>
-        <Link href="/agent/bookings" className="nf-btn nf-btn--primary">
+        <ButtonLink href="/agent/bookings" variant="primary">
           {t.emptyAction}
-        </Link>
+        </ButtonLink>
       </div>
     );
   }

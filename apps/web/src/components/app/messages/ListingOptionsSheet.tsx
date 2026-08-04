@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import type { ConversationListing } from "@/lib/messages/types";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { Button } from "@/components/ui/Button";
 
 /**
  * In-chat listing options sheet.
@@ -137,13 +138,9 @@ export function ListingOptionsSheet({
             Inspection confirmed on this device
           </p>
         ) : (
-          <button
-            type="button"
-            onClick={onConfirmInspection}
-            className="nf-btn nf-btn--primary mt-4 w-full"
-          >
+          <Button variant="primary" full className="mt-4" onClick={onConfirmInspection}>
             Confirm I have inspected this property
-          </button>
+          </Button>
         )}
       </div>
     </div>

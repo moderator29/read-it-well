@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { ConversationSummary } from "@/lib/messages/types";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * Conversation list.
@@ -62,9 +63,9 @@ export function ConversationList({
         <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
           Message an agent from any listing and the thread will appear here.
         </p>
-        <Link href="/search" className="nf-btn nf-btn--primary mt-4 inline-flex">
+        <ButtonLink href="/search" variant="primary" className="mt-4">
           Explore places
-        </Link>
+        </ButtonLink>
       </div>
     );
   }
