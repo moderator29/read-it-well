@@ -83,7 +83,7 @@ export default async function Page({
   const profile = context.state === "agent" ? agentProfileFrom(context.agent) : null;
 
   return (
-    <AgentShell t={t} locale={locale} active="/agent/listings" profile={null}>
+    <AgentShell t={t} locale={locale} active="/agent/listings" profile={profile}>
       <div className="mb-6">
         <Link
           href="/agent/listings"

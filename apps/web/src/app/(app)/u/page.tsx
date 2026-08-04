@@ -75,7 +75,7 @@ export default async function PeoplePage({
           name="q"
           type="search"
           defaultValue={view.query}
-          placeholder="A name, or a handle"
+          placeholder="A name, a handle, a job, a place"
           autoComplete="off"
           className="nf-people__field"
         />
@@ -88,6 +88,14 @@ export default async function PeoplePage({
         {searching ? `People matching ${view.query}` : "People who just arrived"}
       </p>
 
+      {/* Why these people, said plainly. A search for "Ikeja" that quietly also
+          matched an occupation looks like a broken search unless it says so. */}
+      {searching && view.people.length > 0 ? (
+        <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          Searched by {matchLabel(view.matchedOn)}.
+        </p>
+      ) : null}
+
       {view.people.length === 0 ? (
         <div className="mt-4">
           <ProfileNotice
@@ -95,7 +103,7 @@ export default async function PeoplePage({
             title={searching ? `Nobody here is called ${view.query}` : "Nobody has a page yet"}
             body={
               searching
-                ? "Handles are three to twenty characters: letters, numbers and underscores. Try a shorter piece of the name, or the handle itself."
+                ? "Nobody matched that name, handle, occupation or place. Try a shorter piece of it, or the handle itself."
                 : "The first person to claim a handle appears here. Claim yours and yours is the first name anybody arriving reads."
             }
             primary={{ href: "/around", label: "Go to Around" }}
@@ -135,6 +143,26 @@ export default async function PeoplePage({
                       is nothing here to truncate, and truncating the one
                       sentence somebody wrote about themselves to tidy a row is
                       the wrong trade. */}
+                  {/* What they do and where, from columns a trigger projects
+                      rather than columns a person types. Absent entirely when
+                      unknown: a profile should never look like a form somebody
+                      abandoned. */}
+                  {person.occupation || person.place ? (
+                    <span className="nf-people__facts">
+                      {person.occupation ? (
+                        <span>
+                          <UiIcon name="user" size={12} />
+                          {person.occupation}
+                        </span>
+                      ) : null}
+                      {person.place ? (
+                        <span>
+                          <UiIcon name="location" size={12} />
+                          {person.place}
+                        </span>
+                      ) : null}
+                    </span>
+                  ) : null}
                   {person.bio ? <span className="nf-people__bio">{person.bio}</span> : null}
                 </span>
               </Link>
@@ -174,4 +202,21 @@ export default async function PeoplePage({
       <AroundFab />
     </div>
   );
+}
+
+/**
+ * "name and handle", "name and handle, and what people do", and so on.
+ *
+ * Written out rather than printed as a list of three words, because the line
+ * under a search result is a sentence somebody reads once and it should read
+ * like one. Never truncated and never abbreviated: the label is the meaning of
+ * the results below it.
+ */
+function matchLabel(matched: ("name" | "occupation" | "place")[]): string {
+  const parts = matched.map((key) =>
+    key === "name" ? "name and handle" : key === "occupation" ? "what people do" : "where they are",
+  );
+  if (parts.length === 0) return "name and handle";
+  if (parts.length === 1) return parts[0] as string;
+  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 }

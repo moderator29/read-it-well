@@ -2248,3 +2248,22 @@
     color: var(--nf-content-muted);
   }
 }
+
+@layer components {
+  /* What somebody does and where they are, on a directory row. Two facts on
+     one line, each with its own mark, and the row simply does not carry the
+     line when neither is known. */
+  .nf-people__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-block-start: 4px;
+    font-size: 0.78rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-people__facts > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}

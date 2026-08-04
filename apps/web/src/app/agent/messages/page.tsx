@@ -73,7 +73,7 @@ export default async function Page({
   const profile = agentProfileFrom(context.agent);
 
   return (
-    <AgentShell t={t} locale={locale} active="/agent/messages" profile={null}>
+    <AgentShell t={t} locale={locale} active="/agent/messages" profile={profile}>
       <div className="mb-6">
         <h1 className="nf-h1">{t.agent.nav.messages}</h1>
         <p className="mt-1 text-[var(--nf-content-secondary)]">
