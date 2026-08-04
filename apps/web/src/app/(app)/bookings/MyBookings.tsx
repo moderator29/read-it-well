@@ -10,6 +10,7 @@ import type { ActionResult } from "@/lib/actions/envelope";
 import type { BookingGroups, BookingView } from "@/lib/bookings/queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
 /**
  * The signed-in trips hub: the user's real bookings from the platform,
@@ -106,12 +107,9 @@ function BookingCard({
               guest had nowhere to complete it, which is exactly the gap
               checkout closes. */}
           {b.status === "PENDING" && (
-            <Link
-              href={`/checkout/${b.id}`}
-              className="nf-btn nf-btn--primary px-3 py-1.5 text-[0.8125rem]"
-            >
+            <ButtonLink href={`/checkout/${b.id}`} variant="primary" size="sm">
               Pay now
-            </Link>
+            </ButtonLink>
           )}
           {b.cancellable && (
             <button
@@ -191,9 +189,9 @@ function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () =
             <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
               {booking.title} for {booking.dateRange} is cancelled. The dates are free again.
             </p>
-            <button type="button" onClick={onClose} className="nf-btn nf-btn--primary mt-4 w-full">
+            <Button variant="primary" full className="mt-4" onClick={onClose}>
               Done
-            </button>
+            </Button>
           </div>
         ) : (
           <>
@@ -216,16 +214,12 @@ function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () =
 
             <form action={formAction} className="mt-4 grid gap-3">
               <input type="hidden" name="bookingId" value={booking.id} />
-              <button
-                type="submit"
-                disabled={pending}
-                className="nf-btn nf-btn--primary w-full disabled:opacity-60"
-              >
-                {pending ? "Cancelling..." : "Yes, cancel the booking"}
-              </button>
-              <button type="button" onClick={onClose} className="nf-btn nf-btn--glass w-full">
+              <Button type="submit" variant="primary" full loading={pending}>
+                Yes, cancel the booking
+              </Button>
+              <Button variant="secondary" full onClick={onClose}>
                 Keep my booking
-              </button>
+              </Button>
             </form>
           </>
         )}
@@ -333,9 +327,9 @@ export function MyBookings({
           <p className="mx-auto max-w-[38ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
             {EMPTY_COPY[current.key]}
           </p>
-          <Link href="/search" className="nf-btn nf-btn--primary">
+          <ButtonLink href="/search" variant="primary">
             Explore stays
-          </Link>
+          </ButtonLink>
         </div>
       )}
 

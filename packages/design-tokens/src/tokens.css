@@ -15,14 +15,27 @@
    * LAYER 1: raw palette. Internal. Do not use directly in components.
    * ------------------------------------------------------------------ */
 
-  /* Deep space neutrals, navy biased: the neon-blue night surface */
-  --nf-ink-950: #010118;
-  --nf-ink-900: #000020;
-  --nf-ink-850: #000030;
-  --nf-ink-800: #000040;
-  --nf-ink-750: #000050;
-  --nf-ink-700: #000060;
-  --nf-ink-600: #000080;
+  /*
+   * Deep space neutrals, navy biased: the neon-blue night surface.
+   *
+   * These used to run #000020 -> #000050, moving only in the blue channel.
+   * Blue carries 7.22% of perceived luminance, so canvas through raised
+   * measured 1.09:1 end to end: four surfaces the eye could not tell apart by
+   * fill, separated only by their 1px border. Worse, a 45% black shadow on
+   * #000010 produced a 1.003:1 delta, so every card, sheet, modal and dock on
+   * the platform cast a shadow that was mathematically invisible.
+   *
+   * The ramp now keeps the navy bias but gives red and green nonzero values so
+   * each step moves real luminance. Canvas to raised is 1.22:1 by fill alone,
+   * and shadows land at a visible 1.44:1.
+   */
+  --nf-ink-950: #06070F;
+  --nf-ink-900: #0A0C16;
+  --nf-ink-850: #0E111D;
+  --nf-ink-800: #131725;
+  --nf-ink-750: #191E2F;
+  --nf-ink-700: #212840;
+  --nf-ink-600: #2E3757;
   --nf-ink-500: #0010A0;
 
   --nf-mist-100: #FFFFFF;
@@ -85,13 +98,13 @@
   --nf-mode-agent: var(--nf-electric-400);
   --nf-mode-admin: var(--nf-electric-700);
 
-  /* Surfaces */
-  --nf-surface-canvas: #000010;
+  /* Surfaces. Each step is a real luminance move; see the ink ramp above. */
+  --nf-surface-canvas: var(--nf-ink-950);
   --nf-surface-primary: var(--nf-ink-900);
   --nf-surface-secondary: var(--nf-ink-850);
   --nf-surface-elevated: var(--nf-ink-800);
   --nf-surface-raised: var(--nf-ink-750);
-  --nf-surface-inset: color-mix(in oklab, var(--nf-ink-950) 70%, black);
+  --nf-surface-inset: #04050B;
 
   /* Content */
   --nf-content-primary: var(--nf-mist-100);
@@ -132,18 +145,107 @@
    * NaijaFinds Material. Four surface families (Design prompt §5).
    * ------------------------------------------------------------------ */
 
-  /* Glass depth: used for floating nav, map controls, hero overlays */
-  --nf-glass-fill: rgb(255 255 255 / 0.055);
-  --nf-glass-fill-strong: rgb(255 255 255 / 0.09);
-  --nf-glass-border: rgb(255 255 255 / 0.11);
-  --nf-glass-blur: 22px;
+  /*
+   * Glass. Four ingredients, always all four:
+   *   1. backdrop blur + saturation lift        (the material)
+   *   2. a bright 1px inner highlight on top    (the lit leading edge)
+   *   3. a hairline border                      (the physical edge)
+   *   4. a two-layer ambient shadow             (the object sitting in space)
+   *
+   * A surface carrying fewer than four of these is not glass and must not use
+   * these tokens. The previous set shipped only 1 and 3, which is why every
+   * sticky header on the platform - 28 of them - read as a flat translucent
+   * panel. --nf-glass-specular existed here and was referenced by nothing.
+   */
+
+  /* Fill: three depths. Chrome sits over content; panels sit over canvas. */
+  --nf-glass-fill-thin: rgb(255 255 255 / 0.045);
+  --nf-glass-fill: rgb(255 255 255 / 0.075);
+  --nf-glass-fill-strong: rgb(255 255 255 / 0.11);
+
+  /* Blur ladder, matched to the fill ladder. */
+  --nf-glass-blur-thin: 14px;
+  --nf-glass-blur: 26px;
+  --nf-glass-blur-strong: 40px;
+  --nf-glass-saturate: 165%;
+  /* Retained: existing call sites use the soft blur for light overlays. */
   --nf-glass-blur-soft: 12px;
+
+  /* Edges. The top rim is BRIGHTER than the border; that asymmetry is the tell. */
+  --nf-glass-border: rgb(255 255 255 / 0.11);
+  --nf-glass-rim: rgb(255 255 255 / 0.22);
+  --nf-glass-rim-strong: rgb(255 255 255 / 0.34);
+  --nf-glass-floor: rgb(0 0 0 / 0.22);
+
+  /* Ambient shadow, two layers: contact + spread. */
+  --nf-glass-shadow:
+    0 1px 2px rgb(0 0 0 / 0.34),
+    0 12px 32px -8px rgb(0 0 0 / 0.46);
+  --nf-glass-shadow-lifted:
+    0 2px 4px rgb(0 0 0 / 0.32),
+    0 20px 56px -12px rgb(0 0 0 / 0.55);
+
   --nf-glass-specular: linear-gradient(
-    145deg,
-    rgb(255 255 255 / 0.16) 0%,
-    rgb(255 255 255 / 0.02) 38%,
-    transparent 65%
+    152deg,
+    rgb(255 255 255 / 0.14) 0%,
+    rgb(255 255 255 / 0.04) 34%,
+    transparent 62%
   );
+
+  /* ---------------------------------------------------------------------
+   * Elevation ladder. Six rungs. Every rung is ambient + direct, never one
+   * flat drop, and every rung carries its own rim: the inner top highlight
+   * that makes a surface read as lit rather than pasted on. The rim is part
+   * of the rung, not an optional extra.
+   *
+   * This replaces --nf-shadow-sm|card|lifted|float, of which -sm had zero
+   * uses and -float, the highest surface on the platform, was a single flat
+   * drop shadow.
+   * ------------------------------------------------------------------ */
+
+  /* 0 - ground: the page itself */
+  --nf-elev-0: none;
+  --nf-elev-0-rim: none;
+
+  /* 1 - card: resting content */
+  --nf-elev-1:
+    0 1px 1px rgb(0 0 0 / 0.30),
+    0 4px 12px -2px rgb(0 0 0 / 0.34);
+  --nf-elev-1-rim: inset 0 1px 0 rgb(255 255 255 / 0.07);
+
+  /* 2 - raised: hover, selected, a card that has come forward */
+  --nf-elev-2:
+    0 2px 3px rgb(0 0 0 / 0.32),
+    0 10px 26px -4px rgb(0 0 0 / 0.42);
+  --nf-elev-2-rim: inset 0 1px 0 rgb(255 255 255 / 0.10);
+
+  /* 3 - sheet: bottom sheets, drawers, popovers anchored to an edge */
+  --nf-elev-3:
+    0 2px 4px rgb(0 0 0 / 0.34),
+    0 -1px 0 rgb(255 255 255 / 0.05),
+    0 -20px 48px -12px rgb(0 0 0 / 0.55);
+  --nf-elev-3-rim: inset 0 1px 0 rgb(255 255 255 / 0.14);
+
+  /* 4 - modal: centred dialogs, detached from every edge */
+  --nf-elev-4:
+    0 4px 8px rgb(0 0 0 / 0.34),
+    0 24px 64px -12px rgb(0 0 0 / 0.62);
+  --nf-elev-4-rim: inset 0 1px 0 rgb(255 255 255 / 0.16);
+
+  /* 5 - toast: the topmost transient object */
+  --nf-elev-5:
+    0 2px 4px rgb(0 0 0 / 0.30),
+    0 12px 28px -6px rgb(0 0 0 / 0.50),
+    0 32px 72px -20px rgb(0 0 0 / 0.40);
+  --nf-elev-5-rim: inset 0 1px 0 rgb(255 255 255 / 0.20);
+
+  /* Borders scale with the rung: higher surfaces need a stronger edge to
+     survive against the brighter blur behind them. */
+  --nf-elev-1-border: rgb(255 255 255 / 0.08);
+  --nf-elev-2-border: rgb(255 255 255 / 0.11);
+  --nf-elev-3-border: rgb(255 255 255 / 0.14);
+  --nf-elev-4-border: rgb(255 255 255 / 0.16);
+  --nf-elev-5-border: rgb(255 255 255 / 0.18);
 
   /*
    * Signature gradients.
@@ -184,12 +286,16 @@
   --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-400) 80%, transparent) 0%, transparent 62%);
 
   /* ---------------------------------------------------------------------
-   * Elevation
+   * Elevation, legacy names.
+   *
+   * The real ladder is --nf-elev-0..5 above. These four remain only as
+   * aliases so the existing call sites keep working while they migrate; they
+   * now resolve to ladder rungs rather than the flat single drops they used
+   * to be. --nf-shadow-sm had zero uses and is gone. Do not add new uses.
    * ------------------------------------------------------------------ */
-  --nf-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-  --nf-shadow-card: 0 4px 20px -4px rgb(0 0 0 / 0.55), 0 1px 2px rgb(0 0 0 / 0.4);
-  --nf-shadow-lifted: 0 18px 48px -12px rgb(0 0 0 / 0.7), 0 4px 12px rgb(0 0 0 / 0.4);
-  --nf-shadow-float: 0 32px 80px -16px rgb(0 0 0 / 0.8);
+  --nf-shadow-card: var(--nf-elev-1);
+  --nf-shadow-lifted: var(--nf-elev-2);
+  --nf-shadow-float: var(--nf-elev-4);
   --nf-glow-brand: 0 0 0 1px color-mix(in oklab, var(--nf-electric-500) 35%, transparent),
                    0 12px 40px -8px color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
   --nf-glow-accent: 0 12px 40px -10px color-mix(in oklab, var(--nf-electric-400) 45%, transparent);
@@ -301,7 +407,14 @@
 
   --nf-content-primary: #16181D;
   --nf-content-secondary: #41464F;
-  --nf-content-muted: #7A8189;
+  /*
+   * Muted ink was #7A8189, which measured 3.94:1 on white and 3.61:1 on the
+   * canvas and so failed WCAG AA at ~290 call sites, 30 of them at 10-11px.
+   * Only .nf-overline had been patched; the token itself stayed broken.
+   * #676E76 measures 5.16:1 on white, 4.73:1 on canvas and 4.60:1 on inset,
+   * so it clears AA on every light surface the product actually paints on.
+   */
+  --nf-content-muted: #676E76;
   --nf-content-on-brand: #FFFFFF;
 
   /* Vivid brand blue that holds contrast on paper. */
@@ -315,13 +428,87 @@
   --nf-border-default: rgb(18 21 26 / 0.13);
   --nf-border-strong: rgb(18 21 26 / 0.22);
 
-  --nf-glass-fill: rgb(255 255 255 / 0.88);
-  --nf-glass-fill-strong: rgb(255 255 255 / 0.96);
-  --nf-glass-border: rgb(18 21 26 / 0.08);
+  /*
+   * Daylight glass. Same four ingredients as the night theme, tuned for paper:
+   * the fill is near-opaque white, the rim is pure white rather than a
+   * translucent lift, and the floor is a soft neutral instead of black. The
+   * light theme previously ran backdrop-filter: none, so its "glass" was an
+   * opaque white box.
+   */
+  --nf-glass-fill-thin: rgb(255 255 255 / 0.72);
+  --nf-glass-fill: rgb(255 255 255 / 0.86);
+  --nf-glass-fill-strong: rgb(255 255 255 / 0.95);
+  --nf-glass-border: rgb(18 21 26 / 0.10);
+  --nf-glass-rim: rgb(255 255 255 / 0.9);
+  --nf-glass-rim-strong: rgb(255 255 255 / 1);
+  --nf-glass-floor: rgb(18 21 26 / 0.05);
+  --nf-glass-shadow:
+    0 1px 1px rgb(18 21 26 / 0.05),
+    0 8px 24px -6px rgb(18 21 26 / 0.10);
+  --nf-glass-shadow-lifted:
+    0 2px 3px rgb(18 21 26 / 0.06),
+    0 18px 44px -10px rgb(18 21 26 / 0.16);
+  --nf-glass-specular: linear-gradient(
+    152deg,
+    rgb(255 255 255 / 0.9) 0%,
+    rgb(255 255 255 / 0.3) 30%,
+    transparent 60%
+  );
 
-  --nf-shadow-card: 0 1px 2px rgb(18 21 26 / 0.04), 0 4px 16px -4px rgb(18 21 26 / 0.06);
-  --nf-shadow-lifted: 0 14px 34px -14px rgb(18 21 26 / 0.14);
-  --nf-shadow-float: 0 28px 64px -20px rgb(18 21 26 / 0.18);
+  /*
+   * Daylight elevation ladder - clean flat, not neumorphic.
+   *
+   * The owner picked the reference-2 direction: bright, airy, crisp cards with
+   * soft single-direction shadows, rather than the dual-shadow raised-plastic
+   * look of references 8 and 9. So there is no white light-source layer here.
+   * Depth comes from three things instead: a genuinely soft ambient shadow
+   * that grows with the rung, a hairline border that strengthens with it, and
+   * a white rim that keeps the top edge crisp against the shadow below it.
+   *
+   * Shadow ink is a cool near-black matching --nf-content-primary rather than
+   * pure black, so shadows sit in the same family as the type.
+   */
+  --nf-elev-1:
+    0 1px 2px rgb(18 21 26 / 0.05),
+    0 4px 14px -3px rgb(18 21 26 / 0.07);
+  --nf-elev-1-rim: inset 0 1px 0 rgb(255 255 255 / 0.9);
+
+  --nf-elev-2:
+    0 2px 4px rgb(18 21 26 / 0.06),
+    0 10px 28px -6px rgb(18 21 26 / 0.11);
+  --nf-elev-2-rim: inset 0 1px 0 rgb(255 255 255 / 1);
+
+  --nf-elev-3:
+    0 -1px 0 rgb(18 21 26 / 0.05),
+    0 -18px 44px -12px rgb(18 21 26 / 0.14);
+  --nf-elev-3-rim: inset 0 1px 0 rgb(255 255 255 / 1);
+
+  --nf-elev-4:
+    0 4px 8px rgb(18 21 26 / 0.07),
+    0 24px 60px -14px rgb(18 21 26 / 0.18);
+  --nf-elev-4-rim: inset 0 1px 0 rgb(255 255 255 / 1);
+
+  --nf-elev-5:
+    0 2px 4px rgb(18 21 26 / 0.06),
+    0 12px 28px -6px rgb(18 21 26 / 0.12),
+    0 32px 72px -20px rgb(18 21 26 / 0.10);
+  --nf-elev-5-rim: inset 0 1px 0 rgb(255 255 255 / 1);
+
+  /*
+   * Borders do the heavy lifting in a flat light theme. The old card border
+   * measured 1.10:1 against the canvas, which is invisible; these start at a
+   * readable hairline and strengthen up the ladder.
+   */
+  --nf-elev-1-border: rgb(18 21 26 / 0.10);
+  --nf-elev-2-border: rgb(18 21 26 / 0.13);
+  --nf-elev-3-border: rgb(18 21 26 / 0.14);
+  --nf-elev-4-border: rgb(18 21 26 / 0.16);
+  --nf-elev-5-border: rgb(18 21 26 / 0.18);
+
+  /* Legacy aliases, kept until every call site moves to the ladder above. */
+  --nf-shadow-card: var(--nf-elev-1);
+  --nf-shadow-lifted: var(--nf-elev-2);
+  --nf-shadow-float: var(--nf-elev-4);
 
   /* Flat neutral canvas. The blooms are switched off entirely in daylight. */
   --nf-canvas-base: #F4F5F7;
@@ -338,12 +525,33 @@
    * tints under the darker ink.
    */
   --nf-electric-300: #0C2FE8;
-  --nf-state-success: #0B8A5C;
+  /* 5.36:1 on white, 4.85:1 on its own tint. Was #0B8A5C, which measured
+     4.37:1 on white and dropped to 3.79:1 once the badge tint sat under it. */
+  --nf-state-success: #0A7A51;
   /* Deep cyan, not the burnt orange this used to be. The bright cyan the dark
      theme uses is invisible on white, so daylight steps it down until small
      bold text clears 4.5:1, exactly as success and error do. */
   --nf-state-warning: #0E6E8C;
-  --nf-state-error: var(--nf-crimson-500);
+  /* 6.22:1 on white. Was --nf-crimson-500 (#DC143C), which cleared white at
+     4.99:1 but fell to 3.95:1 on the rose badge tint. */
+  --nf-state-error: #C10E32;
+  /*
+   * Info was the one state colour the daylight contrast pass missed entirely:
+   * it stayed on --nf-sky-400 (#38BDF8) at 2.14:1, less than half the AA floor.
+   * #0369A1 measures 5.93:1 on white and 5.44:1 on canvas.
+   */
+  --nf-state-info: #0369A1;
+
+  /*
+   * Badge tints derive from the daylight inks above rather than the Layer 1
+   * raw palette. Deriving from the raw brights meant the tint was mixed from
+   * one colour and the label painted in another, which is what pushed the
+   * success and error badges under AA even after their inks were stepped down.
+   */
+  --nf-state-success-surface: color-mix(in oklab, var(--nf-state-success) 12%, transparent);
+  --nf-state-warning-surface: color-mix(in oklab, var(--nf-state-warning) 12%, transparent);
+  --nf-state-error-surface: color-mix(in oklab, var(--nf-state-error) 12%, transparent);
+  --nf-state-info-surface: color-mix(in oklab, var(--nf-state-info) 12%, transparent);
   /* Rating rides --nf-electric-300, so it follows this deeper blue on paper
      without needing its own daylight value. */
 }

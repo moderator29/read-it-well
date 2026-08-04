@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
 import { fill } from "../_copy";
@@ -31,6 +30,7 @@ import {
   type PropertyType,
 } from "@/lib/agent/listings-schema";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
 /**
  * The List Apartment wizard: seven steps, canon reference 03.
@@ -659,12 +659,12 @@ export function ListingWizard({
         description={copy.submitted.body}
         actions={
           <>
-            <Link href="/agent/listings" className="nf-btn nf-btn--primary">
+            <ButtonLink href="/agent/listings" variant="primary">
               {copy.submitted.goToListings}
-            </Link>
-            <Link href="/agent/list" className="nf-btn nf-btn--glass">
+            </ButtonLink>
+            <ButtonLink href="/agent/list" variant="secondary">
               {copy.submitted.another}
-            </Link>
+            </ButtonLink>
           </>
         }
       />
@@ -854,19 +854,15 @@ export function ListingWizard({
               className="sr-only"
               onChange={(e) => void onFiles(e.target.files)}
             />
-            <button
-              type="button"
-              className="nf-btn nf-btn--glass w-full"
+            <Button
+              variant="secondary"
+              full
+              leadingIcon="grid"
               onClick={() => fileInput.current?.click()}
-              disabled={uploading}
+              loading={uploading}
             >
-              <UiIcon name="grid" size={18} />
-              {uploading
-                ? copy.photos.uploading
-                : photos.length > 0
-                  ? copy.photos.addMore
-                  : copy.photos.choose}
-            </button>
+              {photos.length > 0 ? copy.photos.addMore : copy.photos.choose}
+            </Button>
 
             {photoNotice && (
               <p
@@ -1255,14 +1251,16 @@ export function ListingWizard({
               })}
             </ul>
 
-            <button
-              type="button"
-              className="nf-btn nf-btn--primary mt-6 w-full"
+            <Button
+              variant="primary"
+              full
+              className="mt-6"
               onClick={send}
-              disabled={pending || unmet.length > 0}
+              disabled={unmet.length > 0}
+              loading={pending}
             >
-              {pending ? copy.submit.sending : copy.submit.action}
-            </button>
+              {copy.submit.action}
+            </Button>
             <p className="mt-3 text-center text-[0.75rem] text-[var(--nf-content-muted)]">
               {copy.submit.note}
             </p>
@@ -1279,27 +1277,27 @@ export function ListingWizard({
       {/* Sticky step footer: the way forward never moves. */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 lg:left-[var(--nf-rail-width)]">
         <div className="mx-auto flex max-w-2xl items-center gap-4">
-          <button
-            type="button"
-            className="nf-btn nf-btn--glass flex-1"
+          <Button
+            variant="secondary"
+            className="flex-1"
             onClick={() => go(step - 1)}
             disabled={step === 0 || pending}
           >
             {copy.wizard.back}
-          </button>
+          </Button>
           {step < STEP_KEYS.length - 1 ? (
-            <button
-              type="button"
-              className="nf-btn nf-btn--primary flex-1"
+            <Button
+              variant="primary"
+              className="flex-1"
               onClick={() => go(step + 1)}
-              disabled={pending}
+              loading={pending}
             >
-              {pending ? copy.wizard.saving : copy.wizard.next}
-            </button>
+              {copy.wizard.next}
+            </Button>
           ) : (
-            <Link href="/agent/listings" className="nf-btn nf-btn--glass flex-1">
+            <ButtonLink href="/agent/listings" variant="secondary" className="flex-1">
               {copy.wizard.myListings}
-            </Link>
+            </ButtonLink>
           )}
         </div>
       </div>

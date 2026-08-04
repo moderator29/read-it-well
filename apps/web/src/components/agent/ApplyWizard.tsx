@@ -6,6 +6,7 @@ import { submitAgentApplication, type ApplicationResult } from "@/lib/agent/appl
 import { NIGERIAN_BANKS, NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { createClient } from "@/lib/supabase/client";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 
 const EMPTY: ApplicationResult = { ok: false };
 const DRAFT_KEY = "nf_agent_application_draft";
@@ -365,29 +366,31 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
 
         {/* Nav */}
         <div className="mt-7 flex items-center justify-between gap-4">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={step === 0}
-            className="nf-btn nf-btn--glass disabled:opacity-40"
+            leadingIcon="arrow-left"
           >
-            <UiIcon name="arrow-right" size={16} className="rotate-180" />
             {a.back}
-          </button>
+          </Button>
 
           <span className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
             {step + 1} / {stepTitles.length}
           </span>
 
           {step < last ? (
-            <button type="button" onClick={() => setStep((s) => Math.min(last, s + 1))} className="nf-btn nf-btn--primary">
+            <Button
+              variant="primary"
+              onClick={() => setStep((s) => Math.min(last, s + 1))}
+              trailingIcon="arrow-right"
+            >
               {a.next}
-              <UiIcon name="arrow-right" size={16} />
-            </button>
+            </Button>
           ) : (
-            <button type="submit" disabled={pending || uploading} className="nf-btn nf-btn--primary">
-              {uploading ? "Finishing your uploads..." : pending ? a.submitting : a.submit}
-            </button>
+            <Button type="submit" variant="primary" loading={pending || uploading}>
+              {a.submit}
+            </Button>
           )}
         </div>
       </form>

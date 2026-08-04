@@ -24,7 +24,7 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
   ];
 
   return (
-    <header className="sticky top-0 z-50">
+    <header className="nf-safe-top sticky top-0 z-50">
       <div className="nf-glass border-b border-transparent">
         <div className="nf-shell flex h-[60px] items-center justify-between gap-4 sm:h-[72px] sm:gap-6">
           <Link href="/" aria-label={t.a11y.logoHome} className="shrink-0">

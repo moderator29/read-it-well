@@ -13,6 +13,7 @@
 
 export type UiIconName =
   | "search"
+  | "close"
   | "star"
   | "bed"
   | "bath"
@@ -257,6 +258,19 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="m10.3 12.9 8.6-8.6" />
       <path d="m15.6 4.9 3 3" />
       <path d="m12.9 8.3 2.4 2.4" />
+    </>
+  ),
+  /*
+   * Close. Four sheets were painting `&times;` instead, which is a typographic
+   * multiplication sign: it renders at the font's own weight rather than the
+   * icon stroke, sits on the text baseline instead of the optical centre, and
+   * drifted across three different font sizes. Drawn on the same 24 grid as
+   * the rest of the set, it inherits strokeWidth and centres properly.
+   */
+  close: (
+    <>
+      <path d="M6.4 6.4 17.6 17.6" />
+      <path d="M17.6 6.4 6.4 17.6" />
     </>
   ),
 };

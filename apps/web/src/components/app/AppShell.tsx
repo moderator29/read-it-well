@@ -87,7 +87,7 @@ export function AppShell({
       >
         {/* ------------------------------------------------------- top bar */}
         {!immersive && (
-        <header className="nf-glass sticky top-0 z-40 border-b border-[var(--nf-border-subtle)]">
+        <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
           <div className="flex h-[64px] items-center gap-4 px-4 sm:gap-4 sm:px-5 md:px-8">
             {/* Phones lead with the side navigation, exactly like the desktop left rail. */}
             <button

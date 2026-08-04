@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition, type ReactNode } from "reac
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { fill, type AdminCommon, type AdminCopy } from "./copy";
 import {
@@ -121,9 +122,9 @@ function ActionSheet({
             <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
               {successBody}
             </p>
-            <button type="button" onClick={onClose} className="nf-btn nf-btn--primary mt-4 w-full">
+            <Button variant="primary" full onClick={onClose} className="mt-4">
               {common.done}
-            </button>
+            </Button>
           </div>
         ) : (
           <>
@@ -159,22 +160,18 @@ function ActionSheet({
             )}
 
             <div className="mt-4 grid gap-3">
-              <button
-                type="button"
+              <Button
+                variant={destructive ? "dangerQuiet" : "primary"}
+                full
                 onClick={submit}
-                disabled={pending || blocked}
-                className="nf-btn nf-btn--primary w-full disabled:opacity-60"
-                style={
-                  destructive
-                    ? { background: "var(--nf-state-error)", boxShadow: "none" }
-                    : undefined
-                }
+                disabled={blocked}
+                loading={pending}
               >
-                {pending ? common.working : confirmLabel}
-              </button>
-              <button type="button" onClick={onClose} className="nf-btn nf-btn--glass w-full">
+                {confirmLabel}
+              </Button>
+              <Button variant="secondary" full onClick={onClose}>
                 {common.notNow}
-              </button>
+              </Button>
             </div>
           </>
         )}
@@ -204,12 +201,12 @@ export function FlagDecision({
   return (
     <>
       <Row>
-        <button type="button" onClick={() => setSheet("cleared")} className="nf-btn nf-btn--primary">
+        <Button variant="primary" onClick={() => setSheet("cleared")}>
           {copy.clear}
-        </button>
-        <button type="button" onClick={() => setSheet("escalated")} className="nf-btn nf-btn--glass">
+        </Button>
+        <Button variant="secondary" onClick={() => setSheet("escalated")}>
           {copy.escalate}
-        </button>
+        </Button>
       </Row>
 
       {sheet === "cleared" && (
@@ -257,9 +254,9 @@ export function AlertResolve({
   return (
     <>
       <Row>
-        <button type="button" onClick={() => setOpen(true)} className="nf-btn nf-btn--primary">
+        <Button variant="primary" onClick={() => setOpen(true)}>
           {copy.resolve}
-        </button>
+        </Button>
       </Row>
 
       {open && (
@@ -299,20 +296,16 @@ export function ReportDecision({
     <>
       <Row>
         {status === "open" && (
-          <button
-            type="button"
-            onClick={() => setSheet("reviewing")}
-            className="nf-btn nf-btn--glass"
-          >
+          <Button variant="secondary" onClick={() => setSheet("reviewing")}>
             {copy.startReview}
-          </button>
+          </Button>
         )}
-        <button type="button" onClick={() => setSheet("resolved")} className="nf-btn nf-btn--primary">
+        <Button variant="primary" onClick={() => setSheet("resolved")}>
           {copy.resolve}
-        </button>
-        <button type="button" onClick={() => setSheet("dismissed")} className="nf-btn nf-btn--glass">
+        </Button>
+        <Button variant="secondary" onClick={() => setSheet("dismissed")}>
           {copy.dismiss}
-        </button>
+        </Button>
       </Row>
 
       {sheet === "reviewing" && (
@@ -381,24 +374,15 @@ export function ApplicationDecision({
   return (
     <>
       <Row>
-        <button type="button" onClick={() => setSheet("approve")} className="nf-btn nf-btn--primary">
+        <Button variant="primary" onClick={() => setSheet("approve")}>
           {copy.approve}
-        </button>
-        <button
-          type="button"
-          onClick={() => setSheet("request_changes")}
-          className="nf-btn nf-btn--glass"
-        >
+        </Button>
+        <Button variant="secondary" onClick={() => setSheet("request_changes")}>
           {copy.requestChanges}
-        </button>
-        <button
-          type="button"
-          onClick={() => setSheet("reject")}
-          className="nf-btn nf-btn--glass"
-          style={{ color: "var(--nf-state-error)" }}
-        >
+        </Button>
+        <Button variant="dangerQuiet" onClick={() => setSheet("reject")}>
           {copy.reject}
-        </button>
+        </Button>
       </Row>
 
       {sheet === "approve" && (
@@ -476,29 +460,20 @@ export function ListingDecision({
     <>
       <Row>
         {status === "APPROVED" ? (
-          <button type="button" onClick={() => setSheet("publish")} className="nf-btn nf-btn--primary">
+          <Button variant="primary" onClick={() => setSheet("publish")}>
             {copy.publish}
-          </button>
+          </Button>
         ) : (
-          <button type="button" onClick={() => setSheet("approve")} className="nf-btn nf-btn--primary">
+          <Button variant="primary" onClick={() => setSheet("approve")}>
             {copy.approve}
-          </button>
+          </Button>
         )}
-        <button
-          type="button"
-          onClick={() => setSheet("request_changes")}
-          className="nf-btn nf-btn--glass"
-        >
+        <Button variant="secondary" onClick={() => setSheet("request_changes")}>
           {copy.requestChanges}
-        </button>
-        <button
-          type="button"
-          onClick={() => setSheet("reject")}
-          className="nf-btn nf-btn--glass"
-          style={{ color: "var(--nf-state-error)" }}
-        >
+        </Button>
+        <Button variant="dangerQuiet" onClick={() => setSheet("reject")}>
           {copy.reject}
-        </button>
+        </Button>
       </Row>
 
       {sheet === "approve" && (
@@ -618,14 +593,14 @@ export function TicketReply({
       )}
 
       <div className="mt-2.5 flex flex-wrap items-center gap-4">
-        <button
-          type="button"
+        <Button
+          variant="primary"
           onClick={send}
-          disabled={pending || body.trim().length < 2}
-          className="nf-btn nf-btn--primary disabled:opacity-60"
+          disabled={body.trim().length < 2}
+          loading={pending}
         >
-          {pending ? copy.reply.sending : copy.reply.send}
-        </button>
+          {copy.reply.send}
+        </Button>
         <span className="text-[0.75rem] text-[var(--nf-content-muted)]">{copy.reply.note}</span>
       </div>
     </div>
@@ -712,23 +687,13 @@ export function SwitchControl({
   return (
     <>
       {enabled ? (
-        <button
-          type="button"
-          onClick={() => setConfirming(true)}
-          className="nf-btn nf-btn--glass shrink-0"
-          style={{ color: "var(--nf-state-error)" }}
-        >
+        <Button variant="dangerQuiet" onClick={() => setConfirming(true)} className="shrink-0">
           {copy.switchOff}
-        </button>
+        </Button>
       ) : (
-        <button
-          type="button"
-          onClick={turnOn}
-          disabled={pending}
-          className="nf-btn nf-btn--primary shrink-0 disabled:opacity-60"
-        >
-          {pending ? common.working : copy.switchOn}
-        </button>
+        <Button variant="primary" onClick={turnOn} loading={pending} className="shrink-0">
+          {copy.switchOn}
+        </Button>
       )}
 
       {result && !result.ok && (

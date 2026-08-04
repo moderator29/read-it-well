@@ -83,9 +83,7 @@ export function ListingOptionsSheet({
             </p>
           </div>
           <button type="button" aria-label="Close" onClick={onClose} className="nf-icon-btn h-9 w-9">
-            <span aria-hidden="true" className="text-[1.05rem] leading-none">
-              &times;
-            </span>
+            <UiIcon name="close" size={16} />
           </button>
         </div>
 

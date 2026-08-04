@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * Listing card media.
@@ -51,34 +52,19 @@ function PartnerActions({ listing }: { listing: Listing }) {
   return (
     <div className="flex flex-wrap items-center gap-2 px-4 pb-4">
       {book && (
-        <a
-          href={book}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="nf-btn nf-btn--glass h-9 px-3.5 text-[0.8125rem]"
-        >
+        <ButtonLink href={book} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
           Book
-        </a>
+        </ButtonLink>
       )}
       {directions && (
-        <a
-          href={directions}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="nf-btn nf-btn--glass h-9 px-3.5 text-[0.8125rem]"
-        >
+        <ButtonLink href={directions} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
           Directions
-        </a>
+        </ButtonLink>
       )}
       {venue && (
-        <a
-          href={venue}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="nf-btn nf-btn--glass h-9 px-3.5 text-[0.8125rem]"
-        >
+        <ButtonLink href={venue} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
           Menu
-        </a>
+        </ButtonLink>
       )}
       {partner?.attribution === "Google" && (
         <span className="ml-auto text-[0.6875rem] text-[var(--nf-content-muted)]">

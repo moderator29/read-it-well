@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 import { resolveSession } from "@/lib/actions/session";
 import { startConversation } from "@/lib/messages/actions";
 import { getMessageRepository } from "@/lib/messages/repository";
@@ -40,12 +40,12 @@ function Fallback({
           {message}
         </p>
         <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
-          <Link href={`/listing/${listingId}`} className="nf-btn nf-btn--glass">
+          <ButtonLink href={`/listing/${listingId}`} variant="secondary">
             Back to the listing
-          </Link>
-          <Link href="/messages" className="nf-btn nf-btn--primary">
+          </ButtonLink>
+          <ButtonLink href="/messages" variant="primary">
             Go to Messages
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     </div>
@@ -87,12 +87,12 @@ export default async function NewMessagePage({
             protected place.
           </p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
-            <Link href={`/listing/${listing}`} className="nf-btn nf-btn--glass">
+            <ButtonLink href={`/listing/${listing}`} variant="secondary">
               Back to the listing
-            </Link>
-            <Link href="/sign-in" className="nf-btn nf-btn--primary">
+            </ButtonLink>
+            <ButtonLink href="/sign-in" variant="primary">
               Sign in
-            </Link>
+            </ButtonLink>
           </div>
         </div>
       </div>

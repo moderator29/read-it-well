@@ -127,7 +127,6 @@ export const yo: Dictionary = {
     signInToContinue: "Wọlé láti tẹ̀síwájú",
     createAccount: "Ṣẹ̀dá àkàǹtì rẹ",
     signUpToStart: "Bẹ̀rẹ̀ ìṣàwárí ní ìṣẹ́jú kan",
-    exploreDemo: "Ṣàwárí àwòṣe",
     orContinue: "tàbí tẹ̀síwájú pẹ̀lú",
     continueWithEmail: "Tẹ̀síwájú pẹ̀lú Ímeèlì",
     continueWithGoogle: "Tẹ̀síwájú pẹ̀lú Google",

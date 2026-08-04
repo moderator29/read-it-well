@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { formatMoney, type Locale } from "@naijafinds/i18n";
 import { useStayDatesOptional } from "./StayDates";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * The sticky action bar.
@@ -61,7 +61,13 @@ export function ListingStickyBar({
       : perLabel;
 
   return (
-    <div className="sticky bottom-20 z-30 mt-8 lg:hidden">
+    /*
+     * Was `bottom-20 z-30`: 80px sat below the tab bar's 94px top edge and the
+     * lower z-index put it behind, so the price bar disappeared under the nav
+     * on notched iPhones. It now offsets by the tab bar's real measured
+     * clearance and shares its stacking level.
+     */
+    <div className="sticky bottom-[var(--nf-tabbar-clearance)] z-50 mt-8 lg:hidden">
       <div
         data-testid="listing-sticky-bar"
         className="nf-card flex items-center justify-between gap-4 p-3 pl-4"
@@ -88,22 +94,23 @@ export function ListingStickyBar({
 
         {action &&
           (action.external ? (
-            <a
+            <ButtonLink
               href={action.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="nf-btn nf-btn--primary shrink-0"
+              variant="primary"
+              className="shrink-0"
             >
               {action.label}
-            </a>
+            </ButtonLink>
           ) : action.href.startsWith("#") ? (
-            <a href={action.href} className="nf-btn nf-btn--primary shrink-0">
+            <ButtonLink href={action.href} variant="primary" className="shrink-0">
               {action.label}
-            </a>
+            </ButtonLink>
           ) : (
-            <Link href={action.href} className="nf-btn nf-btn--primary shrink-0">
+            <ButtonLink href={action.href} variant="primary" className="shrink-0">
               {action.label}
-            </Link>
+            </ButtonLink>
           ))}
       </div>
     </div>
