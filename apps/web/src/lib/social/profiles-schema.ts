@@ -70,6 +70,27 @@ export const handleSchema = z
   .regex(HANDLE_PATTERN, HANDLE_HELP);
 
 /**
+ * Names the platform keeps for itself.
+ *
+ * `private.validate_social_handle` refuses any handle containing `rentme` or
+ * `naijafinds` outright, with SQLSTATE RM002. This is that same rule, said
+ * before the round trip rather than after it, because `/u/rentme` used to offer
+ * a visitor a "Claim @rentme" button that walked them into a refusal, and
+ * `@rentme` is now a name the product itself uses in every thread.
+ *
+ * **It is deliberately not the whole rule.** The database also keeps a
+ * `private.reserved_handles` table and a ninety day lock on released handles,
+ * and neither is readable from a page. Those two still surface as the
+ * database's own sentence in the editor, which is the right place for a rule
+ * this screen cannot know. What is covered here is the one part that is
+ * knowable, permanent, and currently on screen.
+ */
+export function isOfficialHandle(handle: string): boolean {
+  const value = handle.trim().toLowerCase();
+  return value.includes("rentme") || value.includes("naijafinds");
+}
+
+/**
  * A link, kept deliberately forgiving at the front and strict at the back.
  *
  * People type `myshop.ng`, not `https://myshop.ng`, so the scheme is optional

@@ -37,16 +37,14 @@ export default async function Page({
   const read = await getListingCalendar(listingId);
 
   if (read.state === "signed-out" || read.state === "not-agent") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/listings" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/listings" profile={null}>
         <ListingPitch copy={t.agentListings.pitch} signedIn={read.state === "not-agent"} />
       </AgentShell>
     );
   }
 
   if (read.state === "unconfigured" || read.state === "missing" || read.state === "unavailable") {
-    const profile = await getAgentRepository().getProfile();
     const copy =
       read.state === "unconfigured"
         ? {
@@ -64,7 +62,7 @@ export default async function Page({
             };
 
     return (
-      <AgentShell t={t} locale={locale} active="/agent/listings" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/listings" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
           <span className="mx-auto block h-20 w-20">
             <BrandIcon name="calendar-clock" fill />
@@ -82,13 +80,10 @@ export default async function Page({
   }
 
   const context = await getAgentContext();
-  const profile =
-    context.state === "agent"
-      ? agentProfileFrom(context.agent)
-      : await getAgentRepository().getProfile();
+  const profile = context.state === "agent" ? agentProfileFrom(context.agent) : null;
 
   return (
-    <AgentShell t={t} locale={locale} active="/agent/listings" profile={profile}>
+    <AgentShell t={t} locale={locale} active="/agent/listings" profile={null}>
       <div className="mb-6">
         <Link
           href="/agent/listings"

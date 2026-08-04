@@ -190,6 +190,8 @@ export const yo: Dictionary = {
       personalDesc: "Ṣawari ki o si fi awọn ibi iyanu pamọ jákèjádò Nàìjíríà.",
       agentDesc: "Ṣakoso atokọ, ìfipamọ́, onibara àti èrè rẹ.",
       verifiedAgent: "Aṣojú Tí Fọwọ́sí",
+      visitor: "O kò wọlé gẹ́gẹ́ bí aṣojú",
+      signInToWorkspace: "Wọlé",
       workspaceLabel: "Ibi iṣẹ́ aṣojú",
       notApproved: "Ìbéèrè aṣojú rẹ wa labẹ atunyẹwo.",
     },
@@ -283,6 +285,19 @@ export const yo: Dictionary = {
       reviewNote: "Ẹgbẹ́ wa máa ń ṣàyẹ̀wò àwọn ìbéèrè láàrin wákàtí 24 sí 48.",
       backHome: "Padà sí ilé",
       enterAgent: "Wọ Ipo Aṣojú",
+      signedOutTitle: "Wọlé láti rí ìbéèrè rẹ",
+      signedOutBody:
+        "Ìbéèrè rẹ àti nọ́mbà rẹ̀ so mọ́ àkántì rẹ, nítorí náà a gbọ́dọ̀ mọ ẹni tí o jẹ́ kí a tó fi wọ́n hàn.",
+      signIn: "Wọlé",
+      noneTitle: "Kò sí ìbéèrè kankan",
+      noneBody:
+        "O kò tí ì bẹ̀rẹ̀ ìbéèrè láti di aṣojú. Ó máa gba nǹkan bí ìṣẹ́jú mẹ́wàá, o sì nílò ìwé ìdánimọ̀ kan.",
+      startApplication: "Bẹ̀rẹ̀ ìbéèrè aṣojú",
+      unconfiguredTitle: "Ìbéèrè kò tíì ṣí síbí",
+      unconfiguredBody:
+        "Ojú-ìwé yìí máa fi ìbéèrè rẹ gidi hàn ní kété tí àwọn kọ́kọ́rọ́ pèpéle bá dé. Kò sí ohun tí o ti fi ránṣẹ́ tí yóò sọnù.",
+      reviewedOn: "Ìpinnu ní",
+      reviewerNote: "Ohun tí olùyẹ̀wò sọ",
     },
     dashboard: {
       title: "Pátákó Aṣojú",

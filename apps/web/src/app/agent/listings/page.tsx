@@ -30,9 +30,8 @@ export default async function Page() {
   const context = await getAgentContext();
 
   if (context.state === "signed-out" || context.state === "not-agent") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/listings" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/listings" profile={null}>
         <ListingPitch
           copy={t.agentListings.pitch}
           signedIn={context.state === "not-agent"}
@@ -42,9 +41,8 @@ export default async function Page() {
   }
 
   if (context.state === "unconfigured") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/listings" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/listings" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
           <h1 className="nf-h2">{t.agentListings.workspace.title}</h1>
           <p className="mx-auto mt-3 max-w-[40ch] text-[var(--nf-content-secondary)]">

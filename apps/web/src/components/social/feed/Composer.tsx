@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { dropPost, replyToPost } from "@/lib/social/posts-actions";
+import { summonBot } from "@/lib/social/bot-actions";
+import { mentionsBot } from "@/lib/social/bot-schema";
 import {
   COMPOSABLE_KINDS,
   KIND_HINT,
@@ -116,9 +118,31 @@ export function Composer({
         setHeld(true);
         return;
       }
+
+      /*
+       * The summon.
+       *
+       * It runs after the post has landed rather than inside the write, because
+       * a model call inside `dropPost` would make every ordinary post wait on an
+       * API this product does not need to say a sentence. The post appears
+       * immediately, the assistant's reply arrives a moment later on the refresh,
+       * and a failed summon can never cost somebody their words: it is already
+       * saved by the time this line runs.
+       *
+       * `summonBot` answers its own refusals as replies, so nothing is shown
+       * here. A person who is over their allowance sees the assistant say so in
+       * the thread, which is where they were looking.
+       */
+      const summoned = mentionsBot(body);
+      const postId = result.data.postId;
+
       setBody("");
       onDone?.();
       router.refresh();
+
+      if (summoned) {
+        void summonBot({ postId }).then(() => router.refresh());
+      }
     });
   };
 

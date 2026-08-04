@@ -5,7 +5,12 @@ import { resolveSession } from "../actions/session";
 import { createClient } from "../supabase/server";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
-import { coverPublicUrl, type BioStatus, type ContactPolicy } from "./profiles-schema";
+import {
+  coverPublicUrl,
+  isOfficialHandle,
+  type BioStatus,
+  type ContactPolicy,
+} from "./profiles-schema";
 import {
   readAgentId,
   readAgentTrust,
@@ -146,7 +151,15 @@ export type PublicProfileState =
    * deliberate. A blocked visitor being told "this name is available" would be
    * a lie, and it would send them into a claim the unique index then refuses.
    */
-  | { state: "claimable"; handle: string; canClaim: boolean; signedIn: boolean }
+  | {
+      state: "claimable";
+      handle: string;
+      canClaim: boolean;
+      signedIn: boolean;
+      /** A name the platform keeps for itself, such as anything with `rentme`
+          in it. Never offered, and said plainly rather than silently withheld. */
+      official: boolean;
+    }
   | {
       state: "found";
       profile: SocialProfileView;
@@ -234,7 +247,12 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
     return {
       state: "claimable",
       handle,
-      canClaim: Boolean(viewerId) && !viewerHasHandle,
+      /* A name the platform keeps for itself is never offered. The database
+         refuses it with RM002, so offering it here would walk somebody into a
+         refusal, and `@rentme` is a name this product now writes into threads
+         itself. */
+      canClaim: Boolean(viewerId) && !viewerHasHandle && !isOfficialHandle(handle),
+      official: isOfficialHandle(handle),
       signedIn: Boolean(viewerId),
     };
   }

@@ -28,7 +28,8 @@ export function AgentMobileNav({
 }: {
   t: Dictionary;
   active: string;
-  profile: AgentProfile;
+  /** The real agent behind this workspace, or null when nobody is. */
+  profile: AgentProfile | null;
   /** Real unread count for the messages badge. Zero renders no badge. */
   unreadMessages?: number;
 }) {
@@ -126,7 +127,12 @@ export function AgentMobileNav({
           />
 
           <div className="mt-4 space-y-2">
-            <AgentIdentityCard profile={profile} verifiedLabel={t.agent.mode.verifiedAgent} />
+            <AgentIdentityCard
+              profile={profile}
+              verifiedLabel={t.agent.mode.verifiedAgent}
+              visitorLabel={t.agent.mode.visitor}
+              signInLabel={t.agent.mode.signInToWorkspace}
+            />
             <ModeSwitcher t={t} current="agent" variant="menu" />
           </div>
         </div>

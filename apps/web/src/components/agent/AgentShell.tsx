@@ -27,7 +27,8 @@ export async function AgentShell({
   t: Dictionary;
   locale: Locale;
   active: string;
-  profile: AgentProfile;
+  /** The real agent behind this workspace, or null when nobody is. */
+  profile: AgentProfile | null;
   children: React.ReactNode;
 }) {
   /* Resolved here rather than per page, so the badge is correct on all ten

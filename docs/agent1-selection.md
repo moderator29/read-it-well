@@ -31,7 +31,13 @@ each was a table or a column with an admin write policy and no screen at all:
 | A6 | Items 15, 16 and 17: light, water and the gate, as one migration and one wizard step | Shipped |
 | A7 | "Top experiences": five tiles, five names, one identical href | Closed by deleting the row from home. The category row above it already covers experiences once, honestly |
 
-Still open, in order, from the ranked 50 below: 18 (book for someone else), 19
+## Status, updated 2026-08-04 after the arriving-guest round
+
+| # | Item | State |
+|---|---|---|
+| 18 | Book for someone else | Shipped. `bookings.guest_name/phone/email` with four check constraints, the toggle and three fields on `ReservePanel`, the name on both the guest's and the host's booking cards, and one `announceConfirmedStay` replacing four separate copies of the confirmation email so the arriving guest is reached from all four paths that can confirm a stay. Deliberately NOT done: R-75's signed link giving the arriving guest a logged-out booking page. They get an email, not an account |
+
+Still open, in order, from the ranked 50 below: 19
 (seasons), 20 (WhatsApp share), 21 (check-in and check-out filters), then Tier C
 onward. Two items were added to the pool by this round and are ranked with Tier
 B because both are one query away from work already done:

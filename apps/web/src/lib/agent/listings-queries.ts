@@ -93,8 +93,6 @@ export function agentProfileFrom(agent: AgentIdentity): AgentProfile {
     status: agent.status,
     type: agent.type,
     verified: agent.verified,
-    applicationRef: "",
-    submittedAt: null,
   };
 }
 

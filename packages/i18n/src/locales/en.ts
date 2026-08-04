@@ -191,6 +191,8 @@ export const en = {
       personalDesc: "Discover and book amazing places across Nigeria.",
       agentDesc: "Manage your listings, bookings, customers and earnings.",
       verifiedAgent: "Verified Agent",
+      visitor: "Not signed in as an agent",
+      signInToWorkspace: "Sign in",
       workspaceLabel: "Agent workspace",
       notApproved: "Your agent application is still under review.",
     },
@@ -284,6 +286,19 @@ export const en = {
       reviewNote: "Our team typically reviews applications within 24 to 48 hours.",
       backHome: "Back to home",
       enterAgent: "Enter Agent Mode",
+      signedOutTitle: "Sign in to see your application",
+      signedOutBody:
+        "Your application and its reference are tied to your account, so we have to know who you are before we can show them.",
+      signIn: "Sign in",
+      noneTitle: "No application on file",
+      noneBody:
+        "You have not applied to become an agent yet. It takes about ten minutes and you need one photo ID.",
+      startApplication: "Apply to become an agent",
+      unconfiguredTitle: "Applications are not open here yet",
+      unconfiguredBody:
+        "This page shows your real application the moment the platform keys land. Nothing you have submitted is lost in the meantime.",
+      reviewedOn: "Decided on",
+      reviewerNote: "What the reviewer said",
     },
     dashboard: {
       title: "Agent Dashboard",

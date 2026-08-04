@@ -24,10 +24,9 @@ export async function AgentComingSoon({
 }) {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const profile = await getAgentRepository().getProfile();
 
   return (
-    <AgentShell t={t} locale={locale} active={active} profile={profile}>
+    <AgentShell t={t} locale={locale} active={active} profile={null}>
       <div className="mx-auto max-w-lg py-10 text-center sm:py-16">
         <div className="relative mx-auto grid h-24 w-24 place-items-center sm:h-28 sm:w-28">
           <span

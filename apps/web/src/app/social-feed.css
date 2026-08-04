@@ -2146,3 +2146,105 @@
     }
   }
 }
+
+@layer components {
+  /* ------------------------------------------------------------------
+   * The people directory.
+   *
+   * A search that is a form with a GET, so a search is an address somebody can
+   * send, reload or go back to, and typing it costs no JavaScript. The rows are
+   * the same shape as the follower lists on purpose: one way a person reads in
+   * this product, wherever they are being listed.
+   * ------------------------------------------------------------------ */
+  .nf-people__search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-block-start: 4px;
+    padding: 6px 6px 6px 14px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-default);
+    background: var(--nf-surface-inset);
+    color: var(--nf-content-muted);
+  }
+  .nf-people__field {
+    min-inline-size: 0;
+    flex: 1;
+    background: transparent;
+    border: 0;
+    font-size: 0.9375rem;
+    color: var(--nf-content-primary);
+  }
+  .nf-people__field::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-people__field:focus {
+    outline: none;
+  }
+  .nf-people__search:focus-within {
+    border-color: var(--nf-border-brand);
+  }
+  .nf-people__go {
+    flex-shrink: 0;
+    min-block-size: 40px;
+    padding-inline: 18px;
+    font-size: 0.8125rem;
+  }
+
+  .nf-people__row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+  }
+  .nf-people__who {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-inline-size: 0;
+    flex: 1;
+  }
+  .nf-people__avatar {
+    display: grid;
+    place-items: center;
+    inline-size: 46px;
+    block-size: 46px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-weight: 800;
+  }
+  .nf-people__avatar img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-people__name {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-people__handle {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-people__bio {
+    display: block;
+    margin-block-start: 5px;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+  }
+  .nf-people__you {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--nf-content-muted);
+  }
+}

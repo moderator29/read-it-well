@@ -40,18 +40,16 @@ export default async function Page({
   const context = await getAgentContext();
 
   if (context.state === "signed-out" || context.state === "not-agent") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/reviews" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/reviews" profile={null}>
         <ListingPitch copy={t.agentListings.pitch} signedIn={context.state === "not-agent"} />
       </AgentShell>
     );
   }
 
   if (context.state === "unconfigured") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/reviews" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/reviews" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
           <span className="mx-auto block h-20 w-20">
             <BrandIcon name="reviews" fill />
@@ -72,7 +70,7 @@ export default async function Page({
   const profile = agentProfileFrom(context.agent);
 
   return (
-    <AgentShell t={t} locale={locale} active="/agent/reviews" profile={profile}>
+    <AgentShell t={t} locale={locale} active="/agent/reviews" profile={null}>
       <div className="mb-6">
         <h1 className="nf-h1">{t.agent.nav.reviews}</h1>
         <p className="mt-1 text-[var(--nf-content-secondary)]">

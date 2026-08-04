@@ -42,18 +42,16 @@ export default async function Page() {
   const context = await getAgentContext();
 
   if (context.state === "signed-out" || context.state === "not-agent") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/earnings" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/earnings" profile={null}>
         <ListingPitch copy={t.agentListings.pitch} signedIn={context.state === "not-agent"} />
       </AgentShell>
     );
   }
 
   if (context.state === "unconfigured") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/earnings" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/earnings" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
           <span className="mx-auto block h-20 w-20">
             <BrandIcon name="wallet-secure" fill />

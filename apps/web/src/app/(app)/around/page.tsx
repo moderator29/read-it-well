@@ -62,9 +62,20 @@ export default async function AroundPage() {
         }
       />
 
-      <p className="mb-6 text-sm leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mb-4 text-sm leading-relaxed text-[var(--nf-content-muted)]">
         {AREA_COPY.what}
       </p>
+
+      {/* Places are one half of Around and people are the other, and until this
+          line existed the second half had no front door at all: a handle was
+          reachable only if you already knew it. */}
+      <Link
+        href="/u"
+        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[var(--nf-brand-secondary)]"
+      >
+        <UiIcon name="user" size={15} />
+        Find people
+      </Link>
 
       {unconfigured ? (
         <p className="nf-card mb-6 p-4 text-sm leading-relaxed text-[var(--nf-content-secondary)]">

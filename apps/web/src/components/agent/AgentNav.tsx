@@ -123,14 +123,51 @@ export function AgentNavList({
   );
 }
 
-/** Agent identity card: avatar initial, display name, verified marker. */
+/**
+ * Agent identity card: avatar initial, display name, verified marker.
+ *
+ * A null profile is a real state, not a missing one. The workspace chrome is
+ * reachable signed out, and it used to fill this card from a seed object
+ * called "Demo Agent", status APPROVED, verified true, so a stranger opening
+ * an agent route was addressed as an approved verified agent by name. The card
+ * now says what is true instead, and offers the way in.
+ */
 export function AgentIdentityCard({
   profile,
   verifiedLabel,
+  visitorLabel,
+  signInLabel,
 }: {
-  profile: AgentProfile;
+  profile: AgentProfile | null;
   verifiedLabel: string;
+  /** What the card says when nobody is signed in as an agent. */
+  visitorLabel: string;
+  signInLabel: string;
 }) {
+  if (!profile) {
+    return (
+      <div className="nf-card flex items-center gap-4 p-3">
+        <span
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--nf-border-subtle)] text-[var(--nf-content-muted)]"
+          aria-hidden="true"
+        >
+          <UiIcon name="user" size={16} />
+        </span>
+        <span className="min-w-0 flex-1 leading-tight">
+          <span className="block truncate text-[0.875rem] font-semibold text-[var(--nf-content-secondary)]">
+            {visitorLabel}
+          </span>
+          <Link
+            href="/sign-in"
+            className="mt-0.5 inline-block text-[0.75rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+          >
+            {signInLabel}
+          </Link>
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="nf-card flex items-center gap-4 p-3">
       <span

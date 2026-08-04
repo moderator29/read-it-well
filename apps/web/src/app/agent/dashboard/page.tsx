@@ -47,8 +47,12 @@ export default async function AgentDashboardPage() {
     );
   }
 
+  /* Nobody is signed in as an approved agent, so the workspace keeps its
+     designed deck and the identity card says so rather than inventing a
+     person to address. The figures below are labelled by the panel that
+     follows; the identity is not something a label can rescue. */
   const repo = getAgentRepository();
-  const [profile, d] = await Promise.all([repo.getProfile(), repo.getDashboard()]);
+  const d = await repo.getDashboard();
 
   const a = t.agent.dashboard;
 
@@ -60,7 +64,7 @@ export default async function AgentDashboardPage() {
   ];
 
   return (
-    <AgentShell t={t} locale={locale} active="/agent/dashboard" profile={profile}>
+    <AgentShell t={t} locale={locale} active="/agent/dashboard" profile={null}>
       {repo.isSeed && (
         <p className="nf-badge nf-badge--warning mb-5">{a.sampleNote}</p>
       )}

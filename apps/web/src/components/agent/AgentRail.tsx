@@ -24,7 +24,8 @@ export function AgentRail({
 }: {
   t: Dictionary;
   active: string;
-  profile: AgentProfile;
+  /** The real agent behind this workspace, or null when nobody is. */
+  profile: AgentProfile | null;
   /** Real unread count for the messages badge. Zero renders no badge. */
   unreadMessages?: number;
 }) {
@@ -47,7 +48,12 @@ export function AgentRail({
 
       {/* Identity card plus switch back to Personal Mode. */}
       <div className="mt-4 space-y-2">
-        <AgentIdentityCard profile={profile} verifiedLabel={t.agent.mode.verifiedAgent} />
+        <AgentIdentityCard
+          profile={profile}
+          verifiedLabel={t.agent.mode.verifiedAgent}
+          visitorLabel={t.agent.mode.visitor}
+          signInLabel={t.agent.mode.signInToWorkspace}
+        />
         {/* This rail only renders inside Agent Mode, so the switch always
             offers Personal, independent of the cookie's current value. */}
         <ModeSwitcher t={t} current="agent" variant="menu" />

@@ -19,15 +19,17 @@ export type AgentApplicationStatus =
 
 export type AgentType = "individual" | "business";
 
+/**
+ * The agent behind the workspace chrome. Only ever built from a real
+ * `public.agents` row through `agentProfileFrom`; there is no seed twin, and a
+ * workspace with nobody signed into it passes null rather than inventing one.
+ */
 export type AgentProfile = {
   id: string;
   displayName: string;
   status: AgentApplicationStatus;
   type: AgentType;
   verified: boolean;
-  /** Application reference in the NF-AGT-##### format the references show. */
-  applicationRef: string;
-  submittedAt: string | null;
 };
 
 /** Dashboard metrics. Money fields are integer kobo. */
@@ -68,6 +70,5 @@ export type AgentDashboard = {
 
 export interface AgentRepository {
   readonly isSeed: boolean;
-  getProfile(): Promise<AgentProfile>;
   getDashboard(): Promise<AgentDashboard>;
 }

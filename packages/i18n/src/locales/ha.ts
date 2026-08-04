@@ -190,6 +190,8 @@ export const ha: Dictionary = {
       personalDesc: "Gano da yin ajiyar wurare masu ban sha'awa a Najeriya.",
       agentDesc: "Sarrafa jeri, ajiye, abokan ciniki da samun kudi.",
       verifiedAgent: "Wakilin da aka tabbatar",
+      visitor: "Ba ka shiga a matsayin wakili ba",
+      signInToWorkspace: "Shiga",
       workspaceLabel: "Wurin aikin wakili",
       notApproved: "Ana ci gaba da nazarin bukatar wakilcin ka.",
     },
@@ -283,6 +285,19 @@ export const ha: Dictionary = {
       reviewNote: "Kungiyar mu na nazarin bukatu cikin sa'o'i 24 zuwa 48.",
       backHome: "Koma gida",
       enterAgent: "Shiga Yanayin Wakili",
+      signedOutTitle: "Shiga don ganin takardar neman ka",
+      signedOutBody:
+        "Takardar neman ka da lambarta suna haɗe da asusunka, don haka dole mu san ko wanene kai kafin mu nuna su.",
+      signIn: "Shiga",
+      noneTitle: "Babu takardar neman a rubuce",
+      noneBody:
+        "Ba ka nemi zama wakili ba tukuna. Yana ɗaukar kusan minti goma, kuma kana buƙatar shaidar hoto ɗaya.",
+      startApplication: "Nemi zama wakili",
+      unconfiguredTitle: "Ba a buɗe neman ba a nan tukuna",
+      unconfiguredBody:
+        "Wannan shafin zai nuna takardar neman ka ta gaskiya lokacin da makullan dandamali suka iso. Babu abin da ka aika da zai ɓace.",
+      reviewedOn: "An yanke shawara a",
+      reviewerNote: "Abin da mai dubawa ya ce",
     },
     dashboard: {
       title: "Dashboard na Wakili",

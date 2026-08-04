@@ -190,6 +190,8 @@ export const ig: Dictionary = {
       personalDesc: "Chọpụta ma debe ebe magburu onwe ha na Naịjirịa.",
       agentDesc: "Jikwaa ndepụta, ndebe, ndị ahịa na ego gị.",
       verifiedAgent: "Onye Nnọchi Enyochara",
+      visitor: "Ị banyeghị dịka onye nnọchi",
+      signInToWorkspace: "Banye",
       workspaceLabel: "Ebe ọrụ onye nnọchi",
       notApproved: "A ka na-enyocha arịrịọ onye nnọchi gị.",
     },
@@ -283,6 +285,19 @@ export const ig: Dictionary = {
       reviewNote: "Ndị otu anyị na-enyocha arịrịọ n'ime awa 24 ruo 48.",
       backHome: "Laghachi n'ụlọ",
       enterAgent: "Banye Ọnọdụ Onye Nnọchi",
+      signedOutTitle: "Banye ka ị hụ arịrịọ gị",
+      signedOutBody:
+        "Arịrịọ gị na nọmba ya jikọtara na akaụntụ gị, yabụ anyị ga-amara onye ị bụ tupu anyị egosi ha.",
+      signIn: "Banye",
+      noneTitle: "Enweghị arịrịọ edeturu",
+      noneBody:
+        "Ị tinyebeghị arịrịọ ịbụ onye nnọchi. Ọ na-ewe ihe dịka nkeji iri, ị ga-achọkwa otu njirimara foto.",
+      startApplication: "Tinye arịrịọ ịbụ onye nnọchi",
+      unconfiguredTitle: "Emeghebeghị arịrịọ ebe a",
+      unconfiguredBody:
+        "Ibe a ga-egosi ezigbo arịrịọ gị ozugbo igodo ikpo okwu rutere. Ọ dịghị ihe i zigara ga-efunahụ gị.",
+      reviewedOn: "Kpebiri na",
+      reviewerNote: "Ihe onye nyocha kwuru",
     },
     dashboard: {
       title: "Dashboard Onye Nnọchi",

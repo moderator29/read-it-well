@@ -318,35 +318,47 @@ Ordered by how badly each hurts somebody using the product.
 | N15 | MINOR | **A spec assertion that passed for the wrong reason.** `social-district.spec.mjs` proved `/around/new` was "a real form" by counting `form, input, select` across the whole document. The app shell carries a search field on every screen, so the check was true on a page with no form on it, and it stayed green against the paused build | Caught by running the same spec against a build with the flag off | Scoped to `main`, and the paused build asserts the paused page instead. A green check that cannot fail is worse than no check |
 | N16 | MINOR | Admin moderation would have gone dark with the rest of the layer | Considered while wiring N10 | `lib/social/admin-actions.ts` is deliberately **not** behind the flag, and now says why in the file: the most likely reason the switch is ever thrown is that something needs moderating, and a kill switch that disables the people who can fix the thing it was thrown for is one nobody dares use |
 
-### 9.2 For the lead: the mention notification
+### 9.2 Mentions: what is there, and the one thing that is wrong
 
-The parser and the links are shipped. The notification is one trigger, and it
-belongs beside the eleven that already exist rather than in application code.
+**Correction to what this document said before.** Round two reported that naming
+somebody notified nobody. That was wrong for posts: `private.fan_out_post` has
+scanned post bodies for `@handle` since the notifications migration, capped at
+five, and the lead has since added the same for story comments. The parser and
+the links shipped in round two are still the right half to own in the client,
+because a link is a render and a notification is a trigger, but nothing needs
+building here. Anybody reading the old text would have built it twice.
 
-- **Where.** An `AFTER INSERT OR UPDATE OF body ON public.posts` trigger, plus
-  the same on `public.story_comments`. Both bodies are already scanned by a
-  BEFORE trigger, so the ordering is settled: notify only when the row survived
-  the scanner as `LIVE`. **A held post must not notify**, or the scanner becomes
-  a way to make somebody's phone buzz with text nobody will ever be allowed to
-  read.
-- **The rule, matching the shipped parser exactly.**
-  `regexp_matches(new.body, '(^|[^[:alnum:]_@])@([a-z][a-z0-9_]{2,19})', 'g')`,
-  lowercased, resolved against `social_profiles.handle`. The second capture is
-  the handle. The leading-character class is the part that matters: without it
-  `ade@bola_stores.com` names a person called `bola_stores`, and an email address
-  is exactly the text this platform's scanner exists to look at.
-- **Deduplicate three ways.** Once per handle per post however many times it
-  appears; never to the author themselves; and on an edit, only to handles that
-  were **not** in the previous body, or every correction of a typo notifies the
-  same person again.
-- **Cap it.** Five mentions per post. Above that, notify nobody and let the
-  scanner see it: a body naming forty handles is not a conversation.
-- **Respect the graph.** No notification where `private.blocked_with` is true in
-  either direction, and none where the mentioned person has muted the author.
-  `notify_reaction` already reads the first of those and is the pattern to copy.
-- **Kind and copy.** `social`, href `/post/<id>`, "Somebody mentioned you in
-  Yaba." Never the body text: a notification that quotes an unread stranger is a
-  harassment surface that bypasses every block the reader has set.
+**One real defect remains, and it is the exact case the renderer refuses.**
+
+The trigger matches `'@([a-z][a-z0-9_]{2,19})'` with nothing in front of it, so a
+handle in the middle of a word counts. Probed on the live database inside a
+rolled back transaction: a post reading `send it to ade@probestranger.example
+and I will confirm` produced a notification to `@probestranger`, titled "You were
+mentioned", quoting the body back at them.
+
+That matters more here than on any other product. An email address is the single
+most likely place an `@` appears in a body of text, an off-platform payment ask
+is exactly what this platform's scanner exists to catch, and the notification
+delivers the text to somebody who never asked for it and cannot see who sent it
+without opening the thread. The shipped renderer already refuses to link it, so
+the client and the database currently disagree about what a mention is.
+
+**The fix is one character class**, and it makes the trigger agree with
+`lib/social/mentions-schema.ts`, which is proven against thirteen cases in
+`apps/web/tests/social-mentions.spec.mjs`:
+
+```
+regexp_matches(coalesce(p_post.body, ''), '(^|[^[:alnum:]_@])@([a-z][a-z0-9_]{2,19})', 'gi')
+```
+
+The handle becomes the **second** capture, so the loop reads `tok[2]`. The same
+change belongs in the story comment fan-out, which was written from the same
+pattern.
+
+Two things probed at the same time and found **correct**, recorded so nobody
+re-opens them: naming yourself in your own post notifies nobody, and `@rentme`
+resolves to no `social_profiles` row so the assistant's own name never becomes a
+notification to a person.
 
 ### 9.3 For the lead: what the AI summon path needs
 

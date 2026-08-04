@@ -200,20 +200,26 @@ export default async function SocialProfilePage({
       {view.state === "claimable" && (
         <ProfileNotice
           icon="user-verified"
-          title={`Nothing to show at @${handle}`}
+          title={
+            view.official ? `@${handle} is a RentMe name` : `Nothing to show at @${handle}`
+          }
           body={
-            view.canClaim
-              ? "Either nobody holds this handle, or its owner is not reachable from your account. If it is going spare, you can take it and it becomes your address on RentMe."
-              : view.signedIn
-                ? "Either nobody holds this handle, or its owner is not reachable from your account. You already have a page of your own, and a person keeps one handle at a time."
-                : "Nobody we can show you is at this handle. Sign in to claim it, or to see whose it is."
+            view.official
+              ? "This name is kept for RentMe itself, so nobody can hold it. @rentme is the assistant you can call into a conversation by naming it in a post."
+              : view.canClaim
+                ? "Either nobody holds this handle, or its owner is not reachable from your account. If it is going spare, you can take it and it becomes your address on RentMe."
+                : view.signedIn
+                  ? "Either nobody holds this handle, or its owner is not reachable from your account. You already have a page of your own, and a person keeps one handle at a time."
+                  : "Nobody we can show you is at this handle. Sign in to claim it, or to see whose it is."
           }
           primary={
-            view.canClaim
-              ? { href: `/u/${handle}/edit`, label: `Claim @${handle}` }
-              : view.signedIn
-                ? { href: "/profile", label: "Go to your account" }
-                : { href: "/sign-in", label: "Sign in to claim it" }
+            view.official
+              ? { href: "/around", label: "Go to Around" }
+              : view.canClaim
+                ? { href: `/u/${handle}/edit`, label: `Claim @${handle}` }
+                : view.signedIn
+                  ? { href: "/profile", label: "Go to your account" }
+                  : { href: "/sign-in", label: "Sign in to claim it" }
           }
           secondary={{ href: "/home", label: "Back to home" }}
         />
