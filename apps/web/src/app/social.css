@@ -9,4 +9,290 @@
  * than a plain hairline: a luminous ring on the border box with the fill on the
  * padding box, brightest at the upper left. That treatment is what makes this
  * feed read as RentMe rather than as a dark mode clone of somebody else.
+ *
+ * Everything here sits inside @layer components, for the same reason the rest
+ * of the platform's component classes do: Tailwind emits utilities in a later
+ * layer, so an unlayered rule here would silently beat `hidden` on the same
+ * element.
+ *
+ * Nothing below invents a hue. The only additions to the custom property space
+ * are three pieces of geometry, declared once so a card, the gap under it and
+ * the bar the cover runs behind can never drift apart.
  */
+
+:root {
+  /* The social radius. Softer than --nf-radius-lg, because a post is a spoken
+     thing and it should not read as a panel. */
+  --nf-social-radius: 20px;
+  /* The gap between independent, floating cards. They are not a list, they do
+     not share an edge, and nothing connects them. */
+  --nf-social-gap: 12px;
+  /* How far the cover runs up behind the app's own translucent top bar. */
+  --nf-social-bar: 64px;
+}
+
+@layer components {
+  /* ------------------------------------------------------------- the card */
+
+  /*
+   * A post, a profile panel, a designed empty state. Always worn alongside
+   * .nf-card, never instead of it: the material is the platform's and this
+   * class only changes the geometry. One class, one material, one place to
+   * maintain it.
+   */
+  .nf-social-card {
+    border-radius: var(--nf-social-radius);
+  }
+
+  /* Independent and floating. No connecting line, no shared edge, no notch. */
+  .nf-social-stack > * + * {
+    margin-top: var(--nf-social-gap);
+  }
+
+  /* ---------------------------------------------------------- the cover */
+
+  /*
+   * The cover is a background, not a card.
+   *
+   * It runs edge to edge of the content column and up behind the translucent
+   * top bar, so the person's own photograph is the first thing the screen is
+   * made of rather than a framed picture sitting on a page. The negative
+   * margins cancel the shell's padding exactly; the extra top offset is the
+   * bar's height, which is why it is a named constant rather than a number
+   * repeated in three places.
+   *
+   * Beyond the shell's maximum width the column stops growing and the cover
+   * stops with it. That is deliberate: reaching further would slide the
+   * artwork under the navigation rail, which is worse than a calm gutter on a
+   * very wide desktop.
+   */
+  .nf-social-cover {
+    position: relative;
+    margin-inline: -1.25rem;
+    margin-top: calc(-2rem - var(--nf-social-bar));
+    height: calc(var(--nf-social-bar) + 132px);
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  @media (min-width: 640px) {
+    .nf-social-cover {
+      margin-top: calc(-2.5rem - var(--nf-social-bar));
+      height: calc(var(--nf-social-bar) + 176px);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .nf-social-cover {
+      margin-inline: -2rem;
+    }
+  }
+
+  /*
+   * A cover nobody has set yet. Not a grey box and not a placeholder: the
+   * house material at full bleed, lit from the upper left exactly like the
+   * stride and the 3D icon family, so an empty profile still looks like it was
+   * designed rather than like it is waiting for something.
+   */
+  .nf-social-cover__art {
+    position: absolute;
+    inset: 0;
+    /*
+     * The bloom starts at the top left OF THE VISIBLE BAND, not of the element.
+     * The first 64px of this block sit behind the top bar, so a gradient
+     * anchored at 0% 0% puts its brightest point where nobody can see it and
+     * leaves the cover reading as a flat dark rectangle. That was exactly what
+     * the first screenshot showed.
+     */
+    background:
+      radial-gradient(
+        130% 150% at 0% var(--nf-social-bar),
+        color-mix(in oklab, var(--nf-brand-accent) 72%, transparent) 0%,
+        transparent 62%
+      ),
+      radial-gradient(
+        90% 120% at 100% 100%,
+        color-mix(in oklab, var(--nf-brand-primary-strong) 40%, transparent) 0%,
+        transparent 64%
+      ),
+      linear-gradient(160deg, var(--nf-surface-secondary) 0%, var(--nf-surface-canvas) 100%);
+  }
+
+  .nf-social-cover__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /*
+   * The scrim. The back control and the name sit over this, and over a real
+   * photograph white on an unknown image is a coin toss. Top and bottom only,
+   * so the middle of the picture is never dulled.
+   */
+  .nf-social-cover__scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgb(0 0 0 / 0.5) 0%, transparent 38%),
+      linear-gradient(0deg, rgb(0 0 0 / 0.42) 0%, transparent 34%);
+  }
+
+  /* The controls that ride on the cover, clear of the bar above them. */
+  .nf-social-cover__bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--nf-social-bar);
+    padding: 0.75rem 1.25rem 0;
+  }
+
+  @media (min-width: 768px) {
+    .nf-social-cover__bar {
+      padding-inline: 2rem;
+    }
+  }
+
+  /* -------------------------------------------------------- the identity */
+
+  /*
+   * The avatar overlaps the cover from below, which is what makes the cover
+   * read as behind the person rather than above them. The ring is the canvas
+   * colour, so the disc is cut cleanly out of the page in either theme.
+   */
+  .nf-social-avatar {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 5.5rem;
+    height: 5.5rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow:
+      0 0 0 3px var(--nf-surface-canvas),
+      0 12px 30px -12px rgb(0 0 0 / 0.65);
+  }
+
+  .nf-social-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Pulled up so it sits half on the cover and half on the page. */
+  .nf-social-identity {
+    margin-top: -2.75rem;
+  }
+
+  /* ---------------------------------------------------------- the counts */
+
+  /*
+   * Followers, Following, Posts. Public counts, tabular figures so a number
+   * changing does not shuffle the row, and the label is never truncated
+   * because the label is the meaning of the number beside it.
+   */
+  .nf-social-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    white-space: nowrap;
+  }
+
+  .nf-social-stat__value {
+    font-weight: 700;
+    font-size: var(--nf-text-body-lg);
+    color: var(--nf-content-primary);
+  }
+
+  .nf-social-stat__label {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------ the tabs */
+
+  .nf-social-tab {
+    position: relative;
+    flex: 1 1 0;
+    padding: 0.7rem 0.5rem;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  .nf-social-tab[aria-selected="true"] {
+    color: var(--nf-content-primary);
+  }
+
+  /*
+   * The active mark is a short stroke, not a full width underline: the same
+   * stroke the reaction marks are built from, so the whole surface reads as
+   * one geometry.
+   */
+  .nf-social-tab[aria-selected="true"]::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 1.75rem;
+    height: 2px;
+    transform: translateX(-50%);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 12px -2px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent);
+  }
+
+  /* ------------------------------------------------------ the paper twin */
+
+  /*
+   * Daylight. Flat white surfaces, neutral hairlines, brand blue only where
+   * something is active. The night cover's bloom becomes a quiet tint: a
+   * saturated band across the top of a white page reads as a smear, and the
+   * point of the empty cover is that it looks finished, not loud.
+   */
+  :root[data-theme="light"] .nf-social-cover__art {
+    background:
+      radial-gradient(
+        130% 150% at 0% var(--nf-social-bar),
+        color-mix(in oklab, var(--nf-brand-primary) 26%, transparent) 0%,
+        transparent 64%
+      ),
+      linear-gradient(160deg, var(--nf-surface-inset) 0%, var(--nf-surface-raised) 100%);
+  }
+
+  /*
+   * Daylight inverts the scrim, and it has to.
+   *
+   * The controls riding on the cover are painted in ink, because that is what
+   * daylight means here. Ink over a dark photograph behind a dark scrim is
+   * unreadable, so on paper the wash is white: the picture keeps its middle,
+   * the ink keeps its contrast, and a cover nobody has set still reads as a
+   * quiet band rather than a bruise.
+   */
+  :root[data-theme="light"] .nf-social-cover__scrim {
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.78) 0%, rgb(255 255 255 / 0.1) 42%, transparent 60%),
+      linear-gradient(0deg, rgb(255 255 255 / 0.55) 0%, transparent 32%);
+  }
+
+  :root[data-theme="light"] .nf-social-avatar {
+    box-shadow:
+      0 0 0 3px var(--nf-surface-canvas),
+      0 8px 20px -10px rgb(18 21 26 / 0.35);
+  }
+
+  :root[data-theme="light"] .nf-social-tab[aria-selected="true"]::after {
+    box-shadow: none;
+  }
+}
