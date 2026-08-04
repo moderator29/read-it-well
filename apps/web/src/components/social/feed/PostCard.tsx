@@ -43,6 +43,13 @@ export type PostListing = {
   verified: boolean;
 };
 
+export type PostMedia = {
+  /** A signed URL. `social-media` is private, so these expire. */
+  url: string;
+  width: number | null;
+  height: number | null;
+};
+
 export type PostView = {
   id: string;
   kind: "GIST" | "ASK" | "REPLY" | "SHOWCASE" | "SYSTEM";
@@ -68,6 +75,11 @@ export type PostView = {
   /** Held by the scanner. Only ever sent to its own author. */
   heldReason: string | null;
   isMine: boolean;
+  /** Own post, still LIVE, still inside the fifteen minute window. */
+  editable: boolean;
+  /** The unrendered body, for the editor. Only ever sent to its own author. */
+  rawBody: string | null;
+  media: PostMedia[];
 };
 
 function compact(n: number): string {
@@ -180,7 +192,9 @@ function PostMenu({
 }: {
   post: PostView;
   onClose: () => void;
-  onAction: (action: "copy" | "save" | "mute" | "block" | "report" | "delete") => void;
+  onAction: (
+    action: "copy" | "save" | "mute" | "block" | "report" | "delete" | "edit",
+  ) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -214,14 +228,29 @@ function PostMenu({
           {post.saved ? "Remove from saved" : "Save"}
         </button>
         {post.isMine ? (
-          <button
-            type="button"
-            role="menuitem"
-            className="nf-post__menu-item nf-post__menu-item--danger"
-            onClick={() => onAction("delete")}
-          >
-            Delete this post
-          </button>
+          <>
+            {/* Edit is offered only while the database would actually allow it.
+                A control that is present and always refused teaches people to
+                distrust the menu it sits in. */}
+            {post.editable ? (
+              <button
+                type="button"
+                role="menuitem"
+                className="nf-post__menu-item"
+                onClick={() => onAction("edit")}
+              >
+                Edit this post
+              </button>
+            ) : null}
+            <button
+              type="button"
+              role="menuitem"
+              className="nf-post__menu-item nf-post__menu-item--danger"
+              onClick={() => onAction("delete")}
+            >
+              Delete this post
+            </button>
+          </>
         ) : (
           <>
             <button type="button" role="menuitem" className="nf-post__menu-item" onClick={() => onAction("mute")}>
@@ -257,13 +286,18 @@ export function PostCard({
   onReply,
   onShare,
   onMenuAction,
+  editor,
 }: {
   post: PostView;
   onLike: () => void;
   onRepost: () => void;
   onReply: () => void;
   onShare: () => void;
-  onMenuAction: (action: "copy" | "save" | "mute" | "block" | "report" | "delete") => void;
+  onMenuAction: (
+    action: "copy" | "save" | "mute" | "block" | "report" | "delete" | "edit",
+  ) => void;
+  /** Rendered in place of the body while this post is being changed. */
+  editor?: React.ReactNode;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -364,7 +398,9 @@ export function PostCard({
         </p>
       ) : null}
 
-      {post.body ? (
+      {editor ? (
+        <div className="mt-3">{editor}</div>
+      ) : post.body ? (
         <div className={isSystem ? "mt-2" : "mt-3 flex items-center gap-3"}>
           {isSystem || isBot ? null : <Avatar author={post.author} />}
           <p

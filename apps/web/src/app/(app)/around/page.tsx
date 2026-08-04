@@ -10,6 +10,7 @@ import {
   type AreaSummary,
 } from "@/lib/social/areas-queries";
 import { AREA_COPY, AREA_KIND_LABEL, type AreaStatus } from "@/lib/social/areas-schema";
+import { AroundFab } from "@/components/social/AroundFab";
 import { JoinButton } from "./JoinButton";
 
 export const metadata: Metadata = { title: "Around" };
@@ -42,7 +43,7 @@ export default async function AroundPage() {
   const answered = proposals.filter((p) => p.status === "REJECTED");
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 pb-24 pt-4 sm:px-6">
+    <div className="mx-auto w-full max-w-3xl pb-24 pt-4">
       <PageHeader
         title="Around"
         fallback="/home"
@@ -80,7 +81,7 @@ export default async function AroundPage() {
                 className="nf-card flex items-center gap-3 p-4"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-[var(--nf-content-primary)]">
+                  <p className="text-sm font-semibold text-[var(--nf-content-primary)]">
                     {proposal.name}
                   </p>
                   <p className="mt-0.5 text-xs text-[var(--nf-content-muted)]">
@@ -160,6 +161,9 @@ export default async function AroundPage() {
           </div>
         )}
       </section>
+
+      {/* No place is known from here, so Drop gist opens with the picker. */}
+      <AroundFab />
     </div>
   );
 }
@@ -174,10 +178,20 @@ function AreaRow({
   signedIn: boolean;
 }) {
   return (
-    <li className="nf-card flex items-center gap-3 p-4">
+    <li className="nf-card flex items-start gap-3 p-4">
+      {/*
+        Nothing in this row truncates, and that is deliberate rather than
+        untidy. A place name is a proper noun, and "Magodo Phase 2 Es..." is not
+        a place anybody can recognise. The line under it carries a count and the
+        word that gives the count its meaning, which is the one thing the house
+        rules say never to cut. The blurb is capped at 200 characters by the
+        schema, so showing it whole is three lines at 390px, and three honest
+        lines beat one line ending in a full stop somebody else did not write.
+        The row wraps instead.
+      */}
       <Link href={`/around/${area.slug}`} className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="truncate text-base font-semibold text-[var(--nf-content-primary)]">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <p className="text-base font-semibold text-[var(--nf-content-primary)]">
             {area.name}
           </p>
           {area.status === "PAUSED" ? (
@@ -186,13 +200,13 @@ function AreaRow({
             </span>
           ) : null}
         </div>
-        <p className="mt-0.5 truncate text-xs text-[var(--nf-content-muted)]">
+        <p className="mt-0.5 text-xs leading-relaxed text-[var(--nf-content-muted)]">
           {AREA_KIND_LABEL[area.kind]} &middot; {area.city} &middot;{" "}
           <span className="nf-numeric">{area.memberCount.toLocaleString("en-NG")}</span>{" "}
           {area.memberCount === 1 ? "member" : "members"}
         </p>
         {area.blurb ? (
-          <p className="mt-1 line-clamp-1 text-xs text-[var(--nf-content-secondary)]">
+          <p className="mt-1 text-xs leading-relaxed text-[var(--nf-content-secondary)]">
             {area.blurb}
           </p>
         ) : null}

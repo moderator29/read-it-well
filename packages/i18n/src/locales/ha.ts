@@ -47,7 +47,8 @@ export const ha: Dictionary = {
     settings: "Saituna",
     explore: "Bincika",
     saved: "An ajiye",
-    around: "Kewaye",
+    around: "Yanki",
+    map: "Taswira",
     primaryLabel: "Na farko",
     accountLabel: "Asusu",
   },
@@ -760,7 +761,8 @@ export const ha: Dictionary = {
       listings: { label: "Nazarin jeri", short: "Jeri" },
       tickets: { label: "Tallafi", short: "Tallafi" },
       // NATIVE REVIEW: "switch" kept in English, it names a control staff use.
-      social: { label: "Kewaye", short: "Kewaye" },
+      social: { label: "Yanki", short: "Yanki" },
+      standing: { label: "Matsayi", short: "Matsayi" },
       switches: { label: "Switch", short: "Switch" },
     },
 

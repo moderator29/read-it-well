@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PostCard, type PostView } from "./PostCard";
 import { Composer } from "./Composer";
+import { ReportSheet } from "../ReportSheet";
+import { PostEditor } from "./PostEditor";
 import {
   blockUser,
   muteTarget,
@@ -13,7 +15,7 @@ import {
   toggleMark,
   toggleRepost,
 } from "@/lib/social/posts-actions";
-import { POST_COPY } from "@/lib/social/posts-schema";
+import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
 
 /**
  * The feed.
@@ -48,6 +50,13 @@ export function Feed({
   const [posts, setPosts] = useState(initial);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  /* The post a report sheet is open for. A report used to fire on the first tap
+     with reason OTHER and no way back, which is both an untriageable queue and
+     a control people learn not to touch. */
+  const [reporting, setReporting] = useState<PostView | null>(null);
+  /* The post currently being changed. One at a time: two open editors on one
+     screen is two drafts somebody can lose. */
+  const [editing, setEditing] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   // The server is the truth. When a refresh brings new props, take them.
@@ -100,7 +109,7 @@ export function Feed({
 
   const onMenuAction = (
     post: PostView,
-    action: "copy" | "save" | "mute" | "block" | "report" | "delete",
+    action: "copy" | "save" | "mute" | "block" | "report" | "delete" | "edit",
   ) => {
     if (action === "copy") {
       void navigator.clipboard?.writeText(`${window.location.origin}/post/${post.id}`);
@@ -109,6 +118,14 @@ export function Feed({
     }
     if (!signedIn) {
       router.push("/sign-in");
+      return;
+    }
+    if (action === "report") {
+      setReporting(post);
+      return;
+    }
+    if (action === "edit") {
+      setEditing(post.id);
       return;
     }
 
@@ -147,10 +164,6 @@ export function Feed({
         );
         router.refresh();
         return;
-      }
-      if (action === "report") {
-        const result = await reportPost({ postId: post.id, reason: "OTHER" });
-        setNotice(result.ok ? POST_COPY.reportedDone : result.error);
       }
     });
   };
@@ -193,6 +206,20 @@ export function Feed({
               onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
               onShare={() => onMenuAction(post, "copy")}
               onMenuAction={(action) => onMenuAction(post, action)}
+              editor={
+                editing === post.id ? (
+                  <PostEditor
+                    postId={post.id}
+                    initialBody={post.rawBody ?? post.body ?? ""}
+                    onDone={() => setEditing(null)}
+                    onSaved={(body, held) => {
+                      patch(post.id, { body, rawBody: body, edited: true });
+                      setNotice(held ? POST_COPY.editHeld : POST_COPY.editedDone);
+                      router.refresh();
+                    }}
+                  />
+                ) : undefined
+              }
             />
           </ViewportPost>
 
@@ -209,6 +236,22 @@ export function Feed({
           ) : null}
         </div>
       ))}
+
+      {reporting ? (
+        <ReportSheet
+          title="Report this post"
+          subject={
+            reporting.author?.handle
+              ? `Posted by @${reporting.author.handle}`
+              : "Posted on Around"
+          }
+          reasons={POST_REPORT_REASONS}
+          submit={({ reason, detail }) =>
+            reportPost({ postId: reporting.id, reason, detail })
+          }
+          onClose={() => setReporting(null)}
+        />
+      ) : null}
     </div>
   );
 }

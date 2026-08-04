@@ -21,7 +21,7 @@ export default async function ProposeAreaPage() {
   const signedIn = session.state === "signed-in";
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 pb-16 pt-4 sm:px-6">
+    <div className="mx-auto w-full max-w-2xl pb-16 pt-4">
       <PageHeader
         title="Suggest a place"
         fallback="/around"

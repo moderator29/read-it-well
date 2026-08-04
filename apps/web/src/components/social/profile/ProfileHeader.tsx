@@ -1,29 +1,38 @@
 import Link from "next/link";
 import { formatNumber, type Locale } from "@naijafinds/i18n";
-import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { BackChevron } from "./BackChevron";
 import type { ModeratorOf, SocialProfileView } from "@/lib/social/profiles-queries";
-import {
-  BIO_HELD_DETAIL,
-  BIO_HELD_TITLE,
-  linkLabel,
-} from "@/lib/social/profiles-schema";
+import type { AgentTrust, Occupation, ProfilePlace, Standing } from "@/lib/social/profile-extras";
+import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-schema";
 
 /**
  * The top of a person's page.
  *
- * The cover is a background rather than a card: it runs edge to edge and up
- * behind the app's own translucent top bar, and the avatar and the name block
- * overlap it from below. That single decision is what stops a profile reading
- * as a picture pasted onto a page.
+ * Read top to bottom it is: the cover, the person, what they are, who follows
+ * them, what they are good at if they sell property, what they say about
+ * themselves, and where and since when. Every one of those is a different kind
+ * of fact, so every one gets its own band and its own air. The owner asked for
+ * neat and not jam-packed twice, and the way you get that is not smaller type,
+ * it is fewer things per row.
  *
- * The name lives on the cover, because the cover is the person. The address,
- * the pronouns, the marks and the counts live underneath it on the canvas,
- * where they are read rather than looked at.
+ * **The cover is the backdrop, never a card.** It runs edge to edge and up
+ * behind the app's own translucent top bar, and the two controls that ride on
+ * it float over a scrim rather than sitting in a strip, so the photograph is
+ * the first thing the screen is made of. The avatar then overlaps its lower
+ * edge from below, which is what makes the cover read as behind the person
+ * instead of above them.
  *
- * A held bio is rendered only to its owner, and only with the honest banner
- * saying so. Everybody else is handed a profile with no bio at all, never a
- * blurred teaser, and that decision is made in the query rather than here.
+ * **The ring on the avatar is ADR-012 and not decoration.** A luminous gradient
+ * on the border box with the fill on the padding box, brightest at the upper
+ * left, lit from the same direction as the commissioned 3D icon family. It is
+ * the one thing on this page a clone cannot copy by copying the layout.
+ *
+ * Three things are deliberately absent when there is nothing true to put in
+ * them: an occupation chip nobody chose, a place nobody set, and the agent
+ * band on somebody who is not an agent. None of them becomes a dash or a
+ * placeholder. A profile should never look like a form somebody abandoned.
  */
 export function ProfileHeader({
   profile,
@@ -31,144 +40,244 @@ export function ProfileHeader({
   homeArea,
   moderatorOf,
   locale,
-  actions,
+  occupation,
+  standing,
+  place,
+  trust,
+  joinedLabel,
+  follow,
+  menu,
+  share,
 }: {
   profile: SocialProfileView;
   isOwner: boolean;
   homeArea: { slug: string; name: string; city: string } | null;
   moderatorOf: ModeratorOf[];
   locale: Locale;
-  /** Follow, message and the overflow menu, supplied by the page. */
-  actions?: React.ReactNode;
+  occupation: Occupation | null;
+  standing: Standing[];
+  place: ProfilePlace | null;
+  /** Agents only. Null on everybody else, and the band is then absent. */
+  trust: AgentTrust | null;
+  joinedLabel: string;
+  /** The follow control, supplied by the page so this stays a server component. */
+  follow?: React.ReactNode;
+  /** The overflow menu. */
+  menu?: React.ReactNode;
+  /** Share, floating on the cover. */
+  share?: React.ReactNode;
 }) {
   const name = profile.displayLabel || `@${profile.handle}`;
   const monogram = (profile.displayLabel || profile.handle).charAt(0).toUpperCase();
 
-  const stats = [
-    { key: "followers", label: "Followers", value: profile.followerCount },
-    { key: "following", label: "Following", value: profile.followingCount },
-    { key: "posts", label: "Posts", value: profile.postCount },
-  ];
-
   return (
     <header>
+      {/* ------------------------------------------------------- the cover */}
       <div className="nf-social-cover">
         {profile.coverUrl ? (
           /* The bucket is public, so the CDN URL renders without a signed
              request. next/image is skipped deliberately, exactly as the account
-             avatar does: this is one image from a host that only exists once
-             the platform keys land. */
+             avatar does: one image from a host that only exists once the
+             platform keys land. */
           // eslint-disable-next-line @next/next/no-img-element
           <img src={profile.coverUrl} alt="" className="nf-social-cover__photo" />
         ) : (
           <div className="nf-social-cover__art" aria-hidden="true" />
         )}
         <div className="nf-social-cover__scrim" aria-hidden="true" />
-        <div className="nf-social-cover__bar">
-          <PageHeader title={name} fallback="/home" backLabel="Back" />
+
+        <div className="nf-social-float nf-social-float--start">
+          <BackChevron fallback="/around" />
+        </div>
+        <div className="nf-social-float nf-social-float--end">
+          {share}
+          {menu}
         </div>
       </div>
 
-      <div className="nf-social-identity flex items-end justify-between gap-3">
-        <div className="nf-social-avatar" aria-hidden={profile.avatarUrl ? undefined : true}>
-          {profile.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={profile.avatarUrl} alt={`${name}, profile photo`} />
-          ) : (
-            monogram
-          )}
+      {/* ---------------------------------------------------- the person */}
+      <div className="nf-social-identity">
+        <div className="nf-social-avatar nf-social-avatar--ring">
+          <span className="nf-social-avatar__disc">
+            {profile.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.avatarUrl} alt={`${name}, profile photo`} />
+            ) : (
+              <span aria-hidden="true">{monogram}</span>
+            )}
+          </span>
+          {/* The dot says the account is real and reachable. It sits on the
+              avatar rather than beside the name because it is about the person,
+              not about the words. */}
+          <span
+            className={`nf-social-avatar__dot${profile.isAgent ? " nf-social-avatar__dot--agent" : ""}`}
+            aria-hidden="true"
+          />
         </div>
-        {actions && <div className="flex shrink-0 items-center gap-2 pb-1">{actions}</div>}
       </div>
 
-      <div className="mt-3">
-        <p className="text-[1.0625rem] font-semibold leading-tight">@{profile.handle}</p>
+      <div className="nf-social-namerow">
+        <div className="min-w-0">
+          <h1 className="nf-social-name">
+            <span className="truncate-none">{name}</span>
+            {profile.isAgent ? (
+              <span
+                className="nf-social-verified"
+                title="A verified RentMe agent"
+                aria-label="Verified agent"
+              >
+                <UiIcon name="verified" size={17} />
+              </span>
+            ) : null}
+          </h1>
+          <p className="nf-social-handle">@{profile.handle}</p>
+        </div>
+        {follow ? <div className="shrink-0">{follow}</div> : null}
+      </div>
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
-          {profile.pronouns && <span>{profile.pronouns}</span>}
-          {profile.pronouns && homeArea && <span aria-hidden="true">·</span>}
-          {homeArea && (
-            <span className="inline-flex items-center gap-1">
+      {/* ------------------------------------------------- what they are */}
+      {(occupation || standing.length > 0 || moderatorOf.length > 0 || profile.pidginOk) && (
+        <div className="nf-social-chips">
+          {occupation ? (
+            <span className="nf-social-chip">
+              <UiIcon name="user" size={13} />
+              {occupation.name}
+            </span>
+          ) : null}
+          {standing.map((badge) => (
+            <span key={badge.code} className="nf-social-chip nf-social-chip--brand">
+              <BrandIcon name={objectFor(badge.objectName)} size={16} />
+              {badge.name}
+            </span>
+          ))}
+          {moderatorOf.map((area) => (
+            <span key={area.slug} className="nf-social-chip">
+              <UiIcon name="key" size={13} />
+              Looks after {area.name}
+            </span>
+          ))}
+          {profile.pidginOk ? (
+            <span className="nf-social-chip">
+              <UiIcon name="chat-bubble" size={13} />
+              Pidgin welcome
+            </span>
+          ) : null}
+        </div>
+      )}
+
+      {/* --------------------------------------- followers and following */}
+      <div className="nf-social-counts">
+        <Link href={`/u/${profile.handle}/followers`} className="nf-social-count">
+          <span className="nf-social-count__value nf-numeric">
+            {formatNumber(profile.followerCount, locale)}
+          </span>
+          <span className="nf-social-count__label">Followers</span>
+        </Link>
+        <span className="nf-social-count__rule" aria-hidden="true" />
+        <Link href={`/u/${profile.handle}/following`} className="nf-social-count">
+          <span className="nf-social-count__value nf-numeric">
+            {formatNumber(profile.followingCount, locale)}
+          </span>
+          <span className="nf-social-count__label">Following</span>
+        </Link>
+      </div>
+
+      {/* --------------------------------------------- agents only, ever */}
+      {trust ? (
+        <dl className="nf-social-trust">
+          <div className="nf-social-trust__cell">
+            <dt>Trust score</dt>
+            <dd className="nf-numeric">{trust.score}</dd>
+          </div>
+          <div className="nf-social-trust__cell">
+            <dt>Completed deals</dt>
+            <dd className="nf-numeric">{formatNumber(trust.completedDeals, locale)}</dd>
+          </div>
+          <div className="nf-social-trust__cell">
+            <dt>Response time</dt>
+            <dd className="nf-numeric">{trust.responseTime}</dd>
+          </div>
+        </dl>
+      ) : null}
+
+      {/* --------------------------------------------------------- the bio */}
+      {isOwner && profile.bioStatus === "HELD" && (
+        <div role="status" className="nf-card nf-social-card mt-5 p-4">
+          <p className="text-[0.875rem] font-semibold text-[var(--nf-state-warning)]">
+            {BIO_HELD_TITLE}
+          </p>
+          <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            {BIO_HELD_DETAIL}
+          </p>
+        </div>
+      )}
+
+      {profile.bio && <p className="nf-social-bio">{profile.bio}</p>}
+
+      {profile.link && (
+        <a
+          href={profile.link}
+          rel="nofollow noopener noreferrer ugc"
+          target="_blank"
+          className="mt-3 inline-flex items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-brand-secondary)]"
+        >
+          <UiIcon name="share" size={14} />
+          {linkLabel(profile.link)}
+        </a>
+      )}
+
+      {/* ------------------------------------------------------- the meta */}
+      {(place || homeArea || joinedLabel) && (
+        <div className="nf-social-meta">
+          {place ? (
+            <span>
+              <UiIcon name="location" size={14} />
+              {place.label}
+            </span>
+          ) : homeArea ? (
+            <span>
               <UiIcon name="location" size={14} />
               {homeArea.name}, {homeArea.city}
             </span>
-          )}
-        </div>
-
-        {(profile.isAgent || moderatorOf.length > 0 || profile.pidginOk) && (
-          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-            {profile.isAgent && (
-              <span className="nf-chip gap-1.5 text-[0.75rem]">
-                <UiIcon name="verified" size={14} />
-                Agent
-              </span>
-            )}
-            {moderatorOf.map((area) => (
-              <span key={area.slug} className="nf-chip gap-1.5 text-[0.75rem]">
-                <UiIcon name="key" size={14} />
-                Looks after {area.name}
-              </span>
-            ))}
-            {profile.pidginOk && <span className="nf-chip text-[0.75rem]">Pidgin welcome</span>}
-          </div>
-        )}
-
-        {isOwner && profile.bioStatus === "HELD" && (
-          <div
-            role="status"
-            className="nf-card nf-social-card mt-3 p-4"
-            style={{ borderColor: "color-mix(in oklab, var(--nf-state-warning) 45%, transparent)" }}
-          >
-            <p className="text-[0.875rem] font-semibold text-[var(--nf-state-warning)]">
-              {BIO_HELD_TITLE}
-            </p>
-            <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              {BIO_HELD_DETAIL}
-            </p>
-          </div>
-        )}
-
-        {profile.bio && (
-          <p
-            className="mt-3 whitespace-pre-line leading-relaxed text-[var(--nf-content-secondary)]"
-            style={{ fontSize: "var(--nf-text-body-lg)" }}
-          >
-            {profile.bio}
-          </p>
-        )}
-
-        {profile.link && (
-          <a
-            href={profile.link}
-            rel="nofollow noopener noreferrer ugc"
-            target="_blank"
-            className="mt-2.5 inline-flex items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-brand-secondary)]"
-          >
-            <UiIcon name="share" size={14} />
-            {linkLabel(profile.link)}
-          </a>
-        )}
-
-        <div className="mt-3.5 flex flex-wrap items-center gap-x-5 gap-y-1.5">
-          {stats.map((stat) => (
-            <span key={stat.key} className="nf-social-stat">
-              <span className="nf-social-stat__value nf-numeric">
-                {formatNumber(stat.value, locale)}
-              </span>
-              <span className="nf-social-stat__label">{stat.label}</span>
+          ) : null}
+          {joinedLabel ? (
+            <span>
+              <UiIcon name="calendar-booking" size={14} />
+              Joined {joinedLabel}
             </span>
-          ))}
+          ) : null}
         </div>
+      )}
 
-        {isOwner && (
-          <Link
-            href={`/u/${profile.handle}/edit`}
-            className="nf-btn nf-btn--glass mt-4 w-full sm:w-auto"
-          >
-            Edit profile
-          </Link>
-        )}
-      </div>
+      {isOwner && (
+        <Link
+          href={`/u/${profile.handle}/edit`}
+          className="nf-btn nf-btn--glass mt-5 w-full sm:w-auto"
+        >
+          Edit profile
+        </Link>
+      )}
     </header>
   );
+}
+
+/**
+ * A badge names its own 3D object, and the pack is a fixed set of 57. A code
+ * that is not one of them falls back to the platform's own check mark rather
+ * than rendering a broken tile, which is the failure mode a percentage-padded
+ * icon produced here once and only a screenshot caught.
+ */
+function objectFor(name: string): BrandIconName {
+  const known = new Set<string>([
+    "shield-check",
+    "user-verified",
+    "user-check",
+    "reviews",
+    "gift-star",
+    "chart-growth",
+    "home-check",
+    "keys-home",
+    "bell-badge",
+  ]);
+  return (known.has(name) ? name : "shield-check") as BrandIconName;
 }

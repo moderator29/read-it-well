@@ -305,6 +305,63 @@
     border-color: var(--nf-state-error);
   }
 
+  /*
+   * A count that leads somewhere.
+   *
+   * `.nf-social-stat` lives in social.css and is another writer's; this only
+   * adds the affordance for the two that are now links, and it adds it as a
+   * 44px hit area with no visual weight of its own, so the row still reads as
+   * three plain numbers rather than as a row of buttons.
+   */
+  .nf-social-stat--link {
+    position: relative;
+    border-radius: var(--nf-radius-sm);
+  }
+  .nf-social-stat--link::before {
+    content: "";
+    position: absolute;
+    inset: -11px -6px;
+  }
+  .nf-social-stat--link:hover .nf-social-stat__label,
+  .nf-social-stat--link:focus-visible .nf-social-stat__label {
+    color: var(--nf-content-primary);
+  }
+  .nf-social-stat--link:hover .nf-social-stat__value,
+  .nf-social-stat--link:focus-visible .nf-social-stat__value {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------------
+   * A person, in a list of people.
+   * ------------------------------------------------------------------ */
+  .nf-social-person {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .nf-social-person__face {
+    display: grid;
+    place-items: center;
+    inline-size: 46px;
+    block-size: 46px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .nf-social-person__face img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
   /* ------------------------------------------------------------------
    * The profile's own overflow control, and the line it leaves behind.
    * ------------------------------------------------------------------ */
@@ -337,7 +394,10 @@
   .nf-social-toast {
     position: fixed;
     inset-inline: 1rem;
-    bottom: calc(5.25rem + env(safe-area-inset-bottom));
+    /* Above the dock, which is itself above the tab bar. Three fixed things at
+       one corner of a 390px screen is two too many, so they stack rather than
+       overlap. */
+    bottom: calc(9.5rem + env(safe-area-inset-bottom));
     z-index: 70;
     margin-inline: auto;
     max-inline-size: 26rem;
@@ -356,6 +416,1254 @@
     .nf-social-toast {
       bottom: 1.5rem;
     }
+  }
+
+
+  /* ------------------------------------------------------------------
+   * The profile, rebuilt.
+   *
+   * Bands, not a stack. Each fact about a person gets its own row and its own
+   * air, because the way you make a dense page feel calm is fewer things per
+   * row rather than smaller type.
+   * ------------------------------------------------------------------ */
+
+  /* Controls that ride on the cover photograph. A round scrimmed button reads
+     over any picture, which a bare glyph does not: half the covers people
+     upload are bright and half are dark. */
+  .nf-social-float {
+    position: absolute;
+    top: calc(var(--nf-social-bar) + 0.75rem);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nf-social-float--start {
+    inset-inline-start: 1.25rem;
+  }
+  .nf-social-float--end {
+    inset-inline-end: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .nf-social-float--start {
+      inset-inline-start: 2rem;
+    }
+    .nf-social-float--end {
+      inset-inline-end: 2rem;
+    }
+  }
+
+  .nf-social-round {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: var(--nf-radius-pill);
+    color: #fff;
+    background: rgb(0 0 0 / 0.42);
+    border: 1px solid rgb(255 255 255 / 0.22);
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-social-round:hover,
+  .nf-social-round:focus-visible {
+    background: rgb(0 0 0 / 0.58);
+  }
+  /*
+   * Daylight inverts these, and it has to. The cover's own scrim is a white
+   * wash on paper, so a dark pill on top of it would be the only black thing
+   * on the page. White glass with ink inside keeps the ring of the design
+   * language and stays readable over a photograph.
+   */
+  :root[data-theme="light"] .nf-social-round {
+    color: var(--nf-content-primary);
+    background: rgb(255 255 255 / 0.72);
+    border-color: rgb(18 21 26 / 0.12);
+  }
+  :root[data-theme="light"] .nf-social-round:hover,
+  :root[data-theme="light"] .nf-social-round:focus-visible {
+    background: rgb(255 255 255 / 0.9);
+  }
+
+  /*
+   * The avatar, and the ring.
+   *
+   * ADR-012: the luminous gradient sits on the BORDER box and the fill sits on
+   * the padding box, brightest at the upper left, matching the light direction
+   * of the commissioned icon family. Painting it as a plain border colour
+   * would lose the gradient entirely, which is the whole point of the rule.
+   */
+  .nf-social-avatar--ring {
+    position: relative;
+    inline-size: 6rem;
+    block-size: 6rem;
+    padding: 3px;
+    border-radius: var(--nf-radius-pill);
+    background:
+      linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
+      linear-gradient(
+          135deg,
+          color-mix(in oklab, var(--nf-brand-accent) 95%, white) 0%,
+          var(--nf-brand-primary) 34%,
+          color-mix(in oklab, var(--nf-brand-primary) 30%, transparent) 68%,
+          transparent 100%
+        )
+        border-box;
+    border: 3px solid transparent;
+    box-shadow: 0 14px 34px -16px rgb(0 0 0 / 0.75);
+    display: grid;
+    place-items: center;
+  }
+
+  .nf-social-avatar__disc {
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    block-size: 100%;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: 2.1rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .nf-social-avatar__disc img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  /* Lower right, cut out of the page so it reads as attached to the person
+     rather than floating over them. */
+  .nf-social-avatar__dot {
+    position: absolute;
+    inset-block-end: 4px;
+    inset-inline-end: 4px;
+    inline-size: 17px;
+    block-size: 17px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-state-success);
+    box-shadow: 0 0 0 3px var(--nf-surface-canvas);
+  }
+  .nf-social-avatar__dot--agent {
+    background: var(--nf-brand-primary);
+  }
+
+  :root[data-theme="light"] .nf-social-avatar--ring {
+    box-shadow: 0 10px 26px -14px rgb(18 21 26 / 0.4);
+  }
+
+  /* ------------------------------------------------------- the name row */
+
+  .nf-social-namerow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-block-start: 0.875rem;
+  }
+
+  .nf-social-name {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-social-verified {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-social-handle {
+    margin-block-start: 0.2rem;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-muted);
+  }
+
+  /* ---------------------------------------------------------- the chips */
+
+  .nf-social-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-start: 0.875rem;
+  }
+
+  .nf-social-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-block-size: 30px;
+    padding-inline: 11px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-subtle);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    color: var(--nf-content-secondary);
+  }
+
+  /*
+   * Standing an admin granted by hand. A brand RING and brand ink, never a
+   * brand tint: a 16 per cent electric blue fill over a white card reads
+   * violet on paper, and the brand carries no violet. This is the third place
+   * in the layer that has had to say so.
+   */
+  .nf-social-chip--brand {
+    border-color: var(--nf-border-brand);
+    color: var(--nf-brand-secondary);
+    padding-inline-start: 7px;
+  }
+
+  /* ------------------------------------------------------- the counts */
+
+  .nf-social-counts {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-block-start: 1.25rem;
+  }
+
+  .nf-social-count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.375rem;
+    position: relative;
+    border-radius: var(--nf-radius-sm);
+  }
+  /* 44px of hit area with none of the visual weight, so the row still reads as
+     two numbers rather than as two buttons. */
+  .nf-social-count::before {
+    content: "";
+    position: absolute;
+    inset: -12px -8px;
+  }
+  .nf-social-count__value {
+    font-size: 1.0625rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-social-count__label {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-social-count:hover .nf-social-count__value,
+  .nf-social-count:focus-visible .nf-social-count__value {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-social-count__rule {
+    inline-size: 1px;
+    block-size: 1.1rem;
+    background: var(--nf-border-subtle);
+  }
+
+  /* ------------------------------------------------- the agent trust band */
+
+  /*
+   * Agents only, and the three numbers are computed by the database from real
+   * bookings and real message timings. A person who is not an agent never sees
+   * this band at all; it is not rendered empty and it is not rendered with
+   * zeroes, because a trust score of zero and no trust score are very
+   * different claims.
+   */
+  .nf-social-trust {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+    margin-block-start: 1.25rem;
+    padding: 1rem 0.5rem;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+  }
+  .nf-social-trust__cell {
+    text-align: center;
+    padding-inline: 0.25rem;
+  }
+  .nf-social-trust__cell dt {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+    /* The label is the meaning of the number under it, so it wraps rather than
+       truncating. Two short lines beat one clipped one. */
+    line-height: 1.3;
+  }
+  .nf-social-trust__cell dd {
+    margin-block-start: 0.35rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+
+  /* ----------------------------------------------------- bio and meta */
+
+  .nf-social-bio {
+    margin-block-start: 1.25rem;
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.6;
+    white-space: pre-line;
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-social-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin-block-start: 1rem;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-social-meta > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+
+  /* ------------------------------------------------------------------
+   * The tabs, with an underline.
+   * ------------------------------------------------------------------ */
+  .nf-social-tabs {
+    display: flex;
+    margin-block-start: 1.5rem;
+    border-block-end: 1px solid var(--nf-border-subtle);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nf-social-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-social-tab__count {
+    margin-inline-start: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--nf-content-muted);
+  }
+  .nf-social-tab[aria-selected="true"] .nf-social-tab__count {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------------
+   * The media grid. Three across, square crops, each one a way into the
+   * post it came from so a picture is never a dead end.
+   * ------------------------------------------------------------------ */
+  .nf-media-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3px;
+  }
+  .nf-media-grid__tile {
+    display: block;
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--nf-surface-inset);
+  }
+  .nf-media-grid__tile img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-media-grid__tile:hover img,
+  .nf-media-grid__tile:focus-visible img {
+    transform: scale(1.03);
+  }
+
+  /* ------------------------------------------------------------------
+   * A story.
+   *
+   * The picture IS the page. Everything else floats over it, which is why
+   * the stage is a positioned block with a minimum height rather than a card
+   * with an image inside it.
+   * ------------------------------------------------------------------ */
+  .nf-story {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    /* Cancels the shell's padding so the picture reaches both edges. */
+    margin-inline: -1.25rem;
+    margin-block-start: calc(-2rem - var(--nf-social-bar));
+  }
+  @media (min-width: 768px) {
+    .nf-story {
+      margin-inline: -2rem;
+      margin-block-start: calc(-2.5rem - var(--nf-social-bar));
+    }
+  }
+  @media (min-width: 1100px) {
+    .nf-story {
+      grid-template-columns: minmax(0, 1fr) 20rem;
+      align-items: start;
+      padding-inline-end: 2rem;
+    }
+  }
+
+  .nf-story__stage {
+    position: relative;
+    isolation: isolate;
+    min-block-size: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  @media (min-width: 1100px) {
+    .nf-story__stage {
+      min-block-size: calc(100dvh - 2rem);
+      border-end-end-radius: var(--nf-feed-radius);
+      border-end-start-radius: var(--nf-feed-radius);
+    }
+  }
+
+  .nf-story__image {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    z-index: -2;
+  }
+  .nf-story__image--none {
+    background:
+      radial-gradient(120% 100% at 0% 0%, color-mix(in oklab, var(--nf-brand-accent) 60%, transparent) 0%, transparent 60%),
+      linear-gradient(160deg, var(--nf-surface-secondary) 0%, var(--nf-surface-canvas) 100%);
+  }
+
+  /*
+   * The wash. Heavier at the bottom, because that is where the words are, and
+   * present at the top so the floating author row reads over a bright sky.
+   * Ink in both themes: this sits on a photograph, not on the canvas, so it
+   * does not follow the page's own light and dark.
+   */
+  .nf-story__wash {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(180deg, rgb(0 0 0 / 0.55) 0%, transparent 26%),
+      linear-gradient(0deg, rgb(0 0 0 / 0.86) 0%, rgb(0 0 0 / 0.5) 34%, transparent 62%);
+  }
+
+  .nf-story__top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: calc(var(--nf-social-bar) + 0.75rem) 1.25rem 0;
+  }
+
+  .nf-story__author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-inline-size: 0;
+    flex: 1 1 auto;
+  }
+  .nf-story__face {
+    display: grid;
+    place-items: center;
+    inline-size: 38px;
+    block-size: 38px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 0 0 2px rgb(255 255 255 / 0.3);
+  }
+  .nf-story__face img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-story__who {
+    display: block;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 10px rgb(0 0 0 / 0.5);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-story__when {
+    display: block;
+    font-size: var(--nf-text-caption);
+    color: rgb(255 255 255 / 0.76);
+  }
+  .nf-story__menu {
+    inset-inline-end: 0;
+    top: 52px;
+  }
+
+  .nf-story__foot {
+    padding: 0 1.25rem calc(2rem + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /*
+   * The glass card.
+   *
+   * The one piece of chrome in this product that earns a real blur: a headline
+   * in large tight type has to stay readable over a photograph nobody has
+   * seen, and a scrim alone cannot promise that on a bright image.
+   */
+  .nf-story__card {
+    position: relative;
+    padding: 1.15rem 1.15rem 1.25rem;
+    border-radius: var(--nf-feed-radius);
+    background: rgb(10 12 28 / 0.52);
+    border: 1px solid rgb(255 255 255 / 0.16);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: 0 20px 50px -24px rgb(0 0 0 / 0.8);
+  }
+
+  .nf-story__card-share {
+    position: absolute;
+    inset-block-start: 0.9rem;
+    inset-inline-end: 0.9rem;
+    display: grid;
+    place-items: center;
+    inline-size: 36px;
+    block-size: 36px;
+    border-radius: var(--nf-radius-pill);
+    color: rgb(255 255 255 / 0.85);
+    background: rgb(255 255 255 / 0.12);
+  }
+  .nf-story__card-share:hover,
+  .nf-story__card-share:focus-visible {
+    color: #fff;
+    background: rgb(255 255 255 / 0.2);
+  }
+
+  /* Brand blue, never the reference's violet. */
+  .nf-story-chip {
+    display: inline-flex;
+    align-items: center;
+    block-size: 22px;
+    padding-inline: 9px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+  }
+
+  .nf-story__headline {
+    margin-block-start: 0.7rem;
+    font-size: 1.6rem;
+    line-height: 1.14;
+    font-weight: 800;
+    letter-spacing: -0.032em;
+    color: #fff;
+    /* Two lines is the design. A third is allowed rather than clipping a
+       headline somebody wrote, because a cut headline is a different sentence. */
+    text-wrap: balance;
+  }
+  @media (min-width: 640px) {
+    .nf-story__headline {
+      font-size: 1.9rem;
+    }
+  }
+
+  .nf-story__standfirst {
+    margin-block-start: 0.55rem;
+    font-size: var(--nf-text-body);
+    line-height: 1.55;
+    color: rgb(255 255 255 / 0.78);
+  }
+
+  .nf-story__place {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-block-start: 0.8rem;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: rgb(255 255 255 / 0.82);
+  }
+
+  .nf-story__held {
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-brand);
+    background: rgb(10 12 28 / 0.6);
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: rgb(255 255 255 / 0.86);
+  }
+
+  /* ------------------------------------------------- the three actions */
+  .nf-story__actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.75rem;
+  }
+  .nf-story__act {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: rgb(255 255 255 / 0.82);
+  }
+  .nf-story__act-circle {
+    display: grid;
+    place-items: center;
+    inline-size: 46px;
+    block-size: 46px;
+    border-radius: var(--nf-radius-pill);
+    background: rgb(255 255 255 / 0.14);
+    border: 1px solid rgb(255 255 255 / 0.18);
+    transition:
+      background var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-spring);
+  }
+  .nf-story__act:active .nf-story__act-circle {
+    transform: scale(0.93);
+  }
+  /* Marked. A filled brand circle, which is the reference's own emphasis
+     translated out of violet and into our electric blue. */
+  .nf-story__act--on .nf-story__act-circle {
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow: 0 10px 26px -10px color-mix(in oklab, var(--nf-brand-primary) 85%, transparent);
+  }
+  .nf-story__act-count {
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    color: rgb(255 255 255 / 0.86);
+  }
+
+  /* ------------------------------------------------------ the facepile */
+  .nf-story__pile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nf-story__faces {
+    display: inline-flex;
+  }
+  .nf-story__pileface {
+    display: grid;
+    place-items: center;
+    inline-size: 28px;
+    block-size: 28px;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    box-shadow: 0 0 0 2px rgb(10 12 28 / 0.85);
+  }
+  .nf-story__pileface + .nf-story__pileface {
+    margin-inline-start: -9px;
+  }
+  .nf-story__pileface img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-story__more {
+    display: inline-grid;
+    place-items: center;
+    block-size: 24px;
+    padding-inline: 8px;
+    border-radius: var(--nf-radius-pill);
+    background: rgb(255 255 255 / 0.16);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+  .nf-story__pilelabel {
+    font-size: var(--nf-text-caption);
+    color: rgb(255 255 255 / 0.72);
+  }
+
+  /* --------------------------------------------------- the comment bar */
+  .nf-story__commentbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    inline-size: 100%;
+    min-block-size: 50px;
+    padding-inline: 1rem;
+    border-radius: var(--nf-radius-pill);
+    background: rgb(255 255 255 / 0.13);
+    border: 1px solid rgb(255 255 255 / 0.18);
+    color: rgb(255 255 255 / 0.78);
+    font-size: var(--nf-text-body);
+    text-align: start;
+  }
+  .nf-story__send {
+    display: grid;
+    place-items: center;
+    inline-size: 34px;
+    block-size: 34px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+
+  /* ------------------------------------------------------------------
+   * The rail beside a story. A real rail on a desktop, a strip under the
+   * picture on a phone, because the next story is the most likely next tap
+   * and hiding it behind a back button costs a whole page load.
+   * ------------------------------------------------------------------ */
+  .nf-story-rail {
+    padding-inline: 1.25rem;
+    padding-block-end: 2rem;
+  }
+  @media (min-width: 1100px) {
+    .nf-story-rail {
+      position: sticky;
+      top: calc(var(--nf-social-bar) + 1rem);
+      padding-inline: 0;
+    }
+  }
+  .nf-story-rail__tabs {
+    display: flex;
+    border-block-end: 1px solid var(--nf-border-subtle);
+    margin-block-end: 0.85rem;
+  }
+  .nf-story-rail__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .nf-story-rail__card {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 8px;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid transparent;
+  }
+  .nf-story-rail__card:hover,
+  .nf-story-rail__card:focus-visible {
+    border-color: var(--nf-border-default);
+    background: var(--nf-surface-inset);
+  }
+  .nf-story-rail__thumb {
+    display: block;
+    inline-size: 62px;
+    block-size: 62px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-md);
+    overflow: hidden;
+    background: var(--nf-surface-inset);
+  }
+  .nf-story-rail__thumb img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-story-rail__headline {
+    display: block;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    color: var(--nf-content-primary);
+  }
+  .nf-story-rail__meta {
+    display: block;
+    margin-block-start: 3px;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-story-rail__empty,
+  .nf-story-rail__updates {
+    font-size: var(--nf-text-caption);
+    line-height: 1.6;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------- a story, in a list */
+  .nf-story-plate {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--nf-feed-radius);
+    background: var(--nf-surface-inset);
+  }
+  .nf-story-plate > img {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-story-plate__art {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(120% 100% at 0% 0%, color-mix(in oklab, var(--nf-brand-accent) 55%, transparent) 0%, transparent 62%),
+      linear-gradient(160deg, var(--nf-surface-secondary) 0%, var(--nf-surface-canvas) 100%);
+  }
+  .nf-story-plate__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgb(0 0 0 / 0.82) 0%, rgb(0 0 0 / 0.28) 44%, transparent 68%);
+  }
+  .nf-story-plate__body {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 1rem;
+  }
+  .nf-story-plate__headline {
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    color: #fff;
+  }
+  .nf-story-plate__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    font-size: var(--nf-text-caption);
+    color: rgb(255 255 255 / 0.78);
+  }
+
+  /* ------------------------------------------------ choosing the picture */
+  .nf-story-pick {
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--nf-feed-radius);
+    border: 1px dashed var(--nf-border-default);
+    background: var(--nf-surface-inset);
+  }
+  .nf-story-pick--filled {
+    border-style: solid;
+    border-color: var(--nf-border-brand);
+  }
+  .nf-story-pick img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-story-pick__prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .nf-story-pick__label {
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-story-pick__note {
+    max-inline-size: 22rem;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------------
+   * The comments sheet.
+   * ------------------------------------------------------------------ */
+  .nf-comments {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: rgb(0 0 0 / 0.5);
+  }
+  @media (min-width: 640px) {
+    .nf-comments {
+      align-items: center;
+      padding: 2rem 1.25rem;
+    }
+  }
+
+  .nf-comments__panel {
+    display: flex;
+    flex-direction: column;
+    inline-size: 100%;
+    max-inline-size: 34rem;
+    block-size: 88dvh;
+    border-start-start-radius: var(--nf-feed-radius);
+    border-start-end-radius: var(--nf-feed-radius);
+    background: var(--nf-surface-primary);
+    border: 1px solid var(--nf-border-default);
+    box-shadow: var(--nf-shadow-float);
+    overflow: hidden;
+  }
+  @media (min-width: 640px) {
+    .nf-comments__panel {
+      block-size: min(80dvh, 44rem);
+      border-radius: var(--nf-feed-radius);
+    }
+  }
+
+  /* The grab handle. Only on a phone, where the sheet actually rises. */
+  .nf-comments__panel::before {
+    content: "";
+    display: block;
+    inline-size: 38px;
+    block-size: 4px;
+    margin: 8px auto 0;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-border-default);
+  }
+  @media (min-width: 640px) {
+    .nf-comments__panel::before {
+      display: none;
+    }
+  }
+
+  .nf-comments__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-block-end: 1px solid var(--nf-border-subtle);
+  }
+  .nf-comments__title {
+    flex: 1 1 auto;
+    text-align: center;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-comments__notice {
+    padding: 10px 16px;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    background: var(--nf-surface-inset);
+  }
+  .nf-comments__scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 12px 16px;
+  }
+  .nf-comments__empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    font-size: var(--nf-text-body);
+    line-height: 1.6;
+    color: var(--nf-content-muted);
+  }
+
+  /* --------------------------------------------------------- a comment */
+  .nf-comment {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    padding-block: 12px;
+  }
+  .nf-comment__face {
+    display: grid;
+    place-items: center;
+    inline-size: 34px;
+    block-size: 34px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .nf-comment__face img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  /*
+   * The one thread line allowed on this platform.
+   *
+   * The owner cut the connecting line from the feed and it stays cut there: it
+   * made the feed read as an information-design exercise rather than as
+   * somewhere people talk. Inside this sheet a nested reply is genuinely
+   * unreadable without it, so this is one faint brand-tinted curve, drawn
+   * inside the child's own row, from above the row down and across into the
+   * avatar. It cannot cross a card boundary because it never leaves this row.
+   */
+  .nf-comment__link {
+    position: absolute;
+    inset-block-start: -6px;
+    inset-inline-start: -12px;
+    inline-size: 20px;
+    block-size: 32px;
+    border-inline-start: 1.5px solid
+      color-mix(in oklab, var(--nf-brand-primary) 34%, transparent);
+    border-block-end: 1.5px solid
+      color-mix(in oklab, var(--nf-brand-primary) 34%, transparent);
+    border-end-start-radius: 12px;
+    pointer-events: none;
+  }
+
+  .nf-comment__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nf-comment__who {
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-comment__when {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-comment__menu {
+    inset-inline-end: 0;
+    top: 34px;
+  }
+  .nf-comment__body {
+    margin-block-start: 3px;
+    font-size: var(--nf-text-body);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    white-space: pre-line;
+  }
+  .nf-comment__body--gone {
+    font-style: italic;
+    color: var(--nf-content-muted);
+  }
+  .nf-comment__foot {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-block-start: 6px;
+  }
+  .nf-comment__reply {
+    position: relative;
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    color: var(--nf-content-muted);
+  }
+  .nf-comment__reply::before {
+    content: "";
+    position: absolute;
+    inset: -12px -8px;
+  }
+  .nf-comment__reply:hover,
+  .nf-comment__reply:focus-visible {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-comment__heart {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-inline-start: auto;
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    color: var(--nf-content-muted);
+  }
+  .nf-comment__heart::before {
+    content: "";
+    position: absolute;
+    inset: -12px -8px;
+  }
+  .nf-comment__heart[aria-pressed="true"] {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------ the composer */
+  .nf-comments__composer {
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    border-block-start: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-raised);
+  }
+  .nf-comments__replying {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-block-end: 8px;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-comments__replying button {
+    margin-inline-start: auto;
+    font-weight: 700;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-comments__row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .nf-comments__field {
+    flex: 1 1 auto;
+    min-block-size: 44px;
+    max-block-size: 8rem;
+    resize: none;
+    border-radius: var(--nf-radius-pill);
+    padding-block: 11px;
+  }
+  .nf-comments__send {
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-comments__send:disabled {
+    opacity: 0.45;
+  }
+  .nf-comments__count {
+    display: block;
+    margin-block-start: 6px;
+    text-align: end;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------------
+   * The dock.
+   *
+   * One control, at the corner a thumb reaches without moving the phone, and
+   * lifted clear of the floating tab bar rather than sitting on it. On a
+   * desktop the tab bar is gone and the rail owns the other side, so the same
+   * corner is still the right one and it simply drops to the edge.
+   * ------------------------------------------------------------------ */
+  .nf-fab {
+    position: fixed;
+    inset-inline-end: 1rem;
+    /* Clear of the tab bar: its own offset plus its height plus a gap. */
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  @media (min-width: 1024px) {
+    .nf-fab {
+      inset-inline-end: 1.5rem;
+      bottom: 1.5rem;
+    }
+  }
+
+  .nf-fab__button {
+    display: grid;
+    place-items: center;
+    inline-size: 56px;
+    block-size: 56px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    border: 1px solid var(--nf-border-brand);
+    box-shadow:
+      0 14px 34px -12px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent),
+      var(--nf-shadow-float);
+    transition: transform var(--nf-duration-fast) var(--nf-ease-spring);
+  }
+  .nf-fab__button:active {
+    transform: scale(0.94);
+  }
+
+  .nf-fab__menu {
+    inline-size: min(17.5rem, calc(100vw - 2rem));
+    padding: 6px;
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-surface-raised);
+    border: 1px solid var(--nf-border-default);
+    box-shadow: var(--nf-shadow-float);
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
+  }
+
+  .nf-fab__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    inline-size: 100%;
+    min-block-size: 56px;
+    padding: 8px 11px;
+    border-radius: var(--nf-radius-md);
+    text-align: start;
+    color: var(--nf-content-primary);
+  }
+  .nf-fab__item:hover,
+  .nf-fab__item:focus-visible {
+    background: var(--nf-surface-inset);
+  }
+  .nf-fab__item-title {
+    display: block;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .nf-fab__item-note {
+    display: block;
+    margin-block-start: 2px;
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--nf-content-muted);
+  }
+
+  /* One place, in the picker. */
+  .nf-fab__place {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    inline-size: 100%;
+    min-block-size: 56px;
+    padding: 10px 14px;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    text-align: start;
+  }
+  .nf-fab__place:hover,
+  .nf-fab__place:focus-visible {
+    border-color: var(--nf-border-brand);
+    background: var(--nf-surface-inset);
+  }
+  .nf-fab__place-name {
+    font-size: var(--nf-text-body);
+    font-weight: 650;
+    color: var(--nf-content-primary);
+  }
+  .nf-fab__place-city {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
   }
 
   /* ------------------------------------------------------------------

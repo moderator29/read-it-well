@@ -4,15 +4,27 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
 import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
-import type { ProfileTabKey } from "@/components/social/profile/ProfilePosts";
-import { ProfileTabs } from "@/components/social/profile/ProfileTabs";
 import { ProfileMenu } from "@/components/social/profile/ProfileMenu";
+import {
+  AGENT_TABS,
+  MEMBER_TABS,
+  ProfileTabs,
+  type TabKey,
+} from "@/components/social/profile/ProfileTabs";
+import { AroundFab } from "@/components/social/AroundFab";
 import { loadPublicProfile, normaliseHandle } from "@/lib/social/profiles-queries";
 import {
+  getProfileActivity,
   getProfileFeed,
-  getProfileMedia,
   getProfileReplies,
 } from "@/lib/social/posts-queries";
+import {
+  getAgentProperties,
+  getAgentReviews,
+  getProfileMediaGrid,
+  monthYear,
+} from "@/lib/social/profile-tabs-queries";
+import { listStories } from "@/lib/social/stories-queries";
 
 /**
  * `/u/[handle]`: a person's page.
@@ -22,9 +34,18 @@ import {
  * offer, because the fastest way to get somebody their own page is to show them
  * the one that is waiting.
  *
- * Everything here is public by definition except a bio the scanner is holding,
- * and that decision is made in the query rather than in this file, so no
- * template can forget it.
+ * **Two kinds of person get two sets of tabs**, and which set is decided here
+ * rather than in the component: an agent whose listings can actually be
+ * resolved gets Properties, Stories, Reviews and Activity, and everybody else
+ * gets Posts, Replies, Media and Activity. Somebody who is marked as an agent
+ * but whose `agents` row cannot be reached from a public page falls back to the
+ * ordinary set, because a Properties tab that could only ever be empty is a
+ * worse lie than an absent one.
+ *
+ * Everything the page renders is read in parallel. Nine small reads that all
+ * start at once cost one round trip; the same nine in sequence cost nine, and
+ * on the connections this product is built for that is the whole difference
+ * between a page and a wait.
  */
 
 export async function generateMetadata({
@@ -36,11 +57,20 @@ export async function generateMetadata({
   return { title: `@${normaliseHandle(handle)}` };
 }
 
-const TAB_KEYS: ProfileTabKey[] = ["posts", "replies", "media"];
+const ALL_TABS: TabKey[] = [
+  "posts",
+  "replies",
+  "media",
+  "activity",
+  "properties",
+  "stories",
+  "reviews",
+];
 
-function tabFrom(raw: string | string[] | undefined): ProfileTabKey {
+function tabFrom(raw: string | string[] | undefined, allowed: TabKey[]): TabKey | undefined {
   const value = Array.isArray(raw) ? raw[0] : raw;
-  return TAB_KEYS.find((key) => key === value) ?? "posts";
+  const found = ALL_TABS.find((key) => key === value);
+  return found && allowed.includes(found) ? found : undefined;
 }
 
 export default async function SocialProfilePage({
@@ -56,21 +86,26 @@ export default async function SocialProfilePage({
   const [view, query] = await Promise.all([loadPublicProfile(raw), searchParams]);
 
   if (view.state === "found") {
-    /*
-     * All three tabs, read in parallel under the viewer's own row level
-     * security, so a held or blocked row never reaches this page at all.
-     *
-     * Three reads rather than one because each has a different `where`: roots
-     * only, replies only, and an inner join onto post_media. They run together,
-     * so the page costs one round trip and moving between the tabs afterwards
-     * costs nothing, which is the right trade on a connection where the round
-     * trip is the expensive part.
-     */
-    const [posts, replies, media] = await Promise.all([
-      getProfileFeed(view.profile.userId),
-      getProfileReplies(view.profile.userId),
-      getProfileMedia(view.profile.userId),
-    ]);
+    const userId = view.profile.userId;
+
+    /* An agent's own tabs need an `agents` row, and `agents` is select-own plus
+       admin, so this resolves for the agent themselves and for nobody else
+       until it is projected. The fallback is the ordinary tab set, never an
+       empty Properties tab. */
+    const agentId = view.agentId;
+    const isAgentPage = view.profile.isAgent && Boolean(agentId);
+    const tabs = isAgentPage ? AGENT_TABS : MEMBER_TABS;
+
+    const [posts, replies, media, activity, properties, reviews, stories] =
+      await Promise.all([
+        isAgentPage ? Promise.resolve([]) : getProfileFeed(userId),
+        isAgentPage ? Promise.resolve([]) : getProfileReplies(userId),
+        isAgentPage ? Promise.resolve([]) : getProfileMediaGrid(userId),
+        getProfileActivity(userId),
+        isAgentPage ? getAgentProperties(agentId) : Promise.resolve([]),
+        isAgentPage ? getAgentReviews(agentId) : Promise.resolve([]),
+        isAgentPage ? listStories({ authorId: userId, limit: 30 }) : Promise.resolve([]),
+      ]);
 
     return (
       <div className="mx-auto max-w-2xl">
@@ -80,36 +115,46 @@ export default async function SocialProfilePage({
           homeArea={view.homeArea}
           moderatorOf={view.moderatorOf}
           locale={locale}
-          actions={
-            <>
-              {view.isOwner ? null : (
-                <FollowButton
-                  handle={view.profile.handle}
-                  initialFollowing={view.viewerFollows}
-                  signedIn={view.signedIn}
-                />
-              )}
-              <ProfileMenu
+          occupation={view.occupation}
+          standing={view.standing}
+          place={view.place}
+          trust={view.trust}
+          joinedLabel={monthYear(view.profile.claimedAt)}
+          follow={
+            view.isOwner ? undefined : (
+              <FollowButton
                 handle={view.profile.handle}
-                userId={view.profile.userId}
-                displayLabel={view.profile.displayLabel}
-                isOwner={view.isOwner}
+                initialFollowing={view.viewerFollows}
                 signedIn={view.signedIn}
-                initialMuted={view.viewerMutes}
+                compact
               />
-            </>
+            )
+          }
+          menu={
+            <ProfileMenu
+              handle={view.profile.handle}
+              userId={userId}
+              displayLabel={view.profile.displayLabel}
+              isOwner={view.isOwner}
+              signedIn={view.signedIn}
+              initialMuted={view.viewerMutes}
+              onCover
+            />
           }
         />
+
         <ProfileTabs
           handle={view.profile.handle}
-          posts={posts}
-          replies={replies}
-          media={media}
           isOwner={view.isOwner}
           signedIn={view.signedIn}
           hasBio={view.profile.bio.length > 0}
-          initialTab={tabFrom(query.tab)}
+          tabs={tabs}
+          storyCount={view.storyCount}
+          initialTab={tabFrom(query.tab, tabs)}
+          data={{ posts, replies, media, activity, properties, stories, reviews }}
         />
+
+        <AroundFab />
       </div>
     );
   }

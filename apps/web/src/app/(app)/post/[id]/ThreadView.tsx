@@ -4,6 +4,8 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PostCard, type PostView } from "@/components/social/feed/PostCard";
 import { Composer } from "@/components/social/feed/Composer";
+import { ReportSheet } from "@/components/social/ReportSheet";
+import { PostEditor } from "@/components/social/feed/PostEditor";
 import {
   blockUser,
   muteTarget,
@@ -12,7 +14,7 @@ import {
   toggleMark,
   toggleRepost,
 } from "@/lib/social/posts-actions";
-import { POST_COPY } from "@/lib/social/posts-schema";
+import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
 
 type Thread = {
   root: PostView;
@@ -36,6 +38,11 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
   const [replies, setReplies] = useState(thread.replies);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  /* The post a report sheet is open for. Reporting is a decision, not a tap. */
+  const [reporting, setReporting] = useState<PostView | null>(null);
+  /* The post currently being changed. One at a time: two open editors on one
+     screen is two drafts somebody can lose. */
+  const [editing, setEditing] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -92,7 +99,7 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
 
   const onMenuAction = (
     post: PostView,
-    action: "copy" | "save" | "mute" | "block" | "report" | "delete",
+    action: "copy" | "save" | "mute" | "block" | "report" | "delete" | "edit",
   ) => {
     if (action === "copy") {
       void navigator.clipboard?.writeText(`${window.location.origin}/post/${post.id}`);
@@ -100,6 +107,14 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
       return;
     }
     if (requireSignIn()) return;
+    if (action === "report") {
+      setReporting(post);
+      return;
+    }
+    if (action === "edit") {
+      setEditing(post.id);
+      return;
+    }
 
     startTransition(async () => {
       if (action === "save") {
@@ -132,10 +147,6 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
         router.refresh();
         return;
       }
-      if (action === "report") {
-        const result = await reportPost({ postId: post.id, reason: "OTHER" });
-        setNotice(result.ok ? POST_COPY.reportedDone : result.error);
-      }
     });
   };
 
@@ -147,6 +158,20 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
       onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
       onShare={() => onMenuAction(post, "copy")}
       onMenuAction={(action) => onMenuAction(post, action)}
+      editor={
+        editing === post.id ? (
+          <PostEditor
+            postId={post.id}
+            initialBody={post.rawBody ?? post.body ?? ""}
+            onDone={() => setEditing(null)}
+            onSaved={(body, held) => {
+              patch(post.id, { body, rawBody: body, edited: true });
+              setNotice(held ? POST_COPY.editHeld : POST_COPY.editedDone);
+              router.refresh();
+            }}
+          />
+        ) : undefined
+      }
     />
   );
 
@@ -197,6 +222,22 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
           ) : null}
         </div>
       ))}
+
+      {reporting ? (
+        <ReportSheet
+          title="Report this post"
+          subject={
+            reporting.author?.handle
+              ? `Posted by @${reporting.author.handle}`
+              : "Posted on Around"
+          }
+          reasons={POST_REPORT_REASONS}
+          submit={({ reason, detail }) =>
+            reportPost({ postId: reporting.id, reason, detail })
+          }
+          onClose={() => setReporting(null)}
+        />
+      ) : null}
     </div>
   );
 }

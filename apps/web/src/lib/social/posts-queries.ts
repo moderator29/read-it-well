@@ -17,6 +17,8 @@ import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";
 import type { PostView } from "@/components/social/feed/PostCard";
+import { EDIT_WINDOW_MINUTES } from "./posts-schema";
+import { readMediaFor, type SignedMedia } from "./posts-media";
 
 const POST_COLUMNS = `
   id, area_id, root_id, parent_id, depth, author_id, author_kind, kind, body,
@@ -79,6 +81,8 @@ type Enrichment = {
   saved: Set<string>;
   reposted: Set<string>;
   areas: Map<string, { name: string; slug: string }>;
+  /** Signed picture URLs, by post. Empty for a post with none. */
+  media: Map<string, SignedMedia[]>;
 };
 
 /**
@@ -165,13 +169,32 @@ async function enrich(
     ((reposts.data ?? []) as { post_id: string }[]).map((r) => r.post_id),
   );
 
-  return { authors, moderatorAreas, liked, saved, reposted, areas: areaMap };
+  /* Signed last, and for the whole page at once. `social-media` is private, so
+     a picture needs a signed URL and sixty tiles would otherwise be sixty round
+     trips. */
+  const media = await readMediaFor(supabase, postIds);
+
+  return { authors, moderatorAreas, liked, saved, reposted, areas: areaMap, media };
 }
 
 function toView(row: RawPost, e: Enrichment, viewerId: string | null): PostView {
   const author = row.author_id ? (e.authors.get(row.author_id) ?? null) : null;
   const area = row.area_id ? (e.areas.get(row.area_id) ?? null) : null;
   const isMine = Boolean(viewerId && row.author_id === viewerId);
+
+  /*
+   * Whether Edit is worth offering.
+   *
+   * `posts_update_own` allows an update only on your own LIVE post inside
+   * fifteen minutes, and this is that same rule read at render time so the
+   * control is absent rather than present and refused. It goes stale while a
+   * page sits open, which is fine: the action asks the database again and the
+   * refusal has its own sentence.
+   */
+  const editable =
+    isMine &&
+    row.status === "LIVE" &&
+    Date.now() - new Date(row.created_at).getTime() < EDIT_WINDOW_MINUTES * 60_000;
 
   return {
     id: row.id,
@@ -213,6 +236,15 @@ function toView(row: RawPost, e: Enrichment, viewerId: string | null): PostView 
     // lock on the same door.
     heldReason: row.status === "HELD" && isMine ? row.hold_reason : null,
     isMine,
+    editable,
+    media: (e.media.get(row.id) ?? []).map((item) => ({
+      url: item.url,
+      width: item.width,
+      height: item.height,
+    })),
+    /* The raw body, so the editor opens on what is actually there rather than
+       on whatever the card chose to render. A removed post has none. */
+    rawBody: isMine ? row.body : null,
   };
 }
 
@@ -484,4 +516,84 @@ export async function getProfileMedia(userId: string): Promise<PostView[]> {
 
   const e = await enrich(supabase, rows, viewerId);
   return rows.map((row) => toView(row, e, viewerId));
+}
+
+/* ----------------------------------------------------------------- Activity */
+
+export type ActivityEntry = {
+  kind: "LIKE" | "REPOST";
+  post: PostView;
+};
+
+/**
+ * What somebody has been doing, rather than what they wrote.
+ *
+ * Likes and reposts, newest first, because those are the two the database
+ * publishes: `post_reactions_select` exposes `LIKE` rows and keeps every other
+ * mark private to its author, and `post_reposts_select` is public outright.
+ * Saves are deliberately absent and always will be, because a save is private
+ * to the person who made it and a profile is not the place to leak it.
+ *
+ * This lives beside the feed reads rather than with the other tab reads because
+ * it needs `enrich` and `toView`, and a second copy of "what a card looks like"
+ * is exactly the drift those two exist to prevent.
+ */
+export async function getProfileActivity(userId: string): Promise<ActivityEntry[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const { supabase, viewerId } = await profileClient();
+
+  const [likes, reposts] = await Promise.all([
+    supabase
+      .from("post_reactions")
+      .select("post_id, created_at")
+      .eq("user_id", userId)
+      .eq("mark", "LIKE")
+      .order("created_at", { ascending: false })
+      .limit(PROFILE_LIMIT),
+    supabase
+      .from("post_reposts")
+      .select("post_id, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(PROFILE_LIMIT),
+  ]);
+
+  const entries = [
+    ...((likes.data ?? []) as { post_id: string; created_at: string }[]).map((row) => ({
+      kind: "LIKE" as const,
+      postId: row.post_id,
+      at: row.created_at,
+    })),
+    ...((reposts.data ?? []) as { post_id: string; created_at: string }[]).map((row) => ({
+      kind: "REPOST" as const,
+      postId: row.post_id,
+      at: row.created_at,
+    })),
+  ]
+    .sort((a, b) => (a.at < b.at ? 1 : -1))
+    .slice(0, PROFILE_LIMIT);
+
+  if (entries.length === 0) return [];
+
+  const { data } = await supabase
+    .from("posts")
+    .select(POST_COLUMNS)
+    .in("id", [...new Set(entries.map((entry) => entry.postId))]);
+
+  const rows = (data ?? []) as unknown as RawPost[];
+  if (rows.length === 0) return [];
+
+  const e = await enrich(supabase, rows, viewerId);
+  const byId = new Map(rows.map((row) => [row.id, toView(row, e, viewerId)]));
+
+  /* Put back in the order the activity happened, not the order the rows came
+     back. A post the viewer may not see drops out entirely: `posts_select`
+     refuses it, and an entry with nothing to point at is not an entry. */
+  return entries
+    .map((entry) => {
+      const post = byId.get(entry.postId);
+      return post ? { kind: entry.kind, post } : null;
+    })
+    .filter((entry): entry is ActivityEntry => entry !== null);
 }

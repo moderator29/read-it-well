@@ -30,5 +30,8 @@ export const ADMIN_NAV: AdminDestination[] = [
   // Around sits with the human queues rather than the safety ones: a place
   // waiting to open is somebody hoping for an answer, not an incident.
   { key: "social", href: "/admin/social", icon: "compass" },
+  // Standing sits with the human queues: granting a badge by hand is a
+  // judgement about a person, not an incident to clear.
+  { key: "standing", href: "/admin/standing", icon: "star" },
   { key: "switches", href: "/admin/switches", icon: "key" },
 ];

@@ -430,10 +430,13 @@ export function submitRequirements(subject: SubmitSubject): GateRequirement[] {
   if ((subject.bedrooms ?? -1) < 0) {
     unmet.push({ field: "bedrooms", message: "Say how many bedrooms the property has." });
   }
-  if ((subject.bathrooms ?? 0) < 1) {
+  /* A plot of land has no bathroom and sleeps nobody. Asking would be a gate
+     no land listing could ever pass, which is a worse failure than a missing
+     field: the category would exist in search and be impossible to supply. */
+  if (subject.propertyType !== "land" && (subject.bathrooms ?? 0) < 1) {
     unmet.push({ field: "bathrooms", message: "Say how many bathrooms the property has." });
   }
-  if ((subject.maxGuests ?? 0) < 1) {
+  if (subject.propertyType !== "land" && (subject.maxGuests ?? 0) < 1) {
     unmet.push({ field: "maxGuests", message: "Say how many guests the property sleeps." });
   }
 

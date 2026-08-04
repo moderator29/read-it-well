@@ -47,7 +47,8 @@ export const yo: Dictionary = {
     settings: "Ètò",
     explore: "Ṣàwárí",
     saved: "Tí a fipamọ́",
-    around: "Àyíká",
+    around: "Agbègbè",
+    map: "Máàpù",
     primaryLabel: "Àkọ́kọ́",
     accountLabel: "Àkàǹtì",
   },
@@ -763,7 +764,8 @@ export const yo: Dictionary = {
       listings: { label: "Àtúnyẹ̀wò àtòjọ", short: "Àtòjọ" },
       tickets: { label: "Ìtìlẹ́yìn", short: "Ìtìlẹ́yìn" },
       // NATIVE REVIEW: "switch" kept in English, it names a control staff use.
-      social: { label: "Àyíká", short: "Àyíká" },
+      social: { label: "Agbègbè", short: "Agbègbè" },
+      standing: { label: "Ipò", short: "Ipò" },
       switches: { label: "Switch", short: "Switch" },
     },
 

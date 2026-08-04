@@ -29,6 +29,7 @@ import {
   POST_LIMITS,
   blockSchema,
   dropPostSchema,
+  editPostSchema,
   markSchema,
   muteSchema,
   postIdSchema,
@@ -262,6 +263,62 @@ export async function toggleRepost(input: {
 }
 
 /**
+ * Change what you wrote, inside the window.
+ *
+ * Three things the database does here that this file deliberately does not.
+ *
+ * `posts_update_own` allows an update only on your own post, only while it is
+ * LIVE, and only for fifteen minutes after it was written. `EDIT_WINDOW_MINUTES`
+ * is that number written down for the surface, never the check.
+ *
+ * `guard_post_update` sets `edited_at` itself whenever the body changes, and
+ * pins every count, every id and `created_at` to their old values. So this
+ * writes the body and nothing else: setting `edited_at` from here would be
+ * overwritten anyway, and setting anything else would be silently ignored,
+ * which is far worse than being refused.
+ *
+ * `posts_scan` fires on UPDATE as well as INSERT, so an edit that introduces an
+ * account number is held exactly as a new post carrying one would be. An edit
+ * window with no rescan is a hole straight through moderation, and this one is
+ * not that.
+ *
+ * The zero-row case is the whole reason this returns what it returns. An update
+ * the policy refuses is not an error: PostgREST answers with an empty set and no
+ * message. Asking for the rows back is the only way to tell "changed" from
+ * "silently refused", which is the same trap `removePost` was sitting in.
+ */
+export async function editPost(input: {
+  postId: string;
+  body: string;
+}): Promise<ActionResult<{ held: boolean }>> {
+  const parsed = validate(editPostSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  const verdict = await consume({
+    ...POST_LIMITS.edit,
+    subject: subjectForUser(session.user.id),
+  });
+  if (!verdict.allowed) return fail(paced(verdict.retryAfterSeconds));
+
+  const { data, error } = await session.supabase
+    .from("posts")
+    .update({ body: parsed.data.body })
+    .eq("id", parsed.data.postId)
+    .eq("author_id", session.user.id)
+    .select("id, status");
+
+  if (error) return fail(messageForPostError(error.code, POST_FAILURE.down));
+  if (!data || data.length === 0) return fail(POST_FAILURE.editWindowClosed);
+
+  revalidatePath("/around");
+  return ok({ held: data[0]?.status === "HELD" });
+}
+
+/**
  * Delete your own post.
  *
  * A delete rather than a status change, so the row genuinely goes. Replies
@@ -283,7 +340,23 @@ export async function removePost(input: {
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
-  const { error } = await session.supabase
+  /*
+   * The rows come back, and that is not decoration.
+   *
+   * `posts_update_own` gates on `created_at > now() - '00:15:00'`, and removal
+   * is an update, so a post older than fifteen minutes cannot be taken down by
+   * its own author. PostgREST answers a policy refusal with an empty set and no
+   * error, so this used to return success for a post that was still sitting
+   * there, the card vanished from the list, and the next refresh brought it
+   * back. Proven on the live database under `private.probe_as`: the same update
+   * returns 1 row on a fresh post and 0 rows on an hour-old one, which stayed
+   * LIVE.
+   *
+   * Asking for the ids back is what turns that silence into a sentence. The
+   * fifteen minute wall on removal is a policy question and it is stated in the
+   * handover rather than worked around here.
+   */
+  const { data, error } = await session.supabase
     .from("posts")
     .update({
       status: "REMOVED",
@@ -292,9 +365,11 @@ export async function removePost(input: {
       removed_at: new Date().toISOString(),
     })
     .eq("id", parsed.data.postId)
-    .eq("author_id", session.user.id);
+    .eq("author_id", session.user.id)
+    .select("id");
 
   if (error) return fail(POST_FAILURE.down);
+  if (!data || data.length === 0) return fail(POST_FAILURE.deleteWindowClosed);
 
   revalidatePath("/around");
   return ok(null);

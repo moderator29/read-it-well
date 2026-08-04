@@ -26,19 +26,26 @@ export function FollowButton({
   handle,
   initialFollowing,
   signedIn,
+  compact = false,
 }: {
   handle: string;
   initialFollowing: boolean;
   signedIn: boolean;
+  /** Small and pill shaped, for a row floating over a photograph. */
+  compact?: boolean;
 }) {
   const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const shape = compact
+    ? "nf-btn nf-btn--primary h-9 shrink-0 px-4 text-[0.8rem]"
+    : "nf-btn min-w-[6.5rem]";
+
   if (!signedIn) {
     return (
-      <Link href="/sign-in" className="nf-btn nf-btn--primary">
+      <Link href="/sign-in" className={compact ? shape : "nf-btn nf-btn--primary"}>
         Follow
       </Link>
     );
@@ -64,14 +71,18 @@ export function FollowButton({
   };
 
   return (
-    <div className="flex flex-col items-end gap-1.5">
+    <div className={compact ? "shrink-0" : "flex flex-col items-end gap-1.5"}>
       <button
         type="button"
         onClick={onClick}
         disabled={pending}
         aria-pressed={following}
         aria-label={following ? `Following @${handle}. Tap to unfollow.` : `Follow @${handle}`}
-        className={`nf-btn ${following ? "nf-btn--glass" : "nf-btn--primary"} min-w-[6.5rem]`}
+        className={
+          compact
+            ? `${shape}${following ? " nf-btn--glass" : ""}`
+            : `nf-btn ${following ? "nf-btn--glass" : "nf-btn--primary"} min-w-[6.5rem]`
+        }
       >
         {following ? "Following" : "Follow"}
       </button>

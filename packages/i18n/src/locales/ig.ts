@@ -47,7 +47,8 @@ export const ig: Dictionary = {
     settings: "Ntọala",
     explore: "Chọgharịa",
     saved: "Echekwara",
-    around: "Gburugburu",
+    around: "Ógbè",
+    map: "Maapụ",
     primaryLabel: "Isi",
     accountLabel: "Akaụntụ",
   },
@@ -762,7 +763,8 @@ export const ig: Dictionary = {
       listings: { label: "Nyocha ndepụta", short: "Ndepụta" },
       tickets: { label: "Nkwado", short: "Nkwado" },
       // NATIVE REVIEW: "switch" kept in English, it names a control staff use.
-      social: { label: "Gburugburu", short: "Gburugburu" },
+      social: { label: "Ógbè", short: "Ógbè" },
+      standing: { label: "Ọnọdụ", short: "Ọnọdụ" },
       switches: { label: "Switch", short: "Switch" },
     },
 

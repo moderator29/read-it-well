@@ -6,6 +6,7 @@ import { getArea } from "@/lib/social/areas-queries";
 import { getAreaFeed } from "@/lib/social/posts-queries";
 import { POST_COPY } from "@/lib/social/posts-schema";
 import { Feed } from "@/components/social/feed/Feed";
+import { AroundFab } from "@/components/social/AroundFab";
 import { AREA_COPY, AREA_KIND_LABEL } from "@/lib/social/areas-schema";
 import { JoinButton } from "../JoinButton";
 import { ModeratorApply } from "./ModeratorApply";
@@ -55,7 +56,7 @@ export default async function AreaPage({
   // the first one tells the owner we deleted their page.
   if (detail === "unconfigured") {
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 pb-24 pt-4 sm:px-6">
+      <div className="mx-auto w-full max-w-3xl pb-24 pt-4">
         <PageHeader title="Around" fallback="/around" />
         <p className="nf-card p-5 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
           Places switch on the moment the platform keys land. Nothing here is a
@@ -71,7 +72,7 @@ export default async function AreaPage({
   const isModerator = viewer.role === "MODERATOR";
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 pb-24 pt-4 sm:px-6">
+    <div className="mx-auto w-full max-w-3xl pb-24 pt-4">
       <PageHeader
         title={`Around ${area.name}`}
         subtitle={`${AREA_KIND_LABEL[area.kind]} in ${area.city}`}
@@ -211,6 +212,10 @@ export default async function AreaPage({
           </p>
         </div>
       ) : null}
+
+      {/* The dock travels with the social layer. Here it already knows the
+          place, so Drop gist opens straight onto the composer. */}
+      <AroundFab currentAreaId={area.status === "ACTIVE" ? area.id : undefined} />
     </div>
   );
 }

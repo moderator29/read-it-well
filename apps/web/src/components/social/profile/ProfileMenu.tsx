@@ -44,6 +44,7 @@ export function ProfileMenu({
   isOwner,
   signedIn,
   initialMuted = false,
+  onCover = false,
 }: {
   handle: string;
   userId: string;
@@ -51,6 +52,8 @@ export function ProfileMenu({
   isOwner: boolean;
   signedIn: boolean;
   initialMuted?: boolean;
+  /** Floating on a cover photograph rather than sitting on the canvas. */
+  onCover?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -209,7 +212,7 @@ export function ProfileMenu({
         <button
           ref={openerRef}
           type="button"
-          className="nf-social-more"
+          className={onCover ? "nf-social-round" : "nf-social-more"}
           aria-label={`More actions for ${who}`}
           aria-haspopup="menu"
           aria-expanded={open}

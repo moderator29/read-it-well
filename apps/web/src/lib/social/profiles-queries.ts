@@ -6,6 +6,17 @@ import { createClient } from "../supabase/server";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { coverPublicUrl, type BioStatus, type ContactPolicy } from "./profiles-schema";
+import {
+  readAgentId,
+  readAgentTrust,
+  readOccupationAndPlace,
+  readStanding,
+  readStoryCount,
+  type AgentTrust,
+  type Occupation,
+  type ProfilePlace,
+  type Standing,
+} from "./profile-extras";
 
 /**
  * Server reads for the social profile surfaces.
@@ -158,6 +169,18 @@ export type PublicProfileState =
       signedIn: boolean;
       homeArea: { slug: string; name: string; city: string } | null;
       moderatorOf: ModeratorOf[];
+      /** Chosen from `public.occupations`. Readable only by its owner today. */
+      occupation: Occupation | null;
+      /** Local government, state, Nigeria. Same visibility as the occupation. */
+      place: ProfilePlace | null;
+      /** Admin-granted badges only. Never anything a code path awarded. */
+      standing: Standing[];
+      /** Null for anybody `public.agent_trust` returns no row for. */
+      trust: AgentTrust | null;
+      /** Counted under the viewer's own visibility by `public.story_count`. */
+      storyCount: number;
+      /** The `agents` row behind this person, when it can be resolved. */
+      agentId: string | null;
     };
 
 /**
@@ -232,14 +255,36 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
    */
   const profile = toView(row, isOwner);
 
-  const [homeArea, moderatorOf, viewerHandle, viewerFollows, viewerMutes] =
-    await Promise.all([
-      readHomeArea(supabase, row.home_area_id),
-      readModeratorOf(supabase, row.user_id),
-      readViewerHandle(supabase, viewerId, row.handle, isOwner),
-      readViewerFollows(supabase, viewerId, row.user_id, isOwner),
-      readViewerMutes(supabase, viewerId, row.user_id, isOwner),
-    ]);
+  /* Nine reads, all started together. In sequence this page would be nine
+     round trips, which on the connections this product is built for is the
+     whole difference between a page and a wait. */
+  const [
+    homeArea,
+    moderatorOf,
+    viewerHandle,
+    viewerFollows,
+    viewerMutes,
+    occupationAndPlace,
+    standing,
+    trust,
+    storyCount,
+    agentId,
+  ] = await Promise.all([
+    readHomeArea(supabase, row.home_area_id),
+    readModeratorOf(supabase, row.user_id),
+    readViewerHandle(supabase, viewerId, row.handle, isOwner),
+    readViewerFollows(supabase, viewerId, row.user_id, isOwner),
+    readViewerMutes(supabase, viewerId, row.user_id, isOwner),
+    readOccupationAndPlace(supabase, row.user_id, isOwner),
+    readStanding(supabase, row.user_id),
+    /* `agent_trust` returns NO ROW for somebody who is not an agent, which is
+       how the band decides whether to exist. It is asked unconditionally on
+       purpose: asking `is_agent` first and then asking this would be two
+       answers to one question, and they can disagree. */
+    readAgentTrust(supabase, row.user_id),
+    readStoryCount(supabase, row.user_id),
+    readAgentId(supabase, row.user_id),
+  ]);
 
   return {
     state: "found",
@@ -251,6 +296,12 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
     signedIn: Boolean(viewerId),
     homeArea,
     moderatorOf,
+    occupation: occupationAndPlace.occupation,
+    place: occupationAndPlace.place,
+    standing,
+    trust,
+    storyCount,
+    agentId,
   };
 }
 

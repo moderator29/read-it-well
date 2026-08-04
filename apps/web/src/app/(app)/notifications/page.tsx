@@ -41,9 +41,10 @@ export default async function NotificationsPage() {
       createdAt: r.created_at,
     }));
 
+    /* The header belongs to the client component here, because the mark-all
+       control has to sit in it and only that component knows what is unread. */
     return (
       <div className="mx-auto max-w-2xl">
-        <PageHeader title="Notifications" />
         <LiveNotifications initial={initial} userId={session.user.id} />
       </div>
     );

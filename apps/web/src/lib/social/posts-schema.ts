@@ -48,6 +48,15 @@ export const dropPostSchema = z.object({
     .max(POST_MAX, `Keep it under ${POST_MAX} characters.`),
 });
 
+export const editPostSchema = z.object({
+  postId: z.string().uuid(),
+  body: z
+    .string()
+    .trim()
+    .min(1, "A post cannot be empty. Delete it instead.")
+    .max(POST_MAX, `Keep it under ${POST_MAX} characters.`),
+});
+
 export const replySchema = z.object({
   parentId: z.string().uuid(),
   body: z
@@ -161,6 +170,9 @@ export const POST_COPY = {
   copied: "Link copied.",
   deleteConfirm:
     "Delete this post? Replies under it stay, with a note where it was.",
+  editedDone: "Changed. It says edited from now on.",
+  editHeld:
+    "Your change mentions something we check by hand, so the post is with us while somebody reads it. Only you can see it until then.",
 } as const;
 
 export const POST_FAILURE = {
@@ -169,8 +181,20 @@ export const POST_FAILURE = {
   notInArea: "Join this place before you post in it.",
   tooDeep:
     "This thread is as deep as it goes. Reply higher up so people can follow it.",
+  /*
+   * Both of these say the same true thing in different words, and neither of
+   * them is the sentence that used to be here.
+   *
+   * The old copy told people "you can delete it and post again". Proven false
+   * against the live database: `posts_update_own` gates on
+   * `created_at > now() - '00:15:00'`, and removal is an update, so a post an
+   * hour old cannot be taken down by its own author either. The write returns
+   * zero rows and no error, which is why this was invisible.
+   */
   editWindowClosed:
-    "The fifteen minutes for editing has passed. You can delete it and post again.",
+    "The fifteen minutes for changing a post has passed. What is written stays as it is.",
+  deleteWindowClosed:
+    "This post can no longer be taken down from here. Fifteen minutes after writing, only a moderator can remove one. Contact us and somebody will take it down for you.",
   signedOutLike: "Sign in to like this.",
 } as const;
 
@@ -183,6 +207,9 @@ export const POST_LIMITS = {
   post: { bucket: "social:post", limit: 5, windowSeconds: 3600 },
   postDaily: { bucket: "social:post-day", limit: 20, windowSeconds: 86_400 },
   reply: { bucket: "social:reply", limit: 10, windowSeconds: 300 },
+  /* Generous. Somebody fixing a typo twice is not abuse, and the fifteen
+     minute window already bounds how long this can be done for at all. */
+  edit: { bucket: "social:edit", limit: 30, windowSeconds: 3600 },
   mark: { bucket: "social:mark", limit: 200, windowSeconds: 86_400 },
   repost: { bucket: "social:repost", limit: 30, windowSeconds: 86_400 },
   report: { bucket: "social:report", limit: 20, windowSeconds: 86_400 },
