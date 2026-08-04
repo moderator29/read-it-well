@@ -321,6 +321,15 @@ function ListingRow({
             <UiIcon name="arrow-right" size={14} />
           </Link>
         )}
+        {/* Closing nights only means anything once a listing is live, so the
+            calendar appears exactly where a guest could otherwise book. */}
+        <Link
+          href={`/agent/listings/${listing.id}/calendar`}
+          className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]"
+        >
+          <UiIcon name="calendar-booking" size={14} />
+          Calendar
+        </Link>
         {editable && (
           <button
             type="button"

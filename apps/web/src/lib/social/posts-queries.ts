@@ -342,13 +342,34 @@ export async function getThread(postId: string): Promise<Thread | null> {
   };
 }
 
-/** Somebody's own posts, for their profile. */
-export async function getProfileFeed(userId: string): Promise<PostView[]> {
-  if (!isSupabaseConfigured()) return [];
+const PROFILE_LIMIT = 40;
 
+/**
+ * The three reads behind a profile's tabs.
+ *
+ * They are three functions rather than one with a mode, because each has a
+ * different `where` and a different shape of answer, and a single function with
+ * a switch would hide that a Replies row needs a parent lookup a Posts row does
+ * not. What they share is the client, the enrichment and the view mapping, so
+ * a change to how a card reads lands on all three at once.
+ *
+ * Every one goes through the caller's own RLS-bound client, so somebody's page
+ * shows a stranger exactly what `posts_select` allows a stranger to see, and
+ * shows the person themselves their own held posts, without either rule being
+ * written here.
+ */
+async function profileClient() {
   const session = await resolveSession();
   const supabase = session.state === "signed-in" ? session.supabase : await createClient();
   const viewerId = session.state === "signed-in" ? session.user.id : null;
+  return { supabase, viewerId };
+}
+
+/** Somebody's own posts, for their profile. Roots only, as the timeline is. */
+export async function getProfileFeed(userId: string): Promise<PostView[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const { supabase, viewerId } = await profileClient();
 
   const { data, error } = await supabase
     .from("posts")
@@ -356,7 +377,106 @@ export async function getProfileFeed(userId: string): Promise<PostView[]> {
     .eq("author_id", userId)
     .is("parent_id", null)
     .order("created_at", { ascending: false })
-    .limit(40);
+    .limit(PROFILE_LIMIT);
+
+  if (error || !data) return [];
+  const rows = data as unknown as RawPost[];
+  if (rows.length === 0) return [];
+
+  const e = await enrich(supabase, rows, viewerId);
+  return rows.map((row) => toView(row, e, viewerId));
+}
+
+/**
+ * Somebody's replies.
+ *
+ * Each one carries who it answers, because a reply shown away from its thread
+ * is half a sentence. The parents are read in one extra query for the whole
+ * page, not one per row, and a parent that the viewer may not see comes back
+ * missing rather than as an error: `posts_select` refuses it, the reply still
+ * renders, and the line above it simply says nothing rather than naming
+ * somebody this viewer is not allowed to know about.
+ */
+export async function getProfileReplies(userId: string): Promise<PostView[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const { supabase, viewerId } = await profileClient();
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select(POST_COLUMNS)
+    .eq("author_id", userId)
+    .not("parent_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(PROFILE_LIMIT);
+
+  if (error || !data) return [];
+  const rows = data as unknown as RawPost[];
+  if (rows.length === 0) return [];
+
+  const parentIds = [...new Set(rows.map((r) => r.parent_id).filter((v): v is string => Boolean(v)))];
+  const { data: parents } = parentIds.length
+    ? await supabase.from("posts").select("id, author_id, author_kind").in("id", parentIds)
+    : { data: [] as never[] };
+
+  const parentRows = (parents ?? []) as { id: string; author_id: string | null; author_kind: string }[];
+  const parentById = new Map(parentRows.map((p) => [p.id, p]));
+
+  /* One more lookup for the parents' handles. The page's own enrichment covers
+     the reply authors, which on a profile is one person, and says nothing about
+     the people being answered. */
+  const parentAuthorIds = [
+    ...new Set(parentRows.map((p) => p.author_id).filter((v): v is string => Boolean(v))),
+  ];
+  const { data: parentProfiles } = parentAuthorIds.length
+    ? await supabase.from("social_profiles").select("user_id, handle").in("user_id", parentAuthorIds)
+    : { data: [] as never[] };
+  const handleById = new Map(
+    ((parentProfiles ?? []) as { user_id: string; handle: string | null }[]).map((p) => [
+      p.user_id,
+      p.handle,
+    ]),
+  );
+
+  const e = await enrich(supabase, rows, viewerId);
+
+  return rows.map((row) => {
+    const parent = row.parent_id ? parentById.get(row.parent_id) : null;
+    const handle = parent?.author_id ? handleById.get(parent.author_id) : null;
+    return {
+      ...toView(row, e, viewerId),
+      replyingTo: handle
+        ? `@${handle}`
+        : parent?.author_kind === "BOT"
+          ? "RentMe AI"
+          : null,
+    };
+  });
+}
+
+/**
+ * Somebody's posts that carry a picture.
+ *
+ * `post_media!inner` makes the join do the filtering, so a post with no media
+ * never comes back at all. Doing it the other way round, reading `post_media`
+ * first and then the posts, would need a second query and would still have to
+ * pass `posts_select`, which is where the answer has to come from anyway.
+ *
+ * Replies are included here, unlike the Posts tab. A picture is a picture
+ * wherever somebody put it, and a media grid that silently drops the ones
+ * posted inside a conversation would be missing most of them.
+ */
+export async function getProfileMedia(userId: string): Promise<PostView[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const { supabase, viewerId } = await profileClient();
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select(`${POST_COLUMNS}, post_media!inner(id)`)
+    .eq("author_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(PROFILE_LIMIT);
 
   if (error || !data) return [];
   const rows = data as unknown as RawPost[];

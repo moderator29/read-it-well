@@ -75,6 +75,33 @@ const GENERIC_RESERVE_MESSAGE =
 const SERVICE_DOWN_MESSAGE =
   "Cancelling is temporarily unavailable. Your booking is unchanged. Please try again shortly.";
 
+/**
+ * Turn a 23514 check-constraint violation into the true sentence.
+ *
+ * Eleven check constraints on public.bookings can raise this code and only
+ * three of them are ever the guest's doing. Saying "those dates do not work"
+ * for all of them tells a guest to go and fix dates that are perfectly fine,
+ * and hides an arithmetic bug of ours behind their supposed mistake.
+ *
+ * The guest-fixable ones name the fix. Everything else is our error, so it says
+ * so and does not send them back to the form to guess.
+ */
+function checkConstraintMessage(message: string): string {
+  if (message.includes("bookings_dates_chk")) {
+    return "Check-out has to be after check-in. Pick the dates again.";
+  }
+  if (message.includes("bookings_adults_check")) {
+    return "A booking needs at least one adult on it.";
+  }
+  if (message.includes("bookings_children_check")) {
+    return "The number of children cannot be negative.";
+  }
+  /* bookings_nights_chk, bookings_subtotal_chk, bookings_total_chk and the
+     non-negative money checks are all arithmetic this server did. A guest can
+     do nothing about any of them, so we do not pretend otherwise. */
+  return "Something went wrong working out this booking on our side. Nothing was charged and nothing was held. Please try again, and tell support if it happens twice.";
+}
+
 /** What a successful reserve hands back for the confirmation moment. */
 export type ReserveReceipt = {
   bookingId: string;
@@ -110,6 +137,9 @@ export async function reserve(
   let priceMinor: number | null = null;
   let cleaningMinor = 0;
   let serviceMinor = 0;
+  /* The shortest stay this host accepts. Defaults to one so a seed listing,
+     which has no such column, behaves exactly as it did before. */
+  let minStayNights = 1;
   // Read for the emails sent once the booking has saved, nothing else.
   let listingTitle = "your stay";
   let listingAgentId: string | null = null;
@@ -118,7 +148,7 @@ export async function reserve(
     const { data: row, error } = await session.supabase
       .from("listings")
       .select(
-        "id, title, agent_id, price_per_night_minor, cleaning_fee_minor, service_fee_minor, price_period",
+        "id, title, agent_id, price_per_night_minor, cleaning_fee_minor, service_fee_minor, price_period, min_stay_nights",
       )
       .eq("id", input.listingId)
       .maybeSingle();
@@ -128,6 +158,7 @@ export async function reserve(
       priceMinor = row.price_per_night_minor;
       cleaningMinor = row.cleaning_fee_minor;
       serviceMinor = row.service_fee_minor;
+      minStayNights = row.min_stay_nights;
       listingTitle = row.title;
       listingAgentId = row.agent_id;
     }
@@ -142,6 +173,22 @@ export async function reserve(
 
   // ------------------------------------------------------ integer money
   const nights = nightsBetween(input.checkIn, input.checkOut);
+
+  /* The host's minimum stay. listings.min_stay_nights has existed with a > 0
+     check constraint since listings_core and was read by nothing, so a guest
+     could book one night at a three-night property and the host only found out
+     when they came to accept it. Name the number, because "those dates do not
+     work" leaves the guest guessing which way to move. */
+  if (nights < minStayNights) {
+    const nightWord = minStayNights === 1 ? "night" : "nights";
+    return fail(
+      `This place takes bookings of ${minStayNights} ${nightWord} or more. Add ${
+        minStayNights - nights === 1 ? "another night" : `${minStayNights - nights} more nights`
+      } and you are set.`,
+      { checkOut: `Minimum stay is ${minStayNights} ${nightWord}.` },
+    );
+  }
+
   const subtotalMinor = priceMinor * nights;
   const totalMinor = subtotalMinor + cleaningMinor + serviceMinor;
 
@@ -169,8 +216,16 @@ export async function reserve(
   if (insertError || !created) {
     if (insertError?.code === "23P01") return fail(DATES_TAKEN_MESSAGE);
     if (insertError?.code === "23503") return fail(UNKNOWN_LISTING_MESSAGE);
-    if (insertError?.code === "23514") {
-      return fail("Those dates do not work for this stay. Check them and try again.");
+    if (insertError?.code === "23514") return fail(checkConstraintMessage(insertError.message));
+    /* Probed against live Postgres: a check_out on or before check_in raises
+       22000 from the `during` daterange generated column before
+       bookings_dates_chk is ever evaluated, so this, not 23514, is the code
+       reversed dates actually produce. The input schema catches it first in
+       normal use; this is the honest answer if anything ever slips past. */
+    if (insertError?.code === "22000") {
+      return fail("Check-out has to be after check-in. Pick the dates again.", {
+        checkOut: "Check-out has to be after check-in.",
+      });
     }
     return fail(GENERIC_RESERVE_MESSAGE);
   }
