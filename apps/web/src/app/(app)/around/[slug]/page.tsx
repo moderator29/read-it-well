@@ -79,20 +79,16 @@ export default async function AreaPage({
 
   return (
     <div className="mx-auto w-full max-w-3xl pb-24 pt-4">
-      <PageHeader
-        title={`Around ${area.name}`}
-        subtitle={`${AREA_KIND_LABEL[area.kind]} in ${area.city}`}
-        fallback="/around"
-        actions={
-          area.status === "ACTIVE" ? (
-            <JoinButton
-              areaId={area.id}
-              joined={viewer.member}
-              signedIn={viewer.signedIn}
-            />
-          ) : null
-        }
-      />
+      {area.status === "ACTIVE" ? (
+        <div className="mb-4 flex justify-end">
+          <JoinButton
+            areaId={area.id}
+            joined={viewer.member}
+            signedIn={viewer.signedIn}
+            size="sm"
+          />
+        </div>
+      ) : null}
 
       {area.status === "PROPOSED" ? (
         <p className="nf-card mb-5 border-[var(--nf-border-brand)] p-4 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
@@ -106,6 +102,44 @@ export default async function AreaPage({
         </p>
       ) : null}
 
+      {area.slowMode && area.status === "ACTIVE" ? (
+        <p className="mb-5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-4 py-3 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+          {AREA_COPY.slowMode}
+        </p>
+      ) : null}
+
+      <section className="mb-6">
+        <Feed
+          initial={feed.posts}
+          signedIn={viewer.signedIn}
+          isMember={viewer.member}
+          areaId={area.status === "ACTIVE" ? area.id : undefined}
+          areaName={area.name}
+          emptyMessage={
+            viewer.signedIn ? POST_COPY.emptyFeed : POST_COPY.emptyFeedSignedOut
+          }
+          district={{
+            city: area.city,
+            slug: area.slug,
+            places: mine
+              .filter((place) => place.status === "ACTIVE")
+              .map((place) => ({ slug: place.slug, name: place.name, city: place.city })),
+            stories,
+          }}
+        />
+        {feed.ended && feed.posts.length > 0 ? (
+          <p
+            aria-live="polite"
+            className="mt-5 text-center text-xs text-[var(--nf-content-muted)]"
+          >
+            {POST_COPY.endOfSession}
+          </p>
+        ) : null}
+      </section>
+
+      {/* What this place is, under the conversation rather than above it. The
+          board's district feed goes header, chips, cards; the description is
+          something people read once and the feed is what they came for. */}
       <section className="nf-card mb-5 p-5">
         {area.blurb ? (
           <p className="text-base leading-relaxed text-[var(--nf-content-primary)]">
@@ -168,40 +202,6 @@ export default async function AreaPage({
         )}
       </section>
 
-      {area.slowMode && area.status === "ACTIVE" ? (
-        <p className="mb-5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-4 py-3 text-xs leading-relaxed text-[var(--nf-content-muted)]">
-          {AREA_COPY.slowMode}
-        </p>
-      ) : null}
-
-      <section className="mb-6">
-        <Feed
-          initial={feed.posts}
-          signedIn={viewer.signedIn}
-          isMember={viewer.member}
-          areaId={area.status === "ACTIVE" ? area.id : undefined}
-          areaName={area.name}
-          emptyMessage={
-            viewer.signedIn ? POST_COPY.emptyFeed : POST_COPY.emptyFeedSignedOut
-          }
-          district={{
-            city: area.city,
-            slug: area.slug,
-            places: mine
-              .filter((place) => place.status === "ACTIVE")
-              .map((place) => ({ slug: place.slug, name: place.name, city: place.city })),
-            stories,
-          }}
-        />
-        {feed.ended && feed.posts.length > 0 ? (
-          <p
-            aria-live="polite"
-            className="mt-5 text-center text-xs text-[var(--nf-content-muted)]"
-          >
-            {POST_COPY.endOfSession}
-          </p>
-        ) : null}
-      </section>
 
       {viewer.member && !isModerator && area.status === "ACTIVE" ? (
         <ModeratorApply

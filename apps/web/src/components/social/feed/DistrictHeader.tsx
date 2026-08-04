@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BackChevron } from "@/components/social/profile/BackChevron";
 
 /**
  * The head of a district feed.
@@ -53,7 +54,12 @@ export function DistrictHeader({
 
   return (
     <div className="nf-district__head">
-      <div className="relative min-w-0">
+      {/* The back control lives here rather than in a PageHeader above, because
+          two headers on one screen is exactly the jam this page had: the place
+          name was printed twice, once as a title and once as the switcher. */}
+      <BackChevron fallback="/around" />
+
+      <div className="relative min-w-0 flex-1">
         <button
           type="button"
           className="nf-district__place"
