@@ -98,3 +98,21 @@ but it surprises everyone who clones it.
 here; only `.env.example` is visible and it is blank by design. The owner adds
 env keys personally. Payment code is env-guarded and degrades honestly, so a
 missing key is a designed state rather than a crash.
+
+**`pg_cron` is available but not installed**, and seven badges want it.
+`first_stay`, `ten_stays` and `year_one` are the passage of a date rather than
+an event any trigger can fire on. `booking_status` is PENDING, CONFIRMED,
+CANCELLED, with no COMPLETED, so "they stayed" is not a moment the schema
+records. `fast_responder` is a median that has to be recomputed, `local_guide`
+is not yet defined in numbers, `photo_pro` needs a per-listing rejection
+history nobody keeps, and `rentme_elite` depends on the other six plus a ninety
+day clean window. The other seven badges award themselves from event triggers
+today. Turning `pg_cron` on, or adding one authenticated maintenance route the
+platform calls on a schedule, closes all seven. It is the owner's call which.
+
+**`private.probe_as` exists for testing only.** It sets `request.jwt.claims` so
+a probe can run as a real signed-in person under RLS, because a probe through
+the service role bypasses RLS entirely and therefore cannot test a policy. It
+is revoked from `public`, `anon` and `authenticated`, so only the service role
+can reach it, and no application code calls it. Worth deleting before the
+platform carries real people's data.

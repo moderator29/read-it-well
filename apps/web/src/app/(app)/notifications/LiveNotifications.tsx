@@ -36,6 +36,11 @@ const KIND_ICON: Record<string, UiIconName> = {
   agent: "key",
   support: "user",
   system: "bell",
+  /* Everything Around sends: a new follower, a reply, a mention, a like, a
+     repost, a badge, and every moderation decision. One icon for all of them
+     because they share one thing, which is that another person is on the other
+     end of it. */
+  social: "user",
 };
 
 function iconFor(kind: string): UiIconName {
@@ -89,7 +94,8 @@ export function LiveNotifications({
         </span>
         <h2 className="nf-h3 mt-4">You are all caught up</h2>
         <p className="mx-auto mt-2 max-w-md text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
-          Bookings, messages and wallet activity will land here the moment they happen.
+          Bookings, messages, wallet activity and everything happening Around
+          will land here the moment it does.
         </p>
         <div className="mt-5 flex justify-center">
           <Link href="/search" className="nf-btn nf-btn--primary">
