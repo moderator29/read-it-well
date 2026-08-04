@@ -73,14 +73,30 @@ for (const route of routes) {
     await page.goto(url, { waitUntil: "load", timeout: 45000 });
     await page.waitForTimeout(2500);
 
-    // Prove the theme took before writing a file that claims it did.
-    const applied = await page.evaluate(
-      () => document.documentElement.dataset.theme ?? "dark",
-    );
-    if (applied !== theme) {
+    // Prove the shot is worth looking at before writing a file that claims it
+    // is. Two checks, and both exist because they each let a useless screenshot
+    // through and be treated as verification.
+    const state = await page.evaluate(() => ({
+      theme: document.documentElement.dataset.theme ?? "dark",
+      // A stale server can serve a page whose stylesheet 404s from a build that
+      // has been replaced underneath it. The screenshot then comes back
+      // completely unstyled, and the theme assertion still passes because the
+      // attribute is set by an inline script that needs no CSS at all. Two
+      // light shots went through exactly that way before this line existed.
+      sheets: document.styleSheets.length,
+    }));
+
+    if (state.theme !== theme) {
       failures += 1;
       console.error(
-        `FAILED ${route}: asked for ${theme}, the page rendered ${applied}. No file written.`,
+        `FAILED ${route}: asked for ${theme}, the page rendered ${state.theme}. No file written.`,
+      );
+      continue;
+    }
+    if (state.sheets === 0) {
+      failures += 1;
+      console.error(
+        `FAILED ${route}: the page loaded no stylesheet, so the shot would be unstyled. Usually a server running against a build that has been replaced. No file written.`,
       );
       continue;
     }

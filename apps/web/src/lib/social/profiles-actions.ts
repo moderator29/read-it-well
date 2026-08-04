@@ -220,6 +220,14 @@ function describeWriteFailure(
     }
     return ["Please check the highlighted fields and try again."];
   }
+  if (code === "23503" || code === "22P02") {
+    /* The home area foreign key, or a value that is not a uuid at all. Both
+       mean the same thing to a person: that place is not one we know. */
+    return [
+      "Please choose a place that is open.",
+      { homeAreaId: "That place is not open. Pick one from the list." },
+    ];
+  }
   if (code === "42501") {
     return ["This profile cannot be saved from this account."];
   }

@@ -74,6 +74,7 @@ export function ProfileEditor({
   const pronounsId = useId();
   const linkId = useId();
   const areaId = useId();
+  const policyId = useId();
 
   const saved = state?.ok ? state.data : null;
 
@@ -236,6 +237,7 @@ export function ProfileEditor({
             name="homeAreaId"
             value={homeAreaId}
             onChange={(e) => setHomeAreaId(e.target.value)}
+            aria-invalid={fieldError("homeAreaId") ? true : undefined}
             className="nf-field"
           >
             <option value="">Rather not say</option>
@@ -254,12 +256,30 @@ export function ProfileEditor({
             </p>
           </>
         )}
+        {fieldError("homeAreaId") && (
+          <p className="mt-2 text-[0.75rem] text-[var(--nf-state-error)]">
+            {fieldError("homeAreaId")}
+          </p>
+        )}
       </section>
 
       {/* ------------------------------------------------------- who reaches */}
-      <fieldset className="nf-card p-4 sm:p-5">
-        <legend className="nf-overline">Who can message you</legend>
-        <div className="mt-3 space-y-2">
+      {/*
+        A radiogroup rather than a fieldset with a legend. A legend is laid out
+        on the box's top border, so on a card it cuts a hole through the stride's
+        gradient ring and reads as a mistake. The group keeps the same semantics
+        through role and aria-labelledby, and the heading then matches every
+        other section on the page.
+      */}
+      <section className="nf-card p-4 sm:p-5">
+        <h2 id={`${policyId}-label`} className="nf-overline">
+          Who can message you
+        </h2>
+        <div
+          role="radiogroup"
+          aria-labelledby={`${policyId}-label`}
+          className="mt-3 space-y-2"
+        >
           {CONTACT_POLICIES.map((policy) => {
             const copy = CONTACT_POLICY_COPY[policy];
             const active = contactPolicy === policy;
@@ -317,7 +337,7 @@ export function ProfileEditor({
             </span>
           </span>
         </label>
-      </fieldset>
+      </section>
 
       {/* ------------------------------------------------------------ result */}
       {state && !state.ok && (
