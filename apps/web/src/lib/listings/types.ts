@@ -78,6 +78,14 @@ export type Listing = {
   partner?: PartnerMeta;
   bedrooms: number;
   bathrooms: number;
+  /**
+   * How many guests the host says the place takes, when the source states a
+   * number. Agent inventory always carries one (`listings.max_guests`, which
+   * the wizard collects and a check constraint keeps above zero). The seed
+   * catalogue does not, so it is optional and the shared `sleeps` matcher
+   * falls back to the two-per-bedroom convention for anything that omits it.
+   */
+  maxGuests?: number;
   rating: number;
   reviewCount: number;
   verified: boolean;
@@ -112,10 +120,10 @@ export type ListingSearchFilter = {
   /** Minimum bathrooms, same rule. */
   bathrooms?: number;
   /**
-   * Minimum party size the place must take. The catalogue has no sleeps
-   * column, so capacity is derived from bedrooms by the shared matcher; a
-   * listing with no bedrooms at all (a restaurant table, an experience) has no
-   * capacity to judge and is never excluded by this.
+   * Minimum party size the place must take. Judged against the host's declared
+   * capacity where there is one, and against the two-per-bedroom convention
+   * where there is not. A listing with neither (a restaurant table, an
+   * experience) has no capacity to judge and is never excluded by this.
    */
   guests?: number;
   /** Amenity codes that must ALL be present. Same codes the agent flow writes. */

@@ -215,6 +215,150 @@
   }
 
   /* ------------------------------------------------------------------
+   * The full page sheet.
+   *
+   * Full page and never partial, which is the house rule and also the right
+   * shape for both things that use it: choosing why you are reporting
+   * somebody, and being told what a block just did. Both deserve the screen
+   * and neither is a thing to skim past a half-height panel to get back to.
+   *
+   * The scrim is ink rather than a blur, because a blurred backdrop over a
+   * feed that is already glass is two blurs stacked, which is where mid-range
+   * Android compositing gets expensive for no gain.
+   * ------------------------------------------------------------------ */
+  .nf-social-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow-y: auto;
+    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  @media (min-width: 640px) {
+    .nf-social-sheet {
+      align-items: center;
+      padding: 2rem 1.25rem;
+    }
+  }
+
+  .nf-social-sheet__panel {
+    inline-size: 100%;
+    max-inline-size: 32rem;
+    min-block-size: 100dvh;
+    padding: 1.5rem 1.25rem calc(2rem + env(safe-area-inset-bottom));
+    background: var(--nf-surface-primary);
+    border: 1px solid var(--nf-border-default);
+    box-shadow: var(--nf-shadow-float);
+  }
+
+  @media (min-width: 640px) {
+    .nf-social-sheet__panel {
+      min-block-size: 0;
+      padding: 1.75rem;
+      border-radius: var(--nf-feed-radius);
+    }
+  }
+
+  /*
+   * One reason, chosen. A 48px row rather than a bare radio, because the
+   * label is the target and a 16px dot is not one on a phone.
+   */
+  .nf-social-reason {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-block-size: 48px;
+    padding-inline: 13px;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-secondary);
+    cursor: pointer;
+  }
+  .nf-social-reason:has(input:checked) {
+    border-color: var(--nf-border-brand);
+    color: var(--nf-content-primary);
+  }
+  .nf-social-reason input {
+    accent-color: var(--nf-brand-primary);
+    inline-size: 18px;
+    block-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /*
+   * Destructive. Rose ink and a rose hairline, never a filled rose slab: a
+   * solid red button is louder than anything else on the page and it trains
+   * people to fear the screen rather than to read it.
+   */
+  .nf-social-danger {
+    border: 1px solid color-mix(in oklab, var(--nf-state-error) 55%, transparent);
+    background: var(--nf-state-error-surface);
+    color: var(--nf-state-error);
+  }
+  .nf-social-danger:hover:not(:disabled) {
+    border-color: var(--nf-state-error);
+  }
+
+  /* ------------------------------------------------------------------
+   * The profile's own overflow control, and the line it leaves behind.
+   * ------------------------------------------------------------------ */
+  .nf-social-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-default);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
+  }
+  .nf-social-more:hover,
+  .nf-social-more:focus-visible {
+    color: var(--nf-content-primary);
+  }
+
+  /* Anchored to this control rather than to a card's header row. */
+  .nf-social-more__menu {
+    inset-inline-end: 0;
+    top: 50px;
+  }
+
+  /*
+   * What just happened, said once. Fixed above the tab bar so it clears the
+   * dock on a phone, and it fades itself out rather than needing dismissal.
+   */
+  .nf-social-toast {
+    position: fixed;
+    inset-inline: 1rem;
+    bottom: calc(5.25rem + env(safe-area-inset-bottom));
+    z-index: 70;
+    margin-inline: auto;
+    max-inline-size: 26rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-brand);
+    background: var(--nf-surface-raised);
+    box-shadow: var(--nf-shadow-float);
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    text-align: start;
+  }
+
+  @media (min-width: 1024px) {
+    .nf-social-toast {
+      bottom: 1.5rem;
+    }
+  }
+
+  /* ------------------------------------------------------------------
    * Desktop. The feed is designed at 390 and then given room, rather than
    * stretched: the column stops growing at a comfortable measure and the
    * card gains padding instead of width.

@@ -2226,6 +2226,15 @@ export type Database = {
         }
         Returns: Json
       }
+      platform_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          listings: number
+          cities: number
+          states: number
+          agents: number
+        }[]
+      }
       record_idempotency_result: {
         Args: { key: string; result: Json; scope: string; subject: string }
         Returns: boolean

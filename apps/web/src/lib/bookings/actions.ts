@@ -140,6 +140,10 @@ export async function reserve(
   /* The shortest stay this host accepts. Defaults to one so a seed listing,
      which has no such column, behaves exactly as it did before. */
   let minStayNights = 1;
+  /* How many guests the host says the place takes. Defaults to null, which
+     means "this source declares no capacity", so a seed listing behaves
+     exactly as it did before. */
+  let maxGuests: number | null = null;
   // Read for the emails sent once the booking has saved, nothing else.
   let listingTitle = "your stay";
   let listingAgentId: string | null = null;
@@ -148,7 +152,7 @@ export async function reserve(
     const { data: row, error } = await session.supabase
       .from("listings")
       .select(
-        "id, title, agent_id, price_per_night_minor, cleaning_fee_minor, service_fee_minor, price_period, min_stay_nights",
+        "id, title, agent_id, price_per_night_minor, cleaning_fee_minor, service_fee_minor, price_period, min_stay_nights, max_guests",
       )
       .eq("id", input.listingId)
       .maybeSingle();
@@ -159,6 +163,7 @@ export async function reserve(
       cleaningMinor = row.cleaning_fee_minor;
       serviceMinor = row.service_fee_minor;
       minStayNights = row.min_stay_nights;
+      maxGuests = row.max_guests;
       listingTitle = row.title;
       listingAgentId = row.agent_id;
     }
@@ -186,6 +191,20 @@ export async function reserve(
         minStayNights - nights === 1 ? "another night" : `${minStayNights - nights} more nights`
       } and you are set.`,
       { checkOut: `Minimum stay is ${minStayNights} ${nightWord}.` },
+    );
+  }
+
+  /* The host's capacity. listings.max_guests is collected at step 5 of the
+     listing wizard and was read by nothing on this path, so a party of eight
+     could book a two-guest studio and the agent discovered it at the gate.
+     Name the number, the same way the minimum stay does, because "those
+     guests do not work" leaves the guest guessing which way to move. */
+  const party = input.adults + input.children;
+  if (maxGuests !== null && party > maxGuests) {
+    const guestWord = maxGuests === 1 ? "guest" : "guests";
+    return fail(
+      `This place takes up to ${maxGuests} ${guestWord}, and you have asked for ${party}. Lower the party size, or find a bigger place from search.`,
+      { adults: `Up to ${maxGuests} ${guestWord} in total.` },
     );
   }
 

@@ -22,7 +22,20 @@
  * mark snaps rather than animating and no separate code path is needed.
  */
 
-export type PostGlyphName = "like" | "reply" | "repost" | "views" | "share" | "more";
+export type PostGlyphName =
+  | "like"
+  | "reply"
+  | "repost"
+  | "views"
+  | "share"
+  | "more"
+  /* Three controls rather than three reactions, drawn from the same three
+     primitives so a sheet's close button and a like belong to one family.
+     They live here rather than in `UiIcon` because `UiIcon` carries no plus and
+     no cross, and adding to the platform's navigation set is not this layer's
+     to do. */
+  | "compose"
+  | "close";
 
 const STROKE = {
   fill: "none",
@@ -110,6 +123,27 @@ export function PostGlyph({
           <path d="M12 9.6V4.4" {...STROKE} />
           <path d="M10 13.4 6 17.2" {...STROKE} />
           <path d="M14 13.4 18 17.2" {...STROKE} />
+        </>
+      ) : null}
+
+      {name === "compose" ? (
+        /* Two strokes crossing at a node. Writing something is adding it, and
+           the node at the crossing is the same node the other five marks are
+           built from, so the button that starts a post belongs to the family
+           the post's own actions come from. */
+        <>
+          <path d="M12 5.6v12.8" {...STROKE} strokeWidth={2} />
+          <path d="M5.6 12h12.8" {...STROKE} strokeWidth={2} />
+        </>
+      ) : null}
+
+      {name === "close" ? (
+        /* The same two strokes, turned. A close is a compose that changed its
+           mind, and drawing it as the same gesture rotated is cheaper to read
+           than a second shape. */
+        <>
+          <path d="M7.2 7.2 16.8 16.8" {...STROKE} strokeWidth={2} />
+          <path d="M16.8 7.2 7.2 16.8" {...STROKE} strokeWidth={2} />
         </>
       ) : null}
 

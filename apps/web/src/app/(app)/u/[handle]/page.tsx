@@ -4,9 +4,15 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
 import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
-import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
+import type { ProfileTabKey } from "@/components/social/profile/ProfilePosts";
+import { ProfileTabs } from "@/components/social/profile/ProfileTabs";
+import { ProfileMenu } from "@/components/social/profile/ProfileMenu";
 import { loadPublicProfile, normaliseHandle } from "@/lib/social/profiles-queries";
-import { getProfileFeed } from "@/lib/social/posts-queries";
+import {
+  getProfileFeed,
+  getProfileMedia,
+  getProfileReplies,
+} from "@/lib/social/posts-queries";
 
 /**
  * `/u/[handle]`: a person's page.
@@ -30,20 +36,41 @@ export async function generateMetadata({
   return { title: `@${normaliseHandle(handle)}` };
 }
 
+const TAB_KEYS: ProfileTabKey[] = ["posts", "replies", "media"];
+
+function tabFrom(raw: string | string[] | undefined): ProfileTabKey {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  return TAB_KEYS.find((key) => key === value) ?? "posts";
+}
+
 export default async function SocialProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ handle: string }>;
+  searchParams: Promise<{ tab?: string | string[] }>;
 }) {
   const { handle: raw } = await params;
   const handle = normaliseHandle(raw);
   const locale = await getLocale();
-  const view = await loadPublicProfile(raw);
+  const [view, query] = await Promise.all([loadPublicProfile(raw), searchParams]);
 
   if (view.state === "found") {
-    /* Their own posts, read under the viewer's row level security, so a held or
-       blocked row never reaches this page in the first place. */
-    const posts = await getProfileFeed(view.profile.userId);
+    /*
+     * All three tabs, read in parallel under the viewer's own row level
+     * security, so a held or blocked row never reaches this page at all.
+     *
+     * Three reads rather than one because each has a different `where`: roots
+     * only, replies only, and an inner join onto post_media. They run together,
+     * so the page costs one round trip and moving between the tabs afterwards
+     * costs nothing, which is the right trade on a connection where the round
+     * trip is the expensive part.
+     */
+    const [posts, replies, media] = await Promise.all([
+      getProfileFeed(view.profile.userId),
+      getProfileReplies(view.profile.userId),
+      getProfileMedia(view.profile.userId),
+    ]);
 
     return (
       <div className="mx-auto max-w-2xl">
@@ -54,21 +81,34 @@ export default async function SocialProfilePage({
           moderatorOf={view.moderatorOf}
           locale={locale}
           actions={
-            view.isOwner ? undefined : (
-              <FollowButton
+            <>
+              {view.isOwner ? null : (
+                <FollowButton
+                  handle={view.profile.handle}
+                  initialFollowing={view.viewerFollows}
+                  signedIn={view.signedIn}
+                />
+              )}
+              <ProfileMenu
                 handle={view.profile.handle}
-                initialFollowing={view.viewerFollows}
+                userId={view.profile.userId}
+                displayLabel={view.profile.displayLabel}
+                isOwner={view.isOwner}
                 signedIn={view.signedIn}
+                initialMuted={view.viewerMutes}
               />
-            )
+            </>
           }
         />
-        <ProfilePosts
+        <ProfileTabs
           handle={view.profile.handle}
           posts={posts}
+          replies={replies}
+          media={media}
           isOwner={view.isOwner}
           signedIn={view.signedIn}
           hasBio={view.profile.bio.length > 0}
+          initialTab={tabFrom(query.tab)}
         />
       </div>
     );

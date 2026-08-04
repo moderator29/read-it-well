@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getDictionary, type Dictionary, type Locale } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
+import { factsOf, sleeps } from "@/lib/listings/filter";
 import { getMessageRepository } from "@/lib/messages/repository";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { formatMoney, formatNumber } from "@naijafinds/i18n";
@@ -60,12 +61,17 @@ function stateLabel(state: string): string {
 }
 
 /**
- * Guest capacity is not a stored field yet. Until the platform API carries it,
- * derive it at two guests a bedroom so the facts stay complete without a
- * hardcoded number per listing.
+ * How many guests this place takes, as one number the whole page agrees on.
+ *
+ * The host's declared `max_guests` where there is one, the two-per-bedroom
+ * convention where there is not, and null where capacity is not a knowable
+ * thing about the place at all. This used to be a local function that ignored
+ * the declared number entirely and always answered `bedrooms * 2`, so a
+ * four-guest one-bedroom read as sleeping two and a two-guest three-bedroom
+ * read as sleeping six.
  */
-function sleeps(listing: Listing): number {
-  return Math.max(2, listing.bedrooms * 2);
+function capacityOf(listing: Listing): number | null {
+  return sleeps(factsOf(listing));
 }
 
 export async function generateMetadata({
@@ -225,7 +231,10 @@ export default async function ListingDetailPage({
       } Reserve online, then arrange an inspection with the agent through Messages. Pay only after you have inspected the property.`,
     );
     const closing: string[] = [];
-    if (listing.bedrooms > 0) closing.push(`It sleeps up to ${sleeps(listing)} guests.`);
+    const capacity = capacityOf(listing);
+    if (capacity !== null) {
+      closing.push(`It sleeps up to ${capacity} ${capacity === 1 ? "guest" : "guests"}.`);
+    }
     if (listing.reviewCount > 0) {
       closing.push(
         `Guests have rated it ${listing.rating.toFixed(1)} out of 5 across ${formatNumber(
@@ -409,6 +418,7 @@ export default async function ListingDetailPage({
       today={today}
       blockedDates={blockedDates}
       priceMinor={listing.priceMinor}
+      capacity={capacityOf(listing)}
     >
       {body}
     </StayDatesProvider>

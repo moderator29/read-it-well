@@ -111,6 +111,7 @@ export function ReservePanel({
     checkOut,
     adults,
     children,
+    capacity,
     setCheckIn,
     setCheckOut,
     setAdults,
@@ -247,16 +248,32 @@ export function ReservePanel({
         )}
 
         {/* ------------------------------------------------------ guests */}
+        {/* The host's declared capacity is the ceiling, split live between the
+            two steppers, so a party the agent would turn away at the gate can
+            never be assembled here. The server checks it again against the
+            listing row; this is the courtesy, not the guard. */}
         <div className="mt-3.5 space-y-2.5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3.5">
-          <Stepper label="Adults" name="adults" value={adults} min={1} max={16} onChange={setAdults} />
+          <Stepper
+            label="Adults"
+            name="adults"
+            value={adults}
+            min={1}
+            max={capacity === null ? 16 : Math.max(1, capacity - children)}
+            onChange={setAdults}
+          />
           <Stepper
             label="Children"
             name="children"
             value={children}
             min={0}
-            max={10}
+            max={capacity === null ? 10 : Math.max(0, capacity - adults)}
             onChange={setChildren}
           />
+          {capacity !== null && (
+            <p className="border-t border-[var(--nf-border-subtle)] pt-2.5 text-[0.78rem] text-[var(--nf-content-muted)]">
+              This place takes up to {capacity} {capacity === 1 ? "guest" : "guests"}.
+            </p>
+          )}
         </div>
 
         {/* ---------------------------------------------- price breakdown */}

@@ -34,6 +34,12 @@ export type StayDatesValue = {
   checkOut: string;
   adults: number;
   children: number;
+  /**
+   * How many guests this place takes, or null when that is not a knowable
+   * thing about it. The host's own number where they declared one, the
+   * two-per-bedroom convention where they did not.
+   */
+  capacity: number | null;
   setCheckIn: (value: string) => void;
   setCheckOut: (value: string) => void;
   setAdults: (value: number) => void;
@@ -60,16 +66,21 @@ export function StayDatesProvider({
   today,
   blockedDates,
   priceMinor,
+  capacity,
   children,
 }: {
   today: string;
   blockedDates: string[];
   priceMinor: number;
+  /** The host's declared capacity, or null when the place declares none. */
+  capacity: number | null;
   children: React.ReactNode;
 }) {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
-  const [adults, setAdults] = useState(2);
+  // Two adults is the common case, but never more than the place takes: a
+  // one-guest studio must not open with a party the host would turn away.
+  const [adults, setAdults] = useState(() => Math.max(1, Math.min(2, capacity ?? 2)));
   const [childCount, setChildCount] = useState(0);
 
   const blocked = useMemo(() => new Set(blockedDates), [blockedDates]);
@@ -102,6 +113,7 @@ export function StayDatesProvider({
       checkOut,
       adults,
       children: childCount,
+      capacity,
       setCheckIn,
       setCheckOut,
       setAdults,
@@ -114,7 +126,7 @@ export function StayDatesProvider({
       ready,
       totalMinor: nights >= 1 ? priceMinor * nights : 0,
     };
-  }, [adults, checkIn, checkOut, childCount, clash, nights, priceMinor, today]);
+  }, [adults, capacity, checkIn, checkOut, childCount, clash, nights, priceMinor, today]);
 
   return <StayDatesContext.Provider value={value}>{children}</StayDatesContext.Provider>;
 }

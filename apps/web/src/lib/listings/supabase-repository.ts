@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
-import { bedroomsForGuests, diversePick, matchesFilter } from "./filter";
+import { diversePick, matchesFilter } from "./filter";
 import type { Listing, ListingKind, ListingRepository, ListingSearchFilter } from "./types";
 
 /**
@@ -54,6 +54,7 @@ const LISTING_SELECT = `
   price_per_night_minor,
   bedrooms,
   bathrooms,
+  max_guests,
   instant_book,
   featured,
   area,
@@ -73,6 +74,7 @@ type ListingRow = {
   price_per_night_minor: number;
   bedrooms: number;
   bathrooms: number;
+  max_guests: number;
   instant_book: boolean;
   featured: boolean;
   area: string | null;
@@ -269,6 +271,9 @@ function mapRow(
     source: "rentme",
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
+    // The host's own capacity, not a figure derived from bedroom count. Every
+    // listings row carries one; the check constraint keeps it above zero.
+    maxGuests: row.max_guests,
     rating: stat?.rating ?? 0,
     reviewCount: stat?.count ?? 0,
     // First-party inventory is admitted through agent approval, so a published
@@ -389,10 +394,11 @@ export class SupabaseListingRepository implements ListingRepository {
       if (filter.bedrooms !== undefined) query = query.gte("bedrooms", filter.bedrooms);
       if (filter.bathrooms !== undefined) query = query.gte("bathrooms", filter.bathrooms);
       if (filter.guests !== undefined) {
-        // Capacity is derived from bedrooms, and a row with no bedrooms has no
-        // capacity to judge, so it stays in. Same rule as `sleeps` in the
-        // matcher, written as a predicate.
-        query = query.or(`bedrooms.eq.0,bedrooms.gte.${bedroomsForGuests(filter.guests)}`);
+        // Every listings row declares its own capacity, so the predicate is
+        // the column itself. This is exactly what `sleeps` decides in the
+        // matcher for a row that carries a declared number, which every row
+        // from this table does, so the two halves cannot disagree.
+        query = query.gte("max_guests", filter.guests);
       }
       if (filter.instantBook) query = query.eq("instant_book", true);
 

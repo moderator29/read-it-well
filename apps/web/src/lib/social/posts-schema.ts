@@ -64,30 +64,73 @@ export const markSchema = z.object({
   mark: z.enum(["LIKE", "SAVE"]),
 });
 
+/*
+ * Reporting.
+ *
+ * `public.reports.reason` is text, so this list is our own decision rather than
+ * a database constraint. It is still an enum here, because a triage queue where
+ * every row says "Something else" cannot be worked, and free text as the only
+ * signal is exactly what produces that queue.
+ *
+ * One vocabulary, two subsets. A post can be nothing to do with the place it
+ * was written in; an account cannot. An account can be pretending to be
+ * somebody; a single post rarely is on its own. Offering a reason that cannot
+ * apply is how a report ends up filed as the nearest wrong thing.
+ */
+export const REPORT_REASONS = [
+  "SCAM",
+  "OFF_PLATFORM_PAYMENT",
+  "HARASSMENT",
+  "MISLEADING",
+  "IMPERSONATION",
+  "NOT_ABOUT_THIS_PLACE",
+  "OTHER",
+] as const;
+
+export type ReportReason = (typeof REPORT_REASONS)[number];
+
+const reasonEnum = z.enum(REPORT_REASONS);
+
 export const reportPostSchema = z.object({
   postId: z.string().uuid(),
-  reason: z.enum([
-    "SCAM",
-    "OFF_PLATFORM_PAYMENT",
-    "HARASSMENT",
-    "MISLEADING",
-    "NOT_ABOUT_THIS_PLACE",
-    "OTHER",
-  ]),
+  reason: reasonEnum,
   detail: z.string().trim().max(600).optional().or(z.literal("")),
 });
 
-export const REPORT_REASON_LABEL: Record<
-  z.infer<typeof reportPostSchema>["reason"],
-  string
-> = {
+export const reportProfileSchema = z.object({
+  userId: z.string().uuid(),
+  reason: reasonEnum,
+  detail: z.string().trim().max(600).optional().or(z.literal("")),
+});
+
+export const REPORT_REASON_LABEL: Record<ReportReason, string> = {
   SCAM: "It looks like a scam",
   OFF_PLATFORM_PAYMENT: "Asking for payment outside RentMe",
   HARASSMENT: "Harassment or abuse",
   MISLEADING: "It is not true",
+  IMPERSONATION: "Pretending to be somebody else",
   NOT_ABOUT_THIS_PLACE: "Nothing to do with this place",
   OTHER: "Something else",
 };
+
+/** What you may say about a post. */
+export const POST_REPORT_REASONS: readonly ReportReason[] = [
+  "SCAM",
+  "OFF_PLATFORM_PAYMENT",
+  "HARASSMENT",
+  "MISLEADING",
+  "NOT_ABOUT_THIS_PLACE",
+  "OTHER",
+];
+
+/** What you may say about an account. */
+export const PROFILE_REPORT_REASONS: readonly ReportReason[] = [
+  "SCAM",
+  "OFF_PLATFORM_PAYMENT",
+  "HARASSMENT",
+  "IMPERSONATION",
+  "OTHER",
+];
 
 export const blockSchema = z.object({ userId: z.string().uuid() });
 

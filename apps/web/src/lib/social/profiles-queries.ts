@@ -144,6 +144,16 @@ export type PublicProfileState =
       viewerHandle: string | null;
       /** True when the viewer already follows this person. */
       viewerFollows: boolean;
+      /**
+       * True when the viewer has already muted this person.
+       *
+       * Read rather than assumed, because a menu offering "Mute" to somebody
+       * who muted this account a month ago is a control that appears to do
+       * nothing: the insert collides on the primary key, the action reports
+       * success, and the person is left wondering which of the two states they
+       * are in. `mutes_select_own` makes the honest answer one small read.
+       */
+      viewerMutes: boolean;
       /** False for a signed-out visitor, so the button can ask them to sign in. */
       signedIn: boolean;
       homeArea: { slug: string; name: string; city: string } | null;
@@ -222,12 +232,14 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
    */
   const profile = toView(row, isOwner);
 
-  const [homeArea, moderatorOf, viewerHandle, viewerFollows] = await Promise.all([
-    readHomeArea(supabase, row.home_area_id),
-    readModeratorOf(supabase, row.user_id),
-    readViewerHandle(supabase, viewerId, row.handle, isOwner),
-    readViewerFollows(supabase, viewerId, row.user_id, isOwner),
-  ]);
+  const [homeArea, moderatorOf, viewerHandle, viewerFollows, viewerMutes] =
+    await Promise.all([
+      readHomeArea(supabase, row.home_area_id),
+      readModeratorOf(supabase, row.user_id),
+      readViewerHandle(supabase, viewerId, row.handle, isOwner),
+      readViewerFollows(supabase, viewerId, row.user_id, isOwner),
+      readViewerMutes(supabase, viewerId, row.user_id, isOwner),
+    ]);
 
   return {
     state: "found",
@@ -235,10 +247,41 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
     isOwner,
     viewerHandle,
     viewerFollows,
+    viewerMutes,
     signedIn: Boolean(viewerId),
     homeArea,
     moderatorOf,
   };
+}
+
+/**
+ * Has the viewer already muted this person?
+ *
+ * `mutes_select_own` returns only the viewer's own rows, so this can never
+ * answer for anybody else, and a failure reads as "not muted", which is the
+ * state whose control does something: muting an already muted account collides
+ * harmlessly on the primary key.
+ */
+async function readViewerMutes(
+  supabase: SupabaseClient<Database>,
+  viewerId: string | null,
+  otherId: string,
+  isOwner: boolean,
+): Promise<boolean> {
+  if (!viewerId || isOwner) return false;
+  try {
+    const { data, error } = await supabase
+      .from("mutes")
+      .select("target_id")
+      .eq("user_id", viewerId)
+      .eq("target_kind", "USER")
+      .eq("target_id", otherId)
+      .maybeSingle();
+    if (error) return false;
+    return Boolean(data);
+  } catch {
+    return false;
+  }
 }
 
 /**

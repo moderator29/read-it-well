@@ -34,6 +34,7 @@ import {
   postIdSchema,
   replySchema,
   reportPostSchema,
+  reportProfileSchema,
 } from "./posts-schema";
 
 function paced(seconds: number): string {
@@ -350,6 +351,56 @@ export async function reportPost(input: {
     reporter_id: session.user.id,
     target_type: "POST",
     target_id: parsed.data.postId,
+    reason: parsed.data.detail
+      ? `${parsed.data.reason}: ${parsed.data.detail}`
+      : parsed.data.reason,
+  });
+
+  if (error) return fail(POST_FAILURE.down);
+  return ok(null);
+}
+
+/**
+ * Report an account, rather than one thing it wrote.
+ *
+ * A separate target type, into the same queue the console already works, and
+ * deliberately a separate action rather than a mode on `reportPost`. The two
+ * carry different ids into different rows, and a single function taking "a post
+ * or a person" is exactly the polymorphism the whole data model was designed to
+ * avoid.
+ *
+ * `public.reports.target_type` is already `text`, so this needs no migration.
+ * It shares `reportPost`'s rate limit bucket on purpose: twenty reports a day
+ * is a person raising real problems, and the way somebody abuses this is by
+ * reporting the same account from a menu over and over, which a per-kind budget
+ * would happily allow.
+ */
+export async function reportProfile(input: {
+  userId: string;
+  reason: string;
+  detail?: string;
+}): Promise<ActionResult<null>> {
+  const parsed = validate(reportProfileSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  if (parsed.data.userId === session.user.id) {
+    return fail("You cannot report your own account.");
+  }
+
+  const verdict = await consume({
+    ...POST_LIMITS.report,
+    subject: subjectForUser(session.user.id),
+  });
+  if (!verdict.allowed) return fail(paced(verdict.retryAfterSeconds));
+
+  const { error } = await session.supabase.from("reports").insert({
+    reporter_id: session.user.id,
+    target_type: "SOCIAL_PROFILE",
+    target_id: parsed.data.userId,
     reason: parsed.data.detail
       ? `${parsed.data.reason}: ${parsed.data.detail}`
       : parsed.data.reason,

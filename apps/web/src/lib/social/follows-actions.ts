@@ -37,6 +37,7 @@ import {
 import { consume, subjectForUser } from "../security/rate-limit";
 import type { Database } from "../supabase/database.types";
 import { handleSchema } from "./profiles-schema";
+import { getFollowList, type FollowRow } from "./follows-queries";
 
 /** 100 follows a day. Enough for anyone reading; not enough to farm a graph. */
 const FOLLOW_LIMIT = 100;
@@ -178,4 +179,45 @@ async function settle(
   } catch {
     return ok({ handle, following, followerCount: null });
   }
+}
+
+/* ------------------------------------------------------- reading, in pages */
+
+const morePeopleSchema = z.object({
+  handle: handleSchema,
+  direction: z.enum(["followers", "following"]),
+  /** The created_at of the last row already on screen. */
+  before: z.string().min(1),
+});
+
+/**
+ * The next page of a follower or following list.
+ *
+ * A read behind a server action rather than a link to `?before=`, because a
+ * link would replace the rows already on screen with the next fifty and there
+ * is no way back to the first page except the browser's own history. A list
+ * that loses what you already scrolled past is a list nobody scrolls twice.
+ *
+ * It resolves through the same query the page itself uses, so a person reading
+ * page four sees exactly what row level security would have shown them on page
+ * one, and there is no second copy of the block rule to keep in step.
+ */
+export async function moreFollows(input: {
+  handle: string;
+  direction: "followers" | "following";
+  before: string;
+}): Promise<ActionResult<{ people: FollowRow[]; cursor: string | null }>> {
+  const parsed = validate(morePeopleSchema, input);
+  if (!parsed.ok) return fail(GONE_MESSAGE);
+
+  const page = await getFollowList(
+    parsed.data.handle,
+    parsed.data.direction,
+    parsed.data.before,
+  );
+
+  if (page.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (page.state === "missing") return fail(GONE_MESSAGE);
+
+  return ok({ people: page.people, cursor: page.cursor });
 }
