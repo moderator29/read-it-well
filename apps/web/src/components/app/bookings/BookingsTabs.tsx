@@ -6,6 +6,7 @@ import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Booking } from "@/lib/demo/bookings";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * Bookings status tabs.
@@ -94,12 +95,9 @@ function BookingCard({ booking: b }: { booking: Booking }) {
             <UiIcon name="arrow-right" size={14} />
           </Link>
         ) : (
-          <Link
-            href={`/listing/${b.listingId}`}
-            className="nf-btn nf-btn--ghost px-3.5 py-2 text-[0.8125rem]"
-          >
+          <ButtonLink href={`/listing/${b.listingId}`} variant="ghost" size="sm">
             Leave a review
-          </Link>
+          </ButtonLink>
         )}
       </div>
     </li>
@@ -202,9 +200,9 @@ export function BookingsTabs({
           <p className="mx-auto max-w-[38ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
             {EMPTY_COPY[current.key]}
           </p>
-          <Link href="/search" className="nf-btn nf-btn--primary">
+          <ButtonLink href="/search" variant="primary">
             Explore stays
-          </Link>
+          </ButtonLink>
         </div>
       )}
     </div>

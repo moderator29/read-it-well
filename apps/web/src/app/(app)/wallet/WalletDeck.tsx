@@ -18,6 +18,7 @@ import {
 } from "@/lib/wallet/actions";
 import { WALLET_BANKS } from "@/lib/wallet/banks";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Wallet action deck: Add money, Withdraw, Transfer.
@@ -229,13 +230,9 @@ function FundForm({ locale }: { locale: Locale }) {
   return (
     <form action={formAction} noValidate>
       <AmountField error={fieldError(state, "amount")} quickAmounts />
-      <button
-        type="submit"
-        disabled={pending}
-        className="nf-btn nf-btn--primary mt-3 w-full py-3 text-[0.875rem]"
-      >
-        {pending ? "Starting secure payment" : "Continue to payment"}
-      </button>
+      <Button type="submit" variant="primary" full className="mt-3" loading={pending}>
+        Continue to payment
+      </Button>
       <ErrorNotice state={state} />
     </form>
   );
@@ -339,13 +336,9 @@ function WithdrawForm({
         />
         <FieldMessage message={fieldError(state, "accountName")} />
       </div>
-      <button
-        type="submit"
-        disabled={pending}
-        className="nf-btn nf-btn--primary mt-1 w-full py-3 text-[0.875rem]"
-      >
-        {pending ? "Sending to your bank" : "Withdraw"}
-      </button>
+      <Button type="submit" variant="primary" full className="mt-1" loading={pending}>
+        Withdraw
+      </Button>
       <ErrorNotice state={state} />
     </form>
   );
@@ -420,13 +413,9 @@ function TransferForm({
         />
         <FieldMessage message={fieldError(state, "note")} />
       </div>
-      <button
-        type="submit"
-        disabled={pending}
-        className="nf-btn nf-btn--primary mt-1 w-full py-3 text-[0.875rem]"
-      >
-        {pending ? "Sending" : "Send transfer"}
-      </button>
+      <Button type="submit" variant="primary" full className="mt-1" loading={pending}>
+        Send transfer
+      </Button>
       <ErrorNotice state={state} />
     </form>
   );

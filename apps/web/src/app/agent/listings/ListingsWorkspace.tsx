@@ -20,6 +20,7 @@ import {
 } from "@/lib/agent/listings-schema";
 import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
 /**
  * The agent's listings workspace.
@@ -218,17 +219,12 @@ function ConfirmSheet({
         )}
 
         <div className="mt-5 flex gap-4">
-          <button type="button" className="nf-btn nf-btn--glass flex-1" onClick={onClose}>
+          <Button variant="secondary" className="flex-1" onClick={onClose}>
             {t.workspace.sheets.keep}
-          </button>
-          <button
-            type="button"
-            className="nf-btn nf-btn--primary flex-1"
-            onClick={run}
-            disabled={pending}
-          >
-            {pending ? t.workspace.sheets.working : copy.confirm}
-          </button>
+          </Button>
+          <Button variant="primary" className="flex-1" onClick={run} loading={pending}>
+            {copy.confirm}
+          </Button>
         </div>
       </div>
     </div>,
@@ -377,9 +373,9 @@ export function ListingsWorkspace({
         <p className="mx-auto mt-2 max-w-[38ch] text-[0.875rem] text-[var(--nf-content-secondary)]">
           {t.workspace.emptyBody}
         </p>
-        <Link href="/agent/list" className="nf-btn nf-btn--primary mt-6">
+        <ButtonLink href="/agent/list" variant="primary" className="mt-6">
           {t.workspace.start}
-        </Link>
+        </ButtonLink>
       </div>
     );
   }

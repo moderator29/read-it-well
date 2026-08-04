@@ -17,6 +17,7 @@ import {
   type DiscoveryQuery,
 } from "@/lib/listings/search-params";
 import { amenityLabel, sortAmenityCodes } from "./amenities";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The filter control and its drawer.
@@ -514,26 +515,26 @@ export function FilterDrawer({
         {/* ------------------------------------------------------- footer */}
         <div className="nf-glass border-t border-[var(--nf-border-subtle)] px-4 py-3">
           <div className="mx-auto flex max-w-2xl items-center gap-3">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
               data-testid="filters-clear"
               onClick={clearAll}
-              className="nf-btn nf-btn--ghost min-h-11 px-3 text-[0.875rem] underline-offset-4 hover:underline"
+              className="underline-offset-4 hover:underline"
             >
               Clear all
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="primary"
               data-testid="filters-apply"
               onClick={apply}
-              className="nf-btn nf-btn--primary min-h-11 flex-1 text-[0.9375rem]"
+              className="flex-1"
             >
               {matchCount === 0
                 ? "No places match yet"
                 : `Show ${formatNumber(matchCount, locale)} ${
                     matchCount === 1 ? noun.one : noun.many
                   }`}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

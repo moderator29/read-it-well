@@ -12,6 +12,7 @@ import {
   type WalletActionResult,
 } from "@/lib/wallet/actions";
 import { formatKoboExact } from "./money";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Wallet action deck: Add money, Withdraw, Transfer.
@@ -121,13 +122,9 @@ export function WalletActions({ locale }: { locale: Locale }) {
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setOpen(null)}
-              className="nf-btn nf-btn--ghost px-3 py-1.5 text-[0.8125rem]"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setOpen(null)}>
               Close
-            </button>
+            </Button>
           </div>
 
           {active.key === "add" && <AddMoneyForm locale={locale} />}
@@ -285,13 +282,9 @@ function FieldError({ message }: { message?: string }) {
 
 function SubmitRow({ pending, label }: { pending: boolean; label: string }) {
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="nf-btn nf-btn--primary mt-3 w-full py-3 text-[0.875rem]"
-    >
-      {pending ? "Checking your request" : label}
-    </button>
+    <Button type="submit" variant="primary" full className="mt-3" loading={pending}>
+      {label}
+    </Button>
   );
 }
 

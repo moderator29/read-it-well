@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 import { LogoMark } from "@/design-system/brand/Logo";
 
 /**
@@ -51,25 +52,26 @@ export default function NotFound() {
         </p>
 
         <div className="mx-auto mt-8 max-w-md">
-          <Link
+          <ButtonLink
             href="/search"
-            className="nf-btn nf-btn--glass flex w-full items-center justify-start gap-4 rounded-full px-5 py-3.5 text-left"
+            variant="secondary"
+            full
+            className="justify-start rounded-full text-left"
           >
             <UiIcon name="search" size={18} className="shrink-0 text-[var(--nf-content-muted)]" />
             <span className="text-[0.9375rem] text-[var(--nf-content-secondary)]">
               Search hotels, food, experiences...
             </span>
-          </Link>
+          </ButtonLink>
         </div>
 
         <div className="mt-5 flex flex-wrap justify-center gap-4">
-          <Link href="/" className="nf-btn nf-btn--primary nf-btn--lg">
+          <ButtonLink href="/" variant="primary" size="lg">
             Back to home
-          </Link>
-          <Link href="/search" className="nf-btn nf-btn--glass nf-btn--lg gap-2">
-            <UiIcon name="sparkle" size={18} />
+          </ButtonLink>
+          <ButtonLink href="/search" variant="secondary" size="lg" leadingIcon="sparkle">
             Explore instead
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     </main>
