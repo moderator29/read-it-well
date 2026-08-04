@@ -10,6 +10,59 @@ disagree, this document wins and that one becomes history, in the same way
 
 The build order that follows from this is `docs/SOCIAL_BUILD.md`.
 
+---
+
+## AMENDMENT, 2026-08-04: the owner redirected the design. Read this first.
+
+Two visual passes were built and shown. Both were rejected, and the corrections
+below **override this document wherever they disagree with it**. They are
+recorded here rather than quietly applied, because a design document that does
+not carry the moment it was overruled is a document nobody can trust twice.
+
+**Pass one was too clever.** A vertical "spine" threading every card, notched
+corners, node shapes encoding author kind. The owner's judgement: it is an
+information-design exercise, not a social product people will use.
+**Section 7 of this document is CUT in full.** No spine, no notch, no nodes.
+
+**Pass two was too derivative.** Clean floating cards, but built from X's icon
+set and X's furniture, so it read as a dark-mode clone.
+
+**What is wanted:** an ordinary, legible, modern social layer where the LAYOUT is
+familiar and the MATERIAL is unmistakably ours. In the owner's words: normal
+social layer, people connecting with each other, clean, refined, and it should
+look like something that has not existed yet.
+
+The binding corrections:
+
+| Was | Now |
+|---|---|
+| No follows, standing comes from Correct marks (section 5.3) | **`follows` is back.** Profile stats are Followers, Following, Posts, and counts are public. Applied in `20260804123000` |
+| "Seen by 41 around here" as a sentence | A plain **view count**, a mark and a number, in the action row |
+| The Spine, the notch, the node system (section 7) | **Cut entirely.** Independent floating cards, 20px radius, 12px gaps |
+| No cover photo | **Cover photo, full bleed, BEHIND the profile**, running under the header with the avatar overlapping it from below. Not a floating card in front of the page |
+| Reactions: Like, Correct, I dey, Na lie, Save | **Like, Reply, Repost, Views, Share**, plus Save inside the `…` menu |
+| Bookmark icon in the card header | **Removed.** The header carries name, handle, time and `…`, nothing else |
+| No per-post menu | A `…` popover on every card: Copy link, Save, Not interested, Report post, Mute, Block |
+| The State Bar, four cells reading "Light On / Water Running / Road Slow / Safe Quiet" | **Cut.** The owner called it gibberish and is right: a row of two-word status chips reads as debug output. Place state becomes prose in context, never a chip row |
+| Areas curated by admins only | **Anyone may propose a place**, an admin approves it, and only then is it public. Members may **apply to moderate** a place they are in. A moderator may hide a post and may **never** delete one. Applied in `20260804120000` |
+
+**Two things carry forward unchanged and they are the ones that matter.**
+
+1. **The stride is the differentiator, not a motif.** ADR-012: every container in
+   this product carries a luminous gradient ring on the border box while the fill
+   sits on the padding box, brightest at the upper left, matching the light
+   direction of the commissioned icon family. Post cards use it. That is what
+   makes the feed read as RentMe rather than as a clone, and it is already built.
+2. **The reaction marks are an original geometric family**, drawn on a 24 grid
+   from three primitives and nothing else: a stroke, a node, a gap. No outline
+   heart, no speech bubble, no two-arrow recycle, no eye. Section 7.4's reasoning
+   for refusing a nsibidi-derived set still stands; only the drawing changed.
+
+Everything below this line predates the redirect. Sections 3, 5, 6, 8, 10 and 11
+are unaffected. Section 7 is void. Section 5.3's cut of `follows` is reversed.
+
+---
+
 Nothing here is built. This is for the owner to approve, reject or redirect.
 
 ---

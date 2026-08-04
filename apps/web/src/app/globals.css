@@ -2,6 +2,14 @@
 @import "@naijafinds/design-tokens/tokens.css";
 
 /*
+ * The social layer's own styles, kept in their own file rather than appended
+ * here. This file passed 3,100 lines some time ago and merge accidents live in
+ * monoliths (inbox item 226). Everything in social.css draws from the same layer
+ * two tokens as everything else, and may not introduce a raw colour either.
+ */
+@import "./social.css";
+
+/*
  * Bridge the semantic tokens into Tailwind so utilities and hand written CSS
  * draw from one source. Nothing below may introduce a raw colour.
  */

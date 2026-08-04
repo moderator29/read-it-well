@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_bootstrap: {
+        Row: {
+          claimed_at: string | null
+          created_at: string
+          email: string
+          note: string | null
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string
+          email: string
+          note?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string
+          email?: string
+          note?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
       agent_applications: {
         Row: {
           account_name: string | null
@@ -259,6 +283,174 @@ export type Database = {
         }
         Relationships: []
       }
+      area_members: {
+        Row: {
+          area_id: string
+          joined_at: string
+          notify_utility: boolean
+          residency_source:
+            | Database["public"]["Enums"]["area_residency_source"]
+            | null
+          residency_verified_at: string | null
+          role: Database["public"]["Enums"]["area_role"]
+          user_id: string
+          utility_weight: number
+        }
+        Insert: {
+          area_id: string
+          joined_at?: string
+          notify_utility?: boolean
+          residency_source?:
+            | Database["public"]["Enums"]["area_residency_source"]
+            | null
+          residency_verified_at?: string | null
+          role?: Database["public"]["Enums"]["area_role"]
+          user_id: string
+          utility_weight?: number
+        }
+        Update: {
+          area_id?: string
+          joined_at?: string
+          notify_utility?: boolean
+          residency_source?:
+            | Database["public"]["Enums"]["area_residency_source"]
+            | null
+          residency_verified_at?: string | null
+          role?: Database["public"]["Enums"]["area_role"]
+          user_id?: string
+          utility_weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "area_members_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      area_moderator_applications: {
+        Row: {
+          area_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          id: string
+          reason: string
+          status: Database["public"]["Enums"]["moderator_application_status"]
+          user_id: string
+        }
+        Insert: {
+          area_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          reason: string
+          status?: Database["public"]["Enums"]["moderator_application_status"]
+          user_id: string
+        }
+        Update: {
+          area_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          reason?: string
+          status?: Database["public"]["Enums"]["moderator_application_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "area_moderator_applications_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      areas: {
+        Row: {
+          area: string | null
+          blurb: string | null
+          centre_lat: number | null
+          centre_lng: number | null
+          city: string
+          created_at: string
+          created_by: string | null
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          id: string
+          kind: Database["public"]["Enums"]["area_kind"]
+          member_count: number
+          name: string
+          opened_at: string | null
+          post_count: number
+          slow_mode: boolean
+          slug: string
+          state_code: string
+          status: Database["public"]["Enums"]["area_status"]
+        }
+        Insert: {
+          area?: string | null
+          blurb?: string | null
+          centre_lat?: number | null
+          centre_lng?: number | null
+          city: string
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["area_kind"]
+          member_count?: number
+          name: string
+          opened_at?: string | null
+          post_count?: number
+          slow_mode?: boolean
+          slug: string
+          state_code: string
+          status?: Database["public"]["Enums"]["area_status"]
+        }
+        Update: {
+          area?: string | null
+          blurb?: string | null
+          centre_lat?: number | null
+          centre_lng?: number | null
+          city?: string
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["area_kind"]
+          member_count?: number
+          name?: string
+          opened_at?: string | null
+          post_count?: number
+          slow_mode?: boolean
+          slug?: string
+          state_code?: string
+          status?: Database["public"]["Enums"]["area_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "areas_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -477,6 +669,24 @@ export type Database = {
           key?: string
           note?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      follows: {
+        Row: {
+          created_at: string
+          followee_id: string
+          follower_id: string
+        }
+        Insert: {
+          created_at?: string
+          followee_id: string
+          follower_id: string
+        }
+        Update: {
+          created_at?: string
+          followee_id?: string
+          follower_id?: string
         }
         Relationships: []
       }
@@ -1089,6 +1299,7 @@ export type Database = {
       reviews: {
         Row: {
           author_id: string
+          author_label: string | null
           body: string | null
           booking_id: string
           created_at: string
@@ -1099,6 +1310,7 @@ export type Database = {
         }
         Insert: {
           author_id: string
+          author_label?: string | null
           body?: string | null
           booking_id: string
           created_at?: string
@@ -1109,6 +1321,7 @@ export type Database = {
         }
         Update: {
           author_id?: string
+          author_label?: string | null
           body?: string | null
           booking_id?: string
           created_at?: string
@@ -1222,6 +1435,81 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      social_profiles: {
+        Row: {
+          banner_path: string | null
+          bio: string | null
+          bio_status: Database["public"]["Enums"]["social_status"]
+          contact_policy: string
+          cover_path: string | null
+          created_at: string
+          follower_count: number
+          following_count: number
+          handle: string
+          handle_claimed_at: string
+          home_area_id: string | null
+          link: string | null
+          pidgin_ok: boolean
+          post_count: number
+          pronouns: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          banner_path?: string | null
+          bio?: string | null
+          bio_status?: Database["public"]["Enums"]["social_status"]
+          contact_policy?: string
+          cover_path?: string | null
+          created_at?: string
+          follower_count?: number
+          following_count?: number
+          handle: string
+          handle_claimed_at?: string
+          home_area_id?: string | null
+          link?: string | null
+          pidgin_ok?: boolean
+          post_count?: number
+          pronouns?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          banner_path?: string | null
+          bio?: string | null
+          bio_status?: Database["public"]["Enums"]["social_status"]
+          contact_policy?: string
+          cover_path?: string | null
+          created_at?: string
+          follower_count?: number
+          following_count?: number
+          handle?: string
+          handle_claimed_at?: string
+          home_area_id?: string | null
+          link?: string | null
+          pidgin_ok?: boolean
+          post_count?: number
+          pronouns?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_profiles_home_area_id_fkey"
+            columns: ["home_area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       states: {
         Row: {
@@ -1498,6 +1786,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      pay_booking_from_wallet: {
+        Args: {
+          payer: string
+          payment_reference: string
+          target_booking: string
+        }
+        Returns: Json
+      }
       record_idempotency_result: {
         Args: { key: string; result: Json; scope: string; subject: string }
         Returns: boolean
@@ -1520,6 +1816,10 @@ export type Database = {
       alert_severity: "low" | "medium" | "high"
       alert_status: "open" | "resolved"
       app_role: "user" | "agent" | "admin" | "super_admin"
+      area_kind: "CITY" | "AREA" | "ESTATE" | "CAMPUS"
+      area_residency_source: "STAY" | "INVITE" | "PRESENCE" | "ADMIN"
+      area_role: "MEMBER" | "RESIDENT" | "MODERATOR"
+      area_status: "PROPOSED" | "ACTIVE" | "PAUSED" | "ARCHIVED" | "REJECTED"
       availability_status: "available" | "booked" | "unavailable"
       booking_status: "PENDING" | "CONFIRMED" | "CANCELLED"
       geopolitical_zone:
@@ -1541,6 +1841,11 @@ export type Database = {
       locale: "en" | "yo" | "ha" | "ig"
       message_flag_reason: "account_number" | "payment_keyword"
       message_flag_status: "open" | "reviewed"
+      moderator_application_status:
+        | "PENDING"
+        | "APPROVED"
+        | "DECLINED"
+        | "WITHDRAWN"
       notification_kind:
         | "booking"
         | "message"
@@ -1558,6 +1863,7 @@ export type Database = {
         | "shortlet"
         | "rental"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
+      social_status: "LIVE" | "HELD" | "REMOVED"
       support_ticket_status: "open" | "pending" | "resolved" | "closed"
       transaction_status: "SUCCESSFUL" | "PENDING" | "FAILED" | "REFUNDED"
       wallet_entry_direction: "credit" | "debit"
@@ -1709,6 +2015,10 @@ export const Constants = {
       alert_severity: ["low", "medium", "high"],
       alert_status: ["open", "resolved"],
       app_role: ["user", "agent", "admin", "super_admin"],
+      area_kind: ["CITY", "AREA", "ESTATE", "CAMPUS"],
+      area_residency_source: ["STAY", "INVITE", "PRESENCE", "ADMIN"],
+      area_role: ["MEMBER", "RESIDENT", "MODERATOR"],
+      area_status: ["PROPOSED", "ACTIVE", "PAUSED", "ARCHIVED", "REJECTED"],
       availability_status: ["available", "booked", "unavailable"],
       booking_status: ["PENDING", "CONFIRMED", "CANCELLED"],
       geopolitical_zone: [
@@ -1732,6 +2042,12 @@ export const Constants = {
       locale: ["en", "yo", "ha", "ig"],
       message_flag_reason: ["account_number", "payment_keyword"],
       message_flag_status: ["open", "reviewed"],
+      moderator_application_status: [
+        "PENDING",
+        "APPROVED",
+        "DECLINED",
+        "WITHDRAWN",
+      ],
       notification_kind: [
         "booking",
         "message",
@@ -1751,6 +2067,7 @@ export const Constants = {
         "rental",
       ],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
+      social_status: ["LIVE", "HELD", "REMOVED"],
       support_ticket_status: ["open", "pending", "resolved", "closed"],
       transaction_status: ["SUCCESSFUL", "PENDING", "FAILED", "REFUNDED"],
       wallet_entry_direction: ["credit", "debit"],

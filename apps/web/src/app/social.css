@@ -1,0 +1,12 @@
+/*
+ * Around: the social layer's styles.
+ *
+ * Owned by the social layer work, imported once from globals.css. Layer two
+ * tokens only, never a raw colour, and every rule has a paper answer as well as
+ * a night one because light is a designed theme here and not a derivation.
+ *
+ * The card material is deliberately the platform's own stride (ADR-012) rather
+ * than a plain hairline: a luminous ring on the border box with the fill on the
+ * padding box, brightest at the upper left. That treatment is what makes this
+ * feed read as RentMe rather than as a dark mode clone of somebody else.
+ */
