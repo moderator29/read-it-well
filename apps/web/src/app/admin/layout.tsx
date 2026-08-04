@@ -66,7 +66,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       </aside>
 
       <main id="main" className="min-w-0 flex-1">
-        <header className="nf-glass nf-safe-top sticky top-0 z-40 border-b border-[var(--nf-border-subtle)]">
+        <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
           <div className="flex h-[60px] items-center gap-2 px-4 sm:h-[64px] sm:gap-4 sm:px-5 md:px-8">
             <BackButton fallback="/home" className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
             <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>

@@ -144,12 +144,87 @@ body {
 @layer components {
   /* ----------------------------------------------------- RentMe Material */
 
-  /* Glass depth: floating nav, overlays, controls. */
+  /*
+   * Glass depth: floating nav, overlays, controls.
+   *
+   * One class, four ingredients, no exceptions: blurred and saturated
+   * material, a bright inner rim on the top edge, a hairline border, and a
+   * two-layer ambient shadow. This used to ship only the material and the
+   * border, which is why 28 sticky headers read as flat translucent panels
+   * rather than glass.
+   *
+   * ::before carries the specular sweep so the fill stays a flat token and the
+   * highlight can be masked or animated on its own. isolation on the host plus
+   * z-index on the pseudo keeps it under content without needing a z-index on
+   * every child.
+   */
   .nf-glass {
+    position: relative;
+    isolation: isolate;
     background: var(--nf-glass-fill);
     border: 1px solid var(--nf-glass-border);
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow);
+  }
+  .nf-glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background: var(--nf-glass-specular);
+    opacity: 0.85;
+    pointer-events: none;
+  }
+  .nf-glass > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Depth modifiers. Blur, fill and shadow move together or the illusion breaks. */
+  .nf-glass--thin {
+    background: var(--nf-glass-fill-thin);
+    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+  }
+  .nf-glass--strong {
+    background: var(--nf-glass-fill-strong);
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow-lifted);
+  }
+
+  /*
+   * Sticky chrome. The reference standard is "content visibly scrolls under the
+   * nav behind a blur and a gradient scrim". The scrim is a separate strip
+   * below the bar so the blur has a soft exit instead of a hard seam, and the
+   * side and top borders are dropped because the bar spans the viewport.
+   */
+  .nf-glass--chrome {
+    border-inline: 0;
+    border-top: 0;
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 1px 0 var(--nf-glass-border);
+  }
+  .nf-glass--chrome::after {
+    content: "";
+    position: absolute;
+    inset: 100% 0 auto 0;
+    height: 1.5rem;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 0%,
+      transparent 100%
+    );
   }
 
   /*
@@ -157,8 +232,76 @@ body {
    * transparent panel. This is the low end Android path, not an afterthought.
    */
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .nf-glass {
+    .nf-glass,
+    .nf-glass--thin,
+    .nf-glass--strong {
       background: var(--nf-surface-elevated);
+    }
+    .nf-glass::before {
+      display: none;
+    }
+  }
+
+  /*
+   * Elevation ladder consumption. One class per rung. Raising a surface is a
+   * rung change, never a bespoke hover shadow written at the call site.
+   */
+  .nf-elev-1,
+  .nf-elev-2,
+  .nf-elev-3,
+  .nf-elev-4,
+  .nf-elev-5 {
+    border: 1px solid var(--nf-elev-border);
+    box-shadow: var(--nf-elev-rim), var(--nf-elev-shadow);
+    transition: box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-elev-1 {
+    --nf-elev-shadow: var(--nf-elev-1);
+    --nf-elev-rim: var(--nf-elev-1-rim);
+    --nf-elev-border: var(--nf-elev-1-border);
+    background: var(--nf-surface-primary);
+    border-radius: var(--nf-radius-lg);
+  }
+  .nf-elev-2 {
+    --nf-elev-shadow: var(--nf-elev-2);
+    --nf-elev-rim: var(--nf-elev-2-rim);
+    --nf-elev-border: var(--nf-elev-2-border);
+    background: var(--nf-surface-elevated);
+    border-radius: var(--nf-radius-lg);
+  }
+  .nf-elev-3 {
+    --nf-elev-shadow: var(--nf-elev-3);
+    --nf-elev-rim: var(--nf-elev-3-rim);
+    --nf-elev-border: var(--nf-elev-3-border);
+    background: var(--nf-surface-elevated);
+    border-radius: var(--nf-radius-2xl) var(--nf-radius-2xl) 0 0;
+  }
+  .nf-elev-4 {
+    --nf-elev-shadow: var(--nf-elev-4);
+    --nf-elev-rim: var(--nf-elev-4-rim);
+    --nf-elev-border: var(--nf-elev-4-border);
+    background: var(--nf-surface-raised);
+    border-radius: var(--nf-radius-2xl);
+  }
+  .nf-elev-5 {
+    --nf-elev-shadow: var(--nf-elev-5);
+    --nf-elev-rim: var(--nf-elev-5-rim);
+    --nf-elev-border: var(--nf-elev-5-border);
+    background: var(--nf-surface-raised);
+    border-radius: var(--nf-radius-xl);
+  }
+  .nf-elev-1.nf-elev--hoverable:hover {
+    --nf-elev-shadow: var(--nf-elev-2);
+    --nf-elev-rim: var(--nf-elev-2-rim);
+    --nf-elev-border: var(--nf-elev-2-border);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-elev-1,
+    .nf-elev-2,
+    .nf-elev-3,
+    .nf-elev-4,
+    .nf-elev-5 {
+      transition: none;
     }
   }
 
@@ -206,9 +349,23 @@ body {
     border-radius: var(--nf-radius-lg);
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.09),
-      0 8px 30px rgb(0 0 0 / 0.45);
+    /*
+     * Rung 1 of the ladder rather than a hand-written drop. The card keeps its
+     * own gradient border and corner glow - that layered material is the best
+     * surface on the platform and the template the rest is being rebuilt from -
+     * but its depth now comes from the same source as every other surface, so
+     * raising a card is a rung change instead of a bespoke shadow.
+     */
+    box-shadow: var(--nf-elev-1-rim), var(--nf-elev-1);
+    transition: box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-card.nf-elev--hoverable:hover {
+    box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-card {
+      transition: none;
+    }
   }
 
   .nf-card--interactive {
