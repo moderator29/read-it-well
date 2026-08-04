@@ -40,6 +40,22 @@
    * class only changes the geometry. One class, one material, one place to
    * maintain it.
    */
+  /*
+   * `.nf-card` is named too, and that is not decoration.
+   *
+   * This file is `@import`ed near the top of `globals.css` and `.nf-card`
+   * declares its own `border-radius` a couple of hundred lines below, in the
+   * same layer at the same specificity. Later wins, so every social card
+   * platform-wide was rendering at the card radius and this line did nothing.
+   * Measured live before the fix: 18px applied against a 20px token.
+   *
+   * Naming both classes lifts the specificity above the thing it is meant to
+   * override, rather than moving the import and hoping nothing else shifts.
+   * Agent 2 found the same defect three times over in `social-feed.css`, where
+   * it had silently made the AI card render byte for byte identical to an
+   * ordinary person's post.
+   */
+  .nf-card.nf-social-card,
   .nf-social-card {
     border-radius: var(--nf-social-radius);
   }
