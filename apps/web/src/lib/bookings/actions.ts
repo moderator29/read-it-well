@@ -35,8 +35,8 @@ import {
 import {
   adminOrNull,
   contactForAgent,
+  contactForSelf,
   contactForUser,
-  contactFromSession,
 } from "../email/recipients";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -275,7 +275,10 @@ export async function reserve(
   // The booking exists. Both sends are best effort from here: the guest gets
   // their request back in writing, the host gets something to act on.
   await bestEffortEmail(async () => {
-    const guest = contactFromSession(session.user);
+    // "Bookings" on /settings governs this. A guest who switched it off
+    // resolves to no recipient at all, so nothing is rendered and nothing is
+    // sent; the booking itself is untouched either way.
+    const guest = await contactForSelf(session.supabase, session.user, "bookings");
     const stay = {
       listingTitle,
       checkIn: input.checkIn,
@@ -297,7 +300,7 @@ export async function reserve(
     // skipped quietly and the guest's still goes.
     const admin = adminOrNull();
     if (admin && listingAgentId) {
-      const host = await contactForAgent(admin, listingAgentId);
+      const host = await contactForAgent(admin, listingAgentId, "bookings");
       if (host) {
         const message = bookingRequestedHost({
           agentName: host.name,
@@ -401,7 +404,7 @@ export async function cancel(
 
   // The cancellation has committed. Telling the guest is best effort.
   await bestEffortEmail(async () => {
-    const guest = contactFromSession(session.user);
+    const guest = await contactForSelf(session.supabase, session.user, "bookings");
     if (!guest) return;
     const message = bookingCancelled({
       guestName: guest.name,
@@ -514,7 +517,7 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
     // The booking is CONFIRMED in the database. Telling the guest is best
     // effort: the confirmation stands whether or not the email leaves.
     await bestEffortEmail(async () => {
-      const guest = await contactForUser(admin, booking.guest_id);
+      const guest = await contactForUser(admin, booking.guest_id, "bookings");
       if (!guest) return;
       const title = (listing?.title ?? "").trim();
       const message = bookingConfirmed({

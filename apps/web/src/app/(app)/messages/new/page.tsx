@@ -30,7 +30,7 @@ function Fallback({
 }) {
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Messages" fallback="/messages" />
+      <PageHeader title="Inbox" fallback="/messages" />
       <div className="nf-card nf-rise p-6 text-center">
         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-electric-300)]">
           <UiIcon name="chat-bubble" size={22} />
@@ -44,7 +44,7 @@ function Fallback({
             Back to the listing
           </Link>
           <Link href="/messages" className="nf-btn nf-btn--primary">
-            Go to Messages
+            Go to your Inbox
           </Link>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default async function NewMessagePage({
   if (session.state === "signed-out") {
     return (
       <div className="mx-auto max-w-2xl">
-        <PageHeader title="Messages" fallback="/messages" />
+        <PageHeader title="Inbox" fallback="/messages" />
         <div className="nf-card nf-rise p-6 text-center">
           <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-electric-300)]">
             <UiIcon name="chat-bubble" size={22} />

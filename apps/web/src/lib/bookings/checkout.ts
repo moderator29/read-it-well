@@ -40,7 +40,7 @@ import {
 } from "../actions/session";
 import { bestEffortEmail, sendEmail } from "../email/client";
 import { bookingConfirmed } from "../email/messages";
-import { contactForUser, contactFromSession } from "../email/recipients";
+import { contactForUser, contactFromSession, emailMuted } from "../email/recipients";
 import { isFeatureEnabled } from "../flags";
 import { nairaExact } from "../payments/money";
 import {
@@ -430,10 +430,13 @@ async function payWithWalletWork(
   // The booking is CONFIRMED in the database. Telling the guest is best effort:
   // the confirmation stands whether or not the email leaves.
   await bestEffortEmail(async () => {
+    // "Bookings" on /settings governs this one too, including the fast path
+    // where we already hold the payer's address from their session.
+    if (await emailMuted(admin, booking.guest_id, "bookings")) return;
     const contact =
       email !== null
         ? { email, name: displayName }
-        : await contactForUser(admin, booking.guest_id);
+        : await contactForUser(admin, booking.guest_id, "bookings");
     if (!contact) return;
     const { data: listing } = await admin
       .from("listings")
@@ -608,11 +611,12 @@ async function sendConfirmationEmail(
       .maybeSingle();
     if (!booking) return;
 
+    if (await emailMuted(admin, booking.guest_id, "bookings")) return;
     const session = await resolveSession();
     const guest =
       session.state === "signed-in" && booking.guest_id === actingUserId
         ? contactFromSession(session.user)
-        : await contactForUser(admin, booking.guest_id);
+        : await contactForUser(admin, booking.guest_id, "bookings");
     if (!guest) return;
 
     const { data: listing } = await admin

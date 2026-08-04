@@ -1647,6 +1647,7 @@ export type Database = {
       }
       reports: {
         Row: {
+          category: string | null
           created_at: string
           id: string
           reason: string
@@ -1657,6 +1658,7 @@ export type Database = {
           target_type: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           id?: string
           reason: string
@@ -1667,6 +1669,7 @@ export type Database = {
           target_type: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           id?: string
           reason?: string
@@ -1725,6 +1728,45 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_responses: {
+        Row: {
+          agent_id: string
+          body: string
+          created_at: string
+          review_id: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string
+          body: string
+          created_at?: string
+          review_id: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          body?: string
+          created_at?: string
+          review_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_responses_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_responses_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: true
+            referencedRelation: "reviews"
             referencedColumns: ["id"]
           },
         ]
@@ -2308,6 +2350,9 @@ export type Database = {
         | "villa"
         | "shortlet"
         | "rental"
+        | "shop"
+        | "office"
+        | "land"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
       social_status: "LIVE" | "HELD" | "REMOVED"
       support_ticket_status: "open" | "pending" | "resolved" | "closed"
@@ -2516,6 +2561,9 @@ export const Constants = {
         "villa",
         "shortlet",
         "rental",
+        "shop",
+        "office",
+        "land",
       ],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
       social_status: ["LIVE", "HELD", "REMOVED"],

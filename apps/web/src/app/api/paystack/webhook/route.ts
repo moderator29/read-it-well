@@ -108,7 +108,7 @@ async function handleChargeSuccess(
   if (posted !== "posted") return;
 
   await bestEffortEmail(async () => {
-    const owner = await contactForUser(admin, userId);
+    const owner = await contactForUser(admin, userId, "wallet");
     if (!owner) return;
     const walletId = await ensureWalletId(admin, userId);
     const balanceMinor = await availableBalanceMinor(admin, walletId);
@@ -164,7 +164,7 @@ async function handleBookingChargeSuccess(
       .maybeSingle();
     if (!booking) return;
 
-    const guest = await contactForUser(admin, booking.guest_id);
+    const guest = await contactForUser(admin, booking.guest_id, "bookings");
     if (!guest) return;
 
     const { data: listing } = await admin
@@ -228,7 +228,7 @@ async function handleTransferEvent(
   await bestEffortEmail(async () => {
     const ownerId = await walletOwnerId(admin, settled.walletId);
     if (!ownerId) return;
-    const owner = await contactForUser(admin, ownerId);
+    const owner = await contactForUser(admin, ownerId, "wallet");
     if (!owner) return;
 
     // The withdrawal's own metadata carries where it was headed, written when

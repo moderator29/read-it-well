@@ -194,12 +194,14 @@ security definer
 set search_path = public
 as $$
 declare
-  guest_user    uuid;
-  listing_id    uuid;
-  listing_title text;
+  guest_user     uuid;
+  /* Not named listing_id: a plpgsql variable that shadows a column name is how
+     a clean DDL apply turns into 42702 at call time. */
+  target_listing uuid;
+  listing_title  text;
 begin
   select r.author_id, l.id, l.title
-    into guest_user, listing_id, listing_title
+    into guest_user, target_listing, listing_title
   from public.reviews r
   join public.listings l on l.id = r.listing_id
   where r.id = new.review_id;
@@ -210,7 +212,7 @@ begin
       'listing',
       'The host answered your review',
       'Your review of ' || coalesce(listing_title, 'a stay') || ' has a reply.',
-      '/listing/' || listing_id::text
+      '/listing/' || target_listing::text
     );
   end if;
 

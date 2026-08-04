@@ -29,6 +29,12 @@ export type ListingReview = {
   author: string;
   /** e.g. "4 Aug 2026". */
   when: string;
+  /**
+   * The host's public answer, when they have written one. Read separately
+   * rather than embedded, so a failure to read answers can never take the
+   * reviews themselves off the page.
+   */
+  response: { body: string; when: string } | null;
 };
 
 export type ReviewSubject = {
@@ -73,12 +79,33 @@ export async function getListingReviews(
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error || !data) return [];
+
+    // The hosts' answers, in one keyed read. review_responses_select mirrors
+    // reviews_select, so anyone who can see the review can see the answer.
+    const answers = new Map<string, { body: string; when: string }>();
+    if (data.length > 0) {
+      const { data: responses } = await supabase
+        .from("review_responses")
+        .select("review_id, body, updated_at")
+        .in(
+          "review_id",
+          data.map((row) => row.id),
+        );
+      for (const row of responses ?? []) {
+        answers.set(row.review_id, {
+          body: row.body,
+          when: formatDate(new Date(row.updated_at), locale),
+        });
+      }
+    }
+
     return data.map((row) => ({
       id: row.id,
       rating: row.rating,
       body: row.body,
       author: row.author_label ?? "RentMe guest",
       when: formatDate(new Date(row.created_at), locale),
+      response: answers.get(row.id) ?? null,
     }));
   } catch {
     return [];
@@ -144,6 +171,9 @@ export async function getReviewView(bookingId: string, locale: Locale): Promise<
           body: existing.body,
           author: existing.author_label ?? "RentMe guest",
           when: formatDate(new Date(existing.created_at), locale),
+          // The guest's own review screen shows what they wrote, not the
+          // conversation around it. The host's answer belongs on the listing.
+          response: null,
         },
       };
     }

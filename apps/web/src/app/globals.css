@@ -1456,6 +1456,125 @@ body {
     border-radius: var(--nf-radius-xl);
   }
 
+  /*
+   * The two-handle range control.
+   *
+   * Two native range inputs stacked over one drawn track. Native because a
+   * div with pointer handlers is not keyboard operable, not announced, and
+   * not draggable with a switch: the browser's own control is all three for
+   * free. The inputs are transparent and only their thumbs take pointer
+   * events, so the lower half of the track belongs to the minimum handle and
+   * the upper half to the maximum, and neither can swallow the other.
+   */
+  .nf-range {
+    position: relative;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+  }
+  .nf-range__track,
+  .nf-range__fill {
+    position: absolute;
+    height: 0.35rem;
+    border-radius: var(--nf-radius-pill);
+    pointer-events: none;
+  }
+  .nf-range__track {
+    left: 0;
+    right: 0;
+    background: var(--nf-surface-secondary);
+    border: 1px solid var(--nf-border-subtle);
+  }
+  .nf-range__fill {
+    background: var(--nf-gradient-brand, var(--nf-brand-primary));
+  }
+  .nf-range__input {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    margin: 0;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    pointer-events: none;
+  }
+  .nf-range__input:focus-visible {
+    outline: none;
+  }
+  .nf-range__input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    pointer-events: auto;
+    height: 1.5rem;
+    width: 1.5rem;
+    border-radius: 50%;
+    border: 3px solid var(--nf-surface-primary);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 10px rgb(12 57 239 / 0.45);
+    cursor: grab;
+  }
+  .nf-range__input::-moz-range-thumb {
+    pointer-events: auto;
+    height: 1.5rem;
+    width: 1.5rem;
+    border-radius: 50%;
+    border: 3px solid var(--nf-surface-primary);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 10px rgb(12 57 239 / 0.45);
+    cursor: grab;
+  }
+  .nf-range__input:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 3px;
+  }
+  .nf-range__input:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 3px;
+  }
+
+  /*
+   * A segmented option: one of a row where exactly one can be on. Quiet
+   * outline when it is not, brand fill when it is, which is the whole
+   * vocabulary the filter rows and the bedroom row share.
+   */
+  .nf-segment {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.55rem 0.5rem;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: transparent;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+    cursor: pointer;
+    transition:
+      background var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-segment:hover {
+    border-color: var(--nf-border-strong);
+    color: var(--nf-content-primary);
+  }
+  .nf-segment--on,
+  .nf-segment--on:hover {
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+
+  /* The quiet size, for controls that sit inside a card rather than under one:
+     a reply, an edit, a withdraw. Still a 40px target, so it stays a thumb
+     target on a phone rather than becoming a link pretending to be a button. */
+  .nf-btn--sm {
+    padding: 0.52rem 0.95rem;
+    font-size: var(--nf-text-body-sm);
+    border-radius: var(--nf-radius-md);
+  }
+
   /* Devices without backdrop-filter get a solid body, never a washed out panel. */
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .nf-btn--glass {

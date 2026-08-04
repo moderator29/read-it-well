@@ -72,13 +72,45 @@ function SaveState({ saved, error }: { saved: boolean; error: string | null }) {
 
 type NotifyKey = "bookings" | "messages" | "wallet" | "marketing";
 
+/**
+ * The same four switches, described from where you are standing.
+ *
+ * A host reading "changes to your trips" under Agent Mode would reasonably
+ * assume it was about trips they had booked, not about the guests arriving at
+ * their property. One preference, two honest descriptions of it.
+ */
+const NOTIFY_COPY: Record<"guest" | "host", Record<NotifyKey, [string, string]>> = {
+  guest: {
+    bookings: ["Bookings", "Requests, confirmations and changes to your trips."],
+    messages: ["Messages", "New replies from hosts and agents you are talking to."],
+    wallet: [
+      "Wallet",
+      "Emails about money in and money out. Anything putting money at risk still appears in the app.",
+    ],
+    marketing: ["Ideas and offers", "Occasional highlights from around Nigeria. Off by default."],
+  },
+  host: {
+    bookings: ["Bookings", "New requests, cancellations and payments on your listings."],
+    messages: ["Messages", "New enquiries from guests about your listings."],
+    wallet: [
+      "Earnings and payouts",
+      "Emails about money in and money out. Anything putting money at risk still appears in the app.",
+    ],
+    marketing: ["Ideas and offers", "Hosting tips and what is moving in your area. Off by default."],
+  },
+};
+
 export function AccountNotificationsCard({
   initial,
+  variant = "guest",
 }: {
   initial: ResolvedProfileSettings["notifications"];
+  /** Whose words to use. The preference itself is one account-wide setting. */
+  variant?: "guest" | "host";
 }) {
   const [value, setValue] = useState(initial);
   const { save, error, saved, pending } = useSettingsSaver();
+  const copy = NOTIFY_COPY[variant];
 
   const flip = (key: NotifyKey, next: boolean) => {
     const previous = value;
@@ -86,23 +118,26 @@ export function AccountNotificationsCard({
     save({ notifications: { [key]: next } }, () => setValue(previous));
   };
 
-  const row = (key: NotifyKey, label: string, description: string) => (
-    <Toggle
-      checked={value[key]}
-      onChange={(next) => flip(key, next)}
-      label={label}
-      description={description}
-      disabled={pending}
-    />
-  );
+  const row = (key: NotifyKey) => {
+    const [label, description] = copy[key];
+    return (
+      <Toggle
+        checked={value[key]}
+        onChange={(next) => flip(key, next)}
+        label={label}
+        description={description}
+        disabled={pending}
+      />
+    );
+  };
 
   return (
     <GroupCard overline="Notifications" icon="bell-alert">
       <div className="divide-y divide-[var(--nf-border-subtle)]">
-        {row("bookings", "Bookings", "Requests, confirmations and changes to your trips.")}
-        {row("messages", "Messages", "New replies from hosts and agents you are talking to.")}
-        {row("wallet", "Wallet", "Money in, money out, and anything that needs your attention.")}
-        {row("marketing", "Ideas and offers", "Occasional highlights from around Nigeria. Off by default.")}
+        {row("bookings")}
+        {row("messages")}
+        {row("wallet")}
+        {row("marketing")}
       </div>
       <SaveState saved={saved} error={error} />
     </GroupCard>

@@ -98,6 +98,23 @@ export function ListingReviews({
                   {review.body}
                 </p>
               )}
+              {/* The host's answer, indented under the review it answers. One
+                  per review, and it can never alter a word of the review
+                  itself: it is a separate row in a separate table. */}
+              {review.response && (
+                <div className="mt-2.5 border-l-2 border-[var(--nf-border-strong)] pl-3">
+                  <p className="flex flex-wrap items-center gap-x-2 text-[0.75rem] font-semibold text-[var(--nf-content-primary)]">
+                    <UiIcon name="verified" size={13} className="shrink-0 text-[var(--nf-brand-primary)]" />
+                    Reply from the host
+                    <span className="font-normal text-[var(--nf-content-muted)]">
+                      {review.response.when}
+                    </span>
+                  </p>
+                  <p className="mt-1 whitespace-pre-line text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                    {review.response.body}
+                  </p>
+                </div>
+              )}
             </li>
           ))}
         </ul>

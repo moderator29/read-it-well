@@ -43,7 +43,16 @@ export const PHOTO_TOO_NARROW_MESSAGE =
 
 /* -------------------------------------------------------- property types */
 
-export type PropertyType = "apartment" | "hotel" | "home" | "villa" | "shortlet" | "rental";
+export type PropertyType =
+  | "apartment"
+  | "hotel"
+  | "home"
+  | "villa"
+  | "shortlet"
+  | "rental"
+  | "shop"
+  | "office"
+  | "land";
 
 export const PROPERTY_TYPE_VALUES = [
   "apartment",
@@ -52,6 +61,9 @@ export const PROPERTY_TYPE_VALUES = [
   "villa",
   "shortlet",
   "rental",
+  "shop",
+  "office",
+  "land",
 ] as const satisfies readonly PropertyType[];
 
 export const PROPERTY_TYPES: { value: PropertyType; label: string; blurb: string }[] = [
@@ -65,11 +77,27 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string; blurb: string
     label: "Rental",
     blurb: "A home let on a yearly tenancy. Priced per year, inspected before payment.",
   },
+  { value: "shop", label: "Shop", blurb: "Retail space let by the year." },
+  { value: "office", label: "Office", blurb: "Workspace let by the year." },
+  { value: "land", label: "Land", blurb: "A plot, priced per year of tenure." },
 ];
 
-/** Rentals are the yearly market; everything else is priced per night. */
+/**
+ * The yearly market: a tenancy agreed with the agent, inspected before any
+ * money moves, and never reserved by the night. Rentals were the whole of it
+ * until shops, offices and land arrived, and every one of those is let the
+ * same way, so they take the same path rather than a second one that would
+ * drift from it.
+ */
+const YEARLY: ReadonlySet<PropertyType> = new Set<PropertyType>([
+  "rental",
+  "shop",
+  "office",
+  "land",
+]);
+
 export function isRental(type: PropertyType | null | undefined): boolean {
-  return type === "rental";
+  return type ? YEARLY.has(type) : false;
 }
 
 export function pricePeriodFor(type: PropertyType | null | undefined): "night" | "year" {

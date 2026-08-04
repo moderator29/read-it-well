@@ -52,6 +52,9 @@ export const KIND_NOUN: Record<ListingKind, { one: string; many: string }> = {
   restaurant: { one: "restaurant", many: "restaurants" },
   experience: { one: "experience", many: "experiences" },
   rental: { one: "rental", many: "rentals" },
+  shop: { one: "shop", many: "shops" },
+  office: { one: "office", many: "offices" },
+  land: { one: "plot", many: "plots" },
 };
 
 /** Everything a discovery request is, parsed and clean. */

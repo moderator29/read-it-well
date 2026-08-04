@@ -243,6 +243,12 @@ export type ReportView = {
   reporterName: string;
   targetType: string;
   targetId: string;
+  /**
+   * The structured triage signal, or null on a row written before categories
+   * existed. Free text is what the reporter said; this is what they said it
+   * was, and it is what makes the queue sortable.
+   */
+  category: string | null;
   reason: string;
   status: Database["public"]["Enums"]["report_status"];
   createdAt: string;
@@ -256,7 +262,9 @@ export async function getReports(): Promise<AdminRead<ReportView[]>> {
   try {
     const { data, error } = await admin
       .from("reports")
-      .select("id, reporter_id, target_type, target_id, reason, status, created_at, resolved_at")
+      .select(
+        "id, reporter_id, target_type, target_id, category, reason, status, created_at, resolved_at",
+      )
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) return UNAVAILABLE;
@@ -281,6 +289,7 @@ export async function getReports(): Promise<AdminRead<ReportView[]>> {
         reporterName: names.get(row.reporter_id) ?? "A RentMe member",
         targetType: row.target_type,
         targetId: row.target_id,
+        category: row.category,
         reason: row.reason,
         status: row.status,
         createdAt: row.created_at,

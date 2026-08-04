@@ -166,6 +166,9 @@ export async function updateSettings(
   if (!saved) return fail(NO_ROW_MESSAGE);
 
   revalidatePath("/settings");
+  // The same document is edited from Agent Mode, so that door has to see the
+  // new answer too.
+  revalidatePath("/agent/settings");
   return ok(parseSettings(saved.settings));
 }
 

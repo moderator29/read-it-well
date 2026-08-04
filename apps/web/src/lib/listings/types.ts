@@ -13,7 +13,15 @@ export type ListingKind =
    * year, no Reserve button. The path is message the agent, inspect, then
    * pay. Distinct from "apartment", which is nightly lodging.
    */
-  | "rental";
+  | "rental"
+  /**
+   * The commercial and land market. Let on a tenancy exactly like a rental:
+   * priced per year, arranged with the agent, inspected before payment, and
+   * never reserved by the night.
+   */
+  | "shop"
+  | "office"
+  | "land";
 
 /**
  * Everything a partner listing carries that a first-party listing does not.

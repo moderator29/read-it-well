@@ -43,6 +43,8 @@ import { amenityLabel, sortAmenityCodes } from "./amenities";
  */
 
 type Draft = {
+  /** The scoped text search, applied with everything else on Apply. */
+  q: string;
   minNaira: string;
   maxNaira: string;
   bedrooms: number;
@@ -55,6 +57,7 @@ type Draft = {
 
 function draftFrom(query: DiscoveryQuery): Draft {
   return {
+    q: query.q ?? "",
     minNaira: query.minMinor === undefined ? "" : String(koboToNaira(query.minMinor)),
     maxNaira: query.maxMinor === undefined ? "" : String(koboToNaira(query.maxMinor)),
     bedrooms: query.bedrooms ?? 0,
@@ -91,7 +94,8 @@ function queryFrom(base: DiscoveryQuery, draft: Draft): DiscoveryQuery {
     instantBook: draft.instantBook,
     verifiedOnly: draft.verifiedOnly,
   };
-  if (base.q) next.q = base.q;
+  const q = draft.q.trim();
+  if (q.length > 0) next.q = q;
   if (base.kind) next.kind = base.kind;
   if (min !== undefined) next.minMinor = nairaToKobo(min);
   if (max !== undefined) next.maxMinor = nairaToKobo(max);
@@ -99,6 +103,35 @@ function queryFrom(base: DiscoveryQuery, draft: Draft): DiscoveryQuery {
   if (draft.bathrooms > 0) next.bathrooms = draft.bathrooms;
   if (draft.guests > 0) next.guests = draft.guests;
   return next;
+}
+
+/** The bedroom row, as the reference has it: 1, 2, 3 and "4+". */
+const BEDROOM_STEPS: { value: number; label: string }[] = [
+  { value: 1, label: "1" },
+  { value: 2, label: "2" },
+  { value: 3, label: "3" },
+  { value: 4, label: "4+" },
+];
+
+/**
+ * The slider's own arithmetic, in whole naira.
+ *
+ * A range control needs a floor, a ceiling and a step, and the honest source
+ * for all three is what the pool in front of the reader actually costs. A
+ * pool with no prices at all (a partner venue list) still needs a usable
+ * control, so it falls back to a bracket wide enough for both markets.
+ */
+function sliderScale(low: number | undefined, high: number | undefined) {
+  const floor = 0;
+  const ceiling = high !== undefined && high > 0 ? Math.ceil(koboToNaira(high) / 1000) * 1000 : 5_000_000;
+  const span = Math.max(1, ceiling - floor);
+  // A hundred stops across the range, rounded to something a person would
+  // type, so dragging lands on round numbers rather than on 187,431.
+  const raw = Math.max(1, Math.round(span / 100));
+  const magnitude = 10 ** Math.max(0, String(Math.floor(raw)).length - 1);
+  const step = Math.max(1, Math.round(raw / magnitude) * magnitude);
+  void low;
+  return { floor, ceiling, span, step };
 }
 
 /* ------------------------------------------------------------- small parts */
@@ -281,6 +314,15 @@ export function FilterDrawer({
     return { low, high };
   }, [facts]);
 
+  /* The slider works in whole naira because that is what a person reads on
+     it. Everything crossing a boundary is kobo: the labels format from kobo
+     and the applied query stores kobo. */
+  const scale = useMemo(() => sliderScale(bounds.low, bounds.high), [bounds.low, bounds.high]);
+  const sliderFloor = scale.floor;
+  const sliderCeiling = scale.ceiling;
+  const sliderSpan = scale.span;
+  const sliderStep = scale.step;
+
   const noun = query.kind ? KIND_NOUN[query.kind] : { one: "place", many: "places" };
   const period =
     query.kind === "rental"
@@ -291,10 +333,17 @@ export function FilterDrawer({
           ? "per night"
           : "per night, or per year for a rental";
 
-  // Naira, because these are what the two inputs hold. They become kobo the
-  // moment they are shown or stored, and never before.
+  // Naira, because that is what the control holds. It becomes kobo the moment
+  // it is shown or stored, and never before. An empty bound means "no limit",
+  // which on the slider is the far end of the track.
   const minInNaira = nairaOf(draft.minNaira);
   const maxInNaira = nairaOf(draft.maxNaira);
+  const sliderMin = Math.min(Math.max(minInNaira ?? sliderFloor, sliderFloor), sliderCeiling);
+  const sliderMax = Math.max(Math.min(maxInNaira ?? sliderCeiling, sliderCeiling), sliderFloor);
+
+  /* What the search is scoped to, for the field's own placeholder. The area
+     the reader typed wins, then the category, then the whole catalogue. */
+  const scopeLabel = query.q?.trim() || (query.kind ? KIND_NOUN[query.kind].many : "all places");
 
   function apply() {
     router.push(toSearchHref(pending));
@@ -353,7 +402,37 @@ export function FilterDrawer({
         {/* -------------------------------------------------------- body */}
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
           <div className="mx-auto grid max-w-2xl gap-4 pb-6">
-            {/* ------------------------------------------------- budget */}
+            {/* ------------------------------------------------- search */}
+            {/* Scoped to wherever the reader already is, so the field reads as
+                "narrow this" rather than "start again". */}
+            <section className="nf-card p-4" aria-labelledby="filter-search">
+              <h2
+                id="filter-search"
+                className="text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
+              >
+                Search
+              </h2>
+              <label className="relative mt-3 block">
+                <span className="sr-only">{`Search in ${scopeLabel}`}</span>
+                <UiIcon
+                  name="search"
+                  size={17}
+                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--nf-content-muted)]"
+                />
+                <input
+                  type="search"
+                  data-testid="filter-search"
+                  value={draft.q}
+                  onChange={(event) =>
+                    setDraft((current) => ({ ...current, q: event.target.value }))
+                  }
+                  placeholder={`Search in ${scopeLabel}...`}
+                  className="nf-field min-h-11 pl-10"
+                />
+              </label>
+            </section>
+
+            {/* -------------------------------------------------- price */}
             <section className="nf-card p-4" aria-labelledby="filter-price">
               <h2
                 id="filter-price"
@@ -362,109 +441,119 @@ export function FilterDrawer({
                 Price range
               </h2>
               <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
-                Naira {period}. Leave a box empty for no limit.
+                Naira {period}.
               </p>
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="filter-min" className="nf-label">
-                    Minimum
-                  </label>
-                  <input
-                    id="filter-min"
-                    data-testid="filter-min"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    value={draft.minNaira}
-                    placeholder={bounds.low === undefined ? "Any" : String(koboToNaira(bounds.low))}
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, minNaira: digits(event.target.value) }))
-                    }
-                    className="nf-field nf-numeric min-h-11 py-2.5"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="filter-max" className="nf-label">
-                    Maximum
-                  </label>
-                  <input
-                    id="filter-max"
-                    data-testid="filter-max"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    value={draft.maxNaira}
-                    placeholder={
-                      bounds.high === undefined ? "Any" : String(koboToNaira(bounds.high))
-                    }
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, maxNaira: digits(event.target.value) }))
-                    }
-                    className="nf-field nf-numeric min-h-11 py-2.5"
-                  />
-                </div>
-              </div>
-              <div className="nf-panel-sunken mt-3 flex items-center gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_16%,transparent)] text-[var(--nf-electric-300)]">
-                  <UiIcon name="wallet" size={17} />
-                </span>
-                <p
-                  aria-live="polite"
-                  className="nf-numeric min-w-0 text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
-                >
-                  {minInNaira === undefined && maxInNaira === undefined
-                    ? "Any price"
-                    : minInNaira === undefined
-                      ? `Up to ${formatMoney(nairaToKobo(maxInNaira ?? 0), locale)}`
-                      : maxInNaira === undefined
-                        ? `${formatMoney(nairaToKobo(minInNaira), locale)} and above`
-                        : `${formatMoney(nairaToKobo(minInNaira), locale)} to ${formatMoney(
-                            nairaToKobo(maxInNaira),
-                            locale,
-                          )}`}
+
+              {/* The two figures the handles are standing on, printed above
+                  them, because a slider with no numbers is a guess. Money
+                  formats through formatMoney from kobo, never from naira. */}
+              <div className="mt-3 flex items-baseline justify-between gap-3">
+                <p className="nf-numeric text-[1rem] font-bold text-[var(--nf-content-primary)]">
+                  {formatMoney(nairaToKobo(sliderMin), locale)}
+                </p>
+                <p className="nf-numeric text-[1rem] font-bold text-[var(--nf-content-primary)]">
+                  {sliderMax >= sliderCeiling
+                    ? `${formatMoney(nairaToKobo(sliderCeiling), locale)}+`
+                    : formatMoney(nairaToKobo(sliderMax), locale)}
                 </p>
               </div>
+
+              <div className="nf-range mt-2.5" data-testid="filter-range">
+                <span aria-hidden="true" className="nf-range__track" />
+                <span
+                  aria-hidden="true"
+                  className="nf-range__fill"
+                  style={{
+                    left: `${((sliderMin - sliderFloor) / sliderSpan) * 100}%`,
+                    right: `${100 - ((sliderMax - sliderFloor) / sliderSpan) * 100}%`,
+                  }}
+                />
+                <input
+                  type="range"
+                  aria-label="Minimum price"
+                  data-testid="filter-range-min"
+                  min={sliderFloor}
+                  max={sliderCeiling}
+                  step={sliderStep}
+                  value={sliderMin}
+                  onChange={(event) => {
+                    const next = Math.min(Number(event.target.value), sliderMax - sliderStep);
+                    setDraft((current) => ({
+                      ...current,
+                      minNaira: next <= sliderFloor ? "" : String(next),
+                    }));
+                  }}
+                  className="nf-range__input"
+                />
+                <input
+                  type="range"
+                  aria-label="Maximum price"
+                  data-testid="filter-range-max"
+                  min={sliderFloor}
+                  max={sliderCeiling}
+                  step={sliderStep}
+                  value={sliderMax}
+                  onChange={(event) => {
+                    const next = Math.max(Number(event.target.value), sliderMin + sliderStep);
+                    setDraft((current) => ({
+                      ...current,
+                      maxNaira: next >= sliderCeiling ? "" : String(next),
+                    }));
+                  }}
+                  className="nf-range__input"
+                />
+              </div>
+              <p className="mt-2 text-[0.75rem] text-[var(--nf-content-muted)]">
+                Drag either end. At the far right there is no upper limit.
+              </p>
             </section>
 
-            {/* ------------------------------------------------- rooms */}
-            <section className="nf-card divide-y divide-[var(--nf-border-subtle)] p-4">
-              <h2 className="pb-1 text-[0.875rem] font-bold text-[var(--nf-content-primary)]">
-                Rooms and party
+            {/* ----------------------------------------------- bedrooms */}
+            <section className="nf-card p-4" aria-labelledby="filter-bedrooms">
+              <h2
+                id="filter-bedrooms"
+                className="text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
+              >
+                Bedrooms
               </h2>
-              <Stepper
-                label="Bedrooms"
-                hint="At least this many"
-                value={draft.bedrooms}
-                max={8}
-                onChange={(next) => setDraft((current) => ({ ...current, bedrooms: next }))}
-              />
-              <Stepper
-                label="Bathrooms"
-                hint="At least this many"
-                value={draft.bathrooms}
-                max={8}
-                onChange={(next) => setDraft((current) => ({ ...current, bathrooms: next }))}
-              />
-              <Stepper
-                label="Guests"
-                hint="Places that take your party"
-                value={draft.guests}
-                max={16}
-                onChange={(next) => setDraft((current) => ({ ...current, guests: next }))}
-              />
+              <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+                At least this many. Tap again to clear.
+              </p>
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                {BEDROOM_STEPS.map((step) => {
+                  const on = draft.bedrooms === step.value;
+                  return (
+                    <button
+                      key={step.value}
+                      type="button"
+                      aria-pressed={on}
+                      data-testid={`filter-bedrooms-${step.value}`}
+                      onClick={() =>
+                        setDraft((current) => ({
+                          ...current,
+                          bedrooms: current.bedrooms === step.value ? 0 : step.value,
+                        }))
+                      }
+                      className={`nf-segment min-h-11 ${on ? "nf-segment--on" : ""}`}
+                    >
+                      {step.label}
+                    </button>
+                  );
+                })}
+              </div>
             </section>
 
-            {/* --------------------------------------------- amenities */}
+            {/* -------------------------------------------- more filters */}
             {amenityOptions.length > 0 && (
               <section className="nf-card p-4" aria-labelledby="filter-amenities">
                 <h2
                   id="filter-amenities"
                   className="text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
                 >
-                  Amenities
+                  More filters
                 </h2>
                 <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
-                  Every one you pick has to be there.
+                  Pick as many as you like. Every one has to be there.
                 </p>
                 <ul className="mt-3 flex flex-wrap gap-2">
                   {amenityOptions.map((code) => {
@@ -512,27 +601,30 @@ export function FilterDrawer({
         </div>
 
         {/* ------------------------------------------------------- footer */}
+        {/* Apply is the whole width because it is the whole point. Reset sits
+            directly under it, quiet, so it is reachable without ever being
+            the thing a thumb lands on by accident. */}
         <div className="nf-glass border-t border-[var(--nf-border-subtle)] px-4 py-3">
-          <div className="mx-auto flex max-w-2xl items-center gap-3">
-            <button
-              type="button"
-              data-testid="filters-clear"
-              onClick={clearAll}
-              className="nf-btn nf-btn--ghost min-h-11 px-3 text-[0.875rem] underline-offset-4 hover:underline"
-            >
-              Clear all
-            </button>
+          <div className="mx-auto grid max-w-2xl gap-2">
             <button
               type="button"
               data-testid="filters-apply"
               onClick={apply}
-              className="nf-btn nf-btn--primary min-h-11 flex-1 text-[0.9375rem]"
+              className="nf-btn nf-btn--primary min-h-12 w-full text-[0.9375rem]"
             >
               {matchCount === 0
                 ? "No places match yet"
-                : `Show ${formatNumber(matchCount, locale)} ${
+                : `Apply filters, ${formatNumber(matchCount, locale)} ${
                     matchCount === 1 ? noun.one : noun.many
                   }`}
+            </button>
+            <button
+              type="button"
+              data-testid="filters-clear"
+              onClick={clearAll}
+              className="nf-btn nf-btn--ghost min-h-11 w-full text-[0.875rem]"
+            >
+              Reset
             </button>
           </div>
         </div>

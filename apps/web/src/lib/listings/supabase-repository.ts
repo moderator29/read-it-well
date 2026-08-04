@@ -94,7 +94,18 @@ const KIND_BY_PROPERTY_TYPE: Record<string, ListingKind> = {
   villa: "villa",
   shortlet: "shortlet",
   rental: "rental",
+  shop: "shop",
+  office: "office",
+  land: "land",
 };
+
+/** Kinds priced by the year rather than by the night. */
+const YEARLY_KINDS: ReadonlySet<ListingKind> = new Set<ListingKind>([
+  "rental",
+  "shop",
+  "office",
+  "land",
+]);
 
 /** Discovery kinds that live in the listings table at all. */
 function propertyTypeFor(kind: ListingKind): string | null {
@@ -267,7 +278,11 @@ function mapRow(
     // an annual figure, which is what the RENT market and its cards expect.
     priceMinor: row.price_per_night_minor,
     currency: "NGN",
-    pricePeriod: kind === "rental" || row.price_period === "year" ? "year" : "night",
+    // The yearly market is rental, shop, office and land. The column is the
+    // authority; the kind test is the belt for a row written before the
+    // commercial types existed.
+    pricePeriod:
+      row.price_period === "year" || YEARLY_KINDS.has(kind) ? "year" : "night",
     source: "rentme",
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,

@@ -23,6 +23,8 @@ import {
   type StickyAction,
 } from "@/components/app/listing/ListingStickyBar";
 import { StayDatesProvider } from "@/components/app/listing/StayDates";
+import { ReportSheet } from "@/components/app/ReportSheet";
+import { resolveSession } from "@/lib/actions/session";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
@@ -53,6 +55,9 @@ const KIND_LABEL: Record<ListingKind, string> = {
   experience: "experience",
   // A rental is described by what it is to the reader, not by our enum name.
   rental: "home to rent",
+  shop: "shop to rent",
+  office: "office to rent",
+  land: "plot of land",
 };
 
 /** "Lagos State" reads naturally; the FCT does not take the suffix. */
@@ -138,6 +143,13 @@ export default async function ListingDetailPage({
   const initialSaved = (await getSavedListings()).some(
     (entry) => entry.listing.id === listing.id,
   );
+
+  // Reporting belongs to somebody, so the sheet needs to know whether there is
+  // a somebody. Signed out is a designed state inside the sheet rather than a
+  // hidden control: a visitor who spots a scam should not have to guess that
+  // reporting exists.
+  const session = await resolveSession();
+  const signedIn = session.state === "signed-in";
 
   // Partner locality collapses when the feed places a venue by city alone.
   const where =
@@ -228,7 +240,7 @@ export default async function ListingDetailPage({
         listing.instantBook
           ? "Instant Book is available on this listing, so your dates confirm as soon as you reserve."
           : "The agent confirms each booking request personally, so allow a little time for a response."
-      } Reserve online, then arrange an inspection with the agent through Messages. Pay only after you have inspected the property.`,
+      } Reserve online, then arrange an inspection with the agent from your Inbox. Pay only after you have inspected the property.`,
     );
     const closing: string[] = [];
     const capacity = capacityOf(listing);
@@ -391,6 +403,22 @@ export default async function ListingDetailPage({
                 t={t}
               />
             </Reveal>
+          )}
+
+          {/* ---------------------------------------------------- report */}
+          {/* Last on the page on purpose. It is the thing you go looking for
+              rather than the thing you are offered, and it must always be
+              findable. Partner stock is somebody else's inventory, so there is
+              nothing of ours to act on. */}
+          {!isPartner && (
+            <div className="mt-8 flex justify-center">
+              <ReportSheet
+                targetType="listing"
+                targetId={listing.id}
+                targetLabel={listing.title}
+                signedIn={signedIn}
+              />
+            </div>
           )}
         </div>
 
