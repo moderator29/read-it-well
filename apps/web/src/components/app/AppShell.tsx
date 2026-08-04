@@ -9,6 +9,7 @@ import { MobileTabBar } from "./MobileTabBar";
 import { DesktopDock } from "./DesktopDock";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
+import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -27,6 +28,8 @@ export function AppShell({
   locale,
   userName,
   unreadNotifications = 0,
+  avatarUrl = "",
+  signedIn = false,
   children,
 }: {
   t: Dictionary;
@@ -34,6 +37,10 @@ export function AppShell({
   userName: string;
   /** Real unread notification count, resolved on the server by the layout. */
   unreadNotifications?: number;
+  /** The caller's own photo, empty when they have not set one. */
+  avatarUrl?: string;
+  /** True only for a real session. Signed out, the avatar becomes a way in. */
+  signedIn?: boolean;
   children: React.ReactNode;
 }) {
   const active = usePathname();
@@ -117,19 +124,82 @@ export function AppShell({
                 <span className="h-[2px] w-full rounded-full bg-current" />
               </span>
             </button>
-            <span className="nf-chip hidden sm:inline-flex">
-              <UiIcon name="location" size={15} />
-              Lagos, Nigeria
-            </span>
+            {/* The wordmark, on phones only: above lg the rail already carries
+                it, and repeating a logo twice on one screen is noise. It used
+                to be a chip reading "Lagos, Nigeria" for everybody, including
+                the person in Kano. Where somebody actually is now belongs to
+                home, where it is read from their own profile. */}
+            <Link href="/home" aria-label={t.a11y.logoHome} className="shrink-0 lg:hidden">
+              <Logo size={34} wordSize={17} />
+            </Link>
 
             <div className="flex-1" />
 
+            <div className="hidden sm:contents">
+              <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
+            </div>
             <ThemeToggle />
-            <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
 
-            <Link href="/assistant" className="nf-btn nf-btn--primary gap-2 px-3 py-2 sm:px-3.5">
+            <Link
+              href="/assistant"
+              aria-label={t.nav.aiAssistant}
+              className="nf-btn nf-btn--primary gap-2 px-3 py-2 max-sm:hidden sm:px-3.5"
+            >
               <UiIcon name="sparkle" size={18} />
               <span className="hidden sm:inline">{t.nav.aiAssistant}</span>
+            </Link>
+
+            {/* The bell and its marker. A dot, not a numeral: the exact count
+                lives on the rail and on /notifications, and at this size a
+                number is unreadable. Zero renders no marker at all. */}
+            <Link
+              href="/notifications"
+              aria-label={
+                unreadNotifications > 0
+                  ? `Notifications, ${unreadNotifications} unread`
+                  : "Notifications"
+              }
+              className="nf-icon-btn relative h-10 w-10 shrink-0"
+            >
+              <UiIcon name="bell" size={19} />
+              {unreadNotifications > 0 && (
+                <span
+                  aria-hidden="true"
+                  data-testid="shell-unread-dot"
+                  className="absolute right-2 top-2 block h-2.5 w-2.5 rounded-full border-2 border-[var(--nf-surface-primary)] bg-[var(--nf-brand-primary)]"
+                />
+              )}
+            </Link>
+
+            <Link
+              href={signedIn ? "/profile" : "/sign-in"}
+              aria-label={signedIn ? t.nav.profile : t.common.signIn}
+              className="shrink-0 rounded-full p-[1.5px]"
+              style={{ background: "var(--nf-gradient-brand)" }}
+            >
+              <span className="block rounded-full bg-[var(--nf-surface-primary)] p-[1.5px]">
+                {avatarUrl ? (
+                  /* The avatars bucket is public, so the CDN URL renders
+                     without a signed request. next/image is skipped
+                     deliberately: one small square from a host that only
+                     exists once the platform keys land. */
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarUrl}
+                    alt=""
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <span
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-[0.8125rem] font-bold text-white"
+                    style={{ background: "var(--nf-gradient-brand)" }}
+                  >
+                    {userName.slice(0, 1).toUpperCase()}
+                  </span>
+                )}
+              </span>
             </Link>
           </div>
         </header>

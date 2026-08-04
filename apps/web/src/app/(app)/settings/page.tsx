@@ -16,6 +16,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { loadSettingsState } from "@/lib/profile/queries";
 import { AccountNotificationsCard, AccountPrivacyCard } from "./AccountToggles";
 import { AccountSection } from "./AccountSection";
+import { PlaceCard } from "./PlaceCard";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -51,6 +52,14 @@ export default async function SettingsPage() {
         </Reveal>
         <Reveal delay={40}>
           <LanguageCard current={locale} />
+        </Reveal>
+        <Reveal delay={60}>
+          <PlaceCard
+            signedIn={signedIn}
+            stateName={signedIn ? account.place.stateName : ""}
+            lgaName={signedIn ? account.place.lgaName : ""}
+            occupationName={signedIn ? account.place.occupationName : ""}
+          />
         </Reveal>
         <Reveal delay={80}>
           {signedIn ? (

@@ -76,7 +76,6 @@ export type ProfileSaved = {
   surname: string;
   nickname: string;
   phone: string;
-  stateCode: string;
 };
 
 export async function updateProfile(input: unknown): Promise<ActionResult<ProfileSaved>> {
@@ -94,6 +93,12 @@ export async function updateProfile(input: unknown): Promise<ActionResult<Profil
   // the agent verification queue reads a legal name beside the documents, and
   // emails greet by first name. display_name is derived by a database trigger
   // from these parts, so it can never drift out of agreement with them.
+  //
+  // No state here. It carries a foreign key to public.states (code) and this
+  // action used to write the state's NAME, so every save with a state chosen
+  // was refused by the database and reported as a generic failure. Where
+  // somebody is now belongs to /settings/place, with the local government it
+  // has to agree with.
   const { data: saved, error } = await supabase
     .from("profiles")
     .update({
@@ -101,10 +106,9 @@ export async function updateProfile(input: unknown): Promise<ActionResult<Profil
       surname: values.surname,
       nickname: values.nickname === "" ? null : values.nickname,
       phone: values.phone === "" ? null : values.phone,
-      state_code: values.stateCode === "" ? null : values.stateCode,
     })
     .eq("id", user.id)
-    .select("display_name, first_name, surname, nickname, phone, state_code")
+    .select("display_name, first_name, surname, nickname, phone")
     .maybeSingle();
 
   if (error) return fail(SAVE_FAILED_MESSAGE);
@@ -119,7 +123,6 @@ export async function updateProfile(input: unknown): Promise<ActionResult<Profil
     surname: saved.surname ?? "",
     nickname: saved.nickname ?? "",
     phone: saved.phone ?? "",
-    stateCode: saved.state_code ?? "",
   });
 }
 

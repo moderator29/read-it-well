@@ -1107,6 +1107,32 @@ export type Database = {
           },
         ]
       }
+      local_governments: {
+        Row: {
+          code: string
+          name: string
+          state_code: string
+        }
+        Insert: {
+          code: string
+          name: string
+          state_code: string
+        }
+        Update: {
+          code?: string
+          name?: string
+          state_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "local_governments_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       message_attachments: {
         Row: {
           created_at: string
@@ -1263,6 +1289,27 @@ export type Database = {
           read_at?: string | null
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      occupations: {
+        Row: {
+          category: string
+          code: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          category: string
+          code: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          category?: string
+          code?: string
+          name?: string
+          sort_order?: number
         }
         Relationships: []
       }
@@ -1578,8 +1625,10 @@ export type Database = {
           display_name: string | null
           first_name: string | null
           id: string
+          lga_code: string | null
           locale: Database["public"]["Enums"]["locale"]
           nickname: string | null
+          occupation_code: string | null
           phone: string | null
           settings: Json
           state_code: string | null
@@ -1592,8 +1641,10 @@ export type Database = {
           display_name?: string | null
           first_name?: string | null
           id: string
+          lga_code?: string | null
           locale?: Database["public"]["Enums"]["locale"]
           nickname?: string | null
+          occupation_code?: string | null
           phone?: string | null
           settings?: Json
           state_code?: string | null
@@ -1606,8 +1657,10 @@ export type Database = {
           display_name?: string | null
           first_name?: string | null
           id?: string
+          lga_code?: string | null
           locale?: Database["public"]["Enums"]["locale"]
           nickname?: string | null
+          occupation_code?: string | null
           phone?: string | null
           settings?: Json
           state_code?: string | null
@@ -1615,6 +1668,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_lga_code_fkey"
+            columns: ["lga_code"]
+            isOneToOne: false
+            referencedRelation: "local_governments"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "profiles_occupation_code_fkey"
+            columns: ["occupation_code"]
+            isOneToOne: false
+            referencedRelation: "occupations"
+            referencedColumns: ["code"]
+          },
           {
             foreignKeyName: "profiles_state_code_fkey"
             columns: ["state_code"]
@@ -1681,6 +1748,45 @@ export type Database = {
         }
         Relationships: []
       }
+      review_responses: {
+        Row: {
+          agent_id: string
+          body: string
+          created_at: string
+          review_id: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string
+          body: string
+          created_at?: string
+          review_id: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          body?: string
+          created_at?: string
+          review_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_responses_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_responses_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: true
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           author_id: string
@@ -1728,45 +1834,6 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      review_responses: {
-        Row: {
-          agent_id: string
-          body: string
-          created_at: string
-          review_id: string
-          updated_at: string
-        }
-        Insert: {
-          agent_id?: string
-          body: string
-          created_at?: string
-          review_id: string
-          updated_at?: string
-        }
-        Update: {
-          agent_id?: string
-          body?: string
-          created_at?: string
-          review_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "review_responses_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "review_responses_review_id_fkey"
-            columns: ["review_id"]
-            isOneToOne: true
-            referencedRelation: "reviews"
             referencedColumns: ["id"]
           },
         ]
@@ -1869,6 +1936,10 @@ export type Database = {
           contact_policy: string
           cover_path: string | null
           created_at: string
+          agent_id: string | null
+          lga_code: string | null
+          occupation_code: string | null
+          state_code: string | null
           display_label: string | null
           follower_count: number
           following_count: number
@@ -1891,6 +1962,10 @@ export type Database = {
           contact_policy?: string
           cover_path?: string | null
           created_at?: string
+          agent_id?: string | null
+          lga_code?: string | null
+          occupation_code?: string | null
+          state_code?: string | null
           display_label?: string | null
           follower_count?: number
           following_count?: number
@@ -1913,6 +1988,10 @@ export type Database = {
           contact_policy?: string
           cover_path?: string | null
           created_at?: string
+          agent_id?: string | null
+          lga_code?: string | null
+          occupation_code?: string | null
+          state_code?: string | null
           display_label?: string | null
           follower_count?: number
           following_count?: number
@@ -1964,6 +2043,219 @@ export type Database = {
           zone?: Database["public"]["Enums"]["geopolitical_zone"]
         }
         Relationships: []
+      }
+      stories: {
+        Row: {
+          area_id: string | null
+          author_id: string
+          comment_count: number
+          created_at: string
+          edited_at: string | null
+          headline: string
+          hidden_by: string | null
+          hold_reason: string | null
+          id: string
+          image_path: string
+          like_count: number
+          listing_id: string | null
+          place_label: string | null
+          removed_at: string | null
+          save_count: number
+          standfirst: string | null
+          status: Database["public"]["Enums"]["social_status"]
+          view_count: number
+        }
+        Insert: {
+          area_id?: string | null
+          author_id: string
+          comment_count?: number
+          created_at?: string
+          edited_at?: string | null
+          headline: string
+          hidden_by?: string | null
+          hold_reason?: string | null
+          id?: string
+          image_path: string
+          like_count?: number
+          listing_id?: string | null
+          place_label?: string | null
+          removed_at?: string | null
+          save_count?: number
+          standfirst?: string | null
+          status?: Database["public"]["Enums"]["social_status"]
+          view_count?: number
+        }
+        Update: {
+          area_id?: string | null
+          author_id?: string
+          comment_count?: number
+          created_at?: string
+          edited_at?: string | null
+          headline?: string
+          hidden_by?: string | null
+          hold_reason?: string | null
+          id?: string
+          image_path?: string
+          like_count?: number
+          listing_id?: string | null
+          place_label?: string | null
+          removed_at?: string | null
+          save_count?: number
+          standfirst?: string | null
+          status?: Database["public"]["Enums"]["social_status"]
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stories_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stories_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_comment_reactions: {
+        Row: {
+          comment_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_comment_reactions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "story_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_comments: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          edited_at: string | null
+          hold_reason: string | null
+          id: string
+          like_count: number
+          parent_id: string | null
+          status: Database["public"]["Enums"]["social_status"]
+          story_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          created_at?: string
+          edited_at?: string | null
+          hold_reason?: string | null
+          id?: string
+          like_count?: number
+          parent_id?: string | null
+          status?: Database["public"]["Enums"]["social_status"]
+          story_id: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          edited_at?: string | null
+          hold_reason?: string | null
+          id?: string
+          like_count?: number
+          parent_id?: string | null
+          status?: Database["public"]["Enums"]["social_status"]
+          story_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "story_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_comments_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_reactions: {
+        Row: {
+          created_at: string
+          mark: Database["public"]["Enums"]["post_mark"]
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          mark: Database["public"]["Enums"]["post_mark"]
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          mark?: Database["public"]["Enums"]["post_mark"]
+          story_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_reactions_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_views: {
+        Row: {
+          seen_on: string
+          story_id: string
+          viewer_bucket: string
+        }
+        Insert: {
+          seen_on?: string
+          story_id: string
+          viewer_bucket: string
+        }
+        Update: {
+          seen_on?: string
+          story_id?: string
+          viewer_bucket?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_views_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_ticket_messages: {
         Row: {
@@ -2242,6 +2534,16 @@ export type Database = {
       }
     }
     Functions: {
+      agent_trust: {
+        Args: { p_user: string }
+        Returns: {
+          average_rating: number
+          completed_deals: number
+          response_minutes: number
+          review_count: number
+          trust_score: number
+        }[]
+      }
       claim_idempotency: {
         Args: {
           key: string
@@ -2269,12 +2571,12 @@ export type Database = {
         Returns: Json
       }
       platform_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
-          listings: number
-          cities: number
-          states: number
           agents: number
+          cities: number
+          listings: number
+          states: number
         }[]
       }
       record_idempotency_result: {
@@ -2285,6 +2587,7 @@ export type Database = {
         Args: { key: string; scope: string; subject: string }
         Returns: boolean
       }
+      story_count: { Args: { p_author: string }; Returns: number }
     }
     Enums: {
       agent_application_status:
@@ -2340,7 +2643,7 @@ export type Database = {
         | "system"
         | "social"
       post_author_kind: "USER" | "BOT" | "SYSTEM"
-      post_kind: "GIST" | "ASK" | "REPLY" | "SHOWCASE" | "SYSTEM"
+      post_kind: "GIST" | "ASK" | "REPLY" | "SHOWCASE" | "SYSTEM" | "STORY"
       post_mark: "LIKE" | "SAVE"
       price_period: "night" | "year"
       property_type:
@@ -2551,7 +2854,7 @@ export const Constants = {
         "social",
       ],
       post_author_kind: ["USER", "BOT", "SYSTEM"],
-      post_kind: ["GIST", "ASK", "REPLY", "SHOWCASE", "SYSTEM"],
+      post_kind: ["GIST", "ASK", "REPLY", "SHOWCASE", "SYSTEM", "STORY"],
       post_mark: ["LIKE", "SAVE"],
       price_period: ["night", "year"],
       property_type: [

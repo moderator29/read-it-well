@@ -57,6 +57,15 @@ type RawPost = {
  */
 function whenLabel(iso: string): string {
   const then = new Date(iso).getTime();
+  /*
+   * A row with no timestamp, or an unparseable one, used to take the whole page
+   * down: `Intl.DateTimeFormat.format` raises RangeError on an invalid date,
+   * inside a `map`, inside a server component. This module's own header
+   * promises that nothing here throws, because a feed that 500s over one odd
+   * row is worse than a feed that is briefly short, and this was the one place
+   * that broke the promise. Caught in a real render, not in review.
+   */
+  if (!Number.isFinite(then)) return "";
   const mins = Math.floor((Date.now() - then) / 60_000);
   if (mins < 1) return "now";
   if (mins < 60) return `${mins}m`;
@@ -64,11 +73,15 @@ function whenLabel(iso: string): string {
   if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d`;
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "numeric",
-    month: "short",
-    timeZone: "Africa/Lagos",
-  }).format(new Date(iso));
+  try {
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "short",
+      timeZone: "Africa/Lagos",
+    }).format(new Date(iso));
+  } catch {
+    return "";
+  }
 }
 
 type Enrichment = {

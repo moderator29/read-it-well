@@ -5,12 +5,15 @@ import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
 import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
 import { ProfileMenu } from "@/components/social/profile/ProfileMenu";
+import { ProfileTabs } from "@/components/social/profile/ProfileTabs";
+/* Plain module, never the client component: a server component importing a
+   value from a `"use client"` file gets a client reference, not the value. */
 import {
   AGENT_TABS,
+  ALL_TABS,
   MEMBER_TABS,
-  ProfileTabs,
   type TabKey,
-} from "@/components/social/profile/ProfileTabs";
+} from "@/lib/social/profile-tabs-schema";
 import { AroundFab } from "@/components/social/AroundFab";
 import { loadPublicProfile, normaliseHandle } from "@/lib/social/profiles-queries";
 import {
@@ -56,16 +59,6 @@ export async function generateMetadata({
   const { handle } = await params;
   return { title: `@${normaliseHandle(handle)}` };
 }
-
-const ALL_TABS: TabKey[] = [
-  "posts",
-  "replies",
-  "media",
-  "activity",
-  "properties",
-  "stories",
-  "reviews",
-];
 
 function tabFrom(raw: string | string[] | undefined, allowed: TabKey[]): TabKey | undefined {
   const value = Array.isArray(raw) ? raw[0] : raw;

@@ -12,6 +12,7 @@ import { ReviewList } from "./ReviewList";
 import { ActivityList } from "./ActivityList";
 import { StoryGrid } from "../story/StoryGrid";
 import { EmptyPanel } from "./EmptyPanel";
+import { TAB_LABEL as LABEL, type TabKey } from "@/lib/social/profile-tabs-schema";
 
 /**
  * The tabs, and what is under them.
@@ -43,28 +44,6 @@ import { EmptyPanel } from "./EmptyPanel";
  * **Arrow keys move between tabs**, because a tab list that only answers to a
  * pointer is a tab list half the people using it cannot reach.
  */
-
-export type TabKey =
-  | "posts"
-  | "replies"
-  | "media"
-  | "activity"
-  | "properties"
-  | "stories"
-  | "reviews";
-
-export const MEMBER_TABS: TabKey[] = ["posts", "replies", "media", "activity"];
-export const AGENT_TABS: TabKey[] = ["properties", "stories", "reviews", "activity"];
-
-const LABEL: Record<TabKey, string> = {
-  posts: "Posts",
-  replies: "Replies",
-  media: "Media",
-  activity: "Activity",
-  properties: "Properties",
-  stories: "Stories",
-  reviews: "Reviews",
-};
 
 export type ProfileTabData = {
   posts: PostView[];

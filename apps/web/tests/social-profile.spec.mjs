@@ -128,9 +128,16 @@ async function run(theme) {
     check(`the ${theme} theme actually took`, applied === theme);
 
     const freeText = await page.locator("body").innerText();
+    /*
+     * This regex was stale and only passed because the local build has no keys.
+     * A CONFIGURED deployment answers an unclaimed handle with "Nothing to show
+     * at @handle", because a profile is hidden from anybody a block touches in
+     * either direction and the copy must not claim the name is free. Pointed at
+     * a real deployment the old assertion failed on the correct screen.
+     */
     check(
       "the page answers with a designed state, not a crash",
-      /is free|Profiles switch on shortly|That is not a handle/.test(freeText),
+      /Nothing to show at|Profiles switch on shortly|That is not a handle/.test(freeText),
     );
     check("the page is addressed to the handle asked for", freeText.includes(FREE_HANDLE));
     check(

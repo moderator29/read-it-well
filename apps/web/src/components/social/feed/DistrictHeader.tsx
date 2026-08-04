@@ -29,6 +29,7 @@ export function DistrictHeader({
   currentSlug,
   onFilter,
   filtersOn,
+  trailing,
 }: {
   name: string;
   city: string;
@@ -37,6 +38,9 @@ export function DistrictHeader({
   onFilter: () => void;
   /** True when the chip row is on anything other than All. */
   filtersOn: boolean;
+  /** Join, supplied by the page. It belongs in this row rather than floating
+      above it, where it was the only thing on a line of its own. */
+  trailing?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -122,6 +126,8 @@ export function DistrictHeader({
       >
         <UiIcon name="sliders" size={19} />
       </button>
+
+      {trailing}
     </div>
   );
 }

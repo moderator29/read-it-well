@@ -227,6 +227,7 @@ export async function getProfileMediaGrid(userId: string): Promise<MediaTile[]> 
 
 /** "May 2025", for a joined line and a review date. */
 export function monthYear(iso: string): string {
+  if (!iso || !Number.isFinite(new Date(iso).getTime())) return "";
   try {
     return new Intl.DateTimeFormat("en-GB", {
       month: "long",

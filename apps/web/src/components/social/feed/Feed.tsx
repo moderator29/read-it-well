@@ -57,6 +57,7 @@ export function Feed({
     slug: string;
     places: { slug: string; name: string; city: string }[];
     stories: StoryCard[];
+    join?: React.ReactNode;
   };
 }) {
   const router = useRouter();
@@ -244,6 +245,7 @@ export function Feed({
             currentSlug={district.slug}
             filtersOn={chip !== "all"}
             onFilter={() => setChip(chip === "all" ? "apartments" : "all")}
+            trailing={district.join}
           />
           <DistrictChips active={chip} counts={counts} onPick={setChip} />
         </>

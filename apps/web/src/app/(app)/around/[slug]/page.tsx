@@ -79,17 +79,6 @@ export default async function AreaPage({
 
   return (
     <div className="mx-auto w-full max-w-3xl pb-24 pt-4">
-      {area.status === "ACTIVE" ? (
-        <div className="mb-4 flex justify-end">
-          <JoinButton
-            areaId={area.id}
-            joined={viewer.member}
-            signedIn={viewer.signedIn}
-            size="sm"
-          />
-        </div>
-      ) : null}
-
       {area.status === "PROPOSED" ? (
         <p className="nf-card mb-5 border-[var(--nf-border-brand)] p-4 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
           You suggested this place and it is still with us. {AREA_COPY.proposePending}
@@ -125,6 +114,15 @@ export default async function AreaPage({
               .filter((place) => place.status === "ACTIVE")
               .map((place) => ({ slug: place.slug, name: place.name, city: place.city })),
             stories,
+            join:
+              area.status === "ACTIVE" ? (
+                <JoinButton
+                  areaId={area.id}
+                  joined={viewer.member}
+                  signedIn={viewer.signedIn}
+                  size="sm"
+                />
+              ) : null,
           }}
         />
         {feed.ended && feed.posts.length > 0 ? (

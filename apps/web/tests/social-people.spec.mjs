@@ -127,12 +127,23 @@ async function run(theme) {
     const tabs = await page.getByRole("tab").count();
     const found = tabs > 0;
     if (found) {
-      /* The strong path: this app can read a profile. */
-      check("the profile carries three tabs", tabs === 3);
-      const names = await page.getByRole("tab").allInnerTexts();
+      /* The strong path: this app can read a profile.
+         Four tabs, and which four depends on who the person is. An agent whose
+         listings can be resolved gets Properties, Stories, Reviews, Activity;
+         everybody else gets Posts, Replies, Media, Activity. A normal person
+         must NEVER be offered a Properties tab, because it could only ever be
+         empty, which is the exact reason this bar was deleted once before. */
+      check("the profile carries four tabs", tabs === 4);
+      const names = (await page.getByRole("tab").allInnerTexts()).map((t) =>
+        t.replace(/\s+\d+$/, "").trim(),
+      );
+      const joined = names.join(",");
+      const member = joined === "Posts,Replies,Media,Activity";
+      const agent = joined === "Properties,Stories,Reviews,Activity";
+      check(`the tab set is one of the two designed ones (${joined})`, member || agent);
       check(
-        "they are Posts, Replies and Media",
-        names.join(",") === "Posts,Replies,Media",
+        "a normal profile is never offered an empty Properties tab",
+        agent || !names.includes("Properties"),
       );
       check(
         "exactly one tab is selected",
@@ -142,25 +153,24 @@ async function run(theme) {
       /* Switching writes the tab into the address bar without navigating, so a
          reload lands back where the person was. That is the whole reason this
          is history.replaceState rather than a link. */
-      await page.getByRole("tab", { name: "Replies" }).click();
+      /* The second tab, whichever set this is. */
+      const second = names[1];
+      await page.getByRole("tab", { name: new RegExp(`^${second}`) }).click();
       await page.waitForTimeout(500);
-      check("choosing a tab records it in the address", page.url().includes("tab=replies"));
       check(
-        "the chosen tab is the selected one",
-        (await page
-          .locator('[role="tab"][aria-selected="true"]')
-          .innerText()) === "Replies",
+        "choosing a tab records it in the address",
+        page.url().includes(`tab=${second.toLowerCase()}`),
       );
+      const selected = async () =>
+        (await page.locator('[role="tab"][aria-selected="true"]').innerText())
+          .replace(/\s+\d+$/, "")
+          .trim();
+      check("the chosen tab is the selected one", (await selected()) === second);
 
       /* And a reload keeps it, which is the part a person actually feels. */
       await page.reload({ waitUntil: "load" });
       await page.waitForTimeout(WAIT);
-      check(
-        "a reload keeps the tab that was open",
-        (await page
-          .locator('[role="tab"][aria-selected="true"]')
-          .innerText()) === "Replies",
-      );
+      check("a reload keeps the tab that was open", (await selected()) === second);
 
       /* Both counts lead somewhere. A count that is not a link is a dead end. */
       check(
@@ -239,16 +249,23 @@ async function run(theme) {
     await page.waitForTimeout(WAIT);
     check("/around answers 200", around !== null && around.status() === 200);
 
-    const fab = page.getByRole("button", { name: /Write something, or ask RentMe AI/ });
+    const fab = page.getByRole("button", { name: /Create something/ });
     if ((await fab.count()) > 0) {
       await fab.click();
       await page.waitForTimeout(400);
-      const items = (await page.getByRole("menuitem").allInnerTexts()).join(" ");
-      check("the dock offers Drop gist", /Drop gist/.test(items));
-      check("the dock offers Ask RentMe AI", /Ask RentMe AI/.test(items));
+      /* The flat two-item menu became the create ring: Apartment, Story,
+         Update, Question, Review, around a glowing centre. Event is absent and
+         that is deliberate, not missing: there is no events table and meetups
+         are deferred in the design, so a sixth petal would open nothing. */
+      const ring = await page.locator(".nf-ring__petal").allInnerTexts();
+      const joined = ring.join(" ");
+      check("the ring offers a story", /Story/.test(joined));
+      check("the ring offers an apartment", /Apartment/.test(joined));
+      check("the ring offers an update and a question", /Update/.test(joined) && /Question/.test(joined));
+      check("every petal leads somewhere", ring.length >= 5);
       check(
-        "Ask RentMe AI goes to the assistant that exists",
-        (await page.locator("a[href='/assistant']").count()) > 0,
+        "writing a story is a real destination",
+        (await page.locator("a[href='/stories/new']").count()) > 0,
       );
       await page.keyboard.press("Escape");
     } else {

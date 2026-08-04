@@ -82,9 +82,14 @@ export async function replyToReview(
   const { reviewId, body } = parsed.data;
 
   try {
+    /* agent_id defaults to current_agent_id() in the database, but the
+       generated Insert type requires it, and stating it here is the honest
+       version anyway: this row belongs to the agent whose listing the review
+       is on, and that is exactly who the context resolved. The policy still
+       decides, on `private.owns_review_listing(review_id)`. */
     const { error } = await context.supabase
       .from("review_responses")
-      .upsert({ review_id: reviewId, body }, { onConflict: "review_id" });
+      .upsert({ review_id: reviewId, agent_id: context.agent.id, body }, { onConflict: "review_id" });
 
     if (error) {
       // 42501 is the policy refusing a review on somebody else's listing, and

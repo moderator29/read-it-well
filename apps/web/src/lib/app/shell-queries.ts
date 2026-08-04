@@ -24,9 +24,18 @@ export type ShellIdentity = {
   userName: string;
   /** Unread notifications for this caller. Zero renders no badge at all. */
   unreadNotifications: number;
+  /** The person's own photo, or an empty string when they have not set one. */
+  avatarUrl: string;
+  /** True only for a real session, so the shell never offers a signed-out avatar. */
+  signedIn: boolean;
 };
 
-const GUEST: ShellIdentity = { userName: "Guest", unreadNotifications: 0 };
+const GUEST: ShellIdentity = {
+  userName: "Guest",
+  unreadNotifications: 0,
+  avatarUrl: "",
+  signedIn: false,
+};
 
 /** The first word of a display name, so the greeting stays short on a phone. */
 function firstWord(value: string): string {
@@ -48,7 +57,7 @@ export const getShellIdentity = cache(async function getShellIdentity(): Promise
     const [profileResult, unreadResult] = await Promise.all([
       session.supabase
         .from("profiles")
-        .select("first_name, nickname, display_name")
+        .select("first_name, nickname, display_name, avatar_url")
         .eq("id", session.user.id)
         .maybeSingle(),
       session.supabase
@@ -67,6 +76,8 @@ export const getShellIdentity = cache(async function getShellIdentity(): Promise
     return {
       userName: name,
       unreadNotifications: unreadResult.error ? 0 : (unreadResult.count ?? 0),
+      avatarUrl: profile?.avatar_url ?? "",
+      signedIn: true,
     };
   } catch {
     return GUEST;
