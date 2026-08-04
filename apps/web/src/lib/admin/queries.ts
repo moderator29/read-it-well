@@ -39,6 +39,12 @@ export type QueueCounts = {
   listings: number;
   reports: number;
   tickets: number;
+  /**
+   * Everything the safety scan is holding: posts, stories, story comments and
+   * bios, in one number. Four tables, because four things can be held, and one
+   * tile, because clearing them is one job.
+   */
+  moderation: number;
 };
 
 export async function getQueueCounts(): Promise<AdminRead<QueueCounts>> {
@@ -46,7 +52,18 @@ export async function getQueueCounts(): Promise<AdminRead<QueueCounts>> {
   if (!admin) return UNAVAILABLE;
 
   try {
-    const [flags, alerts, applications, listings, reports, tickets] = await Promise.all([
+    const [
+      flags,
+      alerts,
+      applications,
+      listings,
+      reports,
+      tickets,
+      heldPosts,
+      heldStories,
+      heldComments,
+      heldBios,
+    ] = await Promise.all([
       admin.from("message_flags").select("id", { count: "exact", head: true }).eq("status", "open"),
       admin.from("risk_alerts").select("id", { count: "exact", head: true }).eq("status", "open"),
       admin
@@ -65,6 +82,16 @@ export async function getQueueCounts(): Promise<AdminRead<QueueCounts>> {
         .from("support_tickets")
         .select("id", { count: "exact", head: true })
         .in("status", ["open", "pending"]),
+      admin.from("posts").select("id", { count: "exact", head: true }).eq("status", "HELD"),
+      admin.from("stories").select("id", { count: "exact", head: true }).eq("status", "HELD"),
+      admin
+        .from("story_comments")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "HELD"),
+      admin
+        .from("social_profiles")
+        .select("user_id", { count: "exact", head: true })
+        .eq("bio_status", "HELD"),
     ]);
 
     return {
@@ -76,6 +103,11 @@ export async function getQueueCounts(): Promise<AdminRead<QueueCounts>> {
         listings: listings.count ?? 0,
         reports: reports.count ?? 0,
         tickets: tickets.count ?? 0,
+        moderation:
+          (heldPosts.count ?? 0) +
+          (heldStories.count ?? 0) +
+          (heldComments.count ?? 0) +
+          (heldBios.count ?? 0),
       },
     };
   } catch {

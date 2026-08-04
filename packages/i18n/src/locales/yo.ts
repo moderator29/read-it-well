@@ -766,6 +766,8 @@ export const yo: Dictionary = {
       // NATIVE REVIEW: "switch" kept in English, it names a control staff use.
       social: { label: "Agbègbè", short: "Agbègbè" },
       standing: { label: "Ipò", short: "Ipò" },
+      moderation: { label: "Dídádúró", short: "Dídádúró" },
+      reference: { label: "Dátà ìtọ́kasí", short: "Ìtọ́kasí" },
       switches: { label: "Switch", short: "Switch" },
     },
 
@@ -832,6 +834,10 @@ export const yo: Dictionary = {
         "Gbogbo àmì ìgbẹ́kẹ̀lé tí RentMe ń mú jáde parí síbí: ohun tí ẹ̀rọ ààbò rí, ohun tí àwọn ọmọ ẹgbẹ́ ròyìn, ẹni tí ó ń dúró de ìfọwọ́sí, àti ohun tí ó ń dúró láti ṣiṣẹ́. Nọ́mbà kọ̀ọ̀kan jẹ́ ìlà tí o lè pé.",
       queueClear: "Ìlà yìí mọ́.",
       tiles: {
+        moderation: {
+          label: "Àkóónú tí a dá dúró",
+          lede: "Àwọn ìfìwéránṣẹ́, ìtàn, àsọyé àti ìtàn ara ẹni tí àyẹ̀wò ààbò dá dúró.",
+        },
         // NATIVE REVIEW: "flag" kept in English, it is the safety scan's own term.
         flags: {
           label: "Flag ìránṣẹ́ tí ó ṣí sílẹ̀",

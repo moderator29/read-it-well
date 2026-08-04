@@ -765,6 +765,8 @@ export const ig: Dictionary = {
       // NATIVE REVIEW: "switch" kept in English, it names a control staff use.
       social: { label: "Ógbè", short: "Ógbè" },
       standing: { label: "Ọnọdụ", short: "Ọnọdụ" },
+      moderation: { label: "Ejidere", short: "Ejidere" },
+      reference: { label: "Data ntụaka", short: "Ntụaka" },
       switches: { label: "Switch", short: "Switch" },
     },
 
@@ -830,6 +832,10 @@ export const ig: Dictionary = {
         "Akara ntụkwasị obi ọ bụla RentMe na-emepụta na-akwụsị ebe a: ihe nyocha nchekwa jidere, ihe ndị òtù kpesara, onye na-echere nkwado, na ihe na-echere ịmalite ọrụ. Ọnụọgụ ọ bụla bụ ahịrị ị nwere ike ikpocha.",
       queueClear: "Ahịrị a dị ọcha.",
       tiles: {
+        moderation: {
+          label: "Ọdịnaya ejidere",
+          lede: "Post, akụkọ, nkọwa na profaịlụ nke nyocha nchekwa kwụsịrị.",
+        },
         // NATIVE REVIEW: "flag" kept in English, it is the safety scan's own term.
         flags: {
           label: "Flag ozi mepere",

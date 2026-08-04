@@ -16,13 +16,21 @@ export const dynamic = "force-dynamic";
  * reads zero, that queue really is empty.
  */
 type Tile = {
-  key: "flags" | "alerts" | "applications" | "listings" | "reports" | "tickets";
+  key:
+    | "flags"
+    | "moderation"
+    | "alerts"
+    | "applications"
+    | "listings"
+    | "reports"
+    | "tickets";
   href: string;
   icon: UiIconName;
 };
 
 const TILES: Tile[] = [
   { key: "flags", href: "/admin/flags", icon: "chat-bubble" },
+  { key: "moderation", href: "/admin/moderation", icon: "sliders" },
   { key: "alerts", href: "/admin/alerts", icon: "bell" },
   { key: "applications", href: "/admin/agents", icon: "user" },
   { key: "listings", href: "/admin/listings", icon: "building-apartment" },

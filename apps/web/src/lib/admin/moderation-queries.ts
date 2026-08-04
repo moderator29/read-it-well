@@ -122,7 +122,11 @@ export async function getModerationQueue(): Promise<ModerationQueue> {
   const authorIds = new Set<string>();
   for (const row of posts) if (row.author_id) authorIds.add(row.author_id);
   for (const row of stories) authorIds.add(row.author_id);
-  for (const row of comments) authorIds.add(row.author_id);
+  /* A story comment loses its author when that account is deleted: the column
+     is `on delete set null` so the words stay and the name goes. The queue has
+     to keep showing it, because a comment nobody owns is exactly the kind a
+     moderator still has to decide about. */
+  for (const row of comments) if (row.author_id) authorIds.add(row.author_id);
 
   const areaIds = new Set<string>();
   for (const row of posts) if (row.area_id) areaIds.add(row.area_id);
@@ -147,7 +151,7 @@ export async function getModerationQueue(): Promise<ModerationQueue> {
 
   const authorById = new Map<string, HeldAuthor>();
   for (const row of authorRows.data ?? []) {
-    authorById.set(row.user_id, { handle: row.handle, label: row.display_label });
+    authorById.set(row.user_id, { handle: row.handle, label: row.display_label ?? null });
   }
   const areaById = new Map<string, string>();
   for (const row of areaRows.data ?? []) areaById.set(row.id, row.name);
@@ -176,7 +180,7 @@ export async function getModerationQueue(): Promise<ModerationQueue> {
       areaName: row.area_id ? (areaById.get(row.area_id) ?? null) : null,
       createdAt: row.created_at,
       holdReason: row.hold_reason,
-      author: authorById.get(row.author_id) ?? noAuthor,
+      author: row.author_id ? (authorById.get(row.author_id) ?? noAuthor) : noAuthor,
     })),
     comments: comments.map((row) => ({
       id: row.id,
@@ -184,12 +188,12 @@ export async function getModerationQueue(): Promise<ModerationQueue> {
       storyHeadline: headlineById.get(row.story_id) ?? null,
       body: row.body,
       createdAt: row.created_at,
-      author: authorById.get(row.author_id) ?? noAuthor,
+      author: row.author_id ? (authorById.get(row.author_id) ?? noAuthor) : noAuthor,
     })),
     bios: bios.map((row) => ({
       userId: row.user_id,
       handle: row.handle,
-      label: row.display_label,
+      label: row.display_label ?? null,
       bio: row.bio ?? "",
       link: row.link,
       updatedAt: row.updated_at,

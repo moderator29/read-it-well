@@ -763,6 +763,8 @@ export const ha: Dictionary = {
       // NATIVE REVIEW: "switch" kept in English, it names a control staff use.
       social: { label: "Yanki", short: "Yanki" },
       standing: { label: "Matsayi", short: "Matsayi" },
+      moderation: { label: "An riƙe", short: "An riƙe" },
+      reference: { label: "Bayanan tunani", short: "Tunani" },
       switches: { label: "Switch", short: "Switch" },
     },
 
@@ -828,6 +830,10 @@ export const ha: Dictionary = {
         "Kowace alamar amincin da RentMe ke samarwa tana ƙarewa nan: abin da binciken tsaro ya kama, abin da mambobi suka ƙorafta, wanda ke jiran amincewa, da abin da ke jiran fara aiki. Kowace lamba layi ce da za ka iya kammalawa.",
       queueClear: "Wannan layin babu abu.",
       tiles: {
+        moderation: {
+          label: "Abun da aka riƙe",
+          lede: "Saƙonni, labarai, sharhi da bayanan mutum da binciken tsaro ya tsayar.",
+        },
         // NATIVE REVIEW: "flag" kept in English, it is the safety scan's own term.
         flags: {
           label: "Flag na saƙonni a buɗe",

@@ -791,6 +791,8 @@ export const en = {
       tickets: { label: "Support", short: "Support" },
       social: { label: "District", short: "District" },
       standing: { label: "Standing", short: "Standing" },
+      moderation: { label: "Held", short: "Held" },
+      reference: { label: "Reference data", short: "Reference" },
       switches: { label: "Switches", short: "Switches" },
     },
 
@@ -855,6 +857,10 @@ export const en = {
         "Every trust signal RentMe produces ends here: what the safety scan caught, what members reported, who is waiting to be approved, and what is waiting to go live. Each number is a queue you can clear.",
       queueClear: "This queue is clear.",
       tiles: {
+        moderation: {
+          label: "Held content",
+          lede: "Posts, stories, comments and bios the safety scan stopped.",
+        },
         flags: {
           label: "Open message flags",
           lede: "Payment talk the safety scan caught in a conversation.",
