@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Contact form stub.
@@ -55,9 +56,9 @@ export function ContactForm({ supportEmail }: { supportEmail: string }) {
         />
       </label>
 
-      <button type="submit" className="nf-btn nf-btn--primary">
+      <Button type="submit" variant="primary">
         Send message
-      </button>
+      </Button>
 
       {attempted ? (
         <p

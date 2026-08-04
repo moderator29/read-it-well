@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Locale } from "@naijafinds/i18n";
 import { formatKoboExact } from "@/components/app/wallet/money";
 import { verifyFunding } from "@/lib/wallet/actions";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The funded=1 landing state.
@@ -94,13 +95,9 @@ export function FundingVerifier({ reference, locale }: { reference: string; loca
         )}
       </div>
       {state.phase !== "verifying" && (
-        <button
-          type="button"
-          onClick={dismiss}
-          className="nf-btn nf-btn--ghost shrink-0 px-3 py-1.5 text-[0.8125rem]"
-        >
+        <Button variant="ghost" size="sm" onClick={dismiss} className="shrink-0">
           Done
-        </button>
+        </Button>
       )}
     </div>
   );

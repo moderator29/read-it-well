@@ -11,6 +11,7 @@ import { SceneBanner } from "@/components/app/SceneBanner";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
   title: "Rent",
@@ -119,22 +120,23 @@ export default async function RentPage({
             <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
               Try another city, or browse everything for rent.
             </p>
-            <Link href="/rent" className="nf-btn nf-btn--glass mt-6 inline-flex">
+            <ButtonLink href="/rent" variant="secondary" className="mt-6">
               {t.nav.rent}
-            </Link>
+            </ButtonLink>
           </div>
         ) : (
           <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {rentals.map((r) => (
               <li key={r.id} className="flex flex-col gap-3">
                 <ListingCard listing={r} locale={locale} t={t} />
-                <Link
+                <ButtonLink
                   href={messageHrefs.get(r.id) ?? "/messages"}
-                  className="nf-btn nf-btn--primary w-full"
+                  variant="primary"
+                  full
+                  leadingIcon="chat-bubble"
                 >
-                  <UiIcon name="chat-bubble" size={16} />
                   Message agent
-                </Link>
+                </ButtonLink>
               </li>
             ))}
           </ul>

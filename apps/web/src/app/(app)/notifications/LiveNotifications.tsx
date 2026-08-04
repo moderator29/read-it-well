@@ -7,6 +7,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { markNotificationsRead } from "@/lib/messages/notifications-actions";
 import { lagosDayLabel, lagosTimeLabel } from "@/lib/messages/time";
 import { useNotificationsRealtime, type LiveNotificationRow } from "@/lib/messages/useRealtime";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
 /**
  * The signed-in notifications inbox.
@@ -92,9 +93,9 @@ export function LiveNotifications({
           Bookings, messages and wallet activity will land here the moment they happen.
         </p>
         <div className="mt-5 flex justify-center">
-          <Link href="/search" className="nf-btn nf-btn--primary">
+          <ButtonLink href="/search" variant="primary">
             Explore places
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     );
@@ -118,13 +119,9 @@ export function LiveNotifications({
             : "Nothing unread"}
         </p>
         {unreadCount > 0 && (
-          <button
-            type="button"
-            onClick={markAll}
-            className="nf-btn nf-btn--ghost px-3 py-2 text-[0.8125rem]"
-          >
+          <Button variant="ghost" size="sm" onClick={markAll}>
             Mark all read
-          </button>
+          </Button>
         )}
       </div>
 

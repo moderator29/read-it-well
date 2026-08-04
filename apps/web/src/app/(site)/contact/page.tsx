@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ContactForm } from "./ContactForm";
+import { ButtonLink } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -72,9 +73,9 @@ export default function ContactPage() {
                 refunds and listing.
               </p>
             </div>
-            <Link href="/help" className="nf-btn nf-btn--glass shrink-0">
+            <ButtonLink href="/help" variant="secondary" className="shrink-0">
               Browse the help centre
-            </Link>
+            </ButtonLink>
           </div>
         </Reveal>
 

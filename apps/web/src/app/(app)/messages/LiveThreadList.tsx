@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { LiveConversationSummary } from "@/lib/messages/live";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * The signed-in conversation list. Pure server render: rows carry their
@@ -19,9 +20,9 @@ export function LiveThreadList({ conversations }: { conversations: LiveConversat
         <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
           Message an agent from any listing and the thread will appear here.
         </p>
-        <Link href="/search" className="nf-btn nf-btn--primary mt-4 inline-flex">
+        <ButtonLink href="/search" variant="primary" className="mt-4">
           Explore places
-        </Link>
+        </ButtonLink>
       </div>
     );
   }

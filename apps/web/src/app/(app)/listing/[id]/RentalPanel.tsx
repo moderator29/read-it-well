@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { formatMoney, type Locale } from "@naijafinds/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * The panel for rental listings, the serious rent market.
@@ -62,13 +62,15 @@ export function RentalPanel({
         ))}
       </ol>
 
-      <Link
+      <ButtonLink
         href={`/messages/new?listing=${listingId}`}
-        className="nf-btn nf-btn--primary mt-4 w-full"
+        variant="primary"
+        full
+        className="mt-4"
+        leadingIcon="chat-bubble"
       >
-        <UiIcon name="chat-bubble" size={17} />
         Message agent
-      </Link>
+      </ButtonLink>
 
       {/* The trust block: an object large enough to read as content, so this is
           the one place on the panel that takes a 3D brand icon. */}

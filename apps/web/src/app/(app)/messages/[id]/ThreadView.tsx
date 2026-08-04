@@ -23,6 +23,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The conversation thread, one component for both data sources.
@@ -550,17 +551,17 @@ export function ThreadView({
           <p className="min-w-0 flex-1 truncate text-[0.8125rem] text-[var(--nf-content-muted)]">
             Photo attached
           </p>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             aria-label="Remove photo"
             onClick={() => {
               setPendingFile(null);
               if (fileRef.current) fileRef.current.value = "";
             }}
-            className="nf-btn nf-btn--ghost px-3 py-2 text-[0.8125rem]"
           >
             Remove
-          </button>
+          </Button>
         </div>
       )}
       <form
@@ -616,14 +617,16 @@ export function ThreadView({
           enterKeyHint="send"
           className="nf-field min-w-0 flex-1"
         />
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          iconOnly
           aria-label="Send message"
           disabled={!draft.trim() && !pendingFile}
-          className="nf-btn nf-btn--primary h-11 w-11 shrink-0 rounded-full p-0"
+          className="shrink-0 rounded-full"
         >
           <UiIcon name="arrow-right" size={18} className="-rotate-90" />
-        </button>
+        </Button>
       </form>
     </div>
   );

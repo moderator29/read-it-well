@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { SAFETY_EDUCATION_COPY } from "@/lib/messages/education";
+import { Button } from "@/components/ui/Button";
 
 /**
  * In-chat listing options sheet for the thread view.
@@ -158,14 +159,9 @@ export function ThreadOptionsSheet({
             {confirmedLabel}
           </p>
         ) : (
-          <button
-            type="button"
-            onClick={onConfirmInspection}
-            disabled={busy}
-            className="nf-btn nf-btn--primary mt-4 w-full disabled:opacity-60"
-          >
-            {busy ? "Confirming" : "Confirm I have inspected this property"}
-          </button>
+          <Button variant="primary" full className="mt-4" onClick={onConfirmInspection} loading={busy}>
+            Confirm I have inspected this property
+          </Button>
         )}
 
         {note && (

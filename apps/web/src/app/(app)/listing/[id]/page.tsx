@@ -23,6 +23,7 @@ import {
 import { StayDatesProvider } from "@/components/app/listing/StayDates";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * Listing detail.
@@ -454,24 +455,28 @@ function PartnerPanel({
       </p>
 
       {action && (
-        <a
+        <ButtonLink
           href={action.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="nf-btn nf-btn--primary mt-4 w-full"
+          variant="primary"
+          full
+          className="mt-4"
         >
           {action.label}
-        </a>
+        </ButtonLink>
       )}
       {showSecondary && secondary && (
-        <a
+        <ButtonLink
           href={secondary}
           target="_blank"
           rel="noopener noreferrer"
-          className="nf-btn nf-btn--glass mt-2.5 w-full"
+          variant="secondary"
+          full
+          className="mt-2.5"
         >
           Menu
-        </a>
+        </ButtonLink>
       )}
 
       {partner?.attribution === "Google" && (

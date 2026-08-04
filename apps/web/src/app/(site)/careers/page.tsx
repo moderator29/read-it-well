@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -124,13 +124,14 @@ export default function CareersPage() {
             </div>
 
             <div className="mt-6">
-              <a
+              <ButtonLink
                 href="mailto:careers@naijafinds.com"
-                className="nf-btn nf-btn--primary nf-btn--lg"
+                variant="primary"
+                size="lg"
+                trailingIcon="arrow-right"
               >
                 Email careers@naijafinds.com
-                <UiIcon name="arrow-right" size={18} />
-              </a>
+              </ButtonLink>
             </div>
             <p className="mt-3 text-[0.8125rem] text-[var(--nf-content-muted)]">
               We reply to every serious application, usually within a week.
@@ -162,9 +163,9 @@ export default function CareersPage() {
               Not looking for a job, but want to earn on RentMe?
             </p>
             <div className="mt-4 flex justify-center">
-              <Link href="/agents" className="nf-btn nf-btn--glass">
+              <ButtonLink href="/agents" variant="secondary">
                 Become an agent instead
-              </Link>
+              </ButtonLink>
             </div>
           </div>
         </Reveal>

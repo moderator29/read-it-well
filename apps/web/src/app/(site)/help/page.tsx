@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { SupportChat } from "@/components/app/account/SupportChat";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { HelpSearch, type Faq } from "./HelpSearch";
+import { ButtonLink } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
   title: "Help centre",
@@ -154,9 +154,9 @@ export default function HelpPage() {
               Still stuck? A person replies within one business day.
             </p>
           </div>
-          <Link href="/contact" className="nf-btn nf-btn--primary shrink-0">
+          <ButtonLink href="/contact" variant="primary" className="shrink-0">
             Contact support
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     </div>
