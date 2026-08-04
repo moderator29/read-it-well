@@ -6,6 +6,7 @@ import { payWithWallet, startCardCheckout } from "@/lib/bookings/checkout";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { MomentScreen } from "@/components/app/MomentScreen";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { Amount } from "@/components/ui/Amount";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
@@ -173,7 +174,14 @@ export function PayPanel({ view }: { view: CheckoutView }) {
                 disabled={busy}
                 loading={phase.kind === "card-starting" || phase.kind === "card-redirecting"}
               >
-                {`Pay ${view.totalDisplay} by card`}
+                Pay{" "}
+                <Amount
+                  minorUnits={view.totalMinor}
+                  locale={view.locale}
+                  currency={view.currency}
+                  showFraction
+                />{" "}
+                by card
               </Button>
             }
           />
@@ -199,7 +207,14 @@ export function PayPanel({ view }: { view: CheckoutView }) {
                 disabled={busy}
                 loading={phase.kind === "wallet-paying"}
               >
-                {`Pay ${view.totalDisplay} from my wallet`}
+                Pay{" "}
+                <Amount
+                  minorUnits={view.totalMinor}
+                  locale={view.locale}
+                  currency={view.currency}
+                  showFraction
+                />{" "}
+                from my wallet
               </Button>
             }
           />

@@ -37,8 +37,15 @@ function labelDate(iso: string): string {
   return DAY_LABEL.format(new Date(`${iso}T12:00:00Z`));
 }
 
-/** One row of the price breakdown. Never a charge the platform invented. */
-export type CheckoutLine = { label: string; display: string };
+/**
+ * One row of the price breakdown. Never a charge the platform invented.
+ *
+ * `minor` is the row's integer kobo, carried alongside the formatted string so
+ * the surface can set the figure itself through `<Amount>` rather than printing
+ * a pre-baked string. `display` stays for callers that need plain text (the
+ * support tools, anything writing prose).
+ */
+export type CheckoutLine = { label: string; display: string; minor: number };
 
 export type CheckoutView = {
   bookingId: string;
@@ -55,6 +62,15 @@ export type CheckoutView = {
   lines: CheckoutLine[];
   /** True while the platform's own share is zero, which is the standing rule. */
   platformTakesNothing: boolean;
+  /** The booking's own currency, so every figure is set in the one it stores. */
+  currency: string;
+  /**
+   * The reader's locale, carried on the view so a client component setting its
+   * own figures formats them the same way the server formatted the rest. Two
+   * locales on one checkout screen is how ₦ and ₦ with a space end up side by
+   * side.
+   */
+  locale: Locale;
   totalMinor: number;
   totalDisplay: string;
   status: "PENDING" | "CONFIRMED" | "CANCELLED";
@@ -145,16 +161,25 @@ export async function getCheckoutView(
           booking.nights === 1 ? "night" : "nights"
         }`,
         display: money(booking.subtotal_minor),
+        minor: booking.subtotal_minor,
       },
     ];
     if (booking.cleaning_fee_minor > 0) {
-      lines.push({ label: "Cleaning", display: money(booking.cleaning_fee_minor) });
+      lines.push({
+        label: "Cleaning",
+        display: money(booking.cleaning_fee_minor),
+        minor: booking.cleaning_fee_minor,
+      });
     }
     // The platform's own share is zero and stays zero (docs/MASTER_TODO.md
     // section 5b). The column exists for a future take rate, so if it is ever
     // non-zero it is shown plainly rather than hidden inside the total.
     if (booking.service_fee_minor > 0) {
-      lines.push({ label: "Platform share", display: money(booking.service_fee_minor) });
+      lines.push({
+        label: "Platform share",
+        display: money(booking.service_fee_minor),
+        minor: booking.service_fee_minor,
+      });
     }
 
     const holdExpiresAtMs =
@@ -179,6 +204,8 @@ export async function getCheckoutView(
         guests: booking.adults + booking.children,
         lines,
         platformTakesNothing: booking.service_fee_minor === 0,
+        currency,
+        locale,
         totalMinor: booking.total_minor,
         totalDisplay: money(booking.total_minor),
         status: booking.status,

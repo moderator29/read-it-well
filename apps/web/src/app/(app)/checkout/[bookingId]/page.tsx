@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
+import { Amount } from "@/components/ui/Amount";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { HoldCountdown } from "./HoldCountdown";
@@ -166,8 +167,15 @@ export default async function CheckoutPage({
             {view.lines.map((line) => (
               <div key={line.label} className="flex items-start justify-between gap-4">
                 <dt className="text-[0.8125rem] text-[var(--nf-content-muted)]">{line.label}</dt>
-                <dd className="nf-numeric text-right text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
-                  {line.display}
+                <dd className="text-right text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
+                  {/* A receipt line, so the kobo is stated rather than rounded
+                      away: this column has to add up to the total below it. */}
+                  <Amount
+                    minorUnits={line.minor}
+                    locale={locale}
+                    currency={view.currency}
+                    showFraction
+                  />
                 </dd>
               </div>
             ))}
@@ -175,9 +183,16 @@ export default async function CheckoutPage({
 
           <div className="mt-4 border-t border-[var(--nf-border-subtle)] pt-4">
             <p className="nf-overline text-[var(--nf-content-muted)]">Total to pay</p>
-            <p className="nf-hero-figure nf-numeric mt-1">
-              {view.totalDisplay}
-              <span className="nf-hero-figure__unit">in full</span>
+            <p className="mt-1">
+              <Amount
+                minorUnits={view.totalMinor}
+                locale={locale}
+                currency={view.currency}
+                showFraction
+                suffix="in full"
+                className="text-[clamp(2.5rem,10vw,3.75rem)] font-extrabold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]"
+                secondaryClassName="text-[0.34em] font-bold text-[var(--nf-content-muted)]"
+              />
             </p>
             {view.platformTakesNothing && (
               <p className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
