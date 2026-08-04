@@ -3,7 +3,6 @@ import { ButtonLink } from "@/components/ui/Button";
 import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { ThemeToggle } from "./ThemeToggle";
 import { MobileMenu } from "./MobileMenu";
 
 /**
