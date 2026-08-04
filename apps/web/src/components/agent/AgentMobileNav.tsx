@@ -24,10 +24,13 @@ export function AgentMobileNav({
   t,
   active,
   profile,
+  unreadMessages = 0,
 }: {
   t: Dictionary;
   active: string;
   profile: AgentProfile;
+  /** Real unread count for the messages badge. Zero renders no badge. */
+  unreadMessages?: number;
 }) {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
@@ -116,7 +119,7 @@ export function AgentMobileNav({
           <AgentModePill label={t.agent.mode.agent} className="mb-5 ml-1" />
 
           <AgentNavList
-            items={buildAgentNav(t)}
+            items={buildAgentNav(t, unreadMessages)}
             active={active}
             label={t.agent.mode.workspaceLabel}
             onNavigate={close}

@@ -16,14 +16,27 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  */
 export type AgentNavItem = { href: string; label: string; icon: BrandIconName; badge?: number };
 
-/** The ten frozen destinations, in reference order. */
-export function buildAgentNav(t: Dictionary): AgentNavItem[] {
+/**
+ * The ten frozen destinations, in reference order.
+ *
+ * `unreadMessages` is a real count of unread messages across the caller's own
+ * conversations, resolved by the shell. It used to be a hardcoded 3, so every
+ * agent saw three unread messages permanently, on a route that was a
+ * placeholder, and no amount of reading could ever clear it. Zero means the
+ * badge is not rendered at all.
+ */
+export function buildAgentNav(t: Dictionary, unreadMessages = 0): AgentNavItem[] {
   return [
     { href: "/agent/dashboard", label: t.agent.nav.dashboard, icon: "house-sparkle" },
     { href: "/agent/listings", label: t.agent.nav.myListings, icon: "homes-sparkle" },
     { href: "/agent/list", label: t.agent.nav.listApartment, icon: "calendar-check" },
     { href: "/agent/bookings", label: t.agent.nav.bookings, icon: "calendar-check" },
-    { href: "/agent/messages", label: t.agent.nav.messages, icon: "chat", badge: 3 },
+    {
+      href: "/agent/messages",
+      label: t.agent.nav.messages,
+      icon: "chat",
+      ...(unreadMessages > 0 ? { badge: unreadMessages } : {}),
+    },
     { href: "/agent/reviews", label: t.agent.nav.reviews, icon: "heart-home" },
     { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet-secure" },
     { href: "/agent/analytics", label: t.agent.nav.analytics, icon: "map-route" },

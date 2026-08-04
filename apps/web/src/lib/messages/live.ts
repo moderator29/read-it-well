@@ -29,6 +29,14 @@ export type LiveConversationSummary = {
   /** Preformatted Lagos label: time today, date otherwise. */
   whenLabel: string;
   unread: number;
+  /**
+   * True when the caller sent the most recent message. The host inbox uses it
+   * to answer "who is still waiting on me", which a raw unread count cannot:
+   * an agent can have read an enquiry and still not have replied to it.
+   */
+  lastFromMe: boolean;
+  /** ISO instant of the most recent message, for ageing a waiting thread. */
+  lastAt: string;
 };
 
 export type LiveThreadMessage = {
@@ -119,11 +127,18 @@ export async function loadConversationSummaries(
     .order("created_at", { ascending: false })
     .limit(400);
 
-  const lastByConversation = new Map<string, { body: string; at: string }>();
+  const lastByConversation = new Map<
+    string,
+    { body: string; at: string; senderId: string }
+  >();
   const unreadByConversation = new Map<string, number>();
   for (const m of recent ?? []) {
     if (!lastByConversation.has(m.conversation_id)) {
-      lastByConversation.set(m.conversation_id, { body: m.body, at: m.created_at });
+      lastByConversation.set(m.conversation_id, {
+        body: m.body,
+        at: m.created_at,
+        senderId: m.sender_id,
+      });
     }
     if (m.sender_id !== user.id && m.read_at === null) {
       unreadByConversation.set(
@@ -146,6 +161,10 @@ export async function loadConversationSummaries(
       lastMessage: last?.body ?? "No messages yet",
       whenLabel: lagosWhenLabel(last?.at ?? c.last_message_at),
       unread: unreadByConversation.get(c.id) ?? 0,
+      /* No messages at all counts as not from us, so a brand new enquiry with
+         nothing in it still reads as waiting rather than as answered. */
+      lastFromMe: last ? last.senderId === user.id : false,
+      lastAt: last?.at ?? c.last_message_at,
     };
   });
 }

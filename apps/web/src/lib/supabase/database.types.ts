@@ -507,6 +507,57 @@ export type Database = {
           },
         ]
       }
+      badges: {
+        Row: {
+          audience: Database["public"]["Enums"]["badge_audience"]
+          code: string
+          created_at: string
+          description: string
+          manual_only: boolean
+          name: string
+          object_name: string
+          tier: number
+        }
+        Insert: {
+          audience: Database["public"]["Enums"]["badge_audience"]
+          code: string
+          created_at?: string
+          description: string
+          manual_only?: boolean
+          name: string
+          object_name: string
+          tier?: number
+        }
+        Update: {
+          audience?: Database["public"]["Enums"]["badge_audience"]
+          code?: string
+          created_at?: string
+          description?: string
+          manual_only?: boolean
+          name?: string
+          object_name?: string
+          tier?: number
+        }
+        Relationships: []
+      }
+      blocks: {
+        Row: {
+          created_at: string
+          other_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          other_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          other_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       booking_state_events: {
         Row: {
           actor_id: string | null
@@ -612,6 +663,73 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bot_invocations: {
+        Row: {
+          answer: string | null
+          area_id: string | null
+          cost_minor: number
+          created_at: string
+          id: string
+          input_tokens: number
+          output_tokens: number
+          post_id: string | null
+          prompt: string
+          refused_reason: string | null
+          reply_post_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          answer?: string | null
+          area_id?: string | null
+          cost_minor?: number
+          created_at?: string
+          id?: string
+          input_tokens?: number
+          output_tokens?: number
+          post_id?: string | null
+          prompt: string
+          refused_reason?: string | null
+          reply_post_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          answer?: string | null
+          area_id?: string | null
+          cost_minor?: number
+          created_at?: string
+          id?: string
+          input_tokens?: number
+          output_tokens?: number
+          post_id?: string | null
+          prompt?: string
+          refused_reason?: string | null
+          reply_post_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_invocations_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bot_invocations_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bot_invocations_reply_post_id_fkey"
+            columns: ["reply_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
             referencedColumns: ["id"]
           },
         ]
@@ -1094,6 +1212,27 @@ export type Database = {
           },
         ]
       }
+      mutes: {
+        Row: {
+          created_at: string
+          target_id: string
+          target_kind: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          target_id: string
+          target_kind: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          target_id?: string
+          target_kind?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -1188,6 +1327,249 @@ export type Database = {
           place_id?: string
         }
         Relationships: []
+      }
+      post_media: {
+        Row: {
+          created_at: string
+          height: number | null
+          id: string
+          position: number
+          post_id: string
+          storage_path: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          position?: number
+          post_id: string
+          storage_path: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          position?: number
+          post_id?: string
+          storage_path?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_media_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_reactions: {
+        Row: {
+          created_at: string
+          mark: Database["public"]["Enums"]["post_mark"]
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          mark: Database["public"]["Enums"]["post_mark"]
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          mark?: Database["public"]["Enums"]["post_mark"]
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_reposts: {
+        Row: {
+          area_id: string | null
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          area_id?: string | null
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          area_id?: string | null
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_reposts_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_reposts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_views: {
+        Row: {
+          post_id: string
+          seen_on: string
+          viewer_bucket: string
+        }
+        Insert: {
+          post_id: string
+          seen_on?: string
+          viewer_bucket: string
+        }
+        Update: {
+          post_id?: string
+          seen_on?: string
+          viewer_bucket?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_views_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          allow_quotes: boolean
+          area_id: string | null
+          author_id: string | null
+          author_kind: Database["public"]["Enums"]["post_author_kind"]
+          body: string | null
+          created_at: string
+          depth: number
+          edited_at: string | null
+          hidden_by: string | null
+          hold_reason: string | null
+          id: string
+          kind: Database["public"]["Enums"]["post_kind"]
+          like_count: number
+          listing_id: string | null
+          parent_id: string | null
+          payload: Json | null
+          quoted_post_id: string | null
+          removed_at: string | null
+          reply_count: number
+          repost_count: number
+          root_id: string | null
+          status: Database["public"]["Enums"]["social_status"]
+          view_count: number
+        }
+        Insert: {
+          allow_quotes?: boolean
+          area_id?: string | null
+          author_id?: string | null
+          author_kind?: Database["public"]["Enums"]["post_author_kind"]
+          body?: string | null
+          created_at?: string
+          depth?: number
+          edited_at?: string | null
+          hidden_by?: string | null
+          hold_reason?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["post_kind"]
+          like_count?: number
+          listing_id?: string | null
+          parent_id?: string | null
+          payload?: Json | null
+          quoted_post_id?: string | null
+          removed_at?: string | null
+          reply_count?: number
+          repost_count?: number
+          root_id?: string | null
+          status?: Database["public"]["Enums"]["social_status"]
+          view_count?: number
+        }
+        Update: {
+          allow_quotes?: boolean
+          area_id?: string | null
+          author_id?: string | null
+          author_kind?: Database["public"]["Enums"]["post_author_kind"]
+          body?: string | null
+          created_at?: string
+          depth?: number
+          edited_at?: string | null
+          hidden_by?: string | null
+          hold_reason?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["post_kind"]
+          like_count?: number
+          listing_id?: string | null
+          parent_id?: string | null
+          payload?: Json | null
+          quoted_post_id?: string | null
+          removed_at?: string | null
+          reply_count?: number
+          repost_count?: number
+          root_id?: string | null
+          status?: Database["public"]["Enums"]["social_status"]
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_quoted_post_id_fkey"
+            columns: ["quoted_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_root_id_fkey"
+            columns: ["root_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1659,6 +2041,47 @@ export type Database = {
           },
         ]
       }
+      user_badges: {
+        Row: {
+          badge_code: string
+          evidence: Json | null
+          granted_at: string
+          granted_by: string | null
+          reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          user_id: string
+        }
+        Insert: {
+          badge_code: string
+          evidence?: Json | null
+          granted_at?: string
+          granted_by?: string | null
+          reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          user_id: string
+        }
+        Update: {
+          badge_code?: string
+          evidence?: Json | null
+          granted_at?: string
+          granted_by?: string | null
+          reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_code_fkey"
+            columns: ["badge_code"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           granted_at: string
@@ -1830,6 +2253,7 @@ export type Database = {
       area_role: "MEMBER" | "RESIDENT" | "MODERATOR"
       area_status: "PROPOSED" | "ACTIVE" | "PAUSED" | "ARCHIVED" | "REJECTED"
       availability_status: "available" | "booked" | "unavailable"
+      badge_audience: "AGENT" | "MEMBER"
       booking_status: "PENDING" | "CONFIRMED" | "CANCELLED"
       geopolitical_zone:
         | "north_central"
@@ -1863,6 +2287,10 @@ export type Database = {
         | "agent"
         | "support"
         | "system"
+        | "social"
+      post_author_kind: "USER" | "BOT" | "SYSTEM"
+      post_kind: "GIST" | "ASK" | "REPLY" | "SHOWCASE" | "SYSTEM"
+      post_mark: "LIKE" | "SAVE"
       price_period: "night" | "year"
       property_type:
         | "apartment"
@@ -2029,6 +2457,7 @@ export const Constants = {
       area_role: ["MEMBER", "RESIDENT", "MODERATOR"],
       area_status: ["PROPOSED", "ACTIVE", "PAUSED", "ARCHIVED", "REJECTED"],
       availability_status: ["available", "booked", "unavailable"],
+      badge_audience: ["AGENT", "MEMBER"],
       booking_status: ["PENDING", "CONFIRMED", "CANCELLED"],
       geopolitical_zone: [
         "north_central",
@@ -2065,7 +2494,11 @@ export const Constants = {
         "agent",
         "support",
         "system",
+        "social",
       ],
+      post_author_kind: ["USER", "BOT", "SYSTEM"],
+      post_kind: ["GIST", "ASK", "REPLY", "SHOWCASE", "SYSTEM"],
+      post_mark: ["LIKE", "SAVE"],
       price_period: ["night", "year"],
       property_type: [
         "apartment",

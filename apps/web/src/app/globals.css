@@ -10,6 +10,13 @@
 @import "./social.css";
 
 /*
+ * The feed's own material, in its own file for the same reason and one more:
+ * three people are building the social layer at once, and one writer per file
+ * is the cheapest way to stop us overwriting each other.
+ */
+@import "./social-feed.css";
+
+/*
  * Bridge the semantic tokens into Tailwind so utilities and hand written CSS
  * draw from one source. Nothing below may introduce a raw colour.
  */

@@ -1,0 +1,228 @@
+/*
+ * The feed's material.
+ *
+ * Kept out of both globals.css (which passed 3,100 lines and where merge
+ * accidents live) and social.css (which another agent is working in), so there
+ * is exactly one writer per file while three of us build at once.
+ *
+ * Nothing here invents a surface. The platform already has a very good one in
+ * `.nf-card`: a brand bloom anchored at the upper left, a layered body
+ * gradient, the stride ring drawn on the border box while the fill sits on the
+ * padding box, a backdrop blur, an inset top hairline and a soft drop shadow.
+ * That is the glass, and it is the thing a clone cannot copy, because it is
+ * lit from the same direction as the commissioned 3D icon family. So every
+ * rule below extends it and none of them replaces it.
+ *
+ * Layer two tokens only. No raw colour, no hue outside the blue family.
+ */
+
+@layer components {
+  /* ------------------------------------------------------------------
+   * Geometry. One place, so a card, a menu and a composer cannot drift.
+   * ------------------------------------------------------------------ */
+  :root {
+    --nf-feed-radius: 22px;
+    --nf-feed-gap: 12px;
+    --nf-feed-pad: 15px;
+    --nf-feed-avatar: 42px;
+  }
+
+  /* ------------------------------------------------------------------
+   * The post card.
+   *
+   * Independent and floating. No line threading the cards together, no
+   * notched corners, no node shapes: all three were tried and cut, because
+   * they made the feed read as an information-design exercise rather than
+   * as somewhere people talk.
+   * ------------------------------------------------------------------ */
+  .nf-post {
+    border-radius: var(--nf-feed-radius);
+    padding: var(--nf-feed-pad);
+    position: relative;
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  /*
+   * Pressing a card settles it by one pixel and pulls its bloom in, matching
+   * how buttons already behave here. Motion on press rather than on hover,
+   * because the primary device has no pointer and a hover-only affordance is
+   * an affordance most of our audience never sees.
+   */
+  .nf-post--pressable:active {
+    transform: translateY(1px);
+  }
+
+  /*
+   * The AI. A brighter bloom and a stronger ring, so a machine answer is
+   * obviously a machine answer without a coloured background shouting about
+   * it. The mark inside the card does the naming; this only sets it apart.
+   */
+  .nf-post--ai {
+    background:
+      radial-gradient(135% 100% at 0% 0%, rgb(12 57 239 / 0.3) 0%, transparent 52%) padding-box,
+      linear-gradient(160deg, rgb(4 12 68 / 0.5) 0%, rgb(0 3 30 / 0.55) 64%, rgb(0 2 20 / 0.62) 100%) padding-box,
+      linear-gradient(135deg,
+        rgb(92 124 255 / 0.95) 0%,
+        rgb(12 57 239 / 0.7) 22%,
+        rgb(12 57 239 / 0.12) 52%,
+        transparent 74%)
+      border-box;
+  }
+
+  /*
+   * The platform speaking. Deliberately the quietest thing in the feed: no
+   * glass, no bloom, no shadow, just a hairline. A system entry is there so a
+   * new place is never an empty room, and the moment it competes with a person
+   * for attention it has stopped doing its job.
+   */
+  .nf-post--system {
+    background: transparent;
+    border: 1px solid var(--nf-border-subtle);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /*
+   * A listing. The photo runs to the edges and the card becomes a magazine
+   * plate rather than a text block with a picture in it, which is the whole
+   * difference between a property post and a status update.
+   */
+  .nf-post--listing {
+    padding: 0;
+    overflow: hidden;
+  }
+  .nf-post--listing > .nf-post__plate {
+    aspect-ratio: 16 / 10;
+    width: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .nf-post--listing > .nf-post__under {
+    padding: var(--nf-feed-pad);
+  }
+
+  /*
+   * A question. A leading rule in brand blue rather than a tint, so an Ask
+   * reads as a different kind of thing at a glance and still sits on the same
+   * material as everything else.
+   */
+  .nf-post--ask {
+    padding-left: calc(var(--nf-feed-pad) + 3px);
+  }
+  .nf-post--ask::before {
+    content: "";
+    position: absolute;
+    inset-block: 18px;
+    inset-inline-start: 0;
+    width: 3px;
+    border-start-end-radius: 3px;
+    border-end-end-radius: 3px;
+    background: linear-gradient(
+      180deg,
+      var(--nf-brand-secondary) 0%,
+      color-mix(in oklab, var(--nf-brand-primary) 40%, transparent) 100%
+    );
+  }
+
+  /* ------------------------------------------------------------------
+   * The action row
+   * ------------------------------------------------------------------ */
+  .nf-post__actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--nf-border-subtle);
+  }
+
+  /*
+   * 44px of hit area with the visual weight of a 34px control, using a
+   * transparent inset rather than padding so the row's rhythm is unchanged.
+   * Chips elsewhere in the product still fail this and are on the list.
+   */
+  .nf-post__act {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding-inline: 9px;
+    border-radius: var(--nf-radius-sm);
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-post__act::before {
+    content: "";
+    position: absolute;
+    inset: -5px -2px;
+  }
+  .nf-post__act:hover,
+  .nf-post__act:focus-visible {
+    color: var(--nf-content-primary);
+  }
+
+  /*
+   * Marked. Brand blue, never rose: rose means error in this system, and a
+   * liked post is not an error. That is also why there is no red heart here.
+   */
+  .nf-post__act[aria-pressed="true"] {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------------
+   * The menu
+   * ------------------------------------------------------------------ */
+  .nf-post__menu {
+    position: absolute;
+    inset-inline-end: 8px;
+    top: 42px;
+    z-index: 30;
+    inline-size: 13.5rem;
+    padding: 6px;
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-surface-raised);
+    border: 1px solid var(--nf-border-default);
+    box-shadow: var(--nf-shadow-float);
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
+  }
+  .nf-post__menu-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    inline-size: 100%;
+    min-block-size: 42px;
+    padding-inline: 11px;
+    border-radius: var(--nf-radius-sm);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    text-align: start;
+  }
+  .nf-post__menu-item:hover,
+  .nf-post__menu-item:focus-visible {
+    background: var(--nf-surface-inset);
+  }
+  .nf-post__menu-item--danger {
+    color: var(--nf-state-error);
+  }
+
+  /* ------------------------------------------------------------------
+   * Desktop. The feed is designed at 390 and then given room, rather than
+   * stretched: the column stops growing at a comfortable measure and the
+   * card gains padding instead of width.
+   * ------------------------------------------------------------------ */
+  @media (min-width: 768px) {
+    :root {
+      --nf-feed-pad: 18px;
+      --nf-feed-avatar: 46px;
+    }
+  }
+}

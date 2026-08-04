@@ -20,10 +20,13 @@ export function AgentRail({
   t,
   active,
   profile,
+  unreadMessages = 0,
 }: {
   t: Dictionary;
   active: string;
   profile: AgentProfile;
+  /** Real unread count for the messages badge. Zero renders no badge. */
+  unreadMessages?: number;
 }) {
   return (
     <aside
@@ -36,7 +39,11 @@ export function AgentRail({
 
       <AgentModePill label={t.agent.mode.agent} className="mb-5 ml-1" />
 
-      <AgentNavList items={buildAgentNav(t)} active={active} label={t.agent.mode.workspaceLabel} />
+      <AgentNavList
+        items={buildAgentNav(t, unreadMessages)}
+        active={active}
+        label={t.agent.mode.workspaceLabel}
+      />
 
       {/* Identity card plus switch back to Personal Mode. */}
       <div className="mt-4 space-y-2">
