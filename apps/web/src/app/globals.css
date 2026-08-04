@@ -111,11 +111,18 @@ body {
   color: #fff;
 }
 
-/* Tabular figures everywhere money or metrics appear, so columns line up. */
+/*
+ * Tabular figures everywhere money or metrics appear, so columns line up.
+ *
+ * The letter-spacing that used to live here has been split out into
+ * .nf-numeric--tight below. This rule is unlayered, so it beat every Tailwind
+ * utility: fourteen `tracking-*` utilities across the app were dead code, and
+ * one page asked for +0.04em on a reference ID and silently rendered -0.02em.
+ * Tabular figures are the job; tracking is a separate decision.
+ */
 .nf-numeric {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  letter-spacing: var(--nf-tracking-tight);
 }
 
 .nf-skip-link {

@@ -32,7 +32,14 @@ export const localeMeta: Record<Locale, { label: string; native: string; short: 
  * BCP 47 tags. Yoruba, Hausa and Igbo all resolve to Nigeria, which is what
  * `Intl` needs for correct number and date grouping.
  */
-const intlTag: Record<Locale, string> = {
+/**
+ * BCP 47 tags for Intl. Exported because the `<Amount>` primitive builds money
+ * from `formatToParts` rather than a formatted string, and it must resolve the
+ * same tag this file does. A second private copy would drift, which is exactly
+ * how the naira sign ended up hard-coded in five places disagreeing with each
+ * other about whether ha-NG puts a space after the symbol.
+ */
+export const intlTag: Record<Locale, string> = {
   en: "en-NG",
   yo: "yo-NG",
   ha: "ha-NG",
