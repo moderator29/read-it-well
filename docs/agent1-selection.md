@@ -27,6 +27,19 @@ each was a table or a column with an admin write policy and no screen at all:
 | A2 | The occupation and local government pickers, at signup and in settings, with RM020 mapped to a sentence | Shipped |
 | A3 | `/admin/moderation`: held posts, stories, story comments and bios, released or removed with a reason the author reads | Shipped |
 | A4 | `/admin/reference`: the occupation and local government editors | Shipped |
+| A5 | Item 13, `/agent/settings` | Already shipped before this round; verified against the file, not the list |
+| A6 | Items 15, 16 and 17: light, water and the gate, as one migration and one wizard step | Shipped |
+| A7 | "Top experiences": five tiles, five names, one identical href | Closed by deleting the row from home. The category row above it already covers experiences once, honestly |
+
+Still open, in order, from the ranked 50 below: 18 (book for someone else), 19
+(seasons), 20 (WhatsApp share), 21 (check-in and check-out filters), then Tier C
+onward. Two items were added to the pool by this round and are ranked with Tier
+B because both are one query away from work already done:
+
+| New | Item | Why |
+|---|---|---|
+| B-new-1 | Power and water filters in discovery | The columns and their partial indexes exist now, and the whole value of structured utilities is being able to filter on them. Without it the data is a label, not a lever |
+| B-new-2 | The agent shell's seeded "Demo Agent" identity | `AgentComingSoon` and `AgentShell` render a seeded profile called "Demo Agent", verified and approved, to anybody who opens an agent route signed out. That is DEAD_ENDS M10, and it also puts the word "demo" on screen, which owner rule 13 forbids outright |
 
 Still open from the ranked 50 below, in order: 13 (`/agent/settings`), 15 to 17
 (power, water, estate access), 18 (book for someone else), 19 (seasons), 20
