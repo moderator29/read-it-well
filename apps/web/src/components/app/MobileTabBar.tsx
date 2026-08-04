@@ -23,27 +23,37 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 type Tab = { href: string; label: string; icon: UiIconName };
 
 export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: string }) {
+  /*
+   * Four in the capsule, one standing alone.
+   *
+   * Profile is the one pulled out. It is the only destination that is about the
+   * user rather than about inventory, and holding it apart is what the supplied
+   * reference does with its outer circles - it also keeps the capsule down to
+   * four tabs, which is what leaves room for the active label to expand without
+   * the row overflowing a narrow phone.
+   */
   const tabs: Tab[] = [
     { href: "/home", label: t.nav.home, icon: "home" },
     { href: "/search", label: t.nav.explore, icon: "compass" },
     { href: "/bookings", label: t.nav.bookings, icon: "calendar-booking" },
     { href: "/saved", label: t.nav.saved, icon: "heart" },
-    { href: "/profile", label: t.nav.profile, icon: "user" },
   ];
+  const profile: Tab = { href: "/profile", label: t.nav.profile, icon: "user" };
+  const profileActive = profile.href === active;
 
   return (
     <nav
       aria-label={t.nav.primaryLabel}
       /*
-       * `max(0.9rem, env(...))` looked safe but collapsed the bar's own margin
+       * `max(0.9rem, env(...))` looked safe but collapsed the dock's own margin
        * on exactly the devices that need it: on a notched iPhone the bottom
-       * inset is 34px, so max() returned the inset and the bar landed flush on
+       * inset is 34px, so max() returned the inset and the dock landed flush on
        * the home indicator with zero visual gap. Adding the inset to the margin
-       * keeps a real 0.9rem of air below the pill on every device.
+       * keeps a real 0.9rem of air below it on every device.
        */
-      className="nf-tabbar fixed inset-x-4 bottom-[calc(0.9rem+env(safe-area-inset-bottom))] z-50 mx-auto w-fit lg:hidden"
+      className="nf-dockrow fixed inset-x-4 bottom-[calc(0.9rem+env(safe-area-inset-bottom))] z-50 lg:hidden"
     >
-      <ul className="flex items-center gap-1 px-1.5 py-1.5">
+      <ul className="nf-tabbar flex items-center gap-1 px-1.5 py-1.5">
         {tabs.map((tab) => {
           const isActive = tab.href === active;
           return (
@@ -59,9 +69,13 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
                 ].join(" ")}
               >
                 <span className="nf-tab-pop__pill" aria-hidden="true" />
-                {/* Stroked glyph; the active tab draws a heavier line. */}
                 <span className="nf-tab-pop__icon">
-                  <UiIcon name={tab.icon} size={22} strokeWidth={isActive ? 2.2 : 1.8} />
+                  <UiIcon
+                    name={tab.icon}
+                    size="lg"
+                    filled={isActive}
+                    strokeWidth={isActive ? 2.2 : undefined}
+                  />
                 </span>
                 {/*
                   The label is always in the DOM, so it is always available to a
@@ -76,6 +90,18 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
           );
         })}
       </ul>
+
+      {/* The detached island. Its own material, its own blur, its own shadow. */}
+      <Link
+        href={profile.href}
+        aria-current={profileActive ? "page" : undefined}
+        aria-label={profile.label}
+        className={["nf-dock-island", profileActive ? "" : "opacity-90 hover:opacity-100"]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        <UiIcon name={profile.icon} size="lg" strokeWidth={profileActive ? 2.2 : undefined} />
+      </Link>
     </nav>
   );
 }

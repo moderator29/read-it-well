@@ -2612,13 +2612,81 @@ body {
     --nf-tabbar-clearance: calc(0.9rem + env(safe-area-inset-bottom, 0px) + 3.5rem + 0.75rem);
   }
 
+  /*
+   * The dock: detached islands, not one continuous bar.
+   *
+   * The supplied reference is the iOS Photos bottom bar - a standalone circular
+   * control, a wide capsule carrying the main destinations, and another
+   * standalone circle - all floating clear of every edge with real gaps between
+   * them. The separation is the whole effect: three objects sitting above the
+   * content rather than one strip welded across it.
+   *
+   * The row itself carries no material. Each island brings its own, so they
+   * blur the content independently and read as genuinely separate pieces.
+   */
+  .nf-dockrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+  }
+
   .nf-tabbar {
     background: var(--nf-glass-fill-strong);
-    border: 1px solid var(--nf-border-subtle);
+    border: 1px solid var(--nf-glass-border);
     border-radius: var(--nf-radius-pill);
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
-    box-shadow: 0 16px 36px -12px rgb(0 0 0 / 0.6);
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow-lifted);
+  }
+
+  /*
+   * The detached island. Same material as the capsule so the group reads as one
+   * family, but circular and standing on its own.
+   */
+  .nf-dock-island {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-primary);
+    background: var(--nf-glass-fill-strong);
+    border: 1px solid var(--nf-glass-border);
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow-lifted);
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-spring),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-dock-island:active {
+    transform: scale(0.93);
+  }
+  /* The island's own active state: brand fill, matching the capsule's pill. */
+  .nf-dock-island[aria-current="page"] {
+    color: #fff;
+    background: var(--nf-gradient-brand);
+    border-color: transparent;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.24),
+      0 6px 18px -4px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-dock-island {
+      transition: none;
+    }
+    .nf-dock-island:active {
+      transform: none;
+    }
   }
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .nf-tabbar {
@@ -3606,8 +3674,15 @@ body {
   }
 
   /* The tab bar's heavy night shadow becomes a soft neutral lift. */
-  :root[data-theme="light"] .nf-tabbar {
-    box-shadow: 0 16px 32px -14px rgb(18 21 26 / 0.28);
+  /* Both dock islands take the same daylight lift, so the group stays one family. */
+  :root[data-theme="light"] .nf-tabbar,
+  :root[data-theme="light"] .nf-dock-island {
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      0 16px 32px -14px rgb(18 21 26 / 0.28);
+  }
+  :root[data-theme="light"] .nf-dock-island[aria-current="page"] {
+    box-shadow: 0 6px 18px -4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
   }
   :root[data-theme="light"] .nf-tab-pop__pill {
     box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
