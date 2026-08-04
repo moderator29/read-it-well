@@ -178,9 +178,20 @@ export function actionsForPost(options: {
 
   rows.push(
     {
-      key: "hide",
-      title: "Not interested",
-      note: `See less like this from ${options.who}`,
+      /*
+       * One control, named for what it does.
+       *
+       * This row used to say "Not interested" and "See less like this from X",
+       * and what it wrote was a full mute. Understating a control is the same
+       * defect as overstating one, and it was harder to spot: somebody taps a
+       * soft-sounding row and a person disappears from their feeds, their
+       * stories and their threads. There is no per-post ranking signal in this
+       * product to feed a genuine "see less", so the honest answer is to offer
+       * the thing that exists under its own name.
+       */
+      key: "mute",
+      title: `Mute ${options.who}`,
+      note: "They stop showing up in your feeds, stories and threads",
       icon: "sliders",
     },
     {

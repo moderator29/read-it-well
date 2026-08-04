@@ -164,13 +164,21 @@ export const POST_COPY = {
   endOfSession: "That is everything for today.",
   blockedDone:
     "Blocked. You will not see each other anywhere on RentMe, and they are not told.",
-  /* Precise on purpose. A mute takes somebody out of the feeds and the story
-     rail; it does not take down their page or their side of a thread you are
-     already in, and it is one way, so nothing about you changes for them. The
-     sentence used to promise the wider thing and the wider thing was not built,
-     which is how a control ends up doing less than it says. */
+  /*
+   * Precise on purpose, and it now matches every place a mute actually acts.
+   *
+   * Feeds, the story rail, what somebody has been up to on anybody else's page,
+   * and their replies inside a thread, which collapse to one line with a way to
+   * open them. The one place it deliberately does not act is their own page,
+   * because going there is a deliberate act and hiding a person from the page
+   * you asked for is not silence, it is a broken link.
+   *
+   * It is one way, so nothing about the reader changes for them. The sentence
+   * used to promise total silence while the row was read by nothing at all,
+   * which is a promise the product had no way of knowing it was breaking.
+   */
   mutedDone:
-    "Muted. They stop showing up in your feeds and stories. Their page still opens, and they are not told.",
+    "Muted. They stop showing up in your feeds, stories and threads. Their own page still opens, and they are not told.",
   reportedDone:
     "Thank you. Somebody will look at this. We do not tell them who reported it.",
   copied: "Link copied.",

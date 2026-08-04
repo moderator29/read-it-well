@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { FollowListPage } from "@/components/social/profile/FollowListPage";
 import { normaliseHandle } from "@/lib/social/profiles-queries";
+import { SocialPaused } from "@/components/social/SocialPaused";
+import { isSocialEnabled } from "@/lib/social/flag";
 
 export async function generateMetadata({
   params,
@@ -24,5 +26,6 @@ export default async function FollowersPage({
   params: Promise<{ handle: string }>;
 }) {
   const { handle } = await params;
+  if (!(await isSocialEnabled())) return <SocialPaused title={`@${handle}`} />;
   return <FollowListPage handle={handle} direction="followers" />;
 }

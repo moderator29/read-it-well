@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { PostGlyph } from "./PostGlyph";
+import { PostBody } from "./PostBody";
 
 /**
  * A post.
@@ -322,15 +323,14 @@ export function PostCard({
       ) : post.body ? (
         <div className={isSystem ? "mt-2" : "mt-3 flex items-center gap-3"}>
           {isSystem || isBot ? null : <Avatar author={post.author} />}
-          <p
+          <PostBody
+            text={post.body}
             className={
               isSystem
                 ? "text-[0.86rem] leading-relaxed text-[var(--nf-content-secondary)]"
                 : "min-w-0 text-[0.97rem] leading-[1.5] tracking-[-0.005em] text-[var(--nf-content-primary)]"
             }
-          >
-            {post.body}
-          </p>
+          />
         </div>
       ) : null}
 

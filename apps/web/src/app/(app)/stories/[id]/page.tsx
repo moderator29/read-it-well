@@ -9,6 +9,8 @@ import {
 } from "@/lib/social/stories-queries";
 import { loadPublicProfile } from "@/lib/social/profiles-queries";
 import { StoryViewer } from "@/components/social/story/StoryViewer";
+import { SocialPaused } from "@/components/social/SocialPaused";
+import { isSocialEnabled } from "@/lib/social/flag";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +44,7 @@ export default async function StoryPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  if (!(await isSocialEnabled())) return <SocialPaused title="Story" />;
   const [story, session] = await Promise.all([getStory(id), resolveSession()]);
   if (!story) notFound();
 

@@ -1,5 +1,6 @@
 import { resolveSession } from "@/lib/actions/session";
 import { listMyAreas } from "@/lib/social/areas-queries";
+import { isSocialEnabled } from "@/lib/social/flag";
 import { FabDock, type FabArea } from "./FabDock";
 
 /**
@@ -24,6 +25,11 @@ export async function AroundFab({
   /** Preselected when the dock is opened from inside a place. */
   currentAreaId?: string;
 }) {
+  /* Off means gone, not disabled. A create control that opens a ring whose
+     every petal then refuses is a worse answer than no control, and the paused
+     page already says what happened. */
+  if (!(await isSocialEnabled())) return null;
+
   const session = await resolveSession();
 
   /* Signed out, the dock still renders and its actions lead to sign-in. A

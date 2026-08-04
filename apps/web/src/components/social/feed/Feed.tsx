@@ -200,19 +200,8 @@ export function Feed({
       // not the post's. Passing the post id would have blocked a uuid that is
       // nobody, silently succeeded, and shown "Blocked" for an action that did
       // nothing at all.
-      /* "Not interested" is a mute on the person, which is the only thing this
-         product can honestly do with it today: there is no per-post ranking
-         signal to feed, and a control that silently does nothing is worse than
-         one that does something smaller than its label suggests. The label says
-         "see less from them" for that reason. */
-      if (action === "hide") {
-        const target = post.author?.id;
-        if (!target) return setNotice("There is nobody to do that to on this post.");
-        const result = await muteTarget({ targetKind: "USER", targetId: target });
-        setNotice(result.ok ? POST_COPY.mutedDone : result.error);
-        router.refresh();
-        return;
-      }
+      // A "hide" key used to live here writing the identical mute behind a row
+      // labelled "Not interested". One key now, named for what it does.
       if (action === "mute" || action === "block") {
         const target = post.author?.id;
         if (!target) return setNotice("There is nobody to do that to on this post.");

@@ -37,6 +37,7 @@ import {
   reportPostSchema,
   reportProfileSchema,
 } from "./posts-schema";
+import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 
 function paced(seconds: number): string {
   return `You have done that a few times already. Try again ${retryIn(seconds)}.`;
@@ -75,6 +76,7 @@ export async function dropPost(input: {
   kind: "GIST" | "ASK";
   body: string;
 }): Promise<ActionResult<{ postId: string; held: boolean }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(dropPostSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -115,6 +117,7 @@ export async function replyToPost(input: {
   parentId: string;
   body: string;
 }): Promise<ActionResult<{ postId: string; held: boolean }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(replySchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -160,6 +163,7 @@ export async function toggleMark(input: {
   postId: string;
   mark: "LIKE" | "SAVE";
 }): Promise<ActionResult<{ marked: boolean }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(markSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { postId, mark } = parsed.data;
@@ -210,6 +214,7 @@ export async function toggleMark(input: {
 export async function toggleRepost(input: {
   postId: string;
 }): Promise<ActionResult<{ reposted: boolean }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(postIdSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -291,6 +296,7 @@ export async function editPost(input: {
   postId: string;
   body: string;
 }): Promise<ActionResult<{ held: boolean }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(editPostSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -333,6 +339,7 @@ export async function editPost(input: {
 export async function removePost(input: {
   postId: string;
 }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(postIdSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -379,6 +386,7 @@ export async function removePost(input: {
 export async function recordView(input: {
   postId: string;
 }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(postIdSchema, input);
   if (!parsed.ok) return ok(null);
 
@@ -407,6 +415,7 @@ export async function reportPost(input: {
   reason: string;
   detail?: string;
 }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(reportPostSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -455,6 +464,7 @@ export async function reportProfile(input: {
   reason: string;
   detail?: string;
 }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(reportProfileSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -489,6 +499,7 @@ export async function reportProfile(input: {
 export async function blockUser(input: {
   userId: string;
 }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(blockSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -518,6 +529,7 @@ export async function blockUser(input: {
 export async function unblockUser(input: {
   userId: string;
 }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(blockSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -540,6 +552,7 @@ export async function muteTarget(input: {
   targetKind: "USER" | "POST" | "AREA";
   targetId: string;
 }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(muteSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -562,6 +575,7 @@ export async function unmuteTarget(input: {
   targetKind: "USER" | "POST" | "AREA";
   targetId: string;
 }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(muteSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 

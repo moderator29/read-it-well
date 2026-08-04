@@ -5,6 +5,8 @@ import { resolveSession } from "@/lib/actions/session";
 import { getThread } from "@/lib/social/posts-queries";
 import { AroundFab } from "@/components/social/AroundFab";
 import { ThreadView } from "./ThreadView";
+import { SocialPaused } from "@/components/social/SocialPaused";
+import { isSocialEnabled } from "@/lib/social/flag";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +45,7 @@ export default async function PostPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  if (!(await isSocialEnabled())) return <SocialPaused title="Post" />;
   const [thread, session] = await Promise.all([getThread(id), resolveSession()]);
   if (!thread) notFound();
 

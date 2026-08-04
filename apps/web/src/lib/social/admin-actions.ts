@@ -1,5 +1,16 @@
 "use server";
 
+/*
+ * **Deliberately not behind the `social` flag.**
+ *
+ * Every other social action refuses while Around is paused. These do not, and
+ * that is the point: the most likely reason the switch was ever thrown is that
+ * something needs moderating, and a kill switch that also disables the people
+ * who can fix the thing it was thrown for is a kill switch nobody dares use.
+ * Approving a place, hiding a post and deciding a moderator application all
+ * keep working, and they are admin-gated in the database regardless.
+ */
+
 /**
  * The console's hands on Around.
  *

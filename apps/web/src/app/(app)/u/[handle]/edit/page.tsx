@@ -4,6 +4,8 @@ import { ProfileEditor } from "@/components/social/profile/ProfileEditor";
 import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
 import { ProfilePhotos } from "@/components/social/profile/ProfilePhotos";
 import { loadProfileEditor, normaliseHandle } from "@/lib/social/profiles-queries";
+import { SocialPaused } from "@/components/social/SocialPaused";
+import { isSocialEnabled } from "@/lib/social/flag";
 
 export const metadata: Metadata = { title: "Edit your profile" };
 
@@ -26,6 +28,7 @@ export default async function EditSocialProfilePage({
 }) {
   const { handle: raw } = await params;
   const handle = normaliseHandle(raw);
+  if (!(await isSocialEnabled())) return <SocialPaused title={`@${handle}`} />;
   const editor = await loadProfileEditor(raw);
 
   return (

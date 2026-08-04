@@ -40,6 +40,7 @@ import {
   type BioStatus,
   type SocialProfileSaved,
 } from "./profiles-schema";
+import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 
 /* ------------------------------------------------------------------ limits */
 
@@ -68,6 +69,7 @@ export async function saveSocialProfile(
   _prev: ActionResult<SocialProfileSaved> | null,
   formData: FormData,
 ): Promise<ActionResult<SocialProfileSaved>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
@@ -212,6 +214,7 @@ const coverPathSchema = z
 export async function setSocialCover(input: {
   storagePath: string | null;
 }): Promise<ActionResult<{ coverPath: string | null }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);

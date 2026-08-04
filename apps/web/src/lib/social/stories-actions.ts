@@ -37,6 +37,7 @@ import {
   storyInputSchema,
   storyMarkSchema,
 } from "./stories-schema";
+import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 
 /* The generated types are regenerated after a migration, not before it, so the
    two disagree for exactly as long as it takes the lead to run the generator.
@@ -59,6 +60,7 @@ export async function publishStory(input: {
   width?: number;
   height?: number;
 }): Promise<ActionResult<{ storyId: string; held: boolean }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(storyInputSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -114,6 +116,7 @@ export async function toggleStoryMark(input: {
   storyId: string;
   mark: "LIKE" | "SAVE";
 }): Promise<ActionResult<{ marked: boolean }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(storyMarkSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { storyId, mark } = parsed.data;
@@ -171,6 +174,7 @@ export async function commentOnStory(input: {
   parentId?: string | null;
   body: string;
 }): Promise<ActionResult<{ commentId: string; held: boolean }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(storyCommentSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -209,6 +213,7 @@ export async function commentOnStory(input: {
 export async function toggleStoryCommentLike(input: {
   commentId: string;
 }): Promise<ActionResult<{ liked: boolean }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(storyCommentIdSchema, input);
   if (!parsed.ok) return fail(STORY_FAILURE.gone);
   const { commentId } = parsed.data;
@@ -269,6 +274,7 @@ export async function toggleStoryCommentLike(input: {
 export async function removeStory(input: {
   storyId: string;
 }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(storyIdSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -301,6 +307,7 @@ export async function removeStory(input: {
 export async function recordStoryView(input: {
   storyId: string;
 }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(storyIdSchema, input);
   if (!parsed.ok) return ok(null);
 

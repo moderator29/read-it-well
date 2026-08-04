@@ -12,6 +12,8 @@ import {
 import { AREA_COPY, AREA_KIND_LABEL, type AreaStatus } from "@/lib/social/areas-schema";
 import { AroundFab } from "@/components/social/AroundFab";
 import { JoinButton } from "./JoinButton";
+import { SocialPaused } from "@/components/social/SocialPaused";
+import { isSocialEnabled } from "@/lib/social/flag";
 
 export const metadata: Metadata = { title: "Around" };
 
@@ -28,6 +30,8 @@ export const metadata: Metadata = { title: "Around" };
  * an account, and it asks at the moment it matters.
  */
 export default async function AroundPage() {
+  if (!(await isSocialEnabled())) return <SocialPaused />;
+
   const [session, open, mine, proposals] = await Promise.all([
     resolveSession(),
     listOpenAreas(),

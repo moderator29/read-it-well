@@ -17,9 +17,11 @@ import {
 } from "@/lib/social/posts-actions";
 import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
 
+type ThreadReply = PostView & { depth: number; mutedAuthor: boolean };
+
 type Thread = {
   root: PostView;
-  replies: (PostView & { depth: number })[];
+  replies: ThreadReply[];
 };
 
 /**
@@ -46,6 +48,10 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
   const [editing, setEditing] = useState<string | null>(null);
   /* One sheet for the whole thread, holding the post it was opened for. */
   const [sheetFor, setSheetFor] = useState<PostView | null>(null);
+  /* Muted replies the reader has chosen to open anyway. Per reply, and it lasts
+     as long as the page: a mute is a standing preference and unfolding one line
+     is not a decision to undo it. */
+  const [unfolded, setUnfolded] = useState<string[]>([]);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -155,16 +161,8 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
         router.refresh();
         return;
       }
-      /* See the note in Feed: "Not interested" is a mute on the person, which
-         is the only honest thing this product can do with it today. */
-      if (action === "hide") {
-        const target = post.author?.id;
-        if (!target) return setNotice("There is nobody to do that to on this post.");
-        const result = await muteTarget({ targetKind: "USER", targetId: target });
-        setNotice(result.ok ? POST_COPY.mutedDone : result.error);
-        router.refresh();
-        return;
-      }
+      // A "hide" key used to live here writing the identical mute behind a row
+      // labelled "Not interested". One key now, named for what it does.
       if (action === "mute" || action === "block") {
         const target = post.author?.id;
         if (!target) return setNotice("There is nobody to do that to on this post.");
@@ -247,7 +245,16 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
           style={{ marginInlineStart: `${Math.min(reply.depth, 3) * 14}px` }}
           className="flex flex-col gap-[var(--nf-feed-gap)]"
         >
-          {reply.body === null && !reply.heldReason ? <Tombstone /> : card(reply)}
+          {reply.mutedAuthor && !unfolded.includes(reply.id) ? (
+            <MutedReply
+              who={reply.author?.handle ? `@${reply.author.handle}` : "somebody you muted"}
+              onShow={() => setUnfolded((open) => [...open, reply.id])}
+            />
+          ) : reply.body === null && !reply.heldReason ? (
+            <Tombstone />
+          ) : (
+            card(reply)
+          )}
           {replyingTo === reply.id ? (
             <Composer
               parentId={reply.id}
@@ -290,6 +297,33 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
           onClose={() => setReporting(null)}
         />
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * A reply from somebody the reader has muted.
+ *
+ * Collapsed, not removed. Removing it would leave the replies underneath it
+ * hanging off a parent that is not on the page, and a mute is a decision about
+ * what to read, never a decision to delete other people's words from somebody
+ * else's conversation. The line names who it is and offers to open it, because
+ * the one moment a reader most wants to break their own mute is when the person
+ * has answered something they are reading.
+ */
+function MutedReply({ who, onShow }: { who: string; onShow: () => void }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-default)] px-4 py-3">
+      <p className="text-sm leading-relaxed text-[var(--nf-content-muted)]">
+        You muted {who}.
+      </p>
+      <button
+        type="button"
+        onClick={onShow}
+        className="text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)]"
+      >
+        Read it anyway
+      </button>
     </div>
   );
 }

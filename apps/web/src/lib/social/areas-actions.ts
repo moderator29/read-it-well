@@ -36,6 +36,7 @@ import {
   proposeAreaSchema,
   slugifyArea,
 } from "./areas-schema";
+import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 
 /** One sentence for a limiter refusal, so every action here paces the same way. */
 function pacedMessage(seconds: number): string {
@@ -57,6 +58,7 @@ export async function proposeArea(input: {
   city: string;
   blurb?: string;
 }): Promise<ActionResult<{ slug: string }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(proposeAreaSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { name, kind, stateCode, city, blurb } = parsed.data;
@@ -113,6 +115,7 @@ export async function proposeArea(input: {
  * than merely unlikely.
  */
 export async function joinArea(input: { areaId: string }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(areaIdSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -155,6 +158,7 @@ export async function joinArea(input: { areaId: string }): Promise<ActionResult<
  * dark pattern with a rate limit painted on it.
  */
 export async function leaveArea(input: { areaId: string }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(areaIdSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -186,6 +190,7 @@ export async function applyToModerate(input: {
   areaId: string;
   reason: string;
 }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(moderatorApplicationSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -231,6 +236,7 @@ export async function applyToModerate(input: {
 export async function withdrawModeratorApplication(input: {
   areaId: string;
 }): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(areaIdSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 

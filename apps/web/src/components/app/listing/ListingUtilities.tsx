@@ -31,12 +31,19 @@ const GRID_LABEL: Record<string, { label: string; detail: string }> = {
   NONE: { label: "No grid supply", detail: "Nothing from the distribution company" },
 };
 
-const BACKUP_LABEL: Record<string, string> = {
-  NONE: "No backup",
-  GENERATOR: "Generator",
-  INVERTER: "Inverter",
-  SOLAR: "Solar",
-  GENERATOR_INVERTER: "Generator and inverter",
+/**
+ * The backup as it belongs inside a sentence, article and all.
+ *
+ * The first version of this read "Band A and generator and inverter, 24 hours a
+ * day", which is two ANDs doing different jobs in one clause and reads as a
+ * mistake. A label list and a sentence list are not the same list.
+ */
+const BACKUP_PHRASE: Record<string, string> = {
+  NONE: "no backup",
+  GENERATOR: "a generator",
+  INVERTER: "an inverter",
+  SOLAR: "solar",
+  GENERATOR_INVERTER: "a generator and inverter",
 };
 
 const WATER_LABEL: Record<string, { label: string; detail: string }> = {
@@ -61,7 +68,7 @@ export function ListingUtilities({
   if (!utilities) return null;
 
   const grid = utilities.powerGrid ? GRID_LABEL[utilities.powerGrid] : undefined;
-  const backup = utilities.powerBackup ? BACKUP_LABEL[utilities.powerBackup] : undefined;
+  const backup = utilities.powerBackup ? BACKUP_PHRASE[utilities.powerBackup] : undefined;
   const water = utilities.waterSupply ? WATER_LABEL[utilities.waterSupply] : undefined;
   const hours = utilities.powerBackupHours;
 
@@ -69,10 +76,18 @@ export function ListingUtilities({
   const nothingAnswered = !powerAnswered && !water && !utilities.hasEstateAccess;
   if (nothingAnswered) return null;
 
-  const backupLine =
-    backup && backup !== "No backup" && typeof hours === "number"
-      ? `${backup}, ${hours} ${hours === 1 ? "hour" : "hours"} a day`
+  const runs =
+    backup && backup !== "no backup" && typeof hours === "number"
+      ? `${backup}, running ${hours} ${hours === 1 ? "hour" : "hours"} a day`
       : backup;
+
+  const powerLine = grid
+    ? runs
+      ? `${grid.label}, with ${runs}`
+      : grid.label
+    : runs
+      ? `${runs.charAt(0).toUpperCase()}${runs.slice(1)}`
+      : "Grid supply not stated";
 
   return (
     <section aria-labelledby="utilities-heading" className="nf-card p-5 sm:p-6">
@@ -92,8 +107,7 @@ export function ListingUtilities({
             powerAnswered ? (
               <>
                 <span className="block font-semibold text-[var(--nf-content-primary)]">
-                  {grid ? grid.label : "Grid supply not stated"}
-                  {backupLine ? ` and ${backupLine.toLowerCase()}` : ""}
+                  {powerLine}
                 </span>
                 {grid && (
                   <span className="mt-0.5 block text-[0.8125rem] text-[var(--nf-content-muted)]">
@@ -101,7 +115,9 @@ export function ListingUtilities({
                   </span>
                 )}
                 {utilities.prepaidMeter && (
-                  <span className="nf-badge mt-2">Prepaid meter</span>
+                  <span className="mt-2 block">
+                    <span className="nf-badge">Prepaid meter</span>
+                  </span>
                 )}
               </>
             ) : null

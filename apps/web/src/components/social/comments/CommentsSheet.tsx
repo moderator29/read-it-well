@@ -8,6 +8,7 @@ import { ReportSheet } from "@/components/social/ReportSheet";
 import { blockUser, muteTarget, reportPost } from "@/lib/social/posts-actions";
 import { POST_COPY, POST_MAX, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
 import type { ActionResult } from "@/lib/actions/envelope";
+import { PostBody } from "@/components/social/feed/PostBody";
 
 /**
  * Comments, as a sheet.
@@ -335,9 +336,16 @@ export function CommentsSheet({
                     </div>
                   </div>
 
-                  <p className={`nf-comment__body${comment.removed ? " nf-comment__body--gone" : ""}`}>
-                    {comment.removed ? POST_COPY.removed : comment.body}
-                  </p>
+                  {/* A comment names people as often as a post does, so the
+                      same body renderer serves both. A removed comment keeps
+                      its tombstone sentence and is never parsed. */}
+                  {comment.removed ? (
+                    <p className="nf-comment__body nf-comment__body--gone">
+                      {POST_COPY.removed}
+                    </p>
+                  ) : (
+                    <PostBody text={comment.body ?? ""} className="nf-comment__body" />
+                  )}
 
                   {comment.removed ? null : (
                     <div className="nf-comment__foot">

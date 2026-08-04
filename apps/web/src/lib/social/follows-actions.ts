@@ -38,6 +38,7 @@ import { consume, subjectForUser } from "../security/rate-limit";
 import type { Database } from "../supabase/database.types";
 import { handleSchema } from "./profiles-schema";
 import { getFollowList, type FollowRow } from "./follows-queries";
+import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 
 /** 100 follows a day. Enough for anyone reading; not enough to farm a graph. */
 const FOLLOW_LIMIT = 100;
@@ -71,6 +72,7 @@ const followInputSchema = z.object({ handle: handleSchema });
 export async function toggleFollow(input: {
   handle: string;
 }): Promise<ActionResult<FollowOutcome>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(followInputSchema, input);
   if (!parsed.ok) return fail(GONE_MESSAGE);
   const { handle } = parsed.data;
@@ -207,6 +209,7 @@ export async function moreFollows(input: {
   direction: "followers" | "following";
   before: string;
 }): Promise<ActionResult<{ people: FollowRow[]; cursor: string | null }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
   const parsed = validate(morePeopleSchema, input);
   if (!parsed.ok) return fail(GONE_MESSAGE);
 

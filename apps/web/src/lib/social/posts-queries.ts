@@ -447,9 +447,23 @@ export async function getAreaFeed(
   };
 }
 
+export type ThreadReply = PostView & {
+  depth: number;
+  /**
+   * The viewer muted this reply's author.
+   *
+   * The row is still returned rather than filtered out, and that is the whole
+   * design: dropping it would leave the replies underneath it hanging off a
+   * parent that is not there, and a mute is not a reason to delete other
+   * people's words from somebody's screen. The thread renders one collapsed
+   * line with a way to read it anyway.
+   */
+  mutedAuthor: boolean;
+};
+
 export type Thread = {
   root: PostView;
-  replies: (PostView & { depth: number })[];
+  replies: ThreadReply[];
 };
 
 /**
@@ -493,7 +507,10 @@ export async function getThread(postId: string): Promise<Thread | null> {
   const top = (topRes.data ?? rootRow) as unknown as RawPost;
   const replyRows = (repliesRes.data ?? []) as unknown as RawPost[];
 
-  const e = await enrich(supabase, [top, ...replyRows], viewerId);
+  const [e, muted] = await Promise.all([
+    enrich(supabase, [top, ...replyRows], viewerId),
+    readMutes(supabase, viewerId),
+  ]);
   const byId = new Map(replyRows.map((r) => [r.id, r]));
 
   return {
@@ -515,6 +532,9 @@ export async function getThread(postId: string): Promise<Thread | null> {
                 : null
             : null,
         depth: row.depth,
+        mutedAuthor: Boolean(
+          muted.posts.has(row.id) || (row.author_id && muted.users.has(row.author_id)),
+        ),
       };
     }),
   };
@@ -722,12 +742,22 @@ export async function getProfileActivity(userId: string): Promise<ActivityEntry[
 
   if (entries.length === 0) return [];
 
-  const { data } = await supabase
-    .from("posts")
-    .select(POST_COLUMNS)
-    .in("id", [...new Set(entries.map((entry) => entry.postId))]);
+  const [{ data }, muted] = await Promise.all([
+    supabase
+      .from("posts")
+      .select(POST_COLUMNS)
+      .in("id", [...new Set(entries.map((entry) => entry.postId))]),
+    readMutes(supabase, viewerId),
+  ]);
 
-  const rows = (data ?? []) as unknown as RawPost[];
+  /* Activity is other people's posts surfaced on a third person's page, so a
+     mute belongs here for the same reason it belongs on a feed: the reader said
+     they did not want to read this author, and whose page it appears on does not
+     change that. The muted person's OWN page is the one place it does not apply,
+     because going there is a deliberate act. */
+  const rows = ((data ?? []) as unknown as RawPost[]).filter(
+    (row) => !muted.posts.has(row.id) && !(row.author_id && muted.users.has(row.author_id)),
+  );
   if (rows.length === 0) return [];
 
   const e = await enrich(supabase, rows, viewerId);

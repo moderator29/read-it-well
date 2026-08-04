@@ -13,6 +13,8 @@ import { AroundFab } from "@/components/social/AroundFab";
 import { AREA_COPY } from "@/lib/social/areas-schema";
 import { JoinButton } from "../JoinButton";
 import { ModeratorApply } from "./ModeratorApply";
+import { SocialPaused } from "@/components/social/SocialPaused";
+import { isSocialEnabled } from "@/lib/social/flag";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +54,8 @@ export default async function AreaPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  if (!(await isSocialEnabled())) return <SocialPaused />;
+
   const detail = await getArea(slug);
 
   // Two different answers that used to look the same. No keys means the feature

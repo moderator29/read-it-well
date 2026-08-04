@@ -29,6 +29,8 @@ import {
   monthYear,
 } from "@/lib/social/profile-tabs-queries";
 import { listStories } from "@/lib/social/stories-queries";
+import { SocialPaused } from "@/components/social/SocialPaused";
+import { isSocialEnabled } from "@/lib/social/flag";
 
 /**
  * `/u/[handle]`: a person's page.
@@ -76,6 +78,8 @@ export default async function SocialProfilePage({
 }) {
   const { handle: raw } = await params;
   const handle = normaliseHandle(raw);
+  if (!(await isSocialEnabled())) return <SocialPaused title={`@${handle}`} />;
+
   const locale = await getLocale();
   const [view, query] = await Promise.all([loadPublicProfile(raw), searchParams]);
 
