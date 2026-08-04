@@ -110,7 +110,7 @@ export function AccountProfile({
             {profile.email}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <span className="nf-badge nf-badge--brand">Member since {memberSinceLabel}</span>
+            <span className="nf-badge nf-badge--neutral">Member since {memberSinceLabel}</span>
             {placeLabel && (
               <span className="nf-badge">
                 <UiIcon name="location" size={12} className="shrink-0" />

@@ -152,7 +152,7 @@ export function AppRail({
         </span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className="block truncate text-[0.875rem] font-semibold">{userName}</span>
-          <span className="nf-badge nf-badge--brand mt-1">{t.agent.mode.personal}</span>
+          <span className="nf-badge nf-badge--neutral mt-1">{t.agent.mode.personal}</span>
         </span>
       </div>
     </aside>

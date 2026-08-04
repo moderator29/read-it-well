@@ -365,7 +365,7 @@ export default async function ListingDetailPage({
 
               {/* Only first-party inventory may carry the verified badge. */}
               {listing.verified && !isPartner && (
-                <span className="nf-badge nf-badge--success">
+                <span className="nf-badge nf-badge--verified">
                   <UiIcon name="verified" size={12} />
                   {t.common.verified}
                 </span>
@@ -379,7 +379,7 @@ export default async function ListingDetailPage({
                 </span>
               )}
               {listing.instantBook && (
-                <span className="nf-badge nf-badge--warning">Instant Book</span>
+                <span className="nf-badge nf-badge--brand">Instant Book</span>
               )}
               {partner?.attribution === "Google" && (
                 <span className="text-[0.6875rem] text-[var(--nf-content-muted)]">

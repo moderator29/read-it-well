@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -51,19 +52,11 @@ const GROUPS: Group[] = [
 
 const EDITABLE: ListingStatus[] = ["DRAFT", "MORE_INFO_REQUIRED", "REJECTED"];
 
-function toneStyle(status: ListingStatus): React.CSSProperties {
-  switch (STATUS_TONE[status]) {
-    case "success":
-      return { background: "var(--nf-state-success-surface)", color: "var(--nf-state-success)" };
-    case "warning":
-      return { background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" };
-    case "error":
-      return { background: "var(--nf-state-error-surface)", color: "var(--nf-state-error)" };
-    case "brand":
-      return { background: "var(--nf-state-info-surface)", color: "var(--nf-state-info)" };
-    default:
-      return { background: "var(--nf-surface-raised)", color: "var(--nf-content-secondary)" };
-  }
+/* The badge class, not a hand-written colour pair. Rejected used to be the
+   only status on the platform written as an inline style, which is exactly how
+   a fifth meaning gets into a four-colour system. */
+function toneClass(status: ListingStatus): string {
+  return `nf-badge nf-badge--${STATUS_TONE[status]}`;
 }
 
 type SheetKind = "submit" | "unpublish" | "delete";
@@ -130,18 +123,11 @@ function ConfirmSheet({
   const [unmet, setUnmet] = useState<string[]>([]);
   const copy = t.workspace.sheets[state.kind];
 
+  useOverlay({ open: true, onClose, panelRef: panel, autoFocus: false });
+
   useEffect(() => {
     panel.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
+  }, []);
 
   function run() {
     setError(null);
@@ -272,7 +258,7 @@ function ListingRow({
         <div className="min-w-0 flex-1 leading-tight">
           <div className="flex items-start justify-between gap-2">
             <h3 className="truncate text-[0.9375rem] font-semibold">{listing.title}</h3>
-            <span className="nf-badge shrink-0" style={toneStyle(listing.status)}>
+            <span className={`${toneClass(listing.status)} shrink-0`}>
               {t.workspace.status[listing.status]}
             </span>
           </div>

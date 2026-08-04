@@ -558,7 +558,7 @@ export function MapCanvas({
                 "--pin-i": i,
               } as React.CSSProperties
             }
-            className="nf-numeric nf-map-cluster-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--nf-border-brand)] bg-[var(--nf-brand-primary)] px-3 py-2 text-[0.8125rem] font-bold text-[var(--nf-content-on-brand)] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-brand-primary)] active:scale-95 motion-reduce:transition-none"
+            className="nf-numeric nf-map-cluster-drop nf-tap pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--nf-border-brand)] bg-[var(--nf-brand-primary)] px-3 py-2 text-[0.8125rem] font-bold text-[var(--nf-content-on-brand)] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none"
           >
             <span className="nf-map-pin-breathe inline-block">{group.items.length}</span>
             <span className="sr-only"> places grouped here, open them</span>
@@ -585,7 +585,7 @@ export function MapCanvas({
                   "--pin-i": i,
                 } as React.CSSProperties
               }
-              className={`nf-numeric nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-pill)] px-2.5 py-1.5 text-[0.75rem] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-brand-primary)] active:scale-95 motion-reduce:transition-none ${
+              className={`nf-numeric nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-pill)] px-2.5 py-1.5 text-[0.75rem] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
                 chosen
                   ? "scale-110 border border-[var(--nf-brand-primary)] bg-[var(--nf-brand-primary)] text-[var(--nf-content-on-brand)]"
                   : "border border-[var(--nf-border-default)] bg-[var(--nf-surface-elevated)] text-[var(--nf-content-primary)] hover:border-[var(--nf-brand-primary)]"
@@ -632,10 +632,12 @@ export function MapCanvas({
             data-testid="map-count"
             role="status"
             aria-live="polite"
-            className="nf-chip pointer-events-auto min-w-0 max-w-[54%] shrink whitespace-nowrap text-[0.75rem]"
+            className="nf-chip pointer-events-auto min-w-0 max-w-[62%] shrink text-[0.75rem]"
           >
             <UiIcon name="map" size={12} className="shrink-0 opacity-70" />
-            <span className="truncate">
+            {/* "23 places on this map" is a sentence, and it was being clipped
+                to "23 places on this ma" by two pixels. It wraps now. */}
+            <span>
               {countLabel}
               {hiddenLabel}
             </span>
@@ -803,7 +805,7 @@ export function MapCanvas({
                       choose(listing);
                       setListOpen(false);
                     }}
-                    className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-[var(--nf-surface-raised)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--nf-brand-primary)]"
+                    className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-[var(--nf-surface-raised)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)]"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import type { Dictionary } from "@naijafinds/i18n";
 import type { AgentProfile } from "@/lib/agent/types";
 import { Logo } from "@/design-system/brand/Logo";
@@ -34,27 +35,13 @@ export function AgentMobileNav({
   unreadMessages?: number;
 }) {
   const [open, setOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
   const close = useCallback(() => setOpen(false), []);
 
-  // Escape closes the drawer, matching every other dismissible surface.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, close]);
-
-  // Lock page scroll while the drawer is up so the content behind stays put.
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
+  /* Escape, the Tab trap, the counted scroll lock and the focus return. The
+     drawer had the first two and trapped nothing, so Tab walked out of an open
+     workspace menu into the page it was covering. */
+  useOverlay({ open, onClose: close, panelRef: drawerRef });
 
   return (
     <>
@@ -64,7 +51,7 @@ export function AgentMobileNav({
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={t.a11y.openMenu}
-        className="-ml-1 grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)] text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] lg:hidden"
+        className="nf-tap -ml-1 grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)] text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] lg:hidden"
       >
         {/* Tier one style hamburger glyph: 24 grid, stroked, currentColor. */}
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
@@ -73,6 +60,7 @@ export function AgentMobileNav({
       </button>
 
       <div
+        ref={drawerRef}
         role="dialog"
         aria-modal="true"
         aria-label={t.agent.mode.workspaceLabel}

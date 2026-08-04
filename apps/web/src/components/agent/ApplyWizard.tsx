@@ -203,7 +203,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
                 onClick={() => i <= step && setStep(i)}
                 disabled={i > step}
                 aria-current={current ? "step" : undefined}
-                className="flex flex-col items-center gap-1.5"
+                className="nf-tap flex flex-col items-center gap-1.5"
                 title={title}
               >
                 <span
@@ -340,7 +340,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
             {TEXT_FIELDS.filter((f) => values[f]).map((f) => (
               <div key={f} className="flex items-center justify-between gap-4 px-4 py-2.5 text-[0.8125rem]">
                 <dt className="text-[var(--nf-content-muted)]">{a.fields[f as keyof typeof a.fields] ?? f}</dt>
-                <dd className="truncate font-medium">{values[f]}</dd>
+                <dd className="font-medium [overflow-wrap:anywhere]">{values[f]}</dd>
               </div>
             ))}
           </dl>

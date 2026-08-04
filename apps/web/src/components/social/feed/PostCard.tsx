@@ -133,6 +133,13 @@ function Avatar({ author }: { author: PostAuthor | null }) {
  * Repost is not here. It is a real write with a real counter, and it lives in
  * the action sheet rather than in this row, because five controls plus a number
  * do not fit at 390px without every one of them becoming too small to hit.
+ *
+ * That sentence was true about this row and false about the sheet, which had no
+ * repost row at all. The card took an `onRepost` prop that nothing ever called,
+ * both surfaces held an optimistic patch for a counter no control could move,
+ * and the profile's Activity tab rendered "reposted this" entries the product
+ * could not produce. The sheet has the row now, so this card no longer needs a
+ * handler it never used.
  */
 function ActionRow({
   post,
@@ -202,7 +209,6 @@ function ActionRow({
 export function PostCard({
   post,
   onLike,
-  onRepost,
   onReply,
   onShare,
   onSave,
@@ -211,7 +217,6 @@ export function PostCard({
 }: {
   post: PostView;
   onLike: () => void;
-  onRepost: () => void;
   onReply: () => void;
   onShare: () => void;
   onSave: () => void;

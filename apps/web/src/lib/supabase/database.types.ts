@@ -2749,6 +2749,7 @@ export type Database = {
           trust_score: number
         }[]
       }
+      bot_may_run: { Args: { p_user: string }; Returns: string }
       claim_idempotency: {
         Args: {
           key: string

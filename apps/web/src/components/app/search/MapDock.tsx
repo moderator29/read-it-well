@@ -178,7 +178,7 @@ export function MapDock({
               )}
               {/* Only first party inventory may carry the verified badge. */}
               {listing.verified && !listing.partner && (
-                <span className="nf-badge nf-badge--success">
+                <span className="nf-badge nf-badge--verified">
                   <UiIcon name="verified" size={12} />
                   {copy.verified}
                 </span>

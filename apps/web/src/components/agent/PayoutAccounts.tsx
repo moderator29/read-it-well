@@ -277,7 +277,7 @@ function AccountRow({ account }: { account: PayoutAccount }) {
           </p>
         </div>
         {account.isDefault && (
-          <span className="nf-badge nf-badge--success shrink-0">Paid here</span>
+          <span className="nf-badge nf-badge--neutral shrink-0">Paid here</span>
         )}
       </div>
 

@@ -103,15 +103,99 @@ body {
 }
 
 /* Pointer clicks never draw a focus rectangle; keyboard focus keeps the ring. */
-:where(a, button, input, select, textarea, [tabindex]):focus:not(:focus-visible) {
+:where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex],
+    [role="button"],
+    [role="tab"],
+    [role="switch"],
+    [contenteditable]
+  ):focus:not(:focus-visible) {
   outline: none;
 }
 
-/* Every interactive element gets a visible, branded focus ring. */
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--nf-brand-primary);
-  outline-offset: 2px;
+/*
+ * Every interactive element gets a visible focus ring, in both themes.
+ *
+ * Two things were wrong here. The ring was drawn in --nf-brand-primary, a deep
+ * electric blue that sits at roughly 1.4:1 against the near-black canvas, so on
+ * the default theme it was a ring nobody could see. And the selector listed
+ * only the five native element names, which missed `summary` and every ARIA
+ * control the app builds out of a div.
+ *
+ * The colour now comes from --nf-focus-ring, which resolves to the member of
+ * the same blue family that clears 3:1 in both themes. The offset is what makes
+ * it work over any material: the ring floats clear of the control, so a
+ * brand-blue CTA does not swallow a brand-blue ring.
+ */
+:where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex],
+    [role="button"],
+    [role="tab"],
+    [role="switch"],
+    [contenteditable]
+  ):focus-visible {
+  outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+  outline-offset: var(--nf-focus-ring-offset);
   border-radius: var(--nf-radius-xs);
+}
+
+/*
+ * A bare input inside a styled shell.
+ *
+ * Three search bars (the landing hero, the search page and the place picker)
+ * suppress the input's own outline so the shell reads as one control, and then
+ * nothing drew a ring at all: tabbing into the platform's most-used field
+ * showed a keyboard user absolutely nothing. The shell carries it instead.
+ */
+.nf-focus-well:focus-within {
+  outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+  outline-offset: var(--nf-focus-ring-offset);
+}
+
+/*
+ * A 44 by 44 hit target on a control that is meant to look smaller.
+ *
+ * A runtime sweep of every visible control on twenty-one routes, in both
+ * themes, found twenty-eight distinct targets under 44px: the header wordmark
+ * at 38, the avatar at 38 square, the settings toggles at 28 tall, "View all"
+ * at 22, the map cluster pips at 34 by 38, the wizard step dots at 32 square.
+ *
+ * Some of those can simply grow. These cannot: a toggle track is 28px because
+ * that is what a toggle looks like, and a text link that says "View all" cannot
+ * become a button without changing what the row means. So the TARGET grows and
+ * the control does not. The pseudo-element is centred on the control and
+ * measures at least 44 in each axis; it is part of the control, so it needs no
+ * event handling of its own, and it moves not one visible pixel.
+ *
+ * It sits behind the control's own content (`z-index: -1` is wrong here because
+ * it would fall behind the page; auto stacking with no paint is enough since
+ * the element has no background).
+ */
+.nf-tap {
+  position: relative;
+}
+.nf-tap::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  /* Never let the expanded target paint or capture text selection. */
+  pointer-events: auto;
 }
 
 ::selection {
@@ -657,6 +741,10 @@ body {
     filter: drop-shadow(0 24px 48px rgb(18 21 26 / 0.18));
   }
   .nf-onboarding-skip {
+    /* 58 by 38 before this line. The first control a new visitor ever meets. */
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     padding: 0.5rem 0.9rem;
     border-radius: var(--nf-radius-pill);
     border: 1.5px solid rgb(18 21 26 / 0.14);
@@ -1319,7 +1407,7 @@ body {
   }
 
   .nf-gradient-text {
-    background: var(--nf-gradient-iridescent);
+    background: var(--nf-gradient-text);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -1523,12 +1611,15 @@ body {
     box-shadow: 0 0 10px rgb(12 57 239 / 0.45);
     cursor: grab;
   }
+  /* The thumb is filled with --nf-brand-primary, so a ring in the same colour
+     was a blue ring on a blue disc: focus on the price slider was invisible in
+     both themes. The ring takes the focus token like everything else. */
   .nf-range__input:focus-visible::-webkit-slider-thumb {
-    outline: 2px solid var(--nf-brand-primary);
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 3px;
   }
   .nf-range__input:focus-visible::-moz-range-thumb {
-    outline: 2px solid var(--nf-brand-primary);
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 3px;
   }
 
@@ -1868,6 +1959,37 @@ body {
   .nf-badge--warning {
     background: var(--nf-state-warning-surface);
     color: var(--nf-state-warning);
+  }
+
+  /*
+   * The four status badges. One meaning per colour, platform-wide.
+   *
+   * These are NOT synonyms for the tone classes above. A tone says how loud a
+   * chip is; a status says what the platform has decided about a thing. Read
+   * the reasoning in packages/design-tokens/src/tokens.css. If a badge is not
+   * one of these four states it must not use one of these four classes.
+   */
+  .nf-badge--pending {
+    background: var(--nf-status-pending-surface);
+    color: var(--nf-status-pending);
+  }
+  .nf-badge--approved {
+    background: var(--nf-status-approved-surface);
+    color: var(--nf-status-approved);
+  }
+  .nf-badge--rejected {
+    background: var(--nf-status-rejected-surface);
+    color: var(--nf-status-rejected);
+  }
+  .nf-badge--verified {
+    background: var(--nf-status-verified-surface);
+    color: var(--nf-status-verified);
+  }
+  /* A label that is not a status: a category, a tier, a device. Quiet, so the
+     four status colours keep their monopoly on meaning. */
+  .nf-badge--neutral {
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
   }
 
   /*
@@ -3172,12 +3294,6 @@ body {
 
   /* Gradient headlines drop the airy #5C7CFF stop, which washes out on
      paper, and run the deep electric ramp instead. */
-  :root[data-theme="light"] .nf-gradient-text {
-    background: linear-gradient(135deg, #0C39EF 0%, #0010D0 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
 
   /* The live ring calms to a neutral hairline carrying one slow blue glint,
      so hero frames stay premium without a neon border on paper. */

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { formatMoney, formatNumber, type Locale } from "@naijafinds/i18n";
@@ -260,6 +261,7 @@ export function FilterDrawer({
   const [draft, setDraft] = useState<Draft>(() => draftFrom(query));
   const openerRef = useRef<HTMLButtonElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -272,19 +274,12 @@ export function FilterDrawer({
     openerRef.current?.focus();
   }, []);
 
+  useOverlay({ open, onClose: close, panelRef, autoFocus: false });
+
   useEffect(() => {
     if (!open) return;
-    document.body.style.overflow = "hidden";
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
-    };
-    document.addEventListener("keydown", onKey);
     closeRef.current?.focus();
-    return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open, close]);
+  }, [open]);
 
   const activeCount = activeFilterCount(query);
 
@@ -376,6 +371,7 @@ export function FilterDrawer({
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       />
       <div
+        ref={panelRef}
         data-testid="filters-drawer"
         className="absolute inset-0 flex flex-col bg-[var(--nf-surface-primary)]"
       >

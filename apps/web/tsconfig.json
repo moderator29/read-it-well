@@ -45,7 +45,9 @@
     ".next-a1/types/**/*.ts",
     ".next-a1/dev/types/**/*.ts",
     ".next-a2dev/types/**/*.ts",
-    ".next-a2dev/dev/types/**/*.ts"
+    ".next-a2dev/dev/types/**/*.ts",
+    ".next-a2summon/types/**/*.ts",
+    ".next-a2summon/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

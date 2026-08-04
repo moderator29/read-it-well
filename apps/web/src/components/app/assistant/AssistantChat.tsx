@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import Image from "next/image";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -90,6 +91,7 @@ export function AssistantChat() {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const drawerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const historyRef = useRef<HTMLDivElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const streamSeq = useRef(0);
 
@@ -143,14 +145,9 @@ export function AssistantChat() {
     drawerTimer.current = setTimeout(() => setHistoryOpen(false), DRAWER_EXIT_MS);
   }, []);
 
-  useEffect(() => {
-    if (!historyOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeHistory();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [historyOpen, closeHistory]);
+  /* The history drawer had Escape only: the page scrolled behind it and Tab
+     walked straight out into the conversation it was covering. */
+  useOverlay({ open: historyOpen, onClose: closeHistory, panelRef: historyRef });
 
   /** Patch one message inside one thread, bumping the thread's activity time. */
   const patchMessage = useCallback(
@@ -612,6 +609,7 @@ export function AssistantChat() {
             }`}
           />
           <div
+            ref={historyRef}
             role="dialog"
             aria-modal="true"
             aria-label="Conversation history"

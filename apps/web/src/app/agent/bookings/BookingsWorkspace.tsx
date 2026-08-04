@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -47,9 +48,9 @@ function durationLabel(t: BookingsCopy, hours: number): string {
 function statusBadgeClass(status: BookingStatus): string {
   switch (status) {
     case "PENDING":
-      return "nf-badge nf-badge--warning";
+      return "nf-badge nf-badge--pending";
     case "CONFIRMED":
-      return "nf-badge nf-badge--success";
+      return "nf-badge nf-badge--approved";
     case "CANCELLED":
       return "nf-badge";
   }
@@ -76,18 +77,11 @@ function DecisionSheet({
   const [reason, setReason] = useState("");
   const copy = state.kind === "accept" ? t.accept : t.decline;
 
+  useOverlay({ open: true, onClose, panelRef: panel, autoFocus: false });
+
   useEffect(() => {
     panel.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
+  }, []);
 
   function run() {
     setError(null);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useCallback, useEffect, useId, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import Link from "next/link";
 import { reportSomething, type ReportReceipt } from "@/lib/reports/actions";
 import {
@@ -46,6 +47,7 @@ export function ReportSheet({
   const [category, setCategory] = useState<ReportCategory | null>(null);
   const openerRef = useRef<HTMLButtonElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
 
   const [state, formAction, pending] = useActionState<
     ActionResult<ReportReceipt> | null,
@@ -57,19 +59,12 @@ export function ReportSheet({
     openerRef.current?.focus();
   }, []);
 
+  useOverlay({ open, onClose: close, panelRef, autoFocus: false });
+
   useEffect(() => {
     if (!open) return;
-    document.body.style.overflow = "hidden";
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
-    };
-    document.addEventListener("keydown", onKey);
     closeRef.current?.focus();
-    return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open, close]);
+  }, [open]);
 
   return (
     <>
@@ -94,6 +89,7 @@ export function ReportSheet({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
           <div
+            ref={panelRef}
             data-testid="report-sheet"
             className="absolute inset-0 flex flex-col bg-[var(--nf-surface-primary)]"
           >

@@ -154,7 +154,9 @@ export function AgentIdentityCard({
           <UiIcon name="user" size={16} />
         </span>
         <span className="min-w-0 flex-1 leading-tight">
-          <span className="block truncate text-[0.875rem] font-semibold text-[var(--nf-content-secondary)]">
+          {/* "Not signed in as an agent" is a sentence and it was ending at "Not
+              signed in as an ag" in the rail. It wraps. */}
+          <span className="block text-[0.875rem] font-semibold leading-snug text-[var(--nf-content-secondary)]">
             {visitorLabel}
           </span>
           <Link

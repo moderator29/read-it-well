@@ -12,14 +12,21 @@ import { BOT_HANDLE } from "@/lib/social/bot-schema";
  * never found out. A conversation between people is mostly people addressing
  * each other, so this is not a nicety.
  *
- * **What it does and, precisely, what it does not.** It links. It does not
- * notify, and nothing on this screen claims it does. Every social notification
- * in this product is written by a database trigger beside `notify_reaction` and
- * `notify_repost`, and a second, application-side notifier would be one more
- * place for the rules to drift. The mention trigger does not exist yet;
- * `docs/SOCIAL_AUDIT.md` carries the exact shape it needs. Until it lands, a
- * mention is a link and only a link, which is a true thing rather than half of a
- * promise.
+ * **What it does, and where the other half lives.** This links, and it does not
+ * notify, because notifying is not its job. Every social notification in this
+ * product is written by a database trigger beside `notify_reaction` and
+ * `notify_repost`, and `private.fan_out_post` has scanned bodies for `@handle`
+ * since the notifications migration, capped at five per post, with the same for
+ * story comments in `private.notify_story_event`. A second, application side
+ * notifier would be one more place for the rules to drift.
+ *
+ * **Both ends now agree on what a mention is**, which they did not for a while:
+ * the triggers matched `@handle` with nothing in front of it, so an email
+ * address in a post notified a stranger and quoted the body at them, while this
+ * renderer already refused to link it. Both sides read
+ * `(^|[^A-Za-z0-9_@])@([a-z][a-z0-9_]{2,19})` now, and
+ * `apps/web/tests/social-mentions.spec.mjs` proves the client half against
+ * thirteen cases including that one.
  *
  * The parsing is deliberately dumb: handles, and nothing else. No markdown, no
  * autolinked bare URLs, no hashtags. A post body is somebody's sentence, not a

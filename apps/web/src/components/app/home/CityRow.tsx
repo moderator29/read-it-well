@@ -38,7 +38,7 @@ export function CityRow({
           aria-label={
             isOwn ? `Your city is ${shown}. Change it.` : `Choose the city you explore from.`
           }
-          className="mt-1 inline-flex max-w-full items-center gap-1.5 rounded-[var(--nf-radius-sm)] text-[var(--nf-content-primary)] transition-opacity hover:opacity-80"
+          className="nf-tap mt-1 inline-flex max-w-full items-center gap-1.5 rounded-[var(--nf-radius-sm)] text-[var(--nf-content-primary)] transition-opacity hover:opacity-80"
         >
           <UiIcon
             name="location"

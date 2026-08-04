@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
@@ -34,8 +35,8 @@ const EMPTY_COPY: Record<TabKey, string> = {
 };
 
 const STATUS_BADGE: Record<BookingView["status"], { label: string; className: string }> = {
-  PENDING: { label: "Awaiting confirmation", className: "nf-badge--warning" },
-  CONFIRMED: { label: "Confirmed", className: "nf-badge--success" },
+  PENDING: { label: "Awaiting confirmation", className: "nf-badge--pending" },
+  CONFIRMED: { label: "Confirmed", className: "nf-badge--approved" },
   CANCELLED: { label: "Cancelled", className: "" },
 };
 
@@ -67,17 +68,21 @@ function BookingCard({
         </Link>
 
         <div className="min-w-0 flex-1 leading-tight">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-              {b.title}
-            </h3>
-            <span className={`nf-badge shrink-0 ${badge.className}`}>{badge.label}</span>
-          </div>
+          {/* The badge sits ABOVE the title rather than beside it. Sharing the
+              row left the title 90px on a 390px phone, which rendered "Lekki
+              Palm Grove Shortlet" as "Lekki Pa". The name of the stay is the
+              whole point of the card. */}
+          <span className={`nf-badge ${badge.className}`}>{badge.label}</span>
+          <h3 className="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+            {b.title}
+          </h3>
 
+          {/* Wraps rather than clipping: "Marina Waterfront, Calabar" was one
+              pixel over its column and arrived as "Calaba". */}
           {(b.area || b.city) && (
-            <p className="mt-1 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
-              <UiIcon name="location" size={12} className="shrink-0" />
-              <span className="truncate">{[b.area, b.city].filter(Boolean).join(", ")}</span>
+            <p className="mt-1 flex items-start gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
+              <UiIcon name="location" size={12} className="mt-0.5 shrink-0" />
+              <span>{[b.area, b.city].filter(Boolean).join(", ")}</span>
             </p>
           )}
 
@@ -188,18 +193,11 @@ function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () =
     null,
   );
 
+  useOverlay({ open: true, onClose, panelRef, autoFocus: false });
+
   useEffect(() => {
     panelRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
+  }, []);
 
   useEffect(() => {
     if (state?.ok) router.refresh();

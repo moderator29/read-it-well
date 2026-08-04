@@ -120,8 +120,8 @@ export function ProfileIdentityCard({
             {since ? `Member since ${since}` : "Welcome to RentMe"}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <span className="nf-badge nf-badge--brand">Level 2 · Explorer</span>
-            <span className="nf-badge nf-badge--success">
+            <span className="nf-badge nf-badge--neutral">Level 2 · Explorer</span>
+            <span className="nf-badge nf-badge--verified">
               <UiIcon name="verified" size={12} className="shrink-0" />
               Verified
             </span>

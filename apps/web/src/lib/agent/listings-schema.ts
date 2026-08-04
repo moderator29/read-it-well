@@ -586,17 +586,24 @@ export const STATUS_LABEL: Record<ListingStatus, string> = {
   SUSPENDED: "Suspended",
 };
 
-/** Status colours reuse the existing state tokens. Never a new palette. */
+/**
+ * Status colours, named for the STATE rather than for the colour.
+ *
+ * The four locked meanings live in packages/design-tokens/src/tokens.css. This
+ * map only says which listing status is which state; it never picks a colour.
+ * Everything a host is still waiting on is "pending", whatever the wording of
+ * the step, and everything the platform has stopped is "rejected".
+ */
 export const STATUS_TONE: Record<
   ListingStatus,
-  "neutral" | "brand" | "warning" | "success" | "error"
+  "neutral" | "pending" | "approved" | "rejected"
 > = {
   DRAFT: "neutral",
-  SUBMITTED: "brand",
-  UNDER_REVIEW: "brand",
-  MORE_INFO_REQUIRED: "warning",
-  APPROVED: "success",
-  PUBLISHED: "success",
-  REJECTED: "error",
-  SUSPENDED: "warning",
+  SUBMITTED: "pending",
+  UNDER_REVIEW: "pending",
+  MORE_INFO_REQUIRED: "pending",
+  APPROVED: "approved",
+  PUBLISHED: "approved",
+  REJECTED: "rejected",
+  SUSPENDED: "rejected",
 };

@@ -107,14 +107,14 @@ export function ListingOptionsSheet({
             </p>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {listing.verified ? (
-                <span className="nf-badge nf-badge--success">
+                <span className="nf-badge nf-badge--verified">
                   <UiIcon name="verified" size={12} />
                   Verified listing
                 </span>
               ) : (
-                <span className="nf-badge nf-badge--warning">Verification pending</span>
+                <span className="nf-badge nf-badge--pending">Verification pending</span>
               )}
-              {listing.approved && <span className="nf-badge nf-badge--brand">Approved</span>}
+              {listing.approved && <span className="nf-badge nf-badge--approved">Approved</span>}
             </div>
           </div>
         </div>

@@ -45,7 +45,7 @@ export default function ContactPage() {
             <p className="nf-overline">Support email</p>
             <a
               href={`mailto:${SUPPORT_EMAIL}`}
-              className="mt-2 inline-block break-all text-[1.25rem] font-bold text-[var(--nf-electric-300)] hover:underline sm:text-[1.5rem]"
+              className="nf-tap mt-2 inline-block break-all text-[1.25rem] font-bold text-[var(--nf-electric-300)] hover:underline sm:text-[1.5rem]"
             >
               {SUPPORT_EMAIL}
             </a>

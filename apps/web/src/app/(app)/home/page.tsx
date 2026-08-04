@@ -146,7 +146,7 @@ export default async function HomePage() {
           <h2 className="nf-h2">{t.home.recommended}</h2>
           <Link
             href="/search"
-            className="shrink-0 text-[0.875rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+            className="nf-tap shrink-0 text-[0.875rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
           >
             {t.common.viewAll}
           </Link>

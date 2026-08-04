@@ -71,7 +71,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
         {/* Brand block and link columns */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-[1.6fr_repeat(4,1fr)] md:gap-x-10">
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" aria-label="RentMe home" className="inline-flex">
+            <Link href="/" aria-label="RentMe home" className="nf-tap inline-flex">
               <Logo size={40} wordSize={21} />
             </Link>
             <p className="mt-4 max-w-[28ch] text-[0.9375rem] font-medium text-[var(--nf-content-secondary)]">

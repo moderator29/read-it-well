@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { matchesSearch } from "@/lib/places/reference";
@@ -66,26 +67,20 @@ export function ChoicePicker({
   const [query, setQuery] = useState("");
   const [mounted, setMounted] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const closePicker = useCallback(() => setOpen(false), []);
 
   useEffect(() => setMounted(true), []);
 
-  useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = "hidden";
-    const timer = window.setTimeout(() => searchRef.current?.focus(), 60);
-    return () => {
-      document.body.style.overflow = "";
-      window.clearTimeout(timer);
-    };
-  }, [open]);
+  /* Escape, the Tab trap, the counted scroll lock and the focus return. The
+     picker had Escape and a scroll lock that cleared the flag outright, which
+     unlocks the page behind a picker opened from inside another sheet. */
+  useOverlay({ open, onClose: closePicker, panelRef, autoFocus: false });
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const timer = window.setTimeout(() => searchRef.current?.focus(), 60);
+    return () => window.clearTimeout(timer);
   }, [open]);
 
   const selected = useMemo(() => {
@@ -180,7 +175,10 @@ export function ChoicePicker({
           >
             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
-            <div className="nf-rise absolute inset-0 flex flex-col bg-[var(--nf-surface-primary)]">
+            <div
+              ref={panelRef}
+              className="nf-rise absolute inset-0 flex flex-col bg-[var(--nf-surface-primary)]"
+            >
               <div className="border-b border-[var(--nf-border-subtle)] px-5 pb-4 pt-5">
                 <div className="flex items-center gap-3">
                   <button
@@ -194,7 +192,7 @@ export function ChoicePicker({
                   <h2 className="nf-h3 min-w-0 flex-1 truncate">{label}</h2>
                 </div>
 
-                <div className="nf-field mt-4 flex items-center gap-2.5">
+                <div className="nf-field nf-focus-well mt-4 flex items-center gap-2.5">
                   <UiIcon
                     name="search"
                     size={16}
@@ -209,7 +207,7 @@ export function ChoicePicker({
                     autoComplete="off"
                     spellCheck={false}
                     aria-label={searchPlaceholder}
-                    className="w-full min-w-0 bg-transparent text-[0.9375rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
+                    className="min-h-11 w-full min-w-0 bg-transparent text-[0.9375rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
                   />
                 </div>
               </div>

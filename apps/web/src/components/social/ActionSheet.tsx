@@ -126,8 +126,35 @@ export function actionsForPost(options: {
    * again anyway.
    */
   editable: boolean;
+  /**
+   * Whether this reader has already reposted it, and how many people have.
+   *
+   * **Repost had no control anywhere in the product.** `toggleRepost` was a
+   * validated action with its own rate limit, `post_reposts` had RLS, a counter
+   * trigger and `notify_repost`, `PostCard` took an `onRepost` prop, both
+   * surfaces wrote an optimistic patch for it, and the Activity tab rendered
+   * "reposted this" entries that nothing could ever create. `PostCard`'s own
+   * comment said repost "lives in the action sheet rather than in this row",
+   * and this sheet had no such row. Six pieces of one feature and no way in.
+   */
+  reposted: boolean;
+  repostCount: number;
+  /** Whether there is a person behind this post at all. See the note above the
+      mute and block rows: the assistant's reply and the platform's own system
+      entry both have a null author, and neither can be muted or blocked. */
+  hasAuthor: boolean;
   who: string;
 }): SheetAction[] {
+  /* The public count, said in words. The card's row has five items already and
+     the owner's standing note is that nothing is jam-packed, so the number
+     lives here rather than becoming a sixth control at 390px. */
+  const soFar =
+    options.repostCount > 0
+      ? options.repostCount === 1
+        ? " One person has so far."
+        : ` ${options.repostCount} people have so far.`
+      : "";
+
   const rows: SheetAction[] = [
     {
       key: "save",
@@ -138,6 +165,19 @@ export function actionsForPost(options: {
       title: options.saved ? "Saved" : "Save",
       note: options.saved ? "Take it off your saved list" : "Keep it to come back to",
       glyph: "bookmark",
+    },
+    {
+      key: "repost",
+      title: options.reposted ? "Reposted" : "Repost",
+      /* Exactly where it goes and no further. A repost appears under Activity
+         on your own page, and the author is told. It does not lift the post
+         into anybody's feed, because nothing in this product injects a repost
+         into a feed, and promising that here would be the fourth control on
+         this surface found saying more than it does. */
+      note: options.reposted
+        ? `Take it off your Activity.${soFar}`
+        : `It shows under Activity on your page, and they are told.${soFar}`,
+      glyph: "repost",
     },
   ];
 
@@ -176,8 +216,21 @@ export function actionsForPost(options: {
     return rows;
   }
 
-  rows.push(
-    {
+  /*
+   * Mute and block act on a PERSON, and two kinds of post have nobody behind
+   * them: the assistant's reply, whose `author_id` is null by design, and the
+   * platform's own system entry. Both were offering "Mute this person" and
+   * "Block this person", and both handlers answer a missing author with "There
+   * is nobody to do that to on this post." That is a control that cannot work,
+   * which this sheet's own rules forbid, and it was the assistant's card it
+   * appeared on most.
+   *
+   * Report stays either way. Reporting is about the post, `reportPost` takes a
+   * post id, and a machine answer is exactly the thing somebody should be able
+   * to report.
+   */
+  if (options.hasAuthor) {
+    rows.push({
       /*
        * One control, named for what it does.
        *
@@ -193,22 +246,26 @@ export function actionsForPost(options: {
       title: `Mute ${options.who}`,
       note: "They stop showing up in your feeds, stories and threads",
       icon: "sliders",
-    },
-    {
-      key: "report",
-      title: "Report",
-      note: "Tell us what is wrong with this",
-      icon: "settings-gear",
-      danger: true,
-    },
-    {
+    });
+  }
+
+  rows.push({
+    key: "report",
+    title: "Report",
+    note: "Tell us what is wrong with this",
+    icon: "settings-gear",
+    danger: true,
+  });
+
+  if (options.hasAuthor) {
+    rows.push({
       key: "block",
       title: `Block ${options.who}`,
       note: "You will not see each other anywhere on RentMe",
       icon: "user",
       danger: true,
-    },
-  );
+    });
+  }
 
   return rows;
 }

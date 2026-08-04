@@ -436,7 +436,7 @@ export function ThreadView({
                   <img
                     src={m.imageUrl}
                     alt="Photo you attached"
-                    className="mb-2 max-h-64 w-full rounded-xl object-cover"
+                    className="mb-2 aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
                 {m.body && <p className="text-[0.9rem] leading-relaxed">{m.body}</p>}
@@ -471,7 +471,7 @@ export function ThreadView({
                   <img
                     src={m.imageUrl}
                     alt={`Photo from ${counterpartName}`}
-                    className="mb-2 max-h-64 w-full rounded-xl object-cover"
+                    className="mb-2 aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
                 {m.body && (
@@ -549,7 +549,7 @@ export function ThreadView({
             alt="Photo ready to send"
             className="h-14 w-14 rounded-xl object-cover"
           />
-          <p className="min-w-0 flex-1 truncate text-[0.8125rem] text-[var(--nf-content-muted)]">
+          <p className="min-w-0 flex-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
             Photo attached
           </p>
           <button

@@ -582,3 +582,124 @@ any surface shows a resident mark, weights a utility report by residency, or
 tells somebody they can become one**, because every defence in the utility record
 rests on residency being earned and today nothing earns it. Whoever builds the
 first of those three builds the earning path in the same slice.
+
+---
+
+## 11. Round four: the answer is on a screen, and three controls that were not
+
+`public.bot_may_run` landed, so the summon's gate has a door and the spec that
+could not exist was written. Writing it meant mounting a real thread for the
+first time in this repository's history, and three defects fell out of that one
+act, each of which had been invisible to every previous round because no spec
+had ever pressed a control on a card.
+
+### 11.1 The summon, proven on screen
+
+`apps/web/tests/social-summon.spec.mjs`, new. It carries its own read-only
+stand-in for PostgREST holding one conversation: a question naming `@rentme`,
+the assistant's reply with two cited flats, and a person replying underneath.
+Build the app against it and the answer renders for real, at 390px, in both
+themes, and was looked at in both.
+
+What it proves, and every one of these is an assertion rather than a sentence:
+the answer is one card marked **RentMe AI**, its words are on the screen, its
+citation line is under them, both cited flats render as rows linking to
+`/listing/<id>` with their prices formatted once through `formatMoney`, the card
+carries the same like, reply and overflow controls as anybody's post, its
+counters render, it links to no profile because the assistant is nobody, the
+person answering it is told they are answering **RentMe AI**, `@rentme` in the
+question is drawn as a mark and not as a link to a page the database would
+refuse, an ordinary handle beside it still links, and the whole page stays inside
+the blue family and inside 390px.
+
+It also proves the parts that need no browser, by importing `bot-schema.ts`
+directly through Node's type stripping: which bodies summon the assistant
+including the email address that must not, that a call is priced in integer kobo
+and rounded up and can never be credited by a negative token count, that every
+reason `private.bot_may_run` can return has a sentence, that no refusal quotes a
+figure at anybody, and that the citation line counts rather than claims.
+
+**Two probes on the live database, because a spec cannot reach it.** The gate is
+functional, not merely applied: `service_role` gets `off`, `authenticated` gets
+`off`, and `anon` gets `permission denied for function bot_may_run`. `off` is the
+correct answer today, because `public.bot_settings.enabled` is false, which is
+the shipped default and the reason a refusal had to be a reply.
+
+`bot-actions.ts` no longer carries the untyped escape hatch. `database.types.ts`
+was regenerated and the only difference from the committed file was
+`bot_may_run`, so the drift is closed at its fourth occurrence.
+
+### 11.2 Findings
+
+| # | Severity | Finding | Evidence | What changed |
+|---|----------|---------|----------|--------------|
+| N23 | **BLOCKER, shipped** | **Nothing in a post's action sheet could be tapped.** `.nf-actions__panel` had no `position`, and the sheet's close scrim behind it is an `absolute inset-0` button. A positioned element paints above a static one whatever the source order says, so the scrim covered every row: the sheet opened, showed the right rows, and a tap anywhere in it closed the sheet instead of choosing anything. Save, Share, Contact agent, Change what it says, Delete, Mute, Report and Block were all unreachable on every card in the layer | A Playwright click reporting `<button aria-label="Close"> intercepts pointer events`. Invisible in a screenshot, because the sheet looks perfect, and invisible to a spec that reads the rows rather than pressing one | `position: relative` on the panel, with the reason in the file. The spec now presses a row and follows where it goes |
+| N24 | SERIOUS | **Repost had no control anywhere in the product.** `toggleRepost` was a validated action with its own rate limit, `post_reposts` had RLS, a counter trigger and `notify_repost`, `PostCard` took an `onRepost` prop, the feed and the thread each held an optimistic patch for it, and the profile's Activity tab rendered "reposted this" entries nothing could ever create. `PostCard`'s own comment said repost "lives in the action sheet rather than in this row", and the sheet had no such row. Six pieces of one feature and no way in | `grep` for `onRepost`: passed into every card, called by nothing. `actionsForPost` never emitted a `repost` key and neither menu handler had a branch for one | A Repost row in the sheet, wired in both handlers, with the public count said in words rather than becoming a sixth control at 390px. The dead `onRepost` prop is gone from `PostCard`. **The write path was proven end to end on the live database and rolled back**: as a second real person through `private.probe_as` with `set local role authenticated`, the insert passed RLS, `posts.repost_count` moved to 1, and the author received "Somebody reposted you" with the body and a link to `/post/<id>`. As `anon`, the repost row is readable, which is what puts it on the reposter's Activity tab |
+| N25 | SERIOUS | **The assistant's card offered "Mute this person" and "Block this person".** A bot reply has a null author by design, and both handlers answer a missing author with "There is nobody to do that to on this post." The same was true of the platform's own system entries | Read while writing the sheet assertions, then asserted | `hasAuthor` on `actionsForPost`. Mute and block are absent where there is nobody behind the post; Report stays, because reporting is about the post and a machine answer is exactly the thing somebody should be able to report |
+| N26 | SERIOUS | **Three deliberate design decisions in `social-feed.css` were dead CSS.** The file is pulled in by `@import` near the top of globals.css and `.nf-card` is declared about 270 lines further down the same file, inside the same `@layer components`. Equal specificity inside one layer is decided by source order, so `.nf-card` won every collision: the feed's 22px corner rendered at the platform's 18px, the assistant's card rendered **identically to a person's post in both themes**, and the system card rendered as full glass rather than as the quietest thing in the feed | `getComputedStyle` on a real thread: the AI card's `backgroundImage` was byte for byte the ordinary card's, and `borderTopLeftRadius` was 18px against a `--nf-feed-radius` of 22px | Each colliding rule now names `.nf-card` in its own selector, with the reason in the file. The AI card also gained the paper twin it never had, written as a border-box ring over a white fill rather than through `--nf-brand-primary-soft`, which lands in the lavender range over a white card. The spec asserts both: that the assistant's card does not render as an ordinary post, and that the feed's own corner survives |
+| N27 | MINOR | **`.nf-social-card` has the same defect and is not this agent's file.** `--nf-social-radius` is 20px and every social card renders at the platform's 18px, for exactly the reason above | Measured live: `applied 18px, socialRadius 20px` | **Not changed.** `apps/web/src/app/social.css` belongs to another writer. One line closes it: `.nf-card.nf-social-card { border-radius: var(--nf-social-radius); }` |
+| N28 | MINOR | `PostBody`'s own documentation said the mention trigger did not exist yet and that a mention was "a link and only a link". Both triggers have scanned bodies since the notifications migration, and N17's character class was applied on 2026-08-04 | Live `pg_proc`: `private.fan_out_post` and `private.notify_story_event` both match `(^\|[^A-Za-z0-9_@])@([a-z][a-z0-9_]{2,19})` | Rewritten to say what is actually true, including that both ends now agree on what a mention is |
+
+### 11.3 M12, closed for the social layer and stated for the rest
+
+Four more `loading.tsx` files: `/u`, `/around/new`, `/stories/new` and
+`/stories/[id]`. Every social route that reads before it can render a word now
+has one. `/u/[handle]/edit` is deliberately without its own, because it inherits
+`/u/[handle]`'s and it is the same cover-and-avatar shape.
+
+Each was rendered and looked at, in both themes, at 390px, by holding the
+stand-in's answers back on purpose: the spec carries a `SOCIAL_STANDIN_DELAY_MS`
+knob for exactly that, because a loading state that is never on screen long
+enough to see is a loading state nobody has checked. One defect was caught that
+way and only that way: the story skeleton put its headline card at the top of the
+screen with the first line under the header, because `.nf-story__stage` spreads
+its children and the skeleton had only one. It has the author row's own space
+now.
+
+**The rest of the application is not covered and the six were never the right
+six.** Every route under `(app)` resolves the session from a cookie, so the build
+marks all sixty-four of them dynamic and Next holds the previous screen on every
+one. Fifteen admin pages and `/home` are declared `force-dynamic` outright and
+have none. That is Agent 1's file scope, not this one's, and it is stated here
+rather than quietly left: the rule that decides it is "does this route read
+before it can render a word", and the answer is yes almost everywhere.
+
+### 11.4 A harness property, written down so nobody chases it twice
+
+A Next response that reads anything from the spec's stand-in stays open for about
+seven seconds after its last byte. It is the harness and not the product:
+`/settings`, which makes no Supabase call when signed out, closes in 25ms against
+the same server, while `/search`, which has no `loading.tsx` at all, holds for the
+same seven seconds. A route with a `loading.tsx` therefore shows its skeleton for
+those seconds, which looks exactly like a page stuck on its own loading state and
+is not one. **An hour went into telling those apart, and the conclusion was
+wrong twice before it was right.** `social-people.spec.mjs` fails two checks
+against this build for that reason and passes against an ordinary one, which was
+verified rather than assumed.
+
+### 11.5 Still open, and whose
+
+1. **`.nf-card.nf-social-card`**, N27. One line in `social.css`, another
+   writer's file.
+2. **`public.bot_may_run` is granted to `authenticated`**, who can call it with
+   any user's id. It returns only `off`, `month`, `day`, `person` or `ok`, so it
+   leaks the platform's own spend state and nothing about a person. The audit's
+   original specification was service role only. Worth a `revoke`, and nothing in
+   the application would notice, because the action calls it through the admin
+   client.
+3. **`private.bot_may_run`'s day and month windows are an hour out.**
+   `created_at >= (now() at time zone 'Africa/Lagos')::date` compares a
+   `timestamptz` against a `date`, which Postgres resolves at the server's own
+   timezone rather than Lagos, so the daily ceiling resets at 01:00 Lagos time and
+   the monthly one on the first at 01:00. Harmless while the assistant is off,
+   and a one line fix whenever it is not.
+4. **One orphan `risk_alerts` row**, `entity_type = 'event'`, created at
+   16:41 on 2026-08-04 by an earlier probe, pointing at an event id that no longer
+   exists. `public.events` holds zero rows. It is not this round's row so it was
+   left rather than deleted, but a moderator opening the alerts queue would find
+   nothing behind it.
+5. **`repostedBy` on `PostView` is still hard-coded null.** A repost now
+   happens, is counted, notifies and appears on the reposter's Activity tab. It
+   does not appear in anybody's feed, because nothing in this product injects a
+   repost into a feed. The sheet's copy says exactly that and promises nothing
+   more, so this is a field waiting for a feature rather than a broken one.

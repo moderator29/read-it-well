@@ -175,14 +175,7 @@ export default async function AgentStatusPage() {
               {profile.reference}
             </p>
             <p className="mt-3">
-              <span
-                className="nf-badge"
-                style={
-                  approved
-                    ? { background: "var(--nf-state-success-surface)", color: "var(--nf-state-success)" }
-                    : { background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }
-                }
-              >
+              <span className={`nf-badge ${approved ? "nf-badge--approved" : "nf-badge--pending"}`}>
                 {statusLabel[profile.status]}
               </span>
             </p>
@@ -219,13 +212,13 @@ export default async function AgentStatusPage() {
                       style={
                         done
                           ? {
-                              background: "var(--nf-state-success-surface)",
-                              borderColor: "var(--nf-state-success)",
+                              background: "var(--nf-status-approved-surface)",
+                              borderColor: "var(--nf-status-approved)",
                             }
                           : current
                             ? {
-                                background: "var(--nf-state-warning-surface)",
-                                borderColor: "var(--nf-state-warning)",
+                                background: "var(--nf-status-pending-surface)",
+                                borderColor: "var(--nf-status-pending)",
                               }
                             : { borderColor: "var(--nf-border-subtle)" }
                       }

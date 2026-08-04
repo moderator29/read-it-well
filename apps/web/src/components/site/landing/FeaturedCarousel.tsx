@@ -92,7 +92,10 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
 
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-4">
-                      <h3 className="truncate text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+                      {/* Wraps. "Eko Pearl Waterfront Apartment" needed 231px
+                          into a 174px column, so every long name in the rail
+                          was arriving cut. */}
+                      <h3 className="min-w-0 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
                         {l.title}
                       </h3>
                       <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">

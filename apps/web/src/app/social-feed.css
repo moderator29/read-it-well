@@ -36,12 +36,36 @@
    * as somewhere people talk.
    * ------------------------------------------------------------------ */
   .nf-post {
-    border-radius: var(--nf-feed-radius);
     padding: var(--nf-feed-pad);
     position: relative;
     transition:
       transform var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  /*
+   * **Every rule here that names a property `.nf-card` also sets must carry
+   * `.nf-card` in its own selector, and this is not decoration.**
+   *
+   * This file is pulled in by `@import "./social-feed.css"` near the top of
+   * globals.css, and `.nf-card` is defined about 270 lines further down that
+   * same file, inside the same `@layer components`. Equal specificity inside
+   * one layer is decided by source order, so `.nf-card` won every collision and
+   * three deliberate design decisions in this file were dead CSS that
+   * typechecked, built and shipped:
+   *
+   *   - the feed's 22px corner, quietly rendering at the platform's 18px
+   *   - the AI card, rendering identically to a person's post
+   *   - the system card, rendering as full glass rather than as the quietest
+   *     thing in the feed
+   *
+   * Nothing said so. Reading either file alone shows a correct rule. It was
+   * caught by reading `getComputedStyle` on a real thread, which is the only
+   * place the cascade is observable. Naming `.nf-card` takes the selector to
+   * two classes and settles it wherever the imports end up sitting.
+   */
+  .nf-card.nf-post {
+    border-radius: var(--nf-feed-radius);
   }
 
   /*
@@ -59,7 +83,7 @@
    * obviously a machine answer without a coloured background shouting about
    * it. The mark inside the card does the naming; this only sets it apart.
    */
-  .nf-post--ai {
+  .nf-card.nf-post--ai {
     background:
       radial-gradient(135% 100% at 0% 0%, rgb(12 57 239 / 0.3) 0%, transparent 52%) padding-box,
       linear-gradient(160deg, rgb(4 12 68 / 0.5) 0%, rgb(0 3 30 / 0.55) 64%, rgb(0 2 20 / 0.62) 100%) padding-box,
@@ -72,12 +96,38 @@
   }
 
   /*
+   * Daylight, and it is a twin rather than the same rule dimmed.
+   *
+   * The dark card is a navy panel, and a navy panel on a paper page is the one
+   * thing that must not happen: the card would be the only dark block on the
+   * screen and the ink on it is near black, so the assistant's answer would be
+   * unreadable. On paper the fill stays white like every other card and the
+   * ring does all the work, at a strength no ordinary card uses.
+   *
+   * Written as a border-box gradient rather than `--nf-brand-primary-soft`,
+   * which is a colour-mix of electric blue and lands in the lavender range over
+   * a white card. That has broken the no-purple rule twice on this platform.
+   */
+  :root[data-theme="light"] .nf-card.nf-post--ai {
+    background:
+      radial-gradient(135% 100% at 0% 0%, rgb(12 57 239 / 0.07) 0%, transparent 58%) padding-box,
+      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      linear-gradient(135deg,
+        rgb(12 57 239 / 0.5) 0%,
+        rgb(12 57 239 / 0.24) 30%,
+        rgb(18 21 26 / 0.09) 72%)
+      border-box;
+    box-shadow: var(--nf-shadow-card);
+  }
+
+  /*
    * The platform speaking. Deliberately the quietest thing in the feed: no
    * glass, no bloom, no shadow, just a hairline. A system entry is there so a
    * new place is never an empty room, and the moment it competes with a person
    * for attention it has stopped doing its job.
    */
-  .nf-post--system {
+  .nf-card.nf-post--system,
+  :root[data-theme="light"] .nf-card.nf-post--system {
     background: transparent;
     border: 1px solid var(--nf-border-subtle);
     box-shadow: none;
@@ -1867,7 +1917,24 @@
       padding: 2rem 1.25rem;
     }
   }
+  /*
+   * **The panel has to be positioned, and without this nothing in this sheet
+   * could be tapped.**
+   *
+   * The close scrim behind it is an `absolute inset-0` button, and a positioned
+   * element paints above a static one whatever the source order says. So the
+   * scrim covered every row: the sheet opened, showed the right rows, and a tap
+   * anywhere in it closed the sheet instead of choosing anything. Save, Share,
+   * Contact agent, Change what it says, Delete, Mute, Report and Block were all
+   * unreachable on every card in the layer, which is also why nobody noticed the
+   * sheet had no Repost row to begin with.
+   *
+   * It looks completely correct in a screenshot, and it is invisible to a spec
+   * that reads the rows rather than pressing one. Caught by a Playwright click
+   * reporting that the Close button intercepted the pointer.
+   */
   .nf-actions__panel {
+    position: relative;
     inline-size: 100%;
     max-inline-size: 30rem;
     padding: 8px 8px calc(1rem + env(safe-area-inset-bottom));

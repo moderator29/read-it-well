@@ -351,7 +351,7 @@ export function SecurityCard() {
                 Current session, active now
               </span>
             </span>
-            <span className="nf-badge nf-badge--success shrink-0">This device</span>
+            <span className="nf-badge nf-badge--neutral shrink-0">This device</span>
           </div>
         </div>
 

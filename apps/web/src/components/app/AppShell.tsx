@@ -135,7 +135,7 @@ export function AppShell({
                 to be a chip reading "Lagos, Nigeria" for everybody, including
                 the person in Kano. Where somebody actually is now belongs to
                 home, where it is read from their own profile. */}
-            <Link href="/home" aria-label={t.a11y.logoHome} className="shrink-0 lg:hidden">
+            <Link href="/home" aria-label={t.a11y.logoHome} className="nf-tap shrink-0 lg:hidden">
               <Logo size={34} wordSize={17} />
             </Link>
 
@@ -180,7 +180,7 @@ export function AppShell({
             <Link
               href={signedIn ? "/profile" : "/sign-in"}
               aria-label={signedIn ? t.nav.profile : t.common.signIn}
-              className="shrink-0 rounded-full p-[1.5px]"
+              className="nf-tap shrink-0 rounded-full p-[1.5px]"
               style={{ background: "var(--nf-gradient-brand)" }}
             >
               <span className="block rounded-full bg-[var(--nf-surface-primary)] p-[1.5px]">

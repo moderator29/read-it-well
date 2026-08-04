@@ -65,25 +65,24 @@ import {
 } from "./bot-schema";
 
 /*
- * **`private.bot_may_run` cannot be reached over PostgREST, and that is not a
- * typing problem.** PostgREST exposes `public` only, so a function in `private`
- * has no endpoint at all: `consume_rate_limit` and `claim_idempotency` are
- * reachable because each has a thin `public` wrapper, and this one does not
- * have one yet. Caught by checking `pg_proc` rather than by trusting that a
- * generated type would have told me, which it could never have done.
+ * **The gate has a door now.** `private.bot_may_run` could not be reached over
+ * PostgREST at all, because PostgREST exposes `public` only and a function in
+ * `private` therefore has no endpoint: `consume_rate_limit` and
+ * `claim_idempotency` are reachable because each has a thin `public` wrapper,
+ * and this one had none. That was caught by reading `pg_proc` rather than by
+ * trusting a generated type, which could never have said so. `public.bot_may_run`
+ * now exists as a one line security definer delegate, `authenticated` and
+ * `service_role` may execute it and `anon` may not, and the call below is an
+ * ordinary typed `rpc` again with no escape hatch anywhere in this file.
  *
- * So the call is made through an untyped client, and **a failure is treated as
- * a refusal rather than as permission**. Everywhere else in this platform an
- * infrastructure failure fails OPEN, deliberately, because a rate limiter that
- * blocks a real person during a wobble is worse than one that misses a count.
- * This gate is different in kind: behind it is a paid API and a monthly ceiling,
- * so an unreachable gate is a closed gate. The reason is recorded distinctly, so
- * "the ceiling is reached" and "the gate could not be asked" never look the same
- * in `bot_invocations`.
+ * **A failure is still treated as a refusal rather than as permission.**
+ * Everywhere else in this platform an infrastructure failure fails OPEN,
+ * deliberately, because a rate limiter that blocks a real person during a wobble
+ * is worse than one that misses a count. This gate is different in kind: behind
+ * it is a paid API and a monthly ceiling, so an unreachable gate is a closed
+ * gate. The reason is recorded distinctly, so "the ceiling is reached" and "the
+ * gate could not be asked" never look the same in `bot_invocations`.
  */
-type Admin = ReturnType<typeof createAdminClient>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const untypedRpc = (client: Admin) => client as any;
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
@@ -321,9 +320,7 @@ export async function summonBot(input: { postId: string }): Promise<ActionResult
     }, "slow_mode", post.body ?? "");
   }
 
-  const gate = (await untypedRpc(admin).rpc("bot_may_run", {
-    p_user: session.user.id,
-  })) as { data: string | null; error: unknown };
+  const gate = await admin.rpc("bot_may_run", { p_user: session.user.id });
   const reason: string = gate.error
     ? "gate"
     : typeof gate.data === "string"

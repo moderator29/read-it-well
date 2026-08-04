@@ -83,7 +83,7 @@ function FlagCard({
     <li className="nf-card p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-2">
         <ui.StatusChip status={flag.status} />
-        <ui.StatusChip label={copy.reason[flag.reason]} tone="info" />
+        <ui.StatusChip label={copy.reason[flag.reason]} tone="neutral" />
         <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
           {ui.when(flag.createdAt)}
         </span>

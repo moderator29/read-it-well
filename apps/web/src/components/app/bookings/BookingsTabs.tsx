@@ -47,20 +47,21 @@ function BookingCard({ booking: b }: { booking: Booking }) {
         </Link>
 
         <div className="min-w-0 flex-1 leading-tight">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-              {b.title}
-            </h3>
-            <span
-              className={`nf-badge shrink-0 ${confirmed ? "nf-badge--success" : "nf-badge--brand"}`}
-            >
-              {confirmed ? "Confirmed" : "Completed"}
-            </span>
-          </div>
+          {/* Badge above, title on its own line: see MyBookings for why. */}
+          <span
+            className={`nf-badge ${confirmed ? "nf-badge--approved" : "nf-badge--neutral"}`}
+          >
+            {confirmed ? "Confirmed" : "Completed"}
+          </span>
+          <h3 className="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+            {b.title}
+          </h3>
 
-          <p className="mt-1 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
-            <UiIcon name="location" size={12} className="shrink-0" />
-            <span className="truncate">
+          {/* Wraps: "Marina Waterfront, Calabar" was one pixel over its column
+              and arrived as "Calaba". */}
+          <p className="mt-1 flex items-start gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
+            <UiIcon name="location" size={12} className="mt-0.5 shrink-0" />
+            <span>
               {b.area}, {b.city}
             </span>
           </p>
@@ -92,7 +93,7 @@ function BookingCard({ booking: b }: { booking: Booking }) {
             /bookings/[id]/review, and is offered there. */}
         <Link
           href={`/listing/${b.listingId}`}
-          className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+          className="nf-tap flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
         >
           View details
           <UiIcon name="arrow-right" size={16} />

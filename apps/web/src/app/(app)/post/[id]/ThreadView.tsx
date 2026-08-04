@@ -138,6 +138,13 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
       return;
     }
     if (requireSignIn()) return;
+    /* The one row this sheet offers that already had a handler and no way to
+       reach it. `onRepost` was passed into every card and nothing ever called
+       it. */
+    if (action === "repost") {
+      onRepost(post);
+      return;
+    }
     if (action === "report") {
       setReporting(post);
       return;
@@ -187,7 +194,6 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
     <PostCard
       post={post}
       onLike={() => onLike(post)}
-      onRepost={() => onRepost(post)}
       onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
       onShare={() => onMenuAction(post, "share")}
       onSave={() => onMenuAction(post, "save")}
@@ -274,7 +280,10 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
             isAgentAuthor: Boolean(sheetFor.author?.isAgent),
             hasListing: Boolean(sheetFor.listing),
             saved: sheetFor.saved,
+            reposted: sheetFor.reposted,
+            repostCount: sheetFor.repostCount,
             editable: sheetFor.editable,
+            hasAuthor: Boolean(sheetFor.author?.id),
             who: sheetFor.author?.handle ? `@${sheetFor.author.handle}` : "this person",
           })}
           onChoose={(key) => onMenuAction(sheetFor, key)}

@@ -203,7 +203,7 @@ export function ListingCard({
           <div className="absolute left-3 top-3 flex gap-1.5">
             {/* Only first-party inventory may carry the verified badge. */}
             {listing.verified && listing.source !== "partner" && (
-              <span className="nf-badge nf-badge--success">
+              <span className="nf-badge nf-badge--verified">
                 <UiIcon name="verified" size={12} />
                 {t.common.verified}
               </span>
@@ -218,9 +218,9 @@ export function ListingCard({
               </span>
             )}
             {listing.kind === "rental" && (
-              <span className="nf-badge nf-badge--brand">{t.nav.rent}</span>
+              <span className="nf-badge nf-badge--neutral">{t.nav.rent}</span>
             )}
-            {listing.instantBook && <span className="nf-badge nf-badge--warning">Instant</span>}
+            {listing.instantBook && <span className="nf-badge nf-badge--brand">Instant</span>}
           </div>
 
           <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@naijafinds/i18n";
@@ -146,19 +147,12 @@ function WalletDrawer({
     setMounted(true);
   }, []);
 
+  useOverlay({ open, onClose, panelRef, autoFocus: false });
+
   useEffect(() => {
     if (!open) return;
     panelRef.current?.focus();
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open || !mounted) return null;
 

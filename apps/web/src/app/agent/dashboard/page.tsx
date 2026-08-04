@@ -172,12 +172,9 @@ export default async function AgentDashboardPage() {
                     {formatMoney(b.amountMinor, locale, "NGN", { compact: true })}
                   </span>
                   <span
-                    className="nf-badge mt-0.5"
-                    style={
-                      b.status === "confirmed"
-                        ? { background: "var(--nf-state-success-surface)", color: "var(--nf-state-success)" }
-                        : { background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }
-                    }
+                    className={`nf-badge mt-0.5 ${
+                      b.status === "confirmed" ? "nf-badge--approved" : "nf-badge--pending"
+                    }`}
                   >
                     {b.status === "confirmed" ? a.confirmed : a.pending}
                   </span>

@@ -154,7 +154,7 @@ export default async function SearchPage({
           action="/search"
           method="get"
           role="search"
-          className="nf-card flex min-w-0 flex-1 items-center gap-2 p-1.5"
+          className="nf-card nf-focus-well flex min-w-0 flex-1 items-center gap-2 p-1.5"
         >
           <label htmlFor="search-q" className="sr-only">
             {t.home.searchPlaceholder}
@@ -168,7 +168,7 @@ export default async function SearchPage({
               autoComplete="off"
               defaultValue={query.q ?? ""}
               placeholder={t.home.searchPlaceholder}
-              className="w-full bg-transparent py-2 text-[0.9375rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
+              className="min-h-11 w-full bg-transparent py-2 text-[0.9375rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
             />
           </div>
           {/* Typing a new search must not silently drop the filters already set. */}
