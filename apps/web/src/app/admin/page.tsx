@@ -80,7 +80,7 @@ export default async function AdminOverviewPage() {
                   >
                     <span className="flex items-center justify-between gap-2">
                       <span className="flex items-center gap-2 text-[var(--nf-content-secondary)]">
-                        <UiIcon name={tile.icon} size={18} className="shrink-0" />
+                        <UiIcon name={tile.icon} size={20} className="shrink-0" />
                         <span className="text-[0.75rem] font-semibold uppercase tracking-wide">
                           {copy.label}
                         </span>
@@ -125,7 +125,7 @@ export default async function AdminOverviewPage() {
               className="mt-3 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
             >
               {o.how.openSwitches}
-              <UiIcon name="arrow-right" size={14} />
+              <UiIcon name="arrow-right" size={16} />
             </Link>
           </section>
         </>

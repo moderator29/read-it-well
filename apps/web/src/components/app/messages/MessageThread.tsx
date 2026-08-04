@@ -170,7 +170,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
         aria-label="Conversation"
       >
         <p className="flex items-center justify-center gap-1.5 py-1 text-center text-[0.7rem] text-[var(--nf-content-muted)]">
-          <UiIcon name="verified" size={12} strokeWidth={2.1} />
+          <UiIcon name="verified" size={12} />
           Chats are protected by RentMe fraud monitoring
         </p>
 
@@ -309,7 +309,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
           disabled={!draft.trim() && !pendingImage}
           className="nf-btn nf-btn--primary h-11 w-11 shrink-0 rounded-full p-0"
         >
-          <UiIcon name="arrow-right" size={18} className="-rotate-90" />
+          <UiIcon name="arrow-right" size={20} className="-rotate-90" />
         </button>
       </form>
     </div>

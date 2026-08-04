@@ -101,7 +101,7 @@ export default async function Page() {
           {preferred ? (
             <>
               <p className="mt-2.5 flex items-center gap-2 text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-                <UiIcon name="verified" size={15} className="shrink-0 text-[var(--nf-state-success)]" />
+                <UiIcon name="verified" size={16} className="shrink-0 text-[var(--nf-state-success)]" />
                 {preferred.bankName}
               </p>
               <p className="nf-numeric mt-1 text-[0.875rem] text-[var(--nf-content-secondary)]">

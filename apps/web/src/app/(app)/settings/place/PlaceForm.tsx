@@ -78,7 +78,7 @@ export function PlaceForm({
           data-testid="place-saved"
           className="nf-rise mt-5 flex items-center gap-2 text-[0.8125rem] text-[var(--nf-state-success)]"
         >
-          <UiIcon name="verified" size={15} className="shrink-0" />
+          <UiIcon name="verified" size={16} className="shrink-0" />
           Saved. Home now opens on this city.
         </p>
       )}

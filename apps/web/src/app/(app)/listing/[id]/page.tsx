@@ -353,7 +353,7 @@ export default async function ListingDetailPage({
             <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
               {listing.rating > 0 && (
                 <span className="nf-numeric flex items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
-                  <UiIcon name="star" size={15} className="text-[var(--nf-rating)]" />
+                  <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
                   {listing.rating.toFixed(1)}
                   {listing.reviewCount > 0 && (
                     <span className="font-normal text-[var(--nf-content-muted)]">
@@ -366,7 +366,7 @@ export default async function ListingDetailPage({
               {/* Only first-party inventory may carry the verified badge. */}
               {listing.verified && !isPartner && (
                 <span className="nf-badge nf-badge--success">
-                  <UiIcon name="verified" size={12} strokeWidth={2.1} />
+                  <UiIcon name="verified" size={12} />
                   {t.common.verified}
                 </span>
               )}
@@ -389,7 +389,7 @@ export default async function ListingDetailPage({
             </div>
 
             <p className="mt-2 flex items-center gap-1.5 text-[0.9375rem] text-[var(--nf-content-secondary)]">
-              <UiIcon name="location" size={15} className="shrink-0" />
+              <UiIcon name="location" size={16} className="shrink-0" />
               <span className="truncate">{where}</span>
             </p>
 

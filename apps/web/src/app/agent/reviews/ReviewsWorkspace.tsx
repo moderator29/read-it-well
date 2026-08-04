@@ -25,7 +25,7 @@ function Stars({ rating }: { rating: number }) {
         <UiIcon
           key={i}
           name="star"
-          size={14}
+          size={16}
           className={
             i < rating ? "text-[var(--nf-rating)]" : "text-[var(--nf-content-muted)] opacity-40"
           }
@@ -106,7 +106,7 @@ function ReviewCard({ review }: { review: AgentReview }) {
         href={`/listing/${review.listingId}`}
         className="mt-1.5 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]"
       >
-        <UiIcon name="location" size={13} className="shrink-0" />
+        <UiIcon name="location" size={12} className="shrink-0" />
         <span className="truncate">{review.listingTitle}</span>
       </Link>
 

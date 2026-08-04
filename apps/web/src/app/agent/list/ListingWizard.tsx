@@ -917,7 +917,7 @@ export function ListingWizard({
               onClick={() => fileInput.current?.click()}
               disabled={uploading}
             >
-              <UiIcon name="grid" size={18} />
+              <UiIcon name="grid" size={20} />
               {uploading
                 ? copy.photos.uploading
                 : photos.length > 0
@@ -1069,7 +1069,7 @@ export function ListingWizard({
                       )
                     }
                   >
-                    {active && <UiIcon name="verified" size={14} strokeWidth={2.2} />}
+                    {active && <UiIcon name="verified" size={16} />}
                     {amenityNames[amenity.code] ?? amenity.label}
                   </button>
                 );
@@ -1103,7 +1103,7 @@ export function ListingWizard({
                     }
                   >
                     {values.powerGrid === choice.value && (
-                      <UiIcon name="verified" size={14} strokeWidth={2.2} />
+                      <UiIcon name="verified" size={16} />
                     )}
                     {choice.label}
                   </button>
@@ -1134,7 +1134,7 @@ export function ListingWizard({
                     }}
                   >
                     {values.powerBackup === choice.value && (
-                      <UiIcon name="verified" size={14} strokeWidth={2.2} />
+                      <UiIcon name="verified" size={16} />
                     )}
                     {choice.label}
                   </button>
@@ -1175,7 +1175,7 @@ export function ListingWizard({
                     }
                   >
                     {values.waterSupply === choice.value && (
-                      <UiIcon name="verified" size={14} strokeWidth={2.2} />
+                      <UiIcon name="verified" size={16} />
                     )}
                     {choice.label}
                   </button>
@@ -1392,7 +1392,7 @@ export function ListingWizard({
                   </span>
                 )}
                 <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">
-                  <UiIcon name="location" size={13} className="shrink-0 text-white/70" />
+                  <UiIcon name="location" size={12} className="shrink-0 text-white/70" />
                   <span className="truncate">
                     {[values.area, values.city, stateName].filter(Boolean).join(", ") ||
                       copy.guestView.locationPlaceholder}
@@ -1482,7 +1482,7 @@ export function ListingWizard({
                         color: problem ? "var(--nf-state-warning)" : "var(--nf-state-success)",
                       }}
                     >
-                      <UiIcon name="verified" size={12} strokeWidth={2.4} />
+                      <UiIcon name="verified" size={12} />
                     </span>
                     <span className="min-w-0 leading-snug">
                       <span className="block text-[0.875rem] font-medium">{item.label}</span>

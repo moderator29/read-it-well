@@ -213,7 +213,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
                     color: done || current ? "#fff" : "var(--nf-content-muted)",
                   }}
                 >
-                  {done ? <UiIcon name="verified" size={16} strokeWidth={2.4} /> : i + 1}
+                  {done ? <UiIcon name="verified" size={16} /> : i + 1}
                 </span>
                 <span className="hidden max-w-[7rem] text-center text-[0.625rem] font-medium leading-tight text-[var(--nf-content-muted)] sm:block">
                   {title}
@@ -507,7 +507,7 @@ function UploadZone({
           </>
         ) : (
           <>
-            <UiIcon name="sparkle" size={26} className="text-[var(--nf-content-muted)]" />
+            <UiIcon name="sparkle" size={28} className="text-[var(--nf-content-muted)]" />
             <span className="px-3 text-[0.6875rem] text-[var(--nf-content-muted)]">{hint}</span>
           </>
         )}
@@ -519,7 +519,7 @@ function UploadZone({
         )}
         {done && !slot?.uploading && (
           <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-[var(--nf-radius-pill)] bg-[var(--nf-brand-primary)] px-2 py-0.5 text-[0.625rem] font-bold text-[var(--nf-content-on-brand)]">
-            <UiIcon name="verified" size={11} strokeWidth={2.6} />
+            <UiIcon name="verified" size={12} />
             Uploaded
           </span>
         )}

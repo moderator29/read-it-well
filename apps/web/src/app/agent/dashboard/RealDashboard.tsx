@@ -91,7 +91,7 @@ export function RealDashboard({
           </p>
         </div>
         <Link href="/agent/list" className="nf-btn nf-btn--primary">
-          <BrandIcon name="homes-sparkle" size={22} />
+          <BrandIcon name="homes-sparkle" size={24} />
           {a.addListing}
         </Link>
       </div>

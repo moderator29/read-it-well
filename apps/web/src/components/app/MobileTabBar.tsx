@@ -76,7 +76,7 @@ export function MobileTabBar({
                   style={{ background: "var(--nf-gradient-cta)" }}
                   className="flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full border border-[color-mix(in_oklab,var(--nf-brand-primary)_60%,transparent)] text-[var(--nf-content-on-brand)] shadow-[0_0_18px_rgb(12_57_239_/_0.5)] transition-transform active:translate-y-px"
                 >
-                  <UiIcon name={tab.icon} size={21} strokeWidth={2} />
+                  <UiIcon name={tab.icon} size={20} />
                   <span className="text-[0.5625rem] font-bold uppercase tracking-[0.06em]">
                     {tab.label}
                   </span>
@@ -106,9 +106,12 @@ export function MobileTabBar({
                 ].join(" ")}
               >
                 <span className="nf-tab-pop__pill" aria-hidden="true" />
-                {/* Stroked glyph; the active tab draws a heavier line. */}
+                {/* Stroked glyph at one weight. The active tab is carried by
+                    the filled pill behind it and by the ink going to white,
+                    never by a heavier line: the stroke is the same on every
+                    tab so the dock reads as one set. */}
                 <span className="nf-tab-pop__icon relative">
-                  <UiIcon name={tab.icon} size={22} strokeWidth={isActive ? 2 : 1.8} />
+                  <UiIcon name={tab.icon} size={24} />
                   {marked && (
                     <span
                       aria-hidden="true"

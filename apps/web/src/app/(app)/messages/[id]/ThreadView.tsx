@@ -417,7 +417,7 @@ export function ThreadView({
         aria-label="Conversation"
       >
         <p className="flex items-center justify-center gap-1.5 py-1 text-center text-[0.7rem] text-[var(--nf-content-muted)]">
-          <UiIcon name="verified" size={12} strokeWidth={2.1} />
+          <UiIcon name="verified" size={12} />
           Keep every chat and payment inside RentMe
         </p>
 
@@ -522,7 +522,7 @@ export function ThreadView({
           className="nf-card mb-2 flex items-start gap-3 border-t border-[var(--nf-border-subtle)] p-3.5"
         >
           <span className="mt-0.5 shrink-0 text-[var(--nf-electric-300)]" aria-hidden="true">
-            <UiIcon name="verified" size={16} strokeWidth={2.1} />
+            <UiIcon name="verified" size={16} />
           </span>
           <p className="min-w-0 flex-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
             {SAFETY_EDUCATION_COPY}
@@ -624,7 +624,7 @@ export function ThreadView({
           disabled={!draft.trim() && !pendingFile}
           className="nf-btn nf-btn--primary h-11 w-11 shrink-0 rounded-full p-0"
         >
-          <UiIcon name="arrow-right" size={18} className="-rotate-90" />
+          <UiIcon name="arrow-right" size={20} className="-rotate-90" />
         </button>
       </form>
     </div>

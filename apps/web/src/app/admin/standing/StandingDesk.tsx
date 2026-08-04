@@ -114,7 +114,7 @@ export function StandingDesk({
             role="status"
             className="mt-3 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-state-success)]"
           >
-            <UiIcon name="verified" size={14} className="shrink-0" />
+            <UiIcon name="verified" size={16} className="shrink-0" />
             Granted to @{state.data.handle}. Your name is on it.
           </p>
         )}

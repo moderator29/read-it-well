@@ -233,7 +233,7 @@ export function CalendarEditor({
 
       {!from && (
         <p className="mt-6 flex items-start gap-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-          <UiIcon name="calendar-booking" size={15} className="mt-0.5 shrink-0" />
+          <UiIcon name="calendar-booking" size={16} className="mt-0.5 shrink-0" />
           Tap a night to start, then tap another to finish the run. A night with
           a booking on it is locked, because a guest is already coming.
         </p>

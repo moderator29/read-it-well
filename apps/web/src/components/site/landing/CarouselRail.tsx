@@ -60,7 +60,7 @@ export function CarouselRail({
           aria-label={prevLabel}
           className="nf-icon-btn"
         >
-          <UiIcon name="arrow-left" size={18} />
+          <UiIcon name="arrow-left" size={20} />
         </button>
         <button
           type="button"
@@ -68,7 +68,7 @@ export function CarouselRail({
           aria-label={nextLabel}
           className="nf-icon-btn"
         >
-          <UiIcon name="arrow-right" size={18} />
+          <UiIcon name="arrow-right" size={20} />
         </button>
       </div>
     </div>

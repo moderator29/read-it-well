@@ -472,7 +472,7 @@ export function AssistantChat() {
                 <div className="flex flex-wrap justify-center gap-2">
                   {STARTERS.map((s) => (
                     <button key={s} type="button" onClick={() => send(s)} className="nf-chip">
-                      <UiIcon name="sparkle" size={14} />
+                      <UiIcon name="sparkle" size={16} />
                       {s}
                     </button>
                   ))}
@@ -534,7 +534,7 @@ export function AssistantChat() {
                         }}
                         className="nf-btn nf-btn--glass mt-3 gap-2 px-3.5 py-2 text-[0.8125rem]"
                       >
-                        <UiIcon name="arrow-right" size={14} />
+                        <UiIcon name="arrow-right" size={16} />
                         Retry
                       </button>
                     )}
@@ -594,7 +594,7 @@ export function AssistantChat() {
               disabled={!draft.trim()}
               className="nf-btn nf-btn--primary h-11 w-11 shrink-0 rounded-full p-0"
             >
-              <UiIcon name="arrow-right" size={18} className="-rotate-90" />
+              <UiIcon name="arrow-right" size={20} className="-rotate-90" />
             </button>
           </form>
         </section>
@@ -660,7 +660,7 @@ function ThreadListingCard({ listing }: { listing: AssistantListingItem }) {
         <span className="mt-0.5 flex items-center gap-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
           <span className="truncate">{listing.city}</span>
           <span className="nf-numeric flex shrink-0 items-center gap-0.5">
-            <UiIcon name="star" size={11} className="text-[var(--nf-rating)]" />
+            <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />
             {listing.rating.toFixed(1)}
           </span>
         </span>

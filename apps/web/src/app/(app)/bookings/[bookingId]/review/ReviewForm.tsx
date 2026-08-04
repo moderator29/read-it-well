@@ -95,7 +95,7 @@ export function ReviewForm({ subject }: { subject: ReviewSubject }) {
                 />
                 <UiIcon
                   name="star"
-                  size={26}
+                  size={28}
                   className={
                     active
                       ? "text-[var(--nf-rating)]"

@@ -189,7 +189,7 @@ export function ChoicePicker({
                     onClick={() => setOpen(false)}
                     className="nf-icon-btn h-10 w-10 shrink-0"
                   >
-                    <UiIcon name="arrow-left" size={18} />
+                    <UiIcon name="arrow-left" size={20} />
                   </button>
                   <h2 className="nf-h3 min-w-0 flex-1 truncate">{label}</h2>
                 </div>
@@ -197,7 +197,7 @@ export function ChoicePicker({
                 <div className="nf-field mt-4 flex items-center gap-2.5">
                   <UiIcon
                     name="search"
-                    size={17}
+                    size={16}
                     className="shrink-0 text-[var(--nf-content-muted)]"
                   />
                   <input
@@ -254,7 +254,7 @@ export function ChoicePicker({
                                 {active && (
                                   <UiIcon
                                     name="verified"
-                                    size={17}
+                                    size={16}
                                     className="shrink-0 text-[var(--nf-state-success)]"
                                   />
                                 )}

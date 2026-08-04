@@ -62,7 +62,7 @@ function SaveState({ saved, error }: { saved: boolean; error: string | null }) {
       data-testid="settings-saved"
       className="nf-rise mt-3 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-state-success)]"
     >
-      <UiIcon name="verified" size={14} className="shrink-0" />
+      <UiIcon name="verified" size={16} className="shrink-0" />
       Saved to your account
     </p>
   );

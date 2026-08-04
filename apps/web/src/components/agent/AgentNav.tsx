@@ -181,7 +181,7 @@ export function AgentIdentityCard({
         <span className="block truncate text-[0.875rem] font-semibold">{profile.displayName}</span>
         {profile.verified && (
           <span className="mt-0.5 inline-flex items-center gap-1 text-[0.75rem] text-[var(--nf-state-success)]">
-            <UiIcon name="verified" size={12} strokeWidth={2.2} />
+            <UiIcon name="verified" size={12} />
             {verifiedLabel}
           </span>
         )}

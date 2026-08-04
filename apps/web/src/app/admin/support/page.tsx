@@ -121,7 +121,7 @@ export default async function AdminSupportPage({
               href="/admin/support"
               className="ml-auto inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
             >
-              <UiIcon name="arrow-left" size={14} />
+              <UiIcon name="arrow-left" size={16} />
               {copy.allTickets}
             </Link>
           </div>

@@ -50,7 +50,7 @@ export function ReplyForm({
     return (
       <div className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-3.5">
         <p className="flex items-center gap-1.5 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
-          <UiIcon name="chat-bubble" size={13} className="shrink-0" />
+          <UiIcon name="chat-bubble" size={12} className="shrink-0" />
           Your reply
           {savedWhen && <span className="font-normal normal-case tracking-normal">{savedWhen}</span>}
         </p>

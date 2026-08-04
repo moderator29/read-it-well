@@ -43,7 +43,7 @@ export function BackButton({
       }}
       className={`nf-icon-btn ${className ?? ""}`}
     >
-      <UiIcon name="arrow-left" size={18} />
+      <UiIcon name="arrow-left" size={20} />
     </button>
   );
 }

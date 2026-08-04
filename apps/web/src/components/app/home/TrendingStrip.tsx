@@ -100,7 +100,7 @@ export function TrendingStrip({
 
                 <UiIcon
                   name="chevron-down"
-                  size={18}
+                  size={20}
                   className="shrink-0 -rotate-90 text-[var(--nf-content-muted)]"
                 />
               </Link>

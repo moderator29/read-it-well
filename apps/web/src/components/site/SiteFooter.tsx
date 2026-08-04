@@ -81,7 +81,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
               {t.landing.vision.title}
             </p>
             <p className="mt-5 inline-flex items-center gap-1.5 text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
-              <UiIcon name="verified" size={14} className="text-[var(--nf-brand-primary)]" />
+              <UiIcon name="verified" size={16} className="text-[var(--nf-brand-primary)]" />
               {t.landing.features.verified.title}
             </p>
           </div>

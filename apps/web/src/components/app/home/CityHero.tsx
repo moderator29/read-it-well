@@ -202,7 +202,7 @@ export function CityHero({
           {areas.map((area) => (
             <li key={area.id} className="shrink-0 snap-start">
               <Link href={`/around/${area.slug}`} className="nf-chip gap-1.5">
-                <UiIcon name="location" size={13} className="shrink-0" />
+                <UiIcon name="location" size={12} className="shrink-0" />
                 {area.name}
                 <span className="nf-numeric text-[var(--nf-content-muted)]">{area.postCount}</span>
               </Link>

@@ -403,7 +403,7 @@ export function SupportChat() {
                       onClick={() => void send(s)}
                       className="nf-chip max-w-full cursor-pointer text-left"
                     >
-                      <UiIcon name="sparkle" size={13} />
+                      <UiIcon name="sparkle" size={12} />
                       <span className="min-w-0 break-words">{s}</span>
                     </button>
                   ))}
@@ -427,7 +427,7 @@ export function SupportChat() {
                             href={action.href}
                             className="nf-chip max-w-full cursor-pointer text-[0.75rem] font-semibold"
                           >
-                            <UiIcon name={ACTION_GLYPH[action.kind]} size={13} />
+                            <UiIcon name={ACTION_GLYPH[action.kind]} size={12} />
                             <span className="min-w-0 break-words">{action.label}</span>
                           </Link>
                         ))}
@@ -513,7 +513,7 @@ export function SupportChat() {
                 onClick={askForHuman}
                 className="inline-flex min-w-0 cursor-pointer items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]"
               >
-                <UiIcon name="user" size={14} className="shrink-0" />
+                <UiIcon name="user" size={16} className="shrink-0" />
                 Talk to a person
               </button>
               {messages.length > 0 && (
@@ -580,7 +580,7 @@ function TicketReceipt({ reference }: { reference: string }) {
       className="mt-3 rounded-[var(--nf-radius-sm)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_8%,transparent)] p-3"
     >
       <p className="flex items-start gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)]">
-        <UiIcon name="verified" size={14} className="mt-0.5 shrink-0" />
+        <UiIcon name="verified" size={16} className="mt-0.5 shrink-0" />
         <span className="min-w-0 break-words">
           Ticket {reference} is filed. A person replies by email.
         </span>
@@ -653,7 +653,7 @@ function EscalationCard({
       className="mt-3 rounded-[var(--nf-radius-sm)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_8%,transparent)] p-3"
     >
       <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)]">
-        <UiIcon name="user" size={14} className="shrink-0" />
+        <UiIcon name="user" size={16} className="shrink-0" />
         Bring in a person
       </p>
 

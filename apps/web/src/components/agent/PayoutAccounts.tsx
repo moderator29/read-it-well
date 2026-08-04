@@ -190,7 +190,7 @@ export function PayoutAccounts({
               <p className="flex items-start gap-2.5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3">
                 <UiIcon
                   name="verified"
-                  size={18}
+                  size={20}
                   className="mt-0.5 shrink-0 text-[var(--nf-state-success)]"
                 />
                 <span className="leading-snug">

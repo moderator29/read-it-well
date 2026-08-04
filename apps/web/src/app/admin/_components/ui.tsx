@@ -141,7 +141,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
           className="mx-auto grid h-12 w-12 place-items-center rounded-full"
           style={TONE_STYLE.success}
         >
-          <UiIcon name="verified" size={22} strokeWidth={2} />
+          <UiIcon name="verified" size={24} />
         </span>
         <p className="mt-3 text-[1rem] font-semibold text-[var(--nf-content-primary)]">{title}</p>
         <p className="mx-auto mt-1.5 max-w-[44ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -162,7 +162,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
           className="mx-auto grid h-12 w-12 place-items-center rounded-full"
           style={TONE_STYLE.warning}
         >
-          <UiIcon name="bell" size={22} strokeWidth={2} />
+          <UiIcon name="bell" size={24} />
         </span>
         <p className="mt-3 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
           {c.unavailableTitle}
@@ -212,7 +212,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
           className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full"
           style={pass ? TONE_STYLE.success : TONE_STYLE.warning}
         >
-          <UiIcon name={pass ? "verified" : "bell"} size={12} strokeWidth={2.4} />
+          <UiIcon name={pass ? "verified" : "bell"} size={12} />
         </span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className="block text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">

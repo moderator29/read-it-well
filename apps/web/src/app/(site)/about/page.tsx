@@ -151,7 +151,7 @@ export default function AboutPage() {
             <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
               <Link href="/agents" className="nf-btn nf-btn--primary nf-btn--lg">
                 Become an agent
-                <UiIcon name="arrow-right" size={18} />
+                <UiIcon name="arrow-right" size={20} />
               </Link>
               <Link href="/careers" className="nf-btn nf-btn--glass nf-btn--lg">
                 See careers

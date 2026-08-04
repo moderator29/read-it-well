@@ -388,7 +388,7 @@ export function FilterDrawer({
             aria-label="Close filters"
             className="nf-icon-btn h-11 w-11"
           >
-            <UiIcon name="arrow-left" size={18} />
+            <UiIcon name="arrow-left" size={20} />
           </button>
           <div className="min-w-0 flex-1">
             <p className="text-[0.9375rem] font-bold text-[var(--nf-content-primary)]">Filters</p>
@@ -416,7 +416,7 @@ export function FilterDrawer({
                 <span className="sr-only">{`Search in ${scopeLabel}`}</span>
                 <UiIcon
                   name="search"
-                  size={17}
+                  size={16}
                   className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--nf-content-muted)]"
                 />
                 <input
@@ -567,7 +567,7 @@ export function FilterDrawer({
                           onClick={() => toggleAmenity(code)}
                           className={`nf-chip min-h-11 ${on ? "nf-chip--active" : ""}`}
                         >
-                          {on && <UiIcon name="verified" size={13} strokeWidth={2.2} />}
+                          {on && <UiIcon name="verified" size={12} />}
                           {amenityLabel(code)}
                         </button>
                       </li>
@@ -646,7 +646,7 @@ export function FilterDrawer({
         onClick={() => setOpen(true)}
         className="nf-icon-btn nf-icon-btn--square relative h-[3.25rem] w-[3.25rem] shrink-0"
       >
-        <UiIcon name="sliders" size={18} />
+        <UiIcon name="sliders" size={20} />
         {activeCount > 0 && (
           <span
             data-testid="filters-count"

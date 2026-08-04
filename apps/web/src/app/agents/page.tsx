@@ -92,7 +92,7 @@ export default async function BecomeAgentPage() {
             <div className="mt-7 flex flex-wrap items-center justify-center gap-4">
               <Link href="/agents/apply" className="nf-btn nf-btn--primary nf-btn--lg">
                 {j.start}
-                <UiIcon name="arrow-right" size={18} />
+                <UiIcon name="arrow-right" size={20} />
               </Link>
               {/* No dictionary key exists for a status check yet, so plain
                   English until one lands. */}
@@ -212,7 +212,7 @@ export default async function BecomeAgentPage() {
               <div className="mt-6 flex justify-center">
                 <Link href="/agents/apply" className="nf-btn nf-btn--primary nf-btn--lg">
                   {j.start}
-                  <UiIcon name="arrow-right" size={18} />
+                  <UiIcon name="arrow-right" size={20} />
                 </Link>
               </div>
             </div>

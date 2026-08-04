@@ -239,7 +239,7 @@ export function ReservePanel({
 
         {instantBook && (
           <p className="flex items-center gap-1.5 text-[0.78rem] font-semibold text-[var(--nf-state-warning)]">
-            <UiIcon name="sparkle" size={13} />
+            <UiIcon name="sparkle" size={12} />
             Instant Book available
           </p>
         )}
@@ -519,7 +519,7 @@ export function ReservePanel({
       </form>
 
       <p className="mt-3.5 flex items-start gap-1.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
-        <UiIcon name="verified" size={14} className="mt-0.5 shrink-0 text-[var(--nf-state-success)]" />
+        <UiIcon name="verified" size={16} className="mt-0.5 shrink-0 text-[var(--nf-state-success)]" />
         Pay only after you have inspected the property
       </p>
     </div>

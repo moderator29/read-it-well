@@ -99,7 +99,7 @@ export function MobileMenu({
                       className="flex items-center justify-between py-4 text-[1rem] font-semibold text-[var(--nf-content-primary)] transition-colors hover:text-[var(--nf-electric-300)]"
                     >
                       {l.label}
-                      <UiIcon name="arrow-right" size={14} className="text-[var(--nf-content-muted)]" />
+                      <UiIcon name="arrow-right" size={16} className="text-[var(--nf-content-muted)]" />
                     </Link>
                   </li>
                 ))}
@@ -114,10 +114,10 @@ export function MobileMenu({
                   aria-label="Email RentMe"
                   className="nf-icon-btn h-11 w-11"
                 >
-                  <UiIcon name="chat-bubble" size={17} />
+                  <UiIcon name="chat-bubble" size={16} />
                 </a>
                 <Link href="/assistant" aria-label="RentMe AI" className="nf-icon-btn h-11 w-11">
-                  <UiIcon name="sparkle" size={17} />
+                  <UiIcon name="sparkle" size={16} />
                 </Link>
               </div>
 

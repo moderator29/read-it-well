@@ -54,7 +54,7 @@ export function AdminRail({
                     : "text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
                 ].join(" ")}
               >
-                <UiIcon name={item.icon} size={18} className="shrink-0" />
+                <UiIcon name={item.icon} size={20} className="shrink-0" />
                 <span className="flex-1 truncate">{labels[item.key].label}</span>
                 {count > 0 && (
                   <span className="nf-numeric inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--nf-brand-primary)] px-1.5 text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
@@ -97,7 +97,7 @@ export function AdminTabs({
                 aria-current={active ? "page" : undefined}
                 className={`nf-chip ${active ? "nf-chip--active" : ""} !py-1.5`}
               >
-                <UiIcon name={item.icon} size={15} className="shrink-0" />
+                <UiIcon name={item.icon} size={16} className="shrink-0" />
                 {labels[item.key].short}
                 {count > 0 && (
                   <span className="nf-numeric inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--nf-brand-primary)] px-1 text-[0.625rem] font-bold text-[var(--nf-content-on-brand)]">

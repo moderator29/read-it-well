@@ -184,7 +184,7 @@ export function ListingUtilities({
                 ) : (
                   <div data-testid="gate-withheld">
                     <p className="flex items-center gap-2 font-semibold text-[var(--nf-content-primary)]">
-                      <UiIcon name="verified" size={15} className="shrink-0" />
+                      <UiIcon name="verified" size={16} className="shrink-0" />
                       Gated, with the details released on confirmation
                     </p>
                     <p className="mt-1 text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">

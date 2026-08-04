@@ -179,7 +179,7 @@ export function MapDock({
               {/* Only first party inventory may carry the verified badge. */}
               {listing.verified && !listing.partner && (
                 <span className="nf-badge nf-badge--success">
-                  <UiIcon name="verified" size={11} strokeWidth={2.1} />
+                  <UiIcon name="verified" size={12} />
                   {copy.verified}
                 </span>
               )}
@@ -221,7 +221,6 @@ export function MapDock({
             <UiIcon
               name="heart"
               size={16}
-              strokeWidth={saved ? 2.4 : 1.8}
               className={saved ? "text-[var(--nf-brand-primary)]" : undefined}
             />
           </button>
@@ -232,7 +231,7 @@ export function MapDock({
             data-testid="map-dock-close"
             className="nf-icon-btn h-8 w-8"
           >
-            <UiIcon name="chevron-down" size={16} strokeWidth={2.1} />
+            <UiIcon name="chevron-down" size={16} />
           </button>
         </div>
 

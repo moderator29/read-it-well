@@ -160,7 +160,7 @@ export default async function SearchPage({
             {t.home.searchPlaceholder}
           </label>
           <div className="flex min-w-0 flex-1 items-center gap-3 px-2.5">
-            <UiIcon name="search" size={18} className="shrink-0 text-[var(--nf-content-muted)]" />
+            <UiIcon name="search" size={20} className="shrink-0 text-[var(--nf-content-muted)]" />
             <input
               id="search-q"
               name="q"
@@ -184,7 +184,7 @@ export default async function SearchPage({
             aria-label={t.common.search}
             className="nf-btn nf-btn--primary min-h-11 shrink-0 px-3 py-2 text-[0.875rem] sm:px-4"
           >
-            <UiIcon name="search" size={18} className="sm:hidden" />
+            <UiIcon name="search" size={20} className="sm:hidden" />
             <span className="hidden sm:inline">{t.common.search}</span>
           </button>
         </form>
@@ -216,7 +216,7 @@ export default async function SearchPage({
                       active ? "nf-chip--active" : ""
                     }`}
                   >
-                    <UiIcon name="location" size={13} className="shrink-0 opacity-70" />
+                    <UiIcon name="location" size={12} className="shrink-0 opacity-70" />
                     {city}
                   </Link>
                 </li>
@@ -243,7 +243,7 @@ export default async function SearchPage({
                     }`}
                   >
                     {active && (
-                      <UiIcon name="verified" size={13} strokeWidth={2.2} className="shrink-0" />
+                      <UiIcon name="verified" size={12} className="shrink-0" />
                     )}
                     {s.label}
                   </Link>

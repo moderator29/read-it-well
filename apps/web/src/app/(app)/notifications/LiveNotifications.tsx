@@ -170,7 +170,7 @@ export function LiveNotifications({
                         separates a follow from a booking without reading. */}
                     <span className="relative shrink-0" aria-hidden="true">
                       <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-electric-300)]">
-                        <UiIcon name={iconFor(n.kind)} size={18} />
+                        <UiIcon name={iconFor(n.kind)} size={20} />
                       </span>
                       <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-[var(--nf-surface-primary)] bg-[var(--nf-brand-primary)]" />
                     </span>

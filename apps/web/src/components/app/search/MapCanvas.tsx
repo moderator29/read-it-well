@@ -601,8 +601,7 @@ export function MapCanvas({
                 {pin.verified && !pin.partner && (
                   <UiIcon
                     name="verified"
-                    size={11}
-                    strokeWidth={2.3}
+                    size={12}
                     className={chosen ? undefined : "text-[var(--nf-brand-primary)]"}
                   />
                 )}
@@ -635,7 +634,7 @@ export function MapCanvas({
             aria-live="polite"
             className="nf-chip pointer-events-auto min-w-0 max-w-[54%] shrink whitespace-nowrap text-[0.75rem]"
           >
-            <UiIcon name="map" size={13} className="shrink-0 opacity-70" />
+            <UiIcon name="map" size={12} className="shrink-0 opacity-70" />
             <span className="truncate">
               {countLabel}
               {hiddenLabel}
@@ -649,7 +648,7 @@ export function MapCanvas({
               onClick={searchThisArea}
               className="nf-btn nf-btn--primary pointer-events-auto ml-auto h-8 shrink-0 whitespace-nowrap px-3 text-[0.75rem]"
             >
-              <UiIcon name="search" size={13} />
+              <UiIcon name="search" size={12} />
               Search this area
             </button>
           )}
@@ -660,7 +659,7 @@ export function MapCanvas({
               onClick={clearArea}
               className="nf-chip pointer-events-auto ml-auto h-8 shrink-0 whitespace-nowrap text-[0.75rem]"
             >
-              <UiIcon name="arrow-left" size={13} />
+              <UiIcon name="arrow-left" size={12} />
               All places
             </button>
           )}
@@ -747,7 +746,7 @@ export function MapCanvas({
             onClick={() => setListOpen((open) => !open)}
             className="nf-icon-btn pointer-events-auto h-10 w-10 bg-[var(--nf-surface-primary)]"
           >
-            <UiIcon name="grid" size={17} />
+            <UiIcon name="grid" size={16} />
           </button>
           <button
             type="button"
@@ -756,7 +755,7 @@ export function MapCanvas({
             onClick={fitAll}
             className="nf-icon-btn pointer-events-auto h-10 w-10 bg-[var(--nf-surface-primary)]"
           >
-            <UiIcon name="compass" size={17} />
+            <UiIcon name="compass" size={16} />
           </button>
           <button
             type="button"
@@ -768,8 +767,7 @@ export function MapCanvas({
           >
             <UiIcon
               name="location"
-              size={17}
-              strokeWidth={locate.phase === "located" ? 2.4 : 1.8}
+              size={16}
               className={
                 locate.phase === "located" ? "text-[var(--nf-brand-primary)]" : undefined
               }
@@ -793,7 +791,7 @@ export function MapCanvas({
                 onClick={() => setListOpen(false)}
                 className="nf-icon-btn h-7 w-7"
               >
-                <UiIcon name="chevron-down" size={15} strokeWidth={2.1} />
+                <UiIcon name="chevron-down" size={16} />
               </button>
             </div>
             <ul className="max-h-[14rem] overflow-y-auto">

@@ -108,7 +108,7 @@ export function ListingOptionsSheet({
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {listing.verified ? (
                 <span className="nf-badge nf-badge--success">
-                  <UiIcon name="verified" size={12} strokeWidth={2.1} />
+                  <UiIcon name="verified" size={12} />
                   Verified listing
                 </span>
               ) : (
@@ -132,7 +132,7 @@ export function ListingOptionsSheet({
 
         {inspected ? (
           <p className="nf-badge nf-badge--success mt-4 w-full justify-center py-2.5 text-[0.8125rem]">
-            <UiIcon name="verified" size={14} strokeWidth={2.1} />
+            <UiIcon name="verified" size={16} />
             Inspection confirmed on this device
           </p>
         ) : (

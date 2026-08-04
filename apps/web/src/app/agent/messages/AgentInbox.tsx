@@ -38,7 +38,7 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
             </p>
             {thread.listingTitle && (
               <p className="mt-1 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
-                <UiIcon name="location" size={13} className="shrink-0" />
+                <UiIcon name="location" size={12} className="shrink-0" />
                 <span className="truncate">{thread.listingTitle}</span>
               </p>
             )}
@@ -59,7 +59,7 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
 
         {thread.waitingOnYou && (
           <p className="mt-2.5 flex items-center gap-1.5 text-[0.75rem] font-semibold text-[var(--nf-state-warning)]">
-            <UiIcon name="bell" size={13} className="shrink-0" />
+            <UiIcon name="bell" size={12} className="shrink-0" />
             {waitLabel(thread.waitingHours)}
           </p>
         )}

@@ -264,7 +264,7 @@ function ListingRow({
             <img src={listing.coverUrl} alt="" className="h-full w-full object-cover" />
           ) : (
             <span className="grid h-full w-full place-items-center text-[var(--nf-content-muted)]">
-              <UiIcon name="grid" size={22} />
+              <UiIcon name="grid" size={24} />
             </span>
           )}
         </span>
@@ -279,7 +279,7 @@ function ListingRow({
 
           {(listing.area || listing.city) && (
             <p className="mt-1 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
-              <UiIcon name="location" size={13} className="shrink-0" />
+              <UiIcon name="location" size={12} className="shrink-0" />
               <span className="truncate">
                 {[listing.area, listing.city].filter(Boolean).join(", ")}
               </span>
@@ -318,7 +318,7 @@ function ListingRow({
             className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)]"
           >
             {t.workspace.actions.edit}
-            <UiIcon name="arrow-right" size={14} />
+            <UiIcon name="arrow-right" size={16} />
           </Link>
         )}
         {/* Closing nights only means anything once a listing is live, so the
@@ -327,7 +327,7 @@ function ListingRow({
           href={`/agent/listings/${listing.id}/calendar`}
           className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]"
         >
-          <UiIcon name="calendar-booking" size={14} />
+          <UiIcon name="calendar-booking" size={16} />
           Calendar
         </Link>
         {editable && (
@@ -380,7 +380,7 @@ export function ListingsWorkspace({
           className="mx-auto grid h-16 w-16 place-items-center rounded-[var(--nf-radius-lg)]"
           style={{ background: "var(--nf-surface-raised)", color: "var(--nf-electric-300)" }}
         >
-          <UiIcon name="house" size={30} />
+          <UiIcon name="house" size={32} />
         </span>
         <h2 className="nf-h3 mt-5">{t.workspace.emptyTitle}</h2>
         <p className="mx-auto mt-2 max-w-[38ch] text-[0.875rem] text-[var(--nf-content-secondary)]">

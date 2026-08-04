@@ -174,7 +174,7 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
               onClick={onClose}
               className="nf-icon-btn h-10 w-10"
             >
-              <UiIcon name="arrow-left" size={18} />
+              <UiIcon name="arrow-left" size={20} />
             </button>
           </div>
 

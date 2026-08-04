@@ -256,7 +256,7 @@ function BookingCard({
           <div className="min-w-0">
             <h3 className="truncate text-[0.9375rem] font-semibold">{booking.guestName}</h3>
             <p className="mt-0.5 flex items-center gap-1.5 truncate text-[0.8125rem] text-[var(--nf-content-secondary)]">
-              <UiIcon name="house" size={13} className="shrink-0" />
+              <UiIcon name="house" size={12} className="shrink-0" />
               <span className="truncate">{booking.listingTitle}</span>
             </p>
           </div>
@@ -266,7 +266,7 @@ function BookingCard({
         </div>
 
         <p className="mt-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
-          <UiIcon name="calendar-booking" size={14} className="shrink-0" />
+          <UiIcon name="calendar-booking" size={16} className="shrink-0" />
           {fill(t.card.dates, {
             from: formatDate(dateOnly(booking.checkIn), locale, { day: "numeric", month: "short" }),
             to: formatDate(dateOnly(booking.checkOut), locale, { day: "numeric", month: "short" }),
@@ -275,7 +275,7 @@ function BookingCard({
         </p>
 
         <p className="mt-1.5 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
-          <UiIcon name="user" size={14} className="shrink-0" />
+          <UiIcon name="user" size={16} className="shrink-0" />
           {guestsLabel}
           <span className="text-[var(--nf-content-muted)]">&middot; {compositionLabel}</span>
         </p>
@@ -288,7 +288,7 @@ function BookingCard({
             data-testid="host-booking-arriving"
             className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]"
           >
-            <UiIcon name="verified" size={14} className="shrink-0" />
+            <UiIcon name="verified" size={16} className="shrink-0" />
             {fill(t.card.arriving, { name: booking.arrivingName })}
             {booking.arrivingPhone && (
               <span className="nf-numeric text-[var(--nf-content-muted)]">

@@ -22,7 +22,7 @@ function Stars({ rating }: { rating: number }) {
         <UiIcon
           key={i}
           name="star"
-          size={13}
+          size={12}
           className={
             i < rating
               ? "text-[var(--nf-rating)]"
@@ -104,7 +104,7 @@ export function ListingReviews({
               {review.response && (
                 <div className="mt-2.5 border-l-2 border-[var(--nf-border-strong)] pl-3">
                   <p className="flex flex-wrap items-center gap-x-2 text-[0.75rem] font-semibold text-[var(--nf-content-primary)]">
-                    <UiIcon name="verified" size={13} className="shrink-0 text-[var(--nf-brand-primary)]" />
+                    <UiIcon name="verified" size={12} className="shrink-0 text-[var(--nf-brand-primary)]" />
                     Reply from the host
                     <span className="font-normal text-[var(--nf-content-muted)]">
                       {review.response.when}
@@ -120,7 +120,7 @@ export function ListingReviews({
         </ul>
       ) : (
         <p className="mt-4 flex items-start gap-2 border-t border-[var(--nf-border-subtle)] pt-4 text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
-          <UiIcon name="star" size={15} className="mt-0.5 shrink-0" />
+          <UiIcon name="star" size={16} className="mt-0.5 shrink-0" />
           Written reviews from verified stays will appear here once guests share
           them on RentMe.
         </p>

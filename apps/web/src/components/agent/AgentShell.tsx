@@ -65,7 +65,7 @@ export async function AgentShell({
             <div className="relative flex min-w-0 flex-1 items-center">
               <UiIcon
                 name="search"
-                size={18}
+                size={20}
                 className="pointer-events-none absolute left-3 hidden text-[var(--nf-content-muted)] sm:block"
               />
               <input

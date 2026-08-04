@@ -75,7 +75,7 @@ export default async function AgentDashboardPage() {
           <p className="mt-1 text-[var(--nf-content-secondary)]">{a.subtitle}</p>
         </div>
         <Link href="/agent/list" className="nf-btn nf-btn--primary">
-          <BrandIcon name="homes-sparkle" size={22} />
+          <BrandIcon name="homes-sparkle" size={24} />
           {a.addListing}
         </Link>
       </div>
@@ -161,7 +161,7 @@ export default async function AgentDashboardPage() {
                   className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)]"
                   style={{ background: "var(--nf-surface-raised)" }}
                 >
-                  <BrandIcon name="homes-sparkle" size={26} />
+                  <BrandIcon name="homes-sparkle" size={24} />
                 </span>
                 <span className="min-w-0 flex-1 leading-tight">
                   <span className="block truncate text-[0.8125rem] font-semibold">{b.title}</span>

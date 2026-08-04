@@ -56,7 +56,7 @@ function MatchLine({
   const [before = "", after = ""] = copy.matched.split("{fragment}");
   return (
     <p className="mt-3 flex flex-wrap items-center gap-2 text-[0.8125rem] text-[var(--nf-content-secondary)]">
-      <UiIcon name="search" size={14} className="shrink-0" />
+      <UiIcon name="search" size={16} className="shrink-0" />
       {fill(before, { role }).trim()}
       <Fragment text={matched} />
       {fill(after, { role }).trim()}

@@ -168,7 +168,7 @@ export default async function ReviewPage({
                     <UiIcon
                       key={i}
                       name="star"
-                      size={15}
+                      size={16}
                       className={
                         i < review.rating
                           ? "text-[var(--nf-rating)]"
@@ -215,7 +215,7 @@ export default async function ReviewPage({
           <h2 className="nf-h3">{read.subject.title}</h2>
           {read.subject.location.length > 0 && (
             <p className="mt-1 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-              <UiIcon name="location" size={13} className="shrink-0" />
+              <UiIcon name="location" size={12} className="shrink-0" />
               <span className="truncate">{read.subject.location}</span>
             </p>
           )}

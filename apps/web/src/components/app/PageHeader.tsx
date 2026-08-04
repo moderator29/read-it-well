@@ -61,7 +61,7 @@ export function PageHeader({
         onClick={back}
         className="nf-icon-btn relative h-9 w-9 before:absolute before:-inset-1 before:content-[''] sm:h-10 sm:w-10 sm:before:inset-0"
       >
-        <UiIcon name="arrow-left" size={17} />
+        <UiIcon name="arrow-left" size={16} />
       </button>
       {leading}
       <div className="min-w-0 flex-1">

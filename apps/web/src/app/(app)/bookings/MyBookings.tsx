@@ -76,18 +76,18 @@ function BookingCard({
 
           {(b.area || b.city) && (
             <p className="mt-1 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
-              <UiIcon name="location" size={13} className="shrink-0" />
+              <UiIcon name="location" size={12} className="shrink-0" />
               <span className="truncate">{[b.area, b.city].filter(Boolean).join(", ")}</span>
             </p>
           )}
 
           <p className="mt-2.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
-            <UiIcon name="calendar-booking" size={14} className="shrink-0" />
+            <UiIcon name="calendar-booking" size={16} className="shrink-0" />
             {b.dateRange}
           </p>
 
           <p className="mt-1.5 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
-            <UiIcon name="user" size={14} className="shrink-0" />
+            <UiIcon name="user" size={16} className="shrink-0" />
             {b.guests} {b.guests === 1 ? "guest" : "guests"} &middot; {b.nights}{" "}
             {b.nights === 1 ? "night" : "nights"}
           </p>
@@ -157,7 +157,7 @@ function BookingCard({
               href={`/bookings/${b.id}/review`}
               className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
-              <UiIcon name="star" size={14} className="text-[var(--nf-rating)]" />
+              <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
               Your review
             </Link>
           )}
@@ -166,7 +166,7 @@ function BookingCard({
             className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
           >
             View details
-            <UiIcon name="arrow-right" size={14} />
+            <UiIcon name="arrow-right" size={16} />
           </Link>
         </span>
       </div>

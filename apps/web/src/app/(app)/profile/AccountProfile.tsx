@@ -138,7 +138,7 @@ export function AccountProfile({
           role="status"
           className="nf-rise mt-4 flex items-center gap-2 text-[0.8125rem] text-[var(--nf-state-success)]"
         >
-          <UiIcon name="verified" size={15} className="shrink-0" />
+          <UiIcon name="verified" size={16} className="shrink-0" />
           Your profile is saved.
         </p>
       )}
@@ -215,7 +215,7 @@ export function AccountProfile({
             </span>
             <UiIcon
               name="chevron-down"
-              size={15}
+              size={16}
               className="shrink-0 -rotate-90 text-[var(--nf-content-muted)]"
             />
           </Link>
@@ -351,7 +351,7 @@ function AvatarPicker({
           aria-hidden="true"
           className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-elevated)]"
         >
-          <UiIcon name={busy ? "sparkle" : "user"} size={13} />
+          <UiIcon name={busy ? "sparkle" : "user"} size={12} />
         </span>
       </button>
 

@@ -151,7 +151,7 @@ export function AppShell({
               aria-label={t.nav.aiAssistant}
               className="nf-btn nf-btn--primary gap-2 px-3 py-2 max-sm:hidden sm:px-3.5"
             >
-              <UiIcon name="sparkle" size={18} />
+              <UiIcon name="sparkle" size={20} />
               <span className="hidden sm:inline">{t.nav.aiAssistant}</span>
             </Link>
 
@@ -167,7 +167,7 @@ export function AppShell({
               }
               className="nf-icon-btn relative h-10 w-10 shrink-0"
             >
-              <UiIcon name="bell" size={19} />
+              <UiIcon name="bell" size={20} />
               {unreadNotifications > 0 && (
                 <span
                   aria-hidden="true"

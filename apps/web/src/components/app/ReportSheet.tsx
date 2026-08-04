@@ -80,7 +80,7 @@ export function ReportSheet({
         data-testid="report-opener"
         className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"
       >
-        <UiIcon name="bell" size={14} className="shrink-0" />
+        <UiIcon name="bell" size={16} className="shrink-0" />
         Report this listing
       </button>
 
@@ -105,7 +105,7 @@ export function ReportSheet({
                 aria-label="Close report"
                 className="nf-icon-btn h-11 w-11"
               >
-                <UiIcon name="arrow-left" size={18} />
+                <UiIcon name="arrow-left" size={20} />
               </button>
               <div className="min-w-0 flex-1">
                 <p className="text-[0.9375rem] font-bold text-[var(--nf-content-primary)]">

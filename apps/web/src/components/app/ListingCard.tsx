@@ -204,7 +204,7 @@ export function ListingCard({
             {/* Only first-party inventory may carry the verified badge. */}
             {listing.verified && listing.source !== "partner" && (
               <span className="nf-badge nf-badge--success">
-                <UiIcon name="verified" size={12} strokeWidth={2.1} />
+                <UiIcon name="verified" size={12} />
                 {t.common.verified}
               </span>
             )}
@@ -224,7 +224,7 @@ export function ListingCard({
           </div>
 
           <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">
-            <UiIcon name="location" size={13} className="shrink-0 text-white/70" />
+            <UiIcon name="location" size={12} className="shrink-0 text-white/70" />
             <span className="truncate">{where}</span>
           </p>
         </div>
@@ -237,7 +237,7 @@ export function ListingCard({
             {/* A rating is shown when one exists. Never a 0.0 stand-in. */}
             {listing.rating > 0 && (
               <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">
-                <UiIcon name="star" size={14} className="text-[var(--nf-rating)]" />
+                <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
                 {listing.rating.toFixed(1)}
                 <span className="font-normal text-[var(--nf-content-muted)]">
                   ({listing.reviewCount})
@@ -249,20 +249,20 @@ export function ListingCard({
           <ul className="mt-2.5 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-[0.75rem] text-[var(--nf-content-secondary)]">
             {listing.bedrooms > 0 && (
               <li className="flex items-center gap-1.5">
-                <UiIcon name="bed" size={15} />
+                <UiIcon name="bed" size={16} />
                 <span className="nf-numeric">{listing.bedrooms}</span>
               </li>
             )}
             {listing.bathrooms > 0 && (
               <li className="flex items-center gap-1.5">
-                <UiIcon name="bath" size={15} />
+                <UiIcon name="bath" size={16} />
                 <span className="nf-numeric">{listing.bathrooms}</span>
               </li>
             )}
             {listing.amenities.slice(0, 2).map((a) =>
               AMENITY_ICON[a] ? (
                 <li key={a} className="flex items-center gap-1.5">
-                  <UiIcon name={AMENITY_ICON[a]!} size={15} />
+                  <UiIcon name={AMENITY_ICON[a]!} size={16} />
                 </li>
               ) : null,
             )}

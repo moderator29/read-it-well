@@ -42,7 +42,7 @@ export function CityRow({
         >
           <UiIcon
             name="location"
-            size={18}
+            size={20}
             className="shrink-0 text-[var(--nf-brand-secondary)]"
           />
           <span className="truncate text-[1.0625rem] font-bold">{shown}</span>
@@ -63,7 +63,7 @@ export function CityRow({
         className="grid h-13 w-13 shrink-0 place-items-center rounded-full border border-[color-mix(in_oklab,var(--nf-brand-primary)_55%,transparent)] text-[var(--nf-content-on-brand)] shadow-[0_0_18px_rgb(12_57_239_/_0.45)] transition-transform active:translate-y-px"
         style={{ background: "var(--nf-gradient-cta)" }}
       >
-        <UiIcon name="search" size={21} strokeWidth={2} />
+        <UiIcon name="search" size={20} />
       </Link>
     </div>
   );

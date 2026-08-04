@@ -39,7 +39,7 @@ export function ListingHostPanel({
         </div>
         {verified && (
           <span className="nf-badge nf-badge--success shrink-0">
-            <UiIcon name="verified" size={12} strokeWidth={2.1} />
+            <UiIcon name="verified" size={12} />
             {t.common.verified}
           </span>
         )}

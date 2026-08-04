@@ -34,7 +34,7 @@ export function ViewToggle({ query }: { query: DiscoveryQuery }) {
               active ? "nf-chip--active font-bold text-[var(--nf-content-primary)]" : ""
             }`}
           >
-            <UiIcon name={option.icon} size={15} className="shrink-0" />
+            <UiIcon name={option.icon} size={16} className="shrink-0" />
             {option.label}
           </Link>
         );

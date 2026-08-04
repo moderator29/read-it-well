@@ -91,7 +91,7 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
             {row.counterpartVerified && (
               <UiIcon
                 name="verified"
-                size={13}
+                size={12}
                 className="shrink-0 text-[var(--nf-state-success)]"
               />
             )}
@@ -229,7 +229,7 @@ export function Inbox({
             data-testid="inbox-compose"
             className="nf-icon-btn h-10 w-10"
           >
-            <UiIcon name="chat-bubble" size={18} />
+            <UiIcon name="chat-bubble" size={20} />
           </Link>
         }
       />
@@ -239,7 +239,7 @@ export function Inbox({
         <span className="sr-only">Search messages</span>
         <UiIcon
           name="search"
-          size={17}
+          size={16}
           className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--nf-content-muted)]"
         />
         <input

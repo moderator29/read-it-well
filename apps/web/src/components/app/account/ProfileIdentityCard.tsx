@@ -178,7 +178,7 @@ export function ProfileIdentityCard({
             />
           </div>
           <p className="flex items-center gap-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
-            <UiIcon name="verified" size={13} className="shrink-0" />
+            <UiIcon name="verified" size={12} className="shrink-0" />
             Stored on this device only, until you create an account.
           </p>
         </form>

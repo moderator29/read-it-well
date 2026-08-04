@@ -36,7 +36,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
     <section className="nf-shell py-10 sm:py-14">
       <Reveal className="mb-6 max-w-[52ch] sm:mb-8">
         <span className="nf-overline mb-3 inline-flex items-center gap-2">
-          <UiIcon name="sparkle" size={14} />
+          <UiIcon name="sparkle" size={16} />
           Hand picked
         </span>
         <h2 className="nf-h1 mt-3">
@@ -85,7 +85,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                       aria-hidden="true"
                     />
                     <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">
-                      <UiIcon name="location" size={13} className="shrink-0 text-white/70" />
+                      <UiIcon name="location" size={12} className="shrink-0 text-white/70" />
                       <span className="truncate">{l.city}</span>
                     </p>
                   </div>
@@ -96,7 +96,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                         {l.title}
                       </h3>
                       <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">
-                        <UiIcon name="star" size={14} className="text-[var(--nf-rating)]" />
+                        <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
                         {l.rating.toFixed(1)}
                       </span>
                     </div>
