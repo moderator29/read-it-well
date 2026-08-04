@@ -67,29 +67,52 @@ export function Amount({
   const parts = new Intl.NumberFormat(intlTag[locale], {
     style: "currency",
     currency,
-    minimumFractionDigits: showFraction ? 2 : 0,
-    maximumFractionDigits: showFraction ? 2 : 0,
-    notation: compact ? "compact" : "standard",
+    /*
+     * Compact notation carries its precision in the fraction: ₦1,500 compacts
+     * to "₦1.5K". Forcing maximumFractionDigits to 0 rounds that to "₦2K",
+     * which is a DIFFERENT NUMBER rather than a shortened one. Compact is
+     * therefore left on Intl's own default of one fractional digit.
+     */
+    ...(compact
+      ? { notation: "compact" as const }
+      : {
+          minimumFractionDigits: showFraction ? 2 : 0,
+          maximumFractionDigits: showFraction ? 2 : 0,
+        }),
   }).formatToParts(major);
 
   /*
-   * The split point is the decimal separator. Everything up to it - symbol,
+   * The split point is the decimal separator: everything before it - symbol,
    * any locale spacing, sign, integer digits and group separators - is the
-   * primary figure. The separator and the fraction are secondary.
+   * primary figure, and the separator plus the fraction are secondary.
+   *
+   * The magnitude suffix is the exception. In compact notation Intl emits it
+   * AFTER the fraction, so a naive slice put the "M" of "₦9.00M" into the muted
+   * tail and ₦9,000,000 read as ₦9. Anything following the fraction digits
+   * belongs to the figure, not to the tail.
    */
   const splitAt = parts.findIndex((p) => p.type === "decimal");
-  const primary = (splitAt === -1 ? parts : parts.slice(0, splitAt))
-    .map((p) => p.value)
-    .join("");
-  const fraction =
-    splitAt === -1 ? "" : parts.slice(splitAt).map((p) => p.value).join("");
+  const lastFraction = parts.map((p) => p.type).lastIndexOf("fraction");
+
+  const join = (from: number, to?: number) =>
+    parts
+      .slice(from, to)
+      .map((p) => p.value)
+      .join("");
+
+  // head · fraction · tail, rendered in that order so the magnitude suffix
+  // stays where the locale put it rather than being moved behind the kobo.
+  const head = splitAt === -1 ? join(0) : join(0, splitAt);
+  const fraction = splitAt === -1 ? "" : join(splitAt, lastFraction + 1);
+  const tail = splitAt === -1 || lastFraction === -1 ? "" : join(lastFraction + 1);
 
   const muted = secondaryClassName ?? "text-[0.62em] font-semibold opacity-60";
 
   return (
     <span className={["nf-numeric", className ?? ""].filter(Boolean).join(" ")}>
-      {primary}
+      {head}
       {fraction ? <span className={muted}>{fraction}</span> : null}
+      {tail}
       {suffix ? <span className={muted}> {suffix}</span> : null}
     </span>
   );

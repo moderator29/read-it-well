@@ -5,10 +5,11 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 /**
  * Mobile tab bar.
  *
- * Five destinations: Home, Explore, Bookings, Favourites, Profile. This is
- * deliberately NOT the twelve item desktop rail; a phone tab bar tops out at
- * five before targets get too small, so the rail's remaining destinations
- * live under Profile rather than being crammed in here.
+ * Five destinations: Home, Explore, Bookings and Favourites in the capsule,
+ * with Profile standing alone beside it. This is deliberately NOT the twelve
+ * item desktop rail; a phone tab bar tops out at five before targets get too
+ * small, so the rail's remaining destinations live under Profile rather than
+ * being crammed in here.
  *
  * A floating dock, lifted clear of every edge rather than an edge-to-edge bar:
  * same shape language as the desktop dock, just wide enough to carry primary
