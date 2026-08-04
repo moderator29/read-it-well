@@ -1,8 +1,9 @@
 "use client";
 
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { type Locale } from "@naijafinds/i18n";
 import { useStayDatesOptional } from "./StayDates";
 import { ButtonLink } from "@/components/ui/Button";
+import { Amount } from "@/components/ui/Amount";
 
 /**
  * The sticky action bar.
@@ -13,7 +14,7 @@ import { ButtonLink } from "@/components/ui/Button";
  *
  * What it quotes is never a guess: once real dates are picked it shows the very
  * total the reserve panel is about to submit, in integer kobo through
- * `formatMoney`, beside the nights it covers. Until then it shows the listing's
+ * `<Amount>`, beside the nights it covers. Until then it shows the listing's
  * own rate and what that rate buys.
  *
  * The action is decided by the market, not by styling. A stay opens the date
@@ -75,11 +76,15 @@ export function ListingStickyBar({
         <p className="flex min-w-0 flex-col">
           {amount > 0 ? (
             <>
-              <span
-                data-testid="sticky-total"
-                className="nf-numeric truncate text-[1.0625rem] font-bold tracking-tight text-[var(--nf-content-primary)]"
-              >
-                {formatMoney(amount, locale, currency)}
+              {/* No `truncate` on a price: a clipped figure states a wrong
+                  number. The bar's own layout gives this column the room. */}
+              <span data-testid="sticky-total" className="min-w-0">
+                <Amount
+                  minorUnits={amount}
+                  locale={locale}
+                  currency={currency}
+                  className="text-[1.0625rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+                />
               </span>
               <span className="truncate text-[0.75rem] text-[var(--nf-content-muted)]">
                 {caption}

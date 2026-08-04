@@ -5,7 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { getMessageRepository } from "@/lib/messages/repository";
 import type { Listing, ListingKind } from "@/lib/listings/types";
-import { formatMoney, formatNumber } from "@naijafinds/i18n";
+import { formatNumber } from "@naijafinds/i18n";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getSavedListings } from "@/lib/saved/queries";
 import { lagosToday } from "@/lib/bookings/schema";
@@ -24,6 +24,7 @@ import { StayDatesProvider } from "@/components/app/listing/StayDates";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { Amount } from "@/components/ui/Amount";
 
 /**
  * Listing detail.
@@ -324,12 +325,19 @@ export default async function ListingDetailPage({
               <span className="truncate">{where}</span>
             </p>
 
+            {/* The price is what this screen sells. It is the hero figure:
+                display size, tight tracking, and the qualifier carried in the
+                muted tone so the pair reads as one composed number. */}
             {listing.priceMinor > 0 && (
-              <p className="mt-3.5 flex items-baseline gap-1.5">
-                <span className="nf-numeric text-[1.5rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-                  {formatMoney(listing.priceMinor, locale, listing.currency)}
-                </span>
-                <span className="text-[0.875rem] text-[var(--nf-content-muted)]">{perLabel}</span>
+              <p className="mt-3.5">
+                <Amount
+                  minorUnits={listing.priceMinor}
+                  locale={locale}
+                  currency={listing.currency}
+                  suffix={perLabel}
+                  className="text-[2.125rem] font-extrabold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)] sm:text-[2.5rem]"
+                  secondaryClassName="text-[0.4em] font-semibold opacity-60"
+                />
               </p>
             )}
 
@@ -438,13 +446,15 @@ function PartnerPanel({
   return (
     <div className="nf-card p-5">
       {listing.priceMinor > 0 && (
-        <p className="flex items-baseline gap-1.5">
-          <span className="nf-numeric text-[1.5rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-            {formatMoney(listing.priceMinor, locale, listing.currency)}
-          </span>
-          <span className="text-[0.8125rem] text-[var(--nf-content-muted)]">
-            {t.common.perNight}
-          </span>
+        <p>
+          <Amount
+            minorUnits={listing.priceMinor}
+            locale={locale}
+            currency={listing.currency}
+            suffix={t.common.perNight}
+            className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+            secondaryClassName="text-[0.54em] font-semibold opacity-60"
+          />
         </p>
       )}
 
