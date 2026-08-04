@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getDictionary, type Locale } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
+import { getShellIdentity } from "@/lib/app/shell-queries";
 import { getListingRepository } from "@/lib/listings/repository";
 import { ListingCard } from "@/components/app/ListingCard";
 import { AiAssistantBanner } from "@/components/app/AiAssistantBanner";
@@ -28,11 +29,16 @@ export const metadata: Metadata = {
  * sweep wide; from `sm` up they settle into grids. Sections below the fold
  * enter with `Reveal` so the page assembles as you scroll.
  */
-const PLACEHOLDER_NAME = "there";
+/* Was a hardcoded "there" with a comment saying there was no session layer
+   yet. There has been one since auth shipped, so the greeting now uses the
+   caller's own first name and falls back to a neutral label only when nobody
+   is signed in. Shared with the shell through a per-request cache, so this
+   costs no extra query. */
 
 export default async function HomePage() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
+  const { userName } = await getShellIdentity();
 
   const repo = getListingRepository();
   const listings = await repo.recommended(6);
@@ -58,7 +64,7 @@ export default async function HomePage() {
       {/* ---------------------------------------------------- greeting */}
       <section className="nf-rise">
         <h1 className="nf-h1 max-sm:text-[1.375rem]">
-          {t.home.greeting}, <span className="nf-gradient-text">{PLACEHOLDER_NAME}</span>
+          {t.home.greeting}, <span className="nf-gradient-text">{userName}</span>
         </h1>
         <p className="mt-1.5 text-[0.9375rem] text-[var(--nf-content-secondary)] sm:mt-2 sm:text-base">
           {t.home.prompt}
