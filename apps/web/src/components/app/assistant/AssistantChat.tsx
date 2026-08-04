@@ -26,6 +26,7 @@ import {
   type Message,
   type Thread,
 } from "./threads";
+import { Button } from "@/components/ui/Button";
 
 /**
  * RentMe AI chat surface.
@@ -527,16 +528,17 @@ export function AssistantChat() {
                       </ul>
                     )}
                     {m.error && activeId && (
-                      <button
-                        type="button"
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        leadingIcon="arrow-right"
+                        className="mt-3"
                         onClick={() => {
                           if (activeId) retry(activeId, m.id);
                         }}
-                        className="nf-btn nf-btn--glass mt-3 gap-2 px-3.5 py-2 text-[0.8125rem]"
                       >
-                        <UiIcon name="arrow-right" size={14} />
                         Retry
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -588,14 +590,16 @@ export function AssistantChat() {
               enterKeyHint="send"
               className="nf-field min-w-0 flex-1"
             />
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              iconOnly
               aria-label="Send message"
               disabled={!draft.trim()}
-              className="nf-btn nf-btn--primary h-11 w-11 shrink-0 rounded-full p-0"
+              className="shrink-0 rounded-full"
             >
               <UiIcon name="arrow-right" size={18} className="-rotate-90" />
-            </button>
+            </Button>
           </form>
         </section>
       </div>

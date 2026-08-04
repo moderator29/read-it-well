@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
 /**
  * The retry control on the offline screen.
@@ -32,19 +33,21 @@ export function RetryButton() {
 
   return (
     <div className="mt-7 flex flex-col items-center gap-4">
-      <button
-        type="button"
-        className="nf-btn nf-btn--primary nf-btn--lg w-full"
+      <Button
+        variant="primary"
+        size="lg"
+        full
+        loading={retrying}
         onClick={() => {
           setRetrying(true);
           window.location.reload();
         }}
       >
-        {retrying ? "Reconnecting..." : "Try again"}
-      </button>
-      <a href="/home" className="nf-btn nf-btn--glass w-full">
+        Try again
+      </Button>
+      <ButtonLink href="/home" variant="secondary" full>
         Back to home
-      </a>
+      </ButtonLink>
       <p
         className="text-[0.8125rem] text-[var(--nf-content-muted)]"
         role="status"

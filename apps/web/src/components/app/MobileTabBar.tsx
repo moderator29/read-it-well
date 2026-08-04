@@ -10,11 +10,15 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  * five before targets get too small, so the rail's remaining destinations
  * live under Profile rather than being crammed in here.
  *
- * A floating icon-only dock, lifted clear of every edge rather than an
- * edge-to-edge bar: same shape language as the desktop dock, just wide
- * enough to carry primary navigation instead of quick-access shortcuts.
- * Labels are spoken, not printed (`aria-label`), so the dock stays compact
- * without losing accessibility.
+ * A floating dock, lifted clear of every edge rather than an edge-to-edge bar:
+ * same shape language as the desktop dock, just wide enough to carry primary
+ * navigation instead of quick-access shortcuts.
+ *
+ * The active tab expands into a labelled capsule while the rest stay icon-only,
+ * and because the outgoing label collapses on the same spring the incoming one
+ * expands on, the highlight reads as travelling along the bar. Labels used to
+ * be spoken only, which kept the dock compact but meant a sighted user had no
+ * idea what any glyph meant until they tapped it.
  */
 type Tab = { href: string; label: string; icon: UiIconName };
 
@@ -47,10 +51,8 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
               <Link
                 href={tab.href}
                 aria-current={isActive ? "page" : undefined}
-                aria-label={tab.label}
-                title={tab.label}
                 className={[
-                  "nf-tab-pop flex h-12 w-12 items-center justify-center rounded-full transition-colors",
+                  "nf-tab-pop",
                   isActive
                     ? "text-white"
                     : "text-[var(--nf-content-primary)] opacity-75 hover:opacity-100",
@@ -59,8 +61,16 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
                 <span className="nf-tab-pop__pill" aria-hidden="true" />
                 {/* Stroked glyph; the active tab draws a heavier line. */}
                 <span className="nf-tab-pop__icon">
-                  <UiIcon name={tab.icon} size={22} strokeWidth={isActive ? 2 : 1.8} />
+                  <UiIcon name={tab.icon} size={22} strokeWidth={isActive ? 2.2 : 1.8} />
                 </span>
+                {/*
+                  The label is always in the DOM, so it is always available to a
+                  screen reader and the link never needs an aria-label that
+                  duplicates it. Inactive tabs collapse it to zero width in CSS
+                  rather than removing it, which is what gives the active
+                  capsule something to expand from.
+                */}
+                <span className="nf-tab-pop__label">{tab.label}</span>
               </Link>
             </li>
           );

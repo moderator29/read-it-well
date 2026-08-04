@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getDictionary, formatDate } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getAgentRepository } from "@/lib/agent/repository";
@@ -7,6 +6,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { BackButton } from "@/components/site/BackButton";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { StatusIcon } from "./StatusIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
   title: "Application status",
@@ -203,13 +203,13 @@ export default async function AgentStatusPage() {
             style={{ animationDelay: "240ms" }}
           >
             {approved ? (
-              <Link href="/agent/dashboard" className="nf-btn nf-btn--primary nf-btn--lg">
+              <ButtonLink href="/agent/dashboard" variant="primary" size="lg">
                 {s.enterAgent}
-              </Link>
+              </ButtonLink>
             ) : null}
-            <Link href="/home" className="nf-btn nf-btn--glass nf-btn--lg">
+            <ButtonLink href="/home" variant="secondary" size="lg">
               {s.backHome}
-            </Link>
+            </ButtonLink>
           </div>
         </div>
       </main>

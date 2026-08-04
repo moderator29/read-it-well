@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BinGlyph, PlusGlyph } from "./glyphs";
 import type { Thread } from "./threads";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Assistant side navigation.
@@ -104,14 +105,10 @@ export function AssistantSidebar({
             className="nf-field w-full py-2.5 pl-9 text-[0.8438rem]"
           />
         </div>
-        <button
-          type="button"
-          onClick={onNew}
-          className="nf-btn nf-btn--primary w-full gap-2 py-2.5 text-[0.8438rem]"
-        >
+        <Button variant="primary" size="sm" full onClick={onNew}>
           <PlusGlyph size={15} />
           New chat
-        </button>
+        </Button>
       </div>
 
       {/* ------------------------------------------------------- history */}
@@ -204,14 +201,9 @@ export function AssistantSidebar({
             <UiIcon name="chevron-down" size={12} />
           </button>
         </div>
-        <button
-          type="button"
-          onClick={onClearAll}
-          disabled={threads.length === 0}
-          className="nf-btn nf-btn--ghost w-full py-2 text-[0.8125rem] disabled:opacity-45"
-        >
+        <Button variant="ghost" size="sm" full onClick={onClearAll} disabled={threads.length === 0}>
           Clear all history
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -2521,9 +2521,42 @@ body {
       transform: scale(1);
     }
   }
+  /*
+   * The tab.
+   *
+   * The reference standard is an active tab that EXPANDS into a labelled
+   * capsule while its neighbours stay icon-only circles, with the highlight
+   * sliding between positions rather than cross-fading.
+   *
+   * What was here did neither. No tab text was ever painted - labels existed
+   * only in aria-label - and the pill was `inset: 0` on a 48x48 circle, so each
+   * tab owned its own separate blob and moving between them was a fade out plus
+   * a fade in. Nothing travelled.
+   *
+   * The slide is produced without JavaScript, measurement or a shared indicator
+   * element: the outgoing tab's label collapses its max-width to zero at the
+   * same moment the incoming tab's expands. Both animate on the same spring, so
+   * the capsule visibly travels along the bar. Keeping it CSS-only is what lets
+   * the tab bar stay a server component.
+   */
   .nf-tab-pop {
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    height: 3rem;
+    min-width: 3rem;
+    padding-inline: 0.75rem;
+    border-radius: var(--nf-radius-pill);
+    transition:
+      gap var(--nf-duration-base) var(--nf-ease-spring),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  .nf-tab-pop[aria-current="page"] {
+    gap: 0.4rem;
+  }
+
   .nf-tab-pop__pill {
     position: absolute;
     inset: 0;
@@ -2541,15 +2574,47 @@ body {
     transform: scale(1);
     animation: nf-tab-pop-in 0.4s var(--nf-ease-standard);
   }
+
   .nf-tab-pop__icon {
     position: relative;
     display: flex;
+    flex-shrink: 0;
     transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-tab-pop[aria-current="page"] .nf-tab-pop__icon {
     transform: translateY(-1px);
   }
+
+  /*
+   * The label. Collapsed to zero width when inactive rather than hidden, so it
+   * has a width to animate to. `max-width` rather than `width` because the
+   * content sizes itself and locales differ wildly in length - the Igbo label
+   * for one destination is 3.25x the English.
+   */
+  .nf-tab-pop__label {
+    position: relative;
+    display: block;
+    max-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    transition:
+      max-width var(--nf-duration-base) var(--nf-ease-spring),
+      opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-tab-pop[aria-current="page"] .nf-tab-pop__label {
+    max-width: 7rem;
+    opacity: 1;
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    .nf-tab-pop,
+    .nf-tab-pop__label {
+      transition: none;
+    }
     .nf-tab-pop[aria-current="page"] .nf-tab-pop__pill {
       animation: none;
     }

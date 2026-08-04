@@ -4,6 +4,7 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { AgentNumbers, ListingStatus } from "@/lib/agent/listings-queries";
 import { fill } from "../_copy";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * The signed-in agent's real dashboard.
@@ -90,10 +91,10 @@ export function RealDashboard({
             {fill(d.standing, { name: displayName })}
           </p>
         </div>
-        <Link href="/agent/list" className="nf-btn nf-btn--primary">
+        <ButtonLink href="/agent/list" variant="primary">
           <BrandIcon name="homes-sparkle" size={22} />
           {a.addListing}
-        </Link>
+        </ButtonLink>
       </div>
 
       <div className="nf-panel-sunken grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
@@ -166,9 +167,9 @@ export function RealDashboard({
             </ul>
           )}
 
-          <Link href="/agent/list" className="nf-btn nf-btn--glass mt-4 w-full">
+          <ButtonLink href="/agent/list" variant="secondary" full className="mt-4">
             {a.addListing}
-          </Link>
+          </ButtonLink>
         </section>
 
         <section className="nf-card p-4 sm:p-5">
