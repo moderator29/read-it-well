@@ -6,6 +6,7 @@ import { formatMoney, type Locale } from "@naijafinds/i18n";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 
@@ -170,18 +171,22 @@ export function ReservePanel({
         {/* Paying is the primary act, so it is the primary button. Leaving this
             moment with only a link to a list was the one gap between reserving
             and paying: the guest had to go and find the pay button themselves. */}
-        <Link
+        <ButtonLink
           href={`/checkout/${r.bookingId}`}
-          className="nf-btn nf-btn--primary mt-4 w-full"
+          variant="primary"
+          full
+          className="mt-4"
         >
           Pay {formatMoney(r.totalMinor, locale, currency)} for this stay
-        </Link>
-        <Link
+        </ButtonLink>
+        <ButtonLink
           href={`/bookings?justBooked=${r.bookingId}`}
-          className="nf-btn nf-btn--ghost mt-2 w-full"
+          variant="ghost"
+          full
+          className="mt-2"
         >
           Pay later, view your bookings
-        </Link>
+        </ButtonLink>
       </div>
     );
   }
@@ -295,16 +300,12 @@ export function ReservePanel({
         )}
 
         <div className="mt-4 grid gap-3">
-          <button
-            type="submit"
-            disabled={pending || !ready}
-            className="nf-btn nf-btn--primary w-full disabled:opacity-60"
-          >
-            {pending ? "Reserving your dates..." : "Reserve"}
-          </button>
-          <Link href={messageHref} className="nf-btn nf-btn--glass w-full">
+          <Button type="submit" variant="primary" full disabled={!ready} loading={pending}>
+            Reserve
+          </Button>
+          <ButtonLink href={messageHref} variant="secondary" full>
             Message agent
-          </Link>
+          </ButtonLink>
         </div>
       </form>
 

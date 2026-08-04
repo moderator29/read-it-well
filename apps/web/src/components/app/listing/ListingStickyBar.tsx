@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { formatMoney, type Locale } from "@naijafinds/i18n";
 import { useStayDatesOptional } from "./StayDates";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * The sticky action bar.
@@ -94,22 +94,23 @@ export function ListingStickyBar({
 
         {action &&
           (action.external ? (
-            <a
+            <ButtonLink
               href={action.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="nf-btn nf-btn--primary shrink-0"
+              variant="primary"
+              className="shrink-0"
             >
               {action.label}
-            </a>
+            </ButtonLink>
           ) : action.href.startsWith("#") ? (
-            <a href={action.href} className="nf-btn nf-btn--primary shrink-0">
+            <ButtonLink href={action.href} variant="primary" className="shrink-0">
               {action.label}
-            </a>
+            </ButtonLink>
           ) : (
-            <Link href={action.href} className="nf-btn nf-btn--primary shrink-0">
+            <ButtonLink href={action.href} variant="primary" className="shrink-0">
               {action.label}
-            </Link>
+            </ButtonLink>
           ))}
       </div>
     </div>

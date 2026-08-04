@@ -8,6 +8,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { Onboarding } from "@/components/site/Onboarding";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { FilterLink } from "@/components/app/filters/FilterLink";
 import { TrustIcon, type TrustIconName } from "@/design-system/icons/TrustIcon";
 import { HowItWorks } from "@/components/site/landing/HowItWorks";
@@ -143,9 +144,9 @@ export default async function LandingPage() {
                     className="w-full bg-transparent py-3 text-[var(--nf-text-body-lg)] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
                   />
                 </div>
-                <button type="submit" className="nf-btn nf-btn--primary nf-btn--lg nf-breathe">
+                <Button type="submit" variant="primary" size="lg" className="nf-breathe">
                   {t.common.search}
-                </button>
+                </Button>
               </form>
               {/* Filters live beside the bar here too, so the control is in the
                   same place on every search surface. */}
@@ -398,12 +399,12 @@ export default async function LandingPage() {
                   {t.landing.cta.subtitle}
                 </p>
                 <div className="mt-8 flex flex-wrap justify-center gap-4">
-                  <Link href="/sign-up" className="nf-btn nf-btn--primary nf-btn--lg nf-breathe">
+                  <ButtonLink href="/sign-up" variant="primary" size="lg" className="nf-breathe">
                     {t.landing.cta.action}
-                  </Link>
-                  <Link href="/search" className="nf-btn nf-btn--glass nf-btn--lg">
+                  </ButtonLink>
+                  <ButtonLink href="/search" variant="secondary" size="lg">
                     {t.landing.cta.secondary}
-                  </Link>
+                  </ButtonLink>
                 </div>
               </div>
             </div>
