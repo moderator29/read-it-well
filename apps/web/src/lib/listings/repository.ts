@@ -62,6 +62,19 @@ const SEED: Listing[] = [
     verified: true,
     instantBook: true,
     amenities: ["pool", "wifi", "kitchen", "parking"],
+    /* Light, water and the gate. Carried on three seed listings only, and
+       deliberately different on each, so every state of the panel can be seen
+       without a database: fully answered here, partly answered on seed-2, and
+       absent everywhere else. An absent answer must never render as a good
+       one, and that is the case this catalogue has to be able to show. */
+    utilities: {
+      powerGrid: "BAND_A",
+      powerBackup: "GENERATOR_INVERTER",
+      powerBackupHours: 24,
+      waterSupply: "TREATED_MAINS",
+      prepaidMeter: true,
+      hasEstateAccess: true,
+    },
     photos: [
       photo("1522708323590-d24dbb6b0267"),
       photo("1560448204-e02f11c3d0e2"),
@@ -86,6 +99,12 @@ const SEED: Listing[] = [
     verified: true,
     instantBook: true,
     amenities: ["wifi", "kitchen", "parking"],
+    utilities: {
+      powerGrid: "PATCHY",
+      powerBackup: "GENERATOR",
+      powerBackupHours: 8,
+      hasEstateAccess: false,
+    },
     photos: [
       photo("1502672260266-1c1ef2d93688"),
       photo("1540518614846-7eded433c457"),
@@ -482,6 +501,12 @@ const SEED: Listing[] = [
     verified: true,
     instantBook: false,
     amenities: ["wifi", "kitchen", "parking"],
+    utilities: {
+      powerGrid: "PATCHY",
+      powerBackup: "GENERATOR",
+      powerBackupHours: 8,
+      hasEstateAccess: false,
+    },
     photos: [
       photo("1502672260266-1c1ef2d93688"),
       photo("1560185007-cde436f6a4d0"),

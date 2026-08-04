@@ -94,6 +94,20 @@ export type Listing = {
    * falls back to the two-per-bedroom convention for anything that omits it.
    */
   maxGuests?: number;
+  /**
+   * Light, water and the gate: the three questions asked here before the
+   * price. Absent on partner stock and on the seed catalogue, which have no
+   * honest answer, and rendered as unanswered rather than as good news.
+   */
+  utilities?: {
+    powerGrid?: "BAND_A" | "MOSTLY_ON" | "PATCHY" | "RARELY" | "NONE";
+    powerBackup?: "NONE" | "GENERATOR" | "INVERTER" | "SOLAR" | "GENERATOR_INVERTER";
+    powerBackupHours?: number;
+    waterSupply?: "TREATED_MAINS" | "BOREHOLE" | "PUMPED_STORAGE" | "TANKER" | "NONE";
+    prepaidMeter?: boolean;
+    /** True when the host has stored gate details. Never the details themselves. */
+    hasEstateAccess: boolean;
+  };
   rating: number;
   reviewCount: number;
   verified: boolean;

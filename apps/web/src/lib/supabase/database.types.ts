@@ -928,6 +928,41 @@ export type Database = {
           },
         ]
       }
+      listing_access: {
+        Row: {
+          access_code: string | null
+          estate_name: string | null
+          gate_directions: string | null
+          listing_id: string
+          security_phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_code?: string | null
+          estate_name?: string | null
+          gate_directions?: string | null
+          listing_id: string
+          security_phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_code?: string | null
+          estate_name?: string | null
+          gate_directions?: string | null
+          listing_id?: string
+          security_phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_access_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_amenities: {
         Row: {
           amenity_id: string
@@ -1003,6 +1038,7 @@ export type Database = {
           created_at: string
           description: string | null
           featured: boolean
+          has_estate_access: boolean
           id: string
           instant_book: boolean
           landmark: string | null
@@ -1010,6 +1046,10 @@ export type Database = {
           longitude: number | null
           max_guests: number
           min_stay_nights: number
+          power_backup: Database["public"]["Enums"]["power_backup"] | null
+          power_backup_hours: number | null
+          power_grid: Database["public"]["Enums"]["power_grid"] | null
+          prepaid_meter: boolean | null
           price_per_night_minor: number
           price_period: Database["public"]["Enums"]["price_period"]
           property_type: Database["public"]["Enums"]["property_type"]
@@ -1023,6 +1063,7 @@ export type Database = {
           submitted_at: string | null
           title: string
           updated_at: string
+          water_supply: Database["public"]["Enums"]["water_supply"] | null
         }
         Insert: {
           address?: string | null
@@ -1036,6 +1077,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           featured?: boolean
+          has_estate_access?: boolean
           id?: string
           instant_book?: boolean
           landmark?: string | null
@@ -1043,6 +1085,10 @@ export type Database = {
           longitude?: number | null
           max_guests?: number
           min_stay_nights?: number
+          power_backup?: Database["public"]["Enums"]["power_backup"] | null
+          power_backup_hours?: number | null
+          power_grid?: Database["public"]["Enums"]["power_grid"] | null
+          prepaid_meter?: boolean | null
           price_per_night_minor?: number
           price_period?: Database["public"]["Enums"]["price_period"]
           property_type: Database["public"]["Enums"]["property_type"]
@@ -1056,6 +1102,7 @@ export type Database = {
           submitted_at?: string | null
           title: string
           updated_at?: string
+          water_supply?: Database["public"]["Enums"]["water_supply"] | null
         }
         Update: {
           address?: string | null
@@ -1069,6 +1116,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           featured?: boolean
+          has_estate_access?: boolean
           id?: string
           instant_book?: boolean
           landmark?: string | null
@@ -1076,6 +1124,10 @@ export type Database = {
           longitude?: number | null
           max_guests?: number
           min_stay_nights?: number
+          power_backup?: Database["public"]["Enums"]["power_backup"] | null
+          power_backup_hours?: number | null
+          power_grid?: Database["public"]["Enums"]["power_grid"] | null
+          prepaid_meter?: boolean | null
           price_per_night_minor?: number
           price_period?: Database["public"]["Enums"]["price_period"]
           property_type?: Database["public"]["Enums"]["property_type"]
@@ -1089,6 +1141,7 @@ export type Database = {
           submitted_at?: string | null
           title?: string
           updated_at?: string
+          water_supply?: Database["public"]["Enums"]["water_supply"] | null
         }
         Relationships: [
           {
@@ -1929,6 +1982,7 @@ export type Database = {
       }
       social_profiles: {
         Row: {
+          agent_id: string | null
           avatar_path: string | null
           banner_path: string | null
           bio: string | null
@@ -1936,10 +1990,6 @@ export type Database = {
           contact_policy: string
           cover_path: string | null
           created_at: string
-          agent_id: string | null
-          lga_code: string | null
-          occupation_code: string | null
-          state_code: string | null
           display_label: string | null
           follower_count: number
           following_count: number
@@ -1947,14 +1997,18 @@ export type Database = {
           handle_claimed_at: string
           home_area_id: string | null
           is_agent: boolean
+          lga_code: string | null
           link: string | null
+          occupation_code: string | null
           pidgin_ok: boolean
           post_count: number
           pronouns: string | null
+          state_code: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          agent_id?: string | null
           avatar_path?: string | null
           banner_path?: string | null
           bio?: string | null
@@ -1962,10 +2016,6 @@ export type Database = {
           contact_policy?: string
           cover_path?: string | null
           created_at?: string
-          agent_id?: string | null
-          lga_code?: string | null
-          occupation_code?: string | null
-          state_code?: string | null
           display_label?: string | null
           follower_count?: number
           following_count?: number
@@ -1973,14 +2023,18 @@ export type Database = {
           handle_claimed_at?: string
           home_area_id?: string | null
           is_agent?: boolean
+          lga_code?: string | null
           link?: string | null
+          occupation_code?: string | null
           pidgin_ok?: boolean
           post_count?: number
           pronouns?: string | null
+          state_code?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          agent_id?: string | null
           avatar_path?: string | null
           banner_path?: string | null
           bio?: string | null
@@ -1988,10 +2042,6 @@ export type Database = {
           contact_policy?: string
           cover_path?: string | null
           created_at?: string
-          agent_id?: string | null
-          lga_code?: string | null
-          occupation_code?: string | null
-          state_code?: string | null
           display_label?: string | null
           follower_count?: number
           following_count?: number
@@ -1999,10 +2049,13 @@ export type Database = {
           handle_claimed_at?: string
           home_area_id?: string | null
           is_agent?: boolean
+          lga_code?: string | null
           link?: string | null
+          occupation_code?: string | null
           pidgin_ok?: boolean
           post_count?: number
           pronouns?: string | null
+          state_code?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -2562,6 +2615,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      current_agent_id: { Args: never; Returns: string }
       pay_booking_from_wallet: {
         Args: {
           payer: string
@@ -2645,6 +2699,13 @@ export type Database = {
       post_author_kind: "USER" | "BOT" | "SYSTEM"
       post_kind: "GIST" | "ASK" | "REPLY" | "SHOWCASE" | "SYSTEM" | "STORY"
       post_mark: "LIKE" | "SAVE"
+      power_backup:
+        | "NONE"
+        | "GENERATOR"
+        | "INVERTER"
+        | "SOLAR"
+        | "GENERATOR_INVERTER"
+      power_grid: "BAND_A" | "MOSTLY_ON" | "PATCHY" | "RARELY" | "NONE"
       price_period: "night" | "year"
       property_type:
         | "apartment"
@@ -2669,6 +2730,12 @@ export type Database = {
         | "transfer_in"
         | "transfer_out"
       wallet_entry_status: "PENDING" | "COMPLETED" | "FAILED" | "REVERSED"
+      water_supply:
+        | "TREATED_MAINS"
+        | "BOREHOLE"
+        | "PUMPED_STORAGE"
+        | "TANKER"
+        | "NONE"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2856,6 +2923,14 @@ export const Constants = {
       post_author_kind: ["USER", "BOT", "SYSTEM"],
       post_kind: ["GIST", "ASK", "REPLY", "SHOWCASE", "SYSTEM", "STORY"],
       post_mark: ["LIKE", "SAVE"],
+      power_backup: [
+        "NONE",
+        "GENERATOR",
+        "INVERTER",
+        "SOLAR",
+        "GENERATOR_INVERTER",
+      ],
+      power_grid: ["BAND_A", "MOSTLY_ON", "PATCHY", "RARELY", "NONE"],
       price_period: ["night", "year"],
       property_type: [
         "apartment",
@@ -2882,6 +2957,13 @@ export const Constants = {
         "transfer_out",
       ],
       wallet_entry_status: ["PENDING", "COMPLETED", "FAILED", "REVERSED"],
+      water_supply: [
+        "TREATED_MAINS",
+        "BOREHOLE",
+        "PUMPED_STORAGE",
+        "TANKER",
+        "NONE",
+      ],
     },
   },
 } as const

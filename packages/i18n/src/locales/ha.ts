@@ -322,6 +322,7 @@ export const ha: Dictionary = {
         photos: "Hotuna",
         location: "Wuri",
         amenities: "Kayan more rayuwa",
+        utilities: "Wuta da ruwa",
         pricing: "Farashi",
         guestView: "Yadda baƙo ke gani",
         submit: "Aikawa",

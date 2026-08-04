@@ -13,11 +13,17 @@ import {
   reorderPhotos,
   saveDraft,
   setAmenities,
+  setListingAccess,
   submitListing,
 } from "@/lib/agent/listings-actions";
 import type { WizardDraft } from "@/lib/agent/listings-queries";
 import {
+  MAX_ACCESS_CODE,
+  MAX_BACKUP_HOURS,
+  MAX_ESTATE_NAME,
+  MAX_GATE_DIRECTIONS,
   MAX_PHOTOS,
+  MAX_SECURITY_PHONE,
   MAX_TITLE_LENGTH,
   MIN_DESCRIPTION_WORDS,
   MIN_PHOTOS,
@@ -27,13 +33,19 @@ import {
   countWords,
   isRental,
   parseNairaToKobo,
+  POWER_BACKUP_CHOICES,
+  POWER_GRID_CHOICES,
   submitRequirements,
+  WATER_SUPPLY_CHOICES,
+  type PowerBackup,
+  type PowerGrid,
   type PropertyType,
+  type WaterSupply,
 } from "@/lib/agent/listings-schema";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
- * The List Apartment wizard: seven steps, canon reference 03.
+ * The List Apartment wizard: eight steps, canon reference 03.
  *
  * Built for one thumb at 390px. Every step is a single column, the controls are
  * 44px or larger, and the only fixed furniture is the step footer, so the
@@ -55,12 +67,13 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 
 type WizardCopy = Dictionary["agentListings"];
 
-/** The seven steps, in order. The names come from the dictionary. */
+/** The eight steps, in order. The names come from the dictionary. */
 const STEP_KEYS = [
   "basics",
   "photos",
   "location",
   "amenities",
+  "utilities",
   "pricing",
   "guestView",
   "submit",
@@ -88,6 +101,15 @@ type Values = {
   cleaningNaira: string;
   minStayNights: number;
   instantBook: boolean;
+  powerGrid: PowerGrid | "";
+  powerBackup: PowerBackup | "";
+  powerBackupHours: string;
+  waterSupply: WaterSupply | "";
+  prepaidMeter: boolean;
+  estateName: string;
+  gateDirections: string;
+  securityPhone: string;
+  accessCode: string;
 };
 
 type Photo = { id: string; path: string; url: string };
@@ -109,6 +131,15 @@ const EMPTY: Values = {
   cleaningNaira: "",
   minStayNights: 1,
   instantBook: false,
+  powerGrid: "",
+  powerBackup: "",
+  powerBackupHours: "",
+  waterSupply: "",
+  prepaidMeter: false,
+  estateName: "",
+  gateDirections: "",
+  securityPhone: "",
+  accessCode: "",
 };
 
 function valuesFrom(draft: WizardDraft): Values {
@@ -129,6 +160,15 @@ function valuesFrom(draft: WizardDraft): Values {
     cleaningNaira: draft.cleaningNaira,
     minStayNights: draft.minStayNights,
     instantBook: draft.instantBook,
+    powerGrid: draft.powerGrid,
+    powerBackup: draft.powerBackup,
+    powerBackupHours: draft.powerBackupHours,
+    waterSupply: draft.waterSupply,
+    prepaidMeter: draft.prepaidMeter,
+    estateName: draft.access.estateName,
+    gateDirections: draft.access.gateDirections,
+    securityPhone: draft.access.securityPhone,
+    accessCode: draft.access.accessCode,
   };
 }
 
@@ -393,6 +433,11 @@ export function ListingWizard({
       cleaningNaira: values.cleaningNaira,
       minStayNights: values.minStayNights,
       instantBook: values.instantBook,
+      powerGrid: values.powerGrid === "" ? undefined : values.powerGrid,
+      powerBackup: values.powerBackup === "" ? undefined : values.powerBackup,
+      powerBackupHours: values.powerBackupHours === "" ? undefined : values.powerBackupHours,
+      waterSupply: values.waterSupply === "" ? undefined : values.waterSupply,
+      prepaidMeter: values.prepaidMeter,
     });
 
     if (!result.ok) {
@@ -411,6 +456,18 @@ export function ListingWizard({
       codes: chosenAmenities,
     });
     if (!amenityResult.ok) setNotice(amenityResult.error);
+
+    /* The gate details go to their own table, which the public page cannot
+       read. Written on every autosave like everything else, so a host who
+       types a gate code and closes the phone does not lose it. */
+    const accessResult = await setListingAccess({
+      listingId: result.data.id,
+      estateName: values.estateName,
+      gateDirections: values.gateDirections,
+      securityPhone: values.securityPhone,
+      accessCode: values.accessCode,
+    });
+    if (!accessResult.ok) setNotice(accessResult.error);
 
     return result.data.id;
   }, [canPersist, chosenAmenities, listingId, values]);
@@ -1021,8 +1078,193 @@ export function ListingWizard({
           </div>
         )}
 
-        {/* ------------------------------------------------------- 5 pricing */}
+        {/* --------------------------------------------- 5 light and water */}
         {step === 4 && (
+          <div className="space-y-6">
+            <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              Is there light, is there water, and will they let a guest through
+              the gate. These are the first three questions every guest here asks,
+              and answering them honestly wins bookings from the listings that do
+              not.
+            </p>
+
+            <fieldset className="space-y-3">
+              <legend className="nf-label mb-1">Grid supply</legend>
+              <div className="flex flex-wrap gap-2">
+                {POWER_GRID_CHOICES.map((choice) => (
+                  <button
+                    key={choice.value}
+                    type="button"
+                    className="nf-chip min-h-11"
+                    aria-pressed={values.powerGrid === choice.value}
+                    title={choice.blurb}
+                    onClick={() =>
+                      set("powerGrid", values.powerGrid === choice.value ? "" : choice.value)
+                    }
+                  >
+                    {values.powerGrid === choice.value && (
+                      <UiIcon name="verified" size={14} strokeWidth={2.2} />
+                    )}
+                    {choice.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[0.75rem] text-[var(--nf-content-muted)]">
+                {POWER_GRID_CHOICES.find((c) => c.value === values.powerGrid)?.blurb ??
+                  "What the distribution company actually gives this address."}
+              </p>
+            </fieldset>
+
+            <fieldset className="space-y-3">
+              <legend className="nf-label mb-1">Backup</legend>
+              <div className="flex flex-wrap gap-2">
+                {POWER_BACKUP_CHOICES.map((choice) => (
+                  <button
+                    key={choice.value}
+                    type="button"
+                    className="nf-chip min-h-11"
+                    aria-pressed={values.powerBackup === choice.value}
+                    onClick={() => {
+                      const next = values.powerBackup === choice.value ? "" : choice.value;
+                      set("powerBackup", next);
+                      /* Hours against a backup that does not exist is refused by
+                         the database, so choosing "no backup" clears them here
+                         rather than letting the save bounce. */
+                      if (next === "NONE" || next === "") set("powerBackupHours", "");
+                    }}
+                  >
+                    {values.powerBackup === choice.value && (
+                      <UiIcon name="verified" size={14} strokeWidth={2.2} />
+                    )}
+                    {choice.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
+            {values.powerBackup !== "" && values.powerBackup !== "NONE" && (
+              <Field
+                label="Hours a day the backup actually runs"
+                hint={`0 to ${MAX_BACKUP_HOURS}. "Generator" on its own tells a guest nothing; the hours are the answer.`}
+                error={fieldErrors.powerBackupHours}
+              >
+                <input
+                  className="nf-field"
+                  inputMode="numeric"
+                  value={values.powerBackupHours}
+                  onChange={(e) =>
+                    set("powerBackupHours", e.target.value.replace(/[^0-9]/g, "").slice(0, 2))
+                  }
+                  placeholder="8"
+                />
+              </Field>
+            )}
+
+            <fieldset className="space-y-3">
+              <legend className="nf-label mb-1">Water</legend>
+              <div className="flex flex-wrap gap-2">
+                {WATER_SUPPLY_CHOICES.map((choice) => (
+                  <button
+                    key={choice.value}
+                    type="button"
+                    className="nf-chip min-h-11"
+                    aria-pressed={values.waterSupply === choice.value}
+                    title={choice.blurb}
+                    onClick={() =>
+                      set("waterSupply", values.waterSupply === choice.value ? "" : choice.value)
+                    }
+                  >
+                    {values.waterSupply === choice.value && (
+                      <UiIcon name="verified" size={14} strokeWidth={2.2} />
+                    )}
+                    {choice.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[0.75rem] text-[var(--nf-content-muted)]">
+                {WATER_SUPPLY_CHOICES.find((c) => c.value === values.waterSupply)?.blurb ??
+                  "Where the water in the taps comes from."}
+              </p>
+            </fieldset>
+
+            <label className="flex items-center justify-between gap-4 border-y border-[var(--nf-border-subtle)] py-3">
+              <span>
+                <span className="block text-[0.9375rem] font-medium text-[var(--nf-content-primary)]">
+                  Prepaid meter
+                </span>
+                <span className="mt-0.5 block text-[0.75rem] text-[var(--nf-content-muted)]">
+                  Say so, because it decides whether a guest can be asked to buy units.
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                className="h-6 w-6 shrink-0 accent-[var(--nf-brand-primary)]"
+                checked={values.prepaidMeter}
+                onChange={(e) => set("prepaidMeter", e.target.checked)}
+              />
+            </label>
+
+            {/* ------------------------------------------------ the gate */}
+            <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-4">
+              <p className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                Getting through the gate
+              </p>
+              <p className="mt-1.5 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+                Nobody can read any of this from your public page. It is released
+                only to a guest whose booking is confirmed, and to nobody else,
+                ever. The page will say the estate has a gate and that the
+                details arrive on confirmation.
+              </p>
+
+              <div className="mt-4 space-y-4">
+                <Field label="Estate or compound name" error={fieldErrors.estateName}>
+                  <input
+                    className="nf-field"
+                    value={values.estateName}
+                    maxLength={MAX_ESTATE_NAME}
+                    onChange={(e) => set("estateName", e.target.value)}
+                    placeholder="Alagomeji Court"
+                  />
+                </Field>
+                <Field
+                  label="What to tell the gate"
+                  hint="The words that get somebody through, in the order they need them."
+                  error={fieldErrors.gateDirections}
+                >
+                  <textarea
+                    className="nf-field min-h-[84px] resize-y"
+                    value={values.gateDirections}
+                    maxLength={MAX_GATE_DIRECTIONS}
+                    onChange={(e) => set("gateDirections", e.target.value)}
+                    placeholder="Second gate off Herbert Macaulay. Tell security you are visiting flat 4B."
+                  />
+                </Field>
+                <Field label="Security desk number" error={fieldErrors.securityPhone}>
+                  <input
+                    className="nf-field"
+                    inputMode="tel"
+                    value={values.securityPhone}
+                    maxLength={MAX_SECURITY_PHONE}
+                    onChange={(e) => set("securityPhone", e.target.value)}
+                    placeholder="0803 000 0000"
+                  />
+                </Field>
+                <Field label="Access code" error={fieldErrors.accessCode}>
+                  <input
+                    className="nf-field"
+                    value={values.accessCode}
+                    maxLength={MAX_ACCESS_CODE}
+                    onChange={(e) => set("accessCode", e.target.value)}
+                    placeholder="4471"
+                  />
+                </Field>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------- 5 pricing */}
+        {step === 5 && (
           <div className="space-y-5">
             <Field
               label={rental ? copy.pricing.priceYearLabel : copy.pricing.priceNightLabel}
@@ -1120,7 +1362,7 @@ export function ListingWizard({
         )}
 
         {/* ---------------------------------------------------- 6 guest view */}
-        {step === 5 && (
+        {step === 6 && (
           <div>
             <p className="mb-4 text-[0.8125rem] text-[var(--nf-content-secondary)]">
               {copy.guestView.intro}
@@ -1198,7 +1440,7 @@ export function ListingWizard({
         )}
 
         {/* -------------------------------------------------------- 7 submit */}
-        {step === 6 && (
+        {step === 7 && (
           <div>
             <h2 className="nf-h3">{copy.submit.title}</h2>
             <p className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">

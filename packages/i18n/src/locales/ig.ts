@@ -324,6 +324,7 @@ export const ig: Dictionary = {
         // NATIVE REVIEW: "amenities" has no settled Igbo term, this reads as
         // "things the house has".
         amenities: "Ihe ndị dị n'ụlọ",
+        utilities: "Ọkụ na mmiri",
         pricing: "Ọnụahịa",
         guestView: "Ka ọbịa na-ahụ ya",
         submit: "Izipu",

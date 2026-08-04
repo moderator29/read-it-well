@@ -62,6 +62,12 @@ const LISTING_SELECT = `
   state_code,
   published_at,
   created_at,
+  power_grid,
+  power_backup,
+  power_backup_hours,
+  water_supply,
+  prepaid_meter,
+  has_estate_access,
   listing_photos ( storage_path, position ),
   listing_amenities ( amenity_id )
 `;
@@ -77,6 +83,12 @@ type ListingRow = {
   max_guests: number;
   instant_book: boolean;
   featured: boolean;
+  power_grid: string | null;
+  power_backup: string | null;
+  power_backup_hours: number | null;
+  water_supply: string | null;
+  prepaid_meter: boolean | null;
+  has_estate_access: boolean | null;
   area: string | null;
   city: string | null;
   state_code: string | null;
@@ -289,6 +301,18 @@ function mapRow(
     // The host's own capacity, not a figure derived from bedroom count. Every
     // listings row carries one; the check constraint keeps it above zero.
     maxGuests: row.max_guests,
+    utilities: {
+      ...(row.power_grid ? { powerGrid: row.power_grid as NonNullable<Listing["utilities"]>["powerGrid"] } : {}),
+      ...(row.power_backup
+        ? { powerBackup: row.power_backup as NonNullable<Listing["utilities"]>["powerBackup"] }
+        : {}),
+      ...(row.power_backup_hours === null ? {} : { powerBackupHours: row.power_backup_hours }),
+      ...(row.water_supply
+        ? { waterSupply: row.water_supply as NonNullable<Listing["utilities"]>["waterSupply"] }
+        : {}),
+      ...(row.prepaid_meter === null ? {} : { prepaidMeter: row.prepaid_meter }),
+      hasEstateAccess: row.has_estate_access ?? false,
+    },
     rating: stat?.rating ?? 0,
     reviewCount: stat?.count ?? 0,
     // First-party inventory is admitted through agent approval, so a published

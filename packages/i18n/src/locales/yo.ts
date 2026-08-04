@@ -322,6 +322,7 @@ export const yo: Dictionary = {
         photos: "Àwòrán",
         location: "Ibùdó",
         amenities: "Ohun ìrọ̀rùn",
+        utilities: "Iná àti omi",
         pricing: "Iye",
         guestView: "Ojú àlejò",
         submit: "Fífiránṣẹ́",

@@ -16,6 +16,10 @@ import { ReservePanel } from "./ReservePanel";
 import { RentalPanel } from "./RentalPanel";
 import { ListingAbout } from "@/components/app/listing/ListingAbout";
 import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
+import { ListingUtilities } from "@/components/app/listing/ListingUtilities";
+import { readListingAccess } from "@/lib/listings/access-queries";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/database.types";
 import { ListingHostPanel } from "@/components/app/listing/ListingHostPanel";
 import { ListingReviews } from "@/components/app/listing/ListingReviews";
 import {
@@ -92,6 +96,32 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * Does this caller hold a confirmed booking here?
+ *
+ * Only used to choose which sentence the withheld gate block shows, never to
+ * decide what they may read: that decision belongs to the policy on
+ * public.listing_access and to nothing in this file. A failed count reads as
+ * no, because the safe answer to "may I see the gate code" is no.
+ */
+async function hasConfirmedBooking(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+  userId: string,
+): Promise<boolean> {
+  try {
+    const { count } = await supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("listing_id", listingId)
+      .eq("guest_id", userId)
+      .eq("status", "CONFIRMED");
+    return (count ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
 export default async function ListingDetailPage({
   params,
 }: {
@@ -150,6 +180,19 @@ export default async function ListingDetailPage({
   // reporting exists.
   const session = await resolveSession();
   const signedIn = session.state === "signed-in";
+
+  /* Light, water and the gate. The first two are public columns; the gate
+     details are read through the caller's own policies and come back null for
+     anyone who is not the host, an admin, or a guest holding a CONFIRMED
+     booking on this listing. A refusal and an absence are the same answer here
+     on purpose, so nobody can learn whether a code exists by watching the page
+     change. */
+  const [access, bookingConfirmed] = await Promise.all([
+    readListingAccess(listing.id),
+    session.state === "signed-in"
+      ? hasConfirmedBooking(session.supabase, listing.id, session.user.id)
+      : Promise.resolve(false),
+  ]);
 
   // Partner locality collapses when the feed places a venue by city alone.
   const where =
@@ -368,6 +411,17 @@ export default async function ListingDetailPage({
               />
             </div>
           </section>
+
+          {/* --------------------------------- light, water and the gate */}
+          {listing.utilities && (
+            <Reveal className="mt-7">
+              <ListingUtilities
+                utilities={listing.utilities}
+                access={access}
+                bookingConfirmed={bookingConfirmed}
+              />
+            </Reveal>
+          )}
 
           {/* ----------------------------------------------------- about */}
           <Reveal as="section" className="nf-hairline mt-7 pt-7">

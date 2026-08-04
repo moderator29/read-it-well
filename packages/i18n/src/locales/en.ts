@@ -334,6 +334,7 @@ export const en = {
         photos: "Photos",
         location: "Location",
         amenities: "Amenities",
+        utilities: "Light and water",
         pricing: "Pricing",
         guestView: "Guest view",
         submit: "Submit",

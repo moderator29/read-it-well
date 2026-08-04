@@ -125,6 +125,70 @@ export const STATE_CODES = [
 
 const STATE_CODE_SET = new Set<string>(STATE_CODES);
 
+/* -------------------------------------------------- light, water, access */
+
+/**
+ * The three questions a Nigerian guest asks before the price.
+ *
+ * The amenity list already carried "Backup Power" and "Running Water" as tick
+ * boxes, and a tick box cannot tell a Band A feeder apart from a generator
+ * somebody runs from seven to eleven. Those two chips stay for now so nothing a
+ * host has already ticked disappears, but the structured answers below are what
+ * the listing page reads and what search will filter on, because four spellings
+ * of borehole cannot be filtered at all.
+ */
+export const POWER_GRID_VALUES = ["BAND_A", "MOSTLY_ON", "PATCHY", "RARELY", "NONE"] as const;
+export type PowerGrid = (typeof POWER_GRID_VALUES)[number];
+
+export const POWER_GRID_CHOICES: { value: PowerGrid; label: string; blurb: string }[] = [
+  { value: "BAND_A", label: "Band A", blurb: "20 hours a day or more from the grid" },
+  { value: "MOSTLY_ON", label: "Mostly on", blurb: "Light most of the day, with gaps" },
+  { value: "PATCHY", label: "Patchy", blurb: "On and off through the day" },
+  { value: "RARELY", label: "Rarely on", blurb: "A few hours at best" },
+  { value: "NONE", label: "No grid supply", blurb: "Nothing from the distribution company" },
+];
+
+export const POWER_BACKUP_VALUES = [
+  "NONE",
+  "GENERATOR",
+  "INVERTER",
+  "SOLAR",
+  "GENERATOR_INVERTER",
+] as const;
+export type PowerBackup = (typeof POWER_BACKUP_VALUES)[number];
+
+export const POWER_BACKUP_CHOICES: { value: PowerBackup; label: string }[] = [
+  { value: "NONE", label: "No backup" },
+  { value: "GENERATOR", label: "Generator" },
+  { value: "INVERTER", label: "Inverter" },
+  { value: "SOLAR", label: "Solar" },
+  { value: "GENERATOR_INVERTER", label: "Generator and inverter" },
+];
+
+export const WATER_SUPPLY_VALUES = [
+  "TREATED_MAINS",
+  "BOREHOLE",
+  "PUMPED_STORAGE",
+  "TANKER",
+  "NONE",
+] as const;
+export type WaterSupply = (typeof WATER_SUPPLY_VALUES)[number];
+
+export const WATER_SUPPLY_CHOICES: { value: WaterSupply; label: string; blurb: string }[] = [
+  { value: "TREATED_MAINS", label: "Treated mains", blurb: "Running water from the mains" },
+  { value: "BOREHOLE", label: "Borehole", blurb: "The property's own borehole" },
+  { value: "PUMPED_STORAGE", label: "Pumped storage", blurb: "Tank filled and pumped through" },
+  { value: "TANKER", label: "Tanker delivery", blurb: "Water is bought in and stored" },
+  { value: "NONE", label: "No running water", blurb: "Water is fetched" },
+];
+
+export const MAX_BACKUP_HOURS = 24;
+export const MAX_ESTATE_NAME = 120;
+export const MAX_GATE_DIRECTIONS = 600;
+export const MAX_SECURITY_PHONE = 32;
+export const MAX_ACCESS_CODE = 40;
+
+
 /* ------------------------------------------------------------ amenities */
 
 /** The 15 seeded amenity codes with their labels, for chips and validation. */
@@ -275,6 +339,19 @@ export const draftInputSchema = z.object({
   cleaningNaira: optionalNaira("Enter the cleaning amount in naira, for example 10,000."),
   minStayNights: optionalCount(1, 365, "The shortest stay can be 1 to 365 nights."),
   instantBook: z.preprocess(emptyToUndefined, z.boolean().optional()),
+
+  /* Light and water. Undefined means the host has not answered yet and the
+     column is left exactly as it was; the listing page renders unanswered as
+     unanswered, never as good news. */
+  powerGrid: z.preprocess(emptyToUndefined, z.enum(POWER_GRID_VALUES).optional()),
+  powerBackup: z.preprocess(emptyToUndefined, z.enum(POWER_BACKUP_VALUES).optional()),
+  powerBackupHours: optionalCount(
+    0,
+    MAX_BACKUP_HOURS,
+    `Backup hours can be 0 to ${MAX_BACKUP_HOURS}.`,
+  ),
+  waterSupply: z.preprocess(emptyToUndefined, z.enum(WATER_SUPPLY_VALUES).optional()),
+  prepaidMeter: z.preprocess(emptyToUndefined, z.boolean().optional()),
 });
 
 export type DraftInput = z.input<typeof draftInputSchema>;
@@ -330,6 +407,30 @@ export const setAmenitiesSchema = z.object({
 export const listingIdSchema = z.object({
   listingId: uuid("We could not identify that listing."),
 });
+
+/**
+ * What a host tells us about getting in.
+ *
+ * This never reaches `public.listings`, which the whole internet can read once a
+ * listing is PUBLISHED. It goes to `public.listing_access`, whose select policy
+ * names three readers and no others: the host, an admin, and a guest holding a
+ * CONFIRMED booking on that listing.
+ */
+export const listingAccessSchema = z.object({
+  listingId: uuid("We could not identify that listing."),
+  estateName: optionalText(MAX_ESTATE_NAME, `Keep the estate name under ${MAX_ESTATE_NAME} characters.`),
+  gateDirections: optionalText(
+    MAX_GATE_DIRECTIONS,
+    `Keep the gate directions under ${MAX_GATE_DIRECTIONS} characters.`,
+  ),
+  securityPhone: optionalText(
+    MAX_SECURITY_PHONE,
+    "That phone number is too long. A single number is enough.",
+  ),
+  accessCode: optionalText(MAX_ACCESS_CODE, `Keep the code under ${MAX_ACCESS_CODE} characters.`),
+});
+
+export type ListingAccessInput = z.input<typeof listingAccessSchema>;
 
 /* ------------------------------------------------------- the submit gate */
 
