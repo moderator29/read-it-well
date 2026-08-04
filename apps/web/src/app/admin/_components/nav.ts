@@ -27,5 +27,8 @@ export const ADMIN_NAV: AdminDestination[] = [
   { key: "applications", href: "/admin/agents", icon: "user" },
   { key: "listings", href: "/admin/listings", icon: "building-apartment" },
   { key: "tickets", href: "/admin/support", icon: "ticket" },
+  // Around sits with the human queues rather than the safety ones: a place
+  // waiting to open is somebody hoping for an answer, not an incident.
+  { key: "social", href: "/admin/social", icon: "compass" },
   { key: "switches", href: "/admin/switches", icon: "key" },
 ];

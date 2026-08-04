@@ -1,0 +1,212 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { PageHeader } from "@/components/app/PageHeader";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { resolveSession } from "@/lib/actions/session";
+import {
+  listMyAreas,
+  listMyProposals,
+  listOpenAreas,
+  type AreaSummary,
+} from "@/lib/social/areas-queries";
+import { AREA_COPY, AREA_KIND_LABEL, type AreaStatus } from "@/lib/social/areas-schema";
+import { JoinButton } from "./JoinButton";
+
+export const metadata: Metadata = { title: "Around" };
+
+/**
+ * Around: the directory of places.
+ *
+ * Discovery stays the default tab in this product, so this surface earns its
+ * place by being useful in one glance rather than by holding attention. Places
+ * you are in first, then everything open, busiest first, because a directory
+ * sorted by newest sends the first visitor to the emptiest room.
+ *
+ * Signed out this renders in full rather than behind a wall: the gate belongs
+ * in front of value, not in front of the front door. Joining is what asks for
+ * an account, and it asks at the moment it matters.
+ */
+export default async function AroundPage() {
+  const [session, open, mine, proposals] = await Promise.all([
+    resolveSession(),
+    listOpenAreas(),
+    listMyAreas(),
+    listMyProposals(),
+  ]);
+
+  const signedIn = session.state === "signed-in";
+  const unconfigured = session.state === "unconfigured";
+  const mineIds = new Set(mine.map((area) => area.id));
+  const others = open.filter((area) => !mineIds.has(area.id));
+  const openProposals = proposals.filter((p) => p.status === "PROPOSED");
+  const answered = proposals.filter((p) => p.status === "REJECTED");
+
+  return (
+    <div className="mx-auto w-full max-w-3xl px-4 pb-24 pt-4 sm:px-6">
+      <PageHeader
+        title="Around"
+        fallback="/home"
+        actions={
+          <Link
+            href="/around/new"
+            className="nf-btn nf-btn--ghost inline-flex h-10 items-center gap-2 px-4 text-sm"
+          >
+            <UiIcon name="sparkle" size={16} />
+            Suggest a place
+          </Link>
+        }
+      />
+
+      <p className="mb-6 text-sm leading-relaxed text-[var(--nf-content-muted)]">
+        {AREA_COPY.what}
+      </p>
+
+      {unconfigured ? (
+        <p className="nf-card mb-6 p-4 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+          Places switch on the moment the platform keys land. Nothing here is a
+          mock up: there is simply nothing to read yet.
+        </p>
+      ) : null}
+
+      {openProposals.length > 0 ? (
+        <section className="mb-8">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+            Waiting on us
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {openProposals.map((proposal) => (
+              <li
+                key={proposal.id}
+                className="nf-card flex items-center gap-3 p-4"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-[var(--nf-content-primary)]">
+                    {proposal.name}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[var(--nf-content-muted)]">
+                    {proposal.city} &middot; you suggested this
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-3 py-1 text-xs font-semibold text-[var(--nf-content-muted)]">
+                  With us
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+            {AREA_COPY.proposePending}
+          </p>
+        </section>
+      ) : null}
+
+      {answered.length > 0 ? (
+        <section className="mb-8">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+            We came back to you
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {answered.map((proposal) => (
+              <li key={proposal.id} className="nf-card p-4">
+                <p className="text-sm font-semibold text-[var(--nf-content-primary)]">
+                  {proposal.name}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+                  {proposal.decisionNote ??
+                    "We could not open this one. You can suggest another at any time."}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <section className="mb-9">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+          Your places
+        </h2>
+        {mine.length > 0 ? (
+          <ul className="flex flex-col gap-2">
+            {mine.map((area) => (
+              <AreaRow key={area.id} area={area} joined signedIn={signedIn} />
+            ))}
+          </ul>
+        ) : (
+          <p className="nf-card p-4 text-sm leading-relaxed text-[var(--nf-content-muted)]">
+            {signedIn ? AREA_COPY.joinedNone : "Sign in to keep your places here."}
+          </p>
+        )}
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+          Open places
+        </h2>
+        {others.length > 0 ? (
+          <ul className="flex flex-col gap-2">
+            {others.map((area) => (
+              <AreaRow key={area.id} area={area} joined={false} signedIn={signedIn} />
+            ))}
+          </ul>
+        ) : (
+          <div className="nf-card p-5 text-center">
+            <p className="text-sm leading-relaxed text-[var(--nf-content-muted)]">
+              {open.length > 0
+                ? "You are in every place that is open so far."
+                : AREA_COPY.noneOpenYet}
+            </p>
+            <Link href="/around/new" className="nf-btn nf-btn--primary mt-4 inline-flex h-10 items-center px-5 text-sm">
+              Suggest a place
+            </Link>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function AreaRow({
+  area,
+  joined,
+  signedIn,
+}: {
+  area: AreaSummary;
+  joined: boolean;
+  signedIn: boolean;
+}) {
+  return (
+    <li className="nf-card flex items-center gap-3 p-4">
+      <Link href={`/around/${area.slug}`} className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className="truncate text-base font-semibold text-[var(--nf-content-primary)]">
+            {area.name}
+          </p>
+          {area.status === "PAUSED" ? (
+            <span className="shrink-0 rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
+              Paused
+            </span>
+          ) : null}
+        </div>
+        <p className="mt-0.5 truncate text-xs text-[var(--nf-content-muted)]">
+          {AREA_KIND_LABEL[area.kind]} &middot; {area.city} &middot;{" "}
+          <span className="nf-numeric">{area.memberCount.toLocaleString("en-NG")}</span>{" "}
+          {area.memberCount === 1 ? "member" : "members"}
+        </p>
+        {area.blurb ? (
+          <p className="mt-1 line-clamp-1 text-xs text-[var(--nf-content-secondary)]">
+            {area.blurb}
+          </p>
+        ) : null}
+      </Link>
+      {area.status === "ACTIVE" ? (
+        <JoinButton areaId={area.id} joined={joined} signedIn={signedIn} size="sm" />
+      ) : null}
+    </li>
+  );
+}
+
+export const dynamic: "force-dynamic" = "force-dynamic";
+
+// Kept so a future reader does not have to work out why the list is not cached:
+// membership is per viewer and the whole page changes shape when you join, so
+// caching it would show one person another person's shelf.
+export type { AreaStatus };

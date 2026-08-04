@@ -1438,17 +1438,20 @@ export type Database = {
       }
       social_profiles: {
         Row: {
+          avatar_path: string | null
           banner_path: string | null
           bio: string | null
           bio_status: Database["public"]["Enums"]["social_status"]
           contact_policy: string
           cover_path: string | null
           created_at: string
+          display_label: string | null
           follower_count: number
           following_count: number
           handle: string
           handle_claimed_at: string
           home_area_id: string | null
+          is_agent: boolean
           link: string | null
           pidgin_ok: boolean
           post_count: number
@@ -1457,17 +1460,20 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avatar_path?: string | null
           banner_path?: string | null
           bio?: string | null
           bio_status?: Database["public"]["Enums"]["social_status"]
           contact_policy?: string
           cover_path?: string | null
           created_at?: string
+          display_label?: string | null
           follower_count?: number
           following_count?: number
           handle: string
           handle_claimed_at?: string
           home_area_id?: string | null
+          is_agent?: boolean
           link?: string | null
           pidgin_ok?: boolean
           post_count?: number
@@ -1476,17 +1482,20 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avatar_path?: string | null
           banner_path?: string | null
           bio?: string | null
           bio_status?: Database["public"]["Enums"]["social_status"]
           contact_policy?: string
           cover_path?: string | null
           created_at?: string
+          display_label?: string | null
           follower_count?: number
           following_count?: number
           handle?: string
           handle_claimed_at?: string
           home_area_id?: string | null
+          is_agent?: boolean
           link?: string | null
           pidgin_ok?: boolean
           post_count?: number

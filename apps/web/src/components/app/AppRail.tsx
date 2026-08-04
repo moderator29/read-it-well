@@ -41,6 +41,9 @@ export function AppRail({
     { href: "/search?type=home", label: t.nav.homes, icon: "house" },
     { href: "/search?type=restaurant", label: t.nav.restaurants, icon: "utensils" },
     { href: "/search?type=experience", label: t.nav.experiences, icon: "ticket" },
+    // Around is a place to read, not a category to search, so it closes the
+    // discovery group rather than sitting inside the type filters above it.
+    { href: "/around", label: t.nav.around, icon: "map" },
   ];
 
   const account: RailItem[] = [

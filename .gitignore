@@ -41,3 +41,6 @@ next-env.d.ts
 scripts/.shots/
 **/.shots/
 .claude/worktrees/
+
+# Parallel build outputs (see next.config.ts distDir)
+apps/web/.next-*

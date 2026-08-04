@@ -22,6 +22,11 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
   const tabs: Tab[] = [
     { href: "/home", label: t.nav.home, icon: "home" },
     { href: "/search", label: t.nav.explore, icon: "compass" },
+    // Around sits third, in the middle, where a thumb reaches easiest. It is
+    // deliberately NOT first: discovery stays the default tab, because the day
+    // the social layer out-competes booking for attention is the day it starts
+    // costing us money.
+    { href: "/around", label: t.nav.around, icon: "map" },
     { href: "/bookings", label: t.nav.bookings, icon: "calendar-booking" },
     { href: "/saved", label: t.nav.saved, icon: "heart" },
     { href: "/profile", label: t.nav.profile, icon: "user" },

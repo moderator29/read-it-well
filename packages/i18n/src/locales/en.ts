@@ -48,6 +48,7 @@ export const en = {
     settings: "Settings",
     explore: "Explore",
     saved: "Saved",
+    around: "Around",
     primaryLabel: "Primary",
     accountLabel: "Account",
   },
@@ -784,6 +785,7 @@ export const en = {
       applications: { label: "Agent applications", short: "Agents" },
       listings: { label: "Listing review", short: "Listings" },
       tickets: { label: "Support", short: "Support" },
+      social: { label: "Around", short: "Around" },
       switches: { label: "Switches", short: "Switches" },
     },
 
