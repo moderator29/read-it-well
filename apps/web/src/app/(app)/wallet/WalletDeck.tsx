@@ -7,6 +7,7 @@ import type { Locale } from "@naijafinds/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Odometer } from "@/components/site/Odometer";
 import { formatKoboExact } from "@/components/app/wallet/money";
+import { Amount } from "@/components/ui/Amount";
 import type { ActionResult } from "@/lib/actions/envelope";
 import {
   fundWallet,
@@ -256,12 +257,15 @@ function WithdrawForm({
   }, [state, router]);
 
   if (state.ok && state.data) {
-    const amount = formatKoboExact(state.data.amountMinor, locale);
     return (
       <div role="status" aria-live="polite" className="py-2 text-center">
-        <p className="text-[1.4rem] font-bold tracking-tight">
-          {amount.whole}
-          {amount.kobo}
+        <p>
+          <Amount
+            minorUnits={state.data.amountMinor}
+            locale={locale}
+            showFraction
+            className="text-[1.4rem] font-bold tracking-tight"
+          />
         </p>
         <p className="mt-1 text-[0.9375rem] font-semibold">
           On its way to {state.data.bankName} ****{state.data.accountLast4}
@@ -361,12 +365,15 @@ function TransferForm({
   }, [state, router]);
 
   if (state.ok && state.data) {
-    const amount = formatKoboExact(state.data.amountMinor, locale);
     return (
       <div role="status" aria-live="polite" className="py-2 text-center">
-        <p className="text-[1.4rem] font-bold tracking-tight">
-          {amount.whole}
-          {amount.kobo}
+        <p>
+          <Amount
+            minorUnits={state.data.amountMinor}
+            locale={locale}
+            showFraction
+            className="text-[1.4rem] font-bold tracking-tight"
+          />
         </p>
         <p className="mt-1 text-[0.9375rem] font-semibold">
           Sent to {state.data.recipientName}

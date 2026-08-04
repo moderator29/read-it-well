@@ -6,6 +6,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Odometer } from "@/components/site/Odometer";
 import type { WalletEntry } from "@/lib/wallet/types";
 import { formatKoboExact } from "./money";
+import { Amount } from "@/components/ui/Amount";
 
 /**
  * Wallet balance hero.
@@ -79,8 +80,6 @@ export function BalanceCard({
   const wholeNaira = (absMinor - koboRemainder) / 100;
   const { inMinor, outMinor } = useMemo(() => flowsLast30Days(entries), [entries]);
   const points = useMemo(() => sparklinePoints(entries), [entries]);
-  const flowIn = formatKoboExact(inMinor, locale);
-  const flowOut = formatKoboExact(outMinor, locale);
 
   // A brief light pulse plays through the card the moment the balance moves:
   // upward when money lands, downward when it leaves. Detected client-side
@@ -157,6 +156,11 @@ export function BalanceCard({
         muted ink at 62% of the figure's size, which is the ratio the reference
         set uses. Bigger, tighter and with the kobo further back reads as one
         composed number rather than two sizes of text.
+
+        This is the one money figure on the platform NOT set through <Amount>:
+        the whole-naira part is an Odometer that rolls to its new value when
+        money moves, and Amount renders a static string. The flow tiles below
+        and every ledger row underneath it do go through Amount.
       */}
       <p className="nf-numeric relative mt-3 leading-none text-[var(--nf-content-primary)]">
         {hidden ? (
@@ -197,7 +201,13 @@ export function BalanceCard({
             In, last 30 days
           </p>
           <p className="nf-numeric mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-success)]">
-            {hidden ? "••••" : `+${flowIn.whole}${flowIn.kobo}`}
+            {hidden ? (
+              "••••"
+            ) : (
+              <>
+                +<Amount minorUnits={inMinor} locale={locale} showFraction />
+              </>
+            )}
           </p>
         </div>
         <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] px-3 py-2">
@@ -205,7 +215,13 @@ export function BalanceCard({
             Out, last 30 days
           </p>
           <p className="nf-numeric mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-error)]">
-            {hidden ? "••••" : `-${flowOut.whole}${flowOut.kobo}`}
+            {hidden ? (
+              "••••"
+            ) : (
+              <>
+                -<Amount minorUnits={outMinor} locale={locale} showFraction />
+              </>
+            )}
           </p>
         </div>
       </div>

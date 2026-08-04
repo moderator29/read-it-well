@@ -11,8 +11,8 @@ import {
   type WalletActionField,
   type WalletActionResult,
 } from "@/lib/wallet/actions";
-import { formatKoboExact } from "./money";
 import { Button } from "@/components/ui/Button";
+import { Amount } from "@/components/ui/Amount";
 
 /**
  * Wallet action deck: Add money, Withdraw, Transfer.
@@ -294,18 +294,16 @@ function SubmitRow({ pending, label }: { pending: boolean; label: string }) {
 
 function ResultNotice({ state, locale }: { state: WalletActionResult; locale: Locale }) {
   if (!state.message) return null;
-  const amount =
-    typeof state.amountMinor === "number" ? formatKoboExact(state.amountMinor, locale) : null;
+  const amountMinor = typeof state.amountMinor === "number" ? state.amountMinor : null;
   return (
     <div
       role="status"
       aria-live="polite"
       className="mt-3 rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-glass-fill)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
     >
-      {amount && (
+      {amountMinor !== null && (
         <p className="mb-1 font-semibold text-[var(--nf-content-primary)]">
-          {amount.whole}
-          {amount.kobo}
+          <Amount minorUnits={amountMinor} locale={locale} showFraction />
         </p>
       )}
       <p>{state.message}</p>

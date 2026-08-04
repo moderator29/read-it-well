@@ -6,7 +6,7 @@ import { formatDate } from "@naijafinds/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
 import type { WalletEntry, WalletEntryKind } from "@/lib/wallet/types";
-import { formatKoboExact } from "./money";
+import { Amount } from "@/components/ui/Amount";
 
 /**
  * Wallet transaction history.
@@ -157,7 +157,6 @@ function EntryRow({
       not keep animating for seconds after the group appears. */
   index: number;
 }) {
-  const amount = formatKoboExact(entry.amountMinor, locale);
   const credit = entry.direction === "credit";
   const settled = entry.status === "COMPLETED";
 
@@ -199,8 +198,12 @@ function EntryRow({
           className={`block text-[0.875rem] font-semibold ${credit ? "text-[var(--nf-state-success)]" : "text-[var(--nf-state-error)]"}`}
         >
           {credit ? "+" : "-"}
-          {amount.whole}
-          <span className="font-medium opacity-60">{amount.kobo}</span>
+          <Amount
+            minorUnits={entry.amountMinor}
+            locale={locale}
+            showFraction
+            secondaryClassName="text-[0.62em] font-medium opacity-60"
+          />
         </span>
         {!settled && (
           <span
