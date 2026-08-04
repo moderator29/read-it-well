@@ -137,6 +137,13 @@ async function run(theme) {
       "the state offers a way onward",
       (await page.locator("a[href='/home'], a[href='/sign-in'], a[href='/profile'], a[href^='/u/']").count()) > 0,
     );
+    /* A profile is hidden from anybody a block touches in either direction, so
+       this one screen covers "nobody holds it" and "you cannot see them". It
+       must never claim the handle is available. */
+    check(
+      "an empty handle page never asserts the handle is free",
+      !/is free|is available/i.test(freeText),
+    );
 
     /* ------------------------------------------------ something that is not one */
     console.log(`\n[${theme}] /u/${NOT_A_HANDLE}`);

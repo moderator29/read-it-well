@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ProfileEditor } from "@/components/social/profile/ProfileEditor";
 import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
+import { ProfilePhotos } from "@/components/social/profile/ProfilePhotos";
 import { loadProfileEditor, normaliseHandle } from "@/lib/social/profiles-queries";
 
 export const metadata: Metadata = { title: "Edit your profile" };
@@ -84,11 +85,25 @@ export default async function EditSocialProfilePage({
       )}
 
       {editor.state === "editing" && (
-        <ProfileEditor
-          profile={editor.profile}
-          initialHandle={editor.profile.handle}
-          areas={editor.areas}
-        />
+        <>
+          {/* The photos write on their own, the moment one is chosen, and they
+              sit outside the form for that reason: a picture is not something
+              anybody expects to have to press Save for. */}
+          <div className="mb-3">
+            <ProfilePhotos
+              userId={editor.profile.userId}
+              handle={editor.profile.handle}
+              coverUrl={editor.profile.coverUrl}
+              avatarUrl={editor.profile.avatarUrl}
+              displayName={editor.profile.displayLabel}
+            />
+          </div>
+          <ProfileEditor
+            profile={editor.profile}
+            initialHandle={editor.profile.handle}
+            areas={editor.areas}
+          />
+        </>
       )}
     </div>
   );

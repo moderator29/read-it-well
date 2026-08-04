@@ -4,8 +4,9 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
 import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
-import { ProfileTabs } from "@/components/social/profile/ProfileTabs";
+import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import { loadPublicProfile, normaliseHandle } from "@/lib/social/profiles-queries";
+import { getProfileFeed } from "@/lib/social/posts-queries";
 
 /**
  * `/u/[handle]`: a person's page.
@@ -40,6 +41,10 @@ export default async function SocialProfilePage({
   const view = await loadPublicProfile(raw);
 
   if (view.state === "found") {
+    /* Their own posts, read under the viewer's row level security, so a held or
+       blocked row never reaches this page in the first place. */
+    const posts = await getProfileFeed(view.profile.userId);
+
     return (
       <div className="mx-auto max-w-2xl">
         <ProfileHeader
@@ -58,9 +63,11 @@ export default async function SocialProfilePage({
             )
           }
         />
-        <ProfileTabs
+        <ProfilePosts
           handle={view.profile.handle}
+          posts={posts}
           isOwner={view.isOwner}
+          signedIn={view.signedIn}
           hasBio={view.profile.bio.length > 0}
         />
       </div>
