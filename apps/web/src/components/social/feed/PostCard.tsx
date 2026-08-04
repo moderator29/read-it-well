@@ -22,6 +22,8 @@ import { PostGlyph } from "./PostGlyph";
  */
 
 export type PostAuthor = {
+  /** The real user id. Block and mute need a person, not a post. */
+  id: string;
   handle: string | null;
   displayLabel: string | null;
   avatarPath: string | null;
@@ -310,8 +312,12 @@ export function PostCard({
                 @{post.author.handle}
               </span>
             ) : null}
+            {/* The agent chip is border and ink with no tint.
+                `--nf-brand-primary-soft` is a colour-mix of electric blue at 16
+                per cent, and over a white card on paper it lands in the purple
+                range. The brand carries no purple. */}
             {post.author?.isAgent ? (
-              <span className="shrink-0 rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-brand)] bg-[var(--nf-brand-primary-soft)] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
+              <span className="shrink-0 rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-brand)] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
                 Agent
               </span>
             ) : null}

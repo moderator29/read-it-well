@@ -162,8 +162,8 @@ export async function listMyProposals(): Promise<AreaProposal[]> {
  * same not-found either way, deliberately: distinguishing them would tell a
  * stranger that a private proposal exists.
  */
-export async function getArea(slug: string): Promise<AreaDetail | null> {
-  if (!isSupabaseConfigured()) return null;
+export async function getArea(slug: string): Promise<AreaDetail | null | "unconfigured"> {
+  if (!isSupabaseConfigured()) return "unconfigured";
 
   const session = await resolveSession();
   const supabase =

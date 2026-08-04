@@ -18,7 +18,22 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  */
 type Tab = { href: string; label: string; icon: UiIconName };
 
-export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: string }) {
+export function MobileTabBar({
+  t,
+  active = "/home",
+  unreadNotifications = 0,
+}: {
+  t: Dictionary;
+  active?: string;
+  /**
+   * Unread notifications for this caller. The dock carries no Notifications
+   * destination of its own, because six targets is already the ceiling on a
+   * phone, so the marker sits on Profile, which is where the rail's remaining
+   * destinations live. A dot rather than a number: at this size a numeral is
+   * unreadable, and the job here is only to say "something is in there".
+   */
+  unreadNotifications?: number;
+}) {
   const tabs: Tab[] = [
     { href: "/home", label: t.nav.home, icon: "home" },
     { href: "/search", label: t.nav.explore, icon: "compass" },
@@ -40,12 +55,20 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
       <ul className="flex items-center gap-1 px-1.5 py-1.5">
         {tabs.map((tab) => {
           const isActive = tab.href === active;
+          /* Profile is the way through to notifications on a phone. */
+          const marked = tab.href === "/profile" && unreadNotifications > 0;
           return (
             <li key={tab.href}>
               <Link
                 href={tab.href}
                 aria-current={isActive ? "page" : undefined}
-                aria-label={tab.label}
+                aria-label={
+                  marked
+                    ? `${tab.label}, ${unreadNotifications} unread notification${
+                        unreadNotifications === 1 ? "" : "s"
+                      }`
+                    : tab.label
+                }
                 title={tab.label}
                 className={[
                   "nf-tab-pop flex h-12 w-12 items-center justify-center rounded-full transition-colors",
@@ -56,8 +79,14 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
               >
                 <span className="nf-tab-pop__pill" aria-hidden="true" />
                 {/* Stroked glyph; the active tab draws a heavier line. */}
-                <span className="nf-tab-pop__icon">
+                <span className="nf-tab-pop__icon relative">
                   <UiIcon name={tab.icon} size={22} strokeWidth={isActive ? 2 : 1.8} />
+                  {marked && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute -right-0.5 -top-0.5 block h-2.5 w-2.5 rounded-full border-2 border-[var(--nf-surface-primary)] bg-[var(--nf-brand-primary)]"
+                    />
+                  )}
                 </span>
               </Link>
             </li>

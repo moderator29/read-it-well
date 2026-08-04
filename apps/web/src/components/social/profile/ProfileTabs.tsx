@@ -130,7 +130,7 @@ function EmptyTab({
       {isOwner && (
         <div className="mt-5">
           {hasBio ? (
-            <Link href="/search" className="nf-btn nf-btn--glass">
+            <Link href="/around" className="nf-btn nf-btn--glass">
               Find a place worth talking about
             </Link>
           ) : (

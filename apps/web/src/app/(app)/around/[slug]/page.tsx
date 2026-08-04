@@ -3,6 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/app/PageHeader";
 import { getArea } from "@/lib/social/areas-queries";
+import { getAreaFeed } from "@/lib/social/posts-queries";
+import { POST_COPY } from "@/lib/social/posts-schema";
+import { Feed } from "@/components/social/feed/Feed";
 import { AREA_COPY, AREA_KIND_LABEL } from "@/lib/social/areas-schema";
 import { JoinButton } from "../JoinButton";
 import { ModeratorApply } from "./ModeratorApply";
@@ -16,7 +19,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const detail = await getArea(slug);
-  if (!detail) return { title: "Around" };
+  if (!detail || detail === "unconfigured") return { title: "Around" };
   return {
     title: `Around ${detail.area.name}`,
     description:
@@ -46,9 +49,25 @@ export default async function AreaPage({
 }) {
   const { slug } = await params;
   const detail = await getArea(slug);
+
+  // Two different answers that used to look the same. No keys means the feature
+  // is not switched on; null means this place genuinely is not there. A 404 for
+  // the first one tells the owner we deleted their page.
+  if (detail === "unconfigured") {
+    return (
+      <div className="mx-auto w-full max-w-3xl px-4 pb-24 pt-4 sm:px-6">
+        <PageHeader title="Around" fallback="/around" />
+        <p className="nf-card p-5 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+          Places switch on the moment the platform keys land. Nothing here is a
+          mock up: there is simply nothing to read yet.
+        </p>
+      </div>
+    );
+  }
   if (!detail) notFound();
 
   const { area, viewer, moderators } = detail;
+  const feed = await getAreaFeed(area.id);
   const isModerator = viewer.role === "MODERATOR";
 
   return (
@@ -152,16 +171,24 @@ export default async function AreaPage({
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
           What is happening
         </h2>
-        <div className="nf-card p-6 text-center">
-          <p className="text-sm font-semibold text-[var(--nf-content-primary)]">
-            Nothing has been said here yet.
+        <Feed
+          initial={feed.posts}
+          signedIn={viewer.signedIn}
+          isMember={viewer.member}
+          areaId={area.status === "ACTIVE" ? area.id : undefined}
+          areaName={area.name}
+          emptyMessage={
+            viewer.signedIn ? POST_COPY.emptyFeed : POST_COPY.emptyFeedSignedOut
+          }
+        />
+        {feed.ended && feed.posts.length > 0 ? (
+          <p
+            aria-live="polite"
+            className="mt-5 text-center text-xs text-[var(--nf-content-muted)]"
+          >
+            {POST_COPY.endOfSession}
           </p>
-          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[var(--nf-content-muted)]">
-            {viewer.member
-              ? "You are in. When posting opens here you will be the first to know, and what you say will be the first thing anybody arriving reads."
-              : "Join this place and what people say here will show up for you."}
-          </p>
-        </div>
+        ) : null}
       </section>
 
       {viewer.member && !isModerator && area.status === "ACTIVE" ? (

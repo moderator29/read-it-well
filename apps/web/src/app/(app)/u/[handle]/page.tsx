@@ -73,6 +73,16 @@ export default async function SocialProfilePage({
         />
       )}
 
+      {view.state === "blocked" && (
+        <ProfileNotice
+          icon="shield-check"
+          title="This page is not available to you"
+          body="You blocked this person, so their page stays out of your way. Nothing about this is shown to them."
+          primary={{ href: "/home", label: "Back to home" }}
+          secondary={{ href: "/around", label: "Look around" }}
+        />
+      )}
+
       {view.state === "malformed" && (
         <ProfileNotice
           icon="home-search"

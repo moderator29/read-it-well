@@ -26,11 +26,14 @@ export function AppShell({
   t,
   locale,
   userName,
+  unreadNotifications = 0,
   children,
 }: {
   t: Dictionary;
   locale: Locale;
   userName: string;
+  /** Real unread notification count, resolved on the server by the layout. */
+  unreadNotifications?: number;
   children: React.ReactNode;
 }) {
   const active = usePathname();
@@ -60,7 +63,12 @@ export function AppShell({
 
   return (
     <div className="flex min-h-dvh">
-      <AppRail t={t} active={active} userName={userName} />
+      <AppRail
+        t={t}
+        active={active}
+        userName={userName}
+        unreadNotifications={unreadNotifications}
+      />
 
       {/* Mobile slide-in side navigation: the same rail, as a left drawer. */}
       {drawer && (
@@ -72,7 +80,13 @@ export function AppShell({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
           <div className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)]">
-            <AppRail t={t} active={active} userName={userName} variant="drawer" />
+            <AppRail
+              t={t}
+              active={active}
+              userName={userName}
+              unreadNotifications={unreadNotifications}
+              variant="drawer"
+            />
           </div>
         </div>
       )}
@@ -128,7 +142,9 @@ export function AppShell({
         )}
       </main>
 
-      {!immersive && <MobileTabBar t={t} active={active} />}
+      {!immersive && (
+        <MobileTabBar t={t} active={active} unreadNotifications={unreadNotifications} />
+      )}
       {!immersive && <DesktopDock t={t} active={active} />}
     </div>
   );

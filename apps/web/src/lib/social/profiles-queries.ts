@@ -123,6 +123,13 @@ export type PublicProfileState =
   | { state: "unconfigured"; handle: string }
   /** The handle is not one a person could ever hold. */
   | { state: "malformed"; handle: string }
+  /**
+   * You blocked this person. The page answers as if nobody holds the handle,
+   * because a page that says "you blocked them" is a page that invites you to
+   * unblock them, and blocking is meant to end the conversation rather than
+   * keep offering it back.
+   */
+  | { state: "blocked"; handle: string }
   /** Nobody holds this handle. Offered to the viewer when they have none. */
   | { state: "claimable"; handle: string; canClaim: boolean; signedIn: boolean }
   | {
@@ -193,6 +200,26 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
 
   const row = data as ProfileRow;
   const isOwner = viewerId === row.user_id;
+
+  /*
+   * A block, as far as this route can see it.
+   *
+   * `blocks_select_own` lets a person read only the blocks they made, so this
+   * covers one direction honestly and cannot cover the other: if THEY blocked
+   * ME, the row is invisible to me and nothing in an exposed schema can answer
+   * the question. `private.blocked_with()` does exactly that job inside the
+   * policies on `posts`, but `private` is not a schema PostgREST exposes, so a
+   * server action cannot call it.
+   *
+   * Reported to the lead rather than worked around: the reverse direction needs
+   * either a `public` wrapper over `private.blocked_with`, or the same helper
+   * applied to `social_profiles_select` the way it is already applied to
+   * `posts_select`. Half a block is stated here rather than quietly implied.
+   */
+  if (viewerId && !isOwner && (await viewerBlocked(supabase, viewerId, row.user_id))) {
+    return { state: "blocked", handle };
+  }
+
   const profile = toView(row, isOwner);
 
   const [homeArea, moderatorOf, viewerHandle] = await Promise.all([
@@ -202,6 +229,33 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
   ]);
 
   return { state: "found", profile, isOwner, viewerHandle, homeArea, moderatorOf };
+}
+
+/**
+ * Did the viewer block this person?
+ *
+ * A failure reads as "no block", deliberately. A profile that disappears
+ * because a query wobbled is worse than a profile that stays up, and the
+ * consequence of a false positive here is somebody's page vanishing for no
+ * reason they can see.
+ */
+async function viewerBlocked(
+  supabase: SupabaseClient<Database>,
+  viewerId: string,
+  otherId: string,
+): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from("blocks")
+      .select("other_id")
+      .eq("user_id", viewerId)
+      .eq("other_id", otherId)
+      .maybeSingle();
+    if (error) return false;
+    return Boolean(data);
+  } catch {
+    return false;
+  }
 }
 
 /** The place somebody says is home, when it is one anyone may see. */

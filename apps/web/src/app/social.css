@@ -191,6 +191,41 @@
     margin-top: -2.75rem;
   }
 
+  /*
+   * The wait.
+   *
+   * An inset slab with a highlight crossing it, matching the platform's own
+   * skeleton language. The sweep is driven by a token duration, so reduced
+   * motion collapses it to a still slab rather than needing a second rule.
+   */
+  .nf-social-skeleton {
+    background:
+      linear-gradient(
+          90deg,
+          transparent 0%,
+          color-mix(in oklab, var(--nf-content-muted) 18%, transparent) 50%,
+          transparent 100%
+        )
+        var(--nf-surface-inset);
+    background-size: 200% 100%;
+    animation: nf-social-shimmer 1.4s linear infinite;
+  }
+
+  @keyframes nf-social-shimmer {
+    from {
+      background-position: 140% 0;
+    }
+    to {
+      background-position: -40% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-social-skeleton {
+      animation: none;
+    }
+  }
+
   /* ---------------------------------------------------------- the counts */
 
   /*
