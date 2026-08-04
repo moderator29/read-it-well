@@ -301,10 +301,23 @@ async function run(theme) {
     const propose = await page.goto(`${BASE_URL}/around/new`, { waitUntil: "load" });
     await page.waitForTimeout(WAIT);
     check("suggest a place answers 200", propose !== null && propose.status() === 200);
-    check(
-      "it is a real form, which is what the ring's sixth petal opens",
-      (await page.locator("form, input, select").count()) > 0,
-    );
+    if (paused) {
+      check(
+        "suggest a place is paused with the rest of the layer",
+        (await page.locator("body").innerText()).includes("Around is paused"),
+      );
+    } else {
+      /*
+       * Scoped to the page rather than to the document. The app shell carries a
+       * search field on every screen, so `form, input, select` counted across
+       * the whole document is true even on a page with no form on it, which is
+       * an assertion that passes for the wrong reason.
+       */
+      check(
+        "it is a real form, which is what the ring's sixth petal opens",
+        (await page.locator("main form, main select, main textarea").count()) > 0,
+      );
+    }
 
     /* ---------------------------------------------------- the house rules */
     const strays = await outOfFamily(page);

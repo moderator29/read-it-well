@@ -64,6 +64,28 @@ function nightsLine(nights: number): string {
   return `${nights} ${nights === 1 ? "night" : "nights"}`;
 }
 
+/**
+ * The person actually arriving, when that is not the person who paid.
+ *
+ * Present on a booking made for somebody else. The name and the number ride
+ * on the booking row and are already visible to the payer, the host and an
+ * admin, so putting them in these three emails discloses nothing new to
+ * anybody who receives one.
+ */
+export type ArrivingGuest = {
+  name: string;
+  /** Canonical +234 form, the way the booking stores it. */
+  phone: string;
+};
+
+/** How a guest gets through the gate. Only ever sent to somebody arriving. */
+export type ArrivalAccess = {
+  estateName?: string | null;
+  gateDirections?: string | null;
+  securityPhone?: string | null;
+  accessCode?: string | null;
+};
+
 /** The stay rows every booking email shares, in one order. */
 function stayRows(data: {
   listingTitle: string;
@@ -73,6 +95,7 @@ function stayRows(data: {
   adults?: number;
   children?: number;
   totalMinor?: number;
+  arriving?: ArrivingGuest | null;
 }): ReceiptRow[] {
   const rows: ReceiptRow[] = [
     { label: "Stay", value: data.listingTitle },
@@ -81,9 +104,34 @@ function stayRows(data: {
   ];
   const party = partyLine(data.adults, data.children);
   if (party) rows.push({ label: "Guests", value: party });
+  if (data.arriving) {
+    rows.push({ label: "Arriving", value: data.arriving.name });
+    rows.push({ label: "Their number", value: data.arriving.phone });
+  }
   if (typeof data.totalMinor === "number") {
     rows.push({ label: "Total for the stay", value: money(data.totalMinor), strong: true });
   }
+  return rows;
+}
+
+/**
+ * The gate rows, or an empty list when the host has recorded nothing.
+ *
+ * An empty list renders no block at all rather than a heading over four blank
+ * lines, because a panel with nothing in it reads as a bug and, worse, reads
+ * as though the answer were "no gate".
+ */
+function accessRows(access?: ArrivalAccess | null): ReceiptRow[] {
+  if (!access) return [];
+  const rows: ReceiptRow[] = [];
+  const push = (label: string, value: string | null | undefined, strong?: boolean) => {
+    const trimmed = (value ?? "").trim();
+    if (trimmed.length > 0) rows.push(strong ? { label, value: trimmed, strong } : { label, value: trimmed });
+  };
+  push("Estate", access.estateName);
+  push("Getting in", access.gateDirections);
+  push("Security desk", access.securityPhone);
+  push("Gate code", access.accessCode, true);
   return rows;
 }
 
@@ -98,6 +146,7 @@ export type BookingRequestedData = {
   adults?: number;
   children?: number;
   totalMinor: number;
+  arriving?: ArrivingGuest | null;
 };
 
 /** To the guest, the moment their request is saved. */
@@ -111,6 +160,11 @@ export function bookingRequested(data: BookingRequestedData): EmailMessage {
         paragraph(
           `${hello(data.guestName)} Your booking request has gone to the host and they are reviewing it now. Here is what you asked for.`,
         ) +
+        (data.arriving
+          ? paragraph(
+              `You have booked this for ${data.arriving.name}. Once the host confirms, we will send them their dates and how to get in, and you will get your own copy here.`,
+            )
+          : "") +
         receipt(stayRows(data)) +
         paragraph(
           "Your dates are held while the host reviews. We will email you the moment they confirm.",
@@ -135,6 +189,7 @@ export type BookingRequestedHostData = {
   adults?: number;
   children?: number;
   totalMinor: number;
+  arriving?: ArrivingGuest | null;
 };
 
 /** To the agent who owns the listing. This one asks for an action. */
@@ -151,6 +206,11 @@ export function bookingRequestedHost(data: BookingRequestedHostData): EmailMessa
             who.length > 0 ? who : "A guest"
           } has requested a stay at your listing. The dates are held for you to review, so please confirm or decline as soon as you can.`,
         ) +
+        (data.arriving
+          ? paragraph(
+              `This booking is for somebody else. ${data.arriving.name} is the person who will arrive, and ${data.arriving.phone} is the number to ring at the gate.`,
+            )
+          : "") +
         receipt(stayRows(data)) +
         button("Review the request", appUrl("/agent/bookings")) +
         note("Guests choose hosts who reply quickly, so an early answer helps your listing."),

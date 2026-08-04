@@ -18,15 +18,16 @@ import { isFeatureEnabled, type FeatureKey } from "../flags";
  * them, and that file belongs to the lead. Widening the union is one word. Until
  * it lands, the key is asserted here, in exactly one place, rather than a second
  * flag reader being written beside the first: two implementations of one switch
- * is how a kill switch ends up half thrown. Delete the cast, delete this
- * comment, and the module is a two-line delegation.
+ * is how a kill switch ends up half thrown. The union now lists `social`, so
+ * the cast is gone and this is the two-line delegation it should always have
+ * been.
  *
  * The contract is the platform's own and is not restated: fail OPEN. A missing
  * table, a missing row, a network error or no Supabase config all read as
  * enabled, because flags exist to switch a feature off during an incident and
  * never to gate one on. A row that says false is the only thing that closes it.
  */
-const SOCIAL_KEY = "social" as FeatureKey;
+const SOCIAL_KEY: FeatureKey = "social";
 
 export async function isSocialEnabled(): Promise<boolean> {
   return isFeatureEnabled(SOCIAL_KEY);

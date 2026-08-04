@@ -34,6 +34,36 @@ export function nightsBetween(checkIn: string, checkOut: string): number {
 /** The longest stay the platform accepts, in nights. */
 export const MAX_STAY_NIGHTS = 365;
 
+/**
+ * A Nigerian mobile number in one canonical form, or null when it is not one.
+ *
+ * People type their number six different ways and every one of them is
+ * correct to the person typing it: 0803 123 4567, 08031234567, +234 803 123
+ * 4567, 234 803 123 4567, and the same again with dashes or brackets. A host
+ * reading two bookings should see the same number written the same way, and a
+ * database check constraint can only enforce one shape, so the normalising
+ * happens here, once, and both the form and the server action use it.
+ *
+ * Every Nigerian mobile is ten digits after the country code and begins 7, 8
+ * or 9. That is the whole rule, deliberately no tighter: pinning the second
+ * digit to 0 or 1 is true of every range issued so far and would silently
+ * reject the first person on a range issued next year.
+ */
+export function normalisePhone(raw: string): string | null {
+  const digitsOnly = raw.replace(/[\s()\-.]/g, "");
+  const plus = digitsOnly.startsWith("+");
+  const digits = (plus ? digitsOnly.slice(1) : digitsOnly).replace(/\D/g, "");
+  if (digits.length !== (plus ? digitsOnly.length - 1 : digitsOnly.length)) return null;
+
+  let national: string;
+  if (digits.startsWith("234")) national = digits.slice(3);
+  else if (digits.startsWith("0")) national = digits.slice(1);
+  else national = digits;
+
+  if (!/^[7-9]\d{9}$/.test(national)) return null;
+  return `+234${national}`;
+}
+
 const isoDate = (label: string) =>
   z
     .string({ message: `Pick a ${label} date.` })
@@ -55,6 +85,13 @@ export const reserveInputSchema = z
       .int("Children must be a whole number.")
       .min(0, "Children cannot be negative.")
       .max(10, "Bookings take up to 10 children."),
+    /* The person actually arriving, when that is not the person paying. All
+       three are absent unless the guest turned the toggle on, so an empty
+       string here means the field was shown and left blank, which the refine
+       below treats as the omission it is. */
+    guestName: z.string().max(80, "Use up to 80 characters for their name.").optional(),
+    guestPhone: z.string().max(32, "That number is too long to be a phone number.").optional(),
+    guestEmail: z.string().max(160, "Use up to 160 characters for their email address.").optional(),
   })
   .superRefine((value, ctx) => {
     if (!isRealDate(value.checkIn) || !isRealDate(value.checkOut)) return;
@@ -80,6 +117,45 @@ export const reserveInputSchema = z
         code: "custom",
         path: ["checkOut"],
         message: "Stays can be up to 365 nights. Shorten the dates.",
+      });
+    }
+  })
+  .superRefine((value, ctx) => {
+    /* Naming somebody means giving a way to reach them. A name with no number
+       is worse than no name at all: it tells the security desk who to expect
+       and leaves the host no way to check. The same rule is a check constraint
+       on the table, so this is the courteous half of a guarantee the database
+       keeps regardless. */
+    const name = (value.guestName ?? "").trim();
+    const phone = (value.guestPhone ?? "").trim();
+    const email = (value.guestEmail ?? "").trim();
+    if (name.length === 0 && phone.length === 0 && email.length === 0) return;
+
+    if (name.length < 2) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["guestName"],
+        message: "Give the name of the person arriving, as it appears on their ID.",
+      });
+    }
+    if (phone.length === 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["guestPhone"],
+        message: "Add a phone number the estate gate can ring on arrival.",
+      });
+    } else if (normalisePhone(phone) === null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["guestPhone"],
+        message: "That does not look like a Nigerian mobile number. Try 0803 123 4567.",
+      });
+    }
+    if (email.length > 0 && !/^[^\s@]+@[^\s@.]+\.[^\s@]+$/.test(email)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["guestEmail"],
+        message: "That email address does not look right. Check it, or leave it blank.",
       });
     }
   });
