@@ -74,25 +74,29 @@ export function WalletActions({ locale }: { locale: Locale }) {
 
   return (
     <div>
-      <div className="grid grid-cols-3 gap-2" role="group" aria-label="Wallet actions">
+      {/*
+        The action row.
+
+        This was three identical cards, each carrying a 48px 3D icon tile above
+        its label - visually heavy, and giving the same weight to putting money
+        in as to taking it out. Reference 8 pairs one solid primary against a
+        quiet secondary, text only, sharing a row: the hierarchy tells you what
+        the screen is for before you read a word.
+
+        Adding money is the primary. Withdraw and Transfer are the quiet pair.
+      */}
+      <div className="flex items-center gap-2" role="group" aria-label="Wallet actions">
         {PANELS.map((p) => (
-          <button
+          <Button
             key={p.key}
-            type="button"
+            variant={p.key === "add" ? "primary" : "secondary"}
+            className="flex-1"
             aria-expanded={open === p.key}
             aria-controls={`nf-wallet-panel-${p.key}`}
             onClick={() => setOpen(open === p.key ? null : p.key)}
-            className={`nf-card nf-card--interactive flex flex-col items-center gap-2 px-2 py-4 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)] ${
-              open === p.key
-                ? "shadow-[0_0_24px_rgb(0_102_255_/_0.45),inset_0_0_16px_rgb(0_102_255_/_0.12)]"
-                : ""
-            }`}
           >
-            <span className="h-12 w-12">
-              <BrandIcon name={p.icon} fill />
-            </span>
             {p.label}
-          </button>
+          </Button>
         ))}
       </div>
 

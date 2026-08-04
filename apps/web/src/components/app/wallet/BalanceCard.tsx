@@ -151,19 +151,26 @@ export function BalanceCard({
         </div>
       </div>
 
-      <p className="relative mt-3 text-[var(--nf-content-primary)]">
+      {/*
+        The hero figure. This was already the one two-tone numeral on the whole
+        platform, and it stays two-tone - the kobo just drops further, to the
+        muted ink at 62% of the figure's size, which is the ratio the reference
+        set uses. Bigger, tighter and with the kobo further back reads as one
+        composed number rather than two sizes of text.
+      */}
+      <p className="nf-numeric relative mt-3 leading-none text-[var(--nf-content-primary)]">
         {hidden ? (
-          <span className="text-[2.25rem] font-bold leading-none tracking-tight sm:text-[2.6rem]">
+          <span className="text-[2.5rem] font-bold tracking-[-0.03em] sm:text-[3rem]">
             {"₦"}
             {"••••••"}
           </span>
         ) : (
           <>
-            <span className="text-[2.25rem] font-bold leading-none tracking-tight sm:text-[2.6rem]">
+            <span className="text-[2.5rem] font-bold tracking-[-0.03em] sm:text-[3rem]">
               {"₦"}
               <Odometer value={wholeNaira} className="nf-odometer-figure" />
             </span>
-            <span className="text-[1.25rem] font-semibold text-[var(--nf-content-secondary)] sm:text-[1.4rem]">
+            <span className="text-[1.55rem] font-semibold text-[var(--nf-content-muted)] sm:text-[1.86rem]">
               {kobo}
             </span>
           </>
@@ -173,41 +180,72 @@ export function BalanceCard({
         Naira wallet. Every movement is recorded to the kobo.
       </p>
 
+      {/*
+        Flow tiles. `bg-white/[0.04]` and `border-white/10` were raw literals
+        that inverted badly on paper - a white wash over a white card. They now
+        take the inset surface and the elevation ladder's hairline, so both
+        themes are handled by tokens.
+
+        Money out is painted in the error ink rather than neutral. A ledger
+        where credits are green and debits are the same colour as the label is
+        the exact tell the reference wallets avoid: the eye should be able to
+        find money leaving without reading a sign.
+      */}
       <div className="relative mt-4 grid grid-cols-2 gap-2">
-        <div className="rounded-[var(--nf-radius-md)] border border-white/10 bg-white/[0.04] px-3 py-2">
+        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] px-3 py-2">
           <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
             In, last 30 days
           </p>
-          <p className="mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-success)]">
+          <p className="nf-numeric mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-success)]">
             {hidden ? "••••" : `+${flowIn.whole}${flowIn.kobo}`}
           </p>
         </div>
-        <div className="rounded-[var(--nf-radius-md)] border border-white/10 bg-white/[0.04] px-3 py-2">
+        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] px-3 py-2">
           <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
             Out, last 30 days
           </p>
-          <p className="mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-content-primary)]">
+          <p className="nf-numeric mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-error)]">
             {hidden ? "••••" : `-${flowOut.whole}${flowOut.kobo}`}
           </p>
         </div>
       </div>
 
       {points && (
+        /*
+         * The sparkline.
+         *
+         * Was a bare polyline with its stroke hard-coded to rgb(56 189 248) -
+         * a sky blue that belongs to no token, sits outside the brand family,
+         * and is close to invisible on the light theme's near-white card. It
+         * also carried a permanent glow filter and no area fill, so it read as
+         * a stray scribble rather than a chart.
+         *
+         * It now takes the brand ink through currentColor, so both themes are
+         * handled by one rule, and gains the gradient area fill the reference
+         * chart has under its line. The fill is what turns a line into a chart.
+         */
         <svg
           viewBox="0 0 100 28"
           preserveAspectRatio="none"
           aria-hidden
-          className="nf-wallet-spark relative mt-4 h-9 w-full"
+          className="nf-wallet-spark relative mt-4 h-9 w-full text-[var(--nf-brand-secondary)]"
         >
+          <defs>
+            <linearGradient id="nf-wallet-spark-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="currentColor" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {/* Closed down to the baseline so the gradient has an area to fill. */}
+          <polygon points={`0,28 ${points} 100,28`} fill="url(#nf-wallet-spark-fill)" />
           <polyline
             points={points}
             fill="none"
-            stroke="rgb(56 189 248 / 0.9)"
+            stroke="currentColor"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
-            style={{ filter: "drop-shadow(0 0 5px rgb(56 189 248 / 0.75))" }}
           />
         </svg>
       )}

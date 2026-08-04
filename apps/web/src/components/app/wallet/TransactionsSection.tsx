@@ -166,7 +166,9 @@ function EntryRow({
       className={`flex items-center gap-4 px-4 py-3.5 ${credit ? "nf-tx-in" : "nf-tx-out"}`}
       style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
     >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--nf-radius-md)] border border-white/10 bg-white/[0.05] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06)]">
+      {/* Raw white washes replaced with tokens; they inverted to a white-on-white
+          smear on the light theme. */}
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] shadow-[var(--nf-elev-1-rim)]">
         <span className="h-12 w-12">
           <BrandIcon name={KIND_ICON[entry.kind]} fill />
         </span>
@@ -179,13 +181,26 @@ function EntryRow({
           {KIND_LABEL[entry.kind]} · {entry.reference}
         </span>
       </span>
-      <span className="shrink-0 text-right leading-tight">
+      {/*
+        The amount column.
+
+        Two fixes. It was not tabular, so in a right-aligned stack of naira
+        figures the digits visibly jittered from row to row - the exact thing
+        that makes a finance screen feel amateur, on the one finance screen the
+        product has. And debits were painted in the primary ink, the same colour
+        as the label beside them, so only the sign distinguished money leaving
+        from money arriving. The reference ledgers colour both directions.
+
+        The kobo drops to the muted ink, matching the hero figure above it, so
+        the column reads as one composed number down the whole list.
+      */}
+      <span className="nf-numeric shrink-0 text-right leading-tight">
         <span
-          className={`block text-[0.875rem] font-semibold ${credit ? "text-[var(--nf-state-success)]" : "text-[var(--nf-content-primary)]"}`}
+          className={`block text-[0.875rem] font-semibold ${credit ? "text-[var(--nf-state-success)]" : "text-[var(--nf-state-error)]"}`}
         >
           {credit ? "+" : "-"}
           {amount.whole}
-          {amount.kobo}
+          <span className="font-medium opacity-60">{amount.kobo}</span>
         </span>
         {!settled && (
           <span
