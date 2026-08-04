@@ -8,7 +8,7 @@ import { startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
 import type { ProviderId, ProviderState } from "@/lib/auth/providers";
 import { HEAR_ABOUT_OPTIONS } from "@/lib/auth/signup-options";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 import { AppleMark, GoogleMark, MailMark } from "./ProviderMarks";
 
 const EMPTY: AuthFormState = { ok: false };
@@ -207,14 +207,15 @@ export function AuthPanel({
               </>
             )}
 
-            <button
-              type="submit"
-              disabled={pending}
-              aria-busy={pending || undefined}
-              className="nf-btn nf-btn--primary w-full py-3.5"
-            >
-              {pending ? t.common.loading : isSignUp ? t.common.signUp : t.common.signIn}
-            </button>
+            {/*
+              The label no longer swaps to "Loading" while pending. It stays and
+              dims behind a spinner, so the button keeps its width and the user
+              keeps their place. Height, radius, press feedback and haptics all
+              come from the primitive.
+            */}
+            <Button type="submit" variant="primary" size="lg" full loading={pending}>
+              {isSignUp ? t.common.signUp : t.common.signIn}
+            </Button>
 
             {!isSignUp && (
               <p className="text-center">

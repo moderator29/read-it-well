@@ -1512,7 +1512,12 @@ body {
     font-weight: 650;
     font-size: var(--nf-text-body);
     letter-spacing: -0.005em;
-    border-radius: var(--nf-radius-lg);
+    /*
+     * Pill, not an 18px rounded rectangle. --nf-radius-pill already existed and
+     * was already used by chips; buttons were the odd one out. Every primary CTA
+     * across the fifteen reference screens is a full pill.
+     */
+    border-radius: var(--nf-radius-pill);
     padding: 0.72rem 1.2rem;
     /* Padding alone resolved to 43px, one pixel under the HIG 44pt floor. */
     min-height: 2.75rem;
@@ -1536,13 +1541,75 @@ body {
     z-index: -1;
   }
 
-  .nf-btn:active:not(:disabled) {
-    transform: translateY(1px);
+  /*
+   * Press.
+   *
+   * This was `translateY(1px)` and the primary's ripple and glow lived entirely
+   * on :hover, which means a touch user - the whole App Store audience - got no
+   * feedback at all from any button on the platform. Press is now a scale plus
+   * a shadow compression that springs back, and it is defined once here rather
+   * than negotiated at 140 call sites.
+   */
+  .nf-btn:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: scale(0.965);
   }
-  .nf-btn:disabled {
-    opacity: 0.24;
+
+  /*
+   * One disabled recipe. There were seven different `disabled:opacity-*` values
+   * across the codebase. `aria-disabled` is included so the Button primitive can
+   * keep a control focusable while inert, which is what a form-level disabled
+   * submit should do for screen reader users.
+   */
+  .nf-btn:disabled,
+  .nf-btn[aria-disabled="true"] {
+    opacity: 0.38;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
+  }
+
+  /* Size scale. Three heights exist; nothing else is a button height. */
+  .nf-btn--sm {
+    min-height: 2.5rem;
+    padding: 0.5rem 0.95rem;
+    font-size: var(--nf-text-caption);
+  }
+  .nf-btn--md {
+    min-height: 3rem;
+    padding: 0.72rem 1.2rem;
+  }
+
+  /* Icon-only buttons are square at their size, never a padded rectangle. */
+  .nf-btn--icon {
+    padding: 0;
+    aspect-ratio: 1;
+    width: auto;
+  }
+  .nf-btn--icon.nf-btn--sm {
+    min-width: 2.5rem;
+  }
+  .nf-btn--icon.nf-btn--md {
+    min-width: 3rem;
+  }
+  .nf-btn--icon.nf-btn--lg {
+    min-width: 3.5rem;
+  }
+
+  .nf-btn--full {
+    width: 100%;
+  }
+
+  /*
+   * Loading. The label stays and dims rather than being swapped for the word
+   * "Saving...", which is what all eighteen pending buttons used to do and why
+   * they visibly jumped width mid-press. The spinner takes the leading icon
+   * slot, so the geometry never moves.
+   */
+  .nf-btn[data-loading="true"] {
+    cursor: progress;
+  }
+  .nf-btn[data-loading="true"] .nf-btn__label {
+    opacity: 0.7;
   }
 
   /* ---- primary: the signature gradient with the blue glow ---- */
@@ -1581,8 +1648,65 @@ body {
     box-shadow: 0 0 24px rgb(12 57 239 / 0.45);
     transform: translateY(-1px);
   }
+  /*
+   * The signature ripple fires on press as well as hover, so it finally reaches
+   * touch devices. Hover stays as the desktop bonus it always was.
+   */
+  .nf-btn--primary:active:not(:disabled)::after {
+    transform: translateX(130%);
+    transition: transform 480ms var(--nf-ease-standard);
+  }
   .nf-btn--primary:active:not(:disabled) {
-    transform: translateY(0);
+    transform: scale(0.965);
+    box-shadow: 0 0 6px rgb(12 57 239 / 0.22);
+  }
+
+  /*
+   * ---- danger: the variant that did not exist ----
+   *
+   * Reject, suspend, delete and cancel were being faked with inline
+   * `style={{background: var(--nf-state-error)}}` painted over a blue-sheen
+   * primary, or as red text on neutral glass, and in one case agent Delete was
+   * the lowest-contrast element in its own row. Destructive actions get real
+   * destructive material.
+   */
+  .nf-btn--danger {
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-state-error) 92%, white) 0%,
+      var(--nf-state-error) 100%
+    );
+    border: 1.5px solid color-mix(in oklab, var(--nf-state-error) 70%, transparent);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--nf-state-error) 30%, transparent);
+  }
+  .nf-btn--danger::after {
+    content: none;
+  }
+  .nf-btn--danger:hover:not(:disabled) {
+    box-shadow: 0 0 24px color-mix(in oklab, var(--nf-state-error) 42%, transparent);
+    transform: translateY(-1px);
+  }
+  .nf-btn--danger:active:not(:disabled) {
+    transform: scale(0.965);
+    box-shadow: 0 0 6px color-mix(in oklab, var(--nf-state-error) 22%, transparent);
+  }
+
+  /* Quiet destructive: the confirm step inside a sheet, where a solid red
+     button would shout louder than the decision deserves. */
+  .nf-btn--danger-quiet {
+    background: color-mix(in oklab, var(--nf-state-error) 14%, transparent);
+    color: var(--nf-state-error);
+    border: 1.5px solid color-mix(in oklab, var(--nf-state-error) 34%, transparent);
+    box-shadow: none;
+  }
+  .nf-btn--danger-quiet::after {
+    content: none;
+  }
+  .nf-btn--danger-quiet:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--nf-state-error) 22%, transparent);
   }
 
   /* ---- ghost: translucent white, blue-ice edge on hover ---- */
@@ -1613,9 +1737,41 @@ body {
   }
 
   .nf-btn--lg {
+    min-height: 3.5rem;
     padding: 0.92rem 1.65rem;
     font-size: var(--nf-text-body-lg);
-    border-radius: var(--nf-radius-xl);
+  }
+
+  /*
+   * Spinner.
+   *
+   * No spinner existed anywhere in the codebase. Every pending button swapped
+   * its label for different text, so the button changed width mid-press. This
+   * one occupies the leading icon slot, inherits currentColor, and collapses to
+   * a static ring under reduced motion rather than disappearing.
+   */
+  @keyframes nf-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .nf-spinner {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    opacity: 0.9;
+    animation: nf-spin 620ms linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-spinner {
+      animation: none;
+      border-right-color: currentColor;
+      opacity: 0.45;
+    }
   }
 
   /* Devices without backdrop-filter get a solid body, never a washed out panel. */
@@ -2116,6 +2272,31 @@ body {
   .nf-action-bar__fill {
     flex: 1 1 auto;
     min-width: 0;
+  }
+
+  /*
+   * The pinned variant used by <ActionBar>. Rounds nothing, spans the viewport,
+   * drops its side and bottom borders, and absorbs the home-indicator inset so
+   * the CTA never sits on top of it.
+   */
+  .nf-action-bar-pinned {
+    border-inline: 0;
+    border-bottom: 0;
+    border-radius: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  /* The scrim above it, so content dissolves into the bar instead of hitting a seam. */
+  .nf-action-bar-pinned::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 100% 0;
+    height: 1.75rem;
+    pointer-events: none;
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 0%,
+      transparent 100%
+    );
   }
 
   /*
