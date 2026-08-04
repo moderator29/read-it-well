@@ -129,7 +129,7 @@ export const ha: Dictionary = {
     signInToContinue: "Shiga don ci gaba",
     createAccount: "Ƙirƙiri asusunka",
     signUpToStart: "Fara ganowa cikin ƙasa da minti ɗaya",
-    exploreDemo: "Bincika samfurin",
+    exploreDemo: "Duba da farko",
     orContinue: "ko ci gaba da",
     continueWithEmail: "Ci gaba da Imel",
     continueWithGoogle: "Ci gaba da Google",

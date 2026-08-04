@@ -55,6 +55,7 @@ export type HeldStoryComment = {
   storyHeadline: string | null;
   body: string;
   createdAt: string;
+  holdReason: string | null;
   author: HeldAuthor;
 };
 
@@ -102,7 +103,7 @@ export async function getModerationQueue(): Promise<ModerationQueue> {
       .limit(PAGE),
     db
       .from("story_comments")
-      .select("id, story_id, body, created_at, author_id")
+      .select("id, story_id, body, created_at, hold_reason, author_id")
       .eq("status", "HELD")
       .order("created_at", { ascending: true })
       .limit(PAGE),
@@ -188,6 +189,7 @@ export async function getModerationQueue(): Promise<ModerationQueue> {
       storyHeadline: headlineById.get(row.story_id) ?? null,
       body: row.body,
       createdAt: row.created_at,
+      holdReason: row.hold_reason,
       author: row.author_id ? (authorById.get(row.author_id) ?? noAuthor) : noAuthor,
     })),
     bios: bios.map((row) => ({

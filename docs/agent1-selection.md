@@ -8,6 +8,33 @@ Prepared 2026-08-04 by Agent 1 (Platform Upgrades), from the FULL pool:
 A previous session's 50-item selection was ignored entirely, as instructed.
 This list is mine.
 
+## Status, updated 2026-08-04 after the home, pickers and admin round
+
+Shipped since this list was written, and confirmed against the working tree
+rather than against a report: 1 (reviews write path), 2 (payout accounts),
+3 (`/agent/messages`), 4 (honest notifications), 5 (the unread badge),
+6 (the bookings explainer), 7 (`min_stay_nights`), 8 (constraint-accurate
+refusals), 9 (availability plus the block-dates calendar), 10 (real landing
+numbers), 11 (the contact form), 12 (`max_guests`), 14 (`/agent/reviews`),
+21a (listing text classification), 27 (notification preferences).
+
+Added to the list by this round, ahead of everything still open above, because
+each was a table or a column with an admin write policy and no screen at all:
+
+| # | Item | State |
+|---|---|---|
+| A1 | Home, the overview: Lagos-time greeting, the person's own city, the city card with a lit pin per open place, the trending strip | Shipped |
+| A2 | The occupation and local government pickers, at signup and in settings, with RM020 mapped to a sentence | Shipped |
+| A3 | `/admin/moderation`: held posts, stories, story comments and bios, released or removed with a reason the author reads | Shipped |
+| A4 | `/admin/reference`: the occupation and local government editors | Shipped |
+
+Still open from the ranked 50 below, in order: 13 (`/agent/settings`), 15 to 17
+(power, water, estate access), 18 (book for someone else), 19 (seasons), 20
+(WhatsApp share), 21 (check-in and check-out filters), then Tier C onward. The
+exclusions section still stands: nothing here depends on `pg_cron`.
+
+---
+
 ## How I chose
 
 Six weights, applied in this order.

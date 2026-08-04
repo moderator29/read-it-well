@@ -127,6 +127,7 @@ export default async function AdminModerationPage() {
             <blockquote className="mt-3 whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-3 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
               {comment.body}
             </blockquote>
+            {comment.holdReason ? <Reason text={comment.holdReason} /> : null}
             <p className="mt-2 text-xs">
               <Link
                 href={`/stories/${comment.storyId}`}

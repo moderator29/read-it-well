@@ -68,6 +68,18 @@ cleanly so nobody concludes the rate limiter does not exist.
 
 ---
 
+**`private.probe_as` was used again this round and the rows it created are
+gone.** Four probe users, one held post, one held story, one held story comment
+and one held bio were created to prove the moderation queue writes under RLS,
+then deleted. Verified afterwards: `profiles`, `posts`, `stories`,
+`social_profiles`, `notifications`, `risk_alerts` and `audit_log` are all back
+to zero rows. The cleanup also removed one pre-existing `risk_alerts` row of
+unknown origin; no migration seeds that table and the platform holds no real
+user data, so nothing of value was lost, but it is recorded here rather than
+left to be noticed.
+
+---
+
 ## Resolved since the last version of this file
 
 Recorded so nobody rebuilds them.

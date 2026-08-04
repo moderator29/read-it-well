@@ -130,7 +130,10 @@ export async function decideHeldItem(input: {
     } else {
       const { data, error } = await access.supabase
         .from("story_comments")
-        .update({ status })
+        .update({
+          status,
+          ...(decision === "REMOVE" ? { hold_reason: reason } : { hold_reason: null }),
+        })
         .eq("id", id)
         .eq("status", "HELD")
         .select("id")

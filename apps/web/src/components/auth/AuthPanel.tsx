@@ -91,10 +91,14 @@ export function AuthPanel({
       ) : null}
 
       {/*
-       * Demo entry. Temporary scaffold while the auth environment is not wired:
-       * it drops a short-lived demo cookie and opens the app so the whole
-       * platform can be explored and reviewed. Replace with a real session once
-       * Supabase auth env is in place.
+       * Browse without an account. Anonymous browsing is a product decision,
+       * not a stopgap: the gate belongs in front of value, at save and at book,
+       * never in front of the front door.
+       *
+       * The label used to read "Explore the demo", which broke the house rule
+       * that no UI copy anywhere says demo, sample, preview or not live. The
+       * word was also simply wrong: this opens the real product, with real
+       * listings, and only the writes ask for an account.
        */}
       <Link
         href="/home"
@@ -106,6 +110,9 @@ export function AuthPanel({
         <UiIcon name="sparkle" size={16} />
         {t.auth.exploreDemo}
       </Link>
+      <p className="mt-2 text-center text-[0.75rem] text-[var(--nf-content-muted)]">
+        Browse everything. You only need an account to save, message or book.
+      </p>
 
       <div className="my-5 flex items-center gap-4" aria-hidden="true">
         <span className="h-px flex-1 bg-[var(--nf-border-subtle)]" />

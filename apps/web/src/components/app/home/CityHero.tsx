@@ -22,8 +22,26 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * sizes and the reason the pins can stay purely visual for a screen reader.
  */
 
-/** The band of the artwork the city itself occupies, as fractions of the box. */
-const SAFE = { left: 0.14, right: 0.86, top: 0.24, bottom: 0.82 };
+/**
+ * The band of the artwork a pin may sit in, as fractions of the box.
+ *
+ * Narrower than the card on both axes, and for two different reasons. The top
+ * is clear of the city name and the bottom is clear of the summary line. The
+ * sides are pulled well in because a pin carries a label beside it, and a label
+ * anchored at 88% runs straight off the edge: the first screenshot of this card
+ * had "Lekki Phase 1" half outside the frame.
+ */
+const SAFE = { left: 0.22, right: 0.72, top: 0.32, bottom: 0.84 };
+
+/**
+ * The least vertical distance between two pins, as a fraction of the card.
+ *
+ * Yaba and UNILAG are two kilometres apart, which on a 300 pixel card is eight
+ * pixels, and their labels sat on top of each other. Real geography decides the
+ * ORDER of the pins; this constant decides that two of them are still legible
+ * when the truth puts them in the same place.
+ */
+const MIN_GAP = 0.11;
 
 type PlacedPin = {
   area: HomeArea;
@@ -59,18 +77,34 @@ export function placePins(areas: HomeArea[]): PlacedPin[] {
   const latSpan = maxLat - minLat;
   const lngSpan = maxLng - minLng;
 
-  return placed
-    .map((area, index) => {
+  const pins = placed
+    .map((area) => {
       const xFraction = lngSpan === 0 ? 0.5 : (area.lng - minLng) / lngSpan;
       const yFraction = latSpan === 0 ? 0.5 : (maxLat - area.lat) / latSpan;
+      const x = SAFE.left + xFraction * (SAFE.right - SAFE.left);
       return {
         area,
-        x: (SAFE.left + xFraction * (SAFE.right - SAFE.left)) * 100,
+        x: x * 100,
         y: (SAFE.top + yFraction * (SAFE.bottom - SAFE.top)) * 100,
-        side: (index % 2 === 0 ? "right" : "left") as "left" | "right",
+        // A pin on the right half hangs its label to the left, and the other
+        // way round, so no label can ever reach past the card's edge.
+        side: (x > 0.5 ? "left" : "right") as "left" | "right",
       };
     })
     .sort((a, b) => a.y - b.y);
+
+  // Push each pin down until it clears the one above it. Order is preserved,
+  // so north is still above south; only the spacing is made readable.
+  const gap = MIN_GAP * 100;
+  const floor = SAFE.bottom * 100;
+  for (let index = 1; index < pins.length; index += 1) {
+    const previous = pins[index - 1];
+    const current = pins[index];
+    if (!previous || !current) continue;
+    if (current.y - previous.y < gap) current.y = Math.min(previous.y + gap, floor);
+  }
+
+  return pins;
 }
 
 export function CityHero({
