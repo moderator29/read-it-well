@@ -65,16 +65,25 @@ import {
 } from "./bot-schema";
 
 /*
- * `public.bot_settings` and `private.bot_may_run` are applied to the database
- * and missing from `lib/supabase/database.types.ts`, which is regenerated after
- * a migration rather than before it. Same narrow escape hatch `stories-queries`
- * used for the same reason, in one named place rather than sprinkled: the
- * moment the types are regenerated, both casts come out and nothing else moves.
- * Raised with the lead rather than edited here; that file is theirs.
+ * **`private.bot_may_run` cannot be reached over PostgREST, and that is not a
+ * typing problem.** PostgREST exposes `public` only, so a function in `private`
+ * has no endpoint at all: `consume_rate_limit` and `claim_idempotency` are
+ * reachable because each has a thin `public` wrapper, and this one does not
+ * have one yet. Caught by checking `pg_proc` rather than by trusting that a
+ * generated type would have told me, which it could never have done.
+ *
+ * So the call is made through an untyped client, and **a failure is treated as
+ * a refusal rather than as permission**. Everywhere else in this platform an
+ * infrastructure failure fails OPEN, deliberately, because a rate limiter that
+ * blocks a real person during a wobble is worse than one that misses a count.
+ * This gate is different in kind: behind it is a paid API and a monthly ceiling,
+ * so an unreachable gate is a closed gate. The reason is recorded distinctly, so
+ * "the ceiling is reached" and "the gate could not be asked" never look the same
+ * in `bot_invocations`.
  */
 type Admin = ReturnType<typeof createAdminClient>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const untyped = (client: Admin) => client as any;
+const untypedRpc = (client: Admin) => client as any;
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
@@ -312,13 +321,17 @@ export async function summonBot(input: { postId: string }): Promise<ActionResult
     }, "slow_mode", post.body ?? "");
   }
 
-  const { data: mayRun } = (await untyped(admin).rpc("bot_may_run", {
+  const gate = (await untypedRpc(admin).rpc("bot_may_run", {
     p_user: session.user.id,
-  })) as { data: string | null };
-  const reason: string = typeof mayRun === "string" ? mayRun : "off";
+  })) as { data: string | null; error: unknown };
+  const reason: string = gate.error
+    ? "gate"
+    : typeof gate.data === "string"
+      ? gate.data
+      : "off";
 
   if (reason !== "ok") {
-    const line = BOT_REFUSALS[reason as keyof typeof BOT_REFUSALS] ?? BOT_REFUSALS.off;
+    const line = BOT_REFUSALS[reason as keyof typeof BOT_REFUSALS] ?? BOT_COPY.unconfigured;
     return writeReply(admin, post.id, post.area_id, session.user.id, line, [], null, {
       input: 0,
       output: 0,
@@ -326,11 +339,11 @@ export async function summonBot(input: { postId: string }): Promise<ActionResult
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY ?? "";
-  const { data: settings } = (await untyped(admin)
+  const { data: settings } = await admin
     .from("bot_settings")
     .select("model")
     .limit(1)
-    .maybeSingle()) as { data: { model?: string } | null };
+    .maybeSingle();
   const model = settings?.model ?? "claude-haiku-4-5-20251001";
 
   if (!apiKey) {

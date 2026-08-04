@@ -66,6 +66,16 @@ export type Listing = {
    * restaurants and experiences.
    */
   priceMinor: number;
+  /**
+   * Charged once per stay, on top of the nightly rate, in kobo.
+   *
+   * These exist so the breakdown a guest reads BEFORE booking is the same
+   * arithmetic `reserve()` does after. They were server-only until now, which
+   * meant the panel showed a "Total" that was really the subtotal and then
+   * asked for a larger number at checkout. Absent or zero renders no row.
+   */
+  cleaningMinor?: number;
+  serviceMinor?: number;
   currency: "NGN";
   /**
    * What the price covers. "night" for stays (default), "year" for rentals.

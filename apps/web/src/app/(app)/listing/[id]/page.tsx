@@ -500,6 +500,8 @@ export default async function ListingDetailPage({
       today={today}
       blockedDates={blockedDates}
       priceMinor={listing.priceMinor}
+      cleaningMinor={listing.cleaningMinor ?? 0}
+      serviceMinor={listing.serviceMinor ?? 0}
       capacity={capacityOf(listing)}
     >
       {body}

@@ -52,6 +52,8 @@ const LISTING_SELECT = `
   property_type,
   price_period,
   price_per_night_minor,
+  cleaning_fee_minor,
+  service_fee_minor,
   bedrooms,
   bathrooms,
   max_guests,
@@ -78,6 +80,8 @@ type ListingRow = {
   property_type: string;
   price_period: string;
   price_per_night_minor: number;
+  cleaning_fee_minor: number;
+  service_fee_minor: number;
   bedrooms: number;
   bathrooms: number;
   max_guests: number;
@@ -289,6 +293,13 @@ function mapRow(
     // Kobo per pricePeriod unit, straight from the column. Rentals are always
     // an annual figure, which is what the RENT market and its cards expect.
     priceMinor: row.price_per_night_minor,
+    /* The two figures a guest is charged on top of the nightly rate. They were
+       read by `reserve()` on the server and by nothing the guest could see, so
+       the panel quoted a "Total" that was only the subtotal and then asked for
+       more at checkout. Carrying them here is what lets the breakdown be true
+       before somebody taps. */
+    cleaningMinor: row.cleaning_fee_minor ?? 0,
+    serviceMinor: row.service_fee_minor ?? 0,
     currency: "NGN",
     // The yearly market is rental, shop, office and land. The column is the
     // authority; the kind test is the belt for a row written before the

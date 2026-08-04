@@ -57,6 +57,18 @@ export type StayDatesValue = {
   /** True when the pick is complete, legal and bookable. */
   ready: boolean;
   /** Rate times nights, in kobo. Zero until a full stay is picked. */
+  subtotalMinor: number;
+  /** Charged once per stay. Zero when the host charges neither. */
+  cleaningMinor: number;
+  serviceMinor: number;
+  /**
+   * What the guest will actually be asked for: subtotal plus both fees.
+   *
+   * This used to be the subtotal under the name "total", and the panel printed
+   * it against a row labelled Total while `reserve()` went on to charge
+   * subtotal plus cleaning plus service. The guest saw one number and was
+   * billed a bigger one.
+   */
   totalMinor: number;
 };
 
@@ -66,12 +78,17 @@ export function StayDatesProvider({
   today,
   blockedDates,
   priceMinor,
+  cleaningMinor = 0,
+  serviceMinor = 0,
   capacity,
   children,
 }: {
   today: string;
   blockedDates: string[];
   priceMinor: number;
+  /** Charged once per stay, in kobo. Default zero: most listings charge none. */
+  cleaningMinor?: number;
+  serviceMinor?: number;
   /** The host's declared capacity, or null when the place declares none. */
   capacity: number | null;
   children: React.ReactNode;
@@ -124,9 +141,27 @@ export function StayDatesProvider({
       clash,
       hint,
       ready,
-      totalMinor: nights >= 1 ? priceMinor * nights : 0,
+      subtotalMinor: nights >= 1 ? priceMinor * nights : 0,
+      cleaningMinor: nights >= 1 ? cleaningMinor : 0,
+      serviceMinor: nights >= 1 ? serviceMinor : 0,
+      /* The same sum `reserve()` writes into `total_minor`, and the same order:
+         nights, then the once-per-stay fees. If these two ever disagree the
+         guest is the one who finds out. */
+      totalMinor: nights >= 1 ? priceMinor * nights + cleaningMinor + serviceMinor : 0,
     };
-  }, [adults, capacity, checkIn, checkOut, childCount, clash, nights, priceMinor, today]);
+  }, [
+    adults,
+    capacity,
+    checkIn,
+    checkOut,
+    childCount,
+    clash,
+    cleaningMinor,
+    nights,
+    priceMinor,
+    serviceMinor,
+    today,
+  ]);
 
   return <StayDatesContext.Provider value={value}>{children}</StayDatesContext.Provider>;
 }

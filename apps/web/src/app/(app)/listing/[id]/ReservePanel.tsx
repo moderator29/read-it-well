@@ -145,8 +145,15 @@ export function ReservePanel({
     nights,
     hint,
     ready,
+    subtotalMinor,
+    cleaningMinor,
+    serviceMinor,
     totalMinor,
   } = stay;
+
+  /* Collapsed by default: the total is the decision, and the arithmetic behind
+     it is for the person who wants to check it or compare per night. */
+  const [showPerNight, setShowPerNight] = useState(false);
 
   const fieldError = (key: string): string | undefined =>
     state && !state.ok ? state.fieldErrors?.[key] : undefined;
@@ -411,21 +418,72 @@ export function ReservePanel({
           </div>
         )}
 
-        {/* ---------------------------------------------- price breakdown */}
+        {/* ---------------------------------------------- price breakdown
+            Every figure the guest will be charged, named, before they tap.
+
+            This block used to print the SUBTOTAL against a row labelled
+            "Total", while `reserve()` went on to charge subtotal plus cleaning
+            plus service. The guest read one number and was billed a larger one,
+            and neither fee appeared anywhere on the page.
+
+            The total leads, because that is the number somebody decides on.
+            The per-night figure is one tap away for anybody comparing places,
+            which is the only reason a per-night number is worth printing at
+            all. */}
         {ready && (
-          <dl className="mt-3.5 space-y-1.5 border-t border-[var(--nf-border-subtle)] pt-3.5 text-[0.875rem]">
-            <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
-              <dt>
-                {formatMoney(priceMinor, locale, currency)} &times; {nights}{" "}
-                {nights === 1 ? "night" : "nights"}
-              </dt>
-              <dd className="nf-numeric">{formatMoney(totalMinor, locale, currency)}</dd>
+          <div className="mt-3.5 border-t border-[var(--nf-border-subtle)] pt-3.5">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[1.0625rem] font-bold text-[var(--nf-content-primary)]">
+                <span className="nf-numeric">{formatMoney(totalMinor, locale, currency)}</span>{" "}
+                <span className="text-[0.8125rem] font-medium text-[var(--nf-content-muted)]">
+                  total
+                </span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowPerNight((v) => !v)}
+                aria-expanded={showPerNight}
+                className="relative shrink-0 text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)] before:absolute before:-inset-2 before:content-['']"
+              >
+                {showPerNight ? "Hide the breakdown" : "See per night"}
+              </button>
             </div>
-            <div className="flex items-center justify-between font-semibold text-[var(--nf-content-primary)]">
-              <dt>Total</dt>
-              <dd className="nf-numeric">{formatMoney(totalMinor, locale, currency)}</dd>
-            </div>
-          </dl>
+
+            {showPerNight && (
+              <dl className="mt-2.5 space-y-1.5 text-[0.875rem]">
+                <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
+                  <dt>
+                    {formatMoney(priceMinor, locale, currency)} &times; {nights}{" "}
+                    {nights === 1 ? "night" : "nights"}
+                  </dt>
+                  <dd className="nf-numeric">{formatMoney(subtotalMinor, locale, currency)}</dd>
+                </div>
+                {/* Named separately, never folded into one figure. A guest
+                    comparing two places has to be able to see which of them
+                    charges what. */}
+                {cleaningMinor > 0 && (
+                  <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
+                    <dt>Cleaning</dt>
+                    <dd className="nf-numeric">{formatMoney(cleaningMinor, locale, currency)}</dd>
+                  </div>
+                )}
+                {serviceMinor > 0 && (
+                  <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
+                    <dt>Service charge</dt>
+                    <dd className="nf-numeric">{formatMoney(serviceMinor, locale, currency)}</dd>
+                  </div>
+                )}
+                <div className="flex items-center justify-between border-t border-[var(--nf-border-subtle)] pt-1.5 font-semibold text-[var(--nf-content-primary)]">
+                  <dt>Total</dt>
+                  <dd className="nf-numeric">{formatMoney(totalMinor, locale, currency)}</dd>
+                </div>
+                <p className="pt-0.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
+                  RentMe adds nothing of its own. Every figure here is the
+                  host's.
+                </p>
+              </dl>
+            )}
+          </div>
         )}
 
         {/* ---------------------------------------------------- failures */}

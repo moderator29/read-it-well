@@ -504,3 +504,81 @@ not a description of it.
   dock.
 - Every probe rolled back. `auth.users`, `profiles`, `social_profiles`, `posts`,
   `bot_invocations` and `notifications` all read 0 afterwards.
+
+---
+
+## 10. Round three: the assistant answers
+
+`@rentme` in a post body now produces a reply. The gate the lead built is what
+made it buildable: a ceiling that is only a comment is not a ceiling, and this
+one is a table, a function that returns a reason rather than a boolean, and a
+`cost_minor` column that is actually written.
+
+### 10.1 The loop, and where it is proven
+
+A person writes `@rentme where can I stay around here for a week?`. The post
+lands through the ordinary write path. `summonBot` then runs, after the post
+rather than inside it, so an ordinary sentence never waits on a model call and a
+failed summon can never cost somebody their words. The assistant answers as a row
+in `public.posts` with `author_kind = 'BOT'` and a null author, `kind = 'REPLY'`,
+its citations in `payload`, and an invocation recorded with its real token counts
+and its cost in kobo.
+
+**The owner's requirement is the acceptance test, and it was run against the live
+database inside a rolled back transaction.** A BOT reply was written the way the
+action writes it, and then, as a real second person through `private.probe_as`
+with `set local role authenticated`, it was liked, reposted and replied to. The
+row came back:
+
+```
+author_kind BOT | kind REPLY | depth 1 | root_is_the_question true
+area_inherited true | status LIVE
+like_count 1 | repost_count 1 | reply_count 1
+source_note "Answered from 1 published listing around Yaba."
+invocations 1 | month_to_date_kobo 240
+```
+
+Depth and root filled by `place_post`, the area inherited, the status LIVE
+because `scan_post` ran on the bot's own words like anybody else's, and all three
+counters moved with no special casing anywhere. That is the single-table decision
+paying for itself.
+
+### 10.2 What stops it working today
+
+| # | Severity | Finding | Evidence |
+|---|----------|---------|----------|
+| N18 | **BLOCKER for the summon** | **`private.bot_may_run` cannot be called over PostgREST.** PostgREST exposes `public` only. `consume_rate_limit` and `claim_idempotency` are reachable because each has a thin `public` wrapper; this one has none, so `.rpc("bot_may_run")` has no endpoint to reach and every summon would fall to a refusal | Live `pg_proc`: `private.bot_may_run(p_user uuid)` exists, `public.bot_may_run` does not, while `consume_rate_limit` and `claim_idempotency` each appear in **both** schemas. Found by checking rather than by trusting that a generated type would have said so, which it never could |
+
+**What the lead needs to add**, and it is the same shape as the two wrappers
+already there: `public.bot_may_run(p_user uuid) returns text`, security definer,
+one line delegating to `private.bot_may_run`, `revoke execute from public, anon,
+authenticated` so only the service role can reach it. Nothing in the application
+changes when it lands.
+
+**Until then the action fails CLOSED**, and that is a deliberate departure from
+this platform's usual rule. The rate limiter fails open because a limiter that
+blocks a real person during a wobble is worse than one that misses a count.
+Behind this gate is a paid API and a monthly ceiling, so an unreachable gate is a
+closed gate. The reason is recorded distinctly in `bot_invocations.refused_reason`
+so that "the ceiling is reached" and "the gate could not be asked" never look the
+same in the record.
+
+### 10.3 Also found this round
+
+| # | Severity | Finding | What changed |
+|---|----------|---------|--------------|
+| N19 | SERIOUS, and deliberate | **`public.events` and `public.event_attendees` exist with zero lines of application code.** `find apps/web/src -ipath '*event*'` returns nothing. That is a table with no screen, which is the half the ONE LAW forbids | **Not built, on purpose, and this row is the record of that decision.** Section 6 of this document is the specification the schema was built to, and its own unblocker is not a schema: slice 4 safety proven in production and a named person watching a queue. The `events` flag ships false, so nothing promises a person anything. It stops being harmless the day any surface offers a meetup |
+| N20 | SERIOUS | **`@rentme` would have rendered as a claimable profile.** The mention renderer links every handle to `/u/[handle]`, and `/u/rentme` offered a visitor a "Claim @rentme" button. `private.validate_social_handle` refuses any handle containing `rentme` or `naijafinds` with RM002, so that button walked somebody into a refusal, and it had done so for every such handle since the profile route shipped | `isOfficialHandle` in `profiles-schema.ts`, applied to `canClaim` and to the claimable screen, which now says the name is kept for RentMe and explains what `@rentme` is. The renderer draws `@rentme` as a mark rather than a link. **Deliberately not the whole rule**: `private.reserved_handles` and the ninety day lock on released handles are not readable from a page, and both still surface as the database's own sentence in the editor |
+| N21 | MINOR | **`posts.payload` and `PostView.sourceNote` were read and never written.** The card had rendered a source line since it was built and nothing ever set one, which is the third field on this surface found wired to nothing after `listing` and `editable` | Both carry the assistant's citations now: `payload.source` becomes the line under the answer, `payload.listingIds` resolve through the same listing read as any other card, so a listing taken down since simply is not there |
+| N22 | MINOR | `database.types.ts` had drifted behind the applied schema for the third time, missing `bot_settings`, `events` and `event_attendees` | Regenerated. The escape hatch in `bot-actions.ts` is down to the one RPC, which is N18 and not a typing problem at all |
+
+### 10.4 `residency_source`, and when it stops being harmless
+
+`area_members.residency_source` and `residency_verified_at` are still written by
+nothing, and `RESIDENT` is still offered and shown nowhere: `grep -rn RESIDENT`
+over the application returns exactly one hit, the `AREA_ROLES` tuple. So it is
+schema ahead of product, which is harmless. **It stops being harmless the moment
+any surface shows a resident mark, weights a utility report by residency, or
+tells somebody they can become one**, because every defence in the utility record
+rests on residency being earned and today nothing earns it. Whoever builds the
+first of those three builds the earning path in the same slice.

@@ -743,6 +743,36 @@ export type Database = {
           },
         ]
       }
+      bot_settings: {
+        Row: {
+          daily_ceiling_minor: number
+          enabled: boolean
+          id: boolean
+          model: string
+          monthly_ceiling_minor: number
+          per_person_daily: number
+          updated_at: string
+        }
+        Insert: {
+          daily_ceiling_minor?: number
+          enabled?: boolean
+          id?: boolean
+          model?: string
+          monthly_ceiling_minor?: number
+          per_person_daily?: number
+          updated_at?: string
+        }
+        Update: {
+          daily_ceiling_minor?: number
+          enabled?: boolean
+          id?: boolean
+          model?: string
+          monthly_ceiling_minor?: number
+          per_person_daily?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           agent_id: string
@@ -774,6 +804,119 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_attendees: {
+        Row: {
+          decided_at: string | null
+          event_id: string
+          joined_at: string
+          state: Database["public"]["Enums"]["event_attendance"]
+          user_id: string
+        }
+        Insert: {
+          decided_at?: string | null
+          event_id: string
+          joined_at?: string
+          state?: Database["public"]["Enums"]["event_attendance"]
+          user_id: string
+        }
+        Update: {
+          decided_at?: string | null
+          event_id?: string
+          joined_at?: string
+          state?: Database["public"]["Enums"]["event_attendance"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendees_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          area_id: string
+          attending_count: number
+          blurb: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          capacity: number | null
+          created_at: string
+          edited_at: string | null
+          ends_at: string | null
+          hidden_by: string | null
+          hold_reason: string | null
+          host_id: string
+          id: string
+          post_id: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["event_status"]
+          title: string
+          venue_kind: Database["public"]["Enums"]["event_venue_kind"]
+          venue_label: string
+        }
+        Insert: {
+          area_id: string
+          attending_count?: number
+          blurb?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          capacity?: number | null
+          created_at?: string
+          edited_at?: string | null
+          ends_at?: string | null
+          hidden_by?: string | null
+          hold_reason?: string | null
+          host_id: string
+          id?: string
+          post_id?: string | null
+          starts_at: string
+          status?: Database["public"]["Enums"]["event_status"]
+          title: string
+          venue_kind: Database["public"]["Enums"]["event_venue_kind"]
+          venue_label: string
+        }
+        Update: {
+          area_id?: string
+          attending_count?: number
+          blurb?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          capacity?: number | null
+          created_at?: string
+          edited_at?: string | null
+          ends_at?: string | null
+          hidden_by?: string | null
+          hold_reason?: string | null
+          host_id?: string
+          id?: string
+          post_id?: string | null
+          starts_at?: string
+          status?: Database["public"]["Enums"]["event_status"]
+          title?: string
+          venue_kind?: Database["public"]["Enums"]["event_venue_kind"]
+          venue_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
             referencedColumns: ["id"]
           },
         ]
@@ -2672,6 +2815,9 @@ export type Database = {
       availability_status: "available" | "booked" | "unavailable"
       badge_audience: "AGENT" | "MEMBER"
       booking_status: "PENDING" | "CONFIRMED" | "CANCELLED"
+      event_attendance: "GOING" | "WAITLIST" | "WITHDRAWN"
+      event_status: "DRAFT" | "LIVE" | "HELD" | "CANCELLED" | "REMOVED"
+      event_venue_kind: "PUBLIC_VENUE" | "ESTATE_COMMON" | "ONLINE"
       geopolitical_zone:
         | "north_central"
         | "north_east"
@@ -2892,6 +3038,9 @@ export const Constants = {
       availability_status: ["available", "booked", "unavailable"],
       badge_audience: ["AGENT", "MEMBER"],
       booking_status: ["PENDING", "CONFIRMED", "CANCELLED"],
+      event_attendance: ["GOING", "WAITLIST", "WITHDRAWN"],
+      event_status: ["DRAFT", "LIVE", "HELD", "CANCELLED", "REMOVED"],
+      event_venue_kind: ["PUBLIC_VENUE", "ESTATE_COMMON", "ONLINE"],
       geopolitical_zone: [
         "north_central",
         "north_east",
