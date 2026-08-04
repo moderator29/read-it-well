@@ -60,6 +60,14 @@ export type BookingView = {
   status: "PENDING" | "CONFIRMED" | "CANCELLED";
   /** True when the guest may still call the stay off. */
   cancellable: boolean;
+  /** True once this stay carries a review by this guest. */
+  reviewed: boolean;
+  /**
+   * True when a review can actually be written now. Mirrors the
+   * reviews_insert_own policy, so the control never promises a write the
+   * database would refuse.
+   */
+  reviewable: boolean;
 };
 
 export type BookingGroups = {
@@ -116,6 +124,21 @@ export async function getMyBookings(locale: Locale): Promise<BookingGroups | nul
     ),
   );
 
+  // Which of these stays the guest has already reviewed, in one read. Their own
+  // RLS client only ever returns their own reviews, so this cannot leak another
+  // guest's writing.
+  const reviewedBookingIds = new Set<string>();
+  if (rows.length > 0) {
+    const { data: reviewRows } = await session.supabase
+      .from("reviews")
+      .select("booking_id")
+      .in(
+        "booking_id",
+        rows.map((r) => r.id),
+      );
+    for (const r of reviewRows ?? []) reviewedBookingIds.add(r.booking_id);
+  }
+
   const today = lagosToday();
   const groups: BookingGroups = { upcoming: [], completed: [], cancelled: [] };
 
@@ -138,6 +161,11 @@ export async function getMyBookings(locale: Locale): Promise<BookingGroups | nul
       status: row.status,
       cancellable:
         (row.status === "PENDING" || row.status === "CONFIRMED") && row.check_in > today,
+      reviewed: reviewedBookingIds.has(row.id),
+      reviewable:
+        row.status === "CONFIRMED" &&
+        row.check_out <= today &&
+        !reviewedBookingIds.has(row.id),
     };
     if (row.status === "CANCELLED") groups.cancelled.push(view);
     else if (row.check_out <= today) groups.completed.push(view);

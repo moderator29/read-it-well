@@ -122,6 +122,27 @@ function BookingCard({
               Cancel
             </button>
           )}
+          {/* A finished stay is the only place a review can be written, and the
+              control only appears when the database would actually accept one.
+              Once written, it becomes a way back to what they said rather than
+              an invitation to say it twice. */}
+          {b.reviewable && (
+            <Link
+              href={`/bookings/${b.id}/review`}
+              className="nf-btn nf-btn--primary px-3 py-1.5 text-[0.8125rem]"
+            >
+              Leave a review
+            </Link>
+          )}
+          {b.reviewed && (
+            <Link
+              href={`/bookings/${b.id}/review`}
+              className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+            >
+              <UiIcon name="star" size={14} className="text-[var(--nf-rating)]" />
+              Your review
+            </Link>
+          )}
           <Link
             href={`/listing/${b.listingId}`}
             className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"

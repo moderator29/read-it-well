@@ -85,22 +85,18 @@ function BookingCard({ booking: b }: { booking: Booking }) {
           </span>
           <span className="text-[0.75rem] text-[var(--nf-content-muted)]">total</span>
         </p>
-        {confirmed ? (
-          <Link
-            href={`/listing/${b.listingId}`}
-            className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
-          >
-            View details
-            <UiIcon name="arrow-right" size={14} />
-          </Link>
-        ) : (
-          <Link
-            href={`/listing/${b.listingId}`}
-            className="nf-btn nf-btn--ghost px-3.5 py-2 text-[0.8125rem]"
-          >
-            Leave a review
-          </Link>
-        )}
+        {/* This deck is the signed-out fallback, so nobody reading it has a
+            stay of their own to review. It used to offer "Leave a review" on a
+            past trip and link to the listing, which was a control that could
+            never do what it said. Reviewing lives on a real stay, at
+            /bookings/[id]/review, and is offered there. */}
+        <Link
+          href={`/listing/${b.listingId}`}
+          className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+        >
+          View details
+          <UiIcon name="arrow-right" size={14} />
+        </Link>
       </div>
     </li>
   );

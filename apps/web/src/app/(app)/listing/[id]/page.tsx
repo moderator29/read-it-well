@@ -7,6 +7,7 @@ import { getMessageRepository } from "@/lib/messages/repository";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { formatMoney, formatNumber } from "@naijafinds/i18n";
 import { getBlockedDates } from "@/lib/bookings/queries";
+import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
 import { lagosToday } from "@/lib/bookings/schema";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
@@ -100,6 +101,11 @@ export default async function ListingDetailPage({
    */
   const isPartner = listing.source === "partner";
   const partner = listing.partner;
+
+  // Written reviews for this listing. Public by policy for a PUBLISHED listing,
+  // so this read works for a signed-out visitor too. Partner stock is never
+  // reviewed here, so it is not read for.
+  const reviews = isPartner ? [] : await getListingReviews(listing.id, locale);
 
   // Message agent deep links into the existing thread about this listing when
   // one exists, and otherwise lands on the conversation list. Partner stock has
@@ -371,6 +377,7 @@ export default async function ListingDetailPage({
               <ListingReviews
                 rating={listing.rating}
                 reviewCount={listing.reviewCount}
+                reviews={reviews}
                 locale={locale}
                 t={t}
               />

@@ -39,4 +39,5 @@ next-env.d.ts
 .turbo/
 .vercel/
 scripts/.shots/
+**/.shots/
 .claude/worktrees/
