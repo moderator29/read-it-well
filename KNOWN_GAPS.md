@@ -3,110 +3,98 @@
 Everything deliberately incomplete, with why and what unblocks it. Nothing here
 is hidden behind a passing build.
 
-Last updated: 2026-07-28
+Last updated: 2026-08-04.
+
+**This file had rotted badly and was rewritten.** It was last accurate on
+2026-07-28 and still described a platform with no session layer, no search, no
+rate limiting, no tests and a scaffolded light theme, every one of which had
+been built and shipped since. A gaps file that lists finished work as missing is
+worse than no gaps file, because the next engineer either rebuilds something or
+stops trusting the document. Every claim below was verified against the code on
+the date above.
 
 ---
 
-## Blocking a decision from the owner
+## Genuinely still missing
 
-| Gap | Detail |
-|---|---|
-| **Admin navigation undecided** | Four incompatible admin rails across references 04, 06, 07 and 09 (15, 13, 14 and 16 items). Master Rule 17 freezes navigation, so no admin surface can be built until one wins. See intake C-10. |
-| **NaijaFinds Pro** | A paid tier appears in four references and in no specification document. Recommendation is to defer. Nothing has been built for it. See intake C-11. |
-| **Service fee ownership** | Reference 09 confirms the fee is charged to the guest on top of the nightly rate, but who receives it is undefined, and reference 08 advertises "zero service fees" as a Pro perk. The take rate does not exist. Blocks the settlement model. |
-| **Listing wizard** | Reference 03 has 7 steps, reference 09 has 6 in a different order. Blocks the agent listing build. |
-| **Location model** | Specifications mandate State to LGA to Neighbourhood. No reference contains an LGA field; they use City and Area. Blocks the first migration. |
-| **Reference count** | 11 unique recorded against an owner count of 13 with 3 remaining. Needs reconciling. |
+**No Content Security Policy.** Verified: nothing sets one in `next.config` or
+middleware. It needs a nonce strategy compatible with Next streaming. The other
+security headers are set at the edge. This is the largest outstanding security
+item.
 
----
+**`pg_cron` is not enabled.** It is a Supabase toggle, not code, and attempts to
+enable it have been blocked. Until it lands, three things cannot run on a
+schedule: the stale booking hold sweep (`private.release_stale_booking_holds`,
+which exists and works when called), badge awarding, and the social layer's gist
+expiry. Raise it with the owner rather than engineering around it.
 
-## Incomplete in the shipped code
+**`payout_accounts` has no writer.** Verified: no insert or upsert anywhere in
+`apps/web/src/lib`. The table and its RLS exist. An agent therefore cannot add
+the bank account their earnings would be paid into, so withdrawal-to-bank is
+open at the supply end even though the guest-side wallet loop is closed.
 
-**Authentication.** No session layer. Providers are structured and gated on
-environment variables, and the email action validates on the server, but no
-credential path issues a session. Unconfigured providers render disabled with an
-honest message rather than failing silently. The home route is `noindex` and is
-not access controlled, because there is nothing yet to control.
+**Reviews have no writer.** The table exists and the read path renders. Nothing
+creates a review after a completed stay.
 
-**Discovery.** `/search` is a real route that acknowledges the query and states
-that the engine is next phase. There is no search, no map, no filters, no
-pagination.
+**`getPlatformStats()` returns null on purpose.** The landing reference shows
+figures like "Hotels 5,130+", which are mockup numbers. Publishing invented
+inventory counts is misleading advertising, so the hero cards render label-only
+and gain counts with no redesign once a real aggregate exists.
 
-**Listing data.** `NF_DATA_SOURCE` defaults to `seed`. Seed results carry a
-visible "Sample content" label wherever they render, deliberately not gated on
-`NODE_ENV`, so sample inventory can never appear unlabelled.
+**Several agent workspace routes are still `AgentComingSoon` stubs**:
+`/agent/messages`, `/agent/reviews`, `/agent/analytics`, `/agent/verification`,
+`/agent/settings`. Bookings, earnings, listings and list are real.
 
-**Platform statistics.** `getPlatformStats()` returns null on purpose. The
-landing reference shows figures like "Hotels 5,130+", which are mockup numbers.
-Publishing invented inventory counts is misleading advertising. The hero cards
-render label-only until the aggregate endpoint exists, and gain counts with no
-redesign.
+**No `Accept-Language` negotiation.** Locale resolves from a cookie then falls
+back to English, so a first-time visitor with a Yoruba browser still sees
+English. `lib/locale.ts` carries a comment pointing here.
 
-**Listing imagery.** Cards draw a deterministic gradient with a skyline
-silhouette. No stock photography, because it would misrepresent inventory.
+**No pluralisation rules.** `Intl.PluralRules` is not wired anywhere. Some
+existing copy already needs it: the booking card renders "1 adults, 1 children".
 
----
-
-## Design system
-
-**Light theme is scaffolded, not designed.** Every supplied reference is dark.
-Light tokens exist so components stay token driven, but the theme has had no
-design pass and must not be exposed to users until it does.
-
-**Icon coverage.** 34 vector glyphs cover the built surfaces. The reference pack
-enumerates roughly 192. The rest are authored as needed. See ADR-003 for why the
-raster pack is not the production source.
-
-**Motion.** Entrance, float and pulse only. The full motion system for
-navigation, sheets, map transitions, booking confirmation and AI states is not
-built. Reduced motion is honoured throughout via token collapse.
-
----
-
-## Localisation
-
-**Yoruba, Hausa and Igbo need native review before launch.** Translations are
-functional and use correct diacritics and hooked letters, but marketing copy in
-particular should be rewritten by a native speaker rather than translated
+**Yoruba, Hausa and Igbo need native review before launch.** The translations
+are functional and use correct diacritics and hooked letters, but marketing copy
+in particular should be rewritten by a native speaker rather than translated
 literally. Every locale file carries this warning in its header.
 
-**No `Accept-Language` negotiation.** Locale resolves from cookie then falls back
-to English. A first time visitor from a Yoruba language browser still sees
-English.
+**Motion system is partial.** Entrance, float, reveal and pulse exist. The full
+system for sheets, map transitions and AI states is not built. Reduced motion is
+honoured throughout via token collapse.
 
-**No pluralisation rules yet.** No string currently needs them. `Intl.PluralRules`
-should be wired before the first count-dependent string ships.
-
----
-
-## Security
-
-**No Content Security Policy.** Needs a nonce strategy compatible with Next
-streaming. The other headers are set at the edge.
-
-**Nine high severity advisories remain**, all in the ESLint toolchain via
-`brace-expansion`. Lint-time only, never in the shipped bundle or request path.
-The six that mattered, in `sharp` and `postcss`, are fixed by overrides.
-
-**No rate limiting, bot protection or audit logging.** These arrive with the API.
-There is no endpoint to protect yet.
+**`apps/web/src/lib/security/rate-limit.ts` contains a literal NUL byte**, so
+tooling classifies it as binary and it disappears from `grep` and from GitHub
+code search. The code works; the file is invisible to search. Worth rewriting
+cleanly so nobody concludes the rate limiter does not exist.
 
 ---
 
-## Testing
+## Resolved since the last version of this file
 
-**No test suite yet.** `vitest` is installed and wired but no specs exist. The
-audit currently run before each commit is typecheck plus production build.
-Testing must land with the first business logic, which is authentication. Master
-Rule 71 is not yet satisfied and this is the largest outstanding compliance gap
-in the repository.
+Recorded so nobody rebuilds them.
+
+| Was listed as missing | Reality |
+|---|---|
+| No session layer | `lib/auth/actions.ts` has real `signInWithPassword`, `signUp`, sign-out and Google/Apple OAuth |
+| No search, map, filters or pagination | `/search` has a real engine, `FilterDrawer`, `MapCanvas`, `MapDock` and a square filter opener |
+| Light theme scaffolded, must not be exposed | Fully designed exchange-grade paper twin, shipped, and the default is dark |
+| No rate limiting, bot protection or audit logging | Durable Postgres rate limiting (`private.consume_rate_limit`) plus idempotency records, both fail-open; `audit_log` exists |
+| No test suite | 18 standalone Playwright specs under `apps/web/tests` |
+| Saved is a stub with no write path | `toggleSave` writes `saved_items` under RLS |
+| Seed rows carry a "Sample content" label | Removed. Owner rule: zero sample, preview or demo strings in UI copy |
+| Branch `claude/repo-cleanup-1spitz` conflicts with the rules | Everything is on `main` now, which Vercel deploys |
+| Admin navigation undecided, blocks every admin surface | Decided and built |
+| Listing wizard step count undecided | Built |
+| Location model blocked on LGA | Built on state, city, area |
+| Service fee ownership undefined | Settled: the platform charges NO fees anywhere |
 
 ---
 
-## Repository
+## Still open with the owner
 
-**Branch is named `claude/repo-cleanup-1spitz`**, which conflicts with Master
-Rule 1. The name is fixed by the session harness and needs the owner to move the
-work to a product appropriate branch.
+**Repository is named `read-it-well`**, which does not match the product. Cosmetic,
+but it surprises everyone who clones it.
 
-**Repository is named `read-it-well`**, which does not match the product.
+**`PAYSTACK_SECRET_KEY` in the live environment could not be verified** from
+here; only `.env.example` is visible and it is blank by design. The owner adds
+env keys personally. Payment code is env-guarded and degrades honestly, so a
+missing key is a designed state rather than a crash.

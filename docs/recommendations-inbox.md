@@ -35,7 +35,7 @@ migration set.
 22. [UX] Support flexible date search ("any weekend in August"), because getaway planning starts with a mood and a budget, not a fixed pair of dates.
 23. [UX] Add a recently-viewed rail on home and search, because it is the cheapest re-engagement surface and the data is already captured.
 24. [UX] Build a compare tray for up to three listings side by side, because decision support beats forcing users to juggle tabs on a phone.
-25. [UX] Show a visible countdown hold timer once payment starts, so the database no-double-booking guarantee reads as a fair race rather than a mystery failure.
+25. [UX] Show a visible countdown hold timer once payment starts, so the database no-double-booking guarantee reads as a fair race rather than a mystery failure. DONE 2026-07-30: shipped as `HoldCountdown.tsx` on `/checkout/[bookingId]`, counting down from the booking's `created_at` plus 48 hours.
 26. [UX] Replace confirm dialogs with an undo window on unsave and draft delete, because undo is faster, kinder and less error prone than "are you sure".
 27. [UX] Preserve full search state on back navigation, because losing filters after viewing one listing is the classic mobile discovery rage moment.
 28. [UX] Give the guest picker child ages, not just counts, because capacity and pricing rules will need ages and the schema already models composition.

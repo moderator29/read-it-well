@@ -97,11 +97,11 @@ snapshot above is well out of date):**
 | Notifications | `/notifications` | PARTIAL, real loop (real inbox with Realtime for signed-in users; no unread badge count on the rail or tab bar yet) |
 | AI Assistant | `/assistant`, `/api/assistant` | PARTIAL, real loop (streams from the Claude API with a grounded listing-search tool and persists threads; the sidebar itself still only reads `localStorage`, not the persisted rows, on load) |
 | Support | in-app via Settings | PARTIAL, real loop (FAQ answers instantly; escalation files a real `support_tickets` row; no admin queue, no email) |
-| Saved | `/saved` | STUB (static grid, no write path) |
+| Saved | `/saved` | REAL. `toggleSave` writes `saved_items` under RLS (`lib/saved/actions.ts`), with a device-local shortlist for catalogue rows that cannot be a foreign key. This row said STUB long after it stopped being one |
 | Payments | `/api/paystack/webhook` | DONE as code, BLOCKED on env (webhook verifies signatures and settles the ledger; no key configured yet so nothing has actually charged) |
 | Become an Agent | `/agents`, `/agents/apply`, `/agents/status` | DONE (form posts to a server action that persists under RLS) |
 | Agent dashboard | `/agent/dashboard` | DONE (seed data, labelled sample) |
-| Agent workspace | `/agent/{listings,bookings,messages,reviews,earnings,analytics,verification,settings,list}` | STUB (coming-soon; this is the CRUD gap keeping `listings` at zero rows) |
+| Agent workspace | `/agent/{listings,bookings,messages,reviews,earnings,analytics,verification,settings,list}` | PARTIAL, up from STUB (`listings` and `list` are real, and `bookings`/`earnings` closed 2026-07-30 as real consoles, `BookingsWorkspace.tsx` with Accept/Decline and `EarningsWorkspace.tsx` reading the ledger; `messages`, `reviews`, `analytics`, `verification` and `settings` are still coming-soon stubs) |
 | Site pages | `/about`, `/careers`, `/contact`, `/help`, `/privacy`, `/terms` | DONE |
 
 **Shared packages:** `@naijafinds/design-tokens` (token CSS + TS mirror),
@@ -282,7 +282,7 @@ the three owners unless a `depends` note says otherwise.
 | P3-3 | Agent dashboard (ref 02, 04) | FRONTEND | DONE | none | build | seed data labelled sample |
 | P3-4 | Agent application persisted to DB | BACKEND | DONE | P1-1 | server action | inserts SUBMITTED row under RLS, returns NF-AGT ref |
 | P3-5 | List Apartment 7-step wizard (ref 03) | FRONTEND | BLOCKED | B-12 | build | wizard posts a listing draft |
-| P3-6 | My Listings, Bookings, Messages, Reviews, Earnings, Analytics, Verification, Settings | FRONTEND+BACKEND | BLOCKED | P1-1, B-10 | build | each stub replaced with real data view |
+| P3-6 | My Listings, Bookings, Messages, Reviews, Earnings, Analytics, Verification, Settings | FRONTEND+BACKEND | PARTIAL, up from BLOCKED | P1-1, B-10 | build | My Listings, Bookings and Earnings are real data views now, Bookings and Earnings closed 2026-07-30; Messages, Reviews, Analytics, Verification and Settings remain stubs |
 
 ### Phase 4: Discovery and property detail  (STATUS: PARTIAL)
 
@@ -303,7 +303,7 @@ the three owners unless a `depends` note says otherwise.
 | P5-3 | No double booking (per-night availability, idempotency) | BACKEND | DONE, up from READY | P1-1 | GiST exclusion constraint live; `reserve` translates SQLSTATE 23P01 | concurrent bookings cannot overlap, verified at the database level |
 | P5-4 | Payments ledger + Paystack webhooks (replay-safe) | BACKEND | DONE as code, BLOCKED on env, up from BLOCKED | B-09b, PaymentProvider | `lib/payments/paystack.ts`, `app/api/paystack/webhook/route.ts` | ledger balances derived, never stored; webhook HMAC SHA-512 verified against the raw body, settles `rm-fund-*`/`rm-wd-*` idempotently; `PAYSTACK_SECRET_KEY` has not been supplied yet, so no live charge has happened |
 | P5-5 | Payouts, refunds, chargebacks | BACKEND | LATER | P5-4 | test | settlement rows correct |
-| P5-6 | Release stale PENDING booking holds after 48 hours | BACKEND | PARTIAL (new) | P5-3 | `private.release_stale_booking_holds()` exists and is correct | the function is written, tested by hand and safe to call; `pg_cron` is not installed on the project, so nothing schedules it yet |
+| P5-6 | Release stale PENDING booking holds after 48 hours | BACKEND | PARTIAL | P5-3 | `private.release_stale_booking_holds()` exists and is correct | the function is written, tested by hand and safe to call; as of 2026-07-30 it also releases the calendar nights it wrote (`supabase/migrations/20260730121247_release_stale_booking_holds_calendar.sql`), so an abandoned request no longer locks a listing's calendar forever; `pg_cron` is still not installed on the project, so nothing schedules the function to run |
 
 ### Phase 6: Admin command centre  (STATUS: BLOCKED on B-10)
 
@@ -505,3 +505,36 @@ Checked on every push. A break here fails the change regardless of feature value
   `20260729174306_rls_initplan_and_fk_index`, has no matching file committed
   under `supabase/migrations/` and needs reconciling (see
   `docs/HANDOFF.md` section 9).
+- 2026-07-30 (documentation audit note, entries below not independently
+  re-run against `npm run build`/`npm run typecheck`, verified by reading the
+  source and the applied migrations): closed B1 (nobody could ever be
+  granted `admin`/`super_admin`) with an `admin_bootstrap` allow-list table
+  the signup trigger consults; closed B4 (Google/Apple sign-in buttons wired
+  to nothing) by turning each into a form posting to a server action. Closed
+  B2 (payment initiation orphaned): `PayPanel.tsx` now calls
+  `startCardCheckout`/`payWithWallet`, and `ReservePanel.tsx` sends a
+  successful reserve straight to `/checkout/[bookingId]` as the primary CTA.
+  Closed B3 (`/agent/bookings` and `/agent/earnings` were 11-line stubs):
+  both are real consoles now, `BookingsWorkspace.tsx` with Accept/Decline and
+  `EarningsWorkspace.tsx` reading the ledger. Closed B5 (agent identity
+  documents discarded in the browser): they now upload to a private
+  `agent-documents` bucket and the admin reviewer opens each through a
+  ten-minute signed URL. Closed B6 (`pay_booking_from_wallet` migration not
+  applied): it is applied now, and also fixed to accept a booking that is
+  `PENDING` or `CONFIRMED`-and-unpaid, closing a separate bug where a
+  host-accepted stay could never be paid and `checkout-view.ts` called any
+  `CONFIRMED` booking "paid" regardless of whether money had moved. Full
+  detail in `docs/DEAD_ENDS.md`, rows B1 through B6.
+- 2026-07-30/2026-08-01: every orange, amber, gold, magenta and violet design
+  token was removed from `packages/design-tokens/src/tokens.css` and
+  `src/index.ts`; warning is bright cyan now, stars use a new `--nf-rating`
+  token. Dark became the theme default: the before-paint script no longer
+  falls back to the operating system, only an explicit stored choice moves
+  it, and `system` is written to storage rather than clearing the key. Two
+  visual defects fixed: `PageScene` added 29px of phantom horizontal scroll
+  on five surfaces (`overflow-x-clip`), and a scroll-driven reveal outranked
+  the observer so the first `/search` card sat blurred until scrolled to
+  (fixed with a `data-instant` escape). `BrandIcon`'s `padding: 9%` was
+  resolving against the containing block, not the tile's own size, so every
+  non-fill `BrandIcon` in a sized wrapper rendered as an empty white chip;
+  fixed. Agent stat tiles no longer truncate their labels.
