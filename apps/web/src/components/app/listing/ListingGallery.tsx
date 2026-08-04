@@ -161,7 +161,7 @@ export function ListingGallery({
         aria-label="Back"
         className="absolute left-3 top-3 z-20 grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90 sm:left-4 sm:top-4"
       >
-        <UiIcon name="arrow-left" size={17} />
+        <UiIcon name="arrow-left" size={16} />
       </button>
 
       <ListingActions listingId={listingId} title={title} initialSaved={initialSaved} />

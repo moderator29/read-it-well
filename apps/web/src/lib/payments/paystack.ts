@@ -303,3 +303,36 @@ export async function listBanks(): Promise<PaystackBank[]> {
   );
   return data.map((b) => ({ name: b.name, code: b.code, slug: b.slug }));
 }
+
+export type ResolvedAccount = {
+  accountNumber: string;
+  accountName: string;
+};
+
+/**
+ * Who a NUBAN actually belongs to, straight from the bank.
+ *
+ * This is the single best mis-transfer prevention available and it is how every
+ * Nigerian banking app already behaves: you type ten digits, the real name comes
+ * back, and you check it before you commit. The name is never taken from the
+ * person filing the account, only from here.
+ *
+ * Throws PaystackError when the account cannot be resolved, which callers should
+ * treat as "we could not confirm this account" rather than as an outage.
+ */
+export async function resolveAccountNumber(
+  accountNumber: string,
+  bankCode: string,
+): Promise<ResolvedAccount> {
+  const params = new URLSearchParams({
+    account_number: accountNumber,
+    bank_code: bankCode,
+  });
+  const data = await request<{ account_number: string; account_name: string }>(
+    `/bank/resolve?${params.toString()}`,
+  );
+  return {
+    accountNumber: data.account_number,
+    accountName: data.account_name,
+  };
+}

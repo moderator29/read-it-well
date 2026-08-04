@@ -22,10 +22,24 @@ export type AdminDestination = {
 export const ADMIN_NAV: AdminDestination[] = [
   { key: "overview", href: "/admin", icon: "grid" },
   { key: "flags", href: "/admin/flags", icon: "chat-bubble" },
+  // Held sits with the safety queues and immediately after the message flags,
+  // because a held post is somebody's words stopped mid-sentence and the author
+  // has already been told a person is looking at them.
+  { key: "moderation", href: "/admin/moderation", icon: "sliders" },
   { key: "alerts", href: "/admin/alerts", icon: "bell" },
   { key: "reports", href: "/admin/reports", icon: "search" },
   { key: "applications", href: "/admin/agents", icon: "user" },
   { key: "listings", href: "/admin/listings", icon: "building-apartment" },
   { key: "tickets", href: "/admin/support", icon: "ticket" },
+  // Around sits with the human queues rather than the safety ones: a place
+  // waiting to open is somebody hoping for an answer, not an incident.
+  { key: "social", href: "/admin/social", icon: "compass" },
+  // Standing sits with the human queues: granting a badge by hand is a
+  // judgement about a person, not an incident to clear.
+  { key: "standing", href: "/admin/standing", icon: "star" },
+  // Reference data is the platform's own vocabulary: the occupations and the
+  // local governments every profile picks from. It sits with the switches
+  // because both are settings for the platform rather than queues of people.
+  { key: "reference", href: "/admin/reference", icon: "grid" },
   { key: "switches", href: "/admin/switches", icon: "key" },
 ];

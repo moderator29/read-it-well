@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { NIGERIAN_STATES } from "../data/nigeria";
 
 /**
  * Profile and settings input schemas.
@@ -57,16 +56,22 @@ export const updateProfileSchema = z.object({
       (value) => value === "" || (PHONE_SHAPE_RE.test(value) && phoneDigits(value) >= 10),
       "Enter a phone number like 0803 123 4567, or leave it empty.",
     ),
-  stateCode: z
-    .string()
-    .trim()
-    .optional()
-    .default("")
-    .refine(
-      (value) => value === "" || (NIGERIAN_STATES as readonly string[]).includes(value),
-      "Choose a state from the list, or leave it empty.",
-    ),
 });
+
+/*
+ * There is deliberately no state here.
+ *
+ * `profiles.state_code` carries a foreign key to `public.states (code)`, whose
+ * primary key is the two-letter code, and this form used to post the state's
+ * NAME from a hardcoded list. Every save with a state selected was refused by
+ * the database with 23503 and reported to the person as a generic "we could not
+ * save that just now", so the whole profile form silently stopped working the
+ * moment somebody chose where they live.
+ *
+ * Where somebody is now lives on its own screen, `/settings/place`, alongside
+ * the local government it has to agree with. One question, one place to answer
+ * it, codes on the wire.
+ */
 
 export type UpdateProfileInput = z.input<typeof updateProfileSchema>;
 export type UpdateProfileValues = z.output<typeof updateProfileSchema>;

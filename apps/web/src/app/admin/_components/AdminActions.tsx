@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -72,18 +73,14 @@ function ActionSheet({
 
   useEffect(() => setMounted(true), []);
 
+  /* Escape, the Tab trap, the counted scroll lock and the focus return all
+     come from the one shared implementation. This sheet used to hand-roll the
+     first two of the four and trap nothing. */
+  useOverlay({ open: true, onClose, panelRef, autoFocus: false });
+
   useEffect(() => {
     panelRef.current?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
+  }, []);
 
   if (!mounted) return null;
 

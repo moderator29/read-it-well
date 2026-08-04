@@ -38,7 +38,7 @@ export function DesktopDock({ t, active }: { t: Dictionary; active: string }) {
             title={item.label}
             className="nf-dock__btn"
           >
-            <UiIcon name={item.icon} size={19} strokeWidth={isActive ? 2 : 1.8} />
+            <UiIcon name={item.icon} size={20} />
           </Link>
         );
       })}

@@ -66,7 +66,7 @@ export function RentalPanel({
         href={`/messages/new?listing=${listingId}`}
         className="nf-btn nf-btn--primary mt-4 w-full"
       >
-        <UiIcon name="chat-bubble" size={17} />
+        <UiIcon name="chat-bubble" size={16} />
         Message agent
       </Link>
 

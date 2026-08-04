@@ -46,7 +46,7 @@ export function ModeSwitcher({
         onClick={() => choose(other)}
         className="flex w-full items-center gap-2.5 rounded-[var(--nf-radius-md)] px-3 py-2.5 text-[0.875rem] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] disabled:opacity-60"
       >
-        <BrandIcon name={other === "agent" ? "homes-sparkle" : "user-check"} size={26} />
+        <BrandIcon name={other === "agent" ? "homes-sparkle" : "user-check"} size={24} />
         <span className="flex-1 text-left leading-tight">
           {other === "agent" ? t.agent.mode.switchToAgent : t.agent.mode.switchToPersonal}
           <span className="block text-[0.75rem] font-normal text-[var(--nf-content-muted)]">
@@ -71,7 +71,7 @@ export function ModeSwitcher({
         aria-expanded={open}
         className="nf-chip"
       >
-        <BrandIcon name={current === "agent" ? "homes-sparkle" : "user-check"} size={18} />
+        <BrandIcon name={current === "agent" ? "homes-sparkle" : "user-check"} size={24} />
         {current === "agent" ? t.agent.mode.agent : t.agent.mode.personal}
       </button>
 

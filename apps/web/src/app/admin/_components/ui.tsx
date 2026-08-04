@@ -19,37 +19,45 @@ import { fill, type AdminCommon } from "./copy";
  * them at once, which is what keeps a queue from ending up half translated.
  */
 
-export type Tone = "success" | "warning" | "info" | "danger" | "neutral";
+export type Tone = "approved" | "pending" | "rejected" | "verified" | "neutral";
 
-/** One status vocabulary, one colour vocabulary, across every queue. */
+/**
+ * One status vocabulary, one colour vocabulary, across every queue AND across
+ * the agent's own workspace.
+ *
+ * The two consoles used to disagree about the same row. Admin painted
+ * MORE_INFO_REQUIRED sky blue as "info" while the agent's listings workspace
+ * painted it cyan as "warning", so a listing waiting on the same thing was two
+ * different colours depending on who was looking at it. Everything a decision
+ * is still owed is pending, whatever the wording of the step.
+ */
 export function statusTone(status: string): Tone {
   switch (status) {
     case "open":
     case "SUBMITTED":
     case "UNDER_REVIEW":
+    case "MORE_INFO_REQUIRED":
+    case "reviewing":
     case "pending":
-      return "warning";
+      return "pending";
     case "reviewed":
     case "resolved":
     case "APPROVED":
     case "PUBLISHED":
-      return "success";
-    case "MORE_INFO_REQUIRED":
-    case "reviewing":
-      return "info";
+      return "approved";
     case "REJECTED":
     case "SUSPENDED":
-      return "danger";
+      return "rejected";
     default:
       return "neutral";
   }
 }
 
 const TONE_STYLE: Record<Tone, { background: string; color: string }> = {
-  success: { background: "var(--nf-state-success-surface)", color: "var(--nf-state-success)" },
-  warning: { background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" },
-  info: { background: "var(--nf-state-info-surface)", color: "var(--nf-state-info)" },
-  danger: { background: "var(--nf-state-error-surface)", color: "var(--nf-state-error)" },
+  approved: { background: "var(--nf-status-approved-surface)", color: "var(--nf-status-approved)" },
+  pending: { background: "var(--nf-status-pending-surface)", color: "var(--nf-status-pending)" },
+  rejected: { background: "var(--nf-status-rejected-surface)", color: "var(--nf-status-rejected)" },
+  verified: { background: "var(--nf-status-verified-surface)", color: "var(--nf-status-verified)" },
   neutral: {
     background: "color-mix(in oklab, var(--nf-content-primary) 10%, transparent)",
     color: "var(--nf-content-secondary)",
@@ -139,9 +147,9 @@ export function adminUi(t: Dictionary, locale: Locale) {
       <div className="nf-card p-6 text-center sm:p-8">
         <span
           className="mx-auto grid h-12 w-12 place-items-center rounded-full"
-          style={TONE_STYLE.success}
+          style={TONE_STYLE.approved}
         >
-          <UiIcon name="verified" size={22} strokeWidth={2} />
+          <UiIcon name="verified" size={24} />
         </span>
         <p className="mt-3 text-[1rem] font-semibold text-[var(--nf-content-primary)]">{title}</p>
         <p className="mx-auto mt-1.5 max-w-[44ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -160,9 +168,9 @@ export function adminUi(t: Dictionary, locale: Locale) {
       <div className="nf-card p-6 text-center sm:p-8">
         <span
           className="mx-auto grid h-12 w-12 place-items-center rounded-full"
-          style={TONE_STYLE.warning}
+          style={TONE_STYLE.pending}
         >
-          <UiIcon name="bell" size={22} strokeWidth={2} />
+          <UiIcon name="bell" size={24} />
         </span>
         <p className="mt-3 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
           {c.unavailableTitle}
@@ -210,9 +218,9 @@ export function adminUi(t: Dictionary, locale: Locale) {
         <span
           aria-hidden="true"
           className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full"
-          style={pass ? TONE_STYLE.success : TONE_STYLE.warning}
+          style={pass ? TONE_STYLE.approved : TONE_STYLE.pending}
         >
-          <UiIcon name={pass ? "verified" : "bell"} size={12} strokeWidth={2.4} />
+          <UiIcon name={pass ? "verified" : "bell"} size={12} />
         </span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className="block text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">

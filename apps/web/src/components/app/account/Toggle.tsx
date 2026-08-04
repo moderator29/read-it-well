@@ -43,7 +43,13 @@ export function Toggle({
         aria-labelledby={labelId}
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative h-7 w-12 shrink-0 cursor-pointer rounded-full border transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 ${
+        /* The switch is drawn at 28px because a 44px pill would look like a
+           button, but it must still be a 44px target. `nf-tap` is the platform
+           way of saying that: an invisible pseudo-element centred over the
+           control, at least 44 in each axis. This row used to hand-roll the
+           same trick in Tailwind `before:` utilities, which worked and which
+           nothing else copied. */
+        className={`nf-tap h-7 w-12 shrink-0 cursor-pointer rounded-full border transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 ${
           checked
             ? "border-transparent bg-[var(--nf-brand-primary)]"
             : "border-[var(--nf-border-subtle)] bg-[color-mix(in_oklab,var(--nf-content-primary)_10%,transparent)]"

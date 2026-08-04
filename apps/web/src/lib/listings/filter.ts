@@ -35,6 +35,8 @@ export type ListingFacts = {
   priceMinor: number;
   bedrooms: number;
   bathrooms: number;
+  /** The host's declared capacity, where the source carries one. */
+  maxGuests?: number;
   amenities: string[];
   instantBook: boolean;
   verified: boolean;
@@ -47,6 +49,7 @@ export function factsOf(l: Listing): ListingFacts {
     priceMinor: l.priceMinor,
     bedrooms: l.bedrooms,
     bathrooms: l.bathrooms,
+    ...(l.maxGuests !== undefined ? { maxGuests: l.maxGuests } : {}),
     amenities: l.amenities,
     instantBook: l.instantBook,
     verified: l.verified,
@@ -58,23 +61,24 @@ export function factsOf(l: Listing): ListingFacts {
  * How many people a place takes, or null when that is not a knowable thing
  * about it.
  *
- * The catalogue has no sleeps column, so capacity is derived: two guests per
- * bedroom, the convention every lodging site uses when a host has not stated a
- * number. A listing with no bedrooms is not a small place, it is a place where
- * bedrooms are the wrong unit (a restaurant table, a day trip), so it reports
- * no capacity and a party size never rules it out.
+ * The host's own number wins whenever the source states one. Agent inventory
+ * always states one: `listings.max_guests` is collected at step 5 of the
+ * listing wizard, is checked above zero in the database, and is the number the
+ * agent will hold a guest to at the gate. Deriving a different figure from
+ * bedroom count and showing that instead was a straightforward lie about
+ * somebody else's property, and it also hid four-guest flats from a search for
+ * four guests whenever the host had put them in two bedrooms.
+ *
+ * Where no number is declared (the seed catalogue), capacity falls back to two
+ * guests per bedroom, the convention every lodging site uses when a host has
+ * not said. A listing with neither a declared capacity nor a bedroom is not a
+ * small place, it is a place where bedrooms are the wrong unit (a restaurant
+ * table, a day trip), so it reports no capacity and a party size never rules
+ * it out.
  */
 export function sleeps(facts: ListingFacts): number | null {
+  if (facts.maxGuests !== undefined && facts.maxGuests > 0) return facts.maxGuests;
   return facts.bedrooms > 0 ? facts.bedrooms * 2 : null;
-}
-
-/**
- * The bedroom count a party of `guests` implies, for pushing the same rule
- * into SQL. The inverse of `sleeps`, rounded up so four guests need two
- * bedrooms rather than one and a half.
- */
-export function bedroomsForGuests(guests: number): number {
-  return Math.ceil(guests / 2);
 }
 
 /** Only first-party inventory that passed admission carries verification. */

@@ -26,6 +26,8 @@ export type ProfileView = {
   nickname: string;
   phone: string;
   stateCode: string;
+  /** State, local government and occupation resolved to their names. */
+  place: PlaceView;
   avatarUrl: string;
   /** ISO timestamp of the profile row, the honest member-since. */
   memberSince: string;
@@ -50,7 +52,7 @@ export async function loadProfileState(): Promise<ProfileState> {
   const { data: row, error } = await supabase
     .from("profiles")
     .select(
-      "display_name, first_name, surname, nickname, avatar_url, phone, state_code, created_at, settings",
+      "display_name, first_name, surname, nickname, avatar_url, phone, state_code, lga_code, occupation_code, created_at, settings",
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -61,6 +63,18 @@ export async function loadProfileState(): Promise<ProfileState> {
   // Rows created by the signup trigger before the identity columns existed
   // carry only a display_name, so fall back to splitting it.
   const split = splitDisplayName(row.display_name);
+
+  const [stateRow, lgaRow, occupationRow] = await Promise.all([
+    row.state_code
+      ? supabase.from("states").select("name").eq("code", row.state_code).maybeSingle()
+      : Promise.resolve({ data: null }),
+    row.lga_code
+      ? supabase.from("local_governments").select("name").eq("code", row.lga_code).maybeSingle()
+      : Promise.resolve({ data: null }),
+    row.occupation_code
+      ? supabase.from("occupations").select("name").eq("code", row.occupation_code).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
 
   const [trips, saved, reviews] = await Promise.all([
     readCount(
@@ -88,6 +102,11 @@ export async function loadProfileState(): Promise<ProfileState> {
       nickname: row.nickname ?? "",
       phone: row.phone ?? "",
       stateCode: row.state_code ?? "",
+      place: {
+        stateName: stateRow.data?.name ?? "",
+        lgaName: lgaRow.data?.name ?? "",
+        occupationName: occupationRow.data?.name ?? "",
+      },
       avatarUrl: row.avatar_url ?? "",
       memberSince: row.created_at,
       settings,
@@ -96,10 +115,24 @@ export async function loadProfileState(): Promise<ProfileState> {
   };
 }
 
+/** The three reference answers, resolved to the names a person recognises. */
+export type PlaceView = {
+  stateName: string;
+  lgaName: string;
+  occupationName: string;
+};
+
+const EMPTY_PLACE_VIEW: PlaceView = { stateName: "", lgaName: "", occupationName: "" };
+
 export type SettingsState =
   | { state: "unconfigured" }
   | { state: "signed-out" }
-  | { state: "signed-in"; email: string; settings: ResolvedProfileSettings };
+  | {
+      state: "signed-in";
+      email: string;
+      settings: ResolvedProfileSettings;
+      place: PlaceView;
+    };
 
 export async function loadSettingsState(): Promise<SettingsState> {
   const session = await resolveSession();
@@ -108,14 +141,40 @@ export async function loadSettingsState(): Promise<SettingsState> {
 
   const { data: row } = await session.supabase
     .from("profiles")
-    .select("settings")
+    .select("settings, state_code, lga_code, occupation_code")
     .eq("id", session.user.id)
     .maybeSingle();
+
+  const [stateRow, lgaRow, occupationRow] = await Promise.all([
+    row?.state_code
+      ? session.supabase.from("states").select("name").eq("code", row.state_code).maybeSingle()
+      : Promise.resolve({ data: null }),
+    row?.lga_code
+      ? session.supabase
+          .from("local_governments")
+          .select("name")
+          .eq("code", row.lga_code)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    row?.occupation_code
+      ? session.supabase
+          .from("occupations")
+          .select("name")
+          .eq("code", row.occupation_code)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
 
   return {
     state: "signed-in",
     email: session.user.email ?? "",
     settings: parseSettings(row?.settings ?? {}),
+    place: {
+      ...EMPTY_PLACE_VIEW,
+      stateName: stateRow.data?.name ?? "",
+      lgaName: lgaRow.data?.name ?? "",
+      occupationName: occupationRow.data?.name ?? "",
+    },
   };
 }
 

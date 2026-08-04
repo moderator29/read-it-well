@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@naijafinds/i18n";
@@ -147,19 +148,12 @@ function WalletDrawer({
     setMounted(true);
   }, []);
 
+  useOverlay({ open, onClose, panelRef, autoFocus: false });
+
   useEffect(() => {
     if (!open) return;
     panelRef.current?.focus();
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open || !mounted) return null;
 
@@ -180,7 +174,7 @@ function WalletDrawer({
             onClick={onClose}
             className="nf-icon-btn h-10 w-10"
           >
-            <UiIcon name="close" size={18} />
+            <UiIcon name="close" size={16} />
           </button>
           <span className="h-13 w-13">
             <BrandIcon name={icon} fill />
@@ -489,7 +483,7 @@ function BalanceLine({ balanceMinor, locale }: { balanceMinor: number; locale: L
       Available balance{" "}
       <span className="nf-numeric font-semibold text-[var(--nf-content-primary)]">
         {"₦"}
-        <Odometer value={wholeNaira} suffix={amount.kobo} />
+        <Odometer value={wholeNaira} locale={locale} suffix={amount.kobo} />
       </span>
     </p>
   );

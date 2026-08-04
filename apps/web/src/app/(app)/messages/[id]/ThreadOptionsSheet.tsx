@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { SAFETY_EDUCATION_COPY } from "@/lib/messages/education";
@@ -61,15 +62,11 @@ export function ThreadOptionsSheet({
 }) {
   const panelRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    panelRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  /* Escape, the focus trap, the scroll lock and returning focus to the trigger,
+     in one place. This sheet handled Escape by hand and let the page scroll
+     behind it, which on a phone means flicking to dismiss and watching the
+     conversation underneath move instead. */
+  useOverlay({ open, onClose, panelRef });
 
   if (!open) return null;
 
@@ -130,14 +127,14 @@ export function ThreadOptionsSheet({
             </p>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {listing.verified ? (
-                <span className="nf-badge nf-badge--success">
-                  <UiIcon name="verified" size={12} strokeWidth={2.1} />
+                <span className="nf-badge nf-badge--verified">
+                  <UiIcon name="verified" size={12} />
                   Verified listing
                 </span>
               ) : (
-                <span className="nf-badge nf-badge--warning">Verification pending</span>
+                <span className="nf-badge nf-badge--pending">Verification pending</span>
               )}
-              {listing.approved && <span className="nf-badge nf-badge--brand">Approved</span>}
+              {listing.approved && <span className="nf-badge nf-badge--approved">Approved</span>}
             </div>
           </div>
         </div>
@@ -154,7 +151,7 @@ export function ThreadOptionsSheet({
 
         {inspected ? (
           <p className="nf-badge nf-badge--success mt-4 w-full justify-center py-2.5 text-[0.8125rem]">
-            <UiIcon name="verified" size={14} strokeWidth={2.1} />
+            <UiIcon name="verified" size={16} />
             {confirmedLabel}
           </p>
         ) : (

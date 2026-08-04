@@ -43,7 +43,7 @@ export function ListingAbout({ paragraphs }: { paragraphs: string[] }) {
           {open ? "Show less" : "Read more"}
           <UiIcon
             name="chevron-down"
-            size={15}
+            size={16}
             className={`transition-transform ${open ? "rotate-180" : ""}`}
           />
         </button>

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Locale, formatRating, formatMoneyGlance } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MapCopy, MapListing } from "./mapTypes";
 
@@ -170,7 +170,7 @@ export function MapDock({
               {listing.rating > 0 && (
                 <span className="nf-numeric flex items-center gap-1 text-[0.75rem] font-semibold text-[var(--nf-content-primary)]">
                   <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />
-                  {listing.rating.toFixed(1)}
+                  {formatRating(listing.rating, locale)}
                   <span className="font-normal text-[var(--nf-content-muted)]">
                     ({listing.reviewCount})
                   </span>
@@ -178,8 +178,8 @@ export function MapDock({
               )}
               {/* Only first party inventory may carry the verified badge. */}
               {listing.verified && !listing.partner && (
-                <span className="nf-badge nf-badge--success">
-                  <UiIcon name="verified" size={11} strokeWidth={2.1} />
+                <span className="nf-badge nf-badge--verified">
+                  <UiIcon name="verified" size={12} />
                   {copy.verified}
                 </span>
               )}
@@ -194,7 +194,7 @@ export function MapDock({
               {hasPrice ? (
                 <>
                   <span className="nf-numeric text-[1.0625rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-                    {formatMoney(listing.priceMinor, locale, listing.currency)}
+                    {formatMoneyGlance(listing.priceMinor, locale, listing.currency)}
                   </span>
                   <span className="text-[0.6875rem] text-[var(--nf-content-muted)]">/ {per}</span>
                 </>
@@ -221,7 +221,6 @@ export function MapDock({
             <UiIcon
               name="heart"
               size={16}
-              strokeWidth={saved ? 2.4 : 1.8}
               className={saved ? "text-[var(--nf-brand-primary)]" : undefined}
             />
           </button>
@@ -232,7 +231,7 @@ export function MapDock({
             data-testid="map-dock-close"
             className="nf-icon-btn h-8 w-8"
           >
-            <UiIcon name="chevron-down" size={16} strokeWidth={2.1} />
+            <UiIcon name="chevron-down" size={16} />
           </button>
         </div>
 

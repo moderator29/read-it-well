@@ -3,6 +3,7 @@ import type { Dictionary, Locale } from "@naijafinds/i18n";
 import type { AgentProfile } from "@/lib/agent/types";
 import { AgentRail } from "./AgentRail";
 import { AgentMobileNav } from "./AgentMobileNav";
+import { getUnreadMessageCount } from "@/lib/agent/messages-queries";
 import { AgentModePill } from "./AgentNav";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
@@ -16,7 +17,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * mode marker and language control. Content padding respects the device safe
  * area so nothing sits under a home indicator.
  */
-export function AgentShell({
+export async function AgentShell({
   t,
   locale,
   active,
@@ -26,12 +27,18 @@ export function AgentShell({
   t: Dictionary;
   locale: Locale;
   active: string;
-  profile: AgentProfile;
+  /** The real agent behind this workspace, or null when nobody is. */
+  profile: AgentProfile | null;
   children: React.ReactNode;
 }) {
+  /* Resolved here rather than per page, so the badge is correct on all ten
+     destinations without every page having to remember to fetch it. Fails soft
+     to zero: a badge is never worth taking a workspace page down for. */
+  const unreadMessages = await getUnreadMessageCount();
+
   return (
     <div className="flex min-h-dvh">
-      <AgentRail t={t} active={active} profile={profile} />
+      <AgentRail t={t} active={active} profile={profile} unreadMessages={unreadMessages} />
 
       <main id="main" className="min-w-0 flex-1">
         <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
@@ -39,7 +46,12 @@ export function AgentShell({
             {/* The way back, always top left: previous screen when there is
                 one in this session, otherwise personal home. */}
             <BackButton fallback="/home" className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
-            <AgentMobileNav t={t} active={active} profile={profile} />
+            <AgentMobileNav
+              t={t}
+              active={active}
+              profile={profile}
+              unreadMessages={unreadMessages}
+            />
 
             <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
               <LogoMark size={30} />
@@ -53,7 +65,7 @@ export function AgentShell({
             <div className="relative flex min-w-0 flex-1 items-center">
               <UiIcon
                 name="search"
-                size={18}
+                size={20}
                 className="pointer-events-none absolute left-3 hidden text-[var(--nf-content-muted)] sm:block"
               />
               <input

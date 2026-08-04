@@ -21,11 +21,19 @@ export function AppRail({
   t,
   active = "/home",
   userName,
+  unreadNotifications = 0,
   variant = "rail",
 }: {
   t: Dictionary;
   active?: string;
   userName: string;
+  /**
+   * Unread notifications for this caller, resolved on the server by the app
+   * layout. `RailItem` has declared `badge?: number` and rendered it since this
+   * component was written, and no item ever set it, so the count existed in the
+   * type and nowhere on screen. Zero renders no badge.
+   */
+  unreadNotifications?: number;
   /**
    * `rail` is the sticky desktop column, hidden below lg. `drawer` renders the
    * same navigation unconditionally for the mobile slide-in, so the IA cannot
@@ -41,12 +49,20 @@ export function AppRail({
     { href: "/search?type=home", label: t.nav.homes, icon: "house" },
     { href: "/search?type=restaurant", label: t.nav.restaurants, icon: "utensils" },
     { href: "/search?type=experience", label: t.nav.experiences, icon: "ticket" },
+    // Around is a place to read, not a category to search, so it closes the
+    // discovery group rather than sitting inside the type filters above it.
+    { href: "/around", label: t.nav.around, icon: "map" },
   ];
 
   const account: RailItem[] = [
     { href: "/bookings", label: t.nav.bookings, icon: "calendar-booking" },
     { href: "/messages", label: t.nav.messages, icon: "chat-bubble" },
-    { href: "/notifications", label: "Notifications", icon: "bell" },
+    {
+      href: "/notifications",
+      label: "Notifications",
+      icon: "bell",
+      ...(unreadNotifications > 0 ? { badge: unreadNotifications } : {}),
+    },
     { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
     { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
     { href: "/profile", label: t.nav.profile, icon: "user" },
@@ -136,7 +152,7 @@ export function AppRail({
         </span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className="block truncate text-[0.875rem] font-semibold">{userName}</span>
-          <span className="nf-badge nf-badge--brand mt-1">{t.agent.mode.personal}</span>
+          <span className="nf-badge nf-badge--neutral mt-1">{t.agent.mode.personal}</span>
         </span>
       </div>
     </aside>

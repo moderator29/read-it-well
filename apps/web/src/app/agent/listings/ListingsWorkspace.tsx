@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Dictionary, type Locale, formatMoneyGlance } from "@naijafinds/i18n";
 import { fill } from "../_copy";
 import {
   deleteListing,
@@ -51,19 +52,11 @@ const GROUPS: Group[] = [
 
 const EDITABLE: ListingStatus[] = ["DRAFT", "MORE_INFO_REQUIRED", "REJECTED"];
 
-function toneStyle(status: ListingStatus): React.CSSProperties {
-  switch (STATUS_TONE[status]) {
-    case "success":
-      return { background: "var(--nf-state-success-surface)", color: "var(--nf-state-success)" };
-    case "warning":
-      return { background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" };
-    case "error":
-      return { background: "var(--nf-state-error-surface)", color: "var(--nf-state-error)" };
-    case "brand":
-      return { background: "var(--nf-state-info-surface)", color: "var(--nf-state-info)" };
-    default:
-      return { background: "var(--nf-surface-raised)", color: "var(--nf-content-secondary)" };
-  }
+/* The badge class, not a hand-written colour pair. Rejected used to be the
+   only status on the platform written as an inline style, which is exactly how
+   a fifth meaning gets into a four-colour system. */
+function toneClass(status: ListingStatus): string {
+  return `nf-badge nf-badge--${STATUS_TONE[status]}`;
 }
 
 type SheetKind = "submit" | "unpublish" | "delete";
@@ -130,18 +123,11 @@ function ConfirmSheet({
   const [unmet, setUnmet] = useState<string[]>([]);
   const copy = t.workspace.sheets[state.kind];
 
+  useOverlay({ open: true, onClose, panelRef: panel, autoFocus: false });
+
   useEffect(() => {
     panel.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
+  }, []);
 
   function run() {
     setError(null);
@@ -264,7 +250,7 @@ function ListingRow({
             <img src={listing.coverUrl} alt="" className="h-full w-full object-cover" />
           ) : (
             <span className="grid h-full w-full place-items-center text-[var(--nf-content-muted)]">
-              <UiIcon name="grid" size={22} />
+              <UiIcon name="grid" size={24} />
             </span>
           )}
         </span>
@@ -272,14 +258,14 @@ function ListingRow({
         <div className="min-w-0 flex-1 leading-tight">
           <div className="flex items-start justify-between gap-2">
             <h3 className="truncate text-[0.9375rem] font-semibold">{listing.title}</h3>
-            <span className="nf-badge shrink-0" style={toneStyle(listing.status)}>
+            <span className={`${toneClass(listing.status)} shrink-0`}>
               {t.workspace.status[listing.status]}
             </span>
           </div>
 
           {(listing.area || listing.city) && (
             <p className="mt-1 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
-              <UiIcon name="location" size={13} className="shrink-0" />
+              <UiIcon name="location" size={12} className="shrink-0" />
               <span className="truncate">
                 {[listing.area, listing.city].filter(Boolean).join(", ")}
               </span>
@@ -289,7 +275,7 @@ function ListingRow({
           <p className="mt-2 flex items-baseline gap-1.5">
             <span className="nf-numeric text-[0.9375rem] font-bold">
               {listing.priceMinor > 0
-                ? formatMoney(listing.priceMinor, locale)
+                ? formatMoneyGlance(listing.priceMinor, locale)
                 : t.guestView.priceToSet}
             </span>
             <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
@@ -318,9 +304,18 @@ function ListingRow({
             className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)]"
           >
             {t.workspace.actions.edit}
-            <UiIcon name="arrow-right" size={14} />
+            <UiIcon name="arrow-right" size={16} />
           </Link>
         )}
+        {/* Closing nights only means anything once a listing is live, so the
+            calendar appears exactly where a guest could otherwise book. */}
+        <Link
+          href={`/agent/listings/${listing.id}/calendar`}
+          className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]"
+        >
+          <UiIcon name="calendar-booking" size={16} />
+          Calendar
+        </Link>
         {editable && (
           <button
             type="button"
@@ -371,7 +366,7 @@ export function ListingsWorkspace({
           className="mx-auto grid h-16 w-16 place-items-center rounded-[var(--nf-radius-lg)]"
           style={{ background: "var(--nf-surface-raised)", color: "var(--nf-electric-300)" }}
         >
-          <UiIcon name="house" size={30} />
+          <UiIcon name="house" size={32} />
         </span>
         <h2 className="nf-h3 mt-5">{t.workspace.emptyTitle}</h2>
         <p className="mx-auto mt-2 max-w-[38ch] text-[0.875rem] text-[var(--nf-content-secondary)]">

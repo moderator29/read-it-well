@@ -40,13 +40,15 @@ export const yo: Dictionary = {
     services: "Iṣẹ́ ìsìn",
     properties: "Ohun ìní",
     bookings: "Ìfipamọ́",
-    messages: "Ìránṣẹ́",
+    messages: "Àpótí Ìránṣẹ́",
     wallet: "Àpò owó",
     aiAssistant: "Olùrànlọ́wọ́ AI",
     profile: "Àkọọ́lẹ̀",
     settings: "Ètò",
     explore: "Ṣàwárí",
     saved: "Tí a fipamọ́",
+    around: "Agbègbè",
+    map: "Máàpù",
     primaryLabel: "Àkọ́kọ́",
     accountLabel: "Àkàǹtì",
   },
@@ -187,6 +189,8 @@ export const yo: Dictionary = {
       personalDesc: "Ṣawari ki o si fi awọn ibi iyanu pamọ jákèjádò Nàìjíríà.",
       agentDesc: "Ṣakoso atokọ, ìfipamọ́, onibara àti èrè rẹ.",
       verifiedAgent: "Aṣojú Tí Fọwọ́sí",
+      visitor: "O kò wọlé gẹ́gẹ́ bí aṣojú",
+      signInToWorkspace: "Wọlé",
       workspaceLabel: "Ibi iṣẹ́ aṣojú",
       notApproved: "Ìbéèrè aṣojú rẹ wa labẹ atunyẹwo.",
     },
@@ -195,7 +199,7 @@ export const yo: Dictionary = {
       myListings: "Atokọ Mi",
       listApartment: "Ṣàtòjọ Fúláàtì",
       bookings: "Ìfipamọ́",
-      messages: "Ìránṣẹ́",
+      messages: "Àpótí Ìránṣẹ́",
       reviews: "Àtúnyẹ̀wò",
       earnings: "Èrè",
       analytics: "Ìtúpalẹ̀",
@@ -280,6 +284,19 @@ export const yo: Dictionary = {
       reviewNote: "Ẹgbẹ́ wa máa ń ṣàyẹ̀wò àwọn ìbéèrè láàrin wákàtí 24 sí 48.",
       backHome: "Padà sí ilé",
       enterAgent: "Wọ Ipo Aṣojú",
+      signedOutTitle: "Wọlé láti rí ìbéèrè rẹ",
+      signedOutBody:
+        "Ìbéèrè rẹ àti nọ́mbà rẹ̀ so mọ́ àkántì rẹ, nítorí náà a gbọ́dọ̀ mọ ẹni tí o jẹ́ kí a tó fi wọ́n hàn.",
+      signIn: "Wọlé",
+      noneTitle: "Kò sí ìbéèrè kankan",
+      noneBody:
+        "O kò tí ì bẹ̀rẹ̀ ìbéèrè láti di aṣojú. Ó máa gba nǹkan bí ìṣẹ́jú mẹ́wàá, o sì nílò ìwé ìdánimọ̀ kan.",
+      startApplication: "Bẹ̀rẹ̀ ìbéèrè aṣojú",
+      unconfiguredTitle: "Ìbéèrè kò tíì ṣí síbí",
+      unconfiguredBody:
+        "Ojú-ìwé yìí máa fi ìbéèrè rẹ gidi hàn ní kété tí àwọn kọ́kọ́rọ́ pèpéle bá dé. Kò sí ohun tí o ti fi ránṣẹ́ tí yóò sọnù.",
+      reviewedOn: "Ìpinnu ní",
+      reviewerNote: "Ohun tí olùyẹ̀wò sọ",
     },
     dashboard: {
       title: "Pátákó Aṣojú",
@@ -319,6 +336,7 @@ export const yo: Dictionary = {
         photos: "Àwòrán",
         location: "Ibùdó",
         amenities: "Ohun ìrọ̀rùn",
+        utilities: "Iná àti omi",
         pricing: "Iye",
         guestView: "Ojú àlejò",
         submit: "Fífiránṣẹ́",
@@ -369,6 +387,9 @@ export const yo: Dictionary = {
         label: "Ilé yíyà",
         blurb: "Ilé tí a yá lọ́dọọdún. Iye rẹ̀ fún ọdún kan, a yẹ̀ ẹ́ wò kí a tó san owó.",
       },
+      shop: { label: "Ṣọ́ọ̀bù", blurb: "Àyè ìtajà tí a yá lọ́dọọdún." },
+      office: { label: "Ọ́fíìsì", blurb: "Àyè iṣẹ́ tí a yá lọ́dọọdún." },
+      land: { label: "Ilẹ̀", blurb: "Ilẹ̀ kan, owó rẹ̀ jẹ́ ti ọdún." },
     },
 
     photos: {
@@ -662,6 +683,8 @@ export const yo: Dictionary = {
       settled: "Owó ti wọlé",
       awaiting: "Owó kò tíì wọlé",
       unknown: "A kò lè sọ ipò owó náà báyìí",
+      arriving: "Ẹni tí ó ń dé: {name}",
+      arrivingPhone: "Nọ́mbà ẹnu-ọ̀nà {phone}",
     },
     status: {
       PENDING: "Ń dúró de ìpinnu rẹ",
@@ -758,6 +781,10 @@ export const yo: Dictionary = {
       listings: { label: "Àtúnyẹ̀wò àtòjọ", short: "Àtòjọ" },
       tickets: { label: "Ìtìlẹ́yìn", short: "Ìtìlẹ́yìn" },
       // NATIVE REVIEW: "switch" kept in English, it names a control staff use.
+      social: { label: "Agbègbè", short: "Agbègbè" },
+      standing: { label: "Ipò", short: "Ipò" },
+      moderation: { label: "Dídádúró", short: "Dídádúró" },
+      reference: { label: "Dátà ìtọ́kasí", short: "Ìtọ́kasí" },
       switches: { label: "Switch", short: "Switch" },
     },
 
@@ -824,6 +851,10 @@ export const yo: Dictionary = {
         "Gbogbo àmì ìgbẹ́kẹ̀lé tí RentMe ń mú jáde parí síbí: ohun tí ẹ̀rọ ààbò rí, ohun tí àwọn ọmọ ẹgbẹ́ ròyìn, ẹni tí ó ń dúró de ìfọwọ́sí, àti ohun tí ó ń dúró láti ṣiṣẹ́. Nọ́mbà kọ̀ọ̀kan jẹ́ ìlà tí o lè pé.",
       queueClear: "Ìlà yìí mọ́.",
       tiles: {
+        moderation: {
+          label: "Àkóónú tí a dá dúró",
+          lede: "Àwọn ìfìwéránṣẹ́, ìtàn, àsọyé àti ìtàn ara ẹni tí àyẹ̀wò ààbò dá dúró.",
+        },
         // NATIVE REVIEW: "flag" kept in English, it is the safety scan's own term.
         flags: {
           label: "Flag ìránṣẹ́ tí ó ṣí sílẹ̀",
@@ -1063,6 +1094,9 @@ export const yo: Dictionary = {
         villa: "Villa",
         shortlet: "Shortlet",
         rental: "Ilé yíyà",
+        shop: "Ṣọ́ọ̀bù",
+        office: "Ọ́fíìsì",
+        land: "Ilẹ̀",
       },
       checklistLines: "Ìlà ìyẹ̀wò {count} láti wò",
       checklistLineOne: "Ìlà ìyẹ̀wò kan láti wò",

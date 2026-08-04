@@ -275,27 +275,70 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
   ),
 };
 
+/**
+ * THE SIZE SCALE. A 4px grid from 12 to 32, and nothing between the steps.
+ *
+ * Before this existed the platform rendered stroked glyphs at fifteen different
+ * sizes (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 26 and 30), which
+ * is not a scale, it is an accumulation. Every call site now lands on a step,
+ * and `snapUiIconSize` rounds anything else onto the nearest one so a size can
+ * never drift off the grid again, whatever a future caller passes.
+ */
+export const UI_ICON_SIZES = [12, 16, 20, 24, 28, 32] as const;
+export type UiIconSize = (typeof UI_ICON_SIZES)[number];
+
+/** Nearest step, ties to the larger. Clamped to the ends of the scale. */
+export function snapUiIconSize(size: number): UiIconSize {
+  let best: UiIconSize = UI_ICON_SIZES[0];
+  let bestGap = Number.POSITIVE_INFINITY;
+  for (const step of UI_ICON_SIZES) {
+    const gap = Math.abs(step - size);
+    if (gap <= bestGap) {
+      best = step;
+      bestGap = gap;
+    }
+  }
+  return best;
+}
+
+/**
+ * THE WEIGHT. One weight, expressed as rendered CSS pixels rather than as a
+ * number on the 24 grid.
+ *
+ * `strokeWidth` is measured in the viewBox's own units, so a fixed 1.8 renders
+ * at 1.8 CSS px on a 24px glyph and at 0.9 CSS px on a 12px one. That is why
+ * thirty-two call sites had each hand-tuned their own value between 1.5 and
+ * 2.6: they were compensating for the scaling, one guess at a time, and the
+ * platform ended up with a dozen weights.
+ *
+ * So the weight is stated once, in the unit a reader actually sees, and the
+ * grid number is derived from the size. Every stroked glyph on the platform
+ * renders at exactly this many CSS pixels, at every step of the scale.
+ */
+export const UI_ICON_STROKE_PX = 1.4;
+
 export function UiIcon({
   name,
   size = 16,
-  strokeWidth = 1.8,
   className,
   label,
 }: {
   name: UiIconName;
+  /** A step on the scale. Anything else is snapped onto the nearest one. */
   size?: number;
-  strokeWidth?: number;
   className?: string;
+  /** Accessible name. Omit when a text label sits beside the glyph. */
   label?: string;
 }) {
+  const edge = snapUiIconSize(size);
   return (
     <svg
-      width={size}
-      height={size}
+      width={edge}
+      height={edge}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={strokeWidth}
+      strokeWidth={(UI_ICON_STROKE_PX * 24) / edge}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}

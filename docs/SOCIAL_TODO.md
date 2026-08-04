@@ -1,5 +1,18 @@
 # THE COMPOUND: the social layer, ideology and complete build order
 
+**Superseded by `docs/SOCIAL_DESIGN.md` (the argument) and
+`docs/SOCIAL_BUILD.md` (the build order), 2026-08-04.** Where this document and
+those two disagree, they win. It is kept for the reasoning behind the shape, in
+the same way this document kept `docs/SOCIAL_LAYER.md`.
+
+The five things that changed, and why, are argued in full in
+`docs/SOCIAL_DESIGN.md` section 0. In short: one `posts` table rather than
+`gists` plus `talks`, a third `SYSTEM` author kind that answers the cold start,
+"compound" replaced by "around" because a compound is a different thing in
+Nigerian property, half the lexicon cut, and no nsibidi-derived mark set. Three
+of this document's schema assumptions also fail against the live database:
+`citext`, `postgis` and `pg_cron` are none of them installed.
+
 Companion to `docs/SOCIAL_LAYER.md` (the thinking) and `docs/BADGES.md` (standing).
 That document argued the shape. This one is the build: every table, every policy,
 every action, every screen, every test, in the order they get written.

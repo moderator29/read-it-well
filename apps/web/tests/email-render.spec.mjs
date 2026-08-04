@@ -47,6 +47,7 @@ const sources = {
 
 const wired = {
   "bookings/actions.ts": read(join(LIB_DIR, "bookings", "actions.ts")),
+  "bookings/arrival.ts": read(join(LIB_DIR, "bookings", "arrival.ts")),
   "wallet/actions.ts": read(join(LIB_DIR, "wallet", "actions.ts")),
   "support/actions.ts": read(join(LIB_DIR, "support", "actions.ts")),
 };
@@ -92,6 +93,7 @@ const MESSAGES = [
   "bookingRequested",
   "bookingRequestedHost",
   "bookingConfirmed",
+  "stayArrivalDetails",
   "bookingCancelled",
   "walletFunded",
   "withdrawalFailed",
@@ -131,7 +133,7 @@ check(
 );
 check(
   "the booking emails carry the safety line, and only they do",
-  (sources["email/messages.ts"].match(/GUEST_SAFETY_LINE,/g) ?? []).length === 3 &&
+  (sources["email/messages.ts"].match(/GUEST_SAFETY_LINE,/g) ?? []).length === 4 &&
     (sources["email/messages.ts"].match(/HOST_SAFETY_LINE,/g) ?? []).length === 1 &&
     /pay only after you have inspected/.test(sources["email/messages.ts"]),
 );

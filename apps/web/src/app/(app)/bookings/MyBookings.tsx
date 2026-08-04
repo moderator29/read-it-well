@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
@@ -35,8 +36,8 @@ const EMPTY_COPY: Record<TabKey, string> = {
 };
 
 const STATUS_BADGE: Record<BookingView["status"], { label: string; className: string }> = {
-  PENDING: { label: "Awaiting confirmation", className: "nf-badge--warning" },
-  CONFIRMED: { label: "Confirmed", className: "nf-badge--success" },
+  PENDING: { label: "Awaiting confirmation", className: "nf-badge--pending" },
+  CONFIRMED: { label: "Confirmed", className: "nf-badge--approved" },
   CANCELLED: { label: "Cancelled", className: "" },
 };
 
@@ -68,30 +69,52 @@ function BookingCard({
         </Link>
 
         <div className="min-w-0 flex-1 leading-tight">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-              {b.title}
-            </h3>
-            <span className={`nf-badge shrink-0 ${badge.className}`}>{badge.label}</span>
-          </div>
+          {/* The badge sits ABOVE the title rather than beside it. Sharing the
+              row left the title 90px on a 390px phone, which rendered "Lekki
+              Palm Grove Shortlet" as "Lekki Pa". The name of the stay is the
+              whole point of the card. */}
+          <span className={`nf-badge ${badge.className}`}>{badge.label}</span>
+          <h3 className="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+            {b.title}
+          </h3>
 
+          {/* Wraps rather than clipping: "Marina Waterfront, Calabar" was one
+              pixel over its column and arrived as "Calaba". */}
           {(b.area || b.city) && (
-            <p className="mt-1 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
-              <UiIcon name="location" size={13} className="shrink-0" />
-              <span className="truncate">{[b.area, b.city].filter(Boolean).join(", ")}</span>
+            <p className="mt-1 flex items-start gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
+              <UiIcon name="location" size={12} className="mt-0.5 shrink-0" />
+              <span>{[b.area, b.city].filter(Boolean).join(", ")}</span>
             </p>
           )}
 
           <p className="mt-2.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
-            <UiIcon name="calendar-booking" size={14} className="shrink-0" />
+            <UiIcon name="calendar-booking" size={16} className="shrink-0" />
             {b.dateRange}
           </p>
 
           <p className="mt-1.5 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
-            <UiIcon name="user" size={14} className="shrink-0" />
+            <UiIcon name="user" size={16} className="shrink-0" />
             {b.guests} {b.guests === 1 ? "guest" : "guests"} &middot; {b.nights}{" "}
             {b.nights === 1 ? "night" : "nights"}
           </p>
+
+          {/* Booked for somebody else. The payer needs to see who they named,
+              because it decides where the arrival details land, and a number
+              they typed a month ago is worth being able to check. */}
+          {b.arrivingName && (
+            <p
+              data-testid="booking-arriving"
+              className="mt-1.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]"
+            >
+              Arriving: {b.arrivingName}
+              {b.arrivingPhone && (
+                <>
+                  {" "}
+                  &middot; <span className="nf-numeric">{b.arrivingPhone}</span>
+                </>
+              )}
+            </p>
+          )}
         </div>
       </div>
 
@@ -120,12 +143,33 @@ function BookingCard({
               Cancel
             </button>
           )}
+          {/* A finished stay is the only place a review can be written, and the
+              control only appears when the database would actually accept one.
+              Once written, it becomes a way back to what they said rather than
+              an invitation to say it twice. */}
+          {b.reviewable && (
+            <Link
+              href={`/bookings/${b.id}/review`}
+              className="nf-btn nf-btn--primary px-3 py-1.5 text-[0.8125rem]"
+            >
+              Leave a review
+            </Link>
+          )}
+          {b.reviewed && (
+            <Link
+              href={`/bookings/${b.id}/review`}
+              className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+            >
+              <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
+              Your review
+            </Link>
+          )}
           <Link
             href={`/listing/${b.listingId}`}
             className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
           >
             View details
-            <UiIcon name="arrow-right" size={14} />
+            <UiIcon name="arrow-right" size={16} />
           </Link>
         </span>
       </div>
@@ -147,18 +191,11 @@ function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () =
     null,
   );
 
+  useOverlay({ open: true, onClose, panelRef, autoFocus: false });
+
   useEffect(() => {
     panelRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
+  }, []);
 
   useEffect(() => {
     if (state?.ok) router.refresh();
@@ -280,7 +317,7 @@ export function MyBookings({
             tabIndex={active === tab.key ? 0 : -1}
             onClick={() => setActive(tab.key)}
             className={[
-              "py-2.5 text-[0.875rem] font-medium transition-colors",
+              "min-h-11 py-2.5 text-[0.875rem] font-medium transition-colors",
               active === tab.key
                 ? "text-[var(--nf-content-primary)]"
                 : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",

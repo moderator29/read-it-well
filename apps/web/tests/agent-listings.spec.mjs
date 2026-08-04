@@ -58,8 +58,8 @@ try {
   if (wizardVisible) {
     check("step one is named", await page.locator("text=Basic info").first().isVisible());
     check(
-      "the step counter reads one of seven",
-      await page.locator("text=Step 1 of 7").first().isVisible(),
+      "the step counter reads one of eight",
+      await page.locator("text=Step 1 of 8").first().isVisible(),
     );
     check(
       "the sticky footer offers the way forward",
@@ -81,7 +81,7 @@ try {
     );
     check(
       "the wizard stays on step one",
-      await page.locator("text=Step 1 of 7").first().isVisible(),
+      await page.locator("text=Step 1 of 8").first().isVisible(),
     );
 
     await titleInput.fill("Bright 2 bedroom flat in Lekki Phase 1");
@@ -89,7 +89,34 @@ try {
     await page.waitForTimeout(900);
     check(
       "a good title moves the wizard on",
-      await page.locator("text=Step 2 of 7").first().isVisible(),
+      await page.locator("text=Step 2 of 8").first().isVisible(),
+    );
+
+    /* The wizard gained a fifth step, "Light and water", carrying the three
+       questions a Nigerian guest asks before the price. This spec asserted
+       seven steps and was right to fail: the counter is the contract between
+       the wizard and the person filling it in, and a stale number here would
+       mean nobody notices when a step goes missing.
+
+       Only the current step is named on screen, so reaching it means walking
+       there. Three more taps of Next from step two. */
+    for (let i = 0; i < 3; i += 1) {
+      await page.locator('button:has-text("Next")').first().click();
+      await page.waitForTimeout(500);
+    }
+    check(
+      "the light and water step is reachable and named",
+      await page.locator("text=Step 5 of 8").first().isVisible(),
+    );
+    const utilitiesText = await page.evaluate(() => document.body.innerText);
+    check(
+      "it asks about the grid",
+      utilitiesText.includes("Grid supply") && utilitiesText.includes("Band A"),
+    );
+    check("it asks about water", utilitiesText.includes("Borehole"));
+    check(
+      "it says the gate details are never public",
+      /released only to a guest whose booking is confirmed/i.test(utilitiesText),
     );
   } else {
     check(

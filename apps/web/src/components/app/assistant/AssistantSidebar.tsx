@@ -92,7 +92,7 @@ export function AssistantSidebar({
             Search conversations
           </label>
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--nf-content-muted)]">
-            <UiIcon name="search" size={15} />
+            <UiIcon name="search" size={16} />
           </span>
           <input
             id={searchId}

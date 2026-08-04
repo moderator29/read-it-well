@@ -22,7 +22,7 @@ export function FilterLink({ label }: { label: string }) {
       data-testid="filters-link"
       className="nf-icon-btn nf-icon-btn--square h-[3.25rem] w-[3.25rem] shrink-0"
     >
-      <UiIcon name="sliders" size={18} />
+      <UiIcon name="sliders" size={20} />
     </Link>
   );
 }

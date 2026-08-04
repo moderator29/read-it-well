@@ -24,7 +24,13 @@ export type FeatureKey =
   | "support"
   | "agent_listings"
   | "hybrid_hotels"
-  | "hybrid_restaurants";
+  | "hybrid_restaurants"
+  /* Around, the whole social layer. One row takes every social surface and
+     every social write path down at once, with no deploy. */
+  | "social"
+  /* Meetups. Built to SOCIAL_AUDIT section 6 and off until slice 4 safety is
+     proven in production and a named person is watching the queue. */
+  | "events";
 
 export async function isFeatureEnabled(key: FeatureKey): Promise<boolean> {
   if (!isSupabaseConfigured()) return true;

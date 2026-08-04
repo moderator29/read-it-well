@@ -135,11 +135,59 @@
   --nf-state-info: var(--nf-sky-400);
   --nf-rating: var(--nf-electric-300);
 
+  /* Focus
+   *
+   * The ring has its own token and it is deliberately NOT --nf-brand-primary.
+   * Brand primary is #0010E0, a deep electric blue, and the ring was drawn in
+   * it on every control on the platform. Against the near-black canvas that
+   * lands at roughly 1.4:1, which is a focus indicator nobody can see, and it
+   * had been that way since dark became the default. WCAG 2.2 asks for 3:1
+   * against whatever surrounds the indicator.
+   *
+   * --nf-electric-300 is the member of the same family that clears it in both
+   * themes: #5C7CFF is about 5.4:1 on the night canvas, and daylight already
+   * swaps that token for #0C2FE8, about 11:1 on paper. Same blue family, no
+   * new hue, visible in both. */
+  --nf-focus-ring: var(--nf-electric-300);
+  --nf-focus-ring-width: 2px;
+  --nf-focus-ring-offset: 2px;
+
   /* State surfaces, for chips and badges */
   --nf-state-success-surface: color-mix(in oklab, var(--nf-emerald-400) 15%, transparent);
   --nf-state-warning-surface: color-mix(in oklab, var(--nf-cyan-400) 15%, transparent);
   --nf-state-error-surface: color-mix(in oklab, var(--nf-rose-400) 15%, transparent);
   --nf-state-info-surface: color-mix(in oklab, var(--nf-sky-400) 15%, transparent);
+
+  /* Status
+   *
+   * Four states the platform decides about a thing: a listing, a booking, an
+   * agent application, an identity. They are named for the STATE, not for the
+   * colour, and every surface reads them from here.
+   *
+   * They exist because the colours had drifted into meaning several things at
+   * once. Cyan carried "awaiting confirmation" on a booking, "Instant Book" on
+   * a listing card and "Verification pending" in a message sheet, which is
+   * three unrelated ideas wearing one colour. Emerald carried "verified",
+   * "confirmed", "paid here" and "this device". Rejected had no badge class at
+   * all and was written as an inline style in one workspace.
+   *
+   * The assignment: pending is the cyan attention state, approved is emerald,
+   * rejected is rose, and VERIFIED IS BRAND BLUE. Verified is not a state a
+   * thing passed through, it is RentMe putting its own name to something, so it
+   * wears the brand rather than the success colour. That also frees emerald to
+   * mean one thing only.
+   *
+   * The verified ink is --nf-electric-300 rather than --nf-brand-primary: the
+   * primary is a deep blue that does not hold up as small bold text on the
+   * night canvas, and electric-300 already carries a daylight override. */
+  --nf-status-pending: var(--nf-state-warning);
+  --nf-status-pending-surface: var(--nf-state-warning-surface);
+  --nf-status-approved: var(--nf-state-success);
+  --nf-status-approved-surface: var(--nf-state-success-surface);
+  --nf-status-rejected: var(--nf-state-error);
+  --nf-status-rejected-surface: var(--nf-state-error-surface);
+  --nf-status-verified: var(--nf-electric-300);
+  --nf-status-verified-surface: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
 
   /* ---------------------------------------------------------------------
    * NaijaFinds Material. Four surface families (Design prompt §5).
@@ -269,6 +317,19 @@
   --nf-gradient-brand: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-cta: linear-gradient(180deg, #0C39EF 0%, #0010E0 50%, #000F98 100%);
   --nf-gradient-iridescent: linear-gradient(135deg, #5C7CFF 0%, #0C39EF 52%, #0010E0 100%);
+  /*
+   * The same gradient, lifted until every stop is readable AS TEXT.
+   *
+   * The iridescent ramp is a beautiful FILL and a poor INK. Measured against
+   * the night canvas its middle stop lands at 2.79:1 and its dark end at
+   * 2.11:1, so the hero headline, the 404 numeral, the numbers band and the
+   * "Results for" line were all under the 3:1 that WCAG 2.2 asks of large
+   * text, and the deepest part of every one of them was close to invisible.
+   *
+   * Same hue family, three steps up in depth: 5.6:1, 4.9:1 and 4.0:1 against
+   * the canvas. Daylight needs no lift, because the existing paper gradient
+   * already measures 7.4:1 and 10.6:1 on white. */
+  --nf-gradient-text: linear-gradient(135deg, #7C95FF 0%, #4B6DFF 52%, #2E5BFF 100%);
   --nf-gradient-agent: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-surface: linear-gradient(180deg, rgb(255 255 255 / 0.045) 0%, rgb(255 255 255 / 0.012) 100%);
 
@@ -525,6 +586,11 @@
    * tints under the darker ink.
    */
   --nf-electric-300: #0C2FE8;
+  /* Daylight needs no lift: these two stops measure 7.4:1 and 10.6:1 on paper,
+     where the night theme's lifted stops would land at 2.5:1. The token is
+     overridden here rather than the class being overridden in globals.css, so
+     there is one place the gradient's ink is decided. */
+  --nf-gradient-text: linear-gradient(135deg, #0C39EF 0%, #0010D0 100%);
   /* 5.36:1 on white, 4.85:1 on its own tint. Was #0B8A5C, which measured
      4.37:1 on white and dropped to 3.79:1 once the badge tint sat under it. */
   --nf-state-success: #0A7A51;

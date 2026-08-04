@@ -172,10 +172,15 @@ function EntryRow({
         </span>
       </span>
       <span className="min-w-0 flex-1 leading-tight">
-        <span className="block truncate text-[0.875rem] font-semibold">
+        {/* "Booking payment, Victoria Island suite" was rendering as
+            "Booking payment, Vic". The note is the only thing on the row that
+            says what the money was for, so it wraps. */}
+        <span className="block text-[0.875rem] font-semibold">
           {entry.note ?? KIND_LABEL[entry.kind]}
         </span>
-        <span className="mt-0.5 block truncate text-[0.72rem] text-[var(--nf-content-muted)]">
+        {/* The reference is how a person reconciles this row against their bank
+            statement, so it wraps rather than ending at "WD-GTB-00". */}
+        <span className="mt-0.5 block text-[0.72rem] text-[var(--nf-content-muted)] [overflow-wrap:anywhere]">
           {KIND_LABEL[entry.kind]} · {entry.reference}
         </span>
       </span>
@@ -190,7 +195,7 @@ function EntryRow({
         {!settled && (
           <span
             className={`nf-badge mt-1 ${
-              entry.status === "PENDING" ? "nf-badge--warning" : "nf-badge--brand"
+              entry.status === "PENDING" ? "nf-badge--pending" : "nf-badge--neutral"
             }`}
           >
             {entry.status.toLowerCase()}

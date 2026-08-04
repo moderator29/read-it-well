@@ -38,9 +38,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
-import { bestEffortEmail, sendEmail } from "../email/client";
-import { bookingConfirmed } from "../email/messages";
-import { contactForUser, contactFromSession } from "../email/recipients";
+import { contactFromSession } from "../email/recipients";
 import { isFeatureEnabled } from "../flags";
 import { nairaExact } from "../payments/money";
 import {
@@ -53,6 +51,7 @@ import { bookingReference, isBookingReference } from "../payments/references";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { subjectForUser } from "../security/rate-limit";
 import { availableBalanceMinor, ensureWalletId, getAdminClient } from "../wallet/ledger";
+import { announceConfirmedStay } from "./arrival";
 import { cancelInputSchema } from "./schema";
 import { bookingForReference, markChargeFailed, settleBookingCharge } from "./settlement";
 
@@ -427,29 +426,13 @@ async function payWithWalletWork(
   revalidatePath("/wallet");
   revalidatePath(`/checkout/${booking.id}`);
 
-  // The booking is CONFIRMED in the database. Telling the guest is best effort:
-  // the confirmation stands whether or not the email leaves.
-  await bestEffortEmail(async () => {
-    const contact =
-      email !== null
-        ? { email, name: displayName }
-        : await contactForUser(admin, booking.guest_id);
-    if (!contact) return;
-    const { data: listing } = await admin
-      .from("listings")
-      .select("title")
-      .eq("id", booking.listing_id)
-      .maybeSingle();
-    const title = (listing?.title ?? "").trim();
-    const message = bookingConfirmed({
-      guestName: contact.name,
-      listingTitle: title.length > 0 ? title : "your stay",
-      checkIn: booking.check_in,
-      checkOut: booking.check_out,
-      nights: booking.nights,
-      totalMinor: amountMinor,
-    });
-    await sendEmail({ to: contact.email, subject: message.subject, html: message.html });
+  // The booking is CONFIRMED in the database. Telling the payer, and the
+  // person actually arriving when they are somebody else, is best effort: the
+  // confirmation stands whether or not either email leaves.
+  await announceConfirmedStay(admin, {
+    bookingId: booking.id,
+    totalMinor: amountMinor,
+    actingUser: { id: userId, contact: email !== null ? { email, name: displayName } : null },
   });
 
   return ok({ bookingId: booking.id, amountMinor, reference, balanceAfterMinor });
@@ -589,9 +572,12 @@ export async function settleCardPayment(
 }
 
 /**
- * The one confirmation email the return path may send. Everything about it is
- * best effort and it runs after the database has committed, so a mail failure
- * can never turn a paid booking into an error the guest sees.
+ * The confirmation the return path may send. The message itself, and who else
+ * hears about the stay, live in `announceConfirmedStay`: a booking made for
+ * somebody else has to reach the person actually arriving, and that decision
+ * belongs in one place rather than in each of the four paths that can confirm
+ * a stay. Everything is best effort and runs after the database has committed,
+ * so a mail failure can never turn a paid booking into an error the guest sees.
  */
 async function sendConfirmationEmail(
   bookingId: string,
@@ -600,36 +586,16 @@ async function sendConfirmationEmail(
 ): Promise<void> {
   const admin = getAdminClient();
   if (!admin) return;
-  await bestEffortEmail(async () => {
-    const { data: booking } = await admin
-      .from("bookings")
-      .select("guest_id, check_in, check_out, nights, listing_id")
-      .eq("id", bookingId)
-      .maybeSingle();
-    if (!booking) return;
-
-    const session = await resolveSession();
-    const guest =
-      session.state === "signed-in" && booking.guest_id === actingUserId
-        ? contactFromSession(session.user)
-        : await contactForUser(admin, booking.guest_id);
-    if (!guest) return;
-
-    const { data: listing } = await admin
-      .from("listings")
-      .select("title")
-      .eq("id", booking.listing_id)
-      .maybeSingle();
-    const title = (listing?.title ?? "").trim();
-
-    const message = bookingConfirmed({
-      guestName: guest.name,
-      listingTitle: title.length > 0 ? title : "your stay",
-      checkIn: booking.check_in,
-      checkOut: booking.check_out,
-      nights: booking.nights,
-      totalMinor,
-    });
-    await sendEmail({ to: guest.email, subject: message.subject, html: message.html });
+  // The fast path: when the payer is the person who just tapped pay, their
+  // address is already on the session and needs no lookup. Whether they really
+  // are the payer is checked against the booking, not assumed here.
+  const session = await resolveSession();
+  await announceConfirmedStay(admin, {
+    bookingId,
+    totalMinor,
+    actingUser:
+      session.state === "signed-in"
+        ? { id: actingUserId, contact: contactFromSession(session.user) }
+        : null,
   });
 }

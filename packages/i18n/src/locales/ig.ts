@@ -40,13 +40,15 @@ export const ig: Dictionary = {
     services: "Ọrụ",
     properties: "Ihe onwunwe",
     bookings: "Ndebe",
-    messages: "Ozi",
+    messages: "Igbe Ozi",
     wallet: "Akpa ego",
     aiAssistant: "Onye enyemaka AI",
     profile: "Profaịlụ",
     settings: "Ntọala",
     explore: "Chọgharịa",
     saved: "Echekwara",
+    around: "Ógbè",
+    map: "Maapụ",
     primaryLabel: "Isi",
     accountLabel: "Akaụntụ",
   },
@@ -187,6 +189,8 @@ export const ig: Dictionary = {
       personalDesc: "Chọpụta ma debe ebe magburu onwe ha na Naịjirịa.",
       agentDesc: "Jikwaa ndepụta, ndebe, ndị ahịa na ego gị.",
       verifiedAgent: "Onye Nnọchi Enyochara",
+      visitor: "Ị banyeghị dịka onye nnọchi",
+      signInToWorkspace: "Banye",
       workspaceLabel: "Ebe ọrụ onye nnọchi",
       notApproved: "A ka na-enyocha arịrịọ onye nnọchi gị.",
     },
@@ -195,7 +199,7 @@ export const ig: Dictionary = {
       myListings: "Ndepụta M",
       listApartment: "Depụta Ụlọ",
       bookings: "Ndebe",
-      messages: "Ozi",
+      messages: "Igbe Ozi",
       reviews: "Nyocha",
       earnings: "Ego",
       analytics: "Nyocha data",
@@ -280,6 +284,19 @@ export const ig: Dictionary = {
       reviewNote: "Ndị otu anyị na-enyocha arịrịọ n'ime awa 24 ruo 48.",
       backHome: "Laghachi n'ụlọ",
       enterAgent: "Banye Ọnọdụ Onye Nnọchi",
+      signedOutTitle: "Banye ka ị hụ arịrịọ gị",
+      signedOutBody:
+        "Arịrịọ gị na nọmba ya jikọtara na akaụntụ gị, yabụ anyị ga-amara onye ị bụ tupu anyị egosi ha.",
+      signIn: "Banye",
+      noneTitle: "Enweghị arịrịọ edeturu",
+      noneBody:
+        "Ị tinyebeghị arịrịọ ịbụ onye nnọchi. Ọ na-ewe ihe dịka nkeji iri, ị ga-achọkwa otu njirimara foto.",
+      startApplication: "Tinye arịrịọ ịbụ onye nnọchi",
+      unconfiguredTitle: "Emeghebeghị arịrịọ ebe a",
+      unconfiguredBody:
+        "Ibe a ga-egosi ezigbo arịrịọ gị ozugbo igodo ikpo okwu rutere. Ọ dịghị ihe i zigara ga-efunahụ gị.",
+      reviewedOn: "Kpebiri na",
+      reviewerNote: "Ihe onye nyocha kwuru",
     },
     dashboard: {
       title: "Dashboard Onye Nnọchi",
@@ -321,6 +338,7 @@ export const ig: Dictionary = {
         // NATIVE REVIEW: "amenities" has no settled Igbo term, this reads as
         // "things the house has".
         amenities: "Ihe ndị dị n'ụlọ",
+        utilities: "Ọkụ na mmiri",
         pricing: "Ọnụahịa",
         guestView: "Ka ọbịa na-ahụ ya",
         submit: "Izipu",
@@ -371,6 +389,9 @@ export const ig: Dictionary = {
         label: "Mgbazinye",
         blurb: "Ụlọ a na-agbazinye kwa afọ. Ọnụahịa ya bụ nke afọ, a na-eleta ya tupu ịkwụ ụgwọ.",
       },
+      shop: { label: "Ụlọ ahịa", blurb: "Ebe ịre ahịa a na-agbazite kwa afọ." },
+      office: { label: "Ọfịs", blurb: "Ebe ọrụ a na-agbazite kwa afọ." },
+      land: { label: "Ala", blurb: "Otu ala, ọnụahịa ya bụ nke afọ." },
     },
 
     photos: {
@@ -660,6 +681,8 @@ export const ig: Dictionary = {
       settled: "Ego abanyela",
       awaiting: "Ego abanyebeghị",
       unknown: "Enweghị ike ịkọ ọnọdụ ego ugbu a",
+      arriving: "Onye na-abịa: {name}",
+      arrivingPhone: "Nọmba ọnụ ụzọ {phone}",
     },
     status: {
       PENDING: "Na-eche mkpebi gị",
@@ -757,6 +780,10 @@ export const ig: Dictionary = {
       listings: { label: "Nyocha ndepụta", short: "Ndepụta" },
       tickets: { label: "Nkwado", short: "Nkwado" },
       // NATIVE REVIEW: "switch" kept in English, it names a control staff use.
+      social: { label: "Ógbè", short: "Ógbè" },
+      standing: { label: "Ọnọdụ", short: "Ọnọdụ" },
+      moderation: { label: "Ejidere", short: "Ejidere" },
+      reference: { label: "Data ntụaka", short: "Ntụaka" },
       switches: { label: "Switch", short: "Switch" },
     },
 
@@ -822,6 +849,10 @@ export const ig: Dictionary = {
         "Akara ntụkwasị obi ọ bụla RentMe na-emepụta na-akwụsị ebe a: ihe nyocha nchekwa jidere, ihe ndị òtù kpesara, onye na-echere nkwado, na ihe na-echere ịmalite ọrụ. Ọnụọgụ ọ bụla bụ ahịrị ị nwere ike ikpocha.",
       queueClear: "Ahịrị a dị ọcha.",
       tiles: {
+        moderation: {
+          label: "Ọdịnaya ejidere",
+          lede: "Post, akụkọ, nkọwa na profaịlụ nke nyocha nchekwa kwụsịrị.",
+        },
         // NATIVE REVIEW: "flag" kept in English, it is the safety scan's own term.
         flags: {
           label: "Flag ozi mepere",
@@ -1056,6 +1087,9 @@ export const ig: Dictionary = {
         villa: "Villa",
         shortlet: "Shortlet",
         rental: "Mgbazinye",
+        shop: "Ụlọ ahịa",
+        office: "Ọfịs",
+        land: "Ala",
       },
       checklistLines: "Ahịrị nlele {count} ka a ga-elele",
       checklistLineOne: "Ahịrị nlele otu ka a ga-elele",

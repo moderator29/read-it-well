@@ -47,31 +47,32 @@ function BookingCard({ booking: b }: { booking: Booking }) {
         </Link>
 
         <div className="min-w-0 flex-1 leading-tight">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-              {b.title}
-            </h3>
-            <span
-              className={`nf-badge shrink-0 ${confirmed ? "nf-badge--success" : "nf-badge--brand"}`}
-            >
-              {confirmed ? "Confirmed" : "Completed"}
-            </span>
-          </div>
+          {/* Badge above, title on its own line: see MyBookings for why. */}
+          <span
+            className={`nf-badge ${confirmed ? "nf-badge--approved" : "nf-badge--neutral"}`}
+          >
+            {confirmed ? "Confirmed" : "Completed"}
+          </span>
+          <h3 className="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+            {b.title}
+          </h3>
 
-          <p className="mt-1 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
-            <UiIcon name="location" size={13} className="shrink-0" />
-            <span className="truncate">
+          {/* Wraps: "Marina Waterfront, Calabar" was one pixel over its column
+              and arrived as "Calaba". */}
+          <p className="mt-1 flex items-start gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
+            <UiIcon name="location" size={12} className="mt-0.5 shrink-0" />
+            <span>
               {b.area}, {b.city}
             </span>
           </p>
 
           <p className="mt-2.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
-            <UiIcon name="calendar-booking" size={14} className="shrink-0" />
+            <UiIcon name="calendar-booking" size={16} className="shrink-0" />
             {b.dateRange}
           </p>
 
           <p className="mt-1.5 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
-            <UiIcon name="user" size={14} className="shrink-0" />
+            <UiIcon name="user" size={16} className="shrink-0" />
             {b.guests} {b.guests === 1 ? "guest" : "guests"} &middot; {b.nights}{" "}
             {b.nights === 1 ? "night" : "nights"}
           </p>
@@ -85,22 +86,18 @@ function BookingCard({ booking: b }: { booking: Booking }) {
           </span>
           <span className="text-[0.75rem] text-[var(--nf-content-muted)]">total</span>
         </p>
-        {confirmed ? (
-          <Link
-            href={`/listing/${b.listingId}`}
-            className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
-          >
-            View details
-            <UiIcon name="arrow-right" size={14} />
-          </Link>
-        ) : (
-          <Link
-            href={`/listing/${b.listingId}`}
-            className="nf-btn nf-btn--ghost px-3.5 py-2 text-[0.8125rem]"
-          >
-            Leave a review
-          </Link>
-        )}
+        {/* This deck is the signed-out fallback, so nobody reading it has a
+            stay of their own to review. It used to offer "Leave a review" on a
+            past trip and link to the listing, which was a control that could
+            never do what it said. Reviewing lives on a real stay, at
+            /bookings/[id]/review, and is offered there. */}
+        <Link
+          href={`/listing/${b.listingId}`}
+          className="nf-tap flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+        >
+          View details
+          <UiIcon name="arrow-right" size={16} />
+        </Link>
       </div>
     </li>
   );
@@ -160,7 +157,7 @@ export function BookingsTabs({
             tabIndex={active === tab.key ? 0 : -1}
             onClick={() => setActive(tab.key)}
             className={[
-              "py-2.5 text-[0.875rem] font-medium transition-colors",
+              "min-h-11 py-2.5 text-[0.875rem] font-medium transition-colors",
               active === tab.key
                 ? "text-[var(--nf-content-primary)]"
                 : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",

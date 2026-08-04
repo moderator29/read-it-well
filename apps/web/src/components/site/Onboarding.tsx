@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import Image from "next/image";
 
 /**
@@ -66,20 +67,21 @@ export function Onboarding() {
     return () => window.clearTimeout(timer);
   }, [visible, leaving, dismiss]);
 
-  useEffect(() => {
-    if (!visible) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") dismiss();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [visible, dismiss]);
+  /* A full-screen welcome that let the page scroll behind it. autoFocus is off
+     because this one opens itself on first visit rather than in answer to a
+     tap: stealing focus from somebody who did not ask for the overlay is worse
+     than leaving it, and Skip is the first thing Tab reaches regardless. */
+  const stage = useRef<HTMLDivElement | null>(null);
+  useOverlay({ open: visible, onClose: dismiss, panelRef: stage, autoFocus: false });
 
   if (!visible) return null;
 
   return (
     <div
+      ref={stage}
+      tabIndex={-1}
       role="dialog"
+      aria-modal="true"
       aria-label="Welcome to RentMe"
       className={`nf-onboarding nf-story-stage--paper fixed inset-0 z-[300] flex items-center justify-center overflow-hidden ${
         leaving ? "nf-onboarding--leaving" : ""

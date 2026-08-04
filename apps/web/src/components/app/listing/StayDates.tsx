@@ -34,6 +34,12 @@ export type StayDatesValue = {
   checkOut: string;
   adults: number;
   children: number;
+  /**
+   * How many guests this place takes, or null when that is not a knowable
+   * thing about it. The host's own number where they declared one, the
+   * two-per-bedroom convention where they did not.
+   */
+  capacity: number | null;
   setCheckIn: (value: string) => void;
   setCheckOut: (value: string) => void;
   setAdults: (value: number) => void;
@@ -51,6 +57,18 @@ export type StayDatesValue = {
   /** True when the pick is complete, legal and bookable. */
   ready: boolean;
   /** Rate times nights, in kobo. Zero until a full stay is picked. */
+  subtotalMinor: number;
+  /** Charged once per stay. Zero when the host charges neither. */
+  cleaningMinor: number;
+  serviceMinor: number;
+  /**
+   * What the guest will actually be asked for: subtotal plus both fees.
+   *
+   * This used to be the subtotal under the name "total", and the panel printed
+   * it against a row labelled Total while `reserve()` went on to charge
+   * subtotal plus cleaning plus service. The guest saw one number and was
+   * billed a bigger one.
+   */
   totalMinor: number;
 };
 
@@ -60,16 +78,26 @@ export function StayDatesProvider({
   today,
   blockedDates,
   priceMinor,
+  cleaningMinor = 0,
+  serviceMinor = 0,
+  capacity,
   children,
 }: {
   today: string;
   blockedDates: string[];
   priceMinor: number;
+  /** Charged once per stay, in kobo. Default zero: most listings charge none. */
+  cleaningMinor?: number;
+  serviceMinor?: number;
+  /** The host's declared capacity, or null when the place declares none. */
+  capacity: number | null;
   children: React.ReactNode;
 }) {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
-  const [adults, setAdults] = useState(2);
+  // Two adults is the common case, but never more than the place takes: a
+  // one-guest studio must not open with a party the host would turn away.
+  const [adults, setAdults] = useState(() => Math.max(1, Math.min(2, capacity ?? 2)));
   const [childCount, setChildCount] = useState(0);
 
   const blocked = useMemo(() => new Set(blockedDates), [blockedDates]);
@@ -102,6 +130,7 @@ export function StayDatesProvider({
       checkOut,
       adults,
       children: childCount,
+      capacity,
       setCheckIn,
       setCheckOut,
       setAdults,
@@ -112,9 +141,27 @@ export function StayDatesProvider({
       clash,
       hint,
       ready,
-      totalMinor: nights >= 1 ? priceMinor * nights : 0,
+      subtotalMinor: nights >= 1 ? priceMinor * nights : 0,
+      cleaningMinor: nights >= 1 ? cleaningMinor : 0,
+      serviceMinor: nights >= 1 ? serviceMinor : 0,
+      /* The same sum `reserve()` writes into `total_minor`, and the same order:
+         nights, then the once-per-stay fees. If these two ever disagree the
+         guest is the one who finds out. */
+      totalMinor: nights >= 1 ? priceMinor * nights + cleaningMinor + serviceMinor : 0,
     };
-  }, [adults, checkIn, checkOut, childCount, clash, nights, priceMinor, today]);
+  }, [
+    adults,
+    capacity,
+    checkIn,
+    checkOut,
+    childCount,
+    clash,
+    cleaningMinor,
+    nights,
+    priceMinor,
+    serviceMinor,
+    today,
+  ]);
 
   return <StayDatesContext.Provider value={value}>{children}</StayDatesContext.Provider>;
 }

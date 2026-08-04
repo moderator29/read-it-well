@@ -58,7 +58,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
         <Link
           href="/"
-          className="nf-rise mt-7 text-[0.8125rem] text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+          className="nf-tap nf-rise mt-7 text-[0.8125rem] text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
           style={{ animationDelay: "180ms" }}
         >
           {t.auth.backToHome}

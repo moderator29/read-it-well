@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Locale, formatRating, formatMoneyGlance } from "@naijafinds/i18n";
 import { getListingRepository } from "@/lib/listings/repository";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -36,7 +36,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
     <section className="nf-shell py-10 sm:py-14">
       <Reveal className="mb-6 max-w-[52ch] sm:mb-8">
         <span className="nf-overline mb-3 inline-flex items-center gap-2">
-          <UiIcon name="sparkle" size={14} />
+          <UiIcon name="sparkle" size={16} />
           Hand picked
         </span>
         <h2 className="nf-h1 mt-3">
@@ -85,24 +85,27 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                       aria-hidden="true"
                     />
                     <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">
-                      <UiIcon name="location" size={13} className="shrink-0 text-white/70" />
+                      <UiIcon name="location" size={12} className="shrink-0 text-white/70" />
                       <span className="truncate">{l.city}</span>
                     </p>
                   </div>
 
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-4">
-                      <h3 className="truncate text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+                      {/* Wraps. "Eko Pearl Waterfront Apartment" needed 231px
+                          into a 174px column, so every long name in the rail
+                          was arriving cut. */}
+                      <h3 className="min-w-0 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
                         {l.title}
                       </h3>
                       <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">
-                        <UiIcon name="star" size={14} className="text-[var(--nf-rating)]" />
-                        {l.rating.toFixed(1)}
+                        <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
+                        {formatRating(l.rating, locale)}
                       </span>
                     </div>
                     <p className="mt-2.5 flex items-baseline gap-1.5">
                       <span className="nf-numeric text-[1.0625rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-                        {formatMoney(l.priceMinor, locale, l.currency)}
+                        {formatMoneyGlance(l.priceMinor, locale, l.currency)}
                       </span>
                       <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
                         / {perHead ? "guest" : "night"}

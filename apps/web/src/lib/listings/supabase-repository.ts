@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
-import { bedroomsForGuests, diversePick, matchesFilter } from "./filter";
+import { diversePick, matchesFilter } from "./filter";
 import type { Listing, ListingKind, ListingRepository, ListingSearchFilter } from "./types";
 
 /**
@@ -52,8 +52,11 @@ const LISTING_SELECT = `
   property_type,
   price_period,
   price_per_night_minor,
+  cleaning_fee_minor,
+  service_fee_minor,
   bedrooms,
   bathrooms,
+  max_guests,
   instant_book,
   featured,
   area,
@@ -61,6 +64,12 @@ const LISTING_SELECT = `
   state_code,
   published_at,
   created_at,
+  power_grid,
+  power_backup,
+  power_backup_hours,
+  water_supply,
+  prepaid_meter,
+  has_estate_access,
   listing_photos ( storage_path, position ),
   listing_amenities ( amenity_id )
 `;
@@ -71,10 +80,19 @@ type ListingRow = {
   property_type: string;
   price_period: string;
   price_per_night_minor: number;
+  cleaning_fee_minor: number;
+  service_fee_minor: number;
   bedrooms: number;
   bathrooms: number;
+  max_guests: number;
   instant_book: boolean;
   featured: boolean;
+  power_grid: string | null;
+  power_backup: string | null;
+  power_backup_hours: number | null;
+  water_supply: string | null;
+  prepaid_meter: boolean | null;
+  has_estate_access: boolean | null;
   area: string | null;
   city: string | null;
   state_code: string | null;
@@ -92,7 +110,18 @@ const KIND_BY_PROPERTY_TYPE: Record<string, ListingKind> = {
   villa: "villa",
   shortlet: "shortlet",
   rental: "rental",
+  shop: "shop",
+  office: "office",
+  land: "land",
 };
+
+/** Kinds priced by the year rather than by the night. */
+const YEARLY_KINDS: ReadonlySet<ListingKind> = new Set<ListingKind>([
+  "rental",
+  "shop",
+  "office",
+  "land",
+]);
 
 /** Discovery kinds that live in the listings table at all. */
 function propertyTypeFor(kind: ListingKind): string | null {
@@ -264,11 +293,37 @@ function mapRow(
     // Kobo per pricePeriod unit, straight from the column. Rentals are always
     // an annual figure, which is what the RENT market and its cards expect.
     priceMinor: row.price_per_night_minor,
+    /* The two figures a guest is charged on top of the nightly rate. They were
+       read by `reserve()` on the server and by nothing the guest could see, so
+       the panel quoted a "Total" that was only the subtotal and then asked for
+       more at checkout. Carrying them here is what lets the breakdown be true
+       before somebody taps. */
+    cleaningMinor: row.cleaning_fee_minor ?? 0,
+    serviceMinor: row.service_fee_minor ?? 0,
     currency: "NGN",
-    pricePeriod: kind === "rental" || row.price_period === "year" ? "year" : "night",
+    // The yearly market is rental, shop, office and land. The column is the
+    // authority; the kind test is the belt for a row written before the
+    // commercial types existed.
+    pricePeriod:
+      row.price_period === "year" || YEARLY_KINDS.has(kind) ? "year" : "night",
     source: "rentme",
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
+    // The host's own capacity, not a figure derived from bedroom count. Every
+    // listings row carries one; the check constraint keeps it above zero.
+    maxGuests: row.max_guests,
+    utilities: {
+      ...(row.power_grid ? { powerGrid: row.power_grid as NonNullable<Listing["utilities"]>["powerGrid"] } : {}),
+      ...(row.power_backup
+        ? { powerBackup: row.power_backup as NonNullable<Listing["utilities"]>["powerBackup"] }
+        : {}),
+      ...(row.power_backup_hours === null ? {} : { powerBackupHours: row.power_backup_hours }),
+      ...(row.water_supply
+        ? { waterSupply: row.water_supply as NonNullable<Listing["utilities"]>["waterSupply"] }
+        : {}),
+      ...(row.prepaid_meter === null ? {} : { prepaidMeter: row.prepaid_meter }),
+      hasEstateAccess: row.has_estate_access ?? false,
+    },
     rating: stat?.rating ?? 0,
     reviewCount: stat?.count ?? 0,
     // First-party inventory is admitted through agent approval, so a published
@@ -389,10 +444,11 @@ export class SupabaseListingRepository implements ListingRepository {
       if (filter.bedrooms !== undefined) query = query.gte("bedrooms", filter.bedrooms);
       if (filter.bathrooms !== undefined) query = query.gte("bathrooms", filter.bathrooms);
       if (filter.guests !== undefined) {
-        // Capacity is derived from bedrooms, and a row with no bedrooms has no
-        // capacity to judge, so it stays in. Same rule as `sleeps` in the
-        // matcher, written as a predicate.
-        query = query.or(`bedrooms.eq.0,bedrooms.gte.${bedroomsForGuests(filter.guests)}`);
+        // Every listings row declares its own capacity, so the predicate is
+        // the column itself. This is exactly what `sleeps` decides in the
+        // matcher for a row that carries a declared number, which every row
+        // from this table does, so the two halves cannot disagree.
+        query = query.gte("max_guests", filter.guests);
       }
       if (filter.instantBook) query = query.eq("instant_book", true);
 

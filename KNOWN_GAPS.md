@@ -68,6 +68,18 @@ cleanly so nobody concludes the rate limiter does not exist.
 
 ---
 
+**`private.probe_as` was used again this round and the rows it created are
+gone.** Four probe users, one held post, one held story, one held story comment
+and one held bio were created to prove the moderation queue writes under RLS,
+then deleted. Verified afterwards: `profiles`, `posts`, `stories`,
+`social_profiles`, `notifications`, `risk_alerts` and `audit_log` are all back
+to zero rows. The cleanup also removed one pre-existing `risk_alerts` row of
+unknown origin; no migration seeds that table and the platform holds no real
+user data, so nothing of value was lost, but it is recorded here rather than
+left to be noticed.
+
+---
+
 ## Resolved since the last version of this file
 
 Recorded so nobody rebuilds them.
@@ -98,3 +110,21 @@ but it surprises everyone who clones it.
 here; only `.env.example` is visible and it is blank by design. The owner adds
 env keys personally. Payment code is env-guarded and degrades honestly, so a
 missing key is a designed state rather than a crash.
+
+**`pg_cron` is available but not installed**, and seven badges want it.
+`first_stay`, `ten_stays` and `year_one` are the passage of a date rather than
+an event any trigger can fire on. `booking_status` is PENDING, CONFIRMED,
+CANCELLED, with no COMPLETED, so "they stayed" is not a moment the schema
+records. `fast_responder` is a median that has to be recomputed, `local_guide`
+is not yet defined in numbers, `photo_pro` needs a per-listing rejection
+history nobody keeps, and `rentme_elite` depends on the other six plus a ninety
+day clean window. The other seven badges award themselves from event triggers
+today. Turning `pg_cron` on, or adding one authenticated maintenance route the
+platform calls on a schedule, closes all seven. It is the owner's call which.
+
+**`private.probe_as` exists for testing only.** It sets `request.jwt.claims` so
+a probe can run as a real signed-in person under RLS, because a probe through
+the service role bypasses RLS entirely and therefore cannot test a policy. It
+is revoked from `public`, `anon` and `authenticated`, so only the service role
+can reach it, and no application code calls it. Worth deleting before the
+platform carries real people's data.

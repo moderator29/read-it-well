@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getDictionary, formatDate } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
-import { getAgentRepository } from "@/lib/agent/repository";
+import { readMyApplication } from "@/lib/agent/application-status";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { BackButton } from "@/components/site/BackButton";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -16,10 +16,18 @@ export const metadata: Metadata = {
 /**
  * Agent application status.
  *
- * The status comes from the agent repository. The seed profile is APPROVED so
- * the whole flow is explorable, and the CTA changes with the state: an approved
- * applicant can enter Agent Mode, a pending one waits. The status vocabulary is
- * the canonical set from intake C-03.
+ * The application is the caller's own row in `agent_applications`, read under
+ * their own RLS policy. It used to be a seed object called "Demo Agent" with a
+ * fixed reference and an APPROVED status, which meant a stranger who had never
+ * applied for anything was shown an approved application and a reference number
+ * support would then be asked about.
+ *
+ * Four states, all designed. Signed out asks them to sign in, because the
+ * reference belongs to an account. No application on file says exactly that and
+ * offers the way to start one. An unreadable answer promises nothing either
+ * way. Only a real row renders the timeline. The CTA still changes with the
+ * state: an approved applicant can enter Agent Mode, a pending one waits. The
+ * status vocabulary is the canonical set from intake C-03.
  *
  * The NF-AGT reference is the hero object of the page (it is what support will
  * ask for), and beneath it the application's journey renders as a three stage
@@ -29,7 +37,64 @@ export default async function AgentStatusPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const s = t.agent.status;
-  const profile = await getAgentRepository().getProfile();
+  const result = await readMyApplication();
+
+  if (result.state !== "found") {
+    const empty = {
+      unconfigured: {
+        icon: "shield-check" as const,
+        title: s.unconfiguredTitle,
+        body: s.unconfiguredBody,
+        cta: null,
+      },
+      "signed-out": {
+        icon: "user-check" as const,
+        title: s.signedOutTitle,
+        body: s.signedOutBody,
+        cta: { href: "/sign-in", label: s.signIn },
+      },
+      none: {
+        icon: "doc-shield" as const,
+        title: s.noneTitle,
+        body: s.noneBody,
+        cta: { href: "/agents/apply", label: s.startApplication },
+      },
+    }[result.state];
+
+    return (
+      <>
+        <SiteHeader t={t} locale={locale} />
+        <main id="main" className="nf-shell py-12 sm:py-16">
+          <div className="mx-auto max-w-md">
+            <div className="nf-rise mb-6">
+              <BackButton fallback="/agents" />
+            </div>
+            <div className="nf-rise text-center">
+              <span className="mx-auto block h-20 w-20">
+                <BrandIcon name={empty.icon} fill />
+              </span>
+              <h1 className="nf-h1 mt-5">{empty.title}</h1>
+              <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">
+                {empty.body}
+              </p>
+              <div className="mt-7 flex flex-wrap justify-center gap-4">
+                {empty.cta && (
+                  <Link href={empty.cta.href} className="nf-btn nf-btn--primary nf-btn--lg">
+                    {empty.cta.label}
+                  </Link>
+                )}
+                <Link href="/home" className="nf-btn nf-btn--glass nf-btn--lg">
+                  {s.backHome}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  const profile = result.application;
 
   const statusLabel: Record<typeof profile.status, string> = {
     DRAFT: s.draft,
@@ -62,8 +127,18 @@ export default async function AgentStatusPage() {
       label: s.underReview,
       note: profile.status === "MORE_INFO_REQUIRED" ? s.moreInfo : s.reviewNote,
     },
-    { label: decided ? statusLabel[profile.status] : s.approved },
+    {
+      label: decided ? statusLabel[profile.status] : s.approved,
+      note: profile.reviewedAt
+        ? `${s.reviewedOn} ${formatDate(new Date(profile.reviewedAt), locale)}`
+        : undefined,
+    },
   ];
+
+  /* What the reviewer actually wrote. It matters most on the two states where
+     the applicant has something to do about it, and an unread note on a
+     rejection is the difference between an answer and a disappearance. */
+  const reviewerNote = (profile.reviewNotes ?? "").trim();
 
   return (
     <>
@@ -79,7 +154,7 @@ export default async function AgentStatusPage() {
           <div className="nf-rise text-center">
             <StatusIcon
               approved={approved}
-              applicationRef={profile.applicationRef}
+              applicationRef={profile.reference}
               icon={approved ? "shield-check" : "calendar-check"}
             />
 
@@ -97,17 +172,10 @@ export default async function AgentStatusPage() {
           >
             <p className="nf-overline">{s.applicationId}</p>
             <p className="nf-numeric mt-1.5 text-[1.5rem] font-bold tracking-[0.04em] sm:text-[1.75rem]">
-              {profile.applicationRef}
+              {profile.reference}
             </p>
             <p className="mt-3">
-              <span
-                className="nf-badge"
-                style={
-                  approved
-                    ? { background: "var(--nf-state-success-surface)", color: "var(--nf-state-success)" }
-                    : { background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }
-                }
-              >
+              <span className={`nf-badge ${approved ? "nf-badge--approved" : "nf-badge--pending"}`}>
                 {statusLabel[profile.status]}
               </span>
             </p>
@@ -144,13 +212,13 @@ export default async function AgentStatusPage() {
                       style={
                         done
                           ? {
-                              background: "var(--nf-state-success-surface)",
-                              borderColor: "var(--nf-state-success)",
+                              background: "var(--nf-status-approved-surface)",
+                              borderColor: "var(--nf-status-approved)",
                             }
                           : current
                             ? {
-                                background: "var(--nf-state-warning-surface)",
-                                borderColor: "var(--nf-state-warning)",
+                                background: "var(--nf-status-pending-surface)",
+                                borderColor: "var(--nf-status-pending)",
                               }
                             : { borderColor: "var(--nf-border-subtle)" }
                       }
@@ -188,6 +256,18 @@ export default async function AgentStatusPage() {
               })}
             </ol>
           </div>
+
+          {reviewerNote.length > 0 && (
+            <div
+              className="nf-card nf-rise mt-4 p-5 text-left sm:p-6"
+              style={{ animationDelay: "200ms" }}
+            >
+              <h2 className="nf-overline">{s.reviewerNote}</h2>
+              <p className="mt-2 whitespace-pre-line text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                {reviewerNote}
+              </p>
+            </div>
+          )}
 
           {pending && (
             <p className="mt-5 flex items-center justify-center gap-2 text-center text-[0.8125rem] text-[var(--nf-content-muted)]">

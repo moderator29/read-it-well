@@ -43,7 +43,16 @@ export const PHOTO_TOO_NARROW_MESSAGE =
 
 /* -------------------------------------------------------- property types */
 
-export type PropertyType = "apartment" | "hotel" | "home" | "villa" | "shortlet" | "rental";
+export type PropertyType =
+  | "apartment"
+  | "hotel"
+  | "home"
+  | "villa"
+  | "shortlet"
+  | "rental"
+  | "shop"
+  | "office"
+  | "land";
 
 export const PROPERTY_TYPE_VALUES = [
   "apartment",
@@ -52,6 +61,9 @@ export const PROPERTY_TYPE_VALUES = [
   "villa",
   "shortlet",
   "rental",
+  "shop",
+  "office",
+  "land",
 ] as const satisfies readonly PropertyType[];
 
 export const PROPERTY_TYPES: { value: PropertyType; label: string; blurb: string }[] = [
@@ -65,11 +77,27 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string; blurb: string
     label: "Rental",
     blurb: "A home let on a yearly tenancy. Priced per year, inspected before payment.",
   },
+  { value: "shop", label: "Shop", blurb: "Retail space let by the year." },
+  { value: "office", label: "Office", blurb: "Workspace let by the year." },
+  { value: "land", label: "Land", blurb: "A plot, priced per year of tenure." },
 ];
 
-/** Rentals are the yearly market; everything else is priced per night. */
+/**
+ * The yearly market: a tenancy agreed with the agent, inspected before any
+ * money moves, and never reserved by the night. Rentals were the whole of it
+ * until shops, offices and land arrived, and every one of those is let the
+ * same way, so they take the same path rather than a second one that would
+ * drift from it.
+ */
+const YEARLY: ReadonlySet<PropertyType> = new Set<PropertyType>([
+  "rental",
+  "shop",
+  "office",
+  "land",
+]);
+
 export function isRental(type: PropertyType | null | undefined): boolean {
-  return type === "rental";
+  return type ? YEARLY.has(type) : false;
 }
 
 export function pricePeriodFor(type: PropertyType | null | undefined): "night" | "year" {
@@ -96,6 +124,70 @@ export const STATE_CODES = [
 ] as const;
 
 const STATE_CODE_SET = new Set<string>(STATE_CODES);
+
+/* -------------------------------------------------- light, water, access */
+
+/**
+ * The three questions a Nigerian guest asks before the price.
+ *
+ * The amenity list already carried "Backup Power" and "Running Water" as tick
+ * boxes, and a tick box cannot tell a Band A feeder apart from a generator
+ * somebody runs from seven to eleven. Those two chips stay for now so nothing a
+ * host has already ticked disappears, but the structured answers below are what
+ * the listing page reads and what search will filter on, because four spellings
+ * of borehole cannot be filtered at all.
+ */
+export const POWER_GRID_VALUES = ["BAND_A", "MOSTLY_ON", "PATCHY", "RARELY", "NONE"] as const;
+export type PowerGrid = (typeof POWER_GRID_VALUES)[number];
+
+export const POWER_GRID_CHOICES: { value: PowerGrid; label: string; blurb: string }[] = [
+  { value: "BAND_A", label: "Band A", blurb: "20 hours a day or more from the grid" },
+  { value: "MOSTLY_ON", label: "Mostly on", blurb: "Light most of the day, with gaps" },
+  { value: "PATCHY", label: "Patchy", blurb: "On and off through the day" },
+  { value: "RARELY", label: "Rarely on", blurb: "A few hours at best" },
+  { value: "NONE", label: "No grid supply", blurb: "Nothing from the distribution company" },
+];
+
+export const POWER_BACKUP_VALUES = [
+  "NONE",
+  "GENERATOR",
+  "INVERTER",
+  "SOLAR",
+  "GENERATOR_INVERTER",
+] as const;
+export type PowerBackup = (typeof POWER_BACKUP_VALUES)[number];
+
+export const POWER_BACKUP_CHOICES: { value: PowerBackup; label: string }[] = [
+  { value: "NONE", label: "No backup" },
+  { value: "GENERATOR", label: "Generator" },
+  { value: "INVERTER", label: "Inverter" },
+  { value: "SOLAR", label: "Solar" },
+  { value: "GENERATOR_INVERTER", label: "Generator and inverter" },
+];
+
+export const WATER_SUPPLY_VALUES = [
+  "TREATED_MAINS",
+  "BOREHOLE",
+  "PUMPED_STORAGE",
+  "TANKER",
+  "NONE",
+] as const;
+export type WaterSupply = (typeof WATER_SUPPLY_VALUES)[number];
+
+export const WATER_SUPPLY_CHOICES: { value: WaterSupply; label: string; blurb: string }[] = [
+  { value: "TREATED_MAINS", label: "Treated mains", blurb: "Running water from the mains" },
+  { value: "BOREHOLE", label: "Borehole", blurb: "The property's own borehole" },
+  { value: "PUMPED_STORAGE", label: "Pumped storage", blurb: "Tank filled and pumped through" },
+  { value: "TANKER", label: "Tanker delivery", blurb: "Water is bought in and stored" },
+  { value: "NONE", label: "No running water", blurb: "Water is fetched" },
+];
+
+export const MAX_BACKUP_HOURS = 24;
+export const MAX_ESTATE_NAME = 120;
+export const MAX_GATE_DIRECTIONS = 600;
+export const MAX_SECURITY_PHONE = 32;
+export const MAX_ACCESS_CODE = 40;
+
 
 /* ------------------------------------------------------------ amenities */
 
@@ -247,6 +339,19 @@ export const draftInputSchema = z.object({
   cleaningNaira: optionalNaira("Enter the cleaning amount in naira, for example 10,000."),
   minStayNights: optionalCount(1, 365, "The shortest stay can be 1 to 365 nights."),
   instantBook: z.preprocess(emptyToUndefined, z.boolean().optional()),
+
+  /* Light and water. Undefined means the host has not answered yet and the
+     column is left exactly as it was; the listing page renders unanswered as
+     unanswered, never as good news. */
+  powerGrid: z.preprocess(emptyToUndefined, z.enum(POWER_GRID_VALUES).optional()),
+  powerBackup: z.preprocess(emptyToUndefined, z.enum(POWER_BACKUP_VALUES).optional()),
+  powerBackupHours: optionalCount(
+    0,
+    MAX_BACKUP_HOURS,
+    `Backup hours can be 0 to ${MAX_BACKUP_HOURS}.`,
+  ),
+  waterSupply: z.preprocess(emptyToUndefined, z.enum(WATER_SUPPLY_VALUES).optional()),
+  prepaidMeter: z.preprocess(emptyToUndefined, z.boolean().optional()),
 });
 
 export type DraftInput = z.input<typeof draftInputSchema>;
@@ -302,6 +407,30 @@ export const setAmenitiesSchema = z.object({
 export const listingIdSchema = z.object({
   listingId: uuid("We could not identify that listing."),
 });
+
+/**
+ * What a host tells us about getting in.
+ *
+ * This never reaches `public.listings`, which the whole internet can read once a
+ * listing is PUBLISHED. It goes to `public.listing_access`, whose select policy
+ * names three readers and no others: the host, an admin, and a guest holding a
+ * CONFIRMED booking on that listing.
+ */
+export const listingAccessSchema = z.object({
+  listingId: uuid("We could not identify that listing."),
+  estateName: optionalText(MAX_ESTATE_NAME, `Keep the estate name under ${MAX_ESTATE_NAME} characters.`),
+  gateDirections: optionalText(
+    MAX_GATE_DIRECTIONS,
+    `Keep the gate directions under ${MAX_GATE_DIRECTIONS} characters.`,
+  ),
+  securityPhone: optionalText(
+    MAX_SECURITY_PHONE,
+    "That phone number is too long. A single number is enough.",
+  ),
+  accessCode: optionalText(MAX_ACCESS_CODE, `Keep the code under ${MAX_ACCESS_CODE} characters.`),
+});
+
+export type ListingAccessInput = z.input<typeof listingAccessSchema>;
 
 /* ------------------------------------------------------- the submit gate */
 
@@ -402,10 +531,13 @@ export function submitRequirements(subject: SubmitSubject): GateRequirement[] {
   if ((subject.bedrooms ?? -1) < 0) {
     unmet.push({ field: "bedrooms", message: "Say how many bedrooms the property has." });
   }
-  if ((subject.bathrooms ?? 0) < 1) {
+  /* A plot of land has no bathroom and sleeps nobody. Asking would be a gate
+     no land listing could ever pass, which is a worse failure than a missing
+     field: the category would exist in search and be impossible to supply. */
+  if (subject.propertyType !== "land" && (subject.bathrooms ?? 0) < 1) {
     unmet.push({ field: "bathrooms", message: "Say how many bathrooms the property has." });
   }
-  if ((subject.maxGuests ?? 0) < 1) {
+  if (subject.propertyType !== "land" && (subject.maxGuests ?? 0) < 1) {
     unmet.push({ field: "maxGuests", message: "Say how many guests the property sleeps." });
   }
 
@@ -454,17 +586,24 @@ export const STATUS_LABEL: Record<ListingStatus, string> = {
   SUSPENDED: "Suspended",
 };
 
-/** Status colours reuse the existing state tokens. Never a new palette. */
+/**
+ * Status colours, named for the STATE rather than for the colour.
+ *
+ * The four locked meanings live in packages/design-tokens/src/tokens.css. This
+ * map only says which listing status is which state; it never picks a colour.
+ * Everything a host is still waiting on is "pending", whatever the wording of
+ * the step, and everything the platform has stopped is "rejected".
+ */
 export const STATUS_TONE: Record<
   ListingStatus,
-  "neutral" | "brand" | "warning" | "success" | "error"
+  "neutral" | "pending" | "approved" | "rejected"
 > = {
   DRAFT: "neutral",
-  SUBMITTED: "brand",
-  UNDER_REVIEW: "brand",
-  MORE_INFO_REQUIRED: "warning",
-  APPROVED: "success",
-  PUBLISHED: "success",
-  REJECTED: "error",
-  SUSPENDED: "warning",
+  SUBMITTED: "pending",
+  UNDER_REVIEW: "pending",
+  MORE_INFO_REQUIRED: "pending",
+  APPROVED: "approved",
+  PUBLISHED: "approved",
+  REJECTED: "rejected",
+  SUSPENDED: "rejected",
 };

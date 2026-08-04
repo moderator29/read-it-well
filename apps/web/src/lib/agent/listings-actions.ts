@@ -44,6 +44,7 @@ import {
   addPhotoSchema,
   draftInputSchema,
   gateFieldErrors,
+  listingAccessSchema,
   listingIdSchema,
   pricePeriodFor,
   removePhotoSchema,
@@ -51,6 +52,7 @@ import {
   setAmenitiesSchema,
   submitRequirements,
   type DraftInput,
+  type ListingAccessInput,
   type PropertyType,
 } from "./listings-schema";
 
@@ -175,6 +177,17 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     cleaning_fee_minor: period === "year" ? 0 : value.cleaningNaira,
     min_stay_nights: period === "year" ? 1 : value.minStayNights,
     instant_book: period === "year" ? false : value.instantBook,
+
+    power_grid: value.powerGrid,
+    power_backup: value.powerBackup,
+    // The database refuses hours against a backup that does not exist
+    // (listings_backup_hours_need_backup_chk), so clearing the backup clears
+    // the hours here rather than letting the write bounce with a 23514 the
+    // host cannot act on.
+    power_backup_hours:
+      value.powerBackup === "NONE" ? null : value.powerBackupHours,
+    water_supply: value.waterSupply,
+    prepaid_meter: value.prepaidMeter,
   };
 
   if (value.id) {
@@ -509,6 +522,65 @@ export async function setAmenities(input: {
 
   refreshAgentSurfaces();
   return ok(null);
+}
+
+/* ----------------------------------------------------------- gate access */
+
+/**
+ * How a guest actually gets in, stored where only the right people can read it.
+ *
+ * This is the one write in the listing flow that does NOT touch
+ * `public.listings`. That table is readable by the entire internet the moment a
+ * listing is PUBLISHED, so a gate code on it would be a gate code published.
+ * `public.listing_access` carries the details and its select policy names three
+ * readers and no others: the host, an admin, and a guest holding a CONFIRMED
+ * booking on that listing.
+ *
+ * An upsert, because a host correcting the security number should not have to
+ * delete the row and write it again. Emptying every field is a real answer and
+ * clears `listings.has_estate_access` through the trigger, so the public page
+ * stops promising details that no longer exist.
+ */
+export async function setListingAccess(
+  input: ListingAccessInput,
+): Promise<ActionResult<{ hasAccess: boolean }>> {
+  const gate = await requireAgent();
+  if (!gate.ok) return fail(gate.error);
+
+  const parsed = validate(listingAccessSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const value = parsed.data;
+
+  const listing = await ownedListing(gate.supabase, gate.agentId, value.listingId);
+  if (!listing) return fail(NOT_FOUND_MESSAGE);
+
+  const row = {
+    listing_id: value.listingId,
+    estate_name: value.estateName ?? null,
+    gate_directions: value.gateDirections ?? null,
+    security_phone: value.securityPhone ?? null,
+    access_code: value.accessCode ?? null,
+  };
+
+  const { error } = await gate.supabase
+    .from("listing_access")
+    .upsert(row, { onConflict: "listing_id" });
+
+  if (error) {
+    // 42501 is the policy refusing a listing that is not this host's, which
+    // ownedListing should already have caught, so it means the two disagree
+    // and the honest answer is the ownership one.
+    if (error.code === "42501") return fail(NOT_FOUND_MESSAGE);
+    return fail(SAVE_FAILED_MESSAGE);
+  }
+
+  refreshAgentSurfaces();
+  revalidatePath(`/listing/${value.listingId}`);
+
+  const hasAccess = Object.values(row).some(
+    (field, index) => index > 0 && typeof field === "string" && field.trim().length > 0,
+  );
+  return ok({ hasAccess });
 }
 
 /* --------------------------------------------------------------- submit */

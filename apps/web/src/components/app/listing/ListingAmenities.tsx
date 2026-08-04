@@ -65,7 +65,7 @@ export function ListingAmenities({
   if (marks.length === 0) {
     return (
       <p className="text-[0.875rem] text-[var(--nf-content-muted)]">
-        The agent has not listed what this place offers yet. Ask in Messages
+        The agent has not listed what this place offers yet. Ask in your Inbox
         before you book.
       </p>
     );

@@ -38,6 +38,12 @@ function ReportCard({
       <div className="flex flex-wrap items-center gap-2">
         <ui.StatusChip status={report.status} />
         <ui.StatusChip label={report.targetType} tone="neutral" />
+        {/* The category is what a reviewer triages on, so it sits with the
+            status rather than being buried in the body. Rows filed before
+            categories existed simply do not carry one. */}
+        {report.category && (
+          <ui.StatusChip label={report.category.replace(/_/g, " ")} tone="neutral" />
+        )}
         <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
           {ui.when(report.createdAt)}
         </span>

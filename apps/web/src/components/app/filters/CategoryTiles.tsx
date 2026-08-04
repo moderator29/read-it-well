@@ -23,6 +23,9 @@ const CATEGORIES: { kind: ListingKind; icon: BrandIconName }[] = [
   { kind: "shortlet", icon: "calendar-home" },
   { kind: "villa", icon: "heart-home" },
   { kind: "rental", icon: "keys-home" },
+  { kind: "shop", icon: "tag-percent" },
+  { kind: "office", icon: "doc-shield" },
+  { kind: "land", icon: "map-spot" },
   { kind: "restaurant", icon: "gift" },
   { kind: "experience", icon: "luggage-check" },
 ];
@@ -41,6 +44,9 @@ export function CategoryTiles({ query, t }: { query: DiscoveryQuery; t: Dictiona
     shortlet: "Shortlets",
     villa: "Villas",
     rental: t.nav.rent,
+    shop: "Shops",
+    office: "Offices",
+    land: "Land",
     restaurant: t.nav.restaurants,
     experience: t.nav.experiences,
   };

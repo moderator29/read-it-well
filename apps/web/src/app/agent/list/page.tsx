@@ -41,9 +41,8 @@ export default async function Page({
   const context = await getAgentContext();
 
   if (context.state === "signed-out" || context.state === "not-agent") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/list" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/list" profile={null}>
         <ListingPitch
           copy={t.agentListings.pitch}
           signedIn={context.state === "not-agent"}
@@ -55,9 +54,8 @@ export default async function Page({
   // Without platform keys there is nothing to read, so the wizard opens on the
   // canonical reference lists and keeps the agent's work on their device.
   if (context.state === "unconfigured") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/list" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/list" profile={null}>
         <ListingWizard
           copy={t.agentListings}
           locale={locale}

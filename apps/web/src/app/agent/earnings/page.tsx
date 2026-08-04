@@ -6,6 +6,8 @@ import { getAgentRepository } from "@/lib/agent/repository";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
 import { readAgentEarnings, type AgentEarnings } from "@/lib/agent/earnings-queries";
+import { getPayoutAccounts } from "@/lib/agent/payout-queries";
+import { PayoutAccounts } from "@/components/agent/PayoutAccounts";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ListingPitch } from "../list/ListingPitch";
 import { EarningsWorkspace } from "./EarningsWorkspace";
@@ -40,18 +42,16 @@ export default async function Page() {
   const context = await getAgentContext();
 
   if (context.state === "signed-out" || context.state === "not-agent") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/earnings" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/earnings" profile={null}>
         <ListingPitch copy={t.agentListings.pitch} signedIn={context.state === "not-agent"} />
       </AgentShell>
     );
   }
 
   if (context.state === "unconfigured") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/earnings" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/earnings" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
           <span className="mx-auto block h-20 w-20">
             <BrandIcon name="wallet-secure" fill />
@@ -69,6 +69,7 @@ export default async function Page() {
   }
 
   const earnings = (await readAgentEarnings(context)) ?? UNREADABLE_EARNINGS;
+  const payout = await getPayoutAccounts();
 
   return (
     <AgentShell
@@ -83,6 +84,17 @@ export default async function Page() {
       </div>
 
       <EarningsWorkspace t={t.agentEarnings} earnings={earnings} locale={locale} />
+
+      {/* Seeing what you earned is only half of it. This is where it goes.
+          Every state that is not "ready" is handled inside the read, and an
+          unreadable one simply renders nothing rather than a broken panel. */}
+      {payout.state === "ready" && (
+        <PayoutAccounts
+          accounts={payout.accounts}
+          banks={payout.banks}
+          resolveAvailable={payout.resolveAvailable}
+        />
+      )}
     </AgentShell>
   );
 }

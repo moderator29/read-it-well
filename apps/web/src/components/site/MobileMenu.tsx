@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Logo } from "@/design-system/brand/Logo";
@@ -28,13 +29,11 @@ export function MobileMenu({
   closeLabel: string;
 }) {
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
+  const panel = useRef<HTMLDivElement | null>(null);
+  const close = useCallback(() => setOpen(false), []);
+  /* This panel carried aria-modal and no Escape handler, so a keyboard could
+     open it and not get out. One hook, the same contract everywhere. */
+  useOverlay({ open, onClose: close, panelRef: panel });
 
   return (
     <div className="lg:hidden">
@@ -60,7 +59,13 @@ export function MobileMenu({
        */}
       {open &&
         createPortal(
-        <div className="fixed inset-0 z-[75]" role="dialog" aria-modal="true">
+        <div
+          ref={panel}
+          tabIndex={-1}
+          className="fixed inset-0 z-[75] outline-none"
+          role="dialog"
+          aria-modal="true"
+        >
           <button
             type="button"
             aria-label={closeLabel}
@@ -94,7 +99,7 @@ export function MobileMenu({
                       className="flex items-center justify-between py-4 text-[1rem] font-semibold text-[var(--nf-content-primary)] transition-colors hover:text-[var(--nf-electric-300)]"
                     >
                       {l.label}
-                      <UiIcon name="arrow-right" size={14} className="text-[var(--nf-content-muted)]" />
+                      <UiIcon name="arrow-right" size={16} className="text-[var(--nf-content-muted)]" />
                     </Link>
                   </li>
                 ))}
@@ -109,10 +114,10 @@ export function MobileMenu({
                   aria-label="Email RentMe"
                   className="nf-icon-btn h-11 w-11"
                 >
-                  <UiIcon name="chat-bubble" size={17} />
+                  <UiIcon name="chat-bubble" size={16} />
                 </a>
                 <Link href="/assistant" aria-label="RentMe AI" className="nf-icon-btn h-11 w-11">
-                  <UiIcon name="sparkle" size={17} />
+                  <UiIcon name="sparkle" size={16} />
                 </Link>
               </div>
 

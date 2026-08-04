@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
-import { getAgentRepository } from "@/lib/agent/repository";
+import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
 import { AgentShell } from "./AgentShell";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 
@@ -12,6 +12,13 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
  * every one has to resolve to a real page rather than a 404 (Master Rule 55, no
  * dead ends). This states plainly that the section is on the way and keeps the
  * agent inside the workspace chrome, with the correct nav item highlighted.
+ *
+ * The identity in that chrome is resolved here rather than assumed. It used to
+ * come from a seed object called "Demo Agent", which addressed every visitor as
+ * an approved verified agent; passing null instead would have swung the lie the
+ * other way and told a genuinely signed-in agent they were not signed in. So it
+ * asks who is actually there: their own row when there is one, an honest
+ * absence when there is not.
  */
 export async function AgentComingSoon({
   active,
@@ -24,7 +31,8 @@ export async function AgentComingSoon({
 }) {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const profile = await getAgentRepository().getProfile();
+  const context = await getAgentContext();
+  const profile = context.state === "agent" ? agentProfileFrom(context.agent) : null;
 
   return (
     <AgentShell t={t} locale={locale} active={active} profile={profile}>

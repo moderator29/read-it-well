@@ -210,7 +210,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
                     data-testid="saved-heart"
                     className="nf-glass absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full text-[var(--nf-electric-300)] transition-transform active:scale-90 disabled:opacity-60"
                   >
-                    <UiIcon name="heart" size={18} className="[&_path]:fill-current" />
+                    <UiIcon name="heart" size={20} className="[&_path]:fill-current" />
                   </button>
                 </div>
               ) : (
@@ -227,7 +227,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
                     disabled={state === "restoring"}
                     className="nf-chip whitespace-nowrap transition-transform active:scale-[0.96] disabled:opacity-60"
                   >
-                    <UiIcon name="heart" size={13} className="shrink-0" />
+                    <UiIcon name="heart" size={12} className="shrink-0" />
                     Undo
                   </button>
                 </div>

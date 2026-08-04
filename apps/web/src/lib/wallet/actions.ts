@@ -47,7 +47,7 @@ import {
 } from "../actions/session";
 import { bestEffortEmail, sendEmail } from "../email/client";
 import { walletFunded, withdrawalFailed } from "../email/messages";
-import { contactForUser, contactFromSession } from "../email/recipients";
+import { contactForSelf, contactForUser } from "../email/recipients";
 import { isFeatureEnabled } from "../flags";
 import {
   PaystackError,
@@ -278,7 +278,7 @@ export async function withdraw(
     // back in the wallet, so only then does the email go.
     if (markedFailed) {
       await bestEffortEmail(async () => {
-        const owner = contactFromSession(session.user);
+        const owner = await contactForSelf(session.supabase, session.user, "wallet");
         if (!owner) return;
         const message = withdrawalFailed({
           ownerName: owner.name,
@@ -503,8 +503,8 @@ export async function verifyFunding(
     if (posted !== "posted") return;
     const owner =
       ownerId === session.user.id
-        ? contactFromSession(session.user)
-        : await contactForUser(admin, ownerId);
+        ? await contactForSelf(session.supabase, session.user, "wallet")
+        : await contactForUser(admin, ownerId, "wallet");
     if (!owner) return;
     const message = walletFunded({
       ownerName: owner.name,

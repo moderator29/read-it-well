@@ -50,7 +50,11 @@ const page = await context.newPage();
 console.log("1. /messages renders threads");
 await page.goto(`${BASE_URL}/messages`, { waitUntil: "load", timeout: 45000 });
 await page.waitForTimeout(1500);
-await expectVisible(page, page.getByRole("heading", { name: "Messages" }), "Messages heading");
+/* The surface is called Inbox now, everywhere a person can see it. The route
+   stays /messages, because a URL people have shared should not break to rename
+   a heading. The product changed; this expectation was right about the old
+   name and is now right about the new one. */
+await expectVisible(page, page.getByRole("heading", { name: "Inbox" }), "Inbox heading");
 await expectVisible(page, page.getByText("Adaeze Okafor"), "thread row: Adaeze Okafor");
 await expectVisible(
   page,
@@ -91,7 +95,19 @@ await expectVisible(
 );
 
 // ------------------------------------------------------ 4. notifications
-console.log("4. /notifications renders grouped items");
+//
+// This block used to assert that "Booking confirmed", a "Yesterday" day label
+// and a mark-all control were on screen for a signed-out visitor. All three
+// were properties of a hardcoded list of five invented notifications that told
+// a visitor who had never booked anything that their booking was confirmed and
+// their wallet was ready. The seeded list is deleted, so the spec no longer
+// asserts it: the product was wrong and now the expectation matches.
+//
+// The grouped inbox, its day labels and the mark-all control are all real for a
+// signed-in caller and are covered there. What a signed-out visitor must get is
+// an honest state, which is what this now checks. tests/notifications.spec.mjs
+// carries the full guard, including the exact invented strings by name.
+console.log("4. /notifications is honest when signed out");
 await page.goto(`${BASE_URL}/notifications`, { waitUntil: "load", timeout: 45000 });
 await page.waitForTimeout(1500);
 await expectVisible(
@@ -99,14 +115,19 @@ await expectVisible(
   page.getByRole("heading", { name: "Notifications" }),
   "Notifications heading",
 );
-await expectVisible(page, page.getByText("Booking confirmed"), "booking item renders");
-await expectVisible(page, page.getByText("Today").first(), "day label: Today");
-await expectVisible(page, page.getByText("Yesterday").first(), "day label: Yesterday");
-await expectVisible(
-  page,
-  page.getByRole("button", { name: "Mark all read" }),
-  "mark-all control renders",
-);
+
+const notificationsText = await page.locator("body").innerText();
+const honest =
+  /Notifications switch on shortly|Sign in to see your notifications/.test(notificationsText);
+const invented = notificationsText.includes("Booking confirmed");
+if (honest && !invented) {
+  console.log("  ok  signed-out notifications state is honest");
+} else {
+  failures += 1;
+  console.log(
+    `  FAIL signed-out notifications state is honest (honest=${honest}, invented=${invented})`,
+  );
+}
 
 await browser.close();
 

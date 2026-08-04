@@ -36,7 +36,7 @@ export default function NotFound() {
       </div>
 
       <div className="relative z-10">
-        <Link href="/" aria-label="RentMe home" className="inline-flex">
+        <Link href="/" aria-label="RentMe home" className="nf-tap inline-flex">
           <LogoMark size={64} />
         </Link>
 
@@ -55,7 +55,7 @@ export default function NotFound() {
             href="/search"
             className="nf-btn nf-btn--glass flex w-full items-center justify-start gap-4 rounded-full px-5 py-3.5 text-left"
           >
-            <UiIcon name="search" size={18} className="shrink-0 text-[var(--nf-content-muted)]" />
+            <UiIcon name="search" size={20} className="shrink-0 text-[var(--nf-content-muted)]" />
             <span className="text-[0.9375rem] text-[var(--nf-content-secondary)]">
               Search hotels, food, experiences...
             </span>
@@ -67,7 +67,7 @@ export default function NotFound() {
             Back to home
           </Link>
           <Link href="/search" className="nf-btn nf-btn--glass nf-btn--lg gap-2">
-            <UiIcon name="sparkle" size={18} />
+            <UiIcon name="sparkle" size={20} />
             Explore instead
           </Link>
         </div>

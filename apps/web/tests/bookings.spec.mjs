@@ -63,6 +63,16 @@ try {
   await panel.locator('input[name="checkOut"]').fill(futureIso(32));
   await page.waitForTimeout(400);
 
+  /* The panel leads with the total and keeps the breakdown one tap away, so the
+     nightly line only exists once the breakdown is open. This spec used to read
+     the nightly line straight off the closed panel, which stopped being true
+     the day the total moved first. */
+  const closedText = await panel.innerText();
+  check("the total is what the panel leads with", /total/i.test(closedText));
+  check("the per-night view is offered", closedText.includes("See per night"));
+
+  await panel.getByText("See per night").click();
+  await page.waitForTimeout(400);
   const panelText = await panel.innerText();
   check("price breakdown shows nights multiplied", /×\s*2 nights/.test(panelText));
   check("price breakdown shows a total", panelText.includes("Total"));

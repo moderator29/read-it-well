@@ -2,13 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getDictionary, type Locale } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
+import { DAYPART_GREETING, getHomeOverview } from "@/lib/app/home-queries";
 import { getListingRepository } from "@/lib/listings/repository";
 import { ListingCard } from "@/components/app/ListingCard";
 import { AiAssistantBanner } from "@/components/app/AiAssistantBanner";
+import { CityHero } from "@/components/app/home/CityHero";
+import { CityRow } from "@/components/app/home/CityRow";
+import { TrendingStrip } from "@/components/app/home/TrendingStrip";
 import { Reveal } from "@/components/site/Reveal";
+import { LogoMark } from "@/design-system/brand/Logo";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { FilterLink } from "@/components/app/filters/FilterLink";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -16,23 +19,30 @@ export const metadata: Metadata = {
 };
 
 /**
- * Personal Mode home.
+ * Home: the overview.
  *
- * Signed in discovery surface. The rail, tab bar and top bar are provided by
- * the `(app)` layout, so this page renders only its own content. There is no
- * session layer yet, so the greeting name is a placeholder constant rather than
- * a fabricated user record, and the route is marked noindex until auth gates it.
+ * The first screen anybody sees, and the one place where every fact has to be
+ * the reader's own. The greeting is decided by the clock in Lagos, not by the
+ * server's timezone. The name is theirs. The city is theirs, read from their
+ * profile, and the chevron beside it goes to the screen that changes it. The
+ * hero is the supplied city artwork with a lit pin for every open place inside
+ * that city, each one carrying its real post count from `public.areas`. The
+ * strip under it is what people are actually reading there.
  *
- * Layout notes: on phones the category and experience rows scroll horizontally
- * with snap points instead of wrapping, so five destinations stay one thumb
- * sweep wide; from `sm` up they settle into grids. Sections below the fold
- * enter with `Reveal` so the page assembles as you scroll.
+ * Rendered per request rather than cached, because a page that says "Good
+ * morning" cannot be served from a build that ran last night.
+ *
+ * What used to be here and is not any more: a "Top experiences" row of five
+ * tiles whose five links were the same URL. Five different names leading to one
+ * identical destination is a promise the product cannot keep, and the category
+ * row above it already covers experiences honestly.
  */
-const PLACEHOLDER_NAME = "there";
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
+  const overview = await getHomeOverview();
 
   const repo = getListingRepository();
   const listings = await repo.recommended(6);
@@ -45,63 +55,72 @@ export default async function HomePage() {
     { icon: "luggage-check", label: t.nav.experiences, href: "/search?type=experience" },
   ];
 
-  const experiences: { icon: BrandIconName; label: string }[] = [
-    { icon: "luggage-check", label: t.home.experienceCategories.beach },
-    { icon: "map-route", label: t.home.experienceCategories.city },
-    { icon: "gift", label: t.home.experienceCategories.dining },
-    { icon: "map-route", label: t.home.experienceCategories.adventure },
-    { icon: "gift", label: t.home.experienceCategories.events },
-  ];
+  const greeting = DAYPART_GREETING[overview.daypart];
+  const name = overview.firstName || (overview.signedIn ? "there" : "");
 
   return (
     <>
-      {/* ---------------------------------------------------- greeting */}
+      {/* ---------------------------------------------------- the greeting */}
       <section className="nf-rise">
-        <h1 className="nf-h1 max-sm:text-[1.375rem]">
-          {t.home.greeting}, <span className="nf-gradient-text">{PLACEHOLDER_NAME}</span>
-        </h1>
-        <p className="mt-1.5 text-[0.9375rem] text-[var(--nf-content-secondary)] sm:mt-2 sm:text-base">
-          {t.home.prompt}
+        <p className="text-[0.875rem] font-medium text-[var(--nf-content-secondary)]">
+          {greeting}
         </p>
+        {name ? (
+          <h1 className="mt-0.5 flex items-center gap-2.5">
+            <span className="nf-h1 max-sm:text-[1.875rem]">{name}</span>
+            <span className="inline-block shrink-0 translate-y-[2px]">
+              <LogoMark size={26} title="RentMe" />
+            </span>
+          </h1>
+        ) : (
+          <h1 className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <span className="nf-h1 max-sm:text-[1.75rem]">Welcome to RentMe</span>
+            <span className="inline-block shrink-0 translate-y-[2px]">
+              <LogoMark size={26} title="RentMe" />
+            </span>
+          </h1>
+        )}
+        {!overview.signedIn && (
+          <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <Link
+              href="/sign-in"
+              className="font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+            >
+              Sign in
+            </Link>{" "}
+            and this screen becomes yours: your city, your places, your name.
+          </p>
+        )}
 
-        <div className="mt-5 flex max-w-2xl items-center gap-2 sm:mt-6">
-        <form
-          action="/search"
-          method="get"
-          role="search"
-          className="nf-card flex min-w-0 flex-1 items-center gap-1.5 p-1.5"
-        >
-          <label htmlFor="home-q" className="sr-only">
-            {t.home.searchPlaceholder}
-          </label>
-          <div className="flex min-w-0 flex-1 items-center gap-3 px-2.5">
-            <UiIcon name="search" size={20} className="shrink-0 text-[var(--nf-content-muted)]" />
-            <input
-              id="home-q"
-              name="q"
-              type="search"
-              autoComplete="off"
-              placeholder={t.home.searchPlaceholder}
-              className="w-full bg-transparent py-2 text-[0.875rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
-            />
-          </div>
-          {/* Same reasoning as /search: on a phone the glyph carries the
-              action so the field keeps its width, and the word returns at sm. */}
-          <button
-            type="submit"
-            aria-label={t.common.search}
-            className="nf-btn nf-btn--primary shrink-0 px-3 py-2 text-[0.8125rem] sm:px-3.5"
-          >
-            <UiIcon name="search" size={16} className="sm:hidden" />
-            <span className="hidden sm:inline">{t.common.search}</span>
-          </button>
-        </form>
-        <FilterLink label={t.common.search} />
-        </div>
+        <CityRow
+          label={overview.place.label}
+          context={overview.place.context}
+          isOwn={overview.place.isOwn}
+          signedIn={overview.signedIn}
+        />
       </section>
 
-      {/* -------------------------------------------------- categories */}
+      {/* --------------------------------------------------------- the city */}
+      <div className="mt-5">
+        <CityHero
+          cityLabel={overview.place.label}
+          contextLabel={overview.place.isOwn ? "Your city" : "Open on RentMe"}
+          areas={overview.areas}
+        />
+      </div>
+
+      {/* ----------------------------------------------------- what is live */}
+      <Reveal className="mt-10 sm:mt-12">
+        <TrendingStrip
+          items={overview.trending}
+          cityLabel={overview.place.label}
+          hasPlaces={overview.areas.length > 0}
+        />
+      </Reveal>
+
+      {/* -------------------------------------------------------- categories */}
       <Reveal as="section" className="mt-10 sm:mt-12">
+        <h2 className="nf-h3 mb-3">Find a place to stay</h2>
         <ul className="nf-scroll-x -mx-5 flex snap-x snap-mandatory gap-4 px-5 pb-1 scroll-pl-5 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 sm:pb-0 lg:grid-cols-5">
           {categories.map((c) => (
             <li key={c.href} className="w-[7.25rem] shrink-0 snap-start sm:w-auto">
@@ -121,18 +140,13 @@ export default async function HomePage() {
         </ul>
       </Reveal>
 
-      {/* ----------------------------------------------------- ai card */}
-      <Reveal className="mt-10 sm:mt-12" delay={60}>
-        <AiAssistantBanner t={t} />
-      </Reveal>
-
       {/* -------------------------------------------------- recommended */}
       <Reveal as="section" className="mt-12 sm:mt-14">
         <div className="mb-5 flex items-end justify-between gap-4">
           <h2 className="nf-h2">{t.home.recommended}</h2>
           <Link
             href="/search"
-            className="shrink-0 text-[0.875rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+            className="nf-tap shrink-0 text-[0.875rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
           >
             {t.common.viewAll}
           </Link>
@@ -159,6 +173,11 @@ export default async function HomePage() {
         )}
       </Reveal>
 
+      {/* ----------------------------------------------------------- ai card */}
+      <Reveal className="mt-12 sm:mt-14" delay={60}>
+        <AiAssistantBanner t={t} />
+      </Reveal>
+
       {/* -------------------------------------------------- agent promo */}
       <Reveal as="section" className="mt-12 sm:mt-14" delay={60}>
         <div className="nf-card relative flex flex-col gap-5 overflow-hidden p-6 sm:p-7 md:flex-row md:items-center">
@@ -180,26 +199,6 @@ export default async function HomePage() {
             {t.home.agentCard.action}
           </Link>
         </div>
-      </Reveal>
-
-      {/* --------------------------------------------------- experiences */}
-      <Reveal as="section" className="mt-12 sm:mt-14">
-        <h2 className="nf-h2 mb-4">{t.home.topExperiences}</h2>
-        <ul className="nf-scroll-x -mx-5 flex snap-x snap-mandatory gap-4 px-5 pb-1 scroll-pl-5 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 sm:pb-0 lg:grid-cols-5">
-          {experiences.map((e) => (
-            <li key={e.label} className="w-[7.75rem] shrink-0 snap-start sm:w-auto">
-              <Link
-                href="/search?type=experience"
-                className="nf-card nf-card--interactive flex h-full flex-col items-center gap-3 p-4 text-center sm:p-5"
-              >
-                <span className="block h-16 w-16 sm:h-16 sm:w-16">
-                  <BrandIcon name={e.icon} fill />
-                </span>
-                <span className="text-[0.8125rem] font-semibold">{e.label}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
       </Reveal>
     </>
   );

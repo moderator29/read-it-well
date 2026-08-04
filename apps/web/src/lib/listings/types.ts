@@ -13,7 +13,15 @@ export type ListingKind =
    * year, no Reserve button. The path is message the agent, inspect, then
    * pay. Distinct from "apartment", which is nightly lodging.
    */
-  | "rental";
+  | "rental"
+  /**
+   * The commercial and land market. Let on a tenancy exactly like a rental:
+   * priced per year, arranged with the agent, inspected before payment, and
+   * never reserved by the night.
+   */
+  | "shop"
+  | "office"
+  | "land";
 
 /**
  * Everything a partner listing carries that a first-party listing does not.
@@ -58,6 +66,16 @@ export type Listing = {
    * restaurants and experiences.
    */
   priceMinor: number;
+  /**
+   * Charged once per stay, on top of the nightly rate, in kobo.
+   *
+   * These exist so the breakdown a guest reads BEFORE booking is the same
+   * arithmetic `reserve()` does after. They were server-only until now, which
+   * meant the panel showed a "Total" that was really the subtotal and then
+   * asked for a larger number at checkout. Absent or zero renders no row.
+   */
+  cleaningMinor?: number;
+  serviceMinor?: number;
   currency: "NGN";
   /**
    * What the price covers. "night" for stays (default), "year" for rentals.
@@ -78,6 +96,28 @@ export type Listing = {
   partner?: PartnerMeta;
   bedrooms: number;
   bathrooms: number;
+  /**
+   * How many guests the host says the place takes, when the source states a
+   * number. Agent inventory always carries one (`listings.max_guests`, which
+   * the wizard collects and a check constraint keeps above zero). The seed
+   * catalogue does not, so it is optional and the shared `sleeps` matcher
+   * falls back to the two-per-bedroom convention for anything that omits it.
+   */
+  maxGuests?: number;
+  /**
+   * Light, water and the gate: the three questions asked here before the
+   * price. Absent on partner stock and on the seed catalogue, which have no
+   * honest answer, and rendered as unanswered rather than as good news.
+   */
+  utilities?: {
+    powerGrid?: "BAND_A" | "MOSTLY_ON" | "PATCHY" | "RARELY" | "NONE";
+    powerBackup?: "NONE" | "GENERATOR" | "INVERTER" | "SOLAR" | "GENERATOR_INVERTER";
+    powerBackupHours?: number;
+    waterSupply?: "TREATED_MAINS" | "BOREHOLE" | "PUMPED_STORAGE" | "TANKER" | "NONE";
+    prepaidMeter?: boolean;
+    /** True when the host has stored gate details. Never the details themselves. */
+    hasEstateAccess: boolean;
+  };
   rating: number;
   reviewCount: number;
   verified: boolean;
@@ -112,10 +152,10 @@ export type ListingSearchFilter = {
   /** Minimum bathrooms, same rule. */
   bathrooms?: number;
   /**
-   * Minimum party size the place must take. The catalogue has no sleeps
-   * column, so capacity is derived from bedrooms by the shared matcher; a
-   * listing with no bedrooms at all (a restaurant table, an experience) has no
-   * capacity to judge and is never excluded by this.
+   * Minimum party size the place must take. Judged against the host's declared
+   * capacity where there is one, and against the two-per-bedroom convention
+   * where there is not. A listing with neither (a restaurant table, an
+   * experience) has no capacity to judge and is never excluded by this.
    */
   guests?: number;
   /** Amenity codes that must ALL be present. Same codes the agent flow writes. */

@@ -54,6 +54,15 @@ export type HostBooking = {
   /** Adults plus children, the single number a host reads first. */
   guests: number;
   totalMinor: number;
+  /**
+   * The person who will actually turn up, when the booker paid for somebody
+   * else. Null means the booker is the guest. The host needs this to let the
+   * right person through a gate, and it is a safety fact before it is a
+   * convenience one.
+   */
+  arrivingName: string | null;
+  /** Their number, so the security desk has somebody to ring. */
+  arrivingPhone: string | null;
   status: BookingStatus;
   settlement: SettlementState;
   createdAt: string;
@@ -89,7 +98,8 @@ const MAX_ROWS = 300;
 
 const BOOKING_SELECT =
   "id, listing_id, guest_id, check_in, check_out, nights, adults, children, " +
-  "total_minor, status, created_at, listings!inner(id, title, agent_id)";
+  "total_minor, status, created_at, guest_name, guest_phone, " +
+  "listings!inner(id, title, agent_id)";
 
 type BookingRow = {
   id: string;
@@ -103,6 +113,8 @@ type BookingRow = {
   total_minor: number;
   status: BookingStatus;
   created_at: string;
+  guest_name: string | null;
+  guest_phone: string | null;
   listings: { id: string; title: string } | null;
 };
 
@@ -261,6 +273,8 @@ export async function readHostBookings(context: AgentContext): Promise<HostBooki
       children: row.children,
       guests: row.adults + row.children,
       totalMinor: row.total_minor,
+      arrivingName: (row.guest_name ?? "").trim() || null,
+      arrivingPhone: (row.guest_phone ?? "").trim() || null,
       status: row.status,
       settlement: settlement.settled.has(row.id)
         ? "settled"

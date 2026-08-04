@@ -2,6 +2,21 @@
 @import "@naijafinds/design-tokens/tokens.css";
 
 /*
+ * The social layer's own styles, kept in their own file rather than appended
+ * here. This file passed 3,100 lines some time ago and merge accidents live in
+ * monoliths (inbox item 226). Everything in social.css draws from the same layer
+ * two tokens as everything else, and may not introduce a raw colour either.
+ */
+@import "./social.css";
+
+/*
+ * The feed's own material, in its own file for the same reason and one more:
+ * three people are building the social layer at once, and one writer per file
+ * is the cheapest way to stop us overwriting each other.
+ */
+@import "./social-feed.css";
+
+/*
  * Bridge the semantic tokens into Tailwind so utilities and hand written CSS
  * draw from one source. Nothing below may introduce a raw colour.
  */
@@ -88,22 +103,106 @@ body {
 }
 
 /* Pointer clicks never draw a focus rectangle; keyboard focus keeps the ring. */
-:where(a, button, input, select, textarea, [tabindex]):focus:not(:focus-visible) {
+:where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex],
+    [role="button"],
+    [role="tab"],
+    [role="switch"],
+    [contenteditable]
+  ):focus:not(:focus-visible) {
   outline: none;
 }
 
 /*
- * Every interactive element gets a visible, branded focus ring.
+ * Every interactive element gets a visible focus ring, in both themes.
  *
- * This deliberately does NOT set border-radius. It used to, and because the
- * rule is unlayered it beat Tailwind's layered utilities, so every pill-shaped
- * nav item and chip visibly squared off to 6px the moment it took keyboard
- * focus. `outline` already follows the element's own border-radius in every
- * browser we support, so the ring hugs the real shape without reshaping it.
+ * Three things were wrong here, and one of them was ours.
+ *
+ * The ring was drawn in --nf-brand-primary, a deep electric blue that measures
+ * 2.11:1 against the near-black canvas, so on the DEFAULT theme it was a ring
+ * nobody could see. And the selector listed only the five native element names,
+ * which missed `summary` and every ARIA control the app builds out of a div.
+ *
+ * The third was introduced by the fix for the first two: setting border-radius
+ * here. This rule is unlayered, so it beats Tailwind's layered utilities, and
+ * every pill-shaped nav item and chip visibly squared off to 6px the moment it
+ * took keyboard focus. `outline` already follows the element's own radius in
+ * every browser we support, so the ring hugs the real shape without reshaping
+ * it. That line is gone and this comment is why it must not come back.
+ *
+ * The colour comes from --nf-focus-ring, the member of the same blue family
+ * that clears 3:1 in both themes: 5.68:1 on night, 7.44:1 on paper. The offset
+ * is what makes it work over any material, floating the ring clear so a
+ * brand-blue button does not swallow a brand-blue ring.
  */
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--nf-brand-primary);
-  outline-offset: 2px;
+:where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex],
+    [role="button"],
+    [role="tab"],
+    [role="switch"],
+    [contenteditable]
+  ):focus-visible {
+  outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+  outline-offset: var(--nf-focus-ring-offset);
+}
+
+/*
+ * A bare input inside a styled shell.
+ *
+ * Three search bars (the landing hero, the search page and the place picker)
+ * suppress the input's own outline so the shell reads as one control, and then
+ * nothing drew a ring at all: tabbing into the platform's most-used field
+ * showed a keyboard user absolutely nothing. The shell carries it instead.
+ */
+.nf-focus-well:focus-within {
+  outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+  outline-offset: var(--nf-focus-ring-offset);
+}
+
+/*
+ * A 44 by 44 hit target on a control that is meant to look smaller.
+ *
+ * A runtime sweep of every visible control on twenty-one routes, in both
+ * themes, found twenty-eight distinct targets under 44px: the header wordmark
+ * at 38, the avatar at 38 square, the settings toggles at 28 tall, "View all"
+ * at 22, the map cluster pips at 34 by 38, the wizard step dots at 32 square.
+ *
+ * Some of those can simply grow. These cannot: a toggle track is 28px because
+ * that is what a toggle looks like, and a text link that says "View all" cannot
+ * become a button without changing what the row means. So the TARGET grows and
+ * the control does not. The pseudo-element is centred on the control and
+ * measures at least 44 in each axis; it is part of the control, so it needs no
+ * event handling of its own, and it moves not one visible pixel.
+ *
+ * It sits behind the control's own content (`z-index: -1` is wrong here because
+ * it would fall behind the page; auto stacking with no paint is enough since
+ * the element has no background).
+ */
+.nf-tap {
+  position: relative;
+}
+.nf-tap::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  /* Never let the expanded target paint or capture text selection. */
+  pointer-events: auto;
 }
 
 ::selection {
@@ -813,6 +912,10 @@ body {
     filter: drop-shadow(0 24px 48px rgb(18 21 26 / 0.18));
   }
   .nf-onboarding-skip {
+    /* 58 by 38 before this line. The first control a new visitor ever meets. */
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     padding: 0.5rem 0.9rem;
     border-radius: var(--nf-radius-pill);
     border: 1.5px solid rgb(18 21 26 / 0.14);
@@ -1486,7 +1589,7 @@ body {
   }
 
   .nf-gradient-text {
-    background: var(--nf-gradient-iridescent);
+    background: var(--nf-gradient-text);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -1781,6 +1884,128 @@ body {
     }
   }
 
+  /*
+   * The two-handle range control.
+   *
+   * Two native range inputs stacked over one drawn track. Native because a
+   * div with pointer handlers is not keyboard operable, not announced, and
+   * not draggable with a switch: the browser's own control is all three for
+   * free. The inputs are transparent and only their thumbs take pointer
+   * events, so the lower half of the track belongs to the minimum handle and
+   * the upper half to the maximum, and neither can swallow the other.
+   */
+  .nf-range {
+    position: relative;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+  }
+  .nf-range__track,
+  .nf-range__fill {
+    position: absolute;
+    height: 0.35rem;
+    border-radius: var(--nf-radius-pill);
+    pointer-events: none;
+  }
+  .nf-range__track {
+    left: 0;
+    right: 0;
+    background: var(--nf-surface-secondary);
+    border: 1px solid var(--nf-border-subtle);
+  }
+  .nf-range__fill {
+    background: var(--nf-gradient-brand, var(--nf-brand-primary));
+  }
+  .nf-range__input {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    margin: 0;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    pointer-events: none;
+  }
+  .nf-range__input:focus-visible {
+    outline: none;
+  }
+  .nf-range__input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    pointer-events: auto;
+    height: 1.5rem;
+    width: 1.5rem;
+    border-radius: 50%;
+    border: 3px solid var(--nf-surface-primary);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 10px rgb(12 57 239 / 0.45);
+    cursor: grab;
+  }
+  .nf-range__input::-moz-range-thumb {
+    pointer-events: auto;
+    height: 1.5rem;
+    width: 1.5rem;
+    border-radius: 50%;
+    border: 3px solid var(--nf-surface-primary);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 10px rgb(12 57 239 / 0.45);
+    cursor: grab;
+  }
+  /* The thumb is filled with --nf-brand-primary, so a ring in the same colour
+     was a blue ring on a blue disc: focus on the price slider was invisible in
+     both themes. The ring takes the focus token like everything else. */
+  .nf-range__input:focus-visible::-webkit-slider-thumb {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 3px;
+  }
+  .nf-range__input:focus-visible::-moz-range-thumb {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 3px;
+  }
+
+  /*
+   * A segmented option: one of a row where exactly one can be on. Quiet
+   * outline when it is not, brand fill when it is, which is the whole
+   * vocabulary the filter rows and the bedroom row share.
+   */
+  .nf-segment {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.55rem 0.5rem;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: transparent;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+    cursor: pointer;
+    transition:
+      background var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-segment:hover {
+    border-color: var(--nf-border-strong);
+    color: var(--nf-content-primary);
+  }
+  .nf-segment--on,
+  .nf-segment--on:hover {
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+
+  /* The quiet size, for controls that sit inside a card rather than under one:
+     a reply, an edit, a withdraw. Still a 40px target, so it stays a thumb
+     target on a phone rather than becoming a link pretending to be a button. */
+  .nf-btn--sm {
+    padding: 0.52rem 0.95rem;
+    font-size: var(--nf-text-body-sm);
+    border-radius: var(--nf-radius-md);
+  }
+
   /* Devices without backdrop-filter get a solid body, never a washed out panel. */
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .nf-btn--glass {
@@ -1909,6 +2134,17 @@ body {
   /*
    * Round glass icon button: back controls, close controls, small actions.
    * Same material as nf-btn--glass at a 44px touch target, icon centred.
+   *
+   * THE MINIMUMS ARE LOAD BEARING. This comment has always claimed a 44px
+   * target and the rule set 2.6rem, which is 41.6px, so the class missed its
+   * own promise by 2.4px everywhere. Worse, call sites routinely override with
+   * `h-9 w-9` (36px) and `h-8 w-8` (32px), and a measuring sweep across
+   * fifteen routes found those two sizes on the back control, the theme
+   * toggle, the gallery arrows, the assistant history opener and the guest
+   * steppers. `min-width`/`min-height` are a different property from the
+   * `width`/`height` those utilities set, and a minimum beats a length, so
+   * this one declaration lifts every instance to 44px without touching a
+   * single call site or changing any icon.
    */
   .nf-icon-btn {
     display: inline-flex;
@@ -1918,6 +2154,8 @@ body {
        the comment above already claimed 44px. */
     width: 2.75rem;
     height: 2.75rem;
+    /* Anchors the guaranteed hit area below. */
+    position: relative;
     flex-shrink: 0;
     border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
@@ -1928,6 +2166,28 @@ body {
     transition:
       transform var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  /*
+   * 44px tappable, whatever a utility does to the box.
+   *
+   * The class itself is already 44, but call sites override it with `h-10 w-10`
+   * and `h-9 w-9`, and those utilities are layered so they win. Measured on the
+   * merged tree: the header menu button at 40, the theme toggle at 36, the
+   * notifications link at 40, on the landing page, home and search in both
+   * themes.
+   *
+   * Fixing it here rather than at seven call sites means the eighth cannot be
+   * wrong. The pseudo-element is transparent and centred, so the drawn control
+   * keeps whatever size the design gave it and only the reachable area grows.
+   */
+  .nf-icon-btn::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
   }
   .nf-icon-btn:hover {
     border-color: rgb(12 57 239 / 0.9);
@@ -1998,9 +2258,18 @@ body {
 
   /* ---------------------------------------------------------------- chips */
 
+  /*
+   * Chips are the primary control on /search: city, sort, type, every active
+   * filter. They measured 37px tall, which is a miss on a thumb and the single
+   * most-tapped control in discovery. The minimum lifts them to 44px; the
+   * padding is left alone so the drawn pill keeps its proportions and simply
+   * centres inside a taller box.
+   */
   .nf-chip {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    min-height: 44px;
     gap: 0.45rem;
     padding: 0.45rem 0.9rem;
     border-radius: var(--nf-radius-pill);
@@ -2080,6 +2349,37 @@ body {
   .nf-badge--warning {
     background: var(--nf-state-warning-surface);
     color: var(--nf-state-warning);
+  }
+
+  /*
+   * The four status badges. One meaning per colour, platform-wide.
+   *
+   * These are NOT synonyms for the tone classes above. A tone says how loud a
+   * chip is; a status says what the platform has decided about a thing. Read
+   * the reasoning in packages/design-tokens/src/tokens.css. If a badge is not
+   * one of these four states it must not use one of these four classes.
+   */
+  .nf-badge--pending {
+    background: var(--nf-status-pending-surface);
+    color: var(--nf-status-pending);
+  }
+  .nf-badge--approved {
+    background: var(--nf-status-approved-surface);
+    color: var(--nf-status-approved);
+  }
+  .nf-badge--rejected {
+    background: var(--nf-status-rejected-surface);
+    color: var(--nf-status-rejected);
+  }
+  .nf-badge--verified {
+    background: var(--nf-status-verified-surface);
+    color: var(--nf-status-verified);
+  }
+  /* A label that is not a status: a category, a tier, a device. Quiet, so the
+     four status colours keep their monopoly on meaning. */
+  .nf-badge--neutral {
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
   }
 
   /*
@@ -3441,12 +3741,6 @@ body {
 
   /* Gradient headlines drop the airy #5C7CFF stop, which washes out on
      paper, and run the deep electric ramp instead. */
-  :root[data-theme="light"] .nf-gradient-text {
-    background: linear-gradient(135deg, #0C39EF 0%, #0010D0 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
 
   /* The live ring calms to a neutral hairline carrying one slow blue glint,
      so hero frames stay premium without a neon border on paper. */

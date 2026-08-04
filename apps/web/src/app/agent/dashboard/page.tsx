@@ -47,8 +47,12 @@ export default async function AgentDashboardPage() {
     );
   }
 
+  /* Nobody is signed in as an approved agent, so the workspace keeps its
+     designed deck and the identity card says so rather than inventing a
+     person to address. The figures below are labelled by the panel that
+     follows; the identity is not something a label can rescue. */
   const repo = getAgentRepository();
-  const [profile, d] = await Promise.all([repo.getProfile(), repo.getDashboard()]);
+  const d = await repo.getDashboard();
 
   const a = t.agent.dashboard;
 
@@ -60,7 +64,7 @@ export default async function AgentDashboardPage() {
   ];
 
   return (
-    <AgentShell t={t} locale={locale} active="/agent/dashboard" profile={profile}>
+    <AgentShell t={t} locale={locale} active="/agent/dashboard" profile={null}>
       {repo.isSeed && (
         <p className="nf-badge nf-badge--warning mb-5">{a.sampleNote}</p>
       )}
@@ -71,7 +75,7 @@ export default async function AgentDashboardPage() {
           <p className="mt-1 text-[var(--nf-content-secondary)]">{a.subtitle}</p>
         </div>
         <Link href="/agent/list" className="nf-btn nf-btn--primary">
-          <BrandIcon name="homes-sparkle" size={22} />
+          <BrandIcon name="homes-sparkle" size={24} />
           {a.addListing}
         </Link>
       </div>
@@ -157,7 +161,7 @@ export default async function AgentDashboardPage() {
                   className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)]"
                   style={{ background: "var(--nf-surface-raised)" }}
                 >
-                  <BrandIcon name="homes-sparkle" size={26} />
+                  <BrandIcon name="homes-sparkle" size={24} />
                 </span>
                 <span className="min-w-0 flex-1 leading-tight">
                   <span className="block truncate text-[0.8125rem] font-semibold">{b.title}</span>
@@ -168,12 +172,9 @@ export default async function AgentDashboardPage() {
                     {formatMoney(b.amountMinor, locale, "NGN", { compact: true })}
                   </span>
                   <span
-                    className="nf-badge mt-0.5"
-                    style={
-                      b.status === "confirmed"
-                        ? { background: "var(--nf-state-success-surface)", color: "var(--nf-state-success)" }
-                        : { background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }
-                    }
+                    className={`nf-badge mt-0.5 ${
+                      b.status === "confirmed" ? "nf-badge--approved" : "nf-badge--pending"
+                    }`}
                   >
                     {b.status === "confirmed" ? a.confirmed : a.pending}
                   </span>
