@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatMoney, getDictionary, formatNumber } from "@naijafinds/i18n";
+import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getAgentRepository } from "@/lib/agent/repository";
 import { AgentShell } from "@/components/agent/AgentShell";
@@ -15,6 +15,7 @@ import {
 } from "@/lib/agent/listings-queries";
 import { RealDashboard } from "./RealDashboard";
 import { ButtonLink } from "@/components/ui/Button";
+import { Amount, Figure } from "@/components/ui/Amount";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -82,38 +83,41 @@ export default async function AgentDashboardPage() {
           on desktop. Cut into a sunken well so the deck reads as one
           instrument panel rather than five loose cards. */}
       <div className="nf-panel-sunken grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        {/* Total earnings is stated in full here, not compacted. The earnings
+            panel a couple of hundred pixels below renders the SAME value, and
+            "₦9M" beside "₦9,000,000" reads as two different numbers. */}
         <StatCard
           icon="wallet-secure"
           label={a.totalEarnings}
-          value={formatMoney(d.totalEarningsMinor, locale, "NGN", { compact: true })}
+          value={<Amount minorUnits={d.totalEarningsMinor} locale={locale} />}
           deltaPct={d.deltas.earnings}
           deltaLabel={a.lastMonth}
         />
         <StatCard
           icon="calendar-check"
           label={a.totalBookings}
-          value={formatNumber(d.totalBookings, locale)}
+          value={<Figure value={d.totalBookings} locale={locale} />}
           deltaPct={d.deltas.bookings}
           deltaLabel={a.lastMonth}
         />
         <StatCard
           icon="homes-sparkle"
           label={a.activeListings}
-          value={formatNumber(d.activeListings, locale)}
+          value={<Figure value={d.activeListings} locale={locale} />}
           deltaPct={d.deltas.listings}
           deltaLabel={a.lastMonth}
         />
         <StatCard
           icon="house-sparkle"
           label={a.occupancyRate}
-          value={`${d.occupancyPct}%`}
+          value={<Figure value={d.occupancyPct} suffix="%" locale={locale} />}
           deltaPct={d.deltas.occupancy}
           deltaLabel={a.lastMonth}
         />
         <StatCard
           icon="chat"
           label={a.responseRate}
-          value={`${d.responsePct}%`}
+          value={<Figure value={d.responsePct} suffix="%" locale={locale} />}
           deltaPct={d.deltas.response}
           deltaLabel={a.lastMonth}
           className="col-span-2 sm:col-span-1"
@@ -127,8 +131,12 @@ export default async function AgentDashboardPage() {
             <h2 className="nf-h3">{a.earningsOverview}</h2>
             <span className="nf-chip">{a.thisMonth}</span>
           </div>
-          <p className="nf-numeric text-[1.5rem] font-bold text-[var(--nf-content-primary)] sm:text-[1.75rem]">
-            {formatMoney(d.totalEarningsMinor, locale)}
+          <p>
+            <Amount
+              minorUnits={d.totalEarningsMinor}
+              locale={locale}
+              className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)] sm:text-[1.75rem]"
+            />
           </p>
           <p
             className="nf-numeric text-[0.8125rem] font-semibold"
@@ -165,9 +173,11 @@ export default async function AgentDashboardPage() {
                   <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">{b.dates}</span>
                 </span>
                 <span className="shrink-0 text-right leading-tight">
-                  <span className="nf-numeric block text-[0.8125rem] font-bold">
-                    {formatMoney(b.amountMinor, locale, "NGN", { compact: true })}
-                  </span>
+                  <Amount
+                    minorUnits={b.amountMinor}
+                    locale={locale}
+                    className="block text-[0.8125rem] font-bold"
+                  />
                   <span
                     className="nf-badge mt-0.5"
                     style={
@@ -199,17 +209,19 @@ export default async function AgentDashboardPage() {
               >
                 <div className="flex items-baseline justify-between gap-4">
                   <p className="min-w-0 truncate text-[0.8125rem] font-semibold">{l.title}</p>
-                  <p className="nf-numeric shrink-0 text-[0.8125rem] font-bold">
-                    {formatMoney(l.revenueMinor, locale, "NGN", { compact: true })}
-                  </p>
+                  <Amount
+                    minorUnits={l.revenueMinor}
+                    locale={locale}
+                    className="shrink-0 text-[0.8125rem] font-bold"
+                  />
                 </div>
                 <dl className="mt-2 grid grid-cols-3 gap-2">
                   <div>
                     <dt className="text-[0.625rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
                       {a.views}
                     </dt>
-                    <dd className="nf-numeric text-[0.8125rem] font-semibold">
-                      {formatNumber(l.views, locale)}
+                    <dd className="text-[0.8125rem] font-semibold">
+                      <Figure value={l.views} locale={locale} />
                     </dd>
                   </div>
                   <div>
@@ -245,11 +257,13 @@ export default async function AgentDashboardPage() {
                 {d.listingPerformance.map((l) => (
                   <tr key={l.id} className="border-t border-[var(--nf-border-subtle)]">
                     <td className="py-2.5 font-medium">{l.title}</td>
-                    <td className="nf-numeric py-2.5 text-right">{formatNumber(l.views, locale)}</td>
+                    <td className="py-2.5 text-right">
+                      <Figure value={l.views} locale={locale} />
+                    </td>
                     <td className="nf-numeric py-2.5 text-right">{l.bookings}</td>
                     <td className="nf-numeric py-2.5 text-right">{l.occupancyPct}%</td>
-                    <td className="nf-numeric py-2.5 text-right font-semibold">
-                      {formatMoney(l.revenueMinor, locale, "NGN", { compact: true })}
+                    <td className="py-2.5 text-right font-semibold">
+                      <Amount minorUnits={l.revenueMinor} locale={locale} />
                     </td>
                   </tr>
                 ))}

@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { formatDate, formatMoney, formatNumber, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { formatDate, type Dictionary, type Locale } from "@naijafinds/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { AgentNumbers, ListingStatus } from "@/lib/agent/listings-queries";
 import { fill } from "../_copy";
 import { ButtonLink } from "@/components/ui/Button";
+import { Amount, Figure } from "@/components/ui/Amount";
 
 /**
  * The signed-in agent's real dashboard.
@@ -25,7 +26,8 @@ function Tile({
 }: {
   icon: BrandIconName;
   label: string;
-  value: string;
+  /** A rendered figure, so counts and money both arrive tabular and two-tone. */
+  value: React.ReactNode;
   href: string;
   className?: string;
 }) {
@@ -41,7 +43,7 @@ function Tile({
         <span className="block truncate text-[0.75rem] font-medium text-[var(--nf-content-muted)]">
           {label}
         </span>
-        <span className="nf-numeric mt-0.5 block text-[1.25rem] font-bold leading-none sm:text-[1.375rem]">
+        <span className="nf-numeric mt-0.5 block text-[1.25rem] font-bold leading-none tracking-tight sm:text-[1.375rem]">
           {value}
         </span>
       </span>
@@ -101,31 +103,31 @@ export function RealDashboard({
         <Tile
           icon="homes-sparkle"
           label={d.liveListings}
-          value={formatNumber(numbers.liveListings, locale)}
+          value={<Figure value={numbers.liveListings} locale={locale} />}
           href="/agent/listings"
         />
         <Tile
           icon="shield-check"
           label={d.withReview}
-          value={formatNumber(numbers.inReview, locale)}
+          value={<Figure value={numbers.inReview} locale={locale} />}
           href="/agent/listings"
         />
         <Tile
           icon="house-sparkle"
           label={d.drafts}
-          value={formatNumber(numbers.drafts, locale)}
+          value={<Figure value={numbers.drafts} locale={locale} />}
           href="/agent/listings"
         />
         <Tile
           icon="calendar-check"
           label={d.upcomingStays}
-          value={formatNumber(numbers.upcomingBookingCount, locale)}
+          value={<Figure value={numbers.upcomingBookingCount} locale={locale} />}
           href="/agent/bookings"
         />
         <Tile
           icon="chat"
           label={d.unreadMessages}
-          value={formatNumber(numbers.unreadMessages, locale)}
+          value={<Figure value={numbers.unreadMessages} locale={locale} />}
           href="/agent/messages"
           className="col-span-2 sm:col-span-1"
         />
@@ -137,7 +139,9 @@ export function RealDashboard({
             <span className="flex items-center gap-2">
               <h2 className="nf-h3">{t.agent.nav.myListings}</h2>
               {numbers.totalListings > 0 && (
-                <span className="nf-count-badge">{formatNumber(numbers.totalListings, locale)}</span>
+                <span className="nf-count-badge">
+                  <Figure value={numbers.totalListings} locale={locale} />
+                </span>
               )}
             </span>
             <Link
@@ -159,9 +163,11 @@ export function RealDashboard({
                   <span className="text-[0.875rem] text-[var(--nf-content-secondary)]">
                     {t.agentListings.workspace.status[status]}
                   </span>
-                  <span className="nf-numeric text-[0.9375rem] font-bold">
-                    {formatNumber(numbers.byStatus[status], locale)}
-                  </span>
+                  <Figure
+                    value={numbers.byStatus[status] ?? 0}
+                    locale={locale}
+                    className="text-[0.9375rem] font-bold"
+                  />
                 </li>
               ))}
             </ul>
@@ -215,9 +221,11 @@ export function RealDashboard({
                     </span>
                   </span>
                   <span className="shrink-0 text-right leading-tight">
-                    <span className="nf-numeric block text-[0.8125rem] font-bold">
-                      {formatMoney(booking.totalMinor, locale, "NGN", { compact: true })}
-                    </span>
+                    <Amount
+                      minorUnits={booking.totalMinor}
+                      locale={locale}
+                      className="block text-[0.8125rem] font-bold"
+                    />
                     <span
                       className="nf-badge mt-0.5"
                       style={
