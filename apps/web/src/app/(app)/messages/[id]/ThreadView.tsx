@@ -533,7 +533,7 @@ export function ThreadView({
             onClick={() => setEducationOpen(false)}
             className="nf-icon-btn h-8 w-8 shrink-0"
           >
-            <UiIcon name="close" size={15} />
+            <UiIcon name="close" size={16} />
           </button>
         </div>
       )}

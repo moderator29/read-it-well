@@ -174,7 +174,7 @@ function WalletDrawer({
             onClick={onClose}
             className="nf-icon-btn h-10 w-10"
           >
-            <UiIcon name="close" size={18} />
+            <UiIcon name="close" size={16} />
           </button>
           <span className="h-13 w-13">
             <BrandIcon name={icon} fill />

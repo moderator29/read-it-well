@@ -2154,6 +2154,8 @@ body {
        the comment above already claimed 44px. */
     width: 2.75rem;
     height: 2.75rem;
+    /* Anchors the guaranteed hit area below. */
+    position: relative;
     flex-shrink: 0;
     border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
@@ -2164,6 +2166,28 @@ body {
     transition:
       transform var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  /*
+   * 44px tappable, whatever a utility does to the box.
+   *
+   * The class itself is already 44, but call sites override it with `h-10 w-10`
+   * and `h-9 w-9`, and those utilities are layered so they win. Measured on the
+   * merged tree: the header menu button at 40, the theme toggle at 36, the
+   * notifications link at 40, on the landing page, home and search in both
+   * themes.
+   *
+   * Fixing it here rather than at seven call sites means the eighth cannot be
+   * wrong. The pseudo-element is transparent and centred, so the drawn control
+   * keeps whatever size the design gave it and only the reachable area grows.
+   */
+  .nf-icon-btn::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
   }
   .nf-icon-btn:hover {
     border-color: rgb(12 57 239 / 0.9);

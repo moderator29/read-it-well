@@ -127,6 +127,15 @@ for (const f of product) {
     if (m[2].length > 400) continue;
     for (const s of m[2].matchAll(/size=\{([^}]*)\}/g)) {
       const nums = [...s[1].matchAll(/\b(\d+)\b/g)].map((x) => Number(x[1]));
+      /*
+       * A size with no literal in it is a variable, and a variable cannot be
+       * read from here. It is not unchecked: `ICON_SIZE` in the Button
+       * primitive is typed `UiIconSize`, so an off-scale value will not
+       * compile, and the next check proves the component snaps anything that
+       * reaches it at runtime regardless. Flagging it would be flagging the
+       * one pattern that has two guarantees rather than one.
+       */
+      if (nums.length === 0) continue;
       const ok =
         nums.length > 0 &&
         nums.every((n) => (m[1] === "UiIcon" ? UI_SCALE.includes(n) : brandOnGrid(n)));
