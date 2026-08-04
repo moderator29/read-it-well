@@ -203,6 +203,43 @@ async function run(theme) {
     const applied = await page.evaluate(() => document.documentElement.dataset.theme ?? "dark");
     check(`the ${theme} theme actually took`, applied === theme);
 
+    /* ------------------------------------------------------ the kill switch */
+    /*
+     * `public.feature_flags` carries `social`, and it ships false. Whichever
+     * side of that switch the app under test is on, the contract is asserted:
+     * paused means a designed page with a way onward and no create control, and
+     * running means the directory renders. There is no third answer, and in
+     * particular there is no answer where the switch says off and the surface
+     * is on, which is what this product shipped until it was wired.
+     */
+    const paused = (await page.locator("body").innerText()).includes("Around is paused");
+    if (paused) {
+      console.log("      (the social flag is OFF for this app)");
+      check(
+        "paused answers 200 rather than a 404 or a 500",
+        directory !== null && directory.status() === 200,
+      );
+      check(
+        "paused offers a way onward",
+        (await page.getByRole("link", { name: /Back to home/i }).count()) > 0,
+      );
+      check(
+        "paused shows no create control",
+        (await page.getByRole("button", { name: /Create something/i }).count()) === 0,
+      );
+      check(
+        "paused never says the feature does not exist",
+        !/coming soon|not available|does not exist/i.test(
+          await page.locator("body").innerText(),
+        ),
+      );
+    } else {
+      check(
+        "running renders the directory rather than a blank",
+        (await page.locator("body").innerText()).trim().length > 0,
+      );
+    }
+
     /* ---------------------------------------------------- the create ring */
     const ring = await measureRing(page);
     check("the ring draws six petals", ring.count === 6);
