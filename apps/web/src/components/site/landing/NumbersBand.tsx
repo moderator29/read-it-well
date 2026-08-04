@@ -1,6 +1,7 @@
 import { Reveal } from "@/components/site/Reveal";
 import { Odometer } from "@/components/site/Odometer";
 import { getPlatformStats } from "@/lib/platform-stats";
+import { type Locale } from "@naijafinds/i18n";
 
 /**
  * Numbers band.
@@ -33,7 +34,7 @@ const COLUMNS: Record<number, string> = {
   4: "grid-cols-2 lg:grid-cols-4",
 };
 
-export async function NumbersBand() {
+export async function NumbersBand({ locale }: { locale: Locale }) {
   const stats = await getPlatformStats();
 
   const figures: Figure[] = [];
@@ -58,7 +59,7 @@ export async function NumbersBand() {
           {figures.map((s) => (
             <li key={s.label}>
               <span className="nf-odometer-figure block font-[family-name:var(--nf-font-display)] text-[1.7rem] font-bold leading-none sm:text-[2.1rem]">
-                <Odometer value={s.value} suffix={s.suffix} />
+                <Odometer value={s.value} locale={locale} suffix={s.suffix} />
               </span>
               <span className="mt-1.5 block text-[0.72rem] text-[var(--nf-content-muted)] sm:text-[0.8125rem]">
                 {s.label}

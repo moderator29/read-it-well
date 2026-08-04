@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatRating, formatNumber, type Locale } from "@naijafinds/i18n";
 import type { AgentReview, AgentReviewsSummary } from "@/lib/agent/reviews-queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -35,7 +36,7 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
-function Summary({ summary }: { summary: AgentReviewsSummary }) {
+function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Locale }) {
   const most = Math.max(1, ...summary.distribution);
   return (
     <div className="nf-card p-5">
@@ -45,10 +46,10 @@ function Summary({ summary }: { summary: AgentReviewsSummary }) {
         </span>
         <p className="flex items-baseline gap-2">
           <span className="nf-numeric text-[1.75rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-            {summary.average.toFixed(1)}
+            {formatRating(summary.average, locale)}
           </span>
           <span className="text-[0.875rem] text-[var(--nf-content-secondary)]">
-            across {summary.total} {summary.total === 1 ? "review" : "reviews"}
+            across {formatNumber(summary.total, locale)} {summary.total === 1 ? "review" : "reviews"}
           </span>
         </p>
       </div>
@@ -133,10 +134,12 @@ export function ReviewsWorkspace({
   reviews,
   summary,
   filter,
+  locale,
 }: {
   reviews: AgentReview[];
   summary: AgentReviewsSummary;
   filter: ReviewsFilter;
+  locale: Locale;
 }) {
   const shown = filter === "unanswered" ? reviews.filter((r) => r.response === null) : reviews;
 
@@ -165,7 +168,7 @@ export function ReviewsWorkspace({
 
   return (
     <div>
-      <Summary summary={summary} />
+      <Summary summary={summary} locale={locale} />
 
       <nav aria-label="Filter reviews" className="mt-5 flex flex-wrap gap-2">
         {chips.map((chip) => {
@@ -178,7 +181,7 @@ export function ReviewsWorkspace({
               className={`nf-chip ${active ? "nf-chip--active" : ""}`}
             >
               {chip.label}
-              <span className="nf-numeric ml-1.5 opacity-70">{chip.count}</span>
+              <span className="nf-numeric ml-1.5 opacity-70">{formatNumber(chip.count, locale)}</span>
             </Link>
           );
         })}

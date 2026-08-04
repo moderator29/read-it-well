@@ -1,4 +1,4 @@
-import { formatNumber, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { formatNumber, type Dictionary, type Locale, formatRating } from "@naijafinds/i18n";
 import type { ListingReview } from "@/lib/reviews/queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -71,7 +71,7 @@ export function ListingReviews({
         </span>
         <p className="flex items-baseline gap-2">
           <span className="nf-numeric text-[1.375rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-            {rating.toFixed(1)}
+            {formatRating(rating, locale)}
           </span>
           <span className="text-[0.875rem] text-[var(--nf-content-secondary)]">
             {formatNumber(reviewCount, locale)} {t.common.reviews}

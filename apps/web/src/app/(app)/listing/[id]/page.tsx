@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getDictionary, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { getDictionary, type Dictionary, type Locale, formatRating } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { factsOf, sleeps } from "@/lib/listings/filter";
@@ -292,7 +292,7 @@ export default async function ListingDetailPage({
     }
     if (listing.reviewCount > 0) {
       closing.push(
-        `Guests have rated it ${listing.rating.toFixed(1)} out of 5 across ${formatNumber(
+        `Guests have rated it ${formatRating(listing.rating, locale)} out of 5 across ${formatNumber(
           listing.reviewCount,
           locale,
         )} ${t.common.reviews}.`,
@@ -354,7 +354,7 @@ export default async function ListingDetailPage({
               {listing.rating > 0 && (
                 <span className="nf-numeric flex items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
                   <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
-                  {listing.rating.toFixed(1)}
+                  {formatRating(listing.rating, locale)}
                   {listing.reviewCount > 0 && (
                     <span className="font-normal text-[var(--nf-content-muted)]">
                       ({formatNumber(listing.reviewCount, locale)} {t.common.reviews})

@@ -83,7 +83,12 @@ export default async function Page({
       </div>
 
       {read.state === "ready" ? (
-        <ReviewsWorkspace reviews={read.reviews} summary={read.summary} filter={filter} />
+        <ReviewsWorkspace
+          reviews={read.reviews}
+          summary={read.summary}
+          filter={filter}
+          locale={locale}
+        />
       ) : (
         <div className="nf-card p-8 text-center">
           <span className="mx-auto block h-16 w-16">

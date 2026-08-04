@@ -484,7 +484,7 @@ function BalanceLine({ balanceMinor, locale }: { balanceMinor: number; locale: L
       Available balance{" "}
       <span className="nf-numeric font-semibold text-[var(--nf-content-primary)]">
         {"₦"}
-        <Odometer value={wholeNaira} suffix={amount.kobo} />
+        <Odometer value={wholeNaira} locale={locale} suffix={amount.kobo} />
       </span>
     </p>
   );

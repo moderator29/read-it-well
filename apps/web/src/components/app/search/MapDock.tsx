@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Locale, formatRating } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MapCopy, MapListing } from "./mapTypes";
 
@@ -170,7 +170,7 @@ export function MapDock({
               {listing.rating > 0 && (
                 <span className="nf-numeric flex items-center gap-1 text-[0.75rem] font-semibold text-[var(--nf-content-primary)]">
                   <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />
-                  {listing.rating.toFixed(1)}
+                  {formatRating(listing.rating, locale)}
                   <span className="font-normal text-[var(--nf-content-muted)]">
                     ({listing.reviewCount})
                   </span>

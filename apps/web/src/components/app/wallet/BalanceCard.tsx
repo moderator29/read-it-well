@@ -161,7 +161,7 @@ export function BalanceCard({
           <>
             <span className="text-[2.25rem] font-bold leading-none tracking-tight sm:text-[2.6rem]">
               {"₦"}
-              <Odometer value={wholeNaira} className="nf-odometer-figure" />
+              <Odometer value={wholeNaira} locale={locale} className="nf-odometer-figure" />
             </span>
             <span className="text-[1.25rem] font-semibold text-[var(--nf-content-secondary)] sm:text-[1.4rem]">
               {kobo}

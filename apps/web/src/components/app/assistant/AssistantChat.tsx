@@ -7,6 +7,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { formatRating, type Locale } from "@naijafinds/i18n";
 import type {
   AssistantListingItem,
   AssistantStreamEvent,
@@ -67,7 +68,7 @@ function toTurns(messages: Message[]): AssistantTurn[] {
     .map((m) => ({ role: m.role, content: m.text }));
 }
 
-export function AssistantChat() {
+export function AssistantChat({ locale }: { locale: Locale }) {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -518,7 +519,7 @@ export function AssistantChat() {
                             className="nf-listing-fold-in"
                             style={{ "--i": i } as React.CSSProperties}
                           >
-                            <ThreadListingCard listing={l} />
+                            <ThreadListingCard listing={l} locale={locale} />
                           </li>
                         ))}
                       </ul>
@@ -640,7 +641,7 @@ export function AssistantChat() {
  * A real catalogue result inside the thread: thumbnail, title, city, price
  * and an arrow, the whole row tappable through to the listing page.
  */
-function ThreadListingCard({ listing }: { listing: AssistantListingItem }) {
+function ThreadListingCard({ listing, locale }: { listing: AssistantListingItem; locale: Locale }) {
   return (
     <Link
       href={listing.href}
@@ -659,7 +660,7 @@ function ThreadListingCard({ listing }: { listing: AssistantListingItem }) {
           <span className="truncate">{listing.city}</span>
           <span className="nf-numeric flex shrink-0 items-center gap-0.5">
             <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />
-            {listing.rating.toFixed(1)}
+            {formatRating(listing.rating, locale)}
           </span>
         </span>
         <span className="nf-numeric mt-0.5 block truncate text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">

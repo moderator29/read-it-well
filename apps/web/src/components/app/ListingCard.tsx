@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Dictionary, type Locale, formatRating } from "@naijafinds/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
@@ -238,7 +238,7 @@ export function ListingCard({
             {listing.rating > 0 && (
               <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">
                 <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
-                {listing.rating.toFixed(1)}
+                {formatRating(listing.rating, locale)}
                 <span className="font-normal text-[var(--nf-content-muted)]">
                   ({listing.reviewCount})
                 </span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { formatNumber, DEFAULT_LOCALE, type Locale } from "@naijafinds/i18n";
 
 /**
  * Odometer number.
@@ -17,10 +18,13 @@ import { useEffect, useRef, useState } from "react";
 export function Odometer({
   value,
   suffix,
+  locale = DEFAULT_LOCALE,
   className,
 }: {
   value: number;
   suffix?: string;
+  /** The app's locale, never the browser's. See the grouping note below. */
+  locale?: Locale;
   className?: string;
 }) {
   const ref = useRef<HTMLSpanElement | null>(null);
@@ -29,7 +33,12 @@ export function Odometer({
   // thousands read as one unbroken run of digits is a regression from plain
   // formatted text, so the odometer rolls the grouped string, not the bare
   // number, and treats the separator as a static character between strips.
-  const formatted = Math.max(0, Math.round(value)).toLocaleString();
+  //
+  // The grouping is the APP's, not the visitor's device. `toLocaleString()`
+  // with no argument reads the browser's locale, so a wallet balance rolled
+  // "258.450" on a German phone while every other figure on the same page
+  // used commas. This carries the wallet balance and the landing band.
+  const formatted = formatNumber(Math.max(0, Math.round(value)), locale);
   const chars = formatted.split("");
 
   useEffect(() => {

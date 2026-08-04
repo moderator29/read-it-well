@@ -320,7 +320,7 @@ export default async function LandingPage() {
         <AssistantShowcase />
 
         {/* ----------------------------------------------------- numbers band */}
-        <NumbersBand />
+        <NumbersBand locale={locale} />
 
         {/* ---------------------------------------------------------- trust */}
         <section className="nf-shell">
