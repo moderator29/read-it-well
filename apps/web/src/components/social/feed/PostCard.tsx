@@ -63,6 +63,9 @@ export type PostView = {
   listing: PostListing | null;
   /** The bot's own note about where its answer came from. */
   sourceNote: string | null;
+  /** The listings the assistant cited, resolved through the same policy as any
+      other listing on a card, so one taken down since simply is not here. */
+  cited: PostListing[];
   replyingTo: string | null;
   repostedBy: string | null;
   replyCount: number;
@@ -341,6 +344,19 @@ export function PostCard({
         >
           Around {post.areaName}
         </Link>
+      ) : null}
+
+      {post.cited.length > 0 ? (
+        <div className="nf-post__cited">
+          {post.cited.map((item) => (
+            <Link key={item.id} href={`/listing/${item.id}`}>
+              <span className="nf-post__cited-title truncate-none">{item.title}</span>
+              <span className="nf-post__cited-price nf-numeric">
+                {item.priceLabel} <span className="font-medium">{item.periodLabel}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
       ) : null}
 
       {post.sourceNote ? (

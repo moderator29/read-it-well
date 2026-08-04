@@ -13,8 +13,9 @@ import {
   type AdminClient,
 } from "@/lib/wallet/ledger";
 import { bestEffortEmail, sendEmail } from "@/lib/email/client";
-import { bookingConfirmed, walletFunded, withdrawalFailed } from "@/lib/email/messages";
+import { walletFunded, withdrawalFailed } from "@/lib/email/messages";
 import { contactForUser } from "@/lib/email/recipients";
+import { announceConfirmedStay } from "@/lib/bookings/arrival";
 import { markChargeFailed, settleBookingCharge } from "@/lib/bookings/settlement";
 import {
   BOOKING_PREFIX,
@@ -156,33 +157,13 @@ async function handleBookingChargeSuccess(
   // take a guest's card and never send them a receipt.
   if (settlement.outcome !== "settled") return;
 
-  await bestEffortEmail(async () => {
-    const { data: booking } = await admin
-      .from("bookings")
-      .select("guest_id, listing_id, check_in, check_out, nights")
-      .eq("id", settlement.bookingId)
-      .maybeSingle();
-    if (!booking) return;
-
-    const guest = await contactForUser(admin, booking.guest_id, "bookings");
-    if (!guest) return;
-
-    const { data: listing } = await admin
-      .from("listings")
-      .select("title")
-      .eq("id", booking.listing_id)
-      .maybeSingle();
-    const title = (listing?.title ?? "").trim();
-
-    const message = bookingConfirmed({
-      guestName: guest.name,
-      listingTitle: title.length > 0 ? title : "your stay",
-      checkIn: booking.check_in,
-      checkOut: booking.check_out,
-      nights: booking.nights,
-      totalMinor: settlement.ledger.grossMinor,
-    });
-    await sendEmail({ to: guest.email, subject: message.subject, html: message.html });
+  // There is no session on a webhook, so nothing is hinted: every address is
+  // resolved from the database. A stay booked for somebody else also reaches
+  // the person arriving, which is decided in one place for all four paths that
+  // can confirm a booking.
+  await announceConfirmedStay(admin, {
+    bookingId: settlement.bookingId,
+    totalMinor: settlement.ledger.grossMinor,
   });
 }
 

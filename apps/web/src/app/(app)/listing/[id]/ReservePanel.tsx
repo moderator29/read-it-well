@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useId } from "react";
+import { useActionState, useId, useState } from "react";
 import Link from "next/link";
 import { formatMoney, type Locale } from "@naijafinds/i18n";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { Toggle } from "@/components/app/account/Toggle";
 import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 
 /**
@@ -105,6 +106,29 @@ export function ReservePanel({
     FormData
   >(reserve, null);
 
+  /* Booking for somebody else. The three fields are not rendered at all until
+     this is on, so an untouched form submits nothing about a third party and
+     the server sees the absence rather than three empty strings.
+     They are controlled rather than left to the DOM on purpose: React resets
+     an uncontrolled field once a form action settles, so a refusal used to
+     wipe all three and send the guest back to type a name and a phone number
+     again to fix a date. */
+  const [forSomeoneElse, setForSomeoneElse] = useState(false);
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+
+  /* Switching it off takes the third party with it. A change of mind must not
+     leave a name half attached to a booking nobody meant to name. */
+  const toggleForSomeoneElse = (next: boolean) => {
+    setForSomeoneElse(next);
+    if (!next) {
+      setGuestName("");
+      setGuestPhone("");
+      setGuestEmail("");
+    }
+  };
+
   const stay = useStayDates();
   const {
     checkIn,
@@ -151,6 +175,15 @@ export function ReservePanel({
           {r.nights === 1 ? "night" : "nights"} for {r.adults + r.children}{" "}
           {r.adults + r.children === 1 ? "guest" : "guests"}.
         </p>
+        {r.arrivingName && (
+          <p
+            data-testid="reserve-arriving"
+            className="nf-rise mt-1.5 text-center text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]"
+          >
+            {r.arrivingName} is the one arriving. We send them the details the moment the host
+            confirms.
+          </p>
+        )}
         <dl className="nf-rise mt-3 space-y-1.5 border-t border-[var(--nf-border-subtle)] pt-3 text-[0.875rem]">
           {r.cleaningMinor > 0 && (
             <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
@@ -275,6 +308,108 @@ export function ReservePanel({
             </p>
           )}
         </div>
+
+        {/* -------------------------------------- the person arriving */}
+        {/* The payer is often not the guest here: a sister in London books for
+            a cousin flying into Lagos, and the arrival directions used to go
+            to London. Naming somebody means giving a number the gate can ring,
+            which is why the phone is required alongside the name and the email
+            is not. */}
+        <div className="mt-3.5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3.5 py-1">
+          <Toggle
+            checked={forSomeoneElse}
+            onChange={toggleForSomeoneElse}
+            label="Someone else is arriving"
+            description="Booking this for a family member or a friend."
+          />
+        </div>
+
+        {forSomeoneElse && (
+          <div className="nf-rise mt-3 grid gap-3">
+            <div>
+              <label htmlFor={`${uid}-guest-name`} className="nf-label">
+                Their full name
+              </label>
+              <input
+                id={`${uid}-guest-name`}
+                name="guestName"
+                type="text"
+                autoComplete="off"
+                maxLength={80}
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                placeholder="As it appears on their ID"
+                aria-invalid={fieldError("guestName") ? true : undefined}
+                className="nf-field"
+              />
+              {fieldError("guestName") && (
+                <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
+                  {fieldError("guestName")}
+                </p>
+              )}
+            </div>
+            <div>
+              <label htmlFor={`${uid}-guest-phone`} className="nf-label">
+                Their phone number
+              </label>
+              <input
+                id={`${uid}-guest-phone`}
+                name="guestPhone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="off"
+                maxLength={32}
+                value={guestPhone}
+                onChange={(e) => setGuestPhone(e.target.value)}
+                placeholder="0803 123 4567"
+                aria-describedby={`${uid}-guest-phone-hint`}
+                aria-invalid={fieldError("guestPhone") ? true : undefined}
+                className="nf-field"
+              />
+              <p
+                id={`${uid}-guest-phone-hint`}
+                className="mt-1.5 text-[0.78rem] text-[var(--nf-content-muted)]"
+              >
+                The estate gate rings this number when they arrive.
+              </p>
+              {fieldError("guestPhone") && (
+                <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
+                  {fieldError("guestPhone")}
+                </p>
+              )}
+            </div>
+            <div>
+              <label htmlFor={`${uid}-guest-email`} className="nf-label">
+                Their email address, if you have it
+              </label>
+              <input
+                id={`${uid}-guest-email`}
+                name="guestEmail"
+                type="email"
+                autoComplete="off"
+                maxLength={160}
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                placeholder="Optional"
+                aria-describedby={`${uid}-guest-email-hint`}
+                aria-invalid={fieldError("guestEmail") ? true : undefined}
+                className="nf-field"
+              />
+              <p
+                id={`${uid}-guest-email-hint`}
+                className="mt-1.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]"
+              >
+                We send them the dates and how to get through the gate once the host confirms.
+                Leave it blank and it all comes to you to pass on.
+              </p>
+              {fieldError("guestEmail") && (
+                <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
+                  {fieldError("guestEmail")}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ---------------------------------------------- price breakdown */}
         {ready && (

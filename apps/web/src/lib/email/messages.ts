@@ -229,10 +229,18 @@ export type BookingConfirmedData = {
   checkOut: string;
   nights: number;
   totalMinor: number;
+  arriving?: ArrivingGuest | null;
+  /**
+   * The gate details, when this reader is the one arriving. Absent when
+   * somebody else is: they get their own email carrying them, and repeating a
+   * gate code to a payer in London helps nobody.
+   */
+  access?: ArrivalAccess | null;
 };
 
 /** To the guest when the host confirms. */
 export function bookingConfirmed(data: BookingConfirmedData): EmailMessage {
+  const gate = accessRows(data.access);
   return {
     subject: `Confirmed: ${data.listingTitle}`,
     html: shell({
@@ -243,6 +251,14 @@ export function bookingConfirmed(data: BookingConfirmedData): EmailMessage {
           `${hello(data.guestName)} Good news. The host has confirmed your booking, so these dates are yours.`,
         ) +
         receipt(stayRows(data)) +
+        (gate.length > 0
+          ? paragraph("Here is how to get in when you arrive.") + receipt(gate)
+          : "") +
+        (data.arriving
+          ? paragraph(
+              `We have sent ${data.arriving.name} their own copy of the dates and the arrival details, so they have everything they need at the gate.`,
+            )
+          : "") +
         paragraph(
           "Your booking now shows as confirmed in the app, where you can find the details and message the host.",
         ) +
@@ -250,6 +266,61 @@ export function bookingConfirmed(data: BookingConfirmedData): EmailMessage {
         note("Plans changed? You can cancel from your bookings before the stay begins."),
       footerLines: [
         "You are receiving this because you booked a stay on RentMe.",
+        GUEST_SAFETY_LINE,
+      ],
+    }),
+  };
+}
+
+export type StayArrivalDetailsData = {
+  /** The person arriving. They have no RentMe account and need none. */
+  arrivingName: string;
+  /** Who booked it for them, so this is not an email from a stranger. */
+  bookedByName?: string | null;
+  listingTitle: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  access?: ArrivalAccess | null;
+};
+
+/**
+ * To the person actually arriving, when the payer is somebody else.
+ *
+ * Deliberately carries no money at all. The arriving guest did not pay and has
+ * no business being told what their cousin spent, so there is no total, no
+ * receipt figure and no payment link anywhere in it. What they need is where
+ * they are going, when, and how to get past the gate.
+ */
+export function stayArrivalDetails(data: StayArrivalDetailsData): EmailMessage {
+  const gate = accessRows(data.access);
+  const booker = (data.bookedByName ?? "").trim();
+  return {
+    subject: `Your stay at ${data.listingTitle} is confirmed`,
+    html: shell({
+      preheader: `You are expected from ${dateRange(data.checkIn, data.checkOut)}.`,
+      body:
+        heading("You are expected") +
+        paragraph(
+          `${hello(data.arrivingName)} ${
+            booker.length > 0 ? booker : "Somebody"
+          } has booked a stay for you on RentMe and the host has confirmed it. Here are your dates.`,
+        ) +
+        receipt([
+          { label: "Stay", value: data.listingTitle },
+          { label: "Dates", value: dateRange(data.checkIn, data.checkOut) },
+          { label: "Length", value: nightsLine(data.nights) },
+        ]) +
+        (gate.length > 0
+          ? paragraph("This is how to get in when you arrive.") + receipt(gate)
+          : paragraph(
+              "The host has not left gate instructions for this place. Whoever booked it for you can message the host from the app and pass on the directions.",
+            )) +
+        note(
+          "You do not need a RentMe account to stay here. Keep this email, and show it if anybody asks for it.",
+        ),
+      footerLines: [
+        "You are receiving this because somebody booked a RentMe stay for you.",
         GUEST_SAFETY_LINE,
       ],
     }),

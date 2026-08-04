@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { findMentions } from "@/lib/social/mentions-schema";
+import { BOT_HANDLE } from "@/lib/social/bot-schema";
 
 /**
  * The words in a post, with the handles in them turned into people.
@@ -29,6 +30,12 @@ import { findMentions } from "@/lib/social/mentions-schema";
  * designed page that offers to claim it. Checking every handle in every body
  * against the database first would be one query per card to prevent an outcome
  * that is already a designed page.
+ *
+ * **`@rentme` is the exception and it is not a link.** No account can ever hold
+ * it: `private.validate_social_handle` refuses any handle containing `rentme`
+ * outright, so a link would land somebody on a page offering them a name the
+ * database will then refuse. It renders as a mark instead, which is also what it
+ * is: the summon that brings the assistant into a thread.
  */
 export function PostBody({ text, className }: { text: string; className?: string }) {
   const mentions = findMentions(text);
@@ -38,14 +45,21 @@ export function PostBody({ text, className }: { text: string; className?: string
   let cursor = 0;
   mentions.forEach((mention, index) => {
     if (mention.start > cursor) nodes.push(text.slice(cursor, mention.start));
+    const label = text.slice(mention.start, mention.end);
     nodes.push(
-      <Link
-        key={`${mention.handle}-${index}`}
-        href={`/u/${mention.handle}`}
-        className="font-semibold text-[var(--nf-brand-secondary)]"
-      >
-        {text.slice(mention.start, mention.end)}
-      </Link>,
+      mention.handle === BOT_HANDLE ? (
+        <span key={`bot-${index}`} className="nf-post__summon">
+          {label}
+        </span>
+      ) : (
+        <Link
+          key={`${mention.handle}-${index}`}
+          href={`/u/${mention.handle}`}
+          className="font-semibold text-[var(--nf-brand-secondary)]"
+        >
+          {label}
+        </Link>
+      ),
     );
     cursor = mention.end;
   });

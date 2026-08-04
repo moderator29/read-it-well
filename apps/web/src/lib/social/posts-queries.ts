@@ -180,8 +180,14 @@ async function enrich(
 ): Promise<Enrichment> {
   const authorIds = [...new Set(rows.map((r) => r.author_id).filter((v): v is string => Boolean(v)))];
   const areaIds = [...new Set(rows.map((r) => r.area_id).filter((v): v is string => Boolean(v)))];
+  /* A post's own listing, plus anything the assistant cited in its payload. One
+     read for both, because they resolve to the same rows through the same
+     policy and two reads would be two chances to disagree. */
   const listingIds = [
-    ...new Set(rows.map((r) => r.listing_id).filter((v): v is string => Boolean(v))),
+    ...new Set([
+      ...rows.map((r) => r.listing_id).filter((v): v is string => Boolean(v)),
+      ...rows.flatMap((r) => citedIds(r.payload)),
+    ]),
   ];
   const postIds = rows.map((r) => r.id);
 
@@ -265,6 +271,25 @@ async function enrich(
   return { authors, moderatorAreas, liked, saved, reposted, areas: areaMap, media, listings };
 }
 
+/**
+ * `posts.payload` is `jsonb`, which means it is whatever was put there, and the
+ * only safe way to read it is to check every step. A bot reply written before
+ * the shape settled, or a row somebody edited by hand, has to render as a post
+ * with no citations rather than take a feed down.
+ */
+function payloadSource(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+  const value = (payload as { source?: unknown }).source;
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function citedIds(payload: unknown): string[] {
+  if (!payload || typeof payload !== "object") return [];
+  const value = (payload as { listingIds?: unknown }).listingIds;
+  if (!Array.isArray(value)) return [];
+  return value.filter((id): id is string => typeof id === "string").slice(0, 4);
+}
+
 function toView(row: RawPost, e: Enrichment, viewerId: string | null): PostView {
   const author = row.author_id ? (e.authors.get(row.author_id) ?? null) : null;
   const area = row.area_id ? (e.areas.get(row.area_id) ?? null) : null;
@@ -309,7 +334,13 @@ function toView(row: RawPost, e: Enrichment, viewerId: string | null): PostView 
     areaName: area?.name ?? null,
     areaSlug: area?.slug ?? null,
     listing: row.listing_id ? (e.listings.get(row.listing_id) ?? null) : null,
-    sourceNote: null,
+    /* The assistant's own note about where its answer came from. Written into
+       `payload` by `summonBot` and, until it was, a field on every card that was
+       hard-coded null beside a renderer that had always been ready for it. */
+    sourceNote: payloadSource(row.payload),
+    cited: citedIds(row.payload)
+      .map((id) => e.listings.get(id))
+      .filter((item): item is PostListing => Boolean(item)),
     replyingTo: null,
     repostedBy: null,
     replyCount: row.reply_count,

@@ -667,6 +667,8 @@ export const ig: Dictionary = {
       settled: "Ego abanyela",
       awaiting: "Ego abanyebeghị",
       unknown: "Enweghị ike ịkọ ọnọdụ ego ugbu a",
+      arriving: "Onye na-abịa: {name}",
+      arrivingPhone: "Nọmba ọnụ ụzọ {phone}",
     },
     status: {
       PENDING: "Na-eche mkpebi gị",

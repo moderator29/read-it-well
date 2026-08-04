@@ -280,6 +280,24 @@ function BookingCard({
           <span className="text-[var(--nf-content-muted)]">&middot; {compositionLabel}</span>
         </p>
 
+        {/* Somebody other than the booker is arriving. The host has to know
+            this before the gate does: the name above is who paid, and this is
+            who will actually be standing at the security post. */}
+        {booking.arrivingName && (
+          <p
+            data-testid="host-booking-arriving"
+            className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]"
+          >
+            <UiIcon name="verified" size={14} className="shrink-0" />
+            {fill(t.card.arriving, { name: booking.arrivingName })}
+            {booking.arrivingPhone && (
+              <span className="nf-numeric text-[var(--nf-content-muted)]">
+                {fill(t.card.arrivingPhone, { phone: booking.arrivingPhone })}
+              </span>
+            )}
+          </p>
+        )}
+
         <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
           {fill(t.card.requested, { date: formatDate(new Date(booking.createdAt), locale) })}
         </p>

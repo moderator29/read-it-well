@@ -669,6 +669,8 @@ export const yo: Dictionary = {
       settled: "Owó ti wọlé",
       awaiting: "Owó kò tíì wọlé",
       unknown: "A kò lè sọ ipò owó náà báyìí",
+      arriving: "Ẹni tí ó ń dé: {name}",
+      arrivingPhone: "Nọ́mbà ẹnu-ọ̀nà {phone}",
     },
     status: {
       PENDING: "Ń dúró de ìpinnu rẹ",

@@ -606,7 +606,10 @@ export type Database = {
           created_at: string
           currency: string
           during: unknown
+          guest_email: string | null
           guest_id: string
+          guest_name: string | null
+          guest_phone: string | null
           id: string
           listing_id: string
           nights: number
@@ -626,7 +629,10 @@ export type Database = {
           created_at?: string
           currency?: string
           during?: unknown
+          guest_email?: string | null
           guest_id: string
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           listing_id: string
           nights: number
@@ -646,7 +652,10 @@ export type Database = {
           created_at?: string
           currency?: string
           during?: unknown
+          guest_email?: string | null
           guest_id?: string
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           listing_id?: string
           nights?: number

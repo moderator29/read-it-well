@@ -91,6 +91,24 @@ function BookingCard({
             {b.guests} {b.guests === 1 ? "guest" : "guests"} &middot; {b.nights}{" "}
             {b.nights === 1 ? "night" : "nights"}
           </p>
+
+          {/* Booked for somebody else. The payer needs to see who they named,
+              because it decides where the arrival details land, and a number
+              they typed a month ago is worth being able to check. */}
+          {b.arrivingName && (
+            <p
+              data-testid="booking-arriving"
+              className="mt-1.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]"
+            >
+              Arriving: {b.arrivingName}
+              {b.arrivingPhone && (
+                <>
+                  {" "}
+                  &middot; <span className="nf-numeric">{b.arrivingPhone}</span>
+                </>
+              )}
+            </p>
+          )}
         </div>
       </div>
 

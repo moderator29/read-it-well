@@ -28,16 +28,12 @@ import { fail, formDataToObject, ok, validate, type ActionResult } from "../acti
 import { bestEffortEmail, sendEmail } from "../email/client";
 import {
   bookingCancelled,
-  bookingConfirmed,
   bookingRequested,
   bookingRequestedHost,
+  type ArrivingGuest,
 } from "../email/messages";
-import {
-  adminOrNull,
-  contactForAgent,
-  contactForSelf,
-  contactForUser,
-} from "../email/recipients";
+import { adminOrNull, contactForAgent, contactForSelf } from "../email/recipients";
+import { announceConfirmedStay } from "./arrival";
 import {
   NOT_CONFIGURED_MESSAGE,
   SIGNED_OUT_MESSAGE,
@@ -50,6 +46,7 @@ import {
   cancelInputSchema,
   lagosToday,
   nightsBetween,
+  normalisePhone,
   reserveInputSchema,
 } from "./schema";
 import { releaseBookedNights, writeBookedNights } from "./settlement";
@@ -113,6 +110,8 @@ export type ReserveReceipt = {
   subtotalMinor: number;
   cleaningMinor: number;
   totalMinor: number;
+  /** The person arriving, when the payer named somebody else. */
+  arrivingName: string | null;
 };
 
 export async function reserve(
@@ -211,6 +210,20 @@ export async function reserve(
   const subtotalMinor = priceMinor * nights;
   const totalMinor = subtotalMinor + cleaningMinor + serviceMinor;
 
+  /* ---------------------------------------------- the person arriving
+     The payer is often not the guest: a sister in London pays for a cousin
+     flying into Lagos. The schema validated the pair already, so by here it is
+     either a complete third party or nobody at all. The number is normalised
+     to one canonical +234 form, which is also the only shape the check
+     constraint on the table accepts. */
+  const arrivingName = (input.guestName ?? "").trim();
+  const arrivingPhone = normalisePhone((input.guestPhone ?? "").trim());
+  const arrivingEmail = (input.guestEmail ?? "").trim().toLowerCase();
+  const arriving: ArrivingGuest | null =
+    arrivingName.length > 0 && arrivingPhone !== null
+      ? { name: arrivingName, phone: arrivingPhone }
+      : null;
+
   // ------------------------------------------------- insert under RLS
   const { data: created, error: insertError } = await session.supabase
     .from("bookings")
@@ -228,6 +241,9 @@ export async function reserve(
       subtotal_minor: subtotalMinor,
       total_minor: totalMinor,
       status: "PENDING",
+      guest_name: arriving?.name ?? null,
+      guest_phone: arriving?.phone ?? null,
+      guest_email: arriving && arrivingEmail.length > 0 ? arrivingEmail : null,
     })
     .select("id")
     .single();
@@ -287,6 +303,7 @@ export async function reserve(
       adults: input.adults,
       children: input.children,
       totalMinor,
+      arriving,
     };
 
     const jobs: Promise<unknown>[] = [];
@@ -324,6 +341,7 @@ export async function reserve(
     subtotalMinor,
     cleaningMinor,
     totalMinor,
+    arrivingName: arriving?.name ?? null,
   });
 }
 
@@ -476,7 +494,7 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
     const [{ data: listing }, { data: roles }] = await Promise.all([
       admin
         .from("listings")
-        .select("agent_id, title, agents!inner(user_id)")
+        .select("agent_id, agents!inner(user_id)")
         .eq("id", booking.listing_id)
         .maybeSingle(),
       admin
@@ -514,22 +532,10 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
     // rows that already say the same thing, so it is safe either way.
     await writeBookedNights(admin, booking.listing_id, booking.check_in, booking.check_out);
 
-    // The booking is CONFIRMED in the database. Telling the guest is best
-    // effort: the confirmation stands whether or not the email leaves.
-    await bestEffortEmail(async () => {
-      const guest = await contactForUser(admin, booking.guest_id, "bookings");
-      if (!guest) return;
-      const title = (listing?.title ?? "").trim();
-      const message = bookingConfirmed({
-        guestName: guest.name,
-        listingTitle: title.length > 0 ? title : "your stay",
-        checkIn: booking.check_in,
-        checkOut: booking.check_out,
-        nights: booking.nights,
-        totalMinor: booking.total_minor,
-      });
-      await sendEmail({ to: guest.email, subject: message.subject, html: message.html });
-    });
+    // The booking is CONFIRMED in the database. Telling the payer, and the
+    // person actually arriving when they are somebody else, is best effort:
+    // the confirmation stands whether or not either email leaves.
+    await announceConfirmedStay(admin, { bookingId: booking.id });
   } catch {
     return fail("Confirming is temporarily unavailable. Please try again shortly.");
   }

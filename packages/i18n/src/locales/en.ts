@@ -685,6 +685,8 @@ export const en = {
       settled: "Payment settled",
       awaiting: "Payment not settled yet",
       unknown: "Payment status unavailable",
+      arriving: "Arriving: {name}",
+      arrivingPhone: "Gate number {phone}",
     },
     status: {
       PENDING: "Awaiting your decision",

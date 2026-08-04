@@ -665,6 +665,8 @@ export const ha: Dictionary = {
       settled: "Kuɗin ya shiga",
       awaiting: "Kuɗin bai shiga ba tukuna",
       unknown: "Ba a iya sanin matsayin kuɗin yanzu",
+      arriving: "Mai zuwa: {name}",
+      arrivingPhone: "Lambar ƙofa {phone}",
     },
     status: {
       PENDING: "Yana jiran shawararka",

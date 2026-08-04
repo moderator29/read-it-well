@@ -198,6 +198,66 @@
     color: var(--nf-brand-secondary);
   }
 
+  /*
+   * @rentme, inside somebody's sentence.
+   *
+   * A mark rather than a link, because no account can ever hold that handle and
+   * a link would offer somebody a name the database refuses. It reads as a
+   * summon: the same brand blue as a real mention, on a faint tile, so the eye
+   * can tell "I called the assistant" from "I called a person" without either
+   * of them shouting.
+   */
+  .nf-post__summon {
+    display: inline-block;
+    padding-inline: 5px;
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-surface-inset);
+    border: 1px solid var(--nf-border-subtle);
+    font-weight: 700;
+    color: var(--nf-brand-secondary);
+  }
+
+  /*
+   * What the assistant cited, under its answer.
+   *
+   * Plain rows rather than plates: the answer is the thing being read and four
+   * photographs under three sentences turns a reply into a catalogue. Each row
+   * is the title, the price and a way through, which is what somebody needs to
+   * decide whether to tap.
+   */
+  .nf-post__cited {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-block-start: 12px;
+  }
+  .nf-post__cited a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+  }
+  .nf-post__cited a:hover,
+  .nf-post__cited a:focus-visible {
+    border-color: var(--nf-border-brand);
+  }
+  .nf-post__cited-title {
+    min-inline-size: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-post__cited-price {
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--nf-brand-secondary);
+  }
+
   /* ------------------------------------------------------------------
    * The menu
    * ------------------------------------------------------------------ */
