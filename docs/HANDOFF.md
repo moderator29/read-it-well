@@ -1,452 +1,498 @@
 # RentMe: Session Handoff
 
-The complete state of the platform as of 2026-07-29, written for the next
-session to pick up with zero context loss. Read this first, then
-`docs/NEXT_SESSION_PROMPT.md` (the kickoff prompt with every owner rule), then
-`docs/MASTER_TODO.md` (the delivery ledger), then `docs/recommendations-inbox.md`
-(250 reviewed recommendations).
+You are the co-founder engineer on RentMe, a Nigeria-first discovery, property,
+hospitality and booking platform. This document is the contract. Read it fully
+before touching a file, then read the documents in section 1 before writing a
+line of code.
 
-Owner: moderator29. Repository: `read-it-well`. Working branch:
-`claude/repo-cleanup-1spitz` (never push main). Everything below is committed
-and pushed through `649b4de`.
+The platform LOOKS finished, and large parts of it genuinely are. What remains
+is the social layer, plus a queue of platform upgrades, and both have to be
+built to the standard of everything already here.
+
+Owner: moderator29. Repository: `read-it-well`. Branch: **`main`**.
 
 ---
 
-## 1. What RentMe is
+## 0. THE ONE LAW
 
-RentMe (renamed from NaijaFinds mid-build) is a Nigeria-first discovery,
-property, hospitality and booking platform: homes, hotels, shortlets, villas,
-restaurants and experiences, with an AI assistant, a naira wallet, and
-guest-to-agent messaging with a trust pipeline. Tagline: "Find it. Rent it.
-Love it." The current build is a production-grade prototype for the owner's
-team: real architecture and real behaviour on seed data, ready for envs.
+A feature is DONE only when the FULL loop closes:
 
-## 2. Brand canon (verbatim owner rules, never violate)
+1. A UI action a real person can take
+2. A validated server action
+3. A database write that survives RLS
+4. The UI showing the new reality after a reload
+5. The notification or email that the event deserves
+6. A Playwright test proving all of it
 
-- The supplied background artwork (`/brand/rentme-bg.png`) is the CANONICAL
-  visual source of truth. "Keep the actual background image as the primary
-  visual source of truth. Use background-image. Do not recreate the background
-  with CSS gradients. The artwork itself must remain visible."
-- "Do not interpret the brand as purple. Deep navy-black + dark neon blue +
-  electric blue glow. Do not replace them with purple, violet, magenta, cyan,
-  or generic SaaS blue." After any styling change, "verify that the overall
-  palette has NOT drifted toward purple."
-- Sampled palette anchors: base `#010118`, glow `#0C39EF`, mid `#000F98`,
-  neon `#0010E0`, electric `#0010D0`, ink family down to `#000010`.
-- Dark mode is the DEFAULT. Light mode is a designed paper-white twin
-  (near-white canvas, no blue wash, neon effects night-only), matching the
-  clean reference the owner supplied. System preference only on first visit,
-  `nf_theme` in localStorage after, no-flash boot script in `layout.tsx`.
-- Logo: `/brand/rentme-logo.png` is a true transparent cutout;
-  `/brand/rentme-logo-ink.png` is the auto-generated ink recolour that CSS
-  swaps in for light mode (`.nf-logo-on-dark` / `.nf-logo-on-light`).
+**A screen with no write path is a half. A table with no screen is a half.
+Never build two halves when you can finish one whole.**
 
-## 3. Owner working rules (distilled, all still binding)
+Work in vertical slices: schema, action, UI wiring, test, screenshot, push.
+Not horizontal layers. Not "the backend for six features". One whole thing.
 
-1. Never push to main. All work on `claude/repo-cleanup-1spitz`.
-2. Commit and push green snapshots often; the stop hook demands a clean tree.
-3. No em dash anywhere (code, copy, docs, commits). British spelling in docs
-   and product copy.
-4. Money is integer kobo (bigint), `formatMoney`/`formatKoboExact`,
-   `Math.round(naira*100)` only at the input boundary. Never float money.
-5. Mobile-first always; every new surface verified at 390px.
-6. Glass everywhere via the Naka recipe (see section 5); all buttons and
-   containers glass or brand blue; one label/headline gradient only.
-7. Navigation icons are stroked SF-style `UiIcon` glyphs; 3D `Icon3D` tiles
-   are for content surfaces only. Nav labels are white in dark mode and ink
-   in light mode.
-8. Full-page drawers, never partial. Footer on landing (and site pages) only.
-9. Every app page has a PageHeader back button following real history
-   (`history.state.idx > 0 ? router.back() : router.push(fallback)`).
-10. No focus rectangles on pointer clicks (`:focus:not(:focus-visible)`).
-11. Sign-up carries first name, surname, optional nickname, strength meter,
-    confirm, hear-about-us, state, referral. X provider removed. A demo
-    button sits on auth ("Explore the demo").
-12. Zero "sample / preview / demo / not live" strings anywhere in UI copy.
-13. The platform charges NO fees anywhere; copy must never mention fees.
-14. Messaging trust flow: guests DM agents of approved listings (text and
-    images); a DB trigger flags 10-digit account numbers and payment
-    keywords to admin; in-chat verify-inspection sheet; "pay only after
-    inspection" messaging.
-15. Wallet is the demo-first flagship surface.
-16. Owner adds all envs personally; everything must work cleanly once envs
-    land. Never block on missing envs; env-guard all clients.
-17. Screenshots to the owner sparingly, not for every step.
-18. Agents (subagents) get strict non-overlapping file scopes, self-audit
-    contracts (typecheck + build exit 0, banned-word and em-dash scans), and
-    never run git; the lead commits.
-19. When the owner supplies artwork, it is used as supplied (background
-    removal or crops only when asked); the owner's newest instruction always
-    supersedes older ones.
-20. Commit authors: the repo history predating this session is
-    `moderator29`/`guddsuddi`; current platform tooling appends its own
-    trailer automatically, leave it be.
+---
 
-## 4. Repository layout
+## 1. Read these before you write anything
 
-npm workspaces monorepo:
+In this order. They are not background reading, they are the brief.
 
-- `apps/web`: Next.js 16.2.12 App Router (Turbopack), React 19, TS strict
+| File | What it is | Why you need it |
+|---|---|---|
+| `docs/HANDOFF.md` | This file | The contract |
+| `docs/SOCIAL_TODO.md` | The social layer plan | Your main build. 45 unchecked boxes, 0 done |
+| `docs/SOCIAL_LAYER.md` | Earlier thinking behind it | The reasoning, superseded in part by SOCIAL_TODO |
+| `docs/BADGES.md` | Earned standing for agents and members | Feeds the social layer's S5 |
+| `RECOMMENDATIONS.md` | 52 formal R-01 to R-52 entries | The considered upgrade list |
+| `docs/recommendations-inbox.md` | 250 raw numbered items | **The full pool agent 1 picks from** |
+| `docs/ICON_SYSTEM.md` | The three-tier icon system | You WILL get this wrong without it |
+| `KNOWN_GAPS.md` | What is honestly missing | Do not rediscover these |
+| `docs/DEAD_ENDS.md` | Audited dead ends with file:line | Same |
+| `docs/MASTER_TODO.md` | The long build order and architecture canon | Context for what came before |
+| `ARCHITECTURE_DECISIONS.md` | Why things are the way they are | Read before proposing a rewrite |
+| `docs/DEPLOY.md` | Deploy and env reality | Before touching config |
+| `docs/HYBRID_INVENTORY.md` | Hybrid supply providers | If you touch inventory |
+
+**Do not skim these.** Several of the most expensive mistakes in this project's
+history were things already written down in one of them.
+
+---
+
+## 2. Owner rules, all binding
+
+These come from the owner directly. The newest instruction always supersedes an
+older one, and everything below is current as of this handoff.
+
+### 2.1 Brand
+
+1. **Deep navy-black, dark neon blue, electric blue glow.** Never purple, never
+   violet, never magenta, never generic SaaS blue.
+2. **There is NO orange, amber or gold in this product.** The owner's words:
+   "Remove any design system that's orange anything like that remove it, it's
+   blue, our blue, I don't want to hear that anymore." Every warm and purple
+   token has been deleted from the palette outright. If a new accent is needed,
+   it is a different DEPTH of blue, never a new hue.
+3. The only two hues outside the blue family are **emerald for success** and
+   **rose for error**. They earn it by meaning something no blue could. The
+   attention/warning state is **bright cyan** (deep cyan on paper), inside the
+   family. That was the decision made when orange was removed.
+4. Sampled anchors: base `#010118`, glow `#0C39EF`, mid `#000F98`, neon
+   `#0010E0`, electric `#0010D0`, ink family down to `#000010`.
+5. **Dark is the DEFAULT and the operating system does not override it.** Only
+   an explicit stored choice moves the theme. Light mode is a designed paper
+   twin: flat neutral canvas, white cards, neutral hairlines, brand blue only
+   on active, focus and CTA. No blue-tinted greys, no dark-only panels left.
+6. The supplied background artwork is the canonical visual source. Use
+   `background-image`. Do not recreate it with CSS gradients.
+7. Scene artwork rule: never cut the background out of a supplied scene.
+8. Logo: `/brand/rentme-logo.png` is the transparent cutout;
+   `rentme-logo-ink.png` is the ink recolour CSS swaps in for light.
+
+### 2.2 Product
+
+9. **The platform charges NO fees anywhere.** Copy must never mention a fee. If
+   a payment processor takes something, label it honestly as the processor's.
+10. Money is **integer kobo** (bigint) everywhere. `Math.round(naira*100)` only
+    at the input boundary. Display only through `formatMoney` from
+    `@naijafinds/i18n`. Never float money. Never divide by 100 yourself.
+11. **RENT is message, inspect, then pay.** No Reserve button on a rental.
+12. The verified badge is **first-party inventory only**.
+13. Zero "sample", "preview", "demo" or "not live" strings anywhere in UI copy.
+14. Messaging trust flow: guests DM agents of approved listings; a database
+    trigger flags 10-digit account numbers and payment keywords to admin;
+    in-chat verify-inspection sheet; "pay only after inspection" messaging.
+15. The owner adds all environment keys personally. Never block on a missing
+    env. Env-guard every client and degrade into an honest, designed state.
+
+### 2.3 Craft
+
+16. **Mobile-first at 390px**, always, then up. Verify every new surface there.
+17. **ZERO em dashes** anywhere: code, copy, docs, commit messages. British
+    spelling in docs and product copy.
+18. Navigation icons are stroked `UiIcon` glyphs. Content objects are
+    `BrandIcon` (57 commissioned 3D objects, props name/size/fill/label/
+    priority/className, there is NO `ramp` prop). `Icon` and `Icon3D` are
+    RETIRED. Never import them.
+19. Full-page drawers, never partial. Footer on landing and site pages only.
+20. Every app page has a PageHeader back button following real history
+    (`history.state.idx > 0 ? router.back() : router.push(fallback)`).
+21. No focus rectangles on pointer clicks (`:focus:not(:focus-visible)`).
+22. No gibberish, no lorem, no dead ends. Every state is designed, including
+    empty, error, signed-out and unconfigured.
+23. Beyond industry standard. 2030-generation clean.
+
+### 2.4 Working
+
+24. **Branch: `main`.** The owner moved everything to main so Vercel
+    auto-deploys from it. All previous feature branches are fully merged and
+    hold nothing main does not.
+25. Commit and push green snapshots often. Keep the tree clean.
+26. Screenshots to the owner sparingly, at milestones, 390px dark first.
+27. **Exactly TWO subagents, never more.** See section 5. The owner has been
+    explicit and repeated: a large fleet burned an enormous amount of usage
+    for very little gain.
+28. Subagents get strict non-overlapping file scopes and never run git.
+    **The lead commits, and the lead re-audits before committing.**
+
+---
+
+## 3. Where things actually stand
+
+### 3.1 Done and verified
+
+The booking, wallet, payment, messaging, listing, admin and agent loops close
+end to end. Each of these was proven against live Postgres with real rows that
+were then removed:
+
+- Reserve holds the calendar, and an abandoned hold auto-releases the nights it
+  took (without also releasing a night an agent closed by hand).
+- Card checkout and wallet payment settle through one shared implementation, so
+  the webhook and the return path cannot disagree.
+- `private.pay_booking_from_wallet` writes six things in one transaction: wallet
+  debit, payment attempt, balanced zero-fee ledger row, booking transition,
+  state event, calendar nights. All or nothing.
+- A host-accepted request-to-book stay is payable. This was broken in a way that
+  mattered enormously: every payment path guarded on `PENDING`, so once a host
+  accepted, the stay could never be paid on the platform, and checkout told the
+  guest "This stay is paid for" while the host had received nothing.
+- Agent verification documents upload to a private bucket; the admin reviewer
+  opens them through short-lived signed URLs.
+- The agent bookings and earnings consoles are real, not stubs.
+- Auth, RLS on every table, durable rate limiting, idempotency records,
+  notifications with database triggers, five branded auth emails.
+
+### 3.2 Not started
+
+- **The social layer.** `docs/SOCIAL_TODO.md` has 45 unchecked boxes and zero
+  ticked. No `compounds`, `gists`, `talks`, `social_reactions` or `echoes`
+  tables. No `/compound` or `/u/[handle]` routes. It is a document, not a
+  feature. **This is your main job.**
+- **The recommendations queue.** 52 formal entries plus a 250-item inbox,
+  essentially untouched. **This is agent 1's job.**
+
+### 3.3 Blockers and hazards
+
+- **`pg_cron` is NOT enabled.** It blocks the stale-hold sweep, badge awarding,
+  and the social layer's gist expiry. Enabling it is a Supabase toggle, not
+  code. Attempts have been blocked; raise it with the owner rather than
+  engineering around it.
+- **The sandbox cannot reach the Supabase host.** The agent proxy blocks it by
+  organisation policy, so pages render signed-out or fallback states locally.
+  Verify the data layer through the Supabase MCP tools instead. Never disable
+  TLS verification and never unset `HTTPS_PROXY` to get around it.
+- Listing images may render as broken placeholders locally for the same reason.
+  That is environment, not product. Do not "fix" it.
+
+---
+
+## 4. Your two jobs, and the order
+
+### Job 1: the social layer. You lead it.
+
+**Do not start building the moment you finish reading.**
+
+The owner's instruction, in their words: the existing plan "is not that good but
+it's a foundation for him to think how we build it all clean next gen". So:
+
+1. Read `docs/SOCIAL_TODO.md` and `docs/SOCIAL_LAYER.md` properly.
+2. **Think harder than those documents did.** Argue with them. Section 7 lists
+   where they are genuinely weak.
+3. Produce **your own recommendations**: architecture, data model, the visual
+   system, the mechanics, what to cut, what is missing. Go much deeper on the
+   design than the current plan does. Next generation, clean, Nigerian, unlike
+   any social product that exists.
+4. Build a **TODO list** covering everything end to end, backend and frontend.
+5. **Present all of it to the owner and WAIT.** The owner says go, then you
+   build. Do not build before that word.
+
+### Job 2: the recommendations. Agent 1 owns it.
+
+Runs in parallel from the start. It does not wait for the social layer's go.
+
+---
+
+## 5. The agent protocol: exactly two
+
+Two subagents. Not three, not four. The owner has been explicit and repeated.
+
+### Agent 1: Platform Upgrades
+
+- **Source pool:** the FULL body. `RECOMMENDATIONS.md` (R-01 to R-52) plus
+  `docs/recommendations-inbox.md` (250 numbered items). **Not a pre-filtered
+  shortlist.** A previous session picked 50; ignore that selection entirely and
+  let this agent make its own.
+- **First task:** read the whole pool and pick **the best 50 that genuinely
+  upgrade the platform**, ranked, one line of reasoning each. Report that list
+  before starting any of them.
+- **Then work them ONE BY ONE.** One item, closed completely, verified, handed
+  over. Then the next. Never a batch of half-finished items.
+- **Per item it re-audits its own work** against the ONE LAW: typecheck and
+  build to zero, run the relevant specs, look at a 390px screenshot in both
+  themes, and only then hand it to the lead.
+- **The lead re-audits before committing.** Two independent passes on every
+  item. If the lead's audit finds a problem, it goes back.
+- Never runs git. Never commits. Never pushes.
+
+### Agent 2: Social Layer Build
+
+- Starts only once the owner has said go on the social layer.
+- Takes the half of each vertical slice the lead is not holding, with **strict
+  non-overlapping file scopes agreed in writing before it starts.**
+- Same contract: closes its own loop, re-audits itself, hands to the lead, lead
+  re-audits, lead commits.
+- Backend AND frontend both finished. Neither agent hands over a schema with no
+  screen, or a screen with no write path.
+
+### Both agents
+
+- Get the house rules in their prompt, every time: zero em dashes, integer
+  kobo, the `ActionResult` envelope, `BrandIcon`/`UiIcon` only, 390px first,
+  dark default, no fees, no orange.
+- Are told to report honestly what they did NOT do. A quiet skip is worse than
+  a stated one.
+- Do not trust an agent's success report at face value. Verify it yourself.
+  That has caught real problems more than once.
+
+---
+
+## 6. Hard-won gotchas. Do not relearn these.
+
+Every one of these cost real time. Several were caught only by looking at a
+screenshot or probing the live database, never by reading code.
+
+### Database
+
+- **A migration succeeding does not mean the function works.** A rate limiter
+  once had parameters named after the columns they conflicted with: the DDL
+  applied cleanly and every call raised 42702. Run a functional probe after
+  applying, never just a success check.
+- **`create or replace function` cannot rename parameters.** You must DROP.
+- **NULL is not false.** A pass over RLS policies used `qual not like '...'`
+  and silently skipped 12 INSERT-only policies, because `qual` was NULL for
+  them. Wrap in `coalesce`, then re-count rather than trusting the success.
+- **`anon` needs EXECUTE on RLS helper functions.** Without it, one non-public
+  row breaks the entire anonymous catalogue read with 42501. It would have
+  worked right up until the first agent saved a draft. Grant deliberately, and
+  deliberately NOT on anything that could expose a wallet.
+- **All subqueries in one SELECT share a snapshot.** A statement that calls a
+  function and then reads the rows it changed will not see them. Verify in a
+  separate statement.
+- Wrap `auth.uid()` in a scalar subquery inside every policy, for the planner.
+- Every foreign key gets a covering index.
+- Mirror every applied migration into `supabase/migrations/` with a timestamp
+  prefix, so the repo never lies about the database.
+
+### Money
+
+- Integer kobo everywhere. The ledger must balance exactly:
+  `gross = platform + agent + processor`, and platform is always 0.
+- Idempotency is a unique reference enforced by the database, never a check in
+  application code.
+- Lock the payer's wallet row and price the spendable balance INSIDE that lock,
+  or two taps can both pass the last naira.
+
+### Frontend
+
+- **A passing typecheck does not mean a passing build.** A client component
+  importing a value from a server-only module typechecks fine and fails the
+  build. Put shared constants in a client-safe `*-schema.ts`.
+- **Percentage padding resolves against the containing block, not the element.**
+  A 22px icon tile inside a 330px button got about 30px of padding per side and
+  rendered a 0x0 image. Every non-fill `BrandIcon` was an empty white chip and
+  nothing caught it but a screenshot.
+- **Elements inside `display: none` report zero-size rects.** A probe that
+  measures everything will report the hidden desktop rail as broken. Filter to
+  genuinely visible nodes or you will chase ghosts.
+- **An animation outranks a normal declaration in the cascade.** A scroll-driven
+  reveal held the first search result at 56% opacity behind a blur until the
+  visitor scrolled, because the observer's revealed state could not win.
+  Anything already on screen at first paint must be shown outright.
+- **Decorative art that bleeds off the edge still counts toward scroll width.**
+  That was 29px of phantom horizontal scroll on five surfaces. `overflow-x-clip`
+  clips one axis without creating a scroll container; `overflow: hidden` would
+  have sliced the art vertically too.
+- **Never truncate a label.** The label is the meaning of the number beside it.
+  Stack the layout instead.
+- Do not reuse a state token to get a colour you like. Stars once borrowed the
+  warning token to obtain a gold, which meant every warning change silently
+  restyled every rating on the platform.
+
+### Process
+
+- **Look at the screenshot.** Do not just confirm the file was written. An
+  entire workspace once rendered orange and only a screenshot caught it.
+- **Read a file before overwriting it**, especially one you did not write.
+- If a spec fails, decide honestly whether the product or the spec is wrong.
+  Two specs once asserted on hidden desktop links; the product was right. Two
+  others asserted a light theme by emulating a light phone; the product had
+  changed and the specs were wrong.
+- Report failures with their output. Never claim green when it is not.
+
+---
+
+## 7. Deep advice on the social layer
+
+`docs/SOCIAL_TODO.md` is a foundation, and the owner is right that it is not
+good enough yet. Here is an honest read of where it is strong and where you
+should push much harder.
+
+### Keep
+
+- **The place-rooted inversion.** You do not follow strangers, you enter a
+  place. RentMe owns place with verified homes inside it, and no global network
+  can copy that without our inventory. This is the one genuinely defensible idea
+  in the document, and everything else should serve it.
+- **The utility wedge.** Is there light, is there water, is the road passable,
+  is it safe. Those four questions govern a Nigerian day and nobody has built
+  the structural answer. It gives someone a reason to open the app on a day they
+  are not booking anything, and the aggregate becomes the most valuable
+  unpurchasable fact in Nigerian property.
+- **The bot-reply-is-just-a-reply decision.** A bot reply is a row in `talks`
+  with `author_kind = 'BOT'`. That is what makes the owner's requirement work,
+  users commenting on, liking and reposting the AI's replies, with no special
+  casing anywhere. Getting it wrong means a rewrite. Keep it.
+- **The three refusals**: no infinite scroll, no public follower counts, no
+  stranger DMs by default.
+
+### Push much harder
+
+1. **The Pulse Line is one idea carrying the whole visual identity.** It is a
+   good idea, but a single motif is not a design system. What does a profile
+   feel like? A thread? A compose sheet? An empty compound at 6am? Design the
+   whole world, not one hero component.
+2. **The lexicon may be trying too hard.** Gist, Talk, Echo, Correct, I dey,
+   Wahala, Owambe. Some are genuinely warm and native. Others risk reading as a
+   platform performing Nigerianness at people rather than speaking like them.
+   Test each word honestly: would someone in Yaba actually say it, or does it
+   feel like a brand pretending? Cut the ones that fail.
+3. **There is no answer for the cold start.** A compound with four members and
+   no gists is a dead room, and a dead room is the fastest way to kill a social
+   product. How does a place feel alive on day one? Seeded utility data?
+   Existing listings surfacing as content? Booking history? This is unsolved and
+   it is the single most likely cause of failure.
+4. **Moderation is hand-waved as "a staffing question".** True but insufficient.
+   What happens at 2am when nobody is watching? Rate limits and a scanner are
+   not a moderation strategy. Decide what is auto-hidden pending review, what
+   goes live immediately, and who can act.
+5. **The utility record is the whole wedge and it is gameable.** An agent with
+   ten accounts reporting "light is on" in an estate they are selling in is the
+   obvious attack, and it corrupts the exact asset that makes this valuable.
+   Resident weighting, an hourly unique constraint and a private dispute signal
+   are a start, not a defence. Over-engineer this part specifically.
+6. **Nothing connects the social layer back to booking.** The plan says
+   "conversation to booking" and then does not design it. Where does a compound
+   surface a listing? What happens after someone stays? How does a Moment become
+   the next person's search? This is where the money is and it is thin.
+7. **Nsibidi-derived marks need care, not appropriation.** Nsibidi is a real
+   script with real cultural weight, and "drawn in the spirit of" is doing a lot
+   of work in that sentence. Either engage with it seriously and respectfully,
+   or design an original geometric mark set that owes it nothing. Do not ship a
+   shallow version.
+8. **Accessibility is barely present.** A live animated line carrying meaning,
+   ideographic marks with no text, a feed that ends. Each needs a screen reader
+   answer and a reduced-motion answer.
+
+### The standard
+
+The owner's brief for the visual work: next generation, appealing to Nigerians,
+something that redefines the landscape, and **not a clone of any existing social
+platform**. The reference screenshots shared during the last session convey
+ambition, not a look to copy; those are gold and fantasy serif, which is exactly
+what ours is not.
+
+Take the images as evidence of the ENERGY wanted, then build something that
+could not be mistaken for anything else.
+
+---
+
+## 8. Repository layout
+
+npm workspaces monorepo.
+
+- `apps/web`: Next.js 16 App Router (Turbopack), React 19, TypeScript strict
   with `noUncheckedIndexedAccess`, Tailwind v4 (`@theme inline`).
-- `packages/design-tokens/src/tokens.css`: two-layer token system (raw
-  palette + semantic). THE control surface: restyle the platform here.
-- `packages/i18n/src/locales/{en,yo,ha,ig}.ts`: en is the typed source of
-  truth; the other three are full translations (yo/ha/ig hero lines still
-  translate the OLD slogan, flagged in file comments for native review).
-- `supabase/migrations/`: 23 applied migrations, 22 committed as files
-  (below).
-- `supabase/templates/` + `scripts/build-auth-emails.mjs`: 5 branded auth
-  emails, rebuilt RentMe-blue (navy-black, electric blue, no violet).
-- `docs/`: MASTER_TODO (ledger + section 5b architecture canon), this file,
-  NEXT_SESSION_PROMPT, recommendations-inbox (250), intake/.
+- `packages/design-tokens/src/tokens.css`: two-layer token system, raw palette
+  then semantic. **THE control surface: restyle the platform from here.**
+  `src/index.ts` mirrors the literal hex values for SVG use, and it must be
+  kept in step with layer 1. It had drifted badly once and was still serving
+  pre-rebrand purple-tinted inks.
+- `packages/i18n/src/locales/{en,yo,ha,ig}.ts`: `en` is the typed source of
+  truth; the other three are full translations awaiting native review.
+- `apps/web/src/lib/actions/envelope.ts`: the `ActionResult` contract every
+  mutation speaks.
+- `apps/web/src/lib/actions/session.ts`: `resolveSession()` returning
+  `unconfigured | signed-out | signed-in`.
+- `supabase/migrations/`: every applied migration, mirrored as a file.
+- `supabase/templates/` and `scripts/build-auth-emails.mjs`: five branded auth
+  emails.
+- `scripts/verify-shots.mjs`: the screenshot harness.
+- `apps/web/tests/*.spec.mjs`: 18 standalone node specs (NOT vitest suites).
 
-## 5. Design system, as built
+---
 
-- Ambient engine (`.nf-ambient` in `globals.css`, mounted once in layout):
-  the artwork as fixed background (`center bottom / cover`; at `<=768px`
-  `100% auto` so the waves show fully on phones), span 1 is the artwork
-  flipped and masked to crown the top of the viewport, spans 2-3 are
-  drifting blue blooms, span 4 is the pointer bloom driven by
-  `LivingCanvas`, `::before` is 4 pulsing hotspots (9s), `::after` is the
-  rotating conic ribbon (20s). `html` carries the solid background, `body`
-  is transparent (iOS fixed-background fix). Reduced motion kills loops.
-- Glass recipe (`.nf-card`): radial corner light + translucent dark glass +
-  edge-lit ring (135deg bright to transparent) via padding-box/border-box
-  multi-backgrounds, `backdrop-filter: blur(14px) saturate(140%)`.
-  `.nf-card--live` adds the conic breathing ring; `.nf-card--interactive`
-  adds hover lift, cursor-lit glass (`--mx`/`--my` from LivingCanvas), and
-  Ken Burns on `img.object-cover`.
-- Buttons: `.nf-btn--primary` (CTA gradient, glow, light ripple sweep on
-  hover via `::after`), `.nf-btn--glass` ghost. Light mode overrides the CTA
-  gradient to a brighter blue so buttons stay vivid on paper.
-- Motion pack: staggered hero entrances (`.nf-rise` + `.nf-rise-2..5`),
-  `nf-shine` sweep on the gradient headline, `nf-breathe` on the hero search
-  button, scroll `Reveal`, `nf-float` family, daypart grading
-  (`data-daypart` on html from Lagos time via `LivingCanvas`).
-- Hero scene: `.nf-hero-scene` renders the villa dissolved into the canvas
-  through a radial mask, no frame, on all breakpoints.
-- Icons: `UiIcon` (24-grid stroked, ~30 glyphs) for ALL navigation;
-  `Icon3D` (vector 3D on glass tile, per-instance `useId` for paint-server
-  safety) for content. `Icon` wraps Icon3D with alias table.
-- Theme machinery: `data-theme` attribute; light block in tokens.css plus
-  `[data-theme="light"]` overrides at the end of globals.css. Light mode is
-  paper-first: aurora hidden, blooms at 0.07, artwork layers off.
+## 9. Verification ritual, before every commit
 
-## 6. Surfaces, as built (36 page routes plus 2 API routes, all green)
+Run all of it. Every time.
 
-The two API routes: **`/api/assistant`** (POST, streams the assistant reply
-over SSE, tool loop against `search_listings`, persists threads for signed-in
-users) and **`/api/paystack/webhook`** (POST, HMAC SHA-512 signature
-verified against the raw body before anything is parsed, settles
-`rm-fund-*`/`rm-wd-*` wallet ledger references).
-
-Landing `/`: hero (masked villa scene, staggered "Find it. Rent it. Love
-it.", live search card posting GET to `/search`, city chips), feature row,
-How it works, Featured carousel, VillaShowcase (canonical copy + city island
-art), facts band, vision/mission, MoodRow, PopularDestinations, CoverageMap
-(cleaned Nigeria artwork linking to `/search?view=map`), AgentsBand,
-WhyRentMe, AssistantShowcase (robot hologram + prompt chips that seed the
-assistant), NumbersBand, trust strip, 12-question FAQ, CTA, footer.
-`SiteHeader` has bigger logo, white nav, Sign in and Sign up both primary
-blue. `MobileMenu` is portalled to body (backdrop-filter containing-block
-bug fixed), full-page, X to close.
-
-App shell `(app)`: AppRail (13 rows, stroked icons, agent promo, identity
-card), MobileTabBar, full-page drawer, scroll-to-top on navigation.
-
-- `/home`: greeting, search capsule, category tiles, AI banner (artwork
-  card, white "Ask the assistant" pill bottom-left, whole card links to
-  `/assistant`), recommendations.
-- `/search`: sticky search bar, trip frame (Any week / 2 guests pills, demo
-  controls), city quick chips, live sort chips, results header with count,
-  List/Map toggle. Map view is a real Leaflet map (Carto dark/light tiles by
-  theme, price-and-city pins per covered city from live catalogue floors,
-  tap navigates to that city's results). `q`, `type` (with `property`
-  alias), `sort`, `view` all server-rendered and shareable.
-- `/listing/[id]`: gallery, facts, price, Reserve + Message agent, amenities,
-  host, sticky mobile bar.
-- `/bookings`: tabs UI. Signed in on a configured platform this reads the
-  guest's real bookings under RLS (`lib/bookings/queries.ts`) with a working
-  cancel action; otherwise it falls back to the three seeded trips exactly
-  as before. `/saved`: 4-listing grid, still static. `/messages` +
-  `/messages/[id]` + **`/messages/new`** (new route, `?listing=<id>`, finds
-  or creates the guest's thread with that listing's agent and redirects
-  straight in): threads, image attachments, options sheet with inspection
-  confirm, all live for signed-in users on real `conversations`/`messages`
-  rows; seeded threads still carry signed-out visitors so the surface never
-  dead-ends. `/notifications`: signed-in users get their real inbox,
-  day-grouped, with Realtime prepend on arrival and read state persisted
-  through a column-scoped grant; otherwise the seeded 5-item list.
-  `/wallet`: flagship UI now driving real fund/withdraw/transfer/statement
-  actions once `PAYSTACK_SECRET_KEY` lands (balance card with shimmer,
-  sparkline, eye toggle, action deck, day-grouped transactions, trust
-  strip). `/profile`, `/settings` (9 groups + SupportChat that answers from
-  a client-side FAQ store or honestly escalates to a real `support_tickets`
-  row with name/email only). `/assistant`: ChatGPT-class page with sidebar
-  (search, history, settings), backed by a real streaming
-  `/api/assistant` route with a listing-search tool and thread persistence
-  once signed in; still a localStorage-only store on the client
-  (`nf_ai_threads`), so a persisted thread does not yet read back into the
-  sidebar on a new device or after clearing storage - the rows exist in
-  `ai_conversations`/`ai_messages`, nothing fetches them on load.
-- Auth `/sign-in`, `/sign-up` (full validation, demo button), `/agents`
-  application flow. Site pages: about, careers, contact, help, privacy,
-  terms (NDPA-aware), each with SiteHeader/Footer.
-
-Data: `lib/listings/` (17 listings, 7 kinds, Unsplash CDN photos,
-`search(filter)`, diversity-aware `recommended()`), `lib/demo/bookings.ts`,
-`lib/wallet/`, `lib/messages/`, `lib/auth/`. localStorage keys: `nf_theme`,
-`nf_settings`, `nf_profile_name/email`, `nf_member_since`, `nf_ai_threads`,
-`nf_support_thread`, `nf_notifications_read`, `nf_inspections`, `nf_demo`.
-
-## 7. Backend, as built
-
-Supabase project `uccixoonmbhrnyczyigt` (eu-west-1, Postgres 17,
-ACTIVE_HEALTHY). 23 migrations applied via MCP `apply_migration` (22 files
-committed under `supabase/migrations/`; see the gotcha in section 9 about
-the one migration recorded server-side with no matching file). 35 tables,
-RLS on every one of them (verified live, 0 without), `private.*`
-security-definer helpers (`has_role`, `owns_listing`, `in_conversation`,
-`wallet_balance`, `notify`), `security_invoker` views. Security advisor is
-clean (0 lints). Performance advisor shows only expected pre-launch noise on
-empty tables (multiple permissive policies where an "own row" policy sits
-alongside an admin-all policy, and unused indexes with zero rows to serve) -
-not a regression, nothing actionable before real data lands.
-
-Landed since the morning snapshot, all applied and live:
-
-- **`wallet`** (20260728202225): `wallets`, `wallet_entries`, derived balance
-  only via `private.wallet_balance`, never a stored column.
-- **`messaging_trust`** (20260728222112): `message_attachments`,
-  `message_flags`, `inspection_confirmations`, `private.scan_message`
-  trigger flagging `\d{10}` account-number runs and payment keywords. This
-  was "drafted but not applied" as of the morning snapshot; it is applied
-  now, and `lib/messages/actions.ts` writes through it.
-- **`rental_pricing`** (20260729112539): adds `'rental'` to
-  `property_type`, the `price_period` enum (`night`/`year`) and column on
-  `listings`, and a `settings jsonb` column on `profiles` (not yet read or
-  written by any settings UI or action - the column exists, nothing uses it
-  yet).
-- **`notifications`** (20260729112606): the `notifications` table plus
-  `notification_kind` enum, joined to the `supabase_realtime` publication
-  (alongside `messages`, added in the same migration) so unread badges and
-  the inbox update live. The fan-out is entirely trigger-driven through one
-  private writer, `private.notify`:
-  - `private.notify_booking_change` on `bookings` insert/update - tells the
-    host of a new request, the guest their request was sent, and both sides
-    on confirm/cancel.
-  - `private.notify_message` on `messages` insert - tells the other
-    participant and bumps `conversations.last_message_at`.
-  - `private.notify_wallet_entry` on `wallet_entries` insert/update -
-    originally COMPLETED-only; extended by `wallet_notify_failures`
-    (20260729172800) to also speak on a failed withdrawal or a reversal, so
-    money that quietly reappears in the balance is explained, not silent.
-  - `private.notify_support_reply` (in `support_tickets`, below) - tells the
-    ticket owner when an admin replies.
-  Clients can select, mark their own rows read (column-scoped grant on
-  `read_at` only) and delete; there is no client insert policy anywhere -
-  rows come only from triggers and the service role.
-- **`support_tickets`** (20260729112624): `support_tickets` +
-  `support_ticket_messages`, `NF-SUP-nnnnn` references, signed-in users
-  insert as themselves under RLS, anonymous escalations go through the
-  service role (no anon insert policy by design), admins get a full-table
-  policy.
-- **`assistant_threads`** (20260729112634): `ai_conversations` +
-  `ai_messages`, owner-private (no admin read policy - assistant chats are
-  personal search intent, not moderation surface).
-- **`feature_flags`** (20260729112643): one row per switchable surface
-  (`bookings`, `wallet`, `messaging`, `assistant`, `support`,
-  `agent_listings`, `hybrid_hotels`, `hybrid_restaurants`), world-readable,
-  admin-writable, fail-open on a missing table/row/network error so flags
-  can only ever turn a feature off, never break it by being absent
-  (`lib/flags.ts`, 30s in-process TTL cache).
-- **`storage_buckets`** (20260729112658) + **`storage_policy_hardening`**
-  (20260729112722): three buckets - `listing-photos` and `avatars` (public,
-  path-scoped to `<user_id>/...`) and `message-attachments` (private, path
-  under `<conversation_id>/...`). The hardening migration replaced the
-  original broad public-read policies on `listing-photos`/`avatars` with
-  owner-scoped reads once the advisor pointed out a public bucket's objects
-  serve through their public URL regardless of RLS, so a broad SELECT policy
-  only added the ability to list every file in the bucket. It also revoked
-  client EXECUTE on the platform's `rls_auto_enable` event-trigger function,
-  closing the one pre-existing advisor warning.
-- **`stale_hold_release_fn`** (20260729173300): `private.release_stale_booking_holds()`,
-  cancels PENDING bookings unconfirmed for 48 hours so an abandoned request
-  cannot lock inventory forever under the GiST exclusion constraint. It
-  exists and can be called by the service layer today, but has **no
-  schedule**: `pg_cron` is not installed on the project (confirmed live -
-  `pg_extension` has no `pg_cron` row), so nothing calls this function yet.
-  It is a real, tested capability with no trigger.
-
-The two genuinely new `private.*` functions today, beyond the notification
-fan-out family above: `private.attachment_path_access` (turns a storage
-object path's leading `<conversation_id>` segment into an RLS decision via
-`private.in_conversation`, returning false rather than throwing on a
-malformed path) and `private.release_stale_booking_holds` (above).
-
-Envs the owner will add (everything is guarded, nothing crashes without
-them): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-`SUPABASE_SERVICE_ROLE_KEY`, `PAYSTACK_SECRET_KEY` (not yet supplied - every
-wallet funding/withdrawal action checks `isPaystackConfigured()` and answers
-honestly that it switches on the moment keys land), `ANTHROPIC_API_KEY` (not
-yet supplied - `/api/assistant` answers 200 with the same honest message
-rather than pretending), auth provider secrets (Google, Apple). Auth email
-templates in `supabase/templates/`, generated by
-`scripts/build-auth-emails.mjs`, are rebuilt for RentMe (navy-black canvas,
-electric blue accents, no violet) - this was the one item marked
-NaijaFinds-branded in the morning snapshot and it is done.
-
-## 8. The end-to-end truth: feature-by-feature audit
-
-The owner's core frustration, correctly held: most features are half loops.
-A screen without a write path, or a table without a screen, is NOT a
-feature. The definition of done from now on:
-
-> A feature is DONE only when the full loop closes: UI action, validated
-> server action or route handler, database write under RLS, UI reflecting
-> the new reality after reload, the related notification or email firing,
-> and a Playwright golden-path test proving it. Anything less is HALF.
-
-The honest matrix. FE = what the user sees today. BE = what the database
-and server can do today. LOOP = the exact missing steps, in build order.
-
-| # | Feature | FE today | BE today | Missing to close the loop |
-|---|---------|----------|----------|---------------------------|
-| 1 | Auth | Full forms, validation, demo button | Supabase auth wired, env-guarded, middleware refresh | Configure providers + SMTP in dashboard (owner keys); profile row trigger on signup; session-aware shell (real name/avatar in rail, sign out); route guards; demo-mode flag distinct from real session |
-| 2 | Profile + Settings | Full 2035 UI | profiles table exists | Read/write profile from DB; settings as JSONB column or table; avatar upload to Storage; delete-account flow |
-| 3 | Discovery (home/search) | Full UI, seed repo, live sort/filter params | listings tables + indexes | SupabaseListingRepository implementing the existing interface; price/bedroom filters; real pagination; ISR caching; keep seed as fallback when env missing |
-| 4 | Live map | Real Leaflet, price pins, theme tiles | city floors computed from repo | Production tile key (MapTiler); listing-level pins with clustering; map reads same repository as list |
-| 5 | Listing detail | Full page | reviews/bookings tables | Reviews read from DB; availability calendar derived from bookings; gallery from Storage once agent uploads land |
-| 6 | RENT market | Full page, message-first, disclaimer, per-year pricing | `rental_pricing` migration applied: `'rental'` added to `property_type`, `price_period` enum (`night`/`year`) on `listings` | The schema gap is closed; still no agent listing flow to create a rental row, so RENT market listings remain seed catalogue only until feature 15 (agent listings CRUD) exists |
-| 7 | Bookings | Tabs UI reads the guest's real bookings under RLS when signed in (`lib/bookings/queries.ts`), cancel wired to a working action; seeded trips only for signed-out/unconfigured visitors | Full schema incl. GiST no-double-booking; `reserve` validates dates, snapshots price from the listing row, inserts PENDING under the guest's own RLS client, translates SQLSTATE 23P01 into a friendly conflict message; `cancel` proves ownership via RLS read then transitions via service role; `confirm` is a service-role path with agent/admin authorisation (join through `agents.user_id`, not `listings.agent_id` directly); DB triggers fan out booking notifications on insert and status change | `confirm` has no host-facing UI yet, only the callable action (feature 15/16 territory); `private.release_stale_booking_holds()` exists and correctly cancels PENDING holds over 48 hours old, but `pg_cron` is not installed on the project, so nothing calls it on a schedule - PENDING holds do not yet self-expire; no payment capture at booking time; and because `public.listings` has zero rows today, this whole loop has nothing real to book against outside a manually-inserted row |
-| 8 | Wallet | Flagship UI now drives real fund/withdraw/transfer/statement actions, not just demo chrome | Full ledger schema, derived balance, idempotency; `lib/payments/paystack.ts` (init, verify, HMAC SHA-512 webhook signature check, transfer, bank list); `app/api/paystack/webhook/route.ts` settles `rm-fund-*`/`rm-wd-*` references idempotently; `wallet_notify_failures` migration extended the notification trigger to speak on a failed withdrawal or reversal, not just success | `PAYSTACK_SECRET_KEY` is not yet supplied, so every fund/withdraw action answers honestly that it switches on the moment the key lands rather than pretending; no transaction PIN; no scheduled reconciliation job for a stuck PENDING withdrawal hold if a webhook is lost |
-| 9 | Messaging | Thread UI, attachments UI, inspection sheet now live for signed-in users on real `conversations`/`messages`; new `/messages/new?listing=<id>` bridges a listing straight into its thread; seeded threads still carry signed-out visitors | `messaging_trust` migration is applied (it was drafted-not-applied as of the morning snapshot): `message_attachments`, `message_flags`, `inspection_confirmations`, `private.scan_message` trigger flagging 10-digit account-number runs and payment keywords; `startConversation`/`sendMessage`/`attachImage`/`confirmInspection`/`markThreadRead` all live in `lib/messages/actions.ts`; `message-attachments` private storage bucket with conversation-scoped RLS via `private.attachment_path_access`; `messages` and `notifications` both joined to `supabase_realtime` | No admin queue reads `message_flags` yet (feature 16, admin console, still not built); no first-money-word education card beyond the existing inspection-confirm sheet |
-| 10 | Notifications | Signed-in users get a real inbox, day-grouped, Realtime-prepended on arrival, read state persisted through a `read_at`-only column grant; signed-out/unconfigured still shows the static seeded 5 | `notifications` table plus `notification_kind` enum, single `private.notify` writer, trigger fan-out from bookings, messages, wallet entries (including failure/reversal states) and support replies; RLS lets owners select/mark-read/delete, no client insert path anywhere | Unread badge counts are still not shown in either the desktop rail or the mobile tab bar (neither surface reads a count today); mark-all-read exists client-side in the notifications page itself, not as a rail affordance |
-| 11 | Saved | Static grid | saved table exists | Heart toggle server action; optimistic UI; saved page reads DB |
-| 12 | AI Assistant | Full ChatGPT-class UI backed by a real streaming route when signed in | `/api/assistant` streams over SSE from the Claude API (`claude-sonnet-5` by default, `ASSISTANT_MODEL` overridable), a `search_listings` tool that runs the same repository search as `/search` so the model can only cite real catalogue rows, the full system-prompt policy (never suggests any charge for using the platform, pay-after-inspection, never invents listings), an in-process token-bucket rate limiter (20 requests/5 minutes per IP), and thread persistence to `ai_conversations`/`ai_messages` for signed-in users; `ANTHROPIC_API_KEY` absent answers a graceful 200 message instead of pretending | Threads persist server-side but the sidebar (`components/app/assistant/threads.ts`) only ever reads `localStorage` (`nf_ai_threads`) - a persisted thread does not read back on a new device or after clearing storage, even though the rows exist; the rate limiter is in-memory per server instance, not shared across deployments |
-| 13 | Support | Chat UI answers instantly from a client-side FAQ store, or escalates | `support_tickets` + `support_ticket_messages` tables; `fileSupportTicket` writes a real `NF-SUP-nnnnn` ticket (signed-in users under their own RLS insert policy, anonymous visitors through the service role since there is no anon insert policy); an admin reply fires an in-app notification via `private.notify_support_reply` | No admin queue UI to work the ticket thread (feature 16); no email notification anywhere in the codebase - "email notify via Resend" is still entirely unbuilt, the reply notification today is in-app only |
-| 14 | Agent application | Full multi-step form, persists | application table under RLS | Admin review/approve flow; approval flips role; applicant notification |
-| 15 | Agent listings CRUD | NOT BUILT | listings schema ready | Create/edit forms, photo upload with quality gate (HYBRID_INVENTORY §5), draft/submit/approve states, agent dashboard real numbers |
-| 16 | Admin console | NOT BUILT | audit/risk/reports tables ready | Shell + queues: message flags, risk alerts, agent approvals, listing approvals, reports, support tickets; audit log every action; feature-flag kill switches |
-| 17 | Hybrid inventory | Spec + types + env keys | n/a | Provider layer per HYBRID_INVENTORY §3 (Amadeus hotels, Places restaurants), merge + ranking, partner badges |
-| 18 | Payments core | none (backend only) | `lib/payments/paystack.ts` complete (init, verify, HMAC SHA-512 webhook signature check, transfer, bank list) and `app/api/paystack/webhook/route.ts` wired end to end into the wallet ledger | `PAYSTACK_SECRET_KEY` not yet supplied by the owner, so nothing has actually charged or transferred against the real Paystack API; no scheduled reconciliation job for entries a webhook never reaches |
-| 19 | Emails | 5 Supabase auth templates (`supabase/templates/`), rebuilt RentMe-blue (navy-black, electric blue, no violet) by `scripts/build-auth-emails.mjs` | none for transactional mail | Auth-email rebrand is done; there is still no Resend integration anywhere in the codebase and no booking/wallet/support email sends - those events fire in-app notifications only (section 7, `private.notify*`), never an email |
-| 20 | i18n | 4 locales wired | n/a | Native review of yo/ha/ig hero lines; translate strings hardcoded in newest sections (Rent page, showcases, map copy) |
-| 21 | PWA/deploy | Manifest, icons | n/a | Offline shell, app shortcuts; rename middleware to proxy; Vercel envs + deploy checklist |
-
-### Build order that closes loops fastest
-
-- **Phase A (foundations everything else needs): COMPLETE.** Notifications
-  table and fan-out, support_tickets, storage buckets with path-scoped
-  policies, the messaging trust migration applied, `lib/payments/paystack.ts`,
-  the typed action envelope + Zod validation throughout. All landed and
-  verified live against the database (section 7).
-- **Phase B (close the money and booking loops): SUBSTANTIALLY CLOSED.**
-  `reserve`/`cancel`/`confirm` are real server actions under RLS with
-  database-enforced no-double-booking; wallet fund/withdraw/transfer are
-  real actions against a real ledger; the Paystack webhook route settles
-  both funding and withdrawal idempotently. What is left is not code but
-  configuration and scheduling: `PAYSTACK_SECRET_KEY` has not landed yet, so
-  no real charge has happened, and the stale-hold release function has no
-  `pg_cron` schedule (see section 9).
-- **Phase C (close the communication loops): SUBSTANTIALLY CLOSED.**
-  Messaging sends, attaches images, confirms inspection and marks threads
-  read, all live under RLS with Realtime delivery; the assistant streams
-  from the real Claude API with a grounded listing-search tool and persists
-  threads; support escalation writes a real ticket. What is left: the
-  assistant sidebar does not read persisted threads back on a new device
-  (client-only `localStorage` today), and there is no admin queue yet to
-  work `message_flags` or `support_tickets` - that is Phase D territory.
-- **Phase D (close the supply loop): IN FLIGHT.** The `rental_pricing`
-  migration closed the schema gap for the RENT market (feature 6). Agent
-  listings CRUD (feature 15) and the admin console (feature 16) are still
-  not built, which is why `public.listings`/`public.agents` remain at zero
-  rows in the live database despite every downstream loop (bookings,
-  messaging, wallet) being genuinely wired to write against real rows the
-  moment they exist.
-- **Phase E (widen the catalogue): IN FLIGHT.** Still blocked behind Phase D:
-  the Supabase listing repository swap, hybrid providers, map clustering and
-  DB-backed reviews all wait on real listing rows existing to widen into.
-- Phase F (polish the shell): emails (Resend integration and
-  booking/wallet/support sends), i18n completion, PWA, deploy. Not started;
-  the one email item that shipped - rebranding the five Supabase auth
-  templates - is recorded under feature 19, not this phase.
-
-Each phase lands as verified vertical slices: schema, action, UI, test,
-screenshot, push. Never build two half-features when one whole feature is
-possible.
-
-## 9. Hard-won gotchas (do not relearn these)
-
-- A `backdrop-filter` ancestor becomes the containing block for `fixed`
-  descendants: any full-screen overlay inside the glass header must be
-  portalled to body (`MobileMenu` is the reference fix).
-- Playwright here: `node --input-type=module` from repo cwd, import from
-  `"playwright-core"`, `executablePath: "/opt/pw-browsers/chromium"`, and
-  ALWAYS pass `colorScheme: "dark"` for dark shots (default is light).
-  `waitUntil: "load"` + fixed waits; `networkidle` times out.
-- Server restarts: kill by port (`fuser -k 3210/tcp`), not by name.
-  Concurrent builds corrupt `.next`: `rm -rf apps/web/.next` and rebuild.
-- Regex/sed over CSS once swallowed an `@layer` opener (the chip-restyle
-  disaster). Prefer exact-string Edit patches on CSS.
-- SVG `url(#id)` paint servers resolve to the first DOM instance; defs
-  inside `display:none` subtrees blank all sharers. Icon3D generates
-  per-instance ids with `useId`; keep it that way.
-- Background agents die silently when usage credits run out: salvage their
-  partial files (fix `noUncheckedIndexedAccess` fallout), finish inline, and
-  relaunch when credits return.
-- The sandbox has no internet to Unsplash or tile servers: listing photos
-  and map tiles show placeholders in local screenshots but load on deploy.
-  Say so when sending screenshots, never "fix" it.
-- Image cutouts: luminance keys eat dark interiors. Use the filled
-  silhouette method (threshold, largest component, hole fill, feathered
-  halo) as done for `rentme-city.png`.
-- `playwright-core` is a real `devDependency` of `apps/web` (`@naijafinds/web`
-  in `apps/web/package.json`), not an ad hoc install: the four Playwright
-  golden-path specs in `apps/web/tests/*.spec.mjs` (assistant, bookings,
-  messages, wallet) and `scripts/verify-shots.mjs` (the lead's screenshot
-  harness, `node scripts/verify-shots.mjs [--light] route...`, writes
-  390x844 PNGs to `scripts/.shots/`) both import it straight from the
-  workspace; no separate global install is needed.
-- The wallet ledger's reference format is a real contract other code reads,
-  not a cosmetic prefix: `rm-fund-<uuid>` (Paystack charge, settled by
-  `charge.success`), `rm-wd-<uuid>` (withdrawal hold, settled by
-  `transfer.success`/`.failed`/`.reversed`), `rm-p2p-<uuid>-out` /
-  `-in` (paired ledger legs for an internal transfer, the sender leg
-  reversed if the recipient leg cannot land). The webhook route
-  (`app/api/paystack/webhook/route.ts`) routes purely on these prefixes, so
-  never invent a new reference shape without updating it.
-- `listings.agent_id` points at `public.agents.id`, not at the auth user id.
-  To authorise "is this caller the listing's agent", join through
-  `agents.user_id` (see `confirm` in `lib/bookings/actions.ts`:
-  `.select("agent_id, agents!inner(user_id)")`, then compare
-  `listing.agents.user_id === session.user.id`). Comparing
-  `listings.agent_id` straight against `session.user.id` is always false and
-  silently locks every agent out.
-- The database currently has 23 applied migrations but only 22 files in
-  `supabase/migrations/`: `20260729174306_rls_initplan_and_fk_index` is
-  recorded server-side (it closed the 46 `auth_rls_initplan` performance
-  warnings and added missing FK-covering indexes) with no matching committed
-  file. Reconcile it - pull the applied SQL and commit the file - before
-  trusting `list_migrations` and the repo to agree again.
-- `public.listings`, `public.agents`, `public.bookings` and `public.wallets`
-  all have **zero rows** in the live database right now (verified by direct
-  count, not the advisor's estimate). Every write path (reserve, wallet
-  actions, messaging) is real and tested, but there is no DB-backed
-  inventory to exercise it against yet: agent listings CRUD (feature 15) is
-  still not built, so nothing has created a real listing row. Everything a
-  visitor sees on `/search` and `/listing/[id]` today is still the seed
-  catalogue in `lib/listings/`. Do not read "the booking loop closed" as
-  "there is real inventory" - they are separate facts.
-
-## 10. Verification ritual (run before every commit)
-
-```
-cd apps/web && npx tsc --noEmit && rm -rf .next && npm run build
-grep -rn "NaijaFinds" apps/web/src packages/i18n/src   # expect none in copy
-grep -rn "$(printf '\xe2\x80\x94')" apps packages docs   # em dash scan, expect none
+```bash
+npm run typecheck          # must be 0 errors, all workspaces
+npm run build              # must be clean; typecheck passing is NOT enough
 ```
 
-Then screenshot the touched surfaces at 390px dark (and light if styling
-changed), commit with a descriptive message, and
-`git push -u origin claude/repo-cleanup-1spitz`.
+Then, with the app served on port 3210 (`npx next start -p 3210` from
+`apps/web`), run the specs. They are standalone node scripts, so `npm test`
+will NOT run them correctly:
+
+```bash
+cd apps/web
+for s in filters checkout bookings listing-detail admin agent-listings wallet \
+         saved support i18n pwa profile messages assistant map hybrid \
+         rate-limit email-render; do node tests/$s.spec.mjs; done
+```
+
+Then screenshots, and **look at them**:
+
+```bash
+node ../../scripts/verify-shots.mjs /route           # 390x844 dark
+node ../../scripts/verify-shots.mjs --light /route   # the paper twin
+```
+
+Then scan your own diff:
+
+```bash
+# Em dash scan. Written as an escape so this document stays clean itself.
+git diff --name-only HEAD | xargs grep -n "$(printf '\xe2\x80\x94')"   # must be empty
+git diff --name-only HEAD | xargs grep -n 'Icon3D'                     # retired, must be empty
+```
+
+Playwright uses `playwright-core` with
+`executablePath: "/opt/pw-browsers/chromium"`. Do not run `playwright install`.
+
+---
+
+## 10. The environment
+
+- Supabase Postgres 17, project ref `uccixoonmbhrnyczyigt`, eu-west-1. RLS on
+  every table, helpers in a private schema, a GiST exclusion constraint
+  preventing double-booking, an append-only kobo ledger with derived balances.
+- Apply migrations through the Supabase MCP tools, then mirror the exact SQL
+  into `supabase/migrations/` with a timestamp prefix.
+- Reference contract: `rm-fund-<uuid>`, `rm-wd-<uuid>`, `rm-p2p-<uuid>-out/-in`,
+  `rm-book-<uuid>`.
+- Durable Postgres rate limiting (`private.consume_rate_limit`) plus idempotency
+  records, both fail-open.
+
+---
+
+## 11. How to be useful here
+
+The owner does not want a status report. They want the platform finished to a
+standard they can be proud of.
+
+- **Close loops.** Half a feature is worse than none, because it looks done.
+- **Verify against reality**, not against your own expectations. Probe the
+  database. Look at the screenshot. Re-count after a bulk change.
+- **Say what you did not do.** Every time. The owner would far rather hear
+  "I left X because Y" than find it themselves later.
+- **Push back once, with a reason, then commit to the decision.** If the owner
+  reaffirms, it is settled and you build it their way, fully.
+- **Do not narrate.** Do the work, then report what changed and what it cost.

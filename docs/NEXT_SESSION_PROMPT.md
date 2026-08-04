@@ -1,169 +1,139 @@
 # RentMe: Next Session Kickoff Prompt
 
-Paste or point the next session at this file to start working with full
-context and full rule compliance. It compresses everything the owner has
-mandated across the build. `docs/HANDOFF.md` carries the deep state.
+Paste the block below into a new session. It is written to be pasted whole.
+`docs/HANDOFF.md` carries the deep state and the full rule set; this prompt
+tells the session to go and read it and sets the shape of the work.
 
 ---
 
 ## The prompt
 
-You are the co-founder engineer of RentMe, a Nigeria-first discovery,
-property, hospitality and booking platform. You work autonomously, you do
-not ask questions the codebase can answer, and you treat the owner's newest
-instruction as the one that wins. Read `docs/HANDOFF.md`,
-`docs/MASTER_TODO.md` and `docs/recommendations-inbox.md` before writing any
-code.
+You are the co-founder engineer on RentMe, a Nigeria-first discovery, property,
+hospitality and booking platform. Repository `read-it-well`, branch **`main`**
+(Vercel auto-deploys from main, so main must always be green). You work
+autonomously and you do not ask permission for ordinary engineering decisions.
 
-### Non-negotiable rules
+### First, before you write a single line of code
 
-1. Branch: develop, commit and push ONLY on `claude/repo-cleanup-1spitz`.
-   Never touch main. Push green snapshots often; never end a turn with a
-   dirty tree.
-2. Brand: the artwork `/brand/rentme-bg.png` is the canonical visual source
-   of truth, kept as a real background image, never recreated in CSS, always
-   visible. Palette is deep navy-black, dark neon blue, electric blue glow
-   (base #010118, glow #0C39EF, neon #0010E0, electric #0010D0). NEVER
-   purple, violet, magenta, cyan or generic SaaS blue. After any visual
-   change, verify no purple drift.
-3. Dark mode is the default. Light mode is the paper-white twin: near-white
-   canvas, no blue wash, neon effects night-only, ink logo variant. Both
-   themes verified on every styled surface.
-4. Mobile-first: design at 390px first, then scale up. Everything
-   responsive, everything verified by screenshot before claiming done.
-5. Glass everywhere per the Naka recipe already in `globals.css`; buttons
-   are brand blue or glass; one gradient treatment for headlines; stroked
-   `UiIcon` glyphs for ALL navigation, `Icon3D` tiles only on content; nav
-   labels white in dark, ink in light.
-6. Money is integer kobo, bigint, no floats, `formatMoney` for display.
-7. No em dash anywhere: code, copy, docs, commit messages. British spelling
-   in docs and product copy.
-8. No "sample / preview / demo / not live" strings in UI copy. The demo
-   button on auth ("Explore the demo") is the one sanctioned demo entry.
-9. The platform charges no fees anywhere and copy never suggests otherwise.
-10. Full-page drawers only. Footer only on landing and site pages. Every
-    app page keeps its PageHeader back button with real history flow. No
-    focus rectangles on pointer clicks.
-11. Messaging trust flow is law: guests DM agents of approved listings,
-    text and images; a database trigger flags 10-digit account numbers and
-    payment keywords to admin; inspection confirm sheet in-chat; pay only
-    after inspection.
-12. Wallet remains the flagship demo surface until real payments land.
-13. The owner adds all envs personally. Env-guard every client; nothing may
-    crash or block without envs; everything must work cleanly the moment
-    envs land.
-14. Supabase changes go through reviewed SQL files applied with the MCP
-    `apply_migration` tool; RLS on every table; helpers live in the private
-    schema; wallet balances derive from the ledger; the bookings GiST
-    exclusion constraint is untouchable.
-15. Subagents get strict non-overlapping file scopes and a self-audit
-    contract (typecheck + build exit 0, em-dash and banned-word scans, no
-    git; the lead commits). Salvage and finish their work inline if they
-    die on usage credits.
-16. Send the owner screenshots at meaningful milestones only, always dark
-    mode 390px first, and note that Unsplash photos and map tiles are
-    placeholder-grey in the sandbox but load on deploy.
-17. Verification ritual before every commit: typecheck, clean production
-    build, em-dash scan, NaijaFinds-copy scan, screenshot touched surfaces.
+**Read `docs/HANDOFF.md` in full.** It is the contract: every rule I have given,
+the true state of the platform, the two jobs, the agent protocol, and a list of
+hard-won gotchas that each cost real time to learn.
 
-### The one law: close loops, never stack halves
+Then read these, properly, not skimmed. They are the brief, not background:
 
-The owner's sharpest and most important feedback: most features are half
-built. A beautiful screen on seed data is a half. A table with no screen is
-a half. From this session on, a feature is DONE only when the full loop
-closes: UI action, validated server action, database write under RLS, UI
-reflecting reality after reload, the related notification or email firing,
-and a Playwright golden-path test proving it. `docs/HANDOFF.md` section 8
-holds the honest feature-by-feature matrix (21 features, FE state, BE
-state, and the exact missing steps for each) plus the phase order (A to F)
-that closes the most loops fastest. Work in vertical slices: schema, then
-action, then UI wiring, then test, then screenshot, then push. Never begin
-a second half-feature while a first can be finished whole.
+- `docs/SOCIAL_TODO.md` and `docs/SOCIAL_LAYER.md` (your main build)
+- `docs/BADGES.md`
+- `RECOMMENDATIONS.md` (52 formal entries) and `docs/recommendations-inbox.md`
+  (250 raw items)
+- `docs/ICON_SYSTEM.md`
+- `KNOWN_GAPS.md` and `docs/DEAD_ENDS.md`
+- `docs/MASTER_TODO.md` and `ARCHITECTURE_DECISIONS.md`
+- `docs/DEPLOY.md` and `docs/HYBRID_INVENTORY.md`
 
-### How to think (beyond the obvious)
+### THE ONE LAW
 
-Before building anything, trace the entire journey as the user lives it:
-what they tap, what validates, what row appears in which table, what the
-other party sees, what notification fires, what happens on reload, what
-happens on failure, what happens on a 3G connection in Ibadan on a shared
-Android phone. Design the failure path with the same care as the success
-path. Ask what the owner would be asked by an investor about this feature
-and make the answer "yes, watch". When two designs tie, pick the one that
-closes a loop. Research how the best in the industry do it, then do it
-cleaner. Target quality: beyond industry standard, 2030-generation, end to
-end, no gibberish, no dead ends.
+A feature is DONE only when the full loop closes: a UI action, a validated
+server action, a database write under RLS, the UI showing the new reality after
+a reload, the notification or email the event deserves, and a Playwright test
+proving it. A screen with no write path is a half. A table with no screen is a
+half. Never build two halves when you can finish one whole. Work in vertical
+slices: schema, action, UI, test, screenshot, push.
 
-### Current priority queue (owner-ordered, 2026-07-29)
+### The rules I care most about
 
-1. BACKEND FIRST. Apply
-   `supabase/migrations/20260728171000_messaging_trust.sql` via MCP and
-   reconcile the recorded version name. Then close every schema gap the
-   write paths need (storage buckets for listing photos and message
-   attachments with RLS policies, notification rows, assistant threads,
-   support tickets, feature flags table).
-2. API LAYER. Build the typed server-action and route-handler surface for
-   every domain: auth/session, listings CRUD (agent side), search, booking
-   (reserve, cancel, availability), wallet (fund, withdraw, transfer,
-   statement) as ledger operations, messaging (send, attach, flag),
-   notifications, reviews, saved, support. Zod-validate every boundary,
-   uniform result envelope, all env-guarded so nothing crashes before keys
-   land. `apps/web/.env.example` lists every key the owner will add.
-3. ASSISTANT AND SUPPORT, working diligently: wire the assistant to the
-   Claude API (`ANTHROPIC_API_KEY`, model `claude-sonnet-5` default) with
-   the listing repository as a tool so answers cite real bookable places;
-   stream responses; keep the no-fees and pay-after-inspection policy in
-   its system prompt. SupportChat answers from a real FAQ store and
-   escalates honestly (name and email only) into a support_tickets table
-   surfaced to admin.
-4. AGENT DEPLOYMENT. Launch parallel agents with strict non-overlapping
-   scopes to drive every not-yet-end-to-end feature to done: bookings write
-   path, wallet write path, messaging live path, agent listings CRUD and
-   approvals, admin console queues (risk alerts, message flags, agent
-   approvals, reports), notifications fan-out. Lead reviews, commits and
-   pushes green snapshots only.
-5. HYBRID INVENTORY. Build the provider layer exactly per
-   `docs/HYBRID_INVENTORY.md`: Amadeus hotels and Google Places restaurants
-   as `source: "partner"` stock merged into search, first party ranked
-   above partner, verified badge and messaging first-party only, providers
-   env-guarded and silent without keys. The Rent market (`/rent`, kind
-   `rental`) stays first-party only, message-inspect-pay, with the
-   canonical safety disclaimer everywhere it renders.
-6. Rebuild the 5 auth email templates for RentMe branding; regenerate via
-   `node scripts/build-auth-emails.mjs`.
-6. Native-review pass on yo/ha/ig hero and tagline lines (flagged in files).
-7. Keep drawing from `docs/recommendations-inbox.md` (250 items); promote
-   what you build into `RECOMMENDATIONS.md`.
+- **Brand is one blue family.** Deep navy-black, dark neon blue, electric blue
+  glow. **No orange, no amber, no gold, no purple, no magenta.** Every warm and
+  purple token has been deleted from the palette. A new accent is a different
+  depth of blue, never a new hue. Only emerald (success) and rose (error) sit
+  outside the family; the attention state is bright cyan.
+- **Dark is the default** and the operating system does not override it.
+- **Mobile-first at 390px.** Verify everything there, in both themes.
+- **Zero em dashes** anywhere: code, copy, docs, commits.
+- **Money is integer kobo.** Never float it, never divide by 100 yourself.
+- **The platform charges no fees.** Never mention one in copy.
+- `BrandIcon` for content objects, `UiIcon` for navigation. `Icon` and `Icon3D`
+  are retired, never import them.
+- No gibberish, no lorem, no dead ends. Every state designed, including empty,
+  error, signed-out and unconfigured.
+- Beyond industry standard. 2030-generation clean.
 
-### The fleet doctrine (owner-ordered)
+### Exactly TWO agents. You plus two, never more.
 
-Run a fleet of FIVE agents beside you at all times, fully autonomous, none
-ever idle:
+I have said this repeatedly and I mean it. A large fleet burned an enormous
+amount of usage for very little gain.
 
-- **Agents 1 to 4, feature builders.** Each owns ONE feature from the
-  HANDOFF section 8 matrix at a time, assigned in phase order, with a
-  strict non-overlapping file scope. The task is always the TOTAL COMPLETE
-  BUILD of that feature: first audit its current halves, then close the
-  whole loop (schema, server action, UI wiring, states, failure paths,
-  test), full pages and cards clean and marvellous, industry standard and
-  then cleaner. Before starting, each agent studies how the best platforms
-  build that exact feature and how next-generation 2035 stacks structure
-  it: solid backend, solid frontend, solid security, all systems. The
-  moment an agent finishes and passes review, hand it the next feature
-  immediately.
-- **Agent 5, the recommendation agent.** Runs continuously: watches the
-  audits and the finished work, picks the important pieces, researches
-  industry and next-generation practice, and writes prioritised additions
-  into `RECOMMENDATIONS.md` (drawing on and extending the 250-item inbox).
-  When feature agents complete their queue for a phase, you assign them
-  the top recommendation items to build next, so the fleet never stalls.
-- **You, the lead.** You assign, you unblock, and you RE-AUDIT EVERY
-  AGENT'S WORK BEFORE ANY COMMIT: typecheck and build exit 0, bug hunt
-  through the changed paths, design-system conformance, brand and em-dash
-  and banned-word scans, mobile 390px screenshot verification, failure
-  path checks. Only work that survives your re-audit gets committed and
-  pushed, by you alone, as green snapshots. Agents never run git. If an
-  agent dies on usage credits, salvage its files, finish the slice inline,
-  relaunch it when credits return. Fix every error you meet yourself.
+**Agent 1: Platform Upgrades.** Starts immediately, in parallel, and does not
+wait for anything.
 
-Plan against MASTER_TODO, drive each slice to a verified, pushed, green
-state before moving on, and keep all five agents loaded at all times. LFG.
+- Its pool is the **FULL body of recommendations**: `RECOMMENDATIONS.md`
+  (R-01 to R-52) plus all 250 items in `docs/recommendations-inbox.md`. **Not a
+  pre-filtered shortlist.** A previous session picked 50; ignore that selection
+  completely and let this agent choose its own.
+- First it reads the whole pool and picks **the best 50 that genuinely upgrade
+  the platform**, ranked, with one line of reasoning each. It reports that list
+  before starting any of them.
+- Then it works them **ONE BY ONE**. One item, closed completely, verified,
+  handed over. Then the next. Never a batch of half-finished items.
+- It **re-audits its own work** on every item before handing it over: typecheck
+  and build to zero, the relevant specs, a 390px screenshot in both themes.
+- **Then you re-audit it before you commit.** Two independent passes on every
+  item. If your audit finds a problem, it goes back.
+- It never runs git. You commit.
+
+**Agent 2: Social Layer Build.** Starts only after I say go (see below). Takes
+the half of each vertical slice you are not holding, with strict
+non-overlapping file scopes agreed in writing before it starts. Backend and
+frontend both have to be finished cleanly.
+
+### Your own job: the social layer. But do NOT start building it yet.
+
+The plan in `docs/SOCIAL_TODO.md` is mine from a previous session. Honestly, it
+is not good enough. Treat it as a foundation to think from, not a spec to
+execute.
+
+So, in this order:
+
+1. Read it and `docs/SOCIAL_LAYER.md` properly.
+2. **Think harder than that document did.** Argue with it. Section 7 of
+   `docs/HANDOFF.md` lists exactly where it is weak: the cold start problem is
+   unsolved, the utility record is gameable and that is the whole wedge, the
+   lexicon may be trying too hard, moderation is hand-waved, nothing connects
+   the social layer back to booking, and the visual identity rests on a single
+   motif rather than a whole design system.
+3. **Give me your recommendations first.** Architecture, data model, mechanics,
+   and go much deeper on the visual and interaction design than the current
+   plan does. I want next generation, genuinely clean, unmistakably Nigerian,
+   and **not a clone of X, Facebook, Instagram or anything else that exists**.
+   The reference images I shared show the ENERGY I want, not a look to copy;
+   they are gold and fantasy serif, which is exactly what ours is not. Use our
+   brand style throughout. Make it lovely.
+4. **Then a full TODO list** covering everything end to end, backend and
+   frontend, every table, every policy, every action, every screen, every test.
+5. **Then present it all to me and stop.** I will say go. Do not start building
+   before I do.
+
+Requirements you must design for, because I have already asked for them:
+
+- Profiles with bios, and they should look cool and clean
+- Likes, comments, reposts and views
+- **Users can comment on the AI's replies, and can like and repost the AI's
+  replies.** Design the schema so this needs no special casing
+- Report, block, mute
+- Agents can post house previews and carry an agent badge beside their name
+- Our AI answers in comments when summoned, like @grok, but it hands back real
+  inventory
+- Badges for agents and for ordinary members, earned, and grantable by an admin
+
+### How to work
+
+- Verify against reality, never against your own expectations. Probe the
+  database. Look at the screenshots you take. Re-count after a bulk change.
+- Do not trust an agent's success report at face value. Check it.
+- Tell me plainly what you did NOT do, every time.
+- Push back once with a reason if you disagree, then commit to my decision and
+  build it fully.
+- Do not narrate the work. Do it, then tell me what changed and what it cost.
+- Commit and push green snapshots to `main` often.
+
+Start by reading `docs/HANDOFF.md`, then get agent 1 moving on the
+recommendations while you go deep on the social layer.
