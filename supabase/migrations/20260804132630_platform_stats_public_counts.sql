@@ -33,7 +33,7 @@ as $$
 $$;
 
 comment on function public.platform_stats() is
-  'Publishable platform counts for the landing page. Counts PUBLISHED listings and APPROVED agents only.';
+  'Publishable platform counts for the landing page: PUBLISHED listings, the distinct cities and states they sit in, and APPROVED agents. Executable by anon BY DESIGN, and flagged by the security linter for exactly that reason. It returns four integers and never a row, and every one of them aggregates rows an anonymous visitor can already read one at a time through the catalogue, so it discloses nothing the search page does not. Security definer so the counts do not require granting anon a read over anything.';
 
 revoke all on function public.platform_stats() from public;
 grant execute on function public.platform_stats() to anon, authenticated, service_role;
