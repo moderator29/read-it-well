@@ -116,14 +116,28 @@ export function actionsForPost(options: {
   isAgentAuthor: boolean;
   hasListing: boolean;
   saved: boolean;
+  /**
+   * Own post, still live, still inside the fifteen minute window the update
+   * policy allows. **Without this row there was no way into the editor at all.**
+   * `editPost`, `PostEditor`, the `edited_at` marker and the rescan on edit were
+   * all built and all unreachable, because nothing in the product ever asked for
+   * the edit action. The window is read at render time, so a card that has sat
+   * open past it simply stops offering the row, and the action asks the database
+   * again anyway.
+   */
+  editable: boolean;
   who: string;
 }): SheetAction[] {
   const rows: SheetAction[] = [
     {
       key: "save",
-      title: options.saved ? "Saved" : "Interested",
-      note: options.saved ? "Remove it from your saved list" : "Save this to come back to",
-      icon: "heart",
+      /* The card's own control is a bookmark labelled Save, and this writes the
+         exact same `post_reactions` row with the mark SAVE. It used to say
+         "Interested" here, which is a second word for one concept and the kind
+         of drift that ends with two features nobody can tell apart. */
+      title: options.saved ? "Saved" : "Save",
+      note: options.saved ? "Take it off your saved list" : "Keep it to come back to",
+      glyph: "bookmark",
     },
   ];
 
@@ -144,6 +158,14 @@ export function actionsForPost(options: {
   });
 
   if (options.isMine) {
+    if (options.editable) {
+      rows.push({
+        key: "edit",
+        title: "Change what it says",
+        note: "For fifteen minutes after posting. It says edited afterwards",
+        glyph: "compose",
+      });
+    }
     rows.push({
       key: "delete",
       title: "Delete this post",

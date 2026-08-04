@@ -5,6 +5,7 @@ import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
 import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
 import { ProfileMenu } from "@/components/social/profile/ProfileMenu";
+import { ProfileShare } from "@/components/social/profile/ProfileShare";
 import { ProfileTabs } from "@/components/social/profile/ProfileTabs";
 /* Plain module, never the client component: a server component importing a
    value from a `"use client"` file gets a client reference, not the value. */
@@ -122,6 +123,12 @@ export default async function SocialProfilePage({
                 compact
               />
             )
+          }
+          share={
+            <ProfileShare
+              handle={view.profile.handle}
+              displayLabel={view.profile.displayLabel}
+            />
           }
           menu={
             <ProfileMenu

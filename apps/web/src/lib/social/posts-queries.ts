@@ -16,9 +16,10 @@ import "server-only";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";
-import type { PostView } from "@/components/social/feed/PostCard";
+import { formatMoney } from "@naijafinds/i18n";
+import type { PostListing, PostView } from "@/components/social/feed/PostCard";
 import { EDIT_WINDOW_MINUTES } from "./posts-schema";
-import { readMediaFor, type SignedMedia } from "./posts-media";
+import { listingPhotoUrl, readMediaFor, type SignedMedia } from "./posts-media";
 
 const POST_COLUMNS = `
   id, area_id, root_id, parent_id, depth, author_id, author_kind, kind, body,
@@ -96,7 +97,77 @@ type Enrichment = {
   areas: Map<string, { name: string; slug: string }>;
   /** Signed picture URLs, by post. Empty for a post with none. */
   media: Map<string, SignedMedia[]>;
+  /** The flat a post is about, by listing id. */
+  listings: Map<string, PostListing>;
 };
+
+/**
+ * The flats the posts on this page are about.
+ *
+ * **`post.listing` was hard-coded null and three things depended on it.** The
+ * card carries a whole second architecture for a post about a flat, a
+ * photographic plate with the title, the place, the price and a way through to
+ * the listing; the district feed's Apartments chip filters on it; and the card
+ * menu offers Contact agent only when it is set. None of the three could ever
+ * fire, and the trigger that announces a newly published listing in its own
+ * area has been writing `listing_id` onto posts since it landed. So the plate
+ * existed, the posts existed, and nothing joined them up.
+ *
+ * `listings_select_published` does the filtering, so a listing that has been
+ * taken down since the post was written simply does not come back and the post
+ * renders as ordinary words rather than as a plate pointing at a dead page.
+ *
+ * Money is integer kobo and goes through `formatMoney`. Nothing here divides by
+ * a hundred.
+ */
+async function readPostListings(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  listingIds: string[],
+): Promise<Map<string, PostListing>> {
+  const out = new Map<string, PostListing>();
+  if (listingIds.length === 0) return out;
+  try {
+    const { data, error } = await supabase
+      .from("listings")
+      .select(
+        "id, title, area, city, price_per_night_minor, price_period, listing_photos ( storage_path, position )",
+      )
+      .in("id", listingIds)
+      .eq("status", "PUBLISHED");
+    if (error || !data) return out;
+
+    for (const row of data as unknown as {
+      id: string;
+      title: string;
+      area: string | null;
+      city: string | null;
+      price_per_night_minor: number | string | null;
+      price_period: string | null;
+      listing_photos: { storage_path: string; position: number }[] | null;
+    }[]) {
+      const first = [...(row.listing_photos ?? [])].sort((a, b) => a.position - b.position)[0];
+      const yearly = row.price_period === "year";
+      out.set(row.id, {
+        id: row.id,
+        title: row.title,
+        area: row.area ?? "",
+        city: row.city ?? "",
+        priceLabel: formatMoney(Number(row.price_per_night_minor ?? 0), "en"),
+        periodLabel: yearly ? "a year" : "a night",
+        photoUrl: listingPhotoUrl(first?.storage_path),
+        /* The verified mark is first-party inventory only, and a PUBLISHED row
+           in `public.listings` is first-party by definition: it was reviewed by
+           an admin before it could reach that status. `listings` carries no
+           `verified` column, and the catalogue read reaches the same conclusion
+           the same way. */
+        verified: true,
+      });
+    }
+    return out;
+  } catch {
+    return out;
+  }
+}
 
 /**
  * One round of lookups for a whole page of posts, rather than a query per card.
@@ -109,9 +180,12 @@ async function enrich(
 ): Promise<Enrichment> {
   const authorIds = [...new Set(rows.map((r) => r.author_id).filter((v): v is string => Boolean(v)))];
   const areaIds = [...new Set(rows.map((r) => r.area_id).filter((v): v is string => Boolean(v)))];
+  const listingIds = [
+    ...new Set(rows.map((r) => r.listing_id).filter((v): v is string => Boolean(v))),
+  ];
   const postIds = rows.map((r) => r.id);
 
-  const [profiles, areas, mods, reactions, reposts] = await Promise.all([
+  const [profiles, areas, mods, reactions, reposts, listings] = await Promise.all([
     authorIds.length
       ? supabase
           .from("social_profiles")
@@ -143,6 +217,7 @@ async function enrich(
           .eq("user_id", viewerId)
           .in("post_id", postIds)
       : Promise.resolve({ data: [] as never[] }),
+    readPostListings(supabase, listingIds),
   ]);
 
   const authors = new Map<string, ReturnType<() => Enrichment["authors"] extends Map<string, infer V> ? V : never>>();
@@ -187,7 +262,7 @@ async function enrich(
      trips. */
   const media = await readMediaFor(supabase, postIds);
 
-  return { authors, moderatorAreas, liked, saved, reposted, areas: areaMap, media };
+  return { authors, moderatorAreas, liked, saved, reposted, areas: areaMap, media, listings };
 }
 
 function toView(row: RawPost, e: Enrichment, viewerId: string | null): PostView {
@@ -233,7 +308,7 @@ function toView(row: RawPost, e: Enrichment, viewerId: string | null): PostView 
     edited: Boolean(row.edited_at),
     areaName: area?.name ?? null,
     areaSlug: area?.slug ?? null,
-    listing: null,
+    listing: row.listing_id ? (e.listings.get(row.listing_id) ?? null) : null,
     sourceNote: null,
     replyingTo: null,
     repostedBy: null,
@@ -259,6 +334,54 @@ function toView(row: RawPost, e: Enrichment, viewerId: string | null): PostView 
        on whatever the card chose to render. A removed post has none. */
     rawBody: isMine ? row.body : null,
   };
+}
+
+/**
+ * The people, posts and places this viewer has muted.
+ *
+ * **A mute used to write a row and change nothing.** Three controls wrote to
+ * `public.mutes`, the card menu's "Mute", its "See less from them" and the
+ * profile menu's, and the toast said "Muted. You will not see their posts."
+ * Nothing anywhere read the table back: `private.can_see_post` and
+ * `private.can_see_story` carry `blocked_with` and no mute test, which is
+ * correct, because a block is a security boundary and a mute is a preference.
+ * A preference still has to be honoured, and this is where it is honoured.
+ *
+ * It is deliberately a filter on a feed read rather than a policy. `mutes` is
+ * one way and private: nobody is hidden from anybody else by it, nothing is
+ * disclosed by it, and somebody who opens a muted person's own page or a thread
+ * they were part of should still see them. Silencing a timeline is exactly the
+ * promise the copy makes, and it is the whole promise.
+ *
+ * One small read per feed, and an empty answer on any failure, because a feed
+ * that fails to load a preference should still be a feed.
+ */
+export type Muted = { users: Set<string>; posts: Set<string>; areas: Set<string> };
+
+const NO_MUTES: Muted = { users: new Set(), posts: new Set(), areas: new Set() };
+
+export async function readMutes(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  viewerId: string | null,
+): Promise<Muted> {
+  if (!viewerId) return NO_MUTES;
+  try {
+    const { data, error } = await supabase
+      .from("mutes")
+      .select("target_kind, target_id")
+      .eq("user_id", viewerId)
+      .limit(500);
+    if (error || !data) return NO_MUTES;
+    const muted: Muted = { users: new Set(), posts: new Set(), areas: new Set() };
+    for (const row of data as { target_kind: string; target_id: string }[]) {
+      if (row.target_kind === "USER") muted.users.add(row.target_id);
+      else if (row.target_kind === "POST") muted.posts.add(row.target_id);
+      else if (row.target_kind === "AREA") muted.areas.add(row.target_id);
+    }
+    return muted;
+  } catch {
+    return NO_MUTES;
+  }
 }
 
 export type FeedPage = {
@@ -297,19 +420,29 @@ export async function getAreaFeed(
 
   if (cursor) query = query.lt("created_at", cursor);
 
-  const { data, error } = await query;
+  const [{ data, error }, muted] = await Promise.all([query, readMutes(supabase, viewerId)]);
   if (error || !data) return { posts: [], cursor: null, ended: true };
 
-  const rows = data as unknown as RawPost[];
-  const ended = rows.length <= PAGE_SIZE;
-  const page = ended ? rows : rows.slice(0, PAGE_SIZE);
-  if (page.length === 0) return { posts: [], cursor: null, ended: true };
+  const all = data as unknown as RawPost[];
+  const ended = all.length <= PAGE_SIZE;
+  /* One row past the page is fetched only to answer "is there more", so the
+     rows this call actually consumes are the first PAGE_SIZE of them, and the
+     cursor is the last of THOSE. Taking it from the filtered list instead would
+     step over every row a mute removed, and the next page would silently lose
+     the posts that sat between them. */
+  const consumed = ended ? all : all.slice(0, PAGE_SIZE);
+  const last = consumed.length > 0 ? consumed[consumed.length - 1] : null;
+  const cursorOut = ended || !last ? null : last.created_at;
+
+  const page = consumed.filter(
+    (row) => !muted.posts.has(row.id) && !(row.author_id && muted.users.has(row.author_id)),
+  );
+  if (page.length === 0) return { posts: [], cursor: cursorOut, ended };
 
   const e = await enrich(supabase, page, viewerId);
-  const last = page[page.length - 1];
   return {
     posts: page.map((row) => toView(row, e, viewerId)),
-    cursor: ended || !last ? null : last.created_at,
+    cursor: cursorOut,
     ended,
   };
 }

@@ -8,7 +8,10 @@ import { ReportSheet } from "../ReportSheet";
 import { ActionSheet, actionsForPost } from "../ActionSheet";
 import { DistrictChips, DistrictHeader, type DistrictChip } from "./DistrictHeader";
 import { StoryGrid } from "../story/StoryGrid";
+import { ReviewList } from "../profile/ReviewList";
+import { EmptyPanel } from "../profile/EmptyPanel";
 import type { StoryCard } from "@/lib/social/stories-queries";
+import type { ReviewCard } from "@/lib/social/profile-tabs-queries";
 import { PostEditor } from "./PostEditor";
 import {
   blockUser,
@@ -57,6 +60,8 @@ export function Feed({
     slug: string;
     places: { slug: string; name: string; city: string }[];
     stories: StoryCard[];
+    /** What guests said about the stays filed under this place. */
+    reviews: ReviewCard[];
     join?: React.ReactNode;
   };
 }) {
@@ -146,6 +151,23 @@ export function Feed({
       setNotice(POST_COPY.copied);
       return;
     }
+    /*
+     * Contact agent. The sheet has offered this row since it was written and
+     * nothing here answered it, so the highest intent tap in the whole layer,
+     * message the person selling the flat, quietly did nothing at all.
+     *
+     * `/messages/new?listing=` is the bridge the listing page already uses: it
+     * resolves the agent from the listing server side and opens the thread, so
+     * the social layer needs no second way to start a conversation.
+     */
+    if (action === "contact") {
+      if (!post.listing) {
+        setNotice("There is no flat on this post to ask about.");
+        return;
+      }
+      router.push(`/messages/new?listing=${post.listing.id}`);
+      return;
+    }
     if (!signedIn) {
       router.push("/sign-in");
       return;
@@ -214,10 +236,9 @@ export function Feed({
   /*
    * Filtered in the browser over what the page already holds, so moving
    * between chips costs nothing. Apartments are posts carrying a listing;
-   * Updates are everything a person wrote that is not one; Stories are their
-   * own object and come from their own read. Reviews are the one chip with no
-   * source yet: there is no read for reviews in an area, and it says so rather
-   * than quietly showing nothing.
+   * Updates are everything a person wrote that is not one; Stories and Reviews
+   * are their own objects and arrive from their own reads on the server, which
+   * is why neither of them is filtered out of `posts` here.
    */
   const shown =
     chip === "apartments"
@@ -230,6 +251,7 @@ export function Feed({
     ? {
         apartments: posts.filter((post) => Boolean(post.listing)).length,
         stories: district.stories.length,
+        reviews: district.reviews.length,
         updates: posts.filter((post) => !post.listing && post.authorKind === "USER").length,
       }
     : {};
@@ -243,8 +265,6 @@ export function Feed({
             city={district.city}
             places={district.places}
             currentSlug={district.slug}
-            filtersOn={chip !== "all"}
-            onFilter={() => setChip(chip === "all" ? "apartments" : "all")}
             trailing={district.join}
           />
           <DistrictChips active={chip} counts={counts} onPick={setChip} />
@@ -255,14 +275,20 @@ export function Feed({
         <StoryGrid stories={district.stories} handle={areaName ?? "this place"} isOwner={false} />
       ) : null}
 
+      {/* Reviews of the stays filed under this place, written by guests who
+          actually stayed. `reviews_insert_own` is what makes that true, and it
+          is the reason this chip can be a read rather than an apology. */}
       {district && chip === "reviews" ? (
-        <div className="nf-card nf-post p-6 text-center">
-          <p className="text-sm leading-relaxed text-[var(--nf-content-muted)]">
-            Reviews of the stays around here are on each place&rsquo;s own page.
-            They arrive in this feed once a review can name the place it is
-            about rather than only the flat.
-          </p>
-        </div>
+        district.reviews.length > 0 ? (
+          <ReviewList reviews={district.reviews} />
+        ) : (
+          <EmptyPanel
+            icon="reviews"
+            title={`Nobody has reviewed a stay around ${areaName ?? "here"} yet`}
+            body="A guest can write one once their stay is finished, and it lands here as well as on the flat itself. Until then there is nothing to read, and inventing something would be worse than saying so."
+            action={{ href: "/search", label: "See the stays here" }}
+          />
+        )
       ) : null}
 
       {areaId && chip !== "stories" && chip !== "reviews" ? (
@@ -341,6 +367,7 @@ export function Feed({
             isAgentAuthor: Boolean(sheetFor.author?.isAgent),
             hasListing: Boolean(sheetFor.listing),
             saved: sheetFor.saved,
+            editable: sheetFor.editable,
             who: sheetFor.author?.handle ? `@${sheetFor.author.handle}` : "this person",
           })}
           onChoose={(key) => onMenuAction(sheetFor, key)}

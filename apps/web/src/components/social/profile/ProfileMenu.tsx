@@ -17,10 +17,12 @@ import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
 /**
  * The `…` on a person's page. The sibling of the one on every card.
  *
- * Share, mute, report, block. The actions are the same ones the card menu
- * calls, and that is the point: blocking somebody from their page and blocking
- * them from something they wrote must be the same block, or one of the two
- * quietly becomes a different feature.
+ * Copy link, mute, report, block. Share is its own round control beside this
+ * one on the cover, because sending somebody a person's page is a thing people
+ * do often enough to deserve a tap rather than two. The rest are the same
+ * actions the card menu calls, and that is the point: blocking somebody from
+ * their page and blocking them from something they wrote must be the same
+ * block, or one of the two quietly becomes a different feature.
  *
  * Every one of these takes a USER id. The post menu learned this the hard way,
  * where passing a post id would have blocked a uuid that is nobody, reported
@@ -87,23 +89,21 @@ export function ProfileMenu({
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const share = () => {
+  /**
+   * Copy, not share. Share is its own control beside this one now, and two
+   * menu rows that open the same sheet is one row too many. Copying is a
+   * genuinely different act: it puts the address in a message somebody is
+   * already writing, with no sheet in the way.
+   */
+  const copyLink = () => {
     setOpen(false);
     const url = `${window.location.origin}/u/${handle}`;
-    /* The Web Share API where the device has one, which on a phone is the
-       sheet people already know, and the clipboard everywhere else. A share
-       control that only works on a phone is a share control most of a desktop
-       audience finds broken. */
-    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-      void navigator
-        .share({ title: who, url })
-        .catch(() => {
-          /* Cancelling a share sheet is not a failure and gets no message. */
-        });
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      void navigator.clipboard.writeText(url);
+      setNotice(POST_COPY.copied);
       return;
     }
-    void navigator.clipboard?.writeText(url);
-    setNotice(POST_COPY.copied);
+    setNotice(`The address is rentme.ng/u/${handle}`);
   };
 
   const requireSignIn = () => {
@@ -239,9 +239,9 @@ export function ProfileMenu({
                 type="button"
                 role="menuitem"
                 className="nf-post__menu-item"
-                onClick={share}
+                onClick={copyLink}
               >
-                Share this profile
+                Copy link to this page
               </button>
 
               {isOwner ? (

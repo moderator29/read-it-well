@@ -120,6 +120,17 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
       setNotice(POST_COPY.copied);
       return;
     }
+    /* Contact agent, the one row in the sheet that had no branch in either
+       handler. `/messages/new?listing=` resolves the agent server side and is
+       the same bridge the listing page uses. */
+    if (action === "contact") {
+      if (!post.listing) {
+        setNotice("There is no flat on this post to ask about.");
+        return;
+      }
+      router.push(`/messages/new?listing=${post.listing.id}`);
+      return;
+    }
     if (requireSignIn()) return;
     if (action === "report") {
       setReporting(post);
@@ -256,6 +267,7 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
             isAgentAuthor: Boolean(sheetFor.author?.isAgent),
             hasListing: Boolean(sheetFor.listing),
             saved: sheetFor.saved,
+            editable: sheetFor.editable,
             who: sheetFor.author?.handle ? `@${sheetFor.author.handle}` : "this person",
           })}
           onChoose={(key) => onMenuAction(sheetFor, key)}

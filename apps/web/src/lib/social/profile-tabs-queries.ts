@@ -21,7 +21,7 @@ import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
-import { signMedia, type PostMediaItem } from "./posts-media";
+import { listingPhotoUrl, signMedia, type PostMediaItem } from "./posts-media";
 
 const LIMIT = 30;
 
@@ -86,7 +86,9 @@ export async function getAgentProperties(agentId: string | null): Promise<Proper
         pricePeriod: row.price_period === "year" ? "year" : "night",
         bedrooms: row.bedrooms ?? 0,
         bathrooms: row.bathrooms ?? 0,
-        photoUrl: first ? first.storage_path : null,
+        /* The row stores a bucket path, not an address. Handing that straight
+           to an `img` is an empty frame, which is what this tab rendered. */
+        photoUrl: listingPhotoUrl(first?.storage_path),
       };
     });
   } catch {

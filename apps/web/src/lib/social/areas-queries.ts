@@ -26,6 +26,10 @@ export type AreaSummary = {
   kind: AreaKind;
   city: string;
   stateCode: string;
+  /** The neighbourhood string the listings themselves are filed under, which
+      is not always the display name: the UNILAG campus is filed under Akoka,
+      because that is where the flats are. */
+  area: string | null;
   blurb: string | null;
   status: AreaStatus;
   memberCount: number;
@@ -66,6 +70,7 @@ type AreaRow = {
   kind: AreaKind;
   city: string;
   state_code: string;
+  area: string | null;
   blurb: string | null;
   status: AreaStatus;
   member_count: number;
@@ -75,7 +80,7 @@ type AreaRow = {
 };
 
 const AREA_COLUMNS =
-  "id, slug, name, kind, city, state_code, blurb, status, member_count, post_count, slow_mode, opened_at";
+  "id, slug, name, kind, city, state_code, area, blurb, status, member_count, post_count, slow_mode, opened_at";
 
 function toSummary(row: AreaRow): AreaSummary {
   return {
@@ -85,6 +90,7 @@ function toSummary(row: AreaRow): AreaSummary {
     kind: row.kind,
     city: row.city,
     stateCode: row.state_code,
+    area: row.area,
     blurb: row.blurb,
     status: row.status,
     memberCount: row.member_count,

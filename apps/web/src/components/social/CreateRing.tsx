@@ -26,7 +26,13 @@ import { PostGlyph } from "./feed/PostGlyph";
  * carries no violet, and translating the hue is the whole instruction.
  */
 
-export type CreateKind = "apartment" | "review" | "update" | "question" | "story";
+export type CreateKind =
+  | "apartment"
+  | "review"
+  | "update"
+  | "question"
+  | "story"
+  | "place";
 
 type Option = {
   kind: CreateKind;
@@ -38,15 +44,23 @@ type Option = {
 };
 
 /*
- * Five, not six.
+ * Six, and the sixth is Place rather than Event.
  *
- * The board asks for Event as well. There is no events table, no host, no
- * cancellation, no attendee list and no moderation answer for a meetup between
- * strangers, and `docs/SOCIAL_DESIGN.md` section 9 defers meetups deliberately
- * as the highest-liability feature in the plan. A sixth petal that opened
- * nothing would be a dead end in the one menu whose entire job is to promise
- * that something will happen. It is raised in the handover rather than shipped
- * hollow.
+ * The board draws six petals and the sixth on it is a meetup. There is no
+ * events table, no host, no cancellation, no attendee list and no moderation
+ * answer for a meetup between strangers, and `docs/SOCIAL_DESIGN.md` section 9
+ * defers meetups deliberately as the highest-liability thing in the whole plan.
+ * A petal that opened nothing would be a dead end in the one menu whose entire
+ * job is to promise that something will happen.
+ *
+ * So the geometry the board asks for is honoured with a sixth thing this
+ * product genuinely lets somebody make: a place. Suggesting one is a real form,
+ * a validated action, a row under RLS and an admin decision that comes back as
+ * a notification, and it is the most RentMe answer available to "what do you
+ * want to create today?", because the place is what everything else hangs off.
+ *
+ * What an events table would need before Event could take a petal is written
+ * down in `docs/SOCIAL_AUDIT.md` rather than left as a note in a component.
  */
 const OPTIONS: Option[] = [
   {
@@ -59,7 +73,7 @@ const OPTIONS: Option[] = [
   {
     kind: "story",
     label: "Story",
-    note: "Picture and headline",
+    note: "One picture",
     icon: "camera",
     href: "/stories/new",
   },
@@ -81,6 +95,13 @@ const OPTIONS: Option[] = [
     note: "A stay you had",
     icon: "reviews",
     href: "/bookings",
+  },
+  {
+    kind: "place",
+    label: "Place",
+    note: "Somewhere new",
+    icon: "map-spot",
+    href: "/around/new",
   },
 ];
 
@@ -152,10 +173,18 @@ export function CreateRing({
           <span className="nf-ring__core" aria-hidden="true" />
 
           {OPTIONS.map((option, index) => {
-            /* Evenly spaced, starting at the top and going clockwise, so the
-               first option in reading order is also the first one the eye
-               lands on. */
-            const angle = -90 + (360 / OPTIONS.length) * index;
+            /*
+             * Evenly spaced, one step clockwise from the leading edge, so the
+             * first option in reading order sits at the upper left where the
+             * eye already is and the ring reads clockwise from there.
+             *
+             * With six options this is a flat-topped hexagon: the two extremes
+             * are horizontal, which is the axis a 390px phone has least of, and
+             * the vertical extent stays inside the wheel so no petal ever
+             * climbs into the question above it.
+             */
+            const step = 360 / OPTIONS.length;
+            const angle = -90 + step + step * index;
             const style = {
               "--nf-ring-angle": `${angle}deg`,
               "--nf-ring-delay": `${index * 40}ms`,

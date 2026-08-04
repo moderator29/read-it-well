@@ -5,11 +5,12 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { getArea } from "@/lib/social/areas-queries";
 import { getAreaFeed } from "@/lib/social/posts-queries";
 import { listStories } from "@/lib/social/stories-queries";
+import { getPlaceReviews } from "@/lib/social/reviews-queries";
 import { listMyAreas } from "@/lib/social/areas-queries";
 import { POST_COPY } from "@/lib/social/posts-schema";
 import { Feed } from "@/components/social/feed/Feed";
 import { AroundFab } from "@/components/social/AroundFab";
-import { AREA_COPY, AREA_KIND_LABEL } from "@/lib/social/areas-schema";
+import { AREA_COPY } from "@/lib/social/areas-schema";
 import { JoinButton } from "../JoinButton";
 import { ModeratorApply } from "./ModeratorApply";
 
@@ -70,9 +71,13 @@ export default async function AreaPage({
   if (!detail) notFound();
 
   const { area, viewer, moderators } = detail;
-  const [feed, stories, mine] = await Promise.all([
+  const [feed, stories, reviews, mine] = await Promise.all([
     getAreaFeed(area.id),
     listStories({ areaId: area.id, limit: 12 }),
+    /* Four reads that all start at once cost one round trip. The same four in
+       sequence cost four, and on the connections this product is built for
+       that is the whole difference between a page and a wait. */
+    getPlaceReviews({ city: area.city, area: area.area, name: area.name }),
     listMyAreas(),
   ]);
   const isModerator = viewer.role === "MODERATOR";
@@ -114,6 +119,7 @@ export default async function AreaPage({
               .filter((place) => place.status === "ACTIVE")
               .map((place) => ({ slug: place.slug, name: place.name, city: place.city })),
             stories,
+            reviews,
             join:
               area.status === "ACTIVE" ? (
                 <JoinButton

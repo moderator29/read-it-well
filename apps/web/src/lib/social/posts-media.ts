@@ -21,8 +21,34 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
+import { SUPABASE_URL } from "../supabase/env";
 
 export const MEDIA_BUCKET = "social-media";
+
+/** Where a listing's photographs live. Public, unlike `social-media`. */
+const LISTING_PHOTO_BUCKET = "listing-photos";
+
+/**
+ * A listing photograph's public URL, from the path stored on the row.
+ *
+ * `listing_photos.storage_path` is a bucket-relative path, not an address, and
+ * putting it straight into a `src` renders a broken image. The catalogue read
+ * has always converted it; the two social surfaces that show a flat did not,
+ * which is why an agent's Properties tab rendered empty frames. One helper, so
+ * a third surface cannot make the same mistake a third time.
+ *
+ * A value that is already an absolute URL is passed through untouched, because
+ * the seed catalogue stores those.
+ */
+export function listingPhotoUrl(storagePath: string | null | undefined): string | null {
+  if (!storagePath) return null;
+  if (/^https?:\/\//i.test(storagePath)) return storagePath;
+  if (!SUPABASE_URL) return null;
+  const path = storagePath
+    .replace(/^\/+/, "")
+    .replace(new RegExp(`^${LISTING_PHOTO_BUCKET}/`), "");
+  return `${SUPABASE_URL.replace(/\/+$/, "")}/storage/v1/object/public/${LISTING_PHOTO_BUCKET}/${path}`;
+}
 
 /** Long enough to read a page, short enough that a copied URL is not a leak. */
 const SIGNED_SECONDS = 60 * 60;

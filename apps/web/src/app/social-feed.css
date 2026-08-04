@@ -1601,13 +1601,17 @@
   .nf-ring__scrim {
     position: absolute;
     inset: 0;
-    background: rgb(2 4 18 / 0.82);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    /* Heavy enough that the page underneath reads as a texture rather than as
+       words. At 0.82 the sentence behind the ring was still legible through it,
+       which put two pieces of copy on top of each other and made the labels
+       hard to pick out. A modal that leaks readable text is not a modal. */
+    background: rgb(2 4 18 / 0.93);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     cursor: default;
   }
   :root[data-theme="light"] .nf-ring__scrim {
-    background: rgb(244 246 250 / 0.9);
+    background: rgb(244 246 250 / 0.96);
   }
 
   .nf-ring__panel {
@@ -1616,7 +1620,9 @@
     flex-direction: column;
     align-items: center;
     gap: 1.5rem;
-    padding: 1.5rem;
+    /* 1.25rem rather than 1.5, so panel width stays under the viewport on a
+       360px phone as well as on the 390px one everything is verified at. */
+    padding: 1.25rem;
   }
 
   .nf-ring__ask {
@@ -1630,9 +1636,9 @@
   }
 
   /*
-   * The wheel. Sized so five petals at 100px clear each other at 390px with
-   * room to breathe: the owner asked for neat and not jam-packed, and a ring
-   * that touches itself is the opposite of that.
+   * The wheel. Sized so six petals clear each other at 390px with room to
+   * breathe: the owner asked for neat and not jam-packed, and a ring that
+   * touches itself is the opposite of that.
    */
   .nf-ring__wheel {
     position: relative;
@@ -1645,11 +1651,19 @@
      * That is the same class of mistake as percentage padding resolving against
      * the containing block, which this codebase has already been caught by once.
      *
-     * 7rem of radius with 5.5rem petals leaves a chord of about 131px between
-     * neighbours at 72 degrees apart, so nothing touches at 390px.
+     * Six petals sit 60 degrees apart on a flat-topped hexagon, so the pair
+     * that comes closest is separated vertically rather than horizontally:
+     * 8rem of radius puts about 111px between the centres of neighbouring
+     * rows, against 5.5rem by 6.5rem petals whose ink is about 96px tall. The
+     * two horizontal extremes reach 172px from the centre, which is inside the
+     * wheel's own half-width plus the panel's padding, so nothing spills off a
+     * 390px screen and there is no phantom horizontal scroll.
+     *
+     * The notes are all short enough to hold one line at this width for the
+     * same reason: a second line is 14px of height straight out of that gap.
      */
-    --nf-ring-radius: min(7rem, 32vw);
-    inline-size: min(20.5rem, 92vw);
+    --nf-ring-radius: min(8rem, 36vw);
+    inline-size: min(20.5rem, 86vw);
     aspect-ratio: 1 / 1;
     display: grid;
     place-items: center;
@@ -1904,21 +1918,6 @@
     line-height: 1.5;
     color: var(--nf-content-muted);
   }
-  .nf-district__filter {
-    display: grid;
-    place-items: center;
-    inline-size: 44px;
-    block-size: 44px;
-    flex-shrink: 0;
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-border-default);
-    color: var(--nf-content-secondary);
-  }
-  .nf-district__filter--on {
-    border-color: var(--nf-border-brand);
-    color: var(--nf-brand-secondary);
-  }
-
   .nf-district__chips {
     display: flex;
     gap: 8px;

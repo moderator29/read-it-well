@@ -22,6 +22,7 @@ import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 import { signMedia } from "./posts-media";
+import { readMutes } from "./posts-queries";
 
 /* The generated types are regenerated after a migration, not before it. */
 type Loose = SupabaseClient<Database>;
@@ -181,7 +182,7 @@ export async function listStories(options: {
   limit?: number;
 }): Promise<StoryCard[]> {
   if (!isSupabaseConfigured()) return [];
-  const { supabase } = await reader();
+  const { supabase, viewerId } = await reader();
   const limit = options.limit ?? 12;
 
   try {
@@ -197,10 +198,10 @@ export async function listStories(options: {
     if (options.areaId) query = query.eq("area_id", options.areaId);
     if (options.authorId) query = query.eq("author_id", options.authorId);
 
-    const { data, error } = await query;
+    const [{ data, error }, muted] = await Promise.all([query, readMutes(supabase, viewerId)]);
     if (error || !data || data.length === 0) return [];
 
-    const rows = data as {
+    const rows = (data as {
       id: string;
       author_id: string | null;
       image_path: string;
@@ -208,7 +209,15 @@ export async function listStories(options: {
       place_label: string | null;
       like_count: number;
       created_at: string;
-    }[];
+    }[]).filter(
+      /* A mute is a promise that this person stops appearing in what you are
+         shown, and a story rail is exactly that. Their own page is not, which
+         is why `authorId` reads are left alone: you went there on purpose. */
+      (row) =>
+        Boolean(options.authorId) ||
+        !(row.author_id && muted.users.has(row.author_id)),
+    );
+    if (rows.length === 0) return [];
 
     const [authors, media] = await Promise.all([
       readAuthors(

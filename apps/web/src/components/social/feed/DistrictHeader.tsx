@@ -13,10 +13,12 @@ import { BackChevron } from "@/components/social/profile/BackChevron";
  * the right district" is asked far more often than any other on this screen,
  * and answering it should not cost a trip back to a directory.
  *
- * The filter sits on the right and opens the chip row's own long form. On a
- * phone the chips are already there under the header, so the control is a
- * shortcut rather than the only way in: a filter that is the sole route to
- * filtering is a filter people never find.
+ * **There is no filter button beside it, and there was one.** It carried a
+ * sliders glyph and the accessible name "Filter what you see", and what it
+ * actually did was jump the chip row to Apartments. The chip row sits directly
+ * underneath, is always visible, names all five kinds and carries their counts,
+ * so the button was a second control for a job already done, doing it worse and
+ * describing itself wrongly. Neither of those survives a read.
  *
  * Only places the person is actually in are listed. Offering every open place
  * here would make this a directory wearing a header, and the directory already
@@ -27,17 +29,12 @@ export function DistrictHeader({
   city,
   places,
   currentSlug,
-  onFilter,
-  filtersOn,
   trailing,
 }: {
   name: string;
   city: string;
   places: { slug: string; name: string; city: string }[];
   currentSlug: string;
-  onFilter: () => void;
-  /** True when the chip row is on anything other than All. */
-  filtersOn: boolean;
   /** Join, supplied by the page. It belongs in this row rather than floating
       above it, where it was the only thing on a line of its own. */
   trailing?: React.ReactNode;
@@ -116,16 +113,6 @@ export function DistrictHeader({
           </>
         ) : null}
       </div>
-
-      <button
-        type="button"
-        onClick={onFilter}
-        aria-pressed={filtersOn}
-        className={`nf-district__filter${filtersOn ? " nf-district__filter--on" : ""}`}
-        aria-label={filtersOn ? "Filtering. Show everything" : "Filter what you see"}
-      >
-        <UiIcon name="sliders" size={19} />
-      </button>
 
       {trailing}
     </div>

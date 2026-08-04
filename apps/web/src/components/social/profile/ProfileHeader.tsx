@@ -24,6 +24,16 @@ import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profile
  * edge from below, which is what makes the cover read as behind the person
  * instead of above them.
  *
+ * **The two controls on the right are Share and the overflow, and neither is a
+ * bookmark.** The reference board draws one in that corner. A bookmark on this
+ * platform means keep this flat (`saved_items`) or keep this post
+ * (`post_reactions` with the mark `SAVE`); a person is neither, and the thing
+ * somebody actually wants when they reach for it is Follow, which is already on
+ * this screen, writes a real row, has a list behind it and notifies the person.
+ * The reasoning is set out in full in `ProfileShare`, and the position does not
+ * get relitigated without a `saved_people` table and a screen that reads it
+ * back.
+ *
  * **The ring on the avatar is ADR-012 and not decoration.** A luminous gradient
  * on the border box with the fill on the padding box, brightest at the upper
  * left, lit from the same direction as the commissioned 3D icon family. It is
