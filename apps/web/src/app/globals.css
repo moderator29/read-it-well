@@ -1749,6 +1749,128 @@ body {
     font-size: var(--nf-text-body-lg);
   }
 
+  /* ------------------------------------------------------- symbol effects */
+
+  /*
+   * Animated icons, the reference set's headline feature.
+   *
+   * Across the fifteen references the bell rings on a new notification, the
+   * heart pulses and fills on save, refresh rotates, send flies away. This
+   * platform had none of it across 166 icon usages; the single bell-wiggle
+   * keyframe that existed in this file had zero call sites.
+   *
+   * Each effect plays once by default, on mount, which is the right behaviour
+   * for a state change - the bell rings when the notification ARRIVES, it does
+   * not ring forever. --loop is for genuinely continuous states such as a
+   * syncing indicator. Every effect collapses to nothing under reduced motion.
+   */
+  .nf-sym {
+    transform-origin: center;
+    animation-duration: 620ms;
+    animation-timing-function: var(--nf-ease-spring);
+    animation-fill-mode: both;
+  }
+  .nf-sym--loop {
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+  }
+
+  @keyframes nf-sym-bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-22%) scale(1.06);
+    }
+    60% {
+      transform: translateY(4%) scale(0.98);
+    }
+  }
+  .nf-sym--bounce {
+    animation-name: nf-sym-bounce;
+  }
+
+  @keyframes nf-sym-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    35% {
+      transform: scale(1.22);
+    }
+    55% {
+      transform: scale(0.96);
+    }
+  }
+  .nf-sym--pulse {
+    animation-name: nf-sym-pulse;
+  }
+
+  /* The bell. Rings from the crown, not the centre, or it reads as a shake. */
+  @keyframes nf-sym-wiggle {
+    0%,
+    100% {
+      transform: rotate(0);
+    }
+    15% {
+      transform: rotate(13deg);
+    }
+    35% {
+      transform: rotate(-11deg);
+    }
+    55% {
+      transform: rotate(7deg);
+    }
+    75% {
+      transform: rotate(-4deg);
+    }
+  }
+  .nf-sym--wiggle {
+    transform-origin: 50% 18%;
+    animation-name: nf-sym-wiggle;
+  }
+
+  @keyframes nf-sym-rotate {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .nf-sym--rotate {
+    animation-name: nf-sym-rotate;
+    animation-duration: 900ms;
+    animation-timing-function: var(--nf-ease-standard);
+  }
+
+  /* Send. Departs up and to the right, then returns from the opposite corner. */
+  @keyframes nf-sym-fly {
+    0% {
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+    45% {
+      transform: translate(65%, -65%);
+      opacity: 0;
+    }
+    46% {
+      transform: translate(-55%, 55%);
+      opacity: 0;
+    }
+    100% {
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+  }
+  .nf-sym--fly {
+    animation-name: nf-sym-fly;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-sym {
+      animation: none !important;
+    }
+  }
+
   /*
    * Spinner.
    *

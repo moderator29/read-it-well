@@ -275,30 +275,116 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
   ),
 };
 
+/**
+ * The icon size scale.
+ *
+ * There were twenty-three magic numbers before this: `UiIcon` alone was called
+ * at fourteen distinct sizes (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 24,
+ * 26, 30) and four components hard-coded four different defaults. Five rungs
+ * cover every real use.
+ */
+export const ICON_SIZE = { xs: 13, sm: 15, md: 18, lg: 22, xl: 28 } as const;
+export type IconSize = keyof typeof ICON_SIZE;
+
+/**
+ * Optical stroke compensation.
+ *
+ * A fixed stroke of 1.8 on a 24 grid means the rendered line thins in direct
+ * proportion to the icon: at 13px it lands at 0.97 device pixels and at 24px at
+ * 1.8. Seventy-three usages were rendering sub-pixel strokes, which is the
+ * single biggest reason the set could not read as SF-Symbols-grade - small
+ * icons looked faded rather than small, and large ones looked heavy beside
+ * them.
+ *
+ * Real optical sizing keeps the *rendered* line roughly constant, so the family
+ * holds one weight across the whole scale. Reference weight is 1.8 at 20px.
+ */
+function opticalStroke(size: number, override?: number) {
+  if (override !== undefined) return override;
+  const scaled = (1.8 * 20) / size;
+  // Clamped so a 13px glyph does not turn into a slab and a 32px one does not
+  // dissolve. The window is narrow on purpose.
+  return Math.round(Math.min(2.4, Math.max(1.45, scaled)) * 100) / 100;
+}
+
+/**
+ * Symbol effects.
+ *
+ * The reference set headlines animated icons: the bell rings on a new
+ * notification, the heart pulses and fills on save, refresh rotates, send
+ * flies. The platform had zero of this across 166 icon usages - the one
+ * bell-wiggle keyframe that existed in globals.css had no call sites at all.
+ *
+ * The effect is a class, not a prop-driven animation, so it costs nothing when
+ * unused and every one of them collapses under prefers-reduced-motion.
+ */
+export type SymbolEffect = "bounce" | "pulse" | "wiggle" | "rotate" | "fly";
+
+/**
+ * Which glyphs can actually be filled.
+ *
+ * `fill="currentColor"` is only meaningful on a closed silhouette. Most of this
+ * set is drawn as open strokes - `home` is three separate open paths, `user` is
+ * a circle plus an open shoulder arc - and filling those produces a blob, not a
+ * filled icon. Only the glyphs whose outline closes into a single readable
+ * shape are listed here, and `filled` is ignored for everything else so a call
+ * site cannot ship a broken one.
+ *
+ * Growing this list means redrawing the glyph as a closed silhouette first.
+ * That is the real work behind proper filled/outline variants, and it is worth
+ * doing for the tab bar set; until then the honest behaviour is to decline.
+ */
+const FILLABLE = new Set<UiIconName>(["heart", "star", "verified", "bell", "location"]);
+
 export function UiIcon({
   name,
-  size = 16,
-  strokeWidth = 1.8,
+  size = ICON_SIZE.sm,
+  strokeWidth,
   className,
   label,
+  effect,
+  /** Plays the effect continuously rather than once on mount or on hover. */
+  effectLoop,
+  filled,
 }: {
   name: UiIconName;
-  size?: number;
+  /** A number for a one-off, or a scale key. Prefer the key. */
+  size?: number | IconSize;
+  /** Escape hatch. Leave unset: optical sizing picks the right weight. */
   strokeWidth?: number;
   className?: string;
   label?: string;
+  effect?: SymbolEffect;
+  effectLoop?: boolean;
+  /**
+   * Paints the glyph solid instead of stroked. This is what a saved heart or a
+   * rated star should use; the previous "active" state was a stroke change of
+   * 0.18 CSS pixels, which is invisible.
+   *
+   * Only honoured for glyphs in FILLABLE above. Asking for it on an
+   * open-stroke glyph is silently ignored rather than rendering a blob.
+   */
+  filled?: boolean;
 }) {
+  const px = typeof size === "number" ? size : ICON_SIZE[size];
+  const solid = Boolean(filled) && FILLABLE.has(name);
   return (
     <svg
-      width={size}
-      height={size}
+      width={px}
+      height={px}
       viewBox="0 0 24 24"
-      fill="none"
+      fill={solid ? "currentColor" : "none"}
       stroke="currentColor"
-      strokeWidth={strokeWidth}
+      strokeWidth={opticalStroke(px, strokeWidth)}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={className}
+      className={[
+        effect ? `nf-sym nf-sym--${effect}` : "",
+        effect && effectLoop ? "nf-sym--loop" : "",
+        className ?? "",
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined}
       role={label ? "img" : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
