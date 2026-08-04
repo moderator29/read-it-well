@@ -2193,13 +2193,16 @@
 
   .nf-people__row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
     padding: 14px;
   }
   .nf-people__who {
     display: flex;
-    align-items: center;
+    /* Top, not centre. A row with a name, a handle, two facts and a bio is four
+       lines tall, and an avatar floating in the middle of it reads as a
+       misalignment rather than as a portrait of the person at the top. */
+    align-items: flex-start;
     gap: 12px;
     min-inline-size: 0;
     flex: 1;
@@ -2247,6 +2250,7 @@
     font-weight: 700;
     color: var(--nf-content-muted);
   }
+
 }
 
 @layer components {

@@ -36,6 +36,11 @@ each was a table or a column with an admin write policy and no screen at all:
 | # | Item | State |
 |---|---|---|
 | 18 | Book for someone else | Shipped. `bookings.guest_name/phone/email` with four check constraints, the toggle and three fields on `ReservePanel`, the name on both the guest's and the host's booking cards, and one `announceConfirmedStay` replacing four separate copies of the confirmation email so the arriving guest is reached from all four paths that can confirm a stay. Deliberately NOT done: R-75's signed link giving the arriving guest a logged-out booking page. They get an email, not an account |
+| B-new-2 | The agent shell's seeded "Demo Agent" identity | Shipped. `SEED_PROFILE` and `AgentRepository.getProfile()` deleted outright, `AgentProfile \| null` through `AgentShell`/`AgentRail`/`AgentMobileNav` so the type system carries the distinction, a designed absent identity card, and `/agents/status` rebuilt on the caller's own `agent_applications` row with four designed states plus the reviewer's note. Caught while fixing it: `BackButton` tested `history.length > 1` and so navigated a fresh tab to `about:blank`, the one dead end it exists to prevent; now on `history.state.idx` like the three other back controls |
+
+**This list is closed at 22 of 50.** The owner has called it: from here the work
+is upgrades, not features. The remaining 28 ranked items stand as a record of
+what was considered and are superseded by `docs/POLISH_PASS.md`.
 
 Still open, in order, from the ranked 50 below: 19
 (seasons), 20 (WhatsApp share), 21 (check-in and check-out filters), then Tier C

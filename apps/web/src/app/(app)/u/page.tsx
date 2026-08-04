@@ -6,7 +6,6 @@ import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { AroundFab } from "@/components/social/AroundFab";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { isSocialEnabled } from "@/lib/social/flag";
 import { findPeople } from "@/lib/social/people-queries";
 
@@ -190,14 +189,6 @@ export default async function PeoplePage({
           to follow anybody here.
         </p>
       ) : null}
-
-      <div className="mt-8 flex items-center gap-3 rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-4">
-        <BrandIcon name="user-verified" size={34} />
-        <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-          Somebody with no page yet has no handle to find. Claiming one takes a
-          moment and it becomes their address on RentMe.
-        </p>
-      </div>
 
       <AroundFab />
     </div>

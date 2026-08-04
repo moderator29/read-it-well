@@ -92,13 +92,18 @@ async function walk(colorScheme) {
       );
     }
 
-    // The identity card is behind the drawer at phone width, so open it once
-    // and read what it actually says about who is here.
+    /* The identity card is behind the drawer at phone width. Open the real
+       opener by its label, not "the first button in the header", which is the
+       Back control: clicking that navigated away and every assertion below
+       then passed against the hidden drawer still sitting in the DOM. Read the
+       card itself rather than the whole body, so a hidden copy cannot answer
+       for a visible one. */
     await page.goto(`${BASE_URL}/agent/dashboard`, { waitUntil: "load" });
     await page.waitForTimeout(WAIT);
-    const drawerOpener = page.locator("header button").first();
-    await drawerOpener.click();
-    await page.waitForTimeout(600);
+    await page.locator('header button[aria-label="Open menu"]').click();
+    await page.waitForTimeout(700);
+    const card = page.locator('[role="dialog"], .fixed').locator("text=Not signed in as an agent").first();
+    check("the identity card is actually on screen", await card.isVisible());
     const drawer = (await page.locator("body").innerText()).replace(/\s+/g, " ");
     check("the identity card states the absence plainly", /Not signed in as an agent/i.test(drawer));
     check("it offers the way in", /Sign in/i.test(drawer));
@@ -106,6 +111,18 @@ async function walk(colorScheme) {
     check(
       "the absence is a sentence, not an empty line",
       !/Not signed in as an agent\s*Verified/i.test(drawer),
+    );
+
+    // The way back must never land on a blank page. Opened in a fresh tab
+    // there is nothing of ours behind this route, so Back has to fall through
+    // to the app rather than call history.back() into whatever came before.
+    await page.goto(`${BASE_URL}/agent/dashboard`, { waitUntil: "load" });
+    await page.waitForTimeout(WAIT);
+    await page.locator('header button[aria-label="Back"]').click();
+    await page.waitForTimeout(1200);
+    check(
+      `Back from a deep link stays inside the app (${page.url().replace(BASE_URL, "")})`,
+      page.url().startsWith(BASE_URL),
     );
 
     // -------------------------------------------------- /agents/status
