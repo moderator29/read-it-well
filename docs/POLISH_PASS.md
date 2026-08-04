@@ -1,91 +1,146 @@
-# The polish pass
+# The small-item pass
 
-Written 2026-08-04 by the lead, replacing the remaining 28 items of
-`docs/agent1-selection.md` on the owner's instruction.
+Written 2026-08-04 by the lead, on the owner's instruction, replacing the
+remaining 28 items of `docs/agent1-selection.md`.
 
-The first 22 items were features: reviews, payouts, capacity, utilities, the
-admin console, booking for somebody else. The remaining 28 were more of the
-same, and the owner has called it: **from here the work is upgrades, not
-features.** Small, unglamorous, everywhere. The kind of thing that separates a
-product somebody uses from a product somebody trusts.
+The first 22 shipped items were features: reviews, payouts, capacity, utilities,
+the admin console, booking for somebody else. The 28 still ranked were the same
+shape, and the owner has called it. **From here the work is small upgrades, not
+heavy features.**
 
-## The rule for this pass
+Every item below is drawn from the real pool: the numbered items in
+`docs/recommendations-inbox.md`, cited as `#N`, and `RECOMMENDATIONS.md` as
+`R-NN`. Nothing here is invented. The three at the end marked FOUND are defects
+this team turned up while building, which belong in a small-item pass by size
+even though nobody put them in the pool.
 
-Nothing here adds a table. Nothing here adds a screen. If an item needs a
-migration, it is in the wrong list.
+## The rule
 
-Every item must still close its loop, which for a polish item means: the change
-is real on the surface, it holds in BOTH themes, it holds at 390px and at
-desktop width, and a spec or a screenshot proves it. "It looks better" is not a
-verification.
+**Nothing here adds a table. Nothing here adds a screen.** If an item seems to
+need a migration, it is in the wrong list: say so and move on.
 
-Batch them. These are five-minute changes with ten-minute verifications, so
-doing them one commit at a time wastes the day. Group by theme, ship a group,
-move on.
+Verification does not relax, it changes shape. A small item is proven when the
+change is real on the surface, it holds in BOTH themes, it holds at 390px and at
+desktop, and a spec or a screenshot stands behind it. "It looks better" is not a
+verification. For a structural change with no visible surface (focus traps,
+`inputmode`, accessible names) the spec IS the proof.
 
----
-
-## Tier 1: things that are currently wrong
-
-Not preferences. Defects that happen to be small.
-
-| # | Item | Why it matters |
-|---|---|---|
-| P1 | **44px minimum on every interactive target, swept.** `PageHeader` was 36px and is fixed; nothing has checked the rest. Chips, icon buttons, close controls, tab bars, card action rows | A target under 44px is a control that misses on a phone. It is an accessibility failure and a rage-tap |
-| P2 | **Every overlay closes on Escape, traps focus, and locks body scroll.** Sheets, drawers, the create ring, the action menu, the comments sheet, every modal | An overlay you cannot escape with a keyboard is a trap. A page that scrolls behind a sheet is the single most common mobile bug in the world |
-| P3 | **Truncation sweep.** `PageHeader` was fixed; `grep` for `truncate` and `text-ellipsis` across every component and justify each one | Owner rule: never truncate a sentence. "Places on R..." tells nobody anything and cannot be recovered from |
-| P4 | **Aspect-ratio boxes on every image.** Listing cards, post media, story rails, avatars, the media grid | Without one, every image load shifts the layout under somebody's thumb. This is measurable as CLS and felt as jank |
-| P5 | **Focus-visible rings on every focusable element**, in both themes, meeting contrast against the surface behind them | Keyboard navigation is currently invisible on most surfaces |
-| P6 | **`prefers-reduced-motion` honoured** by every transition, the create ring animation, and any auto-playing movement | Motion sickness is not a preference to ignore |
-| P7 | **Safe-area insets** on every fixed element, top and bottom, not only the tab bar | An iPhone home indicator sitting over a primary action |
-
-## Tier 2: states that are missing or thin
-
-| # | Item | Why it matters |
-|---|---|---|
-| P8 | **Loading states on every async surface.** Skeletons that match the shape of what arrives, not spinners | A spinner says "something is happening". A skeleton says "here is what is coming", and it stops the layout jumping when it lands |
-| P9 | **Empty state sweep.** Every list, every tab, every filter result, every search. Each names what would be here and offers the one action that would fill it | An empty box is the product failing to speak. Several were fixed already; nobody has checked them all |
-| P10 | **Error state sweep.** Every failed read renders something designed, never a blank and never a raw message | A 500 that renders nothing is indistinguishable from an empty result |
-| P11 | **Disabled controls say why.** A greyed button with no explanation is a dead end that looks like a bug | |
-| P12 | **Optimistic feedback on every toggle** that does not have it: save, follow, like, mark read, notification switches | A control that waits a round trip before moving feels broken on a Nigerian mobile connection |
-| P13 | **A toast or inline confirmation after every write.** One pattern, used everywhere, never two patterns on one screen | |
-
-## Tier 3: consistency
-
-| # | Item | Why it matters |
-|---|---|---|
-| P14 | **One number format.** Counts (1.2k), money (integer kobo through `formatMoney`), dates, relative time. Currently `whenLabel` and `lagosTimeLabel` are separate implementations | Two formats on one screen reads as two products |
-| P15 | **Sentence case sweep** across every label, button and heading. No Title Case, no ALL CAPS except the deliberate overline | |
-| P16 | **Icon audit**: `BrandIcon` for content, `UiIcon` for navigation, one weight, one size scale, no `Icon3D` anywhere | |
-| P17 | **Back control on every sub-page**, going somewhere sensible rather than to history, which breaks on a deep link | A deep link with no way back is a dead end by definition |
-| P18 | **Active navigation state correct on every route**, including nested ones and query-string routes like `/search?type=hotel` | |
-| P19 | **Spacing scale audit.** One rhythm, from the tokens, no arbitrary pixel values sneaking into components | |
-| P20 | **Both themes, every screen, looked at.** Not asserted: looked at. Hunting the lavender that `--nf-brand-primary-soft` produces over paper | It has broken the no-purple rule twice already |
-
-## Tier 4: input and form feel
-
-| # | Item | Why it matters |
-|---|---|---|
-| P21 | **`inputmode` and `enterkeyhint` on every input.** A phone field that opens a QWERTY keyboard is a small insult repeated every time | |
-| P22 | **`autocomplete` attributes** on every field a browser or password manager could fill | |
-| P23 | **Character counters** on every length-limited field, appearing before the limit rather than at it | |
-| P24 | **Field errors beside their field**, never only at the top, and the first invalid field receives focus on submit | |
-| P25 | **Password visibility toggle**, and never blocking paste | Blocking paste in a password field is hostile to anybody using a password manager |
-| P26 | **Submit disabled only while in flight**, never as a validation strategy | A permanently disabled button with no explanation is P11 in its worst form |
-
-## Tier 5: reach
-
-| # | Item | Why it matters |
-|---|---|---|
-| P27 | **Skip-to-content link**, and one `h1` per page | |
-| P28 | **`aria-label` on every icon-only control.** The tab bar has them; almost nothing else does | An icon-only button with no label is invisible to a screen reader |
-| P29 | **`aria-live` on every region that changes without a navigation**: toasts, optimistic counts, search results | |
-| P30 | **Colour is never the only signal.** Unread, held, error and required states each need a shape or a word beside the hue | |
+**Batch by tier.** These are five-minute changes with ten-minute verifications;
+one commit each would waste the day.
 
 ---
 
-## Not in this pass
+## Tier 1: money and dates read wrong
 
-Anything needing a migration. Anything needing a new route. Events, the AI
-summon, seasons, WhatsApp share, the check-in and check-out filters: all still
-open, all still ranked in `agent1-selection.md`, none of them polish.
+The most valuable small items on the platform, because every one of them is
+about somebody deciding whether they can afford something.
+
+| # | Item | Source |
+|---|---|---|
+| S1 | **Total price first**, nightly plus cleaning plus service, with a per-night toggle | #21 |
+| S2 | **The price breakdown stays expandable at every step** of the booking wizard, not only the first | #37 |
+| S3 | **Service charge and caution deposit as separate labelled figures**, never folded into one number | #232 |
+| S4 | **Compact naira for glanceable UI** (`₦1.2m`) with exact kobo in every breakdown, all through `formatMoney` | #53 |
+| S5 | **Localised number and currency formatting** per the four locale files already shipped | #235 |
+| S6 | **Prefill search with smart default dates**, the upcoming weekend | #29 |
+| S7 | **Cancellation policy as a visual timeline**, full refund until X, half until Y | #66 |
+
+## Tier 2: not losing somebody's place
+
+Every one of these is a person doing work the product then throws away.
+
+| # | Item | Source |
+|---|---|---|
+| S8 | **Preserve full search state on back navigation** | #27 |
+| S9 | **Keep search scroll position** when returning from a listing | #214 |
+| S10 | **Persist the last chosen view**, list or map, per person | #155 |
+| S11 | **Sync map viewport to the URL** (lat, lng, zoom), so a map link is shareable | #153 |
+| S12 | **Recent-searches chips** under the search bar | #160 |
+| S13 | **A recently-viewed rail** on home and search | #23 |
+| S14 | **Undo window instead of a confirm dialog** on unsave and draft delete | #26 |
+
+## Tier 3: states and messages
+
+| # | Item | Source |
+|---|---|---|
+| S15 | **Every error message is what happened plus what to do next**, in plain language. A sweep, not one screen | #40 |
+| S16 | **Every empty state offers a next action**: broaden filters, show nearby areas, create an alert | #35 |
+| S17 | **Skeleton screens shaped like the real cards**, using the stride ring, not spinners | #41, #205 |
+| S18 | **Status colour semantics locked into layer-2 tokens**: pending, approved, rejected, verified | #50 |
+
+## Tier 4: the phone in somebody's hand
+
+| # | Item | Source |
+|---|---|---|
+| S19 | **Sticky mobile booking bar** on listing detail: price, dates, action | #42 |
+| S20 | **`+234` phone input mask** with carrier-aware validation | #33 |
+| S21 | **The tab bar auto-hides on scroll down** and returns on scroll up | #212 |
+| S22 | **Long-press quick actions on listing cards**: save, share, hide | #218 |
+| S23 | **Haptic feedback** on save, book and send, where the device supports it | #213 |
+| S24 | **Pull-to-refresh** on home, search and messages in the installed app | #211 |
+| S25 | **A data-saver toggle** that disables the ambient canvas, grain and any autoplay | #20 |
+| S26 | **`save-data` and connection-aware media**: smaller images and no Ken Burns on a slow link | #246 |
+
+## Tier 5: search and map, small levers
+
+| # | Item | Source |
+|---|---|---|
+| S27 | **A "search this area" chip** when somebody pans the live map | #154 |
+| S28 | **A locate-me control** that centres on the person, with permission | #163 |
+| S29 | **A listing preview card docked at the map's foot** when a pin is tapped | #164 |
+| S30 | **Map and list hover synchronised**: a card highlight lights its pin and back | #36 |
+| S31 | **Verified listings rank above unverified** at equal relevance | #158 |
+| S32 | **Power and water filters in discovery.** The columns and their partial indexes exist; without the filter the data is a label, not a lever | ranked B-new-1 |
+
+## Tier 6: reach
+
+| # | Item | Source |
+|---|---|---|
+| S33 | **A visible focus ring**, in the stride treatment, on every interactive element | #146 |
+| S34 | **An accessible name on every icon-only control** and 3D tile | #147 |
+| S35 | **`aria-live` for form errors, result counts and booking status changes** | #149 |
+| S36 | **Contrast audit of gradient text over glass**, both themes, against WCAG AA | #148 |
+| S37 | **Alt text required on listing photos**, with inline guidance at upload | #150 |
+| S38 | **Skip-to-map, and keyboard map controls**: arrow pan, plus and minus zoom | #247 |
+| S39 | **Announce map pin counts and the selected city** via `aria-live` | #248 |
+
+## Tier 7: weight and speed
+
+| # | Item | Source |
+|---|---|---|
+| S40 | **Prefetch listing detail on card press-down** | #141 |
+| S41 | **Self-host and preload the exact Inter subsets in use** | #145 |
+| S42 | **Verify Leaflet is lazy** and no eager chunk survives the dynamic import | #245 |
+| S43 | **Split `globals.css` into layered partials**: ambient, glass, buttons, motion, light | #226 |
+
+## Tier 8: small delight, last
+
+Only after everything above. Delight on top of a product that loses your search
+position is an insult.
+
+| # | Item | Source |
+|---|---|---|
+| S44 | **Odometer-roll digits** on the numbers band | #204 |
+| S45 | **A `/styleguide` route** documenting tokens, glass, motion and the icon rules | #210 |
+| S46 | **"You viewed this 3 days ago"** markers on cards | #219 |
+
+## FOUND: not in the pool, but small and wrong
+
+| # | Item | Why |
+|---|---|---|
+| F1 | **44px minimum on every interactive target, swept.** `PageHeader` was 36px and is fixed; nothing has checked the rest | A target under 44px misses on a phone |
+| F2 | **Every overlay closes on Escape, traps focus, and locks body scroll** | An overlay you cannot escape by keyboard is a trap, and a page scrolling behind a sheet is the most common mobile bug there is |
+| F3 | **Truncation sweep.** `grep` every `truncate` and `text-ellipsis` and justify each one out loud | Owner rule: never truncate a sentence. A handle in a tight row is fine; "Places on R..." is not |
+| F4 | **Aspect-ratio boxes on every image** | Without one, every image load shifts the layout under somebody's thumb |
+
+---
+
+## Deliberately NOT in this pass
+
+Heavy, and still ranked where they were in `agent1-selection.md`: seasons (#5),
+diaspora currency (#6), WhatsApp share cards (#8, #31, #244), SMS fallback (#9),
+escrow (#55), split pay (#89), blurhash and the image pipeline (#105, #138),
+PostGIS (#104), corporate accounts (#96), the assistant's tool actions (#167).
+
+Also not here: anything needing a migration, and anything needing a new route
+except S45, which is documentation of what already exists.
