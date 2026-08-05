@@ -19,9 +19,9 @@ import { useId } from "react";
  * the difference between "a toggle" and "a toggle that feels physical".
  *
  * Geometry: the track paints at 52×32, because a taller track crowds a settings
- * row. The hit region is 44pt regardless, delivered by an overlay that overflows
- * the button - pointer events on a descendant activate it, so the target grows
- * while the picture does not.
+ * row. The hit region is 44pt regardless, delivered by an `::after` that
+ * overflows the button by 6px top and bottom, so the target grows while the
+ * picture does not.
  */
 
 export type SwitchProps = {
@@ -84,6 +84,22 @@ export function Switch({
       onClick={() => onCheckedChange(!checked)}
       className={[
         "relative h-8 w-13 shrink-0 cursor-pointer rounded-[var(--nf-radius-pill)] transition-colors motion-reduce:transition-none",
+        /*
+         * The 44pt floor, as a pseudo element rather than a child span.
+         *
+         * Both reach the same hit area - a pointer event anywhere inside a
+         * button activates it, descendant or pseudo alike - but only one of
+         * them can be measured. `icons-and-targets.spec` walks every control
+         * on the page and reads its own box plus `::before` and `::after`,
+         * which is the only expansion technique a stylesheet can describe;
+         * it cannot know that some particular child span was put there to
+         * grow a target rather than to draw something. So the span reported
+         * as 52x32 and failed a floor it was actually meeting.
+         *
+         * -6px top and bottom on a 32px track is 44. The track still paints
+         * at 32 and the settings row keeps its rhythm.
+         */
+        "after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']",
         "disabled:cursor-not-allowed disabled:opacity-45",
         label ? "" : className ?? "",
       ]
@@ -120,14 +136,6 @@ export function Switch({
           transitionDuration: "var(--nf-duration-base)",
           transitionTimingFunction: "var(--nf-ease-spring)",
         }}
-      />
-      {/*
-        44pt of hit area around a 32px control, without changing the 32px. The
-        row it sits in keeps its rhythm; the thumb-sized target does not.
-      */}
-      <span
-        aria-hidden="true"
-        className="absolute inset-x-0 top-1/2 h-full min-h-11 -translate-y-1/2"
       />
     </button>
   );

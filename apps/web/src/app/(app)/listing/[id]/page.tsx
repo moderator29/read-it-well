@@ -483,7 +483,7 @@ export default async function ListingDetailPage({
               {listing.rating > 0 && (
                 <Chip behaviour="static" size="sm" className="nf-numeric ml-auto shrink-0 gap-1.5">
                   <span className="flex items-center gap-1.5 font-semibold text-[var(--nf-content-primary)]">
-                    <UiIcon name="star" size={15} filled className="text-[var(--nf-rating)]" />
+                    <UiIcon name="star" size={16} filled className="text-[var(--nf-rating)]" />
                     {formatRating(listing.rating, locale)}
                     {listing.reviewCount > 0 && (
                       <span className="font-normal text-[var(--nf-content-muted)]">
