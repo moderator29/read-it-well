@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import type { Locale } from "@naijafinds/i18n";
+import { formatMoney, type Locale } from "@naijafinds/i18n";
 import { NIGERIAN_BANKS } from "@/lib/data/nigeria";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import {
@@ -146,7 +146,7 @@ function AddMoneyForm({ locale }: { locale: Locale }) {
   const [state, formAction, pending] = useActionState(requestDeposit, EMPTY);
   return (
     <form action={formAction} noValidate>
-      <AmountField err={state.fieldErrors} quickAmounts />
+      <AmountField err={state.fieldErrors} quickAmounts locale={locale} />
       <SubmitRow pending={pending} label="Add money" />
       <ResultNotice state={state} locale={locale} />
     </form>
@@ -157,7 +157,7 @@ function WithdrawForm({ locale }: { locale: Locale }) {
   const [state, formAction, pending] = useActionState(requestWithdrawal, EMPTY);
   return (
     <form action={formAction} noValidate className="space-y-3">
-      <AmountField err={state.fieldErrors} />
+      <AmountField err={state.fieldErrors} locale={locale} />
       <SelectField
         label="Bank"
         name="bankName"
@@ -193,7 +193,7 @@ function TransferForm({ locale }: { locale: Locale }) {
   const [state, formAction, pending] = useActionState(requestTransfer, EMPTY);
   return (
     <form action={formAction} noValidate className="space-y-3">
-      <AmountField err={state.fieldErrors} />
+      <AmountField err={state.fieldErrors} locale={locale} />
       <TextField
         label="Recipient"
         name="recipient"
@@ -209,14 +209,32 @@ function TransferForm({ locale }: { locale: Locale }) {
 }
 
 /** Naira presets the chips can type into the field. Display strings only. */
-const QUICK_AMOUNTS = ["5,000", "20,000", "50,000"];
+/**
+ * The presets, in integer kobo, matching `WalletDeck`.
+ *
+ * They were three display strings that were both the label and the value typed
+ * into the field, so the chips read as English numerals to a reader in any of
+ * the four languages. The label is localised through `formatMoney`; the value
+ * stays canonical digits, because `parseNairaToKobo` accepts `5000` and
+ * `5,000` and nothing else, and a locale whose grouping separator is not a
+ * comma would produce a string its own validator rejects.
+ */
+const QUICK_AMOUNTS_KOBO = [500_000, 2_000_000, 5_000_000];
+
+/** Canonical digits for the field: no separators, no symbol, always parseable. */
+function canonicalNaira(kobo: number): string {
+  return String(Math.round(kobo / 100));
+}
 
 function AmountField({
   err,
   quickAmounts,
+  locale,
 }: {
   err?: Partial<Record<WalletActionField, string>>;
   quickAmounts?: boolean;
+  /** Formats what the reader sees. Never what the field holds. */
+  locale: Locale;
 }) {
   const [value, setValue] = useState("");
   return (
@@ -227,7 +245,9 @@ function AmountField({
         type="text"
         inputMode="decimal"
         autoComplete="off"
-        placeholder="e.g. 5,000"
+        /* The smallest preset, written the way the reader's locale writes
+           money, so the example and the chips below it agree. */
+        placeholder={formatMoney(QUICK_AMOUNTS_KOBO[0] ?? 500_000, locale)}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         error={err?.amount}
@@ -239,11 +259,19 @@ function AmountField({
            `choice`, because a radio group with nothing selected leaves every
            chip at tabIndex -1 and unreachable by keyboard. */
         <ChipRow bleed={false} fadeEdges={false} snap={false} className="mt-2">
-          {QUICK_AMOUNTS.map((a) => (
-            <Chip key={a} size="sm" selected={value === a} onSelectedChange={() => setValue(a)}>
-              ₦{a}
-            </Chip>
-          ))}
+          {QUICK_AMOUNTS_KOBO.map((kobo) => {
+            const canonical = canonicalNaira(kobo);
+            return (
+              <Chip
+                key={kobo}
+                size="sm"
+                selected={value === canonical}
+                onSelectedChange={() => setValue(canonical)}
+              >
+                {formatMoney(kobo, locale)}
+              </Chip>
+            );
+          })}
         </ChipRow>
       )}
     </div>
