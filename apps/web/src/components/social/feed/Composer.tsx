@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { dropPost, replyToPost } from "@/lib/social/posts-actions";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { reencodeToJpeg } from "@/components/social/profile/reencode";
+import { createClient } from "@/lib/supabase/client";
+import { attachPostMedia, dropPost, replyToPost } from "@/lib/social/posts-actions";
 import { summonBot } from "@/lib/social/bot-actions";
 import { mentionsBot } from "@/lib/social/bot-schema";
 import {
@@ -11,7 +14,13 @@ import {
   KIND_LABEL,
   KIND_PLACEHOLDER,
   POST_COPY,
+  POST_FAILURE,
+  POST_IMAGE_MAX_BYTES,
+  POST_IMAGE_MAX_EDGE,
+  POST_IMAGE_TYPES,
   POST_MAX,
+  POST_MEDIA_BUCKET,
+  POST_MEDIA_MAX,
   type ComposableKind,
 } from "@/lib/social/posts-schema";
 
@@ -27,7 +36,37 @@ import {
  * of showing a success. A composer that says "posted" for something only its
  * author can see has lied, and the person then spends the afternoon wondering
  * why nobody replied.
+ *
+ * **Pictures, and the order they force.**
+ *
+ * A picture's object lives at `<author>/<post>/<file>`, because
+ * `private.social_media_access` resolves it back to the post that decides who
+ * may see it out of that second folder segment. So the post has to exist before
+ * anything is uploaded, and the sequence is: write the post, upload, write the
+ * `post_media` rows. A database trigger refuses any other path shape.
+ *
+ * That order has one consequence worth being honest about, and this component
+ * is honest about it: if the upload fails, the words are already up. It says
+ * exactly that, keeps the pictures, and offers to send them again to the post
+ * that already exists rather than pretending nothing happened or writing the
+ * words twice.
+ *
+ * Every picture is redrawn on the device first, through the same canvas
+ * re-encode the listing wizard, the avatar, the cover and the story composer
+ * use. A camera photo carries EXIF and on a phone that usually means GPS, and
+ * this is a photograph of somebody's own street. A re-encode that fails REFUSES
+ * rather than falling back to the original file.
  */
+
+type Picture = {
+  /** Stable for React. The object name is a fresh uuid on every upload attempt. */
+  key: string;
+  blob: Blob;
+  preview: string;
+  /** Measured AFTER the re-encode, so the row records what was stored. */
+  width: number | null;
+  height: number | null;
+};
 export function Composer({
   areaId,
   parentId,
@@ -54,10 +93,15 @@ export function Composer({
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [held, setHeld] = useState(false);
+  const [pictures, setPictures] = useState<Picture[]>([]);
+  /* The post that landed without its pictures. While this is set, the retry is
+     on screen and it sends the same pictures to that same post. */
+  const [strandedPost, setStrandedPost] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const isReply = Boolean(parentId);
   const left = POST_MAX - body.length;
-  const canSend = body.trim().length > 0 && !pending;
+  const canSend = body.trim().length > 0 && !pending && !strandedPost;
 
   if (!signedIn) {
     return (

@@ -27,6 +27,7 @@ import { consume, retryIn, subjectForUser } from "../security/rate-limit";
 import {
   POST_FAILURE,
   POST_LIMITS,
+  attachMediaSchema,
   blockSchema,
   dropPostSchema,
   editPostSchema,
@@ -151,6 +152,70 @@ export async function replyToPost(input: {
 
   revalidatePath(`/post/${data.root_id ?? parsed.data.parentId}`);
   return ok({ postId: data.id, held: data.status === "HELD" });
+}
+
+/**
+ * The pictures on a post, once the post exists.
+ *
+ * This is deliberately a second call rather than a field on `dropPost`, and the
+ * reason is the object's path. `private.social_media_access` resolves a picture
+ * back to its post out of the second folder segment of the object name, so the
+ * path has to be `<author>/<post>/<file>` and the post id therefore has to be
+ * known before anything is uploaded. The order is: write the post, upload, then
+ * this. A database trigger refuses any other shape, so a future surface that
+ * gets the order wrong fails loudly rather than storing an unreadable picture.
+ *
+ * The bytes never come through here. They go straight from the device to the
+ * bucket, re-encoded on the way, which is both how the location tag is stripped
+ * and how four photographs avoid the one megabyte a server action accepts.
+ *
+ * No separate rate limit. A picture cannot exist without a post, and posting is
+ * already limited at five an hour and twenty a day.
+ */
+export async function attachPostMedia(input: {
+  postId: string;
+  items: { path: string; width: number | null; height: number | null }[];
+}): Promise<ActionResult<{ attached: number }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
+  const parsed = validate(attachMediaSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  /* The same rule the trigger enforces, checked here against the session this
+     process actually holds rather than against anything the client said. The
+     trigger is the authority; this is so the refusal is a sentence instead of a
+     SQLSTATE. */
+  const prefix = `${session.user.id}/${parsed.data.postId}/`;
+  if (parsed.data.items.some((item) => !item.path.startsWith(prefix))) {
+    return fail(POST_FAILURE.pictureUpload);
+  }
+
+  const { error } = await session.supabase.from("post_media").insert(
+    parsed.data.items.map((item, index) => ({
+      post_id: parsed.data.postId,
+      storage_path: item.path,
+      width: item.width,
+      height: item.height,
+      position: index,
+    })),
+  );
+
+  if (error) {
+    /* The cap is the database's: `position between 0 and 3`, unique per post.
+       Everything else here is a refusal the person cannot act on, so it gets
+       the one sentence that is true of all of them. */
+    if (error.code === "23514" || error.code === "23505") {
+      return fail(POST_FAILURE.pictureTooMany);
+    }
+    return fail(POST_FAILURE.pictureUpload);
+  }
+
+  revalidatePath("/around");
+  revalidatePath(`/post/${parsed.data.postId}`);
+  return ok({ attached: parsed.data.items.length });
 }
 
 /**
