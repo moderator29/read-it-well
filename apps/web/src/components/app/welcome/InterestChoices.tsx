@@ -40,10 +40,34 @@ import { INTEREST_COPY, PROPERTY_TYPES, type PropertyType } from "@/lib/interest
  *
  * Nothing is saved until Continue. Skip saves nothing at all and never asks
  * again, which is what makes it a real skip rather than a "later".
+ *
+ * TWO MOUNTS, ONE COMPONENT.
+ *
+ * The same cards answer the same question on `/welcome` and on
+ * `/settings/interests`, and they are the same component on purpose. A second
+ * copy for the settings screen is how the two drift: the enum grows, one screen
+ * gets the new card, and a person who edits their answer later silently loses
+ * an option they were offered at the door. `mode` changes three things and
+ * nothing else - where a save lands, what the primary button says, and whether
+ * Skip is offered.
+ *
+ * Skip belongs to the first run only. Somebody who deliberately opened the
+ * settings screen cannot "skip" a question they went looking for; the way to
+ * state nothing there is to take every card off, which saves an empty list,
+ * which is a real answer the schema already accepts.
  */
-export function InterestChoices({ initial }: { initial: PropertyType[] }) {
+export function InterestChoices({
+  initial,
+  mode = "welcome",
+}: {
+  initial: PropertyType[];
+  /** `welcome` is the first run. `settings` is somebody changing their mind. */
+  mode?: "welcome" | "settings";
+}) {
   const router = useRouter();
+  const firstRun = mode === "welcome";
   const [chosen, setChosen] = useState<PropertyType[]>(initial);
+  const [saved, setSaved] = useState(false);
   const [skipping, startSkip] = useTransition();
   const [skipError, setSkipError] = useState("");
   const [state, formAction, saving] = useActionState<
@@ -53,6 +77,16 @@ export function InterestChoices({ initial }: { initial: PropertyType[] }) {
 
   useEffect(() => {
     if (!state?.ok) return;
+    if (!firstRun) {
+      /*
+       * Settings stays where it is. Bouncing somebody to home the moment they
+       * adjust a preference takes the screen away before they can see that it
+       * worked, and takes away the chance to adjust it again.
+       */
+      setSaved(true);
+      router.refresh();
+      return;
+    }
     /*
      * Home is rendered per request and reads this row, so a replace rather than
      * a push: the welcome screen is answered once and must not sit in the back
@@ -60,9 +94,11 @@ export function InterestChoices({ initial }: { initial: PropertyType[] }) {
      */
     router.replace("/home");
     router.refresh();
-  }, [state, router]);
+  }, [state, router, firstRun]);
 
   const toggle = (value: PropertyType) => {
+    // Any change makes a previous confirmation stale, so it goes.
+    setSaved(false);
     setChosen((current) =>
       current.includes(value) ? current.filter((v) => v !== value) : [...current, value],
     );
@@ -162,11 +198,24 @@ export function InterestChoices({ initial }: { initial: PropertyType[] }) {
         </p>
       )}
 
+      {saved && !firstRun && (
+        <p
+          role="status"
+          data-testid="interests-saved"
+          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-3.5 py-2.5 text-center text-[0.8125rem] leading-relaxed text-[var(--nf-state-success)]"
+        >
+          {chosen.length === 0
+            ? "Saved. You have said nothing in particular, so nothing is ranked ahead of anything else."
+            : "Saved. This is what we will put in front of you first."}
+        </p>
+      )}
+
       {/*
-        Continue is enabled with nothing chosen, and saving an empty list is a
-        real save: it states no intent and records that the question was asked,
-        which is the same outcome as Skip. A disabled primary button that gives
-        no reason is how a first-run screen becomes a dead end.
+        The primary is enabled with nothing chosen, and saving an empty list is
+        a real save: it states no intent and records that the question was
+        asked, which on the first run is the same outcome as Skip and in
+        settings is how somebody takes their answer back. A disabled primary
+        button that gives no reason is how a screen becomes a dead end.
       */}
       <Button
         type="submit"
@@ -177,32 +226,35 @@ export function InterestChoices({ initial }: { initial: PropertyType[] }) {
         data-testid="welcome-save"
         className="mt-6"
       >
-        Continue
+        {firstRun ? "Continue" : "Save what I am here for"}
       </Button>
 
-      <Button
-        type="button"
-        variant="ghost"
-        full
-        onClick={onSkip}
-        loading={skipping}
-        disabled={saving}
-        data-testid="welcome-skip"
-        className="mt-2"
-      >
-        Skip
-      </Button>
+      {firstRun && (
+        <Button
+          type="button"
+          variant="ghost"
+          full
+          onClick={onSkip}
+          loading={skipping}
+          disabled={saving}
+          data-testid="welcome-skip"
+          className="mt-2"
+        >
+          Skip
+        </Button>
+      )}
 
       {/*
-        Says exactly what the answer does and nothing more. It does not promise
-        a screen to change it on, because there is not one yet: this is the
-        first-run question, and inventing a "you can edit this in Settings" for
-        a surface nobody has built is the kind of copy that turns into a support
-        ticket.
+        Says exactly what the answer does and nothing more. On the first run it
+        now also names the screen this can be changed on, which it could not do
+        before that screen existed - the note it replaces recorded exactly that,
+        and the rule it was keeping was never to promise a surface nobody had
+        built.
       */}
       <p className="mt-4 text-center text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
         This only changes what we show first. Any search or filter you set
         yourself always wins.
+        {firstRun ? " You can change it later in Settings." : ""}
       </p>
     </form>
   );

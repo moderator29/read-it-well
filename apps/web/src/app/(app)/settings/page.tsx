@@ -18,6 +18,8 @@ import { loadSettingsState } from "@/lib/profile/queries";
 import { AccountNotificationsCard, AccountPrivacyCard } from "./AccountToggles";
 import { AccountSection } from "./AccountSection";
 import { PlaceCard } from "./PlaceCard";
+import { InterestsCard } from "./InterestsCard";
+import { loadInterestsState } from "@/lib/interests/queries";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -40,7 +42,7 @@ export const metadata: Metadata = { title: "Settings" };
 export default async function SettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const account = await loadSettingsState();
+  const [account, intent] = await Promise.all([loadSettingsState(), loadInterestsState()]);
   const signedIn = account.state === "signed-in";
 
   return (
@@ -60,6 +62,16 @@ export default async function SettingsPage() {
             stateName={signedIn ? account.place.stateName : ""}
             lgaName={signedIn ? account.place.lgaName : ""}
             occupationName={signedIn ? account.place.occupationName : ""}
+          />
+        </Reveal>
+        <Reveal delay={70}>
+          {/* Directly under where-you-are, because the two together are the
+              whole of what the platform knows about somebody before they have
+              searched for anything: where they are and what they came for. */}
+          <InterestsCard
+            signedIn={signedIn}
+            interests={intent.state === "signed-in" ? intent.interests : []}
+            asked={intent.state === "signed-in" ? intent.asked : false}
           />
         </Reveal>
         <Reveal delay={80}>
