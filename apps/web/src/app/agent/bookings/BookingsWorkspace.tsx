@@ -98,8 +98,11 @@ function DecisionSheet({
           <Button variant="secondary" className="flex-1" onClick={onClose}>
             {t.actions.back}
           </Button>
+          {/* Declining reaches a guest who is waiting on an answer, so it
+              confirms as a destructive action rather than behind the same blue
+              primary that accepts one. Quiet, because it is a sheet confirm. */}
           <Button
-            variant="primary"
+            variant={state.kind === "accept" ? "primary" : "dangerQuiet"}
             className="flex-1"
             onClick={run}
             disabled={declineDisabled}

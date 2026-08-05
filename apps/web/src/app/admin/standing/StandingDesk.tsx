@@ -10,6 +10,7 @@ import type { ManualGrant } from "@/lib/admin/standing-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The standing desk.
@@ -120,13 +121,15 @@ export function StandingDesk({
           </p>
         )}
 
-        <button
+        <Button
           type="submit"
-          disabled={pending || manualBadges.length === 0}
-          className="nf-btn nf-btn--primary mt-4 disabled:opacity-60"
+          variant="primary"
+          className="mt-4"
+          disabled={manualBadges.length === 0}
+          loading={pending}
         >
           {pending ? "Granting..." : "Grant badge"}
-        </button>
+        </Button>
       </form>
 
       {/* -------------------------------------------------------- record */}
@@ -173,9 +176,11 @@ export function StandingDesk({
                   <form action={revokeAction} className="mt-3">
                     <input type="hidden" name="userId" value={grant.userId} />
                     <input type="hidden" name="badgeCode" value={grant.badgeCode} />
-                    <button type="submit" className="nf-btn nf-btn--ghost nf-btn--sm">
+                    {/* Revoking somebody's standing is destructive, and it was
+                        drawn as a ghost - the quietest control on the row. */}
+                    <Button type="submit" variant="dangerQuiet" size="sm">
                       Take it back
-                    </button>
+                    </Button>
                   </form>
                 )}
               </li>

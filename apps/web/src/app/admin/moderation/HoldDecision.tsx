@@ -6,6 +6,7 @@ import {
   decideHeldItem,
   type ModerationTarget,
 } from "@/lib/admin/moderation-actions";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Let it through, or take it down.
@@ -63,26 +64,32 @@ export function HoldDecision({
         onChange={(event) => setReason(event.target.value)}
       />
 
+      {/*
+        A takedown is destructive and it was the quietest control in the row -
+        a ghost button, lower contrast than the note field above it. It is a
+        solid danger button now: the two outcomes read as two different kinds
+        of decision, which is the only honest way to draw them.
+      */}
       <div className="mt-2 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="nf-btn nf-btn--primary h-9 px-4 text-xs"
+        <Button
+          variant="primary"
+          size="sm"
           disabled={pending}
           data-testid={`release-${id}`}
           onClick={() => run("RELEASE")}
         >
           {pending ? "Working" : "Let it through"}
-        </button>
-        <button
-          type="button"
-          className="nf-btn nf-btn--ghost h-9 px-4 text-xs"
+        </Button>
+        <Button
+          variant="danger"
+          size="sm"
           disabled={pending || !canRemove}
           title={canRemove ? undefined : "Say why first"}
           data-testid={`remove-${id}`}
           onClick={() => run("REMOVE")}
         >
           Take it down
-        </button>
+        </Button>
       </div>
 
       {!canRemove && (
