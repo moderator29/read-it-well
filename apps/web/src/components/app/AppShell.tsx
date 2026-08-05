@@ -61,6 +61,21 @@ export function AppShell({
    */
   const immersive = active === "/assistant" || /^\/messages\/[^/]+$/.test(active);
 
+  /*
+   * Routes that pin their own action bar to the bottom edge.
+   *
+   * The listing page now ends on an `<ActionBar>` - a full-width blurred
+   * footer at `bottom-0 z-50`, which is what every reference screen ends with.
+   * The desktop dock is a centred floating pill at `bottom-6 z-40`, so from
+   * `lg` up the two occupy the same strip and the dock floats over the bar.
+   *
+   * The bar wins: it carries the decision the screen exists to produce, and
+   * the dock is a quick-access shortcut that is reachable from the rail on the
+   * same viewport. Kept as a predicate beside `showsTabBar` so the two
+   * bottom-edge rules live together rather than drifting apart.
+   */
+  const pinsActionBar = /^\/listing\/[^/]+$/.test(active);
+
   /* The drawer closes itself on navigation. Escape, the scroll lock, the focus
      trap and returning focus to the opener are all useOverlay's, because this
      drawer carried aria-modal and none of the behaviour it promises. */
@@ -249,7 +264,7 @@ export function AppShell({
       {!immersive && showsTabBar(active) && (
         <MobileTabBar t={t} active={active} unreadNotifications={unreadNotifications} />
       )}
-      {!immersive && <DesktopDock t={t} active={active} />}
+      {!immersive && !pinsActionBar && <DesktopDock t={t} active={active} />}
     </div>
   );
 }
