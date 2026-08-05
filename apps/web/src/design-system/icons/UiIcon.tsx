@@ -302,6 +302,17 @@ export function snapUiIconSize(size: number): UiIconSize {
 }
 
 /**
+ * The same scale, named.
+ *
+ * Numbers are what the grid is defined in, but a call site reads better saying
+ * what it means than restating the arithmetic, and a name cannot drift the way
+ * a literal can. These are the six steps above under the names the rest of the
+ * platform uses; nothing here is a new size.
+ */
+export const ICON_SIZE = { xs: 12, sm: 16, md: 20, lg: 24, xl: 28 } as const;
+export type IconSize = keyof typeof ICON_SIZE;
+
+/**
  * THE WEIGHT. One weight, expressed as rendered CSS pixels rather than as a
  * number on the 24 grid.
  *
@@ -313,40 +324,166 @@ export function snapUiIconSize(size: number): UiIconSize {
  *
  * So the weight is stated once, in the unit a reader actually sees, and the
  * grid number is derived from the size. Every stroked glyph on the platform
- * renders at exactly this many CSS pixels, at every step of the scale.
+ * renders at exactly this many CSS pixels, at every step of the scale. This is
+ * the optical sizing the audit asked for, stated as a constant rather than as a
+ * clamped division, and it is why no call site carries a stroke of its own.
  */
 export const UI_ICON_STROKE_PX = 1.4;
 
+/**
+ * Symbol effects.
+ *
+ * The reference set headlines animated icons: the bell rings on a new
+ * notification, the heart pulses and fills on save, refresh rotates, send
+ * flies. The platform had zero of this across 166 icon usages - the one
+ * bell-wiggle keyframe that existed in globals.css had no call sites at all.
+ *
+ * The effect is a class, not a prop-driven animation, so it costs nothing when
+ * unused and every one of them collapses under prefers-reduced-motion.
+ */
+export type SymbolEffect = "bounce" | "pulse" | "wiggle" | "rotate" | "fly";
+
+/**
+ * Which glyphs can actually be filled.
+ *
+ * `fill="currentColor"` is only meaningful on a closed silhouette. Most of this
+ * set is drawn as open strokes - `home` is three separate open paths, `user` is
+ * a circle plus an open shoulder arc - and filling those produces a blob, not a
+ * filled icon. Only the glyphs whose outline closes into a single readable
+ * shape are listed here, and `filled` is ignored for everything else so a call
+ * site cannot ship a broken one.
+ *
+ * Growing this list means redrawing the glyph as a closed silhouette first.
+ * That is the real work behind proper filled/outline variants, and it is worth
+ * doing for the tab bar set; until then the honest behaviour is to decline.
+ */
+const FILLABLE = new Set<UiIconName>([
+  "heart",
+  "star",
+  "verified",
+  "bell",
+  "location",
+  // These are already authored as a single closed path, so the stroked drawing
+  // fills correctly with no separate silhouette needed.
+  "chat-bubble",
+  "sparkle",
+  "ticket",
+]);
+
+/**
+ * Filled silhouettes.
+ *
+ * The proper way to do a filled/outline pair is to DRAW the filled member, not
+ * to pour paint into an outline: an outline is a set of strokes describing
+ * edges, and filling it produces a blob. That is why `filled` was originally
+ * gated to the handful of glyphs that happen to close.
+ *
+ * These are the navigation set - the tab bar and the top of the side drawer -
+ * where an active state genuinely needs to read as solid rather than as a
+ * slightly heavier line. Each is a single closed path on the same 24 grid as
+ * its outline sibling, with interior detail knocked out using evenodd so the
+ * shape stays readable at 22px rather than turning into a lump.
+ *
+ * A glyph listed here uses this path when `filled`; anything not listed falls
+ * back to its stroked drawing, so adding one is additive and never breaks a
+ * call site.
+ */
+const FILLED_PATHS: Partial<Record<UiIconName, React.ReactNode>> = {
+  home: (
+    <path d="M11.02 3.62a1.5 1.5 0 0 1 1.96 0l7.63 6.64c.4.35.15 1.01-.38 1.01H18.3v7.83a2 2 0 0 1-2 2h-2.9v-4.7a1.4 1.4 0 0 0-2.8 0v4.7H7.7a2 2 0 0 1-2-2v-7.83H3.77c-.53 0-.78-.66-.38-1.01Z" />
+  ),
+  house: (
+    <path d="M11.02 3.62a1.5 1.5 0 0 1 1.96 0l2.02 1.76V5.2a.8.8 0 0 1 .8-.8h1.4a.8.8 0 0 1 .8.8v3.09l2.63 2.29c.4.35.15 1.01-.38 1.01H18.3v7.68a2 2 0 0 1-2 2h-2.9v-4.55a1.4 1.4 0 0 0-2.8 0v4.55H7.7a2 2 0 0 1-2-2v-7.68H3.77c-.53 0-.78-.66-.38-1.01Z" />
+  ),
+  compass: (
+    <path
+      fillRule="evenodd"
+      d="M12 3.4a8.6 8.6 0 1 0 0 17.2 8.6 8.6 0 0 0 0-17.2Zm3.7 4.9-1.9 5.5-5.5 1.9 1.9-5.5Z"
+    />
+  ),
+  user: (
+    <path d="M12 4.4a3.7 3.7 0 1 1 0 7.4 3.7 3.7 0 0 1 0-7.4Zm0 8.7c4.06 0 7.35 2.55 7.35 5.7 0 .94-.76 1.4-1.6 1.4H6.25c-.84 0-1.6-.46-1.6-1.4 0-3.15 3.29-5.7 7.35-5.7Z" />
+  ),
+  "calendar-booking": (
+    <path
+      fillRule="evenodd"
+      d="M8.1 2.3a.9.9 0 0 1 .9.9v.9h6v-.9a.9.9 0 1 1 1.8 0v.9h1.6a2.2 2.2 0 0 1 2.2 2.2v13a2.2 2.2 0 0 1-2.2 2.2H5.6a2.2 2.2 0 0 1-2.2-2.2v-13A2.2 2.2 0 0 1 5.6 4.1h1.6v-.9a.9.9 0 0 1 .9-.9Zm-3.4 7.6v9.3c0 .22.18.4.4.4h13.8a.4.4 0 0 0 .4-.4V9.9Zm4.7 5 1.9 1.9 3.6-3.7 1.28 1.25-4.87 5-3.18-3.19Z"
+    />
+  ),
+  key: (
+    <path
+      fillRule="evenodd"
+      d="M18.9 3.06a1 1 0 0 1 1.42 0l.62.62a1 1 0 0 1 0 1.42l-7.9 7.9a4.6 4.6 0 1 1-2.04-2.04ZM7.6 12a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2Zm0 1.9a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4Z"
+    />
+  ),
+  wallet: (
+    <path
+      fillRule="evenodd"
+      d="M6.2 2.9H17a.9.9 0 1 1 0 1.8H6.2a1.3 1.3 0 0 0 0 2.6h11.6A3.1 3.1 0 0 1 20.9 10.4v7.3a3.1 3.1 0 0 1-3.1 3.1H6.6A3.5 3.5 0 0 1 3.1 17.3V6.1A3.2 3.2 0 0 1 6.2 2.9Zm9.7 10.2a1.15 1.15 0 1 0 0 2.3 1.15 1.15 0 0 0 0-2.3Z"
+    />
+  ),
+};
+
 export function UiIcon({
   name,
-  size = 16,
+  size = ICON_SIZE.sm,
   className,
   label,
+  effect,
+  /** Plays the effect continuously rather than once on mount or on hover. */
+  effectLoop,
+  filled,
 }: {
   name: UiIconName;
-  /** A step on the scale. Anything else is snapped onto the nearest one. */
-  size?: number;
+  /** A step on the scale, or its name. Anything else snaps onto the nearest. */
+  size?: number | IconSize;
   className?: string;
   /** Accessible name. Omit when a text label sits beside the glyph. */
   label?: string;
+  effect?: SymbolEffect;
+  effectLoop?: boolean;
+  /**
+   * Paints the glyph solid instead of stroked. This is what a saved heart or a
+   * rated star should use; the previous "active" state was a stroke change of
+   * 0.18 CSS pixels, which is invisible.
+   *
+   * Only honoured for glyphs in FILLABLE above. Asking for it on an
+   * open-stroke glyph is silently ignored rather than rendering a blob.
+   */
+  filled?: boolean;
 }) {
-  const edge = snapUiIconSize(size);
+  const edge = snapUiIconSize(typeof size === "number" ? size : ICON_SIZE[size]);
+  /*
+   * A drawn silhouette wins over pouring paint into an outline. If neither
+   * exists for this glyph, `filled` is ignored rather than rendering a blob.
+   */
+  const silhouette = filled ? FILLED_PATHS[name] : undefined;
+  const solid = Boolean(filled) && (Boolean(silhouette) || FILLABLE.has(name));
   return (
     <svg
       width={edge}
       height={edge}
       viewBox="0 0 24 24"
-      fill="none"
+      fill={solid ? "currentColor" : "none"}
       stroke="currentColor"
       strokeWidth={(UI_ICON_STROKE_PX * 24) / edge}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={className}
+      className={[
+        effect ? `nf-sym nf-sym--${effect}` : "",
+        effect && effectLoop ? "nf-sym--loop" : "",
+        className ?? "",
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined}
       role={label ? "img" : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
     >
-      {PATHS[name]}
+      {/* A silhouette is a closed shape, so it is filled and NOT stroked: the
+          svg's stroke weight stays where every stroked glyph reads it from, and
+          the fill turns it off for this one path rather than for the family. */}
+      {silhouette ? <g stroke="none">{silhouette}</g> : PATHS[name]}
     </svg>
   );
 }

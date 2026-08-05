@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
-import { getAgentRepository } from "@/lib/agent/repository";
 import { AgentShell } from "@/components/agent/AgentShell";
 import {
   agentProfileFrom,

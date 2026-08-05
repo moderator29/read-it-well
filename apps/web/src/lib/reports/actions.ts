@@ -21,11 +21,7 @@
  */
 
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
-import {
-  NOT_CONFIGURED_MESSAGE,
-  SIGNED_OUT_MESSAGE,
-  resolveSession,
-} from "../actions/session";
+import { NOT_CONFIGURED_MESSAGE, resolveSession } from "../actions/session";
 import { consume, subjectForUser } from "../security/rate-limit";
 import { REPORT_CATEGORY_COPY, reportInputSchema } from "./schema";
 

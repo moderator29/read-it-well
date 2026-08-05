@@ -134,7 +134,23 @@ export function ProfileTabs({
               type="button"
               role="tab"
               aria-selected={selected}
-              aria-controls={`nf-panel-${key}`}
+              /*
+               * Only the selected tab names a panel, because only the selected
+               * tab HAS one: a single `#nf-panel-${tab}` is rendered below and
+               * the other panels do not exist in the DOM. Setting
+               * `aria-controls` on all six pointed five of them at an id that
+               * was not there, and a dangling IDREF is not a weaker promise
+               * than none - it is a broken one, which assistive technology
+               * reports as a fault in the page rather than quietly ignoring.
+               *
+               * The alternative is rendering all six panels and hiding five.
+               * `Panel` draws posts, replies, stories, photos, properties and
+               * activity, every one of them image-heavy, so that is six times
+               * the DOM and six times the image fetches to satisfy an
+               * attribute. Omitting it where it cannot be honoured is both
+               * correct and free; `aria-controls` is optional on a tab.
+               */
+              aria-controls={selected ? `nf-panel-${key}` : undefined}
               tabIndex={selected ? 0 : -1}
               className="nf-social-tab"
               onClick={() => select(key)}

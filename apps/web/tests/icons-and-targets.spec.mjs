@@ -304,7 +304,7 @@ try {
 
     const allUnnamed = [];
     const allSmall = [];
-    let ringFailures = [];
+    const ringFailures = [];
 
     for (const route of ROUTES) {
       const page = await context.newPage();

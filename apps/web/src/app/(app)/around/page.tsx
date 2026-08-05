@@ -233,7 +233,7 @@ function AreaRow({
   );
 }
 
-export const dynamic: "force-dynamic" = "force-dynamic";
+export const dynamic = "force-dynamic";
 
 // Kept so a future reader does not have to work out why the list is not cached:
 // membership is per viewer and the whole page changes shape when you join, so

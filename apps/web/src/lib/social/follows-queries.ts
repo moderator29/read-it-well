@@ -104,7 +104,6 @@ export async function getFollowList(
   if (ownerError || !owner) return { state: "missing", handle };
 
   const mine = direction === "followers" ? "followee_id" : "follower_id";
-  const theirs = direction === "followers" ? "follower_id" : "followee_id";
 
   let query = supabase
     .from("follows")

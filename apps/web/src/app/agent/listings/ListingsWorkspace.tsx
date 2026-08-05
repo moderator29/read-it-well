@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
-import { useOverlay } from "@/lib/ui/use-overlay";
-import { createPortal } from "react-dom";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Dictionary, type Locale, formatMoneyGlance } from "@naijafinds/i18n";
+import { type Dictionary, type Locale, formatMoneyGlance } from "@naijafinds/i18n";
 import { fill } from "../_copy";
 import {
   deleteListing,
@@ -21,6 +19,8 @@ import {
 } from "@/lib/agent/listings-schema";
 import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { Sheet } from "@/components/ui/Sheet";
 
 /**
  * The agent's listings workspace.
@@ -117,17 +117,10 @@ function ConfirmSheet({
   onClose: () => void;
 }) {
   const router = useRouter();
-  const panel = useRef<HTMLDivElement | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [unmet, setUnmet] = useState<string[]>([]);
   const copy = t.workspace.sheets[state.kind];
-
-  useOverlay({ open: true, onClose, panelRef: panel, autoFocus: false });
-
-  useEffect(() => {
-    panel.current?.focus();
-  }, []);
 
   function run() {
     setError(null);
@@ -155,70 +148,55 @@ function ConfirmSheet({
     });
   }
 
-  return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
-      <button
-        type="button"
-        aria-label={t.workspace.sheets.close}
-        className="absolute inset-0 bg-black/60"
-        onClick={onClose}
-      />
-      <div
-        ref={panel}
-        tabIndex={-1}
-        role="dialog"
-        aria-modal="true"
-        aria-label={copy.title}
-        className="nf-card relative w-full max-w-md p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] outline-none sm:pb-5"
-      >
-        <h2 className="nf-h3">{copy.title}</h2>
-        <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-          {copy.body}
-        </p>
-        <p className="mt-3 truncate text-[0.8125rem] font-semibold">{state.listing.title}</p>
-
-        {error && (
-          <p
-            className="mt-3 rounded-[var(--nf-radius-md)] p-3 text-[0.8125rem] font-medium"
-            style={{
-              background: "var(--nf-state-warning-surface)",
-              color: "var(--nf-state-warning)",
-            }}
-            role="alert"
-          >
-            {error}
-          </p>
-        )}
-        {unmet.length > 0 && (
-          <ul className="mt-2 space-y-1.5">
-            {unmet.map((message) => (
-              <li
-                key={message}
-                className="flex items-start gap-2 text-[0.75rem] text-[var(--nf-content-secondary)]"
-              >
-                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-warning)]" />
-                {message}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <div className="mt-5 flex gap-4">
-          <button type="button" className="nf-btn nf-btn--glass flex-1" onClick={onClose}>
+  return (
+    <Sheet
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={copy.title}
+      footer={
+        <div className="flex gap-4">
+          <Button variant="secondary" className="flex-1" onClick={onClose}>
             {t.workspace.sheets.keep}
-          </button>
-          <button
-            type="button"
-            className="nf-btn nf-btn--primary flex-1"
-            onClick={run}
-            disabled={pending}
-          >
-            {pending ? t.workspace.sheets.working : copy.confirm}
-          </button>
+          </Button>
+          <Button variant="primary" className="flex-1" onClick={run} loading={pending}>
+            {copy.confirm}
+          </Button>
         </div>
-      </div>
-    </div>,
-    document.body,
+      }
+    >
+      <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        {copy.body}
+      </p>
+      <p className="mt-3 truncate text-[0.8125rem] font-semibold">{state.listing.title}</p>
+
+      {error && (
+        <p
+          className="mt-3 rounded-[var(--nf-radius-md)] p-3 text-[0.8125rem] font-medium"
+          style={{
+            background: "var(--nf-state-warning-surface)",
+            color: "var(--nf-state-warning)",
+          }}
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
+      {unmet.length > 0 && (
+        <ul className="mt-2 space-y-1.5">
+          {unmet.map((message) => (
+            <li
+              key={message}
+              className="flex items-start gap-2 text-[0.75rem] text-[var(--nf-content-secondary)]"
+            >
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-warning)]" />
+              {message}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Sheet>
   );
 }
 
@@ -372,9 +350,9 @@ export function ListingsWorkspace({
         <p className="mx-auto mt-2 max-w-[38ch] text-[0.875rem] text-[var(--nf-content-secondary)]">
           {t.workspace.emptyBody}
         </p>
-        <Link href="/agent/list" className="nf-btn nf-btn--primary mt-6">
+        <ButtonLink href="/agent/list" variant="primary" className="mt-6">
           {t.workspace.start}
-        </Link>
+        </ButtonLink>
       </div>
     );
   }

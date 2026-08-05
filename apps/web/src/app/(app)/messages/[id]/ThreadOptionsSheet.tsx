@@ -1,10 +1,10 @@
 "use client";
 
-import { useRef } from "react";
-import { useOverlay } from "@/lib/ui/use-overlay";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { SAFETY_EDUCATION_COPY } from "@/lib/messages/education";
+import { Button } from "@/components/ui/Button";
+import { Sheet } from "@/components/ui/Sheet";
 
 /**
  * In-chat listing options sheet for the thread view.
@@ -12,9 +12,9 @@ import { SAFETY_EDUCATION_COPY } from "@/lib/messages/education";
  * The verification step lives inside the conversation: the sheet shows the
  * listing, carries the canonical safety wording and the one action the
  * platform asks of guests before any money moves, confirming that the
- * property has actually been inspected. Accessible modal: focus moves in on
- * open, Escape and the backdrop close it, the trigger takes focus back
- * (handled by the parent).
+ * property has actually been inspected. The container mechanics — drag handle,
+ * detents, focus trap, focus restoration, Escape, backdrop and body scroll
+ * lock — belong to `<Sheet>`.
  */
 
 export type SheetListing = {
@@ -60,117 +60,91 @@ export function ThreadOptionsSheet({
   onConfirmInspection: () => void;
   onClose: () => void;
 }) {
-  const panelRef = useRef<HTMLDivElement | null>(null);
-
-  /* Escape, the focus trap, the scroll lock and returning focus to the trigger,
-     in one place. This sheet handled Escape by hand and let the page scroll
-     behind it, which on a phone means flicking to dismiss and watching the
-     conversation underneath move instead. */
-  useOverlay({ open, onClose, panelRef });
-
-  if (!open) return null;
-
   const [from, to] = HUES[listing.hue % HUES.length] ?? HUES[0]!;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center">
-      <button
-        type="button"
-        aria-label="Close listing options"
-        onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-      />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="thread-options-title"
-        tabIndex={-1}
-        className="nf-rise relative w-full rounded-t-3xl border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] p-5 shadow-[var(--nf-shadow-float)] outline-none sm:max-w-md sm:rounded-3xl"
-      >
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            <h2 id="thread-options-title" className="nf-h3">
-              Listing and safety
-            </h2>
-            <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-              Conversation with {counterpartName}
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title="Listing and safety"
+      footer={
+        <>
+          {inspected ? (
+            <p className="nf-badge nf-badge--success w-full justify-center py-2.5 text-[0.8125rem]">
+              <UiIcon name="verified" size={16} />
+              {confirmedLabel}
             </p>
-          </div>
-          <button type="button" aria-label="Close" onClick={onClose} className="nf-icon-btn h-9 w-9">
-            <UiIcon name="close" size={16} />
-          </button>
-        </div>
+          ) : (
+            <Button variant="primary" full onClick={onConfirmInspection} loading={busy}>
+              Confirm I have inspected this property
+            </Button>
+          )}
 
-        {/* ------------------------------------------------ listing mini view */}
-        <div className="nf-card flex items-center gap-4 p-3">
-          <div
-            aria-hidden="true"
-            className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl"
-            style={{ background: `linear-gradient(150deg, ${from} 0%, ${to} 100%)` }}
-          >
-            <svg
-              viewBox="0 0 400 300"
-              className="absolute inset-0 h-full w-full opacity-60"
-              preserveAspectRatio="none"
-            >
-              <path
-                d="M0 300V190h34v-52h30v52h28v-84h44v84h26v-40h38v40h30v-66h40v66h34v-30h32v30h30v-46h34v46Z"
-                fill="rgba(0,0,0,0.42)"
-              />
-            </svg>
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[0.9063rem] font-semibold">{listing.title}</p>
-            <p className="mt-0.5 truncate text-[0.75rem] text-[var(--nf-content-muted)]">
-              {[listing.area, listing.city].filter(Boolean).join(", ")}
+          {note && (
+            <p role="status" className="mt-3 text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
+              {note}
             </p>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {listing.verified ? (
-                <span className="nf-badge nf-badge--verified">
-                  <UiIcon name="verified" size={12} />
-                  Verified listing
-                </span>
-              ) : (
-                <span className="nf-badge nf-badge--pending">Verification pending</span>
-              )}
-              {listing.approved && <span className="nf-badge nf-badge--approved">Approved</span>}
-            </div>
-          </div>
-        </div>
-
-        {/* --------------------------------------------- inspection and safety */}
-        <div className="mt-4 flex items-start gap-4">
-          <span className="h-14 w-14 shrink-0" aria-hidden="true">
-            <BrandIcon name="shield-lock" fill />
-          </span>
-          <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-            {SAFETY_EDUCATION_COPY}
-          </p>
-        </div>
-
-        {inspected ? (
-          <p className="nf-badge nf-badge--success mt-4 w-full justify-center py-2.5 text-[0.8125rem]">
-            <UiIcon name="verified" size={16} />
-            {confirmedLabel}
-          </p>
-        ) : (
-          <button
-            type="button"
-            onClick={onConfirmInspection}
-            disabled={busy}
-            className="nf-btn nf-btn--primary mt-4 w-full disabled:opacity-60"
-          >
-            {busy ? "Confirming" : "Confirm I have inspected this property"}
-          </button>
-        )}
-
-        {note && (
-          <p role="status" className="mt-3 text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
-            {note}
-          </p>
-        )}
+          )}
+        </>
+      }
+    >
+      <div className="-mt-2 mb-4 flex items-start justify-between gap-4">
+        <p className="text-[0.8125rem] text-[var(--nf-content-muted)]">
+          Conversation with {counterpartName}
+        </p>
+        <button type="button" aria-label="Close" onClick={onClose} className="nf-icon-btn h-9 w-9">
+          <UiIcon name="close" size={16} />
+        </button>
       </div>
-    </div>
+
+      {/* ------------------------------------------------ listing mini view */}
+      <div className="nf-card flex items-center gap-4 p-3">
+        <div
+          aria-hidden="true"
+          className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl"
+          style={{ background: `linear-gradient(150deg, ${from} 0%, ${to} 100%)` }}
+        >
+          <svg
+            viewBox="0 0 400 300"
+            className="absolute inset-0 h-full w-full opacity-60"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0 300V190h34v-52h30v52h28v-84h44v84h26v-40h38v40h30v-66h40v66h34v-30h32v30h30v-46h34v46Z"
+              fill="rgba(0,0,0,0.42)"
+            />
+          </svg>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[0.9063rem] font-semibold">{listing.title}</p>
+          <p className="mt-0.5 truncate text-[0.75rem] text-[var(--nf-content-muted)]">
+            {[listing.area, listing.city].filter(Boolean).join(", ")}
+          </p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {listing.verified ? (
+              <span className="nf-badge nf-badge--success">
+                <UiIcon name="verified" size={12} />
+                Verified listing
+              </span>
+            ) : (
+              <span className="nf-badge nf-badge--warning">Verification pending</span>
+            )}
+            {listing.approved && <span className="nf-badge nf-badge--brand">Approved</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* --------------------------------------------- inspection and safety */}
+      <div className="mt-4 flex items-start gap-4">
+        <span className="h-14 w-14 shrink-0" aria-hidden="true">
+          <BrandIcon name="shield-lock" fill />
+        </span>
+        <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          {SAFETY_EDUCATION_COPY}
+        </p>
+      </div>
+    </Sheet>
   );
 }

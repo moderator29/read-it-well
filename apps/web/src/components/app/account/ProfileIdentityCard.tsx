@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 const NAME_KEY = "nf_profile_name";
 const EMAIL_KEY = "nf_profile_email";
@@ -10,24 +11,32 @@ const DEFAULT_NAME = "Guest";
 const MAX_NAME_LENGTH = 40;
 const MAX_EMAIL_LENGTH = 80;
 
-/** Activity counters shown in the stats strip. */
-const STATS = { trips: 8, saved: 23, reviews: 5 } as const;
-
 /**
- * Identity card for the profile surface.
+ * Identity card for the profile surface, before there is an account.
  *
- * The account hero: avatar with the brand gradient ring, editable display
- * name and email held on this device, the member-since line, and level and
- * verification badges over an activity strip. The first render shows the
- * defaults so server and client markup agree, then stored values arrive in
- * the mount effect. The member-since date is stamped the first time this
- * card ever mounts on a device and read back after that.
+ * This card renders ONLY on the signed-out and could-not-load branches of
+ * /profile. The signed-in hero is `AccountProfile`, which reads the real
+ * profiles row and real counts of that person's bookings, saves and reviews.
+ *
+ * Everything here is therefore scoped to this device, and says so. It used to
+ * claim otherwise, in three ways at once, and all three were false for every
+ * single person who ever saw them:
+ *
+ *   - An activity strip hardcoded to `{ trips: 8, saved: 23, reviews: 5 }`,
+ *     told to somebody with no account and so necessarily no trips.
+ *   - A "Level 2 · Explorer" badge for a level system this product does not
+ *     have, in any table, in any schema, anywhere.
+ *   - An unconditional "Verified" badge. Verification is a claim about
+ *     identity; there is no session here, so there is nothing to verify
+ *     against and no flag that could ever make it true.
+ *
+ * A count nobody can support is not a placeholder, it is a lie with a number
+ * in it. There is no honest figure available before sign-in, so the strip is
+ * now the invitation to sign in that makes real figures possible, and the
+ * date line describes what it actually measures: when this browser first
+ * opened the card, not when anybody joined.
  */
-export function ProfileIdentityCard({
-  labels,
-}: {
-  labels: { trips: string; saved: string; reviews: string };
-}) {
+export function ProfileIdentityCard() {
   const [name, setName] = useState(DEFAULT_NAME);
   const [email, setEmail] = useState("");
   const [since, setSince] = useState("");
@@ -88,12 +97,6 @@ export function ProfileIdentityCard({
   const shownName = name.trim() || DEFAULT_NAME;
   const initial = shownName.charAt(0).toUpperCase();
 
-  const stats = [
-    { key: "trips", label: labels.trips, value: STATS.trips },
-    { key: "saved", label: labels.saved, value: STATS.saved },
-    { key: "reviews", label: labels.reviews, value: STATS.reviews },
-  ];
-
   return (
     <section className="nf-card p-5 sm:p-6" aria-label={shownName}>
       <div className="flex items-center gap-4">
@@ -116,16 +119,12 @@ export function ProfileIdentityCard({
 
         <div className="min-w-0 flex-1">
           <h2 className="nf-h3 truncate">{shownName}</h2>
+          {/* What this date measures is the first time this card mounted in
+              this browser. It is not a membership, and it no longer says it
+              is: there is no account behind this card by definition. */}
           <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-            {since ? `Member since ${since}` : "Welcome to RentMe"}
+            {since ? `Saved on this device since ${since}` : "Welcome to RentMe"}
           </p>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <span className="nf-badge nf-badge--neutral">Level 2 · Explorer</span>
-            <span className="nf-badge nf-badge--verified">
-              <UiIcon name="verified" size={12} className="shrink-0" />
-              Verified
-            </span>
-          </div>
         </div>
 
         <button
@@ -184,14 +183,19 @@ export function ProfileIdentityCard({
         </form>
       )}
 
-      <dl className="mt-5 grid grid-cols-3 divide-x divide-[var(--nf-border-subtle)] rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)]">
-        {stats.map((s) => (
-          <div key={s.key} className="px-2 py-3 text-center">
-            <dd className="nf-numeric text-lg font-bold leading-none">{s.value}</dd>
-            <dt className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">{s.label}</dt>
-          </div>
-        ))}
-      </dl>
+      {/* Where the activity strip was. Trips, saves and reviews are real
+          counts of real rows, so they arrive with an account and not before;
+          `AccountProfile` renders them the moment there is one. */}
+      <div className="mt-5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-4 text-center">
+        <p className="text-[0.875rem] font-semibold">Your trips live in your account</p>
+        <p className="mx-auto mt-1.5 max-w-sm text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          Sign in and this card shows what you have actually booked, saved and
+          reviewed, on every device you use.
+        </p>
+        <ButtonLink href="/sign-in" variant="primary" size="sm" className="mt-4">
+          Sign in
+        </ButtonLink>
+      </div>
     </section>
   );
 }

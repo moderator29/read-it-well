@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { LogoMark } from "@/design-system/brand/Logo";
@@ -56,9 +57,9 @@ export function VillaShowcase() {
               </li>
             </ul>
 
-            <Link href="/search" className="nf-btn nf-btn--primary nf-btn--lg mt-8">
+            <ButtonLink href="/search" variant="primary" size="lg" className="mt-8">
               Explore Properties
-            </Link>
+            </ButtonLink>
           </div>
 
           <div className="relative flex min-h-[240px] items-center justify-center p-6 sm:min-h-[320px] sm:p-8">
@@ -156,9 +157,9 @@ export function AssistantShowcase() {
               ))}
             </ul>
 
-            <Link href="/assistant" className="nf-btn nf-btn--primary nf-btn--lg mt-8">
+            <ButtonLink href="/assistant" variant="primary" size="lg" className="mt-8">
               Meet the assistant
-            </Link>
+            </ButtonLink>
           </div>
         </div>
       </Reveal>

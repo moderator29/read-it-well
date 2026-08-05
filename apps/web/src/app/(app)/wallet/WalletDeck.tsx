@@ -1,13 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import { useOverlay } from "@/lib/ui/use-overlay";
-import { createPortal } from "react-dom";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@naijafinds/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Odometer } from "@/components/site/Odometer";
 import { formatKoboExact } from "@/components/app/wallet/money";
+import { Amount } from "@/components/ui/Amount";
 import type { ActionResult } from "@/lib/actions/envelope";
 import {
   fundWallet,
@@ -19,6 +18,8 @@ import {
 } from "@/lib/wallet/actions";
 import { WALLET_BANKS } from "@/lib/wallet/banks";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
+import { Sheet } from "@/components/ui/Sheet";
 
 /**
  * Wallet action deck: Add money, Withdraw, Transfer.
@@ -103,7 +104,7 @@ export function WalletDeck({
           icon={tile.icon}
           onClose={() => setOpen(null)}
         >
-          {tile.key === "fund" && <FundForm locale={locale} />}
+          {tile.key === "fund" && <FundForm />}
           {tile.key === "withdraw" && (
             <WithdrawForm locale={locale} balanceMinor={balanceMinor} live={live} />
           )}
@@ -133,63 +134,43 @@ function WalletDrawer({
   onClose: () => void;
   children: React.ReactNode;
 }) {
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  // Portalled to document.body: rendered in place, a `position: fixed`
-  // drawer is only ever fixed to the nearest ancestor that establishes a
-  // containing block (a transform, a filter, a `will-change: transform`,
-  // any of which appear on animated wrappers elsewhere on this page), not
-  // reliably to the viewport. Mounting through a portal sidesteps that
-  // class of bug entirely rather than depending on every ancestor staying
-  // clean, which is why `mounted` gates the first client paint: document
-  // does not exist during the server render.
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useOverlay({ open, onClose, panelRef, autoFocus: false });
-
-  useEffect(() => {
-    if (!open) return;
-    panelRef.current?.focus();
-  }, [open]);
-
-  if (!open || !mounted) return null;
-
-  return createPortal(
-    <div
-      ref={panelRef}
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      tabIndex={-1}
-      className="fixed inset-0 z-[80] overflow-y-auto bg-[var(--nf-surface-primary)] outline-none"
+  // The portal, the focus trap, focus restoration, Escape, the backdrop and
+  // the body scroll lock all belong to `<Sheet>`. The portal in particular is
+  // not optional here: rendered in place, a `position: fixed` panel is only
+  // ever fixed to the nearest ancestor that establishes a containing block (a
+  // transform, a filter, a `will-change: transform`, any of which appear on
+  // animated wrappers elsewhere on this page), not reliably to the viewport.
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={title}
     >
-      <div className="mx-auto w-full max-w-md px-4 pb-10 pt-5 sm:px-6">
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <button
-            type="button"
-            aria-label="Close"
-            onClick={onClose}
-            className="nf-icon-btn h-10 w-10"
-          >
-            <UiIcon name="close" size={16} />
-          </button>
-          <span className="h-13 w-13">
-            <BrandIcon name={icon} fill />
-          </span>
+      <div className="mx-auto w-full max-w-md">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            {hint}
+          </p>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="h-13 w-13">
+              <BrandIcon name={icon} fill />
+            </span>
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={onClose}
+              className="nf-icon-btn h-10 w-10"
+            >
+              <UiIcon name="close" size={20} />
+            </button>
+          </div>
         </div>
 
-        <h2 className="nf-h3">{title}</h2>
-        <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-          {hint}
-        </p>
-
-        <div className="nf-card mt-5 p-4 sm:p-5">{children}</div>
+        <div className="nf-card p-4 sm:p-5">{children}</div>
       </div>
-    </div>,
-    document.body,
+    </Sheet>
   );
 }
 
@@ -199,7 +180,9 @@ const FUND_INITIAL: ActionResult<FundStart | null> = { ok: false, error: "" };
 const WITHDRAW_INITIAL: ActionResult<WithdrawReceipt | null> = { ok: false, error: "" };
 const TRANSFER_INITIAL: ActionResult<TransferReceipt | null> = { ok: false, error: "" };
 
-function FundForm({ locale }: { locale: Locale }) {
+/* No locale prop: the amounts inside render through <Amount>, which resolves
+   the locale itself, so threading it here was dead weight. */
+function FundForm() {
   const [state, formAction, pending] = useActionState(fundWallet, FUND_INITIAL);
   const redirecting = state.ok && state.data !== null;
 
@@ -223,13 +206,9 @@ function FundForm({ locale }: { locale: Locale }) {
   return (
     <form action={formAction} noValidate>
       <AmountField error={fieldError(state, "amount")} quickAmounts />
-      <button
-        type="submit"
-        disabled={pending}
-        className="nf-btn nf-btn--primary mt-3 w-full py-3 text-[0.875rem]"
-      >
-        {pending ? "Starting secure payment" : "Continue to payment"}
-      </button>
+      <Button type="submit" variant="primary" full className="mt-3" loading={pending}>
+        Continue to payment
+      </Button>
       <ErrorNotice state={state} />
     </form>
   );
@@ -253,12 +232,15 @@ function WithdrawForm({
   }, [state, router]);
 
   if (state.ok && state.data) {
-    const amount = formatKoboExact(state.data.amountMinor, locale);
     return (
       <div role="status" aria-live="polite" className="py-2 text-center">
-        <p className="text-[1.4rem] font-bold tracking-tight">
-          {amount.whole}
-          {amount.kobo}
+        <p>
+          <Amount
+            minorUnits={state.data.amountMinor}
+            locale={locale}
+            showFraction
+            className="text-[1.4rem] font-bold tracking-tight"
+          />
         </p>
         <p className="mt-1 text-[0.9375rem] font-semibold">
           On its way to {state.data.bankName} ****{state.data.accountLast4}
@@ -333,13 +315,9 @@ function WithdrawForm({
         />
         <FieldMessage message={fieldError(state, "accountName")} />
       </div>
-      <button
-        type="submit"
-        disabled={pending}
-        className="nf-btn nf-btn--primary mt-1 w-full py-3 text-[0.875rem]"
-      >
-        {pending ? "Sending to your bank" : "Withdraw"}
-      </button>
+      <Button type="submit" variant="primary" full className="mt-1" loading={pending}>
+        Withdraw
+      </Button>
       <ErrorNotice state={state} />
     </form>
   );
@@ -362,12 +340,15 @@ function TransferForm({
   }, [state, router]);
 
   if (state.ok && state.data) {
-    const amount = formatKoboExact(state.data.amountMinor, locale);
     return (
       <div role="status" aria-live="polite" className="py-2 text-center">
-        <p className="text-[1.4rem] font-bold tracking-tight">
-          {amount.whole}
-          {amount.kobo}
+        <p>
+          <Amount
+            minorUnits={state.data.amountMinor}
+            locale={locale}
+            showFraction
+            className="text-[1.4rem] font-bold tracking-tight"
+          />
         </p>
         <p className="mt-1 text-[0.9375rem] font-semibold">
           Sent to {state.data.recipientName}
@@ -414,13 +395,9 @@ function TransferForm({
         />
         <FieldMessage message={fieldError(state, "note")} />
       </div>
-      <button
-        type="submit"
-        disabled={pending}
-        className="nf-btn nf-btn--primary mt-1 w-full py-3 text-[0.875rem]"
-      >
-        {pending ? "Sending" : "Send transfer"}
-      </button>
+      <Button type="submit" variant="primary" full className="mt-1" loading={pending}>
+        Send transfer
+      </Button>
       <ErrorNotice state={state} />
     </form>
   );

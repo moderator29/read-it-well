@@ -6,7 +6,7 @@ import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
 import { BalanceCard } from "@/components/app/wallet/BalanceCard";
 import { TransactionsSection } from "@/components/app/wallet/TransactionsSection";
-import { SecurityNote } from "@/components/app/wallet/SecurityNote";
+import { WalletSettingsSheet } from "@/components/app/wallet/WalletSettingsSheet";
 import { getWalletForViewer } from "@/lib/wallet/repository";
 import { FundingVerifier } from "./FundingVerifier";
 import { WalletDeck } from "./WalletDeck";
@@ -43,11 +43,35 @@ export default async function WalletPage({
       ? reference
       : null;
 
+  /*
+   * The naira-per-dollar rate, from configuration only.
+   *
+   * There is no fallback and no constant in the code. A hard-coded FX figure
+   * would put an invented number where a user reads their own balance, and a
+   * stale one is worse than none - so with nothing configured the currency
+   * toggle simply does not appear. Set NEXT_PUBLIC_NGN_USD_RATE to switch it on,
+   * or replace this with a real rate feed when one exists.
+   */
+  const parsedRate = Number(process.env.NEXT_PUBLIC_NGN_USD_RATE);
+  const usdRate = Number.isFinite(parsedRate) && parsedRate > 0 ? parsedRate : null;
+
   return (
     <div className="mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="/brand/story-wallet.png" />
-      <PageHeader title={t.nav.wallet} />
+        {/*
+          Settings live at the TOP of the wallet, beside its title, which is
+          where a user looks for them. The trust strip that used to sit at the
+          very bottom of this page - below the entire transaction history - now
+          lives inside that sheet along with everything else about how the
+          wallet behaves.
+        */}
+        <div className="flex items-start justify-between gap-4">
+          <PageHeader title={t.nav.wallet} />
+          <div className="mt-1 shrink-0">
+            <WalletSettingsSheet />
+          </div>
+        </div>
       </div>
 
       {verifying && <FundingVerifier reference={verifying} locale={locale} />}
@@ -57,6 +81,7 @@ export default async function WalletPage({
           balanceMinor={wallet.balanceMinor}
           entries={wallet.entries}
           locale={locale}
+          usdRate={usdRate}
         />
       </Reveal>
 
@@ -66,10 +91,6 @@ export default async function WalletPage({
 
       <Reveal delay={140} className="mt-8">
         <TransactionsSection entries={wallet.entries} locale={locale} />
-      </Reveal>
-
-      <Reveal delay={200} className="mt-6">
-        <SecurityNote />
       </Reveal>
     </div>
   );

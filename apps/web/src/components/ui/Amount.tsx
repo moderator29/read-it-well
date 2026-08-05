@@ -1,4 +1,4 @@
-import { intlTag, type Locale } from "@naijafinds/i18n";
+import { intlTag, isGlanceCompact, type Locale } from "@naijafinds/i18n";
 
 /**
  * Money, set the way the reference set sets money.
@@ -44,8 +44,21 @@ export type AmountProps = {
    * composed figure rather than two pieces of text.
    */
   suffix?: string;
-  /** Short form for dense rows and chart labels: ₦9M rather than ₦9,000,000. */
+  /** Short form for dense rows and chart labels: ₦9m rather than ₦9,000,000. */
   compact?: boolean;
+  /**
+   * The glance rule, applied here rather than at the call site.
+   *
+   * `compact` is unconditional and belongs where the SPACE is fixed and tiny: a
+   * map pin, a stat tile. A card in a scrolling list is different. A stay at
+   * ₦95,000 a night must read ₦95,000, because that is the number somebody is
+   * comparing against the card below it, but a rental at ₦4,500,000 a year is
+   * written ₦4.5m by every Nigerian who has ever advertised one.
+   *
+   * One threshold, owned by `@naijafinds/i18n`, so a search page mixing nightly
+   * stays and yearly rents gets both right with no per-card decision anywhere.
+   */
+  glance?: boolean;
   /** Tailwind classes for the PRIMARY figure. Size and weight live here. */
   className?: string;
   /** Overrides the muted part's classes when the default relative size is wrong. */
@@ -59,37 +72,69 @@ export function Amount({
   showFraction = false,
   suffix,
   compact = false,
+  glance = false,
   className,
   secondaryClassName,
 }: AmountProps) {
   const major = minorUnits / 100;
+  const short = compact || (glance && isGlanceCompact(minorUnits));
 
   const parts = new Intl.NumberFormat(intlTag[locale], {
     style: "currency",
     currency,
-    minimumFractionDigits: showFraction ? 2 : 0,
-    maximumFractionDigits: showFraction ? 2 : 0,
-    notation: compact ? "compact" : "standard",
+    /*
+     * Compact notation carries its precision in the fraction: ₦1,500 compacts
+     * to "₦1.5K". Forcing maximumFractionDigits to 0 rounds that to "₦2K",
+     * which is a DIFFERENT NUMBER rather than a shortened one. Compact is
+     * therefore left on Intl's own default of one fractional digit.
+     */
+    ...(short
+      ? { notation: "compact" as const }
+      : {
+          minimumFractionDigits: showFraction ? 2 : 0,
+          maximumFractionDigits: showFraction ? 2 : 0,
+        }),
   }).formatToParts(major);
 
   /*
-   * The split point is the decimal separator. Everything up to it - symbol,
+   * The split point is the decimal separator: everything before it - symbol,
    * any locale spacing, sign, integer digits and group separators - is the
-   * primary figure. The separator and the fraction are secondary.
+   * primary figure, and the separator plus the fraction are secondary.
+   *
+   * The magnitude suffix is the exception. In compact notation Intl emits it
+   * AFTER the fraction, so a naive slice put the "M" of "₦9.00M" into the muted
+   * tail and ₦9,000,000 read as ₦9. Anything following the fraction digits
+   * belongs to the figure, not to the tail.
    */
   const splitAt = parts.findIndex((p) => p.type === "decimal");
-  const primary = (splitAt === -1 ? parts : parts.slice(0, splitAt))
-    .map((p) => p.value)
-    .join("");
-  const fraction =
-    splitAt === -1 ? "" : parts.slice(splitAt).map((p) => p.value).join("");
+  const lastFraction = parts.map((p) => p.type).lastIndexOf("fraction");
+
+  const join = (from: number, to?: number) =>
+    parts
+      .slice(from, to)
+      .map((p) => p.value)
+      .join("");
+
+  // head · fraction · tail, rendered in that order so the magnitude suffix
+  // stays where the locale put it rather than being moved behind the kobo.
+  const lower = (v: string) => (short ? v.replace(/[A-Za-z]+$/, (m) => m.toLowerCase()) : v);
+  // With no fraction Intl puts the magnitude suffix at the end of the head
+  // ("₦9M"), and with one it puts it after the fraction ("₦4.5M"), so both
+  // ends get the same treatment.
+  const head = lower(splitAt === -1 ? join(0) : join(0, splitAt));
+  const fraction = splitAt === -1 ? "" : join(splitAt, lastFraction + 1);
+  /* Intl emits an upper-case magnitude suffix ("₦4.5M"); the platform writes it
+     lower ("₦4.5m"), which is how it is written on every Nigerian listing and
+     what `formatMoney` already does. Same rule, one place. */
+  const tail = lower(splitAt === -1 || lastFraction === -1 ? "" : join(lastFraction + 1));
 
   const muted = secondaryClassName ?? "text-[0.62em] font-semibold opacity-60";
 
   return (
     <span className={["nf-numeric", className ?? ""].filter(Boolean).join(" ")}>
-      {primary}
+      {head}
       {fraction ? <span className={muted}>{fraction}</span> : null}
+      {tail}
       {suffix ? <span className={muted}> {suffix}</span> : null}
     </span>
   );

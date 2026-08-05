@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { submitContactForm } from "@/lib/support/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The public contact form.
@@ -123,9 +124,10 @@ export function ContactForm({ supportEmail }: { supportEmail: string }) {
         )}
       </label>
 
-      <button type="submit" disabled={pending} className="nf-btn nf-btn--primary disabled:opacity-60">
+      {/* The primitive owns the disabled + spinner state; the copy is main's. */}
+      <Button type="submit" variant="primary" loading={pending}>
         {pending ? "Sending your message..." : "Send message"}
-      </button>
+      </Button>
 
       {state && !state.ok ? (
         <p

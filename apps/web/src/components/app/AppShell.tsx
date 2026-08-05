@@ -6,12 +6,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { AppRail } from "./AppRail";
-import { MobileTabBar } from "./MobileTabBar";
+import { MobileTabBar, showsTabBar } from "./MobileTabBar";
 import { DesktopDock } from "./DesktopDock";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * Personal Mode shell.
@@ -77,7 +78,19 @@ export function AppShell({
         unreadNotifications={unreadNotifications}
       />
 
-      {/* Mobile slide-in side navigation: the same rail, as a left drawer. */}
+      {/*
+        Mobile side navigation.
+
+        Was a full-bleed `inset-0` panel, which is not a drawer at all - it is a
+        page that replaces the app, so there is nothing to tell you the app is
+        still behind it and no edge to dismiss it from.
+
+        It now behaves the way the supplied reference does: it slides in from
+        the RIGHT, stops just short of the far edge so a strip of the dimmed app
+        stays visible and tappable, and travels on the spring rather than
+        fading. Right rather than left because the trigger sits on the right and
+        because a right-hand drawer is reachable one-handed on a phone.
+      */}
       {drawer && (
         <div
           ref={drawerPanel}
@@ -90,9 +103,9 @@ export function AppShell({
             type="button"
             aria-label={t.a11y.closeMenu}
             onClick={() => setDrawer(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
           />
-          <div className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)]">
+          <div className="nf-drawer nf-drawer--right absolute inset-y-0 right-0 overflow-y-auto">
             <AppRail
               t={t}
               active={active}
@@ -109,7 +122,7 @@ export function AppShell({
         className={
           immersive
             ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden"
-            : "min-w-0 flex-1 pb-24 lg:pb-20"
+            : `min-w-0 flex-1 lg:pb-20 ${showsTabBar(active) ? "pb-24" : "pb-8"}`
         }
       >
         {/* ------------------------------------------------------- top bar */}
@@ -146,14 +159,21 @@ export function AppShell({
             </div>
             <ThemeToggle />
 
-            <Link
+            {/* The primitive, not a hand-rolled `nf-btn` class list: the
+                variant, the size ramp, the loading slot and the haptic all
+                come from `ButtonLink`. Main's props are kept verbatim -
+                including `max-sm:hidden`, because on a phone the bell and the
+                avatar take this space and the assistant lives on the rail. */}
+            <ButtonLink
               href="/assistant"
+              variant="primary"
+              size="sm"
               aria-label={t.nav.aiAssistant}
-              className="nf-btn nf-btn--primary gap-2 px-3 py-2 max-sm:hidden sm:px-3.5"
+              className="max-sm:hidden"
             >
               <UiIcon name="sparkle" size={20} />
               <span className="hidden sm:inline">{t.nav.aiAssistant}</span>
-            </Link>
+            </ButtonLink>
 
             {/* The bell and its marker. A dot, not a numeral: the exact count
                 lives on the rail and on /notifications, and at this size a
@@ -218,7 +238,15 @@ export function AppShell({
         )}
       </main>
 
-      {!immersive && (
+      {/*
+        The dock only appears on the routes it can actually point at. It was
+        rendering on every non-immersive screen - wallet, settings,
+        notifications, listing pages, checkout - with nothing highlighted,
+        occupying the bottom of the screen and answering no question. Those
+        screens are reached from a tab or the drawer and keep the back
+        affordance instead.
+      */}
+      {!immersive && showsTabBar(active) && (
         <MobileTabBar t={t} active={active} unreadNotifications={unreadNotifications} />
       )}
       {!immersive && <DesktopDock t={t} active={active} />}

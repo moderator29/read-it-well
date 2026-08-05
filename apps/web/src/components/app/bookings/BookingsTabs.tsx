@@ -1,17 +1,19 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Booking } from "@/lib/demo/bookings";
+import { ButtonLink } from "@/components/ui/Button";
+import { Segmented } from "@/components/ui/Segmented";
 
 /**
  * Bookings status tabs.
  *
- * A segmented control with an animated underline that slides between
- * Upcoming, Past and Cancelled. Upcoming and Past render full booking cards
+ * A segmented control whose shadowed capsule travels between Upcoming, Past
+ * and Cancelled. Upcoming and Past render full booking cards
  * built from the catalogue; Cancelled is genuinely empty for this account, so
  * it keeps a carefully finished empty state that routes back into discovery.
  */
@@ -111,67 +113,34 @@ export function BookingsTabs({
   past: Booking[];
 }) {
   const [active, setActive] = useState<TabKey>("upcoming");
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const index = TABS.findIndex((t) => t.key === active);
   /* The active key always exists in TABS; the fallback satisfies strict
      indexed access without a non-null assertion. */
   const current = TABS[index] ?? TABS[0]!;
 
-  /* Left and Right arrows move between tabs, the roving focus follows. */
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-    e.preventDefault();
-    const next =
-      e.key === "ArrowRight"
-        ? (index + 1) % TABS.length
-        : (index - 1 + TABS.length) % TABS.length;
-    const target = TABS[next];
-    if (!target) return;
-    setActive(target.key);
-    tabRefs.current[next]?.focus();
-  };
-
   const bookings =
     current.key === "upcoming" ? upcoming : current.key === "past" ? past : [];
 
   return (
     <div>
-      <div
-        role="tablist"
-        aria-label="Booking status"
-        onKeyDown={onKeyDown}
-        className="relative grid grid-cols-3 border-b border-[var(--nf-border-subtle)]"
-      >
-        {TABS.map((tab, i) => (
-          <button
-            key={tab.key}
-            ref={(el) => {
-              tabRefs.current[i] = el;
-            }}
-            type="button"
-            role="tab"
-            id={`bookings-tab-${tab.key}`}
-            aria-selected={active === tab.key}
-            aria-controls={`bookings-panel-${tab.key}`}
-            tabIndex={active === tab.key ? 0 : -1}
-            onClick={() => setActive(tab.key)}
-            className={[
-              "min-h-11 py-2.5 text-[0.875rem] font-medium transition-colors",
-              active === tab.key
-                ? "text-[var(--nf-content-primary)]"
-                : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",
-            ].join(" ")}
-          >
-            {tab.label}
-          </button>
-        ))}
-        <span
-          aria-hidden="true"
-          className="absolute -bottom-px left-0 h-[2px] w-1/3 rounded-full bg-[var(--nf-brand-primary)] transition-transform duration-300 ease-out"
-          style={{ transform: `translateX(${index * 100}%)` }}
-        />
-      </div>
+      {/*
+        Was a hand-rolled tablist with a 2px underline sliding on a percentage
+        transform, which only tracked correctly because all three tabs were
+        forced to equal thirds by a grid. The primitive measures the real
+        segment boxes instead, so labels of different lengths - and the four
+        locales, where the same word can be three times longer - all work, and
+        the selection travels as a shadowed capsule rather than a hairline.
+      */}
+      <Segmented<TabKey>
+        label="Booking status"
+        options={TABS.map((tab) => ({ value: tab.key, label: tab.label }))}
+        value={active}
+        onChange={setActive}
+        itemIdPrefix="bookings-tab"
+        panelIdPrefix="bookings-panel"
+        full
+      />
 
       {bookings.length > 0 ? (
         <ul
@@ -199,9 +168,9 @@ export function BookingsTabs({
           <p className="mx-auto max-w-[38ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
             {EMPTY_COPY[current.key]}
           </p>
-          <Link href="/search" className="nf-btn nf-btn--primary">
+          <ButtonLink href="/search" variant="primary">
             Explore stays
-          </Link>
+          </ButtonLink>
         </div>
       )}
     </div>

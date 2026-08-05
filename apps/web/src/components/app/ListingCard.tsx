@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Dictionary, type Locale, formatRating, formatMoneyGlance } from "@naijafinds/i18n";
+import { type Dictionary, type Locale, formatRating } from "@naijafinds/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { Amount } from "@/components/ui/Amount";
 
 /**
  * Listing card media.
@@ -255,14 +256,26 @@ export function ListingCard({
           </ul>
 
           {hasPrice && (
-            <p className="mt-3.5 flex items-baseline gap-1.5">
-              <span className="nf-numeric text-[1.1875rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-                {formatMoneyGlance(listing.priceMinor, locale, listing.currency)}
-              </span>
-              <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-                /{" "}
-                {perHead ? "guest" : listing.pricePeriod === "year" ? t.common.year : t.common.night}
-              </span>
+            <p className="mt-3.5">
+              {/* The `Amount` primitive with the glance rule: a nightly stay
+                  keeps its full figure, a yearly rent compacts to ₦4.5m, and
+                  the "/ night" qualifier drops to the muted tone the way every
+                  composed figure on the platform does. */}
+              <Amount
+                minorUnits={listing.priceMinor}
+                locale={locale}
+                currency={listing.currency}
+                glance
+                suffix={`/ ${
+                  perHead
+                    ? "guest"
+                    : listing.pricePeriod === "year"
+                      ? t.common.year
+                      : t.common.night
+                }`}
+                className="text-[1.1875rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+                secondaryClassName="text-[0.63em] font-semibold opacity-60"
+              />
             </p>
           )}
         </div>

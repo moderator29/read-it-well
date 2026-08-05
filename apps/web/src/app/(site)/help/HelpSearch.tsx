@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 export type Faq = {
   category: string;
@@ -98,9 +98,9 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
             Try a shorter word, or ask us directly. A person reads every message.
           </p>
           <div className="mt-5 flex justify-center">
-            <Link href="/contact" className="nf-btn nf-btn--glass">
+            <ButtonLink href="/contact" variant="secondary">
               Contact support
-            </Link>
+            </ButtonLink>
           </div>
         </div>
       )}

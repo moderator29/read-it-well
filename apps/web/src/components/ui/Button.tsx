@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { forwardRef } from "react";
+import { Children, forwardRef } from "react";
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
 import { UiIcon, type UiIconSize, type UiIconName } from "@/design-system/icons/UiIcon";
 
@@ -75,8 +75,10 @@ type CommonProps = {
   leadingIcon?: UiIconName;
   trailingIcon?: UiIconName;
   /**
-   * Square, glyph-only. `aria-label` is required by the type system here,
-   * because an icon-only control with no label is invisible to a screen reader.
+   * Square, glyph-only. Always pass `aria-label` alongside it - an icon-only
+   * control with no label is invisible to a screen reader. That pairing is a
+   * convention here rather than a type constraint; expressing it in the type
+   * would need a discriminated union across both Button and ButtonLink.
    */
   iconOnly?: boolean;
   /**
@@ -132,6 +134,21 @@ function Content({
   size: ButtonSize;
 }) {
   const icon = ICON_SIZE[size];
+  /*
+   * Children are rendered as separate flex siblings, not wrapped in one span.
+   *
+   * Wrapping them collapsed the button's `gap: 0.5rem` to nothing, because gap
+   * only separates flex children and there was suddenly just one. Any call site
+   * passing an icon element alongside its text - seven of them did - rendered
+   * the glyph jammed against the first letter with no gap, and sitting on the
+   * text baseline rather than optically centred, because inside the wrapper it
+   * was inline content rather than a flex item.
+   *
+   * Only text is given the label class; element children keep their own layout.
+   * The label class is what `[data-loading]` dims, and dimming an icon the
+   * caller passed deliberately would be wrong.
+   */
+  const parts = Children.toArray(children);
   return (
     <>
       {loading ? (
@@ -139,7 +156,15 @@ function Content({
       ) : leadingIcon ? (
         <UiIcon name={leadingIcon} size={icon} />
       ) : null}
-      {children ? <span className="nf-btn__label">{children}</span> : null}
+      {parts.map((part, i) =>
+        typeof part === "string" || typeof part === "number" ? (
+          <span key={i} className="nf-btn__label">
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
       {trailingIcon && !loading ? <UiIcon name={trailingIcon} size={icon} /> : null}
     </>
   );
@@ -168,7 +193,14 @@ export const Button = forwardRef(function Button(
 ) {
   const wantsHaptic = haptic ?? (variant === "primary" || variant === "danger");
   return (
+    /*
+     * `rest` is spread FIRST so nothing a call site passes can clobber the
+     * props computed below. The previous order happened to be safe - disabled
+     * and onPointerDown are destructured out, and no call site passes an
+     * explicit type={undefined} - but it depended on that staying true.
+     */
     <button
+      {...rest}
       ref={ref}
       type={rest.type ?? "button"}
       className={buttonClass({ variant, size, full, iconOnly, className })}
@@ -179,7 +211,6 @@ export const Button = forwardRef(function Button(
         if (!disabled && !loading) pulse(wantsHaptic);
         onPointerDown?.(event);
       }}
-      {...rest}
     >
       <Content
         loading={loading}
@@ -221,6 +252,7 @@ export const ButtonLink = forwardRef(function ButtonLink(
   const wantsHaptic = haptic ?? (variant === "primary" || variant === "danger");
   return (
     <Link
+      {...rest}
       ref={ref}
       className={buttonClass({ variant, size, full, iconOnly, className })}
       data-loading={loading || undefined}
@@ -228,7 +260,6 @@ export const ButtonLink = forwardRef(function ButtonLink(
         pulse(wantsHaptic);
         onPointerDown?.(event);
       }}
-      {...rest}
     >
       <Content
         loading={loading}

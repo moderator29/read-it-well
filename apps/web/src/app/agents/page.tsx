@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { BackButton } from "@/components/site/BackButton";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
   title: "Become an Agent",
@@ -90,15 +89,19 @@ export default async function BecomeAgentPage() {
             <p className="mx-auto mt-3 max-w-[52ch] text-[var(--nf-content-secondary)]">{j.body}</p>
 
             <div className="mt-7 flex flex-wrap items-center justify-center gap-4">
-              <Link href="/agents/apply" className="nf-btn nf-btn--primary nf-btn--lg">
+              <ButtonLink
+                href="/agents/apply"
+                variant="primary"
+                size="lg"
+                trailingIcon="arrow-right"
+              >
                 {j.start}
-                <UiIcon name="arrow-right" size={20} />
-              </Link>
+              </ButtonLink>
               {/* No dictionary key exists for a status check yet, so plain
                   English until one lands. */}
-              <Link href="/agents/status" className="nf-btn nf-btn--glass nf-btn--lg">
+              <ButtonLink href="/agents/status" variant="secondary" size="lg">
                 Check application status
-              </Link>
+              </ButtonLink>
             </div>
           </div>
 
@@ -210,10 +213,14 @@ export default async function BecomeAgentPage() {
               </span>
               <h2 className="nf-h2 mx-auto mt-4 max-w-[20ch]">{j.title}</h2>
               <div className="mt-6 flex justify-center">
-                <Link href="/agents/apply" className="nf-btn nf-btn--primary nf-btn--lg">
+                <ButtonLink
+                  href="/agents/apply"
+                  variant="primary"
+                  size="lg"
+                  trailingIcon="arrow-right"
+                >
                   {j.start}
-                  <UiIcon name="arrow-right" size={20} />
-                </Link>
+                </ButtonLink>
               </div>
             </div>
           </Reveal>

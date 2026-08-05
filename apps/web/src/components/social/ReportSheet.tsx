@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { PostGlyph } from "./feed/PostGlyph";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { REPORT_REASON_LABEL, type ReportReason } from "@/lib/social/posts-schema";
 import type { ActionResult } from "@/lib/actions/envelope";
 
@@ -49,22 +50,15 @@ export function ReportSheet({
   const [pending, startTransition] = useTransition();
   const panelRef = useRef<HTMLDivElement>(null);
 
-  /* Escape closes, focus starts inside, and the page behind does not scroll
-     under the sheet. All three are what makes a full page overlay feel like a
-     page rather than like something stuck on top of one. */
-  useEffect(() => {
-    panelRef.current?.querySelector<HTMLElement>("button, input")?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previous;
-    };
-  }, [onClose]);
+  /* Escape closes, focus starts inside, the page behind does not scroll, Tab
+     stays in and focus goes home on close. All five from the one hook.
+
+     This sheet opens FROM the action sheet, which is the case the hand-rolled
+     version got wrong twice over: its bare overflow flag captured "hidden"
+     from the sheet underneath and restored that on close, and nothing trapped
+     Tab, so a keyboard could leave a report form mid-sentence and land in the
+     feed it was reporting. */
+  useOverlay({ open: true, onClose, panelRef });
 
   const send = () => {
     if (!reason) return;

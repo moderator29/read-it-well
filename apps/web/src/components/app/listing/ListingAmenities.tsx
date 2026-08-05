@@ -1,12 +1,19 @@
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
- * The amenity row.
+ * The spec row.
  *
- * The dense strip of marks a traveller scans before reading anything else:
- * the room counts first, then whatever the listing actually offers. These are
- * small marks in a scrolling row, so they are stroked UiIcon glyphs, never the
- * 3D pack, which needs 40px and a tile to read at all.
+ * Reference 3 states the facts of a property as one inline icon/value run -
+ * beds, baths, area - separated by middots, not as a scrolling row of chips.
+ * Chips read as filters you could press; this is data, and it should look like
+ * data. So the row is now an inline wrapping list: the counts first in the
+ * primary tone because they are what a reader scans for, then the amenities the
+ * listing actually carries in the muted tone, with a middot between every pair.
+ *
+ * The reference's third spec is floor area. The `Listing` type has no area
+ * field - `area` on it is a locality name, not a size - so rather than invent a
+ * number the third slot carries the derived sleeping capacity, which the page
+ * already states in prose and which comes from a field that exists.
  *
  * Nothing here is invented. Only keys the listing carries are rendered, a key
  * with no glyph of its own still appears under a generic feature mark with its
@@ -26,16 +33,22 @@ function prettify(key: string): string {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-type Mark = { key: string; icon: UiIconName; label: string };
+type Mark = { key: string; icon: UiIconName; label: string; spec?: boolean };
 
 export function ListingAmenities({
   bedrooms,
   bathrooms,
   amenities,
+  guests,
 }: {
   bedrooms: number;
   bathrooms: number;
   amenities: string[];
+  /**
+   * Sleeping capacity, when the page has one to state. Derived upstream from
+   * the bedroom count; omitted for anything that does not sleep guests.
+   */
+  guests?: number;
 }) {
   const marks: Mark[] = [];
 
@@ -44,6 +57,7 @@ export function ListingAmenities({
       key: "bedrooms",
       icon: "bed",
       label: `${bedrooms} ${bedrooms === 1 ? "bedroom" : "bedrooms"}`,
+      spec: true,
     });
   }
   if (bathrooms > 0) {
@@ -51,6 +65,15 @@ export function ListingAmenities({
       key: "bathrooms",
       icon: "bath",
       label: `${bathrooms} ${bathrooms === 1 ? "bathroom" : "bathrooms"}`,
+      spec: true,
+    });
+  }
+  if (guests && guests > 0) {
+    marks.push({
+      key: "guests",
+      icon: "user",
+      label: `Sleeps ${guests}`,
+      spec: true,
     });
   }
   for (const key of amenities) {
@@ -74,12 +97,31 @@ export function ListingAmenities({
   return (
     <ul
       data-testid="amenity-row"
-      className="nf-scroll-x -mx-5 flex gap-2 px-5 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+      className="flex flex-wrap items-center gap-y-2 text-[0.875rem]"
     >
-      {marks.map((mark) => (
-        <li key={mark.key} className="nf-chip shrink-0 gap-2 px-3.5 py-2">
-          <UiIcon name={mark.icon} size={16} className="shrink-0" />
-          <span className="whitespace-nowrap text-[0.8125rem]">{mark.label}</span>
+      {marks.map((mark, i) => (
+        <li
+          key={mark.key}
+          className={`flex items-center ${
+            mark.spec
+              ? "font-semibold text-[var(--nf-content-primary)]"
+              : "text-[var(--nf-content-secondary)]"
+          }`}
+        >
+          {/* The separator lives inside the item so the row stays a flat list
+              of marks; a divider of its own would be a list item that is not
+              a fact about the property. */}
+          {i > 0 && (
+            <span aria-hidden="true" className="px-2 text-[var(--nf-content-muted)]">
+              ·
+            </span>
+          )}
+          <UiIcon
+            name={mark.icon}
+            size={16}
+            className="mr-1.5 shrink-0 text-[var(--nf-content-muted)]"
+          />
+          <span className="whitespace-nowrap">{mark.label}</span>
         </li>
       ))}
     </ul>

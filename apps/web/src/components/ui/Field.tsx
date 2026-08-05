@@ -1,0 +1,452 @@
+"use client";
+
+import { useId, useRef, useState } from "react";
+import type {
+  CSSProperties,
+  InputHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from "react";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+
+/**
+ * Form fields.
+ *
+ * The bug this is shaped around: `.nf-field` paints its border with a
+ * `border-box` gradient over a `1px solid transparent` border. The error rule
+ * beside it, `.nf-field[aria-invalid="true"] { border-color: … }`, therefore has
+ * NO VISIBLE EFFECT - the gradient layer covers the border box, so setting the
+ * border's colour changes a surface nobody can see. Validation errors were being
+ * computed, `aria-invalid` was being set, and the field looked exactly as it did
+ * a moment earlier. A screen reader knew; nobody else did.
+ *
+ * The fix is not a stronger border colour. It is to stop depending on the border
+ * at all: an invalid field replaces the gradient's OWN border-box layer and adds
+ * a ring. Written inline here rather than as a rule, so it lands over the
+ * gradient without a specificity argument and without this primitive editing
+ * globals.css. The keyboard focus ring is an `outline` and so survives the
+ * override untouched, which matters - an invalid field is the one a user is most
+ * likely to be tabbing back into.
+ *
+ * What else it owns, because 0 call sites had all of it: the label/control id
+ * pairing, `aria-describedby` across hint AND error, `aria-invalid`, the clear
+ * affordance (which existed nowhere), a leading icon slot (hand-rolled four
+ * different ways across four search bars at three type sizes), and the 16px
+ * floor on coarse pointers.
+ */
+
+/* ------------------------------------------------------------------ Field */
+
+/**
+ * The props a control must spread to be wired to its label, hint and error.
+ * Handed to the child rather than cloned onto it: cloning guesses at the
+ * element's shape, and every field on this platform that is not an input -
+ * a date range, a phone entry, a map picker - would have to be guessed at too.
+ */
+export type FieldControlProps = {
+  id: string;
+  "aria-describedby": string | undefined;
+  "aria-invalid": true | undefined;
+  "aria-required": true | undefined;
+};
+
+export type FieldProps = {
+  label: string;
+  /** Steady guidance shown before anything goes wrong. */
+  hint?: string;
+  /** The message. Its presence is what puts the field in the error state. */
+  error?: string;
+  required?: boolean;
+  /**
+   * The localised word for "optional", rendered beside the label.
+   *
+   * A string rather than a boolean because this platform ships four locales,
+   * and a hardcoded "Optional" here would be the one untranslated word in an
+   * otherwise translated form. Omit it and no marker is drawn.
+   */
+  optionalText?: string;
+  /** Visually hides the label while keeping it as the control's name. */
+  hideLabel?: boolean;
+  className?: string;
+  children(control: FieldControlProps): ReactNode;
+};
+
+export function Field({
+  label,
+  hint,
+  error,
+  required = false,
+  optionalText,
+  hideLabel = false,
+  className,
+  children,
+}: FieldProps) {
+  const base = useId();
+  const id = `${base}-control`;
+  const hintId = `${base}-hint`;
+  const errorId = `${base}-error`;
+  const invalid = Boolean(error);
+
+  /*
+   * Both, in reading order, not one or the other. A field commonly needs its
+   * hint AND its error - "we never share this" plus "that is not a valid
+   * number" - and describing only the error loses the guidance exactly when the
+   * user is trying to comply with it.
+   */
+  const describedBy =
+    [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(" ") || undefined;
+
+  return (
+    <div className={["w-full", className ?? ""].filter(Boolean).join(" ")}>
+      <label htmlFor={id} className={hideLabel ? "sr-only" : "nf-label flex items-center gap-1.5"}>
+        <span>{label}</span>
+        {required ? (
+          /* A glyph, not a word, so it needs no translation. The real
+             requirement is announced by `aria-required` on the control. */
+          <span aria-hidden="true" className="text-[var(--nf-state-error)]">
+            *
+          </span>
+        ) : null}
+        {optionalText ? (
+          <span className="font-normal text-[var(--nf-content-muted)]">{optionalText}</span>
+        ) : null}
+      </label>
+
+      {children({
+        id,
+        "aria-describedby": describedBy,
+        "aria-invalid": invalid || undefined,
+        "aria-required": required || undefined,
+      })}
+
+      {hint ? (
+        <p id={hintId} className="mt-1.5 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+          {hint}
+        </p>
+      ) : null}
+      {error ? (
+        /*
+         * `role="alert"` so a message that appears after a failed submit is
+         * announced without the user having to go looking for it. The text also
+         * carries the error colour, so the state is stated three ways: colour,
+         * copy, and the field's own ring. Colour alone would fail anyone who
+         * cannot see it.
+         */
+        <p
+          id={errorId}
+          role="alert"
+          className="mt-1.5 text-[var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
+        >
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------- shared internals */
+
+/** 48 / 56px. The same two rungs the buttons use, so a field and the button
+ *  beside it agree on height without either being nudged. */
+type ControlSize = "md" | "lg";
+
+const HEIGHT: Record<ControlSize, string> = { md: "h-12", lg: "h-14" };
+
+/**
+ * `pointer-coarse` is the whole point: mobile Safari zooms the viewport whenever
+ * a focused control's font-size is under 16px, and the platform's body size is
+ * 14px. Scoped to coarse pointers so the desktop type scale is untouched. This
+ * duplicates a global rule deliberately - a primitive that silently depends on a
+ * rule it does not own breaks the day that rule is refactored.
+ */
+const FIELD_TYPE = "text-[var(--nf-text-body)] pointer-coarse:text-[16px]";
+
+/**
+ * The invalid override.
+ *
+ * Both layers of the background have to be restated: the padding-box fill keeps
+ * the field's material, and the border-box layer is what replaces the brand
+ * gradient with the error colour. Restating only the border-box half would
+ * blank the fill.
+ */
+const INVALID_STYLE: CSSProperties = {
+  background:
+    "linear-gradient(var(--nf-surface-inset), var(--nf-surface-inset)) padding-box, linear-gradient(var(--nf-state-error), var(--nf-state-error)) border-box",
+  boxShadow: "0 0 0 3px color-mix(in oklab, var(--nf-state-error) 26%, transparent)",
+};
+
+function controlClass({
+  size,
+  leading,
+  trailing,
+  className,
+}: {
+  size: ControlSize;
+  leading: boolean;
+  trailing: boolean;
+  className?: string;
+}) {
+  return [
+    "nf-field block",
+    HEIGHT[size],
+    FIELD_TYPE,
+    "py-0",
+    leading ? "pl-11" : "pl-4",
+    trailing ? "pr-11" : "pr-4",
+    className ?? "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/** Slots sit above the control and must not eat its clicks; the clear button
+ *  re-enables its own pointer events. */
+const SLOT = "pointer-events-none absolute top-1/2 -translate-y-1/2 text-[var(--nf-content-muted)]";
+
+/* -------------------------------------------------------------- TextField */
+
+export type TextFieldProps = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "size" | "className" | "id"
+> &
+  Omit<FieldProps, "children"> & {
+    leadingIcon?: UiIconName;
+    /** An eye toggle, a unit, a filter opener. Sits where the clear button would. */
+    trailing?: ReactNode;
+    /**
+     * The clear affordance's ACCESSIBLE LABEL, and its on switch.
+     *
+     * A string rather than a boolean because an unlabelled × is invisible to a
+     * screen reader, and a boolean leaves nowhere to put the localised word. If
+     * you have no label to give, you are not ready to ship the button.
+     */
+    clearable?: string;
+    /** Clears the caller's state. Required for a controlled field to stay clear. */
+    onClear?(): void;
+    size?: ControlSize;
+    inputClassName?: string;
+  };
+
+export function TextField({
+  label,
+  hint,
+  error,
+  required,
+  optionalText,
+  hideLabel,
+  className,
+  leadingIcon,
+  trailing,
+  clearable,
+  onClear,
+  size = "md",
+  inputClassName,
+  onChange,
+  ...rest
+}: TextFieldProps) {
+  const ref = useRef<HTMLInputElement | null>(null);
+  /*
+   * Uncontrolled fields have no `value` prop to read, so emptiness is tracked
+   * here. Controlled ones ignore this entirely - their prop is the truth.
+   */
+  const [typedInto, setTypedInto] = useState(
+    String(rest.defaultValue ?? "").length > 0,
+  );
+  const controlled = rest.value !== undefined;
+  const filled = controlled ? String(rest.value ?? "").length > 0 : typedInto;
+  const showClear = Boolean(clearable) && filled && !rest.disabled && !rest.readOnly;
+
+  const clear = () => {
+    /*
+     * Two steps because the two modes clear differently: the DOM write is what
+     * empties an uncontrolled input, and `onClear` is what empties a controlled
+     * one. Focus returns to the field either way - a user who cleared a search
+     * is about to type another one, and sending them back to the top of the
+     * document to find the box again is the failure this affordance exists to
+     * avoid.
+     */
+    if (ref.current && !controlled) ref.current.value = "";
+    setTypedInto(false);
+    onClear?.();
+    ref.current?.focus();
+  };
+
+  return (
+    <Field
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      optionalText={optionalText}
+      hideLabel={hideLabel}
+      className={className}
+    >
+      {(control) => (
+        <div className="relative">
+          {leadingIcon ? (
+            <span className={`${SLOT} left-3.5`}>
+              <UiIcon name={leadingIcon} size={18} />
+            </span>
+          ) : null}
+
+          <input
+            {...rest}
+            {...control}
+            ref={ref}
+            className={controlClass({
+              size,
+              leading: Boolean(leadingIcon),
+              trailing: showClear || Boolean(trailing),
+              className: inputClassName,
+            })}
+            style={error ? INVALID_STYLE : undefined}
+            onChange={(event) => {
+              if (!controlled) setTypedInto(event.target.value.length > 0);
+              onChange?.(event);
+            }}
+          />
+
+          {showClear ? (
+            <button
+              type="button"
+              onClick={clear}
+              aria-label={clearable}
+              /* 44pt of hit area on a 20px glyph, the same overlay trick the
+                 chips use: the icon stays small, the target does not. */
+              className={`${SLOT} right-1 pointer-events-auto grid size-11 place-items-center rounded-[var(--nf-radius-pill)] hover:text-[var(--nf-content-primary)]`}
+            >
+              <UiIcon name="close" size={16} />
+            </button>
+          ) : trailing ? (
+            <span className={`${SLOT} right-3.5`}>{trailing}</span>
+          ) : null}
+        </div>
+      )}
+    </Field>
+  );
+}
+
+/* ------------------------------------------------------------ SelectField */
+
+export type SelectFieldProps = Omit<
+  SelectHTMLAttributes<HTMLSelectElement>,
+  "size" | "className" | "id"
+> &
+  Omit<FieldProps, "children"> & {
+    leadingIcon?: UiIconName;
+    size?: ControlSize;
+    selectClassName?: string;
+  };
+
+export function SelectField({
+  label,
+  hint,
+  error,
+  required,
+  optionalText,
+  hideLabel,
+  className,
+  leadingIcon,
+  size = "md",
+  selectClassName,
+  children,
+  ...rest
+}: SelectFieldProps) {
+  return (
+    <Field
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      optionalText={optionalText}
+      hideLabel={hideLabel}
+      className={className}
+    >
+      {(control) => (
+        <div className="relative">
+          {leadingIcon ? (
+            <span className={`${SLOT} left-3.5`}>
+              <UiIcon name={leadingIcon} size={18} />
+            </span>
+          ) : null}
+
+          <select
+            {...rest}
+            {...control}
+            /*
+             * `appearance-none` is not cosmetic here. The native control paints
+             * its own arrow at its own size in its own colour, differently in
+             * every browser, and on the dark theme Safari's is nearly invisible
+             * against the inset fill. Stripping it and drawing our own chevron
+             * is the only way the control looks like the rest of the form.
+             */
+            className={`${controlClass({
+              size,
+              leading: Boolean(leadingIcon),
+              trailing: true,
+              className: selectClassName,
+            })} appearance-none`}
+            style={error ? INVALID_STYLE : undefined}
+          >
+            {children}
+          </select>
+
+          <span className={`${SLOT} right-3.5`}>
+            <UiIcon name="chevron-down" size={16} />
+          </span>
+        </div>
+      )}
+    </Field>
+  );
+}
+
+/* --------------------------------------------------------------- TextArea */
+
+export type TextAreaProps = Omit<
+  TextareaHTMLAttributes<HTMLTextAreaElement>,
+  "className" | "id"
+> &
+  Omit<FieldProps, "children"> & {
+    textAreaClassName?: string;
+  };
+
+export function TextArea({
+  label,
+  hint,
+  error,
+  required,
+  optionalText,
+  hideLabel,
+  className,
+  rows = 4,
+  textAreaClassName,
+  ...rest
+}: TextAreaProps) {
+  return (
+    <Field
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      optionalText={optionalText}
+      hideLabel={hideLabel}
+      className={className}
+    >
+      {(control) => (
+        <textarea
+          {...rest}
+          {...control}
+          rows={rows}
+          /* The same material as the single-line fields, with the height rung
+             replaced by `rows` - a textarea that does not match the inputs
+             above it is the tell that a form was assembled rather than designed. */
+          className={["nf-field block resize-y px-4 py-3", FIELD_TYPE, textAreaClassName ?? ""]
+            .filter(Boolean)
+            .join(" ")}
+          style={error ? INVALID_STYLE : undefined}
+        />
+      )}
+    </Field>
+  );
+}

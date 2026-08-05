@@ -96,10 +96,25 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
+  /*
+   * `clip`, not `hidden`. Both stop sideways scrolling, but `hidden` turns the
+   * element into a scroll container, which silently breaks `position: sticky`
+   * for every descendant - and every shell on this platform has sticky chrome.
+   */
+  overflow-x: clip;
   /* Native app feel on touch: no grey tap flash, no rubber-band past the ends. */
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
+}
+
+/*
+ * The same guard on the root element. Without it a child wider than the
+ * viewport still shifts the document sideways on iOS, which is the "the whole
+ * page slides left and right" feeling: nothing is scrolling on purpose, the
+ * layout is just wider than the screen and the browser lets you drag it.
+ */
+html {
+  overflow-x: clip;
 }
 
 /* Pointer clicks never draw a focus rectangle; keyboard focus keeps the ring. */
@@ -276,19 +291,30 @@ body {
       inset 0 -1px 0 var(--nf-glass-floor),
       var(--nf-glass-shadow);
   }
+  /*
+   * z-index -1, not 0.
+   *
+   * At z-index 0 this painted in the positioned-descendant step, which comes
+   * AFTER inline content. Element children could be lifted clear with
+   * `.nf-glass > * { z-index: 1 }`, but a bare text node has no box to lift, so
+   * the sweep painted straight over it - the landing page's step-number badges
+   * are a glass circle whose only child is the digit, and in the light theme
+   * roughly 76% white landed on top of the numeral.
+   *
+   * At -1 the sweep sits below all content and above the host's own background,
+   * which `isolation: isolate` on the host guarantees. That also makes the
+   * child-lifting rule unnecessary, so it is gone: it was creating a stacking
+   * context on every direct child of every glass element for no reason.
+   */
   .nf-glass::before {
     content: "";
     position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: -1;
     border-radius: inherit;
     background: var(--nf-glass-specular);
     opacity: 0.85;
     pointer-events: none;
-  }
-  .nf-glass > * {
-    position: relative;
-    z-index: 1;
   }
 
   /* Depth modifiers. Blur, fill and shadow move together or the illusion breaks. */
@@ -316,6 +342,9 @@ body {
   .nf-glass--chrome {
     border-inline: 0;
     border-top: 0;
+    /* The hairline underneath is drawn by the shadow below, so the real border
+       has to go or the bar carries two 1px lines of the same colour stacked. */
+    border-bottom: 0;
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim),
       0 1px 0 var(--nf-glass-border);
@@ -1852,6 +1881,317 @@ body {
     font-size: var(--nf-text-body-lg);
   }
 
+  /* ----------------------------------------------------------- segmented */
+
+  /*
+   * The track and its travelling capsule.
+   *
+   * Five segmented controls existed on this platform: three hard-swapped with
+   * no transition, two slid a 2px underline. None had the floating shadowed
+   * capsule the reference set shows, which is the part that actually carries
+   * the eye from one segment to the next.
+   *
+   * The capsule is inset from the track by its padding, which is the nested
+   * radius correction: a pill inside a pill has to sit inside the parent's
+   * curve or the two outlines fight at the ends.
+   */
+  .nf-segmented {
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-surface-inset);
+    border: 1px solid var(--nf-elev-1-border);
+    box-shadow: var(--nf-elev-1-rim);
+  }
+
+  .nf-segmented__capsule {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    height: calc(100% - 8px);
+    translate: 0 -50%;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-surface-raised);
+    box-shadow:
+      var(--nf-elev-2-rim),
+      var(--nf-elev-2);
+    /* Both properties travel together, or the capsule stretches before it
+       moves and reads as a rubber band rather than an object. */
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-spring),
+      width var(--nf-duration-base) var(--nf-ease-spring);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .nf-segmented__item {
+    /* Sits above the capsule so the label is never washed by it. */
+    z-index: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-segmented__capsule {
+      transition: none;
+    }
+  }
+
+  /* -------------------------------------------------------------- drawer */
+
+  /*
+   * The side drawer.
+   *
+   * The mobile navigation was a full-bleed `inset-0` panel: not a drawer, a
+   * page that replaced the app. Nothing signalled the app was still behind it,
+   * and there was no edge to dismiss from.
+   *
+   * This stops just short of the far edge - 88% of the viewport, capped at
+   * 26rem so it does not become absurd on a tablet - leaving a strip of the
+   * dimmed app visible and tappable. That strip is the whole trick: it is what
+   * makes the panel read as sitting OVER the product rather than replacing it.
+   */
+  @keyframes nf-drawer-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  .nf-drawer {
+    width: min(88%, 26rem);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-elev-4-rim), var(--nf-elev-4);
+    overscroll-behavior: contain;
+  }
+  .nf-drawer--right {
+    border-left: 1px solid var(--nf-elev-4-border);
+    animation: nf-drawer-in-right var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-drawer--right {
+      animation: none;
+    }
+  }
+
+  /* --------------------------------------------------------------- sheet */
+
+  /*
+   * The bottom sheet.
+   *
+   * There were eight hand-rolled sheets on the platform and not one of them
+   * had a drag handle, a detent, spring physics, drag-to-dismiss, or a focus
+   * trap - several declared aria-modal="true" while trapping nothing, and two
+   * never locked body scroll, so the page behind them scrolled under your
+   * finger. They all animated in with an 18px fade. On iOS that single fact is
+   * the clearest tell that a screen is a web page rather than an app.
+   *
+   * The surface rides `translateY`, which the component drives directly during
+   * a drag and hands back to the spring on release.
+   */
+  .nf-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    background: rgb(0 0 0 / 0.55);
+    backdrop-filter: blur(6px) saturate(120%);
+    -webkit-backdrop-filter: blur(6px) saturate(120%);
+    opacity: 0;
+    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-sheet-backdrop[data-open="true"] {
+    opacity: 1;
+  }
+
+  .nf-sheet {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 81;
+    display: flex;
+    flex-direction: column;
+    max-height: 92dvh;
+    border-radius: var(--nf-radius-2xl) var(--nf-radius-2xl) 0 0;
+    background: var(--nf-surface-elevated);
+    border: 1px solid var(--nf-elev-3-border);
+    border-bottom: 0;
+    box-shadow: var(--nf-elev-3-rim), var(--nf-elev-3);
+    /* Starts fully off-screen and is driven in. A fade would defeat the point. */
+    transform: translateY(100%);
+    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    touch-action: none;
+  }
+  .nf-sheet[data-open="true"] {
+    transform: translateY(var(--nf-sheet-y, 0px));
+  }
+  /* While a finger is down the surface tracks it exactly; no easing, or it lags. */
+  .nf-sheet[data-dragging="true"] {
+    transition: none;
+  }
+
+  /* The handle. Also the drag affordance, so it is a real target, not a hairline. */
+  .nf-sheet__grip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    height: 1.75rem;
+    cursor: grab;
+  }
+  .nf-sheet__grip::before {
+    content: "";
+    width: 2.25rem;
+    height: 0.25rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-content-muted);
+    opacity: 0.5;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-sheet__grip:active::before {
+    opacity: 0.8;
+  }
+  .nf-sheet[data-dragging="true"] .nf-sheet__grip {
+    cursor: grabbing;
+  }
+
+  .nf-sheet__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Content scrolls normally; only the surface itself owns the drag. */
+    touch-action: pan-y;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-sheet,
+    .nf-sheet-backdrop {
+      transition: none;
+    }
+  }
+
+  /* ------------------------------------------------------- symbol effects */
+
+  /*
+   * Animated icons, the reference set's headline feature.
+   *
+   * Across the fifteen references the bell rings on a new notification, the
+   * heart pulses and fills on save, refresh rotates, send flies away. This
+   * platform had none of it across 166 icon usages; the single bell-wiggle
+   * keyframe that existed in this file had zero call sites.
+   *
+   * Each effect plays once by default, on mount, which is the right behaviour
+   * for a state change - the bell rings when the notification ARRIVES, it does
+   * not ring forever. --loop is for genuinely continuous states such as a
+   * syncing indicator. Every effect collapses to nothing under reduced motion.
+   */
+  .nf-sym {
+    transform-origin: center;
+    animation-duration: 620ms;
+    animation-timing-function: var(--nf-ease-spring);
+    animation-fill-mode: both;
+  }
+  .nf-sym--loop {
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+  }
+
+  @keyframes nf-sym-bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-22%) scale(1.06);
+    }
+    60% {
+      transform: translateY(4%) scale(0.98);
+    }
+  }
+  .nf-sym--bounce {
+    animation-name: nf-sym-bounce;
+  }
+
+  @keyframes nf-sym-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    35% {
+      transform: scale(1.22);
+    }
+    55% {
+      transform: scale(0.96);
+    }
+  }
+  .nf-sym--pulse {
+    animation-name: nf-sym-pulse;
+  }
+
+  /* The bell. Rings from the crown, not the centre, or it reads as a shake. */
+  @keyframes nf-sym-wiggle {
+    0%,
+    100% {
+      transform: rotate(0);
+    }
+    15% {
+      transform: rotate(13deg);
+    }
+    35% {
+      transform: rotate(-11deg);
+    }
+    55% {
+      transform: rotate(7deg);
+    }
+    75% {
+      transform: rotate(-4deg);
+    }
+  }
+  .nf-sym--wiggle {
+    transform-origin: 50% 18%;
+    animation-name: nf-sym-wiggle;
+  }
+
+  @keyframes nf-sym-rotate {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .nf-sym--rotate {
+    animation-name: nf-sym-rotate;
+    animation-duration: 900ms;
+    animation-timing-function: var(--nf-ease-standard);
+  }
+
+  /* Send. Departs up and to the right, then returns from the opposite corner. */
+  @keyframes nf-sym-fly {
+    0% {
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+    45% {
+      transform: translate(65%, -65%);
+      opacity: 0;
+    }
+    46% {
+      transform: translate(-55%, 55%);
+      opacity: 0;
+    }
+    100% {
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+  }
+  .nf-sym--fly {
+    animation-name: nf-sym-fly;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-sym {
+      animation: none !important;
+    }
+  }
+
   /*
    * Spinner.
    *
@@ -2787,18 +3127,89 @@ body {
    * The previous guess was a flat 80px, which cleared nothing on a notch.
    */
   :root {
-    --nf-tabbar-clearance: calc(0.9rem + env(safe-area-inset-bottom, 0px) + 3.5rem + 0.75rem);
+    --nf-tabbar-clearance: calc(0.35rem + env(safe-area-inset-bottom, 0px) + 3.5rem + 0.75rem);
+  }
+
+  /*
+   * The dock: detached islands, not one continuous bar.
+   *
+   * The supplied reference is the iOS Photos bottom bar - a standalone circular
+   * control, a wide capsule carrying the main destinations, and another
+   * standalone circle - all floating clear of every edge with real gaps between
+   * them. The separation is the whole effect: three objects sitting above the
+   * content rather than one strip welded across it.
+   *
+   * The row itself carries no material. Each island brings its own, so they
+   * blur the content independently and read as genuinely separate pieces.
+   */
+  .nf-dockrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
   }
 
   .nf-tabbar {
     background: var(--nf-glass-fill-strong);
-    border: 1px solid var(--nf-border-subtle);
+    border: 1px solid var(--nf-glass-border);
     border-radius: var(--nf-radius-pill);
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
-    box-shadow: 0 16px 36px -12px rgb(0 0 0 / 0.6);
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow-lifted);
+  }
+
+  /*
+   * The detached island. Same material as the capsule so the group reads as one
+   * family, but circular and standing on its own.
+   */
+  .nf-dock-island {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-primary);
+    background: var(--nf-glass-fill-strong);
+    border: 1px solid var(--nf-glass-border);
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow-lifted);
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-spring),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-dock-island:active {
+    transform: scale(0.93);
+  }
+  /* The island's own active state: brand fill, matching the capsule's pill. */
+  .nf-dock-island[aria-current="page"] {
+    color: #fff;
+    background: var(--nf-gradient-brand);
+    border-color: transparent;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.24),
+      0 6px 18px -4px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-dock-island {
+      transition: none;
+    }
+    .nf-dock-island:active {
+      transform: none;
+    }
   }
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    /* The detached island is the same material and needs the same fallback, or
+       it becomes an 11%-white wash with content scrolling through it. */
+    .nf-dock-island,
     .nf-tabbar {
       background: var(--nf-surface-elevated);
     }
@@ -2821,9 +3232,42 @@ body {
       transform: scale(1);
     }
   }
+  /*
+   * The tab.
+   *
+   * The reference standard is an active tab that EXPANDS into a labelled
+   * capsule while its neighbours stay icon-only circles, with the highlight
+   * sliding between positions rather than cross-fading.
+   *
+   * What was here did neither. No tab text was ever painted - labels existed
+   * only in aria-label - and the pill was `inset: 0` on a 48x48 circle, so each
+   * tab owned its own separate blob and moving between them was a fade out plus
+   * a fade in. Nothing travelled.
+   *
+   * The slide is produced without JavaScript, measurement or a shared indicator
+   * element: the outgoing tab's label collapses its max-width to zero at the
+   * same moment the incoming tab's expands. Both animate on the same spring, so
+   * the capsule visibly travels along the bar. Keeping it CSS-only is what lets
+   * the tab bar stay a server component.
+   */
   .nf-tab-pop {
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    height: 3rem;
+    min-width: 3rem;
+    padding-inline: 0.75rem;
+    border-radius: var(--nf-radius-pill);
+    transition:
+      gap var(--nf-duration-base) var(--nf-ease-spring),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  .nf-tab-pop[aria-current="page"] {
+    gap: 0.4rem;
+  }
+
   .nf-tab-pop__pill {
     position: absolute;
     inset: 0;
@@ -2841,15 +3285,51 @@ body {
     transform: scale(1);
     animation: nf-tab-pop-in 0.4s var(--nf-ease-standard);
   }
+
   .nf-tab-pop__icon {
     position: relative;
     display: flex;
+    flex-shrink: 0;
     transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-tab-pop[aria-current="page"] .nf-tab-pop__icon {
     transform: translateY(-1px);
   }
+
+  /*
+   * The label. Collapsed to zero width when inactive rather than hidden, so it
+   * has a width to animate to. `max-width` rather than `width` because the
+   * content sizes itself and locales differ wildly in length - the Igbo label
+   * for one destination is 3.25x the English.
+   */
+  .nf-tab-pop__label {
+    position: relative;
+    display: block;
+    max-width: 0;
+    overflow: hidden;
+    /* Elide rather than clip. On a 320px phone the capsule leaves very little
+       room once four tabs and the island are placed, and the longer locale
+       strings - Igbo "Chogharia" for explore - overrun it. */
+    text-overflow: ellipsis;
+    opacity: 0;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    transition:
+      max-width var(--nf-duration-base) var(--nf-ease-spring),
+      opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-tab-pop[aria-current="page"] .nf-tab-pop__label {
+    max-width: 7rem;
+    opacity: 1;
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    .nf-tab-pop,
+    .nf-tab-pop__label {
+      transition: none;
+    }
     .nf-tab-pop[aria-current="page"] .nf-tab-pop__pill {
       animation: none;
     }
@@ -3490,9 +3970,31 @@ body {
     }
   }
 
+  /*
+   * Horizontal rails: chip rows, category strips, carousels.
+   *
+   * `overscroll-behavior-x: contain` is the important line. Without it, swiping
+   * a rail to its end chains the gesture into the document, so the whole page
+   * slides sideways and springs back - which reads as the layout being loose
+   * and unfinished rather than as a scroll.
+   *
+   * Snap and the right-edge fade come from the reference set: the next item is
+   * always partly visible and softly cut rather than hard-clipped, which is how
+   * a rail says "there is more" without a scrollbar.
+   */
   .nf-scroll-x {
     overflow-x: auto;
+    overscroll-behavior-x: contain;
     scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-snap-type: x proximity;
+  }
+  .nf-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-scroll-x > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
   }
   .nf-scroll-x::-webkit-scrollbar {
     display: none;
@@ -3719,8 +4221,15 @@ body {
   }
 
   /* The tab bar's heavy night shadow becomes a soft neutral lift. */
-  :root[data-theme="light"] .nf-tabbar {
-    box-shadow: 0 16px 32px -14px rgb(18 21 26 / 0.28);
+  /* Both dock islands take the same daylight lift, so the group stays one family. */
+  :root[data-theme="light"] .nf-tabbar,
+  :root[data-theme="light"] .nf-dock-island {
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      0 16px 32px -14px rgb(18 21 26 / 0.28);
+  }
+  :root[data-theme="light"] .nf-dock-island[aria-current="page"] {
+    box-shadow: 0 6px 18px -4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
   }
   :root[data-theme="light"] .nf-tab-pop__pill {
     box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
@@ -3883,4 +4392,61 @@ body {
 :root[data-theme="light"] ::selection {
   background: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
   color: var(--nf-content-primary);
+}
+
+/*
+ * iOS zoom on focus.
+ *
+ * Mobile Safari zooms the viewport whenever a focused form control has a
+ * font-size below 16px, and this platform's body size is 0.875rem (14px), so
+ * EVERY input, select and textarea triggered it. The page would jump in, the
+ * layout would be thrown off-centre, and nothing brought it back - which is
+ * what "it zooms in anyhow and scatters the looks" is.
+ *
+ * Scoped to coarse pointers so the desktop type scale is untouched. 16px is not
+ * a preference here, it is the threshold Safari checks.
+ */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea,
+  [contenteditable],
+  .nf-field {
+    /*
+     * !important because several fields carry an arbitrary Tailwind size -
+     * `text-[0.8438rem]` on the assistant and support composers, for instance.
+     * This is not a style preference competing with those; it is the threshold
+     * that decides whether Safari hijacks the viewport, so it has to win.
+     */
+    font-size: 16px !important;
+  }
+}
+
+/*
+ * Double-tap zoom.
+ *
+ * The other half of "it zooms in and out anyhow", and a different mechanism
+ * from the focus zoom above: iOS waits ~300ms after every tap to see whether a
+ * second one follows, and if it does it zooms. On a dense screen - a chip row,
+ * a card grid, a list of ledger rows - two quick taps in roughly the same place
+ * are ordinary use, not a zoom request.
+ *
+ * `manipulation` keeps panning and PINCH zoom, so the page can still be
+ * magnified deliberately and nothing about accessibility is lost. It only
+ * removes the double-tap gesture, and it removes the 300ms tap delay with it,
+ * so taps register immediately.
+ */
+a,
+button,
+label,
+summary,
+select,
+input[type="checkbox"],
+input[type="radio"],
+[role="button"],
+[role="tab"],
+[role="radio"],
+[role="switch"],
+[role="option"] {
+  touch-action: manipulation;
 }

@@ -27,7 +27,8 @@ export function StatCard({
 }: {
   icon: BrandIconName;
   label: string;
-  value: string;
+  /** A rendered figure: `<Amount>` for money, `<Figure>` for a bare count. */
+  value: React.ReactNode;
   deltaPct: number;
   deltaLabel: string;
   className?: string;
@@ -47,7 +48,7 @@ export function StatCard({
         <p className="text-[0.75rem] font-medium leading-snug text-[var(--nf-content-muted)]">
           {label}
         </p>
-        <p className="nf-numeric mt-1 text-[1.25rem] font-bold leading-none text-[var(--nf-content-primary)] sm:text-[1.375rem]">
+        <p className="nf-numeric mt-1 text-[1.25rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)] sm:text-[1.375rem]">
           {value}
         </p>
         <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[0.75rem] leading-snug">
