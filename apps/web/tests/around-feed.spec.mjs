@@ -1,7 +1,7 @@
 /**
  * Around is the feed, and the directory is behind it.
  *
- *   BASE_URL=http://localhost:3310 node apps/web/tests/around-feed.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/around-feed.spec.mjs
  *
  * The owner tapped Around in the bottom navigation expecting the conversation
  * and got a list of rooms. `/around` is now the timeline of the places somebody
@@ -25,7 +25,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3310";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 900;
 
 let failures = 0;
