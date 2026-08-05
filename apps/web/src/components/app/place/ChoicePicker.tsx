@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { TextField } from "@/components/ui/Field";
 import { matchesSearch } from "@/lib/places/reference";
 
 /**
@@ -87,7 +88,6 @@ export function ChoicePicker({
   const base = useId();
   const hintId = `${base}-hint`;
   const errorId = `${base}-error`;
-  const searchRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const closePicker = useCallback(() => setOpen(false), []);
 
@@ -98,9 +98,18 @@ export function ChoicePicker({
      unlocks the page behind a picker opened from inside another sheet. */
   useOverlay({ open, onClose: closePicker, panelRef, autoFocus: false });
 
+  /*
+   * Focus the search once the drawer has settled, unchanged in behaviour: the
+   * 60ms wait is what stops the focus landing mid-transition and scrolling the
+   * panel. The field is found in the panel rather than held on a ref, because
+   * `TextField` owns its own input ref and takes none from a caller. The panel
+   * has exactly one search input, and `place-pickers.spec` asserts that.
+   */
   useEffect(() => {
     if (!open) return;
-    const timer = window.setTimeout(() => searchRef.current?.focus(), 60);
+    const timer = window.setTimeout(() => {
+      panelRef.current?.querySelector<HTMLInputElement>('input[type="search"]')?.focus();
+    }, 60);
     return () => window.clearTimeout(timer);
   }, [open]);
 
@@ -231,24 +240,32 @@ export function ChoicePicker({
                   <h2 className="nf-h3 min-w-0 flex-1 truncate">{label}</h2>
                 </div>
 
-                <div className="nf-field nf-focus-well mt-4 flex items-center gap-2.5">
-                  <UiIcon
-                    name="search"
-                    size={16}
-                    className="shrink-0 text-[var(--nf-content-muted)]"
-                  />
-                  <input
-                    ref={searchRef}
-                    type="search"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    placeholder={searchPlaceholder}
-                    autoComplete="off"
-                    spellCheck={false}
-                    aria-label={searchPlaceholder}
-                    className="min-h-11 w-full min-w-0 bg-transparent text-[0.9375rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
-                  />
-                </div>
+                {/*
+                  Was a `.nf-field .nf-focus-well` flex wrapper around a bare
+                  transparent input - the fifth arrangement of a leading search
+                  icon on the platform, at the fifth size. `TextField` owns the
+                  icon slot, the label/control pairing and the 16px coarse-
+                  pointer floor that stops mobile Safari zooming the drawer the
+                  moment this field takes focus.
+
+                  It also brings the clear affordance, which is the one this
+                  control most needed: 749 occupations behind a search box that
+                  could only be emptied by selecting the text and deleting it.
+                */}
+                <TextField
+                  className="mt-4"
+                  label={searchPlaceholder}
+                  hideLabel
+                  type="search"
+                  leadingIcon="search"
+                  clearable="Clear the search"
+                  onClear={() => setQuery("")}
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder={searchPlaceholder}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
               </div>
 
               <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2">

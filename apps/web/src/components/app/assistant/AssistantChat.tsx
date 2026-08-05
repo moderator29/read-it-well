@@ -406,7 +406,13 @@ export function AssistantChat({ locale }: { locale: Locale }) {
       lastMessage.role === "user" ||
       (lastMessage.text === "" && (lastMessage.listings?.length ?? 0) === 0));
 
-  const sidebar = (idPrefix: string) => (
+  /*
+   * No `idPrefix` any more. It existed only to keep the search input's id
+   * unique across the two mounts (the desktop column and the mobile drawer);
+   * `TextField` generates its own id with `useId`, which is unique per mount by
+   * construction rather than by a string the caller has to remember to vary.
+   */
+  const sidebar = () => (
     <AssistantSidebar
       threads={threads}
       activeId={activeId}
@@ -418,7 +424,6 @@ export function AssistantChat({ locale }: { locale: Locale }) {
       onClearAll={clearAll}
       onToneChange={setTone}
       onLanguageChange={setLanguage}
-      idPrefix={idPrefix}
     />
   );
 
@@ -446,7 +451,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
           aria-label="Assistant navigation"
           className="nf-card hidden w-72 shrink-0 overflow-hidden lg:block"
         >
-          {sidebar("desktop")}
+          {sidebar()}
         </aside>
 
         {/* ------------------------------------------------- thread area */}
@@ -634,7 +639,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
                 <CloseGlyph size={16} />
               </button>
             </div>
-            <div className="min-h-0 flex-1">{sidebar("drawer")}</div>
+            <div className="min-h-0 flex-1">{sidebar()}</div>
           </div>
         </div>
       )}
