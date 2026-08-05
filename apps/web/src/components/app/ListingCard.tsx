@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { formatMoney, type Dictionary, type Locale, formatRating, formatMoneyGlance } from "@naijafinds/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -110,23 +110,32 @@ export function ListingCard({
    * well because a pointer settling on a card is an even earlier signal, and a
    * desktop visitor never produces a pointerdown until they have decided.
    *
-   * ONCE PER CARD. `router.prefetch` is not free and a grid of twenty cards
-   * under a scrolling thumb would otherwise fire repeatedly.
+   * WHY THE `prefetch` PROP AND NOT `router.prefetch(href)`. The obvious
+   * version was written first and MEASURED AS DOING NOTHING AT ALL: pressing
+   * and holding a card for 900ms with the network recorded produced zero
+   * requests. `router.prefetch` defaults to an "auto" prefetch, which on a
+   * dynamic route fetches as far as the nearest loading boundary and no
+   * further, and this route has none, so there was nothing for it to fetch.
+   * It would have shipped looking exactly like a working prefetch. Flipping
+   * `prefetch` to `true` on a Link already in the viewport asks for the full
+   * payload, which is the thing that actually saves the guest the wait.
+   *
+   * ONCE PER CARD, and never turned back off: a grid of twenty cards under a
+   * scrolling thumb must not re-request on every pass.
    *
    * NOT ON A METERED CONNECTION. This is speculative traffic: it is exactly
    * what somebody switching on data saver is asking us to stop, and it is what
-   * `isDataSaver()` was written for.
+   * `isDataSaver()` was written for. Note the order, which matters: the
+   * setting is consulted at press time rather than at render time, so somebody
+   * who switches it on in another tab is respected on the very next press.
    */
   const prefetched = useRef(false);
+  const [warmed, setWarmed] = useState(false);
   const warm = () => {
     if (prefetched.current) return;
     if (isDataSaver()) return;
     prefetched.current = true;
-    try {
-      router.prefetch(href);
-    } catch {
-      /* Prefetching is an optimisation and never a requirement. */
-    }
+    setWarmed(true);
   };
 
   /*
@@ -182,6 +191,7 @@ export function ListingCard({
     >
       <Link
         href={href}
+        prefetch={warmed ? true : undefined}
         onClick={handleClick}
         onPointerDown={warm}
         onPointerEnter={warm}

@@ -1,3 +1,4 @@
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/support-email";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -31,8 +32,8 @@ const sections: { title: string; body: React.ReactNode }[] = [
         </p>
         <p>
           Questions about this policy or about your data should go to{" "}
-          <a href="mailto:support@naijafinds.com" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
-            support@naijafinds.com
+          <a href={SUPPORT_MAILTO} className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+            {SUPPORT_EMAIL}
           </a>{" "}
           with the subject line &quot;Privacy&quot;.
         </p>
@@ -180,8 +181,8 @@ const sections: { title: string; body: React.ReactNode }[] = [
         </ul>
         <p>
           To exercise any of these rights, email{" "}
-          <a href="mailto:support@naijafinds.com" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
-            support@naijafinds.com
+          <a href={SUPPORT_MAILTO} className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+            {SUPPORT_EMAIL}
           </a>
           . We respond within the timelines the NDPA sets. If you are not satisfied with
           our response, you have the right to complain to the Nigeria Data Protection

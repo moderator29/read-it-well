@@ -1,3 +1,4 @@
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/support-email";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
@@ -9,10 +10,9 @@ import { CONTACT_TOPICS, DEFAULT_CONTACT_TOPIC, type ContactTopic } from "./topi
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Reach the RentMe support team. Email support@naijafinds.com and we reply within one business day.",
+    "Reach the RentMe support team. Email {SUPPORT_EMAIL} and we reply within one business day.",
 };
 
-const SUPPORT_EMAIL = "support@naijafinds.com";
 
 /**
  * Contact page.
