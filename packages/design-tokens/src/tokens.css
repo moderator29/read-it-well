@@ -334,7 +334,23 @@
    * Same hue family, three steps up in depth: 5.6:1, 4.9:1 and 4.0:1 against
    * the canvas. Daylight needs no lift, because the existing paper gradient
    * already measures 7.4:1 and 10.6:1 on white. */
-  --nf-gradient-text: linear-gradient(135deg, #7C95FF 0%, #4B6DFF 52%, #2E5BFF 100%);
+  /*
+   * The last stop was #2E5BFF, which measures 4.03:1 on --nf-surface-canvas.
+   * That clears AA for large text (3:1) and fails it for body text (4.5:1),
+   * so the token was safe only as long as every caller happened to be 24px or
+   * bold, and one was not: StoryRail's "in one place" is 20px regular.
+   *
+   * Lifting the darkest stop 7% toward white takes the worst point of the
+   * gradient to 4.53:1, which passes at any size. The first two stops already
+   * cleared it at 7.54 and 4.89, so this is the only one that moved, and it
+   * moves far enough to be correct and not one shade further.
+   *
+   * Measured against the canvas rather than against black. The text sits on a
+   * transparent stack all the way to <html>, so the canvas token IS the
+   * background; a probe that stopped at body scored everything against
+   * rgba(0,0,0,0) and made this look like it passed.
+   */
+  --nf-gradient-text: linear-gradient(135deg, #7C95FF 0%, #4B6DFF 52%, #3D66FF 100%);
   --nf-gradient-agent: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-surface: linear-gradient(180deg, rgb(255 255 255 / 0.045) 0%, rgb(255 255 255 / 0.012) 100%);
 
