@@ -49,6 +49,7 @@ export const en = {
     explore: "Explore",
     saved: "Saved",
     around: "Around",
+    feed: "Feed",
     map: "Map",
     primaryLabel: "Primary",
     accountLabel: "Account",
@@ -58,6 +59,38 @@ export const en = {
     agentMode: "Agent Mode",
     consoleLabel: "Console",
     workspacesLabel: "Workspaces",
+  },
+
+  /**
+   * Around: the feed shell.
+   *
+   * Most of the social layer's words live in `lib/social/*-schema.ts`, beside
+   * the database rules they have to agree with, and they stay there. What is
+   * here is the shell a person reads before any row loads at all: the switcher
+   * above the timeline, the sentence explaining whose timeline it is, and the
+   * way through to the place directory. Those are read on arrival, in whatever
+   * language somebody chose, so they belong in the dictionary rather than in a
+   * server module that only speaks English.
+   */
+  social: {
+    /** The header control that leaves the feed for the directory. */
+    manage: "Manage places",
+    manageLede:
+      "Your places, everywhere that is open, and anything you have suggested.",
+    /** The first chip of the switcher: the combined timeline. */
+    allPlaces: "All your places",
+    /** The last chip of the switcher, and the way out of an unjoined feed. */
+    pickPlaces: "Pick your places",
+    switcherLabel: "Which places to read",
+    openPlacePage: "Open this place on its own page",
+    browsingOpen:
+      "You have not joined a place yet, so this is the busiest open places rather than yours. Pick the ones you know and this becomes your feed.",
+    browsingOpenSignedOut:
+      "This is the busiest open places. Sign in, pick the ones you know, and this becomes your feed.",
+    emptyJoined:
+      "Nothing has been said in your places yet. What you write will be the first thing anybody arriving reads.",
+    emptyAnywhere:
+      "Nothing has been said in any open place yet. Nothing is hidden and nothing is missing: Around is this new.",
   },
 
   landing: {
@@ -155,6 +188,19 @@ export const en = {
     providerUnavailable: "This sign in method is not configured yet.",
     backToHome: "Back to home",
     otherWays: "Other ways to continue",
+    resetTitle: "Reset your password",
+    resetLead: "Type the email address on your account and we will send you a link to set a new password.",
+    resetSend: "Send the reset link",
+    resetSentLead: "Check your inbox.",
+    resetNotArrived: "Nothing after a few minutes? Look in spam, and check the address you typed. You can ask again from the sign-in screen.",
+    resetExpiredTitle: "That link has expired",
+    resetExpiredLead: "A reset link lasts an hour and works once. Ask for a new one and open it on the same device.",
+    newPasswordTitle: "Choose a new password",
+    newPasswordLead: "Pick something you have not used here before. You will be signed in as soon as it is saved.",
+    newPasswordLabel: "New password",
+    newPasswordSave: "Save and sign in",
+    confirmPasswordLabel: "Confirm password",
+    confirmPasswordPlaceholder: "Repeat your password",
   },
 
   home: {

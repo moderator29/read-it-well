@@ -48,6 +48,7 @@ export const yo: Dictionary = {
     explore: "Ṣàwárí",
     saved: "Tí a fipamọ́",
     around: "Agbègbè",
+    feed: "Ìtàn àdúgbò",
     map: "Máàpù",
     primaryLabel: "Àkọ́kọ́",
     accountLabel: "Àkàǹtì",
@@ -57,6 +58,24 @@ export const yo: Dictionary = {
     agentMode: "Ipò Aṣojú",
     consoleLabel: "Ìdarí",
     workspacesLabel: "Àwọn ibi iṣẹ́",
+  },
+
+  social: {
+    manage: "Ṣàkóso àwọn ibi",
+    manageLede:
+      "Àwọn ibi rẹ, gbogbo ibi tí ó ṣí sílẹ̀, àti ohunkóhun tí o ti dábàá.",
+    allPlaces: "Gbogbo àwọn ibi rẹ",
+    pickPlaces: "Yan àwọn ibi rẹ",
+    switcherLabel: "Àwọn ibi wo ni kí a kà",
+    openPlacePage: "Ṣí ibi yìí ní ojú ewé tirẹ̀",
+    browsingOpen:
+      "O kò tíì darapọ̀ mọ́ ibi kankan, nítorí náà àwọn ibi tí ó ṣí sílẹ̀ tí ó kún jùlọ ni èyí, kì í ṣe tìrẹ. Yan àwọn tí o mọ̀, yóò sì di ìtàn tìrẹ.",
+    browsingOpenSignedOut:
+      "Àwọn ibi tí ó ṣí sílẹ̀ tí ó kún jùlọ ni èyí. Wọlé, yan àwọn tí o mọ̀, yóò sì di ìtàn tìrẹ.",
+    emptyJoined:
+      "Kò sí ohun tí a ti sọ ní àwọn ibi rẹ. Ohun tí o bá kọ ni yóò jẹ́ àkọ́kọ́ tí ẹnikẹ́ni tí ó bá dé yóò kà.",
+    emptyAnywhere:
+      "Kò sí ohun tí a ti sọ ní ibi tí ó ṣí sílẹ̀ kankan. Kò sí ohun tí a fi pamọ́, kò sì sí ohun tí ó sọnù: Agbègbè ṣẹ̀ṣẹ̀ bẹ̀rẹ̀ ni.",
   },
 
   landing: {
@@ -154,6 +173,19 @@ export const yo: Dictionary = {
     providerUnavailable: "Ọ̀nà ìwọlé yìí kò tíì ṣetán.",
     backToHome: "Padà sí ilé",
     otherWays: "Àwọn ọ̀nà mìíràn láti tẹ̀síwájú",
+    resetTitle: "Tún ọ̀rọ̀ ìpamọ́ rẹ ṣe",
+    resetLead: "Tẹ àdírẹ́sì ímeèlì tí ó wà lórí àkàǹtì rẹ, a ó sì fi ọ̀nà ránṣẹ́ sí ọ láti ṣe ọ̀rọ̀ ìpamọ́ tuntun.",
+    resetSend: "Fi ọ̀nà ìtúnṣe ránṣẹ́",
+    resetSentLead: "Wo inú ímeèlì rẹ.",
+    resetNotArrived: "Kò dé lẹ́yìn ìṣẹ́jú díẹ̀? Wo inú spam, kí o sì ṣàyẹ̀wò àdírẹ́sì tí o tẹ. O lè béèrè lẹ́ẹ̀kansí láti ojú ìwé ìwọlé.",
+    resetExpiredTitle: "Ọ̀nà náà ti pé",
+    resetExpiredLead: "Ọ̀nà ìtúnṣe máa ń pé lẹ́yìn wákàtí kan, ó sì ń ṣiṣẹ́ ẹ̀ẹ̀kan ṣoṣo. Béèrè fún tuntun kí o sì ṣí i lórí ẹ̀rọ kan náà.",
+    newPasswordTitle: "Yan ọ̀rọ̀ ìpamọ́ tuntun",
+    newPasswordLead: "Yan èyí tí o kò tíì lò níbí rí. A ó wọ̀ ọ́ lọ́gán tí ó bá ti fi pamọ́.",
+    newPasswordLabel: "Ọ̀rọ̀ ìpamọ́ tuntun",
+    newPasswordSave: "Fi pamọ́ kí o sì wọlé",
+    confirmPasswordLabel: "Fi ọ̀rọ̀ ìpamọ́ múlẹ̀",
+    confirmPasswordPlaceholder: "Tún ọ̀rọ̀ ìpamọ́ rẹ tẹ",
   },
 
   home: {

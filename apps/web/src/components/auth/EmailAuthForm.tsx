@@ -227,10 +227,8 @@ export function EmailAuthForm({
 
         {!isSignUp && (
           <p className="text-center">
-            {/* No reset route exists yet, so this routes back to sign-in
-                rather than dead-ending on a 404. */}
             <Link
-              href="/sign-in"
+              href="/forgot-password"
               className="text-[0.8125rem] text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               {t.auth.forgotPassword}

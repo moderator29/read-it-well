@@ -48,6 +48,7 @@ export const ha: Dictionary = {
     explore: "Bincika",
     saved: "An ajiye",
     around: "Yanki",
+    feed: "Labarai",
     map: "Taswira",
     primaryLabel: "Na farko",
     accountLabel: "Asusu",
@@ -57,6 +58,24 @@ export const ha: Dictionary = {
     agentMode: "Yanayin Wakili",
     consoleLabel: "Kwamiti",
     workspacesLabel: "Wuraren aiki",
+  },
+
+  social: {
+    manage: "Sarrafa wurare",
+    manageLede:
+      "Wuraren ka, duk inda aka buɗe, da duk abin da ka gabatar.",
+    allPlaces: "Duk wuraren ka",
+    pickPlaces: "Zaɓi wuraren ka",
+    switcherLabel: "Wadanne wurare za a karanta",
+    openPlacePage: "Buɗe wannan wuri a shafinsa",
+    browsingOpen:
+      "Ba ka shiga wani wuri ba tukuna, don haka wannan shi ne wuraren da suka fi cunkoso, ba naka ba. Zaɓi wadanda ka sani, sai ya zama naka.",
+    browsingOpenSignedOut:
+      "Wannan shi ne wuraren da suka fi cunkoso. Shiga, zaɓi wadanda ka sani, sai ya zama naka.",
+    emptyJoined:
+      "Ba a faɗi komai a wuraren ka ba tukuna. Abin da ka rubuta shi ne abu na farko da duk wanda ya iso zai karanta.",
+    emptyAnywhere:
+      "Ba a faɗi komai a ko'ina da aka buɗe ba tukuna. Ba a ɓoye komai kuma babu abin da ya ɓace: Yanki sabo ne haka.",
   },
 
   landing: {
@@ -154,6 +173,19 @@ export const ha: Dictionary = {
     providerUnavailable: "Wannan hanyar shiga ba a saita ta ba tukuna.",
     backToHome: "Koma gida",
     otherWays: "Sauran hanyoyin ci gaba",
+    resetTitle: "Sake saita kalmar sirrinka",
+    resetLead: "Rubuta adireshin imel ɗin da ke kan asusunka, za mu aiko maka da hanyar saita sabuwar kalmar sirri.",
+    resetSend: "Aika hanyar sakewa",
+    resetSentLead: "Duba akwatin imel ɗinka.",
+    resetNotArrived: "Bai zo ba bayan ƴan mintuna? Duba cikin spam, sannan ka duba adireshin da ka rubuta. Kana iya sake nema daga shafin shiga.",
+    resetExpiredTitle: "Wannan hanyar ta ƙare",
+    resetExpiredLead: "Hanyar sakewa tana ɗaukar awa ɗaya kuma tana aiki sau ɗaya. Nemi sabuwa ka buɗe ta a na'ura ɗaya.",
+    newPasswordTitle: "Zaɓi sabuwar kalmar sirri",
+    newPasswordLead: "Zaɓi wadda ba ka taɓa amfani da ita a nan ba. Za ka shiga da zarar an adana ta.",
+    newPasswordLabel: "Sabuwar kalmar sirri",
+    newPasswordSave: "Adana ka shiga",
+    confirmPasswordLabel: "Tabbatar da kalmar sirri",
+    confirmPasswordPlaceholder: "Sake rubuta kalmar sirrinka",
   },
 
   home: {

@@ -48,6 +48,7 @@ export const ig: Dictionary = {
     explore: "Chọgharịa",
     saved: "Echekwara",
     around: "Ógbè",
+    feed: "Akụkọ ógbè",
     map: "Maapụ",
     primaryLabel: "Isi",
     accountLabel: "Akaụntụ",
@@ -57,6 +58,24 @@ export const ig: Dictionary = {
     agentMode: "Ọnọdụ Onye nnọchi",
     consoleLabel: "Njikwa",
     workspacesLabel: "Ebe ọrụ",
+  },
+
+  social: {
+    manage: "Jikwaa ebe",
+    manageLede:
+      "Ebe gị niile, ebe niile emeghere, na ihe ọ bụla ị tụrụ aro.",
+    allPlaces: "Ebe gị niile",
+    pickPlaces: "Họrọ ebe gị",
+    switcherLabel: "Ebe ole ka a ga-agụ",
+    openPlacePage: "Mepee ebe a na peeji nke ya",
+    browsingOpen:
+      "Ị sonyebeghị n'ebe ọ bụla, ya mere nke a bụ ebe emeghere kacha ju eju, ọ bụghị nke gị. Họrọ ndị ị maara, ọ ga-aghọ akụkọ gị.",
+    browsingOpenSignedOut:
+      "Nke a bụ ebe emeghere kacha ju eju. Banye, họrọ ndị ị maara, ọ ga-aghọ akụkọ gị.",
+    emptyJoined:
+      "Ọ dịbeghị ihe a kwuru n'ebe gị. Ihe ị ga-ede ga-abụ ihe mbụ onye ọ bụla bịara ga-agụ.",
+    emptyAnywhere:
+      "Ọ dịbeghị ihe a kwuru n'ebe ọ bụla emeghere. Ọ dịghị ihe zoro ezo, ọ dịghịkwa ihe furu efu: Ógbè dị ọhụrụ otu a.",
   },
 
   landing: {
@@ -154,6 +173,19 @@ export const ig: Dictionary = {
     providerUnavailable: "Edobeghị ụzọ nbanye a.",
     backToHome: "Laghachi n'ụlọ",
     otherWays: "Ụzọ ndị ọzọ ị ga-esi gaa n'ihu",
+    resetTitle: "Tọgharịa okwuntughe gị",
+    resetLead: "Pịnye adreesị email dị na akaụntụ gị, anyị ga-ezitere gị njikọ iji hazie okwuntughe ọhụrụ.",
+    resetSend: "Zipu njikọ nrụzi",
+    resetSentLead: "Lelee igbe email gị.",
+    resetNotArrived: "Ọ bịaghị mgbe nkeji ole na ole gasịrị? Lelee na spam, ma lelee adreesị i pịnyere. Ị nwere ike ịrịọ ọzọ site na ihuenyo nbanye.",
+    resetExpiredTitle: "Njikọ ahụ agwụla",
+    resetExpiredLead: "Njikọ nrụzi na-adị otu awa, ọ na-arụkwa ọrụ otu ugboro. Rịọ nke ọhụrụ ma mepee ya n'otu ngwaọrụ ahụ.",
+    newPasswordTitle: "Họrọ okwuntughe ọhụrụ",
+    newPasswordLead: "Họrọ nke ị na-ejibeghị ebe a. A ga-abanye gị ozugbo echekwara ya.",
+    newPasswordLabel: "Okwuntughe ọhụrụ",
+    newPasswordSave: "Chekwaa ma banye",
+    confirmPasswordLabel: "Kwado okwuntughe",
+    confirmPasswordPlaceholder: "Pịghachi okwuntughe gị",
   },
 
   home: {

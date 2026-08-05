@@ -262,5 +262,105 @@ export async function startOAuth(provider: "google" | "apple"): Promise<AuthForm
   redirect(data.url);
 }
 
+/* ------------------------------------------------------------ password reset */
+
+/**
+ * The same answer whether or not the address has an account.
+ *
+ * This is the whole security property of a reset flow. "No account with that
+ * email" turns the form into an account-existence oracle: anybody can paste a
+ * list of addresses through it and learn which of your users are real, which
+ * is the first step of a credential-stuffing run and, on a platform where
+ * people's homes are listed, a privacy leak in its own right. So the sentence
+ * below is returned for a match, for no match, and for a Supabase refusal
+ * alike, and it is worded so it stays true in every one of those cases.
+ */
+const RESET_SENT_MESSAGE =
+  "If that email has an account, a reset link is on its way. It expires in an hour, and it can only be used once.";
+
+export async function requestPasswordReset(
+  _prev: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const email = field(formData, "email").trim();
+
+  if (!email) return { ok: false, fieldErrors: { email: "Enter your email address." } };
+  if (email.length > 254) return { ok: false, fieldErrors: { email: "That email address is too long." } };
+  if (!EMAIL_RE.test(email)) {
+    return { ok: false, fieldErrors: { email: "That does not look like a valid email." } };
+  }
+
+  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+
+  const supabase = await createClient();
+  /*
+   * The link lands on the same callback every other Supabase route uses. It
+   * exchanges the recovery code for a session and forwards to
+   * /reset-password, which is the only screen that can then set a new
+   * password - and it can only do so because that exchange happened.
+   */
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent("/reset-password")}`,
+  });
+
+  /*
+   * A rate limit is the one refusal worth surfacing, because it is about the
+   * request and not about the account: telling somebody to wait a minute helps
+   * them and reveals nothing. Everything else - including "user not found" -
+   * returns the same sentence as success.
+   */
+  if (error && /rate limit|too many/i.test(error.message)) {
+    return { ok: false, message: "Too many requests just now. Wait a minute, then try again." };
+  }
+
+  return { ok: true, message: RESET_SENT_MESSAGE };
+}
+
+/**
+ * Set the new password.
+ *
+ * Only reachable with the session the recovery link created, and that is the
+ * authorisation: `updateUser` acts on whoever the cookies say is signed in, so
+ * without a valid recovery exchange there is nobody to act on and Supabase
+ * refuses. The screen checks for the session too, so somebody who opens the
+ * URL directly gets an explanation rather than a form that cannot work.
+ */
+export async function updatePassword(
+  _prev: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const password = field(formData, "password");
+  const confirmPassword = field(formData, "confirmPassword");
+
+  const fieldErrors: Partial<Record<AuthField, string>> = {};
+  if (!password) fieldErrors.password = "Enter a new password.";
+  else if (password.length < 8) fieldErrors.password = "Use at least 8 characters.";
+  else if (password.length > 200) fieldErrors.password = "That password is too long.";
+  if (password && confirmPassword !== password) {
+    fieldErrors.confirmPassword = "Passwords do not match.";
+  }
+  if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
+
+  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) {
+    return {
+      ok: false,
+      message:
+        "That reset link has expired or was already used. Ask for a new one and open it from the same device.",
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { ok: false, message: authMessage(error.message) };
+
+  // The password changed under the session the link created, so every cached
+  // render of the signed-out shell has to go.
+  revalidatePath("/", "layout");
+  redirect("/home");
+}
+
 // Signing out lives in lib/profile/actions.ts, which the settings screen
 // already calls. One session-ending path, one place.
