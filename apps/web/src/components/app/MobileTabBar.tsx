@@ -5,12 +5,11 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 /**
  * Mobile tab bar.
  *
- * Five destinations: District, Explore, Map and Inbox in the capsule, with
- * Profile standing alone beside it, and Map raised in the middle where a thumb
- * reaches easiest and where the platform's own answer to "what is near me"
- * belongs. This is deliberately NOT the twelve item desktop rail; a phone tab
- * bar tops out at five before targets get too small, so the rail's remaining
- * destinations live under Profile rather than being crammed in here.
+ * Five destinations: District, Explore, Inbox and the Assistant in the capsule,
+ * with Profile standing alone beside it. This is deliberately NOT the twelve
+ * item desktop rail; a phone tab bar tops out at five before targets get too
+ * small, so the rail's remaining destinations live under Profile rather than
+ * being crammed in here.
  *
  * A floating dock, lifted clear of every edge rather than an edge-to-edge bar:
  * same shape language as the desktop dock, just wide enough to carry primary
@@ -20,10 +19,9 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  * and because the outgoing label collapses on the same spring the incoming one
  * expands on, the highlight reads as travelling along the bar. Labels used to
  * be spoken only, which kept the dock compact but meant a sighted user had no
- * idea what any glyph meant until they tapped it. The raised tab prints its
- * label too, because a control that size with no word on it is a guess.
+ * idea what any glyph meant until they tapped it.
  */
-type Tab = { href: string; label: string; icon: UiIconName; raised?: boolean };
+type Tab = { href: string; label: string; icon: UiIconName };
 
 /**
  * The routes the dock belongs on.
@@ -37,12 +35,25 @@ type Tab = { href: string; label: string; icon: UiIconName; raised?: boolean };
  * the back affordance instead. Kept as a shared constant so the shell and the
  * dock can never disagree about where it shows.
  *
- * The Map tab points at `/search?view=map`, which is the same pathname Explore
- * uses, so `/search` covers both. `/home` stays on the list: it is still a real
- * destination, reached from the rail and from the logo, and the dock has to
- * survive underneath it even though no tab claims it.
+ * `/home` stays on the list: it is still a real destination, reached from the
+ * rail and from the logo, and the dock has to survive underneath it even though
+ * no tab claims it.
  */
-export const TAB_BAR_ROUTES = ["/home", "/around", "/search", "/messages", "/profile"];
+export const TAB_BAR_ROUTES = [
+  "/home",
+  "/around",
+  "/search",
+  "/messages",
+  "/profile",
+  /*
+   * `/assistant` is deliberately NOT here even though it is a dock
+   * destination. It is an immersive route - it owns the whole viewport with
+   * its own header and a composer pinned to the bottom edge - so a dock
+   * floating over its composer would be in the way of the one thing that
+   * screen is for. Tapping the tab still gets you there; the dock simply
+   * steps aside once you arrive, the same way it does for an open thread.
+   */
+];
 
 export function showsTabBar(pathname: string): boolean {
   return TAB_BAR_ROUTES.includes(pathname);
@@ -65,25 +76,23 @@ export function MobileTabBar({
   unreadNotifications?: number;
 }) {
   /*
-   * Four in the capsule, one standing alone.
+   * Four in the capsule, Profile alone on the right.
    *
-   * Profile is the one pulled out. It is the only destination that is about the
-   * user rather than about inventory, and holding it apart is what the supplied
-   * reference does with its outer circles - it also keeps the capsule down to
-   * four tabs, which is what leaves room for the active label to expand without
-   * the row overflowing a narrow phone.
+   * Profile is the one pulled out: it is the only destination about the user
+   * rather than about inventory, and holding it apart keeps the capsule at four
+   * so the active label has room to expand on a narrow phone.
    *
-   * Bookings and Saved moved under Profile, where the rail's other destinations
-   * already live: they are the two people reach for least often, and the seats
-   * they gave up are what District and the Map sit in now.
+   * The map tab is gone from the dock. It pointed at `/search?view=map`, the
+   * same pathname Explore already owns, so the two could never both resolve
+   * their active state - and the search screen carries its own map toggle,
+   * which is where that control belongs. Its slot goes to the assistant, which
+   * is the thing this product has that a listings app does not.
    */
   const tabs: Tab[] = [
     { href: "/around", label: t.nav.around, icon: "grid" },
     { href: "/search", label: t.nav.explore, icon: "compass" },
-    /* The map is the centre and it is raised, because "what is near me right
-       now" is the question a phone is actually being held to answer. */
-    { href: "/search?view=map", label: t.nav.map, icon: "map", raised: true },
     { href: "/messages", label: t.nav.messages, icon: "chat-bubble" },
+    { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
   ];
   const profile: Tab = { href: "/profile", label: t.nav.profile, icon: "user" };
   const profileActive = profile.href === active;
@@ -106,30 +115,6 @@ export function MobileTabBar({
       <ul className="nf-tabbar flex items-center gap-1 px-1.5 py-1.5">
         {tabs.map((tab) => {
           const isActive = tab.href === active;
-
-          if (tab.raised) {
-            return (
-              <li key={tab.href} className="-mt-6">
-                <Link
-                  href={tab.href}
-                  aria-current={isActive ? "page" : undefined}
-                  aria-label={tab.label}
-                  /* The fill is an inline style, not a Tailwind arbitrary
-                     value: `var(--nf-gradient-cta)` contains commas, and an
-                     arbitrary value carrying a comma does not survive the
-                     class parser. It rendered as a transparent pill, which
-                     made the raised tab the quietest thing in the dock. */
-                  style={{ background: "var(--nf-gradient-cta)" }}
-                  className="flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full border border-[color-mix(in_oklab,var(--nf-brand-primary)_60%,transparent)] text-[var(--nf-content-on-brand)] shadow-[0_0_18px_rgb(12_57_239_/_0.5)] transition-transform active:translate-y-px"
-                >
-                  <UiIcon name={tab.icon} size={20} />
-                  <span className="text-[0.5625rem] font-bold uppercase tracking-[0.06em]">
-                    {tab.label}
-                  </span>
-                </Link>
-              </li>
-            );
-          }
 
           return (
             <li key={tab.href}>

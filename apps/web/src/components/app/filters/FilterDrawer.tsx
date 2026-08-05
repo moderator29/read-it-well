@@ -19,6 +19,9 @@ import {
 } from "@/lib/listings/search-params";
 import { amenityLabel, sortAmenityCodes } from "./amenities";
 import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
+import { TextField } from "@/components/ui/Field";
+import { Switch } from "@/components/ui/Switch";
 
 /**
  * The filter control and its drawer.
@@ -138,7 +141,29 @@ function sliderScale(low: number | undefined, high: number | undefined) {
 
 /* ------------------------------------------------------------- small parts */
 
-function Switch({
+/**
+ * The drawer's switch row.
+ *
+ * This was the platform's second hand-rolled toggle, and the worse one. It
+ * animated the thumb on `left`, which is a LAYOUT property: the browser reflows
+ * the row on every frame of the 200ms travel instead of compositing a
+ * transform. The thumb was `bg-white` with a `ring-black/10`, two raw literals
+ * in a codebase whose token file opens by forbidding them, and white is simply
+ * the wrong colour on the light theme. The `Switch` primitive fixes all three
+ * and carries the 44pt hit region.
+ *
+ * What is kept here is genuinely this file's job: the drawer's own label
+ * typography, and the `data-testid`. The id sits on a span wrapping the control
+ * rather than on the control itself, because the primitive does not forward
+ * unknown props - the element is still the switch's own box, so a click on it
+ * lands on the switch.
+ *
+ * One deliberate change: the whole row used to be the button, so tapping the
+ * label toggled. It now behaves like every other switch row on the platform -
+ * the control is the control - which is what makes the label selectable text
+ * rather than a trap.
+ */
+function SwitchRow({
   label,
   hint,
   checked,
@@ -152,35 +177,17 @@ function Switch({
   testId: string;
 }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      data-testid={testId}
-      onClick={() => onChange(!checked)}
-      className="flex min-h-11 w-full items-center justify-between gap-4 py-2 text-left"
-    >
+    <div className="flex min-h-11 w-full items-center justify-between gap-4 py-2 text-left">
       <span className="min-w-0">
         <span className="block text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
           {label}
         </span>
         <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">{hint}</span>
       </span>
-      <span
-        aria-hidden="true"
-        className={`relative h-7 w-12 shrink-0 rounded-full border transition-colors duration-200 ${
-          checked
-            ? "border-transparent bg-[var(--nf-brand-primary)]"
-            : "border-[var(--nf-border-strong)] bg-[var(--nf-surface-inset)]"
-        }`}
-      >
-        <span
-          className={`absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow-sm ring-1 ring-black/10 transition-[left] duration-200 ${
-            checked ? "left-[1.5rem]" : "left-[0.15rem]"
-          }`}
-        />
+      <span data-testid={testId} className="shrink-0">
+        <Switch checked={checked} onCheckedChange={onChange} aria-label={label} />
       </span>
-    </button>
+    </div>
   );
 }
 
@@ -354,24 +361,26 @@ export function FilterDrawer({
               >
                 Search
               </h2>
-              <label className="relative mt-3 block">
-                <span className="sr-only">{`Search in ${scopeLabel}`}</span>
-                <UiIcon
-                  name="search"
-                  size={16}
-                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--nf-content-muted)]"
-                />
-                <input
-                  type="search"
-                  data-testid="filter-search"
-                  value={draft.q}
-                  onChange={(event) =>
-                    setDraft((current) => ({ ...current, q: event.target.value }))
-                  }
-                  placeholder={`Search in ${scopeLabel}...`}
-                  className="nf-field min-h-11 pl-10"
-                />
-              </label>
+              {/* The fourth hand-rolled search bar, each at its own icon size
+                  and its own left padding. `clearable` is new here and matters
+                  most in a drawer: the scoped text is applied on Apply, so a
+                  reader who changes their mind needs to empty it before the
+                  count on the button means anything. */}
+              <TextField
+                className="mt-3"
+                label={`Search in ${scopeLabel}`}
+                hideLabel
+                type="search"
+                leadingIcon="search"
+                clearable="Clear the search"
+                onClear={() => setDraft((current) => ({ ...current, q: "" }))}
+                data-testid="filter-search"
+                value={draft.q}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, q: event.target.value }))
+                }
+                placeholder={`Search in ${scopeLabel}...`}
+              />
             </section>
 
             {/* -------------------------------------------------- price */}
@@ -497,21 +506,33 @@ export function FilterDrawer({
                 <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
                   Pick as many as you like. Every one has to be there.
                 </p>
+                {/*
+                  Wrapping, not a rail: every amenity has to be readable at
+                  once, so this stays a `flex-wrap` list rather than becoming a
+                  `ChipRow` that hides half of them off-screen.
+
+                  `behaviour="filter"` keeps the `aria-pressed` these already
+                  announced - each amenity toggles independently, they are not
+                  one choice out of a set. `min-h-11` is gone because inflating
+                  the box was the wrong fix for the 44pt floor; the primitive
+                  paints at 36px and overflows an invisible target instead.
+                  The `data-testid` moves to the `li`, which wraps the chip
+                  exactly, because the primitive forwards no unknown props.
+                */}
                 <ul className="mt-3 flex flex-wrap gap-2">
                   {amenityOptions.map((code) => {
                     const on = draft.amenities.includes(code);
                     return (
-                      <li key={code}>
-                        <button
-                          type="button"
-                          data-testid={`filter-amenity-${code}`}
-                          aria-pressed={on}
-                          onClick={() => toggleAmenity(code)}
-                          className={`nf-chip min-h-11 ${on ? "nf-chip--active" : ""}`}
+                      <li key={code} data-testid={`filter-amenity-${code}`}>
+                        <Chip
+                          size="sm"
+                          behaviour="filter"
+                          selected={on}
+                          icon={on ? "verified" : undefined}
+                          onSelectedChange={() => toggleAmenity(code)}
                         >
-                          {on && <UiIcon name="verified" size={12} />}
                           {amenityLabel(code)}
-                        </button>
+                        </Chip>
                       </li>
                     );
                   })}
@@ -524,14 +545,14 @@ export function FilterDrawer({
               <h2 className="pb-1 text-[0.875rem] font-bold text-[var(--nf-content-primary)]">
                 Booking and trust
               </h2>
-              <Switch
+              <SwitchRow
                 label="Instant book"
                 hint="Confirmed at once, with no wait for a reply"
                 checked={draft.instantBook}
                 testId="filter-instant"
                 onChange={(next) => setDraft((current) => ({ ...current, instantBook: next }))}
               />
-              <Switch
+              <SwitchRow
                 label="Verified only"
                 hint="Our own inventory, checked before it was published"
                 checked={draft.verifiedOnly}

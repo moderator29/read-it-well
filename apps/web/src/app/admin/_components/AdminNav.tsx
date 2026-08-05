@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Dictionary } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Chip, ChipRow } from "@/components/ui/Chip";
 import { ADMIN_NAV } from "./nav";
 
 type NavCopy = Dictionary["admin"]["nav"];
@@ -82,33 +83,37 @@ export function AdminTabs({
   const pathname = usePathname();
 
   return (
+    /*
+      The tab strip is a chip rail, so it is the shared one.
+      `!py-1.5` used to force the chip's height back DOWN, which is the tell
+      that somebody had tried to fix the touch target by inflating the box and
+      then had to undo it to keep the strip reading as a strip. `Chip` settles
+      that argument: it paints at its own height and grows only its hit region,
+      so these eight destinations are 44pt to tap on a 390px screen without the
+      rail getting any taller.
+    */
     <nav
       aria-label={navLabel}
-      className="nf-scroll-x -mx-4 border-b border-[var(--nf-border-subtle)] px-4 lg:hidden"
+      className="-mx-4 border-b border-[var(--nf-border-subtle)] px-4 py-2 lg:hidden"
     >
-      <ul className="flex w-max items-center gap-1.5 py-2">
+      <ChipRow bleed={false} snap={false}>
         {ADMIN_NAV.map((item) => {
-          const active = isActive(pathname, item.href);
           const count = counts[item.key] ?? 0;
           return (
-            <li key={item.key}>
-              <Link
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={`nf-chip ${active ? "nf-chip--active" : ""} !py-1.5`}
-              >
-                <UiIcon name={item.icon} size={16} className="shrink-0" />
-                {labels[item.key].short}
-                {count > 0 && (
-                  <span className="nf-numeric inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--nf-brand-primary)] px-1 text-[0.625rem] font-bold text-[var(--nf-content-on-brand)]">
-                    {count}
-                  </span>
-                )}
-              </Link>
-            </li>
+            <Chip
+              key={item.key}
+              behaviour="link"
+              href={item.href}
+              selected={isActive(pathname, item.href)}
+              size="sm"
+              icon={item.icon}
+              {...(count > 0 ? { count } : null)}
+            >
+              {labels[item.key].short}
+            </Chip>
           );
         })}
-      </ul>
+      </ChipRow>
     </nav>
   );
 }

@@ -193,3 +193,51 @@ export async function getReviewView(bookingId: string, locale: Locale): Promise<
     return { state: "unavailable" };
   }
 }
+
+/**
+ * Recent written reviews across the whole platform, newest first.
+ *
+ * For the marketing site's voices band. Every field is a real database row: the
+ * rating a guest gave, the words they wrote, and the shortened public name the
+ * database itself derives. Nothing here is composed, sampled or illustrative.
+ *
+ * Returns an EMPTY ARRAY when there is nothing to show, and the band that
+ * consumes it renders nothing at all in that case. That is the whole point. A
+ * marketplace with no reviews yet has no testimonials, and inventing them - or
+ * shipping placeholder quotes that read as real - is the single most damaging
+ * thing a landing page can do, because it is a lie about other people.
+ *
+ * Only reviews that actually carry words are returned. A bare five-star row
+ * with an empty body is a real rating but it is not a voice, and padding the
+ * band with silent stars would misrepresent how much anyone has actually said.
+ */
+export async function getPlatformReviews(
+  locale: Locale,
+  limit = 6,
+): Promise<ListingReview[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("id, rating, body, author_label, created_at")
+      .not("body", "is", null)
+      .neq("body", "")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error || !data) return [];
+    return data.map((row) => ({
+      id: row.id,
+      rating: Number(row.rating) || 0,
+      body: row.body,
+      author: row.author_label ?? "",
+      when: formatDate(new Date(row.created_at), locale),
+      /* The host's answer belongs on the listing page, where the conversation
+         has context. On the landing page it would be a second voice arguing
+         with the first in a space that has room for neither. */
+      response: null,
+    }));
+  } catch {
+    return [];
+  }
+}

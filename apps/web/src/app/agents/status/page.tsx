@@ -7,6 +7,7 @@ import { BackButton } from "@/components/site/BackButton";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { StatusIcon } from "./StatusIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 
 export const metadata: Metadata = {
   title: "Application status",
@@ -174,10 +175,13 @@ export default async function AgentStatusPage() {
             <p className="nf-numeric mt-1.5 text-[1.5rem] font-bold tracking-[0.04em] sm:text-[1.75rem]">
               {profile.reference}
             </p>
+            {/* The two-way approved/pending split painted a REJECTED or
+                SUSPENDED application amber, as though it were still waiting.
+                The shared map tells the truth about all seven states. */}
             <p className="mt-3">
-              <span className={`nf-badge ${approved ? "nf-badge--approved" : "nf-badge--pending"}`}>
+              <StatusPill tone={toneForStatus(profile.status)}>
                 {statusLabel[profile.status]}
-              </span>
+              </StatusPill>
             </p>
           </div>
 

@@ -87,7 +87,7 @@ export default async function AdminBookingPage({
           {stay.paidMinor > 0 ? (
             <ui.StatusChip
               label={fill(copy.settledChip, { amount: money(stay.paidMinor) })}
-              tone="approved"
+              tone="success"
             />
           ) : (
             <ui.StatusChip label={copy.unpaidChip} tone="neutral" />
@@ -95,7 +95,7 @@ export default async function AdminBookingPage({
           {stay.refundedMinor > 0 && (
             <ui.StatusChip
               label={fill(copy.refundedChip, { amount: money(stay.refundedMinor) })}
-              tone="pending"
+              tone="warning"
             />
           )}
         </div>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { saveLocalGovernment, saveOccupation } from "@/lib/admin/reference-actions";
 import { matchesSearch, type StateOption } from "@/lib/places/reference";
 import type { ActionResult } from "@/lib/actions/envelope";
+import { TextField, SelectField } from "@/components/ui/Field";
 
 /**
  * The two reference tables, edited in place.
@@ -39,20 +40,24 @@ function Field({
   readOnly?: boolean;
   inputMode?: "numeric";
 }) {
+  /*
+   * `aria-invalid` on a `.nf-field` paints nothing. That class draws its border
+   * with a border-box gradient, so the error rule beside it colours a surface
+   * the gradient sits on top of - the reference editors were computing field
+   * errors, setting the attribute, and rendering a field that looked untouched.
+   * TextField replaces the gradient's own border-box layer and adds a ring.
+   */
   return (
-    <label className="block">
-      <span className="nf-label">{label}</span>
-      <input
-        name={name}
-        defaultValue={defaultValue}
-        placeholder={placeholder}
-        readOnly={readOnly}
-        inputMode={inputMode}
-        aria-invalid={error ? true : undefined}
-        className="nf-field mt-1.5 w-full text-sm read-only:opacity-60"
-      />
-      {error && <span className="mt-1.5 block text-xs text-[var(--nf-state-error)]">{error}</span>}
-    </label>
+    <TextField
+      name={name}
+      label={label}
+      defaultValue={defaultValue}
+      placeholder={placeholder}
+      readOnly={readOnly}
+      inputMode={inputMode}
+      error={error}
+      inputClassName="read-only:opacity-60"
+    />
   );
 }
 
@@ -259,33 +264,25 @@ function LocalGovernmentForm({
         readOnly={mode === "edit"}
         error={errors?.code}
       />
-      <label className="block">
-        <span className="nf-label">State</span>
-        <select
-          name="stateCode"
-          defaultValue={initial?.stateCode ?? ""}
-          className="nf-field mt-1.5 w-full text-sm"
-          aria-invalid={errors?.stateCode ? true : undefined}
-        >
-          <option value="" style={{ background: "var(--nf-surface-elevated)" }}>
-            Choose a state
+      <SelectField
+        name="stateCode"
+        label="State"
+        defaultValue={initial?.stateCode ?? ""}
+        error={errors?.stateCode}
+      >
+        <option value="" style={{ background: "var(--nf-surface-elevated)" }}>
+          Choose a state
+        </option>
+        {states.map((option) => (
+          <option
+            key={option.code}
+            value={option.code}
+            style={{ background: "var(--nf-surface-elevated)" }}
+          >
+            {option.name}
           </option>
-          {states.map((option) => (
-            <option
-              key={option.code}
-              value={option.code}
-              style={{ background: "var(--nf-surface-elevated)" }}
-            >
-              {option.name}
-            </option>
-          ))}
-        </select>
-        {errors?.stateCode && (
-          <span className="mt-1.5 block text-xs text-[var(--nf-state-error)]">
-            {errors.stateCode}
-          </span>
-        )}
-      </label>
+        ))}
+      </SelectField>
       <Field
         name="name"
         label="Name"

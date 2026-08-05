@@ -16,6 +16,8 @@ import {
 import { RealDashboard } from "./RealDashboard";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount, Figure } from "@/components/ui/Amount";
+import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -182,13 +184,9 @@ export default async function AgentDashboardPage() {
                     locale={locale}
                     className="block text-[0.8125rem] font-bold"
                   />
-                  <span
-                    className={`nf-badge mt-0.5 ${
-                      b.status === "confirmed" ? "nf-badge--approved" : "nf-badge--pending"
-                    }`}
-                  >
+                  <StatusPill tone={toneForStatus(b.status)} className="mt-0.5">
                     {b.status === "confirmed" ? a.confirmed : a.pending}
-                  </span>
+                  </StatusPill>
                 </span>
               </li>
             ))}
@@ -242,34 +240,39 @@ export default async function AgentDashboardPage() {
             ))}
           </ul>
 
-          {/* Tablet and up: the full comparison table. */}
-          <div className="nf-scroll-x hidden sm:block">
-            <table className="w-full min-w-[34rem] text-left text-[0.8125rem]">
-              <thead>
-                <tr className="text-[0.6875rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
-                  <th className="pb-2 font-semibold">{t.agent.nav.myListings}</th>
-                  <th className="pb-2 text-right font-semibold">{a.views}</th>
-                  <th className="pb-2 text-right font-semibold">{t.agent.nav.bookings}</th>
-                  <th className="pb-2 text-right font-semibold">{a.occupancyRate}</th>
-                  <th className="pb-2 text-right font-semibold">{a.revenue}</th>
-                </tr>
-              </thead>
-              <tbody>
+          {/*
+            Tablet and up: the real comparison table. The phone rendering above
+            stays as the explicit small-screen branch - five columns on a
+            390px screen is a sideways scroll, and a listing comparison nobody
+            can see all of compares nothing.
+          */}
+          <div className="hidden sm:block">
+            <Table caption={a.listingPerformance} density="compact">
+              <THead>
+                <TR>
+                  <TH>{t.agent.nav.myListings}</TH>
+                  <TH align="end">{a.views}</TH>
+                  <TH align="end">{t.agent.nav.bookings}</TH>
+                  <TH align="end">{a.occupancyRate}</TH>
+                  <TH align="end">{a.revenue}</TH>
+                </TR>
+              </THead>
+              <TBody>
                 {d.listingPerformance.map((l) => (
-                  <tr key={l.id} className="border-t border-[var(--nf-border-subtle)]">
-                    <td className="py-2.5 font-medium">{l.title}</td>
-                    <td className="py-2.5 text-right">
+                  <TR key={l.id}>
+                    <TD className="font-medium text-[var(--nf-content-primary)]">{l.title}</TD>
+                    <TD align="end">
                       <Figure value={l.views} locale={locale} />
-                    </td>
-                    <td className="nf-numeric py-2.5 text-right">{l.bookings}</td>
-                    <td className="nf-numeric py-2.5 text-right">{l.occupancyPct}%</td>
-                    <td className="py-2.5 text-right font-semibold">
+                    </TD>
+                    <TD align="end">{l.bookings}</TD>
+                    <TD align="end">{l.occupancyPct}%</TD>
+                    <TD align="end" className="font-semibold text-[var(--nf-content-primary)]">
                       <Amount minorUnits={l.revenueMinor} locale={locale} />
-                    </td>
-                  </tr>
+                    </TD>
+                  </TR>
                 ))}
-              </tbody>
-            </table>
+              </TBody>
+            </Table>
           </div>
         </section>
 

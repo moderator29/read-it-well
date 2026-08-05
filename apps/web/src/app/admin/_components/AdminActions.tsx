@@ -9,6 +9,7 @@ import { cancelBookingAsAdmin, previewCancellation } from "@/lib/admin/bookings-
 import { recordVerificationCheck } from "@/lib/admin/verification-actions";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { Chip, ChipRow } from "@/components/ui/Chip";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { fill, type AdminCommon, type AdminCopy } from "./copy";
 import {
@@ -631,20 +632,23 @@ export function TicketStatusControl({
   return (
     <div className="mt-4">
       <span className="nf-label">{copy.stateLabel}</span>
-      <div className="mt-1.5 flex flex-wrap gap-2">
+      {/* The shared rail. The current state stays disabled - moving a ticket to
+          where it already is is not a move - and selection is now a ring and a
+          fill rather than a hairline glow, which is the difference between an
+          operator seeing the current state and guessing at it. */}
+      <ChipRow bleed={false} fadeEdges={false} className="mt-1.5">
         {TICKET_STATES.map((state) => (
-          <button
+          <Chip
             key={state}
-            type="button"
+            size="sm"
             disabled={pending || state === status}
-            onClick={() => move(state)}
-            aria-pressed={state === status}
-            className={`nf-chip ${state === status ? "nf-chip--active" : ""} disabled:opacity-70`}
+            selected={state === status}
+            onSelectedChange={() => move(state)}
           >
             {copy.states[state]}
-          </button>
+          </Chip>
         ))}
-      </div>
+      </ChipRow>
       {result && !result.ok && (
         <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-warning)]">
           {result.error}

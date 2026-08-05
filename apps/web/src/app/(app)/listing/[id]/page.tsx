@@ -36,6 +36,8 @@ import { Reveal } from "@/components/site/Reveal";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
+import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
+import { Chip } from "@/components/ui/Chip";
 
 /**
  * Listing detail.
@@ -78,24 +80,26 @@ const KIND_LABEL: Record<ListingKind, string> = {
  * each kind actually belongs to and nothing more. Nothing is invented: the
  * label is a restatement of `listing.kind`, which every record carries.
  */
-const MARKET_PILL: Record<ListingKind, { icon: UiIconName; label: string; tone: string }> = {
+const MARKET_PILL: Record<ListingKind, { icon: UiIconName; label: string; tone: StatusTone }> = {
   // An annual tenancy. The nearest thing this platform has to reference 3's
-  // headline market, and it takes the brand tint the pill defaults to.
-  rental: { icon: "key", label: "For rent", tone: "" },
-  hotel: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
-  apartment: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
-  home: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
-  shortlet: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
-  villa: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
-  restaurant: { icon: "utensils", label: "Dining", tone: "nf-tag-pill--neutral" },
-  experience: { icon: "ticket", label: "Experience", tone: "nf-tag-pill--neutral" },
+  // headline market, and it takes the brand tint.
+  rental: { icon: "key", label: "For rent", tone: "brand" },
+  hotel: { icon: "calendar-booking", label: "For stays", tone: "success" },
+  apartment: { icon: "calendar-booking", label: "For stays", tone: "success" },
+  home: { icon: "calendar-booking", label: "For stays", tone: "success" },
+  shortlet: { icon: "calendar-booking", label: "For stays", tone: "success" },
+  villa: { icon: "calendar-booking", label: "For stays", tone: "success" },
+  /* Semantic, never generic grey - the brief is explicit that a status pill in
+     a neutral wash reads as an absence of state rather than as a market. */
+  restaurant: { icon: "utensils", label: "Dining", tone: "info" },
+  experience: { icon: "ticket", label: "Experience", tone: "info" },
   /* Commercial space and land are let on a tenancy exactly like a rental, so
      they read as the same market and take the same key glyph and brand tint.
      What they are individually is already said by `KIND_LABEL` in the copy
      below; the pill answers "which market am I in", not "what is this". */
-  shop: { icon: "key", label: "For rent", tone: "" },
-  office: { icon: "key", label: "For rent", tone: "" },
-  land: { icon: "key", label: "For rent", tone: "" },
+  shop: { icon: "key", label: "For rent", tone: "brand" },
+  office: { icon: "key", label: "For rent", tone: "brand" },
+  land: { icon: "key", label: "For rent", tone: "brand" },
 };
 
 /** "Lagos State" reads naturally; the FCT does not take the suffix. */
@@ -348,6 +352,23 @@ export default async function ListingDetailPage({
       ? { label: "Message agent", href: `/messages/new?listing=${listing.id}` }
       : { label: "Check availability", href: "#reserve" };
 
+  /*
+   * The ghost half of reference 3's CTA pair, and only where a second action
+   * honestly exists.
+   *
+   * A stay has two real paths - ask the agent, or pick dates - so it pairs.
+   * A partner venue pairs its own page with directions, but only when the feed
+   * gave us two distinct destinations. A rental has exactly one path, so it
+   * gets one button rather than a decorative twin.
+   */
+  const stickySecondary: StickyAction | null = isPartner
+    ? partner?.venueUrl && partnerAction && partner.venueUrl !== partnerAction.href
+      ? { label: "Menu", href: partner.venueUrl, external: true }
+      : null
+    : isRental
+      ? null
+      : { label: "Message agent", href: messageHref };
+
   const bookingPanel = isPartner ? (
     <PartnerPanel listing={listing} locale={locale} t={t} action={partnerAction} />
   ) : isRental ? (
@@ -413,28 +434,35 @@ export default async function ListingDetailPage({
               from the record - a listing with no rating simply has no chip.
             */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`nf-tag-pill ${market.tone}`}>
-                <UiIcon name={market.icon} size={12} />
+              {/* `StatusPill`, not a hand-tinted span: one vocabulary decides
+                  what a tinted pill looks like across the whole platform, and
+                  a pill written locally is a pill that can render invisible by
+                  forgetting its modifier. */}
+              <StatusPill tone={market.tone} icon={market.icon} size="sm">
                 {market.label}
-              </span>
+              </StatusPill>
 
               {/* Only first-party inventory may carry the verified badge. */}
               {listing.verified && !isPartner && (
-                <span className="nf-badge nf-badge--verified">
-                  <UiIcon name="verified" size={12} />
+                <StatusPill tone="success" icon="verified" size="sm">
                   {t.common.verified}
-                </span>
+                </StatusPill>
               )}
               {isPartner && (
-                <span
-                  data-partner-tag
-                  className="nf-badge bg-[color-mix(in_oklab,var(--nf-content-primary)_14%,transparent)] text-[var(--nf-content-secondary)]"
-                >
-                  Partner
+                /* `display: contents`, so the marker attribute survives on an
+                   element that adds no box of its own: the pill stays a direct
+                   child of the row and the provenance hook every hybrid check
+                   counts stays exactly where it was. */
+                <span data-partner-tag className="contents">
+                  <StatusPill tone="neutral" size="sm">
+                    Partner
+                  </StatusPill>
                 </span>
               )}
               {listing.instantBook && (
-                <span className="nf-badge nf-badge--brand">Instant Book</span>
+                <StatusPill tone="brand" icon="sparkle" size="sm">
+                  Instant Book
+                </StatusPill>
               )}
               {partner?.attribution === "Google" && (
                 <span className="text-[0.6875rem] text-[var(--nf-content-muted)]">
@@ -442,16 +470,28 @@ export default async function ListingDetailPage({
                 </span>
               )}
 
+              {/*
+                The rating chip, right-aligned on the status row exactly as
+                reference 3 sets it. On the `Chip` primitive in its static
+                behaviour - it is an attribute of the place, not a control, so
+                it takes no hit target and invites no press.
+
+                The review count renders only when the record carries one. A
+                place with a rating and no reviews shows the rating alone
+                rather than a fabricated "(0)".
+              */}
               {listing.rating > 0 && (
-                <span className="nf-chip nf-numeric ml-auto shrink-0 gap-1.5 px-3 py-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
-                  <UiIcon name="star" size={16} filled className="text-[var(--nf-rating)]" />
-                  {formatRating(listing.rating, locale)}
-                  {listing.reviewCount > 0 && (
-                    <span className="font-normal text-[var(--nf-content-muted)]">
-                      ({formatNumber(listing.reviewCount, locale)} {t.common.reviews})
-                    </span>
-                  )}
-                </span>
+                <Chip behaviour="static" size="sm" className="nf-numeric ml-auto shrink-0 gap-1.5">
+                  <span className="flex items-center gap-1.5 font-semibold text-[var(--nf-content-primary)]">
+                    <UiIcon name="star" size={15} filled className="text-[var(--nf-rating)]" />
+                    {formatRating(listing.rating, locale)}
+                    {listing.reviewCount > 0 && (
+                      <span className="font-normal text-[var(--nf-content-muted)]">
+                        ({formatNumber(listing.reviewCount, locale)} {t.common.reviews})
+                      </span>
+                    )}
+                  </span>
+                </Chip>
               )}
             </div>
 
@@ -507,8 +547,15 @@ export default async function ListingDetailPage({
           </Reveal>
 
           {/* ------------------------------------- booking panel, mobile */}
-          <div id="reserve" className="mt-7 scroll-mt-20 lg:hidden">
-            {bookingPanel}
+          {/*
+            The anchor stays in the document at every width while only the
+            panel inside it is dropped from `lg` up. The pinned bar is no
+            longer hidden on desktop, so its Check availability now has a
+            target there; when the id itself carried `lg:hidden` the same link
+            pointed at a `display:none` element and scrolled nowhere.
+          */}
+          <div id="reserve" className="scroll-mt-20">
+            <div className="mt-7 lg:hidden">{bookingPanel}</div>
           </div>
 
           {/* ---------------------------------------------- photo grid */}
@@ -567,6 +614,16 @@ export default async function ListingDetailPage({
       </div>
       </div>
 
+      {/* The bar is pinned to the viewport rather than sitting in the flow, so
+          the page has to end above it or the last thing on the screen is
+          permanently behind glass. The inset is added here rather than in the
+          shell because this is the only route that pins one. */}
+      <div
+        aria-hidden="true"
+        className="h-[5.5rem]"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      />
+
       <ListingStickyBar
         variant={isPartner ? "partner" : isRental ? "rental" : "stay"}
         priceMinor={listing.priceMinor}
@@ -574,6 +631,7 @@ export default async function ListingDetailPage({
         locale={locale}
         perLabel={perLabel}
         action={stickyAction}
+        secondary={stickySecondary}
         fallbackLabel={listing.title}
       />
     </div>

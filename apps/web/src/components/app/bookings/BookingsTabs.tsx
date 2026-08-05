@@ -8,6 +8,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Booking } from "@/lib/demo/bookings";
 import { ButtonLink } from "@/components/ui/Button";
 import { Segmented } from "@/components/ui/Segmented";
+import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 
 /**
  * Bookings status tabs.
@@ -49,12 +50,13 @@ function BookingCard({ booking: b }: { booking: Booking }) {
         </Link>
 
         <div className="min-w-0 flex-1 leading-tight">
-          {/* Badge above, title on its own line: see MyBookings for why. */}
-          <span
-            className={`nf-badge ${confirmed ? "nf-badge--approved" : "nf-badge--neutral"}`}
-          >
+          {/* Badge above, title on its own line: see MyBookings for why.
+              The tone comes from the platform's single status vocabulary, so a
+              completed stay is not neutral on this deck and success on the
+              signed-in one. */}
+          <StatusPill tone={toneForStatus(confirmed ? "CONFIRMED" : "COMPLETED")}>
             {confirmed ? "Confirmed" : "Completed"}
-          </span>
+          </StatusPill>
           <h3 className="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
             {b.title}
           </h3>
@@ -131,6 +133,12 @@ export function BookingsTabs({
         segment boxes instead, so labels of different lengths - and the four
         locales, where the same word can be three times longer - all work, and
         the selection travels as a shadowed capsule rather than a hairline.
+
+        `panelIdPrefix` is deliberately not passed: it would put `aria-controls`
+        on all three tabs while only the selected panel is ever rendered, so two
+        of the three would point at ids that are not in the document. The panel
+        names its tab with `aria-labelledby` instead, which is true whichever
+        tab is showing.
       */}
       <Segmented<TabKey>
         label="Booking status"
@@ -138,7 +146,6 @@ export function BookingsTabs({
         value={active}
         onChange={setActive}
         itemIdPrefix="bookings-tab"
-        panelIdPrefix="bookings-panel"
         full
       />
 

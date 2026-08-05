@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useId, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { ActionResult } from "@/lib/actions/envelope";
 import type { ProfileView } from "@/lib/profile/queries";
 import { Button } from "@/components/ui/Button";
+import { TextField } from "@/components/ui/Field";
 
 /**
  * The signed-in identity card and its edit form.
@@ -56,11 +57,6 @@ export function AccountProfile({
   );
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl);
   const [saved, setSaved] = useState(false);
-
-  const firstId = useId();
-  const surnameId = useId();
-  const nicknameId = useId();
-  const phoneId = useId();
 
   // A successful save is the moment the card learns the new truth. The server
   // tree is refreshed too, so every other surface showing this name agrees.
@@ -147,46 +143,44 @@ export function AccountProfile({
       {editing && (
         <form action={formAction} className="nf-rise mt-4 space-y-3" data-testid="profile-form">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field
-              id={firstId}
+            <TextField
               name="firstName"
               label="First name"
               value={firstName}
-              onChange={setFirstName}
+              onChange={(event) => setFirstName(event.target.value)}
               error={fieldError("firstName")}
               maxLength={MAX_NAME_LENGTH}
               autoComplete="given-name"
             />
-            <Field
-              id={surnameId}
+            <TextField
               name="surname"
               label="Surname"
               value={surname}
-              onChange={setSurname}
+              onChange={(event) => setSurname(event.target.value)}
               error={fieldError("surname")}
               maxLength={MAX_NAME_LENGTH}
               autoComplete="family-name"
             />
           </div>
 
-          <Field
-            id={nicknameId}
+          <TextField
             name="nickname"
-            label="Nickname (optional)"
+            label="Nickname"
+            optionalText="(optional)"
             value={nickname}
-            onChange={setNickname}
+            onChange={(event) => setNickname(event.target.value)}
             error={fieldError("nickname")}
             maxLength={MAX_NICKNAME_LENGTH}
             autoComplete="nickname"
             placeholder="What friends call you"
           />
 
-          <Field
-            id={phoneId}
+          <TextField
             name="phone"
-            label="Phone number (optional)"
+            label="Phone number"
+            optionalText="(optional)"
             value={phone}
-            onChange={setPhone}
+            onChange={(event) => setPhone(event.target.value)}
             error={fieldError("phone")}
             maxLength={MAX_PHONE_LENGTH}
             autoComplete="tel"
@@ -428,50 +422,3 @@ async function downscaleToSquare(file: File, edge: number): Promise<Blob> {
   });
 }
 
-/* ------------------------------------------------------------- shared field */
-
-function Field({
-  id,
-  name,
-  label,
-  value,
-  onChange,
-  error,
-  maxLength,
-  autoComplete,
-  inputMode,
-  placeholder,
-}: {
-  id: string;
-  name: string;
-  label: string;
-  value: string;
-  onChange: (next: string) => void;
-  error?: string;
-  maxLength: number;
-  autoComplete?: string;
-  inputMode?: "tel" | "text";
-  placeholder?: string;
-}) {
-  return (
-    <div>
-      <label htmlFor={id} className="nf-label mb-1.5 block">
-        {label}
-      </label>
-      <input
-        id={id}
-        name={name}
-        type="text"
-        value={value}
-        maxLength={maxLength}
-        autoComplete={autoComplete}
-        inputMode={inputMode}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        aria-invalid={error ? true : undefined}
-        className="nf-field"
-      />
-      {error && <p className="mt-1.5 text-[0.75rem] text-[var(--nf-state-error)]">{error}</p>}
-    </div>
-  );
-}

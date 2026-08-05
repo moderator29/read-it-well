@@ -30,6 +30,7 @@ import { ListingCard } from "@/components/app/ListingCard";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { TextField } from "@/components/ui/Field";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 export const metadata: Metadata = {
@@ -235,23 +236,28 @@ export default async function SearchPage({
           action="/search"
           method="get"
           role="search"
-          className="nf-card nf-focus-well flex min-w-0 flex-1 items-center gap-2 p-1.5"
+          className="flex min-w-0 flex-1 items-center gap-2"
         >
-          <label htmlFor="search-q" className="sr-only">
-            {t.home.searchPlaceholder}
-          </label>
-          <div className="flex min-w-0 flex-1 items-center gap-3 px-2.5">
-            <UiIcon name="search" size={20} className="shrink-0 text-[var(--nf-content-muted)]" />
-            <input
-              id="search-q"
-              name="q"
-              type="search"
-              autoComplete="off"
-              defaultValue={query.q ?? ""}
-              placeholder={t.home.searchPlaceholder}
-              className="min-h-11 w-full bg-transparent py-2 text-[0.9375rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
-            />
-          </div>
+          {/* One field build, shared with every other search bar on the
+              platform. The label is the placeholder's own copy, hidden but
+              present, so the control is named rather than relying on a
+              placeholder that vanishes the moment somebody types.
+
+              `clearable` is plain English on purpose: the dictionaries have no
+              word for "clear" yet, and inventing one across four locales here
+              would put a guess into the translation files. Wants `common.clear`. */}
+          <TextField
+            label={t.home.searchPlaceholder}
+            hideLabel
+            leadingIcon="search"
+            clearable="Clear search"
+            name="q"
+            type="search"
+            autoComplete="off"
+            defaultValue={query.q ?? ""}
+            placeholder={t.home.searchPlaceholder}
+            className="min-w-0 flex-1"
+          />
           {/* Typing a new search must not silently drop the filters already set. */}
           {carriedParams(query).map(([key, value]) => (
             <input key={key} type="hidden" name={key} value={value} />

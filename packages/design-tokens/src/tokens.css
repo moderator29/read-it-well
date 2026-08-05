@@ -18,24 +18,29 @@
   /*
    * Deep space neutrals, navy biased: the neon-blue night surface.
    *
-   * These used to run #000020 -> #000050, moving only in the blue channel.
-   * Blue carries 7.22% of perceived luminance, so canvas through raised
-   * measured 1.09:1 end to end: four surfaces the eye could not tell apart by
-   * fill, separated only by their 1px border. Worse, a 45% black shadow on
-   * #000010 produced a 1.003:1 delta, so every card, sheet, modal and dock on
-   * the platform cast a shadow that was mathematically invisible.
+   * THESE ARE BRAND COLOURS. Do not neutralise them. This ramp was once lifted
+   * to a desaturated near-black to solve a real measurement problem, and that
+   * was the wrong trade - the navy IS the brand, and the owner spotted the
+   * shift immediately.
    *
-   * The ramp now keeps the navy bias but gives red and green nonzero values so
-   * each step moves real luminance. Canvas to raised is 1.22:1 by fill alone,
-   * and shadows land at a visible 1.44:1.
+   * The measurement problem is real and is solved elsewhere. Because the ramp
+   * moves almost entirely in the blue channel, and blue carries only 7.22% of
+   * perceived luminance, canvas through raised measures about 1.09:1, and a 45%
+   * black shadow on #000010 lands at 1.003:1 - black shadows are mathematically
+   * invisible on this surface.
+   *
+   * So depth does not come from black drop shadows here. It comes from the RIM,
+   * the inner top highlight on each elevation rung, and from the border: both
+   * are light on dark and read at any base darkness. The dark rungs below are
+   * tuned for that, which is what lets the brand navy stay exactly as it is.
    */
-  --nf-ink-950: #06070F;
-  --nf-ink-900: #0A0C16;
-  --nf-ink-850: #0E111D;
-  --nf-ink-800: #131725;
-  --nf-ink-750: #191E2F;
-  --nf-ink-700: #212840;
-  --nf-ink-600: #2E3757;
+  --nf-ink-950: #010118;
+  --nf-ink-900: #000020;
+  --nf-ink-850: #000030;
+  --nf-ink-800: #000040;
+  --nf-ink-750: #000050;
+  --nf-ink-700: #000060;
+  --nf-ink-600: #000080;
   --nf-ink-500: #0010A0;
 
   --nf-mist-100: #FFFFFF;
@@ -98,13 +103,13 @@
   --nf-mode-agent: var(--nf-electric-400);
   --nf-mode-admin: var(--nf-electric-700);
 
-  /* Surfaces. Each step is a real luminance move; see the ink ramp above. */
-  --nf-surface-canvas: var(--nf-ink-950);
+  /* Surfaces. Brand navy. Depth is carried by rim and border, not shadow. */
+  --nf-surface-canvas: #000010;
   --nf-surface-primary: var(--nf-ink-900);
   --nf-surface-secondary: var(--nf-ink-850);
   --nf-surface-elevated: var(--nf-ink-800);
   --nf-surface-raised: var(--nf-ink-750);
-  --nf-surface-inset: #04050B;
+  --nf-surface-inset: color-mix(in oklab, var(--nf-ink-950) 70%, black);
 
   /* Content */
   --nf-content-primary: var(--nf-mist-100);
@@ -259,41 +264,41 @@
   --nf-elev-1:
     0 1px 1px rgb(0 0 0 / 0.30),
     0 4px 12px -2px rgb(0 0 0 / 0.34);
-  --nf-elev-1-rim: inset 0 1px 0 rgb(255 255 255 / 0.07);
+  --nf-elev-1-rim: inset 0 1px 0 rgb(255 255 255 / 0.12);
 
   /* 2 - raised: hover, selected, a card that has come forward */
   --nf-elev-2:
     0 2px 3px rgb(0 0 0 / 0.32),
     0 10px 26px -4px rgb(0 0 0 / 0.42);
-  --nf-elev-2-rim: inset 0 1px 0 rgb(255 255 255 / 0.10);
+  --nf-elev-2-rim: inset 0 1px 0 rgb(255 255 255 / 0.17);
 
   /* 3 - sheet: bottom sheets, drawers, popovers anchored to an edge */
   --nf-elev-3:
     0 2px 4px rgb(0 0 0 / 0.34),
     0 -1px 0 rgb(255 255 255 / 0.05),
     0 -20px 48px -12px rgb(0 0 0 / 0.55);
-  --nf-elev-3-rim: inset 0 1px 0 rgb(255 255 255 / 0.14);
+  --nf-elev-3-rim: inset 0 1px 0 rgb(255 255 255 / 0.22);
 
   /* 4 - modal: centred dialogs, detached from every edge */
   --nf-elev-4:
     0 4px 8px rgb(0 0 0 / 0.34),
     0 24px 64px -12px rgb(0 0 0 / 0.62);
-  --nf-elev-4-rim: inset 0 1px 0 rgb(255 255 255 / 0.16);
+  --nf-elev-4-rim: inset 0 1px 0 rgb(255 255 255 / 0.26);
 
   /* 5 - toast: the topmost transient object */
   --nf-elev-5:
     0 2px 4px rgb(0 0 0 / 0.30),
     0 12px 28px -6px rgb(0 0 0 / 0.50),
     0 32px 72px -20px rgb(0 0 0 / 0.40);
-  --nf-elev-5-rim: inset 0 1px 0 rgb(255 255 255 / 0.20);
+  --nf-elev-5-rim: inset 0 1px 0 rgb(255 255 255 / 0.30);
 
   /* Borders scale with the rung: higher surfaces need a stronger edge to
      survive against the brighter blur behind them. */
-  --nf-elev-1-border: rgb(255 255 255 / 0.08);
-  --nf-elev-2-border: rgb(255 255 255 / 0.11);
-  --nf-elev-3-border: rgb(255 255 255 / 0.14);
-  --nf-elev-4-border: rgb(255 255 255 / 0.16);
-  --nf-elev-5-border: rgb(255 255 255 / 0.18);
+  --nf-elev-1-border: rgb(255 255 255 / 0.11);
+  --nf-elev-2-border: rgb(255 255 255 / 0.15);
+  --nf-elev-3-border: rgb(255 255 255 / 0.19);
+  --nf-elev-4-border: rgb(255 255 255 / 0.22);
+  --nf-elev-5-border: rgb(255 255 255 / 0.26);
 
   /*
    * Signature gradients.

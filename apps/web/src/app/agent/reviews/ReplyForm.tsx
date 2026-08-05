@@ -1,10 +1,12 @@
 "use client";
 
-import { useActionState, useId, useState } from "react";
+import { useActionState, useState } from "react";
 import { removeReviewReply, replyToReview, type ReplyReceipt } from "@/lib/agent/reviews-actions";
 import { REPLY_MAX } from "@/lib/agent/reviews-schema";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
+import { TextArea } from "@/components/ui/Field";
 
 /**
  * The host's reply, written or corrected in place.
@@ -29,7 +31,6 @@ export function ReplyForm({
   /** When the saved answer was last written, e.g. "4 Aug 2026". */
   existingWhen: string | null;
 }) {
-  const uid = useId();
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState<ActionResult<ReplyReceipt> | null, FormData>(
     replyToReview,
@@ -58,18 +59,16 @@ export function ReplyForm({
           {saved}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <button type="button" onClick={() => setOpen(true)} className="nf-btn nf-btn--glass nf-btn--sm">
+          <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
             Edit reply
-          </button>
+          </Button>
           <form action={removeAction}>
             <input type="hidden" name="reviewId" value={reviewId} />
-            <button
-              type="submit"
-              disabled={removing}
-              className="nf-btn nf-btn--ghost nf-btn--sm disabled:opacity-60"
-            >
+            {/* Taking a public answer back down is destructive, and it was the
+                quietest control beside the one that only edits it. */}
+            <Button type="submit" variant="dangerQuiet" size="sm" loading={removing}>
               {removing ? "Removing..." : "Remove"}
-            </button>
+            </Button>
           </form>
         </div>
         {removeState && !removeState.ok && (
@@ -83,56 +82,39 @@ export function ReplyForm({
 
   if (!editing) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="nf-btn nf-btn--glass nf-btn--sm mt-3"
-      >
+      <Button variant="secondary" size="sm" className="mt-3" onClick={() => setOpen(true)}>
         Write a reply
-      </button>
+      </Button>
     );
   }
 
   return (
     <form action={formAction} className="mt-3">
       <input type="hidden" name="reviewId" value={reviewId} />
-      <label htmlFor={`${uid}-body`} className="nf-label">
-        Your public reply
-      </label>
-      <textarea
-        id={`${uid}-body`}
+      {/*
+        `aria-invalid` on a `.nf-field` changes nothing anybody can see: the
+        class paints its border with a border-box gradient and the error rule
+        beside it sets `border-color` underneath. A refused reply came back
+        looking exactly like an unsent one. TextArea owns the invalid state and
+        the message, and carries the refusal envelope's own sentence verbatim.
+      */}
+      <TextArea
+        label="Your public reply"
+        hint="Every guest looking at this listing will read this. The review itself cannot be edited, by you or by the guest."
+        error={state && !state.ok ? state.error : undefined}
         name="body"
         rows={3}
         maxLength={REPLY_MAX}
         defaultValue={saved ?? ""}
         placeholder="Thank them, answer the point they raised, and say what you have changed."
-        aria-invalid={state && !state.ok ? true : undefined}
-        className="nf-field resize-y"
       />
-      <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
-        Every guest looking at this listing will read this. The review itself cannot
-        be edited, by you or by the guest.
-      </p>
-      {state && !state.ok && (
-        <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
-          {state.error}
-        </p>
-      )}
       <div className="mt-2.5 flex flex-wrap gap-2">
-        <button
-          type="submit"
-          disabled={pending}
-          className="nf-btn nf-btn--primary nf-btn--sm disabled:opacity-60"
-        >
+        <Button type="submit" variant="primary" size="sm" loading={pending}>
           {pending ? "Saving..." : saved ? "Save changes" : "Post reply"}
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="nf-btn nf-btn--ghost nf-btn--sm"
-        >
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => setOpen(false)}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

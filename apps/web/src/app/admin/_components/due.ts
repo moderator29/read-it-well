@@ -1,6 +1,8 @@
 import { dueBy, type ResponseGrade } from "@/lib/trust/standards";
 import { fill, type AdminCommon } from "./copy";
-import type { Tone } from "./ui";
+/* The console had its own tone vocabulary; it now shares one with the rest of
+   the platform. Same meanings, one home. */
+import type { StatusTone as Tone } from "@/components/ui/StatusPill";
 
 /**
  * The response commitment a queue row is under, as a chip.
@@ -24,9 +26,9 @@ export function dueChip(
   if (due.overdue) {
     return {
       label: fill(common.overdue, { hours: Math.abs(due.hoursLeft) }),
-      tone: "rejected",
+      tone: "danger",
     };
   }
-  if (due.hoursLeft < 1) return { label: common.dueSoon, tone: "pending" };
-  return { label: fill(common.dueIn, { hours: due.hoursLeft }), tone: "pending" };
+  if (due.hoursLeft < 1) return { label: common.dueSoon, tone: "warning" };
+  return { label: fill(common.dueIn, { hours: due.hoursLeft }), tone: "warning" };
 }

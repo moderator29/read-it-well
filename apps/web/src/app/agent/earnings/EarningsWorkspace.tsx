@@ -4,6 +4,7 @@ import type { AgentEarnings } from "@/lib/agent/earnings-queries";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount, Figure } from "@/components/ui/Amount";
+import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 
 /**
  * The host's earnings console: what has actually settled, read straight from
@@ -164,32 +165,46 @@ export function EarningsWorkspace({
           ))}
         </ul>
 
-        {/* Tablet and up: the full table. */}
-        <div className="nf-scroll-x mt-3 hidden sm:block">
-          <table className="w-full min-w-[30rem] text-left text-[0.8125rem]">
-            <thead>
-              <tr className="text-[0.6875rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
-                <th className="pb-2 font-semibold">{t.byMonth}</th>
-                <th className="pb-2 text-right font-semibold">{t.stays}</th>
-                <th className="pb-2 text-right font-semibold">{t.monthGross}</th>
-                <th className="pb-2 text-right font-semibold">{t.monthShare}</th>
-              </tr>
-            </thead>
-            <tbody>
+        {/*
+          Tablet and up: the real table.
+
+          The phone rendering above is not a fallback, it is the small-screen
+          branch: a four-column ledger on a 390px screen either scrolls
+          sideways or shrinks its figures, and neither is how somebody checks
+          what they were paid. Both branches read the same rows.
+
+          Every numeric column is `align="end"`, which right-aligns AND sets
+          the figures tabular - a money column that looks like it should line
+          up by place value and does not is worse than one that never claimed
+          to.
+        */}
+        <div className="mt-3 hidden sm:block">
+          <Table caption={t.byMonth} density="compact">
+            <THead>
+              <TR>
+                <TH>{t.byMonth}</TH>
+                <TH align="end">{t.stays}</TH>
+                <TH align="end">{t.monthGross}</TH>
+                <TH align="end">{t.monthShare}</TH>
+              </TR>
+            </THead>
+            <TBody>
               {earnings.months.map((month) => (
-                <tr key={month.key} className="border-t border-[var(--nf-border-subtle)]">
-                  <td className="py-2.5 font-medium">{monthLabel(month.year, month.month, locale)}</td>
-                  <td className="nf-numeric py-2.5 text-right">{month.stays}</td>
-                  <td className="py-2.5 text-right">
+                <TR key={month.key}>
+                  <TD className="font-medium text-[var(--nf-content-primary)]">
+                    {monthLabel(month.year, month.month, locale)}
+                  </TD>
+                  <TD align="end">{month.stays}</TD>
+                  <TD align="end">
                     <Amount minorUnits={month.grossMinor} locale={locale} />
-                  </td>
-                  <td className="py-2.5 text-right font-semibold">
+                  </TD>
+                  <TD align="end" className="font-semibold text-[var(--nf-content-primary)]">
                     <Amount minorUnits={month.agentShareMinor} locale={locale} />
-                  </td>
-                </tr>
+                  </TD>
+                </TR>
               ))}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         </div>
       </section>
 

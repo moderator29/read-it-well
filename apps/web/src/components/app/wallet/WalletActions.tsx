@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { formatMoney, formatNumber, type Locale } from "@naijafinds/i18n";
+import type { Locale } from "@naijafinds/i18n";
 import { NIGERIAN_BANKS } from "@/lib/data/nigeria";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import {
@@ -13,6 +13,8 @@ import {
 } from "@/lib/wallet/actions";
 import { Button } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
+import { TextField, SelectField } from "@/components/ui/Field";
+import { Chip, ChipRow } from "@/components/ui/Chip";
 
 /**
  * Wallet action deck: Add money, Withdraw, Transfer.
@@ -144,7 +146,7 @@ function AddMoneyForm({ locale }: { locale: Locale }) {
   const [state, formAction, pending] = useActionState(requestDeposit, EMPTY);
   return (
     <form action={formAction} noValidate>
-      <AmountField err={state.fieldErrors} quickAmounts locale={locale} />
+      <AmountField err={state.fieldErrors} quickAmounts />
       <SubmitRow pending={pending} label="Add money" />
       <ResultNotice state={state} locale={locale} />
     </form>
@@ -155,46 +157,32 @@ function WithdrawForm({ locale }: { locale: Locale }) {
   const [state, formAction, pending] = useActionState(requestWithdrawal, EMPTY);
   return (
     <form action={formAction} noValidate className="space-y-3">
-      <AmountField err={state.fieldErrors} locale={locale} />
-      <div>
-        <label htmlFor="nf-wallet-bank" className="nf-label">
-          Bank
-        </label>
-        <select
-          id="nf-wallet-bank"
-          name="bankName"
-          defaultValue=""
-          aria-invalid={state.fieldErrors?.bankName ? true : undefined}
-          className="nf-field"
-        >
-          <option value="" disabled style={{ background: "var(--nf-surface-elevated)" }}>
-            Choose your bank
+      <AmountField err={state.fieldErrors} />
+      <SelectField
+        label="Bank"
+        name="bankName"
+        defaultValue=""
+        error={state.fieldErrors?.bankName}
+      >
+        <option value="" disabled style={{ background: "var(--nf-surface-elevated)" }}>
+          Choose your bank
+        </option>
+        {NIGERIAN_BANKS.map((b) => (
+          <option key={b} value={b} style={{ background: "var(--nf-surface-elevated)" }}>
+            {b}
           </option>
-          {NIGERIAN_BANKS.map((b) => (
-            <option key={b} value={b} style={{ background: "var(--nf-surface-elevated)" }}>
-              {b}
-            </option>
-          ))}
-        </select>
-        <FieldError message={state.fieldErrors?.bankName} />
-      </div>
-      <div>
-        <label htmlFor="nf-wallet-account" className="nf-label">
-          Account number
-        </label>
-        <input
-          id="nf-wallet-account"
-          name="accountNumber"
-          type="text"
-          inputMode="numeric"
-          autoComplete="off"
-          maxLength={10}
-          placeholder="10-digit account number"
-          aria-invalid={state.fieldErrors?.accountNumber ? true : undefined}
-          className="nf-field"
-        />
-        <FieldError message={state.fieldErrors?.accountNumber} />
-      </div>
+        ))}
+      </SelectField>
+      <TextField
+        label="Account number"
+        name="accountNumber"
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        maxLength={10}
+        placeholder="10-digit account number"
+        error={state.fieldErrors?.accountNumber}
+      />
       <SubmitRow pending={pending} label="Request withdrawal" />
       <ResultNotice state={state} locale={locale} />
     </form>
@@ -205,93 +193,60 @@ function TransferForm({ locale }: { locale: Locale }) {
   const [state, formAction, pending] = useActionState(requestTransfer, EMPTY);
   return (
     <form action={formAction} noValidate className="space-y-3">
-      <AmountField err={state.fieldErrors} locale={locale} />
-      <div>
-        <label htmlFor="nf-wallet-recipient" className="nf-label">
-          Recipient
-        </label>
-        <input
-          id="nf-wallet-recipient"
-          name="recipient"
-          type="text"
-          autoComplete="off"
-          placeholder="Email or phone number"
-          aria-invalid={state.fieldErrors?.recipient ? true : undefined}
-          className="nf-field"
-        />
-        <FieldError message={state.fieldErrors?.recipient} />
-      </div>
+      <AmountField err={state.fieldErrors} />
+      <TextField
+        label="Recipient"
+        name="recipient"
+        type="text"
+        autoComplete="off"
+        placeholder="Email or phone number"
+        error={state.fieldErrors?.recipient}
+      />
       <SubmitRow pending={pending} label="Send transfer" />
       <ResultNotice state={state} locale={locale} />
     </form>
   );
 }
 
-/**
- * Naira presets as WHOLE NAIRA integers, not display strings.
- *
- * See the same constant in `app/(app)/wallet/WalletDeck.tsx`: three chips that
- * carried a hand-typed naira sign and English comma grouping were a second
- * currency formatter, disagreeing with every other figure on the page.
- */
-const QUICK_AMOUNTS_NAIRA = [5_000, 20_000, 50_000];
+/** Naira presets the chips can type into the field. Display strings only. */
+const QUICK_AMOUNTS = ["5,000", "20,000", "50,000"];
 
 function AmountField({
   err,
   quickAmounts,
-  locale,
 }: {
   err?: Partial<Record<WalletActionField, string>>;
   quickAmounts?: boolean;
-  locale: Locale;
 }) {
   const [value, setValue] = useState("");
   return (
     <div>
-      <label htmlFor="nf-wallet-amount" className="nf-label">
-        Amount (₦)
-      </label>
-      <input
-        id="nf-wallet-amount"
+      <TextField
+        label="Amount (₦)"
         name="amount"
         type="text"
         inputMode="decimal"
         autoComplete="off"
-        placeholder={`e.g. ${formatNumber(5000, locale)}`}
+        placeholder="e.g. 5,000"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        aria-invalid={err?.amount ? true : undefined}
-        className="nf-field"
+        error={err?.amount}
+        clearable="Clear the amount"
+        onClear={() => setValue("")}
       />
       {quickAmounts && (
-        <div className="mt-2 flex gap-2">
-          {QUICK_AMOUNTS_NAIRA.map((naira) => {
-            const typed = String(naira);
-            return (
-              <button
-                key={naira}
-                type="button"
-                onClick={() => setValue(typed)}
-                aria-pressed={value === typed}
-                className={`nf-chip ${value === typed ? "nf-chip--active" : ""}`}
-              >
-                {formatMoney(naira * 100, locale)}
-              </button>
-            );
-          })}
-        </div>
+        /* Presets, not a filter: `filter` semantics (aria-pressed) rather than
+           `choice`, because a radio group with nothing selected leaves every
+           chip at tabIndex -1 and unreachable by keyboard. */
+        <ChipRow bleed={false} fadeEdges={false} snap={false} className="mt-2">
+          {QUICK_AMOUNTS.map((a) => (
+            <Chip key={a} size="sm" selected={value === a} onSelectedChange={() => setValue(a)}>
+              ₦{a}
+            </Chip>
+          ))}
+        </ChipRow>
       )}
-      <FieldError message={err?.amount} />
     </div>
-  );
-}
-
-function FieldError({ message }: { message?: string }) {
-  if (!message) return null;
-  return (
-    <p role="alert" className="mt-1 text-[0.75rem] text-[var(--nf-state-error)]">
-      {message}
-    </p>
   );
 }
 

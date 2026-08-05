@@ -61,6 +61,39 @@ export function AppShell({
    */
   const immersive = active === "/assistant" || /^\/messages\/[^/]+$/.test(active);
 
+  /*
+   * Edge-to-edge surfaces.
+   *
+   * A third shell mode, distinct from `immersive`. A listing leads with
+   * photography that the reference runs full-bleed under the status bar, with
+   * floating glass back, share and save controls sitting on the image itself -
+   * and `ListingGallery` has drawn exactly those controls, with `nf-safe-top`
+   * on them, since before this existed. What stopped it was the shell: a 64px
+   * glass header was welded onto every route, so the hero could never reach the
+   * top of the screen and the audit logged it as the last unclosed P0.
+   *
+   * Unlike `immersive` this keeps the page scrolling normally. The assistant
+   * and an open thread own the viewport and scroll inside themselves; a listing
+   * is a document that happens to start with a photograph. So this drops the
+   * header and the page gutter and nothing else.
+   */
+  const edgeToEdge = /^\/listing\/[^/]+$/.test(active);
+
+  /*
+   * Routes that pin their own action bar to the bottom edge.
+   *
+   * The listing page now ends on an `<ActionBar>` - a full-width blurred
+   * footer at `bottom-0 z-50`, which is what every reference screen ends with.
+   * The desktop dock is a centred floating pill at `bottom-6 z-40`, so from
+   * `lg` up the two occupy the same strip and the dock floats over the bar.
+   *
+   * The bar wins: it carries the decision the screen exists to produce, and
+   * the dock is a quick-access shortcut that is reachable from the rail on the
+   * same viewport. Kept as a predicate beside `showsTabBar` so the two
+   * bottom-edge rules live together rather than drifting apart.
+   */
+  const pinsActionBar = /^\/listing\/[^/]+$/.test(active);
+
   /* The drawer closes itself on navigation. Escape, the scroll lock, the focus
      trap and returning focus to the opener are all useOverlay's, because this
      drawer carried aria-modal and none of the behaviour it promises. */
@@ -127,7 +160,20 @@ export function AppShell({
       >
         {/* ------------------------------------------------------- top bar */}
         {!immersive && (
-        <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
+        /*
+         * Edge-to-edge is a PHONE behaviour, so the header is hidden rather
+         * than dropped. On a phone the hero should reach the status bar, and
+         * the gallery draws its own floating back, share and save controls on
+         * the image. On desktop there is no status bar to reach, the rail
+         * already carries navigation, and this header is the only place the
+         * theme toggle, the language switcher and the assistant live - removing
+         * it there would trade one fixed audit item for three regressions.
+         */
+        <header
+          className={`nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40 ${
+            edgeToEdge ? "hidden lg:block" : ""
+          }`}
+        >
           <div className="flex h-[64px] items-center gap-4 px-4 sm:gap-4 sm:px-5 md:px-8">
             {/* Phones lead with the side navigation, exactly like the desktop left rail. */}
             <button
@@ -233,6 +279,10 @@ export function AppShell({
 
         {immersive ? (
           <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+        ) : edgeToEdge ? (
+          /* No gutter on a phone so the hero touches all three edges; the
+             standard shell returns from `lg`, where the header is back. */
+          <div className="lg:nf-shell lg:py-8">{children}</div>
         ) : (
           <div className="nf-shell py-8 sm:py-10">{children}</div>
         )}
@@ -249,7 +299,7 @@ export function AppShell({
       {!immersive && showsTabBar(active) && (
         <MobileTabBar t={t} active={active} unreadNotifications={unreadNotifications} />
       )}
-      {!immersive && <DesktopDock t={t} active={active} />}
+      {!immersive && !pinsActionBar && <DesktopDock t={t} active={active} />}
     </div>
   );
 }

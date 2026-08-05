@@ -8,6 +8,7 @@ import { findFaqEntry } from "@/lib/support/faq";
 import { fileSupportTicket } from "@/lib/support/actions";
 import type { SupportAction, SupportStreamEvent, SupportTurn } from "@/lib/support/types";
 import { Button } from "@/components/ui/Button";
+import { TextField } from "@/components/ui/Field";
 
 /**
  * Help and support, AI first.
@@ -661,59 +662,36 @@ function EscalationCard({
         Bring in a person
       </p>
 
+      {/*
+        `Field` owns the message element now - including its `role="alert"` and
+        the `aria-describedby` that points at it - so the message no longer has
+        a node of its own to hang a hook on. The `-error` test ids therefore sit
+        on the field wrappers, whose text content IS the message when there is
+        one. Same locator, same assertion, and the state is finally visible.
+      */}
       <div className="mt-2.5 space-y-2.5">
-        <div>
-          <label
-            htmlFor="support-escalation-name"
-            className="mb-1 block text-[0.75rem] font-medium text-[var(--nf-content-muted)]"
-          >
-            Name
-          </label>
-          <input
-            id="support-escalation-name"
+        <div data-testid="support-name-error">
+          <TextField
+            label="Name"
             data-testid="support-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoComplete="name"
-            className="nf-field w-full py-2 text-[0.8438rem]"
-            aria-invalid={fieldErrors.name ? "true" : undefined}
+            error={fieldErrors.name}
           />
-          {fieldErrors.name && (
-            <p
-              data-testid="support-name-error"
-              className="mt-1 text-[0.75rem] text-[var(--nf-state-error)]"
-            >
-              {fieldErrors.name}
-            </p>
-          )}
         </div>
-        <div>
-          <label
-            htmlFor="support-escalation-email"
-            className="mb-1 block text-[0.75rem] font-medium text-[var(--nf-content-muted)]"
-          >
-            Email
-          </label>
-          <input
-            id="support-escalation-email"
+        <div data-testid="support-email-error">
+          <TextField
+            label="Email"
             data-testid="support-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
             inputMode="email"
-            className="nf-field w-full py-2 text-[0.8438rem]"
-            aria-invalid={fieldErrors.email ? "true" : undefined}
+            error={fieldErrors.email}
           />
-          {fieldErrors.email && (
-            <p
-              data-testid="support-email-error"
-              className="mt-1 text-[0.75rem] text-[var(--nf-state-error)]"
-            >
-              {fieldErrors.email}
-            </p>
-          )}
         </div>
       </div>
 

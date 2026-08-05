@@ -54,7 +54,7 @@ function VerificationLadderPanel({
             step: ladder.tier,
             name: tierNames[String(ladder.tier)] ?? "",
           })}
-          tone={ladder.tier === 4 ? "verified" : ladder.tier === 0 ? "neutral" : "approved"}
+          tone={ladder.tier === 4 ? "brand" : ladder.tier === 0 ? "neutral" : "success"}
         />
       </div>
 
@@ -89,9 +89,9 @@ function VerificationLadderPanel({
                   tone={
                     decision
                       ? decision.status === "passed"
-                        ? "approved"
-                        : "rejected"
-                      : "pending"
+                        ? "success"
+                        : "danger"
+                      : "warning"
                   }
                 />
               </div>

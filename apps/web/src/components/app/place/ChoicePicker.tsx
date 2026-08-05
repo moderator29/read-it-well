@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { TextField } from "@/components/ui/Field";
 import { matchesSearch } from "@/lib/places/reference";
 
 /**
@@ -26,6 +28,23 @@ import { matchesSearch } from "@/lib/places/reference";
 
 export type Choice = { code: string; name: string };
 export type ChoiceGroup = { category: string; options: Choice[] };
+
+/**
+ * The invalid paint, restated.
+ *
+ * `.nf-field` draws its border with a `border-box` gradient over a transparent
+ * 1px border, so `.nf-field[aria-invalid="true"] { border-color: … }` recolours
+ * a surface the gradient is already covering: the rule fires and nothing
+ * changes. This trigger is a button wearing `.nf-field`, not an input, so it
+ * cannot borrow `TextField`'s fix - it has to replace the gradient's own
+ * border-box layer here, the same way, keeping the padding-box fill or the
+ * field would blank out. Tokens only; no literal enters the palette.
+ */
+const INVALID_STYLE: CSSProperties = {
+  background:
+    "linear-gradient(var(--nf-surface-inset), var(--nf-surface-inset)) padding-box, linear-gradient(var(--nf-state-error), var(--nf-state-error)) border-box",
+  boxShadow: "0 0 0 3px color-mix(in oklab, var(--nf-state-error) 26%, transparent)",
+};
 
 export function ChoicePicker({
   name,
@@ -66,7 +85,9 @@ export function ChoicePicker({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [mounted, setMounted] = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
+  const base = useId();
+  const hintId = `${base}-hint`;
+  const errorId = `${base}-error`;
   const panelRef = useRef<HTMLDivElement | null>(null);
   const closePicker = useCallback(() => setOpen(false), []);
 
@@ -77,9 +98,18 @@ export function ChoicePicker({
      unlocks the page behind a picker opened from inside another sheet. */
   useOverlay({ open, onClose: closePicker, panelRef, autoFocus: false });
 
+  /*
+   * Focus the search once the drawer has settled, unchanged in behaviour: the
+   * 60ms wait is what stops the focus landing mid-transition and scrolling the
+   * panel. The field is found in the panel rather than held on a ref, because
+   * `TextField` owns its own input ref and takes none from a caller. The panel
+   * has exactly one search input, and `place-pickers.spec` asserts that.
+   */
   useEffect(() => {
     if (!open) return;
-    const timer = window.setTimeout(() => searchRef.current?.focus(), 60);
+    const timer = window.setTimeout(() => {
+      panelRef.current?.querySelector<HTMLInputElement>('input[type="search"]')?.focus();
+    }, 60);
     return () => window.clearTimeout(timer);
   }, [open]);
 
@@ -137,6 +167,12 @@ export function ChoicePicker({
         data-testid={testId}
         aria-haspopup="dialog"
         aria-invalid={error ? true : undefined}
+        aria-describedby={
+          [disabled && disabledHint ? hintId : null, !disabled && hint ? hintId : null, error ? errorId : null]
+            .filter(Boolean)
+            .join(" ") || undefined
+        }
+        style={error ? INVALID_STYLE : undefined}
         className="nf-field mt-1.5 flex w-full items-center justify-between gap-3 text-left disabled:cursor-not-allowed disabled:opacity-55"
       >
         <span
@@ -156,12 +192,24 @@ export function ChoicePicker({
       </button>
 
       {disabled && disabledHint && (
-        <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">{disabledHint}</p>
+        <p id={hintId} className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+          {disabledHint}
+        </p>
       )}
       {!disabled && hint && (
-        <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">{hint}</p>
+        <p id={hintId} className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+          {hint}
+        </p>
       )}
-      {error && <p className="mt-1.5 text-[0.75rem] text-[var(--nf-state-error)]">{error}</p>}
+      {error && (
+        <p
+          id={errorId}
+          role="alert"
+          className="mt-1.5 text-[0.75rem] font-medium text-[var(--nf-state-error)]"
+        >
+          {error}
+        </p>
+      )}
 
       {open &&
         mounted &&
@@ -192,24 +240,32 @@ export function ChoicePicker({
                   <h2 className="nf-h3 min-w-0 flex-1 truncate">{label}</h2>
                 </div>
 
-                <div className="nf-field nf-focus-well mt-4 flex items-center gap-2.5">
-                  <UiIcon
-                    name="search"
-                    size={16}
-                    className="shrink-0 text-[var(--nf-content-muted)]"
-                  />
-                  <input
-                    ref={searchRef}
-                    type="search"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    placeholder={searchPlaceholder}
-                    autoComplete="off"
-                    spellCheck={false}
-                    aria-label={searchPlaceholder}
-                    className="min-h-11 w-full min-w-0 bg-transparent text-[0.9375rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
-                  />
-                </div>
+                {/*
+                  Was a `.nf-field .nf-focus-well` flex wrapper around a bare
+                  transparent input - the fifth arrangement of a leading search
+                  icon on the platform, at the fifth size. `TextField` owns the
+                  icon slot, the label/control pairing and the 16px coarse-
+                  pointer floor that stops mobile Safari zooming the drawer the
+                  moment this field takes focus.
+
+                  It also brings the clear affordance, which is the one this
+                  control most needed: 749 occupations behind a search box that
+                  could only be emptied by selecting the text and deleting it.
+                */}
+                <TextField
+                  className="mt-4"
+                  label={searchPlaceholder}
+                  hideLabel
+                  type="search"
+                  leadingIcon="search"
+                  clearable="Clear the search"
+                  onClear={() => setQuery("")}
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder={searchPlaceholder}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
               </div>
 
               <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2">

@@ -9,6 +9,9 @@ import {
 import type { ManualGrant } from "@/lib/admin/standing-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { Button } from "@/components/ui/Button";
+import { TextField, SelectField, TextArea } from "@/components/ui/Field";
 
 /**
  * The standing desk.
@@ -58,51 +61,45 @@ export function StandingDesk({
           earned one worth less.
         </p>
 
+        {/*
+          Both of these set `aria-invalid` and painted nothing for it:
+          `.nf-field` draws its border with a border-box gradient, so the error
+          rule beside it colours a surface the gradient covers. A grant refused
+          for a bad handle looked exactly like one nobody had submitted yet.
+          The field primitives own the invalid state, the message and the
+          label/error wiring together.
+        */}
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className="nf-label">Member handle</span>
-            <input
-              type="text"
-              name="handle"
-              autoComplete="off"
-              placeholder="adaobi"
-              aria-invalid={fieldError("handle") ? true : undefined}
-              className="nf-field"
-            />
-            {fieldError("handle") && (
-              <span className="mt-1.5 block text-[0.78rem] text-[var(--nf-state-warning)]">
-                {fieldError("handle")}
-              </span>
-            )}
-          </label>
+          <TextField
+            type="text"
+            name="handle"
+            label="Member handle"
+            autoComplete="off"
+            placeholder="adaobi"
+            error={fieldError("handle")}
+          />
 
-          <label className="block">
-            <span className="nf-label">Badge</span>
-            <select name="badgeCode" className="nf-field" defaultValue={manualBadges[0]?.code ?? ""}>
-              {manualBadges.map((badge) => (
-                <option key={badge.code} value={badge.code}>
-                  {badge.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SelectField
+            name="badgeCode"
+            label="Badge"
+            defaultValue={manualBadges[0]?.code ?? ""}
+          >
+            {manualBadges.map((badge) => (
+              <option key={badge.code} value={badge.code}>
+                {badge.name}
+              </option>
+            ))}
+          </SelectField>
         </div>
 
-        <label className="mt-3 block">
-          <span className="nf-label">Why</span>
-          <textarea
-            name="reason"
-            rows={3}
-            className="nf-field resize-y"
-            placeholder="Answered forty questions in Yaba this month, every one of them useful."
-            aria-invalid={fieldError("reason") ? true : undefined}
-          />
-          {fieldError("reason") && (
-            <span className="mt-1.5 block text-[0.78rem] text-[var(--nf-state-warning)]">
-              {fieldError("reason")}
-            </span>
-          )}
-        </label>
+        <TextArea
+          name="reason"
+          label="Why"
+          rows={3}
+          className="mt-3"
+          placeholder="Answered forty questions in Yaba this month, every one of them useful."
+          error={fieldError("reason")}
+        />
 
         {state && !state.ok && (
           <p
@@ -122,13 +119,15 @@ export function StandingDesk({
           </p>
         )}
 
-        <button
+        <Button
           type="submit"
-          disabled={pending || manualBadges.length === 0}
-          className="nf-btn nf-btn--primary mt-4 disabled:opacity-60"
+          variant="primary"
+          className="mt-4"
+          disabled={manualBadges.length === 0}
+          loading={pending}
         >
           {pending ? "Granting..." : "Grant badge"}
-        </button>
+        </Button>
       </form>
 
       {/* -------------------------------------------------------- record */}
@@ -150,7 +149,10 @@ export function StandingDesk({
               <li key={`${grant.userId}-${grant.badgeCode}`} className="nf-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="nf-badge nf-badge--brand">{grant.badgeName}</span>
-                  {grant.revoked && <span className="nf-badge">Revoked</span>}
+                  {/* `.nf-badge` alone paints no fill and no colour, so this
+                      read as invisible text exactly where a revocation had to be
+                      seen. It is a status, so it is a status pill. */}
+                  {grant.revoked && <StatusPill tone="danger">Revoked</StatusPill>}
                   <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
                     {new Date(grant.grantedAt).toLocaleDateString("en-GB", {
                       day: "numeric",
@@ -172,9 +174,11 @@ export function StandingDesk({
                   <form action={revokeAction} className="mt-3">
                     <input type="hidden" name="userId" value={grant.userId} />
                     <input type="hidden" name="badgeCode" value={grant.badgeCode} />
-                    <button type="submit" className="nf-btn nf-btn--ghost nf-btn--sm">
+                    {/* Revoking somebody's standing is destructive, and it was
+                        drawn as a ghost - the quietest control on the row. */}
+                    <Button type="submit" variant="dangerQuiet" size="sm">
                       Take it back
-                    </button>
+                    </Button>
                   </form>
                 )}
               </li>

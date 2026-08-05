@@ -6,6 +6,7 @@ import {
   applyToModerate,
   withdrawModeratorApplication,
 } from "@/lib/social/areas-actions";
+import { TextArea } from "@/components/ui/Field";
 import {
   AREA_COPY,
   MODERATOR_CAN,
@@ -144,28 +145,20 @@ export function ModeratorApply({
         </div>
       </div>
 
-      <label className="flex flex-col gap-2">
-        <span className="text-sm font-semibold text-[var(--nf-content-primary)]">
-          What do you know about this place?
-        </span>
-        <textarea
-          className="nf-field min-h-[110px] resize-y"
-          value={reason}
-          maxLength={MODERATOR_REASON_MAX}
-          placeholder="How long you have been around here, which streets you know, and why you want to do it."
-          onChange={(event) => setReason(event.target.value)}
-          aria-invalid={Boolean(fieldErrors.reason)}
-        />
-        {fieldErrors.reason ? (
-          <span className="text-xs text-[var(--nf-state-error)]">{fieldErrors.reason}</span>
-        ) : (
-          <span className="nf-numeric text-xs text-[var(--nf-content-muted)]">
-            {remaining > 0
-              ? `${remaining} more characters`
-              : `${reason.trim().length}/${MODERATOR_REASON_MAX}`}
-          </span>
-        )}
-      </label>
+      <TextArea
+        label="What do you know about this place?"
+        value={reason}
+        maxLength={MODERATOR_REASON_MAX}
+        rows={4}
+        placeholder="How long you have been around here, which streets you know, and why you want to do it."
+        onChange={(event) => setReason(event.target.value)}
+        error={fieldErrors.reason}
+        hint={
+          remaining > 0
+            ? `${remaining} more characters`
+            : `${reason.trim().length}/${MODERATOR_REASON_MAX}`
+        }
+      />
 
       {error ? (
         <p

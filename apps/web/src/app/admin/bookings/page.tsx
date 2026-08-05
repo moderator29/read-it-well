@@ -47,7 +47,7 @@ function StayCard({
         {stay.paidMinor > 0 ? (
           <ui.StatusChip
             label={fill(copy.settledChip, { amount: formatMoney(stay.paidMinor, locale) })}
-            tone="approved"
+            tone="success"
           />
         ) : (
           <ui.StatusChip label={copy.unpaidChip} tone="neutral" />
@@ -55,7 +55,7 @@ function StayCard({
         {stay.refundedMinor > 0 && (
           <ui.StatusChip
             label={fill(copy.refundedChip, { amount: formatMoney(stay.refundedMinor, locale) })}
-            tone="pending"
+            tone="warning"
           />
         )}
         <span className="text-[0.75rem] text-[var(--nf-content-muted)]">

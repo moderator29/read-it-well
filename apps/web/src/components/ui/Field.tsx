@@ -170,7 +170,14 @@ const FIELD_TYPE = "text-[var(--nf-text-body)] pointer-coarse:text-[16px]";
  * gradient with the error colour. Restating only the border-box half would
  * blank the fill.
  */
-const INVALID_STYLE: CSSProperties = {
+/*
+ * Exported because a control that cannot be a real `<input>` still has to show
+ * the same error. `ChoicePicker`'s control is a `<button>` wearing `.nf-field`,
+ * so it cannot go through `Field` - and it was forced to restate this recipe
+ * locally, which is exactly how the two drift apart. One definition, both
+ * callers.
+ */
+export const INVALID_STYLE: CSSProperties = {
   background:
     "linear-gradient(var(--nf-surface-inset), var(--nf-surface-inset)) padding-box, linear-gradient(var(--nf-state-error), var(--nf-state-error)) border-box",
   boxShadow: "0 0 0 3px color-mix(in oklab, var(--nf-state-error) 26%, transparent)",

@@ -6,6 +6,8 @@ import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { AroundFab } from "@/components/social/AroundFab";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
+import { TextField } from "@/components/ui/Field";
 import { isSocialEnabled } from "@/lib/social/flag";
 import { findPeople } from "@/lib/social/people-queries";
 
@@ -64,23 +66,37 @@ export default async function PeoplePage({
     <div className="mx-auto w-full max-w-2xl pb-24 pt-4">
       <PageHeader title="People" fallback="/around" />
 
-      <form action="/u" method="get" className="nf-people__search">
-        <label htmlFor="q" className="sr-only">
-          Search for somebody by name or handle
-        </label>
-        <UiIcon name="search" size={17} />
-        <input
-          id="q"
+      {/*
+        Still a plain GET form: the query lives in the address, so a search is a
+        page somebody can send, reload or go back to, and typing it costs no
+        JavaScript.
+
+        What changed is the field. It was a bare `id="q"` - an unqualified,
+        GLOBAL id on a page that also renders follow controls and a FAB, where
+        anything else claiming `q` would silently steal the label. `TextField`
+        derives its id with `useId`, so it is unique by construction, and
+        `name="q"` - the only part the GET actually needs - is untouched.
+
+        It also brings the clear affordance the pill never had: an uncontrolled
+        field, so clearing writes the DOM directly and the form still posts
+        empty, which is the "see everybody" case.
+      */}
+      <form action="/u" method="get" className="mt-1 flex items-start gap-2">
+        <TextField
+          className="min-w-0 flex-1"
+          label="Search for somebody by name or handle"
+          hideLabel
+          leadingIcon="search"
+          clearable="Clear the search"
           name="q"
           type="search"
           defaultValue={view.query}
           placeholder="A name, a handle, a job, a place"
           autoComplete="off"
-          className="nf-people__field"
         />
-        <button type="submit" className="nf-btn nf-btn--primary nf-people__go">
+        <Button type="submit" variant="primary" className="h-12 shrink-0">
           Search
-        </button>
+        </Button>
       </form>
 
       <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">

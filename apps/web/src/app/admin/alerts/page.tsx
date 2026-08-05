@@ -4,7 +4,10 @@ import { getLocale } from "@/lib/locale";
 import { getRiskAlerts, type AlertView } from "@/lib/admin/queries";
 import { AlertResolve } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
-import { adminUi, type AdminUi, type Tone } from "../_components/ui";
+import { adminUi, type AdminUi } from "../_components/ui";
+/* `Tone` moved out of the admin console and into the shared StatusPill when
+   the four copies of it were collapsed into one. Same type, one home. */
+import type { StatusTone } from "@/components/ui/StatusPill";
 import { gradeForSeverity } from "@/lib/trust/standards";
 import { dueChip } from "../_components/due";
 
@@ -15,10 +18,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const dynamic = "force-dynamic";
 
-const SEVERITY_TONE: Record<AlertView["severity"], Tone> = {
+const SEVERITY_TONE: Record<AlertView["severity"], StatusTone> = {
   low: "neutral",
-  medium: "pending",
-  high: "rejected",
+  medium: "warning",
+  high: "danger",
 };
 
 /**

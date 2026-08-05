@@ -5,6 +5,8 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BinGlyph, PlusGlyph } from "./glyphs";
 import type { Thread } from "./threads";
 import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
+import { TextField } from "@/components/ui/Field";
 
 /**
  * Assistant side navigation.
@@ -54,7 +56,6 @@ export function AssistantSidebar({
   onClearAll,
   onToneChange,
   onLanguageChange,
-  idPrefix,
 }: {
   threads: Thread[];
   activeId: string | null;
@@ -66,8 +67,6 @@ export function AssistantSidebar({
   onClearAll: () => void;
   onToneChange: (tone: Tone) => void;
   onLanguageChange: (language: Language) => void;
-  /** Keeps input ids unique when the sidebar mounts twice (column and drawer). */
-  idPrefix: string;
 }) {
   const [query, setQuery] = useState("");
 
@@ -82,29 +81,26 @@ export function AssistantSidebar({
     );
   }, [threads, query]);
 
-  const searchId = `${idPrefix}-thread-search`;
-
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* -------------------------------------------- search and new chat */}
       <div className="space-y-2.5 p-3 pb-2.5">
-        <div className="relative">
-          <label htmlFor={searchId} className="sr-only">
-            Search conversations
-          </label>
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--nf-content-muted)]">
-            <UiIcon name="search" size={16} />
-          </span>
-          <input
-            id={searchId}
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search conversations"
-            autoComplete="off"
-            className="nf-field w-full py-2.5 pl-9 text-[0.8438rem]"
-          />
-        </div>
+        {/* The sidebar's own search bar was the fifth arrangement of a leading
+            icon and a left padding on the platform. It also had no way to get
+            back to the whole history except deleting what you typed, which is
+            the affordance `clearable` is. */}
+        <TextField
+          label="Search conversations"
+          hideLabel
+          type="search"
+          leadingIcon="search"
+          clearable="Clear the search"
+          onClear={() => setQuery("")}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search conversations"
+          autoComplete="off"
+        />
         <Button variant="primary" size="sm" full onClick={onNew}>
           <PlusGlyph size={15} />
           New chat
@@ -132,9 +128,12 @@ export function AssistantSidebar({
                     type="button"
                     onClick={() => onSelect(t.id)}
                     aria-current={active ? "true" : undefined}
+                    /* The active row's border was `rgb(0 102 255 / 0.55)`, a
+                       raw literal of the brand blue that would not have moved
+                       if the brand did. Same colour, said in the token. */
                     className={`w-full rounded-xl border px-3 py-2.5 pr-10 text-left transition-colors ${
                       active
-                        ? "border-[rgb(0_102_255_/_0.55)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_16%,transparent)]"
+                        ? "border-[color-mix(in_oklab,var(--nf-brand-primary)_55%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_16%,transparent)]"
                         : "border-transparent hover:bg-[var(--nf-glass-fill)]"
                     }`}
                   >
@@ -170,17 +169,25 @@ export function AssistantSidebar({
       <div className="space-y-3.5 border-t border-[var(--nf-border-subtle)] p-3">
         <div>
           <p className="nf-overline mb-2">Reply style</p>
+          {/* `behaviour="filter"`, keeping the `aria-pressed` these already
+              announced. They are a choice out of two, but the group has no
+              `radiogroup` around it and never had one, and a `role="radio"`
+              with no group is invalid ARIA - worse than the toggle semantics
+              that were at least true. The `px-3 py-1.5` override is gone: it
+              was there to force the height back DOWN after the chip had been
+              inflated to reach the touch floor. The primitive keeps the paint
+              at 36px and overflows an invisible 44pt target. */}
           <div className="flex flex-wrap gap-2" role="group" aria-label="Reply style">
             {TONES.map((t) => (
-              <button
+              <Chip
                 key={t}
-                type="button"
-                aria-pressed={tone === t}
-                onClick={() => onToneChange(t)}
-                className={`nf-chip px-3 py-1.5 text-[0.75rem] ${tone === t ? "nf-chip--active" : ""}`}
+                size="sm"
+                behaviour="filter"
+                selected={tone === t}
+                onSelectedChange={() => onToneChange(t)}
               >
                 {t}
-              </button>
+              </Chip>
             ))}
           </div>
         </div>

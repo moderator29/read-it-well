@@ -14,13 +14,13 @@ import {
   MIN_DESCRIPTION_WORDS,
   MIN_PHOTOS,
   MIN_TITLE_LENGTH,
-  STATUS_TONE,
   type ListingStatus,
 } from "@/lib/agent/listings-schema";
 import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 
 /**
  * The agent's listings workspace.
@@ -51,13 +51,6 @@ const GROUPS: Group[] = [
 ];
 
 const EDITABLE: ListingStatus[] = ["DRAFT", "MORE_INFO_REQUIRED", "REJECTED"];
-
-/* The badge class, not a hand-written colour pair. Rejected used to be the
-   only status on the platform written as an inline style, which is exactly how
-   a fifth meaning gets into a four-colour system. */
-function toneClass(status: ListingStatus): string {
-  return `nf-badge nf-badge--${STATUS_TONE[status]}`;
-}
 
 type SheetKind = "submit" | "unpublish" | "delete";
 
@@ -160,7 +153,19 @@ function ConfirmSheet({
           <Button variant="secondary" className="flex-1" onClick={onClose}>
             {t.workspace.sheets.keep}
           </Button>
-          <Button variant="primary" className="flex-1" onClick={run} loading={pending}>
+          {/*
+            Deleting a listing and taking a live one down are destructive, and
+            both used to confirm behind the same blue primary as submitting for
+            review. Quiet danger rather than solid: this is the confirm step
+            inside a sheet, where the sheet has already made the consequence
+            plain and a solid red would shout louder than the decision needs.
+          */}
+          <Button
+            variant={state.kind === "submit" ? "primary" : "dangerQuiet"}
+            className="flex-1"
+            onClick={run}
+            loading={pending}
+          >
             {copy.confirm}
           </Button>
         </div>
@@ -236,9 +241,9 @@ function ListingRow({
         <div className="min-w-0 flex-1 leading-tight">
           <div className="flex items-start justify-between gap-2">
             <h3 className="truncate text-[0.9375rem] font-semibold">{listing.title}</h3>
-            <span className={`${toneClass(listing.status)} shrink-0`}>
+            <StatusPill tone={toneForStatus(listing.status)} className="shrink-0">
               {t.workspace.status[listing.status]}
-            </span>
+            </StatusPill>
           </div>
 
           {(listing.area || listing.city) && (
@@ -312,14 +317,22 @@ function ListingRow({
             {t.workspace.actions.takeDown}
           </button>
         )}
+        {/*
+          Delete was the lowest-contrast element in this row - muted grey text,
+          quieter than every reversible action beside it, on the one action
+          that cannot be undone. It is a real danger control now. Quiet rather
+          than solid, because a solid red pill among four text links would make
+          deletion the loudest thing on the card; the point is that it should
+          be legible as destructive, not that it should be shouted.
+        */}
         {listing.status === "DRAFT" && (
-          <button
-            type="button"
-            className="text-[0.8125rem] font-semibold text-[var(--nf-content-muted)]"
+          <Button
+            variant="dangerQuiet"
+            size="sm"
             onClick={() => onAction("delete", listing)}
           >
             {t.workspace.actions.delete}
-          </button>
+          </Button>
         )}
       </div>
     </li>

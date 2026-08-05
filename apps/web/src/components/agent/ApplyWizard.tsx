@@ -8,6 +8,9 @@ import { createClient } from "@/lib/supabase/client";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { PhoneField } from "@/components/app/PhoneField";
+import { SegmentedProgress } from "@/components/ui/Progress";
+import { Switch } from "@/components/ui/Switch";
+import { TextField, SelectField as UiSelectField } from "@/components/ui/Field";
 
 const EMPTY: ApplicationResult = { ok: false };
 const DRAFT_KEY = "nf_agent_application_draft";
@@ -64,6 +67,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
   const stepTitles = [a.steps.personal, a.steps.identity, a.steps.business, a.steps.documents, a.steps.payout, a.steps.review];
 
   const [step, setStep] = useState(0);
+  const [agreed, setAgreed] = useState(false);
   const [agentType, setAgentType] = useState<AgentType>("individual");
   const [values, setValues] = useState<Values>({});
   const [docs, setDocs] = useState<Record<string, DocumentSlot>>({});
@@ -191,28 +195,51 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
 
   return (
     <div className="mx-auto max-w-2xl">
-      {/* Stepper: circles shrink a step on phones so all six fit without a
-          squeeze; the per-step captions are desktop only, so the current step
-          name is echoed beneath for small screens. */}
-      <ol className="mb-2 flex items-center sm:mb-8" aria-label={a.title}>
+      {/*
+        Progress, then the step markers.
+
+        The 2px connector rules between the circles were the progress bar, and
+        they told assistive technology nothing: `role="progressbar"` appeared
+        nowhere in this codebase, so a screen reader user filling in a six-step
+        application had no way to ask how much was left. `SegmentedProgress`
+        states the position properly and animates the fill on the compositor.
+
+        The numbered circles stay, because they are the only way back to a
+        finished step, and each button keeps a 44pt target: `min-h-11` on the
+        button itself rather than the `nf-tap` overlay, so the target is the
+        control instead of a pseudo-element sitting over it.
+      */}
+      <SegmentedProgress
+        steps={stepTitles.length}
+        current={step + 1}
+        /* The same "1 / 6" the footer already shows, plus the step's own name.
+           There is no `stepCounter` key in this dictionary slice yet, so the
+           bar reuses the wording that is already on the screen rather than
+           inventing an English sentence in a four-locale flow. */
+        label={`${step + 1} / ${stepTitles.length} — ${stepTitles[step]}`}
+        className="mb-3"
+      />
+      <ol className="mb-2 flex items-start sm:mb-8" aria-label={a.title}>
         {stepTitles.map((title, i) => {
           const done = i < step;
           const current = i === step;
           return (
-            <li key={title} className="flex flex-1 items-center last:flex-none">
+            /* Every marker takes an equal share now. `last:flex-none` existed
+               only because the final step had no connector rule after it. */
+            <li key={title} className="flex-1">
               <button
                 type="button"
                 onClick={() => i <= step && setStep(i)}
                 disabled={i > step}
                 aria-current={current ? "step" : undefined}
-                className="nf-tap flex flex-col items-center gap-1.5"
+                className="flex min-h-11 w-full flex-col items-center justify-center gap-1.5"
                 title={title}
               >
                 <span
                   className="nf-numeric grid h-8 w-8 place-items-center rounded-full text-[0.75rem] font-bold transition-colors sm:h-9 sm:w-9 sm:text-[0.8125rem]"
                   style={{
                     background: done || current ? "var(--nf-gradient-agent)" : "var(--nf-surface-raised)",
-                    color: done || current ? "#fff" : "var(--nf-content-muted)",
+                    color: done || current ? "var(--nf-content-on-brand)" : "var(--nf-content-muted)",
                   }}
                 >
                   {done ? <UiIcon name="verified" size={16} /> : i + 1}
@@ -221,12 +248,6 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
                   {title}
                 </span>
               </button>
-              {i < last && (
-                <span
-                  className="mx-1 h-0.5 flex-1 rounded-full transition-colors"
-                  style={{ background: i < step ? "var(--nf-mode-agent)" : "var(--nf-border-subtle)" }}
-                />
-              )}
             </li>
           );
         })}
@@ -359,10 +380,27 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
             ))}
           </dl>
 
-          <label className="flex items-start gap-2.5 text-[0.8125rem]">
-            <input type="checkbox" name="agreeTerms" className="mt-0.5 h-4 w-4 accent-[var(--nf-brand-primary)]" />
-            <span>{a.fields.agreeTerms}</span>
-          </label>
+          {/*
+            The terms gate.
+
+            This was a raw 16px native checkbox - a 16px target on the one
+            control in the flow that is a legal acceptance, on a form built for
+            one thumb. It is now a Switch: 52x32 painted, 44pt to hit, with a
+            real `role="switch"` and its state announced.
+
+            A switch is a button, so it submits nothing on its own. The hidden
+            input carries the exact value the server action checks for ("on"),
+            and only exists while the switch is on - so an unaccepted form
+            reaches the action with the field absent, which is precisely what
+            an unticked checkbox did.
+          */}
+          {agreed && <input type="hidden" name="agreeTerms" value="on" />}
+          <Switch
+            checked={agreed}
+            onCheckedChange={setAgreed}
+            label={a.fields.agreeTerms}
+            className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3"
+          />
           {err?.agreeTerms && (
             <p role="alert" className="text-[0.75rem] text-[var(--nf-state-error)]">{err.agreeTerms}</p>
           )}
@@ -422,6 +460,17 @@ function Legend({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
+/*
+ * Both wrappers now delegate to the shared field primitives.
+ *
+ * They used to set `aria-invalid` on a `.nf-field` and render the message
+ * beneath it. That class paints its border with a border-box gradient, and the
+ * error rule beside it sets `border-color` - a surface the gradient covers - so
+ * an invalid field looked exactly as it had a moment earlier. Thirteen fields
+ * on this form, every one of them silently invalid. The primitive replaces the
+ * gradient's own border-box layer and adds a ring, and wires the label, the
+ * error id and `aria-describedby` on the way past.
+ */
 function Field({
   name, label, value, set, err, type = "text", placeholder, autoComplete, inputMode,
 }: {
@@ -429,24 +478,18 @@ function Field({
   err?: Record<string, string>; type?: string; placeholder?: string; autoComplete?: string;
   inputMode?: "numeric" | "text";
 }) {
-  const e = err?.[name];
   return (
-    <div>
-      <label htmlFor={name} className="nf-label">{label}</label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        value={value[name] ?? ""}
-        onChange={(ev) => set(name, ev.target.value)}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        inputMode={inputMode}
-        aria-invalid={e ? true : undefined}
-        className="nf-field"
-      />
-      {e && <p role="alert" className="mt-1 text-[0.75rem] text-[var(--nf-state-error)]">{e}</p>}
-    </div>
+    <TextField
+      name={name}
+      label={label}
+      type={type}
+      value={value[name] ?? ""}
+      onChange={(ev) => set(name, ev.target.value)}
+      placeholder={placeholder}
+      autoComplete={autoComplete}
+      inputMode={inputMode}
+      error={err?.[name]}
+    />
   );
 }
 
@@ -456,25 +499,19 @@ function SelectField({
   name: string; label: string; value: Values; set: (n: string, v: string) => void;
   err?: Record<string, string>; options: string[];
 }) {
-  const e = err?.[name];
   return (
-    <div>
-      <label htmlFor={name} className="nf-label">{label}</label>
-      <select
-        id={name}
-        name={name}
-        value={value[name] ?? ""}
-        onChange={(ev) => set(name, ev.target.value)}
-        aria-invalid={e ? true : undefined}
-        className="nf-field"
-      >
-        <option value="" disabled style={{ background: "var(--nf-surface-elevated)" }}>Select</option>
-        {options.map((o) => (
-          <option key={o} value={o} style={{ background: "var(--nf-surface-elevated)" }}>{o}</option>
-        ))}
-      </select>
-      {e && <p role="alert" className="mt-1 text-[0.75rem] text-[var(--nf-state-error)]">{e}</p>}
-    </div>
+    <UiSelectField
+      name={name}
+      label={label}
+      value={value[name] ?? ""}
+      onChange={(ev) => set(name, ev.target.value)}
+      error={err?.[name]}
+    >
+      <option value="" disabled style={{ background: "var(--nf-surface-elevated)" }}>Select</option>
+      {options.map((o) => (
+        <option key={o} value={o} style={{ background: "var(--nf-surface-elevated)" }}>{o}</option>
+      ))}
+    </UiSelectField>
   );
 }
 

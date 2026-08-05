@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useId, useState } from "react";
+import { useActionState, useId, useState, useMemo } from "react";
 import Link from "next/link";
 import { type Locale } from "@naijafinds/i18n";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
@@ -12,6 +12,33 @@ import { Amount } from "@/components/ui/Amount";
 import { Toggle } from "@/components/app/account/Toggle";
 import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 import { PhoneField } from "@/components/app/PhoneField";
+import { Chip, ChipRow } from "@/components/ui/Chip";
+
+/**
+ * The next fourteen days, as ISO dates.
+ *
+ * Fourteen because it covers the window nearly every shortlet booking falls
+ * in while still fitting a swipe; beyond that the native picker below is the
+ * right tool and the rail would just be a worse calendar.
+ */
+function nextDays(fromIso: string, count: number): string[] {
+  return Array.from({ length: count }, (_, i) => addDaysIso(fromIso, i));
+}
+
+/**
+ * "Today", "Tomorrow", then a short weekday and day number.
+ *
+ * Built from the ISO string with a midday anchor rather than `new Date(iso)`,
+ * which parses as UTC and can land on the previous day for anyone west of
+ * Greenwich - a booking app that labels tomorrow as today is worse than one
+ * that shows a raw date.
+ */
+function quickDateLabel(iso: string, todayIso: string): string {
+  if (iso === todayIso) return "Today";
+  if (iso === addDaysIso(todayIso, 1)) return "Tomorrow";
+  const d = new Date(`${iso}T12:00:00`);
+  return d.toLocaleDateString("en-NG", { weekday: "short", day: "numeric" });
+}
 
 /**
  * The reserve panel on a listing detail page.
@@ -154,6 +181,10 @@ export function ReservePanel({
     totalMinor,
   } = stay;
 
+  /* Memoised so the fourteen chips are not rebuilt on every keystroke in the
+     guests field beneath them. */
+  const quickDates = useMemo(() => nextDays(today, 14), [today]);
+
   /* Collapsed by default: the total is the decision, and the arithmetic behind
      it is for the person who wants to check it or compare per night. */
   const [showPerNight, setShowPerNight] = useState(false);
@@ -265,6 +296,45 @@ export function ReservePanel({
         <input type="hidden" name="listingId" value={listingId} />
 
         {/* ------------------------------------------------------- dates */}
+        {/*
+          The quick-date rail.
+
+          Reference 4 opens its booking flow on a horizontal strip of day chips
+          rather than a date field, because on a phone the answer is nearly
+          always "one of the next couple of weeks" and a native date picker
+          makes that three taps and a modal.
+
+          The native inputs stay directly beneath, and that is deliberate on two
+          counts. They are the escape hatch for a date outside the fortnight,
+          which a chip rail can never cover. And three Playwright specs -
+          listing-detail, book-for-someone-else and capacity - drive this panel
+          by filling `input[name="checkIn"]`, which requires the element visible
+          and editable; hiding them behind a sheet would break all three. The
+          chips write to the same `useStayDates` setters, so the two controls
+          are one state, not two.
+        */}
+        <div className="mb-3">
+          <p className="nf-label mb-1.5">Check in</p>
+          <ChipRow label="Check-in date" radiogroup>
+            {quickDates.map((iso) => (
+              <Chip
+                key={iso}
+                behaviour="choice"
+                selected={checkIn === iso}
+                onSelectedChange={() => {
+                  setCheckIn(iso);
+                  /* A check-out already behind the new check-in is not a date
+                     range, so it is cleared rather than left to fail server
+                     validation with a message the user cannot act on. */
+                  if (checkOut && checkOut <= iso) setCheckOut("");
+                }}
+              >
+                {quickDateLabel(iso, today)}
+              </Chip>
+            ))}
+          </ChipRow>
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label htmlFor={`${uid}-checkin`} className="nf-label">
