@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useId, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LOCALES, localeMeta, type Locale } from "@naijafinds/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { Toggle } from "./Toggle";
 import {
@@ -138,7 +140,7 @@ export function LanguageCard({ current }: { current: Locale }) {
               aria-checked={active}
               disabled={pending}
               onClick={() => choose(code)}
-              className="flex min-h-11 w-full cursor-pointer items-center gap-4 py-3.5 text-left transition-opacity first:pt-0 last:pb-0 disabled:cursor-wait disabled:opacity-60"
+              className="flex min-h-11 w-full cursor-pointer items-center gap-4 py-2.5 text-left transition-opacity disabled:cursor-wait disabled:opacity-60"
             >
               <span className="nf-badge w-11 justify-center">{localeMeta[code].short}</span>
               <span className="min-w-0 flex-1">
@@ -239,7 +241,7 @@ export function SearchCard() {
   return (
     <GroupCard overline="Search" icon="home-search">
       <div className="divide-y divide-[var(--nf-border-subtle)]">
-        <div className="py-3.5 first:pt-0 last:pb-0">
+        <div className="py-2.5">
           <label htmlFor={cityId} className="block text-[0.9375rem] font-medium">
             Default search area
           </label>
@@ -263,7 +265,7 @@ export function SearchCard() {
           </select>
         </div>
 
-        <div className="flex items-center justify-between gap-4 py-3.5">
+        <div className="flex items-center justify-between gap-4 py-2.5">
           <div className="min-w-0 flex-1">
             <p className="text-[0.9375rem] font-medium">Currency</p>
             <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
@@ -339,9 +341,9 @@ export function SecurityCard() {
           description="Ask for fingerprint or face unlock when the app opens, on devices that support it."
         />
 
-        <div className="py-3.5">
+        <div className="py-2.5">
           <p className="text-[0.9375rem] font-medium">Active sessions</p>
-          <div className="mt-2.5 flex items-center gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3.5 py-3">
+          <div className="mt-2 flex items-center gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3.5 py-3">
             <span
               aria-hidden="true"
               className="h-2 w-2 shrink-0 rounded-full bg-[var(--nf-state-success)] shadow-[0_0_8px_color-mix(in_oklab,var(--nf-state-success)_70%,transparent)]"
@@ -356,7 +358,7 @@ export function SecurityCard() {
           </div>
         </div>
 
-        <div className="py-3.5 last:pb-0">
+        <div className="py-2.5">
           <Button variant="secondary" full onClick={() => setSignOutNote(true)}>
             Sign out everywhere
           </Button>
@@ -404,7 +406,7 @@ export function DataCard() {
   return (
     <GroupCard overline="Your data" icon="wallet-secure">
       <div className="divide-y divide-[var(--nf-border-subtle)]">
-        <div className="py-3.5 first:pt-0">
+        <div className="py-2.5">
           <p className="text-[0.9375rem] font-medium">Download my data</p>
           <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
             A copy of everything RentMe holds about you.
@@ -421,7 +423,7 @@ export function DataCard() {
           )}
         </div>
 
-        <div className="py-3.5 last:pb-0">
+        <div className="py-2.5">
           <p className="text-[0.9375rem] font-medium">Clear local data</p>
           <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
             Removes your profile name, preferences and saved conversations from
@@ -463,7 +465,7 @@ function SegmentedRow<T extends string>({
   const labelId = useId();
 
   return (
-    <div className="py-3.5 first:pt-0 last:pb-0">
+    <div className="py-2.5">
       <p id={labelId} className="text-[0.9375rem] font-medium">
         {label}
       </p>
@@ -495,22 +497,121 @@ function SegmentedRow<T extends string>({
 
 export function GroupCard({
   overline,
-  icon,
+  icon: _icon,
   children,
 }: {
   overline: string;
-  icon: BrandIconName;
+  /**
+   * Retained so the twelve call sites keep compiling, and because the grouping
+   * it encodes is still meaningful - but deliberately NOT painted. The
+   * reference puts nothing beside a group label, and a 44px 3D tile there was
+   * the single biggest source of the vertical space the owner asked to remove.
+   * Underscore-prefixed so lint agrees it is unused on purpose.
+   */
+  icon?: BrandIconName;
   children: React.ReactNode;
 }) {
   return (
-    <section className="nf-card p-5 sm:p-6" aria-label={overline}>
-      <div className="mb-4 flex items-center gap-3">
-        <span className="block h-11 w-11 shrink-0">
-          <BrandIcon name={icon} fill />
-        </span>
-        <h2 className="nf-overline">{overline}</h2>
+    /*
+     * The settings group, rebuilt to the supplied reference.
+     *
+     * It used to be a `p-6` card whose header carried a 44px 3D icon tile and a
+     * `mb-4` gap before the first row. Three sections of that and the screen is
+     * mostly padding: the owner's note was that there is "too much space before
+     * the next line of settings", and the header block was most of it.
+     *
+     * The reference does two things differently. The group label sits OUTSIDE
+     * the container as quiet small-caps text, so it costs one line rather than a
+     * padded row with an icon in it. And the container itself carries no padding
+     * at all - the rows own their own, separated by hairlines, which is what
+     * makes a list of settings read as one object instead of a stack of cards.
+     *
+     * The per-section 3D icon is dropped entirely. At 44px it was the loudest
+     * thing in a header whose job is to whisper, and the row icons below already
+     * say what each line is.
+     */
+    <section aria-label={overline}>
+      <h2 className="nf-overline mb-2 px-1">{overline}</h2>
+      <div className="nf-card overflow-hidden p-0">
+        <div className="divide-y divide-[var(--nf-border-subtle)] px-4">{children}</div>
       </div>
-      {children}
     </section>
   );
+}
+
+/**
+ * A settings row: icon, label, optional trailing value, optional chevron.
+ *
+ * The shape every line in the reference takes. The trailing value is stated on
+ * the row itself - "Free Plan", "English", "System" - rather than hidden one tap
+ * away, which is what lets someone read their whole configuration by scrolling
+ * rather than by opening every row in turn.
+ */
+export function SettingsRow({
+  icon,
+  label,
+  value,
+  href,
+  onClick,
+  trailing,
+  destructive = false,
+}: {
+  icon: UiIconName;
+  label: string;
+  /** Stated inline, muted. Omit for rows that only navigate. */
+  value?: string;
+  href?: string;
+  onClick?: () => void;
+  /** A control that lives on the row itself, e.g. a Switch. Suppresses the chevron. */
+  trailing?: React.ReactNode;
+  destructive?: boolean;
+}) {
+  const body = (
+    <>
+      <UiIcon
+        name={icon}
+        size={20}
+        className={
+          destructive ? "shrink-0 text-[var(--nf-state-error)]" : "shrink-0 opacity-70"
+        }
+      />
+      <span
+        className={`min-w-0 flex-1 truncate text-[0.9375rem] font-medium ${
+          destructive ? "text-[var(--nf-state-error)]" : ""
+        }`}
+      >
+        {label}
+      </span>
+      {value ? (
+        <span className="shrink-0 truncate text-[0.875rem] text-[var(--nf-content-muted)]">
+          {value}
+        </span>
+      ) : null}
+      {trailing ??
+        (href || onClick ? (
+          <UiIcon name="chevron-down" size={16} className="-rotate-90 shrink-0 opacity-40" />
+        ) : null)}
+    </>
+  );
+
+  /* 52px: the reference's row height. Tall enough to clear 44pt with the
+     hairlines counted, tight enough that a dozen rows fit on one screen. */
+  const cls =
+    "flex min-h-[52px] w-full items-center gap-3.5 py-2 text-left transition-opacity";
+
+  if (href) {
+    return (
+      <Link href={href} className={cls}>
+        {body}
+      </Link>
+    );
+  }
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={cls}>
+        {body}
+      </button>
+    );
+  }
+  return <div className={cls}>{body}</div>;
 }
