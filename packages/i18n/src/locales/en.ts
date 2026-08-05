@@ -48,7 +48,7 @@ export const en = {
     settings: "Settings",
     explore: "Explore",
     saved: "Saved",
-    around: "District",
+    around: "Around",
     map: "Map",
     primaryLabel: "Primary",
     accountLabel: "Account",
