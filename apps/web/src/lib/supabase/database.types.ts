@@ -1501,18 +1501,21 @@ export type Database = {
         Row: {
           category: string
           code: string
+          common_rank: number | null
           name: string
           sort_order: number
         }
         Insert: {
           category: string
           code: string
+          common_rank?: number | null
           name: string
           sort_order?: number
         }
         Update: {
           category?: string
           code?: string
+          common_rank?: number | null
           name?: string
           sort_order?: number
         }

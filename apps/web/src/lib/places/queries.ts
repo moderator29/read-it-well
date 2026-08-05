@@ -68,6 +68,11 @@ export const listLocalGovernments = cache(async function listLocalGovernments(
  * All 749 occupations, ordered so the picker's groups arrive already sorted:
  * category first, then the curated `sort_order` inside it, then the name as a
  * tie-break so two rows sharing a sort order never swap places between loads.
+ *
+ * `common_rank` rides along on every row rather than being fetched as a second
+ * shortlist query. It is non-null on 26 of the 749, and `groupOccupations`
+ * uses it to build the pinned group; a second round trip to read 26 rows the
+ * first one already carried would be a round trip for nothing.
  */
 export const listOccupations = cache(async function listOccupations(): Promise<OccupationOption[]> {
   if (!isSupabaseConfigured()) return [];
@@ -75,7 +80,7 @@ export const listOccupations = cache(async function listOccupations(): Promise<O
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("occupations")
-      .select("code, name, category, sort_order")
+      .select("code, name, category, sort_order, common_rank")
       .order("category", { ascending: true })
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true })
@@ -97,6 +102,7 @@ export const listOccupations = cache(async function listOccupations(): Promise<O
       code: row.code,
       name: row.name,
       category: row.category,
+      commonRank: row.common_rank ?? null,
     }));
   } catch (cause) {
     console.error("[places] occupations read threw", cause);

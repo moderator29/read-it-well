@@ -27,7 +27,18 @@ import { matchesSearch } from "@/lib/places/reference";
  */
 
 export type Choice = { code: string; name: string };
-export type ChoiceGroup = { category: string; options: Choice[] };
+export type ChoiceGroup = {
+  category: string;
+  options: Choice[];
+  /**
+   * A pinned group of rows that also appear further down under their own
+   * heading, the way "Common in Nigeria" sits above the occupation alphabet.
+   * It is a browsing shortcut, so it is dropped the moment a search is running:
+   * a query already reaches the whole list, and leaving the shortcut in would
+   * return the same row twice with no way to tell the two apart.
+   */
+  shortcut?: boolean;
+};
 
 /**
  * The invalid paint, restated.
@@ -125,6 +136,7 @@ export function ChoicePicker({
     if (query.trim().length === 0) return groups;
     const out: ChoiceGroup[] = [];
     for (const group of groups) {
+      if (group.shortcut) continue;
       const options = group.options.filter((option) => matchesSearch(option.name, query));
       if (options.length > 0) out.push({ category: group.category, options });
     }

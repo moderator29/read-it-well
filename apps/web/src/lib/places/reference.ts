@@ -27,12 +27,19 @@ export type OccupationOption = {
   code: string;
   name: string;
   category: string;
+  /**
+   * Position in the pinned shortcut group, or null for the great majority of
+   * rows that only appear under their own category.
+   */
+  commonRank?: number | null;
 };
 
 /** Occupations under one category heading, which is how the picker draws them. */
 export type OccupationGroup = {
   category: string;
   options: OccupationOption[];
+  /** True on the pinned shortlist, whose rows repeat under their own category. */
+  shortcut?: boolean;
 };
 
 /**
@@ -46,7 +53,30 @@ export const PLACE_MISMATCH_SQLSTATE = "RM020";
 export const PLACE_MISMATCH_MESSAGE =
   "That local government is not in that state. Pick the state first, then choose from the list underneath it.";
 
-/** Group a flat occupation list by category, keeping the server's ordering. */
+/**
+ * The heading over the pinned shortcut group.
+ *
+ * Named, not implied. "Suggested" would be a claim about the person opening the
+ * picker, which this list is not: it is a claim about the country, and it says
+ * so.
+ */
+export const COMMON_OCCUPATIONS_CATEGORY = "Common in Nigeria";
+
+/**
+ * Group a flat occupation list by category, keeping the server's ordering, with
+ * the shortlist pinned above the alphabet.
+ *
+ * Rows carrying a `commonRank` are copied into a leading group ordered by that
+ * rank, and are ALSO left under their own category. The duplication is
+ * deliberate: the shortcut exists so a market trader never scrolls, and the
+ * category listing exists so somebody browsing Technology finds Software
+ * Engineer where they expect it. Removing the row from its category to avoid
+ * showing it twice would break the second promise to keep the first.
+ *
+ * `<li>` keys are per group, so a row appearing in two groups is not a React
+ * key collision. The picker drops the shortcut group while a search is running,
+ * which is where a duplicate would otherwise read as a bug.
+ */
 export function groupOccupations(options: OccupationOption[]): OccupationGroup[] {
   const groups: OccupationGroup[] = [];
   const index = new Map<string, OccupationGroup>();
@@ -61,7 +91,16 @@ export function groupOccupations(options: OccupationOption[]): OccupationGroup[]
     group.options.push(option);
   }
 
-  return groups;
+  const common = options
+    .filter((option) => typeof option.commonRank === "number")
+    .sort((a, b) => (a.commonRank as number) - (b.commonRank as number));
+
+  if (common.length === 0) return groups;
+
+  return [
+    { category: COMMON_OCCUPATIONS_CATEGORY, options: common, shortcut: true },
+    ...groups,
+  ];
 }
 
 /**

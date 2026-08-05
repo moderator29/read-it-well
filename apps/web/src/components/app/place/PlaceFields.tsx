@@ -190,7 +190,7 @@ export function PlaceFields({
       <ChoicePicker
         name="occupationCode"
         label="What you do"
-        hint="Grouped by field. Prefer not to say is on the list and is a real answer."
+        hint="The common ones are at the top, the rest are grouped by field. Prefer not to say is on the list and is a real answer."
         placeholder="Choose your occupation"
         searchPlaceholder="Search 749 occupations"
         value={value.occupationCode}
