@@ -15,6 +15,7 @@ import { HowItWorks } from "@/components/site/landing/HowItWorks";
 import { PopularDestinations } from "@/components/site/landing/PopularDestinations";
 import { AgentsBand } from "@/components/site/landing/AgentsBand";
 import { WhyRentMe } from "@/components/site/landing/WhyRentMe";
+import { VoicesBand } from "@/components/site/landing/VoicesBand";
 import { FeaturedCarousel } from "@/components/site/landing/FeaturedCarousel";
 import { MoodRow } from "@/components/site/landing/MoodRow";
 import { NumbersBand } from "@/components/site/landing/NumbersBand";
@@ -316,6 +317,16 @@ export default async function LandingPage() {
         <AgentsBand t={t} />
 
         <WhyRentMe t={t} />
+
+        {/*
+          Real guest voices, or nothing at all.
+
+          Placed after WhyRentMe deliberately: that section is the platform
+          making its own case, and this is other people answering it. Renders
+          null until a real review exists, so the page simply does not have a
+          testimonials section rather than having an empty or invented one.
+        */}
+        <VoicesBand locale={locale} />
 
         {/* --------------------------------------------- assistant showcase */}
         <AssistantShowcase />
