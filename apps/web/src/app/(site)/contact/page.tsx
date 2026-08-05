@@ -17,8 +17,8 @@ const SUPPORT_EMAIL = "support@naijafinds.com";
  * Contact page.
  *
  * The support email is the hero object, with a plain response-time promise
- * next to it. The form below is a stub that says so honestly rather than
- * swallowing messages, and the help centre is offered first for the questions
+ * next to it. The form below files a real support ticket and hands back its
+ * NF-SUP reference, and the help centre is offered first for the questions
  * that already have written answers.
  */
 export default function ContactPage() {
@@ -46,7 +46,7 @@ export default function ContactPage() {
             <p className="nf-overline">Support email</p>
             <a
               href={`mailto:${SUPPORT_EMAIL}`}
-              className="mt-2 inline-block break-all text-[1.25rem] font-bold text-[var(--nf-electric-300)] hover:underline sm:text-[1.5rem]"
+              className="nf-tap mt-2 inline-block break-all text-[1.25rem] font-bold text-[var(--nf-electric-300)] hover:underline sm:text-[1.5rem]"
             >
               {SUPPORT_EMAIL}
             </a>

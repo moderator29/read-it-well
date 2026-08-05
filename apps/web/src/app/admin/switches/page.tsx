@@ -50,7 +50,7 @@ function SwitchRow({
           <span className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">{label}</span>
           <ui.StatusChip
             label={flag.enabled ? copy.on : copy.off}
-            tone={flag.enabled ? "success" : "danger"}
+            tone={flag.enabled ? "approved" : "rejected"}
           />
         </span>
         <span className="mt-1 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">

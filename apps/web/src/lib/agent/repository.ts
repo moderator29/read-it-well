@@ -1,27 +1,22 @@
 import "server-only";
-import type { AgentDashboard, AgentProfile, AgentRepository } from "./types";
+import type { AgentDashboard, AgentRepository } from "./types";
 
 /**
  * Agent data access.
  *
- * Selected by NF_DATA_SOURCE, same contract as the listing repository. The seed
- * profile is APPROVED so Agent Mode is explorable end to end during design work;
- * every surface that renders seed numbers labels them as sample, so nothing is
- * presented as a real balance or booking (Master Rule 8, Rule 50 on financial
- * data integrity). The real repository will read the signed-in agent and their
- * verified status from the platform, and must refuse "agent" mode for anyone
- * not actually approved.
+ * Selected by NF_DATA_SOURCE, same contract as the listing repository. It
+ * serves the designed dashboard deck and nothing else.
+ *
+ * THERE IS NO SEED PROFILE HERE ANY MORE, and that is the point. This module
+ * used to export an APPROVED, verified agent called "Demo Agent" with the
+ * reference NF-AGT-00042, and every agent route rendered it into the identity
+ * card for anybody who opened one signed out. A stranger was addressed by name
+ * as a verified agent, and /agents/status showed them an approved application
+ * with a reference number support would then be asked about. Identity is the
+ * one thing a "designed figures" label cannot rescue, so it is gone: the real
+ * agent comes from `getAgentContext()` and the absence of one is rendered as an
+ * absence.
  */
-
-const SEED_PROFILE: AgentProfile = {
-  id: "seed-agent",
-  displayName: "Demo Agent",
-  status: "APPROVED",
-  type: "individual",
-  verified: true,
-  applicationRef: "NF-AGT-00042",
-  submittedAt: "2026-05-24",
-};
 
 /** Deterministic sample dashboard. Kobo throughout. */
 const SEED_DASHBOARD: AgentDashboard = {
@@ -60,9 +55,6 @@ const SEED_DASHBOARD: AgentDashboard = {
 
 class SeedAgentRepository implements AgentRepository {
   readonly isSeed = true;
-  async getProfile(): Promise<AgentProfile> {
-    return SEED_PROFILE;
-  }
   async getDashboard(): Promise<AgentDashboard> {
     return SEED_DASHBOARD;
   }
@@ -70,9 +62,6 @@ class SeedAgentRepository implements AgentRepository {
 
 class ApiAgentRepository implements AgentRepository {
   readonly isSeed = false;
-  async getProfile(): Promise<AgentProfile> {
-    throw new Error("NF_DATA_SOURCE=api but the agent API is not implemented yet.");
-  }
   async getDashboard(): Promise<AgentDashboard> {
     throw new Error("NF_DATA_SOURCE=api but the agent API is not implemented yet.");
   }

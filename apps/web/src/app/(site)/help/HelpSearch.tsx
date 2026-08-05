@@ -45,7 +45,7 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
       <div className="relative">
         <UiIcon
           name="search"
-          size={18}
+          size={20}
           className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--nf-content-muted)]"
         />
         <input

@@ -276,36 +276,59 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
 };
 
 /**
- * The icon size scale.
+ * THE SIZE SCALE. A 4px grid from 12 to 32, and nothing between the steps.
  *
- * There were twenty-three magic numbers before this: `UiIcon` alone was called
- * at fourteen distinct sizes (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 24,
- * 26, 30) and four components hard-coded four different defaults. Five rungs
- * cover every real use.
+ * Before this existed the platform rendered stroked glyphs at fifteen different
+ * sizes (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 26 and 30), which
+ * is not a scale, it is an accumulation. Every call site now lands on a step,
+ * and `snapUiIconSize` rounds anything else onto the nearest one so a size can
+ * never drift off the grid again, whatever a future caller passes.
  */
-export const ICON_SIZE = { xs: 13, sm: 15, md: 18, lg: 22, xl: 28 } as const;
+export const UI_ICON_SIZES = [12, 16, 20, 24, 28, 32] as const;
+export type UiIconSize = (typeof UI_ICON_SIZES)[number];
+
+/** Nearest step, ties to the larger. Clamped to the ends of the scale. */
+export function snapUiIconSize(size: number): UiIconSize {
+  let best: UiIconSize = UI_ICON_SIZES[0];
+  let bestGap = Number.POSITIVE_INFINITY;
+  for (const step of UI_ICON_SIZES) {
+    const gap = Math.abs(step - size);
+    if (gap <= bestGap) {
+      best = step;
+      bestGap = gap;
+    }
+  }
+  return best;
+}
+
+/**
+ * The same scale, named.
+ *
+ * Numbers are what the grid is defined in, but a call site reads better saying
+ * what it means than restating the arithmetic, and a name cannot drift the way
+ * a literal can. These are the six steps above under the names the rest of the
+ * platform uses; nothing here is a new size.
+ */
+export const ICON_SIZE = { xs: 12, sm: 16, md: 20, lg: 24, xl: 28 } as const;
 export type IconSize = keyof typeof ICON_SIZE;
 
 /**
- * Optical stroke compensation.
+ * THE WEIGHT. One weight, expressed as rendered CSS pixels rather than as a
+ * number on the 24 grid.
  *
- * A fixed stroke of 1.8 on a 24 grid means the rendered line thins in direct
- * proportion to the icon: at 13px it lands at 0.97 device pixels and at 24px at
- * 1.8. Seventy-three usages were rendering sub-pixel strokes, which is the
- * single biggest reason the set could not read as SF-Symbols-grade - small
- * icons looked faded rather than small, and large ones looked heavy beside
- * them.
+ * `strokeWidth` is measured in the viewBox's own units, so a fixed 1.8 renders
+ * at 1.8 CSS px on a 24px glyph and at 0.9 CSS px on a 12px one. That is why
+ * thirty-two call sites had each hand-tuned their own value between 1.5 and
+ * 2.6: they were compensating for the scaling, one guess at a time, and the
+ * platform ended up with a dozen weights.
  *
- * Real optical sizing keeps the *rendered* line roughly constant, so the family
- * holds one weight across the whole scale. Reference weight is 1.8 at 20px.
+ * So the weight is stated once, in the unit a reader actually sees, and the
+ * grid number is derived from the size. Every stroked glyph on the platform
+ * renders at exactly this many CSS pixels, at every step of the scale. This is
+ * the optical sizing the audit asked for, stated as a constant rather than as a
+ * clamped division, and it is why no call site carries a stroke of its own.
  */
-function opticalStroke(size: number, override?: number) {
-  if (override !== undefined) return override;
-  const scaled = (1.8 * 20) / size;
-  // Clamped so a 13px glyph does not turn into a slab and a 32px one does not
-  // dissolve. The window is narrow on purpose.
-  return Math.round(Math.min(2.4, Math.max(1.45, scaled)) * 100) / 100;
-}
+export const UI_ICON_STROKE_PX = 1.4;
 
 /**
  * Symbol effects.
@@ -404,7 +427,6 @@ const FILLED_PATHS: Partial<Record<UiIconName, React.ReactNode>> = {
 export function UiIcon({
   name,
   size = ICON_SIZE.sm,
-  strokeWidth,
   className,
   label,
   effect,
@@ -413,11 +435,10 @@ export function UiIcon({
   filled,
 }: {
   name: UiIconName;
-  /** A number for a one-off, or a scale key. Prefer the key. */
+  /** A step on the scale, or its name. Anything else snaps onto the nearest. */
   size?: number | IconSize;
-  /** Escape hatch. Leave unset: optical sizing picks the right weight. */
-  strokeWidth?: number;
   className?: string;
+  /** Accessible name. Omit when a text label sits beside the glyph. */
   label?: string;
   effect?: SymbolEffect;
   effectLoop?: boolean;
@@ -431,7 +452,7 @@ export function UiIcon({
    */
   filled?: boolean;
 }) {
-  const px = typeof size === "number" ? size : ICON_SIZE[size];
+  const edge = snapUiIconSize(typeof size === "number" ? size : ICON_SIZE[size]);
   /*
    * A drawn silhouette wins over pouring paint into an outline. If neither
    * exists for this glyph, `filled` is ignored rather than rendering a blob.
@@ -440,12 +461,12 @@ export function UiIcon({
   const solid = Boolean(filled) && (Boolean(silhouette) || FILLABLE.has(name));
   return (
     <svg
-      width={px}
-      height={px}
+      width={edge}
+      height={edge}
       viewBox="0 0 24 24"
       fill={solid ? "currentColor" : "none"}
       stroke="currentColor"
-      strokeWidth={silhouette ? 0 : opticalStroke(px, strokeWidth)}
+      strokeWidth={(UI_ICON_STROKE_PX * 24) / edge}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={[
@@ -459,7 +480,10 @@ export function UiIcon({
       aria-label={label}
       aria-hidden={label ? undefined : true}
     >
-      {silhouette ?? PATHS[name]}
+      {/* A silhouette is a closed shape, so it is filled and NOT stroked: the
+          svg's stroke weight stays where every stroked glyph reads it from, and
+          the fill turns it off for this one path rather than for the family. */}
+      {silhouette ? <g stroke="none">{silhouette}</g> : PATHS[name]}
     </svg>
   );
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
-import { getAgentRepository } from "@/lib/agent/repository";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
 import { readHostBookings, type HostBookingBoard } from "@/lib/agent/bookings-queries";
@@ -39,18 +38,16 @@ export default async function Page() {
   const context = await getAgentContext();
 
   if (context.state === "signed-out" || context.state === "not-agent") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/bookings" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/bookings" profile={null}>
         <ListingPitch copy={t.agentListings.pitch} signedIn={context.state === "not-agent"} />
       </AgentShell>
     );
   }
 
   if (context.state === "unconfigured") {
-    const profile = await getAgentRepository().getProfile();
     return (
-      <AgentShell t={t} locale={locale} active="/agent/bookings" profile={profile}>
+      <AgentShell t={t} locale={locale} active="/agent/bookings" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
           <span className="mx-auto block h-20 w-20">
             <BrandIcon name="calendar-check" fill />

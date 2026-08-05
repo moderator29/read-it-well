@@ -15,8 +15,8 @@ export const dynamic = "force-dynamic";
 
 const SEVERITY_TONE: Record<AlertView["severity"], Tone> = {
   low: "neutral",
-  medium: "warning",
-  high: "danger",
+  medium: "pending",
+  high: "rejected",
 };
 
 /**

@@ -1,5 +1,6 @@
 import { getDictionary, type Locale } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
+import { getShellIdentity } from "@/lib/app/shell-queries";
 import { AppShell } from "@/components/app/AppShell";
 
 /**
@@ -10,19 +11,29 @@ import { AppShell } from "@/components/app/AppShell";
  * without changing any URL. Locale and dictionary are resolved once here and
  * handed down; the active destination is worked out inside the shell from the
  * current path.
+ *
+ * The shell is a client component, so the two facts it cannot fetch itself, who
+ * is signed in and how many notifications they have not read, are resolved here
+ * on the server and passed down. The name used to be a hardcoded "Guest" whose
+ * own comment said "until real sessions land", which stopped being true the day
+ * auth shipped, so every signed-in user was greeted by the placeholder.
  */
-/* Neutral demo identity until real sessions land; reads correctly both in the
-   greeting ("Welcome back, Guest") and on the rail identity card. */
-const PLACEHOLDER_NAME = "Guest";
-
 export default async function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
+  const { userName, unreadNotifications, avatarUrl, signedIn } = await getShellIdentity();
 
   return (
-    <AppShell t={t} locale={locale} userName={PLACEHOLDER_NAME}>
+    <AppShell
+      t={t}
+      locale={locale}
+      userName={userName}
+      unreadNotifications={unreadNotifications}
+      avatarUrl={avatarUrl}
+      signedIn={signedIn}
+    >
       {children}
     </AppShell>
   );

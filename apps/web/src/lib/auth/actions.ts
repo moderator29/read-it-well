@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { createClient } from "@/lib/supabase/server";
 import { siteUrl } from "@/lib/site";
 import { getProviderStates } from "./providers";
@@ -16,7 +15,9 @@ export type AuthField =
   | "password"
   | "confirmPassword"
   | "hearAbout"
-  | "state"
+  | "stateCode"
+  | "lgaCode"
+  | "occupationCode"
   | "referralCode";
 
 export type AuthFormState = {
@@ -26,6 +27,12 @@ export type AuthFormState = {
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/** Two letters. `public.states` is keyed by code, and Lagos is LA. */
+const STATE_CODE_RE = /^[A-Z]{2}$/;
+/** `<state>_<name>`, lower cased, for example `la_ikeja`. */
+const LGA_CODE_RE = /^[a-z]{2}_[a-z0-9_]{2,60}$/;
+const OCCUPATION_CODE_RE = /^[a-z0-9_]{2,60}$/;
 
 const field = (formData: FormData, name: string) => String(formData.get(name) ?? "");
 
@@ -62,7 +69,9 @@ function validateSignUp(formData: FormData): Partial<Record<AuthField, string>> 
   const nickname = field(formData, "nickname").trim();
   const confirmPassword = field(formData, "confirmPassword");
   const hearAbout = field(formData, "hearAbout");
-  const state = field(formData, "state");
+  const stateCode = field(formData, "stateCode").trim().toUpperCase();
+  const lgaCode = field(formData, "lgaCode").trim().toLowerCase();
+  const occupationCode = field(formData, "occupationCode").trim().toLowerCase();
   const referralCode = field(formData, "referralCode").trim();
 
   if (!firstName) errors.firstName = "Enter your first name.";
@@ -84,9 +93,17 @@ function validateSignUp(formData: FormData): Partial<Record<AuthField, string>> 
   else if (!(HEAR_ABOUT_OPTIONS as readonly string[]).includes(hearAbout))
     errors.hearAbout = "Choose one of the listed options.";
 
-  if (!state) errors.state = "Select the state you stay in.";
-  else if (!(NIGERIAN_STATES as readonly string[]).includes(state))
-    errors.state = "Choose a state from the list.";
+  /* Codes, not names. `profiles.state_code` and `profiles.lga_code` are keyed
+     to `public.states` and `public.local_governments`, and the signup trigger
+     checks both against those tables before writing either, so the shape check
+     here is only about catching a mangled post early. */
+  if (!STATE_CODE_RE.test(stateCode)) errors.stateCode = "Choose the state you stay in.";
+  if (lgaCode !== "" && !LGA_CODE_RE.test(lgaCode))
+    errors.lgaCode = "Choose a local government from the list.";
+  if (lgaCode !== "" && stateCode === "")
+    errors.stateCode = "Choose your state before your local government.";
+  if (occupationCode !== "" && !OCCUPATION_CODE_RE.test(occupationCode))
+    errors.occupationCode = "Choose what you do from the list.";
 
   // Referral code is optional; when supplied it must at least look like one.
   if (referralCode && !REFERRAL_CODE_RE.test(referralCode))
@@ -177,7 +194,9 @@ export async function signUpWithEmail(
         first_name: firstName,
         surname,
         nickname: nickname.length > 0 ? nickname : null,
-        state_code: field(formData, "state"),
+        state_code: field(formData, "stateCode").trim().toUpperCase(),
+        lga_code: field(formData, "lgaCode").trim().toLowerCase() || null,
+        occupation_code: field(formData, "occupationCode").trim().toLowerCase() || null,
         display_name: nickname.length > 0 ? nickname : [firstName, surname].join(" ").trim(),
         hear_about: field(formData, "hearAbout"),
         referral_code: field(formData, "referralCode").trim() || null,

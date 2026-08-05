@@ -18,6 +18,7 @@
  * Sending inside an existing thread is never throttled.
  */
 
+import { revalidatePath } from "next/cache";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -380,6 +381,50 @@ export async function markThreadRead(input: {
       .is("read_at", null)
       .select("id");
     if (updateError) return fail("Read receipts are unavailable just now.");
+    return ok({ updated: updated?.length ?? 0 });
+  } catch {
+    return fail("Read receipts are unavailable just now.");
+  }
+}
+
+/**
+ * Mark everything in the inbox as read, in one act.
+ *
+ * The thread route already marks one conversation read on open, which is the
+ * right behaviour and the wrong ergonomics for somebody looking at eleven bold
+ * rows they have already dealt with elsewhere. Same rules as markThreadRead:
+ * the caller's own RLS client decides which conversations are theirs, and only
+ * then does the service role clear the read state on messages addressed to
+ * them. Their own sent messages are never touched.
+ */
+export async function markInboxRead(): Promise<ActionResult<{ updated: number }>> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  if (!(await isFeatureEnabled("messaging"))) return fail(PAUSED_MESSAGE);
+
+  // RLS answers "which conversations are yours" and nothing else has to.
+  const { data: conversations, error: readError } = await session.supabase
+    .from("conversations")
+    .select("id")
+    .limit(200);
+  if (readError) return fail("Read receipts are unavailable just now.");
+  const ids = (conversations ?? []).map((row) => row.id);
+  if (ids.length === 0) return ok({ updated: 0 });
+
+  try {
+    const admin = createAdminClient();
+    const { data: updated, error: updateError } = await admin
+      .from("messages")
+      .update({ read_at: new Date().toISOString() })
+      .in("conversation_id", ids)
+      .neq("sender_id", session.user.id)
+      .is("read_at", null)
+      .select("id");
+    if (updateError) return fail("Read receipts are unavailable just now.");
+
+    revalidatePath("/messages");
     return ok({ updated: updated?.length ?? 0 });
   } catch {
     return fail("Read receipts are unavailable just now.");

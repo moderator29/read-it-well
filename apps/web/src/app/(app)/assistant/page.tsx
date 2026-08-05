@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getLocale } from "@/lib/locale";
 import { AssistantChat } from "@/components/app/assistant/AssistantChat";
 
 export const metadata: Metadata = { title: "RentMe AI" };
@@ -11,6 +12,10 @@ export const metadata: Metadata = { title: "RentMe AI" };
  * component, so the thread, its side navigation and the composer all hydrate
  * together.
  */
-export default function AssistantPage() {
-  return <AssistantChat />;
+export default async function AssistantPage() {
+  /* The locale is read here rather than inside the client component: a rating
+     or a price in the assistant's result cards must group its digits the same
+     way as the same figure on the search page. */
+  const locale = await getLocale();
+  return <AssistantChat locale={locale} />;
 }

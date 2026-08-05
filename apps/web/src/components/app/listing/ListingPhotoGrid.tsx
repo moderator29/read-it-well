@@ -63,7 +63,7 @@ export function ListingPhotoGrid({
           data-testid="photos-show-all"
           className="inline-flex min-h-[2.75rem] items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)] motion-reduce:transition-none"
         >
-          <UiIcon name="grid" size={15} />
+          <UiIcon name="grid" size={16} />
           Show all {photos.length}
         </button>
       </div>

@@ -27,6 +27,63 @@ export type Contact = {
 };
 
 /**
+ * The switches on /settings, as the send path sees them.
+ *
+ * They map onto profiles.settings.notifications one for one, which is what
+ * makes the promise on that card checkable: turn Bookings off and no booking
+ * email is sent, because the recipient cannot be resolved for that channel at
+ * all. Enforcing it here rather than at each send site is deliberate. There
+ * are nine send sites and there will be more, and a rule that has to be
+ * remembered at every one of them is a rule that will be forgotten at one.
+ */
+export type EmailChannel = "bookings" | "messages" | "wallet" | "marketing";
+
+/**
+ * Has this person asked not to hear about this?
+ *
+ * Reads through whatever client is passed: the service role when we are
+ * emailing a third party, the caller's own RLS-bound client when we are
+ * emailing them about something they just did. Only an explicit false
+ * silences. A missing row, a missing key, a malformed document or an
+ * unreachable database all mean "they never said no", and the mail goes: the
+ * failure direction for a transactional email is to send it.
+ */
+export async function emailMuted(
+  client: SupabaseClient<Database>,
+  userId: string,
+  channel: EmailChannel,
+): Promise<boolean> {
+  try {
+    const { data } = await client
+      .from("profiles")
+      .select("settings")
+      .eq("id", userId)
+      .maybeSingle();
+    const settings = data?.settings;
+    if (!settings || typeof settings !== "object" || Array.isArray(settings)) return false;
+    const notifications = (settings as Record<string, unknown>)["notifications"];
+    if (!notifications || typeof notifications !== "object") return false;
+    return (notifications as Record<string, unknown>)[channel] === false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The signed-in user's own contact details, when they still want mail on this
+ * channel. The async twin of contactFromSession, for the sends that go to the
+ * person who just performed the action.
+ */
+export async function contactForSelf(
+  client: SupabaseClient<Database>,
+  user: User,
+  channel: EmailChannel,
+): Promise<Contact | null> {
+  if (await emailMuted(client, user.id, channel)) return null;
+  return contactFromSession(user);
+}
+
+/**
  * The service-role client, or null when the service key is absent. Callers
  * that cannot resolve a third party's address then skip that email quietly
  * rather than failing.
@@ -72,8 +129,11 @@ async function displayName(admin: AdminClient, userId: string): Promise<string |
 export async function contactForUser(
   admin: AdminClient,
   userId: string,
+  /** When given, a person who has switched this channel off resolves to null. */
+  channel?: EmailChannel,
 ): Promise<Contact | null> {
   try {
+    if (channel && (await emailMuted(admin, userId, channel))) return null;
     const { data, error } = await admin.auth.admin.getUserById(userId);
     const email = (data?.user?.email ?? "").trim();
     if (error || email.length === 0) return null;
@@ -92,6 +152,8 @@ export async function contactForUser(
 export async function contactForAgent(
   admin: AdminClient,
   agentId: string,
+  /** When given, a host who has switched this channel off resolves to null. */
+  channel?: EmailChannel,
 ): Promise<Contact | null> {
   try {
     const { data: agent } = await admin
@@ -101,7 +163,7 @@ export async function contactForAgent(
       .maybeSingle();
     if (!agent) return null;
 
-    const contact = await contactForUser(admin, agent.user_id);
+    const contact = await contactForUser(admin, agent.user_id, channel);
     if (!contact) return null;
 
     const trading = (agent.display_name ?? "").trim();

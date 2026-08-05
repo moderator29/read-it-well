@@ -39,6 +39,12 @@ export type QueueCounts = {
   listings: number;
   reports: number;
   tickets: number;
+  /**
+   * Everything the safety scan is holding: posts, stories, story comments and
+   * bios, in one number. Four tables, because four things can be held, and one
+   * tile, because clearing them is one job.
+   */
+  moderation: number;
 };
 
 export async function getQueueCounts(): Promise<AdminRead<QueueCounts>> {
@@ -46,7 +52,18 @@ export async function getQueueCounts(): Promise<AdminRead<QueueCounts>> {
   if (!admin) return UNAVAILABLE;
 
   try {
-    const [flags, alerts, applications, listings, reports, tickets] = await Promise.all([
+    const [
+      flags,
+      alerts,
+      applications,
+      listings,
+      reports,
+      tickets,
+      heldPosts,
+      heldStories,
+      heldComments,
+      heldBios,
+    ] = await Promise.all([
       admin.from("message_flags").select("id", { count: "exact", head: true }).eq("status", "open"),
       admin.from("risk_alerts").select("id", { count: "exact", head: true }).eq("status", "open"),
       admin
@@ -65,6 +82,16 @@ export async function getQueueCounts(): Promise<AdminRead<QueueCounts>> {
         .from("support_tickets")
         .select("id", { count: "exact", head: true })
         .in("status", ["open", "pending"]),
+      admin.from("posts").select("id", { count: "exact", head: true }).eq("status", "HELD"),
+      admin.from("stories").select("id", { count: "exact", head: true }).eq("status", "HELD"),
+      admin
+        .from("story_comments")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "HELD"),
+      admin
+        .from("social_profiles")
+        .select("user_id", { count: "exact", head: true })
+        .eq("bio_status", "HELD"),
     ]);
 
     return {
@@ -76,6 +103,11 @@ export async function getQueueCounts(): Promise<AdminRead<QueueCounts>> {
         listings: listings.count ?? 0,
         reports: reports.count ?? 0,
         tickets: tickets.count ?? 0,
+        moderation:
+          (heldPosts.count ?? 0) +
+          (heldStories.count ?? 0) +
+          (heldComments.count ?? 0) +
+          (heldBios.count ?? 0),
       },
     };
   } catch {
@@ -243,6 +275,12 @@ export type ReportView = {
   reporterName: string;
   targetType: string;
   targetId: string;
+  /**
+   * The structured triage signal, or null on a row written before categories
+   * existed. Free text is what the reporter said; this is what they said it
+   * was, and it is what makes the queue sortable.
+   */
+  category: string | null;
   reason: string;
   status: Database["public"]["Enums"]["report_status"];
   createdAt: string;
@@ -256,7 +294,9 @@ export async function getReports(): Promise<AdminRead<ReportView[]>> {
   try {
     const { data, error } = await admin
       .from("reports")
-      .select("id, reporter_id, target_type, target_id, reason, status, created_at, resolved_at")
+      .select(
+        "id, reporter_id, target_type, target_id, category, reason, status, created_at, resolved_at",
+      )
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) return UNAVAILABLE;
@@ -281,6 +321,7 @@ export async function getReports(): Promise<AdminRead<ReportView[]>> {
         reporterName: names.get(row.reporter_id) ?? "A RentMe member",
         targetType: row.target_type,
         targetId: row.target_id,
+        category: row.category,
         reason: row.reason,
         status: row.status,
         createdAt: row.created_at,

@@ -1,0 +1,806 @@
+import "server-only";
+
+/**
+ * Around: reading posts.
+ *
+ * Every read goes through the caller's own RLS-bound client, so the database
+ * decides what a person may see rather than a `where` clause we remembered to
+ * write. A blocked author disappears from the feed because `posts_select` says
+ * so, not because this file filtered them out, which is the only way a block
+ * cannot leak through a count somewhere.
+ *
+ * Nothing here throws. A feed that 500s because one row is odd is worse than a
+ * feed that is briefly short.
+ */
+
+import { isSupabaseConfigured } from "../supabase/env";
+import { createClient } from "../supabase/server";
+import { resolveSession } from "../actions/session";
+import { formatMoney } from "@naijafinds/i18n";
+import type { PostListing, PostView } from "@/components/social/feed/PostCard";
+import { EDIT_WINDOW_MINUTES } from "./posts-schema";
+import { listingPhotoUrl, readMediaFor, type SignedMedia } from "./posts-media";
+
+const POST_COLUMNS = `
+  id, area_id, root_id, parent_id, depth, author_id, author_kind, kind, body,
+  listing_id, payload, reply_count, like_count, repost_count, view_count,
+  status, hold_reason, created_at, edited_at
+`;
+
+type RawPost = {
+  id: string;
+  area_id: string | null;
+  root_id: string | null;
+  parent_id: string | null;
+  depth: number;
+  author_id: string | null;
+  author_kind: "USER" | "BOT" | "SYSTEM";
+  kind: "GIST" | "ASK" | "REPLY" | "SHOWCASE" | "SYSTEM";
+  body: string | null;
+  listing_id: string | null;
+  payload: unknown;
+  reply_count: number;
+  like_count: number;
+  repost_count: number;
+  view_count: number;
+  status: "LIVE" | "HELD" | "REMOVED";
+  hold_reason: string | null;
+  created_at: string;
+  edited_at: string | null;
+};
+
+/**
+ * Relative time, in the shortest honest form.
+ *
+ * Deliberately not a library. Four branches and a date is the whole
+ * requirement, and Lagos is the only timezone this product cares about, which
+ * `formatDate` does not default to yet (R-108).
+ */
+function whenLabel(iso: string): string {
+  const then = new Date(iso).getTime();
+  /*
+   * A row with no timestamp, or an unparseable one, used to take the whole page
+   * down: `Intl.DateTimeFormat.format` raises RangeError on an invalid date,
+   * inside a `map`, inside a server component. This module's own header
+   * promises that nothing here throws, because a feed that 500s over one odd
+   * row is worse than a feed that is briefly short, and this was the one place
+   * that broke the promise. Caught in a real render, not in review.
+   */
+  if (!Number.isFinite(then)) return "";
+  const mins = Math.floor((Date.now() - then) / 60_000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d`;
+  try {
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "short",
+      timeZone: "Africa/Lagos",
+    }).format(new Date(iso));
+  } catch {
+    return "";
+  }
+}
+
+type Enrichment = {
+  authors: Map<
+    string,
+    { handle: string | null; displayLabel: string | null; avatarPath: string | null; isAgent: boolean }
+  >;
+  moderatorAreas: Map<string, string>;
+  liked: Set<string>;
+  saved: Set<string>;
+  reposted: Set<string>;
+  areas: Map<string, { name: string; slug: string }>;
+  /** Signed picture URLs, by post. Empty for a post with none. */
+  media: Map<string, SignedMedia[]>;
+  /** The flat a post is about, by listing id. */
+  listings: Map<string, PostListing>;
+};
+
+/**
+ * The flats the posts on this page are about.
+ *
+ * **`post.listing` was hard-coded null and three things depended on it.** The
+ * card carries a whole second architecture for a post about a flat, a
+ * photographic plate with the title, the place, the price and a way through to
+ * the listing; the district feed's Apartments chip filters on it; and the card
+ * menu offers Contact agent only when it is set. None of the three could ever
+ * fire, and the trigger that announces a newly published listing in its own
+ * area has been writing `listing_id` onto posts since it landed. So the plate
+ * existed, the posts existed, and nothing joined them up.
+ *
+ * `listings_select_published` does the filtering, so a listing that has been
+ * taken down since the post was written simply does not come back and the post
+ * renders as ordinary words rather than as a plate pointing at a dead page.
+ *
+ * Money is integer kobo and goes through `formatMoney`. Nothing here divides by
+ * a hundred.
+ */
+async function readPostListings(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  listingIds: string[],
+): Promise<Map<string, PostListing>> {
+  const out = new Map<string, PostListing>();
+  if (listingIds.length === 0) return out;
+  try {
+    const { data, error } = await supabase
+      .from("listings")
+      .select(
+        "id, title, area, city, price_per_night_minor, price_period, listing_photos ( storage_path, position )",
+      )
+      .in("id", listingIds)
+      .eq("status", "PUBLISHED");
+    if (error || !data) return out;
+
+    for (const row of data as unknown as {
+      id: string;
+      title: string;
+      area: string | null;
+      city: string | null;
+      price_per_night_minor: number | string | null;
+      price_period: string | null;
+      listing_photos: { storage_path: string; position: number }[] | null;
+    }[]) {
+      const first = [...(row.listing_photos ?? [])].sort((a, b) => a.position - b.position)[0];
+      const yearly = row.price_period === "year";
+      out.set(row.id, {
+        id: row.id,
+        title: row.title,
+        area: row.area ?? "",
+        city: row.city ?? "",
+        priceLabel: formatMoney(Number(row.price_per_night_minor ?? 0), "en"),
+        periodLabel: yearly ? "a year" : "a night",
+        photoUrl: listingPhotoUrl(first?.storage_path),
+        /* The verified mark is first-party inventory only, and a PUBLISHED row
+           in `public.listings` is first-party by definition: it was reviewed by
+           an admin before it could reach that status. `listings` carries no
+           `verified` column, and the catalogue read reaches the same conclusion
+           the same way. */
+        verified: true,
+      });
+    }
+    return out;
+  } catch {
+    return out;
+  }
+}
+
+/**
+ * One round of lookups for a whole page of posts, rather than a query per card.
+ * Six small reads instead of six times the number of rows.
+ */
+async function enrich(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  rows: RawPost[],
+  viewerId: string | null,
+): Promise<Enrichment> {
+  const authorIds = [...new Set(rows.map((r) => r.author_id).filter((v): v is string => Boolean(v)))];
+  const areaIds = [...new Set(rows.map((r) => r.area_id).filter((v): v is string => Boolean(v)))];
+  /* A post's own listing, plus anything the assistant cited in its payload. One
+     read for both, because they resolve to the same rows through the same
+     policy and two reads would be two chances to disagree. */
+  const listingIds = [
+    ...new Set([
+      ...rows.map((r) => r.listing_id).filter((v): v is string => Boolean(v)),
+      ...rows.flatMap((r) => citedIds(r.payload)),
+    ]),
+  ];
+  const postIds = rows.map((r) => r.id);
+
+  const [profiles, areas, mods, reactions, reposts, listings] = await Promise.all([
+    authorIds.length
+      ? supabase
+          .from("social_profiles")
+          .select("user_id, handle, display_label, avatar_path, is_agent")
+          .in("user_id", authorIds)
+      : Promise.resolve({ data: [] as never[] }),
+    areaIds.length
+      ? supabase.from("areas").select("id, name, slug").in("id", areaIds)
+      : Promise.resolve({ data: [] as never[] }),
+    authorIds.length && areaIds.length
+      ? supabase
+          .from("area_members")
+          .select("user_id, area_id")
+          .eq("role", "MODERATOR")
+          .in("user_id", authorIds)
+          .in("area_id", areaIds)
+      : Promise.resolve({ data: [] as never[] }),
+    viewerId && postIds.length
+      ? supabase
+          .from("post_reactions")
+          .select("post_id, mark")
+          .eq("user_id", viewerId)
+          .in("post_id", postIds)
+      : Promise.resolve({ data: [] as never[] }),
+    viewerId && postIds.length
+      ? supabase
+          .from("post_reposts")
+          .select("post_id")
+          .eq("user_id", viewerId)
+          .in("post_id", postIds)
+      : Promise.resolve({ data: [] as never[] }),
+    readPostListings(supabase, listingIds),
+  ]);
+
+  const authors = new Map<string, ReturnType<() => Enrichment["authors"] extends Map<string, infer V> ? V : never>>();
+  for (const p of (profiles.data ?? []) as {
+    user_id: string;
+    handle: string | null;
+    display_label: string | null;
+    avatar_path: string | null;
+    is_agent: boolean;
+  }[]) {
+    authors.set(p.user_id, {
+      handle: p.handle,
+      displayLabel: p.display_label,
+      avatarPath: p.avatar_path,
+      isAgent: p.is_agent,
+    });
+  }
+
+  const areaMap = new Map<string, { name: string; slug: string }>();
+  for (const a of (areas.data ?? []) as { id: string; name: string; slug: string }[]) {
+    areaMap.set(a.id, { name: a.name, slug: a.slug });
+  }
+
+  const moderatorAreas = new Map<string, string>();
+  for (const m of (mods.data ?? []) as { user_id: string; area_id: string }[]) {
+    moderatorAreas.set(`${m.user_id}:${m.area_id}`, m.area_id);
+  }
+
+  const liked = new Set<string>();
+  const saved = new Set<string>();
+  for (const r of (reactions.data ?? []) as { post_id: string; mark: string }[]) {
+    if (r.mark === "LIKE") liked.add(r.post_id);
+    if (r.mark === "SAVE") saved.add(r.post_id);
+  }
+
+  const reposted = new Set<string>(
+    ((reposts.data ?? []) as { post_id: string }[]).map((r) => r.post_id),
+  );
+
+  /* Signed last, and for the whole page at once. `social-media` is private, so
+     a picture needs a signed URL and sixty tiles would otherwise be sixty round
+     trips. */
+  const media = await readMediaFor(supabase, postIds);
+
+  return { authors, moderatorAreas, liked, saved, reposted, areas: areaMap, media, listings };
+}
+
+/**
+ * `posts.payload` is `jsonb`, which means it is whatever was put there, and the
+ * only safe way to read it is to check every step. A bot reply written before
+ * the shape settled, or a row somebody edited by hand, has to render as a post
+ * with no citations rather than take a feed down.
+ */
+function payloadSource(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+  const value = (payload as { source?: unknown }).source;
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function citedIds(payload: unknown): string[] {
+  if (!payload || typeof payload !== "object") return [];
+  const value = (payload as { listingIds?: unknown }).listingIds;
+  if (!Array.isArray(value)) return [];
+  return value.filter((id): id is string => typeof id === "string").slice(0, 4);
+}
+
+function toView(row: RawPost, e: Enrichment, viewerId: string | null): PostView {
+  const author = row.author_id ? (e.authors.get(row.author_id) ?? null) : null;
+  const area = row.area_id ? (e.areas.get(row.area_id) ?? null) : null;
+  const isMine = Boolean(viewerId && row.author_id === viewerId);
+
+  /*
+   * Whether Edit is worth offering.
+   *
+   * `posts_update_own` allows an update only on your own LIVE post inside
+   * fifteen minutes, and this is that same rule read at render time so the
+   * control is absent rather than present and refused. It goes stale while a
+   * page sits open, which is fine: the action asks the database again and the
+   * refusal has its own sentence.
+   */
+  const editable =
+    isMine &&
+    row.status === "LIVE" &&
+    Date.now() - new Date(row.created_at).getTime() < EDIT_WINDOW_MINUTES * 60_000;
+
+  return {
+    id: row.id,
+    kind: row.kind,
+    authorKind: row.author_kind,
+    author: author && row.author_id
+      ? {
+          id: row.author_id,
+          handle: author.handle,
+          displayLabel: author.displayLabel,
+          avatarPath: author.avatarPath,
+          isAgent: author.isAgent,
+          moderatorOf:
+            row.author_id && row.area_id && e.moderatorAreas.has(`${row.author_id}:${row.area_id}`)
+              ? (area?.name ?? null)
+              : null,
+        }
+      : null,
+    // A removed post keeps its place in a thread and loses its words. Deleting
+    // the row would take other people's replies with it.
+    body: row.status === "REMOVED" ? null : row.body,
+    createdLabel: whenLabel(row.created_at),
+    edited: Boolean(row.edited_at),
+    areaName: area?.name ?? null,
+    areaSlug: area?.slug ?? null,
+    listing: row.listing_id ? (e.listings.get(row.listing_id) ?? null) : null,
+    /* The assistant's own note about where its answer came from. Written into
+       `payload` by `summonBot` and, until it was, a field on every card that was
+       hard-coded null beside a renderer that had always been ready for it. */
+    sourceNote: payloadSource(row.payload),
+    cited: citedIds(row.payload)
+      .map((id) => e.listings.get(id))
+      .filter((item): item is PostListing => Boolean(item)),
+    replyingTo: null,
+    repostedBy: null,
+    replyCount: row.reply_count,
+    likeCount: row.like_count,
+    repostCount: row.repost_count,
+    viewCount: row.view_count,
+    liked: e.liked.has(row.id),
+    reposted: e.reposted.has(row.id),
+    saved: e.saved.has(row.id),
+    // The hold reason is only ever handed to the post's own author. The RLS
+    // policy already refuses the row to anybody else, and this is the second
+    // lock on the same door.
+    heldReason: row.status === "HELD" && isMine ? row.hold_reason : null,
+    isMine,
+    editable,
+    media: (e.media.get(row.id) ?? []).map((item) => ({
+      url: item.url,
+      width: item.width,
+      height: item.height,
+    })),
+    /* The raw body, so the editor opens on what is actually there rather than
+       on whatever the card chose to render. A removed post has none. */
+    rawBody: isMine ? row.body : null,
+  };
+}
+
+/**
+ * The people, posts and places this viewer has muted.
+ *
+ * **A mute used to write a row and change nothing.** Three controls wrote to
+ * `public.mutes`, the card menu's "Mute", its "See less from them" and the
+ * profile menu's, and the toast said "Muted. You will not see their posts."
+ * Nothing anywhere read the table back: `private.can_see_post` and
+ * `private.can_see_story` carry `blocked_with` and no mute test, which is
+ * correct, because a block is a security boundary and a mute is a preference.
+ * A preference still has to be honoured, and this is where it is honoured.
+ *
+ * It is deliberately a filter on a feed read rather than a policy. `mutes` is
+ * one way and private: nobody is hidden from anybody else by it, nothing is
+ * disclosed by it, and somebody who opens a muted person's own page or a thread
+ * they were part of should still see them. Silencing a timeline is exactly the
+ * promise the copy makes, and it is the whole promise.
+ *
+ * One small read per feed, and an empty answer on any failure, because a feed
+ * that fails to load a preference should still be a feed.
+ */
+export type Muted = { users: Set<string>; posts: Set<string>; areas: Set<string> };
+
+const NO_MUTES: Muted = { users: new Set(), posts: new Set(), areas: new Set() };
+
+export async function readMutes(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  viewerId: string | null,
+): Promise<Muted> {
+  if (!viewerId) return NO_MUTES;
+  try {
+    const { data, error } = await supabase
+      .from("mutes")
+      .select("target_kind, target_id")
+      .eq("user_id", viewerId)
+      .limit(500);
+    if (error || !data) return NO_MUTES;
+    const muted: Muted = { users: new Set(), posts: new Set(), areas: new Set() };
+    for (const row of data as { target_kind: string; target_id: string }[]) {
+      if (row.target_kind === "USER") muted.users.add(row.target_id);
+      else if (row.target_kind === "POST") muted.posts.add(row.target_id);
+      else if (row.target_kind === "AREA") muted.areas.add(row.target_id);
+    }
+    return muted;
+  } catch {
+    return NO_MUTES;
+  }
+}
+
+export type FeedPage = {
+  posts: PostView[];
+  /** The created_at of the last row, for the next page. Null when the feed ends. */
+  cursor: string | null;
+  ended: boolean;
+};
+
+const PAGE_SIZE = 20;
+
+/**
+ * A place's feed. Roots only: replies belong to their thread, not to the
+ * timeline, or the same conversation appears four times.
+ *
+ * Cursor pagination on created_at rather than offset, so a post arriving while
+ * somebody reads cannot shift a page under them and make them see a row twice.
+ */
+export async function getAreaFeed(
+  areaId: string,
+  cursor?: string,
+): Promise<FeedPage> {
+  if (!isSupabaseConfigured()) return { posts: [], cursor: null, ended: true };
+
+  const session = await resolveSession();
+  const supabase = session.state === "signed-in" ? session.supabase : await createClient();
+  const viewerId = session.state === "signed-in" ? session.user.id : null;
+
+  let query = supabase
+    .from("posts")
+    .select(POST_COLUMNS)
+    .eq("area_id", areaId)
+    .is("parent_id", null)
+    .order("created_at", { ascending: false })
+    .limit(PAGE_SIZE + 1);
+
+  if (cursor) query = query.lt("created_at", cursor);
+
+  const [{ data, error }, muted] = await Promise.all([query, readMutes(supabase, viewerId)]);
+  if (error || !data) return { posts: [], cursor: null, ended: true };
+
+  const all = data as unknown as RawPost[];
+  const ended = all.length <= PAGE_SIZE;
+  /* One row past the page is fetched only to answer "is there more", so the
+     rows this call actually consumes are the first PAGE_SIZE of them, and the
+     cursor is the last of THOSE. Taking it from the filtered list instead would
+     step over every row a mute removed, and the next page would silently lose
+     the posts that sat between them. */
+  const consumed = ended ? all : all.slice(0, PAGE_SIZE);
+  const last = consumed.length > 0 ? consumed[consumed.length - 1] : null;
+  const cursorOut = ended || !last ? null : last.created_at;
+
+  const page = consumed.filter(
+    (row) => !muted.posts.has(row.id) && !(row.author_id && muted.users.has(row.author_id)),
+  );
+  if (page.length === 0) return { posts: [], cursor: cursorOut, ended };
+
+  const e = await enrich(supabase, page, viewerId);
+  return {
+    posts: page.map((row) => toView(row, e, viewerId)),
+    cursor: cursorOut,
+    ended,
+  };
+}
+
+export type ThreadReply = PostView & {
+  depth: number;
+  /**
+   * The viewer muted this reply's author.
+   *
+   * The row is still returned rather than filtered out, and that is the whole
+   * design: dropping it would leave the replies underneath it hanging off a
+   * parent that is not there, and a mute is not a reason to delete other
+   * people's words from somebody's screen. The thread renders one collapsed
+   * line with a way to read it anyway.
+   */
+  mutedAuthor: boolean;
+};
+
+export type Thread = {
+  root: PostView;
+  replies: ThreadReply[];
+};
+
+/**
+ * One post and everything under it.
+ *
+ * Read in one query on root_id rather than walking the tree, which is exactly
+ * what root_id is denormalised for. Depth is capped at three by trigger, so the
+ * whole thread is bounded and there is no pagination to design here yet.
+ */
+export async function getThread(postId: string): Promise<Thread | null> {
+  if (!isSupabaseConfigured()) return null;
+
+  const session = await resolveSession();
+  const supabase = session.state === "signed-in" ? session.supabase : await createClient();
+  const viewerId = session.state === "signed-in" ? session.user.id : null;
+
+  const { data: rootRow, error } = await supabase
+    .from("posts")
+    .select(POST_COLUMNS)
+    .eq("id", postId)
+    .maybeSingle();
+  if (error || !rootRow) return null;
+
+  const root = rootRow as unknown as RawPost;
+  // Opening a reply shows its whole thread from the top, so the answer always
+  // arrives with the question rather than on its own.
+  const rootId = root.root_id ?? root.id;
+
+  const [topRes, repliesRes] = await Promise.all([
+    rootId === root.id
+      ? Promise.resolve({ data: rootRow })
+      : supabase.from("posts").select(POST_COLUMNS).eq("id", rootId).maybeSingle(),
+    supabase
+      .from("posts")
+      .select(POST_COLUMNS)
+      .eq("root_id", rootId)
+      .order("created_at", { ascending: true })
+      .limit(200),
+  ]);
+
+  const top = (topRes.data ?? rootRow) as unknown as RawPost;
+  const replyRows = (repliesRes.data ?? []) as unknown as RawPost[];
+
+  const [e, muted] = await Promise.all([
+    enrich(supabase, [top, ...replyRows], viewerId),
+    readMutes(supabase, viewerId),
+  ]);
+  const byId = new Map(replyRows.map((r) => [r.id, r]));
+
+  return {
+    root: toView(top, e, viewerId),
+    replies: replyRows.map((row) => {
+      const view = toView(row, e, viewerId);
+      const parent = row.parent_id ? byId.get(row.parent_id) : null;
+      const parentAuthor = parent?.author_id ? e.authors.get(parent.author_id) : null;
+      return {
+        ...view,
+        // Only say who a reply answers when it is not the obvious one. Every
+        // reply saying "replying to the person above" is noise.
+        replyingTo:
+          parent && parent.id !== top.id
+            ? parentAuthor?.handle
+              ? `@${parentAuthor.handle}`
+              : parent.author_kind === "BOT"
+                ? "RentMe AI"
+                : null
+            : null,
+        depth: row.depth,
+        mutedAuthor: Boolean(
+          muted.posts.has(row.id) || (row.author_id && muted.users.has(row.author_id)),
+        ),
+      };
+    }),
+  };
+}
+
+const PROFILE_LIMIT = 40;
+
+/**
+ * The three reads behind a profile's tabs.
+ *
+ * They are three functions rather than one with a mode, because each has a
+ * different `where` and a different shape of answer, and a single function with
+ * a switch would hide that a Replies row needs a parent lookup a Posts row does
+ * not. What they share is the client, the enrichment and the view mapping, so
+ * a change to how a card reads lands on all three at once.
+ *
+ * Every one goes through the caller's own RLS-bound client, so somebody's page
+ * shows a stranger exactly what `posts_select` allows a stranger to see, and
+ * shows the person themselves their own held posts, without either rule being
+ * written here.
+ */
+async function profileClient() {
+  const session = await resolveSession();
+  const supabase = session.state === "signed-in" ? session.supabase : await createClient();
+  const viewerId = session.state === "signed-in" ? session.user.id : null;
+  return { supabase, viewerId };
+}
+
+/** Somebody's own posts, for their profile. Roots only, as the timeline is. */
+export async function getProfileFeed(userId: string): Promise<PostView[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const { supabase, viewerId } = await profileClient();
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select(POST_COLUMNS)
+    .eq("author_id", userId)
+    .is("parent_id", null)
+    .order("created_at", { ascending: false })
+    .limit(PROFILE_LIMIT);
+
+  if (error || !data) return [];
+  const rows = data as unknown as RawPost[];
+  if (rows.length === 0) return [];
+
+  const e = await enrich(supabase, rows, viewerId);
+  return rows.map((row) => toView(row, e, viewerId));
+}
+
+/**
+ * Somebody's replies.
+ *
+ * Each one carries who it answers, because a reply shown away from its thread
+ * is half a sentence. The parents are read in one extra query for the whole
+ * page, not one per row, and a parent that the viewer may not see comes back
+ * missing rather than as an error: `posts_select` refuses it, the reply still
+ * renders, and the line above it simply says nothing rather than naming
+ * somebody this viewer is not allowed to know about.
+ */
+export async function getProfileReplies(userId: string): Promise<PostView[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const { supabase, viewerId } = await profileClient();
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select(POST_COLUMNS)
+    .eq("author_id", userId)
+    .not("parent_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(PROFILE_LIMIT);
+
+  if (error || !data) return [];
+  const rows = data as unknown as RawPost[];
+  if (rows.length === 0) return [];
+
+  const parentIds = [...new Set(rows.map((r) => r.parent_id).filter((v): v is string => Boolean(v)))];
+  const { data: parents } = parentIds.length
+    ? await supabase.from("posts").select("id, author_id, author_kind").in("id", parentIds)
+    : { data: [] as never[] };
+
+  const parentRows = (parents ?? []) as { id: string; author_id: string | null; author_kind: string }[];
+  const parentById = new Map(parentRows.map((p) => [p.id, p]));
+
+  /* One more lookup for the parents' handles. The page's own enrichment covers
+     the reply authors, which on a profile is one person, and says nothing about
+     the people being answered. */
+  const parentAuthorIds = [
+    ...new Set(parentRows.map((p) => p.author_id).filter((v): v is string => Boolean(v))),
+  ];
+  const { data: parentProfiles } = parentAuthorIds.length
+    ? await supabase.from("social_profiles").select("user_id, handle").in("user_id", parentAuthorIds)
+    : { data: [] as never[] };
+  const handleById = new Map(
+    ((parentProfiles ?? []) as { user_id: string; handle: string | null }[]).map((p) => [
+      p.user_id,
+      p.handle,
+    ]),
+  );
+
+  const e = await enrich(supabase, rows, viewerId);
+
+  return rows.map((row) => {
+    const parent = row.parent_id ? parentById.get(row.parent_id) : null;
+    const handle = parent?.author_id ? handleById.get(parent.author_id) : null;
+    return {
+      ...toView(row, e, viewerId),
+      replyingTo: handle
+        ? `@${handle}`
+        : parent?.author_kind === "BOT"
+          ? "RentMe AI"
+          : null,
+    };
+  });
+}
+
+/**
+ * Somebody's posts that carry a picture.
+ *
+ * `post_media!inner` makes the join do the filtering, so a post with no media
+ * never comes back at all. Doing it the other way round, reading `post_media`
+ * first and then the posts, would need a second query and would still have to
+ * pass `posts_select`, which is where the answer has to come from anyway.
+ *
+ * Replies are included here, unlike the Posts tab. A picture is a picture
+ * wherever somebody put it, and a media grid that silently drops the ones
+ * posted inside a conversation would be missing most of them.
+ */
+export async function getProfileMedia(userId: string): Promise<PostView[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const { supabase, viewerId } = await profileClient();
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select(`${POST_COLUMNS}, post_media!inner(id)`)
+    .eq("author_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(PROFILE_LIMIT);
+
+  if (error || !data) return [];
+  const rows = data as unknown as RawPost[];
+  if (rows.length === 0) return [];
+
+  const e = await enrich(supabase, rows, viewerId);
+  return rows.map((row) => toView(row, e, viewerId));
+}
+
+/* ----------------------------------------------------------------- Activity */
+
+export type ActivityEntry = {
+  kind: "LIKE" | "REPOST";
+  post: PostView;
+};
+
+/**
+ * What somebody has been doing, rather than what they wrote.
+ *
+ * Likes and reposts, newest first, because those are the two the database
+ * publishes: `post_reactions_select` exposes `LIKE` rows and keeps every other
+ * mark private to its author, and `post_reposts_select` is public outright.
+ * Saves are deliberately absent and always will be, because a save is private
+ * to the person who made it and a profile is not the place to leak it.
+ *
+ * This lives beside the feed reads rather than with the other tab reads because
+ * it needs `enrich` and `toView`, and a second copy of "what a card looks like"
+ * is exactly the drift those two exist to prevent.
+ */
+export async function getProfileActivity(userId: string): Promise<ActivityEntry[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const { supabase, viewerId } = await profileClient();
+
+  const [likes, reposts] = await Promise.all([
+    supabase
+      .from("post_reactions")
+      .select("post_id, created_at")
+      .eq("user_id", userId)
+      .eq("mark", "LIKE")
+      .order("created_at", { ascending: false })
+      .limit(PROFILE_LIMIT),
+    supabase
+      .from("post_reposts")
+      .select("post_id, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(PROFILE_LIMIT),
+  ]);
+
+  const entries = [
+    ...((likes.data ?? []) as { post_id: string; created_at: string }[]).map((row) => ({
+      kind: "LIKE" as const,
+      postId: row.post_id,
+      at: row.created_at,
+    })),
+    ...((reposts.data ?? []) as { post_id: string; created_at: string }[]).map((row) => ({
+      kind: "REPOST" as const,
+      postId: row.post_id,
+      at: row.created_at,
+    })),
+  ]
+    .sort((a, b) => (a.at < b.at ? 1 : -1))
+    .slice(0, PROFILE_LIMIT);
+
+  if (entries.length === 0) return [];
+
+  const [{ data }, muted] = await Promise.all([
+    supabase
+      .from("posts")
+      .select(POST_COLUMNS)
+      .in("id", [...new Set(entries.map((entry) => entry.postId))]),
+    readMutes(supabase, viewerId),
+  ]);
+
+  /* Activity is other people's posts surfaced on a third person's page, so a
+     mute belongs here for the same reason it belongs on a feed: the reader said
+     they did not want to read this author, and whose page it appears on does not
+     change that. The muted person's OWN page is the one place it does not apply,
+     because going there is a deliberate act. */
+  const rows = ((data ?? []) as unknown as RawPost[]).filter(
+    (row) => !muted.posts.has(row.id) && !(row.author_id && muted.users.has(row.author_id)),
+  );
+  if (rows.length === 0) return [];
+
+  const e = await enrich(supabase, rows, viewerId);
+  const byId = new Map(rows.map((row) => [row.id, toView(row, e, viewerId)]));
+
+  /* Put back in the order the activity happened, not the order the rows came
+     back. A post the viewer may not see drops out entirely: `posts_select`
+     refuses it, and an entry with nothing to point at is not an entry. */
+  return entries
+    .map((entry) => {
+      const post = byId.get(entry.postId);
+      return post ? { kind: entry.kind, post } : null;
+    })
+    .filter((entry): entry is ActivityEntry => entry !== null);
+}

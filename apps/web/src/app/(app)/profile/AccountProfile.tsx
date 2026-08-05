@@ -1,9 +1,9 @@
 "use client";
 
 import { useActionState, useEffect, useId, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { updateProfileAction, setAvatar, type ProfileSaved } from "@/lib/profile/actions";
 import {
   AVATAR_MAX_EDGE,
@@ -50,7 +50,6 @@ export function AccountProfile({
   const [surname, setSurname] = useState(profile.surname);
   const [nickname, setNickname] = useState(profile.nickname);
   const [phone, setPhone] = useState(profile.phone);
-  const [stateCode, setStateCode] = useState(profile.stateCode);
 
   const [displayName, setDisplayName] = useState(
     profile.displayName || [profile.firstName, profile.surname].filter(Boolean).join(" "),
@@ -62,7 +61,6 @@ export function AccountProfile({
   const surnameId = useId();
   const nicknameId = useId();
   const phoneId = useId();
-  const stateId = useId();
 
   // A successful save is the moment the card learns the new truth. The server
   // tree is refreshed too, so every other surface showing this name agrees.
@@ -73,7 +71,6 @@ export function AccountProfile({
     setSurname(next.surname);
     setNickname(next.nickname);
     setPhone(next.phone);
-    setStateCode(next.stateCode);
     setDisplayName(next.displayName);
     setSaved(true);
     setEditing(false);
@@ -87,6 +84,7 @@ export function AccountProfile({
 
   const shownName = displayName.trim() || profile.email || "Your account";
   const initial = shownName.charAt(0).toUpperCase();
+  const placeLabel = [profile.place.lgaName, profile.place.stateName].filter(Boolean).join(", ");
 
   const stats = [
     { key: "trips", label: labels.trips, value: profile.counts.trips },
@@ -113,8 +111,16 @@ export function AccountProfile({
             {profile.email}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <span className="nf-badge nf-badge--brand">Member since {memberSinceLabel}</span>
-            {nickname && <span className="nf-badge">{nickname}</span>}
+            <span className="nf-badge nf-badge--neutral">Member since {memberSinceLabel}</span>
+            {placeLabel && (
+              <span className="nf-badge">
+                <UiIcon name="location" size={12} className="shrink-0" />
+                {placeLabel}
+              </span>
+            )}
+            {profile.place.occupationName && (
+              <span className="nf-badge">{profile.place.occupationName}</span>
+            )}
           </div>
         </div>
 
@@ -133,7 +139,7 @@ export function AccountProfile({
           role="status"
           className="nf-rise mt-4 flex items-center gap-2 text-[0.8125rem] text-[var(--nf-state-success)]"
         >
-          <UiIcon name="verified" size={15} className="shrink-0" />
+          <UiIcon name="verified" size={16} className="shrink-0" />
           Your profile is saved.
         </p>
       )}
@@ -188,33 +194,32 @@ export function AccountProfile({
             placeholder="0803 123 4567"
           />
 
-          <div>
-            <label htmlFor={stateId} className="nf-label mb-1.5 block">
-              State
-            </label>
-            <select
-              id={stateId}
-              name="stateCode"
-              value={stateCode}
-              onChange={(e) => setStateCode(e.target.value)}
-              className="nf-field"
-              aria-invalid={fieldError("stateCode") ? true : undefined}
-            >
-              <option value="" style={{ background: "var(--nf-surface-elevated)" }}>
-                Not set
-              </option>
-              {NIGERIAN_STATES.map((s) => (
-                <option key={s} value={s} style={{ background: "var(--nf-surface-elevated)" }}>
-                  {s}
-                </option>
-              ))}
-            </select>
-            {fieldError("stateCode") && (
-              <p className="mt-1.5 text-[0.75rem] text-[var(--nf-state-error)]">
-                {fieldError("stateCode")}
-              </p>
-            )}
-          </div>
+          {/* Where you are lives on its own screen with the local government
+              it has to agree with. It used to be a state select here that
+              posted the state's NAME into a column keyed by its CODE, so every
+              save with a state chosen was refused by the database and the
+              person was told only that something had gone wrong. */}
+          <Link
+            href="/settings/place"
+            className="flex items-center gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3.5 py-3 text-left"
+            data-testid="profile-place-link"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.875rem] font-medium">
+                {placeLabel || "Where you are"}
+              </span>
+              <span className="mt-0.5 block text-[0.75rem] text-[var(--nf-content-muted)]">
+                {placeLabel
+                  ? "State, local government and what you do"
+                  : "Set your state, local government and what you do"}
+              </span>
+            </span>
+            <UiIcon
+              name="chevron-down"
+              size={16}
+              className="shrink-0 -rotate-90 text-[var(--nf-content-muted)]"
+            />
+          </Link>
 
           {state && !state.ok && (
             <p
@@ -347,7 +352,7 @@ function AvatarPicker({
           aria-hidden="true"
           className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-elevated)]"
         >
-          <UiIcon name={busy ? "sparkle" : "user"} size={13} />
+          <UiIcon name={busy ? "sparkle" : "user"} size={12} />
         </span>
       </button>
 

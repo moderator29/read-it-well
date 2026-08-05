@@ -29,6 +29,27 @@ export type LiveConversationSummary = {
   /** Preformatted Lagos label: time today, date otherwise. */
   whenLabel: string;
   unread: number;
+  /**
+   * True when the caller sent the most recent message. The host inbox uses it
+   * to answer "who is still waiting on me", which a raw unread count cannot:
+   * an agent can have read an enquiry and still not have replied to it.
+   */
+  lastFromMe: boolean;
+  /** ISO instant of the most recent message, for ageing a waiting thread. */
+  lastAt: string;
+  /**
+   * True when this thread is a request: somebody the caller has never spoken
+   * to opened it, and the caller has never sent a message in it. The inbox
+   * holds these in their own tab so a stranger cannot land in the main list.
+   */
+  isRequest: boolean;
+  /**
+   * What the counterpart is, for the small dot on the avatar. "agent" is a
+   * host, verified or not; "member" is everybody else.
+   */
+  counterpartKind: "agent" | "member";
+  /** True when the counterpart is a verified agent. */
+  counterpartVerified: boolean;
 };
 
 export type LiveThreadMessage = {
@@ -65,7 +86,7 @@ function hueOf(id: string): number {
   return acc;
 }
 
-type Identity = { name: string; verified: boolean };
+type Identity = { name: string; verified: boolean; isAgent: boolean };
 
 /**
  * Resolve display identities for counterpart user ids through the service
@@ -83,10 +104,12 @@ async function identitiesOf(userIds: string[]): Promise<Map<string, Identity>> {
       admin.from("agents").select("user_id, display_name, verified").in("user_id", ids),
     ]);
     for (const p of profiles.data ?? []) {
-      if (p.display_name) map.set(p.id, { name: p.display_name, verified: false });
+      if (p.display_name) {
+        map.set(p.id, { name: p.display_name, verified: false, isAgent: false });
+      }
     }
     for (const a of agents.data ?? []) {
-      map.set(a.user_id, { name: a.display_name, verified: a.verified });
+      map.set(a.user_id, { name: a.display_name, verified: a.verified, isAgent: true });
     }
   } catch {
     // No service key yet: generic labels carry the surface.
@@ -119,11 +142,18 @@ export async function loadConversationSummaries(
     .order("created_at", { ascending: false })
     .limit(400);
 
-  const lastByConversation = new Map<string, { body: string; at: string }>();
+  const lastByConversation = new Map<
+    string,
+    { body: string; at: string; senderId: string }
+  >();
   const unreadByConversation = new Map<string, number>();
   for (const m of recent ?? []) {
     if (!lastByConversation.has(m.conversation_id)) {
-      lastByConversation.set(m.conversation_id, { body: m.body, at: m.created_at });
+      lastByConversation.set(m.conversation_id, {
+        body: m.body,
+        at: m.created_at,
+        senderId: m.sender_id,
+      });
     }
     if (m.sender_id !== user.id && m.read_at === null) {
       unreadByConversation.set(
@@ -134,18 +164,44 @@ export async function loadConversationSummaries(
   }
 
   const counterparts = conversations.map((c) => (c.guest_id === user.id ? c.agent_id : c.guest_id));
+
+  /* Which threads the caller has ever spoken in. The recent sweep above is
+     bounded at 400 messages across every conversation, so it cannot answer
+     this on its own: a thread the caller replied to a year and two hundred
+     messages ago would come back as a request. One narrow query, keyed on the
+     caller's own id, answers it exactly. */
+  const spokenIn = new Set<string>();
+  const { data: mine } = await supabase
+    .from("messages")
+    .select("conversation_id")
+    .in("conversation_id", ids)
+    .eq("sender_id", user.id)
+    .limit(1000);
+  for (const row of mine ?? []) spokenIn.add(row.conversation_id);
+
   const identities = await identitiesOf(counterparts);
 
   return conversations.map((c) => {
     const counterpartId = c.guest_id === user.id ? c.agent_id : c.guest_id;
     const last = lastByConversation.get(c.id);
+    const identity = identities.get(counterpartId);
     return {
       id: c.id,
-      counterpartName: identities.get(counterpartId)?.name ?? FALLBACK_NAME,
+      counterpartName: identity?.name ?? FALLBACK_NAME,
       listingTitle: c.listings?.title ?? null,
       lastMessage: last?.body ?? "No messages yet",
       whenLabel: lagosWhenLabel(last?.at ?? c.last_message_at),
       unread: unreadByConversation.get(c.id) ?? 0,
+      /* No messages at all counts as not from us, so a brand new enquiry with
+         nothing in it still reads as waiting rather than as answered. */
+      lastFromMe: last ? last.senderId === user.id : false,
+      lastAt: last?.at ?? c.last_message_at,
+      /* A request is a thread the caller has never spoken in AND did not open.
+         An enquiry the caller sent themselves is theirs even before the host
+         answers, so it belongs in Primary from the first second. */
+      isRequest: !spokenIn.has(c.id) && c.guest_id !== user.id,
+      counterpartKind: identity?.isAgent ? "agent" : "member",
+      counterpartVerified: identity?.verified ?? false,
     };
   });
 }

@@ -1,9 +1,17 @@
 "use server";
 
 import { randomInt } from "node:crypto";
+import { headers } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { fail, ok, validate, type ActionResult } from "../actions/envelope";
+import {
+  fail,
+  formDataToObject,
+  ok,
+  validate,
+  type ActionResult,
+} from "../actions/envelope";
+import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "../security/rate-limit";
 import type { Database } from "../supabase/database.types";
 import { NOT_CONFIGURED_MESSAGE, resolveSession } from "../actions/session";
 import { bestEffortEmail, sendEmail } from "../email/client";
@@ -150,4 +158,94 @@ export async function fileSupportTicket(
     // A missing service key or network failure never crashes the chat.
     return fail(FILE_FAILED_MESSAGE);
   }
+}
+
+/* ------------------------------------------------------------ contact form */
+
+/**
+ * The topics the public contact form offers, and what each one is called on
+ * the ticket a human will read.
+ *
+ * Kept as a map rather than free text so the select cannot file a topic the
+ * queue does not recognise, and so renaming a label never invalidates the
+ * tickets already filed under it.
+ */
+const CONTACT_TOPICS: Record<string, string> = {
+  booking: "A booking",
+  payment: "A payment or refund",
+  listing: "Listing a property",
+  verification: "Verification",
+  other: "Something else",
+};
+
+const contactSchema = z.object({
+  name: z.string().trim().min(1, "Add your name so we know who to reply to.").max(120),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Add an email address so we can reply.")
+    .email("Enter a valid email address.")
+    .max(200),
+  topic: z
+    .string()
+    .trim()
+    .refine((value) => value in CONTACT_TOPICS, "Pick one of the topics listed.")
+    .default("other"),
+  message: z
+    .string()
+    .trim()
+    .min(10, "Tell us a little more, at least a sentence, so we can help properly.")
+    .max(4000, "Keep it under 4000 characters. Attach the detail in your reply to us."),
+});
+
+/**
+ * The public contact form, filed as a real support ticket.
+ *
+ * The form used to set a local flag and tell the visitor, honestly, that
+ * nothing had been sent and to email support instead. That was true, and it
+ * was also a finished write path sitting one import away: `fileSupportTicket`
+ * has handled anonymous visitors through the service role since support
+ * shipped. Now the form files a ticket with a real NF-SUP reference, the
+ * acknowledgement email goes to the address on the form, and the reference is
+ * shown so the visitor can quote it.
+ *
+ * Rate limited by address before anything is written, because this is the one
+ * ticket path with no account behind it and it runs through the service role
+ * (RECOMMENDATIONS R-52). Five an hour is far above what a person with a
+ * genuine problem needs and far below what makes a spam run worthwhile. The
+ * limiter fails open by design, so an outage in the counter never stops a real
+ * person reaching support.
+ */
+export async function submitContactForm(
+  _prev: ActionResult<{ reference: string }> | null,
+  formData: FormData,
+): Promise<ActionResult<{ reference: string }>> {
+  const parsed = validate(contactSchema, formDataToObject(formData));
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  const subject =
+    session.state === "signed-in"
+      ? subjectForUser(session.user.id)
+      : subjectForIp(ipFromHeaders(await headers()));
+
+  const verdict = await consume({
+    bucket: "contact_form",
+    subject,
+    limit: 5,
+    windowSeconds: 3_600,
+  });
+  if (!verdict.allowed) {
+    return fail(
+      `That is a lot of messages in one hour. Try again ${verdict.retryIn}, or email us directly if it is urgent.`,
+    );
+  }
+
+  const { name, email, topic, message } = parsed.data;
+  return fileSupportTicket({
+    name,
+    email,
+    topic: CONTACT_TOPICS[topic] ?? CONTACT_TOPICS.other,
+    body: message,
+  });
 }

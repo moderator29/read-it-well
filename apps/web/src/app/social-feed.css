@@ -1,0 +1,2340 @@
+/*
+ * The feed's material.
+ *
+ * Kept out of both globals.css (which passed 3,100 lines and where merge
+ * accidents live) and social.css (which another agent is working in), so there
+ * is exactly one writer per file while three of us build at once.
+ *
+ * Nothing here invents a surface. The platform already has a very good one in
+ * `.nf-card`: a brand bloom anchored at the upper left, a layered body
+ * gradient, the stride ring drawn on the border box while the fill sits on the
+ * padding box, a backdrop blur, an inset top hairline and a soft drop shadow.
+ * That is the glass, and it is the thing a clone cannot copy, because it is
+ * lit from the same direction as the commissioned 3D icon family. So every
+ * rule below extends it and none of them replaces it.
+ *
+ * Layer two tokens only. No raw colour, no hue outside the blue family.
+ */
+
+@layer components {
+  /* ------------------------------------------------------------------
+   * Geometry. One place, so a card, a menu and a composer cannot drift.
+   * ------------------------------------------------------------------ */
+  :root {
+    --nf-feed-radius: 22px;
+    --nf-feed-gap: 12px;
+    --nf-feed-pad: 15px;
+    --nf-feed-avatar: 42px;
+  }
+
+  /* ------------------------------------------------------------------
+   * The post card.
+   *
+   * Independent and floating. No line threading the cards together, no
+   * notched corners, no node shapes: all three were tried and cut, because
+   * they made the feed read as an information-design exercise rather than
+   * as somewhere people talk.
+   * ------------------------------------------------------------------ */
+  .nf-post {
+    padding: var(--nf-feed-pad);
+    position: relative;
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  /*
+   * **Every rule here that names a property `.nf-card` also sets must carry
+   * `.nf-card` in its own selector, and this is not decoration.**
+   *
+   * This file is pulled in by `@import "./social-feed.css"` near the top of
+   * globals.css, and `.nf-card` is defined about 270 lines further down that
+   * same file, inside the same `@layer components`. Equal specificity inside
+   * one layer is decided by source order, so `.nf-card` won every collision and
+   * three deliberate design decisions in this file were dead CSS that
+   * typechecked, built and shipped:
+   *
+   *   - the feed's 22px corner, quietly rendering at the platform's 18px
+   *   - the AI card, rendering identically to a person's post
+   *   - the system card, rendering as full glass rather than as the quietest
+   *     thing in the feed
+   *
+   * Nothing said so. Reading either file alone shows a correct rule. It was
+   * caught by reading `getComputedStyle` on a real thread, which is the only
+   * place the cascade is observable. Naming `.nf-card` takes the selector to
+   * two classes and settles it wherever the imports end up sitting.
+   */
+  .nf-card.nf-post {
+    border-radius: var(--nf-feed-radius);
+  }
+
+  /*
+   * Pressing a card settles it by one pixel and pulls its bloom in, matching
+   * how buttons already behave here. Motion on press rather than on hover,
+   * because the primary device has no pointer and a hover-only affordance is
+   * an affordance most of our audience never sees.
+   */
+  .nf-post--pressable:active {
+    transform: translateY(1px);
+  }
+
+  /*
+   * The AI. A brighter bloom and a stronger ring, so a machine answer is
+   * obviously a machine answer without a coloured background shouting about
+   * it. The mark inside the card does the naming; this only sets it apart.
+   */
+  .nf-card.nf-post--ai {
+    background:
+      radial-gradient(135% 100% at 0% 0%, rgb(12 57 239 / 0.3) 0%, transparent 52%) padding-box,
+      linear-gradient(160deg, rgb(4 12 68 / 0.5) 0%, rgb(0 3 30 / 0.55) 64%, rgb(0 2 20 / 0.62) 100%) padding-box,
+      linear-gradient(135deg,
+        rgb(92 124 255 / 0.95) 0%,
+        rgb(12 57 239 / 0.7) 22%,
+        rgb(12 57 239 / 0.12) 52%,
+        transparent 74%)
+      border-box;
+  }
+
+  /*
+   * Daylight, and it is a twin rather than the same rule dimmed.
+   *
+   * The dark card is a navy panel, and a navy panel on a paper page is the one
+   * thing that must not happen: the card would be the only dark block on the
+   * screen and the ink on it is near black, so the assistant's answer would be
+   * unreadable. On paper the fill stays white like every other card and the
+   * ring does all the work, at a strength no ordinary card uses.
+   *
+   * Written as a border-box gradient rather than `--nf-brand-primary-soft`,
+   * which is a colour-mix of electric blue and lands in the lavender range over
+   * a white card. That has broken the no-purple rule twice on this platform.
+   */
+  :root[data-theme="light"] .nf-card.nf-post--ai {
+    background:
+      radial-gradient(135% 100% at 0% 0%, rgb(12 57 239 / 0.07) 0%, transparent 58%) padding-box,
+      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      linear-gradient(135deg,
+        rgb(12 57 239 / 0.5) 0%,
+        rgb(12 57 239 / 0.24) 30%,
+        rgb(18 21 26 / 0.09) 72%)
+      border-box;
+    box-shadow: var(--nf-shadow-card);
+  }
+
+  /*
+   * The platform speaking. Deliberately the quietest thing in the feed: no
+   * glass, no bloom, no shadow, just a hairline. A system entry is there so a
+   * new place is never an empty room, and the moment it competes with a person
+   * for attention it has stopped doing its job.
+   */
+  .nf-card.nf-post--system,
+  :root[data-theme="light"] .nf-card.nf-post--system {
+    background: transparent;
+    border: 1px solid var(--nf-border-subtle);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /*
+   * A listing. The photo runs to the edges and the card becomes a magazine
+   * plate rather than a text block with a picture in it, which is the whole
+   * difference between a property post and a status update.
+   */
+  .nf-post--listing {
+    padding: 0;
+    overflow: hidden;
+  }
+  .nf-post--listing > .nf-post__plate {
+    aspect-ratio: 16 / 10;
+    width: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .nf-post--listing > .nf-post__under {
+    padding: var(--nf-feed-pad);
+  }
+
+  /*
+   * A question. A leading rule in brand blue rather than a tint, so an Ask
+   * reads as a different kind of thing at a glance and still sits on the same
+   * material as everything else.
+   */
+  .nf-post--ask {
+    padding-left: calc(var(--nf-feed-pad) + 3px);
+  }
+  .nf-post--ask::before {
+    content: "";
+    position: absolute;
+    inset-block: 18px;
+    inset-inline-start: 0;
+    width: 3px;
+    border-start-end-radius: 3px;
+    border-end-end-radius: 3px;
+    background: linear-gradient(
+      180deg,
+      var(--nf-brand-secondary) 0%,
+      color-mix(in oklab, var(--nf-brand-primary) 40%, transparent) 100%
+    );
+  }
+
+  /* ------------------------------------------------------------------
+   * The action row
+   * ------------------------------------------------------------------ */
+  .nf-post__actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--nf-border-subtle);
+  }
+
+  /*
+   * 44px of hit area with the visual weight of a 34px control, using a
+   * transparent inset rather than padding so the row's rhythm is unchanged.
+   * Chips elsewhere in the product still fail this and are on the list.
+   */
+  .nf-post__act {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding-inline: 9px;
+    border-radius: var(--nf-radius-sm);
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-post__act::before {
+    content: "";
+    position: absolute;
+    inset: -5px -2px;
+  }
+  .nf-post__act:hover,
+  .nf-post__act:focus-visible {
+    color: var(--nf-content-primary);
+  }
+
+  /*
+   * Marked. Brand blue, never rose: rose means error in this system, and a
+   * liked post is not an error. That is also why there is no red heart here.
+   */
+  .nf-post__act[aria-pressed="true"] {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* A fact rather than a control. No hover, no hit area, no promise. */
+  .nf-post__act--fact::before {
+    content: none;
+  }
+  .nf-post__act--fact:hover {
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * The kind, in caps above the title. Small, wide and quiet: it says what sort
+   * of thing this is before the eye reaches the words, and the moment it
+   * competes with the title it has stopped doing its job.
+   */
+  .nf-post__kind {
+    margin-block-start: 12px;
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--nf-brand-secondary);
+  }
+
+  /*
+   * @rentme, inside somebody's sentence.
+   *
+   * A mark rather than a link, because no account can ever hold that handle and
+   * a link would offer somebody a name the database refuses. It reads as a
+   * summon: the same brand blue as a real mention, on a faint tile, so the eye
+   * can tell "I called the assistant" from "I called a person" without either
+   * of them shouting.
+   */
+  .nf-post__summon {
+    display: inline-block;
+    padding-inline: 5px;
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-surface-inset);
+    border: 1px solid var(--nf-border-subtle);
+    font-weight: 700;
+    color: var(--nf-brand-secondary);
+  }
+
+  /*
+   * What the assistant cited, under its answer.
+   *
+   * Plain rows rather than plates: the answer is the thing being read and four
+   * photographs under three sentences turns a reply into a catalogue. Each row
+   * is the title, the price and a way through, which is what somebody needs to
+   * decide whether to tap.
+   */
+  .nf-post__cited {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-block-start: 12px;
+  }
+  .nf-post__cited a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+  }
+  .nf-post__cited a:hover,
+  .nf-post__cited a:focus-visible {
+    border-color: var(--nf-border-brand);
+  }
+  .nf-post__cited-title {
+    min-inline-size: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-post__cited-price {
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------------
+   * The menu
+   * ------------------------------------------------------------------ */
+  .nf-post__menu {
+    position: absolute;
+    inset-inline-end: 8px;
+    top: 42px;
+    z-index: 30;
+    inline-size: 13.5rem;
+    padding: 6px;
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-surface-raised);
+    border: 1px solid var(--nf-border-default);
+    box-shadow: var(--nf-shadow-float);
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
+  }
+  .nf-post__menu-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    inline-size: 100%;
+    min-block-size: 42px;
+    padding-inline: 11px;
+    border-radius: var(--nf-radius-sm);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    text-align: start;
+  }
+  .nf-post__menu-item:hover,
+  .nf-post__menu-item:focus-visible {
+    background: var(--nf-surface-inset);
+  }
+  .nf-post__menu-item--danger {
+    color: var(--nf-state-error);
+  }
+
+  /* ------------------------------------------------------------------
+   * The full page sheet.
+   *
+   * Full page and never partial, which is the house rule and also the right
+   * shape for both things that use it: choosing why you are reporting
+   * somebody, and being told what a block just did. Both deserve the screen
+   * and neither is a thing to skim past a half-height panel to get back to.
+   *
+   * The scrim is ink rather than a blur, because a blurred backdrop over a
+   * feed that is already glass is two blurs stacked, which is where mid-range
+   * Android compositing gets expensive for no gain.
+   * ------------------------------------------------------------------ */
+  .nf-social-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow-y: auto;
+    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  @media (min-width: 640px) {
+    .nf-social-sheet {
+      align-items: center;
+      padding: 2rem 1.25rem;
+    }
+  }
+
+  .nf-social-sheet__panel {
+    inline-size: 100%;
+    max-inline-size: 32rem;
+    min-block-size: 100dvh;
+    padding: 1.5rem 1.25rem calc(2rem + env(safe-area-inset-bottom));
+    background: var(--nf-surface-primary);
+    border: 1px solid var(--nf-border-default);
+    box-shadow: var(--nf-shadow-float);
+  }
+
+  @media (min-width: 640px) {
+    .nf-social-sheet__panel {
+      min-block-size: 0;
+      padding: 1.75rem;
+      border-radius: var(--nf-feed-radius);
+    }
+  }
+
+  /*
+   * One reason, chosen. A 48px row rather than a bare radio, because the
+   * label is the target and a 16px dot is not one on a phone.
+   */
+  .nf-social-reason {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-block-size: 48px;
+    padding-inline: 13px;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-secondary);
+    cursor: pointer;
+  }
+  .nf-social-reason:has(input:checked) {
+    border-color: var(--nf-border-brand);
+    color: var(--nf-content-primary);
+  }
+  .nf-social-reason input {
+    accent-color: var(--nf-brand-primary);
+    inline-size: 18px;
+    block-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /*
+   * Destructive. Rose ink and a rose hairline, never a filled rose slab: a
+   * solid red button is louder than anything else on the page and it trains
+   * people to fear the screen rather than to read it.
+   */
+  .nf-social-danger {
+    border: 1px solid color-mix(in oklab, var(--nf-state-error) 55%, transparent);
+    background: var(--nf-state-error-surface);
+    color: var(--nf-state-error);
+  }
+  .nf-social-danger:hover:not(:disabled) {
+    border-color: var(--nf-state-error);
+  }
+
+  /*
+   * A count that leads somewhere.
+   *
+   * `.nf-social-stat` lives in social.css and is another writer's; this only
+   * adds the affordance for the two that are now links, and it adds it as a
+   * 44px hit area with no visual weight of its own, so the row still reads as
+   * three plain numbers rather than as a row of buttons.
+   */
+  .nf-social-stat--link {
+    position: relative;
+    border-radius: var(--nf-radius-sm);
+  }
+  .nf-social-stat--link::before {
+    content: "";
+    position: absolute;
+    inset: -11px -6px;
+  }
+  .nf-social-stat--link:hover .nf-social-stat__label,
+  .nf-social-stat--link:focus-visible .nf-social-stat__label {
+    color: var(--nf-content-primary);
+  }
+  .nf-social-stat--link:hover .nf-social-stat__value,
+  .nf-social-stat--link:focus-visible .nf-social-stat__value {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------------
+   * A person, in a list of people.
+   * ------------------------------------------------------------------ */
+  .nf-social-person {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .nf-social-person__face {
+    display: grid;
+    place-items: center;
+    inline-size: 46px;
+    block-size: 46px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .nf-social-person__face img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  /* ------------------------------------------------------------------
+   * The profile's own overflow control, and the line it leaves behind.
+   * ------------------------------------------------------------------ */
+  .nf-social-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-default);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
+  }
+  .nf-social-more:hover,
+  .nf-social-more:focus-visible {
+    color: var(--nf-content-primary);
+  }
+
+  /* Anchored to this control rather than to a card's header row. */
+  .nf-social-more__menu {
+    inset-inline-end: 0;
+    top: 50px;
+  }
+
+  /*
+   * What just happened, said once. Fixed above the tab bar so it clears the
+   * dock on a phone, and it fades itself out rather than needing dismissal.
+   */
+  .nf-social-toast {
+    position: fixed;
+    inset-inline: 1rem;
+    /* Above the dock, which is itself above the tab bar. Three fixed things at
+       one corner of a 390px screen is two too many, so they stack rather than
+       overlap. */
+    bottom: calc(9.5rem + env(safe-area-inset-bottom));
+    z-index: 70;
+    margin-inline: auto;
+    max-inline-size: 26rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-brand);
+    background: var(--nf-surface-raised);
+    box-shadow: var(--nf-shadow-float);
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    text-align: start;
+  }
+
+  @media (min-width: 1024px) {
+    .nf-social-toast {
+      bottom: 1.5rem;
+    }
+  }
+
+
+  /* ------------------------------------------------------------------
+   * The profile, rebuilt.
+   *
+   * Bands, not a stack. Each fact about a person gets its own row and its own
+   * air, because the way you make a dense page feel calm is fewer things per
+   * row rather than smaller type.
+   * ------------------------------------------------------------------ */
+
+  /* Controls that ride on the cover photograph. A round scrimmed button reads
+     over any picture, which a bare glyph does not: half the covers people
+     upload are bright and half are dark. */
+  .nf-social-float {
+    position: absolute;
+    top: calc(var(--nf-social-bar) + 0.75rem);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nf-social-float--start {
+    inset-inline-start: 1.25rem;
+  }
+  .nf-social-float--end {
+    inset-inline-end: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .nf-social-float--start {
+      inset-inline-start: 2rem;
+    }
+    .nf-social-float--end {
+      inset-inline-end: 2rem;
+    }
+  }
+
+  .nf-social-round {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: var(--nf-radius-pill);
+    color: #fff;
+    background: rgb(0 0 0 / 0.42);
+    border: 1px solid rgb(255 255 255 / 0.22);
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-social-round:hover,
+  .nf-social-round:focus-visible {
+    background: rgb(0 0 0 / 0.58);
+  }
+  /*
+   * Daylight inverts these, and it has to. The cover's own scrim is a white
+   * wash on paper, so a dark pill on top of it would be the only black thing
+   * on the page. White glass with ink inside keeps the ring of the design
+   * language and stays readable over a photograph.
+   */
+  :root[data-theme="light"] .nf-social-round {
+    color: var(--nf-content-primary);
+    background: rgb(255 255 255 / 0.72);
+    border-color: rgb(18 21 26 / 0.12);
+  }
+  :root[data-theme="light"] .nf-social-round:hover,
+  :root[data-theme="light"] .nf-social-round:focus-visible {
+    background: rgb(255 255 255 / 0.9);
+  }
+
+  /*
+   * The avatar, and the ring.
+   *
+   * ADR-012: the luminous gradient sits on the BORDER box and the fill sits on
+   * the padding box, brightest at the upper left, matching the light direction
+   * of the commissioned icon family. Painting it as a plain border colour
+   * would lose the gradient entirely, which is the whole point of the rule.
+   */
+  .nf-social-avatar--ring {
+    position: relative;
+    inline-size: 6rem;
+    block-size: 6rem;
+    padding: 3px;
+    border-radius: var(--nf-radius-pill);
+    background:
+      linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
+      linear-gradient(
+          135deg,
+          color-mix(in oklab, var(--nf-brand-accent) 95%, white) 0%,
+          var(--nf-brand-primary) 34%,
+          color-mix(in oklab, var(--nf-brand-primary) 30%, transparent) 68%,
+          transparent 100%
+        )
+        border-box;
+    border: 3px solid transparent;
+    box-shadow: 0 14px 34px -16px rgb(0 0 0 / 0.75);
+    display: grid;
+    place-items: center;
+  }
+
+  .nf-social-avatar__disc {
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    block-size: 100%;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: 2.1rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .nf-social-avatar__disc img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  /* Lower right, cut out of the page so it reads as attached to the person
+     rather than floating over them. */
+  .nf-social-avatar__dot {
+    position: absolute;
+    inset-block-end: 4px;
+    inset-inline-end: 4px;
+    inline-size: 17px;
+    block-size: 17px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-state-success);
+    box-shadow: 0 0 0 3px var(--nf-surface-canvas);
+  }
+  .nf-social-avatar__dot--agent {
+    background: var(--nf-brand-primary);
+  }
+
+  :root[data-theme="light"] .nf-social-avatar--ring {
+    box-shadow: 0 10px 26px -14px rgb(18 21 26 / 0.4);
+  }
+
+  /* ------------------------------------------------------- the name row */
+
+  .nf-social-namerow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-block-start: 0.875rem;
+  }
+
+  .nf-social-name {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-social-verified {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-social-handle {
+    margin-block-start: 0.2rem;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-muted);
+  }
+
+  /* ---------------------------------------------------------- the chips */
+
+  .nf-social-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-start: 0.875rem;
+  }
+
+  .nf-social-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-block-size: 30px;
+    padding-inline: 11px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-subtle);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    color: var(--nf-content-secondary);
+  }
+
+  /*
+   * Standing an admin granted by hand. A brand RING and brand ink, never a
+   * brand tint: a 16 per cent electric blue fill over a white card reads
+   * violet on paper, and the brand carries no violet. This is the third place
+   * in the layer that has had to say so.
+   */
+  .nf-social-chip--brand {
+    border-color: var(--nf-border-brand);
+    color: var(--nf-brand-secondary);
+    padding-inline-start: 7px;
+  }
+
+  /* ------------------------------------------------------- the counts */
+
+  .nf-social-counts {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-block-start: 1.25rem;
+  }
+
+  .nf-social-count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.375rem;
+    position: relative;
+    border-radius: var(--nf-radius-sm);
+  }
+  /* 44px of hit area with none of the visual weight, so the row still reads as
+     two numbers rather than as two buttons. */
+  .nf-social-count::before {
+    content: "";
+    position: absolute;
+    inset: -12px -8px;
+  }
+  .nf-social-count__value {
+    font-size: 1.0625rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-social-count__label {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-social-count:hover .nf-social-count__value,
+  .nf-social-count:focus-visible .nf-social-count__value {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-social-count__rule {
+    inline-size: 1px;
+    block-size: 1.1rem;
+    background: var(--nf-border-subtle);
+  }
+
+  /* ------------------------------------------------- the agent trust band */
+
+  /*
+   * Agents only, and the three numbers are computed by the database from real
+   * bookings and real message timings. A person who is not an agent never sees
+   * this band at all; it is not rendered empty and it is not rendered with
+   * zeroes, because a trust score of zero and no trust score are very
+   * different claims.
+   */
+  .nf-social-trust {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+    margin-block-start: 1.25rem;
+    padding: 1rem 0.5rem;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+  }
+  .nf-social-trust__cell {
+    text-align: center;
+    padding-inline: 0.25rem;
+  }
+  .nf-social-trust__cell dt {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+    /* The label is the meaning of the number under it, so it wraps rather than
+       truncating. Two short lines beat one clipped one. */
+    line-height: 1.3;
+  }
+  .nf-social-trust__cell dd {
+    margin-block-start: 0.35rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+
+  /* ----------------------------------------------------- bio and meta */
+
+  .nf-social-bio {
+    margin-block-start: 1.25rem;
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.6;
+    white-space: pre-line;
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-social-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin-block-start: 1rem;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-social-meta > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+
+  /* ------------------------------------------------------------------
+   * The tabs, with an underline.
+   * ------------------------------------------------------------------ */
+  .nf-social-tabs {
+    display: flex;
+    margin-block-start: 1.5rem;
+    border-block-end: 1px solid var(--nf-border-subtle);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nf-social-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-social-tab__count {
+    margin-inline-start: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--nf-content-muted);
+  }
+  .nf-social-tab[aria-selected="true"] .nf-social-tab__count {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------------
+   * The media grid. Three across, square crops, each one a way into the
+   * post it came from so a picture is never a dead end.
+   * ------------------------------------------------------------------ */
+  .nf-media-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3px;
+  }
+  .nf-media-grid__tile {
+    display: block;
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--nf-surface-inset);
+  }
+  .nf-media-grid__tile img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-media-grid__tile:hover img,
+  .nf-media-grid__tile:focus-visible img {
+    transform: scale(1.03);
+  }
+
+  /* ------------------------------------------------------------------
+   * A story.
+   *
+   * The picture IS the page. Everything else floats over it, which is why
+   * the stage is a positioned block with a minimum height rather than a card
+   * with an image inside it.
+   * ------------------------------------------------------------------ */
+  .nf-story {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    /* Cancels the shell's padding so the picture reaches both edges. */
+    margin-inline: -1.25rem;
+    margin-block-start: calc(-2rem - var(--nf-social-bar));
+  }
+  @media (min-width: 768px) {
+    .nf-story {
+      margin-inline: -2rem;
+      margin-block-start: calc(-2.5rem - var(--nf-social-bar));
+    }
+  }
+  @media (min-width: 1100px) {
+    .nf-story {
+      grid-template-columns: minmax(0, 1fr) 20rem;
+      align-items: start;
+      padding-inline-end: 2rem;
+    }
+  }
+
+  .nf-story__stage {
+    position: relative;
+    isolation: isolate;
+    min-block-size: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  @media (min-width: 1024px) {
+    .nf-story__foot {
+      padding-block-end: 2rem;
+    }
+  }
+  @media (min-width: 1100px) {
+    .nf-story__stage {
+      min-block-size: calc(100dvh - 2rem);
+      border-end-end-radius: var(--nf-feed-radius);
+      border-end-start-radius: var(--nf-feed-radius);
+    }
+  }
+
+  .nf-story__image {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    z-index: -2;
+  }
+  .nf-story__image--none {
+    background:
+      radial-gradient(120% 100% at 0% 0%, color-mix(in oklab, var(--nf-brand-accent) 60%, transparent) 0%, transparent 60%),
+      linear-gradient(160deg, var(--nf-surface-secondary) 0%, var(--nf-surface-canvas) 100%);
+  }
+
+  /*
+   * The wash. Heavier at the bottom, because that is where the words are, and
+   * present at the top so the floating author row reads over a bright sky.
+   * Ink in both themes: this sits on a photograph, not on the canvas, so it
+   * does not follow the page's own light and dark.
+   */
+  .nf-story__wash {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(180deg, rgb(0 0 0 / 0.55) 0%, transparent 26%),
+      linear-gradient(0deg, rgb(0 0 0 / 0.86) 0%, rgb(0 0 0 / 0.5) 34%, transparent 62%);
+  }
+
+  .nf-story__top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: calc(var(--nf-social-bar) + 0.75rem) 1.25rem 0;
+  }
+
+  .nf-story__author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-inline-size: 0;
+    flex: 1 1 auto;
+  }
+  .nf-story__face {
+    display: grid;
+    place-items: center;
+    inline-size: 38px;
+    block-size: 38px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 0 0 2px rgb(255 255 255 / 0.3);
+  }
+  .nf-story__face img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-story__who {
+    display: block;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 10px rgb(0 0 0 / 0.5);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-story__when {
+    display: block;
+    font-size: var(--nf-text-caption);
+    color: rgb(255 255 255 / 0.76);
+  }
+  .nf-story__menu {
+    inset-inline-end: 0;
+    top: 52px;
+  }
+
+  .nf-story__foot {
+    /* Clears the floating tab bar, which is fixed at the bottom of every app
+       page and would otherwise sit on top of the comment field. */
+    padding: 0 1.25rem calc(6.25rem + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /*
+   * The glass card.
+   *
+   * The one piece of chrome in this product that earns a real blur: a headline
+   * in large tight type has to stay readable over a photograph nobody has
+   * seen, and a scrim alone cannot promise that on a bright image.
+   */
+  .nf-story__card {
+    position: relative;
+    padding: 1.15rem 1.15rem 1.25rem;
+    border-radius: var(--nf-feed-radius);
+    background: rgb(10 12 28 / 0.52);
+    border: 1px solid rgb(255 255 255 / 0.16);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: 0 20px 50px -24px rgb(0 0 0 / 0.8);
+  }
+
+  .nf-story__card-share {
+    position: absolute;
+    inset-block-start: 0.9rem;
+    inset-inline-end: 0.9rem;
+    display: grid;
+    place-items: center;
+    inline-size: 36px;
+    block-size: 36px;
+    border-radius: var(--nf-radius-pill);
+    color: rgb(255 255 255 / 0.85);
+    background: rgb(255 255 255 / 0.12);
+  }
+  .nf-story__card-share:hover,
+  .nf-story__card-share:focus-visible {
+    color: #fff;
+    background: rgb(255 255 255 / 0.2);
+  }
+
+  /* Brand blue, never the reference's violet. */
+  .nf-story-chip {
+    display: inline-flex;
+    align-items: center;
+    block-size: 22px;
+    padding-inline: 9px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+  }
+
+  .nf-story__headline {
+    margin-block-start: 0.7rem;
+    font-size: 1.6rem;
+    line-height: 1.14;
+    font-weight: 800;
+    letter-spacing: -0.032em;
+    color: #fff;
+    /* Two lines is the design. A third is allowed rather than clipping a
+       headline somebody wrote, because a cut headline is a different sentence. */
+    text-wrap: balance;
+  }
+  @media (min-width: 640px) {
+    .nf-story__headline {
+      font-size: 1.9rem;
+    }
+  }
+
+  .nf-story__standfirst {
+    margin-block-start: 0.55rem;
+    font-size: var(--nf-text-body);
+    line-height: 1.55;
+    color: rgb(255 255 255 / 0.78);
+  }
+
+  .nf-story__place {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-block-start: 0.8rem;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: rgb(255 255 255 / 0.82);
+  }
+
+  .nf-story__held {
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-brand);
+    background: rgb(10 12 28 / 0.6);
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: rgb(255 255 255 / 0.86);
+  }
+
+  /* ------------------------------------------------- the three actions */
+  .nf-story__actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.75rem;
+  }
+  .nf-story__act {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: rgb(255 255 255 / 0.82);
+  }
+  .nf-story__act-circle {
+    display: grid;
+    place-items: center;
+    inline-size: 46px;
+    block-size: 46px;
+    border-radius: var(--nf-radius-pill);
+    background: rgb(255 255 255 / 0.14);
+    border: 1px solid rgb(255 255 255 / 0.18);
+    transition:
+      background var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-spring);
+  }
+  .nf-story__act:active .nf-story__act-circle {
+    transform: scale(0.93);
+  }
+  /* Marked. A filled brand circle, which is the reference's own emphasis
+     translated out of violet and into our electric blue. */
+  .nf-story__act--on .nf-story__act-circle {
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow: 0 10px 26px -10px color-mix(in oklab, var(--nf-brand-primary) 85%, transparent);
+  }
+  .nf-story__act-count {
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    color: rgb(255 255 255 / 0.86);
+  }
+
+  /* ------------------------------------------------------ the facepile */
+  .nf-story__pile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nf-story__faces {
+    display: inline-flex;
+  }
+  .nf-story__pileface {
+    display: grid;
+    place-items: center;
+    inline-size: 28px;
+    block-size: 28px;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    box-shadow: 0 0 0 2px rgb(10 12 28 / 0.85);
+  }
+  .nf-story__pileface + .nf-story__pileface {
+    margin-inline-start: -9px;
+  }
+  .nf-story__pileface img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-story__more {
+    display: inline-grid;
+    place-items: center;
+    block-size: 24px;
+    padding-inline: 8px;
+    border-radius: var(--nf-radius-pill);
+    background: rgb(255 255 255 / 0.16);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+  .nf-story__pilelabel {
+    font-size: var(--nf-text-caption);
+    color: rgb(255 255 255 / 0.72);
+  }
+
+  /* --------------------------------------------------- the comment bar */
+  .nf-story__commentbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    inline-size: 100%;
+    min-block-size: 50px;
+    padding-inline: 1rem;
+    border-radius: var(--nf-radius-pill);
+    background: rgb(255 255 255 / 0.13);
+    border: 1px solid rgb(255 255 255 / 0.18);
+    color: rgb(255 255 255 / 0.78);
+    font-size: var(--nf-text-body);
+    text-align: start;
+  }
+  .nf-story__send {
+    display: grid;
+    place-items: center;
+    inline-size: 34px;
+    block-size: 34px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+
+  /* ------------------------------------------------------------------
+   * The rail beside a story. A real rail on a desktop, a strip under the
+   * picture on a phone, because the next story is the most likely next tap
+   * and hiding it behind a back button costs a whole page load.
+   * ------------------------------------------------------------------ */
+  .nf-story-rail {
+    padding-inline: 1.25rem;
+    padding-block-end: 2rem;
+  }
+  @media (min-width: 1100px) {
+    .nf-story-rail {
+      position: sticky;
+      top: calc(var(--nf-social-bar) + 1rem);
+      padding-inline: 0;
+    }
+  }
+  .nf-story-rail__tabs {
+    display: flex;
+    border-block-end: 1px solid var(--nf-border-subtle);
+    margin-block-end: 0.85rem;
+  }
+  .nf-story-rail__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .nf-story-rail__card {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 8px;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid transparent;
+  }
+  .nf-story-rail__card:hover,
+  .nf-story-rail__card:focus-visible {
+    border-color: var(--nf-border-default);
+    background: var(--nf-surface-inset);
+  }
+  .nf-story-rail__thumb {
+    display: block;
+    inline-size: 62px;
+    block-size: 62px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-md);
+    overflow: hidden;
+    background: var(--nf-surface-inset);
+  }
+  .nf-story-rail__thumb img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-story-rail__headline {
+    display: block;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    color: var(--nf-content-primary);
+  }
+  .nf-story-rail__meta {
+    display: block;
+    margin-block-start: 3px;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-story-rail__empty,
+  .nf-story-rail__updates {
+    font-size: var(--nf-text-caption);
+    line-height: 1.6;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------- a story, in a list */
+  .nf-story-plate {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--nf-feed-radius);
+    background: var(--nf-surface-inset);
+  }
+  .nf-story-plate > img {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-story-plate__art {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(120% 100% at 0% 0%, color-mix(in oklab, var(--nf-brand-accent) 55%, transparent) 0%, transparent 62%),
+      linear-gradient(160deg, var(--nf-surface-secondary) 0%, var(--nf-surface-canvas) 100%);
+  }
+  .nf-story-plate__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgb(0 0 0 / 0.82) 0%, rgb(0 0 0 / 0.28) 44%, transparent 68%);
+  }
+  .nf-story-plate__body {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 1rem;
+  }
+  .nf-story-plate__headline {
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    color: #fff;
+  }
+  .nf-story-plate__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    font-size: var(--nf-text-caption);
+    color: rgb(255 255 255 / 0.78);
+  }
+
+  /* ------------------------------------------------ choosing the picture */
+  .nf-story-pick {
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--nf-feed-radius);
+    border: 1px dashed var(--nf-border-default);
+    background: var(--nf-surface-inset);
+  }
+  .nf-story-pick--filled {
+    border-style: solid;
+    border-color: var(--nf-border-brand);
+  }
+  .nf-story-pick img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-story-pick__prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .nf-story-pick__label {
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-story-pick__note {
+    max-inline-size: 22rem;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------------
+   * The comments sheet.
+   * ------------------------------------------------------------------ */
+  .nf-comments {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: rgb(0 0 0 / 0.5);
+  }
+  @media (min-width: 640px) {
+    .nf-comments {
+      align-items: center;
+      padding: 2rem 1.25rem;
+    }
+  }
+
+  .nf-comments__panel {
+    display: flex;
+    flex-direction: column;
+    inline-size: 100%;
+    max-inline-size: 34rem;
+    block-size: 88dvh;
+    border-start-start-radius: var(--nf-feed-radius);
+    border-start-end-radius: var(--nf-feed-radius);
+    background: var(--nf-surface-primary);
+    border: 1px solid var(--nf-border-default);
+    box-shadow: var(--nf-shadow-float);
+    overflow: hidden;
+  }
+  @media (min-width: 640px) {
+    .nf-comments__panel {
+      block-size: min(80dvh, 44rem);
+      border-radius: var(--nf-feed-radius);
+    }
+  }
+
+  /* The grab handle. Only on a phone, where the sheet actually rises. */
+  .nf-comments__panel::before {
+    content: "";
+    display: block;
+    inline-size: 38px;
+    block-size: 4px;
+    margin: 8px auto 0;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-border-default);
+  }
+  @media (min-width: 640px) {
+    .nf-comments__panel::before {
+      display: none;
+    }
+  }
+
+  .nf-comments__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-block-end: 1px solid var(--nf-border-subtle);
+  }
+  .nf-comments__title {
+    flex: 1 1 auto;
+    text-align: center;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-comments__notice {
+    padding: 10px 16px;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    background: var(--nf-surface-inset);
+  }
+  .nf-comments__scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 12px 16px;
+  }
+  .nf-comments__empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    font-size: var(--nf-text-body);
+    line-height: 1.6;
+    color: var(--nf-content-muted);
+  }
+
+  /* --------------------------------------------------------- a comment */
+  .nf-comment {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    padding-block: 12px;
+  }
+  .nf-comment__face {
+    display: grid;
+    place-items: center;
+    inline-size: 34px;
+    block-size: 34px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .nf-comment__face img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  /*
+   * The one thread line allowed on this platform.
+   *
+   * The owner cut the connecting line from the feed and it stays cut there: it
+   * made the feed read as an information-design exercise rather than as
+   * somewhere people talk. Inside this sheet a nested reply is genuinely
+   * unreadable without it, so this is one faint brand-tinted curve, drawn
+   * inside the child's own row, from above the row down and across into the
+   * avatar. It cannot cross a card boundary because it never leaves this row.
+   */
+  .nf-comment__link {
+    position: absolute;
+    inset-block-start: -6px;
+    inset-inline-start: -12px;
+    inline-size: 20px;
+    block-size: 32px;
+    border-inline-start: 1.5px solid
+      color-mix(in oklab, var(--nf-brand-primary) 34%, transparent);
+    border-block-end: 1.5px solid
+      color-mix(in oklab, var(--nf-brand-primary) 34%, transparent);
+    border-end-start-radius: 12px;
+    pointer-events: none;
+  }
+
+  .nf-comment__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nf-comment__who {
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-comment__when {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-comment__menu {
+    inset-inline-end: 0;
+    top: 34px;
+  }
+  .nf-comment__body {
+    margin-block-start: 3px;
+    font-size: var(--nf-text-body);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    white-space: pre-line;
+  }
+  .nf-comment__body--gone {
+    font-style: italic;
+    color: var(--nf-content-muted);
+  }
+  .nf-comment__foot {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-block-start: 6px;
+  }
+  .nf-comment__reply {
+    position: relative;
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    color: var(--nf-content-muted);
+  }
+  .nf-comment__reply::before {
+    content: "";
+    position: absolute;
+    inset: -12px -8px;
+  }
+  .nf-comment__reply:hover,
+  .nf-comment__reply:focus-visible {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-comment__heart {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-inline-start: auto;
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    color: var(--nf-content-muted);
+  }
+  .nf-comment__heart::before {
+    content: "";
+    position: absolute;
+    inset: -12px -8px;
+  }
+  .nf-comment__heart[aria-pressed="true"] {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------ the composer */
+  .nf-comments__composer {
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    border-block-start: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-raised);
+  }
+  .nf-comments__replying {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-block-end: 8px;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-comments__replying button {
+    margin-inline-start: auto;
+    font-weight: 700;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-comments__row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .nf-comments__field {
+    flex: 1 1 auto;
+    min-block-size: 44px;
+    max-block-size: 8rem;
+    resize: none;
+    border-radius: var(--nf-radius-pill);
+    padding-block: 11px;
+  }
+  .nf-comments__send {
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-comments__send:disabled {
+    opacity: 0.45;
+  }
+  .nf-comments__count {
+    display: block;
+    margin-block-start: 6px;
+    text-align: end;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+
+  /* ------------------------------------------------------------------
+   * The create ring.
+   *
+   * A ring rather than a list, because the things somebody can make here are
+   * siblings and a vertical menu quietly ranks them. The circle is a transform
+   * applied to buttons that are already in reading order, so the layout is
+   * radial and the interaction is not: tab still walks them one by one.
+   * ------------------------------------------------------------------ */
+  .nf-ring {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    display: grid;
+    place-items: center;
+  }
+  .nf-ring__scrim {
+    position: absolute;
+    inset: 0;
+    /* Heavy enough that the page underneath reads as a texture rather than as
+       words. At 0.82 the sentence behind the ring was still legible through it,
+       which put two pieces of copy on top of each other and made the labels
+       hard to pick out. A modal that leaks readable text is not a modal. */
+    background: rgb(2 4 18 / 0.93);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    cursor: default;
+  }
+  :root[data-theme="light"] .nf-ring__scrim {
+    background: rgb(244 246 250 / 0.96);
+  }
+
+  .nf-ring__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    /* 1.25rem rather than 1.5, so panel width stays under the viewport on a
+       360px phone as well as on the 390px one everything is verified at. */
+    padding: 1.25rem;
+  }
+
+  .nf-ring__ask {
+    max-inline-size: 18rem;
+    text-align: center;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    color: var(--nf-content-primary);
+  }
+
+  /*
+   * The wheel. Sized so six petals clear each other at 390px with room to
+   * breathe: the owner asked for neat and not jam-packed, and a ring that
+   * touches itself is the opposite of that.
+   */
+  .nf-ring__wheel {
+    position: relative;
+    /*
+     * The radius is an absolute length, and it has to be.
+     *
+     * A percentage inside `translate` resolves against the ELEMENT being
+     * translated, not against its container, so `translate(0, -37%)` moved each
+     * petal 37 per cent of its own height and piled all five on the centre.
+     * That is the same class of mistake as percentage padding resolving against
+     * the containing block, which this codebase has already been caught by once.
+     *
+     * Six petals sit 60 degrees apart on a flat-topped hexagon, so the pair
+     * that comes closest is separated vertically rather than horizontally:
+     * 8rem of radius puts about 111px between the centres of neighbouring
+     * rows, against 5.5rem by 6.5rem petals whose ink is about 96px tall. The
+     * two horizontal extremes reach 172px from the centre, which is inside the
+     * wheel's own half-width plus the panel's padding, so nothing spills off a
+     * 390px screen and there is no phantom horizontal scroll.
+     *
+     * The notes are all short enough to hold one line at this width for the
+     * same reason: a second line is 14px of height straight out of that gap.
+     */
+    --nf-ring-radius: min(8rem, 36vw);
+    inline-size: min(20.5rem, 86vw);
+    aspect-ratio: 1 / 1;
+    display: grid;
+    place-items: center;
+  }
+
+  /* The glowing centre. Electric blue, never the reference's violet. */
+  .nf-ring__core {
+    inline-size: 4.25rem;
+    block-size: 4.25rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-gradient-brand);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent),
+      0 0 60px -6px color-mix(in oklab, var(--nf-brand-primary) 85%, transparent),
+      0 0 120px -20px color-mix(in oklab, var(--nf-brand-accent) 90%, transparent);
+    animation: nf-ring-breathe 3.6s var(--nf-ease-standard) infinite;
+  }
+
+  @keyframes nf-ring-breathe {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.92;
+    }
+    50% {
+      transform: scale(1.06);
+      opacity: 1;
+    }
+  }
+
+  .nf-ring__petal {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    inline-size: 5.5rem;
+    block-size: 6.5rem;
+    margin-inline-start: -2.75rem;
+    margin-block-start: -3.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    text-align: center;
+    /* Out along the angle, then unrotated so the label stays upright. */
+    transform: rotate(var(--nf-ring-angle))
+      translateY(calc(-1 * var(--nf-ring-radius) * 0.35))
+      rotate(calc(-1 * var(--nf-ring-angle)));
+    opacity: 0;
+    transition:
+      transform var(--nf-duration-slow) var(--nf-ease-spring),
+      opacity var(--nf-duration-normal) var(--nf-ease-standard);
+    transition-delay: var(--nf-ring-delay);
+  }
+  .nf-ring__wheel--in .nf-ring__petal {
+    transform: rotate(var(--nf-ring-angle))
+      translateY(calc(-1 * var(--nf-ring-radius)))
+      rotate(calc(-1 * var(--nf-ring-angle)));
+    opacity: 1;
+  }
+
+  .nf-ring__tile {
+    display: grid;
+    place-items: center;
+    inline-size: 54px;
+    block-size: 54px;
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-surface-raised);
+    border: 1px solid var(--nf-border-default);
+    box-shadow: var(--nf-shadow-float);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-ring__petal:hover .nf-ring__tile,
+  .nf-ring__petal:focus-visible .nf-ring__tile {
+    border-color: var(--nf-border-brand);
+  }
+  /* Both bound to the petal's own width, or the note runs wider than the tile
+     and collides with the neighbour on the ring. */
+  .nf-ring__label {
+    inline-size: 100%;
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-ring__note {
+    inline-size: 100%;
+    font-size: 0.6875rem;
+    line-height: 1.25;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-ring__close {
+    display: grid;
+    place-items: center;
+    inline-size: 52px;
+    block-size: 52px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-default);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
+  }
+  .nf-ring__close:hover,
+  .nf-ring__close:focus-visible {
+    color: var(--nf-content-primary);
+    border-color: var(--nf-border-brand);
+  }
+
+  /* Nothing flies in, and nothing is left mid-flight. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-ring__core {
+      animation: none;
+    }
+    .nf-ring__petal {
+      opacity: 1;
+      transform: rotate(var(--nf-ring-angle))
+        translateY(calc(-1 * var(--nf-ring-radius)))
+        rotate(calc(-1 * var(--nf-ring-angle)));
+      transition: none;
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   * The action sheet behind a card's `…`.
+   *
+   * A bottom sheet with a grab handle rather than a popover, because each row
+   * carries a title AND the sentence that says what it does, and five of those
+   * do not fit in a popover on a 390px screen without becoming a list of
+   * verbs nobody can tell apart.
+   * ------------------------------------------------------------------ */
+  .nf-actions {
+    position: fixed;
+    inset: 0;
+    z-index: 92;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: rgb(0 0 0 / 0.5);
+  }
+  @media (min-width: 640px) {
+    .nf-actions {
+      align-items: center;
+      padding: 2rem 1.25rem;
+    }
+  }
+  /*
+   * **The panel has to be positioned, and without this nothing in this sheet
+   * could be tapped.**
+   *
+   * The close scrim behind it is an `absolute inset-0` button, and a positioned
+   * element paints above a static one whatever the source order says. So the
+   * scrim covered every row: the sheet opened, showed the right rows, and a tap
+   * anywhere in it closed the sheet instead of choosing anything. Save, Share,
+   * Contact agent, Change what it says, Delete, Mute, Report and Block were all
+   * unreachable on every card in the layer, which is also why nobody noticed the
+   * sheet had no Repost row to begin with.
+   *
+   * It looks completely correct in a screenshot, and it is invisible to a spec
+   * that reads the rows rather than pressing one. Caught by a Playwright click
+   * reporting that the Close button intercepted the pointer.
+   */
+  .nf-actions__panel {
+    position: relative;
+    inline-size: 100%;
+    max-inline-size: 30rem;
+    padding: 8px 8px calc(1rem + env(safe-area-inset-bottom));
+    border-start-start-radius: var(--nf-feed-radius);
+    border-start-end-radius: var(--nf-feed-radius);
+    background: var(--nf-surface-primary);
+    border: 1px solid var(--nf-border-default);
+    box-shadow: var(--nf-shadow-float);
+  }
+  @media (min-width: 640px) {
+    .nf-actions__panel {
+      border-radius: var(--nf-feed-radius);
+      padding-block-end: 1rem;
+    }
+  }
+  .nf-actions__grab {
+    display: block;
+    inline-size: 38px;
+    block-size: 4px;
+    margin: 4px auto 10px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-border-default);
+  }
+  .nf-actions__row {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    inline-size: 100%;
+    min-block-size: 60px;
+    padding: 10px 12px;
+    border-radius: var(--nf-radius-lg);
+    text-align: start;
+  }
+  .nf-actions__row:hover,
+  .nf-actions__row:focus-visible {
+    background: var(--nf-surface-inset);
+  }
+  .nf-actions__icon {
+    display: grid;
+    place-items: center;
+    inline-size: 42px;
+    block-size: 42px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    color: var(--nf-content-secondary);
+  }
+  .nf-actions__row--danger .nf-actions__icon,
+  .nf-actions__row--danger .nf-actions__title {
+    color: var(--nf-state-error);
+  }
+  .nf-actions__row--danger .nf-actions__icon {
+    border-color: color-mix(in oklab, var(--nf-state-error) 40%, transparent);
+  }
+  .nf-actions__title {
+    display: block;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-actions__note {
+    display: block;
+    margin-block-start: 2px;
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------------
+   * The district feed's own head and chips.
+   * ------------------------------------------------------------------ */
+  .nf-district__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .nf-district__place {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-inline-size: 0;
+    color: var(--nf-content-secondary);
+    text-align: start;
+  }
+  .nf-district__name {
+    display: block;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--nf-content-primary);
+  }
+  .nf-district__city {
+    display: block;
+    margin-block-start: 2px;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-district__menu {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    top: 56px;
+  }
+  .nf-district__only {
+    padding: 10px 12px;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+  .nf-district__chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* The row bleeds to both edges so the last chip is not cut by a gutter,
+       and clips one axis rather than becoming a scroll container in both. */
+    margin-inline: -1.25rem;
+    padding-inline: 1.25rem;
+  }
+  .nf-district__chips::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-district__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+    min-block-size: 38px;
+    padding-inline: 15px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-default);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    color: var(--nf-content-secondary);
+    transition:
+      background var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-district__chip[aria-selected="true"] {
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-district__chip[aria-selected="true"] .nf-numeric {
+    color: var(--nf-content-on-brand);
+    opacity: 0.8;
+  }
+  .nf-district__chip .nf-numeric {
+    font-size: 0.7rem;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------------
+   * The dock.
+   *
+   * One control, at the corner a thumb reaches without moving the phone, and
+   * lifted clear of the floating tab bar rather than sitting on it. On a
+   * desktop the tab bar is gone and the rail owns the other side, so the same
+   * corner is still the right one and it simply drops to the edge.
+   * ------------------------------------------------------------------ */
+  .nf-fab {
+    position: fixed;
+    inset-inline-end: 1rem;
+    /* Clear of the tab bar: its own offset plus its height plus a gap. */
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  @media (min-width: 1024px) {
+    .nf-fab {
+      inset-inline-end: 1.5rem;
+      bottom: 1.5rem;
+    }
+  }
+
+  .nf-fab__button {
+    display: grid;
+    place-items: center;
+    inline-size: 56px;
+    block-size: 56px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    border: 1px solid var(--nf-border-brand);
+    box-shadow:
+      0 14px 34px -12px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent),
+      var(--nf-shadow-float);
+    transition: transform var(--nf-duration-fast) var(--nf-ease-spring);
+  }
+  .nf-fab__button:active {
+    transform: scale(0.94);
+  }
+
+  .nf-fab__menu {
+    inline-size: min(17.5rem, calc(100vw - 2rem));
+    padding: 6px;
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-surface-raised);
+    border: 1px solid var(--nf-border-default);
+    box-shadow: var(--nf-shadow-float);
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
+  }
+
+  .nf-fab__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    inline-size: 100%;
+    min-block-size: 56px;
+    padding: 8px 11px;
+    border-radius: var(--nf-radius-md);
+    text-align: start;
+    color: var(--nf-content-primary);
+  }
+  .nf-fab__item:hover,
+  .nf-fab__item:focus-visible {
+    background: var(--nf-surface-inset);
+  }
+  .nf-fab__item-title {
+    display: block;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .nf-fab__item-note {
+    display: block;
+    margin-block-start: 2px;
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--nf-content-muted);
+  }
+
+  /* One place, in the picker. */
+  .nf-fab__place {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    inline-size: 100%;
+    min-block-size: 56px;
+    padding: 10px 14px;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    text-align: start;
+  }
+  .nf-fab__place:hover,
+  .nf-fab__place:focus-visible {
+    border-color: var(--nf-border-brand);
+    background: var(--nf-surface-inset);
+  }
+  .nf-fab__place-name {
+    font-size: var(--nf-text-body);
+    font-weight: 650;
+    color: var(--nf-content-primary);
+  }
+  .nf-fab__place-city {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------------
+   * Desktop. The feed is designed at 390 and then given room, rather than
+   * stretched: the column stops growing at a comfortable measure and the
+   * card gains padding instead of width.
+   * ------------------------------------------------------------------ */
+  @media (min-width: 768px) {
+    :root {
+      --nf-feed-pad: 18px;
+      --nf-feed-avatar: 46px;
+    }
+  }
+}
+
+@layer components {
+  /* ------------------------------------------------------------------
+   * The people directory.
+   *
+   * A search that is a form with a GET, so a search is an address somebody can
+   * send, reload or go back to, and typing it costs no JavaScript. The rows are
+   * the same shape as the follower lists on purpose: one way a person reads in
+   * this product, wherever they are being listed.
+   * ------------------------------------------------------------------ */
+  .nf-people__search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-block-start: 4px;
+    padding: 6px 6px 6px 14px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-default);
+    background: var(--nf-surface-inset);
+    color: var(--nf-content-muted);
+  }
+  .nf-people__field {
+    min-inline-size: 0;
+    flex: 1;
+    background: transparent;
+    border: 0;
+    font-size: 0.9375rem;
+    color: var(--nf-content-primary);
+  }
+  .nf-people__field::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-people__field:focus {
+    outline: none;
+  }
+  .nf-people__search:focus-within {
+    border-color: var(--nf-border-brand);
+  }
+  .nf-people__go {
+    flex-shrink: 0;
+    min-block-size: 40px;
+    padding-inline: 18px;
+    font-size: 0.8125rem;
+  }
+
+  .nf-people__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+  }
+  .nf-people__who {
+    display: flex;
+    /* Top, not centre. A row with a name, a handle, two facts and a bio is four
+       lines tall, and an avatar floating in the middle of it reads as a
+       misalignment rather than as a portrait of the person at the top. */
+    align-items: flex-start;
+    gap: 12px;
+    min-inline-size: 0;
+    flex: 1;
+  }
+  .nf-people__avatar {
+    display: grid;
+    place-items: center;
+    inline-size: 46px;
+    block-size: 46px;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-weight: 800;
+  }
+  .nf-people__avatar img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-people__name {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-people__handle {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-people__bio {
+    display: block;
+    margin-block-start: 5px;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+  }
+  .nf-people__you {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--nf-content-muted);
+  }
+
+}
+
+@layer components {
+  /* What somebody does and where they are, on a directory row. Two facts on
+     one line, each with its own mark, and the row simply does not carry the
+     line when neither is known. */
+  .nf-people__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-block-start: 4px;
+    font-size: 0.78rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-people__facts > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}

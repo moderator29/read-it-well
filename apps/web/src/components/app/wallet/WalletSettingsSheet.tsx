@@ -52,7 +52,7 @@ export function WalletSettingsSheet() {
         aria-expanded={open}
         className="nf-icon-btn shrink-0"
       >
-        <UiIcon name="settings-gear" size={18} />
+        <UiIcon name="settings-gear" size={20} />
       </button>
 
       <Sheet open={open} onOpenChange={setOpen} title="Wallet settings">

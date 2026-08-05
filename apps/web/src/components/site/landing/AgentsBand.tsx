@@ -38,7 +38,7 @@ export function AgentsBand({ t }: { t: Dictionary }) {
                   <li key={p} className="flex items-start gap-3">
                     <UiIcon
                       name="verified"
-                      size={18}
+                      size={20}
                       className="mt-0.5 shrink-0 text-[var(--nf-content-primary)]"
                     />
                     <span className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)] sm:text-[0.9375rem]">

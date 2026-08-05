@@ -109,15 +109,15 @@ export default function CareersPage() {
               <p className="nf-overline">Send us</p>
               <ul className="mt-2 space-y-1.5 text-[0.875rem] text-[var(--nf-content-secondary)]">
                 <li className="flex items-start gap-2">
-                  <UiIcon name="arrow-right" size={14} className="mt-1 shrink-0 text-[var(--nf-brand-primary)]" />
+                  <UiIcon name="arrow-right" size={16} className="mt-1 shrink-0 text-[var(--nf-brand-primary)]" />
                   A short note on what you would improve about RentMe
                 </li>
                 <li className="flex items-start gap-2">
-                  <UiIcon name="arrow-right" size={14} className="mt-1 shrink-0 text-[var(--nf-brand-primary)]" />
+                  <UiIcon name="arrow-right" size={16} className="mt-1 shrink-0 text-[var(--nf-brand-primary)]" />
                   A CV, portfolio or links to work you are proud of
                 </li>
                 <li className="flex items-start gap-2">
-                  <UiIcon name="arrow-right" size={14} className="mt-1 shrink-0 text-[var(--nf-brand-primary)]" />
+                  <UiIcon name="arrow-right" size={16} className="mt-1 shrink-0 text-[var(--nf-brand-primary)]" />
                   The kind of role you are looking for
                 </li>
               </ul>

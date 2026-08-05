@@ -148,7 +148,7 @@ export function ListingActions({
           data-testid="listing-share"
           className="grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
-          <UiIcon name="share" size={18} />
+          <UiIcon name="share" size={16} />
         </button>
         <button
           type="button"
@@ -161,7 +161,7 @@ export function ListingActions({
         >
           <UiIcon
             name="heart"
-            size={18}
+            size={16}
             className={saved ? "text-[var(--nf-electric-300)] [&_path]:fill-current" : undefined}
           />
         </button>

@@ -65,7 +65,7 @@ export default async function RentPage({
         <div className="nf-card mt-4 flex items-start gap-4 p-4">
           <UiIcon
             name="verified"
-            size={18}
+            size={20}
             className="mt-0.5 shrink-0 text-[var(--nf-state-success)]"
           />
           <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -100,7 +100,7 @@ export default async function RentPage({
                       active ? "nf-chip--active" : ""
                     }`}
                   >
-                    <UiIcon name="location" size={13} className="shrink-0 opacity-70" />
+                    <UiIcon name="location" size={12} className="shrink-0 opacity-70" />
                     {city}
                   </Link>
                 </li>

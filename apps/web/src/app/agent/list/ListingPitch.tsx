@@ -26,7 +26,7 @@ export function ListingPitch({ copy, signedIn }: { copy: PitchCopy; signedIn: bo
         className="mx-auto grid h-16 w-16 place-items-center rounded-[var(--nf-radius-lg)]"
         style={{ background: "var(--nf-gradient-agent)", color: "#fff" }}
       >
-        <UiIcon name="key" size={30} strokeWidth={1.9} />
+        <UiIcon name="key" size={32} />
       </span>
 
       <h1 className="nf-h2 mt-5">{copy.title}</h1>

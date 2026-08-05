@@ -64,6 +64,28 @@ function nightsLine(nights: number): string {
   return `${nights} ${nights === 1 ? "night" : "nights"}`;
 }
 
+/**
+ * The person actually arriving, when that is not the person who paid.
+ *
+ * Present on a booking made for somebody else. The name and the number ride
+ * on the booking row and are already visible to the payer, the host and an
+ * admin, so putting them in these three emails discloses nothing new to
+ * anybody who receives one.
+ */
+export type ArrivingGuest = {
+  name: string;
+  /** Canonical +234 form, the way the booking stores it. */
+  phone: string;
+};
+
+/** How a guest gets through the gate. Only ever sent to somebody arriving. */
+export type ArrivalAccess = {
+  estateName?: string | null;
+  gateDirections?: string | null;
+  securityPhone?: string | null;
+  accessCode?: string | null;
+};
+
 /** The stay rows every booking email shares, in one order. */
 function stayRows(data: {
   listingTitle: string;
@@ -73,6 +95,7 @@ function stayRows(data: {
   adults?: number;
   children?: number;
   totalMinor?: number;
+  arriving?: ArrivingGuest | null;
 }): ReceiptRow[] {
   const rows: ReceiptRow[] = [
     { label: "Stay", value: data.listingTitle },
@@ -81,9 +104,34 @@ function stayRows(data: {
   ];
   const party = partyLine(data.adults, data.children);
   if (party) rows.push({ label: "Guests", value: party });
+  if (data.arriving) {
+    rows.push({ label: "Arriving", value: data.arriving.name });
+    rows.push({ label: "Their number", value: data.arriving.phone });
+  }
   if (typeof data.totalMinor === "number") {
     rows.push({ label: "Total for the stay", value: money(data.totalMinor), strong: true });
   }
+  return rows;
+}
+
+/**
+ * The gate rows, or an empty list when the host has recorded nothing.
+ *
+ * An empty list renders no block at all rather than a heading over four blank
+ * lines, because a panel with nothing in it reads as a bug and, worse, reads
+ * as though the answer were "no gate".
+ */
+function accessRows(access?: ArrivalAccess | null): ReceiptRow[] {
+  if (!access) return [];
+  const rows: ReceiptRow[] = [];
+  const push = (label: string, value: string | null | undefined, strong?: boolean) => {
+    const trimmed = (value ?? "").trim();
+    if (trimmed.length > 0) rows.push(strong ? { label, value: trimmed, strong } : { label, value: trimmed });
+  };
+  push("Estate", access.estateName);
+  push("Getting in", access.gateDirections);
+  push("Security desk", access.securityPhone);
+  push("Gate code", access.accessCode, true);
   return rows;
 }
 
@@ -98,6 +146,7 @@ export type BookingRequestedData = {
   adults?: number;
   children?: number;
   totalMinor: number;
+  arriving?: ArrivingGuest | null;
 };
 
 /** To the guest, the moment their request is saved. */
@@ -111,6 +160,11 @@ export function bookingRequested(data: BookingRequestedData): EmailMessage {
         paragraph(
           `${hello(data.guestName)} Your booking request has gone to the host and they are reviewing it now. Here is what you asked for.`,
         ) +
+        (data.arriving
+          ? paragraph(
+              `You have booked this for ${data.arriving.name}. Once the host confirms, we will send them their dates and how to get in, and you will get your own copy here.`,
+            )
+          : "") +
         receipt(stayRows(data)) +
         paragraph(
           "Your dates are held while the host reviews. We will email you the moment they confirm.",
@@ -135,6 +189,7 @@ export type BookingRequestedHostData = {
   adults?: number;
   children?: number;
   totalMinor: number;
+  arriving?: ArrivingGuest | null;
 };
 
 /** To the agent who owns the listing. This one asks for an action. */
@@ -151,6 +206,11 @@ export function bookingRequestedHost(data: BookingRequestedHostData): EmailMessa
             who.length > 0 ? who : "A guest"
           } has requested a stay at your listing. The dates are held for you to review, so please confirm or decline as soon as you can.`,
         ) +
+        (data.arriving
+          ? paragraph(
+              `This booking is for somebody else. ${data.arriving.name} is the person who will arrive, and ${data.arriving.phone} is the number to ring at the gate.`,
+            )
+          : "") +
         receipt(stayRows(data)) +
         button("Review the request", appUrl("/agent/bookings")) +
         note("Guests choose hosts who reply quickly, so an early answer helps your listing."),
@@ -169,10 +229,18 @@ export type BookingConfirmedData = {
   checkOut: string;
   nights: number;
   totalMinor: number;
+  arriving?: ArrivingGuest | null;
+  /**
+   * The gate details, when this reader is the one arriving. Absent when
+   * somebody else is: they get their own email carrying them, and repeating a
+   * gate code to a payer in London helps nobody.
+   */
+  access?: ArrivalAccess | null;
 };
 
 /** To the guest when the host confirms. */
 export function bookingConfirmed(data: BookingConfirmedData): EmailMessage {
+  const gate = accessRows(data.access);
   return {
     subject: `Confirmed: ${data.listingTitle}`,
     html: shell({
@@ -183,6 +251,14 @@ export function bookingConfirmed(data: BookingConfirmedData): EmailMessage {
           `${hello(data.guestName)} Good news. The host has confirmed your booking, so these dates are yours.`,
         ) +
         receipt(stayRows(data)) +
+        (gate.length > 0
+          ? paragraph("Here is how to get in when you arrive.") + receipt(gate)
+          : "") +
+        (data.arriving
+          ? paragraph(
+              `We have sent ${data.arriving.name} their own copy of the dates and the arrival details, so they have everything they need at the gate.`,
+            )
+          : "") +
         paragraph(
           "Your booking now shows as confirmed in the app, where you can find the details and message the host.",
         ) +
@@ -190,6 +266,61 @@ export function bookingConfirmed(data: BookingConfirmedData): EmailMessage {
         note("Plans changed? You can cancel from your bookings before the stay begins."),
       footerLines: [
         "You are receiving this because you booked a stay on RentMe.",
+        GUEST_SAFETY_LINE,
+      ],
+    }),
+  };
+}
+
+export type StayArrivalDetailsData = {
+  /** The person arriving. They have no RentMe account and need none. */
+  arrivingName: string;
+  /** Who booked it for them, so this is not an email from a stranger. */
+  bookedByName?: string | null;
+  listingTitle: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  access?: ArrivalAccess | null;
+};
+
+/**
+ * To the person actually arriving, when the payer is somebody else.
+ *
+ * Deliberately carries no money at all. The arriving guest did not pay and has
+ * no business being told what their cousin spent, so there is no total, no
+ * receipt figure and no payment link anywhere in it. What they need is where
+ * they are going, when, and how to get past the gate.
+ */
+export function stayArrivalDetails(data: StayArrivalDetailsData): EmailMessage {
+  const gate = accessRows(data.access);
+  const booker = (data.bookedByName ?? "").trim();
+  return {
+    subject: `Your stay at ${data.listingTitle} is confirmed`,
+    html: shell({
+      preheader: `You are expected from ${dateRange(data.checkIn, data.checkOut)}.`,
+      body:
+        heading("You are expected") +
+        paragraph(
+          `${hello(data.arrivingName)} ${
+            booker.length > 0 ? booker : "Somebody"
+          } has booked a stay for you on RentMe and the host has confirmed it. Here are your dates.`,
+        ) +
+        receipt([
+          { label: "Stay", value: data.listingTitle },
+          { label: "Dates", value: dateRange(data.checkIn, data.checkOut) },
+          { label: "Length", value: nightsLine(data.nights) },
+        ]) +
+        (gate.length > 0
+          ? paragraph("This is how to get in when you arrive.") + receipt(gate)
+          : paragraph(
+              "The host has not left gate instructions for this place. Whoever booked it for you can message the host from the app and pass on the directions.",
+            )) +
+        note(
+          "You do not need a RentMe account to stay here. Keep this email, and show it if anybody asks for it.",
+        ),
+      footerLines: [
+        "You are receiving this because somebody booked a RentMe stay for you.",
         GUEST_SAFETY_LINE,
       ],
     }),

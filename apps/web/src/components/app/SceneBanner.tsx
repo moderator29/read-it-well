@@ -62,7 +62,7 @@ export function SceneBanner({
           {action}
           <UiIcon
             name="arrow-right"
-            size={14}
+            size={16}
             className="transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
           />
         </span>

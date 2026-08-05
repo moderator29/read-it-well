@@ -37,6 +37,9 @@ const KIND_LABEL: Record<ListingKind, string> = {
   restaurant: "Restaurant",
   experience: "Experience",
   rental: "Rental",
+  shop: "Shop",
+  office: "Office",
+  land: "Land",
 };
 
 function periodFor(listing: Listing): MapListing["period"] {

@@ -418,7 +418,7 @@ export function ThreadView({
         aria-label="Conversation"
       >
         <p className="flex items-center justify-center gap-1.5 py-1 text-center text-[0.7rem] text-[var(--nf-content-muted)]">
-          <UiIcon name="verified" size={12} strokeWidth={2.1} />
+          <UiIcon name="verified" size={12} />
           Keep every chat and payment inside RentMe
         </p>
 
@@ -437,7 +437,7 @@ export function ThreadView({
                   <img
                     src={m.imageUrl}
                     alt="Photo you attached"
-                    className="mb-2 max-h-64 w-full rounded-xl object-cover"
+                    className="mb-2 aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
                 {m.body && <p className="text-[0.9rem] leading-relaxed">{m.body}</p>}
@@ -472,7 +472,7 @@ export function ThreadView({
                   <img
                     src={m.imageUrl}
                     alt={`Photo from ${counterpartName}`}
-                    className="mb-2 max-h-64 w-full rounded-xl object-cover"
+                    className="mb-2 aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
                 {m.body && (
@@ -523,7 +523,7 @@ export function ThreadView({
           className="nf-card mb-2 flex items-start gap-3 border-t border-[var(--nf-border-subtle)] p-3.5"
         >
           <span className="mt-0.5 shrink-0 text-[var(--nf-electric-300)]" aria-hidden="true">
-            <UiIcon name="verified" size={16} strokeWidth={2.1} />
+            <UiIcon name="verified" size={16} />
           </span>
           <p className="min-w-0 flex-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
             {SAFETY_EDUCATION_COPY}
@@ -534,7 +534,7 @@ export function ThreadView({
             onClick={() => setEducationOpen(false)}
             className="nf-icon-btn h-8 w-8 shrink-0"
           >
-            <UiIcon name="close" size={15} />
+            <UiIcon name="close" size={16} />
           </button>
         </div>
       )}
@@ -548,7 +548,7 @@ export function ThreadView({
             alt="Photo ready to send"
             className="h-14 w-14 rounded-xl object-cover"
           />
-          <p className="min-w-0 flex-1 truncate text-[0.8125rem] text-[var(--nf-content-muted)]">
+          <p className="min-w-0 flex-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
             Photo attached
           </p>
           <Button
@@ -625,7 +625,7 @@ export function ThreadView({
           disabled={!draft.trim() && !pendingFile}
           className="shrink-0 rounded-full"
         >
-          <UiIcon name="arrow-right" size={18} className="-rotate-90" />
+          <UiIcon name="arrow-right" size={20} className="-rotate-90" />
         </Button>
       </form>
     </div>

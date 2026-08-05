@@ -94,7 +94,7 @@ export function RealDashboard({
           </p>
         </div>
         <ButtonLink href="/agent/list" variant="primary">
-          <BrandIcon name="homes-sparkle" size={22} />
+          <BrandIcon name="homes-sparkle" size={24} />
           {a.addListing}
         </ButtonLink>
       </div>
@@ -227,18 +227,9 @@ export function RealDashboard({
                       className="block text-[0.8125rem] font-bold"
                     />
                     <span
-                      className="nf-badge mt-0.5"
-                      style={
-                        booking.status === "CONFIRMED"
-                          ? {
-                              background: "var(--nf-state-success-surface)",
-                              color: "var(--nf-state-success)",
-                            }
-                          : {
-                              background: "var(--nf-state-warning-surface)",
-                              color: "var(--nf-state-warning)",
-                            }
-                      }
+                      className={`nf-badge mt-0.5 ${
+                        booking.status === "CONFIRMED" ? "nf-badge--approved" : "nf-badge--pending"
+                      }`}
                     >
                       {booking.status === "CONFIRMED" ? a.confirmed : a.pending}
                     </span>

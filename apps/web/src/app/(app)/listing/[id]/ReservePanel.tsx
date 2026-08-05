@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useId } from "react";
+import { useActionState, useId, useState } from "react";
 import Link from "next/link";
 import { type Locale } from "@naijafinds/i18n";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
@@ -9,6 +9,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Amount } from "@/components/ui/Amount";
+import { Toggle } from "@/components/app/account/Toggle";
 import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 
 /**
@@ -107,12 +108,36 @@ export function ReservePanel({
     FormData
   >(reserve, null);
 
+  /* Booking for somebody else. The three fields are not rendered at all until
+     this is on, so an untouched form submits nothing about a third party and
+     the server sees the absence rather than three empty strings.
+     They are controlled rather than left to the DOM on purpose: React resets
+     an uncontrolled field once a form action settles, so a refusal used to
+     wipe all three and send the guest back to type a name and a phone number
+     again to fix a date. */
+  const [forSomeoneElse, setForSomeoneElse] = useState(false);
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+
+  /* Switching it off takes the third party with it. A change of mind must not
+     leave a name half attached to a booking nobody meant to name. */
+  const toggleForSomeoneElse = (next: boolean) => {
+    setForSomeoneElse(next);
+    if (!next) {
+      setGuestName("");
+      setGuestPhone("");
+      setGuestEmail("");
+    }
+  };
+
   const stay = useStayDates();
   const {
     checkIn,
     checkOut,
     adults,
     children,
+    capacity,
     setCheckIn,
     setCheckOut,
     setAdults,
@@ -122,8 +147,15 @@ export function ReservePanel({
     nights,
     hint,
     ready,
+    subtotalMinor,
+    cleaningMinor,
+    serviceMinor,
     totalMinor,
   } = stay;
+
+  /* Collapsed by default: the total is the decision, and the arithmetic behind
+     it is for the person who wants to check it or compare per night. */
+  const [showPerNight, setShowPerNight] = useState(false);
 
   const fieldError = (key: string): string | undefined =>
     state && !state.ok ? state.fieldErrors?.[key] : undefined;
@@ -152,6 +184,15 @@ export function ReservePanel({
           {r.nights === 1 ? "night" : "nights"} for {r.adults + r.children}{" "}
           {r.adults + r.children === 1 ? "guest" : "guests"}.
         </p>
+        {r.arrivingName && (
+          <p
+            data-testid="reserve-arriving"
+            className="nf-rise mt-1.5 text-center text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]"
+          >
+            {r.arrivingName} is the one arriving. We send them the details the moment the host
+            confirms.
+          </p>
+        )}
         <dl className="nf-rise mt-3 space-y-1.5 border-t border-[var(--nf-border-subtle)] pt-3 text-[0.875rem]">
           {r.cleaningMinor > 0 && (
             <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
@@ -213,7 +254,7 @@ export function ReservePanel({
 
         {instantBook && (
           <p className="flex items-center gap-1.5 text-[0.78rem] font-semibold text-[var(--nf-state-warning)]">
-            <UiIcon name="sparkle" size={13} />
+            <UiIcon name="sparkle" size={12} />
             Instant Book available
           </p>
         )}
@@ -262,37 +303,216 @@ export function ReservePanel({
         )}
 
         {/* ------------------------------------------------------ guests */}
+        {/* The host's declared capacity is the ceiling, split live between the
+            two steppers, so a party the agent would turn away at the gate can
+            never be assembled here. The server checks it again against the
+            listing row; this is the courtesy, not the guard. */}
         <div className="mt-3.5 space-y-2.5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3.5">
-          <Stepper label="Adults" name="adults" value={adults} min={1} max={16} onChange={setAdults} />
+          <Stepper
+            label="Adults"
+            name="adults"
+            value={adults}
+            min={1}
+            max={capacity === null ? 16 : Math.max(1, capacity - children)}
+            onChange={setAdults}
+          />
           <Stepper
             label="Children"
             name="children"
             value={children}
             min={0}
-            max={10}
+            max={capacity === null ? 10 : Math.max(0, capacity - adults)}
             onChange={setChildren}
+          />
+          {capacity !== null && (
+            <p className="border-t border-[var(--nf-border-subtle)] pt-2.5 text-[0.78rem] text-[var(--nf-content-muted)]">
+              This place takes up to {capacity} {capacity === 1 ? "guest" : "guests"}.
+            </p>
+          )}
+        </div>
+
+        {/* -------------------------------------- the person arriving */}
+        {/* The payer is often not the guest here: a sister in London books for
+            a cousin flying into Lagos, and the arrival directions used to go
+            to London. Naming somebody means giving a number the gate can ring,
+            which is why the phone is required alongside the name and the email
+            is not. */}
+        <div className="mt-3.5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3.5 py-1">
+          <Toggle
+            checked={forSomeoneElse}
+            onChange={toggleForSomeoneElse}
+            label="Someone else is arriving"
+            description="Booking this for a family member or a friend."
           />
         </div>
 
-        {/* ---------------------------------------------- price breakdown */}
+        {forSomeoneElse && (
+          <div className="nf-rise mt-3 grid gap-3">
+            <div>
+              <label htmlFor={`${uid}-guest-name`} className="nf-label">
+                Their full name
+              </label>
+              <input
+                id={`${uid}-guest-name`}
+                name="guestName"
+                type="text"
+                autoComplete="off"
+                maxLength={80}
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                placeholder="As it appears on their ID"
+                aria-invalid={fieldError("guestName") ? true : undefined}
+                className="nf-field"
+              />
+              {fieldError("guestName") && (
+                <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
+                  {fieldError("guestName")}
+                </p>
+              )}
+            </div>
+            <div>
+              <label htmlFor={`${uid}-guest-phone`} className="nf-label">
+                Their phone number
+              </label>
+              <input
+                id={`${uid}-guest-phone`}
+                name="guestPhone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="off"
+                maxLength={32}
+                value={guestPhone}
+                onChange={(e) => setGuestPhone(e.target.value)}
+                placeholder="0803 123 4567"
+                aria-describedby={`${uid}-guest-phone-hint`}
+                aria-invalid={fieldError("guestPhone") ? true : undefined}
+                className="nf-field"
+              />
+              <p
+                id={`${uid}-guest-phone-hint`}
+                className="mt-1.5 text-[0.78rem] text-[var(--nf-content-muted)]"
+              >
+                The estate gate rings this number when they arrive.
+              </p>
+              {fieldError("guestPhone") && (
+                <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
+                  {fieldError("guestPhone")}
+                </p>
+              )}
+            </div>
+            <div>
+              <label htmlFor={`${uid}-guest-email`} className="nf-label">
+                Their email address, if you have it
+              </label>
+              <input
+                id={`${uid}-guest-email`}
+                name="guestEmail"
+                type="email"
+                autoComplete="off"
+                maxLength={160}
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                placeholder="Optional"
+                aria-describedby={`${uid}-guest-email-hint`}
+                aria-invalid={fieldError("guestEmail") ? true : undefined}
+                className="nf-field"
+              />
+              <p
+                id={`${uid}-guest-email-hint`}
+                className="mt-1.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]"
+              >
+                We send them the dates and how to get through the gate once the host confirms.
+                Leave it blank and it all comes to you to pass on.
+              </p>
+              {fieldError("guestEmail") && (
+                <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
+                  {fieldError("guestEmail")}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ---------------------------------------------- price breakdown
+            Every figure the guest will be charged, named, before they tap.
+
+            This block used to print the SUBTOTAL against a row labelled
+            "Total", while `reserve()` went on to charge subtotal plus cleaning
+            plus service. The guest read one number and was billed a larger one,
+            and neither fee appeared anywhere on the page.
+
+            The total leads, because that is the number somebody decides on.
+            The per-night figure is one tap away for anybody comparing places,
+            which is the only reason a per-night number is worth printing at
+            all. */}
         {ready && (
-          <dl className="mt-3.5 space-y-1.5 border-t border-[var(--nf-border-subtle)] pt-3.5 text-[0.875rem]">
-            <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
-              <dt>
-                <Amount minorUnits={priceMinor} locale={locale} currency={currency} /> &times;{" "}
-                {nights} {nights === 1 ? "night" : "nights"}
-              </dt>
-              <dd>
-                <Amount minorUnits={totalMinor} locale={locale} currency={currency} />
-              </dd>
+          <div className="mt-3.5 border-t border-[var(--nf-border-subtle)] pt-3.5">
+            <div className="flex items-baseline justify-between gap-3">
+              {/* The `Amount` primitive, not a hand-assembled figure: the
+                  tabular digits, the locale-built currency symbol and the
+                  two-tone qualifier all come from one place. "total" is the
+                  suffix the primitive was written for. */}
+              <Amount
+                minorUnits={totalMinor}
+                locale={locale}
+                currency={currency}
+                suffix="total"
+                className="text-[1.0625rem] font-bold text-[var(--nf-content-primary)]"
+                secondaryClassName="text-[0.8125rem] font-medium text-[var(--nf-content-muted)]"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPerNight((v) => !v)}
+                aria-expanded={showPerNight}
+                className="relative shrink-0 text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)] before:absolute before:-inset-2 before:content-['']"
+              >
+                {showPerNight ? "Hide the breakdown" : "See per night"}
+              </button>
             </div>
-            <div className="flex items-center justify-between font-semibold text-[var(--nf-content-primary)]">
-              <dt>Total</dt>
-              <dd>
-                <Amount minorUnits={totalMinor} locale={locale} currency={currency} />
-              </dd>
-            </div>
-          </dl>
+
+            {showPerNight && (
+              <dl className="mt-2.5 space-y-1.5 text-[0.875rem]">
+                <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
+                  <dt>
+                    <Amount minorUnits={priceMinor} locale={locale} currency={currency} /> &times;{" "}
+                    {nights} {nights === 1 ? "night" : "nights"}
+                  </dt>
+                  <dd>
+                    <Amount minorUnits={subtotalMinor} locale={locale} currency={currency} />
+                  </dd>
+                </div>
+                {/* Named separately, never folded into one figure. A guest
+                    comparing two places has to be able to see which of them
+                    charges what. */}
+                {cleaningMinor > 0 && (
+                  <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
+                    <dt>Cleaning</dt>
+                    <dd>
+                      <Amount minorUnits={cleaningMinor} locale={locale} currency={currency} />
+                    </dd>
+                  </div>
+                )}
+                {serviceMinor > 0 && (
+                  <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
+                    <dt>Service charge</dt>
+                    <dd>
+                      <Amount minorUnits={serviceMinor} locale={locale} currency={currency} />
+                    </dd>
+                  </div>
+                )}
+                <div className="flex items-center justify-between border-t border-[var(--nf-border-subtle)] pt-1.5 font-semibold text-[var(--nf-content-primary)]">
+                  <dt>Total</dt>
+                  <dd>
+                    <Amount minorUnits={totalMinor} locale={locale} currency={currency} />
+                  </dd>
+                </div>
+                <p className="pt-0.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
+                  RentMe adds nothing of its own. Every figure here is the
+                  host&apos;s.
+                </p>
+              </dl>
+            )}
+          </div>
         )}
 
         {/* ---------------------------------------------------- failures */}
@@ -324,7 +544,7 @@ export function ReservePanel({
       </form>
 
       <p className="mt-3.5 flex items-start gap-1.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
-        <UiIcon name="verified" size={14} className="mt-0.5 shrink-0 text-[var(--nf-state-success)]" />
+        <UiIcon name="verified" size={16} className="mt-0.5 shrink-0 text-[var(--nf-state-success)]" />
         Pay only after you have inspected the property
       </p>
     </div>

@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getDictionary, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { getDictionary, type Dictionary, type Locale, formatRating } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
+import { factsOf, sleeps } from "@/lib/listings/filter";
 import { getMessageRepository } from "@/lib/messages/repository";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { formatNumber } from "@naijafinds/i18n";
 import { getBlockedDates } from "@/lib/bookings/queries";
+import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
 import { lagosToday } from "@/lib/bookings/schema";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
@@ -15,6 +17,10 @@ import { RentalPanel } from "./RentalPanel";
 import { ListingAbout } from "@/components/app/listing/ListingAbout";
 import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
 import { ListingPhotoGrid } from "@/components/app/listing/ListingPhotoGrid";
+import { ListingUtilities } from "@/components/app/listing/ListingUtilities";
+import { readListingAccess } from "@/lib/listings/access-queries";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/database.types";
 import { ListingHostPanel } from "@/components/app/listing/ListingHostPanel";
 import { ListingReviews } from "@/components/app/listing/ListingReviews";
 import {
@@ -23,6 +29,8 @@ import {
 } from "@/components/app/listing/ListingStickyBar";
 import { StayDatesProvider } from "@/components/app/listing/StayDates";
 import { PhotoViewerProvider } from "@/components/app/listing/PhotoViewer";
+import { ReportSheet } from "@/components/app/ReportSheet";
+import { resolveSession } from "@/lib/actions/session";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
@@ -55,6 +63,9 @@ const KIND_LABEL: Record<ListingKind, string> = {
   experience: "experience",
   // A rental is described by what it is to the reader, not by our enum name.
   rental: "home to rent",
+  shop: "shop to rent",
+  office: "office to rent",
+  land: "plot of land",
 };
 
 /**
@@ -77,6 +88,13 @@ const MARKET_PILL: Record<ListingKind, { icon: UiIconName; label: string; tone: 
   villa: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
   restaurant: { icon: "utensils", label: "Dining", tone: "nf-tag-pill--neutral" },
   experience: { icon: "ticket", label: "Experience", tone: "nf-tag-pill--neutral" },
+  /* Commercial space and land are let on a tenancy exactly like a rental, so
+     they read as the same market and take the same key glyph and brand tint.
+     What they are individually is already said by `KIND_LABEL` in the copy
+     below; the pill answers "which market am I in", not "what is this". */
+  shop: { icon: "key", label: "For rent", tone: "" },
+  office: { icon: "key", label: "For rent", tone: "" },
+  land: { icon: "key", label: "For rent", tone: "" },
 };
 
 /** "Lagos State" reads naturally; the FCT does not take the suffix. */
@@ -85,12 +103,17 @@ function stateLabel(state: string): string {
 }
 
 /**
- * Guest capacity is not a stored field yet. Until the platform API carries it,
- * derive it at two guests a bedroom so the facts stay complete without a
- * hardcoded number per listing.
+ * How many guests this place takes, as one number the whole page agrees on.
+ *
+ * The host's declared `max_guests` where there is one, the two-per-bedroom
+ * convention where there is not, and null where capacity is not a knowable
+ * thing about the place at all. This used to be a local function that ignored
+ * the declared number entirely and always answered `bedrooms * 2`, so a
+ * four-guest one-bedroom read as sleeping two and a two-guest three-bedroom
+ * read as sleeping six.
  */
-function sleeps(listing: Listing): number {
-  return Math.max(2, listing.bedrooms * 2);
+function capacityOf(listing: Listing): number | null {
+  return sleeps(factsOf(listing));
 }
 
 export async function generateMetadata({
@@ -104,6 +127,32 @@ export async function generateMetadata({
     title: listing?.title ?? "Listing",
     robots: { index: false, follow: false },
   };
+}
+
+/**
+ * Does this caller hold a confirmed booking here?
+ *
+ * Only used to choose which sentence the withheld gate block shows, never to
+ * decide what they may read: that decision belongs to the policy on
+ * public.listing_access and to nothing in this file. A failed count reads as
+ * no, because the safe answer to "may I see the gate code" is no.
+ */
+async function hasConfirmedBooking(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+  userId: string,
+): Promise<boolean> {
+  try {
+    const { count } = await supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("listing_id", listingId)
+      .eq("guest_id", userId)
+      .eq("status", "CONFIRMED");
+    return (count ?? 0) > 0;
+  } catch {
+    return false;
+  }
 }
 
 export default async function ListingDetailPage({
@@ -126,6 +175,11 @@ export default async function ListingDetailPage({
    */
   const isPartner = listing.source === "partner";
   const partner = listing.partner;
+
+  // Written reviews for this listing. Public by policy for a PUBLISHED listing,
+  // so this read works for a signed-out visitor too. Partner stock is never
+  // reviewed here, so it is not read for.
+  const reviews = isPartner ? [] : await getListingReviews(listing.id, locale);
 
   // Message agent deep links into the existing thread about this listing when
   // one exists, and otherwise lands on the conversation list. Partner stock has
@@ -152,6 +206,26 @@ export default async function ListingDetailPage({
   const initialSaved = (await getSavedListings()).some(
     (entry) => entry.listing.id === listing.id,
   );
+
+  // Reporting belongs to somebody, so the sheet needs to know whether there is
+  // a somebody. Signed out is a designed state inside the sheet rather than a
+  // hidden control: a visitor who spots a scam should not have to guess that
+  // reporting exists.
+  const session = await resolveSession();
+  const signedIn = session.state === "signed-in";
+
+  /* Light, water and the gate. The first two are public columns; the gate
+     details are read through the caller's own policies and come back null for
+     anyone who is not the host, an admin, or a guest holding a CONFIRMED
+     booking on this listing. A refusal and an absence are the same answer here
+     on purpose, so nobody can learn whether a code exists by watching the page
+     change. */
+  const [access, bookingConfirmed] = await Promise.all([
+    readListingAccess(listing.id),
+    session.state === "signed-in"
+      ? hasConfirmedBooking(session.supabase, listing.id, session.user.id)
+      : Promise.resolve(false),
+  ]);
 
   // Partner locality collapses when the feed places a venue by city alone.
   const where =
@@ -243,13 +317,16 @@ export default async function ListingDetailPage({
         listing.instantBook
           ? "Instant Book is available on this listing, so your dates confirm as soon as you reserve."
           : "The agent confirms each booking request personally, so allow a little time for a response."
-      } Reserve online, then arrange an inspection with the agent through Messages. Pay only after you have inspected the property.`,
+      } Reserve online, then arrange an inspection with the agent from your Inbox. Pay only after you have inspected the property.`,
     );
     const closing: string[] = [];
-    if (listing.bedrooms > 0) closing.push(`It sleeps up to ${sleeps(listing)} guests.`);
+    const capacity = capacityOf(listing);
+    if (capacity !== null) {
+      closing.push(`It sleeps up to ${capacity} ${capacity === 1 ? "guest" : "guests"}.`);
+    }
     if (listing.reviewCount > 0) {
       closing.push(
-        `Guests have rated it ${listing.rating.toFixed(1)} out of 5 across ${formatNumber(
+        `Guests have rated it ${formatRating(listing.rating, locale)} out of 5 across ${formatNumber(
           listing.reviewCount,
           locale,
         )} ${t.common.reviews}.`,
@@ -329,14 +406,14 @@ export default async function ListingDetailPage({
             */}
             <div className="flex flex-wrap items-center gap-2">
               <span className={`nf-tag-pill ${market.tone}`}>
-                <UiIcon name={market.icon} size={13} strokeWidth={2.1} />
+                <UiIcon name={market.icon} size={12} />
                 {market.label}
               </span>
 
               {/* Only first-party inventory may carry the verified badge. */}
               {listing.verified && !isPartner && (
-                <span className="nf-badge nf-badge--success">
-                  <UiIcon name="verified" size={12} strokeWidth={2.1} />
+                <span className="nf-badge nf-badge--verified">
+                  <UiIcon name="verified" size={12} />
                   {t.common.verified}
                 </span>
               )}
@@ -349,7 +426,7 @@ export default async function ListingDetailPage({
                 </span>
               )}
               {listing.instantBook && (
-                <span className="nf-badge nf-badge--warning">Instant Book</span>
+                <span className="nf-badge nf-badge--brand">Instant Book</span>
               )}
               {partner?.attribution === "Google" && (
                 <span className="text-[0.6875rem] text-[var(--nf-content-muted)]">
@@ -359,8 +436,8 @@ export default async function ListingDetailPage({
 
               {listing.rating > 0 && (
                 <span className="nf-chip nf-numeric ml-auto shrink-0 gap-1.5 px-3 py-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
-                  <UiIcon name="star" size={14} filled className="text-[var(--nf-rating)]" />
-                  {listing.rating.toFixed(1)}
+                  <UiIcon name="star" size={16} filled className="text-[var(--nf-rating)]" />
+                  {formatRating(listing.rating, locale)}
                   {listing.reviewCount > 0 && (
                     <span className="font-normal text-[var(--nf-content-muted)]">
                       ({formatNumber(listing.reviewCount, locale)} {t.common.reviews})
@@ -373,7 +450,7 @@ export default async function ListingDetailPage({
             <h1 className="nf-h1 mt-3 max-sm:text-[1.375rem]">{listing.title}</h1>
 
             <p className="mt-2 flex items-center gap-1.5 text-[0.9375rem] text-[var(--nf-content-secondary)]">
-              <UiIcon name="location" size={15} className="shrink-0" />
+              <UiIcon name="location" size={16} className="shrink-0" />
               <span className="truncate">{where}</span>
             </p>
 
@@ -399,10 +476,21 @@ export default async function ListingDetailPage({
                 bedrooms={listing.bedrooms}
                 bathrooms={listing.bathrooms}
                 amenities={listing.amenities}
-                guests={listing.bedrooms > 0 ? sleeps(listing) : undefined}
+                guests={capacityOf(listing) ?? undefined}
               />
             </div>
           </section>
+
+          {/* --------------------------------- light, water and the gate */}
+          {listing.utilities && (
+            <Reveal className="mt-7">
+              <ListingUtilities
+                utilities={listing.utilities}
+                access={access}
+                bookingConfirmed={bookingConfirmed}
+              />
+            </Reveal>
+          )}
 
           {/* ----------------------------------------------------- about */}
           <Reveal as="section" className="nf-hairline mt-7 pt-7">
@@ -442,10 +530,27 @@ export default async function ListingDetailPage({
               <ListingReviews
                 rating={listing.rating}
                 reviewCount={listing.reviewCount}
+                reviews={reviews}
                 locale={locale}
                 t={t}
               />
             </Reveal>
+          )}
+
+          {/* ---------------------------------------------------- report */}
+          {/* Last on the page on purpose. It is the thing you go looking for
+              rather than the thing you are offered, and it must always be
+              findable. Partner stock is somebody else's inventory, so there is
+              nothing of ours to act on. */}
+          {!isPartner && (
+            <div className="mt-8 flex justify-center">
+              <ReportSheet
+                targetType="listing"
+                targetId={listing.id}
+                targetLabel={listing.title}
+                signedIn={signedIn}
+              />
+            </div>
           )}
         </div>
 
@@ -475,6 +580,9 @@ export default async function ListingDetailPage({
       today={today}
       blockedDates={blockedDates}
       priceMinor={listing.priceMinor}
+      cleaningMinor={listing.cleaningMinor ?? 0}
+      serviceMinor={listing.serviceMinor ?? 0}
+      capacity={capacityOf(listing)}
     >
       {body}
     </StayDatesProvider>

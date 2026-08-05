@@ -156,7 +156,7 @@ export function StoryRail() {
         <Reveal>
           <div className="max-w-2xl">
             <span className="nf-overline inline-flex items-center gap-2">
-              <UiIcon name="sparkle" size={14} />
+              <UiIcon name="sparkle" size={16} />
               The RentMe way
             </span>
             <h2 id="nf-story-title" className="nf-h2 mt-2">
@@ -226,7 +226,7 @@ export function StoryRail() {
                     {s.action}
                     <UiIcon
                       name="arrow-right"
-                      size={15}
+                      size={16}
                       className="transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
                     />
                   </span>

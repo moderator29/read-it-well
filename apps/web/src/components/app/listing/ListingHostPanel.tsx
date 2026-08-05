@@ -30,16 +30,16 @@ export function ListingHostPanel({
           <BrandIcon name="user-check" fill />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+          <p className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
             RentMe partner agent
           </p>
-          <p className="mt-0.5 truncate text-[0.78rem] text-[var(--nf-content-muted)]">
+          <p className="mt-0.5 text-[0.78rem] text-[var(--nf-content-muted)]">
             Manages this listing on RentMe
           </p>
         </div>
         {verified && (
-          <span className="nf-badge nf-badge--success shrink-0">
-            <UiIcon name="verified" size={12} strokeWidth={2.1} />
+          <span className="nf-badge nf-badge--verified shrink-0">
+            <UiIcon name="verified" size={12} />
             {t.common.verified}
           </span>
         )}

@@ -60,6 +60,18 @@ export type BookingView = {
   status: "PENDING" | "CONFIRMED" | "CANCELLED";
   /** True when the guest may still call the stay off. */
   cancellable: boolean;
+  /** The person actually arriving, when the payer booked it for somebody else. */
+  arrivingName: string | null;
+  /** Their number, in the canonical +234 form the booking stores. */
+  arrivingPhone: string | null;
+  /** True once this stay carries a review by this guest. */
+  reviewed: boolean;
+  /**
+   * True when a review can actually be written now. Mirrors the
+   * reviews_insert_own policy, so the control never promises a write the
+   * database would refuse.
+   */
+  reviewable: boolean;
 };
 
 export type BookingGroups = {
@@ -91,7 +103,7 @@ export async function getMyBookings(locale: Locale): Promise<BookingGroups | nul
   const { data: rows, error } = await session.supabase
     .from("bookings")
     .select(
-      "id, listing_id, check_in, check_out, nights, adults, children, total_minor, currency, status",
+      "id, listing_id, check_in, check_out, nights, adults, children, total_minor, currency, status, guest_name, guest_phone",
     )
     .eq("guest_id", session.user.id)
     .order("check_in", { ascending: false })
@@ -116,6 +128,21 @@ export async function getMyBookings(locale: Locale): Promise<BookingGroups | nul
     ),
   );
 
+  // Which of these stays the guest has already reviewed, in one read. Their own
+  // RLS client only ever returns their own reviews, so this cannot leak another
+  // guest's writing.
+  const reviewedBookingIds = new Set<string>();
+  if (rows.length > 0) {
+    const { data: reviewRows } = await session.supabase
+      .from("reviews")
+      .select("booking_id")
+      .in(
+        "booking_id",
+        rows.map((r) => r.id),
+      );
+    for (const r of reviewRows ?? []) reviewedBookingIds.add(r.booking_id);
+  }
+
   const today = lagosToday();
   const groups: BookingGroups = { upcoming: [], completed: [], cancelled: [] };
 
@@ -138,6 +165,13 @@ export async function getMyBookings(locale: Locale): Promise<BookingGroups | nul
       status: row.status,
       cancellable:
         (row.status === "PENDING" || row.status === "CONFIRMED") && row.check_in > today,
+      arrivingName: (row.guest_name ?? "").trim() || null,
+      arrivingPhone: (row.guest_phone ?? "").trim() || null,
+      reviewed: reviewedBookingIds.has(row.id),
+      reviewable:
+        row.status === "CONFIRMED" &&
+        row.check_out <= today &&
+        !reviewedBookingIds.has(row.id),
     };
     if (row.status === "CANCELLED") groups.cancelled.push(view);
     else if (row.check_out <= today) groups.completed.push(view);

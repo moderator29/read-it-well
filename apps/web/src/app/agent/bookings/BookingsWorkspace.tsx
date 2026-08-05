@@ -47,9 +47,9 @@ function durationLabel(t: BookingsCopy, hours: number): string {
 function statusBadgeClass(status: BookingStatus): string {
   switch (status) {
     case "PENDING":
-      return "nf-badge nf-badge--warning";
+      return "nf-badge nf-badge--pending";
     case "CONFIRMED":
-      return "nf-badge nf-badge--success";
+      return "nf-badge nf-badge--approved";
     case "CANCELLED":
       return "nf-badge";
   }
@@ -234,7 +234,7 @@ function BookingCard({
           <div className="min-w-0">
             <h3 className="truncate text-[0.9375rem] font-semibold">{booking.guestName}</h3>
             <p className="mt-0.5 flex items-center gap-1.5 truncate text-[0.8125rem] text-[var(--nf-content-secondary)]">
-              <UiIcon name="house" size={13} className="shrink-0" />
+              <UiIcon name="house" size={12} className="shrink-0" />
               <span className="truncate">{booking.listingTitle}</span>
             </p>
           </div>
@@ -244,7 +244,7 @@ function BookingCard({
         </div>
 
         <p className="mt-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
-          <UiIcon name="calendar-booking" size={14} className="shrink-0" />
+          <UiIcon name="calendar-booking" size={16} className="shrink-0" />
           {fill(t.card.dates, {
             from: formatDate(dateOnly(booking.checkIn), locale, { day: "numeric", month: "short" }),
             to: formatDate(dateOnly(booking.checkOut), locale, { day: "numeric", month: "short" }),
@@ -253,10 +253,28 @@ function BookingCard({
         </p>
 
         <p className="mt-1.5 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
-          <UiIcon name="user" size={14} className="shrink-0" />
+          <UiIcon name="user" size={16} className="shrink-0" />
           {guestsLabel}
           <span className="text-[var(--nf-content-muted)]">&middot; {compositionLabel}</span>
         </p>
+
+        {/* Somebody other than the booker is arriving. The host has to know
+            this before the gate does: the name above is who paid, and this is
+            who will actually be standing at the security post. */}
+        {booking.arrivingName && (
+          <p
+            data-testid="host-booking-arriving"
+            className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]"
+          >
+            <UiIcon name="verified" size={16} className="shrink-0" />
+            {fill(t.card.arriving, { name: booking.arrivingName })}
+            {booking.arrivingPhone && (
+              <span className="nf-numeric text-[var(--nf-content-muted)]">
+                {fill(t.card.arrivingPhone, { phone: booking.arrivingPhone })}
+              </span>
+            )}
+          </p>
+        )}
 
         <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
           {fill(t.card.requested, { date: formatDate(new Date(booking.createdAt), locale) })}

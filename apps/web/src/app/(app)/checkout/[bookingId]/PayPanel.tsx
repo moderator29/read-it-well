@@ -155,7 +155,7 @@ export function PayPanel({ view }: { view: CheckoutView }) {
           role="alert"
           className="nf-card mt-3 flex items-start gap-2.5 p-3.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
         >
-          <UiIcon name="bell" size={15} className="mt-0.5 shrink-0" />
+          <UiIcon name="bell" size={16} className="mt-0.5 shrink-0" />
           <span>{phase.message}</span>
         </p>
       )}

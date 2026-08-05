@@ -54,7 +54,7 @@ export function AccessScreen({
           className="mx-auto mt-6 grid h-14 w-14 place-items-center rounded-full"
           style={{ background: "var(--nf-brand-primary-soft)", color: "var(--nf-electric-300)" }}
         >
-          <UiIcon name="key" size={24} strokeWidth={1.9} />
+          <UiIcon name="key" size={24} />
         </span>
 
         <h1 className="nf-h2 mt-4 text-[1.375rem]">{copy.title}</h1>

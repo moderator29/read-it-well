@@ -28,13 +28,13 @@ export default async function AgentApplyPage() {
 
       <div className="relative z-10">
         <header className="nf-shell mb-8 flex items-center justify-between">
-          <Link href="/agents" className="flex items-center gap-2 text-[0.875rem] font-semibold text-[var(--nf-content-secondary)] hover:text-[var(--nf-content-primary)]">
+          <Link href="/agents" className="nf-tap flex items-center gap-2 text-[0.875rem] font-semibold text-[var(--nf-content-secondary)] hover:text-[var(--nf-content-primary)]">
             <UiIcon name="arrow-right" size={16} className="rotate-180" />
             {t.agent.apply.title}
           </Link>
           <div className="flex items-center gap-4">
             <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
-            <Link href="/" aria-label={t.a11y.logoHome}>
+            <Link href="/" aria-label={t.a11y.logoHome} className="nf-tap">
               <LogoMark size={34} />
             </Link>
           </div>

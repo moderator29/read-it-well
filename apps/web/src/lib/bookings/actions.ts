@@ -28,16 +28,12 @@ import { fail, formDataToObject, ok, validate, type ActionResult } from "../acti
 import { bestEffortEmail, sendEmail } from "../email/client";
 import {
   bookingCancelled,
-  bookingConfirmed,
   bookingRequested,
   bookingRequestedHost,
+  type ArrivingGuest,
 } from "../email/messages";
-import {
-  adminOrNull,
-  contactForAgent,
-  contactForUser,
-  contactFromSession,
-} from "../email/recipients";
+import { adminOrNull, contactForAgent, contactForSelf } from "../email/recipients";
+import { announceConfirmedStay } from "./arrival";
 import {
   NOT_CONFIGURED_MESSAGE,
   SIGNED_OUT_MESSAGE,
@@ -50,6 +46,7 @@ import {
   cancelInputSchema,
   lagosToday,
   nightsBetween,
+  normalisePhone,
   reserveInputSchema,
 } from "./schema";
 import { releaseBookedNights, writeBookedNights } from "./settlement";
@@ -75,6 +72,33 @@ const GENERIC_RESERVE_MESSAGE =
 const SERVICE_DOWN_MESSAGE =
   "Cancelling is temporarily unavailable. Your booking is unchanged. Please try again shortly.";
 
+/**
+ * Turn a 23514 check-constraint violation into the true sentence.
+ *
+ * Eleven check constraints on public.bookings can raise this code and only
+ * three of them are ever the guest's doing. Saying "those dates do not work"
+ * for all of them tells a guest to go and fix dates that are perfectly fine,
+ * and hides an arithmetic bug of ours behind their supposed mistake.
+ *
+ * The guest-fixable ones name the fix. Everything else is our error, so it says
+ * so and does not send them back to the form to guess.
+ */
+function checkConstraintMessage(message: string): string {
+  if (message.includes("bookings_dates_chk")) {
+    return "Check-out has to be after check-in. Pick the dates again.";
+  }
+  if (message.includes("bookings_adults_check")) {
+    return "A booking needs at least one adult on it.";
+  }
+  if (message.includes("bookings_children_check")) {
+    return "The number of children cannot be negative.";
+  }
+  /* bookings_nights_chk, bookings_subtotal_chk, bookings_total_chk and the
+     non-negative money checks are all arithmetic this server did. A guest can
+     do nothing about any of them, so we do not pretend otherwise. */
+  return "Something went wrong working out this booking on our side. Nothing was charged and nothing was held. Please try again, and tell support if it happens twice.";
+}
+
 /** What a successful reserve hands back for the confirmation moment. */
 export type ReserveReceipt = {
   bookingId: string;
@@ -86,6 +110,8 @@ export type ReserveReceipt = {
   subtotalMinor: number;
   cleaningMinor: number;
   totalMinor: number;
+  /** The person arriving, when the payer named somebody else. */
+  arrivingName: string | null;
 };
 
 export async function reserve(
@@ -110,6 +136,13 @@ export async function reserve(
   let priceMinor: number | null = null;
   let cleaningMinor = 0;
   let serviceMinor = 0;
+  /* The shortest stay this host accepts. Defaults to one so a seed listing,
+     which has no such column, behaves exactly as it did before. */
+  let minStayNights = 1;
+  /* How many guests the host says the place takes. Defaults to null, which
+     means "this source declares no capacity", so a seed listing behaves
+     exactly as it did before. */
+  let maxGuests: number | null = null;
   // Read for the emails sent once the booking has saved, nothing else.
   let listingTitle = "your stay";
   let listingAgentId: string | null = null;
@@ -118,7 +151,7 @@ export async function reserve(
     const { data: row, error } = await session.supabase
       .from("listings")
       .select(
-        "id, title, agent_id, price_per_night_minor, cleaning_fee_minor, service_fee_minor, price_period",
+        "id, title, agent_id, price_per_night_minor, cleaning_fee_minor, service_fee_minor, price_period, min_stay_nights, max_guests",
       )
       .eq("id", input.listingId)
       .maybeSingle();
@@ -128,6 +161,8 @@ export async function reserve(
       priceMinor = row.price_per_night_minor;
       cleaningMinor = row.cleaning_fee_minor;
       serviceMinor = row.service_fee_minor;
+      minStayNights = row.min_stay_nights;
+      maxGuests = row.max_guests;
       listingTitle = row.title;
       listingAgentId = row.agent_id;
     }
@@ -142,8 +177,52 @@ export async function reserve(
 
   // ------------------------------------------------------ integer money
   const nights = nightsBetween(input.checkIn, input.checkOut);
+
+  /* The host's minimum stay. listings.min_stay_nights has existed with a > 0
+     check constraint since listings_core and was read by nothing, so a guest
+     could book one night at a three-night property and the host only found out
+     when they came to accept it. Name the number, because "those dates do not
+     work" leaves the guest guessing which way to move. */
+  if (nights < minStayNights) {
+    const nightWord = minStayNights === 1 ? "night" : "nights";
+    return fail(
+      `This place takes bookings of ${minStayNights} ${nightWord} or more. Add ${
+        minStayNights - nights === 1 ? "another night" : `${minStayNights - nights} more nights`
+      } and you are set.`,
+      { checkOut: `Minimum stay is ${minStayNights} ${nightWord}.` },
+    );
+  }
+
+  /* The host's capacity. listings.max_guests is collected at step 5 of the
+     listing wizard and was read by nothing on this path, so a party of eight
+     could book a two-guest studio and the agent discovered it at the gate.
+     Name the number, the same way the minimum stay does, because "those
+     guests do not work" leaves the guest guessing which way to move. */
+  const party = input.adults + input.children;
+  if (maxGuests !== null && party > maxGuests) {
+    const guestWord = maxGuests === 1 ? "guest" : "guests";
+    return fail(
+      `This place takes up to ${maxGuests} ${guestWord}, and you have asked for ${party}. Lower the party size, or find a bigger place from search.`,
+      { adults: `Up to ${maxGuests} ${guestWord} in total.` },
+    );
+  }
+
   const subtotalMinor = priceMinor * nights;
   const totalMinor = subtotalMinor + cleaningMinor + serviceMinor;
+
+  /* ---------------------------------------------- the person arriving
+     The payer is often not the guest: a sister in London pays for a cousin
+     flying into Lagos. The schema validated the pair already, so by here it is
+     either a complete third party or nobody at all. The number is normalised
+     to one canonical +234 form, which is also the only shape the check
+     constraint on the table accepts. */
+  const arrivingName = (input.guestName ?? "").trim();
+  const arrivingPhone = normalisePhone((input.guestPhone ?? "").trim());
+  const arrivingEmail = (input.guestEmail ?? "").trim().toLowerCase();
+  const arriving: ArrivingGuest | null =
+    arrivingName.length > 0 && arrivingPhone !== null
+      ? { name: arrivingName, phone: arrivingPhone }
+      : null;
 
   // ------------------------------------------------- insert under RLS
   const { data: created, error: insertError } = await session.supabase
@@ -162,6 +241,9 @@ export async function reserve(
       subtotal_minor: subtotalMinor,
       total_minor: totalMinor,
       status: "PENDING",
+      guest_name: arriving?.name ?? null,
+      guest_phone: arriving?.phone ?? null,
+      guest_email: arriving && arrivingEmail.length > 0 ? arrivingEmail : null,
     })
     .select("id")
     .single();
@@ -169,8 +251,16 @@ export async function reserve(
   if (insertError || !created) {
     if (insertError?.code === "23P01") return fail(DATES_TAKEN_MESSAGE);
     if (insertError?.code === "23503") return fail(UNKNOWN_LISTING_MESSAGE);
-    if (insertError?.code === "23514") {
-      return fail("Those dates do not work for this stay. Check them and try again.");
+    if (insertError?.code === "23514") return fail(checkConstraintMessage(insertError.message));
+    /* Probed against live Postgres: a check_out on or before check_in raises
+       22000 from the `during` daterange generated column before
+       bookings_dates_chk is ever evaluated, so this, not 23514, is the code
+       reversed dates actually produce. The input schema catches it first in
+       normal use; this is the honest answer if anything ever slips past. */
+    if (insertError?.code === "22000") {
+      return fail("Check-out has to be after check-in. Pick the dates again.", {
+        checkOut: "Check-out has to be after check-in.",
+      });
     }
     return fail(GENERIC_RESERVE_MESSAGE);
   }
@@ -201,7 +291,10 @@ export async function reserve(
   // The booking exists. Both sends are best effort from here: the guest gets
   // their request back in writing, the host gets something to act on.
   await bestEffortEmail(async () => {
-    const guest = contactFromSession(session.user);
+    // "Bookings" on /settings governs this. A guest who switched it off
+    // resolves to no recipient at all, so nothing is rendered and nothing is
+    // sent; the booking itself is untouched either way.
+    const guest = await contactForSelf(session.supabase, session.user, "bookings");
     const stay = {
       listingTitle,
       checkIn: input.checkIn,
@@ -210,6 +303,7 @@ export async function reserve(
       adults: input.adults,
       children: input.children,
       totalMinor,
+      arriving,
     };
 
     const jobs: Promise<unknown>[] = [];
@@ -223,7 +317,7 @@ export async function reserve(
     // skipped quietly and the guest's still goes.
     const admin = adminOrNull();
     if (admin && listingAgentId) {
-      const host = await contactForAgent(admin, listingAgentId);
+      const host = await contactForAgent(admin, listingAgentId, "bookings");
       if (host) {
         const message = bookingRequestedHost({
           agentName: host.name,
@@ -247,6 +341,7 @@ export async function reserve(
     subtotalMinor,
     cleaningMinor,
     totalMinor,
+    arrivingName: arriving?.name ?? null,
   });
 }
 
@@ -327,7 +422,7 @@ export async function cancel(
 
   // The cancellation has committed. Telling the guest is best effort.
   await bestEffortEmail(async () => {
-    const guest = contactFromSession(session.user);
+    const guest = await contactForSelf(session.supabase, session.user, "bookings");
     if (!guest) return;
     const message = bookingCancelled({
       guestName: guest.name,
@@ -399,7 +494,7 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
     const [{ data: listing }, { data: roles }] = await Promise.all([
       admin
         .from("listings")
-        .select("agent_id, title, agents!inner(user_id)")
+        .select("agent_id, agents!inner(user_id)")
         .eq("id", booking.listing_id)
         .maybeSingle(),
       admin
@@ -437,22 +532,10 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
     // rows that already say the same thing, so it is safe either way.
     await writeBookedNights(admin, booking.listing_id, booking.check_in, booking.check_out);
 
-    // The booking is CONFIRMED in the database. Telling the guest is best
-    // effort: the confirmation stands whether or not the email leaves.
-    await bestEffortEmail(async () => {
-      const guest = await contactForUser(admin, booking.guest_id);
-      if (!guest) return;
-      const title = (listing?.title ?? "").trim();
-      const message = bookingConfirmed({
-        guestName: guest.name,
-        listingTitle: title.length > 0 ? title : "your stay",
-        checkIn: booking.check_in,
-        checkOut: booking.check_out,
-        nights: booking.nights,
-        totalMinor: booking.total_minor,
-      });
-      await sendEmail({ to: guest.email, subject: message.subject, html: message.html });
-    });
+    // The booking is CONFIRMED in the database. Telling the payer, and the
+    // person actually arriving when they are somebody else, is best effort:
+    // the confirmation stands whether or not either email leaves.
+    await announceConfirmedStay(admin, { bookingId: booking.id });
   } catch {
     return fail("Confirming is temporarily unavailable. Please try again shortly.");
   }

@@ -154,3 +154,68 @@ export function useNotificationsRealtime(
     };
   }, [userId]);
 }
+
+/**
+ * "Typing…" in the inbox, for many threads at once.
+ *
+ * The thread view already broadcasts on `typing-<conversationId>`, so the
+ * inbox listens on exactly the same channels rather than inventing a second
+ * signal that could disagree with the first. One channel per row is the cost;
+ * the list is bounded at fifty conversations and a Realtime channel is cheap,
+ * so this is a subscription per visible row and nothing more.
+ *
+ * Inert without Supabase config, like every hook in this file, so seed mode
+ * never shows somebody typing when there is nobody there.
+ */
+export function useInboxTyping(
+  conversationIds: string[],
+  meId: string | null,
+): Set<string> {
+  const [typing, setTyping] = useState<Set<string>>(() => new Set());
+  // The array identity changes on every render; the ids rarely do.
+  const key = conversationIds.join(",");
+
+  useEffect(() => {
+    setTyping(new Set());
+    const ids = key.length > 0 ? key.split(",") : [];
+    if (ids.length === 0 || !isSupabaseConfigured()) return;
+
+    const supabase = createClient();
+    const timers = new Map<string, ReturnType<typeof setTimeout>>();
+
+    const channels = ids.map((id) =>
+      supabase
+        .channel(`typing-${id}`, { config: { broadcast: { self: false } } })
+        .on("broadcast", { event: "typing" }, ({ payload }) => {
+          if ((payload as { from?: string } | null)?.from === meId) return;
+          setTyping((current) => {
+            if (current.has(id)) return current;
+            const next = new Set(current);
+            next.add(id);
+            return next;
+          });
+          const existing = timers.get(id);
+          if (existing) clearTimeout(existing);
+          timers.set(
+            id,
+            setTimeout(() => {
+              setTyping((current) => {
+                if (!current.has(id)) return current;
+                const next = new Set(current);
+                next.delete(id);
+                return next;
+              });
+            }, TYPING_TIMEOUT_MS),
+          );
+        })
+        .subscribe(),
+    );
+
+    return () => {
+      for (const timer of timers.values()) clearTimeout(timer);
+      for (const channel of channels) void supabase.removeChannel(channel);
+    };
+  }, [key, meId]);
+
+  return typing;
+}

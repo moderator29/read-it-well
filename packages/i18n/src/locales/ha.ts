@@ -40,13 +40,15 @@ export const ha: Dictionary = {
     services: "Ayyuka",
     properties: "Kadarori",
     bookings: "Ajiye",
-    messages: "Saƙonni",
+    messages: "Akwatin Saƙo",
     wallet: "Walat",
     aiAssistant: "Mataimakin AI",
     profile: "Bayanan martaba",
     settings: "Saituna",
     explore: "Bincika",
     saved: "An ajiye",
+    around: "Yanki",
+    map: "Taswira",
     primaryLabel: "Na farko",
     accountLabel: "Asusu",
   },
@@ -187,6 +189,8 @@ export const ha: Dictionary = {
       personalDesc: "Gano da yin ajiyar wurare masu ban sha'awa a Najeriya.",
       agentDesc: "Sarrafa jeri, ajiye, abokan ciniki da samun kudi.",
       verifiedAgent: "Wakilin da aka tabbatar",
+      visitor: "Ba ka shiga a matsayin wakili ba",
+      signInToWorkspace: "Shiga",
       workspaceLabel: "Wurin aikin wakili",
       notApproved: "Ana ci gaba da nazarin bukatar wakilcin ka.",
     },
@@ -195,7 +199,7 @@ export const ha: Dictionary = {
       myListings: "Jerina",
       listApartment: "Jera Gida",
       bookings: "Ajiye",
-      messages: "Sakonni",
+      messages: "Akwatin Sako",
       reviews: "Sharhi",
       earnings: "Samun kudi",
       analytics: "Nazari",
@@ -280,6 +284,19 @@ export const ha: Dictionary = {
       reviewNote: "Kungiyar mu na nazarin bukatu cikin sa'o'i 24 zuwa 48.",
       backHome: "Koma gida",
       enterAgent: "Shiga Yanayin Wakili",
+      signedOutTitle: "Shiga don ganin takardar neman ka",
+      signedOutBody:
+        "Takardar neman ka da lambarta suna haɗe da asusunka, don haka dole mu san ko wanene kai kafin mu nuna su.",
+      signIn: "Shiga",
+      noneTitle: "Babu takardar neman a rubuce",
+      noneBody:
+        "Ba ka nemi zama wakili ba tukuna. Yana ɗaukar kusan minti goma, kuma kana buƙatar shaidar hoto ɗaya.",
+      startApplication: "Nemi zama wakili",
+      unconfiguredTitle: "Ba a buɗe neman ba a nan tukuna",
+      unconfiguredBody:
+        "Wannan shafin zai nuna takardar neman ka ta gaskiya lokacin da makullan dandamali suka iso. Babu abin da ka aika da zai ɓace.",
+      reviewedOn: "An yanke shawara a",
+      reviewerNote: "Abin da mai dubawa ya ce",
     },
     dashboard: {
       title: "Dashboard na Wakili",
@@ -319,6 +336,7 @@ export const ha: Dictionary = {
         photos: "Hotuna",
         location: "Wuri",
         amenities: "Kayan more rayuwa",
+        utilities: "Wuta da ruwa",
         pricing: "Farashi",
         guestView: "Yadda baƙo ke gani",
         submit: "Aikawa",
@@ -369,6 +387,9 @@ export const ha: Dictionary = {
         label: "Haya",
         blurb: "Gidan da ake haya na shekara. Farashi na shekara, ana duba kafin biya.",
       },
+      shop: { label: "Shago", blurb: "Wurin kasuwanci da ake haya na shekara." },
+      office: { label: "Ofis", blurb: "Wurin aiki da ake haya na shekara." },
+      land: { label: "Fili", blurb: "Fili, farashinsa na shekara." },
     },
 
     photos: {
@@ -658,6 +679,8 @@ export const ha: Dictionary = {
       settled: "Kuɗin ya shiga",
       awaiting: "Kuɗin bai shiga ba tukuna",
       unknown: "Ba a iya sanin matsayin kuɗin yanzu",
+      arriving: "Mai zuwa: {name}",
+      arrivingPhone: "Lambar ƙofa {phone}",
     },
     status: {
       PENDING: "Yana jiran shawararka",
@@ -755,6 +778,10 @@ export const ha: Dictionary = {
       listings: { label: "Nazarin jeri", short: "Jeri" },
       tickets: { label: "Tallafi", short: "Tallafi" },
       // NATIVE REVIEW: "switch" kept in English, it names a control staff use.
+      social: { label: "Yanki", short: "Yanki" },
+      standing: { label: "Matsayi", short: "Matsayi" },
+      moderation: { label: "An riƙe", short: "An riƙe" },
+      reference: { label: "Bayanan tunani", short: "Tunani" },
       switches: { label: "Switch", short: "Switch" },
     },
 
@@ -820,6 +847,10 @@ export const ha: Dictionary = {
         "Kowace alamar amincin da RentMe ke samarwa tana ƙarewa nan: abin da binciken tsaro ya kama, abin da mambobi suka ƙorafta, wanda ke jiran amincewa, da abin da ke jiran fara aiki. Kowace lamba layi ce da za ka iya kammalawa.",
       queueClear: "Wannan layin babu abu.",
       tiles: {
+        moderation: {
+          label: "Abun da aka riƙe",
+          lede: "Saƙonni, labarai, sharhi da bayanan mutum da binciken tsaro ya tsayar.",
+        },
         // NATIVE REVIEW: "flag" kept in English, it is the safety scan's own term.
         flags: {
           label: "Flag na saƙonni a buɗe",
@@ -1054,6 +1085,9 @@ export const ha: Dictionary = {
         villa: "Villa",
         shortlet: "Shortlet",
         rental: "Haya",
+        shop: "Shago",
+        office: "Ofis",
+        land: "Fili",
       },
       checklistLines: "Layukan jerin dubawa {count} da za a duba",
       checklistLineOne: "Layin jerin dubawa ɗaya da za a duba",

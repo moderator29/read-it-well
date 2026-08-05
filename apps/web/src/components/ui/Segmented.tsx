@@ -176,7 +176,7 @@ export function Segmented<T extends string>({
               .filter(Boolean)
               .join(" ")}
           >
-            {o.icon ? <UiIcon name={o.icon} size={15} filled={selected} /> : null}
+            {o.icon ? <UiIcon name={o.icon} size={16} filled={selected} /> : null}
             <span className="whitespace-nowrap">{o.label}</span>
             {typeof o.count === "number" ? (
               <span className="nf-numeric text-[0.75em] opacity-70">{o.count}</span>

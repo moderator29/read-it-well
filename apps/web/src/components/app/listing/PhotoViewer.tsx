@@ -257,7 +257,7 @@ function Lightbox({
           data-testid="lightbox-close"
           className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/55 text-white backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
-          <UiIcon name="close" size={18} />
+          <UiIcon name="close" size={20} />
         </button>
         <p className="nf-numeric pointer-events-none mt-1.5 rounded-full bg-black/55 px-3 py-1.5 text-[0.8125rem] font-semibold text-white backdrop-blur-md">
           <span className="sr-only">Photo </span>
@@ -274,7 +274,7 @@ function Lightbox({
             aria-label="Previous photo"
             className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-black/55 text-white backdrop-blur-md disabled:opacity-0 sm:grid"
           >
-            <UiIcon name="arrow-left" size={18} />
+            <UiIcon name="arrow-left" size={20} />
           </button>
           <button
             type="button"
@@ -283,7 +283,7 @@ function Lightbox({
             aria-label="Next photo"
             className="absolute right-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-black/55 text-white backdrop-blur-md disabled:opacity-0 sm:grid"
           >
-            <UiIcon name="arrow-right" size={18} />
+            <UiIcon name="arrow-right" size={20} />
           </button>
         </>
       )}

@@ -171,7 +171,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
         aria-label="Conversation"
       >
         <p className="flex items-center justify-center gap-1.5 py-1 text-center text-[0.7rem] text-[var(--nf-content-muted)]">
-          <UiIcon name="verified" size={12} strokeWidth={2.1} />
+          <UiIcon name="verified" size={12} />
           Chats are protected by RentMe fraud monitoring
         </p>
 
@@ -186,7 +186,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
                   <img
                     src={m.image.src}
                     alt={m.image.alt}
-                    className="mb-2 max-h-64 w-full rounded-xl object-cover"
+                    className="mb-2 aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
                 {m.body && <p className="text-[0.9rem] leading-relaxed">{m.body}</p>}
@@ -209,7 +209,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
                   <img
                     src={m.image.src}
                     alt={m.image.alt}
-                    className="mb-2 max-h-64 w-full rounded-xl object-cover"
+                    className="mb-2 aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
                 {m.body && (
@@ -235,7 +235,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
             alt="Photo ready to send"
             className="h-14 w-14 rounded-xl object-cover"
           />
-          <p className="min-w-0 flex-1 truncate text-[0.8125rem] text-[var(--nf-content-muted)]">
+          <p className="min-w-0 flex-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
             Photo attached
           </p>
           <Button
@@ -312,7 +312,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
           disabled={!draft.trim() && !pendingImage}
           className="shrink-0 rounded-full"
         >
-          <UiIcon name="arrow-right" size={18} className="-rotate-90" />
+          <UiIcon name="arrow-right" size={20} className="-rotate-90" />
         </Button>
       </form>
     </div>

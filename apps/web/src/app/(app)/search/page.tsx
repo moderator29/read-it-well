@@ -155,13 +155,13 @@ export default async function SearchPage({
           action="/search"
           method="get"
           role="search"
-          className="nf-card flex min-w-0 flex-1 items-center gap-2 p-1.5"
+          className="nf-card nf-focus-well flex min-w-0 flex-1 items-center gap-2 p-1.5"
         >
           <label htmlFor="search-q" className="sr-only">
             {t.home.searchPlaceholder}
           </label>
           <div className="flex min-w-0 flex-1 items-center gap-3 px-2.5">
-            <UiIcon name="search" size={18} className="shrink-0 text-[var(--nf-content-muted)]" />
+            <UiIcon name="search" size={20} className="shrink-0 text-[var(--nf-content-muted)]" />
             <input
               id="search-q"
               name="q"
@@ -169,7 +169,7 @@ export default async function SearchPage({
               autoComplete="off"
               defaultValue={query.q ?? ""}
               placeholder={t.home.searchPlaceholder}
-              className="w-full bg-transparent py-2 text-[0.9375rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
+              className="min-h-11 w-full bg-transparent py-2 text-[0.9375rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
             />
           </div>
           {/* Typing a new search must not silently drop the filters already set. */}
@@ -186,7 +186,7 @@ export default async function SearchPage({
             aria-label={t.common.search}
             className="shrink-0"
           >
-            <UiIcon name="search" size={18} className="sm:hidden" />
+            <UiIcon name="search" size={20} className="sm:hidden" />
             <span className="hidden sm:inline">{t.common.search}</span>
           </Button>
         </form>
@@ -218,7 +218,7 @@ export default async function SearchPage({
                       active ? "nf-chip--active" : ""
                     }`}
                   >
-                    <UiIcon name="location" size={13} className="shrink-0 opacity-70" />
+                    <UiIcon name="location" size={12} className="shrink-0 opacity-70" />
                     {city}
                   </Link>
                 </li>
@@ -245,7 +245,7 @@ export default async function SearchPage({
                     }`}
                   >
                     {active && (
-                      <UiIcon name="verified" size={13} strokeWidth={2.2} className="shrink-0" />
+                      <UiIcon name="verified" size={12} className="shrink-0" />
                     )}
                     {s.label}
                   </Link>

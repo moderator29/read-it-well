@@ -1,5 +1,6 @@
 import { type Locale } from "@naijafinds/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
 
@@ -73,6 +74,7 @@ export function RentalPanel({
         className="mt-4"
         leadingIcon="chat-bubble"
       >
+        <UiIcon name="chat-bubble" size={16} />
         Message agent
       </ButtonLink>
 

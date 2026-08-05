@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useId, useState, useTransition } from "react";
+import { useActionState, useEffect, useId, useRef, useState, useTransition } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { GroupCard } from "@/components/app/account/SettingsGroups";
@@ -121,23 +122,15 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
     null,
   );
 
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => setMounted(true), []);
 
-  // Page scroll stays locked while the drawer owns the screen.
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
-
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  /* Escape, the Tab trap, the counted scroll lock and the focus return, from
+     the one shared implementation. This drawer asks a person to type a phrase
+     to destroy their account, and Tab used to walk straight out of it into the
+     settings page underneath. */
+  useOverlay({ open: true, onClose, panelRef });
 
   // A completed deletion leaves nothing to come back to.
   useEffect(() => {
@@ -166,7 +159,10 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
     >
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
-      <div className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)] px-5 pb-8 pt-5">
+      <div
+        ref={panelRef}
+        className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)] px-5 pb-8 pt-5"
+      >
         <div className="mx-auto max-w-lg">
           <div className="mb-5 flex items-center justify-between gap-4">
             <h2 className="nf-h3">Delete account</h2>
@@ -176,7 +172,7 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
               onClick={onClose}
               className="nf-icon-btn h-10 w-10"
             >
-              <UiIcon name="arrow-left" size={18} />
+              <UiIcon name="arrow-left" size={20} />
             </button>
           </div>
 

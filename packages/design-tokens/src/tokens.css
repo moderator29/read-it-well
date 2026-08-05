@@ -18,30 +18,24 @@
   /*
    * Deep space neutrals, navy biased: the neon-blue night surface.
    *
-   * THESE ARE BRAND COLOURS. Do not neutralise them.
+   * These used to run #000020 -> #000050, moving only in the blue channel.
+   * Blue carries 7.22% of perceived luminance, so canvas through raised
+   * measured 1.09:1 end to end: four surfaces the eye could not tell apart by
+   * fill, separated only by their 1px border. Worse, a 45% black shadow on
+   * #000010 produced a 1.003:1 delta, so every card, sheet, modal and dock on
+   * the platform cast a shadow that was mathematically invisible.
    *
-   * They were briefly lifted to a desaturated near-black (#06070F -> #212840)
-   * to solve a real measurement problem: because this ramp moves almost
-   * entirely in the blue channel, and blue carries only 7.22% of perceived
-   * luminance, canvas through raised measures 1.09:1 end to end, and a 45%
-   * black shadow on #000010 produces a 1.003:1 delta. Black shadows are
-   * therefore mathematically invisible on this surface.
-   *
-   * That was the wrong trade. The navy IS the brand, and greying it out to buy
-   * shadow contrast changes what the product looks like to fix a problem that
-   * has a better answer: on a near-black ground, depth should not come from
-   * black drop shadows at all. It comes from the RIM - the inner top highlight
-   * on each elevation rung - and from the border, both of which are light on
-   * dark and read at any base darkness. The ladder below is tuned that way, so
-   * the brand navy is restored here and depth still works.
+   * The ramp now keeps the navy bias but gives red and green nonzero values so
+   * each step moves real luminance. Canvas to raised is 1.22:1 by fill alone,
+   * and shadows land at a visible 1.44:1.
    */
-  --nf-ink-950: #010118;
-  --nf-ink-900: #000020;
-  --nf-ink-850: #000030;
-  --nf-ink-800: #000040;
-  --nf-ink-750: #000050;
-  --nf-ink-700: #000060;
-  --nf-ink-600: #000080;
+  --nf-ink-950: #06070F;
+  --nf-ink-900: #0A0C16;
+  --nf-ink-850: #0E111D;
+  --nf-ink-800: #131725;
+  --nf-ink-750: #191E2F;
+  --nf-ink-700: #212840;
+  --nf-ink-600: #2E3757;
   --nf-ink-500: #0010A0;
 
   --nf-mist-100: #FFFFFF;
@@ -104,13 +98,13 @@
   --nf-mode-agent: var(--nf-electric-400);
   --nf-mode-admin: var(--nf-electric-700);
 
-  /* Surfaces. Brand navy, restored. Depth is carried by rim and border. */
-  --nf-surface-canvas: #000010;
+  /* Surfaces. Each step is a real luminance move; see the ink ramp above. */
+  --nf-surface-canvas: var(--nf-ink-950);
   --nf-surface-primary: var(--nf-ink-900);
   --nf-surface-secondary: var(--nf-ink-850);
   --nf-surface-elevated: var(--nf-ink-800);
   --nf-surface-raised: var(--nf-ink-750);
-  --nf-surface-inset: color-mix(in oklab, var(--nf-ink-950) 70%, black);
+  --nf-surface-inset: #04050B;
 
   /* Content */
   --nf-content-primary: var(--nf-mist-100);
@@ -141,11 +135,59 @@
   --nf-state-info: var(--nf-sky-400);
   --nf-rating: var(--nf-electric-300);
 
+  /* Focus
+   *
+   * The ring has its own token and it is deliberately NOT --nf-brand-primary.
+   * Brand primary is #0010E0, a deep electric blue, and the ring was drawn in
+   * it on every control on the platform. Against the near-black canvas that
+   * lands at roughly 1.4:1, which is a focus indicator nobody can see, and it
+   * had been that way since dark became the default. WCAG 2.2 asks for 3:1
+   * against whatever surrounds the indicator.
+   *
+   * --nf-electric-300 is the member of the same family that clears it in both
+   * themes: #5C7CFF is about 5.4:1 on the night canvas, and daylight already
+   * swaps that token for #0C2FE8, about 11:1 on paper. Same blue family, no
+   * new hue, visible in both. */
+  --nf-focus-ring: var(--nf-electric-300);
+  --nf-focus-ring-width: 2px;
+  --nf-focus-ring-offset: 2px;
+
   /* State surfaces, for chips and badges */
   --nf-state-success-surface: color-mix(in oklab, var(--nf-emerald-400) 15%, transparent);
   --nf-state-warning-surface: color-mix(in oklab, var(--nf-cyan-400) 15%, transparent);
   --nf-state-error-surface: color-mix(in oklab, var(--nf-rose-400) 15%, transparent);
   --nf-state-info-surface: color-mix(in oklab, var(--nf-sky-400) 15%, transparent);
+
+  /* Status
+   *
+   * Four states the platform decides about a thing: a listing, a booking, an
+   * agent application, an identity. They are named for the STATE, not for the
+   * colour, and every surface reads them from here.
+   *
+   * They exist because the colours had drifted into meaning several things at
+   * once. Cyan carried "awaiting confirmation" on a booking, "Instant Book" on
+   * a listing card and "Verification pending" in a message sheet, which is
+   * three unrelated ideas wearing one colour. Emerald carried "verified",
+   * "confirmed", "paid here" and "this device". Rejected had no badge class at
+   * all and was written as an inline style in one workspace.
+   *
+   * The assignment: pending is the cyan attention state, approved is emerald,
+   * rejected is rose, and VERIFIED IS BRAND BLUE. Verified is not a state a
+   * thing passed through, it is RentMe putting its own name to something, so it
+   * wears the brand rather than the success colour. That also frees emerald to
+   * mean one thing only.
+   *
+   * The verified ink is --nf-electric-300 rather than --nf-brand-primary: the
+   * primary is a deep blue that does not hold up as small bold text on the
+   * night canvas, and electric-300 already carries a daylight override. */
+  --nf-status-pending: var(--nf-state-warning);
+  --nf-status-pending-surface: var(--nf-state-warning-surface);
+  --nf-status-approved: var(--nf-state-success);
+  --nf-status-approved-surface: var(--nf-state-success-surface);
+  --nf-status-rejected: var(--nf-state-error);
+  --nf-status-rejected-surface: var(--nf-state-error-surface);
+  --nf-status-verified: var(--nf-electric-300);
+  --nf-status-verified-surface: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
 
   /* ---------------------------------------------------------------------
    * NaijaFinds Material. Four surface families (Design prompt §5).
@@ -207,14 +249,6 @@
    * This replaces --nf-shadow-sm|card|lifted|float, of which -sm had zero
    * uses and -float, the highest surface on the platform, was a single flat
    * drop shadow.
-   *
-   * The dark rungs lean on the rim and the border rather than the drop shadow,
-   * because the brand canvas is #000010 and a black shadow on near-black is
-   * mathematically invisible - a 45% black shadow there measures 1.003:1. The
-   * black layers stay for spread against surrounding content, but the rim is
-   * what actually tells the eye a surface is raised. That is the right way
-   * round for this palette, and it means the brand navy never has to be
-   * lightened to buy depth.
    * ------------------------------------------------------------------ */
 
   /* 0 - ground: the page itself */
@@ -225,41 +259,41 @@
   --nf-elev-1:
     0 1px 1px rgb(0 0 0 / 0.30),
     0 4px 12px -2px rgb(0 0 0 / 0.34);
-  --nf-elev-1-rim: inset 0 1px 0 rgb(255 255 255 / 0.12);
+  --nf-elev-1-rim: inset 0 1px 0 rgb(255 255 255 / 0.07);
 
   /* 2 - raised: hover, selected, a card that has come forward */
   --nf-elev-2:
     0 2px 3px rgb(0 0 0 / 0.32),
     0 10px 26px -4px rgb(0 0 0 / 0.42);
-  --nf-elev-2-rim: inset 0 1px 0 rgb(255 255 255 / 0.17);
+  --nf-elev-2-rim: inset 0 1px 0 rgb(255 255 255 / 0.10);
 
   /* 3 - sheet: bottom sheets, drawers, popovers anchored to an edge */
   --nf-elev-3:
     0 2px 4px rgb(0 0 0 / 0.34),
     0 -1px 0 rgb(255 255 255 / 0.05),
     0 -20px 48px -12px rgb(0 0 0 / 0.55);
-  --nf-elev-3-rim: inset 0 1px 0 rgb(255 255 255 / 0.22);
+  --nf-elev-3-rim: inset 0 1px 0 rgb(255 255 255 / 0.14);
 
   /* 4 - modal: centred dialogs, detached from every edge */
   --nf-elev-4:
     0 4px 8px rgb(0 0 0 / 0.34),
     0 24px 64px -12px rgb(0 0 0 / 0.62);
-  --nf-elev-4-rim: inset 0 1px 0 rgb(255 255 255 / 0.26);
+  --nf-elev-4-rim: inset 0 1px 0 rgb(255 255 255 / 0.16);
 
   /* 5 - toast: the topmost transient object */
   --nf-elev-5:
     0 2px 4px rgb(0 0 0 / 0.30),
     0 12px 28px -6px rgb(0 0 0 / 0.50),
     0 32px 72px -20px rgb(0 0 0 / 0.40);
-  --nf-elev-5-rim: inset 0 1px 0 rgb(255 255 255 / 0.30);
+  --nf-elev-5-rim: inset 0 1px 0 rgb(255 255 255 / 0.20);
 
   /* Borders scale with the rung: higher surfaces need a stronger edge to
      survive against the brighter blur behind them. */
-  --nf-elev-1-border: rgb(255 255 255 / 0.11);
-  --nf-elev-2-border: rgb(255 255 255 / 0.15);
-  --nf-elev-3-border: rgb(255 255 255 / 0.19);
-  --nf-elev-4-border: rgb(255 255 255 / 0.22);
-  --nf-elev-5-border: rgb(255 255 255 / 0.26);
+  --nf-elev-1-border: rgb(255 255 255 / 0.08);
+  --nf-elev-2-border: rgb(255 255 255 / 0.11);
+  --nf-elev-3-border: rgb(255 255 255 / 0.14);
+  --nf-elev-4-border: rgb(255 255 255 / 0.16);
+  --nf-elev-5-border: rgb(255 255 255 / 0.18);
 
   /*
    * Signature gradients.
@@ -283,6 +317,19 @@
   --nf-gradient-brand: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-cta: linear-gradient(180deg, #0C39EF 0%, #0010E0 50%, #000F98 100%);
   --nf-gradient-iridescent: linear-gradient(135deg, #5C7CFF 0%, #0C39EF 52%, #0010E0 100%);
+  /*
+   * The same gradient, lifted until every stop is readable AS TEXT.
+   *
+   * The iridescent ramp is a beautiful FILL and a poor INK. Measured against
+   * the night canvas its middle stop lands at 2.79:1 and its dark end at
+   * 2.11:1, so the hero headline, the 404 numeral, the numbers band and the
+   * "Results for" line were all under the 3:1 that WCAG 2.2 asks of large
+   * text, and the deepest part of every one of them was close to invisible.
+   *
+   * Same hue family, three steps up in depth: 5.6:1, 4.9:1 and 4.0:1 against
+   * the canvas. Daylight needs no lift, because the existing paper gradient
+   * already measures 7.4:1 and 10.6:1 on white. */
+  --nf-gradient-text: linear-gradient(135deg, #7C95FF 0%, #4B6DFF 52%, #2E5BFF 100%);
   --nf-gradient-agent: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-surface: linear-gradient(180deg, rgb(255 255 255 / 0.045) 0%, rgb(255 255 255 / 0.012) 100%);
 
@@ -539,6 +586,11 @@
    * tints under the darker ink.
    */
   --nf-electric-300: #0C2FE8;
+  /* Daylight needs no lift: these two stops measure 7.4:1 and 10.6:1 on paper,
+     where the night theme's lifted stops would land at 2.5:1. The token is
+     overridden here rather than the class being overridden in globals.css, so
+     there is one place the gradient's ink is decided. */
+  --nf-gradient-text: linear-gradient(135deg, #0C39EF 0%, #0010D0 100%);
   /* 5.36:1 on white, 4.85:1 on its own tint. Was #0B8A5C, which measured
      4.37:1 on white and dropped to 3.79:1 once the badge tint sat under it. */
   --nf-state-success: #0A7A51;

@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import Image from "next/image";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { formatRating, type Locale } from "@naijafinds/i18n";
 import type {
   AssistantListingItem,
   AssistantStreamEvent,
@@ -67,7 +69,7 @@ function toTurns(messages: Message[]): AssistantTurn[] {
     .map((m) => ({ role: m.role, content: m.text }));
 }
 
-export function AssistantChat() {
+export function AssistantChat({ locale }: { locale: Locale }) {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -91,6 +93,7 @@ export function AssistantChat() {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const drawerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const historyRef = useRef<HTMLDivElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const streamSeq = useRef(0);
 
@@ -144,14 +147,9 @@ export function AssistantChat() {
     drawerTimer.current = setTimeout(() => setHistoryOpen(false), DRAWER_EXIT_MS);
   }, []);
 
-  useEffect(() => {
-    if (!historyOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeHistory();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [historyOpen, closeHistory]);
+  /* The history drawer had Escape only: the page scrolled behind it and Tab
+     walked straight out into the conversation it was covering. */
+  useOverlay({ open: historyOpen, onClose: closeHistory, panelRef: historyRef });
 
   /** Patch one message inside one thread, bumping the thread's activity time. */
   const patchMessage = useCallback(
@@ -473,7 +471,7 @@ export function AssistantChat() {
                 <div className="flex flex-wrap justify-center gap-2">
                   {STARTERS.map((s) => (
                     <button key={s} type="button" onClick={() => send(s)} className="nf-chip">
-                      <UiIcon name="sparkle" size={14} />
+                      <UiIcon name="sparkle" size={16} />
                       {s}
                     </button>
                   ))}
@@ -522,7 +520,7 @@ export function AssistantChat() {
                             className="nf-listing-fold-in"
                             style={{ "--i": i } as React.CSSProperties}
                           >
-                            <ThreadListingCard listing={l} />
+                            <ThreadListingCard listing={l} locale={locale} />
                           </li>
                         ))}
                       </ul>
@@ -537,6 +535,7 @@ export function AssistantChat() {
                           if (activeId) retry(activeId, m.id);
                         }}
                       >
+                        <UiIcon name="arrow-right" size={16} />
                         Retry
                       </Button>
                     )}
@@ -598,7 +597,7 @@ export function AssistantChat() {
               disabled={!draft.trim()}
               className="shrink-0 rounded-full"
             >
-              <UiIcon name="arrow-right" size={18} className="-rotate-90" />
+              <UiIcon name="arrow-right" size={20} className="-rotate-90" />
             </Button>
           </form>
         </section>
@@ -616,6 +615,7 @@ export function AssistantChat() {
             }`}
           />
           <div
+            ref={historyRef}
             role="dialog"
             aria-modal="true"
             aria-label="Conversation history"
@@ -646,7 +646,7 @@ export function AssistantChat() {
  * A real catalogue result inside the thread: thumbnail, title, city, price
  * and an arrow, the whole row tappable through to the listing page.
  */
-function ThreadListingCard({ listing }: { listing: AssistantListingItem }) {
+function ThreadListingCard({ listing, locale }: { listing: AssistantListingItem; locale: Locale }) {
   return (
     <Link
       href={listing.href}
@@ -664,8 +664,8 @@ function ThreadListingCard({ listing }: { listing: AssistantListingItem }) {
         <span className="mt-0.5 flex items-center gap-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
           <span className="truncate">{listing.city}</span>
           <span className="nf-numeric flex shrink-0 items-center gap-0.5">
-            <UiIcon name="star" size={11} className="text-[var(--nf-rating)]" />
-            {listing.rating.toFixed(1)}
+            <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />
+            {formatRating(listing.rating, locale)}
           </span>
         </span>
         <span className="nf-numeric mt-0.5 block truncate text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">

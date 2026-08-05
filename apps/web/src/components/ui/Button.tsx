@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Children, forwardRef } from "react";
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconSize, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
  * The button.
@@ -51,7 +51,16 @@ const SIZE_CLASS: Record<ButtonSize, string> = {
 };
 
 /** Icon sizing tracks the button size so the glyph stays optically centred. */
-const ICON_SIZE: Record<ButtonSize, number> = { sm: 15, md: 17, lg: 19 };
+/*
+ * On the icon scale, not beside it.
+ *
+ * This was 15/17/19, which are three of the fifteen ad-hoc sizes the icon sweep
+ * existed to remove. `UiIcon` snaps anything off-scale at render time, so those
+ * numbers were already being drawn at 16/16/20; the literals only meant the
+ * source disagreed with the pixels. Naming the real steps makes the two agree
+ * and keeps the button's own comment honest.
+ */
+const ICON_SIZE: Record<ButtonSize, UiIconSize> = { sm: 16, md: 16, lg: 20 };
 
 type CommonProps = {
   variant?: ButtonVariant;

@@ -73,7 +73,7 @@ function ListingCard({
                 ? copy.checklistLineOne
                 : fill(copy.checklistLines, { count: failing })
             }
-            tone="warning"
+            tone="pending"
           />
         )}
         <span className="text-[0.75rem] text-[var(--nf-content-muted)]">

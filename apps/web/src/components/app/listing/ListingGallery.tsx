@@ -163,7 +163,7 @@ export function ListingGallery({
           aria-label="Back"
           className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
-          <UiIcon name="arrow-left" size={18} />
+          <UiIcon name="arrow-left" size={16} />
         </button>
       </div>
 
@@ -189,7 +189,7 @@ export function ListingGallery({
             aria-label="Previous photo"
             className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md disabled:opacity-0 sm:grid"
           >
-            <UiIcon name="arrow-left" size={17} />
+            <UiIcon name="arrow-left" size={16} />
           </button>
           <button
             type="button"
@@ -198,7 +198,7 @@ export function ListingGallery({
             aria-label="Next photo"
             className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md disabled:opacity-0 sm:grid"
           >
-            <UiIcon name="arrow-right" size={17} />
+            <UiIcon name="arrow-right" size={16} />
           </button>
 
           <ul

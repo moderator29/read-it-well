@@ -9,6 +9,9 @@ import {
   AMENITY_CHOICES,
   type PropertyType,
   koboToNairaInput,
+  type PowerBackup,
+  type PowerGrid,
+  type WaterSupply,
 } from "./listings-schema";
 
 /**
@@ -90,8 +93,6 @@ export function agentProfileFrom(agent: AgentIdentity): AgentProfile {
     status: agent.status,
     type: agent.type,
     verified: agent.verified,
-    applicationRef: "",
-    submittedAt: null,
   };
 }
 
@@ -142,6 +143,19 @@ export type WizardDraft = {
   cleaningNaira: string;
   minStayNights: number;
   instantBook: boolean;
+  powerGrid: PowerGrid | "";
+  powerBackup: PowerBackup | "";
+  powerBackupHours: string;
+  waterSupply: WaterSupply | "";
+  prepaidMeter: boolean;
+  /** Never public. Read from public.listing_access, which only the host,
+      an admin and a guest with a CONFIRMED booking may select from. */
+  access: {
+    estateName: string;
+    gateDirections: string;
+    securityPhone: string;
+    accessCode: string;
+  };
   amenityCodes: string[];
   photos: ListingPhoto[];
   reviewNotes: string | null;
@@ -151,7 +165,9 @@ const LISTING_SELECT =
   "id, title, description, status, property_type, price_period, price_per_night_minor, " +
   "cleaning_fee_minor, min_stay_nights, instant_book, state_code, city, area, address, " +
   "landmark, max_guests, bedrooms, beds, bathrooms, submitted_at, review_notes, updated_at, " +
-  "listing_photos(id, storage_path, position), listing_amenities(amenities(code))";
+  "power_grid, power_backup, power_backup_hours, water_supply, prepaid_meter, " +
+  "listing_photos(id, storage_path, position), listing_amenities(amenities(code)), " +
+  "listing_access(estate_name, gate_directions, security_phone, access_code)";
 
 type ListingWithChildren = {
   id: string;
@@ -176,8 +192,23 @@ type ListingWithChildren = {
   submitted_at: string | null;
   review_notes: string | null;
   updated_at: string;
+  power_grid: PowerGrid | null;
+  power_backup: PowerBackup | null;
+  power_backup_hours: number | null;
+  water_supply: WaterSupply | null;
+  prepaid_meter: boolean | null;
   listing_photos: { id: string; storage_path: string; position: number }[] | null;
   listing_amenities: { amenities: { code: string } | null }[] | null;
+  /* One row or none. PostgREST returns an object for a one-to-one embed and
+     null when the row does not exist, so both shapes are handled. */
+  listing_access:
+    | {
+        estate_name: string | null;
+        gate_directions: string | null;
+        security_phone: string | null;
+        access_code: string | null;
+      }
+    | null;
 };
 
 function sortedPhotos(row: ListingWithChildren): ListingPhoto[] {
@@ -237,6 +268,17 @@ function toDraft(row: ListingWithChildren): WizardDraft {
     cleaningNaira: koboToNairaInput(row.cleaning_fee_minor),
     minStayNights: row.min_stay_nights,
     instantBook: row.instant_book,
+    powerGrid: row.power_grid ?? "",
+    powerBackup: row.power_backup ?? "",
+    powerBackupHours: row.power_backup_hours === null ? "" : String(row.power_backup_hours),
+    waterSupply: row.water_supply ?? "",
+    prepaidMeter: row.prepaid_meter ?? false,
+    access: {
+      estateName: row.listing_access?.estate_name ?? "",
+      gateDirections: row.listing_access?.gate_directions ?? "",
+      securityPhone: row.listing_access?.security_phone ?? "",
+      accessCode: row.listing_access?.access_code ?? "",
+    },
     amenityCodes: amenityCodesOf(row),
     photos: sortedPhotos(row),
     reviewNotes: row.review_notes,

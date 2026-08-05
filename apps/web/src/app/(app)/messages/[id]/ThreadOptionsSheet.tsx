@@ -73,7 +73,7 @@ export function ThreadOptionsSheet({
         <>
           {inspected ? (
             <p className="nf-badge nf-badge--success w-full justify-center py-2.5 text-[0.8125rem]">
-              <UiIcon name="verified" size={14} strokeWidth={2.1} />
+              <UiIcon name="verified" size={16} />
               {confirmedLabel}
             </p>
           ) : (
@@ -125,7 +125,7 @@ export function ThreadOptionsSheet({
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {listing.verified ? (
               <span className="nf-badge nf-badge--success">
-                <UiIcon name="verified" size={12} strokeWidth={2.1} />
+                <UiIcon name="verified" size={12} />
                 Verified listing
               </span>
             ) : (

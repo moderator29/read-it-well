@@ -36,7 +36,7 @@ export function MomentScreen({
     <div className={`nf-moment nf-moment--${variant} ${className ?? ""}`}>
       <div className="nf-moment__glow" aria-hidden="true" />
       <div className="nf-moment__badge">
-        <BrandIcon name={icon ?? VARIANT_ICON[variant]} size={104} state="confirmed" />
+        <BrandIcon name={icon ?? VARIANT_ICON[variant]} size={112} state="confirmed" />
       </div>
       <h1 className="nf-moment__title">{title}</h1>
       {description ? <p className="nf-moment__description">{description}</p> : null}

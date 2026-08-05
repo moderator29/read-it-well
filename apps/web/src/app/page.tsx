@@ -128,7 +128,7 @@ export default async function LandingPage() {
                 action="/search"
                 method="get"
                 role="search"
-                className="nf-card nf-card--live flex min-w-0 flex-1 flex-col gap-2 p-2 sm:flex-row sm:items-center"
+                className="nf-card nf-card--live nf-focus-well flex min-w-0 flex-1 flex-col gap-2 p-2 sm:flex-row sm:items-center"
               >
                 <label htmlFor="hero-q" className="sr-only">
                   {t.landing.hero.searchLabel}
@@ -221,7 +221,10 @@ export default async function LandingPage() {
                   <span className="nf-gradient-text nf-numeric block font-[family-name:var(--nf-font-display)] text-[1.45rem] font-bold leading-none sm:text-[1.8rem]">
                     {s.big}
                   </span>
-                  <span className="mt-1.5 block truncate text-[0.72rem] text-[var(--nf-content-muted)] sm:text-[0.8125rem]">
+                  {/* Wraps. This caption is the only thing saying what the
+                      number above it counts, and four locales set it at four
+                      different lengths. */}
+                  <span className="mt-1.5 block text-balance text-[0.72rem] text-[var(--nf-content-muted)] sm:text-[0.8125rem]">
                     {s.small}
                   </span>
                 </li>
@@ -318,7 +321,7 @@ export default async function LandingPage() {
         <AssistantShowcase />
 
         {/* ----------------------------------------------------- numbers band */}
-        <NumbersBand />
+        <NumbersBand locale={locale} />
 
         {/* ---------------------------------------------------------- trust */}
         <section className="nf-shell">
@@ -342,10 +345,13 @@ export default async function LandingPage() {
                     ))}
                   </span>
                   <span className="min-w-0 leading-tight">
-                    <span className="block truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                    {/* The trust strip. Both lines are written copy, and both
+                        were clipping on a desktop viewport: "Your safety is our
+                        priorit" and "App Store & Play Sto". */}
+                    <span className="block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                       {item.title}
                     </span>
-                    <span className="block truncate text-[0.8125rem] text-[var(--nf-content-muted)]">
+                    <span className="block text-[0.8125rem] text-[var(--nf-content-muted)]">
                       {item.body}
                     </span>
                   </span>

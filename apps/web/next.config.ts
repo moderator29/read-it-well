@@ -18,6 +18,24 @@ const supabaseImageHost = (() => {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
+  /**
+   * Where the build output goes. `.next` unless something asks otherwise.
+   *
+   * This exists because more than one person builds this app at once. Two
+   * concurrent `next build` runs share one `.next`, and the second one's
+   * `rm -rf` deletes `build-manifest.json` out from under the first, which
+   * fails as "ENOENT ... build-manifest.json" during page collection, or as a
+   * running server suddenly 500ing on every route with a missing
+   * `required-server-files.json`. Both failures point at a file rather than at
+   * the cause, and both cost real time before anyone suspects the other build.
+   *
+   * Setting NEXT_DIST_DIR gives a parallel worker its own output directory, so
+   * `NEXT_DIST_DIR=.next-a2 npx next build` and the matching `next start` never
+   * touch the shared one. The deploy path sets nothing and behaves exactly as
+   * before.
+   */
+  distDir: process.env.NEXT_DIST_DIR || ".next",
+
   // Workspace packages ship raw TypeScript, so Next compiles them in place.
   transpilePackages: ["@naijafinds/design-tokens", "@naijafinds/i18n"],
 

@@ -16,20 +16,41 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  */
 export type AgentNavItem = { href: string; label: string; icon: BrandIconName; badge?: number };
 
-/** The ten frozen destinations, in reference order. */
-export function buildAgentNav(t: Dictionary): AgentNavItem[] {
+/**
+ * The ten frozen destinations, in reference order.
+ *
+ * `unreadMessages` is a real count of unread messages across the caller's own
+ * conversations, resolved by the shell. It used to be a hardcoded 3, so every
+ * agent saw three unread messages permanently, on a route that was a
+ * placeholder, and no amount of reading could ever clear it. Zero means the
+ * badge is not rendered at all.
+ */
+export function buildAgentNav(t: Dictionary, unreadMessages = 0): AgentNavItem[] {
   return [
     { href: "/agent/dashboard", label: t.agent.nav.dashboard, icon: "house-sparkle" },
     { href: "/agent/listings", label: t.agent.nav.myListings, icon: "homes-sparkle" },
     { href: "/agent/list", label: t.agent.nav.listApartment, icon: "calendar-check" },
     { href: "/agent/bookings", label: t.agent.nav.bookings, icon: "calendar-check" },
     /*
-     * No badge. This carried a hardcoded `badge: 3`, so every agent saw three
-     * permanent unread messages that pointed at a route which is still a
-     * coming-soon stub. The `badge` field stays on the type and the renderer
-     * stays wired, ready for a real unread count once /agent/messages ships.
+     * A REAL unread count, and this is the one place the premium UI branch and
+     * this one reached different answers.
+     *
+     * That branch deleted the badge outright, and it was right to: it carried a
+     * hardcoded `badge: 3`, so every agent saw three permanent unread messages
+     * pointing at what was then a coming-soon stub. Its own note said the field
+     * and the renderer should stay "ready for a real unread count once
+     * /agent/messages ships".
+     *
+     * It has shipped. So the badge is back with the count behind it, which is
+     * that branch's stated intent rather than a reversal of its work. Zero
+     * renders nothing, so the fabricated three cannot return.
      */
-    { href: "/agent/messages", label: t.agent.nav.messages, icon: "chat" },
+    {
+      href: "/agent/messages",
+      label: t.agent.nav.messages,
+      icon: "chat",
+      ...(unreadMessages > 0 ? { badge: unreadMessages } : {}),
+    },
     { href: "/agent/reviews", label: t.agent.nav.reviews, icon: "heart-home" },
     { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet-secure" },
     { href: "/agent/analytics", label: t.agent.nav.analytics, icon: "map-route" },
@@ -116,14 +137,53 @@ export function AgentNavList({
   );
 }
 
-/** Agent identity card: avatar initial, display name, verified marker. */
+/**
+ * Agent identity card: avatar initial, display name, verified marker.
+ *
+ * A null profile is a real state, not a missing one. The workspace chrome is
+ * reachable signed out, and it used to fill this card from a seed object
+ * called "Demo Agent", status APPROVED, verified true, so a stranger opening
+ * an agent route was addressed as an approved verified agent by name. The card
+ * now says what is true instead, and offers the way in.
+ */
 export function AgentIdentityCard({
   profile,
   verifiedLabel,
+  visitorLabel,
+  signInLabel,
 }: {
-  profile: AgentProfile;
+  profile: AgentProfile | null;
   verifiedLabel: string;
+  /** What the card says when nobody is signed in as an agent. */
+  visitorLabel: string;
+  signInLabel: string;
 }) {
+  if (!profile) {
+    return (
+      <div className="nf-card flex items-center gap-4 p-3">
+        <span
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--nf-border-subtle)] text-[var(--nf-content-muted)]"
+          aria-hidden="true"
+        >
+          <UiIcon name="user" size={16} />
+        </span>
+        <span className="min-w-0 flex-1 leading-tight">
+          {/* "Not signed in as an agent" is a sentence and it was ending at "Not
+              signed in as an ag" in the rail. It wraps. */}
+          <span className="block text-[0.875rem] font-semibold leading-snug text-[var(--nf-content-secondary)]">
+            {visitorLabel}
+          </span>
+          <Link
+            href="/sign-in"
+            className="mt-0.5 inline-block text-[0.75rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+          >
+            {signInLabel}
+          </Link>
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="nf-card flex items-center gap-4 p-3">
       <span
@@ -137,7 +197,7 @@ export function AgentIdentityCard({
         <span className="block truncate text-[0.875rem] font-semibold">{profile.displayName}</span>
         {profile.verified && (
           <span className="mt-0.5 inline-flex items-center gap-1 text-[0.75rem] text-[var(--nf-state-success)]">
-            <UiIcon name="verified" size={12} strokeWidth={2.2} />
+            <UiIcon name="verified" size={12} />
             {verifiedLabel}
           </span>
         )}

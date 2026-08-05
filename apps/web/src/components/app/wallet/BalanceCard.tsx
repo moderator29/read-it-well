@@ -163,7 +163,7 @@ export function BalanceCard({
             onClick={() => setHidden((h) => !h)}
             aria-pressed={hidden}
             aria-label={hidden ? "Show balance" : "Hide balance"}
-            className="rounded-full border border-white/15 bg-white/5 p-1.5 text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
+            className="grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-white/5 text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
           >
             <EyeGlyph off={hidden} />
           </button>
@@ -208,9 +208,9 @@ export function BalanceCard({
           />
         ) : (
           <>
-            <span className="text-[2.5rem] font-bold tracking-[-0.03em] sm:text-[3rem]">
-              {"\u20A6"}
-              <Odometer value={wholeNaira} className="nf-odometer-figure" />
+            <span className="text-[2.25rem] font-bold leading-none tracking-tight sm:text-[2.6rem]">
+              {"₦"}
+              <Odometer value={wholeNaira} locale={locale} className="nf-odometer-figure" />
             </span>
             <span className="text-[1.55rem] font-semibold text-[var(--nf-content-muted)] sm:text-[1.86rem]">
               {kobo}

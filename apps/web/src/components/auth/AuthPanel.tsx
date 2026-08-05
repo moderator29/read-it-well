@@ -7,7 +7,8 @@ import type { AuthFormState } from "@/lib/auth/actions";
 import { startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
 import type { ProviderId, ProviderState } from "@/lib/auth/providers";
 import { HEAR_ABOUT_OPTIONS } from "@/lib/auth/signup-options";
-import { NIGERIAN_STATES } from "@/lib/data/nigeria";
+import { PlaceFields, type PlaceValues } from "@/components/app/place/PlaceFields";
+import type { StateOption } from "@/lib/places/reference";
 import { Button } from "@/components/ui/Button";
 import { AppleMark, GoogleMark, MailMark } from "./ProviderMarks";
 
@@ -21,10 +22,16 @@ const EMPTY: AuthFormState = { ok: false };
  * kept because App Store guideline 4.8 requires Sign in with Apple wherever
  * other third party sign in is offered, and the product ships on iOS.
  *
- * Sign-up collects the full profile (names, discovery source, state, optional
- * referral); sign-in stays lean with email and password only. The extra
- * sign-up copy is authored here in English until the auth dictionary grows the
- * matching keys.
+ * Sign-up collects the full profile; sign-in stays lean with email and password
+ * only. The extra sign-up copy is authored here in English until the auth
+ * dictionary grows the matching keys.
+ *
+ * The sign-up form is grouped rather than stacked. Nine fields in one unbroken
+ * column is a wall, and a wall is where people abandon. Four headed groups with
+ * air between them, each answering one question: who you are, how you sign in,
+ * where you stay and what you do, and how you found us. The two long lists
+ * (774 local governments, 749 occupations) are searchable pickers that fetch
+ * themselves when opened, so the page weighs the same as it did before them.
  */
 export function AuthPanel({
   mode,
@@ -32,6 +39,7 @@ export function AuthPanel({
   providers,
   action,
   notice,
+  states = [],
 }: {
   mode: "sign-in" | "sign-up";
   t: Dictionary;
@@ -39,11 +47,18 @@ export function AuthPanel({
   action: (prev: AuthFormState, formData: FormData) => Promise<AuthFormState>;
   /** A message from the auth callback, for example an expired link. */
   notice?: string | undefined;
+  /** The 37 states, read on the server. Sign-in does not need them. */
+  states?: StateOption[];
 }) {
   const [state, formAction, pending] = useActionState(action, EMPTY);
   const [showEmail, setShowEmail] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [place, setPlace] = useState<PlaceValues>({
+    stateCode: "",
+    lgaCode: "",
+    occupationCode: "",
+  });
   const isSignUp = mode === "sign-up";
 
   const configured = (id: ProviderId) => providers.find((p) => p.id === id)?.configured ?? false;
@@ -108,101 +123,130 @@ export function AuthPanel({
         ) : (
           /* The email row expands in place into the form, so the panel keeps
              its shape and nothing jumps. */
-          <form action={formAction} className="nf-rise space-y-3.5 text-left" noValidate>
-            {isSignUp && (
+          <form
+            action={formAction}
+            className={isSignUp ? "nf-rise text-left" : "nf-rise space-y-3.5 text-left"}
+            noValidate
+          >
+            {isSignUp ? (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <FormGroup title="Who you are" step="1 of 4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field
+                      id="firstName"
+                      name="firstName"
+                      type="text"
+                      label="First name"
+                      placeholder="Ada"
+                      autoComplete="given-name"
+                      error={state.fieldErrors?.firstName}
+                    />
+                    <Field
+                      id="surname"
+                      name="surname"
+                      type="text"
+                      label="Surname"
+                      placeholder="Okafor"
+                      autoComplete="family-name"
+                      error={state.fieldErrors?.surname}
+                    />
+                  </div>
                   <Field
-                    id="firstName"
-                    name="firstName"
+                    id="nickname"
+                    name="nickname"
                     type="text"
-                    label="First name"
-                    placeholder="Ada"
-                    autoComplete="given-name"
-                    error={state.fieldErrors?.firstName}
+                    label="Nickname"
+                    optional
+                    placeholder="What friends call you"
+                    autoComplete="nickname"
+                    error={state.fieldErrors?.nickname}
+                  />
+                </FormGroup>
+
+                <FormGroup title="How you sign in" step="2 of 4">
+                  <Field
+                    id="email"
+                    name="email"
+                    type="email"
+                    label={t.auth.emailLabel}
+                    placeholder={t.auth.emailPlaceholder}
+                    autoComplete="email"
+                    error={state.fieldErrors?.email}
+                  />
+                  <PasswordField
+                    id="password"
+                    label={t.auth.passwordLabel}
+                    placeholder={t.auth.passwordPlaceholder}
+                    autoComplete="new-password"
+                    error={state.fieldErrors?.password}
+                    value={password}
+                    onChange={setPassword}
+                  />
+                  <StrengthMeter password={password} />
+                  <PasswordField
+                    id="confirmPassword"
+                    label="Confirm password"
+                    placeholder="Repeat your password"
+                    autoComplete="new-password"
+                    error={confirmError}
+                    value={confirm}
+                    onChange={setConfirm}
+                  />
+                </FormGroup>
+
+                <FormGroup
+                  title="Where you stay, and what you do"
+                  step="3 of 4"
+                  note="Your local government decides which places your home screen opens on. Both can be changed later in settings."
+                >
+                  <PlaceFields
+                    states={states}
+                    value={place}
+                    onChange={setPlace}
+                    fieldErrors={state.fieldErrors as Record<string, string> | undefined}
+                  />
+                </FormGroup>
+
+                <FormGroup title="How you found us" step="4 of 4">
+                  <SelectField
+                    id="hearAbout"
+                    name="hearAbout"
+                    label="Where did you hear about us"
+                    placeholder="Select an option"
+                    options={HEAR_ABOUT_OPTIONS}
+                    error={state.fieldErrors?.hearAbout}
                   />
                   <Field
-                    id="surname"
-                    name="surname"
+                    id="referralCode"
+                    name="referralCode"
                     type="text"
-                    label="Surname"
-                    placeholder="Okafor"
-                    autoComplete="family-name"
-                    error={state.fieldErrors?.surname}
+                    label="Referral code"
+                    optional
+                    placeholder="Enter your code"
+                    autoComplete="off"
+                    error={state.fieldErrors?.referralCode}
                   />
-                </div>
-                <Field
-                  id="nickname"
-                  name="nickname"
-                  type="text"
-                  label="Nickname"
-                  optional
-                  placeholder="What friends call you"
-                  autoComplete="nickname"
-                  error={state.fieldErrors?.nickname}
-                />
+                </FormGroup>
               </>
-            )}
-
-            <Field
-              id="email"
-              name="email"
-              type="email"
-              label={t.auth.emailLabel}
-              placeholder={t.auth.emailPlaceholder}
-              autoComplete="email"
-              error={state.fieldErrors?.email}
-            />
-
-            <PasswordField
-              id="password"
-              label={t.auth.passwordLabel}
-              placeholder={t.auth.passwordPlaceholder}
-              autoComplete={isSignUp ? "new-password" : "current-password"}
-              error={state.fieldErrors?.password}
-              value={password}
-              onChange={setPassword}
-            />
-            {isSignUp && <StrengthMeter password={password} />}
-
-            {isSignUp && (
+            ) : (
               <>
-                <PasswordField
-                  id="confirmPassword"
-                  label="Confirm password"
-                  placeholder="Repeat your password"
-                  autoComplete="new-password"
-                  error={confirmError}
-                  value={confirm}
-                  onChange={setConfirm}
-                />
-
-                <SelectField
-                  id="hearAbout"
-                  name="hearAbout"
-                  label="Where did you hear about us"
-                  placeholder="Select an option"
-                  options={HEAR_ABOUT_OPTIONS}
-                  error={state.fieldErrors?.hearAbout}
-                />
-                <SelectField
-                  id="state"
-                  name="state"
-                  label="Where do you stay"
-                  placeholder="Select your state"
-                  options={NIGERIAN_STATES}
-                  error={state.fieldErrors?.state}
-                />
-
                 <Field
-                  id="referralCode"
-                  name="referralCode"
-                  type="text"
-                  label="Referral code"
-                  optional
-                  placeholder="Enter your code"
-                  autoComplete="off"
-                  error={state.fieldErrors?.referralCode}
+                  id="email"
+                  name="email"
+                  type="email"
+                  label={t.auth.emailLabel}
+                  placeholder={t.auth.emailPlaceholder}
+                  autoComplete="email"
+                  error={state.fieldErrors?.email}
+                />
+                <PasswordField
+                  id="password"
+                  label={t.auth.passwordLabel}
+                  placeholder={t.auth.passwordPlaceholder}
+                  autoComplete="current-password"
+                  error={state.fieldErrors?.password}
+                  value={password}
+                  onChange={setPassword}
                 />
               </>
             )}
@@ -278,6 +322,44 @@ export function AuthPanel({
         {t.auth.termsNotice}
       </p>
     </div>
+  );
+}
+
+/**
+ * One headed group inside the sign-up form.
+ *
+ * The heading and the step counter are what turn nine fields into four short
+ * answers. The rule above each group is the air the owner asked for twice: it
+ * costs nothing and it is the difference between a form and a wall.
+ */
+function FormGroup({
+  title,
+  step,
+  note,
+  children,
+}: {
+  title: string;
+  step: string;
+  note?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="border-t border-[var(--nf-border-subtle)] pt-5 first:border-t-0 first:pt-0 [&+section]:mt-7">
+      <div className="mb-3.5 flex items-baseline justify-between gap-3">
+        <h2 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+          {title}
+        </h2>
+        <span className="nf-numeric shrink-0 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
+          {step}
+        </span>
+      </div>
+      {note && (
+        <p className="mb-4 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+          {note}
+        </p>
+      )}
+      <div className="space-y-3.5">{children}</div>
+    </section>
   );
 }
 

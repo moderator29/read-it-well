@@ -163,7 +163,7 @@ function WalletDrawer({
               onClick={onClose}
               className="nf-icon-btn h-10 w-10"
             >
-              <UiIcon name="close" size={18} />
+              <UiIcon name="close" size={20} />
             </button>
           </div>
         </div>
@@ -460,7 +460,7 @@ function BalanceLine({ balanceMinor, locale }: { balanceMinor: number; locale: L
       Available balance{" "}
       <span className="nf-numeric font-semibold text-[var(--nf-content-primary)]">
         {"₦"}
-        <Odometer value={wholeNaira} suffix={amount.kobo} />
+        <Odometer value={wholeNaira} locale={locale} suffix={amount.kobo} />
       </span>
     </p>
   );
