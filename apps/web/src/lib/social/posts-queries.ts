@@ -442,27 +442,45 @@ export type FeedPage = {
 
 const PAGE_SIZE = 20;
 
+const EMPTY_PAGE: FeedPage = { posts: [], cursor: null, ended: true };
+
 /**
- * A place's feed. Roots only: replies belong to their thread, not to the
- * timeline, or the same conversation appears four times.
+ * One page of a timeline over a set of places.
+ *
+ * Roots only: replies belong to their thread, not to the timeline, or the same
+ * conversation appears four times.
  *
  * Cursor pagination on created_at rather than offset, so a post arriving while
  * somebody reads cannot shift a page under them and make them see a row twice.
+ *
+ * Every read is the caller's own RLS-bound client, handed in by whichever
+ * exported function resolved the session. Nothing here uses a service role, and
+ * `posts_select` is still the only thing deciding which rows come back: the
+ * `in` on `area_id` narrows a set the policy has already allowed, it does not
+ * widen one.
+ *
+ * `muteAreas` is the one behavioural difference between a place's own feed and
+ * a feed stitched from several. Opening a place is a deliberate act, so a place
+ * mute does not apply there, exactly as a person mute does not apply on that
+ * person's own page. On a combined timeline the reader never asked for that
+ * place in particular, so the preference is honoured. `mutes` rows of kind
+ * AREA have been written since the mute action landed and nothing had ever read
+ * them back.
  */
-export async function getAreaFeed(
-  areaId: string,
-  cursor?: string,
+async function readFeedPage(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  viewerId: string | null,
+  areaIds: string[],
+  { cursor, muteAreas }: { cursor?: string; muteAreas: boolean },
 ): Promise<FeedPage> {
-  if (!isSupabaseConfigured()) return { posts: [], cursor: null, ended: true };
-
-  const session = await resolveSession();
-  const supabase = session.state === "signed-in" ? session.supabase : await createClient();
-  const viewerId = session.state === "signed-in" ? session.user.id : null;
+  // No places is not an error and not an empty read: it is a question with no
+  // rows behind it, and asking Postgres `in ()` would be a wasted round trip.
+  if (areaIds.length === 0) return EMPTY_PAGE;
 
   let query = supabase
     .from("posts")
     .select(POST_COLUMNS)
-    .eq("area_id", areaId)
+    .in("area_id", areaIds)
     .is("parent_id", null)
     .order("created_at", { ascending: false })
     .limit(PAGE_SIZE + 1);
@@ -470,7 +488,7 @@ export async function getAreaFeed(
   if (cursor) query = query.lt("created_at", cursor);
 
   const [{ data, error }, muted] = await Promise.all([query, readMutes(supabase, viewerId)]);
-  if (error || !data) return { posts: [], cursor: null, ended: true };
+  if (error || !data) return EMPTY_PAGE;
 
   const all = data as unknown as RawPost[];
   const ended = all.length <= PAGE_SIZE;
@@ -484,7 +502,10 @@ export async function getAreaFeed(
   const cursorOut = ended || !last ? null : last.created_at;
 
   const page = consumed.filter(
-    (row) => !muted.posts.has(row.id) && !(row.author_id && muted.users.has(row.author_id)),
+    (row) =>
+      !muted.posts.has(row.id) &&
+      !(row.author_id && muted.users.has(row.author_id)) &&
+      !(muteAreas && row.area_id && muted.areas.has(row.area_id)),
   );
   if (page.length === 0) return { posts: [], cursor: cursorOut, ended };
 
@@ -494,6 +515,93 @@ export async function getAreaFeed(
     cursor: cursorOut,
     ended,
   };
+}
+
+/** The client and viewer a feed read runs as. One place, so no caller can
+    accidentally reach for a different one. */
+async function feedClient() {
+  const session = await resolveSession();
+  const supabase = session.state === "signed-in" ? session.supabase : await createClient();
+  const viewerId = session.state === "signed-in" ? session.user.id : null;
+  return { supabase, viewerId };
+}
+
+/** A place's feed. */
+export async function getAreaFeed(areaId: string, cursor?: string): Promise<FeedPage> {
+  if (!isSupabaseConfigured()) return EMPTY_PAGE;
+  const { supabase, viewerId } = await feedClient();
+  return readFeedPage(supabase, viewerId, [areaId], { cursor, muteAreas: false });
+}
+
+/**
+ * Everything happening in the places this person has joined, newest first.
+ *
+ * This is what `/around` is. The membership is read back through the viewer's
+ * own client rather than trusted from the caller, so a userId that is not the
+ * signed-in person returns nothing at all: `area_members_select` only ever
+ * hands somebody their own rows, which makes the RLS policy the check rather
+ * than an `if` somebody could forget to write.
+ *
+ * A place the person joined and then muted is still their place, so an AREA
+ * mute is honoured here: it silences the timeline without leaving the place.
+ */
+export async function getJoinedFeed(userId: string, cursor?: string): Promise<FeedPage> {
+  if (!isSupabaseConfigured()) return EMPTY_PAGE;
+
+  const { supabase, viewerId } = await feedClient();
+  if (!viewerId || viewerId !== userId) return EMPTY_PAGE;
+
+  const { data, error } = await supabase
+    .from("area_members")
+    .select("area_id")
+    .eq("user_id", userId)
+    /* The same ceiling `listMyAreas` uses. Somebody in more places than this is
+       reading a timeline, not a shelf, and the extra rows would only widen an
+       `in` list that is already the whole of their Around. */
+    .limit(60);
+  if (error || !data) return EMPTY_PAGE;
+
+  const areaIds = (data as { area_id: string }[])
+    .map((row) => row.area_id)
+    .filter((id): id is string => Boolean(id));
+
+  return readFeedPage(supabase, viewerId, areaIds, { cursor, muteAreas: true });
+}
+
+/**
+ * What is being said in the open places, for somebody who has joined none of
+ * them or is not signed in at all.
+ *
+ * The alternative was an empty screen with an invitation on it, and an empty
+ * screen is the one thing a social product cannot afford to open with. The
+ * places are chosen busiest first, which is the order the directory already
+ * uses and for the same reason: sorting by newest sends the first visitor to
+ * the emptiest room. Nothing here is fabricated. If these places have said
+ * nothing, the feed is empty and the screen says so.
+ *
+ * `areas_select` is what makes this safe to read signed out: it returns the
+ * ACTIVE and PAUSED places and nothing else, so a private proposal can never
+ * become a source for this timeline.
+ */
+export async function getOpenAreasFeed(cursor?: string): Promise<FeedPage> {
+  if (!isSupabaseConfigured()) return EMPTY_PAGE;
+
+  const { supabase, viewerId } = await feedClient();
+
+  const { data, error } = await supabase
+    .from("areas")
+    .select("id")
+    .in("status", ["ACTIVE", "PAUSED"])
+    .order("member_count", { ascending: false })
+    .order("name", { ascending: true })
+    /* Twenty-four busiest places, not the whole 774. An `in` list of every door
+       Nigeria has would be a worse query for a strictly worse answer: the rows
+       past the busiest two dozen are places nobody has posted in. */
+    .limit(24);
+  if (error || !data) return EMPTY_PAGE;
+
+  const areaIds = (data as { id: string }[]).map((row) => row.id);
+  return readFeedPage(supabase, viewerId, areaIds, { cursor, muteAreas: true });
 }
 
 export type ThreadReply = PostView & {
