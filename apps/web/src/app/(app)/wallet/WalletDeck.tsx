@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import type { Locale } from "@naijafinds/i18n";
+import { formatMoney, formatNumber, type Locale } from "@naijafinds/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Odometer } from "@/components/site/Odometer";
 import { formatKoboExact } from "@/components/app/wallet/money";
@@ -222,7 +222,7 @@ function FundForm({ locale }: { locale: Locale }) {
 
   return (
     <form action={formAction} noValidate>
-      <AmountField error={fieldError(state, "amount")} quickAmounts />
+      <AmountField error={fieldError(state, "amount")} quickAmounts locale={locale} />
       <button
         type="submit"
         disabled={pending}
@@ -274,7 +274,7 @@ function WithdrawForm({
   return (
     <form action={formAction} noValidate className="space-y-3">
       {live && <BalanceLine balanceMinor={balanceMinor} locale={locale} />}
-      <AmountField error={fieldError(state, "amount")} />
+      <AmountField error={fieldError(state, "amount")} locale={locale} />
       <div>
         <label htmlFor="nf-wallet-bank" className="nf-label">
           Bank
@@ -397,7 +397,7 @@ function TransferForm({
         />
         <FieldMessage message={fieldError(state, "recipientEmail")} />
       </div>
-      <AmountField error={fieldError(state, "amount")} />
+      <AmountField error={fieldError(state, "amount")} locale={locale} />
       <div>
         <label htmlFor="nf-wallet-note" className="nf-label">
           Note (optional)
@@ -428,10 +428,28 @@ function TransferForm({
 
 /* ------------------------------------------------------------ small parts */
 
-/** Naira presets the chips can type into the field. Display strings only. */
-const QUICK_AMOUNTS = ["5,000", "20,000", "50,000"];
+/**
+ * Naira presets, as WHOLE NAIRA integers rather than display strings.
+ *
+ * They used to be the strings "5,000", "20,000", "50,000" rendered behind a
+ * hand-typed naira sign, which made three chips a second currency formatter
+ * that disagreed with every other figure on the page: the comma is English
+ * grouping and the sign is English placement, so on ha-NG the chip read
+ * "₦20,000" directly beneath a balance reading "₦ 20,000". The label now comes
+ * from `formatMoney` like every other amount on the platform, and what gets
+ * typed into the field is plain digits, which `parseNairaToKobo` accepts.
+ */
+const QUICK_AMOUNTS_NAIRA = [5_000, 20_000, 50_000];
 
-function AmountField({ error, quickAmounts }: { error?: string; quickAmounts?: boolean }) {
+function AmountField({
+  error,
+  quickAmounts,
+  locale,
+}: {
+  error?: string;
+  quickAmounts?: boolean;
+  locale: Locale;
+}) {
   const [value, setValue] = useState("");
   return (
     <div>
@@ -444,7 +462,7 @@ function AmountField({ error, quickAmounts }: { error?: string; quickAmounts?: b
         type="text"
         inputMode="decimal"
         autoComplete="off"
-        placeholder="e.g. 5,000"
+        placeholder={`e.g. ${formatNumber(5000, locale)}`}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         aria-invalid={error ? true : undefined}
@@ -452,17 +470,20 @@ function AmountField({ error, quickAmounts }: { error?: string; quickAmounts?: b
       />
       {quickAmounts && (
         <div className="mt-2 flex gap-2">
-          {QUICK_AMOUNTS.map((amount) => (
-            <button
-              key={amount}
-              type="button"
-              onClick={() => setValue(amount)}
-              aria-pressed={value === amount}
-              className={`nf-chip ${value === amount ? "nf-chip--active" : ""}`}
-            >
-              ₦{amount}
-            </button>
-          ))}
+          {QUICK_AMOUNTS_NAIRA.map((naira) => {
+            const typed = String(naira);
+            return (
+              <button
+                key={naira}
+                type="button"
+                onClick={() => setValue(typed)}
+                aria-pressed={value === typed}
+                className={`nf-chip ${value === typed ? "nf-chip--active" : ""}`}
+              >
+                {formatMoney(naira * 100, locale)}
+              </button>
+            );
+          })}
         </div>
       )}
       <FieldMessage message={error} />

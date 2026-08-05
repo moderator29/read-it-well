@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { formatMoney } from "@naijafinds/i18n";
 import { WALLET_BANKS } from "./banks";
 
 /**
@@ -42,12 +43,24 @@ export const nairaAmountSchema = z
       ctx.addIssue({ code: "custom", message: "Enter a valid naira amount, e.g. 5,000 or 5000.50." });
       return z.NEVER;
     }
+    /* The bounds are stated by the formatter, not typed out. Both figures used
+       to be hand-written naira strings that would silently stop agreeing with
+       MIN_MOVE_KOBO and MAX_MOVE_KOBO the first time either constant moved,
+       and they told the payer a limit without telling them what to do about
+       it. A schema has no request locale, so this is English; the point is
+       that there is one figure and one formatter, not two. */
     if (kobo < MIN_MOVE_KOBO) {
-      ctx.addIssue({ code: "custom", message: "The minimum is ₦100." });
+      ctx.addIssue({
+        code: "custom",
+        message: `The smallest amount you can move is ${formatMoney(MIN_MOVE_KOBO)}. Raise the amount and try again.`,
+      });
       return z.NEVER;
     }
     if (kobo > MAX_MOVE_KOBO) {
-      ctx.addIssue({ code: "custom", message: "The maximum for a single movement is ₦10,000,000." });
+      ctx.addIssue({
+        code: "custom",
+        message: `${formatMoney(MAX_MOVE_KOBO)} is the most you can move at once. Split it into smaller movements.`,
+      });
       return z.NEVER;
     }
     return kobo;
