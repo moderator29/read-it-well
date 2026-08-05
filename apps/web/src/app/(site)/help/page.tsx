@@ -1,4 +1,4 @@
-import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/support-email";
+import { SUPPORT_SENTENCE } from "@/lib/support-email";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SupportChat } from "@/components/app/account/SupportChat";
@@ -128,7 +128,10 @@ const FAQS: Faq[] = [
   {
     category: "Verification and trust",
     q: "How do I report a suspicious listing or user?",
-    a: "Use the report option on the listing, or email {SUPPORT_EMAIL} with the listing link and what you saw. Reports are reviewed quickly, and listings under investigation can be hidden while we check.",
+    /* This answer printed the fifteen characters {SUPPORT_EMAIL} to every
+       reader, because an earlier pass turned a template literal into a plain
+       string and nothing renders a placeholder as an error. */
+    a: `Use the report option on the listing, or ${SUPPORT_SENTENCE} with the listing link and what you saw. Reports are reviewed quickly, and listings under investigation can be hidden while we check.`,
   },
 
   // --------------------------------------------------- safety and money

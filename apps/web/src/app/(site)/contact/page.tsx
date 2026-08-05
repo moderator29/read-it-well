@@ -1,4 +1,4 @@
-import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/support-email";
+import { SUPPORT_EMAIL, SUPPORT_IS_EMAIL } from "@/lib/support-email";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
@@ -11,7 +11,9 @@ import { CONTACT_TOPICS, DEFAULT_CONTACT_TOPIC, type ContactTopic } from "./topi
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Reach the RentMe support team. Email {SUPPORT_EMAIL} and we reply within one business day.",
+    /* This printed the fifteen characters {SUPPORT_EMAIL} into the page
+       description, which is what a search result and a shared link show. */
+    "Reach the RentMe support team. Send us a message and we reply within one business day.",
 };
 
 
@@ -60,16 +62,37 @@ export default async function ContactPage({
           </p>
         </div>
 
-        {/* ----------------------------------------------- email + promise */}
+        {/* ------------------------------------------------ the promise */}
         <Reveal as="section" className="mt-12">
           <div className="nf-card p-6 text-center sm:p-8">
-            <p className="nf-overline">Support email</p>
-            <a
-              href={`mailto:${SUPPORT_EMAIL}`}
-              className="nf-tap mt-2 inline-block break-all text-[1.25rem] font-bold text-[var(--nf-electric-300)] hover:underline sm:text-[1.5rem]"
-            >
-              {SUPPORT_EMAIL}
-            </a>
+            {/*
+              The hero used to be a large mailto to support@rentme.ng, a
+              mailbox that does not exist, sitting directly above a form that
+              works. It offered a dead route in the largest type on the page
+              and the live one underneath it in the smallest.
+
+              The address returns here on its own the moment
+              NEXT_PUBLIC_SUPPORT_EMAIL names a real one. Until then the
+              promise is the hero, because the promise is the true part.
+            */}
+            {SUPPORT_IS_EMAIL ? (
+              <>
+                <p className="nf-overline">Support email</p>
+                <a
+                  href={`mailto:${SUPPORT_EMAIL}`}
+                  className="nf-tap mt-2 inline-block break-all text-[1.25rem] font-bold text-[var(--nf-electric-300)] hover:underline sm:text-[1.5rem]"
+                >
+                  {SUPPORT_EMAIL}
+                </a>
+              </>
+            ) : (
+              <>
+                <p className="nf-overline">Talk to a person</p>
+                <p className="mt-2 text-[1.25rem] font-bold text-[var(--nf-content-primary)] sm:text-[1.5rem]">
+                  Send us a message
+                </p>
+              </>
+            )}
             <p className="mx-auto mt-4 max-w-[48ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               We reply within one business day, Monday to Saturday. Urgent booking
               problems on the day of check-in are answered first.
@@ -123,7 +146,7 @@ export default async function ContactPage({
         <Reveal as="section" className="mt-12">
           <h2 className="nf-overline text-center">Or write to us here</h2>
           <div className="nf-card mt-4 p-5 sm:p-7">
-            <ContactForm supportEmail={SUPPORT_EMAIL} defaultTopic={defaultTopic} />
+            <ContactForm defaultTopic={defaultTopic} />
           </div>
         </Reveal>
 
