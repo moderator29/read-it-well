@@ -334,7 +334,72 @@ export type SymbolEffect = "bounce" | "pulse" | "wiggle" | "rotate" | "fly";
  * That is the real work behind proper filled/outline variants, and it is worth
  * doing for the tab bar set; until then the honest behaviour is to decline.
  */
-const FILLABLE = new Set<UiIconName>(["heart", "star", "verified", "bell", "location"]);
+const FILLABLE = new Set<UiIconName>([
+  "heart",
+  "star",
+  "verified",
+  "bell",
+  "location",
+  // These are already authored as a single closed path, so the stroked drawing
+  // fills correctly with no separate silhouette needed.
+  "chat-bubble",
+  "sparkle",
+  "ticket",
+]);
+
+/**
+ * Filled silhouettes.
+ *
+ * The proper way to do a filled/outline pair is to DRAW the filled member, not
+ * to pour paint into an outline: an outline is a set of strokes describing
+ * edges, and filling it produces a blob. That is why `filled` was originally
+ * gated to the handful of glyphs that happen to close.
+ *
+ * These are the navigation set - the tab bar and the top of the side drawer -
+ * where an active state genuinely needs to read as solid rather than as a
+ * slightly heavier line. Each is a single closed path on the same 24 grid as
+ * its outline sibling, with interior detail knocked out using evenodd so the
+ * shape stays readable at 22px rather than turning into a lump.
+ *
+ * A glyph listed here uses this path when `filled`; anything not listed falls
+ * back to its stroked drawing, so adding one is additive and never breaks a
+ * call site.
+ */
+const FILLED_PATHS: Partial<Record<UiIconName, React.ReactNode>> = {
+  home: (
+    <path d="M11.02 3.62a1.5 1.5 0 0 1 1.96 0l7.63 6.64c.4.35.15 1.01-.38 1.01H18.3v7.83a2 2 0 0 1-2 2h-2.9v-4.7a1.4 1.4 0 0 0-2.8 0v4.7H7.7a2 2 0 0 1-2-2v-7.83H3.77c-.53 0-.78-.66-.38-1.01Z" />
+  ),
+  house: (
+    <path d="M11.02 3.62a1.5 1.5 0 0 1 1.96 0l2.02 1.76V5.2a.8.8 0 0 1 .8-.8h1.4a.8.8 0 0 1 .8.8v3.09l2.63 2.29c.4.35.15 1.01-.38 1.01H18.3v7.68a2 2 0 0 1-2 2h-2.9v-4.55a1.4 1.4 0 0 0-2.8 0v4.55H7.7a2 2 0 0 1-2-2v-7.68H3.77c-.53 0-.78-.66-.38-1.01Z" />
+  ),
+  compass: (
+    <path
+      fillRule="evenodd"
+      d="M12 3.4a8.6 8.6 0 1 0 0 17.2 8.6 8.6 0 0 0 0-17.2Zm3.7 4.9-1.9 5.5-5.5 1.9 1.9-5.5Z"
+    />
+  ),
+  user: (
+    <path d="M12 4.4a3.7 3.7 0 1 1 0 7.4 3.7 3.7 0 0 1 0-7.4Zm0 8.7c4.06 0 7.35 2.55 7.35 5.7 0 .94-.76 1.4-1.6 1.4H6.25c-.84 0-1.6-.46-1.6-1.4 0-3.15 3.29-5.7 7.35-5.7Z" />
+  ),
+  "calendar-booking": (
+    <path
+      fillRule="evenodd"
+      d="M8.1 2.3a.9.9 0 0 1 .9.9v.9h6v-.9a.9.9 0 1 1 1.8 0v.9h1.6a2.2 2.2 0 0 1 2.2 2.2v13a2.2 2.2 0 0 1-2.2 2.2H5.6a2.2 2.2 0 0 1-2.2-2.2v-13A2.2 2.2 0 0 1 5.6 4.1h1.6v-.9a.9.9 0 0 1 .9-.9Zm-3.4 7.6v9.3c0 .22.18.4.4.4h13.8a.4.4 0 0 0 .4-.4V9.9Zm4.7 5 1.9 1.9 3.6-3.7 1.28 1.25-4.87 5-3.18-3.19Z"
+    />
+  ),
+  key: (
+    <path
+      fillRule="evenodd"
+      d="M18.9 3.06a1 1 0 0 1 1.42 0l.62.62a1 1 0 0 1 0 1.42l-7.9 7.9a4.6 4.6 0 1 1-2.04-2.04ZM7.6 12a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2Zm0 1.9a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4Z"
+    />
+  ),
+  wallet: (
+    <path
+      fillRule="evenodd"
+      d="M6.2 2.9H17a.9.9 0 1 1 0 1.8H6.2a1.3 1.3 0 0 0 0 2.6h11.6A3.1 3.1 0 0 1 20.9 10.4v7.3a3.1 3.1 0 0 1-3.1 3.1H6.6A3.5 3.5 0 0 1 3.1 17.3V6.1A3.2 3.2 0 0 1 6.2 2.9Zm9.7 10.2a1.15 1.15 0 1 0 0 2.3 1.15 1.15 0 0 0 0-2.3Z"
+    />
+  ),
+};
 
 export function UiIcon({
   name,
@@ -367,7 +432,12 @@ export function UiIcon({
   filled?: boolean;
 }) {
   const px = typeof size === "number" ? size : ICON_SIZE[size];
-  const solid = Boolean(filled) && FILLABLE.has(name);
+  /*
+   * A drawn silhouette wins over pouring paint into an outline. If neither
+   * exists for this glyph, `filled` is ignored rather than rendering a blob.
+   */
+  const silhouette = filled ? FILLED_PATHS[name] : undefined;
+  const solid = Boolean(filled) && (Boolean(silhouette) || FILLABLE.has(name));
   return (
     <svg
       width={px}
@@ -375,7 +445,7 @@ export function UiIcon({
       viewBox="0 0 24 24"
       fill={solid ? "currentColor" : "none"}
       stroke="currentColor"
-      strokeWidth={opticalStroke(px, strokeWidth)}
+      strokeWidth={silhouette ? 0 : opticalStroke(px, strokeWidth)}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={[
@@ -389,7 +459,7 @@ export function UiIcon({
       aria-label={label}
       aria-hidden={label ? undefined : true}
     >
-      {PATHS[name]}
+      {silhouette ?? PATHS[name]}
     </svg>
   );
 }
