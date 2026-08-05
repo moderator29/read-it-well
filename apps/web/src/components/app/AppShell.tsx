@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { AppRail } from "./AppRail";
 import { MobileTabBar, showsTabBar } from "./MobileTabBar";
@@ -32,6 +32,8 @@ export function AppShell({
   unreadNotifications = 0,
   avatarUrl = "",
   signedIn = false,
+  isAgent = false,
+  isAdmin = false,
   children,
 }: {
   t: Dictionary;
@@ -43,9 +45,17 @@ export function AppShell({
   avatarUrl?: string;
   /** True only for a real session. Signed out, the avatar becomes a way in. */
   signedIn?: boolean;
+  /** An approved agent, so Agent Mode is a place they can actually go. */
+  isAgent?: boolean;
+  /** Staff, so the console is a place they can actually go. */
+  isAdmin?: boolean;
   children: React.ReactNode;
 }) {
   const active = usePathname();
+  /* Five navigation rows are the same pathname with a different `type`, so the
+     rail needs that one parameter to tell them apart. Everything else about
+     the query is ignored, so /search?q=Lekki still lights Explore. */
+  const activeType = useSearchParams().get("type");
   const [drawer, setDrawer] = useState(false);
 
   /*
@@ -107,8 +117,13 @@ export function AppShell({
       <AppRail
         t={t}
         active={active}
+        activeType={activeType}
         userName={userName}
+        avatarUrl={avatarUrl}
         unreadNotifications={unreadNotifications}
+        isAgent={isAgent}
+        isAdmin={isAdmin}
+        signedIn={signedIn}
       />
 
       {/*
@@ -142,9 +157,15 @@ export function AppShell({
             <AppRail
               t={t}
               active={active}
+              activeType={activeType}
               userName={userName}
+              avatarUrl={avatarUrl}
               unreadNotifications={unreadNotifications}
+              isAgent={isAgent}
+              isAdmin={isAdmin}
+              signedIn={signedIn}
               variant="drawer"
+              onNavigate={closeDrawer}
             />
           </div>
         </div>
@@ -183,11 +204,15 @@ export function AppShell({
               onClick={() => setDrawer(true)}
               className="nf-icon-btn h-10 w-10 lg:hidden"
             >
-              <span className="flex w-4 flex-col gap-[5px]" aria-hidden="true">
-                <span className="h-[2px] w-full rounded-full bg-current" />
-                <span className="h-[2px] w-full rounded-full bg-current" />
-                <span className="h-[2px] w-full rounded-full bg-current" />
-              </span>
+              {/*
+                The panel toggle, not a hamburger.
+
+                Three stacked lines say "a list is behind this" and nothing
+                more, and they say it identically whether the thing that opens
+                is a menu, a filter sheet or a drawer. This glyph says what
+                actually happens: a panel arrives beside the content.
+              */}
+              <UiIcon name="panel-left" size={19} />
             </button>
             {/* The wordmark, on phones only: above lg the rail already carries
                 it, and repeating a logo twice on one screen is noise. It used

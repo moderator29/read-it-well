@@ -24,6 +24,13 @@
 @import "./settings-rows.css";
 
 /*
+ * The side navigation, rail and drawer. Its own file for the same reason as
+ * the others, and because one stylesheet serving both presentations is what
+ * stops the two drifting apart.
+ */
+@import "./side-nav.css";
+
+/*
  * Bridge the semantic tokens into Tailwind so utilities and hand written CSS
  * draw from one source. Nothing below may introduce a raw colour.
  */

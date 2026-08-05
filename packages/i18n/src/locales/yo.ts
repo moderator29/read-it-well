@@ -51,6 +51,12 @@ export const yo: Dictionary = {
     map: "Máàpù",
     primaryLabel: "Àkọ́kọ́",
     accountLabel: "Àkàǹtì",
+    notifications: "Ìfitónilétí",
+    places: "Àwọn ibi",
+    people: "Àwọn ènìyàn",
+    agentMode: "Ipò Aṣojú",
+    consoleLabel: "Ìdarí",
+    workspacesLabel: "Àwọn ibi iṣẹ́",
   },
 
   landing: {
@@ -1412,6 +1418,8 @@ export const yo: Dictionary = {
 
   a11y: {
     logoHome: "Ilé RentMe",
+    expand: "Ṣí",
+    collapse: "Pa",
     openMenu: "Ṣí àkójọ",
     closeMenu: "Ti àkójọ",
     languageSwitcher: "Yí èdè padà",

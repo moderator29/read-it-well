@@ -6,8 +6,15 @@ import { resolveSession } from "../actions/session";
 /**
  * What the consumer shell needs to render itself honestly.
  *
- * Two facts, resolved once in the layout rather than per surface: who is
- * actually signed in, and how many notifications they have not read.
+ * Four facts, resolved once in the layout rather than per surface: who is
+ * actually signed in, how many notifications they have not read, and whether
+ * this person has an agent workspace or an operations console to be shown a
+ * door into.
+ *
+ * The last two are what stop the side navigation from lying. An Agent Mode
+ * group offered to somebody with no `agents` row is a dead end four taps deep,
+ * and a Console group offered to somebody with no staff role is a refusal
+ * screen dressed as a destination.
  *
  * Both used to be wrong in the same way. The shell greeted every visitor as
  * "Guest" from a hardcoded constant whose comment said "until real sessions
@@ -28,6 +35,10 @@ export type ShellIdentity = {
   avatarUrl: string;
   /** True only for a real session, so the shell never offers a signed-out avatar. */
   signedIn: boolean;
+  /** An approved agent, so Agent Mode is a place they can actually go. */
+  isAgent: boolean;
+  /** Staff, so the console is a place they can actually go. */
+  isAdmin: boolean;
 };
 
 const GUEST: ShellIdentity = {
@@ -35,6 +46,8 @@ const GUEST: ShellIdentity = {
   unreadNotifications: 0,
   avatarUrl: "",
   signedIn: false,
+  isAgent: false,
+  isAdmin: false,
 };
 
 /** The first word of a display name, so the greeting stays short on a phone. */
@@ -54,7 +67,7 @@ export const getShellIdentity = cache(async function getShellIdentity(): Promise
     const session = await resolveSession();
     if (session.state !== "signed-in") return GUEST;
 
-    const [profileResult, unreadResult] = await Promise.all([
+    const [profileResult, unreadResult, agentResult, roleResult] = await Promise.all([
       session.supabase
         .from("profiles")
         .select("first_name, nickname, display_name, avatar_url")
@@ -64,6 +77,20 @@ export const getShellIdentity = cache(async function getShellIdentity(): Promise
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .is("read_at", null),
+      /* `agents` is select-own plus admin, and `user_roles` carries
+         `user_roles_select_own`, so both of these resolve for the person
+         themselves and for nobody else. Neither needs a service key. */
+      session.supabase
+        .from("agents")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .eq("status", "APPROVED")
+        .maybeSingle(),
+      session.supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .in("role", ["admin", "super_admin"]),
     ]);
 
     const profile = profileResult.data;
@@ -78,6 +105,9 @@ export const getShellIdentity = cache(async function getShellIdentity(): Promise
       unreadNotifications: unreadResult.error ? 0 : (unreadResult.count ?? 0),
       avatarUrl: profile?.avatar_url ?? "",
       signedIn: true,
+      // A read that failed is not a role. Both fail closed.
+      isAgent: !agentResult.error && agentResult.data !== null,
+      isAdmin: !roleResult.error && (roleResult.data?.length ?? 0) > 0,
     };
   } catch {
     return GUEST;
