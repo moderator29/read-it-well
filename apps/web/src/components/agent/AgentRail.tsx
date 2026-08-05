@@ -3,7 +3,9 @@ import type { Dictionary } from "@naijafinds/i18n";
 import type { AgentProfile } from "@/lib/agent/types";
 import { Logo } from "@/design-system/brand/Logo";
 import { ModeSwitcher } from "./ModeSwitcher";
-import { AgentIdentityCard, AgentModePill, AgentNavList, buildAgentNav } from "./AgentNav";
+import { AgentIdentityCard, AgentModePill } from "./AgentNav";
+import { buildAgentNav } from "./agent-nav-model";
+import { NavTree } from "@/components/app/NavTree";
 
 /**
  * Agent Mode navigation rail (desktop, lg and up).
@@ -31,19 +33,24 @@ export function AgentRail({
 }) {
   return (
     <aside
-      className="sticky top-0 hidden h-dvh w-[var(--nf-rail-width)] shrink-0 flex-col border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 py-5 lg:flex"
+      className="nf-nav nf-nav--rail"
       aria-label={t.agent.mode.workspaceLabel}
     >
-      <Link href="/" aria-label={t.a11y.logoHome} className="mb-2 px-1">
-        <Logo size={38} wordSize={19} />
-      </Link>
+      <div className="nf-nav__head flex-col items-start gap-2">
+        <Link href="/" aria-label={t.a11y.logoHome} className="nf-nav__brand">
+          <Logo size={34} wordSize={17} />
+        </Link>
+        <AgentModePill label={t.agent.mode.agent} />
+      </div>
 
-      <AgentModePill label={t.agent.mode.agent} className="mb-5 ml-1" />
-
-      <AgentNavList
-        items={buildAgentNav(t, unreadMessages)}
+      <NavTree
+        sections={buildAgentNav(t, unreadMessages)}
         active={active}
         label={t.agent.mode.workspaceLabel}
+        storageKey="nf_agent_nav_open"
+        accent="agent"
+        expandLabel={t.a11y.expand}
+        collapseLabel={t.a11y.collapse}
       />
 
       {/* Identity card plus switch back to Personal Mode. */}

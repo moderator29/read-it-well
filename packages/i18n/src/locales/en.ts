@@ -204,6 +204,7 @@ export const en = {
     },
     nav: {
       dashboard: "Dashboard",
+      money: "Money",
       myListings: "My Listings",
       listApartment: "List Apartment",
       bookings: "Bookings",
