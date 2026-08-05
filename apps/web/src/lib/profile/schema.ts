@@ -94,6 +94,17 @@ export type ProfileSettings = {
   privacy: PrivacySettings;
   locale?: LocaleCode;
   dataSaver?: boolean;
+  /**
+   * True once the first-run intent question has been put to this person, by
+   * either answering it or skipping it.
+   *
+   * It lives here rather than beside `profiles.interests` because it is not a
+   * fact about the catalogue, it is a note about a conversation we have already
+   * had. `interests` alone cannot carry it: an empty array is both "never
+   * asked" and "asked and declined", and a skip that is indistinguishable from
+   * silence is a skip that asks again tomorrow.
+   */
+  interestsAsked?: boolean;
 };
 
 /** Settings with every optional filled in, which is what the UI renders from. */
@@ -104,6 +115,7 @@ export const SETTINGS_DEFAULTS: ResolvedProfileSettings = {
   privacy: { hideActivity: false },
   locale: "en",
   dataSaver: false,
+  interestsAsked: false,
 };
 
 /**
@@ -125,6 +137,7 @@ const storedSettingsSchema = z
     privacy: z.object({ hideActivity: z.boolean() }).partial().catch({}),
     locale: z.enum(LOCALE_CODES).optional().catch(undefined),
     dataSaver: z.boolean().optional().catch(undefined),
+    interestsAsked: z.boolean().optional().catch(undefined),
   })
   .partial()
   .catch({});
@@ -136,6 +149,7 @@ export function parseSettings(raw: unknown): ResolvedProfileSettings {
     privacy: { ...SETTINGS_DEFAULTS.privacy, ...stored.privacy },
     locale: stored.locale ?? SETTINGS_DEFAULTS.locale,
     dataSaver: stored.dataSaver ?? SETTINGS_DEFAULTS.dataSaver,
+    interestsAsked: stored.interestsAsked ?? SETTINGS_DEFAULTS.interestsAsked,
   };
 }
 
@@ -154,6 +168,7 @@ export const settingsPatchSchema = z
     privacy: z.object({ hideActivity: z.boolean() }).partial().optional(),
     locale: z.enum(LOCALE_CODES).optional(),
     dataSaver: z.boolean().optional(),
+    interestsAsked: z.boolean().optional(),
   })
   .refine((patch) => Object.values(patch).some((value) => value !== undefined), {
     message: "Nothing to save. Change a preference first.",
@@ -176,6 +191,7 @@ export function mergeSettings(
     privacy: { ...current.privacy, ...patch.privacy },
     locale: patch.locale ?? current.locale,
     dataSaver: patch.dataSaver ?? current.dataSaver,
+    interestsAsked: patch.interestsAsked ?? current.interestsAsked,
   };
 }
 
