@@ -10,6 +10,12 @@ import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { factsOf } from "@/lib/listings/filter";
 import {
+  hasOwnRequest,
+  intentKindsPresent,
+  orderByStatedIntent,
+} from "@/lib/listings/intent";
+import { readStatedIntent } from "@/lib/interests/queries";
+import {
   KIND_NOUN,
   SORTS,
   activeFilterCount,
@@ -51,6 +57,19 @@ export const metadata: Metadata = {
  *
  * Sorting works on integer kobo, so no float maths.
  */
+
+/**
+ * First letter up, nothing else touched.
+ *
+ * `KIND_NOUN` holds lower-case nouns because they are read mid-sentence
+ * everywhere else on this page. The stated-intent line is the one place a noun
+ * starts a sentence, and a sentence starting "rentals, hotels first" reads as a
+ * bug. Capitalising here rather than adding a second cased copy of every noun
+ * keeps one list of nouns in the codebase.
+ */
+function sentenceCase(value: string): string {
+  return value.length === 0 ? value : value[0]!.toUpperCase() + value.slice(1);
+}
 
 /** Destination quick picks. Each chip is a shareable link, not client state. */
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Ibadan", "Enugu", "Calabar"];
@@ -122,7 +141,27 @@ export default async function SearchPage({
     repo.search(toPoolFilter(query)),
     repo.search({}),
   ]);
-  const listings = sortListings(rawResults, query.sort);
+  const sorted = sortListings(rawResults, query.sort);
+
+  /*
+   * Stated intent, and the one condition under which it is allowed to speak.
+   *
+   * `hasOwnRequest` is the gate: if the address bar carries ANYTHING the person
+   * chose - a search term, a category, a sort, the map, a budget, a bedroom
+   * count, an amenity, instant book, verified only - the row is not even read,
+   * let alone applied. An explicit choice outranks a remembered one, always.
+   *
+   * What it then does is reorder, never filter. The count below the heading is
+   * the same number either way and every card that matched is still on the
+   * page; the markets somebody named are simply the ones they meet first. A
+   * personalisation that removed inventory would be the platform deciding what
+   * a person is allowed to see, which is not what they agreed to when they
+   * answered one question at the door.
+   */
+  const statedIntent = hasOwnRequest(query) ? [] : await readStatedIntent();
+  const listings = orderByStatedIntent(sorted, statedIntent);
+  const intentApplied = listings !== sorted;
+  const intentKinds = intentApplied ? intentKindsPresent(listings, statedIntent) : [];
 
   // The map reads the whole catalogue: every covered city keeps its pin and
   // lowest nightly price regardless of the current text filter.
@@ -290,6 +329,24 @@ export default async function SearchPage({
               {listings.length === 1 ? noun.one : noun.many}{" "}
               {narrowed ? "match your filters" : "across Nigeria"}
             </p>
+            {/*
+              Says why the order is what it is, and only when it really is.
+              `intentApplied` is false whenever the reorder was a no-op, so this
+              line can never claim a personalisation that did not happen, and
+              the kinds it names are the ones actually on the page. Nothing was
+              removed, so it says "first" rather than "only".
+            */}
+            {intentApplied && intentKinds.length > 0 && (
+              <p
+                data-testid="intent-note"
+                data-intent={intentKinds.join(",")}
+                className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]"
+              >
+                {sentenceCase(intentKinds.map((kind) => KIND_NOUN[kind].many).join(", "))}{" "}
+                first, because that is what you said you came for. Search or
+                filter and this stops.
+              </p>
+            )}
           </div>
           <ViewToggle query={query} />
         </div>
