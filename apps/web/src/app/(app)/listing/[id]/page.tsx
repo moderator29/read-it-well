@@ -14,6 +14,7 @@ import { ReservePanel } from "./ReservePanel";
 import { RentalPanel } from "./RentalPanel";
 import { ListingAbout } from "@/components/app/listing/ListingAbout";
 import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
+import { ListingPhotoGrid } from "@/components/app/listing/ListingPhotoGrid";
 import { ListingHostPanel } from "@/components/app/listing/ListingHostPanel";
 import { ListingReviews } from "@/components/app/listing/ListingReviews";
 import {
@@ -413,6 +414,15 @@ export default async function ListingDetailPage({
           <div id="reserve" className="mt-7 scroll-mt-20 lg:hidden">
             {bookingPanel}
           </div>
+
+          {/* ---------------------------------------------- photo grid */}
+          {/* A single photograph is already the hero; a grid of one states
+              nothing, so the section is not rendered at all below two. */}
+          {listing.photos.length > 1 && (
+            <Reveal as="div" className="mt-8" delay={40}>
+              <ListingPhotoGrid photos={listing.photos} hue={listing.hue} title={listing.title} />
+            </Reveal>
+          )}
 
           {/* ------------------------------------------------ host panel */}
           {/* No agent behind partner stock, so no host panel and no Message. */}

@@ -214,7 +214,9 @@ function Lightbox({
       data-testid="listing-lightbox"
       data-open={entered}
       className={[
-        "fixed inset-0 z-[70] bg-black outline-none",
+        // Above the Sheet primitive's 80/81, so a photo opened from the
+        // "Show all" sheet is never painted behind the sheet it came from.
+        "fixed inset-0 z-[90] bg-black outline-none",
         "transition-opacity duration-200 ease-out motion-reduce:transition-none",
         "motion-safe:transition-[opacity,transform] motion-safe:duration-200",
         entered ? "opacity-100 motion-safe:scale-100" : "opacity-0 motion-safe:scale-[0.98]",
