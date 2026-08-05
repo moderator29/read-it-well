@@ -274,7 +274,10 @@ export function Inbox({
       <div className="mt-3.5">
         <Segmented<Tab>
           label="Filter conversations"
-          size="sm"
+          /* The default `md` rung, not `sm`. `Segmented` paints its real
+             height with no overflowing hit area the way `Chip` and `Switch`
+             have, so `sm` is a genuine 36px target - under the 44pt floor, and
+             `icons-and-targets` catches it. */
           full
           options={TABS.map((entry) => ({
             value: entry.key,
