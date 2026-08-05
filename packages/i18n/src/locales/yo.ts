@@ -202,6 +202,7 @@ export const yo: Dictionary = {
     },
     nav: {
       dashboard: "Pátákó",
+      money: "Owó",
       myListings: "Atokọ Mi",
       listApartment: "Ṣàtòjọ Fúláàtì",
       bookings: "Ìfipamọ́",

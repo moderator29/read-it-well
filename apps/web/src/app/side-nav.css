@@ -341,10 +341,37 @@
     font-weight: 600;
   }
 
+  /* ----------------------------------------------------- the agent accent */
+
+  /**
+   * Agent Mode wears the same navigation with its own colour.
+   *
+   * The two modes used to render two navigations that looked like two
+   * products: brand-blue stroked glyphs and a pill here, a column of ten 26px
+   * 3D tiles and a green pill there. An agent switching modes was learning a
+   * second interface for the same job. Now the only difference is the accent,
+   * which is the only difference there was ever supposed to be.
+   */
+  .nf-nav__scroll--agent .nf-nav__row--on {
+    background: color-mix(in oklab, var(--nf-mode-agent) 20%, transparent);
+  }
+
+  .nf-nav__scroll--agent .nf-nav__row--on .nf-nav__glyph {
+    color: var(--nf-mode-agent);
+  }
+
+  .nf-nav__scroll--agent .nf-nav__badge {
+    background: var(--nf-mode-agent);
+  }
+
   /* ----------------------------------------------------------- light theme */
 
   :root[data-theme="light"] .nf-nav__row--on {
     background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
+  }
+
+  :root[data-theme="light"] .nf-nav__scroll--agent .nf-nav__row--on {
+    background: color-mix(in oklab, var(--nf-mode-agent) 14%, transparent);
   }
 
   :root[data-theme="light"] .nf-nav__row--on .nf-nav__glyph {

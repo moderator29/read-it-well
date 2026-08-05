@@ -202,6 +202,7 @@ export const ig: Dictionary = {
     },
     nav: {
       dashboard: "Dashboard",
+      money: "Ego",
       myListings: "Ndepụta M",
       listApartment: "Depụta Ụlọ",
       bookings: "Ndebe",
