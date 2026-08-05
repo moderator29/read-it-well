@@ -80,13 +80,26 @@ export const listOccupations = cache(async function listOccupations(): Promise<O
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true })
       .limit(2000);
-    if (error || !data) return [];
+    if (error || !data) {
+      /*
+       * Say why. This used to return [] silently, and the picker renders an
+       * empty list as "We could not load the list just now" - so a real
+       * failure and a genuinely empty table produced the same sentence with
+       * nothing anywhere to tell them apart. The occupations table has 749
+       * rows and occupations_select is `using (true)`, so if this list is
+       * empty in production the cause is environment or connectivity, and
+       * that is exactly what needs to reach the logs.
+       */
+      console.error("[places] occupations read failed", error);
+      return [];
+    }
     return data.map((row) => ({
       code: row.code,
       name: row.name,
       category: row.category,
     }));
-  } catch {
+  } catch (cause) {
+    console.error("[places] occupations read threw", cause);
     return [];
   }
 });

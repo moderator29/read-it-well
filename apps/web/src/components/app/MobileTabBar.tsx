@@ -5,11 +5,10 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 /**
  * Mobile tab bar.
  *
- * Five destinations: District, Explore, Inbox and the Assistant in the capsule,
- * with Profile standing alone beside it. This is deliberately NOT the twelve
- * item desktop rail; a phone tab bar tops out at five before targets get too
- * small, so the rail's remaining destinations live under Profile rather than
- * being crammed in here.
+ * Six destinations: District, Explore, Map, Inbox and the Assistant in the
+ * capsule, with Profile standing alone beside it. This is deliberately NOT the
+ * twelve item desktop rail; the rail's remaining destinations live under
+ * Profile rather than being crammed in here.
  *
  * A floating dock, lifted clear of every edge rather than an edge-to-edge bar:
  * same shape language as the desktop dock, just wide enough to carry primary
@@ -91,6 +90,16 @@ export function MobileTabBar({
   const tabs: Tab[] = [
     { href: "/around", label: t.nav.around, icon: "grid" },
     { href: "/search", label: t.nav.explore, icon: "compass" },
+    /*
+     * The map is back, as an ordinary tab rather than the raised centre button
+     * it used to be. Raised meant a 56px circle with a printed label in a row
+     * of 48px glyphs, which is what "bold and too small" describes: heavier
+     * than everything beside it and carrying 9px type nobody can read.
+     *
+     * It points at ?view=map on the search route, so `showsTabBar` keys off
+     * /search for both this and Explore.
+     */
+    { href: "/search?view=map", label: t.nav.map, icon: "map" },
     { href: "/messages", label: t.nav.messages, icon: "chat-bubble" },
     { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
   ];
