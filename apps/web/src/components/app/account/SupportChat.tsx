@@ -7,6 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { findFaqEntry } from "@/lib/support/faq";
 import { fileSupportTicket } from "@/lib/support/actions";
 import type { SupportAction, SupportStreamEvent, SupportTurn } from "@/lib/support/types";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Help and support, AI first.
@@ -495,15 +496,18 @@ export function SupportChat() {
                 enterKeyHint="send"
                 className="nf-field min-w-0 flex-1"
               />
-              <button
+              <Button
                 type="submit"
+                variant="primary"
+                size="sm"
+                iconOnly
                 aria-label="Send message"
                 data-testid="support-send"
                 disabled={!draft.trim() || streaming}
-                className="nf-btn nf-btn--primary h-10 w-10 shrink-0 rounded-full p-0 disabled:opacity-60"
+                className="shrink-0 rounded-full"
               >
                 <UiIcon name="arrow-right" size={16} className="-rotate-90" />
-              </button>
+              </Button>
             </form>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--nf-border-subtle)] p-3">
@@ -717,15 +721,17 @@ function EscalationCard({
         <p className="mt-2 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">{note}</p>
       )}
 
-      <button
-        type="button"
+      <Button
+        variant="primary"
+        size="sm"
+        full
+        className="mt-3"
         data-testid="support-file"
         onClick={submit}
-        disabled={pending}
-        className="nf-btn nf-btn--primary mt-3 w-full py-2 text-[0.8125rem] disabled:opacity-60"
+        loading={pending}
       >
-        {pending ? "Filing your ticket" : "File the ticket"}
-      </button>
+        File the ticket
+      </Button>
 
       <p className="mt-2 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
         We collect only the name and email above, and use them just to reply to

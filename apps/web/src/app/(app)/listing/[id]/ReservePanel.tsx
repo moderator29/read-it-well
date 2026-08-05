@@ -2,12 +2,13 @@
 
 import { useActionState, useId, useState } from "react";
 import Link from "next/link";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { type Locale } from "@naijafinds/i18n";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { Amount } from "@/components/ui/Amount";
 import { Toggle } from "@/components/app/account/Toggle";
 import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 import { PhoneField } from "@/components/app/PhoneField";
@@ -197,12 +198,16 @@ export function ReservePanel({
           {r.cleaningMinor > 0 && (
             <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
               <dt>Cleaning</dt>
-              <dd className="nf-numeric">{formatMoney(r.cleaningMinor, locale, currency)}</dd>
+              <dd>
+                <Amount minorUnits={r.cleaningMinor} locale={locale} currency={currency} />
+              </dd>
             </div>
           )}
           <div className="flex items-center justify-between font-semibold text-[var(--nf-content-primary)]">
             <dt>Total</dt>
-            <dd className="nf-numeric">{formatMoney(r.totalMinor, locale, currency)}</dd>
+            <dd>
+              <Amount minorUnits={r.totalMinor} locale={locale} currency={currency} />
+            </dd>
           </div>
         </dl>
         <p className="nf-rise mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
@@ -219,7 +224,8 @@ export function ReservePanel({
           full
           className="mt-4"
         >
-          Pay {formatMoney(r.totalMinor, locale, currency)} for this stay
+          Pay <Amount minorUnits={r.totalMinor} locale={locale} currency={currency} /> for this
+          stay
         </ButtonLink>
         <ButtonLink
           href={`/bookings?justBooked=${r.bookingId}`}
@@ -236,11 +242,15 @@ export function ReservePanel({
   return (
     <div className="nf-card p-5" data-testid="reserve-panel">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <p className="flex items-baseline gap-1.5">
-          <span className="nf-numeric text-[1.5rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-            {formatMoney(priceMinor, locale, currency)}
-          </span>
-          <span className="text-[0.8125rem] text-[var(--nf-content-muted)]">/ night</span>
+        <p>
+          <Amount
+            minorUnits={priceMinor}
+            locale={locale}
+            currency={currency}
+            suffix="/ night"
+            className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+            secondaryClassName="text-[0.54em] font-semibold opacity-60"
+          />
         </p>
 
         {instantBook && (
@@ -423,12 +433,18 @@ export function ReservePanel({
         {ready && (
           <div className="mt-3.5 border-t border-[var(--nf-border-subtle)] pt-3.5">
             <div className="flex items-baseline justify-between gap-3">
-              <span className="text-[1.0625rem] font-bold text-[var(--nf-content-primary)]">
-                <span className="nf-numeric">{formatMoney(totalMinor, locale, currency)}</span>{" "}
-                <span className="text-[0.8125rem] font-medium text-[var(--nf-content-muted)]">
-                  total
-                </span>
-              </span>
+              {/* The `Amount` primitive, not a hand-assembled figure: the
+                  tabular digits, the locale-built currency symbol and the
+                  two-tone qualifier all come from one place. "total" is the
+                  suffix the primitive was written for. */}
+              <Amount
+                minorUnits={totalMinor}
+                locale={locale}
+                currency={currency}
+                suffix="total"
+                className="text-[1.0625rem] font-bold text-[var(--nf-content-primary)]"
+                secondaryClassName="text-[0.8125rem] font-medium text-[var(--nf-content-muted)]"
+              />
               <button
                 type="button"
                 onClick={() => setShowPerNight((v) => !v)}
@@ -443,10 +459,12 @@ export function ReservePanel({
               <dl className="mt-2.5 space-y-1.5 text-[0.875rem]">
                 <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
                   <dt>
-                    {formatMoney(priceMinor, locale, currency)} &times; {nights}{" "}
-                    {nights === 1 ? "night" : "nights"}
+                    <Amount minorUnits={priceMinor} locale={locale} currency={currency} /> &times;{" "}
+                    {nights} {nights === 1 ? "night" : "nights"}
                   </dt>
-                  <dd className="nf-numeric">{formatMoney(subtotalMinor, locale, currency)}</dd>
+                  <dd>
+                    <Amount minorUnits={subtotalMinor} locale={locale} currency={currency} />
+                  </dd>
                 </div>
                 {/* Named separately, never folded into one figure. A guest
                     comparing two places has to be able to see which of them
@@ -454,22 +472,28 @@ export function ReservePanel({
                 {cleaningMinor > 0 && (
                   <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
                     <dt>Cleaning</dt>
-                    <dd className="nf-numeric">{formatMoney(cleaningMinor, locale, currency)}</dd>
+                    <dd>
+                      <Amount minorUnits={cleaningMinor} locale={locale} currency={currency} />
+                    </dd>
                   </div>
                 )}
                 {serviceMinor > 0 && (
                   <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
                     <dt>Service charge</dt>
-                    <dd className="nf-numeric">{formatMoney(serviceMinor, locale, currency)}</dd>
+                    <dd>
+                      <Amount minorUnits={serviceMinor} locale={locale} currency={currency} />
+                    </dd>
                   </div>
                 )}
                 <div className="flex items-center justify-between border-t border-[var(--nf-border-subtle)] pt-1.5 font-semibold text-[var(--nf-content-primary)]">
                   <dt>Total</dt>
-                  <dd className="nf-numeric">{formatMoney(totalMinor, locale, currency)}</dd>
+                  <dd>
+                    <Amount minorUnits={totalMinor} locale={locale} currency={currency} />
+                  </dd>
                 </div>
                 <p className="pt-0.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
                   RentMe adds nothing of its own. Every figure here is the
-                  host's.
+                  host&apos;s.
                 </p>
               </dl>
             )}

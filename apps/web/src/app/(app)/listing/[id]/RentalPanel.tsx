@@ -1,7 +1,8 @@
-import Link from "next/link";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { type Locale } from "@naijafinds/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
+import { Amount } from "@/components/ui/Amount";
 
 /**
  * The panel for rental listings, the serious rent market.
@@ -34,11 +35,15 @@ export function RentalPanel({
 }) {
   return (
     <div className="nf-card p-5" data-testid="rental-panel">
-      <p className="flex items-baseline gap-1.5">
-        <span className="nf-numeric text-[1.5rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-          {formatMoney(priceMinor, locale, currency)}
-        </span>
-        <span className="text-[0.8125rem] text-[var(--nf-content-muted)]">/ year</span>
+      <p>
+        <Amount
+          minorUnits={priceMinor}
+          locale={locale}
+          currency={currency}
+          suffix="/ year"
+          className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+          secondaryClassName="text-[0.54em] font-semibold opacity-60"
+        />
       </p>
       <p className="mt-1 text-[0.8125rem] text-[var(--nf-content-secondary)]">
         Annual tenancy, agreed with the agent after an inspection.
@@ -62,13 +67,16 @@ export function RentalPanel({
         ))}
       </ol>
 
-      <Link
+      <ButtonLink
         href={`/messages/new?listing=${listingId}`}
-        className="nf-btn nf-btn--primary mt-4 w-full"
+        variant="primary"
+        full
+        className="mt-4"
+        leadingIcon="chat-bubble"
       >
         <UiIcon name="chat-bubble" size={16} />
         Message agent
-      </Link>
+      </ButtonLink>
 
       {/* The trust block: an object large enough to read as content, so this is
           the one place on the panel that takes a 3D brand icon. */}

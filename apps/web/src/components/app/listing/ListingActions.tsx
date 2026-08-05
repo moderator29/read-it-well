@@ -134,14 +134,19 @@ export function ListingActions({
   }
 
   return (
-    <div className="absolute right-3 top-3 z-20 flex flex-col items-end gap-2 sm:right-4 sm:top-4">
+    /*
+     * `nf-safe-top` is padding rather than an offset, so these clear the notch
+     * while the photography still runs full bleed behind them. 44px squares,
+     * which is the App Store minimum and what the pair used to miss by four.
+     */
+    <div className="nf-safe-top absolute right-3 top-3 z-20 flex flex-col items-end gap-2 sm:right-4 sm:top-4">
       <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={share}
           aria-label="Share this listing"
           data-testid="listing-share"
-          className="grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90"
+          className="grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="share" size={16} />
         </button>
@@ -152,7 +157,7 @@ export function ListingActions({
           aria-pressed={saved}
           aria-label={saved ? "Remove from saved" : "Save this listing"}
           data-testid="listing-save"
-          className="grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90 disabled:opacity-70"
+          className="grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90 disabled:opacity-70 motion-reduce:transition-none"
         >
           <UiIcon
             name="heart"

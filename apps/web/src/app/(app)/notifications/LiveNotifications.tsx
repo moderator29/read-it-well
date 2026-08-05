@@ -8,6 +8,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { markNotificationsRead } from "@/lib/messages/notifications-actions";
 import { lagosTimeLabel } from "@/lib/messages/time";
 import { useNotificationsRealtime, type LiveNotificationRow } from "@/lib/messages/useRealtime";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
 /**
  * The signed-in notifications inbox.
@@ -102,14 +103,14 @@ export function LiveNotifications({
       title="Notifications"
       actions={
         unreadCount > 0 ? (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={markAll}
             data-testid="notifications-mark-all"
-            className="nf-btn nf-btn--ghost nf-btn--sm"
           >
             Mark all read
-          </button>
+          </Button>
         ) : undefined
       }
     />
@@ -129,9 +130,9 @@ export function LiveNotifications({
             district will land here the moment it does.
           </p>
           <div className="mt-5 flex justify-center">
-            <Link href="/search" className="nf-btn nf-btn--primary">
+            <ButtonLink href="/search" variant="primary">
               Explore places
-            </Link>
+            </ButtonLink>
           </div>
         </div>
       </div>

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
   title: "About",
@@ -149,13 +148,17 @@ export default function AboutPage() {
               want to join the team, there is a place for you here.
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-              <Link href="/agents" className="nf-btn nf-btn--primary nf-btn--lg">
+              <ButtonLink
+                href="/agents"
+                variant="primary"
+                size="lg"
+                trailingIcon="arrow-right"
+              >
                 Become an agent
-                <UiIcon name="arrow-right" size={20} />
-              </Link>
-              <Link href="/careers" className="nf-btn nf-btn--glass nf-btn--lg">
+              </ButtonLink>
+              <ButtonLink href="/careers" variant="secondary" size="lg">
                 See careers
-              </Link>
+              </ButtonLink>
             </div>
           </div>
         </Reveal>

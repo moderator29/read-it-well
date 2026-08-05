@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PostGlyph } from "@/components/social/feed/PostGlyph";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import {
   blockUser,
   muteTarget,
@@ -67,8 +68,37 @@ export function ProfileMenu({
   const [pending, startTransition] = useTransition();
   const menuRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
+  const confirmRef = useRef<HTMLDivElement>(null);
+  const blockedRef = useRef<HTMLDivElement>(null);
 
   const who = displayLabel || `@${handle}`;
+
+  const cancelBlock = useCallback(() => setConfirmBlock(false), []);
+  /* The blocked result has no dismiss. See the note on its hook below. */
+  const noop = useCallback(() => {}, []);
+
+  /*
+   * Three overlays live in this component and they are not the same kind of
+   * thing, so they do not get the same treatment.
+   *
+   * The MENU is a `role="menu"` popover. It never claimed `aria-modal` and it
+   * must not start: a menu is not a modal, nothing behind it is inert, and
+   * trapping Tab in a four-row popover strands the keyboard. It keeps Escape
+   * and its focus return, which it already had, and that is the whole
+   * contract for a popover.
+   *
+   * The BLOCK CONFIRM and the BLOCKED RESULT are both `aria-modal` and both
+   * cover the page, so both go on the shared hook and own focus while up.
+   * They cannot appear together: `blocked` returns early below, so the
+   * confirm is unmounted by the time the result renders.
+   */
+  useOverlay({ open: confirmBlock, onClose: cancelBlock, panelRef: confirmRef });
+  /* No `onClose`: this is a terminal state, not a dismissable overlay. The
+     way out is "Back to Around" or "Undo the block", both inside it. Escape
+     resolving to nothing is correct; what matters is that Tab cannot reach
+     the profile behind, which is the page that just stopped existing for
+     this reader. */
+  useOverlay({ open: blocked, onClose: noop, panelRef: blockedRef });
 
   useEffect(() => {
     if (!open) return;
@@ -168,7 +198,7 @@ export function ProfileMenu({
         aria-modal="true"
         aria-label={`You blocked ${who}`}
       >
-        <div className="nf-social-sheet__panel">
+        <div ref={blockedRef} className="nf-social-sheet__panel">
           <h2 className="nf-h3 text-[1.15rem]">You blocked {who}</h2>
           <p className="mt-3 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
             {POST_COPY.blockedDone}
@@ -308,7 +338,7 @@ export function ProfileMenu({
           aria-modal="true"
           aria-label={`Block ${who}?`}
         >
-          <div className="nf-social-sheet__panel">
+          <div ref={confirmRef} className="nf-social-sheet__panel">
             <h2 className="nf-h3 text-[1.15rem]">Block {who}?</h2>
             <p className="mt-3 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               You will not see each other anywhere on RentMe. Their page stops
@@ -330,7 +360,7 @@ export function ProfileMenu({
               </button>
               <button
                 type="button"
-                onClick={() => setConfirmBlock(false)}
+                onClick={cancelBlock}
                 disabled={pending}
                 className="nf-btn nf-btn--ghost flex-1"
               >

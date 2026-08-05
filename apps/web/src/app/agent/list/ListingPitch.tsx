@@ -1,6 +1,6 @@
-import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * What a visitor sees at /agent/list when they are not an approved agent.
@@ -54,17 +54,17 @@ export function ListingPitch({ copy, signedIn }: { copy: PitchCopy; signedIn: bo
       </ul>
 
       <div className="mt-7 flex flex-col gap-4">
-        <Link href="/agents/apply" className="nf-btn nf-btn--primary">
+        <ButtonLink href="/agents/apply" variant="primary">
           {copy.apply}
-        </Link>
+        </ButtonLink>
         {!signedIn && (
-          <Link href="/sign-in" className="nf-btn nf-btn--glass">
+          <ButtonLink href="/sign-in" variant="secondary">
             {copy.signIn}
-          </Link>
+          </ButtonLink>
         )}
-        <Link href="/agents" className="nf-btn nf-btn--glass">
+        <ButtonLink href="/agents" variant="secondary">
           {copy.how}
-        </Link>
+        </ButtonLink>
       </div>
     </div>
   );

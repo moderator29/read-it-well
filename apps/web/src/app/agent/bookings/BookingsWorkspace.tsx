@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
-import { useOverlay } from "@/lib/ui/use-overlay";
-import { createPortal } from "react-dom";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatMoney, formatDate, type Dictionary, type Locale } from "@naijafinds/i18n";
 import { fill } from "../_copy";
@@ -11,6 +9,7 @@ import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-schema";
 import type { BookingStatus, HostBooking, HostBookingBoard } from "@/lib/agent/bookings-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { Sheet } from "@/components/ui/Sheet";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 /**
@@ -70,18 +69,11 @@ function DecisionSheet({
   onClose: () => void;
 }) {
   const router = useRouter();
-  const panel = useRef<HTMLDivElement | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [reasonError, setReasonError] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const copy = state.kind === "accept" ? t.accept : t.decline;
-
-  useOverlay({ open: true, onClose, panelRef: panel, autoFocus: false });
-
-  useEffect(() => {
-    panel.current?.focus();
-  }, []);
 
   function run() {
     setError(null);
@@ -104,88 +96,15 @@ function DecisionSheet({
 
   const declineDisabled = state.kind === "decline" && reason.trim().length === 0;
 
-  return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
-      <button
-        type="button"
-        aria-label={t.actions.close}
-        className="absolute inset-0 bg-black/60"
-        onClick={onClose}
-      />
-      <div
-        ref={panel}
-        tabIndex={-1}
-        role="dialog"
-        aria-modal="true"
-        aria-label={copy.title}
-        className="nf-card relative w-full max-w-md p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] outline-none sm:pb-5"
-      >
-        <h2 className="nf-h3">{copy.title}</h2>
-        <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-          {copy.body}
-        </p>
-        <p className="mt-3 truncate text-[0.8125rem] font-semibold">
-          {state.booking.guestName} &middot; {state.booking.listingTitle}
-        </p>
-
-        {state.kind === "decline" && (
-          <div className="mt-4">
-            <label
-              htmlFor="decline-reason"
-              className="mb-1.5 block text-[0.8125rem] font-semibold"
-            >
-              {t.decline.reasonLabel}
-            </label>
-            <textarea
-              id="decline-reason"
-              className="nf-field min-h-[5.5rem] resize-none text-[0.875rem]"
-              placeholder={t.decline.reasonPlaceholder}
-              value={reason}
-              maxLength={240}
-              aria-invalid={reasonError ? "true" : undefined}
-              onChange={(e) => setReason(e.target.value)}
-            />
-            <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
-              {t.decline.reasonHint}
-            </p>
-            {reasonError && (
-              <p className="mt-1 text-[0.75rem] font-medium text-[var(--nf-state-warning)]">
-                {reasonError}
-              </p>
-            )}
-
-            <p className="mb-2 mt-3 text-[0.75rem] font-medium text-[var(--nf-content-muted)]">
-              {t.decline.suggestionsLabel}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {SUGGESTION_KEYS.map((key) => (
-                <button
-                  key={key}
-                  type="button"
-                  className="nf-chip !py-1.5 !text-[0.75rem]"
-                  onClick={() => setReason(t.decline.suggestions[key])}
-                >
-                  {t.decline.suggestions[key]}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <p
-            className="mt-3 rounded-[var(--nf-radius-md)] p-3 text-[0.8125rem] font-medium"
-            style={{
-              background: "var(--nf-state-warning-surface)",
-              color: "var(--nf-state-warning)",
-            }}
-            role="alert"
-          >
-            {error}
-          </p>
-        )}
-
-        <div className="mt-5 flex gap-4">
+  return (
+    <Sheet
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={copy.title}
+      footer={
+        <div className="flex gap-4">
           <Button variant="secondary" className="flex-1" onClick={onClose}>
             {t.actions.back}
           </Button>
@@ -199,9 +118,73 @@ function DecisionSheet({
             {copy.confirm}
           </Button>
         </div>
-      </div>
-    </div>,
-    document.body,
+      }
+    >
+      <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        {copy.body}
+      </p>
+      <p className="mt-3 truncate text-[0.8125rem] font-semibold">
+        {state.booking.guestName} &middot; {state.booking.listingTitle}
+      </p>
+
+      {state.kind === "decline" && (
+        <div className="mt-4">
+          <label
+            htmlFor="decline-reason"
+            className="mb-1.5 block text-[0.8125rem] font-semibold"
+          >
+            {t.decline.reasonLabel}
+          </label>
+          <textarea
+            id="decline-reason"
+            className="nf-field min-h-[5.5rem] resize-none text-[0.875rem]"
+            placeholder={t.decline.reasonPlaceholder}
+            value={reason}
+            maxLength={240}
+            aria-invalid={reasonError ? "true" : undefined}
+            onChange={(e) => setReason(e.target.value)}
+          />
+          <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+            {t.decline.reasonHint}
+          </p>
+          {reasonError && (
+            <p className="mt-1 text-[0.75rem] font-medium text-[var(--nf-state-warning)]">
+              {reasonError}
+            </p>
+          )}
+
+          <p className="mb-2 mt-3 text-[0.75rem] font-medium text-[var(--nf-content-muted)]">
+            {t.decline.suggestionsLabel}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {SUGGESTION_KEYS.map((key) => (
+              <button
+                key={key}
+                type="button"
+                className="nf-chip !py-1.5 !text-[0.75rem]"
+                onClick={() => setReason(t.decline.suggestions[key])}
+              >
+                {t.decline.suggestions[key]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <p
+          className="mt-3 rounded-[var(--nf-radius-md)] p-3 text-[0.8125rem] font-medium"
+          style={{
+            background: "var(--nf-state-warning-surface)",
+            color: "var(--nf-state-warning)",
+          }}
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
+
+    </Sheet>
   );
 }
 

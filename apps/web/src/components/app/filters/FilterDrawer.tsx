@@ -18,6 +18,7 @@ import {
   type DiscoveryQuery,
 } from "@/lib/listings/search-params";
 import { amenityLabel, sortAmenityCodes } from "./amenities";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The filter control and its drawer.
@@ -136,61 +137,6 @@ function sliderScale(low: number | undefined, high: number | undefined) {
 }
 
 /* ------------------------------------------------------------- small parts */
-
-function Stepper({
-  label,
-  hint,
-  value,
-  max,
-  onChange,
-}: {
-  label: string;
-  hint: string;
-  value: number;
-  max: number;
-  onChange: (next: number) => void;
-}) {
-  const id = `stepper-${label.toLowerCase().replace(/[^a-z]+/g, "-")}`;
-  return (
-    <div className="flex items-center justify-between gap-4 py-2">
-      <div className="min-w-0">
-        <p id={id} className="text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
-          {label}
-        </p>
-        <p className="text-[0.75rem] text-[var(--nf-content-muted)]">{hint}</p>
-      </div>
-      <div className="flex shrink-0 items-center gap-1.5">
-        <button
-          type="button"
-          aria-label={`Fewer ${label.toLowerCase()}`}
-          disabled={value <= 0}
-          onClick={() => onChange(Math.max(0, value - 1))}
-          className="nf-icon-btn h-11 w-11 disabled:opacity-35"
-        >
-          <span className="block h-[2px] w-3.5 rounded-full bg-current" aria-hidden="true" />
-        </button>
-        <output
-          aria-labelledby={id}
-          className="nf-numeric w-14 text-center text-[0.875rem] font-semibold text-[var(--nf-content-primary)]"
-        >
-          {value === 0 ? "Any" : `${value}+`}
-        </output>
-        <button
-          type="button"
-          aria-label={`More ${label.toLowerCase()}`}
-          disabled={value >= max}
-          onClick={() => onChange(Math.min(max, value + 1))}
-          className="nf-icon-btn h-11 w-11 disabled:opacity-35"
-        >
-          <span className="relative block h-3.5 w-3.5" aria-hidden="true">
-            <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 rounded-full bg-current" />
-            <span className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2 rounded-full bg-current" />
-          </span>
-        </button>
-      </div>
-    </div>
-  );
-}
 
 function Switch({
   label,
@@ -602,26 +548,28 @@ export function FilterDrawer({
             the thing a thumb lands on by accident. */}
         <div className="nf-glass border-t border-[var(--nf-border-subtle)] px-4 py-3">
           <div className="mx-auto grid max-w-2xl gap-2">
-            <button
-              type="button"
+            <Button
+              variant="primary"
               data-testid="filters-apply"
               onClick={apply}
-              className="nf-btn nf-btn--primary min-h-12 w-full text-[0.9375rem]"
+              full
+              className="min-h-12 text-[0.9375rem]"
             >
               {matchCount === 0
                 ? "No places match yet"
                 : `Apply filters, ${formatNumber(matchCount, locale)} ${
                     matchCount === 1 ? noun.one : noun.many
                   }`}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="ghost"
               data-testid="filters-clear"
               onClick={clearAll}
-              className="nf-btn nf-btn--ghost min-h-11 w-full text-[0.875rem]"
+              full
+              className="min-h-11 text-[0.875rem]"
             >
               Reset
-            </button>
+            </Button>
           </div>
         </div>
       </div>

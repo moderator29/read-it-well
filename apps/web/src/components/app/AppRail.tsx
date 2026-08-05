@@ -76,25 +76,47 @@ export function AppRail({
         <Link
           href={item.href}
           aria-current={isActive ? "page" : undefined}
+          /*
+           * The drawer row is deliberately bigger than the desktop rail row.
+           * On a phone this is the primary navigation surface and it is being
+           * hit with a thumb, so the reference gives each row real height, a
+           * generous glyph and a heavier label. The rail stays compact because
+           * it is a persistent sidebar competing with content for width.
+           */
           className={[
-            "group flex items-center gap-3 rounded-[var(--nf-radius-md)] px-3 py-2.5 text-[0.9rem] font-medium transition-colors",
+            "group flex items-center rounded-[var(--nf-radius-lg)] transition-colors",
+            variant === "drawer"
+              ? "gap-4 px-3 py-3.5 text-[1.0625rem] font-semibold tracking-[-0.01em]"
+              : "gap-3 px-3 py-2.5 text-[0.9rem] font-medium",
             isActive
               ? "bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-content-primary)]"
               : "text-[var(--nf-content-primary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
           ].join(" ")}
         >
-          {/* Stroked glyph, 22px in the drawer and 24px on the desktop rail.
-              It follows the row text: muted at rest, full strength active. */}
-          <UiIcon
-            name={item.icon}
-            size={24}
+          {/*
+            The glyph fills on the active row rather than only changing colour,
+            and sits in a tinted tile in the drawer so the row reads as an
+            object rather than a line of text with a mark in front of it.
+          */}
+          <span
             className={[
-              "h-[22px] w-[22px] shrink-0 transition-colors lg:h-6 lg:w-6",
-              isActive
-                ? ""
-                : "text-[var(--nf-content-primary)] group-hover:text-[var(--nf-content-primary)]",
+              "flex shrink-0 items-center justify-center transition-colors",
+              variant === "drawer"
+                ? "h-11 w-11 rounded-[var(--nf-radius-md)]"
+                : "h-6 w-6",
+              variant === "drawer" && isActive
+                ? "bg-[color-mix(in_oklab,var(--nf-brand-primary)_28%,transparent)] text-[var(--nf-brand-secondary)]"
+                : variant === "drawer"
+                  ? "bg-[var(--nf-glass-fill)] text-[var(--nf-content-primary)]"
+                  : "",
             ].join(" ")}
-          />
+          >
+            <UiIcon
+              name={item.icon}
+              size={variant === "drawer" ? 20 : 24}
+              filled={isActive}
+            />
+          </span>
           <span className="flex-1">{item.label}</span>
           {item.badge ? (
             <span className="nf-numeric nf-badge nf-badge--brand">{item.badge}</span>

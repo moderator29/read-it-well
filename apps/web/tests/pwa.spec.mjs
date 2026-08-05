@@ -102,11 +102,28 @@ try {
   await page.waitForTimeout(WAIT);
   const manifestHref = await page.locator('link[rel="manifest"]').first().getAttribute("href");
   check("the document links the manifest route", manifestHref === "/manifest.webmanifest");
-  const themeColor = await page
-    .locator('meta[name="theme-color"]')
+  /*
+   * There are two theme-color tags now, one per colour scheme: a single navy
+   * for both themes put near-black browser chrome above a near-white canvas in
+   * light mode. The dark one must track --nf-surface-canvas so install, splash
+   * and app canvas stay one continuous colour.
+   */
+  const darkThemeColor = await page
+    .locator('meta[name="theme-color"][media*="dark"]')
     .first()
     .getAttribute("content");
-  check("theme-color meta is the brand navy", String(themeColor).toLowerCase() === "#010118");
+  check(
+    "the dark theme-color meta matches the app canvas",
+    String(darkThemeColor).toLowerCase() === "#010118",
+  );
+  const lightThemeColor = await page
+    .locator('meta[name="theme-color"][media*="light"]')
+    .first()
+    .getAttribute("content");
+  check(
+    "the light theme-color meta matches the paper canvas",
+    String(lightThemeColor).toLowerCase() === "#f4f5f7",
+  );
   check(
     "apple-mobile-web-app-capable is set",
     (await page.locator('meta[name="apple-mobile-web-app-capable"][content="yes"]').count()) === 1,

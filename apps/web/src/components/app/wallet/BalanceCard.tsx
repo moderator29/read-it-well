@@ -6,6 +6,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Odometer } from "@/components/site/Odometer";
 import type { WalletEntry } from "@/lib/wallet/types";
 import { formatKoboExact } from "./money";
+import { Amount } from "@/components/ui/Amount";
 
 /**
  * Wallet balance hero.
@@ -64,12 +65,24 @@ export function BalanceCard({
   balanceMinor,
   entries,
   locale,
+  usdRate,
 }: {
   balanceMinor: number;
   entries: WalletEntry[];
   locale: Locale;
+  /**
+   * Naira per one US dollar. Optional on purpose.
+   *
+   * This wallet states real money, so a rate is either a real rate or it is
+   * not shown. There is deliberately no fallback constant: a hard-coded FX
+   * figure would put an invented number where a user reads their balance,
+   * which is the one place on the platform that must never be approximated.
+   * With no rate configured the toggle does not render at all.
+   */
+  usdRate?: number | null;
 }) {
   const [hidden, setHidden] = useState(false);
+  const [inUsd, setInUsd] = useState(false);
   const { kobo } = formatKoboExact(balanceMinor, locale);
   // Integer naira, no floats: the kobo remainder is stripped by the same
   // exact arithmetic as formatKoboExact, then the rest is a whole multiple
@@ -79,8 +92,6 @@ export function BalanceCard({
   const wholeNaira = (absMinor - koboRemainder) / 100;
   const { inMinor, outMinor } = useMemo(() => flowsLast30Days(entries), [entries]);
   const points = useMemo(() => sparklinePoints(entries), [entries]);
-  const flowIn = formatKoboExact(inMinor, locale);
-  const flowOut = formatKoboExact(outMinor, locale);
 
   // A brief light pulse plays through the card the moment the balance moves:
   // upward when money lands, downward when it leaves. Detected client-side
@@ -136,6 +147,17 @@ export function BalanceCard({
           Available balance
         </p>
         <div className="flex items-center gap-2">
+          {usdRate ? (
+            <button
+              type="button"
+              onClick={() => setInUsd((v) => !v)}
+              aria-pressed={inUsd}
+              aria-label={inUsd ? "Show balance in naira" : "Show balance in US dollars"}
+              className="nf-chip min-h-11 px-3 font-bold"
+            >
+              {inUsd ? "$" : "\u20A6"}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => setHidden((h) => !h)}
@@ -151,63 +173,135 @@ export function BalanceCard({
         </div>
       </div>
 
-      <p className="relative mt-3 text-[var(--nf-content-primary)]">
+      {/*
+        The hero figure. This was already the one two-tone numeral on the whole
+        platform, and it stays two-tone - the kobo just drops further, to the
+        muted ink at 62% of the figure's size, which is the ratio the reference
+        set uses. Bigger, tighter and with the kobo further back reads as one
+        composed number rather than two sizes of text.
+
+        This is the one money figure on the platform NOT set through <Amount>:
+        the whole-naira part is an Odometer that rolls to its new value when
+        money moves, and Amount renders a static string. The flow tiles below
+        and every ledger row underneath it do go through Amount.
+      */}
+      <p className="nf-numeric relative mt-3 leading-none text-[var(--nf-content-primary)]">
         {hidden ? (
-          <span className="text-[2.25rem] font-bold leading-none tracking-tight sm:text-[2.6rem]">
-            {"₦"}
-            {"••••••"}
+          <span className="text-[2.5rem] font-bold tracking-[-0.03em] sm:text-[3rem]">
+            {inUsd ? "$" : "\u20A6"}
+            {"\u2022\u2022\u2022\u2022\u2022\u2022"}
           </span>
+        ) : inUsd && usdRate ? (
+          /*
+             The converted view. Deliberately NOT an Odometer: the roll animation
+             means "your balance changed", and switching display currency has not
+             changed anyone's balance. It is also rendered through <Amount> so the
+             cents fall back to the muted tone exactly like the kobo do.
+          */
+          <Amount
+            minorUnits={Math.round(balanceMinor / usdRate)}
+            locale={locale}
+            currency="USD"
+            showFraction
+            className="text-[2.5rem] font-bold tracking-[-0.03em] sm:text-[3rem]"
+            secondaryClassName="text-[0.62em] font-semibold text-[var(--nf-content-muted)]"
+          />
         ) : (
           <>
             <span className="text-[2.25rem] font-bold leading-none tracking-tight sm:text-[2.6rem]">
               {"₦"}
               <Odometer value={wholeNaira} locale={locale} className="nf-odometer-figure" />
             </span>
-            <span className="text-[1.25rem] font-semibold text-[var(--nf-content-secondary)] sm:text-[1.4rem]">
+            <span className="text-[1.55rem] font-semibold text-[var(--nf-content-muted)] sm:text-[1.86rem]">
               {kobo}
             </span>
           </>
         )}
       </p>
       <p className="relative mt-2 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
-        Naira wallet. Every movement is recorded to the kobo.
+        {inUsd && usdRate
+          ? `Converted at \u20A6${usdRate.toLocaleString()} to $1. Your wallet is held in naira.`
+          : "Naira wallet. Every movement is recorded to the kobo."}
       </p>
 
+      {/*
+        Flow tiles. `bg-white/[0.04]` and `border-white/10` were raw literals
+        that inverted badly on paper - a white wash over a white card. They now
+        take the inset surface and the elevation ladder's hairline, so both
+        themes are handled by tokens.
+
+        Money out is painted in the error ink rather than neutral. A ledger
+        where credits are green and debits are the same colour as the label is
+        the exact tell the reference wallets avoid: the eye should be able to
+        find money leaving without reading a sign.
+      */}
       <div className="relative mt-4 grid grid-cols-2 gap-2">
-        <div className="rounded-[var(--nf-radius-md)] border border-white/10 bg-white/[0.04] px-3 py-2">
+        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] px-3 py-2">
           <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
             In, last 30 days
           </p>
-          <p className="mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-success)]">
-            {hidden ? "••••" : `+${flowIn.whole}${flowIn.kobo}`}
+          <p className="nf-numeric mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-success)]">
+            {hidden ? (
+              "••••"
+            ) : (
+              <>
+                +<Amount minorUnits={inMinor} locale={locale} showFraction />
+              </>
+            )}
           </p>
         </div>
-        <div className="rounded-[var(--nf-radius-md)] border border-white/10 bg-white/[0.04] px-3 py-2">
+        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] px-3 py-2">
           <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
             Out, last 30 days
           </p>
-          <p className="mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-content-primary)]">
-            {hidden ? "••••" : `-${flowOut.whole}${flowOut.kobo}`}
+          <p className="nf-numeric mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-error)]">
+            {hidden ? (
+              "••••"
+            ) : (
+              <>
+                -<Amount minorUnits={outMinor} locale={locale} showFraction />
+              </>
+            )}
           </p>
         </div>
       </div>
 
       {points && (
+        /*
+         * The sparkline.
+         *
+         * Was a bare polyline with its stroke hard-coded to rgb(56 189 248) -
+         * a sky blue that belongs to no token, sits outside the brand family,
+         * and is close to invisible on the light theme's near-white card. It
+         * also carried a permanent glow filter and no area fill, so it read as
+         * a stray scribble rather than a chart.
+         *
+         * It now takes the brand ink through currentColor, so both themes are
+         * handled by one rule, and gains the gradient area fill the reference
+         * chart has under its line. The fill is what turns a line into a chart.
+         */
         <svg
           viewBox="0 0 100 28"
           preserveAspectRatio="none"
           aria-hidden
-          className="nf-wallet-spark relative mt-4 h-9 w-full"
+          className="nf-wallet-spark relative mt-4 h-9 w-full text-[var(--nf-brand-secondary)]"
         >
+          <defs>
+            <linearGradient id="nf-wallet-spark-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="currentColor" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {/* Closed down to the baseline so the gradient has an area to fill. */}
+          <polygon points={`0,28 ${points} 100,28`} fill="url(#nf-wallet-spark-fill)" />
           <polyline
             points={points}
             fill="none"
-            stroke="rgb(56 189 248 / 0.9)"
+            stroke="currentColor"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
-            style={{ filter: "drop-shadow(0 0 5px rgb(56 189 248 / 0.75))" }}
           />
         </svg>
       )}

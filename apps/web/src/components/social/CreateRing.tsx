@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { PostGlyph } from "./feed/PostGlyph";
 
 /**
@@ -119,6 +120,12 @@ export function CreateRing({
   const panelRef = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(false);
 
+  /* Escape, the Tab trap, the counted scroll lock and the focus return. The
+     hand-rolled version had the first and third of those and neither of the
+     other two, so Tab left the ring and focus never came back to the button
+     that opened it. */
+  useOverlay({ open, onClose, panelRef });
+
   useEffect(() => {
     if (!open) {
       setShown(false);
@@ -126,20 +133,8 @@ export function CreateRing({
     }
     /* One frame later, so the petals have a state to travel from. */
     const raf = window.requestAnimationFrame(() => setShown(true));
-    panelRef.current?.querySelector<HTMLElement>("button, a")?.focus();
-
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.cancelAnimationFrame(raf);
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previous;
-    };
-  }, [open, onClose]);
+    return () => window.cancelAnimationFrame(raf);
+  }, [open]);
 
   if (!open) return null;
 

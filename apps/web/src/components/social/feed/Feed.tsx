@@ -6,7 +6,13 @@ import { PostCard, type PostView } from "./PostCard";
 import { Composer } from "./Composer";
 import { ReportSheet } from "../ReportSheet";
 import { ActionSheet, actionsForPost } from "../ActionSheet";
-import { DistrictChips, DistrictHeader, type DistrictChip } from "./DistrictHeader";
+import {
+  DistrictChips,
+  DistrictHeader,
+  districtPanelId,
+  districtTabId,
+  type DistrictChip,
+} from "./DistrictHeader";
 import { StoryGrid } from "../story/StoryGrid";
 import { ReviewList } from "../profile/ReviewList";
 import { EmptyPanel } from "../profile/EmptyPanel";
@@ -267,7 +273,33 @@ export function Feed({
         </>
       ) : null}
 
-      {district && chip === "stories" ? (
+      {/*
+        * The region the chips filter, named so they can point at it.
+        *
+        * `DistrictChips` declared `role="tablist"` over five `role="tab"`
+        * buttons and there was no `role="tabpanel"` anywhere on the page, so
+        * the tab set promised a relationship that did not exist: a screen
+        * reader heard "tab 3 of 5" and had nothing to move to. One panel,
+        * because one region changes; the live chip is the only one that names
+        * it, exactly as `ProfileTabs` does.
+        *
+        * The tab attributes are conditional because the chips are: no chips
+        * outside a district feed, so no panel to be a panel of. The flex
+        * classes are the parent's own, so the gap between these children is
+        * the value it always was.
+        */}
+      <div
+        {...(district && areaName
+          ? {
+              id: districtPanelId(chip),
+              role: "tabpanel",
+              "aria-labelledby": districtTabId(chip),
+              tabIndex: -1,
+            }
+          : {})}
+        className="flex flex-col gap-[var(--nf-feed-gap)]"
+      >
+        {district && chip === "stories" ? (
         <StoryGrid stories={district.stories} handle={areaName ?? "this place"} isOwner={false} />
       ) : null}
 
@@ -352,7 +384,8 @@ export function Feed({
             </div>
           ) : null}
         </div>
-      ))}
+        ))}
+      </div>
 
       {sheetFor ? (
         <ActionSheet

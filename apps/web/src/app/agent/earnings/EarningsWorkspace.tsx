@@ -1,8 +1,9 @@
-import { formatDate, formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
-import Link from "next/link";
+import { formatDate, type Dictionary, type Locale } from "@naijafinds/i18n";
 import { fill } from "../_copy";
 import type { AgentEarnings } from "@/lib/agent/earnings-queries";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { ButtonLink } from "@/components/ui/Button";
+import { Amount, Figure } from "@/components/ui/Amount";
 
 /**
  * The host's earnings console: what has actually settled, read straight from
@@ -23,6 +24,14 @@ function monthLabel(year: number, month: number, locale: Locale): string {
   return formatDate(date, locale, { month: "long", year: "numeric" });
 }
 
+/**
+ * A totals tile.
+ *
+ * The figure used to carry `truncate`, which on a phone clipped a real host's
+ * lifetime share to "₦12,500,0…". A clipped number is not a shortened number,
+ * it is a wrong one, so the figure is never truncated: the tile grows and the
+ * digits stay whole.
+ */
 function Tile({
   icon,
   label,
@@ -30,7 +39,7 @@ function Tile({
 }: {
   icon: BrandIconName;
   label: string;
-  value: string;
+  value: React.ReactNode;
 }) {
   return (
     <div className="nf-card flex flex-col gap-2 p-3.5 sm:gap-2.5 sm:p-4">
@@ -39,13 +48,15 @@ function Tile({
       </span>
       <div className="min-w-0">
         <p className="leading-snug text-[0.75rem] font-medium text-[var(--nf-content-muted)]">{label}</p>
-        <p className="nf-numeric mt-0.5 truncate text-[1.0625rem] font-bold leading-tight text-[var(--nf-content-primary)] sm:text-[1.25rem]">
-          {value}
-        </p>
+        <p className="mt-0.5 leading-tight">{value}</p>
       </div>
     </div>
   );
 }
+
+/** The size and weight every totals tile figure is set at. */
+const TILE_FIGURE =
+  "text-[1.0625rem] font-bold tracking-tight text-[var(--nf-content-primary)] sm:text-[1.25rem]";
 
 export function EarningsWorkspace({
   t,
@@ -78,9 +89,9 @@ export function EarningsWorkspace({
         <p className="mx-auto max-w-[40ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.emptyBody}
         </p>
-        <Link href="/agent/bookings" className="nf-btn nf-btn--primary">
+        <ButtonLink href="/agent/bookings" variant="primary">
           {t.emptyAction}
-        </Link>
+        </ButtonLink>
       </div>
     );
   }
@@ -90,10 +101,40 @@ export function EarningsWorkspace({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Tile icon="wallet-secure" label={t.totals.yourShare} value={formatMoney(earnings.totalAgentShareMinor, locale)} />
-        <Tile icon="naira-hand" label={t.totals.guestsPaid} value={formatMoney(earnings.totalGrossMinor, locale)} />
-        <Tile icon="calendar-check" label={t.totals.settledStays} value={String(earnings.settledStays)} />
-        <Tile icon="chart-growth" label={t.totals.thisMonth} value={formatMoney(thisMonthMinor, locale)} />
+        <Tile
+          icon="wallet-secure"
+          label={t.totals.yourShare}
+          value={
+            <Amount
+              minorUnits={earnings.totalAgentShareMinor}
+              locale={locale}
+              className={TILE_FIGURE}
+            />
+          }
+        />
+        <Tile
+          icon="naira-hand"
+          label={t.totals.guestsPaid}
+          value={
+            <Amount
+              minorUnits={earnings.totalGrossMinor}
+              locale={locale}
+              className={TILE_FIGURE}
+            />
+          }
+        />
+        <Tile
+          icon="calendar-check"
+          label={t.totals.settledStays}
+          value={
+            <Figure value={earnings.settledStays} locale={locale} className={TILE_FIGURE} />
+          }
+        />
+        <Tile
+          icon="chart-growth"
+          label={t.totals.thisMonth}
+          value={<Amount minorUnits={thisMonthMinor} locale={locale} className={TILE_FIGURE} />}
+        />
       </div>
 
       <section className="nf-card p-4 sm:p-5">
@@ -108,12 +149,16 @@ export function EarningsWorkspace({
             >
               <div className="flex items-baseline justify-between gap-4">
                 <p className="text-[0.875rem] font-semibold">{monthLabel(month.year, month.month, locale)}</p>
-                <p className="nf-numeric text-[0.875rem] font-bold">{formatMoney(month.agentShareMinor, locale)}</p>
+                <Amount
+                  minorUnits={month.agentShareMinor}
+                  locale={locale}
+                  className="text-[0.875rem] font-bold"
+                />
               </div>
               <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
                 {month.stays === 1 ? t.staysOne : fill(t.stays, { count: month.stays })}
                 {" · "}
-                {t.monthGross} {formatMoney(month.grossMinor, locale)}
+                {t.monthGross} <Amount minorUnits={month.grossMinor} locale={locale} />
               </p>
             </li>
           ))}
@@ -135,9 +180,11 @@ export function EarningsWorkspace({
                 <tr key={month.key} className="border-t border-[var(--nf-border-subtle)]">
                   <td className="py-2.5 font-medium">{monthLabel(month.year, month.month, locale)}</td>
                   <td className="nf-numeric py-2.5 text-right">{month.stays}</td>
-                  <td className="nf-numeric py-2.5 text-right">{formatMoney(month.grossMinor, locale)}</td>
-                  <td className="nf-numeric py-2.5 text-right font-semibold">
-                    {formatMoney(month.agentShareMinor, locale)}
+                  <td className="py-2.5 text-right">
+                    <Amount minorUnits={month.grossMinor} locale={locale} />
+                  </td>
+                  <td className="py-2.5 text-right font-semibold">
+                    <Amount minorUnits={month.agentShareMinor} locale={locale} />
                   </td>
                 </tr>
               ))}

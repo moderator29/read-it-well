@@ -12,6 +12,7 @@ import { TrendingStrip } from "@/components/app/home/TrendingStrip";
 import { Reveal } from "@/components/site/Reveal";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { ButtonLink } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -195,9 +196,9 @@ export default async function HomePage() {
               {t.home.agentCard.body}
             </p>
           </div>
-          <Link href="/agents" className="nf-btn nf-btn--glass shrink-0">
+          <ButtonLink href="/agents" variant="secondary" className="shrink-0">
             {t.home.agentCard.action}
-          </Link>
+          </ButtonLink>
         </div>
       </Reveal>
     </>

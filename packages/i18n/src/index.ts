@@ -118,7 +118,12 @@ export function formatMoney(
  * mixes nightly stays and yearly rents then gets both right with no per-card
  * decision anywhere.
  */
-const GLANCE_COMPACT_FROM_MINOR = 100_000_000;
+export const GLANCE_COMPACT_FROM_MINOR = 100_000_000;
+
+/** The glance rule as a predicate, so a component can apply it itself. */
+export function isGlanceCompact(minorUnits: number): boolean {
+  return Math.abs(minorUnits) >= GLANCE_COMPACT_FROM_MINOR;
+}
 
 export function formatMoneyGlance(
   minorUnits: number,

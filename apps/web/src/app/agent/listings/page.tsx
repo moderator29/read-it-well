@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
-import { getAgentRepository } from "@/lib/agent/repository";
 import { AgentShell } from "@/components/agent/AgentShell";
 import {
   agentProfileFrom,
@@ -11,6 +9,7 @@ import {
 } from "@/lib/agent/listings-queries";
 import { ListingPitch } from "../list/ListingPitch";
 import { ListingsWorkspace } from "./ListingsWorkspace";
+import { ButtonLink } from "@/components/ui/Button";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -48,9 +47,9 @@ export default async function Page() {
           <p className="mx-auto mt-3 max-w-[40ch] text-[var(--nf-content-secondary)]">
             {t.agentListings.workspace.unconfigured}
           </p>
-          <Link href="/agent/list" className="nf-btn nf-btn--primary mt-6">
+          <ButtonLink href="/agent/list" variant="primary" className="mt-6">
             {t.agentListings.workspace.start}
-          </Link>
+          </ButtonLink>
         </div>
       </AgentShell>
     );
@@ -72,9 +71,9 @@ export default async function Page() {
             {t.agentListings.workspace.lede}
           </p>
         </div>
-        <Link href="/agent/list" className="nf-btn nf-btn--primary">
+        <ButtonLink href="/agent/list" variant="primary">
           {t.agentListings.workspace.start}
-        </Link>
+        </ButtonLink>
       </div>
 
       <ListingsWorkspace t={t.agentListings} listings={listings} locale={locale} />

@@ -77,7 +77,9 @@ export type IconProps = {
   priority?: boolean;
 };
 
-export function Icon({ name, size = 48, fill, ramp, label, className }: IconProps) {
+/* `ramp` is accepted by IconProps for API compatibility and deliberately not
+   destructured here, because this shim forwards nothing but the 3D glyph. */
+export function Icon({ name, size = 48, fill, label, className }: IconProps) {
   const glyph = (ALIAS[name] ?? name) as GlyphName;
   return (
     <Icon3D name={glyph} size={size} fill={fill} label={label} className={className} />

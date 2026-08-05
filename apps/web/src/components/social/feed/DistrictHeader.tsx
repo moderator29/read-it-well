@@ -138,6 +138,16 @@ const CHIPS: { key: DistrictChip; label: string }[] = [
  * row change shape as a place fills up, and an empty answer with a sentence is
  * more useful than a chip that was never there.
  */
+/** The id of one chip, so the panel below can point back at the live one. */
+export function districtTabId(chip: DistrictChip): string {
+  return `nf-district-tab-${chip}`;
+}
+
+/** The id of the region the chips filter. One panel; only the live chip names it. */
+export function districtPanelId(chip: DistrictChip): string {
+  return `nf-district-panel-${chip}`;
+}
+
 export function DistrictChips({
   active,
   counts,
@@ -147,23 +157,65 @@ export function DistrictChips({
   counts: Partial<Record<DistrictChip, number>>;
   onPick: (chip: DistrictChip) => void;
 }) {
+  const listRef = useRef<HTMLDivElement>(null);
+
+  /*
+   * Arrow keys move between tabs and Tab leaves the set, which is the whole
+   * point of a tablist and the half this row was missing. It declared
+   * `role="tablist"` and `role="tab"` and then behaved like five ordinary
+   * buttons: every chip in the tab order, no arrow keys, and nothing named as
+   * the region they control - so a screen reader announced "tab 1 of 5" and
+   * then had nowhere to send anybody.
+   *
+   * Lifted from `ProfileTabs`, which is the one tab set in this repo that was
+   * already right, so there is one pattern here rather than two.
+   */
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    const index = CHIPS.findIndex((chip) => chip.key === active);
+    let next = index;
+    if (event.key === "ArrowRight") next = (index + 1) % CHIPS.length;
+    else if (event.key === "ArrowLeft") next = (index - 1 + CHIPS.length) % CHIPS.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = CHIPS.length - 1;
+    else return;
+
+    event.preventDefault();
+    const target = CHIPS[next];
+    if (!target) return;
+    onPick(target.key);
+    listRef.current?.querySelector<HTMLButtonElement>(`#${districtTabId(target.key)}`)?.focus();
+  };
+
   return (
-    <div className="nf-district__chips" role="tablist" aria-label="What to show">
-      {CHIPS.map((chip) => (
-        <button
-          key={chip.key}
-          type="button"
-          role="tab"
-          aria-selected={chip.key === active}
-          className="nf-district__chip"
-          onClick={() => onPick(chip.key)}
-        >
-          {chip.label}
-          {counts[chip.key] ? (
-            <span className="nf-numeric">{counts[chip.key]}</span>
-          ) : null}
-        </button>
-      ))}
+    <div
+      ref={listRef}
+      className="nf-district__chips"
+      role="tablist"
+      aria-label="What to show"
+      onKeyDown={onKeyDown}
+    >
+      {CHIPS.map((chip) => {
+        const selected = chip.key === active;
+        return (
+          <button
+            key={chip.key}
+            id={districtTabId(chip.key)}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            /* Only the live chip has a panel to name. See ProfileTabs. */
+            aria-controls={selected ? districtPanelId(chip.key) : undefined}
+            tabIndex={selected ? 0 : -1}
+            className="nf-district__chip"
+            onClick={() => onPick(chip.key)}
+          >
+            {chip.label}
+            {counts[chip.key] ? (
+              <span className="nf-numeric">{counts[chip.key]}</span>
+            ) : null}
+          </button>
+        );
+      })}
     </div>
   );
 }

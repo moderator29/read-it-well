@@ -14,6 +14,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { ActionResult } from "@/lib/actions/envelope";
 import type { ProfileView } from "@/lib/profile/queries";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The signed-in identity card and its edit form.
@@ -229,9 +230,9 @@ export function AccountProfile({
             </p>
           )}
 
-          <button type="submit" disabled={pending} className="nf-btn nf-btn--primary w-full">
-            {pending ? "Saving..." : "Save profile"}
-          </button>
+          <Button type="submit" variant="primary" full loading={pending}>
+            Save profile
+          </Button>
           <p className="text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
             Your name is what hosts see when you message or book. Your phone
             number stays private to you and the platform.

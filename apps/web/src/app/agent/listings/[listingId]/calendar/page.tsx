@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
-import { getAgentRepository } from "@/lib/agent/repository";
 import { getAgentContext, agentProfileFrom } from "@/lib/agent/listings-queries";
 import { getListingCalendar } from "@/lib/agent/calendar-queries";
 import { AgentShell } from "@/components/agent/AgentShell";

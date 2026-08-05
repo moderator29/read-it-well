@@ -1,11 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { useOverlay } from "@/lib/ui/use-overlay";
-import { createPortal } from "react-dom";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Dictionary, type Locale, formatMoneyGlance } from "@naijafinds/i18n";
+import { type Dictionary, type Locale, formatMoneyGlance } from "@naijafinds/i18n";
 import { fill } from "../_copy";
 import {
   deleteListing,
@@ -21,6 +19,8 @@ import {
 } from "@/lib/agent/listings-schema";
 import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { Sheet } from "@/components/ui/Sheet";
 
 /**
  * The agent's listings workspace.
@@ -59,40 +59,9 @@ function toneClass(status: ListingStatus): string {
   return `nf-badge nf-badge--${STATUS_TONE[status]}`;
 }
 
-/**
- * Delete is NOT in here any more, and that is the point.
- *
- * A confirm dialogue asks a question at the worst possible moment: before the
- * agent has seen anything happen. They read "Delete this draft?", tap the
- * blue button because that is where the blue button always is, and the draft
- * and its photos are gone for good with nothing to say about it. Undo asks
- * nothing and shows the outcome instead, which is the only version an agent
- * can actually judge.
- *
- * Submit and unpublish keep their sheets, deliberately. Neither destroys
- * anything: unpublish puts a listing back in drafts and submit moves it into a
- * review queue, so both are already reversible and the sheet is there to
- * explain a consequence rather than to guard a cliff.
- */
-type SheetKind = "submit" | "unpublish";
+type SheetKind = "submit" | "unpublish" | "delete";
 
 type SheetState = { kind: SheetKind; listing: ListingSummary };
-
-/**
- * How long a deleted draft can be brought back, in ms.
- *
- * The delete is not sent to the server until this elapses, so undo is not a
- * second write that has to succeed: it is the first write never happening.
- * That matters here specifically, because `deleteListing` also removes the
- * photos from storage, and no amount of undo brings a deleted object back out
- * of a bucket.
- */
-const UNDO_WINDOW_MS = 7000;
-
-type PendingDelete = {
-  listing: ListingSummary;
-  timer: ReturnType<typeof setTimeout>;
-};
 
 /**
  * The submit gate's requirements, in the agent's language.
@@ -148,17 +117,10 @@ function ConfirmSheet({
   onClose: () => void;
 }) {
   const router = useRouter();
-  const panel = useRef<HTMLDivElement | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [unmet, setUnmet] = useState<string[]>([]);
   const copy = t.workspace.sheets[state.kind];
-
-  useOverlay({ open: true, onClose, panelRef: panel, autoFocus: false });
-
-  useEffect(() => {
-    panel.current?.focus();
-  }, []);
 
   function run() {
     setError(null);
@@ -166,7 +128,11 @@ function ConfirmSheet({
     startTransition(async () => {
       const input = { listingId: state.listing.id };
       const result =
-        state.kind === "submit" ? await submitListing(input) : await unpublishListing(input);
+        state.kind === "submit"
+          ? await submitListing(input)
+          : state.kind === "unpublish"
+            ? await unpublishListing(input)
+            : await deleteListing(input);
 
       if (!result.ok) {
         setError(result.error);
@@ -182,70 +148,55 @@ function ConfirmSheet({
     });
   }
 
-  return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
-      <button
-        type="button"
-        aria-label={t.workspace.sheets.close}
-        className="absolute inset-0 bg-black/60"
-        onClick={onClose}
-      />
-      <div
-        ref={panel}
-        tabIndex={-1}
-        role="dialog"
-        aria-modal="true"
-        aria-label={copy.title}
-        className="nf-card relative w-full max-w-md p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] outline-none sm:pb-5"
-      >
-        <h2 className="nf-h3">{copy.title}</h2>
-        <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-          {copy.body}
-        </p>
-        <p className="mt-3 truncate text-[0.8125rem] font-semibold">{state.listing.title}</p>
-
-        {error && (
-          <p
-            className="mt-3 rounded-[var(--nf-radius-md)] p-3 text-[0.8125rem] font-medium"
-            style={{
-              background: "var(--nf-state-warning-surface)",
-              color: "var(--nf-state-warning)",
-            }}
-            role="alert"
-          >
-            {error}
-          </p>
-        )}
-        {unmet.length > 0 && (
-          <ul className="mt-2 space-y-1.5">
-            {unmet.map((message) => (
-              <li
-                key={message}
-                className="flex items-start gap-2 text-[0.75rem] text-[var(--nf-content-secondary)]"
-              >
-                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-warning)]" />
-                {message}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <div className="mt-5 flex gap-4">
-          <button type="button" className="nf-btn nf-btn--glass flex-1" onClick={onClose}>
+  return (
+    <Sheet
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={copy.title}
+      footer={
+        <div className="flex gap-4">
+          <Button variant="secondary" className="flex-1" onClick={onClose}>
             {t.workspace.sheets.keep}
-          </button>
-          <button
-            type="button"
-            className="nf-btn nf-btn--primary flex-1"
-            onClick={run}
-            disabled={pending}
-          >
-            {pending ? t.workspace.sheets.working : copy.confirm}
-          </button>
+          </Button>
+          <Button variant="primary" className="flex-1" onClick={run} loading={pending}>
+            {copy.confirm}
+          </Button>
         </div>
-      </div>
-    </div>,
-    document.body,
+      }
+    >
+      <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        {copy.body}
+      </p>
+      <p className="mt-3 truncate text-[0.8125rem] font-semibold">{state.listing.title}</p>
+
+      {error && (
+        <p
+          className="mt-3 rounded-[var(--nf-radius-md)] p-3 text-[0.8125rem] font-medium"
+          style={{
+            background: "var(--nf-state-warning-surface)",
+            color: "var(--nf-state-warning)",
+          }}
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
+      {unmet.length > 0 && (
+        <ul className="mt-2 space-y-1.5">
+          {unmet.map((message) => (
+            <li
+              key={message}
+              className="flex items-start gap-2 text-[0.75rem] text-[var(--nf-content-secondary)]"
+            >
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-warning)]" />
+              {message}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Sheet>
   );
 }
 
@@ -254,21 +205,17 @@ function ListingRow({
   listing,
   locale,
   onAction,
-  onDelete,
 }: {
   t: WorkspaceCopy;
   listing: ListingSummary;
   locale: Locale;
   onAction: (kind: SheetKind, listing: ListingSummary) => void;
-  /* Deleting a draft opens no dialogue. The row leaves and offers its way
-     back; nothing is sent to the server until that offer expires. */
-  onDelete: (listing: ListingSummary) => void;
 }) {
   const editable = EDITABLE.includes(listing.status);
   const live = listing.status === "PUBLISHED" || listing.status === "APPROVED";
 
   return (
-    <div className="nf-card overflow-hidden p-0">
+    <li className="nf-card overflow-hidden p-0">
       <div className="flex gap-4.5 p-3.5">
         <span
           className="relative block h-[5.25rem] w-[5.25rem] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]"
@@ -369,13 +316,13 @@ function ListingRow({
           <button
             type="button"
             className="text-[0.8125rem] font-semibold text-[var(--nf-content-muted)]"
-            onClick={() => onDelete(listing)}
+            onClick={() => onAction("delete", listing)}
           >
             {t.workspace.actions.delete}
           </button>
         )}
       </div>
-    </div>
+    </li>
   );
 }
 
@@ -390,85 +337,6 @@ export function ListingsWorkspace({
 }) {
   const [sheet, setSheet] = useState<SheetState | null>(null);
 
-  /* Drafts the agent has deleted but which have NOT been sent to the server
-     yet. The row keeps its slot in the list and becomes an undo row, so the
-     page does not reflow under the thumb that just tapped. */
-  const [removed, setRemoved] = useState<Record<string, ListingSummary>>({});
-  const [failures, setFailures] = useState<Record<string, string>>({});
-  const pending = useRef<Record<string, PendingDelete>>({});
-  const router = useRouter();
-
-  /* Send a delete for real. Called by the timer, and by the unmount flush. */
-  const commit = useCallback(
-    async (id: string, refresh: boolean) => {
-      const entry = pending.current[id];
-      if (!entry) return;
-      delete pending.current[id];
-      const result = await deleteListing({ listingId: id });
-      if (result.ok) {
-        if (refresh) router.refresh();
-        return;
-      }
-      /* The draft is still there, so it goes back on screen with the reason.
-         Silence here would read as a successful delete, which it is not. */
-      setRemoved((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-      setFailures((prev) => ({ ...prev, [id]: result.error }));
-    },
-    [router],
-  );
-
-  /*
-   * Leaving the page COMMITS, it does not cancel.
-   *
-   * An agent who deletes a draft and navigates away has decided. Treating the
-   * navigation as an undo would leave the draft standing with no way for them
-   * to know their tap did nothing, which is the silent-good-news failure this
-   * codebase exists to avoid. No refresh on this path: the tree is already on
-   * its way somewhere else.
-   */
-  useEffect(() => {
-    const inFlight = pending.current;
-    return () => {
-      for (const [id, entry] of Object.entries(inFlight)) {
-        clearTimeout(entry.timer);
-        void deleteListing({ listingId: id });
-      }
-    };
-  }, []);
-
-  function requestDelete(listing: ListingSummary) {
-    setFailures((prev) => {
-      if (!(listing.id in prev)) return prev;
-      const next = { ...prev };
-      delete next[listing.id];
-      return next;
-    });
-    setRemoved((prev) => ({ ...prev, [listing.id]: listing }));
-    pending.current[listing.id] = {
-      listing,
-      timer: setTimeout(() => {
-        void commit(listing.id, true);
-      }, UNDO_WINDOW_MS),
-    };
-  }
-
-  function undoDelete(id: string) {
-    const entry = pending.current[id];
-    if (entry) {
-      clearTimeout(entry.timer);
-      delete pending.current[id];
-    }
-    setRemoved((prev) => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
-  }
-
   if (listings.length === 0) {
     return (
       <div className="mx-auto max-w-md py-10 text-center">
@@ -482,9 +350,9 @@ export function ListingsWorkspace({
         <p className="mx-auto mt-2 max-w-[38ch] text-[0.875rem] text-[var(--nf-content-secondary)]">
           {t.workspace.emptyBody}
         </p>
-        <Link href="/agent/list" className="nf-btn nf-btn--primary mt-6">
+        <ButtonLink href="/agent/list" variant="primary" className="mt-6">
           {t.workspace.start}
-        </Link>
+        </ButtonLink>
       </div>
     );
   }
@@ -505,49 +373,15 @@ export function ListingsWorkspace({
               {heading.blurb}
             </p>
             <ul className="space-y-3">
-              {rows.map((listing) =>
-                listing.id in removed ? (
-                  /* The slot the draft occupied, holding its place so nothing
-                     below it jumps while the agent decides. */
-                  <li
-                    key={listing.id}
-                    data-testid="draft-undo"
-                    role="status"
-                    className="nf-card flex items-center justify-between gap-4 p-4"
-                  >
-                    <p className="min-w-0 text-[0.875rem] text-[var(--nf-content-secondary)]">
-                      {t.workspace.undo.removed}
-                    </p>
-                    <button
-                      type="button"
-                      data-testid="draft-undo-action"
-                      onClick={() => undoDelete(listing.id)}
-                      className="nf-chip shrink-0 whitespace-nowrap transition-transform active:scale-[0.96]"
-                    >
-                      <UiIcon name="arrow-left" size={12} className="shrink-0" />
-                      {t.workspace.undo.action}
-                    </button>
-                  </li>
-                ) : (
-                  <li key={listing.id}>
-                    <ListingRow
-                      t={t}
-                      listing={listing}
-                      locale={locale}
-                      onAction={(kind, target) => setSheet({ kind, listing: target })}
-                      onDelete={requestDelete}
-                    />
-                    {failures[listing.id] && (
-                      <p
-                        role="alert"
-                        className="mt-1.5 text-[0.75rem] text-[var(--nf-state-error)]"
-                      >
-                        {failures[listing.id]}
-                      </p>
-                    )}
-                  </li>
-                ),
-              )}
+              {rows.map((listing) => (
+                <ListingRow
+                  key={listing.id}
+                  t={t}
+                  listing={listing}
+                  locale={locale}
+                  onAction={(kind, target) => setSheet({ kind, listing: target })}
+                />
+              ))}
             </ul>
           </section>
         );

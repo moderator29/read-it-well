@@ -6,7 +6,7 @@ import { getListingRepository } from "@/lib/listings/repository";
 import { factsOf, sleeps } from "@/lib/listings/filter";
 import { getMessageRepository } from "@/lib/messages/repository";
 import type { Listing, ListingKind } from "@/lib/listings/types";
-import { formatMoney, formatNumber } from "@naijafinds/i18n";
+import { formatNumber } from "@naijafinds/i18n";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -17,6 +17,7 @@ import { ReservePanel } from "./ReservePanel";
 import { RentalPanel } from "./RentalPanel";
 import { ListingAbout } from "@/components/app/listing/ListingAbout";
 import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
+import { ListingPhotoGrid } from "@/components/app/listing/ListingPhotoGrid";
 import { ListingUtilities } from "@/components/app/listing/ListingUtilities";
 import { readListingAccess } from "@/lib/listings/access-queries";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -28,10 +29,13 @@ import {
   type StickyAction,
 } from "@/components/app/listing/ListingStickyBar";
 import { StayDatesProvider } from "@/components/app/listing/StayDates";
+import { PhotoViewerProvider } from "@/components/app/listing/PhotoViewer";
 import { ReportSheet } from "@/components/app/ReportSheet";
 import { resolveSession } from "@/lib/actions/session";
 import { Reveal } from "@/components/site/Reveal";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { ButtonLink } from "@/components/ui/Button";
+import { Amount } from "@/components/ui/Amount";
 
 /**
  * Listing detail.
@@ -63,6 +67,35 @@ const KIND_LABEL: Record<ListingKind, string> = {
   shop: "shop to rent",
   office: "office to rent",
   land: "plot of land",
+};
+
+/**
+ * The status pill.
+ *
+ * Reference 3 opens with a small tinted icon + label pill naming the market the
+ * property is in - FOR SALE, FOR RENT - in a semantic colour rather than a
+ * generic grey. This platform has no sale market, so the pill names the market
+ * each kind actually belongs to and nothing more. Nothing is invented: the
+ * label is a restatement of `listing.kind`, which every record carries.
+ */
+const MARKET_PILL: Record<ListingKind, { icon: UiIconName; label: string; tone: string }> = {
+  // An annual tenancy. The nearest thing this platform has to reference 3's
+  // headline market, and it takes the brand tint the pill defaults to.
+  rental: { icon: "key", label: "For rent", tone: "" },
+  hotel: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
+  apartment: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
+  home: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
+  shortlet: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
+  villa: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
+  restaurant: { icon: "utensils", label: "Dining", tone: "nf-tag-pill--neutral" },
+  experience: { icon: "ticket", label: "Experience", tone: "nf-tag-pill--neutral" },
+  /* Commercial space and land are let on a tenancy exactly like a rental, so
+     they read as the same market and take the same key glyph and brand tint.
+     What they are individually is already said by `KIND_LABEL` in the copy
+     below; the pill answers "which market am I in", not "what is this". */
+  shop: { icon: "key", label: "For rent", tone: "" },
+  office: { icon: "key", label: "For rent", tone: "" },
+  land: { icon: "key", label: "For rent", tone: "" },
 };
 
 /** "Lagos State" reads naturally; the FCT does not take the suffix. */
@@ -213,6 +246,7 @@ export default async function ListingDetailPage({
     : null;
 
   const kind = KIND_LABEL[listing.kind];
+  const market = MARKET_PILL[listing.kind];
   // Restaurants and experiences are priced per head; a rental is priced per
   // year; everything else is a nightly rate.
   const perHead = listing.kind === "restaurant" || listing.kind === "experience";
@@ -334,6 +368,7 @@ export default async function ListingDetailPage({
   );
 
   const body = (
+    <PhotoViewerProvider title={listing.title} photos={listing.photos} hue={listing.hue}>
     <div className="mx-auto max-w-5xl">
       {/* Nothing rendered. Puts this place in the recently-viewed memory the
           search page offers back, whichever way it was reached. */}
@@ -351,25 +386,37 @@ export default async function ListingDetailPage({
         backFallback="/home"
       />
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start sm:mt-7">
+      {/*
+        The content sheet.
+
+        The single most recognisable move in reference 3: the content rides UP
+        over the lower edge of the media on a large top radius, so the two
+        surfaces overlap instead of meeting at a seam. It is glass rather than a
+        flat fill because the platform's ground is the living ambient canvas,
+        not a solid colour - an opaque panel here would blank the artwork every
+        other screen sits on, while glass lets the photograph blur through the
+        overlap and the canvas through everything below it.
+
+        Full bleed by the same rule the hero uses, and its side and bottom
+        borders are dropped so only the top hairline reads.
+      */}
+      <div className="nf-glass nf-glass--strong relative z-10 -mx-5 -mt-8 rounded-t-[1.75rem] border-x-0 border-b-0 px-5 pb-6 pt-6 sm:-mt-10 sm:rounded-t-[2.25rem] sm:px-6 sm:pb-8 sm:pt-8 md:-mx-8 md:px-8">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
         {/* ------------------------------------------------- main column */}
         <div className="min-w-0">
           {/* ------------------------------------------------ title block */}
           <section className="nf-rise">
-            <h1 className="nf-h1 max-sm:text-[1.375rem]">{listing.title}</h1>
-
-            <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
-              {listing.rating > 0 && (
-                <span className="nf-numeric flex items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
-                  <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
-                  {formatRating(listing.rating, locale)}
-                  {listing.reviewCount > 0 && (
-                    <span className="font-normal text-[var(--nf-content-muted)]">
-                      ({formatNumber(listing.reviewCount, locale)} {t.common.reviews})
-                    </span>
-                  )}
-                </span>
-              )}
+            {/*
+              The status row: the market this listing belongs to on the left as
+              a tinted icon + label pill, and the rating right-aligned as a real
+              chip rather than the bare inline text it used to be. Both are read
+              from the record - a listing with no rating simply has no chip.
+            */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`nf-tag-pill ${market.tone}`}>
+                <UiIcon name={market.icon} size={12} />
+                {market.label}
+              </span>
 
               {/* Only first-party inventory may carry the verified badge. */}
               {listing.verified && !isPartner && (
@@ -394,28 +441,50 @@ export default async function ListingDetailPage({
                   Powered by Google
                 </span>
               )}
+
+              {listing.rating > 0 && (
+                <span className="nf-chip nf-numeric ml-auto shrink-0 gap-1.5 px-3 py-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
+                  <UiIcon name="star" size={16} filled className="text-[var(--nf-rating)]" />
+                  {formatRating(listing.rating, locale)}
+                  {listing.reviewCount > 0 && (
+                    <span className="font-normal text-[var(--nf-content-muted)]">
+                      ({formatNumber(listing.reviewCount, locale)} {t.common.reviews})
+                    </span>
+                  )}
+                </span>
+              )}
             </div>
+
+            <h1 className="nf-h1 mt-3 max-sm:text-[1.375rem]">{listing.title}</h1>
 
             <p className="mt-2 flex items-center gap-1.5 text-[0.9375rem] text-[var(--nf-content-secondary)]">
               <UiIcon name="location" size={16} className="shrink-0" />
               <span className="truncate">{where}</span>
             </p>
 
+            {/* The price is what this screen sells. It is the hero figure:
+                display size, tight tracking, and the qualifier carried in the
+                muted tone so the pair reads as one composed number. */}
             {listing.priceMinor > 0 && (
-              <p className="mt-3.5 flex items-baseline gap-1.5">
-                <span className="nf-numeric text-[1.5rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-                  {formatMoney(listing.priceMinor, locale, listing.currency)}
-                </span>
-                <span className="text-[0.875rem] text-[var(--nf-content-muted)]">{perLabel}</span>
+              <p className="mt-4">
+                <Amount
+                  minorUnits={listing.priceMinor}
+                  locale={locale}
+                  currency={listing.currency}
+                  suffix={perLabel}
+                  className="text-[2.25rem] font-extrabold leading-[0.95] tracking-[-0.035em] text-[var(--nf-content-primary)] sm:text-[3rem]"
+                  secondaryClassName="text-[0.36em] font-semibold opacity-60"
+                />
               </p>
             )}
 
-            {/* --------------------------------------------- amenity row */}
+            {/* ------------------------------------------------ spec row */}
             <div className="mt-4">
               <ListingAmenities
                 bedrooms={listing.bedrooms}
                 bathrooms={listing.bathrooms}
                 amenities={listing.amenities}
+                guests={capacityOf(listing) ?? undefined}
               />
             </div>
           </section>
@@ -441,6 +510,15 @@ export default async function ListingDetailPage({
           <div id="reserve" className="mt-7 scroll-mt-20 lg:hidden">
             {bookingPanel}
           </div>
+
+          {/* ---------------------------------------------- photo grid */}
+          {/* A single photograph is already the hero; a grid of one states
+              nothing, so the section is not rendered at all below two. */}
+          {listing.photos.length > 1 && (
+            <Reveal as="div" className="mt-8" delay={40}>
+              <ListingPhotoGrid photos={listing.photos} hue={listing.hue} title={listing.title} />
+            </Reveal>
+          )}
 
           {/* ------------------------------------------------ host panel */}
           {/* No agent behind partner stock, so no host panel and no Message. */}
@@ -487,6 +565,7 @@ export default async function ListingDetailPage({
         {/* --------------------------------------- booking panel, desktop */}
         <aside className="hidden lg:sticky lg:top-6 lg:block">{bookingPanel}</aside>
       </div>
+      </div>
 
       <ListingStickyBar
         variant={isPartner ? "partner" : isRental ? "rental" : "stay"}
@@ -498,6 +577,7 @@ export default async function ListingDetailPage({
         fallbackLabel={listing.title}
       />
     </div>
+    </PhotoViewerProvider>
   );
 
   // Only a stay has dates to share, and the provider is what keeps the panel
@@ -546,13 +626,15 @@ function PartnerPanel({
   return (
     <div className="nf-card p-5">
       {listing.priceMinor > 0 && (
-        <p className="flex items-baseline gap-1.5">
-          <span className="nf-numeric text-[1.5rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-            {formatMoney(listing.priceMinor, locale, listing.currency)}
-          </span>
-          <span className="text-[0.8125rem] text-[var(--nf-content-muted)]">
-            {t.common.perNight}
-          </span>
+        <p>
+          <Amount
+            minorUnits={listing.priceMinor}
+            locale={locale}
+            currency={listing.currency}
+            suffix={t.common.perNight}
+            className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+            secondaryClassName="text-[0.54em] font-semibold opacity-60"
+          />
         </p>
       )}
 
@@ -563,24 +645,28 @@ function PartnerPanel({
       </p>
 
       {action && (
-        <a
+        <ButtonLink
           href={action.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="nf-btn nf-btn--primary mt-4 w-full"
+          variant="primary"
+          full
+          className="mt-4"
         >
           {action.label}
-        </a>
+        </ButtonLink>
       )}
       {showSecondary && secondary && (
-        <a
+        <ButtonLink
           href={secondary}
           target="_blank"
           rel="noopener noreferrer"
-          className="nf-btn nf-btn--glass mt-2.5 w-full"
+          variant="secondary"
+          full
+          className="mt-2.5"
         >
           Menu
-        </a>
+        </ButtonLink>
       )}
 
       {partner?.attribution === "Google" && (

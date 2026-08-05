@@ -5,6 +5,7 @@ import type { ChatMessage, ConversationThread } from "@/lib/messages/types";
 import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ListingOptionsSheet } from "./ListingOptionsSheet";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Conversation thread.
@@ -237,17 +238,17 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
           <p className="min-w-0 flex-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
             Photo attached
           </p>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             aria-label="Remove photo"
             onClick={() => {
               setPendingImage(null);
               if (fileRef.current) fileRef.current.value = "";
             }}
-            className="nf-btn nf-btn--ghost px-3 py-2 text-[0.8125rem]"
           >
             Remove
-          </button>
+          </Button>
         </div>
       )}
       <form
@@ -303,14 +304,16 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
           enterKeyHint="send"
           className="nf-field min-w-0 flex-1"
         />
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          iconOnly
           aria-label="Send message"
           disabled={!draft.trim() && !pendingImage}
-          className="nf-btn nf-btn--primary h-11 w-11 shrink-0 rounded-full p-0"
+          className="shrink-0 rounded-full"
         >
           <UiIcon name="arrow-right" size={20} className="-rotate-90" />
-        </button>
+        </Button>
       </form>
     </div>
   );

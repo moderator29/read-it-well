@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { LogoMark } from "@/design-system/brand/Logo";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
 /**
  * Route level error boundary.
@@ -60,12 +61,12 @@ export default function Error({
           )}
 
           <div className="mt-7 flex flex-wrap justify-center gap-4">
-            <button type="button" onClick={reset} className="nf-btn nf-btn--primary">
+            <Button variant="primary" onClick={reset}>
               Try again
-            </button>
-            <Link href="/" className="nf-btn nf-btn--glass">
+            </Button>
+            <ButtonLink href="/" variant="secondary">
               Back to home
-            </Link>
+            </ButtonLink>
           </div>
         </div>
       </div>

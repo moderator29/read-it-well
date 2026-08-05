@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@naijafinds/i18n";
-import { formatKoboExact } from "@/components/app/wallet/money";
+import { Amount } from "@/components/ui/Amount";
 import { verifyFunding } from "@/lib/wallet/actions";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The funded=1 landing state.
@@ -74,10 +75,8 @@ export function FundingVerifier({ reference, locale }: { reference: string; loca
         {state.phase === "credited" && (
           <>
             <p className="text-[0.9375rem] font-semibold text-[var(--nf-state-success)]">
-              {(() => {
-                const amount = formatKoboExact(state.amountMinor, locale);
-                return `+${amount.whole}${amount.kobo} added to your wallet`;
-              })()}
+              +<Amount minorUnits={state.amountMinor} locale={locale} showFraction /> added to
+              your wallet
             </p>
             <p className="mt-0.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
               The deposit is in your history below, recorded to the kobo.
@@ -94,13 +93,9 @@ export function FundingVerifier({ reference, locale }: { reference: string; loca
         )}
       </div>
       {state.phase !== "verifying" && (
-        <button
-          type="button"
-          onClick={dismiss}
-          className="nf-btn nf-btn--ghost shrink-0 px-3 py-1.5 text-[0.8125rem]"
-        >
+        <Button variant="ghost" size="sm" onClick={dismiss} className="shrink-0">
           Done
-        </button>
+        </Button>
       )}
     </div>
   );

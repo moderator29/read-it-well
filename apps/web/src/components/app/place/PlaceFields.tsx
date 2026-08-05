@@ -58,28 +58,36 @@ export function PlaceFields({
     [states],
   );
 
+  /* Read off the optional object once, into plain locals.
+     `initialLabels?.lgaName` in a dependency array is narrower than what the
+     compiler can infer from the body, which is the whole object, so the two
+     disagreed and the component was dropped from optimisation entirely. A
+     local is the same value stated in a form both can see. */
+  const lgaLabel = initialLabels?.lgaName;
+  const occupationLabel = initialLabels?.occupationName;
+
   /* A chosen value has to render its own name before its list exists, or a
      saved profile would read as empty until the person opened the picker. */
   const lgaGroups = useMemo<ChoiceGroup[]>(() => {
     if (lgas.length > 0) return lgas;
-    if (value.lgaCode && initialLabels?.lgaName) {
-      return [{ category: "", options: [{ code: value.lgaCode, name: initialLabels.lgaName }] }];
+    if (value.lgaCode && lgaLabel) {
+      return [{ category: "", options: [{ code: value.lgaCode, name: lgaLabel }] }];
     }
     return [];
-  }, [lgas, value.lgaCode, initialLabels?.lgaName]);
+  }, [lgas, value.lgaCode, lgaLabel]);
 
   const occupationGroups = useMemo<ChoiceGroup[]>(() => {
     if (occupations.length > 0) return occupations;
-    if (value.occupationCode && initialLabels?.occupationName) {
+    if (value.occupationCode && occupationLabel) {
       return [
         {
           category: "",
-          options: [{ code: value.occupationCode, name: initialLabels.occupationName }],
+          options: [{ code: value.occupationCode, name: occupationLabel }],
         },
       ];
     }
     return [];
-  }, [occupations, value.occupationCode, initialLabels?.occupationName]);
+  }, [occupations, value.occupationCode, occupationLabel]);
 
   const loadLgas = useCallback(async (stateCode: string) => {
     if (stateCode === "" || loadedStateRef.current === stateCode) return;

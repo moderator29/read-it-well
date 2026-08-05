@@ -1,8 +1,8 @@
 import Link from "next/link";
+import { ButtonLink } from "@/components/ui/Button";
 import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { ThemeToggle } from "./ThemeToggle";
 import { MobileMenu } from "./MobileMenu";
 
 /**
@@ -24,8 +24,8 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
   ];
 
   return (
-    <header className="nf-safe-top sticky top-0 z-50">
-      <div className="nf-glass border-b border-transparent">
+    <header className="sticky top-0 z-50">
+      <div className="nf-glass nf-safe-top border-b border-transparent">
         <div className="nf-shell flex h-[60px] items-center justify-between gap-4 sm:h-[72px] sm:gap-6">
           <Link href="/" aria-label={t.a11y.logoHome} className="nf-tap shrink-0">
             <Logo size={46} wordSize={21} responsive priority />
@@ -47,15 +47,17 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
             <div className="hidden sm:block">
               <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
             </div>
-            <Link
+            <ButtonLink
               href="/sign-in"
-              className="nf-btn nf-btn--primary hidden px-4 py-2.5 text-[0.875rem] sm:inline-flex"
+              variant="primary"
+              size="sm"
+              className="hidden sm:inline-flex"
             >
               {t.common.signIn}
-            </Link>
-            <Link href="/sign-up" className="nf-btn nf-btn--primary nf-signup-btn px-4 py-2.5 text-[0.875rem] sm:px-[1.35rem] sm:py-[0.8rem] sm:text-[var(--nf-text-body)]">
+            </ButtonLink>
+            <ButtonLink href="/sign-up" variant="primary" size="sm" className="nf-signup-btn">
               {t.common.signUp}
-            </Link>
+            </ButtonLink>
             <MobileMenu
               links={links}
               signIn={t.common.signIn}

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
@@ -16,6 +15,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { toggleSave } from "@/lib/saved/actions";
 import { addLocalSave, readLocalSaves, removeLocalSave, writeLocalSaves } from "@/lib/saved/local";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * The shortlist, made interactive.
@@ -168,9 +168,9 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
             Tap the heart on any place and it waits for you here, ready to
             compare or book.
           </p>
-          <Link href="/search" className="nf-btn nf-btn--primary mt-6 inline-flex">
+          <ButtonLink href="/search" variant="primary" className="mt-6">
             Explore stays
-          </Link>
+          </ButtonLink>
         </div>
       </Reveal>
     );

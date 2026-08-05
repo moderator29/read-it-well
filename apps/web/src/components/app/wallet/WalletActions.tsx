@@ -11,7 +11,8 @@ import {
   type WalletActionField,
   type WalletActionResult,
 } from "@/lib/wallet/actions";
-import { formatKoboExact } from "./money";
+import { Button } from "@/components/ui/Button";
+import { Amount } from "@/components/ui/Amount";
 
 /**
  * Wallet action deck: Add money, Withdraw, Transfer.
@@ -73,25 +74,29 @@ export function WalletActions({ locale }: { locale: Locale }) {
 
   return (
     <div>
-      <div className="grid grid-cols-3 gap-2" role="group" aria-label="Wallet actions">
+      {/*
+        The action row.
+
+        This was three identical cards, each carrying a 48px 3D icon tile above
+        its label - visually heavy, and giving the same weight to putting money
+        in as to taking it out. Reference 8 pairs one solid primary against a
+        quiet secondary, text only, sharing a row: the hierarchy tells you what
+        the screen is for before you read a word.
+
+        Adding money is the primary. Withdraw and Transfer are the quiet pair.
+      */}
+      <div className="flex items-center gap-2" role="group" aria-label="Wallet actions">
         {PANELS.map((p) => (
-          <button
+          <Button
             key={p.key}
-            type="button"
+            variant={p.key === "add" ? "primary" : "secondary"}
+            className="flex-1"
             aria-expanded={open === p.key}
             aria-controls={`nf-wallet-panel-${p.key}`}
             onClick={() => setOpen(open === p.key ? null : p.key)}
-            className={`nf-card nf-card--interactive flex flex-col items-center gap-2 px-2 py-4 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)] ${
-              open === p.key
-                ? "shadow-[0_0_24px_rgb(0_102_255_/_0.45),inset_0_0_16px_rgb(0_102_255_/_0.12)]"
-                : ""
-            }`}
           >
-            <span className="h-12 w-12">
-              <BrandIcon name={p.icon} fill />
-            </span>
             {p.label}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -121,13 +126,9 @@ export function WalletActions({ locale }: { locale: Locale }) {
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setOpen(null)}
-              className="nf-btn nf-btn--ghost px-3 py-1.5 text-[0.8125rem]"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setOpen(null)}>
               Close
-            </button>
+            </Button>
           </div>
 
           {active.key === "add" && <AddMoneyForm locale={locale} />}
@@ -296,30 +297,24 @@ function FieldError({ message }: { message?: string }) {
 
 function SubmitRow({ pending, label }: { pending: boolean; label: string }) {
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="nf-btn nf-btn--primary mt-3 w-full py-3 text-[0.875rem]"
-    >
-      {pending ? "Checking your request" : label}
-    </button>
+    <Button type="submit" variant="primary" full className="mt-3" loading={pending}>
+      {label}
+    </Button>
   );
 }
 
 function ResultNotice({ state, locale }: { state: WalletActionResult; locale: Locale }) {
   if (!state.message) return null;
-  const amount =
-    typeof state.amountMinor === "number" ? formatKoboExact(state.amountMinor, locale) : null;
+  const amountMinor = typeof state.amountMinor === "number" ? state.amountMinor : null;
   return (
     <div
       role="status"
       aria-live="polite"
       className="mt-3 rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-glass-fill)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
     >
-      {amount && (
+      {amountMinor !== null && (
         <p className="mb-1 font-semibold text-[var(--nf-content-primary)]">
-          {amount.whole}
-          {amount.kobo}
+          <Amount minorUnits={amountMinor} locale={locale} showFraction />
         </p>
       )}
       <p>{state.message}</p>

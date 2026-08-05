@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
-import { useOverlay } from "@/lib/ui/use-overlay";
-import { createPortal } from "react-dom";
+import { useCallback, useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { CANCELLATION_REASONS, type CancellationReason } from "@/lib/trust/cancellation";
+import { cancelBookingAsAdmin, previewCancellation } from "@/lib/admin/bookings-actions";
+import { recordVerificationCheck } from "@/lib/admin/verification-actions";
 import { Button } from "@/components/ui/Button";
+import { Sheet } from "@/components/ui/Sheet";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { fill, type AdminCommon, type AdminCopy } from "./copy";
 import {
@@ -18,10 +21,6 @@ import {
   setTicketStatus,
   toggleFeatureFlag,
 } from "@/lib/admin/actions";
-import { recordVerificationCheck } from "@/lib/admin/verification-actions";
-import { cancelBookingAsAdmin, previewCancellation } from "@/lib/admin/bookings-actions";
-import { CANCELLATION_REASONS, type CancellationReason } from "@/lib/trust/cancellation";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
 
 /**
  * Every hand the console offers, in one client module.
@@ -31,6 +30,11 @@ import { formatMoney, type Locale } from "@naijafinds/i18n";
  * note, run the server action, then either show the plain-language refusal the
  * envelope carried or refresh the page so the queue re-renders from the
  * database rather than from optimistic guesswork.
+ *
+ * The sheet mechanics — portal, drag handle, detents, focus trap, focus
+ * restoration, Escape, backdrop and body scroll lock — belong to `<Sheet>`.
+ * What stays here is the decision: the required note, the refusal, the
+ * in-sheet success state.
  *
  * Every string arrives as a dictionary slice from the queue page that renders
  * the control: these are client components, so none of them resolves a locale
@@ -53,9 +57,10 @@ type SheetProps = {
   notesRequired?: boolean;
   destructive?: boolean;
   /**
-   * Anything the decision needs before the note: a choice to make, a figure to
-   * read back. It sits between the description and the note because a reviewer
-   * should have settled what they are doing before they write down why.
+   * A block above the note field, for a decision that needs more than a
+   * sentence: the cancellation sheet puts its reason picker and its live
+   * refund preview here, so an operator sees what the guest gets back before
+   * they confirm rather than after.
    */
   extra?: ReactNode;
 };
@@ -76,24 +81,9 @@ function ActionSheet({
   extra,
 }: SheetProps) {
   const router = useRouter();
-  const panelRef = useRef<HTMLDivElement | null>(null);
   const [notes, setNotes] = useState("");
   const [result, setResult] = useState<ActionResult<null> | null>(null);
   const [pending, startTransition] = useTransition();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  /* Escape, the Tab trap, the counted scroll lock and the focus return all
-     come from the one shared implementation. This sheet used to hand-roll the
-     first two of the four and trap nothing. */
-  useOverlay({ open: true, onClose, panelRef, autoFocus: false });
-
-  useEffect(() => {
-    panelRef.current?.focus();
-  }, []);
-
-  if (!mounted) return null;
 
   const submit = () => {
     startTransition(async () => {
@@ -105,89 +95,87 @@ function ActionSheet({
 
   const blocked = notesRequired && notes.trim().length === 0;
 
-  return createPortal(
-    <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center">
-      <button
-        type="button"
-        aria-label={common.close}
-        onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-      />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        tabIndex={-1}
-        className="nf-rise relative max-h-[88dvh] w-full overflow-y-auto rounded-t-3xl border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] p-5 shadow-[var(--nf-shadow-float)] outline-none sm:max-w-md sm:rounded-3xl"
-      >
-        {result?.ok ? (
-          <div className="text-center">
-            <p className="flex items-center justify-center gap-2 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
-              <UiIcon name="verified" size={20} className="text-[var(--nf-state-success)]" />
-              {successTitle}
-            </p>
-            <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              {successBody}
-            </p>
-            <Button variant="primary" full onClick={onClose} className="mt-4">
-              {common.done}
+  const succeeded = Boolean(result?.ok);
+
+  return (
+    <Sheet
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={title}
+      /* The success state replaces the heading with its own line, exactly as
+         before; the title stays as the sheet's accessible name. */
+      hideTitle={succeeded}
+      footer={
+        succeeded ? (
+          <Button variant="primary" full onClick={onClose}>
+            {common.done}
+          </Button>
+        ) : (
+          <div className="grid gap-3">
+            <Button
+              variant={destructive ? "dangerQuiet" : "primary"}
+              full
+              onClick={submit}
+              disabled={blocked}
+              loading={pending}
+            >
+              {confirmLabel}
+            </Button>
+            <Button variant="secondary" full onClick={onClose}>
+              {common.notNow}
             </Button>
           </div>
-        ) : (
-          <>
-            <h2 className="nf-h3">{title}</h2>
-            <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              {description}
+        )
+      }
+    >
+      {succeeded ? (
+        <div className="text-center">
+          <p className="flex items-center justify-center gap-2 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+            <UiIcon name="verified" size={20} className="text-[var(--nf-state-success)]" />
+            {successTitle}
+          </p>
+          <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            {successBody}
+          </p>
+        </div>
+      ) : (
+        <>
+          <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            {description}
+          </p>
+
+          {extra}
+
+          {withNotes && (
+            <label className="mt-4 block">
+              <span className="nf-label">
+                {notesLabel}
+                {notesRequired ? "" : ` ${common.optional}`}
+              </span>
+              <textarea
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                rows={3}
+                maxLength={2000}
+                className="nf-field mt-1 w-full resize-y"
+                placeholder={common.notePlaceholder}
+              />
+            </label>
+          )}
+
+          {result && !result.ok && (
+            <p
+              role="alert"
+              className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+            >
+              {result.error}
             </p>
-
-            {extra}
-
-            {withNotes && (
-              <label className="mt-4 block">
-                <span className="nf-label">
-                  {notesLabel}
-                  {notesRequired ? "" : ` ${common.optional}`}
-                </span>
-                <textarea
-                  value={notes}
-                  onChange={(event) => setNotes(event.target.value)}
-                  rows={3}
-                  maxLength={2000}
-                  className="nf-field mt-1 w-full resize-y"
-                  placeholder={common.notePlaceholder}
-                />
-              </label>
-            )}
-
-            {result && !result.ok && (
-              <p
-                role="alert"
-                className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
-              >
-                {result.error}
-              </p>
-            )}
-
-            <div className="mt-4 grid gap-3">
-              <Button
-                variant={destructive ? "dangerQuiet" : "primary"}
-                full
-                onClick={submit}
-                disabled={blocked}
-                loading={pending}
-              >
-                {confirmLabel}
-              </Button>
-              <Button variant="secondary" full onClick={onClose}>
-                {common.notNow}
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>,
-    document.body,
+          )}
+        </>
+      )}
+    </Sheet>
   );
 }
 
