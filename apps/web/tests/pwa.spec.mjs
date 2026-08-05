@@ -114,7 +114,7 @@ try {
     .getAttribute("content");
   check(
     "the dark theme-color meta matches the app canvas",
-    String(darkThemeColor).toLowerCase() === "#06070f",
+    String(darkThemeColor).toLowerCase() === "#010118",
   );
   const lightThemeColor = await page
     .locator('meta[name="theme-color"][media*="light"]')

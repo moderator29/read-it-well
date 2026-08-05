@@ -14,18 +14,11 @@ import type { MetadataRoute } from "next";
  * (`/brand/rentme-logo.png`) cropped to the house-and-R mark, centred on the
  * brand navy, and kept deliberately small.
  *
- * Colours are the brand anchors: canvas `#06070F`, electric blue `#0C39EF`.
+ * Colours are the brand anchors: base navy `#010118`, electric blue `#0C39EF`.
  * Dark is the default theme, so the splash background is navy, never white.
  */
 
-/*
- * The dark canvas. Was #010118, which was also the surface base until the ink
- * ramp was lifted: the old ramp moved only in the blue channel, so canvas
- * through raised measured 1.09:1 and every shadow on the platform was
- * invisible. This tracks --nf-surface-canvas so install, splash and app canvas
- * stay one continuous colour.
- */
-const NAVY = "#06070F";
+const NAVY = "#010118";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {

@@ -113,7 +113,7 @@ export const viewport: Viewport = {
    * manifest, so install, splash and canvas remain one continuous colour.
    */
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#06070F" },
+    { media: "(prefers-color-scheme: dark)", color: "#010118" },
     { media: "(prefers-color-scheme: light)", color: "#F4F5F7" },
   ],
   width: "device-width",

@@ -50,9 +50,10 @@ export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: 
        * on exactly the devices that need it: on a notched iPhone the bottom
        * inset is 34px, so max() returned the inset and the dock landed flush on
        * the home indicator with zero visual gap. Adding the inset to the margin
-       * keeps a real 0.9rem of air below it on every device.
+       * keeps real air below it on every device. Sits low and close to the
+       * home indicator by design - it is a dock, not a floating panel.
        */
-      className="nf-dockrow fixed inset-x-4 bottom-[calc(0.9rem+env(safe-area-inset-bottom))] z-50 lg:hidden"
+      className="nf-dockrow fixed inset-x-4 bottom-[calc(0.35rem+env(safe-area-inset-bottom))] z-50 lg:hidden"
     >
       <ul className="nf-tabbar flex items-center gap-1 px-1.5 py-1.5">
         {tabs.map((tab) => {

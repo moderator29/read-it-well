@@ -1763,6 +1763,46 @@ body {
     font-size: var(--nf-text-body-lg);
   }
 
+  /* -------------------------------------------------------------- drawer */
+
+  /*
+   * The side drawer.
+   *
+   * The mobile navigation was a full-bleed `inset-0` panel: not a drawer, a
+   * page that replaced the app. Nothing signalled the app was still behind it,
+   * and there was no edge to dismiss from.
+   *
+   * This stops just short of the far edge - 88% of the viewport, capped at
+   * 26rem so it does not become absurd on a tablet - leaving a strip of the
+   * dimmed app visible and tappable. That strip is the whole trick: it is what
+   * makes the panel read as sitting OVER the product rather than replacing it.
+   */
+  @keyframes nf-drawer-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  .nf-drawer {
+    width: min(88%, 26rem);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-elev-4-rim), var(--nf-elev-4);
+    overscroll-behavior: contain;
+  }
+  .nf-drawer--right {
+    border-left: 1px solid var(--nf-elev-4-border);
+    animation: nf-drawer-in-right var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-drawer--right {
+      animation: none;
+    }
+  }
+
   /* --------------------------------------------------------------- sheet */
 
   /*
@@ -2720,7 +2760,7 @@ body {
    * The previous guess was a flat 80px, which cleared nothing on a notch.
    */
   :root {
-    --nf-tabbar-clearance: calc(0.9rem + env(safe-area-inset-bottom, 0px) + 3.5rem + 0.75rem);
+    --nf-tabbar-clearance: calc(0.35rem + env(safe-area-inset-bottom, 0px) + 3.5rem + 0.75rem);
   }
 
   /*

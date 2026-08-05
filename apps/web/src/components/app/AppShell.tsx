@@ -62,16 +62,28 @@ export function AppShell({
     <div className="flex min-h-dvh">
       <AppRail t={t} active={active} userName={userName} />
 
-      {/* Mobile slide-in side navigation: the same rail, as a left drawer. */}
+      {/*
+        Mobile side navigation.
+
+        Was a full-bleed `inset-0` panel, which is not a drawer at all - it is a
+        page that replaces the app, so there is nothing to tell you the app is
+        still behind it and no edge to dismiss it from.
+
+        It now behaves the way the supplied reference does: it slides in from
+        the RIGHT, stops just short of the far edge so a strip of the dimmed app
+        stays visible and tappable, and travels on the spring rather than
+        fading. Right rather than left because the trigger sits on the right and
+        because a right-hand drawer is reachable one-handed on a phone.
+      */}
       {drawer && (
         <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true">
           <button
             type="button"
             aria-label={t.a11y.closeMenu}
             onClick={() => setDrawer(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
           />
-          <div className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)]">
+          <div className="nf-drawer nf-drawer--right absolute inset-y-0 right-0 overflow-y-auto">
             <AppRail t={t} active={active} userName={userName} variant="drawer" />
           </div>
         </div>
