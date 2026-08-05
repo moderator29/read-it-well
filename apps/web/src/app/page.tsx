@@ -5,7 +5,6 @@ import { getLocale } from "@/lib/locale";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Reveal } from "@/components/site/Reveal";
-import { Onboarding } from "@/components/site/Onboarding";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -66,8 +65,6 @@ export default async function LandingPage() {
 
   return (
     <>
-      {/* Client-only, mounts nothing on first paint: see Onboarding.tsx. */}
-      <Onboarding />
 
       <SiteHeader t={t} locale={locale} />
 
