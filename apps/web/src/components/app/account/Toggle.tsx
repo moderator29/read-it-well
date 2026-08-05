@@ -1,15 +1,30 @@
 "use client";
 
-import { useId } from "react";
+import { Switch } from "@/components/ui/Switch";
 
 /**
  * Switch row for settings groups.
  *
- * A real `role="switch"` button with `aria-checked`, labelled by its visible
- * text, so screen readers announce state changes without extra wiring. The
- * knob slides with a Tailwind transform transition, which the browser skips
- * automatically under reduced motion because the app disables transitions
- * there globally.
+ * This is now a thin adapter over the `Switch` primitive. It exists so the
+ * eight call sites that already speak `onChange` keep working unchanged; the
+ * control, its motion and its accessibility all come from the primitive.
+ *
+ * What that swap fixes, in a control that appears on every settings screen:
+ *
+ *   - The thumb was `bg-white` with `shadow-[0_2px_6px_rgb(0_0_0/0.35)]`. Both
+ *     are raw literals, in a codebase whose token file opens by saying nothing
+ *     below it may introduce a raw colour - and pure white on a light-theme
+ *     track is the wrong colour regardless. The primitive uses
+ *     `--nf-content-on-brand` and the elevation ladder's own shadow.
+ *   - Track and thumb ran on the same flat 200ms. The primitive moves the
+ *     thumb on the spring easing and the track fill on the standard one, so
+ *     the thumb arrives with some weight instead of sliding like a decal.
+ *   - The 44pt target and the reduced-motion behaviour move into one place
+ *     rather than being re-derived per control.
+ *
+ * The row layout stays here, because that is genuinely this file's job: label
+ * and description on the left, control on the right, dividers handled by the
+ * group around it.
  */
 export function Toggle({
   checked,
@@ -24,44 +39,27 @@ export function Toggle({
   description?: string;
   disabled?: boolean;
 }) {
-  const labelId = useId();
-
   return (
     <div className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
       <div className="min-w-0 flex-1">
-        <p id={labelId} className="text-[0.9375rem] font-medium">
-          {label}
-        </p>
+        <p className="text-[0.9375rem] font-medium">{label}</p>
         {description && (
           <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">{description}</p>
         )}
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-labelledby={labelId}
+      <Switch
+        checked={checked}
+        onCheckedChange={onChange}
         disabled={disabled}
-        onClick={() => onChange(!checked)}
-        /* The switch is drawn at 28px because a 44px pill would look like a
-           button, but it must still be a 44px target. `nf-tap` is the platform
-           way of saying that: an invisible pseudo-element centred over the
-           control, at least 44 in each axis. This row used to hand-roll the
-           same trick in Tailwind `before:` utilities, which worked and which
-           nothing else copied. */
-        className={`nf-tap h-7 w-12 shrink-0 cursor-pointer rounded-full border transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 ${
-          checked
-            ? "border-transparent bg-[var(--nf-brand-primary)]"
-            : "border-[var(--nf-border-subtle)] bg-[color-mix(in_oklab,var(--nf-content-primary)_10%,transparent)]"
-        }`}
-      >
-        <span
-          aria-hidden="true"
-          className={`absolute left-0.5 top-1/2 block h-[1.375rem] w-[1.375rem] -translate-y-1/2 rounded-full bg-white shadow-[0_2px_6px_rgb(0_0_0/0.35)] transition-transform duration-200 ease-out ${
-            checked ? "translate-x-[1.25rem]" : "translate-x-0"
-          }`}
-        />
-      </button>
+        /*
+         * The visible label is rendered above by this row, not by the
+         * primitive, so the control is named explicitly rather than pointed at
+         * an element it does not own. The description is deliberately NOT wired
+         * to `aria-describedby`: it is help text for the row, and re-reading it
+         * on every state change would bury the state itself.
+         */
+        aria-label={label}
+      />
     </div>
   );
 }
