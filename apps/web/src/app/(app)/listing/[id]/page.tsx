@@ -21,6 +21,7 @@ import {
   type StickyAction,
 } from "@/components/app/listing/ListingStickyBar";
 import { StayDatesProvider } from "@/components/app/listing/StayDates";
+import { PhotoViewerProvider } from "@/components/app/listing/PhotoViewer";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
@@ -265,6 +266,7 @@ export default async function ListingDetailPage({
   );
 
   const body = (
+    <PhotoViewerProvider title={listing.title} photos={listing.photos} hue={listing.hue}>
     <div className="mx-auto max-w-5xl">
       <ListingGallery
         listingId={listing.id}
@@ -401,6 +403,7 @@ export default async function ListingDetailPage({
         fallbackLabel={listing.title}
       />
     </div>
+    </PhotoViewerProvider>
   );
 
   // Only a stay has dates to share, and the provider is what keeps the panel
