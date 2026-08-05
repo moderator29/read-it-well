@@ -59,18 +59,16 @@ export function ReplyForm({
           {saved}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <button type="button" onClick={() => setOpen(true)} className="nf-btn nf-btn--glass nf-btn--sm">
+          <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
             Edit reply
-          </button>
+          </Button>
           <form action={removeAction}>
             <input type="hidden" name="reviewId" value={reviewId} />
-            <button
-              type="submit"
-              disabled={removing}
-              className="nf-btn nf-btn--ghost nf-btn--sm disabled:opacity-60"
-            >
+            {/* Taking a public answer back down is destructive, and it was the
+                quietest control beside the one that only edits it. */}
+            <Button type="submit" variant="dangerQuiet" size="sm" loading={removing}>
               {removing ? "Removing..." : "Remove"}
-            </button>
+            </Button>
           </form>
         </div>
         {removeState && !removeState.ok && (
@@ -84,13 +82,9 @@ export function ReplyForm({
 
   if (!editing) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="nf-btn nf-btn--glass nf-btn--sm mt-3"
-      >
+      <Button variant="secondary" size="sm" className="mt-3" onClick={() => setOpen(true)}>
         Write a reply
-      </button>
+      </Button>
     );
   }
 
