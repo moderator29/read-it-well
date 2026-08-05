@@ -46,8 +46,25 @@ import { noteEntry } from "@/lib/ui/history";
 const STORE_KEY = "nf_scroll_positions";
 /** Positions remembered per tab. Enough for a deep hunt, not enough to bloat. */
 const MAX_ENTRIES = 40;
-/** How long to keep re-applying a restore while the page grows, in frames. */
-const RESTORE_FRAMES = 40;
+/**
+ * How long a restore may keep trying, in ms.
+ *
+ * MEASURED, NOT GUESSED. The first version of this budget was 40 animation
+ * frames, about 660ms, and it failed on the real page: coming back to
+ * `/search` the router still has to fetch and render the results, so for most
+ * of that window the document was one viewport tall and every `scrollTo(1384)`
+ * clamped to nothing. The budget ran out, the results then arrived 2500px
+ * tall, and the reader was left at the top. Left at scrollY 1384, returned to
+ * 242. Three seconds covers a cold RSC fetch on a slow connection and is
+ * bounded, so a page that genuinely got shorter settles instead of thrashing.
+ */
+const RESTORE_BUDGET_MS = 3000;
+/**
+ * Frames the position must hold before the restore lets go. One frame is not
+ * enough: the router does its own scroll handling on a traversal and can move
+ * the page immediately after we set it.
+ */
+const SETTLED_FRAMES = 3;
 /**
  * How long after a traversal the push handler stays out of the way, in ms.
  * `popstate` runs before React re-renders, so the flag is always already set
@@ -99,7 +116,9 @@ export function ScrollToTop() {
     noteEntry();
 
     let frame = 0;
-    let restoreBudget = 0;
+    /* While this is in the future a restore is in progress: saving is paused
+       so the clamped intermediate positions do not overwrite the real one. */
+    let restoreUntil = 0;
 
     const remember = () => {
       frame = 0;
@@ -113,24 +132,45 @@ export function ScrollToTop() {
     /* rAF-throttled: scrolling fires dozens of times a second and every save
        is a JSON stringify into session storage. */
     const onScroll = () => {
-      if (restoreBudget > 0) return;
+      if (Date.now() < restoreUntil) return;
       if (frame) return;
       frame = window.requestAnimationFrame(remember);
     };
 
     const restore = (target: number) => {
-      restoreBudget = RESTORE_FRAMES;
+      const deadline = Date.now() + RESTORE_BUDGET_MS;
+      restoreUntil = deadline;
+      let settled = 0;
+
       const step = () => {
-        if (restoreBudget <= 0) return;
-        restoreBudget -= 1;
-        window.scrollTo({ top: target, left: 0, behavior: "instant" as ScrollBehavior });
-        if (Math.abs(window.scrollY - target) <= 2) {
-          restoreBudget = 0;
+        if (restoreUntil !== deadline) return; /* superseded or cancelled */
+        if (Date.now() > deadline) {
+          restoreUntil = 0;
           return;
+        }
+
+        /* Only ask for a position the document can actually hold. Asking while
+           it is still one viewport tall clamps to the top, and a clamp is
+           indistinguishable from success if you only check once. */
+        const reachable =
+          document.documentElement.scrollHeight - window.innerHeight >= target - 2;
+        if (reachable) {
+          window.scrollTo({ top: target, left: 0, behavior: "instant" as ScrollBehavior });
+          settled = Math.abs(window.scrollY - target) <= 2 ? settled + 1 : 0;
+          if (settled >= SETTLED_FRAMES) {
+            restoreUntil = 0;
+            return;
+          }
         }
         window.requestAnimationFrame(step);
       };
       window.requestAnimationFrame(step);
+    };
+
+    /* A deliberate scroll always wins. Nobody should have to fight the page
+       for three seconds because it decided where they wanted to be. */
+    const cancelRestore = () => {
+      restoreUntil = 0;
     };
 
     const onPopState = () => {
@@ -143,11 +183,17 @@ export function ScrollToTop() {
 
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("popstate", onPopState);
+    window.addEventListener("wheel", cancelRestore, { passive: true });
+    window.addEventListener("touchstart", cancelRestore, { passive: true });
+    window.addEventListener("keydown", cancelRestore);
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
-      restoreBudget = 0;
+      restoreUntil = 0;
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("popstate", onPopState);
+      window.removeEventListener("wheel", cancelRestore);
+      window.removeEventListener("touchstart", cancelRestore);
+      window.removeEventListener("keydown", cancelRestore);
     };
   }, []);
 

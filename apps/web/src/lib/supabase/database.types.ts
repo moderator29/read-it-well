@@ -1400,6 +1400,7 @@ export type Database = {
           matched: string
           message_id: string
           reason: Database["public"]["Enums"]["message_flag_reason"]
+          reviewed_by: string | null
           status: Database["public"]["Enums"]["message_flag_status"]
         }
         Insert: {
@@ -1408,6 +1409,7 @@ export type Database = {
           matched: string
           message_id: string
           reason: Database["public"]["Enums"]["message_flag_reason"]
+          reviewed_by?: string | null
           status?: Database["public"]["Enums"]["message_flag_status"]
         }
         Update: {
@@ -1416,6 +1418,7 @@ export type Database = {
           matched?: string
           message_id?: string
           reason?: Database["public"]["Enums"]["message_flag_reason"]
+          reviewed_by?: string | null
           status?: Database["public"]["Enums"]["message_flag_status"]
         }
         Relationships: [
@@ -1945,6 +1948,7 @@ export type Database = {
           reason: string
           reporter_id: string
           resolved_at: string | null
+          resolved_by: string | null
           status: Database["public"]["Enums"]["report_status"]
           target_id: string
           target_type: string
@@ -1956,6 +1960,7 @@ export type Database = {
           reason: string
           reporter_id: string
           resolved_at?: string | null
+          resolved_by?: string | null
           status?: Database["public"]["Enums"]["report_status"]
           target_id: string
           target_type: string
@@ -1967,6 +1972,7 @@ export type Database = {
           reason?: string
           reporter_id?: string
           resolved_at?: string | null
+          resolved_by?: string | null
           status?: Database["public"]["Enums"]["report_status"]
           target_id?: string
           target_type?: string
@@ -2071,6 +2077,7 @@ export type Database = {
           entity_type: string | null
           id: string
           resolved_at: string | null
+          resolved_by: string | null
           severity: Database["public"]["Enums"]["alert_severity"]
           status: Database["public"]["Enums"]["alert_status"]
           title: string
@@ -2082,6 +2089,7 @@ export type Database = {
           entity_type?: string | null
           id?: string
           resolved_at?: string | null
+          resolved_by?: string | null
           severity?: Database["public"]["Enums"]["alert_severity"]
           status?: Database["public"]["Enums"]["alert_status"]
           title: string
@@ -2093,6 +2101,7 @@ export type Database = {
           entity_type?: string | null
           id?: string
           resolved_at?: string | null
+          resolved_by?: string | null
           severity?: Database["public"]["Enums"]["alert_severity"]
           status?: Database["public"]["Enums"]["alert_status"]
           title?: string

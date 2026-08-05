@@ -63,8 +63,25 @@ function walk(dir, out = []) {
   }
   return out;
 }
+/*
+ * COMMENTS ARE NOT CODE, and this spec learned that the hard way: its first
+ * run failed on three files whose only offence was a doc comment explaining
+ * the very bug it was checking for. A scan that cannot tell an explanation
+ * from an instance punishes documenting the fix, which is exactly backwards.
+ * Comments are blanked rather than deleted so line numbers still line up.
+ */
+function stripComments(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
+    .replace(/(^|[^:])\/\/[^\n]*/g, (m, lead) => lead + " ".repeat(m.length - lead.length));
+}
+
 const files = walk(SRC)
-  .map((f) => ({ rel: relative(SRC, f).split("\\").join("/"), src: readFileSync(f, "utf8") }))
+  .map((f) => ({
+    rel: relative(SRC, f).split("\\").join("/"),
+    src: readFileSync(f, "utf8"),
+    code: stripComments(readFileSync(f, "utf8")),
+  }))
   .filter((f) => !SOCIAL.some((s) => f.rel.startsWith(s)));
 
 console.log("\nNo back control reads a framework internal");
