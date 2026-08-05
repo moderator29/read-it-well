@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { formatNumber } from "@naijafinds/i18n";
+import { getLocale } from "@/lib/locale";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -59,6 +61,11 @@ export default async function AreaPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  /* The counts below were formatted with a hardcoded "en-NG". See the note in
+     KNOWN_GAPS: it produces the same string in all four languages today, so
+     this is correctness rather than a visible fix, and it is cheap here
+     because the locale is one call away. */
+  const locale = await getLocale();
   const { slug } = await params;
   if (!(await isSocialEnabled())) return <SocialPaused />;
 
@@ -184,7 +191,7 @@ export default async function AreaPage({
               Members
             </dt>
             <dd className="nf-numeric mt-0.5 text-lg font-bold text-[var(--nf-content-primary)]">
-              {area.memberCount.toLocaleString("en-NG")}
+              {formatNumber(area.memberCount, locale)}
             </dd>
           </div>
           <div>
@@ -192,7 +199,7 @@ export default async function AreaPage({
               Posts
             </dt>
             <dd className="nf-numeric mt-0.5 text-lg font-bold text-[var(--nf-content-primary)]">
-              {area.postCount.toLocaleString("en-NG")}
+              {formatNumber(area.postCount, locale)}
             </dd>
           </div>
           <div>
@@ -252,7 +259,7 @@ export default async function AreaPage({
                 >
                   <span className="nf-enter__chip-name">{place.name}</span>
                   <span className="nf-enter__chip-count nf-numeric">
-                    {place.memberCount.toLocaleString("en-NG")}
+                    {formatNumber(place.memberCount, locale)}
                   </span>
                 </Link>
               </li>
