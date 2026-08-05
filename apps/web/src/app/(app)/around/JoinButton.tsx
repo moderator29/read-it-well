@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { joinArea, leaveArea } from "@/lib/social/areas-actions";
 
 /**
@@ -26,6 +26,16 @@ export function JoinButton({
   size?: "sm" | "md";
 }) {
   const router = useRouter();
+  /*
+   * Where to come back to after signing in.
+   *
+   * This was hard-coded to `/around`, which was right for exactly as long as
+   * `/around` was the directory this button sat on. It now sits on three
+   * different screens, so it returns to the one the person actually tapped on
+   * rather than to whichever screen used to be the only one.
+   */
+  const pathname = usePathname();
+  const search = useSearchParams();
   const [pending, startTransition] = useTransition();
   const [isJoined, setIsJoined] = useState(joined);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +45,9 @@ export function JoinButton({
 
   const toggle = () => {
     if (!signedIn) {
-      router.push(`/sign-in?next=${encodeURIComponent("/around")}`);
+      const query = search.toString();
+      const here = `${pathname}${query ? `?${query}` : ""}`;
+      router.push(`/sign-in?next=${encodeURIComponent(here || "/around")}`);
       return;
     }
     const next = !isJoined;

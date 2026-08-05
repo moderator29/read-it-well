@@ -62,8 +62,6 @@ export const ig: Dictionary = {
 
   social: {
     manage: "Jikwaa ebe",
-    manageLede:
-      "Ebe gị niile, ebe niile emeghere, na ihe ọ bụla ị tụrụ aro.",
     allPlaces: "Ebe gị niile",
     pickPlaces: "Họrọ ebe gị",
     switcherLabel: "Ebe ole ka a ga-agụ",

@@ -26,9 +26,11 @@ export default async function ProposeAreaPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl pb-16 pt-4">
+      {/* Back to the directory, which is where this form is reached from and
+          where the suggestion appears once it is made. */}
       <PageHeader
         title="Suggest a place"
-        fallback="/around"
+        fallback="/around/manage"
       />
 
       <p className="mb-6 text-sm leading-relaxed text-[var(--nf-content-muted)]">

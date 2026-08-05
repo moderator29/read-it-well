@@ -62,8 +62,6 @@ export const yo: Dictionary = {
 
   social: {
     manage: "Ṣàkóso àwọn ibi",
-    manageLede:
-      "Àwọn ibi rẹ, gbogbo ibi tí ó ṣí sílẹ̀, àti ohunkóhun tí o ti dábàá.",
     allPlaces: "Gbogbo àwọn ibi rẹ",
     pickPlaces: "Yan àwọn ibi rẹ",
     switcherLabel: "Àwọn ibi wo ni kí a kà",

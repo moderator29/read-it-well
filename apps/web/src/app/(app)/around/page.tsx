@@ -1,274 +1,240 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getDictionary, type Dictionary } from "@naijafinds/i18n";
 import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Chip, ChipRow } from "@/components/ui/Chip";
+import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
+import { listMyAreas, type AreaSummary } from "@/lib/social/areas-queries";
 import {
-  listMyAreas,
-  listMyProposals,
-  listOpenAreas,
-  listOpenLgaPlaces,
-  type AreaSummary,
-} from "@/lib/social/areas-queries";
-import { AREA_COPY, AREA_KIND_LABEL, type AreaStatus } from "@/lib/social/areas-schema";
-import { getPlaceTree } from "@/lib/social/place-tree";
-import { PLACE_COPY } from "@/lib/social/places-schema";
-import { PlacePicker } from "@/components/social/PlacePicker";
+  getAreaFeed,
+  getJoinedFeed,
+  getOpenAreasFeed,
+} from "@/lib/social/posts-queries";
+import { POST_COPY } from "@/lib/social/posts-schema";
+import { Feed } from "@/components/social/feed/Feed";
 import { AroundFab } from "@/components/social/AroundFab";
-import { JoinButton } from "./JoinButton";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { isSocialEnabled } from "@/lib/social/flag";
 
 export const metadata: Metadata = { title: "Around" };
 
+export const dynamic = "force-dynamic";
+
 /**
- * Around: the way into the social layer, then the directory of places.
+ * Around: the feed.
  *
- * The country comes first. Every one of Nigeria's 36 states and the FCT is a
- * container, every one of the 774 local governments is a container behind it,
- * and tapping one puts you inside it whether or not anybody has been there
- * before. That is the front door, so it is the first thing on the page rather
- * than something under a list of the six places that happen to exist today.
+ * The bottom navigation says Around, and until now tapping it handed back a
+ * directory of rooms rather than the conversation happening inside them. The
+ * owner named it exactly: it should go straight to the feed, and everything
+ * that makes the feed deeper belongs behind a control inside it. So this screen
+ * is the timeline and `/around/manage` is the directory.
  *
- * Underneath it, the directory: places you are in first, then everything open,
- * busiest first, because a directory sorted by newest sends the first visitor
- * to the emptiest room.
+ * Three states, and none of them is a blank screen with an invitation on it:
  *
- * Signed out this renders in full rather than behind a wall: the gate belongs
- * in front of value, not in front of the front door. Opening a place nobody has
- * been in is a write and asks for an account at the moment it matters; walking
- * into one that is already open never does.
+ * 1. Signed in with places joined: everything said in those places, newest
+ *    first, through `getJoinedFeed`.
+ * 2. Signed in with none joined, or signed out entirely: the busiest open
+ *    places, through `getOpenAreasFeed`, under a line saying plainly that these
+ *    are not yours yet and one control that goes and picks them. Real posts by
+ *    real people in real places. Nothing on this screen is invented, and if
+ *    those places have genuinely said nothing then the feed is empty and says
+ *    so rather than filling itself.
+ * 3. One of your places chosen in the switcher: that place's own timeline,
+ *    which is the same read `/around/[slug]` makes.
+ *
+ * The choice lives in `?place=`, not in state, so a reload lands where the
+ * person was and the back button walks back through the places they looked at.
  */
 export default async function AroundPage({
   searchParams,
 }: {
-  searchParams: Promise<{ state?: string | string[] }>;
+  searchParams: Promise<{ place?: string | string[] }>;
 }) {
   if (!(await isSocialEnabled())) return <SocialPaused />;
 
-  const [params, session, open, mine, proposals, tree, openLgas] = await Promise.all([
+  const [params, locale, session, mine] = await Promise.all([
     searchParams,
+    getLocale(),
     resolveSession(),
-    listOpenAreas(),
     listMyAreas(),
-    listMyProposals(),
-    getPlaceTree(),
-    listOpenLgaPlaces(),
   ]);
 
-  const rawState = Array.isArray(params.state) ? params.state[0] : params.state;
-  const initialStateCode =
-    typeof rawState === "string" && /^[A-Za-z]{2}$/.test(rawState)
-      ? rawState.toUpperCase()
-      : null;
-
+  const t = getDictionary(locale);
   const signedIn = session.state === "signed-in";
-  const unconfigured = session.state === "unconfigured";
-  const mineIds = new Set(mine.map((area) => area.id));
-  const others = open.filter((area) => !mineIds.has(area.id));
-  const openProposals = proposals.filter((p) => p.status === "PROPOSED");
-  const answered = proposals.filter((p) => p.status === "REJECTED");
+  const viewerId = signedIn ? session.user.id : null;
+
+  const rawPlace = Array.isArray(params.place) ? params.place[0] : params.place;
+  /* Only a place this person is actually in can be chosen. A `?place=` naming
+     anything else falls back to the combined feed rather than erroring: the
+     switcher cannot produce such a link, so the only way to hold one is a stale
+     bookmark from before somebody left a place, and the honest answer to that
+     is their feed rather than a 404. */
+  const selected: AreaSummary | null =
+    typeof rawPlace === "string" ? (mine.find((area) => area.slug === rawPlace) ?? null) : null;
+
+  /* One of three reads, never two. `getJoinedFeed` resolves the membership
+     through the viewer's own RLS-bound client, so this passes an id rather than
+     a list of places it read itself and the database stays the authority. */
+  const feed = selected
+    ? await getAreaFeed(selected.id)
+    : viewerId && mine.length > 0
+      ? await getJoinedFeed(viewerId)
+      : await getOpenAreasFeed();
+
+  /** True when the person is reading places they have not joined. */
+  const browsingOpen = !selected && mine.length === 0;
+
+  const emptyMessage = selected
+    ? signedIn
+      ? POST_COPY.emptyFeed
+      : POST_COPY.emptyFeedSignedOut
+    : browsingOpen
+      ? t.social.emptyAnywhere
+      : t.social.emptyJoined;
 
   return (
-    <div className="mx-auto w-full max-w-3xl pb-24 pt-4">
+    <div
+      className="mx-auto w-full max-w-3xl pt-4"
+      /* The dock floats over the bottom of the screen on a phone, and this is
+         the one route in the social layer that keeps it. Padding rather than a
+         fixed pb-24 so the clearance tracks the dock's real height and the home
+         indicator's inset together. */
+      style={{ paddingBottom: "var(--nf-tabbar-clearance)" }}
+      data-testid="around-feed"
+    >
       <PageHeader
-        title="Around"
+        title={selected ? selected.name : t.nav.around}
+        subtitle={selected ? selected.city : undefined}
         fallback="/home"
         actions={
+          /* The one obvious way from the feed to everything that makes it
+             deeper: the country, the directory, your places, your proposals. */
           <Link
-            href="/around/new"
+            href="/around/manage"
             className="nf-btn nf-btn--ghost inline-flex h-10 items-center gap-2 px-4 text-sm"
           >
-            <UiIcon name="sparkle" size={16} />
-            Suggest a place
+            <UiIcon name="sliders" size={16} />
+            {t.social.manage}
           </Link>
         }
       />
 
-      <p className="mb-4 text-sm leading-relaxed text-[var(--nf-content-muted)]">
-        {AREA_COPY.what}
-      </p>
+      <PlaceSwitcher places={mine} activeSlug={selected?.slug ?? null} t={t} />
 
-      {/* Places are one half of Around and people are the other, and until this
-          line existed the second half had no front door at all: a handle was
-          reachable only if you already knew it. */}
-      <Link
-        href="/u"
-        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[var(--nf-brand-secondary)]"
-      >
-        <UiIcon name="user" size={15} />
-        Find people
-      </Link>
-
-      {/* One sentence, not two. Without keys the country cannot be read at all,
-          so the picker would say the same thing in different words directly
-          underneath this card, and a screen that apologises twice for one fact
-          reads as a screen nobody looked at. */}
-      {unconfigured ? (
-        <p className="nf-card mb-6 p-4 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
-          {PLACE_COPY.unconfigured}
-        </p>
-      ) : (
-        <PlacePicker
-          tree={tree}
-          open={openLgas}
-          signedIn={signedIn}
-          initialStateCode={initialStateCode}
-        />
-      )}
-
-      {openProposals.length > 0 ? (
-        <section className="mb-8">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
-            Waiting on us
-          </h2>
-          <ul className="flex flex-col gap-2">
-            {openProposals.map((proposal) => (
-              <li
-                key={proposal.id}
-                className="nf-card flex items-center gap-3 p-4"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-[var(--nf-content-primary)]">
-                    {proposal.name}
-                  </p>
-                  <p className="mt-0.5 text-xs text-[var(--nf-content-muted)]">
-                    {proposal.city} &middot; you suggested this
-                  </p>
-                </div>
-                <span className="shrink-0 rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-3 py-1 text-xs font-semibold text-[var(--nf-content-muted)]">
-                  With us
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 text-xs leading-relaxed text-[var(--nf-content-muted)]">
-            {AREA_COPY.proposePending}
+      {browsingOpen ? (
+        <div className="nf-card mb-4 p-4">
+          <p className="text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+            {signedIn ? t.social.browsingOpen : t.social.browsingOpenSignedOut}
           </p>
-        </section>
+          <Link
+            href="/around/manage"
+            className="nf-btn nf-btn--primary mt-4 inline-flex h-10 items-center px-5 text-sm"
+          >
+            {t.social.pickPlaces}
+          </Link>
+        </div>
       ) : null}
 
-      {answered.length > 0 ? (
-        <section className="mb-8">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
-            We came back to you
-          </h2>
-          <ul className="flex flex-col gap-2">
-            {answered.map((proposal) => (
-              <li key={proposal.id} className="nf-card p-4">
-                <p className="text-sm font-semibold text-[var(--nf-content-primary)]">
-                  {proposal.name}
-                </p>
-                <p className="mt-1 text-xs leading-relaxed text-[var(--nf-content-muted)]">
-                  {proposal.decisionNote ??
-                    "We could not open this one. You can suggest another at any time."}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {selected ? (
+        <Link
+          href={`/around/${selected.slug}`}
+          className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--nf-brand-secondary)]"
+        >
+          <UiIcon name="compass" size={15} />
+          {t.social.openPlacePage}
+        </Link>
       ) : null}
-
-      <section className="mb-9">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
-          Your places
-        </h2>
-        {mine.length > 0 ? (
-          <ul className="flex flex-col gap-2">
-            {mine.map((area) => (
-              <AreaRow key={area.id} area={area} joined signedIn={signedIn} />
-            ))}
-          </ul>
-        ) : (
-          <p className="nf-card p-4 text-sm leading-relaxed text-[var(--nf-content-muted)]">
-            {signedIn ? AREA_COPY.joinedNone : "Sign in to keep your places here."}
-          </p>
-        )}
-      </section>
 
       <section>
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
-          Open places
-        </h2>
-        {others.length > 0 ? (
-          <ul className="flex flex-col gap-2">
-            {others.map((area) => (
-              <AreaRow key={area.id} area={area} joined={false} signedIn={signedIn} />
-            ))}
-          </ul>
-        ) : (
-          <div className="nf-card p-5 text-center">
-            <p className="text-sm leading-relaxed text-[var(--nf-content-muted)]">
-              {open.length > 0
-                ? "You are in every place that is open so far."
-                : AREA_COPY.noneOpenYet}
-            </p>
-            <Link href="/around/new" className="nf-btn nf-btn--primary mt-4 inline-flex h-10 items-center px-5 text-sm">
-              Suggest a place
-            </Link>
-          </div>
-        )}
+        {/*
+          No `district` prop on purpose. That block draws the place header and
+          the five-way chip row, both of which answer "which district am I in",
+          and on a combined timeline there is no single answer. `/around/[slug]`
+          is where a place gets its own head, and it still does.
+
+          The composer appears only when one place is chosen, because a post has
+          to land somewhere. On the combined feed the dock carries the picker,
+          which is what it was built for.
+        */}
+        <Feed
+          initial={feed.posts}
+          signedIn={signedIn}
+          isMember={Boolean(selected)}
+          areaId={selected && selected.status === "ACTIVE" ? selected.id : undefined}
+          areaName={selected?.name}
+          emptyMessage={emptyMessage}
+        />
+        {feed.ended && feed.posts.length > 0 ? (
+          <p
+            aria-live="polite"
+            className="mt-5 text-center text-xs text-[var(--nf-content-muted)]"
+          >
+            {POST_COPY.endOfSession}
+          </p>
+        ) : null}
       </section>
 
-      {/* No place is known from here, so Drop gist opens with the picker. */}
-      <AroundFab />
+      <AroundFab
+        currentAreaId={selected && selected.status === "ACTIVE" ? selected.id : undefined}
+      />
     </div>
   );
 }
 
-function AreaRow({
-  area,
-  joined,
-  signedIn,
+/**
+ * Which places this timeline is made of.
+ *
+ * `ChipRow` and `Chip` rather than a hand-rolled rail, so this row gets the
+ * platform's 44px hit target, its snap behaviour, its hidden scrollbar and its
+ * trailing fade for free, and so a change to any of those lands here too.
+ *
+ * Every chip is a link carrying `?place=`, which is what makes the choice
+ * survive a reload and put a real entry in the history stack. `aria-current`
+ * comes from `Chip` itself for a selected link, because nothing was toggled:
+ * the row is describing where the reader already is.
+ *
+ * The last chip is always the way to the directory, even for somebody in forty
+ * places, so this row is never a control with one dead option in it.
+ */
+function PlaceSwitcher({
+  places,
+  activeSlug,
+  t,
 }: {
-  area: AreaSummary;
-  joined: boolean;
-  signedIn: boolean;
+  places: AreaSummary[];
+  activeSlug: string | null;
+  t: Dictionary;
 }) {
   return (
-    <li className="nf-card flex items-start gap-3 p-4">
-      {/*
-        Nothing in this row truncates, and that is deliberate rather than
-        untidy. A place name is a proper noun, and "Magodo Phase 2 Es..." is not
-        a place anybody can recognise. The line under it carries a count and the
-        word that gives the count its meaning, which is the one thing the house
-        rules say never to cut. The blurb is capped at 200 characters by the
-        schema, so showing it whole is three lines at 390px, and three honest
-        lines beat one line ending in a full stop somebody else did not write.
-        The row wraps instead.
-      */}
-      <Link href={`/around/${area.slug}`} className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <p className="text-base font-semibold text-[var(--nf-content-primary)]">
-            {area.name}
-          </p>
-          {area.status === "PAUSED" ? (
-            <span className="shrink-0 rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
-              Paused
-            </span>
-          ) : null}
-        </div>
-        <p className="mt-0.5 text-xs leading-relaxed text-[var(--nf-content-muted)]">
-          {AREA_KIND_LABEL[area.kind]} &middot; {area.city} &middot;{" "}
-          <span className="nf-numeric">{area.memberCount.toLocaleString("en-NG")}</span>{" "}
-          {area.memberCount === 1 ? "member" : "members"}
-        </p>
-        {area.blurb ? (
-          <p className="mt-1 text-xs leading-relaxed text-[var(--nf-content-secondary)]">
-            {area.blurb}
-          </p>
-        ) : null}
-      </Link>
-      {area.status === "ACTIVE" ? (
-        <JoinButton areaId={area.id} joined={joined} signedIn={signedIn} size="sm" />
-      ) : null}
-    </li>
+    <nav aria-label={t.social.switcherLabel} className="mb-4" data-testid="around-switcher">
+      <ChipRow label={t.social.switcherLabel}>
+        <Chip
+          behaviour="link"
+          href="/around"
+          size="sm"
+          icon="grid"
+          selected={activeSlug === null}
+          data-testid="around-switcher-all"
+        >
+          {t.social.allPlaces}
+        </Chip>
+        {places.map((place) => (
+          <Chip
+            key={place.slug}
+            behaviour="link"
+            href={`/around?place=${encodeURIComponent(place.slug)}`}
+            size="sm"
+            selected={place.slug === activeSlug}
+          >
+            {place.name}
+          </Chip>
+        ))}
+        <Chip behaviour="link" href="/around/manage" size="sm" icon="sliders">
+          {t.social.pickPlaces}
+        </Chip>
+      </ChipRow>
+    </nav>
   );
 }
-
-export const dynamic = "force-dynamic";
-
-// Kept so a future reader does not have to work out why the list is not cached:
-// membership is per viewer and the whole page changes shape when you join, so
-// caching it would show one person another person's shelf.
-export type { AreaStatus };

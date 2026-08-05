@@ -1,38 +1,59 @@
 /**
- * The wait, on the directory of places.
+ * The wait, on the feed.
  *
- * `/around` is force-dynamic and makes four reads before it can render a word,
- * because membership is per viewer and the page changes shape when you join
- * one. On a slow Nigerian connection Next holds the previous screen for that
- * whole time, so a tap on Around looks like a tap that did nothing.
+ * `/around` is force-dynamic and resolves the session, the places somebody is
+ * in and a page of posts before it can render a word. On a slow Nigerian
+ * connection Next holds the previous screen for that whole time, so a tap on
+ * Around looks like a tap that did nothing.
  *
- * The real layout rather than a spinner, so nothing jumps when the data lands.
+ * The real layout rather than a spinner: a header row, the place switcher, and
+ * three post-shaped cards, so nothing jumps when the posts land.
  */
 export default function LoadingAround() {
   return (
-    <div className="mx-auto w-full max-w-3xl pb-24 pt-4" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading places</span>
+    <div
+      className="mx-auto w-full max-w-3xl pt-4"
+      style={{ paddingBottom: "var(--nf-tabbar-clearance)" }}
+      aria-busy="true"
+      aria-live="polite"
+    >
+      <span className="sr-only">Loading your feed</span>
 
-      <div className="mb-6 space-y-3" aria-hidden="true">
+      <div className="mb-5 flex items-center gap-4" aria-hidden="true">
+        <span className="nf-social-skeleton block h-9 w-9 rounded-full" />
         <span className="nf-social-skeleton block h-7 w-32 rounded-[var(--nf-radius-xs)]" />
-        <span className="nf-social-skeleton block h-3 w-4/5 rounded-[var(--nf-radius-xs)]" />
       </div>
 
-      <span
-        className="nf-social-skeleton mb-3 block h-3 w-24 rounded-[var(--nf-radius-xs)]"
-        aria-hidden="true"
-      />
-      <ul className="flex flex-col gap-2" aria-hidden="true">
-        {[0, 1, 2, 3].map((row) => (
-          <li key={row} className="nf-card flex items-start gap-3 p-4">
-            <div className="min-w-0 flex-1 space-y-2">
-              <span className="nf-social-skeleton block h-4 w-40 rounded-[var(--nf-radius-xs)]" />
-              <span className="nf-social-skeleton block h-3 w-56 rounded-[var(--nf-radius-xs)]" />
-            </div>
-            <span className="nf-social-skeleton block h-9 w-20 rounded-[var(--nf-radius-pill)]" />
-          </li>
+      {/* The switcher, at its own height, so the first card does not climb into
+          the space the chips are about to take. */}
+      <div className="mb-4 flex items-center gap-2 overflow-hidden" aria-hidden="true">
+        {[28, 20, 24].map((width, index) => (
+          <span
+            key={index}
+            className="nf-social-skeleton block h-9 rounded-[var(--nf-radius-pill)]"
+            style={{ width: `${width * 4}px` }}
+          />
         ))}
-      </ul>
+      </div>
+
+      <div className="flex flex-col gap-[var(--nf-feed-gap)]" aria-hidden="true">
+        {[0, 1, 2].map((card) => (
+          <div key={card} className="nf-card nf-post p-4">
+            <div className="flex items-center gap-3">
+              <span className="nf-social-skeleton block h-10 w-10 rounded-full" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <span className="nf-social-skeleton block h-3 w-32 rounded-[var(--nf-radius-xs)]" />
+                <span className="nf-social-skeleton block h-3 w-20 rounded-[var(--nf-radius-xs)]" />
+              </div>
+            </div>
+            <div className="mt-4 space-y-2">
+              <span className="nf-social-skeleton block h-3 w-full rounded-[var(--nf-radius-xs)]" />
+              <span className="nf-social-skeleton block h-3 w-11/12 rounded-[var(--nf-radius-xs)]" />
+              <span className="nf-social-skeleton block h-3 w-2/3 rounded-[var(--nf-radius-xs)]" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -64,9 +64,12 @@ export function ProposeAreaForm({
           <button
             type="button"
             className="nf-btn nf-btn--primary"
-            onClick={() => router.push("/around")}
+            /* The directory, not the feed: the suggestion just made is printed
+               there under "Waiting on us", so this is the one screen that can
+               show the person what they have done. */
+            onClick={() => router.push("/around/manage")}
           >
-            Back to Around
+            Back to your places
           </button>
           <button
             type="button"

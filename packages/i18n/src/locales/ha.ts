@@ -62,8 +62,6 @@ export const ha: Dictionary = {
 
   social: {
     manage: "Sarrafa wurare",
-    manageLede:
-      "Wuraren ka, duk inda aka buɗe, da duk abin da ka gabatar.",
     allPlaces: "Duk wuraren ka",
     pickPlaces: "Zaɓi wuraren ka",
     switcherLabel: "Wadanne wurare za a karanta",

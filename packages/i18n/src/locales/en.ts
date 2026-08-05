@@ -75,8 +75,6 @@ export const en = {
   social: {
     /** The header control that leaves the feed for the directory. */
     manage: "Manage places",
-    manageLede:
-      "Your places, everywhere that is open, and anything you have suggested.",
     /** The first chip of the switcher: the combined timeline. */
     allPlaces: "All your places",
     /** The last chip of the switcher, and the way out of an unjoined feed. */
