@@ -65,12 +65,24 @@ export function BalanceCard({
   balanceMinor,
   entries,
   locale,
+  usdRate,
 }: {
   balanceMinor: number;
   entries: WalletEntry[];
   locale: Locale;
+  /**
+   * Naira per one US dollar. Optional on purpose.
+   *
+   * This wallet states real money, so a rate is either a real rate or it is
+   * not shown. There is deliberately no fallback constant: a hard-coded FX
+   * figure would put an invented number where a user reads their balance,
+   * which is the one place on the platform that must never be approximated.
+   * With no rate configured the toggle does not render at all.
+   */
+  usdRate?: number | null;
 }) {
   const [hidden, setHidden] = useState(false);
+  const [inUsd, setInUsd] = useState(false);
   const { kobo } = formatKoboExact(balanceMinor, locale);
   // Integer naira, no floats: the kobo remainder is stripped by the same
   // exact arithmetic as formatKoboExact, then the rest is a whole multiple
@@ -135,6 +147,17 @@ export function BalanceCard({
           Available balance
         </p>
         <div className="flex items-center gap-2">
+          {usdRate ? (
+            <button
+              type="button"
+              onClick={() => setInUsd((v) => !v)}
+              aria-pressed={inUsd}
+              aria-label={inUsd ? "Show balance in naira" : "Show balance in US dollars"}
+              className="nf-chip min-h-11 px-3 font-bold"
+            >
+              {inUsd ? "$" : "\u20A6"}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => setHidden((h) => !h)}
@@ -165,13 +188,28 @@ export function BalanceCard({
       <p className="nf-numeric relative mt-3 leading-none text-[var(--nf-content-primary)]">
         {hidden ? (
           <span className="text-[2.5rem] font-bold tracking-[-0.03em] sm:text-[3rem]">
-            {"₦"}
-            {"••••••"}
+            {inUsd ? "$" : "\u20A6"}
+            {"\u2022\u2022\u2022\u2022\u2022\u2022"}
           </span>
+        ) : inUsd && usdRate ? (
+          /*
+             The converted view. Deliberately NOT an Odometer: the roll animation
+             means "your balance changed", and switching display currency has not
+             changed anyone's balance. It is also rendered through <Amount> so the
+             cents fall back to the muted tone exactly like the kobo do.
+          */
+          <Amount
+            minorUnits={Math.round(balanceMinor / usdRate)}
+            locale={locale}
+            currency="USD"
+            showFraction
+            className="text-[2.5rem] font-bold tracking-[-0.03em] sm:text-[3rem]"
+            secondaryClassName="text-[0.62em] font-semibold text-[var(--nf-content-muted)]"
+          />
         ) : (
           <>
             <span className="text-[2.5rem] font-bold tracking-[-0.03em] sm:text-[3rem]">
-              {"₦"}
+              {"\u20A6"}
               <Odometer value={wholeNaira} className="nf-odometer-figure" />
             </span>
             <span className="text-[1.55rem] font-semibold text-[var(--nf-content-muted)] sm:text-[1.86rem]">
@@ -181,7 +219,9 @@ export function BalanceCard({
         )}
       </p>
       <p className="relative mt-2 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
-        Naira wallet. Every movement is recorded to the kobo.
+        {inUsd && usdRate
+          ? `Converted at \u20A6${usdRate.toLocaleString()} to $1. Your wallet is held in naira.`
+          : "Naira wallet. Every movement is recorded to the kobo."}
       </p>
 
       {/*

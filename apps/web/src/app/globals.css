@@ -4116,7 +4116,43 @@ html {
   input,
   select,
   textarea,
+  [contenteditable],
   .nf-field {
-    font-size: 16px;
+    /*
+     * !important because several fields carry an arbitrary Tailwind size -
+     * `text-[0.8438rem]` on the assistant and support composers, for instance.
+     * This is not a style preference competing with those; it is the threshold
+     * that decides whether Safari hijacks the viewport, so it has to win.
+     */
+    font-size: 16px !important;
   }
+}
+
+/*
+ * Double-tap zoom.
+ *
+ * The other half of "it zooms in and out anyhow", and a different mechanism
+ * from the focus zoom above: iOS waits ~300ms after every tap to see whether a
+ * second one follows, and if it does it zooms. On a dense screen - a chip row,
+ * a card grid, a list of ledger rows - two quick taps in roughly the same place
+ * are ordinary use, not a zoom request.
+ *
+ * `manipulation` keeps panning and PINCH zoom, so the page can still be
+ * magnified deliberately and nothing about accessibility is lost. It only
+ * removes the double-tap gesture, and it removes the 300ms tap delay with it,
+ * so taps register immediately.
+ */
+a,
+button,
+label,
+summary,
+select,
+input[type="checkbox"],
+input[type="radio"],
+[role="button"],
+[role="tab"],
+[role="radio"],
+[role="switch"],
+[role="option"] {
+  touch-action: manipulation;
 }
