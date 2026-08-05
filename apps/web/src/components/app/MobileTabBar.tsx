@@ -23,6 +23,24 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  */
 type Tab = { href: string; label: string; icon: UiIconName };
 
+/**
+ * The routes the dock belongs on.
+ *
+ * A tab bar is a statement about where you are, so showing it on a screen it
+ * cannot point at is a lie: it appeared on the wallet, on settings, on
+ * notifications, on a listing page and inside checkout, with nothing
+ * highlighted, taking up the bottom of the screen and answering no question.
+ *
+ * Those screens are reached FROM a tab or from the side drawer, and they get
+ * the back affordance instead. Kept as a shared constant so the shell and the
+ * dock can never disagree about where it shows.
+ */
+export const TAB_BAR_ROUTES = ["/home", "/search", "/bookings", "/saved", "/profile"];
+
+export function showsTabBar(pathname: string): boolean {
+  return TAB_BAR_ROUTES.includes(pathname);
+}
+
 export function MobileTabBar({ t, active = "/home" }: { t: Dictionary; active?: string }) {
   /*
    * Four in the capsule, one standing alone.

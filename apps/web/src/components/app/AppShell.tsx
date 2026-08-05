@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { AppRail } from "./AppRail";
-import { MobileTabBar } from "./MobileTabBar";
+import { MobileTabBar, showsTabBar } from "./MobileTabBar";
 import { DesktopDock } from "./DesktopDock";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
@@ -94,7 +94,7 @@ export function AppShell({
         className={
           immersive
             ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden"
-            : "min-w-0 flex-1 pb-24 lg:pb-20"
+            : `min-w-0 flex-1 lg:pb-20 ${showsTabBar(active) ? "pb-24" : "pb-8"}`
         }
       >
         {/* ------------------------------------------------------- top bar */}
@@ -140,7 +140,15 @@ export function AppShell({
         )}
       </main>
 
-      {!immersive && <MobileTabBar t={t} active={active} />}
+      {/*
+        The dock only appears on the routes it can actually point at. It was
+        rendering on every non-immersive screen - wallet, settings,
+        notifications, listing pages, checkout - with nothing highlighted,
+        occupying the bottom of the screen and answering no question. Those
+        screens are reached from a tab or the drawer and keep the back
+        affordance instead.
+      */}
+      {!immersive && showsTabBar(active) && <MobileTabBar t={t} active={active} />}
       {!immersive && <DesktopDock t={t} active={active} />}
     </div>
   );

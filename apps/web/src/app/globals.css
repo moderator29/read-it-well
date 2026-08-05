@@ -81,10 +81,25 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
+  /*
+   * `clip`, not `hidden`. Both stop sideways scrolling, but `hidden` turns the
+   * element into a scroll container, which silently breaks `position: sticky`
+   * for every descendant - and every shell on this platform has sticky chrome.
+   */
+  overflow-x: clip;
   /* Native app feel on touch: no grey tap flash, no rubber-band past the ends. */
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
+}
+
+/*
+ * The same guard on the root element. Without it a child wider than the
+ * viewport still shifts the document sideways on iOS, which is the "the whole
+ * page slides left and right" feeling: nothing is scrolling on purpose, the
+ * layout is just wider than the screen and the browser lets you drag it.
+ */
+html {
+  overflow-x: clip;
 }
 
 /* Pointer clicks never draw a focus rectangle; keyboard focus keeps the ring. */
@@ -1761,6 +1776,58 @@ body {
     min-height: 3.5rem;
     padding: 0.92rem 1.65rem;
     font-size: var(--nf-text-body-lg);
+  }
+
+  /* ----------------------------------------------------------- segmented */
+
+  /*
+   * The track and its travelling capsule.
+   *
+   * Five segmented controls existed on this platform: three hard-swapped with
+   * no transition, two slid a 2px underline. None had the floating shadowed
+   * capsule the reference set shows, which is the part that actually carries
+   * the eye from one segment to the next.
+   *
+   * The capsule is inset from the track by its padding, which is the nested
+   * radius correction: a pill inside a pill has to sit inside the parent's
+   * curve or the two outlines fight at the ends.
+   */
+  .nf-segmented {
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-surface-inset);
+    border: 1px solid var(--nf-elev-1-border);
+    box-shadow: var(--nf-elev-1-rim);
+  }
+
+  .nf-segmented__capsule {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    height: calc(100% - 8px);
+    translate: 0 -50%;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-surface-raised);
+    box-shadow:
+      var(--nf-elev-2-rim),
+      var(--nf-elev-2);
+    /* Both properties travel together, or the capsule stretches before it
+       moves and reads as a rubber band rather than an object. */
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-spring),
+      width var(--nf-duration-base) var(--nf-ease-spring);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .nf-segmented__item {
+    /* Sits above the capsule so the label is never washed by it. */
+    z-index: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-segmented__capsule {
+      transition: none;
+    }
   }
 
   /* -------------------------------------------------------------- drawer */
@@ -3603,9 +3670,31 @@ body {
     }
   }
 
+  /*
+   * Horizontal rails: chip rows, category strips, carousels.
+   *
+   * `overscroll-behavior-x: contain` is the important line. Without it, swiping
+   * a rail to its end chains the gesture into the document, so the whole page
+   * slides sideways and springs back - which reads as the layout being loose
+   * and unfinished rather than as a scroll.
+   *
+   * Snap and the right-edge fade come from the reference set: the next item is
+   * always partly visible and softly cut rather than hard-clipped, which is how
+   * a rail says "there is more" without a scrollbar.
+   */
   .nf-scroll-x {
     overflow-x: auto;
+    overscroll-behavior-x: contain;
     scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-snap-type: x proximity;
+  }
+  .nf-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-scroll-x > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
   }
   .nf-scroll-x::-webkit-scrollbar {
     display: none;
@@ -4009,4 +4098,25 @@ body {
 :root[data-theme="light"] ::selection {
   background: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
   color: var(--nf-content-primary);
+}
+
+/*
+ * iOS zoom on focus.
+ *
+ * Mobile Safari zooms the viewport whenever a focused form control has a
+ * font-size below 16px, and this platform's body size is 0.875rem (14px), so
+ * EVERY input, select and textarea triggered it. The page would jump in, the
+ * layout would be thrown off-centre, and nothing brought it back - which is
+ * what "it zooms in anyhow and scatters the looks" is.
+ *
+ * Scoped to coarse pointers so the desktop type scale is untouched. 16px is not
+ * a preference here, it is the threshold Safari checks.
+ */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea,
+  .nf-field {
+    font-size: 16px;
+  }
 }

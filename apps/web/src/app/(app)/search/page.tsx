@@ -145,7 +145,7 @@ export default async function SearchPage({
   return (
     <>
       {/* ------------------------------------------------ sticky search bar */}
-      <div className="nf-glass sticky top-[calc(4rem+env(safe-area-inset-top))] z-30 -mx-5 -mt-4 border-b border-[var(--nf-border-subtle)] px-5 py-3 md:-mx-8 md:px-8">
+      <div className="nf-glass -mx-5 -mt-4 border-b border-[var(--nf-border-subtle)] px-5 py-3 md:-mx-8 md:px-8">
         {/* The bar and its filter control are siblings: the pill holds the
             query and its submit, the filter control sits beside it as its own
             glass square, which is how the reference reads and keeps the typing
