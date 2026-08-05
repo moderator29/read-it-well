@@ -14,13 +14,13 @@ import {
   MIN_DESCRIPTION_WORDS,
   MIN_PHOTOS,
   MIN_TITLE_LENGTH,
-  STATUS_TONE,
   type ListingStatus,
 } from "@/lib/agent/listings-schema";
 import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 
 /**
  * The agent's listings workspace.
@@ -51,13 +51,6 @@ const GROUPS: Group[] = [
 ];
 
 const EDITABLE: ListingStatus[] = ["DRAFT", "MORE_INFO_REQUIRED", "REJECTED"];
-
-/* The badge class, not a hand-written colour pair. Rejected used to be the
-   only status on the platform written as an inline style, which is exactly how
-   a fifth meaning gets into a four-colour system. */
-function toneClass(status: ListingStatus): string {
-  return `nf-badge nf-badge--${STATUS_TONE[status]}`;
-}
 
 type SheetKind = "submit" | "unpublish" | "delete";
 
@@ -236,9 +229,9 @@ function ListingRow({
         <div className="min-w-0 flex-1 leading-tight">
           <div className="flex items-start justify-between gap-2">
             <h3 className="truncate text-[0.9375rem] font-semibold">{listing.title}</h3>
-            <span className={`${toneClass(listing.status)} shrink-0`}>
+            <StatusPill tone={toneForStatus(listing.status)} className="shrink-0">
               {t.workspace.status[listing.status]}
-            </span>
+            </StatusPill>
           </div>
 
           {(listing.area || listing.city) && (

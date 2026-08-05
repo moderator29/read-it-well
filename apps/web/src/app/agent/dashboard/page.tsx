@@ -16,6 +16,7 @@ import {
 import { RealDashboard } from "./RealDashboard";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount, Figure } from "@/components/ui/Amount";
+import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -182,13 +183,9 @@ export default async function AgentDashboardPage() {
                     locale={locale}
                     className="block text-[0.8125rem] font-bold"
                   />
-                  <span
-                    className={`nf-badge mt-0.5 ${
-                      b.status === "confirmed" ? "nf-badge--approved" : "nf-badge--pending"
-                    }`}
-                  >
+                  <StatusPill tone={toneForStatus(b.status)} className="mt-0.5">
                     {b.status === "confirmed" ? a.confirmed : a.pending}
-                  </span>
+                  </StatusPill>
                 </span>
               </li>
             ))}

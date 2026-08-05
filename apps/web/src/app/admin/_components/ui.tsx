@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { formatDate, type Dictionary, type Locale } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { StatusPill, toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
 import { fill, type AdminCommon } from "./copy";
 
 /**
@@ -19,49 +20,27 @@ import { fill, type AdminCommon } from "./copy";
  * them at once, which is what keeps a queue from ending up half translated.
  */
 
-export type Tone = "approved" | "pending" | "rejected" | "verified" | "neutral";
-
 /**
- * One status vocabulary, one colour vocabulary, across every queue AND across
- * the agent's own workspace.
+ * The console no longer owns a status vocabulary.
  *
- * The two consoles used to disagree about the same row. Admin painted
- * MORE_INFO_REQUIRED sky blue as "info" while the agent's listings workspace
- * painted it cyan as "warning", so a listing waiting on the same thing was two
- * different colours depending on who was looking at it. Everything a decision
- * is still owed is pending, whatever the wording of the step.
+ * `Tone`, `statusTone` and `TONE_STYLE` used to live here, and were one of four
+ * competing implementations across the platform — so the same MORE_INFO_REQUIRED
+ * row was one colour in the admin queue and another in the agent's workspace.
+ * Everything now routes through `toneForStatus` and `<StatusPill>`, which is the
+ * single map; the console's job is to name a status, not to colour it.
+ *
+ * The two washes below are NOT a status vocabulary. They tint the round glyph
+ * on an empty-queue panel and a checklist row, where the meaning is "this is
+ * fine" / "this needs a look" and no status is being reported at all.
  */
-export function statusTone(status: string): Tone {
-  switch (status) {
-    case "open":
-    case "SUBMITTED":
-    case "UNDER_REVIEW":
-    case "MORE_INFO_REQUIRED":
-    case "reviewing":
-    case "pending":
-      return "pending";
-    case "reviewed":
-    case "resolved":
-    case "APPROVED":
-    case "PUBLISHED":
-      return "approved";
-    case "REJECTED":
-    case "SUSPENDED":
-      return "rejected";
-    default:
-      return "neutral";
-  }
-}
+const SUCCESS_WASH: CSSProperties = {
+  background: "var(--nf-state-success-surface)",
+  color: "var(--nf-state-success)",
+};
 
-const TONE_STYLE: Record<Tone, { background: string; color: string }> = {
-  approved: { background: "var(--nf-status-approved-surface)", color: "var(--nf-status-approved)" },
-  pending: { background: "var(--nf-status-pending-surface)", color: "var(--nf-status-pending)" },
-  rejected: { background: "var(--nf-status-rejected-surface)", color: "var(--nf-status-rejected)" },
-  verified: { background: "var(--nf-status-verified-surface)", color: "var(--nf-status-verified)" },
-  neutral: {
-    background: "color-mix(in oklab, var(--nf-content-primary) 10%, transparent)",
-    color: "var(--nf-content-secondary)",
-  },
+const WARNING_WASH: CSSProperties = {
+  background: "var(--nf-state-warning-surface)",
+  color: "var(--nf-state-warning)",
 };
 
 export type AdminUi = ReturnType<typeof adminUi>;
@@ -104,13 +83,12 @@ export function adminUi(t: Dictionary, locale: Locale) {
   }: {
     status?: string;
     label?: string;
-    tone?: Tone;
+    tone?: StatusTone;
   }) {
-    const resolvedTone = tone ?? statusTone(status ?? "");
     return (
-      <span className="nf-badge shrink-0" style={TONE_STYLE[resolvedTone]}>
+      <StatusPill tone={tone ?? toneForStatus(status ?? "")} className="shrink-0">
         {label ?? statusLabel(status ?? "")}
-      </span>
+      </StatusPill>
     );
   }
 
@@ -147,7 +125,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
       <div className="nf-card p-6 text-center sm:p-8">
         <span
           className="mx-auto grid h-12 w-12 place-items-center rounded-full"
-          style={TONE_STYLE.approved}
+          style={SUCCESS_WASH}
         >
           <UiIcon name="verified" size={24} />
         </span>
@@ -168,7 +146,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
       <div className="nf-card p-6 text-center sm:p-8">
         <span
           className="mx-auto grid h-12 w-12 place-items-center rounded-full"
-          style={TONE_STYLE.pending}
+          style={WARNING_WASH}
         >
           <UiIcon name="bell" size={24} />
         </span>
@@ -218,7 +196,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
         <span
           aria-hidden="true"
           className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full"
-          style={pass ? TONE_STYLE.approved : TONE_STYLE.pending}
+          style={pass ? SUCCESS_WASH : WARNING_WASH}
         >
           <UiIcon name={pass ? "verified" : "bell"} size={12} />
         </span>

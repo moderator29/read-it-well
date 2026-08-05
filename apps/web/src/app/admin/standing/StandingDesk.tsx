@@ -9,6 +9,7 @@ import {
 import type { ManualGrant } from "@/lib/admin/standing-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { StatusPill } from "@/components/ui/StatusPill";
 
 /**
  * The standing desk.
@@ -147,7 +148,10 @@ export function StandingDesk({
               <li key={`${grant.userId}-${grant.badgeCode}`} className="nf-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="nf-badge nf-badge--brand">{grant.badgeName}</span>
-                  {grant.revoked && <span className="nf-badge">Revoked</span>}
+                  {/* `.nf-badge` alone paints no fill and no colour, so this
+                      read as invisible text exactly where a revocation had to be
+                      seen. It is a status, so it is a status pill. */}
+                  {grant.revoked && <StatusPill tone="danger">Revoked</StatusPill>}
                   <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
                     {new Date(grant.grantedAt).toLocaleDateString("en-GB", {
                       day: "numeric",

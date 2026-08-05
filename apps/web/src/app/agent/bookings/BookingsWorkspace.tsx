@@ -6,10 +6,11 @@ import { formatMoney, formatDate, type Dictionary, type Locale } from "@naijafin
 import { fill } from "../_copy";
 import { acceptBooking, declineBooking } from "@/lib/agent/bookings-actions";
 import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-schema";
-import type { BookingStatus, HostBooking, HostBookingBoard } from "@/lib/agent/bookings-queries";
+import type { HostBooking, HostBookingBoard } from "@/lib/agent/bookings-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 /**
@@ -42,17 +43,6 @@ function durationLabel(t: BookingsCopy, hours: number): string {
   }
   const days = Math.floor(hours / 24);
   return days === 1 ? t.card.daysOne : fill(t.card.days, { count: days });
-}
-
-function statusBadgeClass(status: BookingStatus): string {
-  switch (status) {
-    case "PENDING":
-      return "nf-badge nf-badge--pending";
-    case "CONFIRMED":
-      return "nf-badge nf-badge--approved";
-    case "CANCELLED":
-      return "nf-badge";
-  }
 }
 
 type SheetState = { kind: "accept" | "decline"; booking: HostBooking };
@@ -238,9 +228,12 @@ function BookingCard({
               <span className="truncate">{booking.listingTitle}</span>
             </p>
           </div>
-          <span className={`${statusBadgeClass(booking.status)} shrink-0`}>
+          {/* The CANCELLED branch used to return a bare `.nf-badge`, which
+              paints no fill and no colour: the one status a host most needs to
+              notice was the one that rendered invisible. */}
+          <StatusPill tone={toneForStatus(booking.status)} className="shrink-0">
             {t.status[booking.status]}
-          </span>
+          </StatusPill>
         </div>
 
         <p className="mt-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">

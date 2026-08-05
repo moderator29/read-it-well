@@ -6,6 +6,7 @@ import type { AgentNumbers, ListingStatus } from "@/lib/agent/listings-queries";
 import { fill } from "../_copy";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount, Figure } from "@/components/ui/Amount";
+import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 
 /**
  * The signed-in agent's real dashboard.
@@ -226,13 +227,9 @@ export function RealDashboard({
                       locale={locale}
                       className="block text-[0.8125rem] font-bold"
                     />
-                    <span
-                      className={`nf-badge mt-0.5 ${
-                        booking.status === "CONFIRMED" ? "nf-badge--approved" : "nf-badge--pending"
-                      }`}
-                    >
+                    <StatusPill tone={toneForStatus(booking.status)} className="mt-0.5">
                       {booking.status === "CONFIRMED" ? a.confirmed : a.pending}
-                    </span>
+                    </StatusPill>
                   </span>
                 </li>
               ))}

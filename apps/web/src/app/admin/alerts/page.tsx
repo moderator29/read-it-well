@@ -4,7 +4,8 @@ import { getLocale } from "@/lib/locale";
 import { getRiskAlerts, type AlertView } from "@/lib/admin/queries";
 import { AlertResolve } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
-import { adminUi, type AdminUi, type Tone } from "../_components/ui";
+import { adminUi, type AdminUi } from "../_components/ui";
+import type { StatusTone } from "@/components/ui/StatusPill";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -13,10 +14,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const dynamic = "force-dynamic";
 
-const SEVERITY_TONE: Record<AlertView["severity"], Tone> = {
+const SEVERITY_TONE: Record<AlertView["severity"], StatusTone> = {
   low: "neutral",
-  medium: "pending",
-  high: "rejected",
+  medium: "warning",
+  high: "danger",
 };
 
 /**
