@@ -1830,6 +1830,7 @@ export type Database = {
           display_name: string | null
           first_name: string | null
           id: string
+          interests: Database["public"]["Enums"]["property_type"][]
           lga_code: string | null
           locale: Database["public"]["Enums"]["locale"]
           nickname: string | null
@@ -1846,6 +1847,7 @@ export type Database = {
           display_name?: string | null
           first_name?: string | null
           id: string
+          interests?: Database["public"]["Enums"]["property_type"][]
           lga_code?: string | null
           locale?: Database["public"]["Enums"]["locale"]
           nickname?: string | null
@@ -1862,6 +1864,7 @@ export type Database = {
           display_name?: string | null
           first_name?: string | null
           id?: string
+          interests?: Database["public"]["Enums"]["property_type"][]
           lga_code?: string | null
           locale?: Database["public"]["Enums"]["locale"]
           nickname?: string | null
