@@ -23,7 +23,8 @@ export default async function AppLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const { userName, unreadNotifications, avatarUrl, signedIn } = await getShellIdentity();
+  const { userName, unreadNotifications, avatarUrl, signedIn, isAgent, isAdmin } =
+    await getShellIdentity();
 
   return (
     <AppShell
@@ -33,6 +34,8 @@ export default async function AppLayout({
       unreadNotifications={unreadNotifications}
       avatarUrl={avatarUrl}
       signedIn={signedIn}
+      isAgent={isAgent}
+      isAdmin={isAdmin}
     >
       {children}
     </AppShell>

@@ -1,182 +1,232 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { Logo } from "@/design-system/brand/Logo";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import {
+  buildNav,
+  containsCurrent,
+  isCurrent,
+  type NavLeaf,
+  type NavNode,
+} from "./nav-model";
 
 /**
- * Personal Mode navigation rail.
+ * Personal Mode navigation.
  *
- * Twelve destinations in two groups, frozen per Master Rule 17. This IA is
- * confirmed by three independent source-of-truth references, including the
- * brand sheet whose icon row lists exactly these twelve in this order. It must
- * not drift between screens.
+ * One component for the sticky desktop rail and the phone drawer, reading one
+ * model, so the two cannot drift (Master Rule 17). The destinations are still
+ * the frozen set; what changed is that they are now shaped like what they are.
  *
- * Navigation rows use the tier one stroked glyphs; the 3D family stays on
- * content surfaces and the promo card below.
+ * **Parents open.** Five of the old twelve rows were `/search?type=` variants
+ * of one screen sitting at the same level as Wallet, which said that Hotels and
+ * your money were the same kind of thing. They are children of Explore now, on
+ * a tree line, and Agent Mode and the console are groups of their own for the
+ * people who have them.
+ *
+ * **A parent is also a destination.** Its label navigates and only the
+ * disclosure arrow expands, because a parent that merely toggles is a dead
+ * control the first time somebody taps the word rather than the chevron.
+ *
+ * **It opens on the page you are on.** Arriving at `/agent/reviews` from a
+ * notification opens Agent Mode with Reviews lit, so the navigation explains
+ * where you are rather than making you find it. Anything else you open by hand
+ * is remembered on the device.
+ *
+ * The type and the glyphs are deliberately smaller than the rows they replaced.
+ * A drawer that has to hold four groups and their children cannot also give
+ * every row 17px semibold and a 44px tile: the owner asked for it smaller, and
+ * with sub-navigation underneath it, it has to be.
  */
-type RailItem = { href: string; label: string; icon: UiIconName; badge?: number };
+
+const OPEN_KEY = "nf_nav_open";
 
 export function AppRail({
   t,
   active = "/home",
+  activeType = null,
   userName,
+  avatarUrl = "",
   unreadNotifications = 0,
+  isAgent = false,
+  isAdmin = false,
+  signedIn = false,
   variant = "rail",
+  onNavigate,
 }: {
   t: Dictionary;
+  /** The current pathname, with no query on it. */
   active?: string;
+  /** The current `type` search parameter, which is what separates the five. */
+  activeType?: string | null;
   userName: string;
-  /**
-   * Unread notifications for this caller, resolved on the server by the app
-   * layout. `RailItem` has declared `badge?: number` and rendered it since this
-   * component was written, and no item ever set it, so the count existed in the
-   * type and nowhere on screen. Zero renders no badge.
-   */
+  avatarUrl?: string;
   unreadNotifications?: number;
-  /**
-   * `rail` is the sticky desktop column, hidden below lg. `drawer` renders the
-   * same navigation unconditionally for the mobile slide-in, so the IA cannot
-   * drift between the two presentations (Master Rule 17).
-   */
+  isAgent?: boolean;
+  isAdmin?: boolean;
+  signedIn?: boolean;
+  /** `rail` is the sticky desktop column; `drawer` is the phone slide-in. */
   variant?: "rail" | "drawer";
+  /** The drawer closes itself when a row is followed. */
+  onNavigate?: () => void;
 }) {
-  const discovery: RailItem[] = [
-    { href: "/home", label: t.nav.home, icon: "home" },
-    { href: "/rent", label: t.nav.rent, icon: "key" },
-    { href: "/search?type=hotel", label: t.nav.hotels, icon: "building-hotel" },
-    { href: "/search?type=property", label: t.nav.apartments, icon: "building-apartment" },
-    { href: "/search?type=home", label: t.nav.homes, icon: "house" },
-    { href: "/search?type=restaurant", label: t.nav.restaurants, icon: "utensils" },
-    { href: "/search?type=experience", label: t.nav.experiences, icon: "ticket" },
-    // Around is a place to read, not a category to search, so it closes the
-    // discovery group rather than sitting inside the type filters above it.
-    { href: "/around", label: t.nav.around, icon: "map" },
-  ];
+  const sections = useMemo(
+    () => buildNav({ t, unreadNotifications, isAgent, isAdmin, signedIn }),
+    [t, unreadNotifications, isAgent, isAdmin, signedIn],
+  );
 
-  const account: RailItem[] = [
-    { href: "/bookings", label: t.nav.bookings, icon: "calendar-booking" },
-    { href: "/messages", label: t.nav.messages, icon: "chat-bubble" },
-    {
-      href: "/notifications",
-      label: "Notifications",
-      icon: "bell",
-      ...(unreadNotifications > 0 ? { badge: unreadNotifications } : {}),
-    },
-    { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
-    { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
-    { href: "/profile", label: t.nav.profile, icon: "user" },
-    { href: "/settings", label: t.nav.settings, icon: "settings-gear" },
-  ];
+  /*
+   * Which parents are open.
+   *
+   * Seeded from the current page so the group you are inside is already open,
+   * then merged with whatever this device last opened by hand. The seed wins on
+   * first render and the device's choice persists after that, which is the
+   * behaviour somebody expects from a sidebar they have arranged once.
+   */
+  const seeded = useMemo(() => {
+    const open = new Set<string>();
+    for (const section of sections) {
+      for (const item of section.items) {
+        if (containsCurrent(item, active, activeType)) open.add(item.href);
+      }
+    }
+    return open;
+  }, [sections, active, activeType]);
 
-  const row = (item: RailItem) => {
-    const isActive = item.href === active;
+  const [open, setOpen] = useState<Set<string>>(seeded);
+
+  // The stored set arrives after mount so the server and the first client
+  // render agree; a mismatch here would be a hydration error on every page.
+  useEffect(() => {
+    let stored: string[] = [];
+    try {
+      stored = JSON.parse(window.localStorage.getItem(OPEN_KEY) ?? "[]") as string[];
+    } catch {
+      stored = [];
+    }
+    setOpen(new Set([...seeded, ...(Array.isArray(stored) ? stored : [])]));
+  }, [seeded]);
+
+  const toggle = useCallback((href: string) => {
+    setOpen((previous) => {
+      const next = new Set(previous);
+      if (next.has(href)) next.delete(href);
+      else next.add(href);
+      try {
+        window.localStorage.setItem(OPEN_KEY, JSON.stringify([...next]));
+      } catch {
+        // Private browsing. The set holds for this session and no longer.
+      }
+      return next;
+    });
+  }, []);
+
+  const leaf = (item: NavLeaf, depth: 0 | 1) => {
+    const current = isCurrent(item.href, active, activeType);
     return (
-      <li key={item.href}>
+      <li key={`${item.href}-${item.label}`} className={depth === 1 ? "nf-nav__child" : undefined}>
         <Link
           href={item.href}
-          aria-current={isActive ? "page" : undefined}
-          /*
-           * The drawer row is deliberately bigger than the desktop rail row.
-           * On a phone this is the primary navigation surface and it is being
-           * hit with a thumb, so the reference gives each row real height, a
-           * generous glyph and a heavier label. The rail stays compact because
-           * it is a persistent sidebar competing with content for width.
-           */
-          className={[
-            "group flex items-center rounded-[var(--nf-radius-lg)] transition-colors",
-            variant === "drawer"
-              ? "gap-4 px-3 py-3.5 text-[1.0625rem] font-semibold tracking-[-0.01em]"
-              : "gap-3 px-3 py-2.5 text-[0.9rem] font-medium",
-            isActive
-              ? "bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-content-primary)]"
-              : "text-[var(--nf-content-primary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
-          ].join(" ")}
+          onClick={onNavigate}
+          aria-current={current ? "page" : undefined}
+          className={`nf-nav__row${current ? " nf-nav__row--on" : ""}`}
         >
-          {/*
-            The glyph fills on the active row rather than only changing colour,
-            and sits in a tinted tile in the drawer so the row reads as an
-            object rather than a line of text with a mark in front of it.
-          */}
-          <span
-            className={[
-              "flex shrink-0 items-center justify-center transition-colors",
-              variant === "drawer"
-                ? "h-11 w-11 rounded-[var(--nf-radius-md)]"
-                : "h-6 w-6",
-              variant === "drawer" && isActive
-                ? "bg-[color-mix(in_oklab,var(--nf-brand-primary)_28%,transparent)] text-[var(--nf-brand-secondary)]"
-                : variant === "drawer"
-                  ? "bg-[var(--nf-glass-fill)] text-[var(--nf-content-primary)]"
-                  : "",
-            ].join(" ")}
-          >
-            <UiIcon
-              name={item.icon}
-              size={variant === "drawer" ? 20 : 24}
-              filled={isActive}
-            />
+          <span className="nf-nav__glyph" aria-hidden="true">
+            <UiIcon name={item.icon} size={depth === 1 ? 14 : 16} filled={current} />
           </span>
-          <span className="flex-1">{item.label}</span>
+          <span className="nf-nav__label">{item.label}</span>
           {item.badge ? (
-            <span className="nf-numeric nf-badge nf-badge--brand">{item.badge}</span>
+            <span className="nf-nav__badge nf-numeric">{item.badge}</span>
           ) : null}
         </Link>
       </li>
     );
   };
 
+  const node = (item: NavNode) => {
+    if (!item.children) return leaf(item, 0);
+
+    const expanded = open.has(item.href);
+    const current = isCurrent(item.href, active, activeType);
+    const panelId = `nav-${item.href.replace(/[^a-z0-9]/gi, "-")}`;
+
+    return (
+      <li key={item.href}>
+        <div className={`nf-nav__row nf-nav__row--parent${current ? " nf-nav__row--on" : ""}`}>
+          {/* The label navigates. */}
+          <Link
+            href={item.href}
+            onClick={onNavigate}
+            aria-current={current ? "page" : undefined}
+            className="nf-nav__parentlink"
+          >
+            <span className="nf-nav__glyph" aria-hidden="true">
+              <UiIcon name={item.icon} size={16} filled={current} />
+            </span>
+            <span className="nf-nav__label">{item.label}</span>
+          </Link>
+
+          {/* Only the arrow expands, and it says what it will do. */}
+          <button
+            type="button"
+            onClick={() => toggle(item.href)}
+            aria-expanded={expanded}
+            aria-controls={panelId}
+            aria-label={`${expanded ? t.a11y.collapse : t.a11y.expand} ${item.label}`}
+            className="nf-nav__disclose nf-tap"
+          >
+            <UiIcon name="chevron-right" size={14} className={expanded ? "rotate-90" : ""} />
+          </button>
+        </div>
+
+        {expanded && (
+          <ul id={panelId} className="nf-nav__children">
+            {item.children.map((child) => leaf(child, 1))}
+          </ul>
+        )}
+      </li>
+    );
+  };
+
   return (
     <aside
-      className={
-        variant === "rail"
-          ? "sticky top-0 hidden h-dvh w-[var(--nf-rail-width)] shrink-0 flex-col border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 py-5 lg:flex"
-          : "flex h-full w-full flex-col px-4 py-5"
-      }
+      className={variant === "rail" ? "nf-nav nf-nav--rail" : "nf-nav nf-nav--drawer"}
       aria-label={t.nav.primaryLabel}
     >
-      <Link href="/" aria-label={t.a11y.logoHome} className="mb-6 px-1">
-        <Logo size={46} wordSize={21} responsive />
-      </Link>
-
-      <nav aria-label={t.nav.primaryLabel} className="flex-1 overflow-y-auto">
-        <ul className="space-y-0.5">{discovery.map(row)}</ul>
-        <hr className="my-4 border-[var(--nf-border-subtle)]" />
-        <h2 className="nf-overline mb-2 px-3">{t.nav.accountLabel}</h2>
-        <ul className="space-y-0.5">{account.map(row)}</ul>
-      </nav>
-
-      {/* Become an Agent, the entry point into Agent Mode from Personal Mode.
-          Reached from the rail per the design direction, so a normal user can
-          discover it without leaving the workspace (Master Rule 18). */}
-      <Link
-        href="/agents"
-        className="mt-4 flex items-center gap-3 rounded-[var(--nf-radius-lg)] border border-[color-mix(in_oklab,var(--nf-mode-agent)_40%,transparent)] p-3 transition-colors hover:bg-[color-mix(in_oklab,var(--nf-mode-agent)_10%,transparent)]"
-      >
-        <span className="h-12 w-12 shrink-0 lg:h-8 lg:w-8">
-          <BrandIcon name="homes-sparkle" fill />
-        </span>
-        <span className="min-w-0 flex-1 leading-tight">
-          <span className="block text-[0.8125rem] font-semibold">{t.home.agentCard.action}</span>
-          <span className="block text-[0.6875rem] text-[var(--nf-content-muted)]">
-            {t.agent.mode.manageSub}
-          </span>
-        </span>
-      </Link>
-
-      <div className="nf-card mt-2 flex items-center gap-4 p-3">
-        <span
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.8125rem] font-bold text-white"
-          style={{ background: "var(--nf-gradient-brand)" }}
-          aria-hidden="true"
-        >
-          {userName.slice(0, 1).toUpperCase()}
-        </span>
-        <span className="min-w-0 flex-1 leading-tight">
-          <span className="block truncate text-[0.875rem] font-semibold">{userName}</span>
-          <span className="nf-badge nf-badge--neutral mt-1">{t.agent.mode.personal}</span>
-        </span>
+      {/* The workspace header, which the reference leads with: who this is,
+          and the control that closes the panel. The close button belongs to
+          the drawer, which owns the open state. */}
+      <div className="nf-nav__head">
+        <Link href="/" aria-label={t.a11y.logoHome} className="nf-nav__brand">
+          <Logo size={34} wordSize={17} responsive />
+        </Link>
       </div>
+
+      {signedIn && (
+        <Link href="/profile" onClick={onNavigate} className="nf-nav__who">
+          <span className="nf-nav__avatar" aria-hidden="true">
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarUrl} alt="" />
+            ) : (
+              userName.slice(0, 1).toUpperCase()
+            )}
+          </span>
+          <span className="nf-nav__whoname">{userName}</span>
+          <UiIcon name="chevron-right" size={13} className="nf-nav__whochev" />
+        </Link>
+      )}
+
+      <nav aria-label={t.nav.primaryLabel} className="nf-nav__scroll">
+        {sections.map((section, index) => (
+          <div key={section.heading ?? `section-${index}`} className="nf-nav__section">
+            {section.heading && <h2 className="nf-nav__heading">{section.heading}</h2>}
+            <ul>{section.items.map(node)}</ul>
+          </div>
+        ))}
+      </nav>
     </aside>
   );
 }

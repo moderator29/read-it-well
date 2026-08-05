@@ -51,6 +51,12 @@ export const ha: Dictionary = {
     map: "Taswira",
     primaryLabel: "Na farko",
     accountLabel: "Asusu",
+    notifications: "Sanarwa",
+    places: "Wurare",
+    people: "Mutane",
+    agentMode: "Yanayin Wakili",
+    consoleLabel: "Kwamiti",
+    workspacesLabel: "Wuraren aiki",
   },
 
   landing: {
@@ -1394,6 +1400,8 @@ export const ha: Dictionary = {
 
   a11y: {
     logoHome: "Gidan RentMe",
+    expand: "Buɗe",
+    collapse: "Rufe",
     openMenu: "Buɗe menu",
     closeMenu: "Rufe menu",
     languageSwitcher: "Canza harshe",

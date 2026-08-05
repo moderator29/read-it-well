@@ -46,6 +46,9 @@ export type UiIconName =
   | "sliders"
   | "share"
   | "shield-stop"
+  | "panel-left"
+  | "document"
+  | "chevron-right"
   | "map";
 
 const PATHS: Record<UiIconName, React.ReactNode> = {
@@ -138,6 +141,34 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
   // judgement pointing opposite ways, and reading one as the negative of the
   // other is the whole point. A shield rather than a cross because a stop is
   // protective of the people on the other side of it, not punitive.
+  /*
+   * The side navigation toggle, and the reason the hamburger is gone.
+   *
+   * Three stacked lines say "a list is behind this" and nothing more; they are
+   * the same glyph whether the thing that opens is a menu, a filter sheet or a
+   * drawer. This says what actually happens: a panel slides in beside the
+   * content. The frame is the screen, the fill is the panel, and the divider
+   * sits where the panel's edge lands.
+   */
+  /* Terms, and any other page that is a document rather than a destination.
+     A sheet with a folded corner and three lines of text on it. */
+  document: (
+    <>
+      <path d="M13.6 3.4H7.2A2 2 0 0 0 5.2 5.4v13.2a2 2 0 0 0 2 2h9.6a2 2 0 0 0 2-2V8.6Z" />
+      <path d="M13.6 3.4v3.4a1.8 1.8 0 0 0 1.8 1.8h3.4" />
+      <path d="M8.8 13h6.4M8.8 16.4h4.2" />
+    </>
+  ),
+  "panel-left": (
+    <>
+      <rect x="3.2" y="4.4" width="17.6" height="15.2" rx="3" />
+      <path d="M9.4 4.4v15.2" />
+    </>
+  ),
+  /* A disclosure arrow for a parent that opens. Its own glyph rather than a
+     rotated `chevron-down`, because a rotation of a down chevron lands its
+     round caps on a different diagonal and reads slightly heavier. */
+  "chevron-right": <path d="m9.5 6 6 6-6 6" />,
   "shield-stop": (
     <>
       <path d="M12 2.9 19.2 6v5.3c0 4.3-2.9 8-7.2 9.6-4.3-1.6-7.2-5.3-7.2-9.6V6Z" />

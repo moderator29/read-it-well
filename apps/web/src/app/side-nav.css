@@ -1,0 +1,360 @@
+@layer components {
+  /**
+   * The side navigation.
+   *
+   * One stylesheet for the sticky desktop rail and the phone drawer, because
+   * they are one component and the whole point is that the two cannot drift.
+   *
+   * Everything here is smaller than what it replaced, twice over. The old
+   * drawer row was 17px semibold beside a 44px tinted tile, which read well as
+   * a list of twelve and cannot hold four groups with children underneath
+   * them. The first pass took it to 15px; looked at on a real 390px screen it
+   * still read as a menu shouting, so a row is now 14px on an 18px glyph and a
+   * child is 13px on a 16px glyph.
+   *
+   * The tile is gone with it. On a row this size a filled square behind every
+   * glyph is noise, and the row you are on already has a pill of its own.
+   */
+
+  .nf-nav {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .nf-nav--rail {
+    position: sticky;
+    top: 0;
+    display: none;
+    height: 100dvh;
+    width: var(--nf-rail-width);
+    flex-shrink: 0;
+    border-inline-end: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-primary);
+    padding: 0.875rem 0.625rem;
+  }
+
+  @media (min-width: 64rem) {
+    .nf-nav--rail {
+      display: flex;
+    }
+  }
+
+  .nf-nav--drawer {
+    height: 100%;
+    width: 100%;
+    padding: 0.625rem 0.625rem calc(0.75rem + env(safe-area-inset-bottom));
+  }
+
+  /* ------------------------------------------------------------- the head */
+
+  .nf-nav__head {
+    display: flex;
+    align-items: center;
+    flex: none;
+    padding: 0.25rem 0.5rem 0.75rem;
+  }
+
+  .nf-nav__brand {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--nf-radius-sm);
+  }
+
+  .nf-nav__brand:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 3px;
+  }
+
+  /* Who this is. The reference opens with it, and it doubles as the way to the
+     account, which is where somebody looking at their own name expects to go. */
+  .nf-nav__who {
+    display: flex;
+    align-items: center;
+    gap: 0.5625rem;
+    flex: none;
+    margin-bottom: 0.5rem;
+    padding: 0.4375rem 0.5rem;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-glass-fill-thin);
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  .nf-nav__who:hover {
+    background: var(--nf-glass-fill);
+  }
+
+  .nf-nav__who:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .nf-nav__avatar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .nf-nav__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .nf-nav__whoname {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-nav__whochev {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------ the lists */
+
+  .nf-nav__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+
+  .nf-nav__scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nf-nav__section + .nf-nav__section {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--nf-border-subtle);
+  }
+
+  .nf-nav__heading {
+    padding: 0 0.5rem 0.3125rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+
+  /* -------------------------------------------------------------- the row */
+
+  .nf-nav__row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    width: 100%;
+    /* 36px, not 44. This is a list a thumb scrolls far more often than it
+       taps, and at 44 a four-group drawer does not fit a 390x844 screen
+       without Legal living below the fold. The rows touch, so there is no gap
+       for a tap to fall into and no neighbour to mis-hit. */
+    min-height: 2.25rem;
+    padding: 0 0.5rem;
+    border-radius: var(--nf-radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  a.nf-nav__row:hover,
+  .nf-nav__row--parent:hover {
+    background: var(--nf-glass-fill-thin);
+    color: var(--nf-content-primary);
+  }
+
+  a.nf-nav__row:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+
+  /* The page you are on. A filled pill, as the reference draws it, rather than
+     a colour change on the label: at 15px a colour alone is easy to miss. */
+  .nf-nav__row--on {
+    background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
+    color: var(--nf-content-primary);
+    font-weight: 650;
+  }
+
+  .nf-nav__row--on .nf-nav__glyph {
+    color: var(--nf-electric-300);
+  }
+
+  .nf-nav__glyph {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-nav__label {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nf-nav__badge {
+    flex: none;
+    min-width: 1.25rem;
+    padding: 0.0625rem 0.375rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  /* ----------------------------------------------------------- the parent */
+
+  /* The label navigates and only the arrow expands, so the two are separate
+     controls inside one row rather than one control doing two jobs. */
+  .nf-nav__row--parent {
+    padding-inline-end: 0.125rem;
+  }
+
+  .nf-nav__parentlink {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-self: stretch;
+    border-radius: var(--nf-radius-md);
+    color: inherit;
+    font: inherit;
+  }
+
+  .nf-nav__parentlink:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+
+  .nf-nav__disclose {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--nf-radius-sm);
+    color: var(--nf-content-muted);
+    cursor: pointer;
+  }
+
+  .nf-nav__disclose:hover {
+    background: var(--nf-glass-fill);
+    color: var(--nf-content-primary);
+  }
+
+  .nf-nav__disclose:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 1px;
+  }
+
+  .nf-nav__disclose svg {
+    transition: rotate var(--nf-duration-base) var(--nf-ease-standard);
+  }
+
+  /* --------------------------------------------------------- the children */
+
+  /**
+   * The tree line.
+   *
+   * A single rail down the left of the group with a short elbow into each
+   * child, which is what the reference draws and what makes a child read as
+   * belonging to the row above rather than as a smaller sibling. Drawn with
+   * borders on pseudo-elements so it costs no markup and inherits the theme.
+   */
+  .nf-nav__children {
+    position: relative;
+    margin: 0.125rem 0 0.25rem;
+    padding-inline-start: 1.5rem;
+  }
+
+  .nf-nav__children::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 1.0625rem;
+    top: 0;
+    /* Stops at the last elbow rather than running past it, so the group has a
+       visible end instead of a line trailing into the next section. */
+    bottom: 1rem;
+    width: 1px;
+    background: var(--nf-border-subtle);
+  }
+
+  .nf-nav__child {
+    position: relative;
+  }
+
+  /* Centred on the row rather than pinned to a pixel that only matched one
+     row height, so the elbow stays on the glyph's centreline whatever the
+     type size becomes. */
+  .nf-nav__child::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -0.4375rem;
+    top: 50%;
+    width: 0.4375rem;
+    height: 1px;
+    background: var(--nf-border-subtle);
+  }
+
+  .nf-nav__child .nf-nav__row {
+    min-height: 2.125rem;
+    font-size: 0.8125rem;
+    font-weight: 450;
+  }
+
+  .nf-nav__child .nf-nav__glyph {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .nf-nav__child .nf-nav__row--on {
+    font-weight: 600;
+  }
+
+  /* ----------------------------------------------------------- light theme */
+
+  :root[data-theme="light"] .nf-nav__row--on {
+    background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
+  }
+
+  :root[data-theme="light"] .nf-nav__row--on .nf-nav__glyph {
+    color: var(--nf-brand-primary);
+  }
+
+  /* Reduced motion keeps the arrow's meaning and drops its travel. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-nav__disclose svg {
+      transition: none;
+    }
+  }
+}
