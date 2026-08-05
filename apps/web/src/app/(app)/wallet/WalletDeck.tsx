@@ -104,7 +104,7 @@ export function WalletDeck({
           icon={tile.icon}
           onClose={() => setOpen(null)}
         >
-          {tile.key === "fund" && <FundForm locale={locale} />}
+          {tile.key === "fund" && <FundForm />}
           {tile.key === "withdraw" && (
             <WithdrawForm locale={locale} balanceMinor={balanceMinor} live={live} />
           )}
@@ -180,7 +180,9 @@ const FUND_INITIAL: ActionResult<FundStart | null> = { ok: false, error: "" };
 const WITHDRAW_INITIAL: ActionResult<WithdrawReceipt | null> = { ok: false, error: "" };
 const TRANSFER_INITIAL: ActionResult<TransferReceipt | null> = { ok: false, error: "" };
 
-function FundForm({ locale }: { locale: Locale }) {
+/* No locale prop: the amounts inside render through <Amount>, which resolves
+   the locale itself, so threading it here was dead weight. */
+function FundForm() {
   const [state, formAction, pending] = useActionState(fundWallet, FUND_INITIAL);
   const redirecting = state.ok && state.data !== null;
 

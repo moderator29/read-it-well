@@ -66,7 +66,37 @@ export function Sheet({
   const [offset, setOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
 
+  /*
+   * `entered` is why the sheet slides instead of appearing.
+   *
+   * The surface is only in the DOM while open, so it arrives already at its
+   * final state. A CSS transition needs a frame at the START value to animate
+   * from; with none, the browser paints the end state immediately and the
+   * spring never runs - the sheet just materialises, which is precisely the
+   * thing this primitive exists to stop.
+   *
+   * So it mounts closed and flips open on the next animation frame, giving the
+   * transition its starting frame. Two frames rather than one because a single
+   * rAF can still land inside the same style recalculation in Safari.
+   */
+  const [entered, setEntered] = useState(false);
+
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!open) {
+      setEntered(false);
+      return;
+    }
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setEntered(true));
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [open]);
 
   const heights = useCallback(() => {
     const vh = typeof window === "undefined" ? 0 : window.innerHeight;
@@ -185,7 +215,7 @@ export function Sheet({
     <>
       <div
         className="nf-sheet-backdrop"
-        data-open={open}
+        data-open={entered}
         onClick={() => onOpenChange(false)}
         aria-hidden="true"
       />
@@ -196,7 +226,7 @@ export function Sheet({
         aria-labelledby={titleId}
         tabIndex={-1}
         className="nf-sheet outline-none"
-        data-open={open}
+        data-open={entered}
         data-dragging={dragging || undefined}
         style={{ ["--nf-sheet-y" as string]: `${Math.max(0, offset)}px` }}
       >
