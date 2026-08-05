@@ -7,6 +7,8 @@ import { resolveSession } from "../actions/session";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { MEDIA_BUCKET } from "../social/posts-media";
+import { knownInterests } from "../interests/schema";
+import { parseSettings } from "../profile/schema";
 
 /**
  * Everything the home overview renders, in one place.
@@ -83,6 +85,20 @@ export type HomeOverview = {
   place: HomePlace;
   areas: HomeArea[];
   trending: TrendingItem[];
+  /**
+   * True when this person has never been asked what they came here for.
+   *
+   * Home is where sign-up lands and where the OAuth callback returns to, so it
+   * is the honest definition of "first entry to the app" and the one place the
+   * first-run question is gated. It is answered from the profile read this
+   * function already does rather than by a second round trip, because a
+   * question about onboarding is not worth an extra query on every home render.
+   *
+   * False for a signed-out visitor, for a profile row that cannot be read, and
+   * the moment the question has been answered or skipped. Interrupting somebody
+   * on a guess is worse than not asking at all.
+   */
+  askIntent: boolean;
 };
 
 const EMPTY_PLACE: HomePlace = {
@@ -158,6 +174,7 @@ export const getHomeOverview = cache(async function getHomeOverview(): Promise<H
     place: EMPTY_PLACE,
     areas: [],
     trending: [],
+    askIntent: false,
   };
 
   const session = await resolveSession();
@@ -177,7 +194,9 @@ export const getHomeOverview = cache(async function getHomeOverview(): Promise<H
   const [profileResult, unreadResult] = await Promise.all([
     supabase
       .from("profiles")
-      .select("first_name, nickname, display_name, avatar_url, state_code, lga_code")
+      .select(
+        "first_name, nickname, display_name, avatar_url, state_code, lga_code, interests, settings",
+      )
       .eq("id", user.id)
       .maybeSingle(),
     supabase.from("notifications").select("id", { count: "exact", head: true }).is("read_at", null),
@@ -221,6 +240,11 @@ export const getHomeOverview = cache(async function getHomeOverview(): Promise<H
     place,
     areas: places.areas,
     trending,
+    askIntent:
+      profile !== null &&
+      profile !== undefined &&
+      knownInterests(profile.interests).length === 0 &&
+      !parseSettings(profile.settings).interestsAsked,
   };
 });
 

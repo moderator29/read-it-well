@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getDictionary, type Locale } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { DAYPART_GREETING, getHomeOverview } from "@/lib/app/home-queries";
@@ -44,6 +45,21 @@ export default async function HomePage() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   const overview = await getHomeOverview();
+
+  /*
+   * The first-run question, gated here and nowhere else.
+   *
+   * Home is where sign-up redirects and where the OAuth callback returns, so
+   * this is the honest meaning of "first entry to the app". Putting the gate in
+   * the shell layout instead would have made every consumer route a trapdoor,
+   * including the welcome screen's own way out.
+   *
+   * `askIntent` is false unless the person is signed in, has stated nothing,
+   * and has never been asked - so a skip is permanent and a returning user
+   * never sees this branch again. It comes from the profile read the overview
+   * already did, not a second query.
+   */
+  if (overview.askIntent) redirect("/welcome");
 
   const repo = getListingRepository();
   const listings = await repo.recommended(6);
