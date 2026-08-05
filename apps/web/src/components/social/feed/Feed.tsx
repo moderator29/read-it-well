@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PostCard, type PostView } from "./PostCard";
 import { Composer } from "./Composer";
@@ -13,10 +13,10 @@ import { EmptyPanel } from "../profile/EmptyPanel";
 import type { StoryCard } from "@/lib/social/stories-queries";
 import type { ReviewCard } from "@/lib/social/profile-tabs-queries";
 import { PostEditor } from "./PostEditor";
+import { ViewportPost } from "./ViewportPost";
 import {
   blockUser,
   muteTarget,
-  recordView,
   removePost,
   reportPost,
   toggleMark,
@@ -315,7 +315,7 @@ export function Feed({
 
       {(chip === "stories" || chip === "reviews" ? [] : shown).map((post) => (
         <div key={post.id} className="flex flex-col gap-[var(--nf-feed-gap)]">
-          <ViewportPost post={post}>
+          <ViewportPost postId={post.id}>
             <PostCard
               post={post}
               onLike={() => onLike(post)}
@@ -390,46 +390,4 @@ export function Feed({
       ) : null}
     </div>
   );
-}
-
-/**
- * Records a view once, when the card has genuinely been on screen.
- *
- * Half the card and half a second, so a fast scroll past does not count as
- * having been read. The database counts one person once a day regardless, so
- * this only decides whether to make the call at all.
- */
-function ViewportPost({ post, children }: { post: PostView; children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const done = useRef(false);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || done.current) return;
-    if (typeof IntersectionObserver === "undefined") return;
-
-    let timer = 0;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          timer = window.setTimeout(() => {
-            if (done.current) return;
-            done.current = true;
-            void recordView({ postId: post.id });
-            observer.disconnect();
-          }, 500);
-        } else {
-          window.clearTimeout(timer);
-        }
-      },
-      { threshold: 0.5 },
-    );
-    observer.observe(node);
-    return () => {
-      window.clearTimeout(timer);
-      observer.disconnect();
-    };
-  }, [post.id]);
-
-  return <div ref={ref}>{children}</div>;
 }

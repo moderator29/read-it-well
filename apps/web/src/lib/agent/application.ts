@@ -26,6 +26,7 @@
  * showing zero documents.
  */
 
+import { normalisePhone } from "../phone";
 import { createClient } from "../supabase/server";
 import { isSupabaseConfigured } from "../supabase/env";
 
@@ -53,8 +54,16 @@ export type ApplicationResult = {
   fieldErrors?: Partial<Record<ApplicationField, string>>;
 };
 
-/** Nigerian mobile numbers: 11 digits local (0803...) or +234 form. */
-const PHONE_RE = /^(\+?234|0)\d{10}$/;
+/*
+ * The phone rule is shared now, and this file was the reason it had to be.
+ *
+ * It carried `/^(\+?234|0)\d{10}$/`, which accepts `01234567890`: eleven
+ * digits beginning zero, no Nigerian network on earth, and the agent whose
+ * verification documents were about to be reviewed passed with a number
+ * nobody could ring. Meanwhile the guest booking form applied a stricter rule
+ * from `lib/bookings/schema.ts`, so the platform held two different opinions
+ * about the same number. `lib/phone.ts` is now the only one.
+ */
 
 /** The document slots the wizard offers, and which of them are compulsory. */
 const DOCUMENT_KINDS = ["idFront", "idBack", "registration"] as const;
@@ -124,9 +133,10 @@ export async function submitAgentApplication(
     if (!get("rcNumber")) fieldErrors.rcNumber = "This field is required.";
   }
 
-  const phone = get("phone").replace(/\s/g, "");
-  if (phone && !PHONE_RE.test(phone)) {
-    fieldErrors.phone = "Enter a valid Nigerian phone number.";
+  const phone = get("phone");
+  if (phone && normalisePhone(phone) === null) {
+    fieldErrors.phone =
+      "That does not look like a Nigerian mobile number. Enter it as 0803 123 4567.";
   }
 
   const account = get("accountNumber");

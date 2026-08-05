@@ -128,3 +128,90 @@ export function refundAtStop(stop: CancellationStop, totalMinor: number): number
   const total = Math.max(0, Math.trunc(totalMinor));
   return Math.round((total * stop.refundBasisPoints) / 10_000);
 }
+
+/* ------------------------------------------------------------------------- */
+/*  Why a stay was cancelled, and what that does to the schedule              */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * The four cases /cancellations actually names.
+ *
+ * Three of them override the schedule to a full refund, because the page says
+ * in plain words that they do: a host cancelling, a place that is not what was
+ * listed, and a guest who could not get in. The schedule only ever governs a
+ * cancellation the guest chose.
+ *
+ * These four strings are also the check constraint on `booking_refunds.reason`
+ * in the database, so a reason that is not one of them cannot be recorded at
+ * all. Keep the two in step.
+ */
+export const CANCELLATION_REASONS = [
+  {
+    code: "guest_choice",
+    label: "The guest is cancelling",
+    detail:
+      "The published schedule decides the amount: everything back more than 72 hours out, half inside that, nothing once check-in day has started.",
+    overridesToFull: false,
+  },
+  {
+    code: "host_cancelled",
+    label: "The host cancelled",
+    detail:
+      "Everything comes back, whatever the hour. The schedule never applies to a cancellation the guest did not choose.",
+    overridesToFull: true,
+  },
+  {
+    code: "not_as_listed",
+    label: "The place was not what was listed",
+    detail:
+      "A standards matter rather than a cancellation. Full refund once a person has looked at it, which is what this decision is.",
+    overridesToFull: true,
+  },
+  {
+    code: "no_access",
+    label: "The guest could not get in",
+    detail:
+      "A gate that would not open, an estate with no record of them, a key nobody brought. Full refund once it is confirmed.",
+    overridesToFull: true,
+  },
+] as const;
+
+export type CancellationReason = (typeof CANCELLATION_REASONS)[number]["code"];
+
+/** The four codes on their own, for a schema to validate against. */
+export const CANCELLATION_REASON_CODES = CANCELLATION_REASONS.map(
+  (reason) => reason.code,
+) as unknown as readonly [CancellationReason, ...CancellationReason[]];
+
+export function cancellationReason(code: CancellationReason) {
+  return CANCELLATION_REASONS.find((reason) => reason.code === code) ?? CANCELLATION_REASONS[0];
+}
+
+/**
+ * What a cancellation is worth given WHY it is happening.
+ *
+ * This is the one function the refund desk calls, so the console can never
+ * compute a figure the published policy does not already promise. It can be
+ * more generous than the schedule, in the three cases the page names and only
+ * those, and it can never be less generous than the schedule: there is no code
+ * path here that returns below `refundForCancellation`.
+ */
+export function refundForReason(
+  reason: CancellationReason,
+  paidMinor: number,
+  checkInIso: string,
+  now: Date = new Date(),
+): RefundOutcome {
+  const scheduled = refundForCancellation(paidMinor, checkInIso, now);
+  if (!cancellationReason(reason).overridesToFull) return scheduled;
+
+  const paid = Math.max(0, Math.trunc(paidMinor));
+  const full = CANCELLATION_STOPS[0]!;
+  return {
+    tier: "full",
+    stop: full,
+    refundMinor: paid,
+    retainedMinor: 0,
+    hoursBeforeCheckIn: scheduled.hoursBeforeCheckIn,
+  };
+}

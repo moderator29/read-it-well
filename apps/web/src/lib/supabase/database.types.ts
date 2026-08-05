@@ -619,6 +619,66 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_refunds: {
+        Row: {
+          booking_id: string
+          created_at: string
+          decided_by: string | null
+          guest_id: string
+          id: string
+          note: string | null
+          paid_minor: number
+          reason: string
+          refund_minor: number
+          retained_minor: number
+          wallet_entry_id: string | null
+          wallet_reference: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          decided_by?: string | null
+          guest_id: string
+          id?: string
+          note?: string | null
+          paid_minor: number
+          reason: string
+          refund_minor: number
+          retained_minor: number
+          wallet_entry_id?: string | null
+          wallet_reference?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          decided_by?: string | null
+          guest_id?: string
+          id?: string
+          note?: string | null
+          paid_minor?: number
+          reason?: string
+          refund_minor?: number
+          retained_minor?: number
+          wallet_entry_id?: string | null
+          wallet_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_refunds_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_refunds_wallet_entry_id_fkey"
+            columns: ["wallet_entry_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_state_events: {
         Row: {
           actor_id: string | null
@@ -2868,6 +2928,17 @@ export type Database = {
       record_idempotency_result: {
         Args: { key: string; result: Json; scope: string; subject: string }
         Returns: boolean
+      }
+      refund_and_cancel_booking: {
+        Args: {
+          acting_admin: string
+          decision_note?: string
+          reason_code: string
+          refund_amount: number
+          refund_reference: string
+          target_booking: string
+        }
+        Returns: Json
       }
       release_idempotency: {
         Args: { key: string; scope: string; subject: string }

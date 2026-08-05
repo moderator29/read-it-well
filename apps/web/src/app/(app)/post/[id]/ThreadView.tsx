@@ -7,6 +7,7 @@ import { Composer } from "@/components/social/feed/Composer";
 import { ReportSheet } from "@/components/social/ReportSheet";
 import { ActionSheet, actionsForPost } from "@/components/social/ActionSheet";
 import { PostEditor } from "@/components/social/feed/PostEditor";
+import { ViewportPost } from "@/components/social/feed/ViewportPost";
 import {
   blockUser,
   muteTarget,
@@ -190,29 +191,40 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
     });
   };
 
+  /*
+   * Wrapped in the same viewport recorder the feed uses.
+   *
+   * **A post opened on its own page used to count no view at all.** Every card
+   * renders a view count, `recordView` is a validated action with a counter
+   * trigger behind it, and the only caller lived inside `Feed.tsx`, so the one
+   * surface where somebody has deliberately opened a post to read it was the one
+   * surface that recorded nothing. Replies were invisible to it too.
+   */
   const card = (post: PostView) => (
-    <PostCard
-      post={post}
-      onLike={() => onLike(post)}
-      onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
-      onShare={() => onMenuAction(post, "share")}
-      onSave={() => onMenuAction(post, "save")}
-      onMenu={() => setSheetFor(post)}
-      editor={
-        editing === post.id ? (
-          <PostEditor
-            postId={post.id}
-            initialBody={post.rawBody ?? post.body ?? ""}
-            onDone={() => setEditing(null)}
-            onSaved={(body, held) => {
-              patch(post.id, { body, rawBody: body, edited: true });
-              setNotice(held ? POST_COPY.editHeld : POST_COPY.editedDone);
-              router.refresh();
-            }}
-          />
-        ) : undefined
-      }
-    />
+    <ViewportPost postId={post.id}>
+      <PostCard
+        post={post}
+        onLike={() => onLike(post)}
+        onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
+        onShare={() => onMenuAction(post, "share")}
+        onSave={() => onMenuAction(post, "save")}
+        onMenu={() => setSheetFor(post)}
+        editor={
+          editing === post.id ? (
+            <PostEditor
+              postId={post.id}
+              initialBody={post.rawBody ?? post.body ?? ""}
+              onDone={() => setEditing(null)}
+              onSaved={(body, held) => {
+                patch(post.id, { body, rawBody: body, edited: true });
+                setNotice(held ? POST_COPY.editHeld : POST_COPY.editedDone);
+                router.refresh();
+              }}
+            />
+          ) : undefined
+        }
+      />
+    </ViewportPost>
   );
 
   return (

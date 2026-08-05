@@ -363,6 +363,81 @@ export function bookingCancelled(data: BookingCancelledData): EmailMessage {
   };
 }
 
+export type BookingRefundedData = {
+  guestName?: string | null;
+  listingTitle: string;
+  checkIn: string;
+  checkOut: string;
+  /** What the guest had settled, in kobo. */
+  paidMinor: number;
+  /** What has just gone back to their wallet, in kobo. */
+  refundMinor: number;
+  /** What the host keeps, in kobo. Always paidMinor minus refundMinor. */
+  retainedMinor: number;
+  /** One plain sentence naming why this amount and not another. */
+  reasonLine: string;
+  /** The wallet reference the money moved on, when any money moved. */
+  reference?: string | null;
+};
+
+/**
+ * To the guest when RentMe support cancels a stay they had paid for.
+ *
+ * /cancellations promises them, in these words, "the amount and the reason in
+ * writing". This is that promise, so it never leaves out either one, and it
+ * never rounds: every figure is the exact kobo the ledger moved.
+ *
+ * A refund of nothing still sends. A guest who cancelled on check-in day is
+ * owed the sentence explaining why nothing came back at least as much as a
+ * guest who got everything is owed the good news.
+ */
+export function bookingRefunded(data: BookingRefundedData): EmailMessage {
+  const returned = data.refundMinor > 0;
+  const rows: ReceiptRow[] = [
+    { label: "Stay", value: data.listingTitle },
+    { label: "Dates", value: dateRange(data.checkIn, data.checkOut) },
+    { label: "You had paid", value: money(data.paidMinor) },
+    { label: "Back in your wallet", value: money(data.refundMinor), strong: true },
+  ];
+  if (data.retainedMinor > 0) {
+    rows.push({ label: "Kept by the host", value: money(data.retainedMinor) });
+  }
+
+  return {
+    subject: returned
+      ? `${money(data.refundMinor)} is back in your RentMe wallet`
+      : `Cancelled: ${data.listingTitle}`,
+    html: shell({
+      preheader: returned
+        ? `Your stay is cancelled and ${money(data.refundMinor)} has returned to your wallet.`
+        : `Your stay is cancelled. Here is exactly how the amount was worked out.`,
+      body:
+        heading(returned ? "Your refund is in your wallet" : "Your stay is cancelled") +
+        paragraph(
+          `${hello(data.guestName)} A person at RentMe has cancelled this stay and released the dates.`,
+        ) +
+        paragraph(data.reasonLine) +
+        receipt(rows) +
+        (returned
+          ? paragraph(
+              "The money is in your RentMe wallet now. Spend it on another stay, or withdraw it to your bank from the wallet whenever you want it.",
+            )
+          : paragraph(
+              "Nothing has been taken from you beyond what you had already paid for this stay, and the booking stays in your history for your records.",
+            )) +
+        (data.reference ? referenceBox(data.reference) : "") +
+        button(returned ? "Open your wallet" : "Find another stay", appUrl(returned ? "/wallet" : "/search")) +
+        note(
+          "If this amount does not look right to you, reply to support with the reference above and a person will go through it with you.",
+        ),
+      footerLines: [
+        "You are receiving this because of a change to your RentMe booking.",
+        GUEST_SAFETY_LINE,
+      ],
+    }),
+  };
+}
+
 /* ------------------------------------------------------------------ wallet */
 
 export type WalletFundedData = {

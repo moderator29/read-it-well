@@ -7,6 +7,7 @@ import { NIGERIAN_BANKS, NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { createClient } from "@/lib/supabase/client";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
+import { PhoneField } from "@/components/app/PhoneField";
 
 const EMPTY: ApplicationResult = { ok: false };
 const DRAFT_KEY = "nf_agent_application_draft";
@@ -276,7 +277,19 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
             <Field name="firstName" label={a.fields.firstName} value={values} set={set} err={err} autoComplete="given-name" />
             <Field name="lastName" label={a.fields.lastName} value={values} set={set} err={err} autoComplete="family-name" />
           </div>
-          <Field name="phone" label={a.fields.phone} value={values} set={set} err={err} type="tel" placeholder="0803 000 0000" autoComplete="tel" />
+          {/* The applicant's own number, which is how the reviewer reaches
+              them about their documents. It states +234, groups as it is
+              typed, names the network and posts the canonical form, and it
+              now applies the SAME rule the guest booking form does; this
+              screen used to accept `01234567890`. */}
+          <PhoneField
+            id="phone"
+            name="phone"
+            label={a.fields.phone}
+            value={values.phone ?? ""}
+            onChange={(next) => set("phone", next)}
+            error={err?.phone}
+          />
         </fieldset>
 
         {/* Step 2: Identity */}

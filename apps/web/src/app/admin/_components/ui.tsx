@@ -40,13 +40,19 @@ export function statusTone(status: string): Tone {
     case "reviewing":
     case "pending":
       return "pending";
+    // A stay nobody has accepted yet is owed a decision by its host, which is
+    // the same shape of thing as everything else painted pending.
+    case "PENDING":
+      return "pending";
     case "reviewed":
     case "resolved":
     case "APPROVED":
     case "PUBLISHED":
+    case "CONFIRMED":
       return "approved";
     case "REJECTED":
     case "SUSPENDED":
+    case "CANCELLED":
       return "rejected";
     default:
       return "neutral";
@@ -89,6 +95,26 @@ export function adminUi(t: Dictionary, locale: Locale) {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+    });
+  }
+
+  /**
+   * A calendar date with no clock on it.
+   *
+   * A check-in is a day, not a moment. Running one through `when` above prints
+   * "01:00" beside it, because a bare date parses as UTC midnight and Lagos is
+   * an hour ahead, which reads to an operator as a time the guest agreed to.
+   * Anchoring at midday Lagos removes the question entirely.
+   */
+  function day(iso: string | null): string {
+    if (!iso) return c.notRecorded;
+    const parsed = Date.parse(iso.length <= 10 ? `${iso}T12:00:00+01:00` : iso);
+    if (Number.isNaN(parsed)) return c.notRecorded;
+    return formatDate(new Date(parsed), locale, {
+      timeZone: "Africa/Lagos",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   }
 
@@ -237,6 +263,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
 
   return {
     when,
+    day,
     statusLabel,
     StatusChip,
     QueueHeader,
