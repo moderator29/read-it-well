@@ -8,6 +8,8 @@ import { useInboxTyping } from "@/lib/messages/useRealtime";
 import { PageHeader } from "@/components/app/PageHeader";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Segmented } from "@/components/ui/Segmented";
+import { TextField } from "@/components/ui/Field";
 
 /**
  * The Inbox.
@@ -235,46 +237,58 @@ export function Inbox({
       />
 
       {/* -------------------------------------------------------- search */}
-      <label className="relative block">
-        <span className="sr-only">Search messages</span>
-        <UiIcon
-          name="search"
-          size={16}
-          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--nf-content-muted)]"
-        />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search messages..."
-          data-testid="inbox-search"
-          className="nf-field pl-10"
-        />
-      </label>
+      {/* The clear affordance is the whole reason this is the primitive: a
+          search that filters as you type needs a way back to everything that
+          is not "select all and delete", and the platform's other four search
+          bars each hand-rolled the icon slot at a different size. */}
+      <TextField
+        label="Search messages"
+        hideLabel
+        type="search"
+        leadingIcon="search"
+        clearable="Clear the search"
+        onClear={() => setQuery("")}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search messages..."
+        data-testid="inbox-search"
+      />
 
       {/* ---------------------------------------------------------- tabs */}
-      <div
-        role="tablist"
-        aria-label="Filter conversations"
-        className="mt-3.5 flex items-center gap-2 overflow-x-auto pb-1"
-      >
-        {TABS.map((entry) => {
-          const active = entry.key === tab;
-          const count = entry.key === "requests" ? requests.length : 0;
-          return (
-            <button
-              key={entry.key}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              onClick={() => setTab(entry.key)}
-              className={`nf-chip shrink-0 ${active ? "nf-chip--active" : ""}`}
-            >
-              {entry.label}
-              {count > 0 && <span className="nf-numeric ml-1.5 opacity-70">{count}</span>}
-            </button>
-          );
-        })}
+      {/*
+        This was a `role="tablist"` of `role="tab"` chips with `aria-selected`
+        and NOTHING else: no panel, no `aria-controls`, no roving tabindex, no
+        arrow keys. A tablist that controls nothing is a promise to a screen
+        reader that the surface does not keep.
+
+        It is made a REAL tablist rather than demoted to a filter row, because
+        the three tabs genuinely swap which conversations the list below shows -
+        that is a view switch, not an attribute filter - and the list is a panel
+        that can name itself. `Segmented` brings the roving tabindex and the
+        arrow keys with it.
+
+        No `panelIdPrefix`: only the selected panel exists, so `aria-controls`
+        on the other two would dangle. The panel points back with
+        `aria-labelledby`.
+      */}
+      <div className="mt-3.5">
+        <Segmented<Tab>
+          label="Filter conversations"
+          size="sm"
+          full
+          options={TABS.map((entry) => ({
+            value: entry.key,
+            label: entry.label,
+            /* Requests is the only tab that carries a count, and only when
+               somebody is actually waiting in it. */
+            ...(entry.key === "requests" && requests.length > 0
+              ? { count: requests.length }
+              : null),
+          }))}
+          value={tab}
+          onChange={setTab}
+          itemIdPrefix="inbox-tab"
+        />
       </div>
 
       {/* ------------------------------------------------- mark all read */}
@@ -298,7 +312,16 @@ export function Inbox({
       )}
 
       {/* ---------------------------------------------------------- list */}
-      <div className="mt-3.5">
+      {/* The panel the tabs above actually control. It is keyed on the tab so
+          the list re-enters rather than mutating in place, and it names its own
+          tab, which is what makes the tablist a tablist. */}
+      <div
+        key={tab}
+        role="tabpanel"
+        id={`inbox-panel-${tab}`}
+        aria-labelledby={`inbox-tab-${tab}`}
+        className="mt-3.5"
+      >
         {shown.length > 0 ? (
           <ul className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
             {shown.map((row) => (
