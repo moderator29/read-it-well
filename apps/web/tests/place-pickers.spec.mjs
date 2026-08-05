@@ -8,7 +8,9 @@
  * reader anywhere in the product. This spec guards the shape of the answer.
  *
  * 1. Sign-up is grouped, not stacked. Nine fields in one column is a wall, and
- *    the owner asked twice for it not to be. Four headed groups.
+ *    the owner asked twice for it not to be. Four headed groups, on their own
+ *    route: `/sign-up` offers the three ways in and `/sign-up/email` carries
+ *    the form, so the Google and Apple rows are never left sitting under it.
  * 2. The three place fields are pickers, not selects. A 774-row native select
  *    on a phone is a spinning wheel somebody scrolls for half a minute.
  * 3. The local government picker is disabled until a state is chosen, because a
@@ -72,8 +74,30 @@ async function run(theme) {
       !(await page.evaluate(() => document.body.innerText)).toLowerCase().includes("demo"),
     );
 
-    await page.getByRole("button", { name: /continue with email/i }).click();
-    await page.waitForTimeout(400);
+    /*
+     * Email is a link now, not an in-place expansion. The form used to unroll
+     * on this page, which left the Google and Apple rows stranded four screens
+     * below it under a form somebody was already filling in.
+     */
+    await page.getByRole("link", { name: /continue with email/i }).click();
+    await page.waitForLoadState("load");
+    await page.waitForTimeout(WAIT);
+
+    check(
+      "choosing email navigates rather than expanding in place",
+      new URL(page.url()).pathname === "/sign-up/email",
+      page.url(),
+    );
+
+    check(
+      "the provider rows are not stranded beneath the form",
+      (await page.getByRole("button", { name: /continue with (google|apple)/i }).count()) === 0,
+    );
+
+    check(
+      "there is a way back to the three choices",
+      (await page.getByRole("link", { name: /other ways to continue/i }).count()) === 1,
+    );
 
     const text = await page.evaluate(() => document.body.innerText);
     for (const heading of [

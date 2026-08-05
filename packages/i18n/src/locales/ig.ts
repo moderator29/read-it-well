@@ -147,6 +147,7 @@ export const ig: Dictionary = {
     termsNotice: "Site n'ịga n'ihu ị kwenyere na Usoro na Iwu Nzuzo anyị.",
     providerUnavailable: "Edobeghị ụzọ nbanye a.",
     backToHome: "Laghachi n'ụlọ",
+    otherWays: "Ụzọ ndị ọzọ ị ga-esi gaa n'ihu",
   },
 
   home: {
