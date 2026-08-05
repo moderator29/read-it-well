@@ -388,6 +388,7 @@ export type Database = {
           decision_note: string | null
           id: string
           kind: Database["public"]["Enums"]["area_kind"]
+          lga_code: string | null
           member_count: number
           name: string
           opened_at: string | null
@@ -396,6 +397,7 @@ export type Database = {
           slug: string
           state_code: string
           status: Database["public"]["Enums"]["area_status"]
+          within_lga_code: string | null
         }
         Insert: {
           area?: string | null
@@ -410,6 +412,7 @@ export type Database = {
           decision_note?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["area_kind"]
+          lga_code?: string | null
           member_count?: number
           name: string
           opened_at?: string | null
@@ -418,6 +421,7 @@ export type Database = {
           slug: string
           state_code: string
           status?: Database["public"]["Enums"]["area_status"]
+          within_lga_code?: string | null
         }
         Update: {
           area?: string | null
@@ -432,6 +436,7 @@ export type Database = {
           decision_note?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["area_kind"]
+          lga_code?: string | null
           member_count?: number
           name?: string
           opened_at?: string | null
@@ -440,13 +445,28 @@ export type Database = {
           slug?: string
           state_code?: string
           status?: Database["public"]["Enums"]["area_status"]
+          within_lga_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "areas_lga_code_fkey"
+            columns: ["lga_code"]
+            isOneToOne: false
+            referencedRelation: "local_governments"
+            referencedColumns: ["code"]
+          },
           {
             foreignKeyName: "areas_state_code_fkey"
             columns: ["state_code"]
             isOneToOne: false
             referencedRelation: "states"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "areas_within_lga_code_fkey"
+            columns: ["within_lga_code"]
+            isOneToOne: false
+            referencedRelation: "local_governments"
             referencedColumns: ["code"]
           },
         ]
@@ -2769,6 +2789,15 @@ export type Database = {
         Returns: boolean
       }
       current_agent_id: { Args: never; Returns: string }
+      enter_place: {
+        Args: { p_lga_code: string }
+        Returns: {
+          id: string
+          name: string
+          slug: string
+          status: Database["public"]["Enums"]["area_status"]
+        }[]
+      }
       pay_booking_from_wallet: {
         Args: {
           payer: string
