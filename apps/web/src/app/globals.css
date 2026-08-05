@@ -1727,6 +1727,35 @@ html {
     padding: 0.5rem 0.95rem;
     font-size: var(--nf-text-caption);
   }
+  /*
+   * The 44pt floor on the compact size.
+   *
+   * 40px is the right PAINT for a control in a 64px header - the site header's
+   * Sign up is the one every marketing page carries - and 4px short of the
+   * floor WCAG 2.5.8 sets for a target. A pseudo element settles it the same
+   * way `Switch` does: pointer events on a pseudo hit the element it belongs
+   * to, so the target reaches 44 while the button still draws at 40, and
+   * `icons-and-targets.spec` can measure it, which it cannot do for a hit area
+   * grown by a child node.
+   *
+   * `pointer-events` is deliberately NOT set to none here. On `.nf-btn::after`
+   * it is, because that one is a specular gloss and must never intercept
+   * anything; this one exists precisely to be hit.
+   */
+  .nf-btn--sm::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    /* Stated, not derived. A negative inset assumed the button was exactly
+       40px; it renders at 38 once the light theme's 1.5px border is in the
+       box, and -2px each side landed on 42. A height of 44 is 44 whatever the
+       paint underneath it turns out to be. */
+    height: 2.75rem;
+    transform: translateY(-50%);
+    border-radius: inherit;
+  }
   .nf-btn--md {
     min-height: 3rem;
     padding: 0.72rem 1.2rem;
