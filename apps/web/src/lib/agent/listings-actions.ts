@@ -62,13 +62,20 @@ const NOT_AGENT_MESSAGE =
 const PAUSED_MESSAGE =
   "Listing tools are paused for a moment while we make improvements. Nothing you entered was lost.";
 
-const NOT_FOUND_MESSAGE = "We could not find that listing on your account.";
+const NOT_FOUND_MESSAGE =
+  "We could not find that listing on your account. Reload the page to see the listings you have.";
 
 const LOCKED_MESSAGE =
   "This listing is with our review team. Return it to a draft first, then edit it.";
 
 const SAVE_FAILED_MESSAGE =
   "We could not save this listing just now. Nothing you typed was lost. Please try again.";
+
+const PHOTO_GONE_MESSAGE =
+  "That photo is no longer on this listing. Reload the page to see the photos it has now.";
+
+const REVIEW_PENDING_MESSAGE =
+  "This listing is already with our review team. We will let you know as soon as it is decided.";
 
 const PHOTO_FAILED_MESSAGE =
   "We could not attach that photo just now. Please try it again.";
@@ -242,7 +249,9 @@ export async function addPhoto(input: {
   const { listingId, storagePath, position } = parsed.data;
 
   if (!storagePath.startsWith(`${gate.user.id}/`)) {
-    return fail("That photo was not uploaded to your own folder, so we did not attach it.");
+    return fail(
+      "That photo was not uploaded to your own folder, so we did not attach it. Choose the photo again.",
+    );
   }
 
   const listing = await ownedListing(gate.supabase, gate.agentId, listingId);
@@ -411,7 +420,7 @@ export async function removePhoto(input: {
   if (readError || !photos) return fail(PHOTO_FAILED_MESSAGE);
 
   const target = photos.find((p) => p.id === photoId);
-  if (!target) return fail("That photo is no longer on this listing.");
+  if (!target) return fail(PHOTO_GONE_MESSAGE);
 
   const { error: deleteError } = await gate.supabase
     .from("listing_photos")
@@ -609,7 +618,7 @@ export async function submitListing(input: {
   if (!listing) return fail(NOT_FOUND_MESSAGE);
 
   if (listing.status === "SUBMITTED" || listing.status === "UNDER_REVIEW") {
-    return fail("This listing is already with our review team.");
+    return fail(REVIEW_PENDING_MESSAGE);
   }
   if (!EDITABLE.includes(listing.status)) {
     return fail("This listing has already been through review. Return it to a draft to change it.");

@@ -72,6 +72,13 @@ const GENERIC_RESERVE_MESSAGE =
 const SERVICE_DOWN_MESSAGE =
   "Cancelling is temporarily unavailable. Your booking is unchanged. Please try again shortly.";
 
+const NOT_YOURS_MESSAGE =
+  "We could not find that booking on your account. Open it again from Bookings, and check you are signed in with the account that reserved it.";
+
+/** The host-and-admin side of confirm: every refusal ends at the same queue. */
+const CONFIRM_DOWN_MESSAGE =
+  "Confirming is temporarily unavailable. The request is unchanged. Please try again shortly.";
+
 /**
  * Turn a 23514 check-constraint violation into the true sentence.
  *
@@ -367,8 +374,12 @@ export async function cancel(
     .maybeSingle();
 
   if (readError) return fail(SERVICE_DOWN_MESSAGE);
-  if (!booking) return fail("We could not find that booking on your account.");
-  if (booking.status === "CANCELLED") return fail("This booking is already cancelled.");
+  if (!booking) return fail(NOT_YOURS_MESSAGE);
+  // The guest only reached this by tapping Cancel on a row that still looked
+  // live, so the page in front of them is out of date. Saying so is the action.
+  if (booking.status === "CANCELLED") {
+    return fail("This booking is already cancelled. Reload the page to see where it stands.");
+  }
   if (booking.check_in <= lagosToday()) {
     return fail("This stay has already started, so it cannot be cancelled here. Contact support and we will sort it out.");
   }
@@ -491,8 +502,10 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
       .select("id, listing_id, guest_id, status, check_in, check_out, nights, total_minor")
       .eq("id", parsed.data.bookingId)
       .maybeSingle();
-    if (readError) return fail("Confirming is temporarily unavailable. Please try again shortly.");
-    if (!booking) return fail("That booking no longer exists.");
+    if (readError) return fail(CONFIRM_DOWN_MESSAGE);
+    if (!booking) {
+      return fail("That booking no longer exists. Reload the page to see your current requests.");
+    }
 
     // ------------------------------------------------- authorisation
     // listings.agent_id points at public.agents, whose user_id is the auth
@@ -512,12 +525,16 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
     const isAgent = listing?.agents?.user_id === session.user.id;
     const isAdmin = (roles?.length ?? 0) > 0;
     if (!isAgent && !isAdmin) {
-      return fail("Only the listing's agent or an administrator can confirm a booking.");
+      return fail(
+        "Only the listing's agent or an administrator can confirm a booking. If this listing is yours, sign in with the account that hosts it.",
+      );
     }
 
     if (booking.status === "CONFIRMED") return ok(null);
     if (booking.status !== "PENDING") {
-      return fail("This booking was cancelled, so it cannot be confirmed.");
+      return fail(
+        "This booking was cancelled, so it cannot be confirmed. Reload the page to see your current requests.",
+      );
     }
 
     const { error: updateError } = await admin
@@ -525,7 +542,7 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
       .update({ status: "CONFIRMED" })
       .eq("id", booking.id)
       .eq("status", "PENDING");
-    if (updateError) return fail("Confirming is temporarily unavailable. Please try again shortly.");
+    if (updateError) return fail(CONFIRM_DOWN_MESSAGE);
 
     await admin.from("booking_state_events").insert({
       booking_id: booking.id,
@@ -543,7 +560,7 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
     // the confirmation stands whether or not either email leaves.
     await announceConfirmedStay(admin, { bookingId: booking.id });
   } catch {
-    return fail("Confirming is temporarily unavailable. Please try again shortly.");
+    return fail(CONFIRM_DOWN_MESSAGE);
   }
 
   revalidatePath("/bookings");

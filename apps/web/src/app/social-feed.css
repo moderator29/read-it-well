@@ -309,6 +309,115 @@
   }
 
   /* ------------------------------------------------------------------
+   * The pictures on a post.
+   *
+   * Four fixed arrangements rather than a masonry, and every one of them has
+   * a shape the browser knows before the bytes arrive. These are signed URLs
+   * against a private bucket, so they are slower than a public image and a
+   * layout that measures the picture would push the words down after the card
+   * had already been read.
+   *
+   * One is a wide plate. Two are a pair of squares. Three are a tall one
+   * beside two, which is the only arrangement where an odd number does not
+   * leave a hole. Four is a square of squares. A fifth is impossible: the
+   * `position` column is `check (position between 0 and 3)` and unique per
+   * post, so the database is the cap and the composer is a courtesy.
+   * ------------------------------------------------------------------ */
+  .nf-post__media {
+    display: grid;
+    gap: 4px;
+    margin-block-start: 12px;
+    overflow: hidden;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-border-subtle);
+  }
+  .nf-post__media img {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    background: var(--nf-surface-inset);
+  }
+  .nf-post__media--1 {
+    grid-template-columns: 1fr;
+  }
+  .nf-post__media--1 img {
+    aspect-ratio: 4 / 3;
+  }
+  .nf-post__media--2 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .nf-post__media--2 img {
+    aspect-ratio: 1 / 1;
+  }
+  .nf-post__media--3 {
+    grid-template-columns: 1.4fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    aspect-ratio: 3 / 2;
+  }
+  .nf-post__media--3 img:first-child {
+    grid-row: span 2;
+  }
+  .nf-post__media--4 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .nf-post__media--4 img {
+    aspect-ratio: 1 / 1;
+  }
+
+  /* ------------------------------------------------------------------
+   * Choosing them, in the composer.
+   *
+   * Small tiles in a row rather than a preview the size of the post. What is
+   * being confirmed here is which photographs are attached and in which order,
+   * not what they look like, and a full-width preview per picture would push
+   * the Post button off a 390px screen with four of them.
+   * ------------------------------------------------------------------ */
+  .nf-compose-pics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-start: 10px;
+  }
+  .nf-compose-pics__item {
+    position: relative;
+    inline-size: 72px;
+    block-size: 72px;
+    border-radius: var(--nf-radius-md);
+    overflow: hidden;
+    border: 1px solid var(--nf-border-default);
+  }
+  .nf-compose-pics__item img {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  /* The target is 26px of drawn button inside a 44px hit area, which is what
+     keeps a remove control tappable on a 72px tile without covering it. */
+  .nf-compose-pics__drop {
+    position: absolute;
+    inset-block-start: 2px;
+    inset-inline-end: 2px;
+    display: grid;
+    place-items: center;
+    inline-size: 26px;
+    block-size: 26px;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-on-brand);
+    background: rgb(0 0 0 / 0.62);
+    border: 1px solid rgb(255 255 255 / 0.22);
+  }
+  .nf-compose-pics__drop::after {
+    content: "";
+    position: absolute;
+    inset: -9px;
+  }
+  .nf-compose-pics__drop:disabled {
+    opacity: 0.5;
+  }
+
+  /* ------------------------------------------------------------------
    * The menu
    * ------------------------------------------------------------------ */
   .nf-post__menu {

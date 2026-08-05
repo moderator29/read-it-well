@@ -64,7 +64,16 @@ const CARD_UNCONFIGURED_MESSAGE =
 const WALLET_OFF_MESSAGE =
   "The wallet is switched off for a moment while we make improvements. Please try again shortly.";
 
-const NOT_FOUND_MESSAGE = "We could not find that booking on your account.";
+const NOT_FOUND_MESSAGE =
+  "We could not find that booking on your account. Open it again from Bookings, and check you are signed in with the account that reserved it.";
+
+/**
+ * A reference that resolves to nothing is the one checkout error where the
+ * reader's real question is "where is my money", so the copy answers that
+ * before it asks them to do anything.
+ */
+const UNKNOWN_REFERENCE_MESSAGE =
+  "That payment reference is not recognised. Open the stay from Bookings and start the payment again. If money has already left your account, contact support and we will trace it.";
 
 const ALREADY_PAID_MESSAGE = "This booking is already paid, so there is nothing to pay again.";
 
@@ -196,7 +205,9 @@ async function guardPayable(bookingId: string): Promise<Guarded> {
   if (booking.currency !== "NGN") {
     return {
       ok: false,
-      result: fail("This booking is not priced in naira, so it cannot be paid here."),
+      result: fail(
+        "This booking is not priced in naira, so it cannot be paid here. Contact support and we will sort it out with you.",
+      ),
     };
   }
   if (booking.total_minor <= 0) {
@@ -485,7 +496,7 @@ export async function settleCardPayment(
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
   if (!isBookingReference(reference)) {
-    return fail("That payment reference is not recognised.");
+    return fail(UNKNOWN_REFERENCE_MESSAGE);
   }
   if (!isPaystackConfigured()) return fail(CARD_UNCONFIGURED_MESSAGE);
 
@@ -500,7 +511,7 @@ export async function settleCardPayment(
   } catch {
     return fail(SERVICE_DOWN_MESSAGE);
   }
-  if (!owner) return fail("That payment reference is not recognised.");
+  if (!owner) return fail(UNKNOWN_REFERENCE_MESSAGE);
   if (owner.guestId !== session.user.id) return fail(NOT_FOUND_MESSAGE);
 
   let tx;
@@ -532,7 +543,9 @@ export async function settleCardPayment(
   }
 
   if (tx.currency !== "NGN") {
-    return fail("That payment was not in naira, so it was not applied to this booking.");
+    return fail(
+      "That payment was not in naira, so it was not applied to this booking. Contact support with the reference and we will trace it for you.",
+    );
   }
 
   let settlement: Awaited<ReturnType<typeof settleBookingCharge>>;

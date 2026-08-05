@@ -342,6 +342,38 @@ export function PostCard({
         </div>
       ) : null}
 
+      {/*
+        * The pictures.
+        *
+        * Signed URLs against a private bucket, which is why they are read and
+        * signed for a whole page at once and why this is a plain `img`: a
+        * signed URL carries a token and an expiry, and running it through the
+        * image optimiser would cache somebody's private photograph behind a
+        * URL that outlives the signature.
+        *
+        * One is a wide plate, two are a pair, three are a tall one beside two,
+        * four are a square. Every layout is a fixed shape, so the card does not
+        * jump when the pictures arrive.
+        */}
+      {post.media.length > 0 ? (
+        <div className={`nf-post__media nf-post__media--${Math.min(post.media.length, 4)}`}>
+          {post.media.slice(0, 4).map((picture, index) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={picture.url}
+              src={picture.url}
+              alt={
+                post.media.length > 1
+                  ? `Picture ${index + 1} of ${post.media.length} on this post`
+                  : "The picture on this post"
+              }
+              loading="lazy"
+              decoding="async"
+            />
+          ))}
+        </div>
+      ) : null}
+
       {post.areaName && post.areaSlug && !isSystem ? (
         <Link
           href={`/around/${post.areaSlug}`}

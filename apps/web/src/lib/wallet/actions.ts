@@ -81,7 +81,14 @@ import type { WalletSummary } from "./types";
 const WALLET_OFF_MESSAGE =
   "The wallet is switched off for a moment while we make improvements. Please try again shortly.";
 const FUNDING_UNCONFIGURED_MESSAGE =
-  "Wallet funding switches on the moment payment keys land.";
+  "Wallet funding switches on the moment payment keys land. Your balance is untouched and nothing was charged.";
+/**
+ * A reference that does not resolve is the one wallet error where the reader's
+ * real fear is "has my money gone", so the copy answers that first and gives
+ * them the one route that can trace it.
+ */
+const UNKNOWN_REFERENCE_MESSAGE =
+  "That payment reference is not recognised. Open your wallet and start the funding again. If money has already left your account, contact support and we will trace it.";
 
 /** Kobo-exact naira for messages: whole naira via formatMoney, kobo appended. */
 function nairaExact(minor: number): string {
@@ -333,13 +340,17 @@ export async function transferToUser(
 
   const recipient = await findUserByEmail(parsed.data.recipientEmail);
   if (!recipient) {
-    return fail("No RentMe account uses that email address yet.", {
-      recipientEmail: "No RentMe account uses that email address yet.",
-    });
+    return fail(
+      "No RentMe account uses that email address yet. Check the spelling, or ask them to sign up for RentMe and send it once they have.",
+      {
+        recipientEmail:
+          "No account uses this address. Check the spelling, or ask them to sign up first.",
+      },
+    );
   }
   if (recipient.id === session.user.id) {
-    return fail("You cannot transfer to your own wallet.", {
-      recipientEmail: "You cannot transfer to your own wallet.",
+    return fail("You cannot transfer to your own wallet. Enter the recipient's email address.", {
+      recipientEmail: "Enter the recipient's email address, not your own.",
     });
   }
 
@@ -431,7 +442,7 @@ export async function verifyFunding(
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
   const parsedReference = fundReferenceSchema.safeParse(reference);
-  if (!parsedReference.success) return fail("That payment reference is not recognised.");
+  if (!parsedReference.success) return fail(UNKNOWN_REFERENCE_MESSAGE);
 
   if (!isPaystackConfigured()) return fail(FUNDING_UNCONFIGURED_MESSAGE);
   const admin = getAdminClient();
@@ -460,7 +471,9 @@ export async function verifyFunding(
   }
 
   if (tx.currency !== "NGN") {
-    return fail("That payment was not in naira, so it was not credited.");
+    return fail(
+      "That payment was not in naira, so it was not credited. Contact support with the reference and we will trace it for you.",
+    );
   }
 
   const metadataUserId = tx.metadata["user_id"];
