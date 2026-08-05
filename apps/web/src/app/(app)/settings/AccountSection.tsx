@@ -4,7 +4,7 @@ import { useActionState, useEffect, useId, useRef, useState, useTransition } fro
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { GroupCard } from "@/components/app/account/SettingsGroups";
+import { RowButton, RowLink, RowValue, SettingsGroup } from "@/components/app/account/rows";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { deleteAccountAction, signOut } from "@/lib/profile/actions";
@@ -47,64 +47,57 @@ export function AccountSection({
   };
 
   return (
-    <GroupCard overline="Account" icon="user-check">
-      <div className="divide-y divide-[var(--nf-border-subtle)]">
-        <div className="py-3.5 first:pt-0">
-          <p className="text-[0.9375rem] font-medium">
-            {state === "signed-in" ? "Signed in" : "Not signed in"}
-          </p>
-          <p className="mt-0.5 break-words text-[0.8125rem] text-[var(--nf-content-muted)]">
-            {state === "signed-in"
-              ? email || "Your account is active on this device."
-              : state === "signed-out"
-                ? "Sign in to keep your profile and preferences with your account instead of this device."
-                : "Accounts switch on the moment the platform keys land. Everything you set here is kept on this device until then."}
-          </p>
+    <SettingsGroup
+      label="Account"
+      note={
+        signOutError ? (
+          <span role="alert" className="text-[var(--nf-state-error)]">
+            {signOutError}
+          </span>
+        ) : state === "unconfigured" ? (
+          "Accounts switch on the moment the platform keys land. Everything you set here is kept on this device until then."
+        ) : undefined
+      }
+    >
+      <RowValue
+        icon="user"
+        label={state === "signed-in" ? "Signed in" : "Not signed in"}
+        sub={
+          state === "signed-in"
+            ? undefined
+            : state === "signed-out"
+              ? "Sign in to keep your profile and preferences with your account instead of this device."
+              : "Kept on this device for now."
+        }
+        value={state === "signed-in" ? email || "Active on this device" : undefined}
+      />
 
-          {state === "signed-in" ? (
-            <>
-              <Button
-                variant="secondary"
-                full
-                className="mt-2.5"
-                onClick={leave}
-                loading={signingOut}
-              >
-                Sign out
-              </Button>
-              {signOutError && (
-                <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-error)]">
-                  {signOutError}
-                </p>
-              )}
-            </>
-          ) : state === "signed-out" ? (
-            <ButtonLink href="/sign-in" variant="primary" full className="mt-2.5">
-              Sign in
-            </ButtonLink>
-          ) : null}
-        </div>
+      {state === "signed-in" ? (
+        <RowButton
+          icon="arrow-right"
+          label={signingOut ? "Signing out" : "Sign out"}
+          onClick={leave}
+          disabled={signingOut}
+          chevron={false}
+        />
+      ) : state === "signed-out" ? (
+        <RowLink href="/sign-in" icon="key" label="Sign in" />
+      ) : null}
 
-        <div className="py-3.5 last:pb-0">
-          <p className="text-[0.9375rem] font-medium">Delete account</p>
-          <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-            Removes your profile, preferences, saved places and message history
-            for good. This cannot be undone.
-          </p>
-          <Button
-            variant="dangerQuiet"
-            full
-            className="mt-2.5"
-            data-testid="delete-open"
-            onClick={() => setDrawer(true)}
-          >
-            Delete my account
-          </Button>
-        </div>
-      </div>
+      {/* Deletion sits last and reads as what it is before it is pressed, not
+          in a dialog afterwards. The drawer behind it is unchanged: two steps,
+          the second demanding the exact phrase in capitals. */}
+      <RowButton
+        icon="close"
+        label="Delete my account"
+        sub="Removes your profile, preferences, saved places and message history for good. This cannot be undone."
+        onClick={() => setDrawer(true)}
+        danger
+        testId="delete-open"
+      />
 
       {drawer && <DeleteDrawer onClose={() => setDrawer(false)} />}
-    </GroupCard>
+    </SettingsGroup>
   );
 }
 

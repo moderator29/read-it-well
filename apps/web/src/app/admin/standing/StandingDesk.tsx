@@ -22,9 +22,12 @@ import { TextField, SelectField, TextArea } from "@/components/ui/Field";
  * record of the decision: "why does this person have this" must be answerable
  * a year later by somebody who was not in the room.
  *
- * Every row states plainly who granted it. A row with nobody's name against it
- * was earned, which the database guarantees by refusing a manual badge with a
- * null granted_by.
+ * Every row states plainly who granted it. Every row in this list is a manual
+ * badge, so every one of them was granted by somebody: a row with no name
+ * against it is one whose granter has since closed their account, not one that
+ * was earned. Taking it back stays available either way, because a badge that
+ * can only be revoked by the person who granted it becomes permanent the day
+ * they leave.
  */
 export function StandingDesk({
   grants,
@@ -164,10 +167,10 @@ export function StandingDesk({
                 <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
                   {grant.grantedByName
                     ? `Granted by ${grant.grantedByName}.`
-                    : "Earned from real events, not granted by anybody."}
+                    : "Granted by an administrator whose account has since been closed."}
                   {grant.reason ? ` ${grant.reason}` : ""}
                 </p>
-                {grant.grantedByName && !grant.revoked && (
+                {!grant.revoked && (
                   <form action={revokeAction} className="mt-3">
                     <input type="hidden" name="userId" value={grant.userId} />
                     <input type="hidden" name="badgeCode" value={grant.badgeCode} />

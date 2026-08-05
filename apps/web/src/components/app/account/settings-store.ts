@@ -33,6 +33,15 @@ export type NfSettings = {
   defaultCity: string;
   distanceUnit: DistanceUnit;
   appLock: boolean;
+  /**
+   * Spend less of this person's data.
+   *
+   * Read through `lib/ui/data-saver.ts` rather than from here, because the
+   * full answer is this setting OR what the browser reports about the link,
+   * and every surface has to reach the same conclusion. Off by default: the
+   * platform does not decide on somebody's behalf that they are poor.
+   */
+  dataSaver: boolean;
 };
 
 export const SETTINGS_DEFAULTS: NfSettings = {
@@ -48,6 +57,7 @@ export const SETTINGS_DEFAULTS: NfSettings = {
   defaultCity: "",
   distanceUnit: "km",
   appLock: false,
+  dataSaver: false,
 };
 
 export function loadSettings(): NfSettings {

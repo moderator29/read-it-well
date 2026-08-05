@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { canGoBackInApp } from "@/lib/ui/history";
 
 /**
  * Universal back control.
@@ -12,15 +13,14 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * otherwise falls through to `fallback`, so a deep link straight into a
  * sub-page never strands the user.
  *
- * The test is `history.state.idx`, which is Next's own index into the entries
- * it has pushed, and it is the same test `PageHeader`, `BackChevron` and
- * `ListingGallery` already use. It used to be `history.length > 1`, which
- * counts every entry the TAB has ever had, including the ones belonging to
- * whatever site the visitor came from. Opening an agent page in a fresh tab
- * therefore called `router.back()` with nothing of ours behind it and landed
- * on `about:blank`: a blank white page and no way home, which is the exact
- * dead end this control exists to prevent. Caught by looking at a screenshot,
- * never by reading the code.
+ * The test is `canGoBackInApp()`, shared with `PageHeader` and
+ * `ListingGallery`. It has now been wrong in both directions and the reasoning
+ * for each is in `lib/ui/history.ts`, worth reading before touching this:
+ * `history.length > 1` counted entries belonging to whatever site the visitor
+ * came from and landed a fresh tab on `about:blank`; `history.state.idx`
+ * replaced it and then stopped existing in Next 16, so this control pushed its
+ * fallback on every screen and threw away whatever the person was in the
+ * middle of. Neither failure showed up as an error.
  */
 export function BackButton({
   fallback = "/home",
@@ -37,8 +37,7 @@ export function BackButton({
       type="button"
       aria-label={label}
       onClick={() => {
-        const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
-        if (idx > 0) router.back();
+        if (canGoBackInApp()) router.back();
         else router.push(fallback);
       }}
       className={`nf-icon-btn ${className ?? ""}`}

@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getAgentApplications, type ApplicationView } from "@/lib/admin/queries";
-import { ApplicationDecision } from "../_components/AdminActions";
+import { getVerificationLadders, type AgentLadder } from "@/lib/admin/verification-queries";
+import { VERIFICATION_ORDER } from "@/lib/trust/verification";
+import { ApplicationDecision, VerificationRungDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
 
@@ -20,15 +22,126 @@ export const dynamic = "force-dynamic";
  * so every step the applicant filled in is here: personal, identity, business,
  * documents, payout and the review step they agreed to. Approving creates their
  * agent profile, grants the agent role and tells them, all in one action.
+ *
+ * Approval is the beginning of the ladder rather than the end of it. An
+ * approved application grows a verification block underneath it: four rungs in
+ * a fixed order, each one a decision a named person recorded, with the tier
+ * computed in the database from the rungs that actually passed. A reviewer can
+ * only ever offer the next rung, because a tier you can reach by skipping a
+ * step is a tier that means nothing.
  */
-function ApplicationCard({
-  application,
+function VerificationLadderPanel({
+  ladder,
   copy,
   common,
   ui,
 }: {
+  ladder: AgentLadder;
+  copy: AdminCopy["verification"];
+  common: AdminCommon;
+  ui: AdminUi;
+}) {
+  const tierNames = copy.tierName as Record<string, string>;
+
+  return (
+    <section className="mt-4" aria-label={copy.title}>
+      <div className="flex flex-wrap items-center gap-2">
+        <h4 className="text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
+          {copy.title}
+        </h4>
+        <ui.StatusChip
+          label={fill(copy.tierLine, {
+            step: ladder.tier,
+            name: tierNames[String(ladder.tier)] ?? "",
+          })}
+          tone={ladder.tier === 4 ? "brand" : ladder.tier === 0 ? "neutral" : "success"}
+        />
+      </div>
+
+      <ol className="mt-2.5 space-y-2.5">
+        {VERIFICATION_ORDER.map((rung) => {
+          const decision = ladder.rungs[rung.kind];
+          // Only the rung immediately above the current tier can be passed. The
+          // database enforces the same thing when it computes the tier; this is
+          // so a reviewer is never offered a button that cannot help.
+          const blocked = rung.step > ladder.tier + 1;
+
+          return (
+            <li
+              key={rung.kind}
+              className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
+                  {rung.step}
+                </span>
+                <span className="text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+                  {copy.rung[rung.kind]}
+                </span>
+                <ui.StatusChip
+                  label={
+                    decision
+                      ? decision.status === "passed"
+                        ? copy.passed
+                        : copy.failed
+                      : copy.undecided
+                  }
+                  tone={
+                    decision
+                      ? decision.status === "passed"
+                        ? "success"
+                        : "danger"
+                      : "warning"
+                  }
+                />
+              </div>
+
+              <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                {rung.evidence}
+              </p>
+
+              {decision && (
+                <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+                  {fill(copy.decidedBy, {
+                    who: decision.decidedByName ?? common.someone,
+                    when: ui.when(decision.decidedAt),
+                  })}
+                  {decision.note ? ` ${decision.note}` : ""}
+                </p>
+              )}
+
+              {blocked ? (
+                <p className="mt-2 text-[0.75rem] text-[var(--nf-content-muted)]">
+                  {copy.blockedBelow}
+                </p>
+              ) : (
+                <VerificationRungDecision
+                  agentId={ladder.agentId}
+                  kind={rung.kind}
+                  copy={copy}
+                  common={common}
+                />
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
+function ApplicationCard({
+  application,
+  ladder,
+  copy,
+  verificationCopy,
+  common,
+  ui,
+}: {
   application: ApplicationView;
+  ladder: AgentLadder | null;
   copy: AdminCopy["applications"];
+  verificationCopy: AdminCopy["verification"];
   common: AdminCommon;
   ui: AdminUi;
 }) {
@@ -163,6 +276,15 @@ function ApplicationCard({
           {fill(copy.decidedWhen, { when: ui.when(application.reviewedAt) })} {common.inAuditLog}
         </p>
       )}
+
+      {ladder && (
+        <VerificationLadderPanel
+          ladder={ladder}
+          copy={verificationCopy}
+          common={common}
+          ui={ui}
+        />
+      )}
     </li>
   );
 }
@@ -171,6 +293,7 @@ export default async function AdminAgentsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const copy = t.admin.applications;
+  const verificationCopy = t.admin.verification;
   const common = t.admin.common;
   const ui = adminUi(t, locale);
 
@@ -186,6 +309,17 @@ export default async function AdminAgentsPage() {
   }
 
   const { waiting, decided } = applications.data;
+
+  // Only an approved application has an agent row, so only those can carry a
+  // ladder. An unavailable read is a missing block rather than a broken page:
+  // the queue's real job is the decision above it.
+  const ladders = await getVerificationLadders(
+    [...waiting, ...decided]
+      .filter((application) => application.status === "APPROVED")
+      .map((application) => application.id),
+  );
+  const ladderFor = (id: string): AgentLadder | null =>
+    ladders.state === "ok" ? (ladders.data.get(id) ?? null) : null;
   // Changes requested sits with the applicant, not with us, so it stays visible
   // in the list but is not counted as work waiting on the console.
   const onUs = waiting.filter((item) => item.status !== "MORE_INFO_REQUIRED").length;
@@ -202,7 +336,9 @@ export default async function AdminAgentsPage() {
             <ApplicationCard
               key={application.id}
               application={application}
+              ladder={ladderFor(application.id)}
               copy={copy}
+              verificationCopy={verificationCopy}
               common={common}
               ui={ui}
             />
@@ -218,7 +354,9 @@ export default async function AdminAgentsPage() {
               <ApplicationCard
                 key={application.id}
                 application={application}
+                ladder={ladderFor(application.id)}
                 copy={copy}
+                verificationCopy={verificationCopy}
                 common={common}
                 ui={ui}
               />

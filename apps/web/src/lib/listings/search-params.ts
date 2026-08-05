@@ -240,6 +240,22 @@ export function toSearchHref(query: DiscoveryQuery): string {
   return qs ? `/search?${qs}` : "/search";
 }
 
+/**
+ * The same address with the view stated OUT LOUD, even when it is the default.
+ *
+ * `toSearchHref` leaves defaults out, which is right for a shareable link, and
+ * `view=list` is the default. That became a problem the moment the last chosen
+ * view started being remembered in a cookie: choosing List produced a URL with
+ * no `view` in it, the server saw no `view`, consulted the cookie, found the
+ * map the person had just switched away from, and served the map back. The one
+ * control whose whole job is to state the view has to state it.
+ */
+export function toViewHref(query: DiscoveryQuery, view: ViewKey): string {
+  const href = toSearchHref({ ...query, view });
+  if (view === "map") return href;
+  return href.includes("?") ? `${href}&view=list` : `${href}?view=list`;
+}
+
 /** Everything the drawer owns, cleared. Text, category, sort and view stay. */
 export function clearedFilters(query: DiscoveryQuery): DiscoveryQuery {
   const cleared: DiscoveryQuery = {

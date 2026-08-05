@@ -118,9 +118,23 @@ function toView(row: ProfileRow, viewerIsOwner: boolean): SocialProfileView {
     homeAreaId: row.home_area_id,
     coverPath: row.cover_path,
     coverUrl: row.cover_path ? coverPublicUrl(SUPABASE_URL, row.cover_path) : "",
-    followerCount: row.follower_count,
-    followingCount: row.following_count,
-    postCount: row.post_count,
+    /*
+     * Counted, not trusted.
+     *
+     * All three columns are `not null default 0` today, so the raw assignment
+     * could not actually misfire, and the type saying `number` was true by the
+     * schema's good manners rather than by anything in this file. That is one
+     * ALTER away from being false, and the failure it produces is loud and
+     * public: `formatNumber(undefined)` returns the string "NaN", so a profile
+     * would read "NaN Followers" at the person whose page it is. A DOM probe
+     * caught exactly that against a fixture missing the columns.
+     *
+     * `Number(x) || 0` also absorbs a string, which is what PostgREST sends for
+     * a bigint, and NaN itself.
+     */
+    followerCount: Number(row.follower_count) || 0,
+    followingCount: Number(row.following_count) || 0,
+    postCount: Number(row.post_count) || 0,
     claimedAt: row.handle_claimed_at,
   };
 }

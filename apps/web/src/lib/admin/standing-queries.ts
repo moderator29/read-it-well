@@ -8,9 +8,12 @@ import { requireAdmin } from "./guard";
  * One badge on this platform is granted by a person rather than earned by a
  * trigger: top_contributor, which carries manual_only. The database refuses a
  * manual badge whose granted_by is null (RM021), so a grant always names the
- * admin who made it, and user_badges.granted_by being null is the platform's
- * definition of "earned". This read leans on exactly that: it never asks the
- * badge how it was won, it asks whether anybody signed for it.
+ * admin who made it at the moment it is written.
+ *
+ * This read filters to manual badges, so every row in it was granted by hand,
+ * full stop. It used to treat a null granted_by as "earned"; it now treats it
+ * as "the signer has left", which is the only thing it can mean here. See
+ * `grantedBySignerGone` below for why that changed.
  *
  * Everything reads through the admin's own RLS-bound client, so the console's
  * power is the power their policies give them and nothing more.
@@ -23,8 +26,23 @@ export type ManualGrant = {
   badgeCode: string;
   badgeName: string;
   grantedAt: string;
-  /** The admin who signed for it, or null when it was earned. */
+  /** The admin who signed for it, or null when nobody's name is on the row. */
   grantedByName: string | null;
+  /**
+   * True when the signer's account has since been closed.
+   *
+   * This list only ever contains manual badges, and the database refuses to
+   * insert one without a granter (RM021), so every row here was signed by
+   * somebody at the moment it was written. A null `granted_by` therefore means
+   * that person has left, not that the badge was earned. The two used to be
+   * indistinguishable and the screen read the second one, which was safe only
+   * while no admin had ever closed their account.
+   *
+   * Since 20260805154210 an admin can close their account, which is a right
+   * under the NDPA rather than a feature, and the foreign key releases these
+   * rows on the way out. So the distinction is now real and is drawn here.
+   */
+  grantedBySignerGone: boolean;
   reason: string | null;
   revoked: boolean;
 };
@@ -86,6 +104,7 @@ export async function getStandingDesk(): Promise<StandingRead> {
         badgeName: badgeName.get(row.badge_code) ?? row.badge_code,
         grantedAt: row.granted_at,
         grantedByName: row.granted_by ? (names.get(row.granted_by) ?? "An administrator") : null,
+        grantedBySignerGone: row.granted_by === null,
         reason: row.reason,
         revoked: row.revoked_at !== null,
       })),

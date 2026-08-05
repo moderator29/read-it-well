@@ -6,6 +6,7 @@ import { getMessageFlags, type FlagView, type PartyRole } from "@/lib/admin/quer
 import { FlagDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { dueChip } from "../_components/due";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -24,6 +25,11 @@ type FlagCopy = Dictionary["admin"]["flags"];
  * a reviewer sees the matched fragment, the run-up to it in the conversation,
  * and takes one of two real decisions: clear it, or raise a risk alert that
  * keeps the case open on another queue.
+ *
+ * An account number carries the four-hour commitment /standards publishes,
+ * because somebody has just been handed the details to pay into. Payment
+ * wording alone carries the ordinary day: it is far more often two people
+ * discussing how the platform works than a scam in progress.
  */
 function Fragment({ text }: { text: string }) {
   return (
@@ -84,6 +90,15 @@ function FlagCard({
       <div className="flex flex-wrap items-center gap-2">
         <ui.StatusChip status={flag.status} />
         <ui.StatusChip label={copy.reason[flag.reason]} tone="neutral" />
+        {flag.status === "open" && (
+          <ui.StatusChip
+            {...dueChip(
+              flag.createdAt,
+              flag.reason === "account_number" ? "urgent" : "standard",
+              common,
+            )}
+          />
+        )}
         <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
           {ui.when(flag.createdAt)}
         </span>

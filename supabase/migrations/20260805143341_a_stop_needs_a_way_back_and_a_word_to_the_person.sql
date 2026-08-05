@@ -1,0 +1,26 @@
+-- Superseded, deliberately empty. Kept because the database has this version.
+--
+-- This ran, and what it did was wrong in one specific way worth recording.
+--
+-- It added `lift_agent_suspension`, a second function doing what
+-- `private.reinstate_agent` had already done since 20260805110426. The search
+-- that went looking for an existing lift tried `lift_agent_suspension`,
+-- `lift_agent` and `restore_agent`, and missed the name that was actually
+-- there. Three guesses at a name are not a search; `pg_proc` was one query
+-- away and would have answered in one go.
+--
+-- 20260805143955 drops the duplicate and folds the one thing this migration
+-- had that `reinstate_agent` did not, which was telling the agent it had
+-- happened. Everything this file did is therefore either undone or carried
+-- forward by that one, so replaying it would only create a function the next
+-- migration immediately drops.
+--
+-- The file stays rather than being deleted, and stays empty rather than being
+-- rewritten, because `supabase_migrations.schema_migrations` on the live
+-- database holds this version. A repository that skipped it would disagree
+-- with the database about what has run, and the next person to compare the two
+-- would have to work out which of them was lying.
+--
+-- The same pattern, for the same reason, is at 20260805141429.
+
+select 1 where false;

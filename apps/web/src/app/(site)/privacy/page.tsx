@@ -1,3 +1,4 @@
+import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -31,10 +32,10 @@ const sections: { title: string; body: React.ReactNode }[] = [
         </p>
         <p>
           Questions about this policy or about your data should go to{" "}
-          <a href="mailto:support@naijafinds.com" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
-            support@naijafinds.com
-          </a>{" "}
-          with the subject line &quot;Privacy&quot;.
+          <a href={SUPPORT_HREF} className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+            {SUPPORT_LABEL}
+          </a>
+          , with Privacy as the subject.
         </p>
       </>
     ),
@@ -179,9 +180,16 @@ const sections: { title: string; body: React.ReactNode }[] = [
           <li>Withdraw consent where processing is based on consent.</li>
         </ul>
         <p>
-          To exercise any of these rights, email{" "}
-          <a href="mailto:support@naijafinds.com" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
-            support@naijafinds.com
+          {/* The sentence somebody reads when they want their data back or
+              deleted. It has to point at a channel a person actually reads,
+              which today is the contact form: it writes a support_tickets row
+              an admin works in the console. It said support@rentme.ng, and
+              that mailbox does not exist, so every NDPA request sent to it
+              would have gone nowhere while the sender believed they had
+              asked. */}
+          To exercise any of these rights, write to us through{" "}
+          <a href={SUPPORT_HREF} className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+            {SUPPORT_LABEL}
           </a>
           . We respond within the timelines the NDPA sets. If you are not satisfied with
           our response, you have the right to complain to the Nigeria Data Protection

@@ -4,6 +4,8 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { ButtonLink } from "@/components/ui/Button";
 import { BalanceCard } from "@/components/app/wallet/BalanceCard";
 import { TransactionsSection } from "@/components/app/wallet/TransactionsSection";
 import { WalletSettingsSheet } from "@/components/app/wallet/WalletSettingsSheet";
@@ -16,12 +18,18 @@ export const metadata: Metadata = { title: "Wallet" };
 /**
  * Wallet.
  *
- * Balance hero, action deck, day-grouped history, trust strip. When Supabase
- * is configured and the viewer is signed in, every figure is their real
- * ledger: the balance derived by the wallet_balances view and the newest
- * entries under RLS, so the number on screen and the rows beneath it can
- * never disagree (Master Rules 8 and 50). Signed out or unconfigured, the
- * seed ledger stands in with the same integer-kobo arithmetic.
+ * Balance hero, action deck, day-grouped history, trust strip. Every figure is
+ * the viewer's real ledger: the balance derived by the wallet_balances view
+ * and the newest entries under RLS, so the number on screen and the rows
+ * beneath it can never disagree (Master Rules 8 and 50).
+ *
+ * **Signed out, there is no balance on this page at all.** It used to stand in
+ * a seeded ledger holding ₦258,450.75 with a full statement under it, and the
+ * flag that marked it invented never reached the card that drew the figure.
+ * Every bank, and Stripe, Wise and Cash App with them, answers a signed-out
+ * request for a balance with a sign-in wall rather than a specimen, because a
+ * number beside a currency symbol is read as a fact about the reader before
+ * any caption is.
  *
  * Add money opens a hosted Paystack checkout; the return trip lands here as
  * ?funded=1&reference=rm-fund-..., where the verifier credits the ledger
@@ -76,6 +84,30 @@ export default async function WalletPage({
 
       {verifying && <FundingVerifier reference={verifying} locale={locale} />}
 
+      {!wallet.live ? (
+        <Reveal>
+          <div className="nf-card p-6 text-center sm:p-8">
+            <span className="nf-story-art mx-auto block h-16 w-16">
+              <BrandIcon name="wallet-secure" fill />
+            </span>
+            <h2 className="nf-h3 mt-4">Your wallet is behind your sign in</h2>
+            <p className="mx-auto mt-2 max-w-[46ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              Sign in to see your balance, add money, send it on and read every
+              payment in and out. Nothing about your money is shown to anybody
+              who is not signed in as you.
+            </p>
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              <ButtonLink href="/sign-in" variant="primary">
+                Sign in
+              </ButtonLink>
+              <ButtonLink href="/search" variant="secondary">
+                Explore places
+              </ButtonLink>
+            </div>
+          </div>
+        </Reveal>
+      ) : (
+        <>
       <Reveal>
         <BalanceCard
           balanceMinor={wallet.balanceMinor}
@@ -92,6 +124,8 @@ export default async function WalletPage({
       <Reveal delay={140} className="mt-8">
         <TransactionsSection entries={wallet.entries} locale={locale} />
       </Reveal>
+        </>
+      )}
     </div>
   );
 }

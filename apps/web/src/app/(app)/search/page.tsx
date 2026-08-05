@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
 import { RealMap } from "@/components/app/search/RealMap";
+import { RecentStrip } from "@/components/app/search/RecentStrip";
+import { SearchMemory } from "@/components/app/search/SearchMemory";
+import { VIEW_COOKIE, isViewKey } from "@/lib/search/memory";
 import { ActiveFilters } from "@/components/app/filters/ActiveFilters";
 import { CategoryTiles } from "@/components/app/filters/CategoryTiles";
 import { FilterDrawer } from "@/components/app/filters/FilterDrawer";
@@ -74,21 +78,51 @@ function sentenceCase(value: string): string {
 /** Destination quick picks. Each chip is a shareable link, not client state. */
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Ibadan", "Enugu", "Calabar"];
 
+/**
+ * The tiebreaker: at EQUAL relevance, a verified place goes first.
+ *
+ * Verification on this platform is first-party inventory that a human reviewer
+ * admitted, so it is the single strongest signal discovery has about whether a
+ * place is real. It was not being used at all. Two stays at the same price, or
+ * the same rating and the same number of reviews, came back in whatever order
+ * the repository happened to hand over, and an unverified listing routinely sat
+ * above a verified one for no reason anybody could name. That is the whole of
+ * the defect: not that ranking was wrong, but that a fact we already hold was
+ * being thrown away at exactly the moment it decides something.
+ *
+ * A TIEBREAKER, DELIBERATELY, AND NOT MORE THAN THAT. Verification does not
+ * outrank a better price on a price sort or a better rating on a rating sort,
+ * because the person chose that sort and it is not ours to overrule. It only
+ * settles the cases the chosen sort leaves genuinely equal, which is the exact
+ * wording of the requirement.
+ */
+function byVerification(a: Listing, b: Listing): number {
+  return Number(b.verified) - Number(a.verified);
+}
+
 function sortListings(listings: Listing[], sort: SortKey): Listing[] {
   const out = [...listings];
   switch (sort) {
     case "top-rated":
-      out.sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount);
+      out.sort(
+        (a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount || byVerification(a, b),
+      );
       break;
     case "price-asc":
-      out.sort((a, b) => a.priceMinor - b.priceMinor);
+      out.sort((a, b) => a.priceMinor - b.priceMinor || byVerification(a, b));
       break;
     case "price-desc":
-      out.sort((a, b) => b.priceMinor - a.priceMinor);
+      out.sort((a, b) => b.priceMinor - a.priceMinor || byVerification(a, b));
       break;
     default:
-      // Recommended keeps the repository's own order, which is first-party
-      // inventory before partner stock. Verification earns reach.
+      /*
+       * Recommended has no numeric relevance score of its own: the repository's
+       * order IS the relevance, first-party inventory ahead of partner stock.
+       * So every position in it is a tie as far as this page can tell, and
+       * verification settles all of them. `Array.prototype.sort` is stable, so
+       * the repository's order survives intact inside each group.
+       */
+      out.sort(byVerification);
       break;
   }
   return out;
@@ -104,6 +138,35 @@ function carriedParams(query: DiscoveryQuery): [string, string][] {
   const index = href.indexOf("?");
   if (index === -1) return [];
   return [...new URLSearchParams(href.slice(index + 1))].filter(([key]) => key !== "q");
+}
+
+/**
+ * A hunt in a few words, for the recent-searches chip.
+ *
+ * Built from the SAME parsed query that produced the results, so a chip can
+ * never describe a search the page did not run. Returns "" when there is
+ * nothing worth remembering: a bare `/search` with no text, no category and no
+ * filters is not a hunt, and recording it every time somebody opened the tab
+ * would push five real searches off the end of the list.
+ */
+function describeQuery(query: DiscoveryQuery, locale: Locale): string {
+  const parts: string[] = [];
+  if (query.q) parts.push(query.q);
+  if (query.kind) parts.push(KIND_NOUN[query.kind].many);
+  if (query.bedrooms !== undefined) parts.push(`${query.bedrooms}+ beds`);
+  if (query.bathrooms !== undefined) parts.push(`${query.bathrooms}+ baths`);
+  if (query.guests !== undefined) {
+    parts.push(`${query.guests} ${query.guests === 1 ? "guest" : "guests"}`);
+  }
+  if (query.maxMinor !== undefined) parts.push(`under ${formatMoney(query.maxMinor, locale)}`);
+  else if (query.minMinor !== undefined) parts.push(`over ${formatMoney(query.minMinor, locale)}`);
+  if (query.amenities.length > 0) {
+    parts.push(`${query.amenities.length} ${query.amenities.length === 1 ? "amenity" : "amenities"}`);
+  }
+  if (query.instantBook) parts.push("instant book");
+  if (query.verifiedOnly) parts.push("verified");
+  if (parts.length === 0) return "";
+  return parts.join(", ").slice(0, 80);
 }
 
 /** Real coordinates for the covered cities. */
@@ -124,7 +187,24 @@ export default async function SearchPage({
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   const raw = await searchParams;
-  const query = parseDiscoveryQuery(raw);
+  const parsed = parseDiscoveryQuery(raw);
+
+  /*
+   * The remembered view, applied only when the address does not state one.
+   *
+   * An address that says `view=` always wins: a link somebody sent, a chip
+   * somebody just tapped, and the back button are all explicit statements
+   * about which view to show, and a stored preference must never overrule any
+   * of them. The cookie exists for exactly one case, the person who arrives at
+   * a bare `/search` from the tab bar or the home screen, and it is read on
+   * the server so the map-preferring person gets a map in the first render
+   * rather than a list that flips a beat later.
+   */
+  const remembered = (await cookies()).get(VIEW_COOKIE)?.value;
+  const query: DiscoveryQuery =
+    raw.view === undefined && isViewKey(remembered)
+      ? { ...parsed, view: remembered }
+      : parsed;
 
   const repo = getListingRepository();
   /*
@@ -300,6 +380,17 @@ export default async function SearchPage({
           </ul>
         </nav>
       </div>
+
+      {/* Nothing rendered. Records the view and the hunt for the strip below. */}
+      <SearchMemory
+        view={query.view}
+        label={describeQuery(query, locale)}
+        href={toSearchHref(query)}
+      />
+
+      {/* The last few hunts and the last few places opened. Empty on the
+          server and on a first visit, so it costs nothing until it is real. */}
+      <RecentStrip />
 
       {/* ---------------------------------------------------- results header */}
       <Reveal as="section" className="mt-6">

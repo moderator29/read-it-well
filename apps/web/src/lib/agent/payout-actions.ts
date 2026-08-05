@@ -126,9 +126,10 @@ export async function addPayoutAccount(
   if (insertError) {
     // 23505 is the per-agent unique NUBAN.
     if (insertError.code === "23505") {
-      return fail("You have already added that account.", {
-        accountNumber: "This account is already on your list.",
-      });
+      return fail(
+        "You have already added that account. It is in your list above, where you can make it the default. Add a different one if you meant another account.",
+        { accountNumber: "This account is already on your list." },
+      );
     }
     // 23514 is the ten-digit check constraint.
     if (insertError.code === "23514") {
@@ -168,7 +169,11 @@ export async function setDefaultPayoutAccount(
   if (error) return fail(SERVICE_DOWN_MESSAGE);
   // With RLS a row that is not the caller's simply is not matched, so zero rows
   // changed means "not yours", not "service failure".
-  if (count === 0) return fail("We could not find that account on your list.");
+  if (count === 0) {
+    return fail(
+      "We could not find that account on your list. Reload the page to see the accounts you have.",
+    );
+  }
 
   revalidatePath("/agent/earnings");
   return ok(null);
@@ -194,7 +199,11 @@ export async function removePayoutAccount(
     .eq("agent_id", context.agent.id);
 
   if (error) return fail(SERVICE_DOWN_MESSAGE);
-  if (count === 0) return fail("We could not find that account on your list.");
+  if (count === 0) {
+    return fail(
+      "We could not find that account on your list. Reload the page to see the accounts you have.",
+    );
+  }
 
   revalidatePath("/agent/earnings");
   return ok(null);

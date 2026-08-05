@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useCallback, useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { CANCELLATION_REASONS, type CancellationReason } from "@/lib/trust/cancellation";
+import { cancelBookingAsAdmin, previewCancellation } from "@/lib/admin/bookings-actions";
+import { recordVerificationCheck } from "@/lib/admin/verification-actions";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { Chip, ChipRow } from "@/components/ui/Chip";
@@ -53,6 +57,13 @@ type SheetProps = {
   notesLabel?: string;
   notesRequired?: boolean;
   destructive?: boolean;
+  /**
+   * A block above the note field, for a decision that needs more than a
+   * sentence: the cancellation sheet puts its reason picker and its live
+   * refund preview here, so an operator sees what the guest gets back before
+   * they confirm rather than after.
+   */
+  extra?: ReactNode;
 };
 
 function ActionSheet({
@@ -68,6 +79,7 @@ function ActionSheet({
   notesLabel,
   notesRequired = false,
   destructive = false,
+  extra,
 }: SheetProps) {
   const router = useRouter();
   const [notes, setNotes] = useState("");
@@ -134,6 +146,8 @@ function ActionSheet({
           <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
             {description}
           </p>
+
+          {extra}
 
           {withNotes && (
             <label className="mt-4 block">
@@ -701,6 +715,190 @@ export function SwitchControl({
           destructive
           run={() => toggleFeatureFlag({ key: flagKey, enabled: false })}
           onClose={() => setConfirming(false)}
+        />
+      )}
+    </>
+  );
+}
+
+/** ----------------------------------------------------------------- stays */
+
+/**
+ * Cancelling a stay, and returning what the published schedule says is owed.
+ *
+ * There is no amount field here, and there never will be. The operator picks
+ * WHY, and the figure is read back from the server through the same function
+ * that will move the money, so the number on screen before the tap is the
+ * number in the ledger after it. Three of the four reasons return everything,
+ * because /cancellations promises exactly that in those three cases, and each
+ * of those three has to say what was actually established.
+ *
+ * The preview runs on every change of reason. While it is in flight the sheet
+ * says so rather than showing a stale figure, because a stale figure about
+ * somebody's money is worse than no figure.
+ */
+export function StayCancel({
+  bookingId,
+  copy,
+  common,
+  locale,
+}: {
+  bookingId: string;
+  copy: AdminCopy["bookings"];
+  common: AdminCommon;
+  locale: Locale;
+}) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState<CancellationReason>("guest_choice");
+  const [preview, setPreview] = useState<
+    { paidMinor: number; refundMinor: number; retainedMinor: number } | null
+  >(null);
+  const [previewing, startPreview] = useTransition();
+
+  useEffect(() => {
+    if (!open) return;
+    setPreview(null);
+    startPreview(async () => {
+      const outcome = await previewCancellation({ bookingId, reason });
+      if (outcome.ok && outcome.data) setPreview(outcome.data);
+    });
+  }, [open, reason, bookingId]);
+
+  const money = (minor: number) => formatMoney(minor, locale);
+
+  const extra = (
+    <div className="mt-4">
+      <span className="nf-label">{copy.sheet.reasonLabel}</span>
+      <div className="mt-1.5 grid gap-2">
+        {CANCELLATION_REASONS.map((option) => (
+          <button
+            key={option.code}
+            type="button"
+            onClick={() => setReason(option.code)}
+            aria-pressed={reason === option.code}
+            className={`rounded-[var(--nf-radius-md)] border p-3 text-left ${
+              reason === option.code
+                ? "border-[var(--nf-brand-primary)] bg-[var(--nf-brand-primary-soft)]"
+                : "border-[var(--nf-border-subtle)]"
+            }`}
+          >
+            <span className="block text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+              {copy.reasons[option.code]}
+            </span>
+            <span className="mt-0.5 block text-[0.75rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              {option.detail}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <p
+        aria-live="polite"
+        className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-primary)]"
+      >
+        {previewing || !preview
+          ? copy.sheet.working
+          : preview.paidMinor === 0
+            ? copy.sheet.nothingPaid
+            : `${fill(copy.sheet.owed, { refund: money(preview.refundMinor) })} ${
+                preview.retainedMinor > 0
+                  ? fill(copy.sheet.kept, { retained: money(preview.retainedMinor) })
+                  : ""
+              }`.trim()}
+      </p>
+    </div>
+  );
+
+  return (
+    <>
+      <Row>
+        <Button variant="dangerQuiet" onClick={() => setOpen(true)}>
+          {copy.cancel}
+        </Button>
+      </Row>
+
+      {open && (
+        <ActionSheet
+          common={common}
+          title={copy.sheet.title}
+          description={copy.sheet.body}
+          confirmLabel={copy.sheet.confirm}
+          successTitle={copy.sheet.successTitle}
+          successBody={copy.sheet.successBody}
+          destructive
+          extra={extra}
+          withNotes
+          notesLabel={copy.sheet.notesLabel}
+          notesRequired={reason !== "guest_choice"}
+          run={async (note) => {
+            const outcome = await cancelBookingAsAdmin({ bookingId, reason, note });
+            return outcome.ok ? { ok: true, data: null } : outcome;
+          }}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
+  );
+}
+
+/**
+ * One rung of the verification ladder.
+ *
+ * Two decisions, not three: a rung has either been checked and passed, or been
+ * checked and failed. "Not looked at yet" is the absence of a row, not a state
+ * somebody records, which is why there is no third button here.
+ *
+ * Failing a rung is the destructive one. It can lower a tier a guest can
+ * already see, so it takes the same confirm sheet as every other consequential
+ * decision on the console and it requires a note, enforced again in the server
+ * action rather than only here.
+ */
+export function VerificationRungDecision({
+  agentId,
+  kind,
+  copy,
+  common,
+  disabled,
+}: {
+  agentId: string;
+  kind: "identity" | "address" | "payout" | "in_person";
+  copy: AdminCopy["verification"];
+  common: AdminCommon;
+  /** True while the rung below this one has not passed. */
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState<"passed" | "failed" | null>(null);
+
+  return (
+    <>
+      <Row>
+        <Button
+          variant="primary"
+          size="sm"
+          disabled={disabled}
+          onClick={() => setOpen("passed")}
+        >
+          {copy.pass}
+        </Button>
+        <Button variant="dangerQuiet" size="sm" onClick={() => setOpen("failed")}>
+          {copy.fail}
+        </Button>
+      </Row>
+
+      {open && (
+        <ActionSheet
+          common={common}
+          title={open === "passed" ? copy.sheet.passTitle : copy.sheet.failTitle}
+          description={open === "passed" ? copy.sheet.passBody : copy.sheet.failBody}
+          confirmLabel={copy.sheet.confirm}
+          successTitle={copy.sheet.successTitle}
+          successBody={copy.sheet.successBody}
+          withNotes
+          notesLabel={copy.sheet.notesLabel}
+          notesRequired={open === "failed"}
+          destructive={open === "failed"}
+          run={(note) => recordVerificationCheck({ agentId, kind, status: open, note })}
+          onClose={() => setOpen(null)}
         />
       )}
     </>

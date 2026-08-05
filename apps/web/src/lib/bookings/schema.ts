@@ -35,34 +35,18 @@ export function nightsBetween(checkIn: string, checkOut: string): number {
 export const MAX_STAY_NIGHTS = 365;
 
 /**
- * A Nigerian mobile number in one canonical form, or null when it is not one.
+ * Re-exported so existing importers do not move, but the rule now lives in
+ * `lib/phone.ts` with the carrier ranges and the input mask beside it.
  *
- * People type their number six different ways and every one of them is
- * correct to the person typing it: 0803 123 4567, 08031234567, +234 803 123
- * 4567, 234 803 123 4567, and the same again with dashes or brackets. A host
- * reading two bookings should see the same number written the same way, and a
- * database check constraint can only enforce one shape, so the normalising
- * happens here, once, and both the form and the server action use it.
- *
- * Every Nigerian mobile is ten digits after the country code and begins 7, 8
- * or 9. That is the whole rule, deliberately no tighter: pinning the second
- * digit to 0 or 1 is true of every range issued so far and would silently
- * reject the first person on a range issued next year.
+ * It had to move because there were two of it. This one required the national
+ * number to begin 7, 8 or 9; `lib/agent/application.ts` carried
+ * `/^(\+?234|0)\d{10}$/`, which accepts `01234567890`. The same number was
+ * therefore valid on one screen of the platform and refused on another, and
+ * the agent side was the loose one, which is the wrong way round.
  */
-export function normalisePhone(raw: string): string | null {
-  const digitsOnly = raw.replace(/[\s()\-.]/g, "");
-  const plus = digitsOnly.startsWith("+");
-  const digits = (plus ? digitsOnly.slice(1) : digitsOnly).replace(/\D/g, "");
-  if (digits.length !== (plus ? digitsOnly.length - 1 : digitsOnly.length)) return null;
+import { normalisePhone } from "../phone";
 
-  let national: string;
-  if (digits.startsWith("234")) national = digits.slice(3);
-  else if (digits.startsWith("0")) national = digits.slice(1);
-  else national = digits;
-
-  if (!/^[7-9]\d{9}$/.test(national)) return null;
-  return `+234${national}`;
-}
+export { normalisePhone };
 
 const isoDate = (label: string) =>
   z

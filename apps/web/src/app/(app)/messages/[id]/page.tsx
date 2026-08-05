@@ -4,17 +4,28 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
 import { isFeatureEnabled } from "@/lib/flags";
 import { loadThread } from "@/lib/messages/live";
-import { getMessageRepository } from "@/lib/messages/repository";
 import { ThreadView, type ThreadBubble } from "./ThreadView";
+import { InboxEmpty } from "../Inbox";
 
 /**
  * A single conversation thread.
  *
- * Thin server shell with two sources of truth. Signed in on a configured
- * platform, the thread loads from the database under the caller's own RLS
- * (membership included) and renders live. Otherwise the seeded threads carry
- * the surface, exactly as before. Unknown ids fall through to not-found
- * rather than rendering an empty shell.
+ * Thin server shell. Signed in on a configured platform, the thread loads from
+ * the database under the caller's own RLS (membership included) and renders
+ * live. Signed out there is no thread to render, and this asks the reader to
+ * sign in rather than inventing one.
+ *
+ * **It used to invent one, and this was the worse of the two routes that did.**
+ * A signed-out visitor fell through to a seeded thread and got the whole
+ * conversation: a named agent who does not exist, and `mine: m.author ===
+ * "guest"` mapping half the bubbles to the visitor, so they were shown words
+ * they had never written, attributed to them. `lib/messages/repository.ts`
+ * carries the reasoning and no longer carries the fixture.
+ *
+ * Not-found is deliberately not the answer here. The conversation the link
+ * points at may well exist and simply not be readable without a session, and
+ * telling somebody a real thing does not exist is the same class of lie in the
+ * other direction.
  */
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -24,10 +35,11 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  if (UUID_RE.test(id)) return { title: "Conversation" };
-  const thread = await getMessageRepository().conversation(id);
-  return { title: thread?.agentName ?? "Conversation" };
+  /* Every conversation is somebody's, so the title never names a counterpart:
+     a tab title is the one piece of a private page that gets screenshotted,
+     read over a shoulder and restored by the browser months later. */
+  await params;
+  return { title: "Conversation" };
 }
 
 export default async function ConversationPage({
@@ -88,35 +100,16 @@ export default async function ConversationPage({
     );
   }
 
-  // ------------------------------------------------- seeded threads
-  const seed = await getMessageRepository().conversation(id);
-  if (!seed) notFound();
-
+  // -------------------------------------------------------- nobody signed in
   return (
-    <ThreadView
-      live={false}
-      conversationId={seed.id}
-      meId={null}
-      counterpartName={seed.agentName}
-      listing={{
-        id: seed.listing.id,
-        title: seed.listing.title,
-        area: seed.listing.area,
-        city: seed.listing.city,
-        verified: seed.listing.verified,
-        approved: seed.listing.approved,
-        hue: seed.listing.hue,
-      }}
-      inspected={false}
-      messages={seed.messages.map(
-        (m): ThreadBubble => ({
-          id: m.id,
-          mine: m.author === "guest",
-          body: m.body,
-          timeLabel: m.sentAt.slice(11, 16),
-          imageUrl: m.image?.src ?? null,
-        }),
-      )}
-    />
+    <div className="mx-auto max-w-2xl">
+      <PageHeader title="Conversation" fallback="/messages" />
+      <InboxEmpty
+        title="Sign in to read this conversation"
+        body="A conversation is only ever readable by the two people in it, so this one needs your account. Sign in and it opens where you left it."
+        action={{ href: "/sign-in", label: "Sign in" }}
+        secondary={{ href: "/search", label: "Explore places" }}
+      />
+    </div>
   );
 }

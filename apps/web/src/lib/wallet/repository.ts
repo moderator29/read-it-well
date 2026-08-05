@@ -132,17 +132,6 @@ function deriveBalanceMinor(entries: WalletEntry[]): number {
   return balance;
 }
 
-function seedWallet(): WalletSummary {
-  const entries = seedEntries();
-  return {
-    id: "wal-0001",
-    // 25_845_075 kobo, i.e. ₦258,450.75, derived rather than asserted.
-    balanceMinor: deriveBalanceMinor(entries),
-    currency: "NGN",
-    entries,
-  };
-}
-
 /** The display note a ledger row was written with, when metadata carries one. */
 function noteFrom(metadata: Json): string | undefined {
   if (metadata !== null && typeof metadata === "object" && !Array.isArray(metadata)) {
@@ -207,14 +196,29 @@ export async function readStatement(
 }
 
 /**
- * What the wallet page shows this viewer: the real ledger when configured and
- * signed in, the seed ledger otherwise. Never throws; a read failure falls
- * back to an empty live wallet rather than inventing money.
+ * What the wallet page shows this viewer.
+ *
+ * The real ledger when they are signed in, and nothing at all when they are
+ * not. It used to hand a signed-out visitor a seeded wallet holding
+ * **₦258,450.75 and a full day-grouped statement**, and the `live: false`
+ * that marked it as invented reached `WalletDeck`, which used it to disable
+ * withdraw and transfer, and never reached `BalanceCard`, which drew the
+ * figure. So the one part of the page that could not act on the flag was the
+ * part that stated the number.
+ *
+ * There is no labelled version of this. Every bank, and Stripe, Wise and Cash
+ * App with them, answers a signed-out request for a balance with a sign-in
+ * wall and never with a specimen figure, because a number beside a currency
+ * symbol is read as a fact about the reader before any caption is. That is the
+ * industry standard and this now follows it.
+ *
+ * Never throws; a read failure falls back to an empty wallet rather than
+ * inventing money.
  */
 export async function getWalletForViewer(): Promise<ViewerWallet> {
   const session = await resolveSession();
   if (session.state !== "signed-in") {
-    return { ...seedWallet(), live: false };
+    return { id: null, balanceMinor: 0, currency: "NGN", entries: [], live: false };
   }
   try {
     const statement = await readStatement(session.supabase, session.user.id);
@@ -224,13 +228,4 @@ export async function getWalletForViewer(): Promise<ViewerWallet> {
   }
 }
 
-class SeedWalletRepository implements WalletRepository {
-  readonly isSeed = true;
-  async getWallet(): Promise<WalletSummary> {
-    return seedWallet();
-  }
-}
 
-export function getWalletRepository(): WalletRepository {
-  return new SeedWalletRepository();
-}

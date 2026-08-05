@@ -5,6 +5,13 @@ import { submitContactForm } from "@/lib/support/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
+import { SUPPORT_EMAIL, SUPPORT_IS_EMAIL } from "@/lib/support-email";
+import {
+  CONTACT_TOPICS,
+  CONTACT_TOPIC_LABEL,
+  DEFAULT_CONTACT_TOPIC,
+  type ContactTopic,
+} from "./topics";
 
 /**
  * The public contact form.
@@ -20,7 +27,11 @@ import { Button } from "@/components/ui/Button";
  * paused queue, a missing key or a rate limit leaves a person with somewhere
  * to go rather than a dead form.
  */
-export function ContactForm({ supportEmail }: { supportEmail: string }) {
+export function ContactForm({
+  defaultTopic = DEFAULT_CONTACT_TOPIC,
+}: {
+  defaultTopic?: ContactTopic;
+}) {
   const [state, formAction, pending] = useActionState<
     ActionResult<{ reference: string }> | null,
     FormData
@@ -47,14 +58,20 @@ export function ContactForm({ supportEmail }: { supportEmail: string }) {
           {state.data.reference}
         </p>
         <p className="mt-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-          Need to add something? Reply to that email, or write to{" "}
-          <a
-            href={`mailto:${supportEmail}`}
-            className="font-semibold text-[var(--nf-electric-300)] hover:underline"
-          >
-            {supportEmail}
-          </a>{" "}
-          quoting the reference.
+          {SUPPORT_IS_EMAIL ? (
+            <>
+              Need to add something? Reply to that email, or write to{" "}
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+              >
+                {SUPPORT_EMAIL}
+              </a>{" "}
+              quoting the reference.
+            </>
+          ) : (
+            <>Need to add something? Reply to that email, quoting the reference.</>
+          )}
         </p>
       </div>
     );
@@ -99,12 +116,18 @@ export function ContactForm({ supportEmail }: { supportEmail: string }) {
 
       <label className="block">
         <span className="nf-overline mb-1.5 block">Topic</span>
-        <select name="topic" className="nf-field" defaultValue="booking">
-          <option value="booking">A booking</option>
-          <option value="payment">A payment or refund</option>
-          <option value="listing">Listing a property</option>
-          <option value="verification">Verification</option>
-          <option value="other">Something else</option>
+        {/*
+          The safety topic is first and it is worded as the thing that actually
+          happens, not as a category name. The admin support queue reads this
+          value back and puts the four-hour clock on the ticket, so choosing it
+          changes how fast a person sees it rather than only how it is filed.
+        */}
+        <select name="topic" className="nf-field" defaultValue={defaultTopic}>
+          {CONTACT_TOPICS.map((topic) => (
+            <option key={topic} value={topic}>
+              {CONTACT_TOPIC_LABEL[topic]}
+            </option>
+          ))}
         </select>
       </label>
 
@@ -135,26 +158,40 @@ export function ContactForm({ supportEmail }: { supportEmail: string }) {
           role="alert"
           className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
         >
-          {state.error} You can also email{" "}
-          <a
-            href={`mailto:${supportEmail}`}
-            className="font-semibold text-[var(--nf-electric-300)] hover:underline"
-          >
-            {supportEmail}
-          </a>{" "}
-          directly, and nothing you typed here has been cleared.
+          {state.error}
+          {SUPPORT_IS_EMAIL ? (
+            <>
+              {" "}You can also email{" "}
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+              >
+                {SUPPORT_EMAIL}
+              </a>{" "}
+              directly, and nothing you typed here has been cleared.
+            </>
+          ) : (
+            <> Nothing you typed here has been cleared, so try again in a moment.</>
+          )}
         </p>
       ) : (
         <p id="contact-form-note" className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-          This opens a support ticket and emails you the reference. If you would rather
-          write to us yourself, the address is{" "}
-          <a
-            href={`mailto:${supportEmail}`}
-            className="font-semibold text-[var(--nf-electric-300)] hover:underline"
-          >
-            {supportEmail}
-          </a>
-          .
+          {/* No "or write to us at" line without a mailbox to write to. This
+              form opens a real support_tickets row that an admin works in the
+              console, so it is the channel, not the fallback. */}
+          This opens a support ticket and emails you the reference.
+          {SUPPORT_IS_EMAIL ? (
+            <>
+              {" "}If you would rather write to us yourself, the address is{" "}
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+              >
+                {SUPPORT_EMAIL}
+              </a>
+              .
+            </>
+          ) : null}
         </p>
       )}
     </form>

@@ -208,10 +208,32 @@
     font-variant-numeric: tabular-nums;
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  /*
+   * The hit area, which is not the painted area.
+   *
+   * The row reads at 34px because five controls at 44 would be a toolbar
+   * rather than a footnote under somebody's sentence. The target underneath is
+   * 44 square regardless, centred on the control, exactly as `.nf-tap` does it
+   * platform-wide.
+   *
+   * This used to be `inset: -5px -2px`, which reached 44 in height and stopped
+   * at about 41 in width, so the three icon-only controls (share, save, more)
+   * were narrow targets on the surface a thumb uses most. `max(100%, 44px)`
+   * cannot drift the way two hand-computed insets can: it grows a small
+   * control to 44 and leaves a wide one alone.
+   *
+   * A DOM probe reading `getBoundingClientRect()` reports 34 here and always
+   * will, because a pseudo-element is not in the box tree. The target has to be
+   * proven by hit testing the corners, not by measuring the button.
+   */
   .nf-post__act::before {
     content: "";
     position: absolute;
-    inset: -5px -2px;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
   }
   .nf-post__act:hover,
   .nf-post__act:focus-visible {
@@ -306,6 +328,115 @@
     font-size: 0.78rem;
     font-weight: 700;
     color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------------
+   * The pictures on a post.
+   *
+   * Four fixed arrangements rather than a masonry, and every one of them has
+   * a shape the browser knows before the bytes arrive. These are signed URLs
+   * against a private bucket, so they are slower than a public image and a
+   * layout that measures the picture would push the words down after the card
+   * had already been read.
+   *
+   * One is a wide plate. Two are a pair of squares. Three are a tall one
+   * beside two, which is the only arrangement where an odd number does not
+   * leave a hole. Four is a square of squares. A fifth is impossible: the
+   * `position` column is `check (position between 0 and 3)` and unique per
+   * post, so the database is the cap and the composer is a courtesy.
+   * ------------------------------------------------------------------ */
+  .nf-post__media {
+    display: grid;
+    gap: 4px;
+    margin-block-start: 12px;
+    overflow: hidden;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-border-subtle);
+  }
+  .nf-post__media img {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    background: var(--nf-surface-inset);
+  }
+  .nf-post__media--1 {
+    grid-template-columns: 1fr;
+  }
+  .nf-post__media--1 img {
+    aspect-ratio: 4 / 3;
+  }
+  .nf-post__media--2 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .nf-post__media--2 img {
+    aspect-ratio: 1 / 1;
+  }
+  .nf-post__media--3 {
+    grid-template-columns: 1.4fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    aspect-ratio: 3 / 2;
+  }
+  .nf-post__media--3 img:first-child {
+    grid-row: span 2;
+  }
+  .nf-post__media--4 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .nf-post__media--4 img {
+    aspect-ratio: 1 / 1;
+  }
+
+  /* ------------------------------------------------------------------
+   * Choosing them, in the composer.
+   *
+   * Small tiles in a row rather than a preview the size of the post. What is
+   * being confirmed here is which photographs are attached and in which order,
+   * not what they look like, and a full-width preview per picture would push
+   * the Post button off a 390px screen with four of them.
+   * ------------------------------------------------------------------ */
+  .nf-compose-pics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-start: 10px;
+  }
+  .nf-compose-pics__item {
+    position: relative;
+    inline-size: 72px;
+    block-size: 72px;
+    border-radius: var(--nf-radius-md);
+    overflow: hidden;
+    border: 1px solid var(--nf-border-default);
+  }
+  .nf-compose-pics__item img {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  /* The target is 26px of drawn button inside a 44px hit area, which is what
+     keeps a remove control tappable on a 72px tile without covering it. */
+  .nf-compose-pics__drop {
+    position: absolute;
+    inset-block-start: 2px;
+    inset-inline-end: 2px;
+    display: grid;
+    place-items: center;
+    inline-size: 26px;
+    block-size: 26px;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-on-brand);
+    background: rgb(0 0 0 / 0.62);
+    border: 1px solid rgb(255 255 255 / 0.22);
+  }
+  .nf-compose-pics__drop::after {
+    content: "";
+    position: absolute;
+    inset: -9px;
+  }
+  .nf-compose-pics__drop:disabled {
+    opacity: 0.5;
   }
 
   /* ------------------------------------------------------------------
@@ -2068,20 +2199,48 @@
        and clips one axis rather than becoming a scroll container in both. */
     margin-inline: -1.25rem;
     padding-inline: 1.25rem;
+    /*
+     * Room for the 44px target under a 38px chip.
+     *
+     * `overflow-x: auto` makes this a scroll container on BOTH axes, so it
+     * clips the 3px the chip's `::before` reaches above and below, and clipping
+     * removes it from hit testing as well as from paint. A hit test found the
+     * expanded target dead on all five chips while the CSS looked correct.
+     * Three pixels of block padding gives it the room; the chips themselves are
+     * painted exactly as before.
+     */
+    padding-block: 3px;
   }
   .nf-district__chips::-webkit-scrollbar {
     display: none;
   }
   /*
-   * 44px of hit area with the visual weight of a 38px chip, by the same
-   * transparent inset `.nf-post__act` uses rather than by growing the painted
-   * pill. These are the feed's own filter tabs - the control that decides what
-   * the whole screen shows - and they were the smallest thing on it.
+   * 44px of hit area with the visual weight of a 38px chip, by a transparent
+   * extender rather than by growing the painted pill. These are the feed's own
+   * filter tabs, the control that decides what the whole screen shows, and they
+   * were the smallest thing on it.
    *
-   * 3px each side vertically takes 38 to 44. 2px horizontally, not more: the
-   * row's gap is 8px, so 2 per side leaves 4px between neighbouring hit areas
-   * and no chip can steal a tap meant for the one beside it.
+   * Two sessions fixed this independently and the implementations differed, so
+   * this is the one that was hit tested rather than the one that was reasoned.
+   * A fixed `inset: -3px -2px` reaches 44 only while the chip is painted at
+   * exactly 38; `max(100%, 44px)` centred reaches it whatever the chip becomes,
+   * which is the same `.nf-tap` rule the rest of the platform uses.
+   *
+   * It is also the safer of the two on the concern the other raised, which was
+   * a chip stealing a tap from its neighbour. The row's gap is 8px, and this
+   * rule never widens a chip that is already wider than 44, so it adds nothing
+   * horizontally at all on a real filter rail.
    */
+  .nf-district__chip::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
+
   .nf-district__chip {
     position: relative;
     display: inline-flex;
@@ -2098,11 +2257,6 @@
     transition:
       background var(--nf-duration-fast) var(--nf-ease-standard),
       border-color var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-district__chip::before {
-    content: "";
-    position: absolute;
-    inset: -3px -2px;
   }
   .nf-district__chip[aria-selected="true"] {
     background: var(--nf-brand-primary);
@@ -2366,5 +2520,210 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+  }
+}
+
+@layer components {
+  /* ------------------------------------------------------------------
+   * The way in: 37 states, 774 local governments, one control.
+   *
+   * Everything here is scoped under `.nf-enter` and nothing borrows a shared
+   * class it could then lose to. The lesson is `.nf-social-card`, which set a
+   * radius that `.nf-card` reset two hundred lines lower in the same layer at
+   * the same specificity, so later won and the card rendered wrong while both
+   * files looked correct on their own.
+   *
+   * The chips wrap rather than scroll sideways. A horizontal strip hides
+   * thirty of thirty-seven states behind a swipe with no affordance, and the
+   * one thing this control cannot do is make a state feel unreachable.
+   * ------------------------------------------------------------------ */
+  .nf-enter {
+    margin-block-end: 2.25rem;
+  }
+
+  .nf-enter__title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-enter__lede {
+    margin-block-start: 0.375rem;
+    font-size: var(--nf-text-caption);
+    line-height: 1.55;
+    color: var(--nf-content-muted);
+  }
+
+  /* The state you are inside, and the one tap back out of it. Never a pin. */
+  .nf-enter__crumb {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-block-start: 0.875rem;
+  }
+
+  .nf-enter__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    min-block-size: 34px;
+    padding-inline: 11px 13px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-subtle);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    color: var(--nf-content-secondary);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  .nf-enter__back:hover {
+    border-color: var(--nf-border-default);
+    color: var(--nf-content-primary);
+  }
+
+  .nf-enter__state {
+    min-inline-size: 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-enter__search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-block-start: 0.875rem;
+    padding-inline: 13px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+  }
+
+  .nf-enter__search input {
+    min-block-size: 44px;
+    inline-size: 100%;
+    min-inline-size: 0;
+    background: transparent;
+    border: 0;
+    outline: none;
+    font-size: 0.9375rem;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-enter__search input::placeholder {
+    color: var(--nf-content-muted);
+  }
+
+  /* Safari draws its own clear button inside a search field and it lands on
+     top of the brand ring at the wrong colour. */
+  .nf-enter__search input::-webkit-search-decoration,
+  .nf-enter__search input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .nf-enter__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-start: 0.875rem;
+  }
+
+  .nf-enter__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-block-size: 40px;
+    padding-inline: 14px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-default);
+    background: var(--nf-surface-inset);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    line-height: 1.2;
+    color: var(--nf-content-secondary);
+    text-align: start;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  .nf-enter__chip:hover:not(:disabled) {
+    border-color: var(--nf-border-strong);
+    color: var(--nf-content-primary);
+  }
+
+  /* A door somebody is already standing behind. A brand RING and brand ink,
+     never a brand tint: a translucent electric blue fill over a white card
+     reads violet on paper, and this brand carries no violet. That is the
+     fourth place in this layer that has had to say it. */
+  .nf-enter__chip[data-open="true"] {
+    border-color: var(--nf-border-brand);
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-enter__chip:disabled {
+    opacity: 0.5;
+  }
+
+  .nf-enter__chip[aria-busy="true"] {
+    opacity: 1;
+    border-color: var(--nf-border-brand);
+  }
+
+  .nf-enter__chip-name {
+    min-inline-size: 0;
+  }
+
+  .nf-enter__chip-state,
+  .nf-enter__chip-count {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-enter__chip[data-open="true"] .nf-enter__chip-count {
+    color: var(--nf-brand-secondary);
+    opacity: 0.85;
+  }
+
+  .nf-enter__hint {
+    margin-block-start: 0.75rem;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-enter__error {
+    margin-block-start: 0.75rem;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-state-error);
+  }
+
+  .nf-enter__empty {
+    margin-block-start: 1rem;
+    padding: 1.25rem 1rem;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-border-subtle);
+    text-align: center;
+  }
+
+  .nf-enter__empty-title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-enter__empty-body {
+    margin-block-start: 0.375rem;
+    margin-inline: auto;
+    max-inline-size: 34ch;
+    font-size: var(--nf-text-caption);
+    line-height: 1.55;
+    color: var(--nf-content-muted);
   }
 }

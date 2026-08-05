@@ -5,6 +5,8 @@ import { getReports, type ReportView } from "@/lib/admin/queries";
 import { ReportDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { gradeForReportCategory } from "@/lib/trust/standards";
+import { dueChip } from "../_components/due";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -19,6 +21,11 @@ export const dynamic = "force-dynamic";
  * A report names what was reported and why, in the reporter's own words. The
  * three transitions are honest about effort: in review says somebody has it,
  * resolved says action was taken, dismissed says there was nothing to act on.
+ *
+ * The clock on an open row is the same commitment /standards publishes, derived
+ * from the category the reporter chose: off-platform payment, a suspected scam
+ * and anything unsafe carry four hours, the rest carry a day. A closed row says
+ * who closed it.
  */
 function ReportCard({
   report,
@@ -44,6 +51,11 @@ function ReportCard({
         {report.category && (
           <ui.StatusChip label={report.category.replace(/_/g, " ")} tone="neutral" />
         )}
+        {!closed && (
+          <ui.StatusChip
+            {...dueChip(report.createdAt, gradeForReportCategory(report.category), common)}
+          />
+        )}
         <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
           {ui.when(report.createdAt)}
         </span>
@@ -63,7 +75,9 @@ function ReportCard({
 
       {closed ? (
         <p className="mt-3 text-[0.75rem] text-[var(--nf-content-muted)]">
-          {fill(copy.closedWhen, { when: ui.when(report.resolvedAt) })} {common.inAuditLog}
+          {fill(copy.closedWhen, { when: ui.when(report.resolvedAt) })}{" "}
+          {fill(common.resolvedBy, { who: report.resolvedByName ?? common.someone })}.{" "}
+          {common.inAuditLog}
         </p>
       ) : (
         <ReportDecision

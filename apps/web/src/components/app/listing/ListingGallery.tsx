@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { canGoBackInApp } from "@/lib/ui/history";
 import { ListingActions } from "./ListingActions";
 import { PhotoFrame } from "./PhotoFrame";
 import { usePhotoViewer } from "./PhotoViewer";
@@ -76,9 +77,11 @@ export function ListingGallery({
     [panes.length],
   );
 
+  /* Shared with PageHeader and BackButton. This is the control a guest
+     actually reaches for on a listing, so it is the one that was throwing away
+     the search they arrived from. See `lib/ui/history.ts`. */
   function back() {
-    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
-    if (idx > 0) router.back();
+    if (canGoBackInApp()) router.back();
     else router.push(backFallback);
   }
 

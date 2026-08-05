@@ -45,6 +45,7 @@ export type UiIconName =
   | "key"
   | "sliders"
   | "share"
+  | "shield-stop"
   | "map";
 
 const PATHS: Record<UiIconName, React.ReactNode> = {
@@ -130,6 +131,17 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
     <>
       <path d="M12 2.9 19.2 6v5.3c0 4.3-2.9 8-7.2 9.6-4.3-1.6-7.2-5.3-7.2-9.6V6Z" />
       <path d="m8.7 11.8 2.3 2.3 4.3-4.4" />
+    </>
+  ),
+  // An agent stopped from trading. Deliberately the same shield as `verified`,
+  // to the pixel, with a bar where the tick goes: these two are the same
+  // judgement pointing opposite ways, and reading one as the negative of the
+  // other is the whole point. A shield rather than a cross because a stop is
+  // protective of the people on the other side of it, not punitive.
+  "shield-stop": (
+    <>
+      <path d="M12 2.9 19.2 6v5.3c0 4.3-2.9 8-7.2 9.6-4.3-1.6-7.2-5.3-7.2-9.6V6Z" />
+      <path d="M8.9 12.1h6.2" />
     </>
   ),
   location: (

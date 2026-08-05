@@ -7,6 +7,7 @@ import { Composer } from "@/components/social/feed/Composer";
 import { ReportSheet } from "@/components/social/ReportSheet";
 import { ActionSheet, actionsForPost } from "@/components/social/ActionSheet";
 import { PostEditor } from "@/components/social/feed/PostEditor";
+import { ViewportPost } from "@/components/social/feed/ViewportPost";
 import {
   blockUser,
   muteTarget,
@@ -190,29 +191,40 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
     });
   };
 
+  /*
+   * Wrapped in the same viewport recorder the feed uses.
+   *
+   * **A post opened on its own page used to count no view at all.** Every card
+   * renders a view count, `recordView` is a validated action with a counter
+   * trigger behind it, and the only caller lived inside `Feed.tsx`, so the one
+   * surface where somebody has deliberately opened a post to read it was the one
+   * surface that recorded nothing. Replies were invisible to it too.
+   */
   const card = (post: PostView) => (
-    <PostCard
-      post={post}
-      onLike={() => onLike(post)}
-      onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
-      onShare={() => onMenuAction(post, "share")}
-      onSave={() => onMenuAction(post, "save")}
-      onMenu={() => setSheetFor(post)}
-      editor={
-        editing === post.id ? (
-          <PostEditor
-            postId={post.id}
-            initialBody={post.rawBody ?? post.body ?? ""}
-            onDone={() => setEditing(null)}
-            onSaved={(body, held) => {
-              patch(post.id, { body, rawBody: body, edited: true });
-              setNotice(held ? POST_COPY.editHeld : POST_COPY.editedDone);
-              router.refresh();
-            }}
-          />
-        ) : undefined
-      }
-    />
+    <ViewportPost postId={post.id}>
+      <PostCard
+        post={post}
+        onLike={() => onLike(post)}
+        onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
+        onShare={() => onMenuAction(post, "share")}
+        onSave={() => onMenuAction(post, "save")}
+        onMenu={() => setSheetFor(post)}
+        editor={
+          editing === post.id ? (
+            <PostEditor
+              postId={post.id}
+              initialBody={post.rawBody ?? post.body ?? ""}
+              onDone={() => setEditing(null)}
+              onSaved={(body, held) => {
+                patch(post.id, { body, rawBody: body, edited: true });
+                setNotice(held ? POST_COPY.editHeld : POST_COPY.editedDone);
+                router.refresh();
+              }}
+            />
+          ) : undefined
+        }
+      />
+    </ViewportPost>
   );
 
   return (
@@ -226,7 +238,7 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
         </p>
       ) : null}
 
-      {root.body === null && !root.heldReason ? <Tombstone /> : card(root)}
+      {card(root)}
 
       {replyingTo === root.id ? (
         <Composer parentId={root.id} signedIn={signedIn} autoFocus onDone={() => setReplyingTo(null)} />
@@ -256,8 +268,6 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
               who={reply.author?.handle ? `@${reply.author.handle}` : "somebody you muted"}
               onShow={() => setUnfolded((open) => [...open, reply.id])}
             />
-          ) : reply.body === null && !reply.heldReason ? (
-            <Tombstone />
           ) : (
             card(reply)
           )}
@@ -337,15 +347,12 @@ function MutedReply({ who, onShow }: { who: string; onShow: () => void }) {
   );
 }
 
-function Tombstone() {
-  return (
-    <div className="rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-default)] px-4 py-3">
-      <p className="text-sm leading-relaxed text-[var(--nf-content-muted)]">
-        <span className="font-semibold text-[var(--nf-content-secondary)]">
-          {POST_COPY.removed}
-        </span>{" "}
-        The replies under it are still here.
-      </p>
-    </div>
-  );
-}
+/*
+ * The tombstone that used to live here now lives in
+ * `components/social/feed/Tombstone.tsx` and is rendered by `PostCard` itself.
+ *
+ * It was drawn from `body === null`, which is a different question: a post with
+ * no words is not a post that was taken down, and no other surface could tell
+ * the two apart at all. Every card everywhere now gets the same answer, and the
+ * "replies are still here" line only appears when there are some.
+ */

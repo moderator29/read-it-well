@@ -5,7 +5,11 @@ import { getRiskAlerts, type AlertView } from "@/lib/admin/queries";
 import { AlertResolve } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+/* `Tone` moved out of the admin console and into the shared StatusPill when
+   the four copies of it were collapsed into one. Same type, one home. */
 import type { StatusTone } from "@/components/ui/StatusPill";
+import { gradeForSeverity } from "@/lib/trust/standards";
+import { dueChip } from "../_components/due";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -26,6 +30,13 @@ const SEVERITY_TONE: Record<AlertView["severity"], StatusTone> = {
  * An escalated message flag opens one, and anything else the platform judges
  * worth a human look lands here too. An alert stays open until somebody says
  * what was done about it, which is why resolving asks for a note.
+ *
+ * Two things the queue now says out loud. First, the clock: /standards prints
+ * four hours for anything about paying off-platform, one day for the rest, and
+ * an open row here carries that same commitment computed from the same module,
+ * so a published promise and the shift working it cannot drift apart. Second,
+ * the name: a resolved alert says who resolved it, because "resolved" with
+ * nobody against it is how accountability quietly disappears.
  */
 function AlertCard({
   alert,
@@ -46,6 +57,11 @@ function AlertCard({
           label={fill(copy.severityChip, { level: copy.severity[alert.severity] })}
           tone={SEVERITY_TONE[alert.severity]}
         />
+        {alert.status === "open" && (
+          <ui.StatusChip
+            {...dueChip(alert.createdAt, gradeForSeverity(alert.severity), common)}
+          />
+        )}
         <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
           {ui.when(alert.createdAt)}
         </span>
@@ -70,7 +86,9 @@ function AlertCard({
         <AlertResolve alertId={alert.id} copy={copy} common={common} />
       ) : (
         <p className="mt-3 text-[0.75rem] text-[var(--nf-content-muted)]">
-          {fill(copy.resolvedWhen, { when: ui.when(alert.resolvedAt) })} {common.noteInAuditLog}
+          {fill(copy.resolvedWhen, { when: ui.when(alert.resolvedAt) })}{" "}
+          {fill(common.resolvedBy, { who: alert.resolvedByName ?? common.someone })}.{" "}
+          {common.noteInAuditLog}
         </p>
       )}
     </li>
