@@ -828,6 +828,12 @@ export const ha: Dictionary = {
       recentlyResolved: "Waɗanda aka warware kwanan nan",
       recentlyDecided: "Waɗanda aka yanke kwanan nan",
       recentlyClosed: "Waɗanda aka rufe kwanan nan",
+      dueIn: "A amsa cikin sa'o'i {hours}",
+      dueSoon: "A amsa cikin sa'a guda",
+      overdue: "Ya makara da sa'o'i {hours}",
+      resolvedBy: "{who} ya warware shi",
+      reviewedBy: "{who} ya duba shi",
+      someone: "wani abokin aiki",
       status: {
         open: "A buɗe",
         reviewed: "An yi nazari",

@@ -235,6 +235,12 @@ export type AlertView = {
   entityId: string | null;
   createdAt: string;
   resolvedAt: string | null;
+  /**
+   * The name of the admin who closed it, null while the alert is open and null
+   * again only if that account has since been deleted. A resolved row that
+   * cannot say who resolved it is how accountability quietly disappears.
+   */
+  resolvedByName: string | null;
 };
 
 export async function getRiskAlerts(): Promise<AdminRead<AlertView[]>> {
@@ -244,14 +250,34 @@ export async function getRiskAlerts(): Promise<AdminRead<AlertView[]>> {
   try {
     const { data, error } = await admin
       .from("risk_alerts")
-      .select("id, severity, status, title, description, entity_type, entity_id, created_at, resolved_at")
+      .select(
+        "id, severity, status, title, description, entity_type, entity_id, created_at, resolved_at, resolved_by",
+      )
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) return UNAVAILABLE;
 
+    const rows = data ?? [];
+
+    // One extra read for every distinct resolver, not one per row. The list is
+    // capped at fifty, so this is at most one small IN query.
+    const resolverIds = [
+      ...new Set(rows.map((row) => row.resolved_by).filter((id): id is string => Boolean(id))),
+    ];
+    const resolvers = new Map<string, string>();
+    if (resolverIds.length > 0) {
+      const { data: profiles } = await admin
+        .from("profiles")
+        .select("id, display_name")
+        .in("id", resolverIds);
+      for (const profile of profiles ?? []) {
+        if (profile.display_name) resolvers.set(profile.id, profile.display_name);
+      }
+    }
+
     return {
       state: "ok",
-      data: (data ?? []).map((row) => ({
+      data: rows.map((row) => ({
         id: row.id,
         severity: row.severity,
         status: row.status,
@@ -261,6 +287,7 @@ export async function getRiskAlerts(): Promise<AdminRead<AlertView[]>> {
         entityId: row.entity_id,
         createdAt: row.created_at,
         resolvedAt: row.resolved_at,
+        resolvedByName: row.resolved_by ? (resolvers.get(row.resolved_by) ?? null) : null,
       })),
     };
   } catch {
@@ -285,6 +312,8 @@ export type ReportView = {
   status: Database["public"]["Enums"]["report_status"];
   createdAt: string;
   resolvedAt: string | null;
+  /** The admin who last moved it, so a closed report is somebody's decision. */
+  resolvedByName: string | null;
 };
 
 export async function getReports(): Promise<AdminRead<ReportView[]>> {
@@ -295,20 +324,28 @@ export async function getReports(): Promise<AdminRead<ReportView[]>> {
     const { data, error } = await admin
       .from("reports")
       .select(
-        "id, reporter_id, target_type, target_id, category, reason, status, created_at, resolved_at",
+        "id, reporter_id, target_type, target_id, category, reason, status, created_at, resolved_at, resolved_by",
       )
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) return UNAVAILABLE;
 
     const rows = data ?? [];
-    const reporterIds = [...new Set(rows.map((row) => row.reporter_id))];
+    // Reporters and resolvers in one read: both are display names off the same
+    // table, and two round trips for one map would be two round trips wasted.
+    const peopleIds = [
+      ...new Set(
+        rows
+          .flatMap((row) => [row.reporter_id, row.resolved_by])
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
     const names = new Map<string, string>();
-    if (reporterIds.length > 0) {
+    if (peopleIds.length > 0) {
       const { data: profiles } = await admin
         .from("profiles")
         .select("id, display_name")
-        .in("id", reporterIds);
+        .in("id", peopleIds);
       for (const profile of profiles ?? []) {
         if (profile.display_name) names.set(profile.id, profile.display_name);
       }
@@ -326,6 +363,7 @@ export async function getReports(): Promise<AdminRead<ReportView[]>> {
         status: row.status,
         createdAt: row.created_at,
         resolvedAt: row.resolved_at,
+        resolvedByName: row.resolved_by ? (names.get(row.resolved_by) ?? null) : null,
       })),
     };
   } catch {

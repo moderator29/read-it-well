@@ -72,6 +72,33 @@ const SETTLED_FRAMES = 3;
  */
 const POP_GRACE_MS = 700;
 
+/**
+ * How long a scrolling CHAIN stays open with no further movement, in ms.
+ *
+ * ONLY A PERSON'S SCROLL IS WORTH REMEMBERING, and getting this wrong was the
+ * second bug this component produced, entirely separate from the first.
+ * Recording every scroll event looked obviously right and was not: tapping a
+ * listing card fires one scroll event to an unrelated position WHILE
+ * `location` still says `/search`, with no `scrollTo` behind it and no change
+ * in document height, so it is neither a clamp nor anything the reader did.
+ * Traced on the real page: leave the search at scrollY 1320, and one event
+ * later the stored position for that exact URL is 454. Coming back then
+ * restored 454, perfectly correctly. The restore was never the problem.
+ *
+ * A window measured from the last GESTURE was not enough either, because a
+ * person scrolls, pauses half a second, and then taps, which is well inside
+ * any window long enough to cover a flick's momentum. So the window is short
+ * and it is extended by SCROLLING rather than by gestures: momentum fires a
+ * scroll event every frame and keeps its own chain alive, and a chain that has
+ * gone quiet cannot be reopened by anything except another gesture.
+ *
+ * `touchstart` and `pointerdown` are deliberately NOT gestures. Tapping a link
+ * is a touchstart, so counting one would re-admit the router's scroll through
+ * the front door. Dragging fires `touchmove`; a wheel and a keyboard scroll
+ * fire continuously while they move.
+ */
+const CHAIN_IDLE_MS = 400;
+
 function currentUrl(): string {
   return window.location.pathname + window.location.search;
 }
@@ -124,15 +151,46 @@ export function ScrollToTop() {
       frame = 0;
       const positions = readPositions();
       const url = currentUrl();
+      const next = Math.round(window.scrollY);
+
+      /*
+       * Second guard on the same failure, for the case the gesture window
+       * cannot catch: a flick, then a tap on a link inside two and a half
+       * seconds. A position pinned to the very bottom of the document that is
+       * SMALLER than what is already stored is the signature of a clamp, not
+       * of a reader. Refusing it costs nothing even when it is genuine,
+       * because restoring the larger value onto a shorter page clamps to that
+       * same bottom anyway.
+       */
+      const bottom = document.documentElement.scrollHeight - window.innerHeight;
+      const previous = positions[url];
+      if (
+        typeof previous === "number" &&
+        next < previous &&
+        next >= bottom - 2
+      ) {
+        return;
+      }
+
       delete positions[url];
-      positions[url] = Math.round(window.scrollY);
+      positions[url] = next;
       writePositions(positions);
+    };
+
+    /* While this is in the future, movement is the reader's own. Opened by a
+       gesture, kept open by the movement it causes. */
+    let chainUntil = 0;
+    const openChain = () => {
+      chainUntil = Date.now() + CHAIN_IDLE_MS;
     };
 
     /* rAF-throttled: scrolling fires dozens of times a second and every save
        is a JSON stringify into session storage. */
     const onScroll = () => {
-      if (Date.now() < restoreUntil) return;
+      const now = Date.now();
+      if (now < restoreUntil) return;
+      if (now >= chainUntil) return;
+      chainUntil = now + CHAIN_IDLE_MS;
       if (frame) return;
       frame = window.requestAnimationFrame(remember);
     };
@@ -181,19 +239,27 @@ export function ScrollToTop() {
       else window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
     };
 
+    /* One set of listeners doing two jobs: they mark a scroll as the reader's
+       own, and they call off a restore in progress, because a person who has
+       started moving the page has overruled wherever it was going. */
+    const onGesture = () => {
+      openChain();
+      cancelRestore();
+    };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("popstate", onPopState);
-    window.addEventListener("wheel", cancelRestore, { passive: true });
-    window.addEventListener("touchstart", cancelRestore, { passive: true });
-    window.addEventListener("keydown", cancelRestore);
+    window.addEventListener("wheel", onGesture, { passive: true });
+    window.addEventListener("touchmove", onGesture, { passive: true });
+    window.addEventListener("keydown", onGesture);
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
       restoreUntil = 0;
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("popstate", onPopState);
-      window.removeEventListener("wheel", cancelRestore);
-      window.removeEventListener("touchstart", cancelRestore);
-      window.removeEventListener("keydown", cancelRestore);
+      window.removeEventListener("wheel", onGesture);
+      window.removeEventListener("touchmove", onGesture);
+      window.removeEventListener("keydown", onGesture);
     };
   }, []);
 

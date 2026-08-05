@@ -832,6 +832,12 @@ export const yo: Dictionary = {
       recentlyResolved: "Tí a yanjú lẹ́nu àìpẹ́",
       recentlyDecided: "Tí a pinnu lẹ́nu àìpẹ́",
       recentlyClosed: "Tí a ti lẹ́nu àìpẹ́",
+      dueIn: "Dáhùn láàrin wákàtí {hours}",
+      dueSoon: "Dáhùn láàrin wákàtí kan",
+      overdue: "Ó ti pẹ́ ju wákàtí {hours} lọ",
+      resolvedBy: "{who} ló ti lẹ́nu rẹ̀",
+      reviewedBy: "{who} ló ti yẹ̀ ẹ́ wò",
+      someone: "ẹnìkejì kan",
       status: {
         open: "Ṣí sílẹ̀",
         reviewed: "A ti ṣàyẹ̀wò",

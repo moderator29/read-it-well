@@ -162,6 +162,44 @@ export type Database = {
           },
         ]
       }
+      agent_verification_checks: {
+        Row: {
+          agent_id: string
+          decided_at: string
+          decided_by: string | null
+          id: string
+          kind: string
+          note: string | null
+          status: string
+        }
+        Insert: {
+          agent_id: string
+          decided_at?: string
+          decided_by?: string | null
+          id?: string
+          kind: string
+          note?: string | null
+          status: string
+        }
+        Update: {
+          agent_id?: string
+          decided_at?: string
+          decided_by?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_verification_checks_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agents: {
         Row: {
           application_id: string | null
@@ -172,6 +210,7 @@ export type Database = {
           type: Database["public"]["Enums"]["agent_type"]
           updated_at: string
           user_id: string
+          verification_tier: number
           verified: boolean
         }
         Insert: {
@@ -183,6 +222,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["agent_type"]
           updated_at?: string
           user_id: string
+          verification_tier?: number
           verified?: boolean
         }
         Update: {
@@ -194,6 +234,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["agent_type"]
           updated_at?: string
           user_id?: string
+          verification_tier?: number
           verified?: boolean
         }
         Relationships: [

@@ -65,7 +65,7 @@ export async function reviewMessageFlag(input: {
 
   const { error: updateError } = await access.supabase
     .from("message_flags")
-    .update({ status: "reviewed" })
+    .update({ status: "reviewed", reviewed_by: access.user.id })
     .eq("id", flag.id)
     .eq("status", "open");
   if (updateError) return fail(SERVICE_DOWN);
@@ -135,7 +135,14 @@ export async function resolveRiskAlert(input: {
 
   const { error: updateError } = await access.supabase
     .from("risk_alerts")
-    .update({ status: "resolved", resolved_at: new Date().toISOString() })
+    .update({
+      status: "resolved",
+      resolved_at: new Date().toISOString(),
+      // Named, not anonymous. The audit log has always held the actor; putting
+      // it on the row itself is what lets the queue answer "who signed this
+      // off" without a second lookup nobody performs.
+      resolved_by: access.user.id,
+    })
     .eq("id", alert.id)
     .eq("status", "open");
   if (updateError) return fail(SERVICE_DOWN);
@@ -195,6 +202,9 @@ export async function resolveReport(input: {
     .update({
       status: decision,
       resolved_at: closing ? new Date().toISOString() : null,
+      // Picking a report up counts as much as closing it: the name goes on the
+      // row either way, so an item sitting in review is visibly somebody's.
+      resolved_by: access.user.id,
     })
     .eq("id", report.id);
   if (updateError) return fail(SERVICE_DOWN);

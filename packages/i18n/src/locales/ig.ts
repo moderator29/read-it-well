@@ -830,6 +830,12 @@ export const ig: Dictionary = {
       recentlyResolved: "Edozirila nso nso a",
       recentlyDecided: "Ekpebiri nso nso a",
       recentlyClosed: "Emechiri nso nso a",
+      dueIn: "Zaa n'ime awa {hours}",
+      dueSoon: "Zaa n'ime otu awa",
+      overdue: "O gafeela awa {hours}",
+      resolvedBy: "{who} dozirila ya",
+      reviewedBy: "{who} nyochara ya",
+      someone: "onye ọrụ ibe",
       status: {
         open: "Emepere",
         reviewed: "Enyochara",

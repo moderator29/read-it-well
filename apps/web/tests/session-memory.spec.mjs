@@ -94,15 +94,15 @@ console.log("\nNo back control reads a framework internal");
  */
 const readsIdx = [];
 for (const f of files) {
-  for (const m of f.src.matchAll(/history\.state[^\n]*\bidx\b/g)) {
-    readsIdx.push(`${f.rel}:${f.src.slice(0, m.index).split("\n").length}`);
+  for (const m of f.code.matchAll(/history\.state[^\n]*\bidx\b/g)) {
+    readsIdx.push(`${f.rel}:${f.code.slice(0, m.index).split("\n").length}`);
   }
 }
 check("no control decides back from history.state.idx", readsIdx.length === 0, readsIdx);
 
 /* Every control that goes back must go through the one shared answer. */
-const backControls = files.filter((f) => /router\.back\(\)/.test(f.src));
-const unshared = backControls.filter((f) => !/canGoBackInApp/.test(f.src));
+const backControls = files.filter((f) => /router\.back\(\)/.test(f.code));
+const unshared = backControls.filter((f) => !/canGoBackInApp/.test(f.code));
 check(
   "every back control asks canGoBackInApp()",
   unshared.length === 0,
@@ -150,10 +150,20 @@ try {
 
     const countBefore = await page.getAttribute('[data-testid="results-count"]', "data-count");
 
-    /* Scroll to the bottom of whatever the page actually is, then back off a
-       little, so the target is real on any catalogue size. */
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await page.waitForTimeout(400);
+    /*
+     * SCROLLED WITH A REAL WHEEL, not `window.scrollTo`.
+     *
+     * Only a scroll a person performed is remembered, because a layout clamp
+     * during a navigation also fires a scroll event and was overwriting the
+     * stored position with a much smaller one. `page.evaluate(scrollTo)` is
+     * indistinguishable from that clamp and would test the wrong thing.
+     */
+    await page.mouse.move(195, 500);
+    for (let i = 0; i < 6; i += 1) {
+      await page.mouse.wheel(0, 220);
+      await page.waitForTimeout(90);
+    }
+    await page.waitForTimeout(500);
     const left = await page.evaluate(() => Math.round(window.scrollY));
     check("the results page is long enough to scroll", left > 100, [`scrollY ${left}`]);
 
@@ -318,7 +328,10 @@ try {
     /* Clearing means cleared, and it survives a reload. */
     await page.locator('[data-testid="recent-strip"] button').first().click();
     await page.waitForTimeout(300);
-    await page.reload({ waitUntil: "load" });
+    /* `domcontentloaded`, not `load`: listing photography is served from an
+       upstream the sandbox cannot reach, so `load` waits on images that will
+       never arrive. That is the environment, not the product. */
+    await page.reload({ waitUntil: "domcontentloaded" });
     await page.waitForTimeout(SETTLE);
     check(
       "clearing recent searches sticks",

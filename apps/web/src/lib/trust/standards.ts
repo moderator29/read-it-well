@@ -64,6 +64,22 @@ export function gradeForSeverity(severity: "low" | "medium" | "high"): ResponseG
   return "routine";
 }
 
+/**
+ * Which grade a report belongs to, from the category the reporter chose.
+ *
+ * The category list in `lib/reports/schema.ts` was written to be short and
+ * concrete so the queue would be sortable. This is the payoff: the three
+ * categories that mean somebody is being defrauded or is unsafe carry the
+ * four-hour clock, and the tidy-up categories do not.
+ */
+export function gradeForReportCategory(category: string | null): ResponseGrade {
+  if (category === "off_platform_payment" || category === "scam" || category === "unsafe") {
+    return "urgent";
+  }
+  if (category === "duplicate") return "routine";
+  return "standard";
+}
+
 export type DueState = {
   grade: ResponseGrade;
   /** When the commitment runs out. */

@@ -129,7 +129,7 @@ const allCopy = [
   PLACE_COPY.lgaHint("Lagos", 20),
   PLACE_COPY.withinTitle("Eti-Osa"),
 ].join(" ");
-check("no em dash anywhere in the copy", !allCopy.includes("—"));
+check("no em dash anywhere in the copy", !allCopy.includes("\u2014"));
 check(
   "no banned word in the copy",
   !/\b(demo|sample|preview|not live)\b/i.test(allCopy),
@@ -285,6 +285,75 @@ const DATA = {
   notifications: [],
 };
 
+/**
+ * The two SYSTEM entries `private.open_place_entries` writes when a place
+ * opens, reproduced from the migration so the screen half can prove they land
+ * on a card. Both are true and both are timeless: the only number in either is
+ * a count of local governments, which does not move.
+ */
+const MONEY_RULE =
+  "Never send money for a place you have not stood inside. Message the agent, " +
+  "arrange the inspection, see it, and pay after that. RentMe takes no fee at any " +
+  "point, so anybody asking you to pay to view is not us. If a message asks you for " +
+  "an account number, report it and a person will read it.";
+
+const SAY_HERE =
+  "the useful thing to say here is the thing you would tell a friend moving in: " +
+  "what the road is like when it rains, which streets have light, and what a one " +
+  "bedroom really costs.";
+
+let systemSeq = 0;
+function openEntries(areaRow) {
+  const stateName = STATES.find((s) => s.code === areaRow.state_code)?.name ?? areaRow.state_code;
+  let opening;
+  if (areaRow.lga_code) {
+    const n = LGAS.filter((l) => l.state_code === areaRow.state_code).length;
+    const placeOf =
+      areaRow.state_code === "FC"
+        ? `one of the Federal Capital Territory's ${n} area councils`
+        : `one of ${stateName} State's ${n} local governments`;
+    opening = `${areaRow.name} is open. It is ${placeOf}, and ${SAY_HERE}`;
+  } else {
+    opening = `${areaRow.name} is open, in ${areaRow.city}. The ${SAY_HERE.slice(4)}`;
+  }
+
+  /* One base per place, then a fixed offset inside it. Computed BEFORE the ids
+     are handed out: an earlier version folded the sequence into the timestamp
+     and the two entries came out with the same instant, which put the money
+     rule above the opening in a feed sorted newest first. That is the sort of
+     thing only a rendered feed ever shows you. */
+  const base = Date.now() - systemSeq * 60_000;
+  const at = (secondsAgo) => new Date(base - secondsAgo * 1000).toISOString();
+
+  const post = (body, secondsAgo) => ({
+    id: `5y57e400-0000-4000-8000-${String(systemSeq * 10 + secondsAgo).padStart(12, "0")}`,
+    area_id: areaRow.id,
+    root_id: null,
+    parent_id: null,
+    depth: 0,
+    author_id: null,
+    author_kind: "SYSTEM",
+    kind: "SYSTEM",
+    body,
+    listing_id: null,
+    quoted_post_id: null,
+    payload: null,
+    reply_count: 0,
+    like_count: 0,
+    repost_count: 0,
+    view_count: 0,
+    status: "LIVE",
+    hold_reason: null,
+    allow_quotes: true,
+    created_at: at(secondsAgo),
+    edited_at: null,
+  });
+
+  const entries = [post(MONEY_RULE, 2), post(opening, 1)];
+  systemSeq += 1;
+  return entries;
+}
+
 /** What the real function does, reproduced exactly enough to prove the loop. */
 function enterPlace(lgaCode) {
   const lga = LGAS.find((l) => l.code === lgaCode);
@@ -317,8 +386,38 @@ function enterPlace(lgaCode) {
     blurb: `Everything happening in ${lga.name}, ${stateName}.`,
   });
   DATA.areas.push(row);
+  /* The trigger on `areas`, standing in for itself. A place has never opened
+     empty since the migration that put it there. */
+  const entries = openEntries(row);
+  DATA.posts.push(...entries);
+  row.post_count = entries.length;
   return { rows: [{ id: row.id, slug: row.slug, name: row.name, status: row.status }] };
 }
+
+/* Every place that was already open carries the same two entries, because the
+   migration backfilled them. Four places became eight rows. */
+for (const row of DATA.areas) {
+  const entries = openEntries(row);
+  DATA.posts.push(...entries);
+  row.post_count = entries.length;
+}
+
+console.log("\nthe entries a place opens with");
+check("every open place has two", DATA.posts.length === DATA.areas.length * 2);
+check("none of them has an author", DATA.posts.every((p) => p.author_id === null));
+check("all of them are SYSTEM", DATA.posts.every((p) => p.author_kind === "SYSTEM"));
+check("no em dash in either sentence", !`${MONEY_RULE} ${SAY_HERE}`.includes("\u2014"));
+check(
+  "no banned word in either sentence",
+  !/\b(demo|sample|preview|not live)\b/i.test(`${MONEY_RULE} ${SAY_HERE}`),
+);
+check("the money rule says the platform charges nothing", /takes no fee/.test(MONEY_RULE));
+/* A post carries its timestamp for ever, so an entry that describes a state of
+   affairs is a lie the week after it is written. Neither of these does. */
+check(
+  "neither entry describes a moment",
+  !/\b(yet|today|right now|this week|currently)\b/i.test(`${MONEY_RULE} ${SAY_HERE}`),
+);
 
 function matches(row, key, expr) {
   if (expr.startsWith("eq.")) return String(row[key]) === expr.slice(3);
@@ -665,6 +764,33 @@ try {
         (await page.locator('a[href="/around/lekki-phase-1-lagos"]').count()) >= 1,
     );
 
+    console.log("\nthe place is not empty, and nobody was invented to fill it");
+    const systemCards = page.locator(".nf-post--system");
+    check("two entries stand in the room", (await systemCards.count()) === 2);
+    check(
+      "the platform signs them, in its own name",
+      (await systemCards.first().locator("text=RentMe").count()) >= 1,
+    );
+    check(
+      "the newest is the one that names the place",
+      (await systemCards.first().innerText()).includes(
+        "Eti-Osa is open. It is one of Lagos State's 20 local governments",
+      ),
+    );
+    check(
+      "and the other is the money rule",
+      (await systemCards.nth(1).innerText()).includes("Never send money for a place you have not stood inside"),
+    );
+    /* The whole point of doing it this way. No handle, no avatar, no person. */
+    check(
+      "no invented person is on the page",
+      (await page.locator('.nf-post--system a[href^="/u/"]').count()) === 0,
+    );
+    check(
+      "the empty feed line is gone, because the feed is not empty",
+      (await page.locator("text=Nothing has been said here yet").count()) === 0,
+    );
+
     console.log("\nsigned out: a closed door asks for an account, and says why");
     await page.goto(`${BASE_URL}/around?state=LA`, { waitUntil: "load" });
     await page.waitForTimeout(WAIT);
@@ -703,6 +829,14 @@ try {
     check(
       "and the place has its own name on it",
       (await inPage.locator("text=Gwagwalada").count()) >= 1,
+    );
+    /* A door that has never been walked through opens with something in it. */
+    check("a brand new place is not an empty room", (await inPage.locator(".nf-post--system").count()) === 2);
+    check(
+      "and it knows the FCT is not a state",
+      (await inPage.locator(".nf-post--system").first().innerText()).includes(
+        "one of the Federal Capital Territory's 6 area councils",
+      ),
     );
 
     console.log("\nsigned in: the same tap twice opens one place, not two");

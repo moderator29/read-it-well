@@ -4,7 +4,12 @@ import { useActionState } from "react";
 import { submitContactForm } from "@/lib/support/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { DEFAULT_CONTACT_TOPIC, type ContactTopic } from "./topics";
+import {
+  CONTACT_TOPICS,
+  CONTACT_TOPIC_LABEL,
+  DEFAULT_CONTACT_TOPIC,
+  type ContactTopic,
+} from "./topics";
 
 /**
  * The public contact form.
@@ -112,12 +117,11 @@ export function ContactForm({
           changes how fast a person sees it rather than only how it is filed.
         */}
         <select name="topic" className="nf-field" defaultValue={defaultTopic}>
-          <option value="safety">Someone asked me to pay outside RentMe</option>
-          <option value="booking">A booking</option>
-          <option value="payment">A payment or refund</option>
-          <option value="listing">Listing a property</option>
-          <option value="verification">Verification</option>
-          <option value="other">Something else</option>
+          {CONTACT_TOPICS.map((topic) => (
+            <option key={topic} value={topic}>
+              {CONTACT_TOPIC_LABEL[topic]}
+            </option>
+          ))}
         </select>
       </label>
 

@@ -855,6 +855,12 @@ export const en = {
       recentlyResolved: "Recently resolved",
       recentlyDecided: "Recently decided",
       recentlyClosed: "Recently closed",
+      dueIn: "Answer within {hours}h",
+      dueSoon: "Answer within the hour",
+      overdue: "Late by {hours}h",
+      resolvedBy: "Resolved by {who}",
+      reviewedBy: "Reviewed by {who}",
+      someone: "a colleague",
       status: {
         open: "Open",
         reviewed: "Reviewed",
