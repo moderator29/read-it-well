@@ -64,6 +64,10 @@ const TUNDE = "bbbb0000-0000-4000-8000-000000000002";
 const ONE = "10000000-0000-4000-8000-00000000000a";
 const THREE = "10000000-0000-4000-8000-00000000000b";
 const NONE = "10000000-0000-4000-8000-00000000000c";
+/* The walker's own post, taken down, with its picture rows still stored. The
+   database deletes those as the status lands; this is the case they were
+   written before that, and the admin removal path, which nulls nothing. */
+const GONE = "10000000-0000-4000-8000-00000000000d";
 
 const ago = (minutes) => new Date(Date.now() - minutes * 60_000).toISOString();
 
@@ -93,12 +97,12 @@ function post(over) {
 }
 
 /** The path shape the trigger enforces: `<author>/<post>/<file>`. */
-const pathFor = (postId, index) => `${TUNDE}/${postId}/${index}.jpg`;
+const pathFor = (postId, index, author = TUNDE) => `${author}/${postId}/${index}.jpg`;
 
-function media(postId, position) {
+function media(postId, position, author = TUNDE) {
   return {
     post_id: postId,
-    storage_path: pathFor(postId, position),
+    storage_path: pathFor(postId, position, author),
     position,
     width: 1200,
     height: 900,
@@ -163,8 +167,25 @@ const DATA = {
       body: "Three from the walk down to the lagoon before the rain came.",
       created_at: ago(20),
     }),
+    /* `posts_select` hands a person their own removed rows back, so this is a
+       row the walker really does receive, and the surface it was worst on was
+       their own feed. Two replies, so the tombstone's second sentence is true. */
+    post({
+      id: GONE,
+      author_id: WALKER,
+      body: null,
+      status: "REMOVED",
+      reply_count: 2,
+      created_at: ago(10),
+    }),
   ],
-  post_media: [media(ONE, 0), media(THREE, 0), media(THREE, 1), media(THREE, 2)],
+  post_media: [
+    media(ONE, 0),
+    media(THREE, 0),
+    media(THREE, 1),
+    media(THREE, 2),
+    media(GONE, 0, WALKER),
+  ],
 };
 
 /* -------------------------------------------------------------- real pixels */
@@ -407,7 +428,8 @@ check(
   "every path is <author>/<post>/<file>",
   DATA.post_media.every((row) => {
     const parts = row.storage_path.split("/");
-    return parts.length === 3 && parts[0] === TUNDE && parts[1] === row.post_id;
+    const author = DATA.posts.find((p) => p.id === row.post_id)?.author_id;
+    return parts.length === 3 && parts[0] === author && parts[1] === row.post_id;
   }),
 );
 check(
@@ -539,12 +561,22 @@ async function run(theme) {
       /* The whole chain: the row was read, the URL was signed, the browser
          fetched it and decoded it. An `img` on the page proves none of that. */
       const pictures = await decoded(page, ".nf-post__media img");
-      check(`every picture on the feed decoded (${pictures.loaded} of ${pictures.count})`,
+      /* Five rows are stored and four are drawn: the fifth belongs to a post
+         that was taken down, and a tombstone carries nothing. */
+      check(`every picture on the feed decoded, and only the live ones drew (${pictures.loaded} of ${pictures.count})`,
         pictures.count === 4 && pictures.loaded === 4);
       check("a screen reader is told which picture it is on a post with several",
         pictures.alts.includes("Picture 2 of 3 on this post"));
       check("and told plainly when there is only one",
         pictures.alts.includes("The picture on this post"));
+
+      /* -------------------------------------------- what a tombstone carries */
+      const body = await page.locator("body").innerText();
+      check("a post that was taken down says so", body.includes("This post was removed."));
+      check("and says the replies under it survived, because they did",
+        body.includes("The replies under it are still here."));
+      check("a tombstone is not an empty card with the pictures still on it",
+        (await page.locator("article", { hasText: "This post was removed." }).count()) === 0);
 
       /* --------------------------------------------------- the file control */
       const add = page.getByRole("button", { name: "Add a picture" });

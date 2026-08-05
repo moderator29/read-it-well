@@ -878,3 +878,130 @@ things drift.
 3. **`area_members.residency_source`**, unchanged, and now with an order attached
    to it in 12.3. It remains harmless only while nothing shows a resident mark.
 4. **The season**, 12.4. A decision, not a schema.
+
+---
+
+## 13. Round six: N33 closed, and the loop proven in both halves
+
+### 13.1 A picture on a post, done
+
+`public.post_media` shipped with the content core and nothing ever wrote to it.
+Three surfaces read it and the Media tab told the person whose page it was
+"Anything you post with a picture lands here". That sentence is now true.
+
+**What was added**
+
+| Half | Where |
+|---|---|
+| The file control, the preview strip, the remove, the counter | `components/social/feed/Composer.tsx` |
+| The re-encode, refusing rather than falling back | the same, through `components/social/profile/reencode.ts` |
+| The validated action | `attachPostMedia` in `lib/social/posts-actions.ts`, `attachMediaSchema` in `posts-schema.ts` |
+| The path rule and the row rule, in the database | `20260805105407_a_picture_on_a_post_has_one_shape` |
+| The spec | `apps/web/tests/social-media.spec.mjs` |
+
+**The order, and why it is that way.** The object lives at
+`<author>/<post>/<file>`, because `private.social_media_access` resolves the
+post out of the second folder segment and the bucket's insert policy checks the
+first. So the post is written first, the upload second, the rows third. When the
+upload fails the words are already up, and the composer says exactly that,
+keeps the pictures and offers to send them to the post that already exists. It
+does not pretend nothing happened and it does not write the words twice.
+
+**The re-encode refuses.** A camera photo carries EXIF and on a phone that
+usually means GPS, and this is a photograph of somebody's own street. If the
+canvas re-encode returns nothing, the picture is not uploaded and the person is
+told. There is deliberately no fallback to the original file.
+
+### 13.2 What round six verified, and it re-ran the probes rather than trusting them
+
+The migration was applied by the previous session and its header records a set
+of probes. Those were re-run from scratch this round against the live database
+in rolled back transactions, through the real policy path: `private.probe_as`
+then `set local role authenticated`, never the service role.
+
+| Case | Result |
+|---|---|
+| the story shape on a post, `<uid>/<file>` | refused RM014 |
+| somebody else's folder | refused RM014 |
+| the right folder, the wrong post | refused RM014 |
+| the shape the composer writes | accepted |
+| a second picture | accepted |
+| a fifth picture | refused 23514 |
+| the same position twice | refused 23505 |
+| a second person reads the bucket | `0.jpg`, and not the orphan |
+| signed out reads the bucket | `0.jpg`, and not the orphan |
+
+**And the story tenant was re-probed, because this round replaced the function
+that N29 had just fixed.** A story row plus a loose object, read as `anon`:
+`story.jpg`, and not the loose one. The regression that would have re-opened the
+blocker did not happen.
+
+`post_media`, `storage.objects` and `auth.users` all read 0 afterwards.
+
+### 13.3 The render half
+
+`apps/web/tests/social-media.spec.mjs`, built and served against its own
+stand-in for PostgREST and for the storage signing endpoint, which hands out
+real PNG bytes so a picture is actually fetched and decoded rather than merely
+present as a tag. **All checks passed in both themes**, including: the one-up
+and three-up layouts, four of four pictures decoded on the feed, three of three
+on `/post/[id]`, four of four on the Media tab with every tile a way back into
+its post, the alt text telling a screen reader which picture of how many, the
+composer showing the file control to a member, no colour outside the blue
+family, no sideways push at 390px, and 30 real object requests made by the
+browser.
+
+**Looked at, at 390px, in both themes**: the feed with the three-up block, and
+the composer with two pictures chosen, the counter reading 2/4, the remove
+buttons on the tiles and the Post button correctly refusing until there are
+words to go with them. The paper twin is a designed page.
+
+### 13.4 N37, found this round: you could not take your own post down
+
+| # | Severity | Finding | Evidence | What changed |
+|---|----------|---------|----------|--------------|
+| N37 | **SERIOUS** | **After fifteen minutes, nobody could delete their own post.** Removal in this product is an UPDATE and not a DELETE, because `posts_parent_id_fkey` cascades and a real delete takes every reply underneath with it. `posts_update_own` carried `created_at > now() - '00:15:00'` in its USING clause, so the fifteen minutes meant for EDITING was also the only fifteen minutes in which anybody could take down their own words. The card went on offering "Delete this post" for ever, and `POST_FAILURE.deleteWindowClosed` told the person to write to support and ask. Both plans put the window on the edit alone: `SOCIAL_TODO` lists `editGist (15 minute window)` beside `removeGist` with none, and `SOCIAL_BUILD` says the same. This was what merging two verbs into one SQL statement cost, not a decision anybody made. It got worse the day 13.1 landed: a post can now carry a photograph, and in this product that photograph is usually of the street somebody lives on | The policy, read live. `POST_COPY`'s own comment states the behaviour and treats it as a fact of life | `20260805143409_taking_a_post_down_is_not_the_edit_window_s_business`. The window moves from USING to WITH CHECK, where it can see the row being written and tell an edit from a tombstone: inside the window, or REMOVED with no words left, and nothing else. Removal has no clock on it at all now |
+| N38 | **SERIOUS** | **A removed post kept its pictures, its listing plate and its citations.** `toView` dropped the body of a REMOVED post and nothing else, and `posts_select` hands a person their own removed rows back, so the author's own feed and their own profile drew a card with no words, every photograph still on it, the flat still plated with its price, and a marks row inviting a like on something that was gone. An admin removal nulls nothing at all, so that case kept the words in the row as well | Read against `toView`: one `row.status === "REMOVED"` test, on `body` | Two locks. The database deletes the `post_media` rows as the status lands, which is what makes the object unreadable by anybody after 13.1: the access function refuses any object no row names. The read layer drops the pictures, the plate, the source note and the citations for the same reason it drops the body |
+| N39 | MINOR | **`PostView` could not tell a removed post from a post with no words.** The thread page had a private `Tombstone` and chose it with `body === null`, which is a different question with a different answer, and no other surface could ask it at all: a card in a feed or on a profile got an empty rectangle. `POST_COPY.removedWithReplies` had no reader, so the one tombstone that did render promised replies whether or not any existed | `grep -rn POST_COPY.removed` returned the thread page and the comments sheet | `PostView.removed`, and `components/social/feed/Tombstone.tsx` as its own module rendered by `PostCard` itself, for the same reason `ViewportPost` is a module: a fourth surface cannot quietly be a fourth place that forgets. The second sentence appears only when `replyCount > 0` |
+
+**Probed live, in a rolled back transaction, through the real policy path.** The
+first run of this probe disagreed with the migration and was right to: the step
+that aged a post had been swallowed by `guard_post_update` itself, which pins
+`created_at` for everybody including the table's owner, so the trigger had to be
+disabled inside the transaction before a post could be three hours old at all.
+That is worth writing down, because a probe that quietly measures a fresh post
+proves nothing about a window.
+
+| Case | Result |
+|---|---|
+| the old post really is old | 03:00:00 |
+| edit inside the window | changed |
+| edit after three hours | refused 42501 |
+| make it young again | refused 42501 |
+| removed_at without removing | refused 42501 |
+| take it down and keep the words | refused 42501 |
+| take it down after three hours | taken down |
+| the old post now reads | REMOVED, body null, removed_at set |
+| its pictures | 0 |
+
+One consequence for the application, and it is the reason a refusal now says the
+right thing: a stale edit RAISES 42501 rather than returning no rows, so
+`editPost` reads that code ahead of the shared mapper, which treats 42501 on
+this table as "you are not in this place". The zero-row answer that is left
+belongs to a HELD post, which still cannot be taken down by its author and now
+says so instead of blaming a clock. That is deliberate: nobody but its author
+and a moderator can see a held post, and it is mid-review.
+
+`apps/web/tests/social-media.spec.mjs` grew the case: the walker's own removed
+post, with its picture rows still stored, which is both the row written before
+the trigger existed and the admin removal path. **50 checks, all passed in both
+themes**, including that four of five stored pictures draw and the fifth does
+not, that the tombstone says what happened, that it promises surviving replies
+only because there are two, and that it is not an `article.nf-post` at all.
+Looked at, at 390px, in both themes.
+
+**Not done, deliberately:** the object itself stays in the bucket. Deleting a
+`storage.objects` row leaves the bytes behind it untracked, which is worse than
+an object no policy will ever sign. The picture is unreadable the moment the row
+goes. Reclaiming the bytes is a sweep against the same rule and it is written
+down in `KNOWN_GAPS.md` rather than half done here.

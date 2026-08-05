@@ -200,8 +200,10 @@ export const POST_COPY = {
   held:
     "This mentions something we check by hand. Somebody is reading it before it goes up, and only you can see it until then.",
   removed: "This post was removed.",
-  removedWithReplies:
-    "This post was removed. The replies under it are still here.",
+  /* Only ever shown when there actually are some. It was one sentence with the
+     line above it and nothing read it, which meant a tombstone with no replies
+     under it still promised replies. */
+  removedReplies: "The replies under it are still here.",
   emptyFeed:
     "Nothing has been said here yet. What you say will be the first thing anybody arriving reads.",
   emptyFeedSignedOut: "Nothing has been said here yet.",
@@ -260,19 +262,23 @@ export const POST_FAILURE = {
   tooDeep:
     "This thread is as deep as it goes. Reply higher up so people can follow it.",
   /*
-   * Both of these say the same true thing in different words, and neither of
-   * them is the sentence that used to be here.
+   * The window belongs to the edit and to nothing else.
    *
-   * The old copy told people "you can delete it and post again". Proven false
-   * against the live database: `posts_update_own` gates on
-   * `created_at > now() - '00:15:00'`, and removal is an update, so a post an
-   * hour old cannot be taken down by its own author either. The write returns
-   * zero rows and no error, which is why this was invisible.
+   * These two sentences used to say the same thing, because removal is an
+   * UPDATE and `posts_update_own` applied the edit window to it as well. So a
+   * post an hour old could not be taken down by the person who wrote it, and
+   * this told them to write to support and ask. That is fixed in
+   * `taking_a_post_down_is_not_the_edit_window_s_business`: the window moved
+   * into WITH CHECK where it can tell an edit from a tombstone, and taking your
+   * own words down has no clock on it at all.
+   *
+   * What is left is the one refusal that is real, and it is not about time.
    */
   editWindowClosed:
-    "The fifteen minutes for changing a post has passed. What is written stays as it is.",
-  deleteWindowClosed:
-    "This post can no longer be taken down from here. Fifteen minutes after writing, only a moderator can remove one. Contact us and somebody will take it down for you.",
+    "The fifteen minutes for changing a post has passed. What is written stays as it is, and you can take it down whenever you like.",
+  editNotLive: "This post is not live, so there is nothing to change on it.",
+  deleteWhileHeld:
+    "This one is still with a moderator, so it cannot be taken down from here yet. Nobody else can see it while it is with them.",
   signedOutLike: "Sign in to like this.",
   /* ---------------------------------------------------------- pictures */
   pictureType: "Choose a JPG, PNG or WebP picture.",

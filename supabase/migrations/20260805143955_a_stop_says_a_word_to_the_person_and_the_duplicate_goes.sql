@@ -13,13 +13,16 @@
 -- already shipped, reproduced in full because `create or replace function`
 -- takes a whole body and a partial one here would silently drop the rest.
 --
--- A note on the first draft of this migration, which is worth keeping because
--- the mistake is an easy one to repeat. It added a second function,
--- `lift_agent_suspension`, doing what `reinstate_agent` already did. The search
--- that went looking for an existing lift tried `lift_agent_suspension`,
--- `lift_agent` and `restore_agent`, and missed the name that was actually
--- there. The duplicate is dropped at the foot of this file for the database it
--- reached; a replay from an empty database never creates it.
+-- A note on the first draft, which ran as 20260805143341 and is kept as an
+-- empty file there. It added a second function, `lift_agent_suspension`, doing
+-- what `reinstate_agent` already did. The search that went looking for an
+-- existing lift tried `lift_agent_suspension`, `lift_agent` and
+-- `restore_agent`, and missed the name that was actually there. Three guesses
+-- at a name are not a search; `pg_proc` was one query away.
+--
+-- The duplicate is dropped at the foot of this file for the database it
+-- reached; a replay from an empty database never creates it, because the
+-- migration that made it is now empty.
 --
 -- What that near miss did confirm: `agent_suspensions_one_live`, a unique index
 -- on `agent_id where lifted_at is null`, means `reinstate_agent` can select the

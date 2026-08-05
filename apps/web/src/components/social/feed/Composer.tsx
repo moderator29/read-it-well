@@ -486,7 +486,7 @@ export function Composer({
       <input
         ref={fileInput}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept={POST_IMAGE_TYPES.join(",")}
         multiple
         className="hidden"
         onChange={(event) => {

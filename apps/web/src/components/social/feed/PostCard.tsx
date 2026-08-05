@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { PostGlyph } from "./PostGlyph";
 import { PostBody } from "./PostBody";
+import { Tombstone } from "./Tombstone";
 
 /**
  * A post.
@@ -77,6 +78,16 @@ export type PostView = {
   saved: boolean;
   /** Held by the scanner. Only ever sent to its own author. */
   heldReason: string | null;
+  /**
+   * Taken down, by its author or by a moderator.
+   *
+   * The row survives because `posts.parent_id` cascades and deleting it would
+   * delete the replies underneath. `body` is already null for one of these, but
+   * a null body is not the same fact: a card read this as "no words" and drew
+   * an empty rectangle with the pictures still on it. This is the fact itself,
+   * so every surface that renders a card can say what happened instead.
+   */
+  removed: boolean;
   isMine: boolean;
   /** Own post, still LIVE, still inside the fifteen minute window. */
   editable: boolean;
@@ -226,6 +237,21 @@ export function PostCard({
   /** Rendered in place of the body while this post is being changed. */
   editor?: React.ReactNode;
 }) {
+  /*
+   * A post that was taken down is a tombstone and nothing else.
+   *
+   * Before this, only the body was dropped, and every other part of the card
+   * carried on: the pictures, the listing plate with its price, the marks row
+   * inviting a like on something that is gone. `posts_select` hands a person
+   * their own removed rows back, so the surface this was worst on was the
+   * author's own feed and their own profile.
+   *
+   * The early return is why this lives in the card rather than in each screen.
+   * The thread page had its own copy of this and tested `body === null` for it,
+   * which is a different question with a different answer.
+   */
+  if (post.removed) return <Tombstone replyCount={post.replyCount} />;
+
   const isSystem = post.authorKind === "SYSTEM";
   const isBot = post.authorKind === "BOT";
   const hasPlate = Boolean(post.listing?.photoUrl);

@@ -309,6 +309,19 @@ function toView(row: RawPost, e: Enrichment, viewerId: string | null): PostView 
     row.status === "LIVE" &&
     Date.now() - new Date(row.created_at).getTime() < EDIT_WINDOW_MINUTES * 60_000;
 
+  /*
+   * A removed post is a tombstone, and a tombstone carries nothing.
+   *
+   * Only the body was dropped here before, which was half the job. `posts_select`
+   * hands a person their own removed rows back, and an admin removal never
+   * nulls anything, so the card kept every picture, the listing plate with its
+   * price, and the assistant's citations on a post that had been taken down.
+   * The database now deletes the `post_media` rows as the status lands; this is
+   * the same rule on the read side, for the rows already stored and for the
+   * fields the trigger cannot reach.
+   */
+  const removed = row.status === "REMOVED";
+
   return {
     id: row.id,
     kind: row.kind,
@@ -328,19 +341,21 @@ function toView(row: RawPost, e: Enrichment, viewerId: string | null): PostView 
       : null,
     // A removed post keeps its place in a thread and loses its words. Deleting
     // the row would take other people's replies with it.
-    body: row.status === "REMOVED" ? null : row.body,
+    body: removed ? null : row.body,
     createdLabel: whenLabel(row.created_at),
     edited: Boolean(row.edited_at),
     areaName: area?.name ?? null,
     areaSlug: area?.slug ?? null,
-    listing: row.listing_id ? (e.listings.get(row.listing_id) ?? null) : null,
+    listing: removed || !row.listing_id ? null : (e.listings.get(row.listing_id) ?? null),
     /* The assistant's own note about where its answer came from. Written into
        `payload` by `summonBot` and, until it was, a field on every card that was
        hard-coded null beside a renderer that had always been ready for it. */
-    sourceNote: payloadSource(row.payload),
-    cited: citedIds(row.payload)
-      .map((id) => e.listings.get(id))
-      .filter((item): item is PostListing => Boolean(item)),
+    sourceNote: removed ? null : payloadSource(row.payload),
+    cited: removed
+      ? []
+      : citedIds(row.payload)
+          .map((id) => e.listings.get(id))
+          .filter((item): item is PostListing => Boolean(item)),
     replyingTo: null,
     repostedBy: null,
     replyCount: row.reply_count,
@@ -354,13 +369,16 @@ function toView(row: RawPost, e: Enrichment, viewerId: string | null): PostView 
     // policy already refuses the row to anybody else, and this is the second
     // lock on the same door.
     heldReason: row.status === "HELD" && isMine ? row.hold_reason : null,
+    removed,
     isMine,
     editable,
-    media: (e.media.get(row.id) ?? []).map((item) => ({
-      url: item.url,
-      width: item.width,
-      height: item.height,
-    })),
+    media: removed
+      ? []
+      : (e.media.get(row.id) ?? []).map((item) => ({
+          url: item.url,
+          width: item.width,
+          height: item.height,
+        })),
     /* The raw body, so the editor opens on what is actually there rather than
        on whatever the card chose to render. A removed post has none. */
     rawBody: isMine ? row.body : null,

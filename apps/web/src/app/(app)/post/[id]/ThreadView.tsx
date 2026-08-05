@@ -238,7 +238,7 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
         </p>
       ) : null}
 
-      {root.body === null && !root.heldReason ? <Tombstone /> : card(root)}
+      {card(root)}
 
       {replyingTo === root.id ? (
         <Composer parentId={root.id} signedIn={signedIn} autoFocus onDone={() => setReplyingTo(null)} />
@@ -268,8 +268,6 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
               who={reply.author?.handle ? `@${reply.author.handle}` : "somebody you muted"}
               onShow={() => setUnfolded((open) => [...open, reply.id])}
             />
-          ) : reply.body === null && !reply.heldReason ? (
-            <Tombstone />
           ) : (
             card(reply)
           )}
@@ -349,15 +347,12 @@ function MutedReply({ who, onShow }: { who: string; onShow: () => void }) {
   );
 }
 
-function Tombstone() {
-  return (
-    <div className="rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-default)] px-4 py-3">
-      <p className="text-sm leading-relaxed text-[var(--nf-content-muted)]">
-        <span className="font-semibold text-[var(--nf-content-secondary)]">
-          {POST_COPY.removed}
-        </span>{" "}
-        The replies under it are still here.
-      </p>
-    </div>
-  );
-}
+/*
+ * The tombstone that used to live here now lives in
+ * `components/social/feed/Tombstone.tsx` and is rendered by `PostCard` itself.
+ *
+ * It was drawn from `body === null`, which is a different question: a post with
+ * no words is not a post that was taken down, and no other surface could tell
+ * the two apart at all. Every card everywhere now gets the same answer, and the
+ * "replies are still here" line only appears when there are some.
+ */

@@ -337,9 +337,10 @@ export async function toggleRepost(input: {
  *
  * Three things the database does here that this file deliberately does not.
  *
- * `posts_update_own` allows an update only on your own post, only while it is
- * LIVE, and only for fifteen minutes after it was written. `EDIT_WINDOW_MINUTES`
- * is that number written down for the surface, never the check.
+ * `posts_update_own` allows an update only on your own post and only while it is
+ * LIVE, and its WITH CHECK allows a body change only for fifteen minutes after
+ * the post was written. `EDIT_WINDOW_MINUTES` is that number written down for
+ * the surface, never the check.
  *
  * `guard_post_update` sets `edited_at` itself whenever the body changes, and
  * pins every count, every id and `created_at` to their old values. So this
@@ -352,10 +353,10 @@ export async function toggleRepost(input: {
  * window with no rescan is a hole straight through moderation, and this one is
  * not that.
  *
- * The zero-row case is the whole reason this returns what it returns. An update
- * the policy refuses is not an error: PostgREST answers with an empty set and no
- * message. Asking for the rows back is the only way to tell "changed" from
- * "silently refused", which is the same trap `removePost` was sitting in.
+ * **Two refusals, two different answers.** The window now lives in WITH CHECK
+ * rather than in USING, so a stale edit raises 42501 instead of quietly
+ * returning nothing, and a post that is not LIVE returns no row at all. Both
+ * were one sentence before, and one of them was the wrong sentence.
  */
 export async function editPost(input: {
   postId: string;
@@ -382,8 +383,12 @@ export async function editPost(input: {
     .eq("author_id", session.user.id)
     .select("id, status");
 
+  /* The WITH CHECK refusal, which is what a stale edit is now. Ahead of the
+     shared mapper, because that reads 42501 on this table as "you are not in
+     this place", which is true of an insert and never true of this. */
+  if (error?.code === "42501") return fail(POST_FAILURE.editWindowClosed);
   if (error) return fail(messageForPostError(error.code, POST_FAILURE.down));
-  if (!data || data.length === 0) return fail(POST_FAILURE.editWindowClosed);
+  if (!data || data.length === 0) return fail(POST_FAILURE.editNotLive);
 
   revalidatePath("/around");
   return ok({ held: data[0]?.status === "HELD" });
@@ -400,6 +405,20 @@ export async function editPost(input: {
  * That is why this is an update and not a delete, despite the name. A real
  * delete is only correct for a post nobody has replied to, and checking that
  * first would be a race; the tombstone is right in both cases.
+ *
+ * **There is no window on this any more, and there should never have been one.**
+ * Because removal is an update, `posts_update_own` used to apply the fifteen
+ * minutes meant for editing to it as well, so a post an hour old could not be
+ * taken down by the person who wrote it and the copy sent them to support to
+ * ask. Both plans put the window on the edit alone. It matters more now that a
+ * post can carry a photograph of the street somebody lives on. The window moved
+ * into WITH CHECK, where it can tell an edit from a tombstone, and the database
+ * deletes the `post_media` rows as the status lands so the pictures stop being
+ * readable by anybody at all.
+ *
+ * A HELD post still cannot be taken down here, and that is deliberate rather
+ * than left over: nobody but its author and a moderator can see it, and it is
+ * mid-review. The zero-row answer is that case and it now says so.
  */
 export async function removePost(input: {
   postId: string;
@@ -415,18 +434,14 @@ export async function removePost(input: {
   /*
    * The rows come back, and that is not decoration.
    *
-   * `posts_update_own` gates on `created_at > now() - '00:15:00'`, and removal
-   * is an update, so a post older than fifteen minutes cannot be taken down by
-   * its own author. PostgREST answers a policy refusal with an empty set and no
-   * error, so this used to return success for a post that was still sitting
-   * there, the card vanished from the list, and the next refresh brought it
-   * back. Proven on the live database under `private.probe_as`: the same update
-   * returns 1 row on a fresh post and 0 rows on an hour-old one, which stayed
-   * LIVE.
+   * PostgREST answers a policy refusal with an empty set and no error, so this
+   * once returned success for a post that was still sitting there: the card
+   * vanished from the list and the next refresh brought it back. Asking for the
+   * ids back is what turns that silence into a sentence, and the one refusal
+   * left is a post that is HELD rather than LIVE.
    *
-   * Asking for the ids back is what turns that silence into a sentence. The
-   * fifteen minute wall on removal is a policy question and it is stated in the
-   * handover rather than worked around here.
+   * `removed_at` is sent and the database derives its own from the transition,
+   * so this line is a courtesy rather than the record.
    */
   const { data, error } = await session.supabase
     .from("posts")
@@ -441,9 +456,10 @@ export async function removePost(input: {
     .select("id");
 
   if (error) return fail(POST_FAILURE.down);
-  if (!data || data.length === 0) return fail(POST_FAILURE.deleteWindowClosed);
+  if (!data || data.length === 0) return fail(POST_FAILURE.deleteWhileHeld);
 
   revalidatePath("/around");
+  revalidatePath(`/post/${parsed.data.postId}`);
   return ok(null);
 }
 
