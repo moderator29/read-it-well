@@ -43,6 +43,8 @@ import {
 } from "@/lib/agent/listings-schema";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { SegmentedProgress } from "@/components/ui/Progress";
+import { TextField, TextArea } from "@/components/ui/Field";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.
@@ -733,29 +735,47 @@ export function ListingWizard({
 
   return (
     <div className="mx-auto max-w-2xl pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
-      {/* Step rail: seven dots stay legible at 390px, the name sits beneath. */}
-      <ol className="flex items-center gap-1.5" aria-label={copy.wizard.stepsLabel}>
-        {stepNames.map((name, index) => {
-          const done = index < step;
-          const current = index === step;
-          return (
+      {/*
+        The step rail.
+
+        The bar itself is `SegmentedProgress`, which is the platform's one
+        wizard bar: it carries `role="progressbar"` with the real position
+        (there were zero progressbar roles in this codebase, so a screen reader
+        was told nothing about how far through an eight-step form somebody was)
+        and it fills by a composited transform rather than jumping between
+        renders.
+
+        The jump-back-to-a-finished-step control is kept, as a transparent row
+        of buttons laid over the bar. Its geometry is the whole point: each of
+        these used to BE the 6px painted segment, which is a 6px tap target -
+        the worst on the platform, on the control that undoes a wrong turn.
+        Overlaying instead of inflating means the target is 44pt while the bar
+        stays 6px, so nothing about the picture changes.
+      */}
+      <div className="relative py-[1.1875rem]">
+        <SegmentedProgress
+          steps={STEP_KEYS.length}
+          current={step + 1}
+          label={fill(copy.wizard.stepCounter, { current: step + 1, total: STEP_KEYS.length })}
+        />
+        <ol
+          className="absolute inset-0 flex items-stretch gap-1.5"
+          aria-label={copy.wizard.stepsLabel}
+        >
+          {stepNames.map((name, index) => (
             <li key={name} className="flex-1">
               <button
                 type="button"
                 onClick={() => index <= step && go(index)}
                 disabled={index > step}
-                aria-current={current ? "step" : undefined}
+                aria-current={index === step ? "step" : undefined}
                 aria-label={fill(copy.wizard.stepAria, { number: index + 1, name })}
-                className="block h-1.5 w-full rounded-full transition-colors"
-                style={{
-                  background:
-                    done || current ? "var(--nf-gradient-agent)" : "var(--nf-border-subtle)",
-                }}
+                className="block h-full w-full"
               />
             </li>
-          );
-        })}
-      </ol>
+          ))}
+        </ol>
+      </div>
       {/* The step name is the page's heading: a seven step form needs a real
           document outline, and a screen reader announcing the step is how
           someone knows where they are. aria-live tells them it changed. */}
@@ -788,20 +808,24 @@ export function ListingWizard({
         {/* ---------------------------------------------------- 1 basic info */}
         {step === 0 && (
           <div className="space-y-5">
-            <Field
+            {/*
+              The two fields that can actually fail validation use the shared
+              TextField/TextArea. The local `Field` above them only draws a
+              label and a message: `aria-invalid` on a `.nf-field` changes
+              nothing a sighted user can see, because that class paints its
+              border with a border-box gradient and the error rule sets
+              `border-color` underneath it. A screen reader knew the title was
+              rejected; nobody else did.
+            */}
+            <TextField
               label={copy.basics.titleLabel}
               hint={copy.basics.titleHint}
               error={fieldErrors.title}
-            >
-              <input
-                className="nf-field"
-                value={values.title}
-                onChange={(e) => set("title", e.target.value)}
-                placeholder={copy.basics.titlePlaceholder}
-                maxLength={80}
-                aria-invalid={fieldErrors.title ? "true" : undefined}
-              />
-            </Field>
+              value={values.title}
+              onChange={(e) => set("title", e.target.value)}
+              placeholder={copy.basics.titlePlaceholder}
+              maxLength={80}
+            />
 
             <div>
               <span className="nf-label">{copy.basics.propertyTypeLabel}</span>
@@ -837,22 +861,18 @@ export function ListingWizard({
               )}
             </div>
 
-            <Field
+            <TextArea
               label={copy.basics.descriptionLabel}
               error={fieldErrors.description}
               hint={fill(copy.basics.descriptionHint, {
                 words,
                 min: MIN_DESCRIPTION_WORDS,
               })}
-            >
-              <textarea
-                className="nf-field min-h-[9rem]"
-                value={values.description}
-                onChange={(e) => set("description", e.target.value)}
-                placeholder={copy.basics.descriptionPlaceholder}
-                aria-invalid={fieldErrors.description ? "true" : undefined}
-              />
-            </Field>
+              value={values.description}
+              onChange={(e) => set("description", e.target.value)}
+              placeholder={copy.basics.descriptionPlaceholder}
+              textAreaClassName="min-h-[9rem]"
+            />
 
             <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3">
               <Counter
