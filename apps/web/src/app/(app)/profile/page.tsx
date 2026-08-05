@@ -69,7 +69,7 @@ export default async function ProfilePage() {
             labels={labels}
           />
         ) : (
-          <ProfileIdentityCard labels={labels} />
+          <ProfileIdentityCard />
         )}
       </Reveal>
 
