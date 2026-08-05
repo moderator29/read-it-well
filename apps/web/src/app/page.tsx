@@ -16,6 +16,7 @@ import { PopularDestinations } from "@/components/site/landing/PopularDestinatio
 import { AgentsBand } from "@/components/site/landing/AgentsBand";
 import { WhyRentMe } from "@/components/site/landing/WhyRentMe";
 import { VoicesBand } from "@/components/site/landing/VoicesBand";
+import { ProductFrame } from "@/components/site/landing/ProductFrame";
 import { FeaturedCarousel } from "@/components/site/landing/FeaturedCarousel";
 import { MoodRow } from "@/components/site/landing/MoodRow";
 import { NumbersBand } from "@/components/site/landing/NumbersBand";
@@ -199,6 +200,30 @@ export default async function LandingPage() {
 
         {/* ------------------------------------------------ the story rail */}
         <StoryRail />
+
+        {/*
+          What the product actually looks like.
+
+          Placed directly after HowItWorks, so the three steps are immediately
+          followed by the thing they describe. The hero keeps its villa
+          atmosphere - that is the mood - and this is the product. The audit
+          found the site had no product imagery anywhere, so a visitor could
+          reach the sign-up button without ever seeing what they were signing
+          up to.
+        */}
+        <section className="nf-shell grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-2">
+          <Reveal>
+            <p className="nf-overline">The app</p>
+            <h2 className="nf-h2 mt-2 max-w-[16ch]">Everything in one place, on your phone</h2>
+            <p className="mt-3 max-w-[48ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-muted)]">
+              Search, book, pay and message from the same screen. No calls, no
+              agent runaround, no bank transfer to a stranger.
+            </p>
+          </Reveal>
+          <Reveal delay={100}>
+            <ProductFrame t={t} locale={locale} />
+          </Reveal>
+        </section>
 
         <HowItWorks t={t} />
 
