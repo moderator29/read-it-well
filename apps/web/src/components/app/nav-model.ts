@@ -82,12 +82,18 @@ export function buildNav({
           href: "/around",
           label: t.nav.around,
           icon: "map",
-          /* Two children, and only two, because those are the two index routes
-             the social layer actually has. Stories are reached from a place and
-             a person, and a Stories row would point at a route that does not
-             exist. */
+          /* Three children, and only three, because those are the three index
+             routes the social layer actually has. Stories are reached from a
+             place and a person, and a Stories row would point at a route that
+             does not exist.
+
+             The Places row used to point at `/around`, the same href as its own
+             parent, because `/around` WAS the directory. It is the feed now, so
+             the parent and the first child are the feed and Places is the
+             directory behind it. */
           children: [
-            { href: "/around", label: t.nav.places, icon: "compass" },
+            { href: "/around", label: t.nav.feed, icon: "grid" },
+            { href: "/around/manage", label: t.nav.places, icon: "compass" },
             { href: "/u", label: t.nav.people, icon: "user" },
           ],
         },

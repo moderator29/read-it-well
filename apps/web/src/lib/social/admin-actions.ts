@@ -40,6 +40,21 @@ import { writeAudit } from "../admin/audit";
 import { adminRefusal, requireAdmin } from "../admin/guard";
 import { createAdminClient } from "../supabase/admin";
 
+/**
+ * Both Around surfaces.
+ *
+ * `/around` is the feed, stitched from the places somebody is in, and
+ * `/around/manage` is the directory that prints those same places with a Joined
+ * control beside them. Anything that changes a membership or a place's status
+ * changes both, and revalidating only `/around` was the whole answer for
+ * exactly as long as `/around` WAS the directory.
+ */
+function revalidateAround(): void {
+  revalidatePath("/around");
+  revalidatePath("/around/manage");
+}
+
+
 const SERVICE_DOWN =
   "The console could not reach the platform data just now. Nothing was changed. Please try again.";
 const GONE = "That record is no longer there. Refresh the queue to see the current state.";
@@ -125,7 +140,10 @@ export async function decideArea(input: {
           : note && note.length > 0
             ? note
             : "Thank you for suggesting it. You can suggest another at any time.",
-        href: approving ? `/around/${area.slug}` : "/around",
+        /* A declined suggestion is printed under "We came back to you" on the
+           directory, so that is where the notification has to land. `/around`
+           is the feed now and would open on a screen the decision is not on. */
+        href: approving ? `/around/${area.slug}` : "/around/manage",
       });
     }
 
@@ -157,7 +175,7 @@ export async function decideArea(input: {
   }
 
   revalidatePath("/admin/social");
-  revalidatePath("/around");
+  revalidateAround();
   return ok(null);
 }
 
@@ -269,7 +287,7 @@ export async function decideModeratorApplication(input: {
   }
 
   revalidatePath("/admin/social");
-  revalidatePath("/around");
+  revalidateAround();
   return ok(null);
 }
 

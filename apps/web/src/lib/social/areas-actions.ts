@@ -40,6 +40,21 @@ import {
 import { ENTER_FAILURE, ENTER_SQLSTATE, enterPlaceSchema } from "./places-schema";
 import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 
+/**
+ * Both Around surfaces.
+ *
+ * `/around` is the feed, stitched from the places somebody is in, and
+ * `/around/manage` is the directory that prints those same places with a Joined
+ * control beside them. Anything that changes a membership or a place's status
+ * changes both, and revalidating only `/around` was the whole answer for
+ * exactly as long as `/around` WAS the directory.
+ */
+function revalidateAround(): void {
+  revalidatePath("/around");
+  revalidatePath("/around/manage");
+}
+
+
 /** One sentence for a limiter refusal, so every action here paces the same way. */
 function pacedMessage(seconds: number): string {
   return `You have done that a few times already. Try again ${retryIn(seconds)}.`;
@@ -106,7 +121,7 @@ export async function proposeArea(input: {
     return fail(AREA_FAILURE.down);
   }
 
-  revalidatePath("/around");
+  revalidateAround();
   return ok({ slug });
 }
 
@@ -169,7 +184,7 @@ export async function enterPlace(input: {
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) return fail(ENTER_FAILURE.down);
 
-  revalidatePath("/around");
+  revalidateAround();
   return ok({ slug: row.slug, status: row.status as AreaStatus });
 }
 
@@ -204,7 +219,7 @@ export async function joinArea(input: { areaId: string }): Promise<ActionResult<
     // Already a member. A second tap on a stale tab is not an error worth
     // showing, so it is reported as the success it effectively is.
     if (error.code === "23505") {
-      revalidatePath("/around");
+      revalidateAround();
       return ok(null);
     }
     // 42501 here means the policy refused, which for this insert can only mean
@@ -213,7 +228,7 @@ export async function joinArea(input: { areaId: string }): Promise<ActionResult<
     return fail(AREA_FAILURE.down);
   }
 
-  revalidatePath("/around");
+  revalidateAround();
   return ok(null);
 }
 
@@ -239,7 +254,7 @@ export async function leaveArea(input: { areaId: string }): Promise<ActionResult
 
   if (error) return fail(AREA_FAILURE.down);
 
-  revalidatePath("/around");
+  revalidateAround();
   return ok(null);
 }
 

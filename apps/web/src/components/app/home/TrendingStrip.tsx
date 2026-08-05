@@ -29,9 +29,12 @@ export function TrendingStrip({
         <h2 id="trending-heading" className="nf-h3">
           Trending in {cityLabel ? cityLabel : "your city"}
         </h2>
+        {/* The directory. The word beside it is "All places", and `/around` is
+            the feed of the places somebody is already in, which is a different
+            promise. */}
         {hasPlaces && (
           <Link
-            href="/around"
+            href="/around/manage"
             className="shrink-0 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
           >
             All places

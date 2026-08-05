@@ -22,7 +22,7 @@ import { BackChevron } from "@/components/social/profile/BackChevron";
  *
  * Only places the person is actually in are listed. Offering every open place
  * here would make this a directory wearing a header, and the directory already
- * exists at `/around`, which is where the last row goes.
+ * exists at `/around/manage`, which is where the last row goes.
  */
 export function DistrictHeader({
   name,
@@ -101,13 +101,26 @@ export function DistrictHeader({
                   </Link>
                 ))
               )}
+              {/* Two rows, because there are now two destinations and they are
+                  not the same thing: the combined timeline of the places you
+                  are in, and the directory of every place there is. This row
+                  used to be one link labelled "All places" pointing at the
+                  directory, which is what `/around` was. */}
               <Link
                 role="menuitem"
                 href="/around"
                 className="nf-post__menu-item"
                 onClick={() => setOpen(false)}
               >
-                All places
+                All your places
+              </Link>
+              <Link
+                role="menuitem"
+                href="/around/manage"
+                className="nf-post__menu-item"
+                onClick={() => setOpen(false)}
+              >
+                Manage places
               </Link>
             </div>
           </>

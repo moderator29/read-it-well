@@ -139,8 +139,11 @@ export function FabDock({
                   You are not in any place yet, and what you write belongs to a
                   place. Join one and you can write in it straight away.
                 </p>
+                {/* The directory, not the feed. This row exists because the
+                    person is in no place at all, and the feed cannot fix that;
+                    picking a place is what fixes it. */}
                 <Link
-                  href="/around"
+                  href="/around/manage"
                   className="nf-btn nf-btn--primary mt-5 w-full"
                   onClick={() => setComposing(false)}
                 >
