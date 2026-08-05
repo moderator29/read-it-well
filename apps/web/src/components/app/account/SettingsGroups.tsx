@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useId, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { LOCALES, localeMeta, type Locale } from "@naijafinds/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { Button } from "@/components/ui/Button";
-import { Toggle } from "./Toggle";
+import { RowButton, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";
 import {
   applyReduceMotion,
   applyTextSize,
@@ -17,6 +15,33 @@ import {
   type TextSize,
   type ThemeChoice,
 } from "./settings-store";
+
+/**
+ * The settings groups, as rows.
+ *
+ * These were seven cards, each with a 44px illustrated tile, an overline, and
+ * its own inner layout: a segmented chip row here, a bare `<select>` there, a
+ * full-width button somewhere else. Every group was defensible and the stack
+ * had no rhythm at all. On a 390px phone it read as seven separate screens
+ * stacked, and finding one preference meant reading all of them.
+ *
+ * Now every group is the same object: a quiet label outside a card, and inside
+ * it rows that all begin at the same vertical. The change that matters most is
+ * that **a row states its own value**. "Theme" told you nothing; "Theme   Dark"
+ * has answered before you touched it, and most visits to a settings screen are
+ * to check something rather than to change it.
+ *
+ * The single-choice controls became native selects rather than chip rows.
+ * Three chips for a theme were fine; three chips for a theme, three for text
+ * size, two for units and two for visibility were ten chips competing for the
+ * same attention. A select collapses each to its answer and opens the picker
+ * the phone already has.
+ *
+ * Everything on this file is stored on the device and applies to the device.
+ * The account-backed groups live in `app/(app)/settings/AccountToggles.tsx` and
+ * draw from the same primitives, so the two look identical and only the storage
+ * differs.
+ */
 
 /* ------------------------------------------------------------- appearance */
 
@@ -70,54 +95,53 @@ export function AppearanceCard() {
     applyTheme(next);
   };
 
-  const changeMotion = (next: boolean) => {
-    set("reduceMotion", next);
-    applyReduceMotion(next);
-  };
-
   return (
-    <GroupCard overline="Appearance" icon="doc-shield">
-      <div className="divide-y divide-[var(--nf-border-subtle)]">
-        <SegmentedRow
-          label="Theme"
-          description="System follows this device. Dark is the designed default."
-          options={THEME_OPTIONS}
-          value={theme}
-          onChange={chooseTheme}
-        />
-        <SegmentedRow
-          label="Text size"
-          description="Scales reading text across the whole app."
-          options={TEXT_SIZES}
-          value={settings.textSize}
-          onChange={(v) => set("textSize", v)}
-        />
-        <Toggle
-          checked={settings.reduceMotion}
-          onChange={changeMotion}
-          label="Reduce motion"
-          description="Calms entrance animations and hover movement across the app."
-        />
-        {/*
-         * The data-saver switch lives beside the other two device settings
-         * because it is one: it is stored on the device, it applies to this
-         * device, and nothing about it belongs to an account.
-         *
-         * The description states what it actually does, not "uses less data".
-         * Loading a listing before it is asked for is the single largest
-         * speculative spend the app makes, and a person on a metered bundle is
-         * entitled to know that is what they are switching off. Android's own
-         * Data Saver and a 2g link already turn this on by themselves without
-         * anybody touching this row; see `lib/ui/data-saver.ts`.
-         */}
-        <Toggle
-          checked={settings.dataSaver}
-          onChange={(next) => set("dataSaver", next)}
-          label="Use less data"
-          description="Stops the app loading a place before you have opened it, and asks for smaller photographs."
-        />
-      </div>
-    </GroupCard>
+    <SettingsGroup label="Appearance" note="Kept on this device. Dark is the designed default.">
+      <RowSelect
+        icon="sparkle"
+        label="Theme"
+        value={theme}
+        options={THEME_OPTIONS}
+        onChange={chooseTheme}
+        testId="setting-theme"
+      />
+      <RowSelect
+        icon="grid"
+        label="Text size"
+        value={settings.textSize}
+        options={TEXT_SIZES}
+        onChange={(next) => set("textSize", next)}
+      />
+      <RowSwitch
+        icon="sliders"
+        label="Reduce motion"
+        sub="Calms entrance animations and hover movement across the app."
+        checked={settings.reduceMotion}
+        onChange={(next) => {
+          set("reduceMotion", next);
+          applyReduceMotion(next);
+        }}
+      />
+      {/*
+       * The data-saver switch lives beside the other two device settings
+       * because it is one: it is stored on the device, it applies to this
+       * device, and nothing about it belongs to an account.
+       *
+       * The description states what it actually does, not "uses less data".
+       * Loading a listing before it is asked for is the single largest
+       * speculative spend the app makes, and a person on a metered bundle is
+       * entitled to know that is what they are switching off. Android's own
+       * Data Saver and a 2g link already turn this on by themselves without
+       * anybody touching this row; see `lib/ui/data-saver.ts`.
+       */}
+      <RowSwitch
+        icon="compass"
+        label="Use less data"
+        sub="Stops the app loading a place before you have opened it, and asks for smaller photographs."
+        checked={settings.dataSaver}
+        onChange={(next) => set("dataSaver", next)}
+      />
+    </SettingsGroup>
   );
 }
 
@@ -126,9 +150,10 @@ export function AppearanceCard() {
 /**
  * Language picker.
  *
- * Writes the locale cookie the server reads, then refreshes the server tree
- * so every string re-renders in the chosen language. Radio semantics because
- * exactly one language is active at a time.
+ * Writes the locale cookie the server reads, then refreshes the server tree so
+ * every string re-renders in the chosen language. One select rather than four
+ * radio rows: a language is one answer, and the four rows took a third of the
+ * screen to say so.
  */
 export function LanguageCard({ current }: { current: Locale }) {
   const router = useRouter();
@@ -136,7 +161,7 @@ export function LanguageCard({ current }: { current: Locale }) {
   const [selected, setSelected] = useState<Locale>(current);
 
   const choose = (next: Locale) => {
-    if (next === selected) return;
+    if (next === selected || pending) return;
     setSelected(next);
     // One year, lax. A language choice holds no personal data.
     document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
@@ -144,44 +169,25 @@ export function LanguageCard({ current }: { current: Locale }) {
   };
 
   return (
-    <GroupCard overline="Language" icon="globe-pin">
-      <div role="radiogroup" aria-label="App language" className="divide-y divide-[var(--nf-border-subtle)]">
-        {LOCALES.map((code) => {
-          const active = selected === code;
-          return (
-            <button
-              key={code}
-              type="button"
-              role="radio"
-              aria-checked={active}
-              disabled={pending}
-              onClick={() => choose(code)}
-              className="flex min-h-11 w-full cursor-pointer items-center gap-4 py-3.5 text-left transition-opacity first:pt-0 last:pb-0 disabled:cursor-wait disabled:opacity-60"
-            >
-              <span className="nf-badge w-11 justify-center">{localeMeta[code].short}</span>
-              <span className="min-w-0 flex-1">
-                <span className={`block text-[0.9375rem] font-medium ${active ? "text-[var(--nf-electric-300)]" : ""}`}>
-                  {localeMeta[code].native}
-                </span>
-                {localeMeta[code].label !== localeMeta[code].native && (
-                  <span className="block text-[0.8125rem] text-[var(--nf-content-muted)]">
-                    {localeMeta[code].label}
-                  </span>
-                )}
-              </span>
-              <span
-                aria-hidden="true"
-                className={`h-2.5 w-2.5 shrink-0 rounded-full transition-colors duration-200 ${
-                  active
-                    ? "bg-[var(--nf-brand-primary)] shadow-[0_0_10px_color-mix(in_oklab,var(--nf-brand-primary)_80%,transparent)]"
-                    : "bg-[color-mix(in_oklab,var(--nf-content-primary)_14%,transparent)]"
-                }`}
-              />
-            </button>
-          );
-        })}
-      </div>
-    </GroupCard>
+    <SettingsGroup label="Language">
+      <RowSelect
+        icon="chat-bubble"
+        label="App language"
+        value={selected}
+        /* The native name first, because somebody looking for Yoruba is
+           looking for "Yorùbá". The English name follows only where the two
+           differ, so English itself does not read as "English (English)". */
+        options={LOCALES.map((code) => ({
+          value: code,
+          label:
+            localeMeta[code].label === localeMeta[code].native
+              ? localeMeta[code].native
+              : `${localeMeta[code].native} (${localeMeta[code].label})`,
+        }))}
+        onChange={choose}
+        testId="setting-language"
+      />
+    </SettingsGroup>
   );
 }
 
@@ -192,24 +198,26 @@ type NotifyKey = "notifyPush" | "notifyEmail" | "notifySms" | "notifyWhatsapp";
 export function NotificationsCard() {
   const { settings, set } = useNfSettings();
 
-  const row = (key: NotifyKey, label: string, description: string) => (
-    <Toggle
-      checked={settings[key]}
-      onChange={(v) => set(key, v)}
+  const row = (key: NotifyKey, icon: "bell" | "share" | "chat-bubble", label: string, sub: string) => (
+    <RowSwitch
+      icon={icon}
       label={label}
-      description={description}
+      sub={sub}
+      checked={settings[key]}
+      onChange={(next) => set(key, next)}
     />
   );
 
   return (
-    <GroupCard overline="Notifications" icon="bell-alert">
-      <div className="divide-y divide-[var(--nf-border-subtle)]">
-        {row("notifyPush", "Push notifications", "Booking updates and replies, straight to this device.")}
-        {row("notifyEmail", "Email", "Receipts, confirmations and occasional highlights.")}
-        {row("notifySms", "SMS", "Time-critical booking alerts by text message.")}
-        {row("notifyWhatsapp", "WhatsApp", "Booking confirmations and host replies on WhatsApp.")}
-      </div>
-    </GroupCard>
+    <SettingsGroup
+      label="Notifications"
+      note="Kept on this device until you sign in, then they follow your account."
+    >
+      {row("notifyPush", "bell", "Push notifications", "Booking updates and replies, straight to this device.")}
+      {row("notifyEmail", "share", "Email", "Receipts, confirmations and occasional highlights.")}
+      {row("notifySms", "chat-bubble", "SMS", "Time-critical booking alerts by text message.")}
+      {row("notifyWhatsapp", "chat-bubble", "WhatsApp", "Booking confirmations and host replies on WhatsApp.")}
+    </SettingsGroup>
   );
 }
 
@@ -219,32 +227,35 @@ export function PrivacyCard() {
   const { settings, set } = useNfSettings();
 
   return (
-    <GroupCard overline="Privacy" icon="shield-lock">
-      <div className="divide-y divide-[var(--nf-border-subtle)]">
-        <SegmentedRow
-          label="Profile visibility"
-          description="Who can see your name and reviews on listings."
-          options={[
-            { value: "everyone", label: "Everyone" },
-            { value: "private", label: "Only me" },
-          ]}
-          value={settings.profileVisibility}
-          onChange={(v) => set("profileVisibility", v)}
-        />
-        <Toggle
-          checked={settings.readReceipts}
-          onChange={(v) => set("readReceipts", v)}
-          label="Read receipts"
-          description="Let hosts see when you have read their messages."
-        />
-        <Toggle
-          checked={settings.personalisedRecs}
-          onChange={(v) => set("personalisedRecs", v)}
-          label="Personalised recommendations"
-          description="Use your searches and saves to rank places you will like."
-        />
-      </div>
-    </GroupCard>
+    <SettingsGroup
+      label="Privacy"
+      note="Who can see me covers your name and reviews on listings."
+    >
+      <RowSelect
+        icon="user"
+        label="Who can see me"
+        value={settings.profileVisibility}
+        options={[
+          { value: "everyone", label: "Everyone" },
+          { value: "private", label: "Only me" },
+        ]}
+        onChange={(next) => set("profileVisibility", next)}
+      />
+      <RowSwitch
+        icon="verified"
+        label="Read receipts"
+        sub="Let hosts see when you have read their messages."
+        checked={settings.readReceipts}
+        onChange={(next) => set("readReceipts", next)}
+      />
+      <RowSwitch
+        icon="sparkle"
+        label="Personalised recommendations"
+        sub="Use your searches and saves to rank places you will like."
+        checked={settings.personalisedRecs}
+        onChange={(next) => set("personalisedRecs", next)}
+      />
+    </SettingsGroup>
   );
 }
 
@@ -252,68 +263,43 @@ export function PrivacyCard() {
 
 export function SearchCard() {
   const { settings, set } = useNfSettings();
-  const cityId = useId();
 
   return (
-    <GroupCard overline="Search" icon="home-search">
-      <div className="divide-y divide-[var(--nf-border-subtle)]">
-        <div className="py-3.5 first:pt-0 last:pb-0">
-          <label htmlFor={cityId} className="block text-[0.9375rem] font-medium">
-            Default search area
-          </label>
-          <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-            Search opens here first. You can always look anywhere.
-          </p>
-          <select
-            id={cityId}
-            value={settings.defaultCity}
-            onChange={(e) => set("defaultCity", e.target.value)}
-            className="nf-field mt-2.5"
-          >
-            <option value="" style={{ background: "var(--nf-surface-elevated)" }}>
-              All of Nigeria
-            </option>
-            {NIGERIAN_STATES.map((s) => (
-              <option key={s} value={s} style={{ background: "var(--nf-surface-elevated)" }}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex items-center justify-between gap-4 py-3.5">
-          <div className="min-w-0 flex-1">
-            <p className="text-[0.9375rem] font-medium">Currency</p>
-            <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-              Every price across RentMe is shown in Naira.
-            </p>
-          </div>
-          <span className="nf-badge shrink-0">
-            <span className="nf-numeric">₦</span> NGN
-          </span>
-        </div>
-
-        <SegmentedRow
-          label="Map distances"
-          description="Units for distances on maps and listing cards."
-          options={[
-            { value: "km", label: "Kilometres" },
-            { value: "mi", label: "Miles" },
-          ]}
-          value={settings.distanceUnit}
-          onChange={(v) => set("distanceUnit", v)}
-        />
-      </div>
-    </GroupCard>
+    <SettingsGroup
+      label="Search"
+      note="Search opens on your default area, and you can always look anywhere. Every price across RentMe is shown in Naira."
+    >
+      <RowSelect
+        icon="search"
+        label="Default area"
+        value={settings.defaultCity}
+        options={[
+          { value: "", label: "All of Nigeria" },
+          ...NIGERIAN_STATES.map((state) => ({ value: state, label: state })),
+        ]}
+        onChange={(next) => set("defaultCity", next)}
+      />
+      <RowValue icon="wallet" label="Currency" value="₦ NGN" />
+      <RowSelect
+        icon="map"
+        label="Map distances"
+        value={settings.distanceUnit}
+        options={[
+          { value: "km", label: "Kilometres" },
+          { value: "mi", label: "Miles" },
+        ]}
+        onChange={(next) => set("distanceUnit", next)}
+      />
+    </SettingsGroup>
   );
 }
 
 /* --------------------------------------------------------------- security */
 
 /**
- * Security: the app lock preference plus a truthful view of sessions. There
- * is exactly one session today, this device, so that is what the list shows.
- * Sign out everywhere is wired and says plainly when it takes effect.
+ * Security: the app lock preference plus a truthful view of sessions. There is
+ * exactly one session today, this device, so that is what the row shows, and
+ * sign out everywhere says plainly when it will start doing something.
  */
 export function SecurityCard() {
   const { settings, set } = useNfSettings();
@@ -348,46 +334,29 @@ export function SecurityCard() {
   }, []);
 
   return (
-    <GroupCard overline="Security" icon="shield-lock">
-      <div className="divide-y divide-[var(--nf-border-subtle)]">
-        <Toggle
-          checked={settings.appLock}
-          onChange={(v) => set("appLock", v)}
-          label="Biometric app lock"
-          description="Ask for fingerprint or face unlock when the app opens, on devices that support it."
-        />
-
-        <div className="py-3.5">
-          <p className="text-[0.9375rem] font-medium">Active sessions</p>
-          <div className="mt-2.5 flex items-center gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3.5 py-3">
-            <span
-              aria-hidden="true"
-              className="h-2 w-2 shrink-0 rounded-full bg-[var(--nf-state-success)] shadow-[0_0_8px_color-mix(in_oklab,var(--nf-state-success)_70%,transparent)]"
-            />
-            <span className="min-w-0 flex-1">
-              <span className="block text-[0.875rem] font-medium">{device}</span>
-              <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">
-                Current session, active now
-              </span>
-            </span>
-            <span className="nf-badge nf-badge--neutral shrink-0">This device</span>
-          </div>
-        </div>
-
-        <div className="py-3.5 last:pb-0">
-          <Button variant="secondary" full onClick={() => setSignOutNote(true)}>
-            Sign out everywhere
-          </Button>
-          {signOutNote && (
-            <p role="status" className="nf-rise mt-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-              This is your only session, so there is nothing else to sign out.
-              Once accounts launch, this control ends every session on every
-              device at once.
-            </p>
-          )}
-        </div>
-      </div>
-    </GroupCard>
+    <SettingsGroup
+      label="Security"
+      note={
+        signOutNote
+          ? "This is your only session, so there is nothing else to sign out. Once accounts launch, this control ends every session on every device at once."
+          : undefined
+      }
+    >
+      <RowSwitch
+        icon="key"
+        label="Biometric app lock"
+        sub="Ask for fingerprint or face unlock when the app opens, on devices that support it."
+        checked={settings.appLock}
+        onChange={(next) => set("appLock", next)}
+      />
+      <RowValue icon="verified" label="Signed in on" value={device} />
+      <RowButton
+        icon="arrow-right"
+        label="Sign out everywhere"
+        onClick={() => setSignOutNote(true)}
+        chevron={false}
+      />
+    </SettingsGroup>
   );
 }
 
@@ -420,115 +389,28 @@ export function DataCard() {
   };
 
   return (
-    <GroupCard overline="Your data" icon="wallet-secure">
-      <div className="divide-y divide-[var(--nf-border-subtle)]">
-        <div className="py-3.5 first:pt-0">
-          <p className="text-[0.9375rem] font-medium">Download my data</p>
-          <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-            A copy of everything RentMe holds about you.
-          </p>
-          <Button variant="secondary" full className="mt-2.5" onClick={() => setExportNote(true)}>
-            Request my data
-          </Button>
-          {exportNote && (
-            <p role="status" className="nf-rise mt-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-              Right now everything RentMe knows about you lives in this
-              browser, and nothing has left this device. Full data export ships
-              with the launch release.
-            </p>
-          )}
-        </div>
-
-        <div className="py-3.5 last:pb-0">
-          <p className="text-[0.9375rem] font-medium">Clear local data</p>
-          <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-            Removes your profile name, preferences and saved conversations from
-            this device, then reloads.
-          </p>
-          <Button
-            variant={confirmClear ? "dangerQuiet" : "secondary"}
-            full
-            className="mt-2.5"
-            onClick={clearLocalData}
-          >
-            {confirmClear ? "Tap again to confirm" : "Clear local data"}
-          </Button>
-        </div>
-      </div>
-    </GroupCard>
-  );
-}
-
-/* --------------------------------------------------------- shared controls */
-
-/**
- * Segmented single-choice row. Real radio semantics so assistive tech
- * announces the group and the checked option, with the platform chip visual.
- */
-function SegmentedRow<T extends string>({
-  label,
-  description,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  description?: string;
-  options: { value: T; label: string }[];
-  value: T;
-  onChange: (next: T) => void;
-}) {
-  const labelId = useId();
-
-  return (
-    <div className="py-3.5 first:pt-0 last:pb-0">
-      <p id={labelId} className="text-[0.9375rem] font-medium">
-        {label}
-      </p>
-      {description && (
-        <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">{description}</p>
-      )}
-      <div role="radiogroup" aria-labelledby={labelId} className="mt-2.5 flex flex-wrap gap-2">
-        {options.map((o) => {
-          const active = o.value === value;
-          return (
-            <button
-              key={o.value}
-              type="button"
-              role="radio"
-              aria-checked={active}
-              onClick={() => onChange(o.value)}
-              className={`nf-chip cursor-pointer ${active ? "nf-chip--active" : ""}`}
-            >
-              {o.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------ group shell */
-
-export function GroupCard({
-  overline,
-  icon,
-  children,
-}: {
-  overline: string;
-  icon: BrandIconName;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="nf-card p-5 sm:p-6" aria-label={overline}>
-      <div className="mb-4 flex items-center gap-3">
-        <span className="block h-11 w-11 shrink-0">
-          <BrandIcon name={icon} fill />
-        </span>
-        <h2 className="nf-overline">{overline}</h2>
-      </div>
-      {children}
-    </section>
+    <SettingsGroup
+      label="Your data"
+      note={
+        exportNote
+          ? "Right now everything RentMe knows about you lives in this browser, and nothing has left this device. Full data export ships with the launch release."
+          : undefined
+      }
+    >
+      <RowButton
+        icon="share"
+        label="Download my data"
+        sub="A copy of everything RentMe holds about you."
+        onClick={() => setExportNote(true)}
+      />
+      <RowButton
+        icon="close"
+        label={confirmClear ? "Tap again to confirm" : "Clear local data"}
+        sub="Removes your profile name, preferences and saved conversations from this device, then reloads."
+        onClick={clearLocalData}
+        danger={confirmClear}
+        chevron={false}
+      />
+    </SettingsGroup>
   );
 }

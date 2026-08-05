@@ -11,6 +11,7 @@ import {
   SecurityCard,
   DataCard,
 } from "@/components/app/account/SettingsGroups";
+import { RowLink, RowValue, SettingsGroup } from "@/components/app/account/rows";
 import { SupportChat } from "@/components/app/account/SupportChat";
 import { Reveal } from "@/components/site/Reveal";
 import { loadSettingsState } from "@/lib/profile/queries";
@@ -46,7 +47,7 @@ export default async function SettingsPage() {
     <div className="mx-auto max-w-2xl">
       <PageHeader title={t.nav.settings} />
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <Reveal>
           <AppearanceCard />
         </Reveal>
@@ -98,25 +99,32 @@ export default async function SettingsPage() {
         </Reveal>
 
         <Reveal delay={360}>
-          <section id="legal" className="nf-card p-5 sm:p-6">
-            <h2 className="nf-overline">About</h2>
-            <dl className="mt-3 space-y-2 text-[0.875rem]">
-              <div className="flex justify-between">
-                <dt className="text-[var(--nf-content-muted)]">Version</dt>
-                <dd className="nf-numeric">0.1.0</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-[var(--nf-content-muted)]">Open source licences</dt>
-                <dd className="text-right">Next.js, React, Tailwind CSS (MIT)</dd>
-              </div>
-            </dl>
-            <p className="mt-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-              RentMe respects your privacy: preferences kept on this device stay
-              on this device, account preferences are protected with row level
-              security, and only you can read or change your own row. Full terms
-              and the privacy policy publish with the launch release.
-            </p>
-          </section>
+          {/* About used to end on "full terms and the privacy policy publish
+              with the launch release". Both have been live at /terms and
+              /privacy for some time, so the sentence was telling somebody
+              looking for their rights that the page did not exist. They are
+              rows now, and they go there. */}
+          <div id="legal">
+            <SettingsGroup
+              label="About"
+              note="Preferences kept on this device stay on this device. Account preferences are protected with row level security, so only you can read or change your own row."
+            >
+              <RowLink
+                href="/help"
+                icon="ticket"
+                label="Help"
+                sub="Get an answer from a person"
+              />
+              <RowLink href="/terms" icon="grid" label="Terms" />
+              <RowLink href="/privacy" icon="verified" label="Privacy policy" />
+              <RowValue icon="sparkle" label="Version" value="0.1.0" />
+              <RowValue
+                icon="share"
+                label="Open source licences"
+                value="Next.js, React, Tailwind CSS (MIT)"
+              />
+            </SettingsGroup>
+          </div>
         </Reveal>
       </div>
     </div>

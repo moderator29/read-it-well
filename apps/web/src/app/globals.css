@@ -17,6 +17,13 @@
 @import "./social-feed.css";
 
 /*
+ * Grouped settings rows, the switch, the segment and the sheet. Its own file
+ * for the same reason as the two above, and because every account surface now
+ * draws its rows from one place instead of each screen inventing a layout.
+ */
+@import "./settings-rows.css";
+
+/*
  * Bridge the semantic tokens into Tailwind so utilities and hand written CSS
  * draw from one source. Nothing below may introduce a raw colour.
  */

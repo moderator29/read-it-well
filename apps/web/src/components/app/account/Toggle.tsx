@@ -1,15 +1,21 @@
 "use client";
 
 import { useId } from "react";
+import { Switch } from "./rows";
 
 /**
- * Switch row for settings groups.
+ * A labelled switch outside a settings group.
  *
- * A real `role="switch"` button with `aria-checked`, labelled by its visible
- * text, so screen readers announce state changes without extra wiring. The
- * knob slides with a Tailwind transform transition, which the browser skips
- * automatically under reduced motion because the app disables transitions
- * there globally.
+ * The settings screens use `RowSwitch`, which draws the same control inside the
+ * grouped-row rhythm. This one exists for the places that are not lists of
+ * preferences and should not pretend to be: today that is the reservation
+ * panel, where "Someone else is arriving" sits inside a booking form.
+ *
+ * What it no longer does is draw its own switch. It had a hand-rolled 28px pill
+ * with its own colours and its own knob transition, which meant the platform
+ * had two switches that were nearly the same, and "nearly" is the part a person
+ * notices when they move between two screens. The visual now comes from
+ * `Switch`, so there is one.
  */
 export function Toggle({
   checked,
@@ -36,32 +42,7 @@ export function Toggle({
           <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">{description}</p>
         )}
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-labelledby={labelId}
-        disabled={disabled}
-        onClick={() => onChange(!checked)}
-        /* The switch is drawn at 28px because a 44px pill would look like a
-           button, but it must still be a 44px target. `nf-tap` is the platform
-           way of saying that: an invisible pseudo-element centred over the
-           control, at least 44 in each axis. This row used to hand-roll the
-           same trick in Tailwind `before:` utilities, which worked and which
-           nothing else copied. */
-        className={`nf-tap h-7 w-12 shrink-0 cursor-pointer rounded-full border transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 ${
-          checked
-            ? "border-transparent bg-[var(--nf-brand-primary)]"
-            : "border-[var(--nf-border-subtle)] bg-[color-mix(in_oklab,var(--nf-content-primary)_10%,transparent)]"
-        }`}
-      >
-        <span
-          aria-hidden="true"
-          className={`absolute left-0.5 top-1/2 block h-[1.375rem] w-[1.375rem] -translate-y-1/2 rounded-full bg-white shadow-[0_2px_6px_rgb(0_0_0/0.35)] transition-transform duration-200 ease-out ${
-            checked ? "translate-x-[1.25rem]" : "translate-x-0"
-          }`}
-        />
-      </button>
+      <Switch checked={checked} onChange={onChange} labelledBy={labelId} disabled={disabled} />
     </div>
   );
 }
