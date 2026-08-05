@@ -781,6 +781,7 @@ export const ha: Dictionary = {
       alerts: { label: "Faɗakarwar haɗari", short: "Faɗakarwa" },
       reports: { label: "Ƙorafi", short: "Ƙorafi" },
       applications: { label: "Bukatun wakilci", short: "Wakilai" },
+      stops: { label: "Dakatarwa", short: "Dakatarwa" },
       listings: { label: "Nazarin jeri", short: "Jeri" },
       bookings: { label: "Zaman baƙi", short: "Zama" },
       tickets: { label: "Tallafi", short: "Tallafi" },

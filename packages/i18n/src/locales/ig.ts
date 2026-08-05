@@ -783,6 +783,7 @@ export const ig: Dictionary = {
       alerts: { label: "Ọkwa ihe egwu", short: "Ọkwa" },
       reports: { label: "Mkpesa", short: "Mkpesa" },
       applications: { label: "Arịrịọ onye nnọchi", short: "Ndị nnọchi" },
+      stops: { label: "Nkwụsị", short: "Nkwụsị" },
       listings: { label: "Nyocha ndepụta", short: "Ndepụta" },
       bookings: { label: "Ọnọdụ ọbịa", short: "Ọnọdụ" },
       tickets: { label: "Nkwado", short: "Nkwado" },

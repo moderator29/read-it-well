@@ -162,6 +162,56 @@ export type Database = {
           },
         ]
       }
+      agent_suspensions: {
+        Row: {
+          agent_id: string
+          id: string
+          lift_note: string | null
+          lifted_at: string | null
+          lifted_by: string | null
+          reason: string
+          restored: Json
+          stays_ahead: number
+          suspended_at: string
+          suspended_by: string | null
+          withdrawn: Json
+        }
+        Insert: {
+          agent_id: string
+          id?: string
+          lift_note?: string | null
+          lifted_at?: string | null
+          lifted_by?: string | null
+          reason: string
+          restored?: Json
+          stays_ahead?: number
+          suspended_at?: string
+          suspended_by?: string | null
+          withdrawn?: Json
+        }
+        Update: {
+          agent_id?: string
+          id?: string
+          lift_note?: string | null
+          lifted_at?: string | null
+          lifted_by?: string | null
+          reason?: string
+          restored?: Json
+          stays_ahead?: number
+          suspended_at?: string
+          suspended_by?: string | null
+          withdrawn?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_suspensions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_verification_checks: {
         Row: {
           agent_id: string
@@ -2908,6 +2958,10 @@ export type Database = {
           status: Database["public"]["Enums"]["area_status"]
         }[]
       }
+      lift_agent_suspension: {
+        Args: { acting_admin: string; note?: string; target_agent: string }
+        Returns: Json
+      }
       pay_booking_from_wallet: {
         Args: {
           payer: string
@@ -2940,11 +2994,23 @@ export type Database = {
         }
         Returns: Json
       }
+      reinstate_agent: {
+        Args: { acting_admin: string; note?: string; target_agent: string }
+        Returns: Json
+      }
       release_idempotency: {
         Args: { key: string; scope: string; subject: string }
         Returns: boolean
       }
       story_count: { Args: { p_author: string }; Returns: number }
+      suspend_agent: {
+        Args: {
+          acting_admin: string
+          stop_reason: string
+          target_agent: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       agent_application_status:

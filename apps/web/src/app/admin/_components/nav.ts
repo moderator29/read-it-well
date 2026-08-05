@@ -29,6 +29,12 @@ export const ADMIN_NAV: AdminDestination[] = [
   { key: "alerts", href: "/admin/alerts", icon: "bell" },
   { key: "reports", href: "/admin/reports", icon: "search" },
   { key: "applications", href: "/admin/agents", icon: "user" },
+  // Stops sits immediately after applications, because it is the other half of
+  // the same relationship: one screen decides whether somebody may trade, this
+  // one decides whether they still may. It carries a count, and the count is
+  // people currently stopped rather than work waiting, because an agent left
+  // stopped and forgotten is the failure this screen exists to prevent.
+  { key: "stops", href: "/admin/stops", icon: "shield-stop" },
   { key: "listings", href: "/admin/listings", icon: "building-apartment" },
   // Stays sits between the supply queues and the human ones, because it is
   // both: a stay is a property's calendar and somebody's money at once. It

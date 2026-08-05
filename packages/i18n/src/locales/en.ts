@@ -810,6 +810,7 @@ export const en = {
       alerts: { label: "Risk alerts", short: "Alerts" },
       reports: { label: "Reports", short: "Reports" },
       applications: { label: "Agent applications", short: "Agents" },
+      stops: { label: "Stops", short: "Stops" },
       listings: { label: "Listing review", short: "Listings" },
       bookings: { label: "Stays", short: "Stays" },
       tickets: { label: "Support", short: "Support" },

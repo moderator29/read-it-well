@@ -784,6 +784,7 @@ export const yo: Dictionary = {
       alerts: { label: "Ìkìlọ̀ ewu", short: "Ìkìlọ̀" },
       reports: { label: "Ìròyìn ẹ̀sùn", short: "Ìròyìn" },
       applications: { label: "Ìbéèrè aṣojú", short: "Aṣojú" },
+      stops: { label: "Ìdádúró", short: "Ìdádúró" },
       listings: { label: "Àtúnyẹ̀wò àtòjọ", short: "Àtòjọ" },
       bookings: { label: "Ìdúró", short: "Ìdúró" },
       tickets: { label: "Ìtìlẹ́yìn", short: "Ìtìlẹ́yìn" },
