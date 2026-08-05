@@ -316,7 +316,7 @@ export function TextField({
                  chips use: the icon stays small, the target does not. */
               className={`${SLOT} right-1 pointer-events-auto grid size-11 place-items-center rounded-[var(--nf-radius-pill)] hover:text-[var(--nf-content-primary)]`}
             >
-              <UiIcon name="close" size={16} strokeWidth={2.2} />
+              <UiIcon name="close" size={16} />
             </button>
           ) : trailing ? (
             <span className={`${SLOT} right-3.5`}>{trailing}</span>

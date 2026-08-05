@@ -94,7 +94,7 @@ export function StatusPill({
       style={TONE_STYLE[tone]}
     >
       {icon ? (
-        <UiIcon name={icon} size={ICON_PX[size]} strokeWidth={2.1} />
+        <UiIcon name={icon} size={ICON_PX[size]} />
       ) : (
         <span aria-hidden="true" className={`${DOT_CLASS[size]} shrink-0 rounded-full bg-current`} />
       )}
