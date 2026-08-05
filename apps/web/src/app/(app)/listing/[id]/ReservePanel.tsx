@@ -335,7 +335,11 @@ export function ReservePanel({
           </ChipRow>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        {/* `[&>*]:min-w-0`: a grid item defaults to `min-width: auto`, which is
+            its min-content width, so a date input's intrinsic size decided the
+            column rather than the column deciding the input. Two of them then
+            measured wider than the card. */}
+        <div className="grid grid-cols-2 gap-3 [&>*]:min-w-0">
           <div>
             <label htmlFor={`${uid}-checkin`} className="nf-label">
               Check-in

@@ -85,7 +85,17 @@ export function AppShell({
    * Unlike `immersive` this keeps the page scrolling normally. The assistant
    * and an open thread own the viewport and scroll inside themselves; a listing
    * is a document that happens to start with a photograph. So this drops the
-   * header and the page gutter and nothing else.
+   * header and NOTHING else.
+   *
+   * It used to drop the page gutter too, and that was wrong twice over. The
+   * hero and the content sheet both reach the edges with `-mx-5 md:-mx-8`,
+   * which is written to CANCEL the gutter, not to live without one - so with
+   * the gutter gone they overshot by 20px on each side. Measured at 393px: the
+   * back control sat at x=-8, the save control and the photo counter at x=401,
+   * and the sheet's own `px-5` put the title at exactly x=0 with no margin on
+   * either side. The same mistake on the vertical: the hero's `-mt-8` cancels
+   * the shell's `py-8`, so with no top padding it climbed 32px under the
+   * status bar. The gutter stays; only the header goes.
    */
   const edgeToEdge = /^\/listing\/[^/]+$/.test(active);
 
@@ -304,11 +314,10 @@ export function AppShell({
 
         {immersive ? (
           <div className="flex min-h-0 flex-1 flex-col">{children}</div>
-        ) : edgeToEdge ? (
-          /* No gutter on a phone so the hero touches all three edges; the
-             standard shell returns from `lg`, where the header is back. */
-          <div className="lg:nf-shell lg:py-8">{children}</div>
         ) : (
+          /* The same wrapper for `edgeToEdge` as for everything else. The hero
+             reaches all four edges by cancelling this padding, which only
+             works while the padding is here to cancel. */
           <div className="nf-shell py-8 sm:py-10">{children}</div>
         )}
       </main>

@@ -172,10 +172,21 @@ export function ListingGallery({
 
       <ListingActions listingId={listingId} title={title} initialSaved={initialSaved} />
 
+      {/*
+        Clear of the sheet, not under it.
+
+        The content sheet rides up over the hero's lower edge by 2rem, 2.5rem
+        from `sm`. The counter sat 1rem from that edge and the dots 1.25rem, so
+        both were inside the overlap and the sheet - later in the DOM, same
+        z-10 - painted straight over them. On the owner's screenshot that read
+        as "1 /" with the photo count sliced off underneath. Their offsets now
+        start above the overlap and keep the 0.25rem the dots always had on the
+        counter.
+      */}
       {count > 0 && (
         <p
           data-testid="gallery-counter"
-          className="nf-numeric absolute bottom-4 right-3 z-10 rounded-full bg-black/55 px-2.5 py-1 text-[0.75rem] font-semibold text-white backdrop-blur-md sm:bottom-5 sm:right-4"
+          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-full bg-black/55 px-2.5 py-1 text-[0.75rem] font-semibold text-white backdrop-blur-md sm:bottom-14 sm:right-4"
         >
           <span className="sr-only">Photo </span>
           {Math.min(active + 1, count)} / {count}
@@ -205,7 +216,7 @@ export function ListingGallery({
           </button>
 
           <ul
-            className="pointer-events-none absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 sm:bottom-6"
+            className="pointer-events-none absolute bottom-13 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 sm:bottom-15"
             aria-hidden="true"
           >
             {panes.map((photo, i) => (

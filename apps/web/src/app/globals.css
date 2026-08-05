@@ -2440,6 +2440,15 @@ html {
 
   .nf-field {
     width: 100%;
+    /*
+     * A form control carries an intrinsic preferred width that `width: 100%`
+     * does not lower, and `input[type="date"]` carries a large one because the
+     * UA sizes it to the widest date it can render. Inside a two-column grid
+     * that made the check-out field the widest thing on the listing screen and
+     * pushed it past the card it lives in. `min-width: 0` lets the control
+     * follow its container instead of the container following the control.
+     */
+    min-width: 0;
     border: 1px solid transparent;
     border-radius: var(--nf-radius-lg);
     padding: 0.95rem 1.05rem;
