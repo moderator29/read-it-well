@@ -23,7 +23,7 @@ import {
 import { StayDatesProvider } from "@/components/app/listing/StayDates";
 import { PhotoViewerProvider } from "@/components/app/listing/PhotoViewer";
 import { Reveal } from "@/components/site/Reveal";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
 
@@ -54,6 +54,28 @@ const KIND_LABEL: Record<ListingKind, string> = {
   experience: "experience",
   // A rental is described by what it is to the reader, not by our enum name.
   rental: "home to rent",
+};
+
+/**
+ * The status pill.
+ *
+ * Reference 3 opens with a small tinted icon + label pill naming the market the
+ * property is in - FOR SALE, FOR RENT - in a semantic colour rather than a
+ * generic grey. This platform has no sale market, so the pill names the market
+ * each kind actually belongs to and nothing more. Nothing is invented: the
+ * label is a restatement of `listing.kind`, which every record carries.
+ */
+const MARKET_PILL: Record<ListingKind, { icon: UiIconName; label: string; tone: string }> = {
+  // An annual tenancy. The nearest thing this platform has to reference 3's
+  // headline market, and it takes the brand tint the pill defaults to.
+  rental: { icon: "key", label: "For rent", tone: "" },
+  hotel: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
+  apartment: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
+  home: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
+  shortlet: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
+  villa: { icon: "calendar-booking", label: "For stays", tone: "nf-tag-pill--success" },
+  restaurant: { icon: "utensils", label: "Dining", tone: "nf-tag-pill--neutral" },
+  experience: { icon: "ticket", label: "Experience", tone: "nf-tag-pill--neutral" },
 };
 
 /** "Lagos State" reads naturally; the FCT does not take the suffix. */
@@ -148,6 +170,7 @@ export default async function ListingDetailPage({
     : null;
 
   const kind = KIND_LABEL[listing.kind];
+  const market = MARKET_PILL[listing.kind];
   // Restaurants and experiences are priced per head; a rental is priced per
   // year; everything else is a nightly rate.
   const perHead = listing.kind === "restaurant" || listing.kind === "experience";
@@ -277,25 +300,37 @@ export default async function ListingDetailPage({
         backFallback="/home"
       />
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start sm:mt-7">
+      {/*
+        The content sheet.
+
+        The single most recognisable move in reference 3: the content rides UP
+        over the lower edge of the media on a large top radius, so the two
+        surfaces overlap instead of meeting at a seam. It is glass rather than a
+        flat fill because the platform's ground is the living ambient canvas,
+        not a solid colour - an opaque panel here would blank the artwork every
+        other screen sits on, while glass lets the photograph blur through the
+        overlap and the canvas through everything below it.
+
+        Full bleed by the same rule the hero uses, and its side and bottom
+        borders are dropped so only the top hairline reads.
+      */}
+      <div className="nf-glass nf-glass--strong relative z-10 -mx-5 -mt-8 rounded-t-[1.75rem] border-x-0 border-b-0 px-5 pb-6 pt-6 sm:-mt-10 sm:rounded-t-[2.25rem] sm:px-6 sm:pb-8 sm:pt-8 md:-mx-8 md:px-8">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
         {/* ------------------------------------------------- main column */}
         <div className="min-w-0">
           {/* ------------------------------------------------ title block */}
           <section className="nf-rise">
-            <h1 className="nf-h1 max-sm:text-[1.375rem]">{listing.title}</h1>
-
-            <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
-              {listing.rating > 0 && (
-                <span className="nf-numeric flex items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
-                  <UiIcon name="star" size={15} className="text-[var(--nf-rating)]" />
-                  {listing.rating.toFixed(1)}
-                  {listing.reviewCount > 0 && (
-                    <span className="font-normal text-[var(--nf-content-muted)]">
-                      ({formatNumber(listing.reviewCount, locale)} {t.common.reviews})
-                    </span>
-                  )}
-                </span>
-              )}
+            {/*
+              The status row: the market this listing belongs to on the left as
+              a tinted icon + label pill, and the rating right-aligned as a real
+              chip rather than the bare inline text it used to be. Both are read
+              from the record - a listing with no rating simply has no chip.
+            */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`nf-tag-pill ${market.tone}`}>
+                <UiIcon name={market.icon} size={13} strokeWidth={2.1} />
+                {market.label}
+              </span>
 
               {/* Only first-party inventory may carry the verified badge. */}
               {listing.verified && !isPartner && (
@@ -320,7 +355,21 @@ export default async function ListingDetailPage({
                   Powered by Google
                 </span>
               )}
+
+              {listing.rating > 0 && (
+                <span className="nf-chip nf-numeric ml-auto shrink-0 gap-1.5 px-3 py-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
+                  <UiIcon name="star" size={14} filled className="text-[var(--nf-rating)]" />
+                  {listing.rating.toFixed(1)}
+                  {listing.reviewCount > 0 && (
+                    <span className="font-normal text-[var(--nf-content-muted)]">
+                      ({formatNumber(listing.reviewCount, locale)} {t.common.reviews})
+                    </span>
+                  )}
+                </span>
+              )}
             </div>
+
+            <h1 className="nf-h1 mt-3 max-sm:text-[1.375rem]">{listing.title}</h1>
 
             <p className="mt-2 flex items-center gap-1.5 text-[0.9375rem] text-[var(--nf-content-secondary)]">
               <UiIcon name="location" size={15} className="shrink-0" />
@@ -331,24 +380,25 @@ export default async function ListingDetailPage({
                 display size, tight tracking, and the qualifier carried in the
                 muted tone so the pair reads as one composed number. */}
             {listing.priceMinor > 0 && (
-              <p className="mt-3.5">
+              <p className="mt-4">
                 <Amount
                   minorUnits={listing.priceMinor}
                   locale={locale}
                   currency={listing.currency}
                   suffix={perLabel}
-                  className="text-[2.125rem] font-extrabold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)] sm:text-[2.5rem]"
-                  secondaryClassName="text-[0.4em] font-semibold opacity-60"
+                  className="text-[2.25rem] font-extrabold leading-[0.95] tracking-[-0.035em] text-[var(--nf-content-primary)] sm:text-[3rem]"
+                  secondaryClassName="text-[0.36em] font-semibold opacity-60"
                 />
               </p>
             )}
 
-            {/* --------------------------------------------- amenity row */}
+            {/* ------------------------------------------------ spec row */}
             <div className="mt-4">
               <ListingAmenities
                 bedrooms={listing.bedrooms}
                 bathrooms={listing.bathrooms}
                 amenities={listing.amenities}
+                guests={listing.bedrooms > 0 ? sleeps(listing) : undefined}
               />
             </div>
           </section>
@@ -391,6 +441,7 @@ export default async function ListingDetailPage({
 
         {/* --------------------------------------- booking panel, desktop */}
         <aside className="hidden lg:sticky lg:top-6 lg:block">{bookingPanel}</aside>
+      </div>
       </div>
 
       <ListingStickyBar
