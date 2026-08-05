@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,9 @@ import type { BookingGroups, BookingView } from "@/lib/bookings/queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { Segmented } from "@/components/ui/Segmented";
 import { Sheet } from "@/components/ui/Sheet";
+import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 
 /**
  * The signed-in trips hub: the user's real bookings from the platform,
@@ -34,10 +36,19 @@ const EMPTY_COPY: Record<TabKey, string> = {
   cancelled: "Cancelled bookings are kept here so nothing gets lost.",
 };
 
-const STATUS_BADGE: Record<BookingView["status"], { label: string; className: string }> = {
-  PENDING: { label: "Awaiting confirmation", className: "nf-badge--pending" },
-  CONFIRMED: { label: "Confirmed", className: "nf-badge--approved" },
-  CANCELLED: { label: "Cancelled", className: "" },
+/**
+ * The words only. The colour is no longer decided here.
+ *
+ * This was a `nf-badge--*` map, and its CANCELLED branch returned an EMPTY
+ * class - `.nf-badge` alone paints no fill and no colour, so a cancelled stay
+ * rendered an invisible pill where the cancellation notice should have been.
+ * `toneForStatus` is the platform's one status vocabulary, so the same word is
+ * the same colour here, in the agent's queue and on the wallet ledger.
+ */
+const STATUS_LABEL: Record<BookingView["status"], string> = {
+  PENDING: "Awaiting confirmation",
+  CONFIRMED: "Confirmed",
+  CANCELLED: "Cancelled",
 };
 
 function BookingCard({
@@ -52,7 +63,6 @@ function BookingCard({
       at the listing. */
   justBooked?: boolean;
 }) {
-  const badge = STATUS_BADGE[b.status];
   return (
     <li
       className={`nf-card overflow-hidden p-0 text-left ${justBooked ? "nf-confirm-sweep nf-just-booked" : ""}`}
@@ -72,7 +82,7 @@ function BookingCard({
               row left the title 90px on a 390px phone, which rendered "Lekki
               Palm Grove Shortlet" as "Lekki Pa". The name of the stay is the
               whole point of the card. */}
-          <span className={`nf-badge ${badge.className}`}>{badge.label}</span>
+          <StatusPill tone={toneForStatus(b.status)}>{STATUS_LABEL[b.status]}</StatusPill>
           <h3 className="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
             {b.title}
           </h3>
@@ -266,61 +276,37 @@ export function MyBookings({
 }) {
   const [active, setActive] = useState<TabKey>("upcoming");
   const [cancelling, setCancelling] = useState<BookingView | null>(null);
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const index = TABS.findIndex((t) => t.key === active);
   const current = TABS[index] ?? TABS[0]!;
-
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-    e.preventDefault();
-    const next =
-      e.key === "ArrowRight" ? (index + 1) % TABS.length : (index - 1 + TABS.length) % TABS.length;
-    const target = TABS[next];
-    if (!target) return;
-    setActive(target.key);
-    tabRefs.current[next]?.focus();
-  };
 
   const bookings = groups[current.key];
 
   return (
     <div>
-      <div
-        role="tablist"
-        aria-label="Booking status"
-        onKeyDown={onKeyDown}
-        className="relative grid grid-cols-3 border-b border-[var(--nf-border-subtle)]"
-      >
-        {TABS.map((tab, i) => (
-          <button
-            key={tab.key}
-            ref={(el) => {
-              tabRefs.current[i] = el;
-            }}
-            type="button"
-            role="tab"
-            id={`bookings-tab-${tab.key}`}
-            aria-selected={active === tab.key}
-            aria-controls={`bookings-panel-${tab.key}`}
-            tabIndex={active === tab.key ? 0 : -1}
-            onClick={() => setActive(tab.key)}
-            className={[
-              "min-h-11 py-2.5 text-[0.875rem] font-medium transition-colors",
-              active === tab.key
-                ? "text-[var(--nf-content-primary)]"
-                : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",
-            ].join(" ")}
-          >
-            {tab.label}
-          </button>
-        ))}
-        <span
-          aria-hidden="true"
-          className="absolute -bottom-px left-0 h-[2px] w-1/3 rounded-full bg-[var(--nf-brand-primary)] transition-transform duration-300 ease-out"
-          style={{ transform: `translateX(${index * 100}%)` }}
-        />
-      </div>
+      {/*
+        Was a hand-rolled tablist: three equal columns with a 2px underline slid
+        by `translateX(index * 100%)`, which only tracked because the grid forced
+        every label to exactly a third. The primitive measures the real segment
+        boxes, so the four locales - where "Cancelled" can be three times longer
+        than "Past" - all land correctly, and it owns the roving tabindex and the
+        arrow keys that were re-derived here.
+
+        No `panelIdPrefix`, deliberately. It would put `aria-controls` on ALL
+        THREE tabs, but only the selected panel is ever rendered, so two of the
+        three pointed at ids that are not in the document - a dangling reference
+        a screen reader follows into nothing. The association is stated the one
+        way that is always true: the live panel names its own tab with
+        `aria-labelledby`.
+      */}
+      <Segmented<TabKey>
+        label="Booking status"
+        options={TABS.map((tab) => ({ value: tab.key, label: tab.label }))}
+        value={active}
+        onChange={setActive}
+        itemIdPrefix="bookings-tab"
+        full
+      />
 
       {bookings.length > 0 ? (
         <ul
