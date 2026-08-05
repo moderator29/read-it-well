@@ -208,10 +208,32 @@
     font-variant-numeric: tabular-nums;
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  /*
+   * The hit area, which is not the painted area.
+   *
+   * The row reads at 34px because five controls at 44 would be a toolbar
+   * rather than a footnote under somebody's sentence. The target underneath is
+   * 44 square regardless, centred on the control, exactly as `.nf-tap` does it
+   * platform-wide.
+   *
+   * This used to be `inset: -5px -2px`, which reached 44 in height and stopped
+   * at about 41 in width, so the three icon-only controls (share, save, more)
+   * were narrow targets on the surface a thumb uses most. `max(100%, 44px)`
+   * cannot drift the way two hand-computed insets can: it grows a small
+   * control to 44 and leaves a wide one alone.
+   *
+   * A DOM probe reading `getBoundingClientRect()` reports 34 here and always
+   * will, because a pseudo-element is not in the box tree. The target has to be
+   * proven by hit testing the corners, not by measuring the button.
+   */
   .nf-post__act::before {
     content: "";
     position: absolute;
-    inset: -5px -2px;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
   }
   .nf-post__act:hover,
   .nf-post__act:focus-visible {
@@ -2163,11 +2185,38 @@
        and clips one axis rather than becoming a scroll container in both. */
     margin-inline: -1.25rem;
     padding-inline: 1.25rem;
+    /*
+     * Room for the 44px target under a 38px chip.
+     *
+     * `overflow-x: auto` makes this a scroll container on BOTH axes, so it
+     * clips the 3px the chip's `::before` reaches above and below, and clipping
+     * removes it from hit testing as well as from paint. A hit test found the
+     * expanded target dead on all five chips while the CSS looked correct.
+     * Three pixels of block padding gives it the room; the chips themselves are
+     * painted exactly as before.
+     */
+    padding-block: 3px;
   }
   .nf-district__chips::-webkit-scrollbar {
     display: none;
   }
+  /*
+   * The same rule as the action row: the chip is painted at 38 because a rail
+   * of 44px pills pushes the first post below the fold on a 390px screen, and
+   * the target under it is 44 square anyway.
+   */
+  .nf-district__chip::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
+
   .nf-district__chip {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 7px;

@@ -68,6 +68,30 @@ export function StoryViewer({
   const [, startTransition] = useTransition();
   const counted = useRef(false);
 
+  /*
+   * Escape closes the actions menu.
+   *
+   * It is a popover, not a sheet, but it lays a full-screen scrim over the page
+   * to catch the dismissing click, and a scrim with no keyboard dismissal is a
+   * dead end: somebody who opened it with the keyboard could reach nothing
+   * behind it and had no way out. `ActionSheet` and `ReportSheet` on this same
+   * screen have always done this; the menu was the one overlay in the social
+   * layer that did not.
+   *
+   * No focus trap and no scroll lock, deliberately. Both belong to a sheet that
+   * owns the screen. This is a menu attached to a button, it closes on the next
+   * click anywhere, and taking the page's scroll away for it would be the
+   * heavier behaviour of a different component.
+   */
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
   /* One view, once, when the page is genuinely open. The database counts one
      person once a day regardless, so this only decides whether to make the
      call at all. */

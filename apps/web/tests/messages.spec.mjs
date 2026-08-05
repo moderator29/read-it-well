@@ -3,12 +3,37 @@
 // Usage: node apps/web/tests/messages.spec.mjs   (server already running)
 //   BASE_URL=http://localhost:3210 overrides the target.
 //
-// Walks the communication loops as a signed-out visitor (the seeded surface):
-//   1. /messages renders the conversation threads.
-//   2. A thread renders its bubbles and composer.
-//   3. Typing money talk into the composer surfaces the safety education card
-//      with the canonical wording, once per session.
-//   4. /notifications renders its grouped items and the mark-all control.
+// Walks the communication loops as a signed-out visitor:
+//   1. /messages is honest rather than an inbox of invented people.
+//   2. A thread nobody may read asks for a sign-in rather than inventing one.
+//   3. /notifications is honest when signed out.
+//
+// Sections 1 and 2 used to assert the opposite, and that is the point of this
+// header. They checked for a thread row reading "Adaeze Okafor", a listing
+// title beside it, an agent bubble, a guest bubble and a working composer, all
+// served to somebody who had never signed in, from a hardcoded `SEED_THREADS`
+// in `lib/messages/repository.ts`. The thread view was the worse half: it
+// mapped `mine: m.author === "guest"`, so a visitor was shown words they had
+// never written, attributed to them, in a conversation with a named person who
+// does not exist.
+//
+// This is the third time this exact shape has been found and removed on this
+// surface. Section 4 below already records the second: five invented
+// notifications telling a signed-out visitor their booking was confirmed and
+// their wallet was ready. `lib/agent/repository.ts` records the first and
+// states the rule the other two follow: identity is the one thing a "designed
+// figures" label cannot rescue.
+//
+// So the expectations are inverted rather than deleted. Each one now names the
+// invented string it is guarding against, because a spec that only checks for
+// the honest state would pass again the day somebody reintroduces the fixture
+// alongside it.
+//
+// The safety education card is NOT dropped by this. It fires on a live thread
+// composer, which needs a session, and it is asserted against its canonical
+// wording in tests/listing-detail.spec.mjs, tests/bookings.spec.mjs and
+// tests/hybrid.spec.mjs. It moved surfaces; it did not lose its guard.
+//
 // Exits non-zero on the first failed expectation.
 
 import { chromium } from "playwright-core";

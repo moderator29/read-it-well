@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import { resolveSession } from "@/lib/actions/session";
 import { isFeatureEnabled } from "@/lib/flags";
 import { loadConversationSummaries } from "@/lib/messages/live";
-import { getMessageRepository } from "@/lib/messages/repository";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
-import { Inbox, type InboxRow } from "./Inbox";
+import { Inbox, InboxEmpty, type InboxRow } from "./Inbox";
 
 export const metadata: Metadata = { title: "Inbox" };
 
@@ -17,23 +16,22 @@ export const metadata: Metadata = { title: "Inbox" };
  * has a search field, a way to hold people you have never spoken to apart from
  * people you have, a compose button, and one act that clears the lot.
  *
- * One rendering component for both worlds. Signed in on a configured platform
- * the rows are real conversations under RLS with real unread state; otherwise
- * the seed threads carry the same surface with the same states, so nobody sees
- * two different products depending on who is holding the phone.
+ * Signed in on a configured platform the rows are real conversations under RLS
+ * with real unread state. Signed out there is nothing, and this now says so.
  *
- * Seed rows are never requests. A request is a claim about a relationship, and
- * the seed catalogue has no relationships to make claims about.
+ * **It used to show a stranger somebody else's inbox.** Falling through to
+ * `getMessageRepository()` served three invented conversations with named
+ * agents about real listings, through this exact component, with no label
+ * anywhere on the page. `lib/agent/repository.ts` had already decided the
+ * principle when it deleted its own seeded agent: identity is the one thing a
+ * "designed figures" label cannot rescue. So the fixture is deleted rather than
+ * labelled, and what a signed-out reader gets is the truth plus the two ways
+ * in.
+ *
+ * An empty inbox with a search field and two tabs would be a worse answer than
+ * this panel. There is nothing to search and no request to sort, and offering
+ * the controls of a thing somebody does not have is its own small lie.
  */
-
-/** "2026-07-28T09:14" renders as "09:14" today and "26 Jul" otherwise. */
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-function seedWhenLabel(sentAt: string, today: string): string {
-  if (sentAt.startsWith(today)) return sentAt.slice(11, 16);
-  const month = MONTHS[Number(sentAt.slice(5, 7)) - 1] ?? "";
-  return `${Number(sentAt.slice(8, 10))} ${month}`;
-}
 
 export default async function InboxPage() {
   const session = await resolveSession();
@@ -74,30 +72,19 @@ export default async function InboxPage() {
     );
   }
 
-  // ------------------------------------------------------- seeded threads
-  const conversations = await getMessageRepository().conversations();
-
-  // Today's date in the same local `YYYY-MM-DD` shape the timestamps use, so
-  // a row can show a time for today and a date for anything older.
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-
-  const rows: InboxRow[] = conversations.map((c) => ({
-    id: c.id,
-    counterpartName: c.agentName,
-    listingTitle: c.listingTitle,
-    lastMessage: c.lastMessage,
-    whenLabel: seedWhenLabel(c.lastMessageAt, today),
-    unread: c.unread ? 1 : 0,
-    isRequest: false,
-    counterpartKind: "agent",
-    counterpartVerified: false,
-  }));
-
+  // -------------------------------------------------------- nobody signed in
   return (
     <div className="mx-auto max-w-2xl">
-      <Inbox rows={rows} />
+      <div className="relative">
+        <PageScene art="/brand/story-assistant.png" />
+        <PageHeader title="Inbox" />
+      </div>
+      <InboxEmpty
+        title="Sign in to see your messages"
+        body="Conversations live with your account, so they follow you between devices and nobody else can read them. Message an agent from any listing to start one."
+        action={{ href: "/sign-in", label: "Sign in" }}
+        secondary={{ href: "/search", label: "Explore places" }}
+      />
     </div>
   );
 }
