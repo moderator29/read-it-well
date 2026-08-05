@@ -11,6 +11,7 @@ import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { Button } from "@/components/ui/Button";
+import { TextField, SelectField, TextArea } from "@/components/ui/Field";
 
 /**
  * The standing desk.
@@ -57,51 +58,45 @@ export function StandingDesk({
           earned one worth less.
         </p>
 
+        {/*
+          Both of these set `aria-invalid` and painted nothing for it:
+          `.nf-field` draws its border with a border-box gradient, so the error
+          rule beside it colours a surface the gradient covers. A grant refused
+          for a bad handle looked exactly like one nobody had submitted yet.
+          The field primitives own the invalid state, the message and the
+          label/error wiring together.
+        */}
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className="nf-label">Member handle</span>
-            <input
-              type="text"
-              name="handle"
-              autoComplete="off"
-              placeholder="adaobi"
-              aria-invalid={fieldError("handle") ? true : undefined}
-              className="nf-field"
-            />
-            {fieldError("handle") && (
-              <span className="mt-1.5 block text-[0.78rem] text-[var(--nf-state-warning)]">
-                {fieldError("handle")}
-              </span>
-            )}
-          </label>
+          <TextField
+            type="text"
+            name="handle"
+            label="Member handle"
+            autoComplete="off"
+            placeholder="adaobi"
+            error={fieldError("handle")}
+          />
 
-          <label className="block">
-            <span className="nf-label">Badge</span>
-            <select name="badgeCode" className="nf-field" defaultValue={manualBadges[0]?.code ?? ""}>
-              {manualBadges.map((badge) => (
-                <option key={badge.code} value={badge.code}>
-                  {badge.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SelectField
+            name="badgeCode"
+            label="Badge"
+            defaultValue={manualBadges[0]?.code ?? ""}
+          >
+            {manualBadges.map((badge) => (
+              <option key={badge.code} value={badge.code}>
+                {badge.name}
+              </option>
+            ))}
+          </SelectField>
         </div>
 
-        <label className="mt-3 block">
-          <span className="nf-label">Why</span>
-          <textarea
-            name="reason"
-            rows={3}
-            className="nf-field resize-y"
-            placeholder="Answered forty questions in Yaba this month, every one of them useful."
-            aria-invalid={fieldError("reason") ? true : undefined}
-          />
-          {fieldError("reason") && (
-            <span className="mt-1.5 block text-[0.78rem] text-[var(--nf-state-warning)]">
-              {fieldError("reason")}
-            </span>
-          )}
-        </label>
+        <TextArea
+          name="reason"
+          label="Why"
+          rows={3}
+          className="mt-3"
+          placeholder="Answered forty questions in Yaba this month, every one of them useful."
+          error={fieldError("reason")}
+        />
 
         {state && !state.ok && (
           <p
