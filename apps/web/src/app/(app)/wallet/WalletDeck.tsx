@@ -20,6 +20,8 @@ import { WALLET_BANKS } from "@/lib/wallet/banks";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { TextField, SelectField } from "@/components/ui/Field";
+import { Chip, ChipRow } from "@/components/ui/Chip";
 
 /**
  * Wallet action deck: Add money, Withdraw, Transfer.
@@ -257,64 +259,43 @@ function WithdrawForm({
     <form action={formAction} noValidate className="space-y-3">
       {live && <BalanceLine balanceMinor={balanceMinor} locale={locale} />}
       <AmountField error={fieldError(state, "amount")} />
-      <div>
-        <label htmlFor="nf-wallet-bank" className="nf-label">
-          Bank
-        </label>
-        <select
-          id="nf-wallet-bank"
-          name="bankCode"
-          defaultValue=""
-          aria-invalid={fieldError(state, "bankCode") ? true : undefined}
-          className="nf-field"
-        >
-          <option value="" disabled style={{ background: "var(--nf-surface-elevated)" }}>
-            Choose your bank
+      <SelectField
+        label="Bank"
+        name="bankCode"
+        defaultValue=""
+        error={fieldError(state, "bankCode")}
+      >
+        <option value="" disabled style={{ background: "var(--nf-surface-elevated)" }}>
+          Choose your bank
+        </option>
+        {WALLET_BANKS.map((bank) => (
+          <option
+            key={bank.code}
+            value={bank.code}
+            style={{ background: "var(--nf-surface-elevated)" }}
+          >
+            {bank.name}
           </option>
-          {WALLET_BANKS.map((bank) => (
-            <option
-              key={bank.code}
-              value={bank.code}
-              style={{ background: "var(--nf-surface-elevated)" }}
-            >
-              {bank.name}
-            </option>
-          ))}
-        </select>
-        <FieldMessage message={fieldError(state, "bankCode")} />
-      </div>
-      <div>
-        <label htmlFor="nf-wallet-account" className="nf-label">
-          Account number
-        </label>
-        <input
-          id="nf-wallet-account"
-          name="accountNumber"
-          type="text"
-          inputMode="numeric"
-          autoComplete="off"
-          maxLength={10}
-          placeholder="10-digit account number"
-          aria-invalid={fieldError(state, "accountNumber") ? true : undefined}
-          className="nf-field"
-        />
-        <FieldMessage message={fieldError(state, "accountNumber")} />
-      </div>
-      <div>
-        <label htmlFor="nf-wallet-account-name" className="nf-label">
-          Name on the account
-        </label>
-        <input
-          id="nf-wallet-account-name"
-          name="accountName"
-          type="text"
-          autoComplete="name"
-          placeholder="As it appears at your bank"
-          aria-invalid={fieldError(state, "accountName") ? true : undefined}
-          className="nf-field"
-        />
-        <FieldMessage message={fieldError(state, "accountName")} />
-      </div>
+        ))}
+      </SelectField>
+      <TextField
+        label="Account number"
+        name="accountNumber"
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        maxLength={10}
+        placeholder="10-digit account number"
+        error={fieldError(state, "accountNumber")}
+      />
+      <TextField
+        label="Name on the account"
+        name="accountName"
+        type="text"
+        autoComplete="name"
+        placeholder="As it appears at your bank"
+        error={fieldError(state, "accountName")}
+      />
       <Button type="submit" variant="primary" full className="mt-1" loading={pending}>
         Withdraw
       </Button>
@@ -363,38 +344,25 @@ function TransferForm({
   return (
     <form action={formAction} noValidate className="space-y-3">
       {live && <BalanceLine balanceMinor={balanceMinor} locale={locale} />}
-      <div>
-        <label htmlFor="nf-wallet-recipient" className="nf-label">
-          Recipient email
-        </label>
-        <input
-          id="nf-wallet-recipient"
-          name="recipientEmail"
-          type="email"
-          autoComplete="off"
-          placeholder="name@example.com"
-          aria-invalid={fieldError(state, "recipientEmail") ? true : undefined}
-          className="nf-field"
-        />
-        <FieldMessage message={fieldError(state, "recipientEmail")} />
-      </div>
+      <TextField
+        label="Recipient email"
+        name="recipientEmail"
+        type="email"
+        autoComplete="off"
+        placeholder="name@example.com"
+        error={fieldError(state, "recipientEmail")}
+      />
       <AmountField error={fieldError(state, "amount")} />
-      <div>
-        <label htmlFor="nf-wallet-note" className="nf-label">
-          Note (optional)
-        </label>
-        <input
-          id="nf-wallet-note"
-          name="note"
-          type="text"
-          autoComplete="off"
-          maxLength={140}
-          placeholder="What is it for?"
-          aria-invalid={fieldError(state, "note") ? true : undefined}
-          className="nf-field"
-        />
-        <FieldMessage message={fieldError(state, "note")} />
-      </div>
+      <TextField
+        label="Note"
+        optionalText="(optional)"
+        name="note"
+        type="text"
+        autoComplete="off"
+        maxLength={140}
+        placeholder="What is it for?"
+        error={fieldError(state, "note")}
+      />
       <Button type="submit" variant="primary" full className="mt-1" loading={pending}>
         Send transfer
       </Button>
@@ -412,11 +380,8 @@ function AmountField({ error, quickAmounts }: { error?: string; quickAmounts?: b
   const [value, setValue] = useState("");
   return (
     <div>
-      <label htmlFor="nf-wallet-amount" className="nf-label">
-        Amount (₦)
-      </label>
-      <input
-        id="nf-wallet-amount"
+      <TextField
+        label="Amount (₦)"
         name="amount"
         type="text"
         inputMode="decimal"
@@ -424,25 +389,27 @@ function AmountField({ error, quickAmounts }: { error?: string; quickAmounts?: b
         placeholder="e.g. 5,000"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        aria-invalid={error ? true : undefined}
-        className="nf-field"
+        error={error}
+        clearable="Clear the amount"
+        onClear={() => setValue("")}
       />
       {quickAmounts && (
-        <div className="mt-2 flex gap-2">
+        /* Presets, not a filter: `filter` semantics (aria-pressed) rather than
+           `choice`, because a radio group with nothing selected leaves every
+           chip at tabIndex -1 and unreachable by keyboard. */
+        <ChipRow bleed={false} fadeEdges={false} snap={false} className="mt-2">
           {QUICK_AMOUNTS.map((amount) => (
-            <button
+            <Chip
               key={amount}
-              type="button"
-              onClick={() => setValue(amount)}
-              aria-pressed={value === amount}
-              className={`nf-chip ${value === amount ? "nf-chip--active" : ""}`}
+              size="sm"
+              selected={value === amount}
+              onSelectedChange={() => setValue(amount)}
             >
               ₦{amount}
-            </button>
+            </Chip>
           ))}
-        </div>
+        </ChipRow>
       )}
-      <FieldMessage message={error} />
     </div>
   );
 }
@@ -462,15 +429,6 @@ function BalanceLine({ balanceMinor, locale }: { balanceMinor: number; locale: L
         {"₦"}
         <Odometer value={wholeNaira} locale={locale} suffix={amount.kobo} />
       </span>
-    </p>
-  );
-}
-
-function FieldMessage({ message }: { message?: string }) {
-  if (!message) return null;
-  return (
-    <p role="alert" className="mt-1 text-[0.75rem] text-[var(--nf-state-error)]">
-      {message}
     </p>
   );
 }

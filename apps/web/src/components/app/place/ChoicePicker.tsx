@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -26,6 +27,23 @@ import { matchesSearch } from "@/lib/places/reference";
 
 export type Choice = { code: string; name: string };
 export type ChoiceGroup = { category: string; options: Choice[] };
+
+/**
+ * The invalid paint, restated.
+ *
+ * `.nf-field` draws its border with a `border-box` gradient over a transparent
+ * 1px border, so `.nf-field[aria-invalid="true"] { border-color: … }` recolours
+ * a surface the gradient is already covering: the rule fires and nothing
+ * changes. This trigger is a button wearing `.nf-field`, not an input, so it
+ * cannot borrow `TextField`'s fix - it has to replace the gradient's own
+ * border-box layer here, the same way, keeping the padding-box fill or the
+ * field would blank out. Tokens only; no literal enters the palette.
+ */
+const INVALID_STYLE: CSSProperties = {
+  background:
+    "linear-gradient(var(--nf-surface-inset), var(--nf-surface-inset)) padding-box, linear-gradient(var(--nf-state-error), var(--nf-state-error)) border-box",
+  boxShadow: "0 0 0 3px color-mix(in oklab, var(--nf-state-error) 26%, transparent)",
+};
 
 export function ChoicePicker({
   name,
@@ -66,6 +84,9 @@ export function ChoicePicker({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [mounted, setMounted] = useState(false);
+  const base = useId();
+  const hintId = `${base}-hint`;
+  const errorId = `${base}-error`;
   const searchRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const closePicker = useCallback(() => setOpen(false), []);
@@ -137,6 +158,12 @@ export function ChoicePicker({
         data-testid={testId}
         aria-haspopup="dialog"
         aria-invalid={error ? true : undefined}
+        aria-describedby={
+          [disabled && disabledHint ? hintId : null, !disabled && hint ? hintId : null, error ? errorId : null]
+            .filter(Boolean)
+            .join(" ") || undefined
+        }
+        style={error ? INVALID_STYLE : undefined}
         className="nf-field mt-1.5 flex w-full items-center justify-between gap-3 text-left disabled:cursor-not-allowed disabled:opacity-55"
       >
         <span
@@ -156,12 +183,24 @@ export function ChoicePicker({
       </button>
 
       {disabled && disabledHint && (
-        <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">{disabledHint}</p>
+        <p id={hintId} className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+          {disabledHint}
+        </p>
       )}
       {!disabled && hint && (
-        <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">{hint}</p>
+        <p id={hintId} className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+          {hint}
+        </p>
       )}
-      {error && <p className="mt-1.5 text-[0.75rem] text-[var(--nf-state-error)]">{error}</p>}
+      {error && (
+        <p
+          id={errorId}
+          role="alert"
+          className="mt-1.5 text-[0.75rem] font-medium text-[var(--nf-state-error)]"
+        >
+          {error}
+        </p>
+      )}
 
       {open &&
         mounted &&

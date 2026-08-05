@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { TextField, SelectField, TextArea } from "@/components/ui/Field";
 import { proposeArea } from "@/lib/social/areas-actions";
 import {
   AREA_COPY,
@@ -113,26 +114,15 @@ export function ProposeAreaForm({
         </p>
       ) : null}
 
-      <label className="flex flex-col gap-2">
-        <span className="text-sm font-semibold text-[var(--nf-content-primary)]">
-          What do people call it?
-        </span>
-        <input
-          className="nf-field"
-          value={name}
-          maxLength={60}
-          placeholder="Gwagwalada"
-          onChange={(event) => setName(event.target.value)}
-          aria-invalid={Boolean(fieldErrors.name)}
-        />
-        {fieldErrors.name ? (
-          <span className="text-xs text-[var(--nf-state-error)]">{fieldErrors.name}</span>
-        ) : (
-          <span className="text-xs text-[var(--nf-content-muted)]">
-            The name people actually say, not the official one.
-          </span>
-        )}
-      </label>
+      <TextField
+        label="What do people call it?"
+        value={name}
+        maxLength={60}
+        placeholder="Gwagwalada"
+        onChange={(event) => setName(event.target.value)}
+        error={fieldErrors.name}
+        hint="The name people actually say, not the official one."
+      />
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 text-sm font-semibold text-[var(--nf-content-primary)]">
@@ -169,64 +159,40 @@ export function ProposeAreaForm({
       </fieldset>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <label className="flex flex-col gap-2">
-          <span className="text-sm font-semibold text-[var(--nf-content-primary)]">
-            State
-          </span>
-          <select
-            className="nf-field"
-            value={stateCode}
-            onChange={(event) => setStateCode(event.target.value)}
-            aria-invalid={Boolean(fieldErrors.stateCode)}
-          >
-            <option value="">Choose a state</option>
-            {states.map((state) => (
-              <option key={state.code} value={state.code}>
-                {state.name}
-              </option>
-            ))}
-          </select>
-          {fieldErrors.stateCode ? (
-            <span className="text-xs text-[var(--nf-state-error)]">
-              {fieldErrors.stateCode}
-            </span>
-          ) : null}
-        </label>
+        <SelectField
+          label="State"
+          value={stateCode}
+          onChange={(event) => setStateCode(event.target.value)}
+          error={fieldErrors.stateCode}
+        >
+          <option value="">Choose a state</option>
+          {states.map((state) => (
+            <option key={state.code} value={state.code}>
+              {state.name}
+            </option>
+          ))}
+        </SelectField>
 
-        <label className="flex flex-col gap-2">
-          <span className="text-sm font-semibold text-[var(--nf-content-primary)]">
-            City or town
-          </span>
-          <input
-            className="nf-field"
-            value={city}
-            maxLength={60}
-            placeholder="Abuja"
-            onChange={(event) => setCity(event.target.value)}
-            aria-invalid={Boolean(fieldErrors.city)}
-          />
-          {fieldErrors.city ? (
-            <span className="text-xs text-[var(--nf-state-error)]">{fieldErrors.city}</span>
-          ) : null}
-        </label>
+        <TextField
+          label="City or town"
+          value={city}
+          maxLength={60}
+          placeholder="Abuja"
+          onChange={(event) => setCity(event.target.value)}
+          error={fieldErrors.city}
+        />
       </div>
 
-      <label className="flex flex-col gap-2">
-        <span className="text-sm font-semibold text-[var(--nf-content-primary)]">
-          One line about it{" "}
-          <span className="font-normal text-[var(--nf-content-muted)]">(optional)</span>
-        </span>
-        <textarea
-          className="nf-field min-h-[84px] resize-y"
-          value={blurb}
-          maxLength={200}
-          placeholder="Off the expressway, past the university gate."
-          onChange={(event) => setBlurb(event.target.value)}
-        />
-        <span className="text-xs text-[var(--nf-content-muted)]">
-          {blurb.length}/200
-        </span>
-      </label>
+      <TextArea
+        label="One line about it"
+        optionalText="(optional)"
+        value={blurb}
+        maxLength={200}
+        rows={3}
+        placeholder="Off the expressway, past the university gate."
+        onChange={(event) => setBlurb(event.target.value)}
+        hint={`${blurb.length}/200`}
+      />
 
       {slug ? (
         <p className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-3 py-2 text-xs text-[var(--nf-content-muted)]">
