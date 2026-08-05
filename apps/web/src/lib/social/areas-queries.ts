@@ -18,6 +18,7 @@ import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";
 import type { AreaKind, AreaRole, AreaStatus } from "./areas-schema";
+import type { OpenPlace, PlaceWithin } from "./places-schema";
 
 export type AreaSummary = {
   id: string;
@@ -32,6 +33,10 @@ export type AreaSummary = {
   area: string | null;
   blurb: string | null;
   status: AreaStatus;
+  /** Set when this place IS a local government, and null when it is finer. */
+  lgaCode: string | null;
+  /** The local government this place sits inside. Set on every place. */
+  withinLgaCode: string | null;
   memberCount: number;
   postCount: number;
   slowMode: boolean;
@@ -73,6 +78,8 @@ type AreaRow = {
   area: string | null;
   blurb: string | null;
   status: AreaStatus;
+  lga_code: string | null;
+  within_lga_code: string | null;
   member_count: number;
   post_count: number;
   slow_mode: boolean;
@@ -80,7 +87,7 @@ type AreaRow = {
 };
 
 const AREA_COLUMNS =
-  "id, slug, name, kind, city, state_code, area, blurb, status, member_count, post_count, slow_mode, opened_at";
+  "id, slug, name, kind, city, state_code, area, blurb, status, lga_code, within_lga_code, member_count, post_count, slow_mode, opened_at";
 
 function toSummary(row: AreaRow): AreaSummary {
   return {
@@ -93,6 +100,8 @@ function toSummary(row: AreaRow): AreaSummary {
     area: row.area,
     blurb: row.blurb,
     status: row.status,
+    lgaCode: row.lga_code,
+    withinLgaCode: row.within_lga_code,
     memberCount: row.member_count,
     postCount: row.post_count,
     slowMode: row.slow_mode,
@@ -238,6 +247,107 @@ export async function getArea(slug: string): Promise<AreaDetail | null | "unconf
   }
 
   return { area, viewer, moderators };
+}
+
+/**
+ * Which of the 774 doors already stand open.
+ *
+ * A place whose `lga_code` is set IS that local government, so this one read
+ * tells the picker which chips can be walked straight into and which one needs
+ * somebody to open it. It matters that this is separate from the geography
+ * read: the country is memoised for an hour and this changes the moment
+ * anybody walks through a door, so caching them together would show a person a
+ * closed door they had just opened themselves.
+ *
+ * Signed out this returns exactly the ACTIVE and PAUSED places the `areas_select`
+ * policy allows, which is the correct answer rather than a reduced one: an open
+ * place is public, and reading one has never needed an account.
+ */
+export async function listOpenLgaPlaces(): Promise<OpenPlace[]> {
+  if (!isSupabaseConfigured()) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("areas")
+    .select("lga_code, slug, name, status, member_count, post_count")
+    .not("lga_code", "is", null)
+    .in("status", ["ACTIVE", "PAUSED"])
+    /* 774 is the ceiling this can ever reach, because `lga_code` is unique. */
+    .limit(800);
+  if (error || !data) return [];
+
+  return data
+    .filter((row): row is typeof row & { lga_code: string } => Boolean(row.lga_code))
+    .map((row) => ({
+      lgaCode: row.lga_code,
+      slug: row.slug,
+      name: row.name,
+      status: row.status as AreaStatus,
+      memberCount: row.member_count,
+      postCount: row.post_count,
+    }));
+}
+
+/**
+ * The finer places inside one local government.
+ *
+ * `areas.within_lga_code` is set on every place, including on the local
+ * government's own row, which is why the local government itself is excluded by
+ * id rather than by a status test. Lekki Phase 1 and Ikeja GRA are inside
+ * Eti-Osa and Ikeja respectively, UNILAG is inside Lagos Mainland, and somebody
+ * standing in the local government should be offered all of them: the door they
+ * came through is the coarse one, and the room they actually live in is usually
+ * finer than it.
+ */
+export async function listPlacesWithinLga(
+  lgaCode: string,
+  excludeAreaId: string,
+): Promise<PlaceWithin[]> {
+  if (!isSupabaseConfigured()) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("areas")
+    .select("id, slug, name, kind, status, member_count, post_count")
+    .eq("within_lga_code", lgaCode)
+    .neq("id", excludeAreaId)
+    .in("status", ["ACTIVE", "PAUSED"])
+    .order("member_count", { ascending: false })
+    .order("name", { ascending: true })
+    .limit(24);
+  if (error || !data) return [];
+
+  return data.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    kind: row.kind,
+    status: row.status as AreaStatus,
+    memberCount: row.member_count,
+    postCount: row.post_count,
+  }));
+}
+
+/**
+ * The local government a finer place sits inside, when that door is already
+ * open. Lekki Phase 1 is inside Eti-Osa, and somebody standing in Lekki should
+ * be one tap from everything else in Eti-Osa.
+ *
+ * Null when nobody has opened the local government yet, because opening it is a
+ * write and a link that silently creates a place is not a link. That person can
+ * still reach it from the picker on `/around`, which is where opening belongs.
+ */
+export async function getLgaDoor(
+  lgaCode: string,
+): Promise<{ slug: string; name: string; status: AreaStatus } | null> {
+  if (!isSupabaseConfigured()) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("areas")
+    .select("slug, name, status")
+    .eq("lga_code", lgaCode)
+    .in("status", ["ACTIVE", "PAUSED"])
+    .maybeSingle();
+  if (error || !data) return null;
+  return { slug: data.slug, name: data.name, status: data.status as AreaStatus };
 }
 
 /** The states a person can put a place in, for the propose form. */

@@ -5,8 +5,10 @@ import { getLocale } from "@/lib/locale";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getSupportTickets, getTicketThread, type TicketView } from "@/lib/admin/queries";
 import { TicketReply, TicketStatusControl } from "../_components/AdminActions";
-import { fill, type AdminCopy } from "../_components/copy";
+import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { dueChip } from "../_components/due";
+import { gradeForTopic, supportTopicLabel } from "@/lib/trust/support-topics";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -22,18 +24,29 @@ export const dynamic = "force-dynamic";
  * and email the person offered. Replying here inserts an admin message, and the
  * database trigger on that insert notifies the ticket owner, so the reply lands
  * on the platform they already use rather than in a queue nobody watches.
+ *
+ * The contact form's first option is "Someone asked me to pay outside RentMe",
+ * and that choice has to mean something on this side or the wording is
+ * decoration. It does: the stored topic is read back through the same module
+ * the form renders from, and an open ticket carrying it takes the four-hour
+ * commitment /standards publishes rather than the ordinary day.
  */
 function TicketRow({
   ticket,
   selected,
   copy,
+  common,
   ui,
 }: {
   ticket: TicketView;
   selected: boolean;
   copy: AdminCopy["support"];
+  common: AdminCommon;
   ui: AdminUi;
 }) {
+  // Matches the page's own partition: resolved and closed are done, the other
+  // two are still somebody's to answer.
+  const awaitingUs = ticket.status === "open" || ticket.status === "pending";
   return (
     <li>
       <Link
@@ -46,12 +59,19 @@ function TicketRow({
       >
         <div className="flex flex-wrap items-center gap-2">
           <ui.StatusChip status={ticket.status} />
+          {awaitingUs && (
+            <ui.StatusChip
+              {...dueChip(ticket.createdAt, gradeForTopic(ticket.topic), common)}
+            />
+          )}
           <span className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
             {ticket.reference}
           </span>
         </div>
-        <p className="mt-1.5 truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-          {ticket.topic ?? copy.generalQuestion}
+        {/* Never truncated: the topic is the sentence the person chose, and it
+            is the whole of what this row is about. */}
+        <p className="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+          {supportTopicLabel(ticket.topic) ?? copy.generalQuestion}
         </p>
         <p className="mt-0.5 truncate text-[0.8125rem] text-[var(--nf-content-secondary)]">
           {ticket.name} · {ui.when(ticket.createdAt)}
@@ -126,7 +146,9 @@ export default async function AdminSupportPage({
             </Link>
           </div>
 
-          <h2 className="nf-h3 mt-2.5">{selected.topic ?? copy.generalQuestion}</h2>
+          <h2 className="nf-h3 mt-2.5">
+            {supportTopicLabel(selected.topic) ?? copy.generalQuestion}
+          </h2>
 
           <ui.DetailSection title={copy.whoFiled}>
             <ui.DetailRow label={copy.fields.name} value={selected.name} />
@@ -199,6 +221,7 @@ export default async function AdminSupportPage({
                   ticket={ticket}
                   selected={ticket.id === selectedId}
                   copy={copy}
+                  common={common}
                   ui={ui}
                 />
               ))}
@@ -215,6 +238,7 @@ export default async function AdminSupportPage({
                     ticket={ticket}
                     selected={ticket.id === selectedId}
                     copy={copy}
+                    common={common}
                     ui={ui}
                   />
                 ))}

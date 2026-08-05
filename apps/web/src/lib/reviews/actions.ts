@@ -63,7 +63,11 @@ export async function submitReview(
     .maybeSingle();
 
   if (readError) return fail(SERVICE_DOWN_MESSAGE);
-  if (!booking) return fail("We could not find that stay on your account.");
+  if (!booking) {
+    return fail(
+      "We could not find that stay on your account. Open it again from Bookings, and check you are signed in with the account that booked it.",
+    );
+  }
 
   if (booking.status === "CANCELLED") {
     return fail("This stay was cancelled, so there is nothing to review.");
@@ -93,7 +97,9 @@ export async function submitReview(
     // 42501 is the row level security refusal, which at this point means the
     // stay genuinely is not reviewable by this account.
     if (insertError.code === "42501") {
-      return fail("This stay cannot be reviewed from this account.");
+      return fail(
+        "This stay cannot be reviewed from this account. Sign in with the account that booked the stay and try again.",
+      );
     }
     return fail(SERVICE_DOWN_MESSAGE);
   }

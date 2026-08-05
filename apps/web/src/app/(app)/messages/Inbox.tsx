@@ -135,14 +135,25 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
   );
 }
 
-function Empty({
+/**
+ * The one empty state this surface has, for every reason it can be empty.
+ *
+ * Exported because the signed-out page needs the same panel and a second copy
+ * of it would drift, which this file's own history says out loud: the module
+ * comment on `SocialPaused` records ten hand-written paused screens doing
+ * exactly that. A second action is optional and only the signed-out case uses
+ * it, because that is the only case with two genuinely different next steps.
+ */
+export function InboxEmpty({
   title,
   body,
   action,
+  secondary,
 }: {
   title: string;
   body: string;
   action?: { href: string; label: string };
+  secondary?: { href: string; label: string };
 }) {
   return (
     <div className="nf-card p-8 text-center" data-testid="inbox-empty">
@@ -155,14 +166,26 @@ function Empty({
       <p className="mx-auto mt-1.5 max-w-[38ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
         {body}
       </p>
-      {action && (
-        <Link href={action.href} className="nf-btn nf-btn--primary mt-4 inline-flex">
-          {action.label}
-        </Link>
+      {(action || secondary) && (
+        <div className="mt-4 flex flex-col items-stretch justify-center gap-2 sm:flex-row">
+          {action && (
+            <Link href={action.href} className="nf-btn nf-btn--primary inline-flex justify-center">
+              {action.label}
+            </Link>
+          )}
+          {secondary && (
+            <Link href={secondary.href} className="nf-btn nf-btn--ghost inline-flex justify-center">
+              {secondary.label}
+            </Link>
+          )}
+        </div>
       )}
     </div>
   );
 }
+
+/** The local name, so the four call sites below read as they did. */
+const Empty = InboxEmpty;
 
 export function Inbox({
   rows,

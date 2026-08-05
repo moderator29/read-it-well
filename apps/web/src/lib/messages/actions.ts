@@ -47,9 +47,18 @@ const SEED_LISTING_MESSAGE =
 const UNKNOWN_LISTING_MESSAGE =
   "We could not find this listing. It may no longer be available. Explore other places from search.";
 
-const NOT_YOUR_CONVERSATION_MESSAGE = "That conversation is not on your account.";
+const NOT_YOUR_CONVERSATION_MESSAGE =
+  "That conversation is not on your account. Open your inbox to see the conversations you are part of.";
 
 const SEND_FAILED_MESSAGE = "Your message did not send. Tap retry to send it again.";
+
+/**
+ * Marking read is a background courtesy, not the thing the reader came for, so
+ * the message has to say the one thing they would worry about (their messages
+ * are still there) and the one thing they can do (try again).
+ */
+const READ_STATE_FAILED_MESSAGE =
+  "We could not mark these as read just now. Every message is still in your inbox. Try again in a moment.";
 
 /** The body a photo-only message carries. */
 const PHOTO_BODY = "\u{1F4F7} Photo";
@@ -137,7 +146,9 @@ export async function startConversation(input: {
     return fail("The agent for this listing is not reachable right now. Please try again shortly.");
   }
   if (agentUserId === session.user.id) {
-    return fail("This is your own listing, so there is no agent to message.");
+    return fail(
+      "This is your own listing, so there is no agent to message. Open it from your listings to manage it.",
+    );
   }
 
   const { data: existing, error: findError } = await session.supabase
@@ -259,7 +270,7 @@ export async function attachImage(input: {
   const data = parsed.data;
 
   if (!data.storagePath.toLowerCase().startsWith(`${data.conversationId.toLowerCase()}/`)) {
-    return fail("This photo does not belong to this conversation.");
+    return fail("This photo does not belong to this conversation. Choose the photo again.");
   }
 
   let messageId = data.messageId ?? null;
@@ -363,7 +374,7 @@ export async function markThreadRead(input: {
     .select("id, guest_id, agent_id")
     .eq("id", parsed.data.conversationId)
     .maybeSingle();
-  if (readError) return fail("Read receipts are unavailable just now.");
+  if (readError) return fail(READ_STATE_FAILED_MESSAGE);
   if (
     !conversation ||
     (conversation.guest_id !== session.user.id && conversation.agent_id !== session.user.id)
@@ -380,10 +391,10 @@ export async function markThreadRead(input: {
       .neq("sender_id", session.user.id)
       .is("read_at", null)
       .select("id");
-    if (updateError) return fail("Read receipts are unavailable just now.");
+    if (updateError) return fail(READ_STATE_FAILED_MESSAGE);
     return ok({ updated: updated?.length ?? 0 });
   } catch {
-    return fail("Read receipts are unavailable just now.");
+    return fail(READ_STATE_FAILED_MESSAGE);
   }
 }
 
@@ -409,7 +420,7 @@ export async function markInboxRead(): Promise<ActionResult<{ updated: number }>
     .from("conversations")
     .select("id")
     .limit(200);
-  if (readError) return fail("Read receipts are unavailable just now.");
+  if (readError) return fail(READ_STATE_FAILED_MESSAGE);
   const ids = (conversations ?? []).map((row) => row.id);
   if (ids.length === 0) return ok({ updated: 0 });
 
@@ -422,11 +433,11 @@ export async function markInboxRead(): Promise<ActionResult<{ updated: number }>
       .neq("sender_id", session.user.id)
       .is("read_at", null)
       .select("id");
-    if (updateError) return fail("Read receipts are unavailable just now.");
+    if (updateError) return fail(READ_STATE_FAILED_MESSAGE);
 
     revalidatePath("/messages");
     return ok({ updated: updated?.length ?? 0 });
   } catch {
-    return fail("Read receipts are unavailable just now.");
+    return fail(READ_STATE_FAILED_MESSAGE);
   }
 }

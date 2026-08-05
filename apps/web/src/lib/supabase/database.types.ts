@@ -162,6 +162,94 @@ export type Database = {
           },
         ]
       }
+      agent_suspensions: {
+        Row: {
+          agent_id: string
+          id: string
+          lift_note: string | null
+          lifted_at: string | null
+          lifted_by: string | null
+          reason: string
+          restored: Json
+          stays_ahead: number
+          suspended_at: string
+          suspended_by: string | null
+          withdrawn: Json
+        }
+        Insert: {
+          agent_id: string
+          id?: string
+          lift_note?: string | null
+          lifted_at?: string | null
+          lifted_by?: string | null
+          reason: string
+          restored?: Json
+          stays_ahead?: number
+          suspended_at?: string
+          suspended_by?: string | null
+          withdrawn?: Json
+        }
+        Update: {
+          agent_id?: string
+          id?: string
+          lift_note?: string | null
+          lifted_at?: string | null
+          lifted_by?: string | null
+          reason?: string
+          restored?: Json
+          stays_ahead?: number
+          suspended_at?: string
+          suspended_by?: string | null
+          withdrawn?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_suspensions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_verification_checks: {
+        Row: {
+          agent_id: string
+          decided_at: string
+          decided_by: string | null
+          id: string
+          kind: string
+          note: string | null
+          status: string
+        }
+        Insert: {
+          agent_id: string
+          decided_at?: string
+          decided_by?: string | null
+          id?: string
+          kind: string
+          note?: string | null
+          status: string
+        }
+        Update: {
+          agent_id?: string
+          decided_at?: string
+          decided_by?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_verification_checks_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agents: {
         Row: {
           application_id: string | null
@@ -172,6 +260,7 @@ export type Database = {
           type: Database["public"]["Enums"]["agent_type"]
           updated_at: string
           user_id: string
+          verification_tier: number
           verified: boolean
         }
         Insert: {
@@ -183,6 +272,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["agent_type"]
           updated_at?: string
           user_id: string
+          verification_tier?: number
           verified?: boolean
         }
         Update: {
@@ -194,6 +284,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["agent_type"]
           updated_at?: string
           user_id?: string
+          verification_tier?: number
           verified?: boolean
         }
         Relationships: [
@@ -388,6 +479,7 @@ export type Database = {
           decision_note: string | null
           id: string
           kind: Database["public"]["Enums"]["area_kind"]
+          lga_code: string | null
           member_count: number
           name: string
           opened_at: string | null
@@ -396,6 +488,7 @@ export type Database = {
           slug: string
           state_code: string
           status: Database["public"]["Enums"]["area_status"]
+          within_lga_code: string | null
         }
         Insert: {
           area?: string | null
@@ -410,6 +503,7 @@ export type Database = {
           decision_note?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["area_kind"]
+          lga_code?: string | null
           member_count?: number
           name: string
           opened_at?: string | null
@@ -418,6 +512,7 @@ export type Database = {
           slug: string
           state_code: string
           status?: Database["public"]["Enums"]["area_status"]
+          within_lga_code?: string | null
         }
         Update: {
           area?: string | null
@@ -432,6 +527,7 @@ export type Database = {
           decision_note?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["area_kind"]
+          lga_code?: string | null
           member_count?: number
           name?: string
           opened_at?: string | null
@@ -440,13 +536,28 @@ export type Database = {
           slug?: string
           state_code?: string
           status?: Database["public"]["Enums"]["area_status"]
+          within_lga_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "areas_lga_code_fkey"
+            columns: ["lga_code"]
+            isOneToOne: false
+            referencedRelation: "local_governments"
+            referencedColumns: ["code"]
+          },
           {
             foreignKeyName: "areas_state_code_fkey"
             columns: ["state_code"]
             isOneToOne: false
             referencedRelation: "states"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "areas_within_lga_code_fkey"
+            columns: ["within_lga_code"]
+            isOneToOne: false
+            referencedRelation: "local_governments"
             referencedColumns: ["code"]
           },
         ]
@@ -557,6 +668,66 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      booking_refunds: {
+        Row: {
+          booking_id: string
+          created_at: string
+          decided_by: string | null
+          guest_id: string
+          id: string
+          note: string | null
+          paid_minor: number
+          reason: string
+          refund_minor: number
+          retained_minor: number
+          wallet_entry_id: string | null
+          wallet_reference: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          decided_by?: string | null
+          guest_id: string
+          id?: string
+          note?: string | null
+          paid_minor: number
+          reason: string
+          refund_minor: number
+          retained_minor: number
+          wallet_entry_id?: string | null
+          wallet_reference?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          decided_by?: string | null
+          guest_id?: string
+          id?: string
+          note?: string | null
+          paid_minor?: number
+          reason?: string
+          refund_minor?: number
+          retained_minor?: number
+          wallet_entry_id?: string | null
+          wallet_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_refunds_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_refunds_wallet_entry_id_fkey"
+            columns: ["wallet_entry_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_entries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       booking_state_events: {
         Row: {
@@ -1380,6 +1551,7 @@ export type Database = {
           matched: string
           message_id: string
           reason: Database["public"]["Enums"]["message_flag_reason"]
+          reviewed_by: string | null
           status: Database["public"]["Enums"]["message_flag_status"]
         }
         Insert: {
@@ -1388,6 +1560,7 @@ export type Database = {
           matched: string
           message_id: string
           reason: Database["public"]["Enums"]["message_flag_reason"]
+          reviewed_by?: string | null
           status?: Database["public"]["Enums"]["message_flag_status"]
         }
         Update: {
@@ -1396,6 +1569,7 @@ export type Database = {
           matched?: string
           message_id?: string
           reason?: Database["public"]["Enums"]["message_flag_reason"]
+          reviewed_by?: string | null
           status?: Database["public"]["Enums"]["message_flag_status"]
         }
         Relationships: [
@@ -1925,6 +2099,7 @@ export type Database = {
           reason: string
           reporter_id: string
           resolved_at: string | null
+          resolved_by: string | null
           status: Database["public"]["Enums"]["report_status"]
           target_id: string
           target_type: string
@@ -1936,6 +2111,7 @@ export type Database = {
           reason: string
           reporter_id: string
           resolved_at?: string | null
+          resolved_by?: string | null
           status?: Database["public"]["Enums"]["report_status"]
           target_id: string
           target_type: string
@@ -1947,6 +2123,7 @@ export type Database = {
           reason?: string
           reporter_id?: string
           resolved_at?: string | null
+          resolved_by?: string | null
           status?: Database["public"]["Enums"]["report_status"]
           target_id?: string
           target_type?: string
@@ -2051,6 +2228,7 @@ export type Database = {
           entity_type: string | null
           id: string
           resolved_at: string | null
+          resolved_by: string | null
           severity: Database["public"]["Enums"]["alert_severity"]
           status: Database["public"]["Enums"]["alert_status"]
           title: string
@@ -2062,6 +2240,7 @@ export type Database = {
           entity_type?: string | null
           id?: string
           resolved_at?: string | null
+          resolved_by?: string | null
           severity?: Database["public"]["Enums"]["alert_severity"]
           status?: Database["public"]["Enums"]["alert_status"]
           title: string
@@ -2073,6 +2252,7 @@ export type Database = {
           entity_type?: string | null
           id?: string
           resolved_at?: string | null
+          resolved_by?: string | null
           severity?: Database["public"]["Enums"]["alert_severity"]
           status?: Database["public"]["Enums"]["alert_status"]
           title?: string
@@ -2769,6 +2949,19 @@ export type Database = {
         Returns: boolean
       }
       current_agent_id: { Args: never; Returns: string }
+      enter_place: {
+        Args: { p_lga_code: string }
+        Returns: {
+          id: string
+          name: string
+          slug: string
+          status: Database["public"]["Enums"]["area_status"]
+        }[]
+      }
+      lift_agent_suspension: {
+        Args: { acting_admin: string; note?: string; target_agent: string }
+        Returns: Json
+      }
       pay_booking_from_wallet: {
         Args: {
           payer: string
@@ -2790,11 +2983,34 @@ export type Database = {
         Args: { key: string; result: Json; scope: string; subject: string }
         Returns: boolean
       }
+      refund_and_cancel_booking: {
+        Args: {
+          acting_admin: string
+          decision_note?: string
+          reason_code: string
+          refund_amount: number
+          refund_reference: string
+          target_booking: string
+        }
+        Returns: Json
+      }
+      reinstate_agent: {
+        Args: { acting_admin: string; note?: string; target_agent: string }
+        Returns: Json
+      }
       release_idempotency: {
         Args: { key: string; scope: string; subject: string }
         Returns: boolean
       }
       story_count: { Args: { p_author: string }; Returns: number }
+      suspend_agent: {
+        Args: {
+          acting_admin: string
+          stop_reason: string
+          target_agent: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       agent_application_status:

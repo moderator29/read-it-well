@@ -9,6 +9,7 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { toggleSave } from "@/lib/saved/actions";
 import { addLocalSave, readLocalSaves, removeLocalSave } from "@/lib/saved/local";
 import { MapDock } from "./MapDock";
+import { readViewport, writeViewport } from "./map-viewport";
 import {
   clusterByGrid,
   fitProjector,
@@ -184,6 +185,15 @@ export function MapCanvas({
         map.setView([9.05, 7.5], 5);
         map.on("move zoom resize", bump);
         map.on("dragend", () => setPanned(true));
+        /* Every settled move puts the view back in the address, so the link in
+           the address bar is always a link to what is on screen. `moveend`
+           fires once a pan or a zoom has come to rest, not per frame. */
+        map.on("moveend", () => {
+          const centre = map?.getCenter();
+          const zoom = map?.getZoom();
+          if (!centre || typeof zoom !== "number") return;
+          writeViewport({ lat: centre.lat, lng: centre.lng, zoom });
+        });
         leafletRef.current = leaflet;
         mapRef.current = map;
         setEngineReady(true);
@@ -271,8 +281,28 @@ export function MapCanvas({
     );
   }, [listings, cities, active]);
 
+  /**
+   * An address that names a viewport is an instruction, and it outranks
+   * fitting to the results. That is the whole point of a shared map link: the
+   * person who sent it chose that view, and re-fitting to the results on
+   * arrival would throw their choice away and show the recipient something
+   * different from what the sender was looking at.
+   *
+   * Read once, on the first fit only. Later fits (a new query, a category
+   * change) are the results genuinely changing underneath, and at that point
+   * the URL's opening position is stale and must not keep reasserting itself.
+   */
+  const openedFromUrl = useRef(false);
   useEffect(() => {
     if (!engineReady) return;
+    if (!openedFromUrl.current) {
+      openedFromUrl.current = true;
+      const asked = readViewport(window.location.search);
+      if (asked) {
+        mapRef.current?.setView([asked.lat, asked.lng], asked.zoom);
+        return;
+      }
+    }
     fitToPlaces();
   }, [engineReady, fitToPlaces]);
 

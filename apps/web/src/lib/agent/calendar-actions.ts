@@ -28,7 +28,7 @@ import { blockNightsInputSchema, datesBetween, lagosToday } from "./calendar-sch
 import { getAgentContext, type AgentContext } from "./listings-queries";
 
 const NOT_AGENT_MESSAGE =
-  "Only an approved agent can manage a listing calendar.";
+  "Only an approved agent can manage a listing calendar. Apply to host and we will take it from there.";
 
 const PAUSED_MESSAGE =
   "Listing tools are paused for maintenance. Please try again in a little while.";
@@ -36,7 +36,8 @@ const PAUSED_MESSAGE =
 const SERVICE_DOWN_MESSAGE =
   "We could not update the calendar just then. Nothing changed, please try again in a moment.";
 
-const NOT_YOURS_MESSAGE = "We could not find that listing on your account.";
+const NOT_YOURS_MESSAGE =
+  "We could not find that listing on your account. Reload the page to see the listings you have.";
 
 /**
  * Shared front half: who is asking, and is this listing theirs?
@@ -83,7 +84,9 @@ export async function blockNights(
 
   const today = lagosToday();
   if (parsed.data.to < today) {
-    return fail("Those nights have already passed, so there is nothing to close.");
+    return fail(
+      "Those nights have already passed, so there is nothing to close. Pick nights from today onwards.",
+    );
   }
 
   /* Never reach backwards: a night in the past cannot be closed or reopened. */
@@ -107,7 +110,9 @@ export async function blockNights(
   const writable = dates.filter((d) => !booked.has(d));
 
   if (writable.length === 0) {
-    return fail("Every one of those nights already has a booking on it.");
+    return fail(
+      "Every one of those nights already has a booking on it, and a booked night stays booked. Pick nights that are still free.",
+    );
   }
 
   const { error: writeError } = await resolved.context.supabase.from("availability").upsert(

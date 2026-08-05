@@ -2,16 +2,21 @@
 
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { canGoBackInApp } from "@/lib/ui/history";
 
 /**
  * Page header with the platform back flow.
  *
  * The pattern every big app uses: the back control lives at the top left OF THE
  * PAGE, next to its title, not floating in the global chrome. Back returns to
- * the previous in-app screen when one exists in this session's history
- * (Next.js tracks the index in history.state), and otherwise falls through to
- * `fallback`, so a deep link or fresh tab never strands the user or bounces
- * them out of the product.
+ * the previous in-app screen when one exists in this session's history, and
+ * otherwise falls through to `fallback`, so a deep link or fresh tab never
+ * strands the user or bounces them out of the product.
+ *
+ * The test used to read `history.state.idx`, a Next internal that Next 16 no
+ * longer writes, so it was `undefined` on every screen and this control pushed
+ * the fallback every single time. A filtered search opened a listing and Back
+ * threw the whole hunt away. `lib/ui/history.ts` carries the full account.
  */
 export function PageHeader({
   title,
@@ -39,8 +44,7 @@ export function PageHeader({
   const router = useRouter();
 
   const back = () => {
-    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
-    if (idx > 0) router.back();
+    if (canGoBackInApp()) router.back();
     else router.push(fallback);
   };
 

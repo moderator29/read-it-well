@@ -149,7 +149,26 @@ function expectMoney(minor, locale, { compact = false } = {}) {
 const SWEEP = () => {
   const money = new Set();
   const ungrouped = new Set();
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  /*
+   * SCRIPT AND STYLE ARE NOT THE SCREEN.
+   *
+   * `createTreeWalker(document.body, SHOW_TEXT)` walks into <script>, and on an
+   * App Router page <script> holds the RSC flight payload: megabytes of
+   * `self.__next_f.push([1,"1b:[\"$\",\"main\"...` full of chunk lengths,
+   * font hashes and module ids. This check reported nine of those per route as
+   * "a figure reaching the screen ungrouped", which is not a product defect at
+   * all, and the noise was hiding whether the real check passed. Reject the
+   * two element types whose text content is never rendered as text.
+   */
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode(n) {
+      const tag = n.parentElement?.tagName;
+      if (tag === "SCRIPT" || tag === "STYLE" || tag === "NOSCRIPT" || tag === "TEMPLATE") {
+        return NodeFilter.FILTER_REJECT;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  });
   let node;
   while ((node = walker.nextNode())) {
     const text = (node.nodeValue || "").trim();

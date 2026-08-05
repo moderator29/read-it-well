@@ -1,3 +1,4 @@
+import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -228,8 +229,8 @@ const sections: { title: string; body: React.ReactNode }[] = [
     body: (
       <p>
         Questions about these terms go to{" "}
-        <a href="mailto:support@naijafinds.com" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
-          support@naijafinds.com
+        <a href={SUPPORT_HREF} className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+          {SUPPORT_LABEL}
         </a>
         . We reply within one business day.
       </p>

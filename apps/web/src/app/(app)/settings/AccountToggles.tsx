@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { GroupCard } from "@/components/app/account/SettingsGroups";
-import { Toggle } from "@/components/app/account/Toggle";
+import { RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { updateSettings } from "@/lib/profile/actions";
 import type { ResolvedProfileSettings, SettingsPatch } from "@/lib/profile/schema";
@@ -47,24 +46,31 @@ function useSettingsSaver() {
   return { save, error, saved: savedAt > 0, pending };
 }
 
-function SaveState({ saved, error }: { saved: boolean; error: string | null }) {
+/**
+ * The line under the group.
+ *
+ * It sits in the group's own note slot rather than inside the card, so a save
+ * confirmation never pushes the switches themselves down the screen while
+ * somebody is still flipping them.
+ */
+function saveNote(saved: boolean, error: string | null) {
   if (error) {
     return (
-      <p role="alert" className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-state-error)]">
+      <span role="alert" className="text-[var(--nf-state-error)]">
         {error}
-      </p>
+      </span>
     );
   }
-  if (!saved) return null;
+  if (!saved) return undefined;
   return (
-    <p
+    <span
       role="status"
       data-testid="settings-saved"
-      className="nf-rise mt-3 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-state-success)]"
+      className="nf-rise inline-flex items-center gap-1.5 text-[var(--nf-state-success)]"
     >
-      <UiIcon name="verified" size={16} className="shrink-0" />
+      <UiIcon name="verified" size={15} className="shrink-0" />
       Saved to your account
-    </p>
+    </span>
   );
 }
 
@@ -118,29 +124,34 @@ export function AccountNotificationsCard({
     save({ notifications: { [key]: next } }, () => setValue(previous));
   };
 
+  const ICON: Record<NotifyKey, "calendar-booking" | "chat-bubble" | "wallet" | "sparkle"> = {
+    bookings: "calendar-booking",
+    messages: "chat-bubble",
+    wallet: "wallet",
+    marketing: "sparkle",
+  };
+
   const row = (key: NotifyKey) => {
     const [label, description] = copy[key];
     return (
-      <Toggle
+      <RowSwitch
+        icon={ICON[key]}
+        label={label}
+        sub={description}
         checked={value[key]}
         onChange={(next) => flip(key, next)}
-        label={label}
-        description={description}
         disabled={pending}
       />
     );
   };
 
   return (
-    <GroupCard overline="Notifications" icon="bell-alert">
-      <div className="divide-y divide-[var(--nf-border-subtle)]">
-        {row("bookings")}
-        {row("messages")}
-        {row("wallet")}
-        {row("marketing")}
-      </div>
-      <SaveState saved={saved} error={error} />
-    </GroupCard>
+    <SettingsGroup label="Notifications" note={saveNote(saved, error)}>
+      {row("bookings")}
+      {row("messages")}
+      {row("wallet")}
+      {row("marketing")}
+    </SettingsGroup>
   );
 }
 
@@ -158,32 +169,31 @@ export function AccountPrivacyCard({
   const { save, error, saved, pending } = useSettingsSaver();
 
   return (
-    <GroupCard overline="Privacy" icon="shield-lock">
-      <div className="divide-y divide-[var(--nf-border-subtle)]">
-        <Toggle
-          checked={hideActivity}
-          onChange={(next) => {
-            const previous = hideActivity;
-            setHideActivity(next);
-            save({ privacy: { hideActivity: next } }, () => setHideActivity(previous));
-          }}
-          label="Hide my activity"
-          description="Keep your reviews and recent stays off your public profile."
-          disabled={pending}
-        />
-        <Toggle
-          checked={dataSaver}
-          onChange={(next) => {
-            const previous = dataSaver;
-            setDataSaver(next);
-            save({ dataSaver: next }, () => setDataSaver(previous));
-          }}
-          label="Data saver"
-          description="Load lighter photos on mobile data. Kinder to a small bundle."
-          disabled={pending}
-        />
-      </div>
-      <SaveState saved={saved} error={error} />
-    </GroupCard>
+    <SettingsGroup label="Privacy" note={saveNote(saved, error)}>
+      <RowSwitch
+        icon="user"
+        label="Hide my activity"
+        sub="Keep your reviews and recent stays off your public profile."
+        checked={hideActivity}
+        onChange={(next) => {
+          const previous = hideActivity;
+          setHideActivity(next);
+          save({ privacy: { hideActivity: next } }, () => setHideActivity(previous));
+        }}
+        disabled={pending}
+      />
+      <RowSwitch
+        icon="compass"
+        label="Data saver"
+        sub="Load lighter photos on mobile data. Kinder to a small bundle."
+        checked={dataSaver}
+        onChange={(next) => {
+          const previous = dataSaver;
+          setDataSaver(next);
+          save({ dataSaver: next }, () => setDataSaver(previous));
+        }}
+        disabled={pending}
+      />
+    </SettingsGroup>
   );
 }

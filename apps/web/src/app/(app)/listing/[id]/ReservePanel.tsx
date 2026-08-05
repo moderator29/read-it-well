@@ -11,6 +11,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Amount } from "@/components/ui/Amount";
 import { Toggle } from "@/components/app/account/Toggle";
 import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
+import { PhoneField } from "@/components/app/PhoneField";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 
 /**
@@ -440,36 +441,20 @@ export function ReservePanel({
                 </p>
               )}
             </div>
-            <div>
-              <label htmlFor={`${uid}-guest-phone`} className="nf-label">
-                Their phone number
-              </label>
-              <input
-                id={`${uid}-guest-phone`}
-                name="guestPhone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="off"
-                maxLength={32}
-                value={guestPhone}
-                onChange={(e) => setGuestPhone(e.target.value)}
-                placeholder="0803 123 4567"
-                aria-describedby={`${uid}-guest-phone-hint`}
-                aria-invalid={fieldError("guestPhone") ? true : undefined}
-                className="nf-field"
-              />
-              <p
-                id={`${uid}-guest-phone-hint`}
-                className="mt-1.5 text-[0.78rem] text-[var(--nf-content-muted)]"
-              >
-                The estate gate rings this number when they arrive.
-              </p>
-              {fieldError("guestPhone") && (
-                <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
-                  {fieldError("guestPhone")}
-                </p>
-              )}
-            </div>
+            {/* The one field on this form where a wrong character is not
+                caught until somebody is standing at a gate. It states its
+                country code, groups as it is typed and names the network, and
+                what it posts is the canonical +234 form. */}
+            <PhoneField
+              id={`${uid}-guest-phone`}
+              name="guestPhone"
+              label="Their phone number"
+              value={guestPhone}
+              onChange={setGuestPhone}
+              error={fieldError("guestPhone")}
+              hint="The estate gate rings this number when they arrive."
+              autoComplete="off"
+            />
             <div>
               <label htmlFor={`${uid}-guest-email`} className="nf-label">
                 Their email address, if you have it

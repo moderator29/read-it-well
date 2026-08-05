@@ -36,7 +36,12 @@ export type PostGlyphName =
      to do. */
   | "compose"
   | "close"
-  | "bookmark";
+  | "bookmark"
+  /* The sixth mark the note above says can be drawn without a design meeting.
+     It is drawn here for the same reason `compose` and `close` are: `UiIcon`
+     carries no camera and no picture, and adding to the platform's navigation
+     set is not this layer's to do. */
+  | "picture";
 
 const STROKE = {
   fill: "none",
@@ -158,6 +163,17 @@ export function PostGlyph({
             {...STROKE}
             fill={active ? "currentColor" : "none"}
           />
+        </>
+      ) : null}
+
+      {name === "picture" ? (
+        /* A frame, a node and a stroke that turns twice: light above a ridge.
+           All three primitives, no camera body and no shutter, because a
+           picture in a post is a photograph of a street and not a device. */
+        <>
+          <rect x="4.2" y="5.8" width="15.6" height="12.4" rx="3.2" {...STROKE} />
+          <circle cx="9" cy="10.3" r="1.5" fill="currentColor" stroke="none" />
+          <path d="M5.4 16.6 9.8 12.6l2.8 2.5 2.4-1.9 3.4 3" {...STROKE} />
         </>
       ) : null}
 

@@ -703,3 +703,305 @@ verified rather than assumed.
    does not appear in anybody's feed, because nothing in this product injects a
    repost into a feed. The sheet's copy says exactly that and promises nothing
    more, so this is a field waiting for a feature rather than a broken one.
+
+---
+
+## 12. Round five: the platform's other entries, and a blocker under the stories
+
+Round five began where round four's list ended, checked every open item against
+the live database rather than against this document, and then went looking. The
+looking found more than the list did, which is the fifth round running that this
+has been true.
+
+**Every item in section 11.5 except two is closed, and the two are not this
+agent's.** Read live: `stories_area_fk_idx` exists, so M1 is closed;
+`public.bot_may_run` reads `{postgres,service_role}` and `private.bot_may_run`
+reads `{postgres}`, so 11.5.2 is closed; `20260805092336_the_assistants_ceiling_
+resets_in_lagos` is applied, so 11.5.3 is closed; `private.project_social_identity`
+reads `{postgres}`, so M3 is closed; `risk_alerts` is empty, so 11.5.4 is closed.
+The migration mirror, M2, is closed too: 95 files under `supabase/migrations`
+against 95 applied versions, and a sorted diff of the two lists is empty.
+
+What is left from the earlier rounds is `.nf-card.nf-social-card` in
+`apps/web/src/app/social.css`, which belongs to the session that owns the visual
+layer, and `repostedBy`, which the lead has judged correct and which this round
+did not reopen.
+
+### 12.1 The SYSTEM entries, checked one by one
+
+`docs/SOCIAL_DESIGN.md` section 3 promises seven. Two ship in
+`private.open_place_entries`. The remaining five were checked against the live
+schema before a line was written, and they are not the same problem five times.
+
+| Entry | Source | Verdict |
+|---|---|---|
+| A listing going live | `listings` reaching `PUBLISHED` | **Already built** in `private.announce_published_listing`, and it had a serious defect. N29 |
+| A verified agent is here | `agents` | **Built.** Not at approval, for the reason in N30 |
+| A stay completing | `bookings` | **Built as a scheduled sweep, not a trigger.** N31 |
+| The utility record | nothing | **Not built, and not begun.** 12.3 |
+| The season | nothing | **Not built and not specifiable.** 12.4 |
+
+### 12.2 Findings
+
+| # | Severity | Finding | Evidence | What changed |
+|---|----------|---------|----------|--------------|
+| N29 | **BLOCKER, shipped** | **Every story picture in the product was unreadable.** `social-media` is a private bucket with one read policy, `private.social_media_access(name)`, and it knew about only one of the two things stored in it: it resolves a POST id out of the second folder segment and asks `can_see_post`. `StoryComposer` uploads a story to `<uid>/<uuid>.jpg`, which has no second segment, so the cast raised, the handler returned false, and `createSignedUrls` could never sign a story image for anybody, including its own author. `stories.image_path` is `not null` and the picture IS the story: the composer refuses to publish without one, the viewer is built around it, the rail is a row of them and the grid is nothing else | Live, needing no rows: `storage.foldername('<uid>/abcd.jpg')` is `{<uid>}` and `private.social_media_access('<uid>/abcd.jpg')` is **false** | `20260805103118_a_story_picture_can_actually_be_read`. The function now knows both tenants. **Proven through the real policy path rather than by calling the function**, which matters because RLS runs the policy expression where a direct call from `anon` raises 42501 on the `private` schema: a story row plus two objects in the bucket, read as `anon`, returns the story's object and refuses the orphan. The story branch matches on the stored path rather than parsing the name, so an abandoned upload nobody wrote a row for stays private |
+| N30 | SERIOUS | **A published listing announced itself in the wrong place.** `announce_published_listing` matched a place on `state_code` and `city` alone. Every Lagos place carries city `Lagos`, so all five matched every Lagos listing and the tie-break handed all of them to whichever was created first, which is UNILAG, a campus | Probed live on a real PUBLISHED listing with `area = 'Yaba'`, rolled back. Both entries landed in **UNILAG**, and the headline read "A new apartment is now open in Yaba" **inside the UNILAG feed**, which is the worst version: the sentence names the right place and sits in the wrong one, so nobody reading it can tell | `private.area_for_listing(state, city, area)`, one resolver used by both entry writers. The chain is `areas.area`, then `areas.name`, then the city, which is the chain `getPlaceReviews` already uses and for the same reason. Re-probed: a Yaba listing and a Surulere listing now announce in Yaba and in Surulere |
+| N31 | SERIOUS | **"A stay completing" has a source table and no source moment.** `booking_status` is `(PENDING, CONFIRMED, CANCELLED)`. There is no COMPLETED value anywhere, and nothing updates a booking when its `check_out` passes: `lib/bookings/queries.ts:177` reaches the same conclusion at read time with `check_out <= today`. So there is no state transition to hang a trigger on, and the entry could not have been written at all before `pg_cron` landed on 2026-08-04 | The enum, read live. `grep -rn COMPLETED` over `lib/bookings` returns nothing | `private.announce_completed_stays()`, a daily sweep at 05:20 UTC, which is 06:20 Lagos and the empty slot furthest from the quarter-hour hold sweep. **One entry per place per seven days**, and the number in it is the number of stays that finished in the seven days behind it. That is both the anti-spam rule and the privacy rule: a busy place says "9 guests" and identifies nobody, a quiet one says "a guest" once a week rather than announcing each departure as it happens. No name, no listing, no address, no price, no dates |
+| N32 | SERIOUS | **A post opened on its own page counted no view at all.** Every card renders a view count, `recordView` is a validated action, `post_views` has a bucket-filling trigger and a counter trigger, and the only caller in the product was a `ViewportPost` wrapper declared privately inside `Feed.tsx`. `/post/[id]` renders `PostCard` directly, so the one surface where somebody has deliberately opened a post to read it was the one surface that recorded nothing, and no reply anywhere was ever counted | `grep -rn recordView` returned exactly two lines, both in `Feed.tsx` | `components/social/feed/ViewportPost.tsx`, its own module precisely so a third surface rendering a card cannot quietly be a fourth place that forgets. Wired into the thread. The write path was proven end to end on the live database and rolled back: as a real second person through `private.probe_as` with `set local role authenticated`, the insert passed RLS and `posts.view_count` moved to 1 |
+| N33 | SERIOUS, **still open** | **`public.post_media` has no writer anywhere in the application, and the copy promises otherwise.** Three surfaces read it: `readMediaFor` puts pictures on every card, `getProfileMedia` filters the profile's Media tab on `post_media!inner`, and `profile-tabs-queries` builds the photo grid from it. The composer has no file control at all, `dropPostSchema` has no media field, and `POST_MEDIA_MAX = 4` is declared and imported by nothing. The Media tab tells the person whose page it is: "Anything you post with a picture lands here." Nothing can put a picture on a post | `grep -rn post_media` over `apps/web/src` returns one read in `posts-media.ts`, two in the query modules and nothing else. `grep -n "input\|image\|photo" components/social/feed/Composer.tsx` returns nothing | **Not built.** It is a full slice and the shape is in 12.5 |
+| N34 | MINOR | **`private.retire_listing_announcement` deleted other people's words.** It deleted every SYSTEM post for a deleted listing outright, and `posts_parent_id_fkey` is ON DELETE CASCADE, so every reply anybody had written underneath went with it. The migration that created it reasoned carefully about not taking a person's SHOWCASE with the listing and then took their replies instead. Section 8.3 of the design says plainly that a removed post becomes a tombstone so that this cannot happen | `pg_constraint`: `posts_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES posts(id) ON DELETE CASCADE` | `and reply_count = 0`. An announcement nobody answered still goes; one somebody answered stays, and the foreign key sets its `listing_id` to null on its own, so the card renders as plain words rather than as a plate pointing at a dead page. Probed: two listings, a reply under one, both listings deleted, one announcement left with its reply intact and its pointer null |
+| N35 | MINOR | **`getComments` in `lib/social/comments-queries.ts` has no importer.** A complete, careful module reading a post's replies for the sheet, and the sheet is only ever mounted for a story's `story_comments` | `grep -rn getComments` returns the definition and nothing else | **Not changed, deliberately.** A comments sheet on a post would be a second reading surface for the thread page, and the thread page is the designed one. It is dead weight rather than a broken promise, and inventing a caller for it would be worse than leaving it |
+| N36 | MINOR | A `copy` branch in both card menu handlers that nothing emits: `ActionSheet` offers save, repost, contact, share, edit, delete, mute, report and block, and no `copy`. Copy link lives on the profile menu, which is a different component | `grep -n 'key:' ActionSheet.tsx` against `grep -n 'action === "' ` in both handlers | **Not changed.** Two dead branches that cost nothing and would cost a diff in a file another round is likely to touch. Recorded so it is not mistaken for a missing feature |
+
+### 12.3 The utility record: specified, and deliberately not begun
+
+**There is no table.** `utility_reports`, `area_utility_state` and
+`area_utility_daily` do not exist: `information_schema.tables` returns zero rows
+for all three. So the SYSTEM entry "the light changed" has nothing to be fired
+by, and building the entry first would be a trigger on a table nobody can write.
+
+`docs/SOCIAL_DESIGN.md` sections 5.2 and 6 already specify the whole thing, and
+that specification stands. What this round adds is the ORDER, because the entry
+is the last part of it rather than the first, and because two things have to be
+true before any of it can be built:
+
+1. **Residency has to be earnable.** Every one of the six defences rests on
+   `area_members.role = 'RESIDENT'`, and nothing in the product writes
+   `residency_source` or `residency_verified_at`. Section 10.4 says this is
+   harmless while no surface shows a resident mark, and it stops being harmless
+   on the day the first utility report is weighted. **The earning paths are the
+   first slice, not the last**: a completed stay is now reachable, because
+   `private.announce_completed_stays` already knows how to find one; an invite
+   from a weighted resident is a table and an action; presence over time is a
+   sweep on the same scheduler.
+2. **The recompute has to be a trigger, not a job.** Section 6's last line says
+   the live state never waits on a job, and that is still right even now that
+   `pg_cron` exists.
+
+The entry itself, once those exist, is four lines beside the two written this
+round: fire on `area_utility_state` changing, say what changed and how many
+independent residents said so, carry the count in `payload`, and never write one
+where the state is contested.
+
+### 12.4 The season: not specifiable, and this is the reason
+
+There is no `seasons` table, and more to the point **there is no definition of a
+season anywhere in this repository.** `grep -rn season` over `docs`, `supabase`
+and `apps/web/src` finds it in exactly two places: one line of
+`SOCIAL_DESIGN.md` section 3 naming the entry, and one reference to "R-74 when
+it lands" which is a recommendation, not a design.
+
+So this is not a schema that is missing. It is a decision nobody has made, and
+writing the entry would mean inventing the decision inside a trigger. The
+questions somebody has to answer first, none of which the platform can infer:
+
+- **What is a season?** December in Lagos is a real demand event. So is a school
+  term in a campus place, a rainy season on a road, and a public holiday. Those
+  four have nothing in common except that they move demand, and a table shaped
+  for one of them is wrong for the other three.
+- **Who declares one?** An admin naming dates is a content decision with an
+  audit row. A rule derived from search volume is a different feature entirely
+  and needs `events` (R-102) to be collecting first.
+- **What does it change?** If a season is only a sentence in a feed it is a
+  banner with a table behind it. If it moves pricing, availability or ranking,
+  it is a pricing feature and belongs nowhere near the social layer.
+- **Is it national, per state, or per place?** The entry as written says
+  "December search has opened for Lagos", which is per state, and every other
+  SYSTEM entry in this layer is per place.
+
+**Recommendation: cut it from the SYSTEM entry list until R-74 exists.** Six
+entries is a full answer to the cold start and the seventh is the only one that
+would need a decision made by a trigger rather than by a person.
+
+### 12.5 What a picture on a post needs, so N33 is one slice and not a discovery
+
+Written out because the pattern already exists twice and the third copy is where
+things drift.
+
+- **The path must be `<uid>/<post id>/<file>.jpg`.** `private.social_media_access`
+  resolves the post out of the second folder segment, and the storage insert
+  policy checks only the first, so the id has to be known before the upload. That
+  means the order is: `dropPost` returns the id, then upload, then insert
+  `post_media`. Not the story order, which uploads first because a story's row is
+  written in one action.
+- **Re-encode on the phone**, through the existing
+  `components/social/profile/reencode.ts`, and measure the pixels AFTER the
+  re-encode so the row records what was stored. `StoryComposer` gets this right
+  and is the model.
+- **Four is the cap** and `POST_MEDIA_MAX` already says so. There is a trigger
+  enforcing it, so the client cap is a courtesy and the database is the rule.
+- **`position` is unique per post** and is what `readMediaFor` orders by.
+- **An upload that succeeds where the row insert fails is a private orphan**, not
+  a leak, because after N29 the access function refuses any object no row names.
+- **The spec** wraps `social-system.spec.mjs`'s stand-in: a post with two
+  `post_media` rows, and the assertion that the profile Media tab is no longer
+  the only surface that believes in them.
+
+### 12.6 How round five was verified
+
+- **The two new entries were probed against the live database in rolled back
+  transactions**, with a real agent, real PUBLISHED listings and real CONFIRMED
+  bookings. The agent entry fires once per agent per place across two listings
+  and a republish; the listing entry fires once per listing; the sweep writes one
+  entry and returns 0 on a second run; a booking whose `check_out` is in the
+  future is not counted; all three are readable as `anon` under RLS in the right
+  order. An agent moved to SUSPENDED loses an unanswered entry and keeps an
+  answered one, with the reply intact.
+- **`apps/web/tests/social-system.spec.mjs`, new**: 26 checks per theme, all
+  passed in both, against a build served by its own stand-in for PostgREST. It
+  asserts the five platform entries render, that the agent entry links the
+  agent's handle, that the stay entry names nobody and quotes no money, that the
+  listing entry carries the flat with its price formatted once through
+  `formatMoney`, that a SYSTEM card does not render as an ordinary post, that the
+  feed's 22px corner survives the cascade, and that the platform's own entry
+  offers Report and Repost but neither Mute nor Block.
+- **390px screenshots in both themes, looked at**: the place with the stay entry
+  at the top, and scrolled to the agent entry with the listing plate above it.
+  The paper twin is a designed page, not a derived one.
+- `npm run typecheck`: 0 errors across all three workspaces.
+- **`database.types.ts` was regenerated and the diff against the committed file
+  is empty**, which is the right answer this time rather than the fifth drift:
+  everything applied this round lives in `private` or is an index.
+- Every probe rolled back. `posts` reads 12, and `stories`, `auth.users`,
+  `listings`, `agents`, `bookings`, `notifications` and the `social-media` bucket
+  all read 0 afterwards.
+
+### 12.7 Still open, and whose
+
+1. **N33, a picture on a post.** The largest genuine gap left in this layer, and
+   the only one where the copy promises something the product cannot do. Shape in
+   12.5.
+2. **`.nf-card.nf-social-card`**, N27, unchanged. One line in
+   `apps/web/src/app/social.css`, which belongs to the session that owns the
+   visual layer.
+3. **`area_members.residency_source`**, unchanged, and now with an order attached
+   to it in 12.3. It remains harmless only while nothing shows a resident mark.
+4. **The season**, 12.4. A decision, not a schema.
+
+---
+
+## 13. Round six: N33 closed, and the loop proven in both halves
+
+### 13.1 A picture on a post, done
+
+`public.post_media` shipped with the content core and nothing ever wrote to it.
+Three surfaces read it and the Media tab told the person whose page it was
+"Anything you post with a picture lands here". That sentence is now true.
+
+**What was added**
+
+| Half | Where |
+|---|---|
+| The file control, the preview strip, the remove, the counter | `components/social/feed/Composer.tsx` |
+| The re-encode, refusing rather than falling back | the same, through `components/social/profile/reencode.ts` |
+| The validated action | `attachPostMedia` in `lib/social/posts-actions.ts`, `attachMediaSchema` in `posts-schema.ts` |
+| The path rule and the row rule, in the database | `20260805105407_a_picture_on_a_post_has_one_shape` |
+| The spec | `apps/web/tests/social-media.spec.mjs` |
+
+**The order, and why it is that way.** The object lives at
+`<author>/<post>/<file>`, because `private.social_media_access` resolves the
+post out of the second folder segment and the bucket's insert policy checks the
+first. So the post is written first, the upload second, the rows third. When the
+upload fails the words are already up, and the composer says exactly that,
+keeps the pictures and offers to send them to the post that already exists. It
+does not pretend nothing happened and it does not write the words twice.
+
+**The re-encode refuses.** A camera photo carries EXIF and on a phone that
+usually means GPS, and this is a photograph of somebody's own street. If the
+canvas re-encode returns nothing, the picture is not uploaded and the person is
+told. There is deliberately no fallback to the original file.
+
+### 13.2 What round six verified, and it re-ran the probes rather than trusting them
+
+The migration was applied by the previous session and its header records a set
+of probes. Those were re-run from scratch this round against the live database
+in rolled back transactions, through the real policy path: `private.probe_as`
+then `set local role authenticated`, never the service role.
+
+| Case | Result |
+|---|---|
+| the story shape on a post, `<uid>/<file>` | refused RM014 |
+| somebody else's folder | refused RM014 |
+| the right folder, the wrong post | refused RM014 |
+| the shape the composer writes | accepted |
+| a second picture | accepted |
+| a fifth picture | refused 23514 |
+| the same position twice | refused 23505 |
+| a second person reads the bucket | `0.jpg`, and not the orphan |
+| signed out reads the bucket | `0.jpg`, and not the orphan |
+
+**And the story tenant was re-probed, because this round replaced the function
+that N29 had just fixed.** A story row plus a loose object, read as `anon`:
+`story.jpg`, and not the loose one. The regression that would have re-opened the
+blocker did not happen.
+
+`post_media`, `storage.objects` and `auth.users` all read 0 afterwards.
+
+### 13.3 The render half
+
+`apps/web/tests/social-media.spec.mjs`, built and served against its own
+stand-in for PostgREST and for the storage signing endpoint, which hands out
+real PNG bytes so a picture is actually fetched and decoded rather than merely
+present as a tag. **All checks passed in both themes**, including: the one-up
+and three-up layouts, four of four pictures decoded on the feed, three of three
+on `/post/[id]`, four of four on the Media tab with every tile a way back into
+its post, the alt text telling a screen reader which picture of how many, the
+composer showing the file control to a member, no colour outside the blue
+family, no sideways push at 390px, and 30 real object requests made by the
+browser.
+
+**Looked at, at 390px, in both themes**: the feed with the three-up block, and
+the composer with two pictures chosen, the counter reading 2/4, the remove
+buttons on the tiles and the Post button correctly refusing until there are
+words to go with them. The paper twin is a designed page.
+
+### 13.4 N37, found this round: you could not take your own post down
+
+| # | Severity | Finding | Evidence | What changed |
+|---|----------|---------|----------|--------------|
+| N37 | **SERIOUS** | **After fifteen minutes, nobody could delete their own post.** Removal in this product is an UPDATE and not a DELETE, because `posts_parent_id_fkey` cascades and a real delete takes every reply underneath with it. `posts_update_own` carried `created_at > now() - '00:15:00'` in its USING clause, so the fifteen minutes meant for EDITING was also the only fifteen minutes in which anybody could take down their own words. The card went on offering "Delete this post" for ever, and `POST_FAILURE.deleteWindowClosed` told the person to write to support and ask. Both plans put the window on the edit alone: `SOCIAL_TODO` lists `editGist (15 minute window)` beside `removeGist` with none, and `SOCIAL_BUILD` says the same. This was what merging two verbs into one SQL statement cost, not a decision anybody made. It got worse the day 13.1 landed: a post can now carry a photograph, and in this product that photograph is usually of the street somebody lives on | The policy, read live. `POST_COPY`'s own comment states the behaviour and treats it as a fact of life | `20260805143409_taking_a_post_down_is_not_the_edit_window_s_business`. The window moves from USING to WITH CHECK, where it can see the row being written and tell an edit from a tombstone: inside the window, or REMOVED with no words left, and nothing else. Removal has no clock on it at all now |
+| N38 | **SERIOUS** | **A removed post kept its pictures, its listing plate and its citations.** `toView` dropped the body of a REMOVED post and nothing else, and `posts_select` hands a person their own removed rows back, so the author's own feed and their own profile drew a card with no words, every photograph still on it, the flat still plated with its price, and a marks row inviting a like on something that was gone. An admin removal nulls nothing at all, so that case kept the words in the row as well | Read against `toView`: one `row.status === "REMOVED"` test, on `body` | Two locks. The database deletes the `post_media` rows as the status lands, which is what makes the object unreadable by anybody after 13.1: the access function refuses any object no row names. The read layer drops the pictures, the plate, the source note and the citations for the same reason it drops the body |
+| N39 | MINOR | **`PostView` could not tell a removed post from a post with no words.** The thread page had a private `Tombstone` and chose it with `body === null`, which is a different question with a different answer, and no other surface could ask it at all: a card in a feed or on a profile got an empty rectangle. `POST_COPY.removedWithReplies` had no reader, so the one tombstone that did render promised replies whether or not any existed | `grep -rn POST_COPY.removed` returned the thread page and the comments sheet | `PostView.removed`, and `components/social/feed/Tombstone.tsx` as its own module rendered by `PostCard` itself, for the same reason `ViewportPost` is a module: a fourth surface cannot quietly be a fourth place that forgets. The second sentence appears only when `replyCount > 0` |
+
+**Probed live, in a rolled back transaction, through the real policy path.** The
+first run of this probe disagreed with the migration and was right to: the step
+that aged a post had been swallowed by `guard_post_update` itself, which pins
+`created_at` for everybody including the table's owner, so the trigger had to be
+disabled inside the transaction before a post could be three hours old at all.
+That is worth writing down, because a probe that quietly measures a fresh post
+proves nothing about a window.
+
+| Case | Result |
+|---|---|
+| the old post really is old | 03:00:00 |
+| edit inside the window | changed |
+| edit after three hours | refused 42501 |
+| make it young again | refused 42501 |
+| removed_at without removing | refused 42501 |
+| take it down and keep the words | refused 42501 |
+| take it down after three hours | taken down |
+| the old post now reads | REMOVED, body null, removed_at set |
+| its pictures | 0 |
+
+One consequence for the application, and it is the reason a refusal now says the
+right thing: a stale edit RAISES 42501 rather than returning no rows, so
+`editPost` reads that code ahead of the shared mapper, which treats 42501 on
+this table as "you are not in this place". The zero-row answer that is left
+belongs to a HELD post, which still cannot be taken down by its author and now
+says so instead of blaming a clock. That is deliberate: nobody but its author
+and a moderator can see a held post, and it is mid-review.
+
+`apps/web/tests/social-media.spec.mjs` grew the case: the walker's own removed
+post, with its picture rows still stored, which is both the row written before
+the trigger existed and the admin removal path. **50 checks, all passed in both
+themes**, including that four of five stored pictures draw and the fifth does
+not, that the tombstone says what happened, that it promises surviving replies
+only because there are two, and that it is not an `article.nf-post` at all.
+Looked at, at 390px, in both themes.
+
+**Not done, deliberately:** the object itself stays in the bucket. Deleting a
+`storage.objects` row leaves the bytes behind it untracked, which is worse than
+an object no policy will ever sign. The picture is unreadable the moment the row
+goes. Reclaiming the bytes is a sweep against the same rule and it is written
+down in `KNOWN_GAPS.md` rather than half done here.

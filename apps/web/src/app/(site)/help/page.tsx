@@ -1,6 +1,8 @@
+import { SUPPORT_SENTENCE } from "@/lib/support-email";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SupportChat } from "@/components/app/account/SupportChat";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { HelpSearch, type Faq } from "./HelpSearch";
 import { ButtonLink } from "@/components/ui/Button";
 
@@ -17,6 +19,33 @@ export const metadata: Metadata = {
  * platform written in plain language, not marketing copy, and anything the
  * page cannot answer routes to the contact page.
  */
+
+/**
+ * The three trust surfaces, reachable from the page people already come to
+ * when something has gone wrong. They are also the answer to the question the
+ * FAQ format cannot carry, because an FAQ answer is plain text and cannot hold
+ * a link.
+ */
+const TRUST_LINKS: { href: string; icon: BrandIconName; title: string; body: string }[] = [
+  {
+    href: "/safety",
+    icon: "shield-check",
+    title: "Safety centre",
+    body: "How paying works, how inspections work, and what we will never ask you for.",
+  },
+  {
+    href: "/standards",
+    icon: "shield-home",
+    title: "Trust and safety",
+    body: "What is not allowed, how we enforce it, and how quickly we answer a report.",
+  },
+  {
+    href: "/cancellations",
+    icon: "calendar-clock",
+    title: "Cancellations",
+    body: "One refund schedule for every stay, with the windows written out.",
+  },
+];
 
 const FAQS: Faq[] = [
   // ------------------------------------------------------------ booking
@@ -44,8 +73,8 @@ const FAQS: Faq[] = [
   // ----------------------------------------------------------- payments
   {
     category: "Payments and refunds",
-    q: "When is my money released to the agent?",
-    a: "Not immediately. Your payment is held securely by RentMe and is only released to the agent after you have checked in, or after you confirm an inspection went as described. If the place is not what was listed, report it straight away and the payment stays held while we look into it.",
+    q: "Do I pay the agent directly?",
+    a: "Never. You pay on RentMe, through the checkout screen, using a card, a bank transfer raised by the payment processor, or your RentMe wallet. Nobody on this platform has any reason to send you an account number, and if somebody does, report them. Settlement to the agent is between RentMe and the agent, and it is not something you arrange or hand over.",
   },
   {
     category: "Payments and refunds",
@@ -55,12 +84,12 @@ const FAQS: Faq[] = [
   {
     category: "Payments and refunds",
     q: "Is it safe to pay through RentMe?",
-    a: "Payments run through licensed Nigerian payment processors and we never store your full card details. Because money is held until after check-in or inspection, paying on the platform protects you in a way that cash or a direct transfer to a stranger cannot.",
+    a: "Payments run through licensed Nigerian payment processors and we never store your full card details. Every payment leaves a reference against your booking that both you and our support team can open, which is what makes a dispute solvable. Cash at a viewing, or a transfer to a stranger's account, leaves us nothing to work from.",
   },
   {
     category: "Payments and refunds",
     q: "How do refunds work?",
-    a: "If you cancel within the listing's cancellation window, or a booking falls through because the property was misrepresented or unavailable, you get a refund. It goes back the way you paid, or to your RentMe wallet if you prefer that for speed.",
+    a: "One schedule applies to every stay on RentMe. Cancel more than 72 hours before check-in and you get everything back; inside that window you get half; once check-in day has started the stay is the host's. If the host cancels, or the property was not what was listed, you get everything back whenever it happens. Refunds land in your RentMe wallet, and you move them to your bank from there.",
   },
   {
     category: "Payments and refunds",
@@ -77,7 +106,7 @@ const FAQS: Faq[] = [
   {
     category: "Listing your property",
     q: "Does it cost anything to list?",
-    a: "No. Listing is free. RentMe takes a small commission only when a booking completes, so we earn nothing unless you do.",
+    a: "No. Listing is free, and it stays free. RentMe charges no fees at all: not to list, not to book, and nothing is taken out of what a guest pays you.",
   },
   {
     category: "Listing your property",
@@ -99,7 +128,27 @@ const FAQS: Faq[] = [
   {
     category: "Verification and trust",
     q: "How do I report a suspicious listing or user?",
-    a: "Use the report option on the listing, or email support@naijafinds.com with the listing link and what you saw. Reports are reviewed quickly, and listings under investigation can be hidden while we check.",
+    /* This answer printed the fifteen characters {SUPPORT_EMAIL} to every
+       reader, because an earlier pass turned a template literal into a plain
+       string and nothing renders a placeholder as an error. */
+    a: `Use the report option on the listing, or ${SUPPORT_SENTENCE} with the listing link and what you saw. Reports are reviewed quickly, and listings under investigation can be hidden while we check.`,
+  },
+
+  // --------------------------------------------------- safety and money
+  {
+    category: "Verification and trust",
+    q: "Does RentMe charge any fees?",
+    a: "No. RentMe charges no fees. Not to book, not to list, not to be paid. The total you see before you confirm a stay is the host's nightly rate and cleaning charge and nothing else. Anyone presenting an inspection fee, a holding fee, an agency fee or a caution fee as ours is lying, and you should report them.",
+  },
+  {
+    category: "Verification and trust",
+    q: "Someone asked me to pay into a bank account. What do I do?",
+    a: "Stop, and report them. No RentMe staff member, agent or listing will ever give you an account number to pay into: every payment happens inside the platform. Use the report control on the listing, or the contact form, and include the account number and the messages. Reports about off-platform payment are answered within four hours.",
+  },
+  {
+    category: "Verification and trust",
+    q: "What if I have already sent money outside the platform?",
+    a: "Call your bank first and ask them to raise a dispute on the transfer, because a fast report is sometimes enough for them to place a lien on the receiving account. Then report it to us with the listing link, the account details and the messages. We cannot recover money that never came through RentMe, but we can remove the account and stop the same person reaching anybody else.",
   },
 
   // ---------------------------------------------------------- languages
@@ -133,6 +182,27 @@ export default function HelpPage() {
             verification. Search below, or browse by topic.
           </p>
         </div>
+
+        {/* ------------------------------------------------ trust surfaces */}
+        <nav
+          aria-label="Safety and policy"
+          className="nf-rise mt-8 grid gap-3 sm:grid-cols-3"
+          style={{ animationDelay: "60ms" }}
+        >
+          {TRUST_LINKS.map((link) => (
+            <Link key={link.href} href={link.href} className="nf-card nf-card--interactive p-4">
+              <span className="inline-grid h-9 w-9 place-items-center">
+                <BrandIcon name={link.icon} fill />
+              </span>
+              <span className="mt-2 block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                {link.title}
+              </span>
+              <span className="mt-1 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                {link.body}
+              </span>
+            </Link>
+          ))}
+        </nav>
 
         {/* --------------------------------------------- searchable list */}
         <div className="nf-rise mt-10" style={{ animationDelay: "100ms" }}>

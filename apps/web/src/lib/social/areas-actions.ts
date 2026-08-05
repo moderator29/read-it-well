@@ -35,7 +35,9 @@ import {
   moderatorApplicationSchema,
   proposeAreaSchema,
   slugifyArea,
+  type AreaStatus,
 } from "./areas-schema";
+import { ENTER_FAILURE, ENTER_SQLSTATE, enterPlaceSchema } from "./places-schema";
 import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 
 /** One sentence for a limiter refusal, so every action here paces the same way. */
@@ -106,6 +108,69 @@ export async function proposeArea(input: {
 
   revalidatePath("/around");
   return ok({ slug });
+}
+
+/**
+ * Walk into a local government.
+ *
+ * This is the front door of the whole social layer, and it is deliberately not
+ * an insert. `public.enter_place` is a security definer function that either
+ * hands back the place already standing behind that local government or creates
+ * it ACTIVE, in one statement, idempotently. Doing it here as an insert would
+ * mean two people tapping Gwagwalada at the same second race each other, and
+ * one of them getting a duplicate key error on a navigation.
+ *
+ * Note what it does NOT do: it does not join you. Membership is a deliberate
+ * act with its own button, its own limit and its own row, and writing one off
+ * the back of a navigation tap is exactly the kind of silent membership that
+ * makes a person distrust a product. You walk in, you read, and you join if you
+ * want to speak. The composer says so in as many words.
+ *
+ * A place somebody paused is returned paused rather than reopened. Reopening is
+ * a moderator's decision and walking through a door is not one.
+ */
+export async function enterPlace(input: {
+  lgaCode: string;
+}): Promise<ActionResult<{ slug: string; status: AreaStatus }>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
+  const parsed = validate(enterPlaceSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  /* Generous, because this is navigation and not authorship. It exists so a
+     script cannot open all 774 places in a minute, and it is nowhere near what
+     a person exploring the country would ever reach. */
+  const verdict = await consume({
+    ...AREA_LIMITS.enter,
+    subject: subjectForUser(session.user.id),
+  });
+  if (!verdict.allowed) return fail(pacedMessage(verdict.retryAfterSeconds));
+
+  const { data, error } = await session.supabase.rpc("enter_place", {
+    p_lga_code: parsed.data.lgaCode,
+  });
+
+  if (error) {
+    if (error.code === ENTER_SQLSTATE.noSuchLga) return fail(ENTER_FAILURE.noSuchLga);
+    /* RM031 is the function's own "created nothing and found nothing". 23505 is
+       the same fact arriving from underneath it: the slug this place would take
+       is already answered by a place somebody proposed by hand. Both mean a
+       human has to look, and both say so. */
+    if (error.code === ENTER_SQLSTATE.couldNotOpen) return fail(ENTER_FAILURE.couldNotOpen);
+    if (error.code === ENTER_SQLSTATE.slugTaken) return fail(ENTER_FAILURE.couldNotOpen);
+    return fail(ENTER_FAILURE.down);
+  }
+
+  /* The function returns a set, so supabase-js hands back an array even though
+     it can only ever hold one row. */
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return fail(ENTER_FAILURE.down);
+
+  revalidatePath("/around");
+  return ok({ slug: row.slug, status: row.status as AreaStatus });
 }
 
 /**

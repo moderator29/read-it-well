@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { toSearchHref, type DiscoveryQuery } from "@/lib/listings/search-params";
+import { toViewHref, type DiscoveryQuery } from "@/lib/listings/search-params";
 
 /**
  * List and map, as a segmented control.
@@ -9,6 +9,11 @@ import { toSearchHref, type DiscoveryQuery } from "@/lib/listings/search-params"
  * address (`view=`) like everything else on this page: a map hunt can be sent
  * to someone and it opens on the map. Stroked control glyphs, never the 3D
  * pack: this is navigation.
+ *
+ * Both links state the view explicitly, including `view=list`, which the
+ * general href builder leaves out as a default. See `toViewHref`: without it,
+ * switching back to List handed the page an address with no view in it and the
+ * remembered-view cookie put the map straight back.
  */
 export function ViewToggle({ query }: { query: DiscoveryQuery }) {
   const options: { view: "list" | "map"; label: string; icon: "grid" | "map" }[] = [
@@ -26,7 +31,7 @@ export function ViewToggle({ query }: { query: DiscoveryQuery }) {
         return (
           <Link
             key={option.view}
-            href={toSearchHref({ ...query, view: option.view })}
+            href={toViewHref(query, option.view)}
             prefetch
             data-testid={`view-${option.view}`}
             aria-current={active ? "true" : undefined}

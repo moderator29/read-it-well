@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { canGoBackInApp } from "@/lib/ui/history";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -27,8 +28,17 @@ export function BackChevron({
   const router = useRouter();
 
   const back = () => {
-    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
-    if (idx > 0) router.back();
+    /*
+     * `history.state.idx` was a Next internal and Next 16 no longer writes it,
+     * so this read was always undefined, `?? 0` made it zero, and every tap
+     * took the fallback. The browser's own back button kept working, which is
+     * why it survived: anybody testing with a keyboard never saw it.
+     *
+     * `canGoBackInApp` asks the Navigation API first, falls back to our own
+     * stamp on `history.state`, then to a same-origin referrer, and fails
+     * closed. Every other back control on the platform now uses it.
+     */
+    if (canGoBackInApp()) router.back();
     else router.push(fallback);
   };
 

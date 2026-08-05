@@ -71,6 +71,26 @@ export function adminUi(t: Dictionary, locale: Locale) {
     });
   }
 
+  /**
+   * A calendar date with no clock on it.
+   *
+   * A check-in is a day, not a moment. Running one through `when` above prints
+   * "01:00" beside it, because a bare date parses as UTC midnight and Lagos is
+   * an hour ahead, which reads to an operator as a time the guest agreed to.
+   * Anchoring at midday Lagos removes the question entirely.
+   */
+  function day(iso: string | null): string {
+    if (!iso) return c.notRecorded;
+    const parsed = Date.parse(iso.length <= 10 ? `${iso}T12:00:00+01:00` : iso);
+    if (Number.isNaN(parsed)) return c.notRecorded;
+    return formatDate(new Date(parsed), locale, {
+      timeZone: "Africa/Lagos",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
   /** Human wording for the canonical machine values. */
   function statusLabel(status: string): string {
     return statusNames[status] ?? status;
@@ -215,6 +235,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
 
   return {
     when,
+    day,
     statusLabel,
     StatusChip,
     QueueHeader,

@@ -609,6 +609,12 @@ export const en = {
         takeDown: "Take it down",
         delete: "Delete",
       },
+      /* Deleting a draft opens no dialogue: the row leaves and offers its
+         way back, and nothing reaches the server until that offer runs out. */
+      undo: {
+        removed: "Draft deleted",
+        action: "Undo",
+      },
       sheets: {
         keep: "Keep it",
         working: "Working",
@@ -804,7 +810,9 @@ export const en = {
       alerts: { label: "Risk alerts", short: "Alerts" },
       reports: { label: "Reports", short: "Reports" },
       applications: { label: "Agent applications", short: "Agents" },
+      stops: { label: "Stops", short: "Stops" },
       listings: { label: "Listing review", short: "Listings" },
+      bookings: { label: "Stays", short: "Stays" },
       tickets: { label: "Support", short: "Support" },
       social: { label: "District", short: "District" },
       standing: { label: "Standing", short: "Standing" },
@@ -849,6 +857,12 @@ export const en = {
       recentlyResolved: "Recently resolved",
       recentlyDecided: "Recently decided",
       recentlyClosed: "Recently closed",
+      dueIn: "Answer within {hours}h",
+      dueSoon: "Answer within the hour",
+      overdue: "Late by {hours}h",
+      resolvedBy: "Resolved by {who}",
+      reviewedBy: "Reviewed by {who}",
+      someone: "a colleague",
       status: {
         open: "Open",
         reviewed: "Reviewed",
@@ -865,6 +879,9 @@ export const en = {
         PUBLISHED: "Live",
         REJECTED: "Not approved",
         SUSPENDED: "Suspended",
+        PENDING: "Requested",
+        CONFIRMED: "Confirmed",
+        CANCELLED: "Cancelled",
       },
     },
 
@@ -963,6 +980,47 @@ export const en = {
         notesLabel: "What was done",
         successTitle: "Alert resolved",
         successBody: "The alert is closed and the audit log carries your note.",
+      },
+    },
+
+    /**
+     * The agent verification ladder. Four rungs in a fixed order; the tier is
+     * how many are passed with no gap below them, computed in the database.
+     */
+    verification: {
+      title: "Verification ladder",
+      tierLine: "Tier {step} of 4: {name}",
+      tierName: {
+        "0": "Approved, not yet checked further",
+        "1": "Identity verified",
+        "2": "Address verified",
+        "3": "Payout verified",
+        "4": "Fully verified",
+      },
+      rung: {
+        identity: "Identity seen",
+        address: "Address confirmed",
+        payout: "Bank account in their own name",
+        in_person: "Met in person",
+      },
+      passed: "Passed",
+      failed: "Did not pass",
+      undecided: "Not checked yet",
+      decidedBy: "{who}, {when}",
+      pass: "Record as passed",
+      fail: "Record as failed",
+      blockedBelow: "The rung below this one has not passed yet.",
+      sheet: {
+        passTitle: "Record this check as passed?",
+        failTitle: "Record this check as failed?",
+        passBody:
+          "The agent's tier is recalculated from the checks that have passed, and they are told when it changes.",
+        failBody:
+          "This can lower a tier that guests can already see, so say what did not check out. The agent reads your words.",
+        confirm: "Record it",
+        notesLabel: "What you looked at",
+        successTitle: "Check recorded",
+        successBody: "The ladder is updated and the decision is in the audit log.",
       },
     },
 
@@ -1218,6 +1276,97 @@ export const en = {
         pending: "Awaiting reply",
         resolved: "Resolved",
         closed: "Closed",
+      },
+    },
+
+    bookings: {
+      title: "Stays",
+      lede:
+        "Every stay on the platform, and the one place a paid stay can be cancelled and the money returned. The published schedule decides the amount. You choose only why.",
+      searchLabel: "Find a stay",
+      searchPlaceholder: "Booking reference, or part of a listing title",
+      search: "Search",
+      clearSearch: "Show everything",
+      noMatchTitle: "Nothing matched that",
+      noMatchBody:
+        "Check the booking reference, or search for part of the listing title instead.",
+      emptyTitle: "No stays yet",
+      emptyBody:
+        "Stays appear here the moment a guest reserves. Nothing on this screen is waiting on you.",
+      groups: {
+        live: "Live and upcoming",
+        past: "Already over",
+        cancelled: "Cancelled",
+      },
+      open: "Open this stay",
+      back: "All stays",
+      goneTitle: "That stay is not there",
+      goneBody: "Go back to the list to see what is there now.",
+      nights: "{count} nights",
+      nightsOne: "1 night",
+      party: "{adults} adults, {children} children",
+      partyAdultsOnly: "{adults} adults",
+      settledChip: "{amount} settled",
+      unpaidChip: "Nothing paid yet",
+      refundedChip: "{amount} returned",
+      bookedWhen: "Booked {when}",
+      fields: {
+        reference: "Reference",
+        listing: "Listing",
+        host: "Host",
+        guest: "Guest",
+        arriving: "Person arriving",
+        arrivingPhone: "Their number",
+        arrivingEmail: "Their email",
+        dates: "Dates",
+        length: "Length",
+        party: "Guests",
+        perNight: "Per night",
+        cleaning: "Cleaning",
+        service: "Service",
+        subtotal: "Subtotal",
+        total: "Total for the stay",
+        settled: "Settled so far",
+        returned: "Already returned",
+        status: "Status",
+      },
+      sections: {
+        stay: "The stay",
+        money: "Money",
+        people: "People",
+        payments: "Payments",
+        history: "History",
+        refunds: "Refunds already decided",
+      },
+      noPayments: "Nobody has paid for this stay yet.",
+      noRefunds: "No refund has been decided on this stay.",
+      refundLine: "{refund} back to the guest, {retained} kept by the host.",
+      decidedBy: "{who}, {when}",
+      unnamed: "Not named",
+      cancel: "Cancel this stay",
+      cancelledAlready: "This stay is cancelled. The decision is in the audit log.",
+      pastNote:
+        "This stay is over. Cancelling it now would release nights nobody can rebook, so it is not offered here. Refund it through support if something went wrong.",
+      reasons: {
+        guest_choice: "The guest is cancelling",
+        host_cancelled: "The host cancelled",
+        not_as_listed: "The place was not what was listed",
+        no_access: "The guest could not get in",
+      },
+      sheet: {
+        title: "Cancel this stay?",
+        body:
+          "The dates reopen straight away, and anything owed goes to the guest wallet in the same transaction. The amount comes from the published schedule, never from a figure typed here.",
+        reasonLabel: "Why is this stay being cancelled",
+        working: "Working out what is owed",
+        owed: "{refund} goes back to the guest.",
+        kept: "{retained} stays with the host.",
+        nothingPaid: "Nothing was ever paid for this stay, so no money moves.",
+        confirm: "Cancel and refund",
+        notesLabel: "What was established",
+        successTitle: "Stay cancelled",
+        successBody:
+          "The nights are back on the calendar, the money is in the guest wallet, and the guest has the amount and the reason in writing.",
       },
     },
 

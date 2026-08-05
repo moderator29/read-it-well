@@ -17,6 +17,7 @@
  * refusal.
  */
 
+import { SUPPORT_EMAIL } from "../support-email";
 import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import {
@@ -39,7 +40,6 @@ import {
   type SettingsPatch,
 } from "./schema";
 
-const SUPPORT_EMAIL = "hello@rentme.ng";
 
 const NO_ROW_MESSAGE =
   "We could not find your profile record. Sign out, sign back in, and try again. Your details are still on this screen.";

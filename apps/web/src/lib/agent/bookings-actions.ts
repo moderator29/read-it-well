@@ -57,7 +57,8 @@ const NOT_AGENT_MESSAGE =
 const PAUSED_MESSAGE =
   "Booking decisions are paused for a moment while we make improvements. The request is unchanged.";
 
-const NOT_FOUND_MESSAGE = "We could not find that request on your listings.";
+const NOT_FOUND_MESSAGE =
+  "We could not find that request on your listings. Reload the page to see your current requests.";
 
 const SERVICE_DOWN_MESSAGE =
   "We could not record that decision just now. The request is unchanged. Please try again shortly.";
@@ -177,7 +178,9 @@ export async function acceptBooking(input: BookingIdInput): Promise<ActionResult
     return ok(null);
   }
   if (booking.status !== "PENDING") {
-    return fail("This request was cancelled, so it cannot be accepted.");
+    return fail(
+      "This request was cancelled, so it cannot be accepted. Reload the page to see where it stands.",
+    );
   }
 
   // The transition, the state event, the calendar and the guest's email are all

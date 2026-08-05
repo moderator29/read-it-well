@@ -2,7 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/app/PageHeader";
-import { getArea } from "@/lib/social/areas-queries";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import {
+  getArea,
+  getLgaDoor,
+  listPlacesWithinLga,
+} from "@/lib/social/areas-queries";
+import { PLACE_COPY } from "@/lib/social/places-schema";
 import { getAreaFeed } from "@/lib/social/posts-queries";
 import { listStories } from "@/lib/social/stories-queries";
 import { getPlaceReviews } from "@/lib/social/reviews-queries";
@@ -75,19 +81,36 @@ export default async function AreaPage({
   if (!detail) notFound();
 
   const { area, viewer, moderators } = detail;
-  const [feed, stories, reviews, mine] = await Promise.all([
+  const [feed, stories, reviews, mine, within, door] = await Promise.all([
     getAreaFeed(area.id),
     listStories({ areaId: area.id, limit: 12 }),
-    /* Four reads that all start at once cost one round trip. The same four in
-       sequence cost four, and on the connections this product is built for
+    /* Six reads that all start at once cost one round trip. The same six in
+       sequence cost six, and on the connections this product is built for
        that is the whole difference between a page and a wait. */
     getPlaceReviews({ city: area.city, area: area.area, name: area.name }),
     listMyAreas(),
+    /* Which way this place faces. A local government looks down at the finer
+       places inside it; a finer place looks up at the local government it is
+       in. Exactly one of these two reads ever returns anything. */
+    area.lgaCode ? listPlacesWithinLga(area.lgaCode, area.id) : Promise.resolve([]),
+    !area.lgaCode && area.withinLgaCode
+      ? getLgaDoor(area.withinLgaCode)
+      : Promise.resolve(null),
   ]);
   const isModerator = viewer.role === "MODERATOR";
 
   return (
     <div className="mx-auto w-full max-w-3xl pb-24 pt-4">
+      {/* The way back up. A person who walked into Lekki Phase 1 from a search
+          may not know Eti-Osa is above it, and this is the only line on the
+          page that tells them. */}
+      {door ? (
+        <Link href={`/around/${door.slug}`} className="nf-enter__back mb-4">
+          <UiIcon name="arrow-left" size={15} />
+          Part of {door.name}
+        </Link>
+      ) : null}
+
       {area.status === "PROPOSED" ? (
         <p className="nf-card mb-5 border-[var(--nf-border-brand)] p-4 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
           You suggested this place and it is still with us. {AREA_COPY.proposePending}
@@ -210,6 +233,33 @@ export default async function AreaPage({
         )}
       </section>
 
+
+      {/* A local government is the coarse door. The room somebody actually
+          lives in is usually finer than it, and `areas.within_lga_code` is set
+          on every place, so offering them is one predicate rather than a join
+          nobody can read. */}
+      {within.length > 0 ? (
+        <section className="nf-enter mb-5">
+          <h2 className="nf-enter__title">{PLACE_COPY.withinTitle(area.name)}</h2>
+          <p className="nf-enter__lede">{PLACE_COPY.withinBody}</p>
+          <ul className="nf-enter__grid">
+            {within.map((place) => (
+              <li key={place.id}>
+                <Link
+                  href={`/around/${place.slug}`}
+                  className="nf-enter__chip"
+                  aria-label={`${place.name}, ${place.memberCount} ${place.memberCount === 1 ? "member" : "members"}`}
+                >
+                  <span className="nf-enter__chip-name">{place.name}</span>
+                  <span className="nf-enter__chip-count nf-numeric">
+                    {place.memberCount.toLocaleString("en-NG")}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {viewer.member && !isModerator && area.status === "ACTIVE" ? (
         <ModeratorApply

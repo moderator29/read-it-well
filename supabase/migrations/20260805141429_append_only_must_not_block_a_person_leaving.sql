@@ -1,0 +1,11 @@
+-- Superseded twenty four seconds later by 20260805141453, and kept as a record
+-- rather than deleted, because the version is on the live database and a
+-- migration history with a hole in it is worse than one with a scar in it.
+--
+-- What was here: the same fix, written with `hstore`'s `#=` operator to blank a
+-- column before comparing two records. `hstore` is not installed on this
+-- project. It applied green, because a plpgsql body is only parsed when it
+-- runs, which is the third time that has caught something on this branch. The
+-- next migration does it with built-in `jsonb` instead, and a guard on the
+-- audit log is the last place to be adding an extension dependency.
+select 1;

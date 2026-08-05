@@ -128,3 +128,24 @@ the service role bypasses RLS entirely and therefore cannot test a policy. It
 is revoked from `public`, `anon` and `authenticated`, so only the service role
 can reach it, and no application code calls it. Worth deleting before the
 platform carries real people's data.
+
+**Leaflet's stylesheet ships on every page; its JavaScript does not.** Measured
+rather than assumed: the map's JS is properly lazy, exactly one chunk on the map
+view and none anywhere else. But `import "leaflet/dist/leaflet.css"` is a static
+import, so two stylesheets travel with every page in the app, including the list
+view that never draws a map. It is about 10KB. Both clean fixes cost more than
+they save: moving the import into the dynamic component makes the map render
+unstyled for a frame, and hand-copying the rules into our own CSS creates a copy
+that rots the next time Leaflet changes. Left as it is, on purpose, and written
+down so nobody measures it a third time.
+
+**A picture on a post that was taken down stops being readable, and its bytes
+stay.** `posts_drop_media_on_remove` deletes the `post_media` rows as a post
+reaches REMOVED, and after `a_picture_on_a_post_has_one_shape` an object no row
+names cannot be signed for anybody, including the person who uploaded it. The
+object itself is still in the `social-media` bucket. Deleting the
+`storage.objects` row from SQL would leave the bytes untracked, which is worse,
+so reclaiming them wants a sweep that goes through the storage API and deletes
+every `social-media` object whose name no `post_media` row and no
+`stories.image_path` mentions. Nothing is readable in the meantime; this is
+storage cost, not exposure.

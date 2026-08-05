@@ -95,6 +95,7 @@ const MESSAGES = [
   "bookingConfirmed",
   "stayArrivalDetails",
   "bookingCancelled",
+  "bookingRefunded",
   "walletFunded",
   "withdrawalFailed",
   "supportTicketFiled",
@@ -133,7 +134,7 @@ check(
 );
 check(
   "the booking emails carry the safety line, and only they do",
-  (sources["email/messages.ts"].match(/GUEST_SAFETY_LINE,/g) ?? []).length === 4 &&
+  (sources["email/messages.ts"].match(/GUEST_SAFETY_LINE,/g) ?? []).length === 5 &&
     (sources["email/messages.ts"].match(/HOST_SAFETY_LINE,/g) ?? []).length === 1 &&
     /pay only after you have inspected/.test(sources["email/messages.ts"]),
 );

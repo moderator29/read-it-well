@@ -3,11 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 import { type Dictionary, type Locale, formatRating } from "@naijafinds/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
+import { isDataSaver } from "@/lib/ui/data-saver";
 
 /**
  * Listing card media.
@@ -104,6 +106,48 @@ export function ListingCard({
    * command-click all keep working exactly as the anchor already promises.
    * Every other browser, and reduced motion, gets the ordinary Link.
    */
+  /*
+   * PREFETCH ON PRESS-DOWN.
+   *
+   * `/listing/[id]` is a dynamic route, so Next's default `prefetch` fetches
+   * the loading boundary and nothing else: the page itself is still fetched
+   * from scratch after the tap, and the guest waits through it. A thumb rests
+   * on a card for something between 80 and 250ms before it lifts, and the
+   * request started at press-down is already in flight by the time the
+   * navigation begins. It costs one request that was about to be made anyway.
+   *
+   * `pointerdown` covers finger, mouse and pen in one event. Hover is kept as
+   * well because a pointer settling on a card is an even earlier signal, and a
+   * desktop visitor never produces a pointerdown until they have decided.
+   *
+   * WHY THE `prefetch` PROP AND NOT `router.prefetch(href)`. The obvious
+   * version was written first and MEASURED AS DOING NOTHING AT ALL: pressing
+   * and holding a card for 900ms with the network recorded produced zero
+   * requests. `router.prefetch` defaults to an "auto" prefetch, which on a
+   * dynamic route fetches as far as the nearest loading boundary and no
+   * further, and this route has none, so there was nothing for it to fetch.
+   * It would have shipped looking exactly like a working prefetch. Flipping
+   * `prefetch` to `true` on a Link already in the viewport asks for the full
+   * payload, which is the thing that actually saves the guest the wait.
+   *
+   * ONCE PER CARD, and never turned back off: a grid of twenty cards under a
+   * scrolling thumb must not re-request on every pass.
+   *
+   * NOT ON A METERED CONNECTION. This is speculative traffic: it is exactly
+   * what somebody switching on data saver is asking us to stop, and it is what
+   * `isDataSaver()` was written for. Note the order, which matters: the
+   * setting is consulted at press time rather than at render time, so somebody
+   * who switches it on in another tab is respected on the very next press.
+   */
+  const prefetched = useRef(false);
+  const [warmed, setWarmed] = useState(false);
+  const warm = () => {
+    if (prefetched.current) return;
+    if (isDataSaver()) return;
+    prefetched.current = true;
+    setWarmed(true);
+  };
+
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     if (
       event.defaultPrevented ||
@@ -146,7 +190,15 @@ export function ListingCard({
       className={`nf-card nf-card--interactive group overflow-hidden ${index !== undefined ? "nf-card-in" : ""}`}
       style={cardStyle}
     >
-      <Link href={href} onClick={handleClick} className="block">
+      <Link
+        href={href}
+        prefetch={warmed ? true : undefined}
+        onClick={handleClick}
+        onPointerDown={warm}
+        onPointerEnter={warm}
+        onFocus={warm}
+        className="block"
+      >
         <div
           className="relative aspect-[4/3] w-full overflow-hidden"
           style={{ viewTransitionName: `listing-photo-${listing.id}` }}

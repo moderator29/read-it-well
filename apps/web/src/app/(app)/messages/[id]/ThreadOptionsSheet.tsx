@@ -12,9 +12,9 @@ import { Sheet } from "@/components/ui/Sheet";
  * The verification step lives inside the conversation: the sheet shows the
  * listing, carries the canonical safety wording and the one action the
  * platform asks of guests before any money moves, confirming that the
- * property has actually been inspected. The container mechanics — drag handle,
+ * property has actually been inspected. The container mechanics (drag handle,
  * detents, focus trap, focus restoration, Escape, backdrop and body scroll
- * lock — belong to `<Sheet>`.
+ * lock) belong to `<Sheet>`.
  */
 
 export type SheetListing = {
