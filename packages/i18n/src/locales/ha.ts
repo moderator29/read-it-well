@@ -958,6 +958,43 @@ export const ha: Dictionary = {
       },
     },
 
+    verification: {
+      title: "Matakan tabbatarwa",
+      tierLine: "Mataki {step} cikin 4: {name}",
+      tierName: {
+        "0": "An amince, ba a kara bincike ba tukuna",
+        "1": "An tabbatar da shaidar mutum",
+        "2": "An tabbatar da adireshi",
+        "3": "An tabbatar da asusun biya",
+        "4": "An tabbatar gaba daya",
+      },
+      rung: {
+        identity: "An ga shaidar mutum",
+        address: "An tabbatar da adireshi",
+        payout: "Asusun banki a sunansa",
+        in_person: "An hadu da shi ido da ido",
+      },
+      passed: "Ya wuce",
+      failed: "Bai wuce ba",
+      undecided: "Ba a duba ba tukuna",
+      decidedBy: "{who}, {when}",
+      pass: "Rubuta ya wuce",
+      fail: "Rubuta bai wuce ba",
+      blockedBelow: "Matakin da ke kasa da wannan bai wuce ba tukuna.",
+      sheet: {
+        passTitle: "A rubuta wannan dubawa a matsayin da ya wuce?",
+        failTitle: "A rubuta wannan dubawa a matsayin da bai wuce ba?",
+        passBody:
+          "Ana sake lissafin matakin wakilin daga duban da suka wuce, kuma ana sanar da shi idan ya canza.",
+        failBody:
+          "Wannan na iya rage matakin da baki ke gani, don haka a fadi abin da bai yi daidai ba. Wakilin zai karanta maganarka.",
+        confirm: "A rubuta shi",
+        notesLabel: "Abin da ka duba",
+        successTitle: "An rubuta duban",
+        successBody: "An sabunta matakan kuma shawarar tana cikin littafin bincike.",
+      },
+    },
+
     reports: {
       title: "Ƙorafi",
       lede:

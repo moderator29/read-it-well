@@ -978,6 +978,47 @@ export const en = {
       },
     },
 
+    /**
+     * The agent verification ladder. Four rungs in a fixed order; the tier is
+     * how many are passed with no gap below them, computed in the database.
+     */
+    verification: {
+      title: "Verification ladder",
+      tierLine: "Tier {step} of 4: {name}",
+      tierName: {
+        "0": "Approved, not yet checked further",
+        "1": "Identity verified",
+        "2": "Address verified",
+        "3": "Payout verified",
+        "4": "Fully verified",
+      },
+      rung: {
+        identity: "Identity seen",
+        address: "Address confirmed",
+        payout: "Bank account in their own name",
+        in_person: "Met in person",
+      },
+      passed: "Passed",
+      failed: "Did not pass",
+      undecided: "Not checked yet",
+      decidedBy: "{who}, {when}",
+      pass: "Record as passed",
+      fail: "Record as failed",
+      blockedBelow: "The rung below this one has not passed yet.",
+      sheet: {
+        passTitle: "Record this check as passed?",
+        failTitle: "Record this check as failed?",
+        passBody:
+          "The agent's tier is recalculated from the checks that have passed, and they are told when it changes.",
+        failBody:
+          "This can lower a tier that guests can already see, so say what did not check out. The agent reads your words.",
+        confirm: "Record it",
+        notesLabel: "What you looked at",
+        successTitle: "Check recorded",
+        successBody: "The ladder is updated and the decision is in the audit log.",
+      },
+    },
+
     reports: {
       title: "Reports",
       lede:

@@ -964,6 +964,43 @@ export const yo: Dictionary = {
       },
     },
 
+    verification: {
+      title: "Àkàbà ìfẹsẹ̀múlẹ̀",
+      tierLine: "Ìpele {step} nínú 4: {name}",
+      tierName: {
+        "0": "A fọwọ́sí, a kò tí ì ṣàyẹ̀wò síwájú",
+        "1": "A ti ṣàyẹ̀wò ìdánimọ̀",
+        "2": "A ti ṣàyẹ̀wò àdírẹ́sì",
+        "3": "A ti ṣàyẹ̀wò àkọọ́lẹ̀ ìsanwó",
+        "4": "A ti ṣàyẹ̀wò pátápátá",
+      },
+      rung: {
+        identity: "A rí ìdánimọ̀",
+        address: "A jẹ́rìí àdírẹ́sì",
+        payout: "Àkọọ́lẹ̀ báǹkì lórúkọ ara wọn",
+        in_person: "A pàdé wọn lójú kojú",
+      },
+      passed: "Ó kọjá",
+      failed: "Kò kọjá",
+      undecided: "A kò tí ì ṣàyẹ̀wò",
+      decidedBy: "{who}, {when}",
+      pass: "Kọ ọ́ pé ó kọjá",
+      fail: "Kọ ọ́ pé kò kọjá",
+      blockedBelow: "Ìpele tó wà ní ìsàlẹ̀ èyí kò tí ì kọjá.",
+      sheet: {
+        passTitle: "Kọ àyẹ̀wò yìí pé ó kọjá?",
+        failTitle: "Kọ àyẹ̀wò yìí pé kò kọjá?",
+        passBody:
+          "A ó tún ìpele aṣojú náà ṣírò láti inú àwọn àyẹ̀wò tó kọjá, a ó sì sọ fún wọn nígbà tí ó bá yípadà.",
+        failBody:
+          "Èyí lè dín ìpele tí àwọn àlejò ti ń rí kù, nítorí náà sọ ohun tí kò tọ́. Aṣojú náà yóò ka ọ̀rọ̀ rẹ.",
+        confirm: "Kọ ọ́ sílẹ̀",
+        notesLabel: "Ohun tí o wò",
+        successTitle: "A ti kọ àyẹ̀wò náà",
+        successBody: "A ti ṣàtúnṣe àkàbà náà, ìpinnu náà sì wà nínú ìwé ìṣàyẹ̀wò.",
+      },
+    },
+
     reports: {
       title: "Ìròyìn ẹ̀sùn",
       lede:

@@ -960,6 +960,43 @@ export const ig: Dictionary = {
       },
     },
 
+    verification: {
+      title: "Ọkwa nkwenye",
+      tierLine: "Ọkwa {step} n'ime 4: {name}",
+      tierName: {
+        "0": "Anabatara ya, enyochabeghị ya karịa",
+        "1": "Enyochala njirimara ya",
+        "2": "Enyochala adreesi ya",
+        "3": "Enyochala akaụntụ ụgwọ ya",
+        "4": "Enyochala ya kpamkpam",
+      },
+      rung: {
+        identity: "Ahụrụ njirimara",
+        address: "Ekwenyere adreesi",
+        payout: "Akaụntụ ụlọ akụ n'aha ya",
+        in_person: "Ezutere ya ihu na ihu",
+      },
+      passed: "Ọ gafere",
+      failed: "Ọ gafeghị",
+      undecided: "Enyochabeghị ya",
+      decidedBy: "{who}, {when}",
+      pass: "Dee ya na ọ gafere",
+      fail: "Dee ya na ọ gafeghị",
+      blockedBelow: "Ọkwa dị n'okpuru nke a agafebeghị.",
+      sheet: {
+        passTitle: "Dee nyocha a dị ka nke gafere?",
+        failTitle: "Dee nyocha a dị ka nke gafeghị?",
+        passBody:
+          "A na-agbakọ ọkwa onye nnọchiteanya site na nyocha ndị gafere, a na-agwakwa ya mgbe ọ gbanwere.",
+        failBody:
+          "Nke a nwere ike ibelata ọkwa ndị ọbịa na-ahụ ugbu a, ya mere kwuo ihe na-adịghị mma. Onye nnọchiteanya ga-agụ okwu gị.",
+        confirm: "Dee ya",
+        notesLabel: "Ihe ị lere anya",
+        successTitle: "Edepụtala nyocha ahụ",
+        successBody: "Emelitela ọkwa ahụ, mkpebi ahụ dịkwa na ndekọ nyocha.",
+      },
+    },
+
     reports: {
       title: "Mkpesa",
       lede:
