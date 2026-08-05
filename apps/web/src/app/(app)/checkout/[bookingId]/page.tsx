@@ -3,6 +3,7 @@ import { getLocale } from "@/lib/locale";
 import { getCheckoutView } from "@/lib/bookings/checkout-view";
 import { isBookingReference } from "@/lib/payments/references";
 import { MomentScreen } from "@/components/app/MomentScreen";
+import { SegmentedProgress } from "@/components/ui/Progress";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
@@ -134,6 +135,33 @@ export default async function CheckoutPage({
   return (
     <Shell subtitle={view.title}>
       {settling && <PaymentReturn reference={settling} />}
+
+      {/*
+        Where you are in the booking.
+
+        Checkout had no step indication at all - you arrived from a listing,
+        were asked for money, and nothing on screen said how much further there
+        was to go or that anything had already been done. Every multi-step flow
+        in the reference set carries a segmented bar at the very top, and the
+        agent's listing wizard already had one; this is the flow where its
+        absence costs the most, because the step after it takes payment.
+
+        Three steps, and the labels are honest about what they are: the dates
+        were chosen on the listing, this screen reviews and pays, and
+        confirmation follows. Not rendered while settling - a payment coming
+        back from Paystack is past the point where a progress bar helps.
+      */}
+      {!settling && (
+        <Reveal>
+          <div className="mb-4">
+            <SegmentedProgress
+              steps={3}
+              current={2}
+              label="Step 2 of 3: review and pay"
+            />
+          </div>
+        </Reveal>
+      )}
 
       <Reveal>
         <section
