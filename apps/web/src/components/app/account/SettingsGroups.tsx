@@ -98,6 +98,24 @@ export function AppearanceCard() {
           label="Reduce motion"
           description="Calms entrance animations and hover movement across the app."
         />
+        {/*
+         * The data-saver switch lives beside the other two device settings
+         * because it is one: it is stored on the device, it applies to this
+         * device, and nothing about it belongs to an account.
+         *
+         * The description states what it actually does, not "uses less data".
+         * Loading a listing before it is asked for is the single largest
+         * speculative spend the app makes, and a person on a metered bundle is
+         * entitled to know that is what they are switching off. Android's own
+         * Data Saver and a 2g link already turn this on by themselves without
+         * anybody touching this row; see `lib/ui/data-saver.ts`.
+         */}
+        <Toggle
+          checked={settings.dataSaver}
+          onChange={(next) => set("dataSaver", next)}
+          label="Use less data"
+          description="Stops the app loading a place before you have opened it, and asks for smaller photographs."
+        />
       </div>
     </GroupCard>
   );

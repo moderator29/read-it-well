@@ -231,6 +231,49 @@ check(
 );
 check("four things we never ask for", clock.neverAsk === 4);
 
+/* ----------------------------------------------------- the verification ladder */
+
+console.log("\nverification ladder");
+
+const ladder = evaluate(`
+  const v = await import("./src/lib/trust/verification.ts");
+  console.log(JSON.stringify({
+    order: v.VERIFICATION_ORDER.map((r) => r.kind),
+    steps: v.VERIFICATION_ORDER.map((r) => r.step),
+    tiers: Object.keys(v.TIER_NAME).length,
+    clamped: [v.asTier(-3), v.asTier(0), v.asTier(2), v.asTier(9), v.asTier(null), v.asTier(2.7)],
+    nextFromNone: v.nextRung(0)?.kind ?? null,
+    nextFromThree: v.nextRung(3)?.kind ?? null,
+    nextFromTop: v.nextRung(4)?.kind ?? null,
+    everyRungExplains: v.VERIFICATION_ORDER.every((r) => r.meaning.length > 20 && r.evidence.length > 20),
+  }));
+`);
+
+check(
+  "the ladder is identity, address, payout, in person, in that order",
+  JSON.stringify(ladder.order) ===
+    JSON.stringify(["identity", "address", "payout", "in_person"]),
+);
+check(
+  "the steps are 1 to 4 and match the database's own ordering",
+  JSON.stringify(ladder.steps) === JSON.stringify([1, 2, 3, 4]),
+);
+check("there are five tier names, zero through four", ladder.tiers === 5);
+check(
+  "a tier out of range is clamped rather than trusted",
+  JSON.stringify(ladder.clamped) === JSON.stringify([0, 0, 2, 4, 0, 2]),
+);
+check(
+  "the next rung offered follows the tier",
+  ladder.nextFromNone === "identity" &&
+    ladder.nextFromThree === "in_person" &&
+    ladder.nextFromTop === null,
+);
+check(
+  "every rung says what it proves and what we look at",
+  ladder.everyRungExplains === true,
+);
+
 if (failures > 0) {
   console.log(`\n${failures} check(s) failed`);
   process.exit(1);

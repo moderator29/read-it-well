@@ -18,6 +18,7 @@ import {
   setTicketStatus,
   toggleFeatureFlag,
 } from "@/lib/admin/actions";
+import { recordVerificationCheck } from "@/lib/admin/verification-actions";
 
 /**
  * Every hand the console offers, in one client module.
@@ -710,6 +711,70 @@ export function SwitchControl({
           destructive
           run={() => toggleFeatureFlag({ key: flagKey, enabled: false })}
           onClose={() => setConfirming(false)}
+        />
+      )}
+    </>
+  );
+}
+
+/**
+ * One rung of the verification ladder.
+ *
+ * Two decisions, not three: a rung has either been checked and passed, or been
+ * checked and failed. "Not looked at yet" is the absence of a row, not a state
+ * somebody records, which is why there is no third button here.
+ *
+ * Failing a rung is the destructive one. It can lower a tier a guest can
+ * already see, so it takes the same confirm sheet as every other consequential
+ * decision on the console and it requires a note, enforced again in the server
+ * action rather than only here.
+ */
+export function VerificationRungDecision({
+  agentId,
+  kind,
+  copy,
+  common,
+  disabled,
+}: {
+  agentId: string;
+  kind: "identity" | "address" | "payout" | "in_person";
+  copy: AdminCopy["verification"];
+  common: AdminCommon;
+  /** True while the rung below this one has not passed. */
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState<"passed" | "failed" | null>(null);
+
+  return (
+    <>
+      <Row>
+        <Button
+          variant="primary"
+          size="sm"
+          disabled={disabled}
+          onClick={() => setOpen("passed")}
+        >
+          {copy.pass}
+        </Button>
+        <Button variant="dangerQuiet" size="sm" onClick={() => setOpen("failed")}>
+          {copy.fail}
+        </Button>
+      </Row>
+
+      {open && (
+        <ActionSheet
+          common={common}
+          title={open === "passed" ? copy.sheet.passTitle : copy.sheet.failTitle}
+          description={open === "passed" ? copy.sheet.passBody : copy.sheet.failBody}
+          confirmLabel={copy.sheet.confirm}
+          successTitle={copy.sheet.successTitle}
+          successBody={copy.sheet.successBody}
+          withNotes
+          notesLabel={copy.sheet.notesLabel}
+          notesRequired={open === "failed"}
+          destructive={open === "failed"}
+          run={(note) => recordVerificationCheck({ agentId, kind, status: open, note })}
+          onClose={() => setOpen(null)}
         />
       )}
     </>

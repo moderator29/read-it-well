@@ -58,21 +58,51 @@ export const metadata: Metadata = {
 /** Destination quick picks. Each chip is a shareable link, not client state. */
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Ibadan", "Enugu", "Calabar"];
 
+/**
+ * The tiebreaker: at EQUAL relevance, a verified place goes first.
+ *
+ * Verification on this platform is first-party inventory that a human reviewer
+ * admitted, so it is the single strongest signal discovery has about whether a
+ * place is real. It was not being used at all. Two stays at the same price, or
+ * the same rating and the same number of reviews, came back in whatever order
+ * the repository happened to hand over, and an unverified listing routinely sat
+ * above a verified one for no reason anybody could name. That is the whole of
+ * the defect: not that ranking was wrong, but that a fact we already hold was
+ * being thrown away at exactly the moment it decides something.
+ *
+ * A TIEBREAKER, DELIBERATELY, AND NOT MORE THAN THAT. Verification does not
+ * outrank a better price on a price sort or a better rating on a rating sort,
+ * because the person chose that sort and it is not ours to overrule. It only
+ * settles the cases the chosen sort leaves genuinely equal, which is the exact
+ * wording of the requirement.
+ */
+function byVerification(a: Listing, b: Listing): number {
+  return Number(b.verified) - Number(a.verified);
+}
+
 function sortListings(listings: Listing[], sort: SortKey): Listing[] {
   const out = [...listings];
   switch (sort) {
     case "top-rated":
-      out.sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount);
+      out.sort(
+        (a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount || byVerification(a, b),
+      );
       break;
     case "price-asc":
-      out.sort((a, b) => a.priceMinor - b.priceMinor);
+      out.sort((a, b) => a.priceMinor - b.priceMinor || byVerification(a, b));
       break;
     case "price-desc":
-      out.sort((a, b) => b.priceMinor - a.priceMinor);
+      out.sort((a, b) => b.priceMinor - a.priceMinor || byVerification(a, b));
       break;
     default:
-      // Recommended keeps the repository's own order, which is first-party
-      // inventory before partner stock. Verification earns reach.
+      /*
+       * Recommended has no numeric relevance score of its own: the repository's
+       * order IS the relevance, first-party inventory ahead of partner stock.
+       * So every position in it is a tie as far as this page can tell, and
+       * verification settles all of them. `Array.prototype.sort` is stable, so
+       * the repository's order survives intact inside each group.
+       */
+      out.sort(byVerification);
       break;
   }
   return out;

@@ -150,6 +150,17 @@ async function run(theme) {
       /cannot be edited or deleted/i.test(standards),
     );
     check("an appeal route exists", /Appeal a decision/i.test(standards));
+    check(
+      "the agent verification ladder is published, all four rungs in order",
+      /Identity verified/i.test(standards) &&
+        /Address verified/i.test(standards) &&
+        /Payout verified/i.test(standards) &&
+        /Fully verified/i.test(standards),
+    );
+    check(
+      "and it says a level can go down as well as up",
+      /can go down as well as up/i.test(standards),
+    );
     check("no route returned a server error", serverErrors.length === 0);
     await noSideScroll("/standards");
 

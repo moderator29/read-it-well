@@ -138,9 +138,21 @@ async function walk(colorScheme) {
     const bar = page.locator('[data-testid="listing-sticky-bar"]');
     check("sticky bar renders", await bar.isVisible());
     check("sticky bar offers Check availability", /Check availability/i.test(await bar.innerText()));
+    /*
+     * THIS CHECK USED TO READ "sticky bar shows the rate before dates are
+     * picked", asserting `per night`. That was correct until the date fields
+     * started opening on the upcoming weekend (docs/POLISH_PASS.md item 16),
+     * at which point there is no "before dates are picked" any more: a stay
+     * arrives with two nights already chosen and the bar quotes their total,
+     * which is a strictly better answer to the same question. The product
+     * moved and the spec had not, so this asserts the guarantee that actually
+     * matters and has never changed: the bar always states a real figure, and
+     * never an empty slot where a price should be.
+     */
+    const openingBar = (await bar.innerText()).replace(/\s+/g, " ").trim();
     check(
-      "sticky bar shows the rate before dates are picked",
-      /per night/i.test(await bar.innerText()),
+      `sticky bar states a figure on arrival (${openingBar})`,
+      /per night/i.test(openingBar) || /total for \d+ nights?/i.test(openingBar),
     );
 
     const panel = page.locator('#reserve [data-testid="reserve-panel"]');

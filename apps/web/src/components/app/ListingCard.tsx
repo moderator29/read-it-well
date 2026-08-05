@@ -3,10 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useRef } from "react";
 import { formatMoney, type Dictionary, type Locale, formatRating, formatMoneyGlance } from "@naijafinds/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { isDataSaver } from "@/lib/ui/data-saver";
 
 /**
  * Listing card media.
@@ -95,6 +97,39 @@ export function ListingCard({
   const href = `/listing/${listing.id}`;
 
   /*
+   * PREFETCH ON PRESS-DOWN.
+   *
+   * `/listing/[id]` is a dynamic route, so Next's default `prefetch` fetches
+   * the loading boundary and nothing else: the page itself is still fetched
+   * from scratch after the tap, and the guest waits through it. A thumb rests
+   * on a card for something between 80 and 250ms before it lifts, and the
+   * request started at press-down is already in flight by the time the
+   * navigation begins. It costs one request that was about to be made anyway.
+   *
+   * `pointerdown` covers finger, mouse and pen in one event. Hover is kept as
+   * well because a pointer settling on a card is an even earlier signal, and a
+   * desktop visitor never produces a pointerdown until they have decided.
+   *
+   * ONCE PER CARD. `router.prefetch` is not free and a grid of twenty cards
+   * under a scrolling thumb would otherwise fire repeatedly.
+   *
+   * NOT ON A METERED CONNECTION. This is speculative traffic: it is exactly
+   * what somebody switching on data saver is asking us to stop, and it is what
+   * `isDataSaver()` was written for.
+   */
+  const prefetched = useRef(false);
+  const warm = () => {
+    if (prefetched.current) return;
+    if (isDataSaver()) return;
+    prefetched.current = true;
+    try {
+      router.prefetch(href);
+    } catch {
+      /* Prefetching is an optimisation and never a requirement. */
+    }
+  };
+
+  /*
    * The camera move. Both this card's photo box and the gallery's lead pane
    * carry the same `view-transition-name`, so a supporting browser morphs one
    * into the other instead of cutting between them. Feature detected, and a
@@ -145,7 +180,14 @@ export function ListingCard({
       className={`nf-card nf-card--interactive group overflow-hidden ${index !== undefined ? "nf-card-in" : ""}`}
       style={cardStyle}
     >
-      <Link href={href} onClick={handleClick} className="block">
+      <Link
+        href={href}
+        onClick={handleClick}
+        onPointerDown={warm}
+        onPointerEnter={warm}
+        onFocus={warm}
+        className="block"
+      >
         <div
           className="relative aspect-[4/3] w-full overflow-hidden"
           style={{ viewTransitionName: `listing-photo-${listing.id}` }}

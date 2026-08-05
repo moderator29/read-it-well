@@ -7,6 +7,7 @@ import {
   RESPONSE_COMMITMENTS,
   RESPONSE_ORDER,
 } from "@/lib/trust/standards";
+import { TIER_NAME, VERIFICATION_ORDER } from "@/lib/trust/verification";
 
 export const metadata: Metadata = {
   title: "Trust and safety standards",
@@ -208,6 +209,44 @@ export default function StandardsPage() {
               </li>
             ))}
           </ul>
+        </section>
+
+        {/* --------------------------------------------- the agent ladder */}
+        <section className="mt-12" aria-labelledby="agent-ladder">
+          <h2 id="agent-ladder" className="nf-h2 text-[1.375rem]">
+            How far an agent has been checked
+          </h2>
+          <p className="mt-2 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            Approval is where an agent starts, not where they finish. Four checks
+            sit above it, in this order, and each one is a decision a named member
+            of our team recorded. An agent cannot skip a step: passing the last
+            one while the first is outstanding counts for nothing.
+          </p>
+          <ol className="mt-4 space-y-3">
+            {VERIFICATION_ORDER.map((rung) => (
+              <li key={rung.kind} className="nf-card p-4">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span className="nf-overline">
+                    Level <span className="nf-numeric">{rung.step}</span>
+                  </span>
+                  <span className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                    {TIER_NAME[rung.step]}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                  {rung.meaning}
+                </p>
+                <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+                  What we look at: {rung.evidence}
+                </p>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            A level can go down as well as up. If something stops checking out, the
+            check is recorded as failed, the level drops to the step below it, and
+            the agent is told why.
+          </p>
         </section>
 
         {/* ---------------------------------------------------- appeals */}
