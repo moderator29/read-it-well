@@ -7,7 +7,10 @@ import type { Dictionary } from "@naijafinds/i18n";
 import type { AgentProfile } from "@/lib/agent/types";
 import { Logo } from "@/design-system/brand/Logo";
 import { ModeSwitcher } from "./ModeSwitcher";
-import { AgentIdentityCard, AgentModePill, AgentNavList, buildAgentNav } from "./AgentNav";
+import { AgentIdentityCard, AgentModePill } from "./AgentNav";
+import { buildAgentNav } from "./agent-nav-model";
+import { NavTree } from "@/components/app/NavTree";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * Agent Mode mobile navigation: a hamburger in the top bar opening a slide-in
@@ -53,10 +56,10 @@ export function AgentMobileNav({
         aria-label={t.a11y.openMenu}
         className="nf-tap -ml-1 grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)] text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] lg:hidden"
       >
-        {/* Tier one style hamburger glyph: 24 grid, stroked, currentColor. */}
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-          <path d="M4 7h16M4 12h16M4 17h16" />
-        </svg>
+        {/* The panel toggle, matching Personal Mode. Three stacked lines say
+            "a list is behind this" and say it identically whatever opens; this
+            says a panel arrives beside the content. */}
+        <UiIcon name="panel-left" size={19} />
       </button>
 
       <div
@@ -107,10 +110,14 @@ export function AgentMobileNav({
 
           <AgentModePill label={t.agent.mode.agent} className="mb-5 ml-1" />
 
-          <AgentNavList
-            items={buildAgentNav(t, unreadMessages)}
+          <NavTree
+            sections={buildAgentNav(t, unreadMessages)}
             active={active}
             label={t.agent.mode.workspaceLabel}
+            storageKey="nf_agent_nav_open"
+            accent="agent"
+            expandLabel={t.a11y.expand}
+            collapseLabel={t.a11y.collapse}
             onNavigate={close}
           />
 

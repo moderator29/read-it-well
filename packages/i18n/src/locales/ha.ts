@@ -203,6 +203,7 @@ export const ha: Dictionary = {
     },
     nav: {
       dashboard: "Dashboard",
+      money: "Kudi",
       myListings: "Jerina",
       listApartment: "Jera Gida",
       bookings: "Ajiye",

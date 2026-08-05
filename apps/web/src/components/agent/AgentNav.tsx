@@ -14,50 +14,17 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * so they render on the server inside AgentRail and in the client bundle
  * inside the drawer without any boundary friction.
  */
-export type AgentNavItem = { href: string; label: string; icon: BrandIconName; badge?: number };
-
-/**
- * The ten frozen destinations, in reference order.
+/*
+ * `buildAgentNav` and `AgentNavList` used to live here. They moved to
+ * `agent-nav-model.ts` and `components/app/NavTree.tsx`, because the two modes
+ * were rendering two navigations that looked like two products: this one drew
+ * ten 26px 3D BrandIcons in a column, which is the content family doing a
+ * navigation's job, and a flat list of ten in which "List a property" sat at
+ * the same level as "Settings".
  *
- * `unreadMessages` is a real count of unread messages across the caller's own
- * conversations, resolved by the shell. It used to be a hardcoded 3, so every
- * agent saw three unread messages permanently, on a route that was a
- * placeholder, and no amount of reading could ever clear it. Zero means the
- * badge is not rendered at all.
+ * What is left here is what is genuinely Agent Mode's own: the mode pill and
+ * the identity card.
  */
-export function buildAgentNav(t: Dictionary, unreadMessages = 0): AgentNavItem[] {
-  return [
-    { href: "/agent/dashboard", label: t.agent.nav.dashboard, icon: "house-sparkle" },
-    { href: "/agent/listings", label: t.agent.nav.myListings, icon: "homes-sparkle" },
-    { href: "/agent/list", label: t.agent.nav.listApartment, icon: "calendar-check" },
-    { href: "/agent/bookings", label: t.agent.nav.bookings, icon: "calendar-check" },
-    /*
-     * A REAL unread count, and this is the one place the premium UI branch and
-     * this one reached different answers.
-     *
-     * That branch deleted the badge outright, and it was right to: it carried a
-     * hardcoded `badge: 3`, so every agent saw three permanent unread messages
-     * pointing at what was then a coming-soon stub. Its own note said the field
-     * and the renderer should stay "ready for a real unread count once
-     * /agent/messages ships".
-     *
-     * It has shipped. So the badge is back with the count behind it, which is
-     * that branch's stated intent rather than a reversal of its work. Zero
-     * renders nothing, so the fabricated three cannot return.
-     */
-    {
-      href: "/agent/messages",
-      label: t.agent.nav.messages,
-      icon: "chat",
-      ...(unreadMessages > 0 ? { badge: unreadMessages } : {}),
-    },
-    { href: "/agent/reviews", label: t.agent.nav.reviews, icon: "heart-home" },
-    { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet-secure" },
-    { href: "/agent/analytics", label: t.agent.nav.analytics, icon: "map-route" },
-    { href: "/agent/verification", label: t.agent.nav.verification, icon: "shield-check" },
-    { href: "/agent/settings", label: t.agent.nav.settings, icon: "doc-shield" },
-  ];
-}
 
 /** The "Agent Mode" marker pill. Brand blue, like every other accent. */
 export function AgentModePill({ label, className }: { label: string; className?: string }) {
@@ -75,65 +42,6 @@ export function AgentModePill({ label, className }: { label: string; className?:
       <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--nf-mode-agent)]" />
       {label}
     </span>
-  );
-}
-
-/**
- * The destination list itself. `onNavigate` lets the mobile drawer close as
- * soon as a link is chosen; the desktop rail simply omits it.
- */
-export function AgentNavList({
-  items,
-  active,
-  label,
-  onNavigate,
-}: {
-  items: AgentNavItem[];
-  active: string;
-  label: string;
-  onNavigate?: () => void;
-}) {
-  return (
-    <nav aria-label={label} className="flex-1 overflow-y-auto">
-      <ul className="space-y-0.5">
-        {items.map((item) => {
-          const isActive = item.href === active;
-          return (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                onClick={onNavigate}
-                aria-current={isActive ? "page" : undefined}
-                className={[
-                  "group flex items-center gap-3 rounded-[var(--nf-radius-md)] px-3 py-2.5 text-[0.9rem] font-medium transition-colors",
-                  isActive
-                    ? "text-[var(--nf-content-primary)]"
-                    : "text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
-                ].join(" ")}
-                style={
-                  isActive
-                    ? { background: "color-mix(in oklab, var(--nf-mode-agent) 18%, transparent)" }
-                    : undefined
-                }
-              >
-                <span className="h-[26px] w-[26px] shrink-0">
-                  <BrandIcon name={item.icon} fill />
-                </span>
-                <span className="flex-1">{item.label}</span>
-                {item.badge ? (
-                  <span
-                    className="nf-numeric inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[0.6875rem] font-bold text-white"
-                    style={{ background: "var(--nf-mode-agent)" }}
-                  >
-                    {item.badge}
-                  </span>
-                ) : null}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
   );
 }
 
