@@ -3,13 +3,15 @@ import { formatRating, formatNumber, type Locale } from "@naijafinds/i18n";
 import type { AgentReview, AgentReviewsSummary } from "@/lib/agent/reviews-queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Chip, ChipRow } from "@/components/ui/Chip";
 import { ReplyForm } from "./ReplyForm";
 
 /**
  * The host reviews console.
  *
- * A server component: the filter travels in the address bar, so the list ships
- * no JavaScript of its own and only the reply form is a client leaf.
+ * A server component: the filter travels in the address bar, so the list itself
+ * holds no state and the only client leaves are the reply form and the shared
+ * chip rail.
  *
  * The opinion in the ordering is the same one the inbox takes. A host does not
  * primarily want their reviews newest first, they want the ones nobody has
@@ -170,21 +172,30 @@ export function ReviewsWorkspace({
     <div>
       <Summary summary={summary} locale={locale} />
 
-      <nav aria-label="Filter reviews" className="mt-5 flex flex-wrap gap-2">
-        {chips.map((chip) => {
-          const active = chip.key === filter;
-          return (
-            <Link
+      {/*
+        The shared rail. Selection used to be `.nf-chip--active`, a hue shift on
+        a hairline, which at arm's length on a phone in daylight is not a state
+        change; the primitive draws a real ring and a fill tint instead. The
+        counts stay locale-formatted and tabular.
+      */}
+      <nav aria-label="Filter reviews" className="mt-5">
+        <ChipRow bleed={false}>
+          {chips.map((chip) => (
+            <Chip
               key={chip.key}
+              behaviour="link"
               href={chip.key === "all" ? "/agent/reviews?filter=all" : "/agent/reviews"}
-              aria-current={active ? "page" : undefined}
-              className={`nf-chip ${active ? "nf-chip--active" : ""}`}
+              selected={chip.key === filter}
             >
               {chip.label}
-              <span className="nf-numeric ml-1.5 opacity-70">{formatNumber(chip.count, locale)}</span>
-            </Link>
-          );
-        })}
+              {/* The count stays locale-formatted, so `count` is not used here:
+                  that prop renders the raw number. */}
+              <span className="nf-numeric ml-1.5 opacity-70">
+                {formatNumber(chip.count, locale)}
+              </span>
+            </Chip>
+          ))}
+        </ChipRow>
       </nav>
 
       {shown.length > 0 ? (

@@ -2,13 +2,14 @@ import Link from "next/link";
 import type { AgentInbox as Inbox, AgentThread } from "@/lib/agent/messages-queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Chip, ChipRow } from "@/components/ui/Chip";
 
 /**
  * The host inbox.
  *
  * A server component: the filter travels in the address bar rather than in
- * client state, so this surface ships no JavaScript of its own and a filtered
- * inbox is a link an agent can bookmark or send to a colleague.
+ * client state, so this surface holds none of its own and a filtered inbox is a
+ * link an agent can bookmark or send to a colleague.
  *
  * The ordering is the opinion here. A host does not want their enquiries newest
  * first, they want the one that has been waiting longest on them, because that
@@ -78,21 +79,24 @@ export function AgentInbox({ inbox, filter }: { inbox: Inbox; filter: InboxFilte
 
   return (
     <div>
-      <nav aria-label="Filter enquiries" className="flex flex-wrap gap-2">
-        {chips.map((chip) => {
-          const active = chip.key === filter;
-          return (
-            <Link
+      {/* The shared rail. A selected link chip is describing where the reader
+          already is, so the primitive marks it `aria-current="page"` rather
+          than pressed, and paints selection as a ring and a fill instead of the
+          `.nf-chip--active` border glow that a phone in daylight cannot show. */}
+      <nav aria-label="Filter enquiries">
+        <ChipRow bleed={false}>
+          {chips.map((chip) => (
+            <Chip
               key={chip.key}
+              behaviour="link"
               href={chip.key === "all" ? "/agent/messages?filter=all" : "/agent/messages"}
-              aria-current={active ? "page" : undefined}
-              className={`nf-chip ${active ? "nf-chip--active" : ""}`}
+              selected={chip.key === filter}
+              count={chip.count}
             >
               {chip.label}
-              <span className="nf-numeric ml-1.5 opacity-70">{chip.count}</span>
-            </Link>
-          );
-        })}
+            </Chip>
+          ))}
+        </ChipRow>
       </nav>
 
       {threads.length > 0 ? (

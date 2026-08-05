@@ -11,6 +11,8 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+import { Chip, ChipRow } from "@/components/ui/Chip";
+import { TextArea } from "@/components/ui/Field";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 /**
@@ -122,45 +124,49 @@ function DecisionSheet({
 
       {state.kind === "decline" && (
         <div className="mt-4">
-          <label
-            htmlFor="decline-reason"
-            className="mb-1.5 block text-[0.8125rem] font-semibold"
-          >
-            {t.decline.reasonLabel}
-          </label>
-          <textarea
-            id="decline-reason"
-            className="nf-field min-h-[5.5rem] resize-none text-[0.875rem]"
+          {/*
+            The reason field carried `aria-invalid` and showed nothing for it.
+            `.nf-field` paints its border with a border-box gradient, so the
+            error rule underneath sets a colour on a surface the gradient
+            covers - the field looked identical whether the server had rejected
+            it or not. TextArea owns the invalid state, the message, the
+            `aria-describedby` wiring and the hint together.
+          */}
+          <TextArea
+            label={t.decline.reasonLabel}
+            hint={t.decline.reasonHint}
+            error={reasonError ?? undefined}
             placeholder={t.decline.reasonPlaceholder}
             value={reason}
             maxLength={240}
-            aria-invalid={reasonError ? "true" : undefined}
+            rows={3}
+            textAreaClassName="resize-none"
             onChange={(e) => setReason(e.target.value)}
           />
-          <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
-            {t.decline.reasonHint}
-          </p>
-          {reasonError && (
-            <p className="mt-1 text-[0.75rem] font-medium text-[var(--nf-state-warning)]">
-              {reasonError}
-            </p>
-          )}
 
           <p className="mb-2 mt-3 text-[0.75rem] font-medium text-[var(--nf-content-muted)]">
             {t.decline.suggestionsLabel}
           </p>
-          <div className="flex flex-wrap gap-2">
+          {/*
+            The `!py-1.5 !text-[0.75rem]` these carried was somebody forcing a
+            chip back down after the box had been inflated to chase a touch
+            target. `Chip` keeps its painted height and grows only its hit
+            region, so the overrides are gone. Picking one really does select
+            it - the reason field now holds that exact text - so the pressed
+            state is a fact rather than decoration.
+          */}
+          <ChipRow bleed={false} fadeEdges={false}>
             {SUGGESTION_KEYS.map((key) => (
-              <button
+              <Chip
                 key={key}
-                type="button"
-                className="nf-chip !py-1.5 !text-[0.75rem]"
-                onClick={() => setReason(t.decline.suggestions[key])}
+                size="sm"
+                selected={reason === t.decline.suggestions[key]}
+                onSelectedChange={() => setReason(t.decline.suggestions[key])}
               >
                 {t.decline.suggestions[key]}
-              </button>
+              </Chip>
             ))}
-          </div>
+          </ChipRow>
         </div>
       )}
 
@@ -371,7 +377,13 @@ export function BookingsWorkspace({
             role="tab"
             id={`bookings-tab-${key}`}
             aria-selected={active === key}
-            aria-controls={`bookings-panel-${key}`}
+            /*
+              Only the active panel is rendered, so pointing every tab at a
+              `bookings-panel-<key>` id sent a screen reader following the
+              relationship to an element that does not exist. Only the selected
+              tab controls anything, so only the selected tab says so.
+            */
+            aria-controls={active === key ? `bookings-panel-${key}` : undefined}
             onClick={() => setActive(key)}
             className={`nf-chip shrink-0 whitespace-nowrap ${active === key ? "nf-chip--active" : ""}`}
           >
