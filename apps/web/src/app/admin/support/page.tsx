@@ -107,7 +107,7 @@ export default async function AdminSupportPage({
 
   if (tickets.state !== "ok") {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="nf-console">
         <ui.QueueHeader title={copy.title} lede={copy.lede} />
         <ui.QueueUnavailable />
       </div>
@@ -127,7 +127,7 @@ export default async function AdminSupportPage({
   );
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
       {selected && (

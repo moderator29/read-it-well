@@ -178,7 +178,7 @@ export default async function AdminListingsPage() {
 
   if (listings.state !== "ok") {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="nf-console">
         <ui.QueueHeader title={copy.title} lede={copy.lede} />
         <ui.QueueUnavailable />
       </div>
@@ -191,13 +191,13 @@ export default async function AdminListingsPage() {
   const onUs = waiting.filter((listing) => listing.status !== "MORE_INFO_REQUIRED").length;
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={onUs} />
 
       {waiting.length === 0 ? (
         <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
       ) : (
-        <ul className="space-y-3">
+        <ul className="nf-queue-list">
           {waiting.map((listing) => (
             <ListingCard
               key={listing.id}
@@ -214,7 +214,7 @@ export default async function AdminListingsPage() {
       {decided.length > 0 && (
         <section className="mt-8">
           <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyDecided}</h2>
-          <ul className="space-y-3">
+          <ul className="nf-queue-list">
             {decided.map((listing) => (
               <ListingCard
                 key={listing.id}

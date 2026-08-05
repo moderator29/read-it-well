@@ -102,7 +102,7 @@ export default async function AdminReportsPage() {
 
   if (reports.state !== "ok") {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="nf-console">
         <ui.QueueHeader title={copy.title} lede={copy.lede} />
         <ui.QueueUnavailable />
       </div>
@@ -117,13 +117,13 @@ export default async function AdminReportsPage() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
       {open.length === 0 ? (
         <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
       ) : (
-        <ul className="space-y-3">
+        <ul className="nf-queue-list">
           {open.map((report) => (
             <ReportCard key={report.id} report={report} copy={copy} common={common} ui={ui} />
           ))}
@@ -133,7 +133,7 @@ export default async function AdminReportsPage() {
       {closed.length > 0 && (
         <section className="mt-8">
           <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyClosed}</h2>
-          <ul className="space-y-3">
+          <ul className="nf-queue-list">
             {closed.map((report) => (
               <ReportCard key={report.id} report={report} copy={copy} common={common} ui={ui} />
             ))}

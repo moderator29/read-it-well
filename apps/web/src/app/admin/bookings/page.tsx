@@ -105,7 +105,7 @@ function Group({
   return (
     <section className="mt-8 first:mt-0">
       <h2 className="nf-h3 mb-3 text-[1rem]">{title}</h2>
-      <ul className="space-y-3">
+      <ul className="nf-queue-list">
         {stays.map((stay) => (
           <StayCard key={stay.id} stay={stay} copy={copy} ui={ui} locale={locale} />
         ))}
@@ -131,7 +131,7 @@ export default async function AdminBookingsPage({
   const board = await getBookingBoard(query);
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} />
 
       <form method="get" className="mb-6 flex flex-wrap items-end gap-2">

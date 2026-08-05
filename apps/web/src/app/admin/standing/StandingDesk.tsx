@@ -144,7 +144,7 @@ export function StandingDesk({
             </p>
           </div>
         ) : (
-          <ul className="space-y-3">
+          <ul className="nf-queue-list">
             {grants.map((grant) => (
               <li key={`${grant.userId}-${grant.badgeCode}`} className="nf-card p-4">
                 <div className="flex flex-wrap items-center gap-2">

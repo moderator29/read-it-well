@@ -33,7 +33,7 @@ export default async function AdminStandingPage() {
 
   if (read.state !== "ready") {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="nf-console">
         <ui.QueueHeader
           title={t.admin.nav.standing.label}
           lede="Badges RentMe grants by hand, and the record of who granted them."
@@ -44,7 +44,7 @@ export default async function AdminStandingPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="nf-console">
       <ui.QueueHeader
         title={t.admin.nav.standing.label}
         lede="Badges RentMe grants by hand, and the record of who granted them."

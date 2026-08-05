@@ -35,7 +35,7 @@ export default async function AdminStopsPage() {
 
   if (read.state !== "ready") {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="nf-console">
         <ui.QueueHeader
           title={t.admin.nav.stops.label}
           lede="Agents taken off the platform, and everything a stop took down."
@@ -46,7 +46,7 @@ export default async function AdminStopsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="nf-console">
       <ui.QueueHeader
         title={t.admin.nav.stops.label}
         lede="Agents taken off the platform, and everything a stop took down. A stop is not a deletion: their listings come back where they were the moment it is lifted, and confirmed stays are never cancelled."

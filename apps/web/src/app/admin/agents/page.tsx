@@ -301,7 +301,7 @@ export default async function AdminAgentsPage() {
 
   if (applications.state !== "ok") {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="nf-console">
         <ui.QueueHeader title={copy.title} lede={copy.lede} />
         <ui.QueueUnavailable />
       </div>
@@ -325,13 +325,13 @@ export default async function AdminAgentsPage() {
   const onUs = waiting.filter((item) => item.status !== "MORE_INFO_REQUIRED").length;
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={onUs} />
 
       {waiting.length === 0 ? (
         <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
       ) : (
-        <ul className="space-y-3">
+        <ul className="nf-queue-list">
           {waiting.map((application) => (
             <ApplicationCard
               key={application.id}
@@ -349,7 +349,7 @@ export default async function AdminAgentsPage() {
       {decided.length > 0 && (
         <section className="mt-8">
           <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyDecided}</h2>
-          <ul className="space-y-3">
+          <ul className="nf-queue-list">
             {decided.map((application) => (
               <ApplicationCard
                 key={application.id}

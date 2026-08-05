@@ -54,7 +54,7 @@ export default async function AdminBookingPage({
 
   if (read.state !== "ok") {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="nf-console">
         {backLink}
         <ui.QueueUnavailable />
       </div>
@@ -64,7 +64,7 @@ export default async function AdminBookingPage({
   const stay = read.data;
   if (!stay) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="nf-console">
         {backLink}
         <ui.QueueEmpty title={copy.goneTitle} body={copy.goneBody} />
       </div>
@@ -78,7 +78,7 @@ export default async function AdminBookingPage({
   const cancellable = stay.status !== "CANCELLED" && !over;
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="nf-console">
       {backLink}
 
       <header className="mb-5">

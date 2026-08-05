@@ -174,7 +174,7 @@ export default async function AdminFlagsPage() {
 
   if (flags.state !== "ok") {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="nf-console">
         <ui.QueueHeader title={copy.title} lede={copy.lede} />
         <ui.QueueUnavailable />
       </div>
@@ -185,13 +185,13 @@ export default async function AdminFlagsPage() {
   const reviewed = flags.data.filter((flag) => flag.status !== "open");
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
       {open.length === 0 ? (
         <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
       ) : (
-        <ul className="space-y-3">
+        <ul className="nf-queue-list">
           {open.map((flag) => (
             <FlagCard
               key={flag.id}
@@ -208,7 +208,7 @@ export default async function AdminFlagsPage() {
       {reviewed.length > 0 && (
         <section className="mt-8">
           <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyReviewed}</h2>
-          <ul className="space-y-3">
+          <ul className="nf-queue-list">
             {reviewed.map((flag) => (
               <FlagCard
                 key={flag.id}

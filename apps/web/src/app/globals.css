@@ -3981,6 +3981,46 @@ html {
 
   /* ------------------------------------------------------------- utilities */
 
+  /*
+   * The console, and the queue lists inside it.
+   *
+   * Every admin screen was `mx-auto max-w-3xl`, which is 768px. That is the
+   * right measure for a page somebody READS - an article, a settings list -
+   * and the wrong one for a tool somebody WORKS in. On the 1440px display an
+   * operator actually reviews reports on, two thirds of the screen was empty
+   * and the queue ran twice as long as it needed to, which is more scrolling
+   * between the item and the decision.
+   *
+   * 90rem is the console measure. Wide enough that the rail, the list and a
+   * card's own detail all fit at once; bounded so a 4K monitor does not
+   * stretch a row to a metre of unreadable line length.
+   */
+  .nf-console {
+    width: 100%;
+    max-width: 90rem;
+    margin-inline: auto;
+  }
+
+  /*
+   * A queue is a grid, not a column.
+   *
+   * One card per row is correct while a card is the width of the screen. Past
+   * `xl` the screen is wider than two cards, and a second column halves the
+   * distance between the top of the queue and the bottom of it. `align-items:
+   * start` because two cards in a row are rarely the same height and stretching
+   * the shorter one to match invents whitespace inside a bordered box.
+   */
+  .nf-queue-list {
+    display: grid;
+    gap: 0.75rem;
+  }
+  @media (min-width: 1280px) {
+    .nf-queue-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
+  }
+
   .nf-shell {
     width: 100%;
     max-width: var(--nf-content-max);

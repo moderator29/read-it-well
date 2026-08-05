@@ -106,7 +106,7 @@ export default async function AdminAlertsPage() {
 
   if (alerts.state !== "ok") {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="nf-console">
         <ui.QueueHeader title={copy.title} lede={copy.lede} />
         <ui.QueueUnavailable />
       </div>
@@ -117,13 +117,13 @@ export default async function AdminAlertsPage() {
   const resolved = alerts.data.filter((alert) => alert.status !== "open");
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
       {open.length === 0 ? (
         <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
       ) : (
-        <ul className="space-y-3">
+        <ul className="nf-queue-list">
           {open.map((alert) => (
             <AlertCard key={alert.id} alert={alert} copy={copy} common={common} ui={ui} />
           ))}
@@ -133,7 +133,7 @@ export default async function AdminAlertsPage() {
       {resolved.length > 0 && (
         <section className="mt-8">
           <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyResolved}</h2>
-          <ul className="space-y-3">
+          <ul className="nf-queue-list">
             {resolved.map((alert) => (
               <AlertCard key={alert.id} alert={alert} copy={copy} common={common} ui={ui} />
             ))}

@@ -11,7 +11,7 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
  */
 export default function LoadingSwitches() {
   return (
-    <LoadingShell label="Loading feature switches" className="mx-auto w-full max-w-3xl">
+    <LoadingShell label="Loading feature switches" className="nf-console w-full">
       <header className="mb-5">
         <Skeleton width="12rem" height="1.75rem" radius="sm" />
         <Skeleton className="mt-2" width="90%" height="0.875rem" radius="sm" />
@@ -26,7 +26,7 @@ export default function LoadingSwitches() {
         </div>
       </div>
 
-      <ul className="space-y-3">
+      <ul className="nf-queue-list">
         {Array.from({ length: 5 }, (_, i) => (
           <li key={i} className="nf-card flex flex-wrap items-start gap-4 p-4 sm:p-5">
             <div className="min-w-0 flex-1">

@@ -87,7 +87,7 @@ export default async function AdminSwitchesPage() {
   const flags = await getFeatureFlags();
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} />
 
       <p className="nf-card mb-4 flex gap-2.5 p-3.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -98,7 +98,7 @@ export default async function AdminSwitchesPage() {
       {flags.state !== "ok" ? (
         <ui.QueueUnavailable />
       ) : (
-        <ul className="space-y-3">
+        <ul className="nf-queue-list">
           {flags.data.map((flag) => (
             <SwitchRow key={flag.key} flag={flag} copy={copy} common={common} ui={ui} />
           ))}
