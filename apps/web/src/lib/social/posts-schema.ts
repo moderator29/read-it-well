@@ -38,6 +38,50 @@ export const POST_MEDIA_MAX = 4;
 /** The window the database allows an edit in. Kept in step with posts_update_own. */
 export const EDIT_WINDOW_MINUTES = 15;
 
+/* ------------------------------------------------------------------ *
+ * Pictures.
+ *
+ * `post_media.position` is `smallint check (position between 0 and 3)` and
+ * unique per post, so four is the database's rule and `POST_MEDIA_MAX` is this
+ * side of the same number rather than the number itself. A fifth picture is
+ * refused by the check constraint whatever the client believes.
+ *
+ * Every picture is re-encoded on the device before it is uploaded, which is why
+ * the stored type is always JPEG and the accepted types are only what a canvas
+ * can decode. The edge and the ceiling match a story's, because both end up in
+ * the same private bucket and a person choosing a photo should not have to
+ * learn two different limits.
+ * ------------------------------------------------------------------ */
+
+export const POST_IMAGE_MAX_EDGE = 1600;
+export const POST_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
+export const POST_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+/** The private bucket both a post's pictures and a story's live in. */
+export const POST_MEDIA_BUCKET = "social-media";
+
+/**
+ * Attaching pictures to a post that already exists.
+ *
+ * The post is written first because the object path carries its id, which is
+ * how `private.social_media_access` resolves a picture back to the post that
+ * decides who may see it. A database trigger refuses any path that is not
+ * `<author>/<post>/<file>`, so this schema checks the shape it can check and
+ * the action checks the rest against the session it actually holds.
+ */
+export const attachMediaSchema = z.object({
+  postId: z.string().uuid(),
+  items: z
+    .array(
+      z.object({
+        path: z.string().trim().min(3).max(400),
+        width: z.number().int().positive().max(20_000).nullable(),
+        height: z.number().int().positive().max(20_000).nullable(),
+      }),
+    )
+    .min(1)
+    .max(POST_MEDIA_MAX),
+});
+
 export const dropPostSchema = z.object({
   areaId: z.string().uuid("Choose a place to post in."),
   kind: z.enum(COMPOSABLE_KINDS),
@@ -182,6 +226,26 @@ export const POST_COPY = {
   reportedDone:
     "Thank you. Somebody will look at this. We do not tell them who reported it.",
   copied: "Link copied.",
+  /* ---------------------------------------------------------- pictures */
+  picturePrompt: "Add a picture",
+  /*
+   * Said once, on the composer, because it is the reason the wait exists.
+   * A camera photo carries EXIF and on a phone that usually includes the
+   * coordinates of where it was taken, which for a photo of your own street is
+   * your address. Every picture is redrawn on the device before it leaves it,
+   * so the tag cannot survive.
+   */
+  pictureNote: "Up to four. Each one is redrawn on your phone first, so the location tag your camera wrote never leaves it.",
+  pictureNeedsWords:
+    "Say something about it and you can post. A picture on its own has no place to land.",
+  pictureRemove: "Remove this picture",
+  /*
+   * The post is written before the picture is uploaded, because the object's
+   * path carries the post's id. So the one honest thing to say when an upload
+   * fails is that the words are already up and the picture is not.
+   */
+  pictureLost:
+    "Your words are up. The picture did not reach us, so the post has none yet.",
   deleteConfirm:
     "Delete this post? Replies under it stay, with a note where it was.",
   editedDone: "Changed. It says edited from now on.",
@@ -210,6 +274,18 @@ export const POST_FAILURE = {
   deleteWindowClosed:
     "This post can no longer be taken down from here. Fifteen minutes after writing, only a moderator can remove one. Contact us and somebody will take it down for you.",
   signedOutLike: "Sign in to like this.",
+  /* ---------------------------------------------------------- pictures */
+  pictureType: "Choose a JPG, PNG or WebP picture.",
+  pictureTooBig: "That picture is over 10MB. Please choose a smaller one.",
+  /*
+   * The refusal, not a fallback. Uploading the original file instead would
+   * publish whatever the camera wrote into it, and asking somebody for another
+   * picture is a far smaller cost than publishing where they live.
+   */
+  pictureReencode:
+    "We could not prepare that picture safely on this device, so it was not uploaded. Try a different one.",
+  pictureTooMany: "Four pictures is the most a post can carry.",
+  pictureUpload: "That upload did not go through. Check your connection and try again.",
 } as const;
 
 /**
