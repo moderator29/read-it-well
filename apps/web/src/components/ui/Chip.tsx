@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
@@ -232,6 +233,17 @@ export function Chip(props: ChipProps) {
        * chip is an independent control and keeps its own stop.
        */
       tabIndex={choice ? (selected ? 0 : -1) : undefined}
+      /*
+       * The empty-group escape hatch.
+       *
+       * Roving tabindex gives every unselected radio -1, so a group with
+       * NOTHING selected has no tab stop at all and is unreachable by
+       * keyboard entirely. The ARIA radio pattern says the first radio takes
+       * the stop in that case, but a chip cannot know it is first - only the
+       * row can. `ChipRow` therefore marks the group empty on mount and after
+       * every change, and the first radio inside claims the stop.
+       */
+      data-roving-radio={choice ? "" : undefined}
       onClick={() => onSelectedChange?.(choice ? true : !selected)}
     >
       {inner}
@@ -282,6 +294,37 @@ export function ChipRow({
   label?: string;
   className?: string;
 }) {
+  const rowRef = useRef<HTMLDivElement | null>(null);
+
+  /*
+   * Restore a tab stop when nothing is selected.
+   *
+   * With roving tabindex every unselected radio is -1, so an unfiltered group
+   * - the state a filter row is usually in when the page loads - had no tab
+   * stop and could not be reached from the keyboard at all. The ARIA radio
+   * pattern puts the stop on the first radio in that case. Only the row can
+   * know which chip is first, so it is applied here, after render and after
+   * any change to the group.
+   */
+  useEffect(() => {
+    if (!radiogroup) return;
+    const row = rowRef.current;
+    if (!row) return;
+    const apply = () => {
+      const items = Array.from(
+        row.querySelectorAll<HTMLElement>('[data-roving-radio]:not([disabled])'),
+      );
+      if (items.length === 0) return;
+      const anySelected = items.some((el) => el.getAttribute("aria-checked") === "true");
+      if (anySelected) return;
+      items[0]!.tabIndex = 0;
+    };
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(row, { subtree: true, attributes: true, childList: true });
+    return () => observer.disconnect();
+  }, [radiogroup, children]);
+
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!radiogroup) return;
     const delta =
@@ -309,6 +352,7 @@ export function ChipRow({
 
   return (
     <div
+      ref={rowRef}
       role={radiogroup ? "radiogroup" : undefined}
       aria-label={label}
       onKeyDown={onKeyDown}
