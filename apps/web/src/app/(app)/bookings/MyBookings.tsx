@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,6 +10,7 @@ import type { BookingGroups, BookingView } from "@/lib/bookings/queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { Sheet } from "@/components/ui/Sheet";
 
 /**
  * The signed-in trips hub: the user's real bookings from the platform,
@@ -134,98 +134,81 @@ function BookingCard({
 }
 
 /**
- * Full-page confirm sheet for cancelling a stay. Portalled to body so the
- * glass card's backdrop-filter cannot become its containing block, focused on
- * open, closed by Escape and the backdrop. On success the router refreshes
+ * Confirm sheet for cancelling a stay. `<Sheet>` owns the portal, the drag
+ * handle, the detents, the focus trap, focus restoration, Escape, the backdrop
+ * and the body scroll lock. What is left here is the decision: the server
+ * action, the refusal, and the success state. On success the router refreshes
  * and the server-rendered list becomes the single source of truth.
  */
 function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () => void }) {
   const router = useRouter();
-  const panelRef = useRef<HTMLDivElement | null>(null);
   const [state, formAction, pending] = useActionState<ActionResult<null> | null, FormData>(
     cancel,
     null,
   );
 
   useEffect(() => {
-    panelRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
-
-  useEffect(() => {
     if (state?.ok) router.refresh();
   }, [state, router]);
 
-  return createPortal(
-    <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center">
-      <button
-        type="button"
-        aria-label="Close"
-        onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-      />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="cancel-booking-title"
-        tabIndex={-1}
-        className="nf-rise relative w-full rounded-t-3xl border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] p-5 shadow-[var(--nf-shadow-float)] outline-none sm:max-w-md sm:rounded-3xl"
-      >
-        {state?.ok ? (
-          <div className="text-center">
-            <p className="flex items-center justify-center gap-2 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
-              <UiIcon name="verified" size={20} className="text-[var(--nf-state-success)]" />
-              Booking cancelled
-            </p>
-            <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              {booking.title} for {booking.dateRange} is cancelled. The dates are free again.
-            </p>
-            <Button variant="primary" full className="mt-4" onClick={onClose}>
-              Done
-            </Button>
-          </div>
+  const cancelled = Boolean(state?.ok);
+
+  return (
+    <Sheet
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title="Cancel this booking?"
+      /* The success state speaks for itself, exactly as before; the title stays
+         on as the sheet's accessible name. */
+      hideTitle={cancelled}
+      footer={
+        cancelled ? (
+          <Button variant="primary" full onClick={onClose}>
+            Done
+          </Button>
         ) : (
-          <>
-            <h2 id="cancel-booking-title" className="nf-h3">
-              Cancel this booking?
-            </h2>
-            <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              {booking.title}, {booking.dateRange}. This releases your dates and cannot be
-              undone.
+          <form action={formAction} className="grid gap-3">
+            <input type="hidden" name="bookingId" value={booking.id} />
+            <Button type="submit" variant="primary" full loading={pending}>
+              Yes, cancel the booking
+            </Button>
+            <Button variant="secondary" full onClick={onClose}>
+              Keep my booking
+            </Button>
+          </form>
+        )
+      }
+    >
+      {cancelled ? (
+        <div className="text-center">
+          <p className="flex items-center justify-center gap-2 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+            <UiIcon name="verified" size={20} className="text-[var(--nf-state-success)]" />
+            Booking cancelled
+          </p>
+          <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            {booking.title} for {booking.dateRange} is cancelled. The dates are free again.
+          </p>
+        </div>
+      ) : (
+        <>
+          <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            {booking.title}, {booking.dateRange}. This releases your dates and cannot be
+            undone.
+          </p>
+
+          {state && !state.ok && (
+            <p
+              role="alert"
+              className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+            >
+              {state.error}
             </p>
-
-            {state && !state.ok && (
-              <p
-                role="alert"
-                className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
-              >
-                {state.error}
-              </p>
-            )}
-
-            <form action={formAction} className="mt-4 grid gap-3">
-              <input type="hidden" name="bookingId" value={booking.id} />
-              <Button type="submit" variant="primary" full loading={pending}>
-                Yes, cancel the booking
-              </Button>
-              <Button variant="secondary" full onClick={onClose}>
-                Keep my booking
-              </Button>
-            </form>
-          </>
-        )}
-      </div>
-    </div>,
-    document.body,
+          )}
+        </>
+      )}
+    </Sheet>
   );
 }
 
