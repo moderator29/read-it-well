@@ -51,6 +51,12 @@ export const ig: Dictionary = {
     map: "Maapụ",
     primaryLabel: "Isi",
     accountLabel: "Akaụntụ",
+    notifications: "Ọkwa",
+    places: "Ebe",
+    people: "Ndị mmadụ",
+    agentMode: "Ọnọdụ Onye nnọchi",
+    consoleLabel: "Njikwa",
+    workspacesLabel: "Ebe ọrụ",
   },
 
   landing: {
@@ -1396,6 +1402,8 @@ export const ig: Dictionary = {
 
   a11y: {
     logoHome: "Ụlọ RentMe",
+    expand: "Mepee",
+    collapse: "Mechie",
     openMenu: "Mepee menu",
     closeMenu: "Mechie menu",
     languageSwitcher: "Gbanwee asụsụ",

@@ -52,6 +52,12 @@ export const en = {
     map: "Map",
     primaryLabel: "Primary",
     accountLabel: "Account",
+    notifications: "Notifications",
+    places: "Places",
+    people: "People",
+    agentMode: "Agent Mode",
+    consoleLabel: "Console",
+    workspacesLabel: "Workspaces",
   },
 
   landing: {
@@ -1419,6 +1425,8 @@ export const en = {
 
   a11y: {
     logoHome: "RentMe home",
+    expand: "Expand",
+    collapse: "Collapse",
     openMenu: "Open menu",
     closeMenu: "Close menu",
     languageSwitcher: "Change language",
