@@ -1822,9 +1822,23 @@
       translateY(calc(-1 * var(--nf-ring-radius) * 0.35))
       rotate(calc(-1 * var(--nf-ring-angle)));
     opacity: 0;
+    /*
+     * `--nf-duration-normal` does not exist and never did. The scale is
+     * instant / fast / base / slow / deliberate, and an unresolvable `var()`
+     * is invalid at computed-value time, which does NOT fall back to a
+     * default: it throws away the WHOLE declaration. So the transform line
+     * beside it died too, and the petals appeared fully placed instead of
+     * travelling out from the centre - the one animation this control exists
+     * for, dead since it was written, in the shorthand rather than in the
+     * property that named the missing token.
+     *
+     * `base` is the "normal" that was meant: the fade lands while the spring
+     * is still settling, so the petal arrives lit rather than blinking on
+     * after it stops.
+     */
     transition:
       transform var(--nf-duration-slow) var(--nf-ease-spring),
-      opacity var(--nf-duration-normal) var(--nf-ease-standard);
+      opacity var(--nf-duration-base) var(--nf-ease-standard);
     transition-delay: var(--nf-ring-delay);
   }
   .nf-ring__wheel--in .nf-ring__petal {
@@ -2058,7 +2072,18 @@
   .nf-district__chips::-webkit-scrollbar {
     display: none;
   }
+  /*
+   * 44px of hit area with the visual weight of a 38px chip, by the same
+   * transparent inset `.nf-post__act` uses rather than by growing the painted
+   * pill. These are the feed's own filter tabs - the control that decides what
+   * the whole screen shows - and they were the smallest thing on it.
+   *
+   * 3px each side vertically takes 38 to 44. 2px horizontally, not more: the
+   * row's gap is 8px, so 2 per side leaves 4px between neighbouring hit areas
+   * and no chip can steal a tap meant for the one beside it.
+   */
   .nf-district__chip {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 7px;
@@ -2073,6 +2098,11 @@
     transition:
       background var(--nf-duration-fast) var(--nf-ease-standard),
       border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-district__chip::before {
+    content: "";
+    position: absolute;
+    inset: -3px -2px;
   }
   .nf-district__chip[aria-selected="true"] {
     background: var(--nf-brand-primary);

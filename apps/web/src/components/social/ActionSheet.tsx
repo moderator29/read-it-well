@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { PostGlyph, type PostGlyphName } from "./feed/PostGlyph";
 
 /**
@@ -48,19 +49,13 @@ export function ActionSheet({
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    panelRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previous;
-    };
-  }, [onClose]);
+  /* Escape, the Tab trap, the counted scroll lock and the focus return, all
+     from the one hook. This sheet used to hand-roll Escape and a bare
+     `document.body.style.overflow` flag, which is the uncounted lock: open
+     the report sheet over this one and closing the inner sheet gave the page
+     its scroll back while this one was still up. Tab was never trapped at
+     all, so it walked straight out into the feed behind. */
+  useOverlay({ open: true, onClose, panelRef });
 
   return (
     <div className="nf-actions" role="dialog" aria-modal="true" aria-label={label}>

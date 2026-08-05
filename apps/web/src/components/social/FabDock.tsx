@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { PostGlyph } from "./feed/PostGlyph";
 import { Composer } from "./feed/Composer";
 import { CreateRing } from "./CreateRing";
@@ -55,20 +56,14 @@ export function FabDock({
      "Question" never lands somebody on a form that says "Say something". */
   const [composeKind, setComposeKind] = useState<"GIST" | "ASK">("GIST");
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const composerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!composing) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setComposing(false);
-    };
-    window.addEventListener("keydown", onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previous;
-    };
-  }, [composing]);
+  /* The composer opens from the ring, which opens from the fab, so this is
+     three overlays deep at its worst and the counted lock is what keeps the
+     page still the whole way down. Tab was never trapped here either, which
+     on a half-written post means the keyboard leaves the draft behind. */
+  const closeComposer = useCallback(() => setComposing(false), []);
+  useOverlay({ open: composing, onClose: closeComposer, panelRef: composerRef });
 
   const chosen = areas.find((area) => area.id === areaId) ?? null;
 
@@ -113,7 +108,7 @@ export function FabDock({
           aria-modal="true"
           aria-label={composeKind === "ASK" ? "Ask a question" : "Say something"}
         >
-          <div className="nf-social-sheet__panel">
+          <div ref={composerRef} className="nf-social-sheet__panel">
             <header className="mb-5 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="nf-h3 text-[1.15rem]">

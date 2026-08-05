@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PostGlyph } from "@/components/social/feed/PostGlyph";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { blockUser, muteTarget, reportPost } from "@/lib/social/posts-actions";
 import { POST_COPY, POST_MAX, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
 import type { ActionResult } from "@/lib/actions/envelope";
@@ -82,21 +83,21 @@ export function CommentsSheet({
   const [reporting, setReporting] = useState<CommentRow | null>(null);
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setRows(comments), [comments]);
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previous;
-    };
-  }, [onClose]);
+  /* This sheet is the one that stacks hardest: it opens an action sheet and a
+     report sheet of its own, so the counted scroll lock is the point. The
+     hand-rolled version set `document.body.style.overflow` from a captured
+     string, so closing the inner report sheet handed the page its scroll back
+     while the comments were still open over it.
+
+     It also never moved focus in. A modal that leaves focus on the page
+     behind is one where the first Tab walks into content the reader cannot
+     see, so `autoFocus` lands on the header control - not the composer,
+     which would throw the keyboard up on every open. */
+  useOverlay({ open: true, onClose, panelRef });
 
   useEffect(() => {
     if (!notice) return;
@@ -204,7 +205,7 @@ export function CommentsSheet({
 
   return (
     <div className="nf-comments" role="dialog" aria-modal="true" aria-label="Comments">
-      <div className="nf-comments__panel">
+      <div ref={panelRef} className="nf-comments__panel">
         <header className="nf-comments__head">
           <button
             type="button"
