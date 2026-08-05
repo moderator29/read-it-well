@@ -603,6 +603,12 @@ export const yo: Dictionary = {
         takeDown: "Mú kúrò",
         delete: "Pa rẹ́",
       },
+      /* Deleting a draft opens no dialogue: the row leaves and offers its
+         way back, and nothing reaches the server until that offer runs out. */
+      undo: {
+        removed: "A ti pa àkọ̀wé náà rẹ́",
+        action: "Yí padà",
+      },
       sheets: {
         keep: "Fi sílẹ̀ bẹ́ẹ̀",
         working: "Ń ṣiṣẹ́",

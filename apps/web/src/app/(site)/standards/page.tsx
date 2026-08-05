@@ -1,0 +1,261 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ButtonLink } from "@/components/ui/Button";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import {
+  NO_FEES_LINE,
+  RESPONSE_COMMITMENTS,
+  RESPONSE_ORDER,
+} from "@/lib/trust/standards";
+
+export const metadata: Metadata = {
+  title: "Trust and safety standards",
+  description:
+    "What is not allowed on RentMe, how we enforce it, how long we take to answer a report, and how to appeal a decision.",
+};
+
+/**
+ * Trust and safety standards.
+ *
+ * A standards page is worth exactly as much as the slowest promise on it, so
+ * the response times printed here are the same three numbers the admin console
+ * computes a due time from: `RESPONSE_COMMITMENTS` in `lib/trust/standards.ts`
+ * is imported by both. Changing what we promise changes what staff are held to,
+ * in one edit, which is the only arrangement where a published clock stays
+ * honest.
+ *
+ * Nothing here describes a control that does not exist. The scanner, the hold,
+ * the queues, the audit line and the appeal are all live today.
+ */
+
+const NOT_ALLOWED: { title: string; body: string }[] = [
+  {
+    title: "Asking anyone to pay outside RentMe",
+    body: "Sending an account number, asking for a transfer, moving the conversation to WhatsApp to arrange money, or asking for cash at a viewing. This is the most serious thing on the platform and it ends an account.",
+  },
+  {
+    title: "Charging a fee we do not charge",
+    body: `${NO_FEES_LINE} An inspection fee, an agency fee, a holding fee or a caution fee presented as ours is a lie, and an account that presents one is removed.`,
+  },
+  {
+    title: "Listing a property you do not control",
+    body: "Somebody else's photographs, an address that is not yours to let, or a property that has already gone. Duplicate and stolen photographs are checked before a listing is published.",
+  },
+  {
+    title: "Misrepresenting a property",
+    body: "Photographs that are not of the place, a size or an address that is wrong, or amenities that do not exist. Light, water and gate access are the three that matter most here, and getting them wrong is not a small thing.",
+  },
+  {
+    title: "Harassment, threats or discrimination",
+    body: "Refusing a guest or an agent on the grounds of ethnicity, religion, state of origin, gender or disability. Anything that makes a person unsafe, in a property or in a message.",
+  },
+  {
+    title: "Fake accounts and manufactured reputation",
+    body: "More than one account for one person, reviews written for a stay that did not happen, and utility reports filed about a place you are selling in. Standing on RentMe is earned or it is worth nothing.",
+  },
+];
+
+const ENFORCEMENT: { title: string; body: string }[] = [
+  {
+    title: "The scanner reads first, and it does not sleep",
+    body: "Every message, post, story, listing description, review and profile is scanned as it is written. An account number or payment wording raises a flag, and on the public surfaces it holds the content before anyone else can see it. That happens at three in the morning exactly as it happens at three in the afternoon, because it is a database rule rather than a person on shift.",
+  },
+  {
+    title: "A person decides, always",
+    body: "The scanner holds, it never bans. Every hold, flag, alert and report lands in a queue that a member of staff works through by hand, oldest first, and a person makes the decision to release it or to take it down.",
+  },
+  {
+    title: "Serious things are escalated, not just closed",
+    body: "A report that somebody was asked to pay off-platform, or that somebody has already lost money, opens a risk alert that stays open until a person writes down what was done about it. Closing it without a note is not possible.",
+  },
+  {
+    title: "Every decision is written down and cannot be rewritten",
+    body: "Each action a member of staff takes writes a line naming who did it, what they did and when. Those lines cannot be edited or deleted by anybody, including us. A record staff can quietly change proves nothing to you, to a regulator or in a dispute.",
+  },
+];
+
+const CONSEQUENCES: { title: string; body: string }[] = [
+  {
+    title: "Content removed",
+    body: "The post, listing, review or photograph comes down and the author is told why.",
+  },
+  {
+    title: "Listing unpublished",
+    body: "The property leaves search while we look at it. Existing bookings are handled with the guest directly, never silently cancelled.",
+  },
+  {
+    title: "Account suspended",
+    body: "Sign-in continues to work so the person can read the decision and appeal, but they cannot list, message or book.",
+  },
+  {
+    title: "Account removed and referred",
+    body: "For fraud, for asking a person to pay off-platform after a warning, or for anything that put somebody in danger. Where money has been taken we will co-operate with the person's bank and with the police.",
+  },
+];
+
+export default function StandardsPage() {
+  return (
+    <div className="nf-shell py-12 sm:py-16">
+      <div className="mx-auto max-w-3xl">
+        {/* ---------------------------------------------------------- hero */}
+        <div className="nf-rise text-center">
+          <span className="nf-chip mx-auto">
+            <span className="inline-grid h-4 w-4 place-items-center">
+              <BrandIcon name="shield-home" fill />
+            </span>
+            Trust and safety
+          </span>
+          <h1 className="nf-h1 mx-auto mt-5 max-w-[18ch]">
+            What we do not allow, and how quickly we answer
+          </h1>
+          <p className="mx-auto mt-4 max-w-[52ch] text-[var(--nf-content-secondary)]">
+            These are the standards every person on RentMe agrees to, the way we
+            enforce them, and the response times we hold ourselves to. If we miss
+            one, tell us and quote your reference.
+          </p>
+        </div>
+
+        {/* ------------------------------------------- response times first */}
+        <section className="mt-10" aria-labelledby="response-times">
+          <h2 id="response-times" className="nf-h2 text-[1.375rem]">
+            How long we take
+          </h2>
+          <p className="mt-2 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            Measured from the moment your report is filed, not from the moment
+            somebody opens it. The console our staff work in puts the same clock
+            on every row and marks it late when it passes, so these are numbers
+            we are held to internally and not a line of marketing.
+          </p>
+          <ul className="mt-4 space-y-3">
+            {RESPONSE_ORDER.map((grade) => {
+              const commitment = RESPONSE_COMMITMENTS[grade];
+              return (
+                <li key={grade} className="nf-card p-4">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="nf-numeric text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+                      {commitment.label}
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                    {commitment.covers}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            Answering does not always mean finishing. It means a person has read
+            it, told you what is happening, and taken any step that stops harm
+            continuing while the rest is worked out.
+          </p>
+        </section>
+
+        {/* ------------------------------------------------- not allowed */}
+        <section className="mt-12" aria-labelledby="not-allowed">
+          <h2 id="not-allowed" className="nf-h2 text-[1.375rem]">
+            What is not allowed
+          </h2>
+          <ul className="mt-4 space-y-3">
+            {NOT_ALLOWED.map((item) => (
+              <li key={item.title} className="nf-card p-4">
+                <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                  {item.title}
+                </h3>
+                <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                  {item.body}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* ------------------------------------------------- enforcement */}
+        <section className="mt-12" aria-labelledby="enforcement">
+          <h2 id="enforcement" className="nf-h2 text-[1.375rem]">
+            How we enforce it
+          </h2>
+          <ol className="mt-4 space-y-3">
+            {ENFORCEMENT.map((item, index) => (
+              <li key={item.title} className="nf-card p-4">
+                <span className="nf-overline">
+                  Step <span className="nf-numeric">{index + 1}</span>
+                </span>
+                <h3 className="mt-1 text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                  {item.title}
+                </h3>
+                <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                  {item.body}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* ------------------------------------------------ consequences */}
+        <section className="mt-12" aria-labelledby="consequences">
+          <h2 id="consequences" className="nf-h2 text-[1.375rem]">
+            What happens when a standard is broken
+          </h2>
+          <ul className="mt-4 space-y-3">
+            {CONSEQUENCES.map((item) => (
+              <li key={item.title} className="nf-card p-4">
+                <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                  {item.title}
+                </h3>
+                <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                  {item.body}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* ---------------------------------------------------- appeals */}
+        <section className="mt-12" aria-labelledby="appeals">
+          <h2 id="appeals" className="nf-h2 text-[1.375rem]">
+            If you think we got it wrong
+          </h2>
+          <div className="nf-card mt-4 p-5">
+            <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              Every decision can be appealed, and an appeal is read by somebody
+              who did not make the original call. Write to support with what was
+              removed and why you think the decision was wrong. Appeals are
+              answered{" "}
+              <span className="font-semibold text-[var(--nf-content-primary)]">
+                {RESPONSE_COMMITMENTS.routine.label.toLowerCase()}
+              </span>
+              . An account suspended pending an appeal can still sign in and
+              read, so nobody is locked out of their own case.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <ButtonLink href="/contact" variant="primary" size="md">
+                Appeal a decision
+              </ButtonLink>
+              <ButtonLink href="/safety" variant="secondary" size="md">
+                Safety centre
+              </ButtonLink>
+            </div>
+          </div>
+        </section>
+
+        <p className="mt-10 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          These standards sit alongside the{" "}
+          <Link
+            href="/terms"
+            className="font-semibold text-[var(--nf-content-secondary)] hover:underline"
+          >
+            terms of service
+          </Link>{" "}
+          and the{" "}
+          <Link
+            href="/privacy"
+            className="font-semibold text-[var(--nf-content-secondary)] hover:underline"
+          >
+            privacy notice
+          </Link>
+          . Where they disagree, the stricter one applies.
+        </p>
+      </div>
+    </div>
+  );
+}

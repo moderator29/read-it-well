@@ -180,6 +180,11 @@ export const AREA_FAILURE = {
  */
 export const AREA_LIMITS = {
   propose: { bucket: "social:propose-area", limit: 3, windowSeconds: 86_400 },
+  /* Walking through a door is navigation, so the ceiling is set where a script
+     hits it and a curious person never does. Somebody who opens sixty local
+     governments in a day is exploring Nigeria; somebody who opens six hundred
+     is not a person. */
+  enter: { bucket: "social:enter-place", limit: 120, windowSeconds: 86_400 },
   join: { bucket: "social:join-area", limit: 20, windowSeconds: 86_400 },
   moderate: { bucket: "social:apply-moderate", limit: 3, windowSeconds: 86_400 },
 } as const;

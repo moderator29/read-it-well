@@ -2338,3 +2338,208 @@
     gap: 4px;
   }
 }
+
+@layer components {
+  /* ------------------------------------------------------------------
+   * The way in: 37 states, 774 local governments, one control.
+   *
+   * Everything here is scoped under `.nf-enter` and nothing borrows a shared
+   * class it could then lose to. The lesson is `.nf-social-card`, which set a
+   * radius that `.nf-card` reset two hundred lines lower in the same layer at
+   * the same specificity, so later won and the card rendered wrong while both
+   * files looked correct on their own.
+   *
+   * The chips wrap rather than scroll sideways. A horizontal strip hides
+   * thirty of thirty-seven states behind a swipe with no affordance, and the
+   * one thing this control cannot do is make a state feel unreachable.
+   * ------------------------------------------------------------------ */
+  .nf-enter {
+    margin-block-end: 2.25rem;
+  }
+
+  .nf-enter__title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-enter__lede {
+    margin-block-start: 0.375rem;
+    font-size: var(--nf-text-caption);
+    line-height: 1.55;
+    color: var(--nf-content-muted);
+  }
+
+  /* The state you are inside, and the one tap back out of it. Never a pin. */
+  .nf-enter__crumb {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-block-start: 0.875rem;
+  }
+
+  .nf-enter__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    min-block-size: 34px;
+    padding-inline: 11px 13px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-subtle);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    color: var(--nf-content-secondary);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  .nf-enter__back:hover {
+    border-color: var(--nf-border-default);
+    color: var(--nf-content-primary);
+  }
+
+  .nf-enter__state {
+    min-inline-size: 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-enter__search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-block-start: 0.875rem;
+    padding-inline: 13px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+  }
+
+  .nf-enter__search input {
+    min-block-size: 44px;
+    inline-size: 100%;
+    min-inline-size: 0;
+    background: transparent;
+    border: 0;
+    outline: none;
+    font-size: 0.9375rem;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-enter__search input::placeholder {
+    color: var(--nf-content-muted);
+  }
+
+  /* Safari draws its own clear button inside a search field and it lands on
+     top of the brand ring at the wrong colour. */
+  .nf-enter__search input::-webkit-search-decoration,
+  .nf-enter__search input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .nf-enter__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-start: 0.875rem;
+  }
+
+  .nf-enter__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-block-size: 40px;
+    padding-inline: 14px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-default);
+    background: var(--nf-surface-inset);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    line-height: 1.2;
+    color: var(--nf-content-secondary);
+    text-align: start;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  .nf-enter__chip:hover:not(:disabled) {
+    border-color: var(--nf-border-strong);
+    color: var(--nf-content-primary);
+  }
+
+  /* A door somebody is already standing behind. A brand RING and brand ink,
+     never a brand tint: a translucent electric blue fill over a white card
+     reads violet on paper, and this brand carries no violet. That is the
+     fourth place in this layer that has had to say it. */
+  .nf-enter__chip[data-open="true"] {
+    border-color: var(--nf-border-brand);
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-enter__chip:disabled {
+    opacity: 0.5;
+  }
+
+  .nf-enter__chip[aria-busy="true"] {
+    opacity: 1;
+    border-color: var(--nf-border-brand);
+  }
+
+  .nf-enter__chip-name {
+    min-inline-size: 0;
+  }
+
+  .nf-enter__chip-state,
+  .nf-enter__chip-count {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-enter__chip[data-open="true"] .nf-enter__chip-count {
+    color: var(--nf-brand-secondary);
+    opacity: 0.85;
+  }
+
+  .nf-enter__hint {
+    margin-block-start: 0.75rem;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-enter__error {
+    margin-block-start: 0.75rem;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-state-error);
+  }
+
+  .nf-enter__empty {
+    margin-block-start: 1rem;
+    padding: 1.25rem 1rem;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-border-subtle);
+    text-align: center;
+  }
+
+  .nf-enter__empty-title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-enter__empty-body {
+    margin-block-start: 0.375rem;
+    margin-inline: auto;
+    max-inline-size: 34ch;
+    font-size: var(--nf-text-caption);
+    line-height: 1.55;
+    color: var(--nf-content-muted);
+  }
+}

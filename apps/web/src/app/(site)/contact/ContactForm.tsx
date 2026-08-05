@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { submitContactForm } from "@/lib/support/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { DEFAULT_CONTACT_TOPIC, type ContactTopic } from "./topics";
 
 /**
  * The public contact form.
@@ -19,7 +20,13 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
  * paused queue, a missing key or a rate limit leaves a person with somewhere
  * to go rather than a dead form.
  */
-export function ContactForm({ supportEmail }: { supportEmail: string }) {
+export function ContactForm({
+  supportEmail,
+  defaultTopic = DEFAULT_CONTACT_TOPIC,
+}: {
+  supportEmail: string;
+  defaultTopic?: ContactTopic;
+}) {
   const [state, formAction, pending] = useActionState<
     ActionResult<{ reference: string }> | null,
     FormData
@@ -98,7 +105,14 @@ export function ContactForm({ supportEmail }: { supportEmail: string }) {
 
       <label className="block">
         <span className="nf-overline mb-1.5 block">Topic</span>
-        <select name="topic" className="nf-field" defaultValue="booking">
+        {/*
+          The safety topic is first and it is worded as the thing that actually
+          happens, not as a category name. The admin support queue reads this
+          value back and puts the four-hour clock on the ticket, so choosing it
+          changes how fast a person sees it rather than only how it is filed.
+        */}
+        <select name="topic" className="nf-field" defaultValue={defaultTopic}>
+          <option value="safety">Someone asked me to pay outside RentMe</option>
           <option value="booking">A booking</option>
           <option value="payment">A payment or refund</option>
           <option value="listing">Listing a property</option>

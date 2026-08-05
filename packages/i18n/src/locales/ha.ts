@@ -599,6 +599,12 @@ export const ha: Dictionary = {
         takeDown: "Cire shi",
         delete: "Share",
       },
+      /* Deleting a draft opens no dialogue: the row leaves and offers its
+         way back, and nothing reaches the server until that offer runs out. */
+      undo: {
+        removed: "An share daftarin",
+        action: "Mayar da shi",
+      },
       sheets: {
         keep: "Bar shi haka",
         working: "Ana aiki",

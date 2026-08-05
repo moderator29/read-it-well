@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
 import { RealMap } from "@/components/app/search/RealMap";
+import { RecentStrip } from "@/components/app/search/RecentStrip";
+import { SearchMemory } from "@/components/app/search/SearchMemory";
+import { VIEW_COOKIE, isViewKey } from "@/lib/search/memory";
 import { ActiveFilters } from "@/components/app/filters/ActiveFilters";
 import { CategoryTiles } from "@/components/app/filters/CategoryTiles";
 import { FilterDrawer } from "@/components/app/filters/FilterDrawer";
@@ -86,6 +90,35 @@ function carriedParams(query: DiscoveryQuery): [string, string][] {
   return [...new URLSearchParams(href.slice(index + 1))].filter(([key]) => key !== "q");
 }
 
+/**
+ * A hunt in a few words, for the recent-searches chip.
+ *
+ * Built from the SAME parsed query that produced the results, so a chip can
+ * never describe a search the page did not run. Returns "" when there is
+ * nothing worth remembering: a bare `/search` with no text, no category and no
+ * filters is not a hunt, and recording it every time somebody opened the tab
+ * would push five real searches off the end of the list.
+ */
+function describeQuery(query: DiscoveryQuery, locale: Locale): string {
+  const parts: string[] = [];
+  if (query.q) parts.push(query.q);
+  if (query.kind) parts.push(KIND_NOUN[query.kind].many);
+  if (query.bedrooms !== undefined) parts.push(`${query.bedrooms}+ beds`);
+  if (query.bathrooms !== undefined) parts.push(`${query.bathrooms}+ baths`);
+  if (query.guests !== undefined) {
+    parts.push(`${query.guests} ${query.guests === 1 ? "guest" : "guests"}`);
+  }
+  if (query.maxMinor !== undefined) parts.push(`under ${formatMoney(query.maxMinor, locale)}`);
+  else if (query.minMinor !== undefined) parts.push(`over ${formatMoney(query.minMinor, locale)}`);
+  if (query.amenities.length > 0) {
+    parts.push(`${query.amenities.length} ${query.amenities.length === 1 ? "amenity" : "amenities"}`);
+  }
+  if (query.instantBook) parts.push("instant book");
+  if (query.verifiedOnly) parts.push("verified");
+  if (parts.length === 0) return "";
+  return parts.join(", ").slice(0, 80);
+}
+
 /** Real coordinates for the covered cities. */
 const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
   Lagos: { lat: 6.5244, lng: 3.3792 },
@@ -104,7 +137,24 @@ export default async function SearchPage({
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   const raw = await searchParams;
-  const query = parseDiscoveryQuery(raw);
+  const parsed = parseDiscoveryQuery(raw);
+
+  /*
+   * The remembered view, applied only when the address does not state one.
+   *
+   * An address that says `view=` always wins: a link somebody sent, a chip
+   * somebody just tapped, and the back button are all explicit statements
+   * about which view to show, and a stored preference must never overrule any
+   * of them. The cookie exists for exactly one case, the person who arrives at
+   * a bare `/search` from the tab bar or the home screen, and it is read on
+   * the server so the map-preferring person gets a map in the first render
+   * rather than a list that flips a beat later.
+   */
+  const remembered = (await cookies()).get(VIEW_COOKIE)?.value;
+  const query: DiscoveryQuery =
+    raw.view === undefined && isViewKey(remembered)
+      ? { ...parsed, view: remembered }
+      : parsed;
 
   const repo = getListingRepository();
   /*
@@ -255,6 +305,17 @@ export default async function SearchPage({
           </ul>
         </nav>
       </div>
+
+      {/* Nothing rendered. Records the view and the hunt for the strip below. */}
+      <SearchMemory
+        view={query.view}
+        label={describeQuery(query, locale)}
+        href={toSearchHref(query)}
+      />
+
+      {/* The last few hunts and the last few places opened. Empty on the
+          server and on a first visit, so it costs nothing until it is real. */}
+      <RecentStrip />
 
       {/* ---------------------------------------------------- results header */}
       <Reveal as="section" className="mt-6">

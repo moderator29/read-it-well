@@ -7,9 +7,13 @@ import {
   listMyAreas,
   listMyProposals,
   listOpenAreas,
+  listOpenLgaPlaces,
   type AreaSummary,
 } from "@/lib/social/areas-queries";
 import { AREA_COPY, AREA_KIND_LABEL, type AreaStatus } from "@/lib/social/areas-schema";
+import { getPlaceTree } from "@/lib/social/place-tree";
+import { PLACE_COPY } from "@/lib/social/places-schema";
+import { PlacePicker } from "@/components/social/PlacePicker";
 import { AroundFab } from "@/components/social/AroundFab";
 import { JoinButton } from "./JoinButton";
 import { SocialPaused } from "@/components/social/SocialPaused";
@@ -18,26 +22,45 @@ import { isSocialEnabled } from "@/lib/social/flag";
 export const metadata: Metadata = { title: "Around" };
 
 /**
- * Around: the directory of places.
+ * Around: the way into the social layer, then the directory of places.
  *
- * Discovery stays the default tab in this product, so this surface earns its
- * place by being useful in one glance rather than by holding attention. Places
- * you are in first, then everything open, busiest first, because a directory
- * sorted by newest sends the first visitor to the emptiest room.
+ * The country comes first. Every one of Nigeria's 36 states and the FCT is a
+ * container, every one of the 774 local governments is a container behind it,
+ * and tapping one puts you inside it whether or not anybody has been there
+ * before. That is the front door, so it is the first thing on the page rather
+ * than something under a list of the six places that happen to exist today.
+ *
+ * Underneath it, the directory: places you are in first, then everything open,
+ * busiest first, because a directory sorted by newest sends the first visitor
+ * to the emptiest room.
  *
  * Signed out this renders in full rather than behind a wall: the gate belongs
- * in front of value, not in front of the front door. Joining is what asks for
- * an account, and it asks at the moment it matters.
+ * in front of value, not in front of the front door. Opening a place nobody has
+ * been in is a write and asks for an account at the moment it matters; walking
+ * into one that is already open never does.
  */
-export default async function AroundPage() {
+export default async function AroundPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ state?: string | string[] }>;
+}) {
   if (!(await isSocialEnabled())) return <SocialPaused />;
 
-  const [session, open, mine, proposals] = await Promise.all([
+  const [params, session, open, mine, proposals, tree, openLgas] = await Promise.all([
+    searchParams,
     resolveSession(),
     listOpenAreas(),
     listMyAreas(),
     listMyProposals(),
+    getPlaceTree(),
+    listOpenLgaPlaces(),
   ]);
+
+  const rawState = Array.isArray(params.state) ? params.state[0] : params.state;
+  const initialStateCode =
+    typeof rawState === "string" && /^[A-Za-z]{2}$/.test(rawState)
+      ? rawState.toUpperCase()
+      : null;
 
   const signedIn = session.state === "signed-in";
   const unconfigured = session.state === "unconfigured";
@@ -77,12 +100,22 @@ export default async function AroundPage() {
         Find people
       </Link>
 
+      {/* One sentence, not two. Without keys the country cannot be read at all,
+          so the picker would say the same thing in different words directly
+          underneath this card, and a screen that apologises twice for one fact
+          reads as a screen nobody looked at. */}
       {unconfigured ? (
         <p className="nf-card mb-6 p-4 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
-          Places switch on the moment the platform keys land. Nothing here is a
-          mock up: there is simply nothing to read yet.
+          {PLACE_COPY.unconfigured}
         </p>
-      ) : null}
+      ) : (
+        <PlacePicker
+          tree={tree}
+          open={openLgas}
+          signedIn={signedIn}
+          initialStateCode={initialStateCode}
+        />
+      )}
 
       {openProposals.length > 0 ? (
         <section className="mb-8">

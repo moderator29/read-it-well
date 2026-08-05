@@ -12,6 +12,7 @@ import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
 import { lagosToday } from "@/lib/bookings/schema";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
+import { RecordVisit } from "@/components/app/listing/RecordVisit";
 import { ReservePanel } from "./ReservePanel";
 import { RentalPanel } from "./RentalPanel";
 import { ListingAbout } from "@/components/app/listing/ListingAbout";
@@ -334,6 +335,13 @@ export default async function ListingDetailPage({
 
   const body = (
     <div className="mx-auto max-w-5xl">
+      {/* Nothing rendered. Puts this place in the recently-viewed memory the
+          search page offers back, whichever way it was reached. */}
+      <RecordVisit
+        id={listing.id}
+        title={listing.title}
+        place={listing.area && listing.area !== listing.city ? `${listing.area}, ${listing.city}` : listing.city}
+      />
       <ListingGallery
         listingId={listing.id}
         title={listing.title}

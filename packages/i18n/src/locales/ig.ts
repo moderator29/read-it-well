@@ -601,6 +601,12 @@ export const ig: Dictionary = {
         takeDown: "Wepụ ya",
         delete: "Hichapụ",
       },
+      /* Deleting a draft opens no dialogue: the row leaves and offers its
+         way back, and nothing reaches the server until that offer runs out. */
+      undo: {
+        removed: "Ehichapụla nkọwa a",
+        action: "Weghachi",
+      },
       sheets: {
         keep: "Hapụ ya",
         working: "Na-arụ ọrụ",

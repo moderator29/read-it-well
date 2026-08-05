@@ -609,6 +609,12 @@ export const en = {
         takeDown: "Take it down",
         delete: "Delete",
       },
+      /* Deleting a draft opens no dialogue: the row leaves and offers its
+         way back, and nothing reaches the server until that offer runs out. */
+      undo: {
+        removed: "Draft deleted",
+        action: "Undo",
+      },
       sheets: {
         keep: "Keep it",
         working: "Working",
