@@ -7,6 +7,8 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
 import type { WalletEntry, WalletEntryKind } from "@/lib/wallet/types";
 import { Amount } from "@/components/ui/Amount";
+import { Chip, ChipRow } from "@/components/ui/Chip";
+import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 
 /**
  * Wallet transaction history.
@@ -100,20 +102,34 @@ export function TransactionsSection({
         <h2 id="nf-wallet-tx-title" className="nf-overline">
           Transactions
         </h2>
-        <ul className="nf-scroll-x flex gap-2">
+        {/*
+          The ledger filters, on the shared rail.
+
+          `behaviour="filter"` rather than `"choice"`, because that is what
+          these already were: `aria-pressed`, one control per view, not a radio
+          group. Keeping the announced semantics is worth more than the tidier
+          radio pattern here.
+
+          `size="sm"` keeps the 36px paint the header row is built around while
+          the primitive grows the hit region to 44pt underneath - the previous
+          chips were tappable at 36px, under the floor. The rail does not bleed
+          or fade because it is not a full-width rail: it shares a row with the
+          section heading.
+        */}
+        <ChipRow bleed={false} fadeEdges={false} className="min-w-0">
           {FILTERS.map((f) => (
-            <li key={f.key}>
-              <button
-                type="button"
-                onClick={() => setFilter(f.key)}
-                aria-pressed={filter === f.key}
-                className={`nf-chip ${filter === f.key ? "nf-chip--active" : ""}`}
-              >
-                {f.label}
-              </button>
-            </li>
+            <Chip
+              key={f.key}
+              size="sm"
+              behaviour="filter"
+              selected={filter === f.key}
+              onSelectedChange={() => setFilter(f.key)}
+              className="shrink-0"
+            >
+              {f.label}
+            </Chip>
           ))}
-        </ul>
+        </ChipRow>
       </div>
 
       {groups.length > 0 ? (
@@ -210,14 +226,16 @@ function EntryRow({
             secondaryClassName="text-[0.62em] font-medium opacity-60"
           />
         </span>
+        {/* An unsettled movement, in the platform's one status vocabulary.
+            The old pair sent everything that was not PENDING to neutral, so a
+            FAILED withdrawal and a REVERSED transfer - the two entries on this
+            screen somebody most needs to notice - were painted as "no state".
+            Not `live`: a ledger renders many of these at once, and a live
+            region per row would announce the whole history on arrival. */}
         {!settled && (
-          <span
-            className={`nf-badge mt-1 ${
-              entry.status === "PENDING" ? "nf-badge--pending" : "nf-badge--neutral"
-            }`}
-          >
+          <StatusPill tone={toneForStatus(entry.status)} className="mt-1">
             {entry.status.toLowerCase()}
-          </span>
+          </StatusPill>
         )}
       </span>
     </li>
