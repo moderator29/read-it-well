@@ -1,7 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@naijafinds/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
@@ -20,6 +19,7 @@ import {
 import { WALLET_BANKS } from "@/lib/wallet/banks";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
+import { Sheet } from "@/components/ui/Sheet";
 
 /**
  * Wallet action deck: Add money, Withdraw, Transfer.
@@ -134,70 +134,43 @@ function WalletDrawer({
   onClose: () => void;
   children: React.ReactNode;
 }) {
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  // Portalled to document.body: rendered in place, a `position: fixed`
-  // drawer is only ever fixed to the nearest ancestor that establishes a
-  // containing block (a transform, a filter, a `will-change: transform`,
-  // any of which appear on animated wrappers elsewhere on this page), not
-  // reliably to the viewport. Mounting through a portal sidesteps that
-  // class of bug entirely rather than depending on every ancestor staying
-  // clean, which is why `mounted` gates the first client paint: document
-  // does not exist during the server render.
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    panelRef.current?.focus();
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open, onClose]);
-
-  if (!open || !mounted) return null;
-
-  return createPortal(
-    <div
-      ref={panelRef}
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      tabIndex={-1}
-      className="fixed inset-0 z-[80] overflow-y-auto bg-[var(--nf-surface-primary)] outline-none"
+  // The portal, the focus trap, focus restoration, Escape, the backdrop and
+  // the body scroll lock all belong to `<Sheet>`. The portal in particular is
+  // not optional here: rendered in place, a `position: fixed` panel is only
+  // ever fixed to the nearest ancestor that establishes a containing block (a
+  // transform, a filter, a `will-change: transform`, any of which appear on
+  // animated wrappers elsewhere on this page), not reliably to the viewport.
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={title}
     >
-      <div className="mx-auto w-full max-w-md px-4 pb-10 pt-5 sm:px-6">
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <button
-            type="button"
-            aria-label="Close"
-            onClick={onClose}
-            className="nf-icon-btn h-10 w-10"
-          >
-            <UiIcon name="close" size={18} />
-          </button>
-          <span className="h-13 w-13">
-            <BrandIcon name={icon} fill />
-          </span>
+      <div className="mx-auto w-full max-w-md">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            {hint}
+          </p>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="h-13 w-13">
+              <BrandIcon name={icon} fill />
+            </span>
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={onClose}
+              className="nf-icon-btn h-10 w-10"
+            >
+              <UiIcon name="close" size={18} />
+            </button>
+          </div>
         </div>
 
-        <h2 className="nf-h3">{title}</h2>
-        <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-          {hint}
-        </p>
-
-        <div className="nf-card mt-5 p-4 sm:p-5">{children}</div>
+        <div className="nf-card p-4 sm:p-5">{children}</div>
       </div>
-    </div>,
-    document.body,
+    </Sheet>
   );
 }
 
