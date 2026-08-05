@@ -67,6 +67,25 @@ type ChipCommonProps = {
    */
   thumbnail?: string;
   onSelectedChange?(next: boolean): void;
+  /**
+   * Passed straight to next/link; only meaningful for `behaviour="link"`.
+   *
+   * Every remaining hand-rolled rail on the platform is an explicit prefetch
+   * link - their comments say "a tap submits instantly" - so a Chip that could
+   * not express it would silently drop prefetching on dynamic routes the
+   * moment those rails were converted.
+   */
+  prefetch?: boolean;
+  /**
+   * Forwarded to the rendered element.
+   *
+   * This primitive destructures its props rather than spreading the rest, which
+   * is deliberate - it stops arbitrary DOM attributes leaking onto a control
+   * that owns its own semantics. But it also swallowed `data-testid`, so every
+   * migrated call site had to move its hook onto a wrapper element. Declared
+   * explicitly so the hook can stay on the control it identifies.
+   */
+  "data-testid"?: string;
   disabled?: boolean;
   className?: string;
   children: ReactNode;
@@ -160,6 +179,8 @@ export function Chip(props: ChipProps) {
   const {
     selected = false,
     behaviour = "filter",
+    prefetch,
+    "data-testid": testId,
     size = "md",
     icon,
     count,
@@ -193,6 +214,8 @@ export function Chip(props: ChipProps) {
     return (
       <Link
         href={props.href}
+        prefetch={prefetch}
+        data-testid={testId}
         className={classes}
         style={style}
         /*
@@ -211,7 +234,8 @@ export function Chip(props: ChipProps) {
     // No role, no tabindex, no hit area. A decorative tag that answers a click
     // with nothing is worse than one that never invited the click.
     return (
-      <span className={classes} style={style}>
+      <span data-testid={testId}
+      className={classes} style={style}>
         {inner}
       </span>
     );
@@ -221,6 +245,7 @@ export function Chip(props: ChipProps) {
   return (
     <button
       type="button"
+      data-testid={testId}
       className={classes}
       style={style}
       disabled={disabled}

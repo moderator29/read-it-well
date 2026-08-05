@@ -36,6 +36,16 @@ export type SwitchProps = {
   label?: string;
   description?: string;
   disabled?: boolean;
+  /**
+   * Forwarded to the button.
+   *
+   * Like Chip, this primitive destructures rather than spreading a rest object,
+   * which keeps stray DOM attributes off a control that owns its own
+   * semantics - but it also swallowed `data-testid`, forcing every migrated
+   * call site to wrap the switch in a span just to keep its test hook. Declared
+   * explicitly so the hook stays on the control it identifies.
+   */
+  "data-testid"?: string;
   /** Accessible name when no visible `label` is rendered. */
   "aria-label"?: string;
   "aria-labelledby"?: string;
@@ -48,6 +58,7 @@ export function Switch({
   label,
   description,
   disabled = false,
+  "data-testid": testId,
   className,
   ...aria
 }: SwitchProps) {
@@ -57,6 +68,7 @@ export function Switch({
 
   const control = (
     <button
+      data-testid={testId}
       type="button"
       role="switch"
       aria-checked={checked}

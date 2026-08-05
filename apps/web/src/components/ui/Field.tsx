@@ -68,6 +68,11 @@ export type FieldProps = {
   optionalText?: string;
   /** Visually hides the label while keeping it as the control's name. */
   hideLabel?: boolean;
+  /**
+   * Pins the control's id. Omit unless something outside this component
+   * addresses the field by id - a spec, an external label, a deep link.
+   */
+  id?: string;
   className?: string;
   children(control: FieldControlProps): ReactNode;
 };
@@ -79,11 +84,23 @@ export function Field({
   required = false,
   optionalText,
   hideLabel = false,
+  id: fixedId,
   className,
   children,
 }: FieldProps) {
+  /*
+   * A caller-supplied id wins over the generated one.
+   *
+   * `useId` is the right default - it is what stopped the wallet drawers from
+   * rendering three controls all called `nf-wallet-amount` - but it makes the
+   * id unpredictable, and some controls are addressed from outside the
+   * component: a Playwright spec, an external `<label for>`, an anchor that
+   * deep-links to a field. Migrating SupportChat's escalation fields onto this
+   * primitive silently renamed `#support-escalation-email` and broke the spec
+   * that fills it, which is exactly the failure this prop prevents.
+   */
   const base = useId();
-  const id = `${base}-control`;
+  const id = fixedId ?? `${base}-control`;
   const hintId = `${base}-hint`;
   const errorId = `${base}-error`;
   const invalid = Boolean(error);
@@ -287,6 +304,10 @@ export function TextField({
       required={required}
       optionalText={optionalText}
       hideLabel={hideLabel}
+      /* Down to Field, not onto the control: {...control} is spread after
+         {...rest}, so an id set there is immediately overwritten by the
+         generated one. Field is the single owner of the id. */
+      id={rest.id}
       className={className}
     >
       {(control) => (
@@ -368,6 +389,10 @@ export function SelectField({
       required={required}
       optionalText={optionalText}
       hideLabel={hideLabel}
+      /* Down to Field, not onto the control: {...control} is spread after
+         {...rest}, so an id set there is immediately overwritten by the
+         generated one. Field is the single owner of the id. */
+      id={rest.id}
       className={className}
     >
       {(control) => (
@@ -438,6 +463,10 @@ export function TextArea({
       required={required}
       optionalText={optionalText}
       hideLabel={hideLabel}
+      /* Down to Field, not onto the control: {...control} is spread after
+         {...rest}, so an id set there is immediately overwritten by the
+         generated one. Field is the single owner of the id. */
+      id={rest.id}
       className={className}
     >
       {(control) => (

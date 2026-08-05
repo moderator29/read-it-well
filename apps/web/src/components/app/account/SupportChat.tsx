@@ -673,6 +673,7 @@ function EscalationCard({
         <div data-testid="support-name-error">
           <TextField
             label="Name"
+            id="support-escalation-name"
             data-testid="support-name"
             type="text"
             value={name}
@@ -684,6 +685,7 @@ function EscalationCard({
         <div data-testid="support-email-error">
           <TextField
             label="Email"
+            id="support-escalation-email"
             data-testid="support-email"
             type="email"
             value={email}
