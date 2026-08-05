@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { type Locale } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MapCopy, MapListing } from "./mapTypes";
+import { Amount } from "@/components/ui/Amount";
 
 /**
  * The card that docks at the foot of the map when a pin is chosen.
@@ -190,14 +191,16 @@ export function MapDock({
               )}
             </div>
 
-            <p className="mt-1.5 flex items-baseline gap-1">
+            <p className="mt-1.5">
               {hasPrice ? (
-                <>
-                  <span className="nf-numeric text-[1.0625rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-                    {formatMoney(listing.priceMinor, locale, listing.currency)}
-                  </span>
-                  <span className="text-[0.6875rem] text-[var(--nf-content-muted)]">/ {per}</span>
-                </>
+                <Amount
+                  minorUnits={listing.priceMinor}
+                  locale={locale}
+                  currency={listing.currency}
+                  suffix={`/ ${per}`}
+                  className="text-[1.0625rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+                  secondaryClassName="text-[0.65em] font-semibold opacity-60"
+                />
               ) : (
                 <span className="text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]">
                   {listing.kindLabel}

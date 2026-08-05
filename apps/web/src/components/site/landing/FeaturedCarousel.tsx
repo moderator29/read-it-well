@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { type Locale } from "@naijafinds/i18n";
 import { getListingRepository } from "@/lib/listings/repository";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CarouselRail } from "./CarouselRail";
 import { Words } from "@/components/site/Words";
+import { Amount } from "@/components/ui/Amount";
 
 /**
  * Featured this week.
@@ -13,7 +14,7 @@ import { Words } from "@/components/site/Words";
  * Six recommended listings from the repository in a horizontal snap rail.
  * Phones swipe through the cards natively; from sm up the glass prev and next
  * controls in CarouselRail page the rail one card at a time. Every card links
- * straight to its listing page, prices go through formatMoney on integer kobo,
+ * straight to its listing page, prices go through <Amount> on integer kobo,
  * and the photo sits on a blue gradient tile so a slow image never leaves an
  * empty hole.
  */
@@ -100,13 +101,15 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                         {l.rating.toFixed(1)}
                       </span>
                     </div>
-                    <p className="mt-2.5 flex items-baseline gap-1.5">
-                      <span className="nf-numeric text-[1.0625rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
-                        {formatMoney(l.priceMinor, locale, l.currency)}
-                      </span>
-                      <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-                        / {perHead ? "guest" : "night"}
-                      </span>
+                    <p className="mt-2.5">
+                      <Amount
+                        minorUnits={l.priceMinor}
+                        locale={locale}
+                        currency={l.currency}
+                        suffix={`/ ${perHead ? "guest" : "night"}`}
+                        className="text-[1.0625rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+                        secondaryClassName="text-[0.7em] font-semibold opacity-60"
+                      />
                     </p>
                   </div>
                 </Link>
