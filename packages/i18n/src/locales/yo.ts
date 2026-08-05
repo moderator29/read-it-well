@@ -153,6 +153,7 @@ export const yo: Dictionary = {
     termsNotice: "Nípa títẹ̀síwájú o gbà pẹ̀lú Àdéhùn àti Ìlànà Àṣírí wa.",
     providerUnavailable: "Ọ̀nà ìwọlé yìí kò tíì ṣetán.",
     backToHome: "Padà sí ilé",
+    otherWays: "Àwọn ọ̀nà mìíràn láti tẹ̀síwájú",
   },
 
   home: {

@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getProviderStates } from "@/lib/auth/providers";
-import { signUpWithEmail } from "@/lib/auth/actions";
-import { AuthPanel } from "@/components/auth/AuthPanel";
-import { listStates } from "@/lib/places/queries";
+import { AuthChoices } from "@/components/auth/AuthChoices";
 
 export const metadata: Metadata = {
   title: "Create your account",
@@ -12,23 +10,16 @@ export const metadata: Metadata = {
 };
 
 /**
- * The 37 states come down with the page because they are small and every
- * sign-up needs them. The 774 local governments and 749 occupations do not:
- * their pickers fetch themselves when opened, so nobody pays for a list they
- * never look at.
+ * The three ways in, and nothing else.
+ *
+ * The form used to unroll here in place, which left the Google and Apple rows
+ * stranded below nine fields. It now lives at `/sign-up/email`, so this page
+ * stays one screen and the states it needs are read there rather than on every
+ * visit to the chooser.
  */
 export default async function SignUpPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const states = await listStates();
 
-  return (
-    <AuthPanel
-      mode="sign-up"
-      t={t}
-      providers={getProviderStates()}
-      action={signUpWithEmail}
-      states={states}
-    />
-  );
+  return <AuthChoices mode="sign-up" t={t} providers={getProviderStates()} />;
 }

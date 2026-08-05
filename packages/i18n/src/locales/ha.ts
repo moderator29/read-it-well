@@ -153,6 +153,7 @@ export const ha: Dictionary = {
     termsNotice: "Ta ci gaba ka yarda da Sharuɗɗanmu da Manufar Sirri.",
     providerUnavailable: "Wannan hanyar shiga ba a saita ta ba tukuna.",
     backToHome: "Koma gida",
+    otherWays: "Sauran hanyoyin ci gaba",
   },
 
   home: {

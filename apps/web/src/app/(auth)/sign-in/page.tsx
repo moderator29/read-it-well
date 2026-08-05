@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getProviderStates } from "@/lib/auth/providers";
-import { signInWithEmail } from "@/lib/auth/actions";
-import { AuthPanel } from "@/components/auth/AuthPanel";
+import { AuthChoices } from "@/components/auth/AuthChoices";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -14,6 +13,9 @@ export const metadata: Metadata = {
  * Notices the auth callback can send here. A link that has expired or been
  * used already is the common case and deserves a plain sentence, not a silent
  * return to an empty form where the person cannot tell what went wrong.
+ *
+ * They land on the chooser rather than the form because every one of them is
+ * about getting in at all, not about the email route specifically.
  */
 const NOTICES: Record<string, string> = {
   "link-expired":
@@ -34,12 +36,6 @@ export default async function SignInPage({
   const noticeText = notice ? NOTICES[notice] : undefined;
 
   return (
-    <AuthPanel
-      mode="sign-in"
-      t={t}
-      providers={getProviderStates()}
-      action={signInWithEmail}
-      notice={noticeText}
-    />
+    <AuthChoices mode="sign-in" t={t} providers={getProviderStates()} notice={noticeText} />
   );
 }

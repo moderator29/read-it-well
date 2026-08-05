@@ -154,6 +154,7 @@ export const en = {
     termsNotice: "By continuing you agree to our Terms and Privacy Policy.",
     providerUnavailable: "This sign in method is not configured yet.",
     backToHome: "Back to home",
+    otherWays: "Other ways to continue",
   },
 
   home: {
