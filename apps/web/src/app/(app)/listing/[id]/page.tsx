@@ -347,6 +347,23 @@ export default async function ListingDetailPage({
       ? { label: "Message agent", href: `/messages/new?listing=${listing.id}` }
       : { label: "Check availability", href: "#reserve" };
 
+  /*
+   * The ghost half of reference 3's CTA pair, and only where a second action
+   * honestly exists.
+   *
+   * A stay has two real paths - ask the agent, or pick dates - so it pairs.
+   * A partner venue pairs its own page with directions, but only when the feed
+   * gave us two distinct destinations. A rental has exactly one path, so it
+   * gets one button rather than a decorative twin.
+   */
+  const stickySecondary: StickyAction | null = isPartner
+    ? partner?.venueUrl && partnerAction && partner.venueUrl !== partnerAction.href
+      ? { label: "Menu", href: partner.venueUrl, external: true }
+      : null
+    : isRental
+      ? null
+      : { label: "Message agent", href: messageHref };
+
   const bookingPanel = isPartner ? (
     <PartnerPanel listing={listing} locale={locale} t={t} action={partnerAction} />
   ) : isRental ? (
@@ -499,8 +516,15 @@ export default async function ListingDetailPage({
           </Reveal>
 
           {/* ------------------------------------- booking panel, mobile */}
-          <div id="reserve" className="mt-7 scroll-mt-20 lg:hidden">
-            {bookingPanel}
+          {/*
+            The anchor stays in the document at every width while only the
+            panel inside it is dropped from `lg` up. The pinned bar is no
+            longer hidden on desktop, so its Check availability now has a
+            target there; when the id itself carried `lg:hidden` the same link
+            pointed at a `display:none` element and scrolled nowhere.
+          */}
+          <div id="reserve" className="scroll-mt-20">
+            <div className="mt-7 lg:hidden">{bookingPanel}</div>
           </div>
 
           {/* ---------------------------------------------- photo grid */}
@@ -559,6 +583,16 @@ export default async function ListingDetailPage({
       </div>
       </div>
 
+      {/* The bar is pinned to the viewport rather than sitting in the flow, so
+          the page has to end above it or the last thing on the screen is
+          permanently behind glass. The inset is added here rather than in the
+          shell because this is the only route that pins one. */}
+      <div
+        aria-hidden="true"
+        className="h-[5.5rem]"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      />
+
       <ListingStickyBar
         variant={isPartner ? "partner" : isRental ? "rental" : "stay"}
         priceMinor={listing.priceMinor}
@@ -566,6 +600,7 @@ export default async function ListingDetailPage({
         locale={locale}
         perLabel={perLabel}
         action={stickyAction}
+        secondary={stickySecondary}
         fallbackLabel={listing.title}
       />
     </div>
