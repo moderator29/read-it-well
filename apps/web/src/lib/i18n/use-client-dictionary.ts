@@ -5,6 +5,7 @@ import {
   DEFAULT_LOCALE,
   getDictionary,
   isLocale,
+  localeFromAcceptLanguage,
   type Dictionary,
   type Locale,
 } from "@naijafinds/i18n";
@@ -75,8 +76,23 @@ function subscribe(): () => void {
   return () => {};
 }
 
-/** Read on the client. Split out so the snapshot stays a plain string. */
-function readLocaleCookie(): Locale {
+/**
+ * Read on the client. Split out so the snapshot stays a plain string.
+ *
+ * The order here has to be the SAME order `lib/locale.ts` uses on the server:
+ * stored choice, then what the browser reads, then English. It was cookie then
+ * English alone, which agreed with the server while the server also stopped at
+ * English. Now that `getLocale` negotiates `Accept-Language`, a first-time
+ * visitor on a Yorùbá phone gets a Yorùbá page from the server, and this hook
+ * would have answered "en" for the handful of default strings it owns: one back
+ * button in English on an otherwise Yorùbá screen.
+ *
+ * `navigator.languages` is the same preference list the browser puts in the
+ * header, already in the order it means, so joining it with commas produces a
+ * valid `Accept-Language` value and the identical parser decides both sides.
+ * There is deliberately no second implementation of the matching rule here.
+ */
+function readClientLocale(): Locale {
   // Cookies are `name=value; name=value`. Match on a boundary so a cookie
   // whose name merely ENDS with ours (`x_nf_locale`) cannot answer for it.
   const match = document.cookie.match(
@@ -84,7 +100,20 @@ function readLocaleCookie(): Locale {
   );
   const raw = match?.[1];
   const value = raw === undefined ? undefined : decodeURIComponent(raw);
-  return isLocale(value) ? value : DEFAULT_LOCALE;
+  if (isLocale(value)) return value;
+
+  /* Guarded rather than assumed: `navigator.languages` is absent in a few
+     embedded browsers, and `navigator.language` is a single string. Either
+     shape is fed to the parser as a header, and no shape at all falls to
+     English exactly as before. */
+  const preferred =
+    typeof navigator === "undefined"
+      ? null
+      : navigator.languages && navigator.languages.length > 0
+        ? navigator.languages.join(",")
+        : (navigator.language ?? null);
+
+  return localeFromAcceptLanguage(preferred) ?? DEFAULT_LOCALE;
 }
 
 /**
@@ -100,7 +129,7 @@ function serverSnapshot(): Locale {
 
 /** The active locale on the client. `DEFAULT_LOCALE` until hydration lands. */
 export function useClientLocale(): Locale {
-  return useSyncExternalStore(subscribe, readLocaleCookie, serverSnapshot);
+  return useSyncExternalStore(subscribe, readClientLocale, serverSnapshot);
 }
 
 /** The active dictionary on the client. Read the caveats at the top first. */

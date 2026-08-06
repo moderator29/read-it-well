@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { getDictionary, plural, type Locale } from "@naijafinds/i18n";
 import type { Booking } from "@/lib/demo/bookings";
 import { ButtonLink } from "@/components/ui/Button";
 import { Segmented } from "@/components/ui/Segmented";
@@ -33,8 +34,14 @@ const EMPTY_COPY: Record<TabKey, string> = {
   cancelled: "Cancelled bookings are kept here so nothing gets lost.",
 };
 
-function BookingCard({ booking: b }: { booking: Booking }) {
+function BookingCard({ booking: b, locale }: { booking: Booking; locale: Locale }) {
   const confirmed = b.status === "confirmed";
+
+  /* Guest and night counts through the dictionary rather than a pair of English
+     ternaries. This deck is the signed-out fallback, so it is the FIRST bookings
+     screen most people ever see, and it was the one place still writing the
+     nouns in English no matter which language the visitor reads. */
+  const counts = getDictionary(locale).counts;
   return (
     <li className="nf-card overflow-hidden p-0 text-left">
       <div className="flex gap-4.5 p-3.5 sm:gap-4 sm:p-4">
@@ -77,8 +84,8 @@ function BookingCard({ booking: b }: { booking: Booking }) {
 
           <p className="mt-1.5 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
             <UiIcon name="user" size={16} className="shrink-0" />
-            {b.guests} {b.guests === 1 ? "guest" : "guests"} &middot; {b.nights}{" "}
-            {b.nights === 1 ? "night" : "nights"}
+            {plural(b.guests, counts.guests, locale)} &middot;{" "}
+            {plural(b.nights, counts.nights, locale)}
           </p>
         </div>
       </div>
@@ -110,9 +117,11 @@ function BookingCard({ booking: b }: { booking: Booking }) {
 export function BookingsTabs({
   upcoming,
   past,
+  locale,
 }: {
   upcoming: Booking[];
   past: Booking[];
+  locale: Locale;
 }) {
   const [active, setActive] = useState<TabKey>("upcoming");
 
@@ -158,7 +167,7 @@ export function BookingsTabs({
           className="nf-rise grid gap-4 pt-4"
         >
           {bookings.map((b) => (
-            <BookingCard key={b.id} booking={b} />
+            <BookingCard key={b.id} booking={b} locale={locale} />
           ))}
         </ul>
       ) : (

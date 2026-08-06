@@ -2,8 +2,16 @@ import { en, type Dictionary } from "./locales/en";
 import { yo } from "./locales/yo";
 import { ha } from "./locales/ha";
 import { ig } from "./locales/ig";
+import { matchAcceptLanguage } from "./negotiate";
+import type { CountForms, PluralForms } from "./plural";
 
 export type { Dictionary };
+export type { CountForms, PluralForms };
+export {
+  parseAcceptLanguage,
+  matchAcceptLanguage,
+  type LanguageRange,
+} from "./negotiate";
 
 export const LOCALES = ["en", "yo", "ha", "ig"] as const;
 export type Locale = (typeof LOCALES)[number];
@@ -18,6 +26,23 @@ export function getDictionary(locale: Locale): Dictionary {
 
 export function isLocale(value: string | undefined | null): value is Locale {
   return !!value && (LOCALES as readonly string[]).includes(value);
+}
+
+/**
+ * The locale a browser is asking for, or null if it is asking for none we ship.
+ *
+ * This is the whole of RentMe's knowledge of `Accept-Language`. The parsing
+ * lives in `negotiate.ts` and knows nothing about this platform; this line is
+ * the only place the supported list meets it, so there is exactly one answer to
+ * "which languages do we negotiate over" and it is `LOCALES`.
+ *
+ * Returning null rather than the default is deliberate. The caller has to
+ * decide what silence means, and on the server that decision is ordered:
+ * an explicitly stored choice, then this, then English. Folding the default in
+ * here would make the second and third steps indistinguishable to the caller.
+ */
+export function localeFromAcceptLanguage(header: string | null | undefined): Locale | null {
+  return matchAcceptLanguage(header, LOCALES);
 }
 
 /** Display metadata for the language switcher. */
@@ -141,6 +166,74 @@ export function formatNumber(
   options: Intl.NumberFormatOptions = {},
 ): string {
   return new Intl.NumberFormat(intlTag[locale], options).format(value);
+}
+
+/**
+ * One `Intl.PluralRules` per locale, built once.
+ *
+ * Constructing a formatter is the expensive part of `Intl`, and a booking board
+ * renders a night count and a guest count on every card in a list. Four
+ * instances for the life of the process is the whole cost.
+ */
+const pluralRules = new Map<Locale, Intl.PluralRules>();
+
+function rulesFor(locale: Locale): Intl.PluralRules {
+  const cached = pluralRules.get(locale);
+  if (cached) return cached;
+  const built = new Intl.PluralRules(intlTag[locale]);
+  pluralRules.set(locale, built);
+  return built;
+}
+
+/**
+ * A counted phrase, in the form the locale actually uses.
+ *
+ * THIS EXISTS BECAUSE THE PLATFORM WAS RENDERING "1 adults, 1 children".
+ * Every counted noun on the booking surfaces was either a hand-written
+ * `n === 1 ? "night" : "nights"` ternary, which hardcodes English inflection
+ * inside a product that ships in four languages, or a pair of `nights` and
+ * `nightsOne` keys, which hardcodes the assumption that every language has
+ * exactly two forms. Some of the pairs were then only half wired, which is how
+ * an admin reading a stay for one adult was told there were "1 adults".
+ *
+ * The categories come from CLDR through `Intl`, resolved with the same
+ * `intlTag` map `formatMoney` uses, so this is driven by the locale rather than
+ * by an assumption about it. English and Hausa select `one` or `other`; Yoruba
+ * and Igbo have a single category and fall on `other` for every count,
+ * including one, which is correct for both languages rather than a shortcut.
+ *
+ * `other` is the fallback for a category the dictionary has not filled in, so a
+ * half-translated entry degrades to a readable phrase instead of an empty span.
+ */
+export function plural(
+  count: number,
+  forms: PluralForms,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  const category = rulesFor(locale).select(count);
+  const template = forms[category] ?? forms.other;
+  return template.replace(/\{count\}/g, formatNumber(count, locale));
+}
+
+/**
+ * The people on a stay, as one phrase.
+ *
+ * Adults are always stated. Children are stated only when there are any,
+ * because "2 adults, 0 children" is noise on a card whose whole job is to be
+ * read at a glance, and the absence of children is not information a host or an
+ * operator is looking for.
+ */
+export function formatParty(
+  adults: number,
+  children: number,
+  forms: CountForms,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  const adultsPhrase = plural(adults, forms.adults, locale);
+  if (children <= 0) return adultsPhrase;
+  return forms.party
+    .replace("{adults}", adultsPhrase)
+    .replace("{children}", plural(children, forms.children, locale));
 }
 
 /**

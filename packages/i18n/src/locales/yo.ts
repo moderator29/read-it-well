@@ -8,6 +8,26 @@ import type { Dictionary } from "./en";
  * native speaker rather than translated literally. Tracked in KNOWN_GAPS.md.
  */
 export const yo: Dictionary = {
+  /*
+   * Yorùbá has one plural category, `other`, and that is not a gap in the data:
+   * the noun does not change for a numeral, so "alẹ́ 1" and "alẹ́ 2" are both
+   * written with the same word. One form per noun is therefore the complete
+   * answer, and `Intl` will never ask this locale for any other category.
+   */
+  counts: {
+    nights: { other: "alẹ́ {count}" },
+    guests: { other: "àlejò {count}" },
+    adults: { other: "àgbàlagbà {count}" },
+    children: { other: "ọmọdé {count}" },
+    party: "{adults}, {children}",
+  },
+
+  reserve: {
+    confirmedRange: "{from} sí {to}, {nights} fún {guests}.",
+    capacityNote: "Ibí yìí gba tó {guests}.",
+    totalForNights: "Àpapọ̀ fún {nights}",
+  },
+
   meta: { localeName: "Yoruba", localeNativeName: "Yorùbá", dir: "ltr" },
 
   common: {
@@ -1077,11 +1097,6 @@ export const yo: Dictionary = {
     },
     card: {
       dates: "{from} sí {to}",
-      nights: "Alẹ́ {count}",
-      nightsOne: "Alẹ́ kan",
-      guests: "Àlejò {count}",
-      guestsOne: "Àlejò kan",
-      composition: "Àgbàlagbà {adults}, ọmọdé {children}",
       total: "Àpapọ̀",
       requested: "A béèrè ní {date}",
       waiting: "Ó ti dúró {duration}",
@@ -1696,10 +1711,6 @@ export const yo: Dictionary = {
       back: "Gbogbo ìdúró",
       goneTitle: "Ìdúró náà kò sí níbẹ̀",
       goneBody: "Padà sí àtòjọ láti rí ohun tí ó wà níbẹ̀ báyìí.",
-      nights: "Òru {count}",
-      nightsOne: "Òru 1",
-      party: "Àgbàlagbà {adults}, ọmọdé {children}",
-      partyAdultsOnly: "Àgbàlagbà {adults}",
       settledChip: "{amount} tí a san",
       unpaidChip: "Kò sí owó tí a san síbẹ̀",
       refundedChip: "{amount} tí a dá padà",

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatMoney, getDictionary, type Locale } from "@naijafinds/i18n";
+import { formatMoney, getDictionary, plural, type Locale } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getBookingBoard, type AdminBookingRow } from "@/lib/admin/bookings-queries";
 import { fill, type AdminCopy } from "../_components/copy";
@@ -40,6 +40,13 @@ function StayCard({
 }) {
   const place = [stay.area, stay.city].filter(Boolean).join(", ");
 
+  /* The counted nouns sit at the root of the dictionary rather than inside the
+     console's slice, because a night is a night on the guest surfaces too and
+     four copies of "1 night" would drift. Read here rather than drilled through
+     `StayGroup` as another prop: `getDictionary` is a lookup in a static object,
+     so there is nothing to save by passing it down. */
+  const counts = getDictionary(locale).counts;
+
   return (
     <li className="nf-card p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-2">
@@ -73,7 +80,7 @@ function StayCard({
       <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
         {stay.guestName ?? copy.unnamed}
         {" · "}
-        {stay.nights === 1 ? copy.nightsOne : fill(copy.nights, { count: stay.nights })}
+        {plural(stay.nights, counts.nights, locale)}
         {" · "}
         <span className="nf-numeric">{formatMoney(stay.totalMinor, locale)}</span>
       </p>

@@ -2,7 +2,15 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatMoney, formatDate, type Dictionary, type Locale } from "@naijafinds/i18n";
+import {
+  formatMoney,
+  formatDate,
+  formatParty,
+  getDictionary,
+  plural,
+  type Dictionary,
+  type Locale,
+} from "@naijafinds/i18n";
 import { fill } from "../_copy";
 import { acceptBooking, declineBooking } from "@/lib/agent/bookings-actions";
 import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-schema";
@@ -200,12 +208,17 @@ function BookingCard({
 }) {
   const pending = booking.status === "PENDING";
 
-  const nightsLabel = booking.nights === 1 ? t.card.nightsOne : fill(t.card.nights, { count: booking.nights });
-  const guestsLabel = booking.guests === 1 ? t.card.guestsOne : fill(t.card.guests, { count: booking.guests });
-  const compositionLabel = fill(t.card.composition, {
-    adults: booking.adults,
-    children: booking.children,
-  });
+  /* The three counted phrases on a host's card. The composition line carried
+     the same defect the admin console did, stating "1 adults, 1 children" for a
+     single parent and child, because the template had one form and no rule to
+     pick another. All three now resolve their category through
+     `Intl.PluralRules` for the host's own locale, and the shared `counts` block
+     at the root of the dictionary means the agent surfaces and the console say
+     the same words for the same number. */
+  const counts = getDictionary(locale).counts;
+  const nightsLabel = plural(booking.nights, counts.nights, locale);
+  const guestsLabel = plural(booking.guests, counts.guests, locale);
+  const compositionLabel = formatParty(booking.adults, booking.children, counts, locale);
 
   const waitingLabel =
     booking.hoursWaiting === 0
@@ -257,7 +270,13 @@ function BookingCard({
         <p className="mt-1.5 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
           <UiIcon name="user" size={16} className="shrink-0" />
           {guestsLabel}
-          <span className="text-[var(--nf-content-muted)]">&middot; {compositionLabel}</span>
+          {/* The breakdown only earns its place when it says something the
+              guest count did not. A party with no children reads "2 guests"
+              followed by "2 adults", which is the same fact twice, so the
+              second half is dropped rather than repeated. */}
+          {booking.children > 0 && (
+            <span className="text-[var(--nf-content-muted)]">&middot; {compositionLabel}</span>
+          )}
         </p>
 
         {/* Somebody other than the booker is arriving. The host has to know

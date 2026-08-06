@@ -8,6 +8,28 @@ import type { Dictionary } from "./en";
  * speaker rather than translated literally. Tracked in KNOWN_GAPS.md.
  */
 export const ig: Dictionary = {
+  /*
+   * Igbo has one plural category, `other`, so one form per noun has to serve
+   * every count. The unmarked noun is used with the numeral after it, which is
+   * how Igbo counts: abalị atọ, ọbịa abụọ. The plural-marked forms elsewhere in
+   * this file, ndị okenye and ụmụaka, are correct where no number follows them
+   * but would read as "adults 1" beside a numeral, so they are not used here.
+   * This is one of the entries the native review should look at first.
+   */
+  counts: {
+    nights: { other: "abalị {count}" },
+    guests: { other: "ọbịa {count}" },
+    adults: { other: "okenye {count}" },
+    children: { other: "nwa {count}" },
+    party: "{adults}, {children}",
+  },
+
+  reserve: {
+    confirmedRange: "{from} ruo {to}, {nights} maka {guests}.",
+    capacityNote: "Ebe a na-anabata ruo {guests}.",
+    totalForNights: "Mkpokọta maka {nights}",
+  },
+
   meta: { localeName: "Igbo", localeNativeName: "Igbo", dir: "ltr" },
 
   common: {
@@ -1079,11 +1101,6 @@ export const ig: Dictionary = {
     },
     card: {
       dates: "{from} ruo {to}",
-      nights: "Abalị {count}",
-      nightsOne: "Otu abalị",
-      guests: "Ọbịa {count}",
-      guestsOne: "Otu ọbịa",
-      composition: "Ndị okenye {adults}, ụmụaka {children}",
       total: "Mkpokọta",
       requested: "Arịọrọ ya {date}",
       waiting: "Na-eche {duration}",
@@ -1688,10 +1705,6 @@ export const ig: Dictionary = {
       back: "Ọnọdụ niile",
       goneTitle: "Ọnọdụ ahụ adịghị ebe ahụ",
       goneBody: "Laghachi na ndepụta ka ị hụ ihe dị ebe ahụ ugbu a.",
-      nights: "Abalị {count}",
-      nightsOne: "Abalị 1",
-      party: "Ndị okenye {adults}, ụmụaka {children}",
-      partyAdultsOnly: "Ndị okenye {adults}",
       settledChip: "A kwụrụ {amount}",
       unpaidChip: "A kwụbeghị ihe ọ bụla",
       refundedChip: "E weghachiri {amount}",

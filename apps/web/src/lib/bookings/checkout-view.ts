@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { formatMoney, getDictionary, plural, type Locale } from "@naijafinds/i18n";
 import { resolveSession } from "../actions/session";
 import { isPaystackConfigured } from "../payments/paystack";
 
@@ -157,9 +157,16 @@ export async function getCheckoutView(
 
     const lines: CheckoutLine[] = [
       {
-        label: `${money(booking.price_per_night_minor)} x ${booking.nights} ${
-          booking.nights === 1 ? "night" : "nights"
-        }`,
+        /* The night count was hand-inflected in English on a receipt line that
+           already formats its money for the reader's locale, so a Hausa guest
+           was shown ₦ 45,000 beside the word "nights". It goes through the
+           dictionary now, and picks its form from `Intl.PluralRules` rather
+           than from the assumption that two forms is all any language has. */
+        label: `${money(booking.price_per_night_minor)} x ${plural(
+          booking.nights,
+          getDictionary(locale).counts.nights,
+          locale,
+        )}`,
         display: money(booking.subtotal_minor),
         minor: booking.subtotal_minor,
       },
