@@ -45,9 +45,14 @@ SERVER ONLY must never be given the `NEXT_PUBLIC_` prefix, because that prefix
 inlines the value into the browser bundle.
 
 The template in `apps/web/.env.example` is the starting point for local
-development (`cp apps/web/.env.example apps/web/.env.local`). Note that
-section 2.4 below lists variables the code genuinely reads which are **not yet
-in that template**. Add them by hand.
+development (`cp apps/web/.env.example apps/web/.env.local`), and it is now
+the **only** template: the second one at the repository root is a signpost
+pointing here, because Next.js loads `.env.local` from the application
+directory and a value set at the workspace root is read by nothing.
+
+Every variable in that template is read by code, and every variable the code
+reads is in it. Section 2.5 lists what was removed to make that true, so that
+nobody re-adds a key on the strength of having seen it here once.
 
 ### 2.1 Required for the platform to do anything real
 
@@ -62,42 +67,65 @@ in that template**. Add them by hand.
 
 | Variable | If it is missing | Where to obtain it |
 |---|---|---|
-| `PAYSTACK_SECRET_KEY` (SERVER ONLY) | Wallet funding, withdrawal and transfer answer honestly that the capability switches on the moment the key lands, rather than pretending. The webhook route cannot verify a signature, so no ledger entry is ever settled. Money never moves. | Paystack dashboard, Settings, API Keys and Webhooks. Use the **live** secret key in Production and a test key in Preview |
-| `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Client-side Paystack initialisation has no key. Safe in the browser by design. | Same screen as above, "Public Key" |
+| `PAYSTACK_SECRET_KEY` (SERVER ONLY) | Wallet funding, withdrawal and transfer answer honestly that the capability switches on the moment the key lands, rather than pretending. The webhook route cannot verify a signature, so no ledger entry is ever settled. Money never moves. This is the **only** Paystack variable: funding redirects to Paystack's hosted checkout so no public key is read in the browser, and Paystack issues no separate webhook secret, signing each callback with an HMAC SHA-512 of the raw body keyed by this same key. | Paystack dashboard, Settings, API Keys and Webhooks. Use the **live** secret key in Production and a test key in Preview. Set the webhook URL on that same screen to `https://<your-domain>/api/paystack/webhook` |
 | `ANTHROPIC_API_KEY` (SERVER ONLY) | `/api/assistant` answers 200 with an honest message instead of streaming. The assistant UI still renders and the thread store still works; the model simply never speaks. | https://console.anthropic.com/settings/keys |
 | `ASSISTANT_MODEL` | Optional. Falls back to the default model pinned in `app/api/assistant/route.ts`. Only set this to move the assistant to a different model deliberately. | Not a secret. A model identifier |
-| `RESEND_API_KEY` (SERVER ONLY) | `isEmailConfigured()` returns false, `sendEmail` returns `{sent: false, reason: "unconfigured"}` and nothing leaves the process. Every event that would have emailed still fires its in-app notification, so users are not left uninformed, only un-emailed. Email sign-in also reports itself unconfigured (`lib/auth/providers.ts` requires this key plus `AUTH_DATABASE_URL`). | https://resend.com/api-keys. The sending domain must be verified in Resend first, or Resend rejects the send |
+| `SUPPORT_MODEL` | Optional. The same, for the support escalation summariser in `app/api/support/route.ts`. Falls back to its own pinned default. | Not a secret. A model identifier |
+| `RESEND_API_KEY` (SERVER ONLY) | `isEmailConfigured()` returns false, `sendEmail` returns `{sent: false, reason: "unconfigured"}` and nothing leaves the process. Every event that would have emailed still fires its in-app notification, so users are not left uninformed, only un-emailed. Email and password sign-in is unaffected: Supabase issues that session itself. | https://resend.com/api-keys. The sending domain must be verified in Resend first, or Resend rejects the send |
 | `EMAIL_FROM` | Optional. Defaults to `RentMe <hello@rentme.ng>`. If that domain is not the one verified in Resend, every send is rejected, so set this to match the verified domain. | Your verified sending address |
-| `NEXT_PUBLIC_MAPTILER_KEY` | The map view keeps working on the free Carto tiles, which are licensed for non-commercial use only. For a commercial launch this is not optional, it is a licensing requirement. | https://cloud.maptiler.com/account/keys |
 | `NF_DATA_SOURCE` | Optional. Selects the repository implementation for listings, agents and messages. Leave unset for the default. Setting it to `api` throws on the agent repository, which is not implemented. | Not a secret |
+| `NEXT_PUBLIC_AUTH_PROVIDERS` | No social sign-in buttons are drawn; email and password still work. This is a list of which buttons to offer, comma separated, not a credential. Only list a provider after enabling it inside Supabase, because listing one that is not enabled sends people to an error page. | Not a secret. `google`, `apple` |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` | All six "contact support" surfaces point at `/contact` instead of a `mailto:`. That is a working channel, not a fallback: the form writes a real `support_tickets` row under RLS and the reply notifies the sender. Set this only once the mailbox genuinely receives mail, because an address that bounces fails silently while the person who wrote believes they have asked. | Your own mailbox, once it exists |
+| `NEXT_PUBLIC_NGN_USD_RATE` | The wallet's currency toggle does not render and balances show in naira only. There is deliberately no fallback rate in code: an invented or stale figure sitting where somebody reads their balance is worse than no conversion. | Naira per one US dollar |
 
 ### 2.3 Optional, safe to leave empty at launch
 
 | Variable | If it is missing | Where to obtain it |
 |---|---|---|
-| `TERMII_API_KEY` (SERVER ONLY) | No Nigerian SMS or OTP. Nothing in the product calls it yet. | https://accounts.termii.com/#/account/api |
 | `AMADEUS_CLIENT_ID`, `AMADEUS_CLIENT_SECRET`, `AMADEUS_ENV` (SERVER ONLY) | Third-party hotel inventory stays absent. The provider layer is not built yet (see section 9). | https://developers.amadeus.com/register, then My Self-Service Workspace, Create app. Start on `test` |
 | `GOOGLE_PLACES_API_KEY` (SERVER ONLY) | No restaurant discovery or address autocomplete from Places. Not built yet. | https://console.cloud.google.com/apis/credentials with "Places API (New)" enabled |
-| `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | No product analytics. Nothing reads these yet. | https://us.posthog.com/settings/project |
-| `SENTRY_DSN` | No error tracking. Nothing reads this yet; route errors log to the server console via `app/error.tsx`. | https://sentry.io/settings/, Projects, Client Keys DSN |
+| `BASE_URL` | Nothing in the product. Read only by the Playwright specs in `apps/web/tests`, each of which defaults to its own localhost port. Set it only to point the suite at a deployed build. | Not a secret |
 
-### 2.4 Read by the code but missing from `.env.example`
+### 2.4 Where the social sign-in secrets actually live
 
-These are real reads in `apps/web/src`. Add them to Vercel and to
-`apps/web/.env.example` when convenient. They are the reason a provider button
-can look permanently unavailable even after the Supabase dashboard is
-configured, because `lib/auth/providers.ts` decides availability from the
-presence of these variables in the app's own environment, not from Supabase.
+Not here. Google and Apple credentials are pasted into the **Supabase**
+dashboard, under Authentication, Providers. This application never reads them.
 
-| Variable | Read by | Effect when absent |
-|---|---|---|
-| `NEXT_PUBLIC_SITE_URL` | `app/layout.tsx`, `lib/wallet/actions.ts`, `lib/email/render.ts` | Covered in 2.1. Listed again here because it is absent from the template |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `lib/auth/providers.ts` | The Google button renders as an honest disabled control even if Google is correctly configured inside Supabase |
-| `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | `lib/auth/providers.ts` | The same, for Apple. All four are required together |
-| `AUTH_DATABASE_URL` | `lib/auth/providers.ts`, `lib/auth/actions.ts` | Email sign-in reports itself unconfigured and the action refuses with an honest message naming this variable |
-| `EMAIL_FROM` | `lib/email/client.ts` | Falls back to `hello@rentme.ng`, which fails at Resend unless that domain is the verified one |
-| `ASSISTANT_MODEL` | `app/api/assistant/route.ts` | Falls back to the pinned default |
-| `NF_DATA_SOURCE` | `lib/agent/repository.ts`, `lib/messages/repository.ts` | Falls back to the default repository |
+- Google OAuth client: https://console.cloud.google.com/apis/credentials
+- Apple Sign In: https://developer.apple.com/account/resources/identifiers
+
+What the application does read is `NEXT_PUBLIC_AUTH_PROVIDERS`, which decides
+only which buttons to draw. So a provider needs two steps, in this order:
+enable it in Supabase, then name it here. Naming it without enabling it sends
+people to an error page, which is why the default is to draw nothing.
+
+### 2.5 Removed from the template, and why
+
+This document previously told you to set the eleven groups below. **The code
+reads none of them.** Verified by scanning every `process.env` reference in
+`apps/web`, `packages` and `scripts`; each has zero hits. They are listed here
+rather than deleted silently, so that finding one in an old deploy or an old
+commit does not read as an accidental omission.
+
+| Variable | Why it is gone |
+|---|---|
+| `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Funding redirects to Paystack's hosted checkout page (`authorization_url`), so the browser never initialises the Paystack SDK. Only the secret key is read |
+| `PAYSTACK_WEBHOOK_SECRET` | Paystack issues no such thing. Webhooks are signed with an HMAC SHA-512 of the raw body keyed by the secret key. The phantom variable sent somebody hunting a dashboard field that does not exist |
+| `AUTH_DATABASE_URL` | A leftover of the pre-Supabase auth layer. `lib/auth/providers.ts` reads exactly one variable now, and this is not it |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Same leftover. These belong in the Supabase dashboard, per 2.4 |
+| `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | Same |
+| `X_CLIENT_ID`, `X_CLIENT_SECRET` | Sign in with X was never built, and its API tier is paid |
+| `NEXT_PUBLIC_MAPTILER_KEY` | The map runs on Carto tiles and never reads a MapTiler key. The non-commercial licensing question is real and is tracked in `docs/DEAD_ENDS.md`, but an unread environment variable does not answer it |
+| `GOOGLE_MAPS_SERVER_KEY`, `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY` | Same. Google Maps is not the map provider. `GOOGLE_PLACES_API_KEY` is separate and is read |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Media goes to Supabase Storage |
+| `TERMII_API_KEY` | No SMS or OTP path calls it |
+| `TRAVELGATE_API_KEY` | Requires a signed commercial agreement that does not exist, and no code path awaits it |
+| `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | Error tracking is not wired. Route errors log to the server console via `app/error.tsx` |
+| `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | Product analytics is not wired |
+
+If you have any of these set in Vercel today, they are inert; clearing them
+changes nothing. Adding one back is only correct alongside the code that reads
+it, in the same change.
 
 ---
 
@@ -166,9 +194,11 @@ must be Supabase's callback, exactly:
 https://uccixoonmbhrnyczyigt.supabase.co/auth/v1/callback
 ```
 
-Then also put the same client ID and secret into Vercel as `GOOGLE_CLIENT_ID`
-and `GOOGLE_CLIENT_SECRET` (section 2.4), or the button stays disabled in the
-UI regardless of what Supabase knows.
+That is the whole of it. This document used to say the client ID and secret
+also had to go into Vercel as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+They do not, and the application never reads either. What decides whether the
+button is drawn is `NEXT_PUBLIC_AUTH_PROVIDERS`, so add `google` to that list
+once Supabase is configured, and not before.
 
 ### 4.3 Apple sign-in
 
@@ -182,9 +212,9 @@ needs a paid Apple Developer account.
    `https://uccixoonmbhrnyczyigt.supabase.co/auth/v1/callback`.
 3. Create a **Sign in with Apple key** (a `.p8` file). Note the Key ID and
    your Team ID. The `.p8` downloads once and cannot be downloaded again.
-4. Paste the client ID and the generated secret into Supabase, and put
-   `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID` and `APPLE_PRIVATE_KEY`
-   into Vercel (section 2.4) so the button is enabled in the UI.
+4. Paste the client ID and the generated secret into Supabase. Nothing goes
+   into Vercel: the four `APPLE_*` variables this step used to name are read by
+   nothing. Add `apple` to `NEXT_PUBLIC_AUTH_PROVIDERS` to draw the button.
 
 ### 4.4 Auth email delivery and the five templates
 
