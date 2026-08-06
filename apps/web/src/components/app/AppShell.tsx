@@ -222,7 +222,7 @@ export function AppShell({
                 is a menu, a filter sheet or a drawer. This glyph says what
                 actually happens: a panel arrives beside the content.
               */}
-              <UiIcon name="panel-left" size={19} />
+              <UiIcon name="panel-left" size={20} />
             </button>
             {/* The wordmark, on phones only: above lg the rail already carries
                 it, and repeating a logo twice on one screen is noise. It used

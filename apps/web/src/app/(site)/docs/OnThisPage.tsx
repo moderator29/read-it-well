@@ -41,7 +41,7 @@ export function OnThisPage({ sections }: { sections: { id: string; heading: stri
         className="nf-tap flex min-h-11 w-full items-center justify-between gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-4 py-2.5 text-left xl:hidden"
       >
         <span className="flex items-center gap-2.5">
-          <UiIcon name="document" size={15} className="text-[var(--nf-content-muted)]" />
+          <UiIcon name="document" size={16} className="text-[var(--nf-content-muted)]" />
           <span className="text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
             On this page
           </span>
@@ -61,7 +61,7 @@ export function OnThisPage({ sections }: { sections: { id: string; heading: stri
       {/* ---------------------------------------------------- the headings */}
       <div id={panelId} className={`${open ? "mt-2 block" : "hidden"} xl:mt-0 xl:block`}>
         <p className="nf-overline hidden items-center gap-2 text-[var(--nf-content-muted)] xl:flex">
-          <UiIcon name="document" size={14} />
+          <UiIcon name="document" size={16} />
           On this page
         </p>
         <ul className="mt-2.5 space-y-0.5 border-l border-[var(--nf-border-subtle)]">

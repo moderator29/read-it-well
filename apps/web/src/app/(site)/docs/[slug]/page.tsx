@@ -60,7 +60,7 @@ export default async function DocChapterPage({
             href="/docs"
             className="nf-tap inline-flex min-h-11 items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
           >
-            <UiIcon name="arrow-left" size={14} />
+            <UiIcon name="arrow-left" size={16} />
             All chapters
           </Link>
         </nav>
@@ -116,7 +116,7 @@ export default async function DocChapterPage({
                 className="nf-card nf-card--interactive flex min-h-11 flex-col p-4"
               >
                 <span className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
-                  <UiIcon name="arrow-left" size={13} />
+                  <UiIcon name="arrow-left" size={12} />
                   Previous
                 </span>
                 <span className="mt-1 text-[0.875rem] leading-snug font-semibold text-[var(--nf-content-primary)]">
@@ -135,7 +135,7 @@ export default async function DocChapterPage({
               >
                 <span className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
                   Next
-                  <UiIcon name="arrow-right" size={13} />
+                  <UiIcon name="arrow-right" size={12} />
                 </span>
                 <span className="mt-1 text-[0.875rem] leading-snug font-semibold text-[var(--nf-content-primary)]">
                   {next.number}. {next.title}

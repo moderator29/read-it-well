@@ -96,7 +96,7 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
       {since && (
         <div className="nf-social-meta">
           <span>
-            <UiIcon name="calendar-booking" size={14} />
+            <UiIcon name="calendar-booking" size={16} />
             On this device since {since}
           </span>
         </div>

@@ -59,7 +59,7 @@ export function AgentMobileNav({
         {/* The panel toggle, matching Personal Mode. Three stacked lines say
             "a list is behind this" and say it identically whatever opens; this
             says a panel arrives beside the content. */}
-        <UiIcon name="panel-left" size={19} />
+        <UiIcon name="panel-left" size={20} />
       </button>
 
       <div

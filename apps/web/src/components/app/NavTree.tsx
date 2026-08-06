@@ -102,7 +102,7 @@ export function NavTree({
           className={`nf-nav__row${current ? " nf-nav__row--on" : ""}`}
         >
           <span className="nf-nav__glyph" aria-hidden="true">
-            <UiIcon name={item.icon} size={depth === 1 ? 14 : 16} filled={current} />
+            <UiIcon name={item.icon} size={16} filled={current} />
           </span>
           <span className="nf-nav__label">{item.label}</span>
           {item.badge ? <span className="nf-nav__badge nf-numeric">{item.badge}</span> : null}
@@ -143,7 +143,7 @@ export function NavTree({
             aria-label={`${expanded ? collapseLabel : expandLabel} ${item.label}`}
             className="nf-nav__disclose nf-tap"
           >
-            <UiIcon name="chevron-right" size={14} className={expanded ? "rotate-90" : ""} />
+            <UiIcon name="chevron-right" size={16} className={expanded ? "rotate-90" : ""} />
           </button>
         </div>
 

@@ -94,7 +94,7 @@ export function AppRail({
             )}
           </span>
           <span className="nf-nav__whoname">{userName}</span>
-          <UiIcon name="chevron-right" size={13} className="nf-nav__whochev" />
+          <UiIcon name="chevron-right" size={12} className="nf-nav__whochev" />
         </Link>
       )}
 

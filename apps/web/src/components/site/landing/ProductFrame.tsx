@@ -57,7 +57,7 @@ export async function ProductFrame({ t, locale }: { t: Dictionary; locale: Local
             {/* A real search affordance, drawn from the same tokens the app's
                 own uses, so the frame opens on the screen a visitor lands on. */}
             <div className="nf-card flex items-center gap-2 px-3 py-2.5">
-              <UiIcon name="search" size={15} className="shrink-0 opacity-60" />
+              <UiIcon name="search" size={16} className="shrink-0 opacity-60" />
               <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
                 {t.nav.explore}
               </span>
@@ -86,12 +86,12 @@ export async function ProductFrame({ t, locale }: { t: Dictionary; locale: Local
                   }
                   style={i === 0 ? { background: "var(--nf-gradient-brand)" } : undefined}
                 >
-                  <UiIcon name={icon} size={15} filled={i === 0} />
+                  <UiIcon name={icon} size={16} filled={i === 0} />
                 </span>
               ))}
             </div>
             <span className="nf-dock-island grid h-9 w-9 place-items-center">
-              <UiIcon name="user" size={15} />
+              <UiIcon name="user" size={16} />
             </span>
           </div>
         </div>

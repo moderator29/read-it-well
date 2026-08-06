@@ -83,7 +83,7 @@ export default function DocsHomePage() {
               </p>
               <span className="mt-auto flex items-center gap-1.5 pt-3 text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
                 {chapter.sections.length} sections
-                <UiIcon name="chevron-right" size={13} />
+                <UiIcon name="chevron-right" size={12} />
               </span>
             </Link>
           </li>

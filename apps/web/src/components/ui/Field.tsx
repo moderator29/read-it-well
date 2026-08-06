@@ -314,7 +314,7 @@ export function TextField({
         <div className="relative">
           {leadingIcon ? (
             <span className={`${SLOT} left-3.5`}>
-              <UiIcon name={leadingIcon} size={18} />
+              <UiIcon name={leadingIcon} size={20} />
             </span>
           ) : null}
 
@@ -399,7 +399,7 @@ export function SelectField({
         <div className="relative">
           {leadingIcon ? (
             <span className={`${SLOT} left-3.5`}>
-              <UiIcon name={leadingIcon} size={18} />
+              <UiIcon name={leadingIcon} size={20} />
             </span>
           ) : null}
 
