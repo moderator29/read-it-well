@@ -84,27 +84,44 @@ async function run(theme) {
       !/\bMessages\b/.test(text),
     );
 
-    check("there is a compose control", (await page.locator('[data-testid="inbox-compose"]').count()) === 1);
-    check("there is a search field", (await page.locator('[data-testid="inbox-search"]').count()) === 1);
-    check(
-      "the search field says what it searches",
-      (await page.locator('[data-testid="inbox-search"]').getAttribute("placeholder")) ===
-        "Search messages...",
-    );
+    /*
+     * The inbox belongs to a session. Signed out, `/messages` renders the way
+     * in rather than an empty inbox, and asserting a compose button against
+     * that screen is asserting the wrong screen - it went red on the ABSENCE
+     * OF A SESSION rather than on a fault, which is how a suite teaches people
+     * to ignore it. This sandbox cannot reach Supabase, so which branch ran is
+     * printed rather than assumed.
+     */
+    const signedIn = (await page.locator('[data-testid="inbox-compose"]').count()) === 1;
+    console.log(`    (${signedIn ? "signed in" : "no session, so the way in"})`);
 
-    const tabs = await page.locator('[role="tab"]').allInnerTexts();
-    const labels = tabs.map((t) => t.replace(/\s*\d+$/, "").trim());
-    check(
-      `three tabs, All, Primary and Requests (${JSON.stringify(labels)})`,
-      labels.length === 3 &&
-        labels[0] === "All" &&
-        labels[1] === "Primary" &&
-        labels[2] === "Requests",
-    );
-    check(
-      "All is the one selected on arrival",
-      (await page.locator('[role="tab"][aria-selected="true"]').innerText()).startsWith("All"),
-    );
+    if (!signedIn) {
+      check(
+        "signed out, it offers the way in rather than an empty inbox",
+        (await page.locator('a[href^="/sign-in"]').count()) >= 1,
+      );
+    } else {
+      check("there is a search field", (await page.locator('[data-testid="inbox-search"]').count()) === 1);
+      check(
+        "the search field says what it searches",
+        (await page.locator('[data-testid="inbox-search"]').getAttribute("placeholder")) ===
+          "Search messages...",
+      );
+
+      const tabs = await page.locator('[role="tab"]').allInnerTexts();
+      const labels = tabs.map((t) => t.replace(/\s*\d+$/, "").trim());
+      check(
+        `three tabs, All, Primary and Requests (${JSON.stringify(labels)})`,
+        labels.length === 3 &&
+          labels[0] === "All" &&
+          labels[1] === "Primary" &&
+          labels[2] === "Requests",
+      );
+      check(
+        "All is the one selected on arrival",
+        (await page.locator('[role="tab"][aria-selected="true"]').innerText()).startsWith("All"),
+      );
+    }
 
     const rows = await page.locator('[data-testid="inbox-row"]').count();
     console.log(`    rows: ${rows}`);

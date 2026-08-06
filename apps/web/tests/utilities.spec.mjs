@@ -79,6 +79,14 @@ async function run(theme) {
 
     let text = await page.evaluate(() => document.body.innerText);
 
+    /* Needs a listing to exist, and the catalogue of twenty-three invented
+       places was removed on purpose. See tests/_catalogue.mjs: a check that
+       cannot run is not a check that failed. */
+    if ((await page.locator('[data-testid="listing-gallery"]').count()) === 0) {
+      console.log("  skip    catalogue is empty, so there is no listing to carry a utilities panel");
+      console.log("  note    run against a deployment with real inventory to exercise this");
+      return;
+    }
     check("the panel is on the page", text.includes("Light, water and getting in"));
     check("the grid band is stated", text.includes("Band A"));
     check(

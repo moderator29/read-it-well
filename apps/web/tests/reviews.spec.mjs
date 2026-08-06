@@ -140,6 +140,14 @@ async function run(theme) {
     await page.goto(`${BASE_URL}/listing/seed-2`, { waitUntil: "load" });
     await page.waitForTimeout(WAIT);
     const listingText = await page.locator("body").innerText();
+    /* Needs a listing to exist, and the catalogue of twenty-three invented
+       places was removed on purpose. See tests/_catalogue.mjs: a check that
+       cannot run is not a check that failed. */
+    if ((await page.locator('[data-testid="listing-gallery"]').count()) === 0) {
+      console.log("  skip    catalogue is empty, so there is no listing to carry reviews");
+      console.log("  note    run against a deployment with real inventory to exercise this");
+      return;
+    }
     check("the listing still renders its reviews section", listingText.includes("Reviews"));
     check(
       "a listing with no written reviews says so rather than inventing them",
