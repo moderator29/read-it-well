@@ -32,6 +32,12 @@ const browser = await chromium.launch({ executablePath: EXECUTABLE });
 const context = await browser.newContext({
   colorScheme: "dark",
   viewport: { width: 390, height: 844 },
+  /* The settings groups arrive on a `Reveal`, which holds them at opacity 0
+     until they scroll into view. Playwright waits for an element to be stable
+     before scrolling to it, so the support card could never settle and the
+     wait timed out on an animation rather than on a fault. The platform
+     honours prefers-reduced-motion, and this spec is testing behaviour. */
+  reducedMotion: "reduce",
 });
 const page = await context.newPage();
 
