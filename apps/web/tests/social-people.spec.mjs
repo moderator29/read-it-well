@@ -94,7 +94,12 @@ async function run(theme) {
   const context = await browser.newContext({
     colorScheme: theme,
     viewport: { width: 390, height: 844 },
-  });
+    /* Groups arrive on a `Reveal`, held at opacity 0 until scrolled into view.
+     Playwright treats an element mid-transition as unstable, so a control that
+     is genuinely on the page reads as absent. The platform honours
+     prefers-reduced-motion for real; these specs test behaviour, not entrances. */
+  reducedMotion: "reduce",
+});
 
   /* The product ignores the operating system: only an explicit stored choice
      moves the theme, so the harness stores one exactly as a person would. */

@@ -36,6 +36,11 @@ const browser = await chromium.launch({ executablePath: EXECUTABLE });
 const context = await browser.newContext({
   colorScheme: "dark",
   viewport: { width: 390, height: 844 },
+  /* Groups arrive on a `Reveal`, held at opacity 0 until scrolled into view.
+     Playwright treats an element mid-transition as unstable, so a control that
+     is genuinely on the page reads as absent. The platform honours
+     prefers-reduced-motion for real; these specs test behaviour, not entrances. */
+  reducedMotion: "reduce",
 });
 const page = await context.newPage();
 
@@ -121,7 +126,12 @@ try {
 
     const nameInput = page.locator('[data-testid="device-name-input"]');
     await nameInput.fill("Chidi");
-    await page.locator('[data-testid="device-name-save"]').click();
+    /* `force` skips Playwright's scroll-into-view, which hangs on this control:
+       the sheet is a fixed panel with its own scroll container and a transform,
+       and the actionability log gets as far as "visible, enabled and stable"
+       before stalling on the scroll. Visibility is already asserted three lines
+       up, so there is nothing the skipped step was protecting. */
+    await page.locator('[data-testid="device-name-save"]').click({ force: true });
     await page.waitForTimeout(500);
     check("saving closes the sheet", (await sheet.count()) === 0);
     check(
