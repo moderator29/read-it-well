@@ -487,7 +487,7 @@ export const ha: Dictionary = {
         bookingsSub: "Buƙatu, tabbatarwa da canje-canje ga tafiyarka.",
         messages: "Saƙonni",
         messagesSub: "Sabbin amsoshi daga masu gida da wakilan da kake magana da su.",
-        wallet: "Jakar kuɗi",
+        wallet: "Walat",
         walletSub:
           "Imel game da kuɗin shigowa da na fita. Duk abin da ke sanya kuɗi cikin haɗari yana bayyana a cikin manhajar duk da haka.",
         marketing: "Shawarwari da tayi",

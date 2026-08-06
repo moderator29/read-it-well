@@ -507,7 +507,7 @@ export const yo: Dictionary = {
       },
       hideActivity: "Fi ìṣe mi pamọ́",
       hideActivitySub: "Jẹ́ kí àtúnyẹ̀wò rẹ àti ìsinmi rẹ tuntun má hàn lórí profáìlì gbangba rẹ.",
-      dataSaver: "Ìfowópamọ́ dátà",
+      dataSaver: "Ìtọ́jú dátà",
       dataSaverSub: "Gbé àwòrán fúyẹ́ wọlé lórí dátà fóònù. Ó sàn fún ìwọ̀n dátà kékeré.",
     },
 

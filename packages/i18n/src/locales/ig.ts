@@ -487,7 +487,7 @@ export const ig: Dictionary = {
         bookingsSub: "Arịrịọ, nkwenye na mgbanwe na njem gị.",
         messages: "Ozi",
         messagesSub: "Nzaghachi ọhụrụ site n'aka ndị nwe ụlọ na ndị nnọchiteanya ị na-agwa okwu.",
-        wallet: "Obere akpa ego",
+        wallet: "Akpa ego",
         walletSub:
           "Email banyere ego batara na ego pụrụ. Ihe ọ bụla na-etinye ego n'ihe ize ndụ ka na-apụta n'ime ngwa a.",
         marketing: "Echiche na onyinye",
