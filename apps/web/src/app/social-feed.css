@@ -750,6 +750,28 @@
   }
 
   /*
+   * The same glass, with the word on it.
+   *
+   * Back on a profile banner is the control a stranger reaches for most and the
+   * only one they have to guess at, so it says what it is. `inline-size: auto`
+   * releases the 44px square while `min-block-size` keeps the floor, and the
+   * flow turns to a column of two so the chevron and the word sit on one line
+   * rather than stacking in the grid's single cell.
+   */
+  .nf-social-round--pill {
+    grid-auto-flow: column;
+    align-items: center;
+    gap: 8px;
+    inline-size: auto;
+    min-inline-size: 44px;
+    block-size: 44px;
+    padding-inline: 0.85rem 1.05rem;
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    letter-spacing: -0.005em;
+  }
+
+  /*
    * The avatar, and the ring.
    *
    * ADR-012: the luminous gradient sits on the BORDER box and the fill sits on
@@ -828,6 +850,22 @@
     margin-block-start: 0.875rem;
   }
 
+  /*
+   * The name and the badge beside it, on one line until they cannot be.
+   *
+   * `flex-wrap` rather than a truncated name: the name is the whole point of
+   * the page, and a display name that reads "Adebayo Ogunl…" so that a four
+   * character badge can stay on the line has the priority exactly backwards.
+   * At 390px with a long name the badge simply drops to the next line.
+   */
+  .nf-social-nameline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    min-inline-size: 0;
+  }
+
   .nf-social-name {
     display: flex;
     align-items: center;
@@ -850,6 +888,41 @@
     margin-block-start: 0.2rem;
     font-size: var(--nf-text-body);
     color: var(--nf-content-muted);
+  }
+
+  /* Between the handle and the pronouns, and only ever rendered when there are
+     pronouns to separate. It is decoration around a real fact, never a
+     placeholder standing in for a missing one. */
+  .nf-social-handle__dot {
+    margin-inline: 0.4rem;
+    opacity: 0.55;
+  }
+
+  /*
+   * Standing that comes with responsibility rather than with a score.
+   *
+   * A brand RING and brand ink, never a brand tint, for the third reason this
+   * file has had to write down: a 16 per cent electric blue fill over a white
+   * card reads violet on paper and the brand carries no violet. Uppercase is
+   * applied in CSS, so the area's own name is stored and read exactly as its
+   * place record spells it.
+   */
+  .nf-social-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-brand);
+    color: var(--nf-brand-secondary);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .nf-social-role__dot {
+    opacity: 0.55;
   }
 
   /* ---------------------------------------------------------- the chips */
@@ -928,6 +1001,36 @@
     block-size: 1.1rem;
     background: var(--nf-border-subtle);
   }
+  /*
+   * Posts is a number, not a door.
+   *
+   * `/u/[handle]/followers` and `/u/[handle]/following` are real routes with
+   * real lists behind them, so those two are links. There is no
+   * `/u/[handle]/posts`; the Posts tab below is that list. So this one is a
+   * span, and it drops the expanded hit area with it, because a 44px target
+   * around something nothing happens to is a promise the row cannot keep.
+   */
+  .nf-social-count--static::before {
+    content: none;
+  }
+
+  /* Somebody's own link, under their bio. A link that leaves the platform,
+     so it carries the outward glyph rather than looking like navigation. */
+  .nf-social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    position: relative;
+    margin-block-start: 0.75rem;
+    font-size: var(--nf-text-body);
+    font-weight: 650;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-social-link::before {
+    content: "";
+    position: absolute;
+    inset: -12px -8px;
+  }
 
   /* ------------------------------------------------- the agent trust band */
 
@@ -961,6 +1064,17 @@
     /* The label is the meaning of the number under it, so it wraps rather than
        truncating. Two short lines beat one clipped one. */
     line-height: 1.3;
+    /*
+     * Two lines of room whether the label needs them or not.
+     *
+     * "Completed deals" wraps at 390px and the other two do not, so the three
+     * numbers under them sat at three different heights and the band read as
+     * broken rather than as a row. Reserving the second line here costs one
+     * line of white space on the short labels and buys a baseline the three
+     * figures actually share. Subgrid would do it more elegantly and is not
+     * worth a rendering-engine dependency for one band.
+     */
+    min-block-size: 2.6em;
   }
   .nf-social-trust__cell dd {
     margin-block-start: 0.35rem;
@@ -996,18 +1110,64 @@
 
 
   /* ------------------------------------------------------------------
-   * The tabs, with an underline.
+   * The profile's tab row: a track, and the live one filled.
+   *
+   * The underline stroke stays on `.nf-social-tab` itself, because the story
+   * rail and the account screen both wear that class in their own containers
+   * and neither is a segmented control. Everything below is scoped to
+   * `.nf-social-tabs`, which only the profile uses, so the two treatments live
+   * side by side without one silently restyling the other.
+   *
+   * Why filled rather than underlined here: four words in a row with a two
+   * pixel stroke under one of them is the smallest possible statement of where
+   * you are, and on a 390px screen in Lagos daylight it is very nearly no
+   * statement at all. The filled pill is the same geometry the rest of the
+   * platform uses for a chosen thing, so it costs no new vocabulary.
    * ------------------------------------------------------------------ */
   .nf-social-tabs {
     display: flex;
+    gap: 4px;
     margin-block-start: 1.5rem;
-    border-block-end: 1px solid var(--nf-border-subtle);
+    padding: 4px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
     overflow-x: auto;
     scrollbar-width: none;
   }
   .nf-social-tabs::-webkit-scrollbar {
     display: none;
   }
+
+  .nf-social-tabs .nf-social-tab {
+    padding: 0.5rem 0.4rem;
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-caption);
+    white-space: nowrap;
+  }
+  /*
+   * 44px of hit area without a 44px pill.
+   *
+   * The floor is measured on the element OR on a pseudo element that expands
+   * it, and it can only be a pseudo element: a child span is not read by the
+   * sweep, which is why `Switch` does it this way too. Four 44px-tall pills
+   * inside a 390px row would also be a bar taller than the avatar above it.
+   */
+  .nf-social-tabs .nf-social-tab::before {
+    content: "";
+    position: absolute;
+    inset: -6px 0;
+  }
+  /* The stroke belongs to the other two users of this class. Here the fill IS
+     the statement, and both together would be one statement too many. */
+  .nf-social-tabs .nf-social-tab[aria-selected="true"]::after {
+    content: none;
+  }
+  .nf-social-tabs .nf-social-tab[aria-selected="true"] {
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+
   .nf-social-tab__count {
     margin-inline-start: 6px;
     font-size: 0.72rem;
@@ -1016,6 +1176,13 @@
   }
   .nf-social-tab[aria-selected="true"] .nf-social-tab__count {
     color: var(--nf-brand-secondary);
+  }
+  /* On the filled pill the count sits ON the brand, so it takes the ink that
+     was designed to be legible there rather than the brand ink it wears when
+     the tab is a bare word on the canvas. */
+  .nf-social-tabs .nf-social-tab[aria-selected="true"] .nf-social-tab__count {
+    color: var(--nf-content-on-brand);
+    opacity: 0.75;
   }
 
   /* ------------------------------------------------------------------

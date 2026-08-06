@@ -17,13 +17,24 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * history matters more on a profile than anywhere else, because a profile is
  * usually arrived at from a post, and pushing a fallback route would quietly
  * throw away the conversation somebody was reading.
+ *
+ * `labelled` puts the word on the button instead of only in its accessible
+ * name. On a profile banner that is the right trade: it is the one control a
+ * stranger has to guess at, it is the one they reach for most, and a chevron
+ * alone over an unknown photograph is a shape rather than an instruction. The
+ * bare round form stays for the story viewer, where the picture IS the page and
+ * a pill would sit on top of somebody's face, and for the district header,
+ * which carries the place's name in a row of its own already.
  */
 export function BackChevron({
   fallback,
   label = "Back",
+  labelled = false,
 }: {
   fallback: string;
   label?: string;
+  /** Draw the word beside the chevron, as a pill. */
+  labelled?: boolean;
 }) {
   const router = useRouter();
 
@@ -43,8 +54,19 @@ export function BackChevron({
   };
 
   return (
-    <button type="button" aria-label={label} onClick={back} className="nf-social-round">
-      <UiIcon name="arrow-left" size={18} />
+    <button
+      type="button"
+      /* When the word is on the button the accessible name comes from the word
+         itself. Repeating it in `aria-label` would be harmless but redundant;
+         omitting it keeps the visible label and the announced one the same
+         string by construction rather than by two people remembering. */
+      aria-label={labelled ? undefined : label}
+      onClick={back}
+      className={labelled ? "nf-social-round nf-social-round--pill" : "nf-social-round"}
+      data-testid="profile-back"
+    >
+      <UiIcon name="arrow-left" size={20} />
+      {labelled ? <span>{label}</span> : null}
     </button>
   );
 }

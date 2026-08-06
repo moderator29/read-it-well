@@ -12,7 +12,8 @@ import { ReviewList } from "./ReviewList";
 import { ActivityList } from "./ActivityList";
 import { StoryGrid } from "../story/StoryGrid";
 import { EmptyPanel } from "./EmptyPanel";
-import { TAB_LABEL as LABEL, type TabKey } from "@/lib/social/profile-tabs-schema";
+import type { TabKey } from "@/lib/social/profile-tabs-schema";
+import type { Dictionary } from "@naijafinds/i18n";
 
 /**
  * The tabs, and what is under them.
@@ -43,7 +44,32 @@ import { TAB_LABEL as LABEL, type TabKey } from "@/lib/social/profile-tabs-schem
  *
  * **Arrow keys move between tabs**, because a tab list that only answers to a
  * pointer is a tab list half the people using it cannot reach.
+ *
+ * **The live tab is filled, not underlined.** A two pixel stroke under one word
+ * in a row of four is the smallest possible statement of where you are, and on
+ * a 390px screen held at arm's length in daylight it is very nearly no
+ * statement at all. A filled pill on an inset track says it once, loudly, and
+ * it is the same pill geometry the rest of the platform uses for a chosen
+ * thing.
+ *
+ * The words are `t.socialProfile`, handed down by the page rather than read
+ * from a constant, because this is a client component and there is no locale
+ * context. Only that section travels, not the whole dictionary: the tab bar
+ * needs eight strings and the payload for the rest would be paid on every
+ * profile anybody opens.
  */
+
+export type TabLabels = Dictionary["socialProfile"];
+
+const LABEL_KEY = {
+  posts: "tabPosts",
+  replies: "tabReplies",
+  media: "tabMedia",
+  activity: "tabActivity",
+  properties: "tabProperties",
+  stories: "tabStories",
+  reviews: "tabReviews",
+} as const satisfies Record<TabKey, keyof TabLabels>;
 
 export type ProfileTabData = {
   posts: PostView[];
@@ -64,6 +90,7 @@ export function ProfileTabs({
   data,
   storyCount,
   initialTab,
+  labels,
 }: {
   handle: string;
   isOwner: boolean;
@@ -71,6 +98,8 @@ export function ProfileTabs({
   hasBio: boolean;
   tabs: TabKey[];
   data: ProfileTabData;
+  /** `t.socialProfile`, from the server component that owns the request. */
+  labels: TabLabels;
   /** Printed beside Stories. Only an agent's bar carries it. */
   storyCount: number;
   initialTab?: TabKey;
@@ -121,7 +150,7 @@ export function ProfileTabs({
       <div
         ref={listRef}
         role="tablist"
-        aria-label={`What @${handle} has on their page`}
+        aria-label={labels.tabsLabel.replace("{handle}", handle)}
         onKeyDown={onKeyDown}
         className="nf-social-tabs"
       >
@@ -155,7 +184,7 @@ export function ProfileTabs({
               className="nf-social-tab"
               onClick={() => select(key)}
             >
-              {LABEL[key]}
+              {labels[LABEL_KEY[key]]}
               {key === "stories" && storyCount > 0 ? (
                 <span className="nf-social-tab__count nf-numeric">{storyCount}</span>
               ) : null}

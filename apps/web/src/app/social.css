@@ -89,6 +89,18 @@
     height: calc(var(--nf-social-bar) + 132px);
     overflow: hidden;
     isolation: isolate;
+    /*
+     * The band needs an edge.
+     *
+     * The app canvas carries the supplied artwork behind everything, and a
+     * cover nobody has set is built from the same family of blues, so at night
+     * the two met with nothing between them and the banner stopped reading as
+     * a band at all. On paper it was worse: near-white on white. One hairline
+     * in the border token says "this strip is a thing" without adding a hue,
+     * and the avatar still overlaps it from below, which is the whole point of
+     * the geometry.
+     */
+    border-block-end: 1px solid var(--nf-border-subtle);
   }
 
   @media (min-width: 640px) {
@@ -202,9 +214,34 @@
     object-fit: cover;
   }
 
-  /* Pulled up so it sits half on the cover and half on the page. */
+  /*
+   * Pulled up so it sits half on the cover and half on the page.
+   *
+   * It is a row rather than a block because the profile puts the person on the
+   * left and what to DO about them on the right, bottom aligned, which is the
+   * first thing the eye reaches after the picture. The account screen puts only
+   * an avatar in here and is unchanged by that: one flex child at the start of
+   * a row is where a single block child already was.
+   */
   .nf-social-identity {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
     margin-top: -2.75rem;
+  }
+
+  /*
+   * Follow and the overflow, or Edit profile and the overflow. The small
+   * bottom padding lifts them clear of the avatar's own drop shadow so the row
+   * reads as two objects on one line rather than one object with a shadow
+   * falling on the other.
+   */
+  .nf-social-identity__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-block-end: 0.25rem;
   }
 
   /*

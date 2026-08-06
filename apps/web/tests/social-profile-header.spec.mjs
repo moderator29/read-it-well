@@ -309,7 +309,9 @@ async function run(theme) {
       )) === 0,
     );
     /* Zero em dashes anywhere in the product's copy, in every language. */
-    const emDashes = (text.match(/—/g) ?? []).length;
+    /* Escaped, so this file stays clean of the character it is looking for.
+       Same form the other social specs use. */
+    const emDashes = (text.match(/\u2014/g) ?? []).length;
     check(`no em dashes in the copy (${emDashes} found)`, emDashes === 0);
     check("no route returned a server error", serverErrors.length === 0, serverErrors.join("\n"));
   } finally {

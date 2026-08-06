@@ -21,18 +21,47 @@ import { toggleFollow } from "@/lib/social/follows-actions";
  *
  * Signed out, this is a link to sign in rather than a button that fails. A
  * control that cannot work should say so before it is pressed.
+ *
+ * **The words are a prop, and they are optional for one honest reason.** This
+ * button appears in four places. On `/u/[handle]` a server component resolves
+ * the reader's dictionary and hands the four strings down, so a Hausa reader
+ * gets a Hausa button. The other three - the people list, the story viewer and
+ * the people directory - sit under client components that hold no dictionary,
+ * and threading one to each of them means translating three screens of prose
+ * that are not this task. Until that happens they get the English below, which
+ * is the same wording `en.socialProfile` carries, kept here as literals rather
+ * than by importing `getDictionary` so a client bundle does not have to carry
+ * all four languages to render one word.
  */
+
+export type FollowLabels = {
+  follow: string;
+  following: string;
+  followAria: string;
+  unfollowAria: string;
+};
+
+const ENGLISH: FollowLabels = {
+  follow: "Follow",
+  following: "Following",
+  followAria: "Follow @{handle}",
+  unfollowAria: "Following @{handle}. Tap to unfollow.",
+};
+
 export function FollowButton({
   handle,
   initialFollowing,
   signedIn,
   compact = false,
+  labels = ENGLISH,
 }: {
   handle: string;
   initialFollowing: boolean;
   signedIn: boolean;
   /** Small and pill shaped, for a row floating over a photograph. */
   compact?: boolean;
+  /** From `t.socialProfile` where a server component has one in hand. */
+  labels?: FollowLabels;
 }) {
   const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing);
@@ -46,7 +75,7 @@ export function FollowButton({
   if (!signedIn) {
     return (
       <Link href="/sign-in" className={compact ? shape : "nf-btn nf-btn--primary"}>
-        Follow
+        {labels.follow}
       </Link>
     );
   }
@@ -77,14 +106,17 @@ export function FollowButton({
         onClick={onClick}
         disabled={pending}
         aria-pressed={following}
-        aria-label={following ? `Following @${handle}. Tap to unfollow.` : `Follow @${handle}`}
+        aria-label={(following ? labels.unfollowAria : labels.followAria).replace(
+          "{handle}",
+          handle,
+        )}
         className={
           compact
             ? `${shape}${following ? " nf-btn--glass" : ""}`
             : `nf-btn ${following ? "nf-btn--glass" : "nf-btn--primary"} min-w-[6.5rem]`
         }
       >
-        {following ? "Following" : "Follow"}
+        {following ? labels.following : labels.follow}
       </button>
       {error && (
         <p

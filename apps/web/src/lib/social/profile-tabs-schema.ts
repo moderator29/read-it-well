@@ -44,12 +44,14 @@ export const ALL_TABS: TabKey[] = [
   "reviews",
 ];
 
-export const TAB_LABEL: Record<TabKey, string> = {
-  posts: "Posts",
-  replies: "Replies",
-  media: "Media",
-  activity: "Activity",
-  properties: "Properties",
-  stories: "Stories",
-  reviews: "Reviews",
-};
+/*
+ * The labels used to live here as an English record. They now come from
+ * `t.socialProfile` in the dictionary, handed to `ProfileTabs` by the page, so
+ * the bar reads in whatever language somebody chose. Keeping a second English
+ * copy in this module would be keeping the exact thing that made the bar
+ * monolingual, one import away from being picked up again.
+ *
+ * `ProfileTabs` maps a `TabKey` onto its dictionary key with a
+ * `satisfies Record<TabKey, ...>`, so a new tab added to the union above is a
+ * compile error there until it has a word in all four languages.
+ */

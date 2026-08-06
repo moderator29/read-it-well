@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { FollowButton } from "@/components/social/profile/FollowButton";
@@ -52,6 +53,18 @@ import { isSocialEnabled } from "@/lib/social/flag";
  * start at once cost one round trip; the same nine in sequence cost nine, and
  * on the connections this product is built for that is the whole difference
  * between a page and a wait.
+ *
+ * **The header's three controls are built here and passed in**, so the header
+ * itself never has to become a client component to hold a button that does.
+ * Follow and the overflow ride the avatar's row; share floats on the banner.
+ * The overflow is no longer `onCover`, because it no longer is: it sits on the
+ * canvas beside Follow, where the bordered form is the one that reads.
+ *
+ * This is also where the reader's language enters the profile. The dictionary
+ * is resolved once, the whole of it goes to the header because that costs
+ * nothing in a server component, and the two client components get
+ * `t.socialProfile` alone so a profile does not ship four languages of copy it
+ * will never render.
  */
 
 export async function generateMetadata({
@@ -81,6 +94,7 @@ export default async function SocialProfilePage({
   if (!(await isSocialEnabled())) return <SocialPaused title={`@${handle}`} />;
 
   const locale = await getLocale();
+  const t = getDictionary(locale);
   const [view, query] = await Promise.all([loadPublicProfile(raw), searchParams]);
 
   if (view.state === "found") {
@@ -113,18 +127,19 @@ export default async function SocialProfilePage({
           homeArea={view.homeArea}
           moderatorOf={view.moderatorOf}
           locale={locale}
+          t={t}
           occupation={view.occupation}
           standing={view.standing}
           place={view.place}
           trust={view.trust}
-          joinedLabel={monthYear(view.profile.claimedAt)}
+          joinedLabel={monthYear(view.profile.claimedAt, locale)}
           follow={
             view.isOwner ? undefined : (
               <FollowButton
                 handle={view.profile.handle}
                 initialFollowing={view.viewerFollows}
                 signedIn={view.signedIn}
-                compact
+                labels={t.socialProfile}
               />
             )
           }
@@ -142,7 +157,6 @@ export default async function SocialProfilePage({
               isOwner={view.isOwner}
               signedIn={view.signedIn}
               initialMuted={view.viewerMutes}
-              onCover
             />
           }
         />
@@ -155,6 +169,7 @@ export default async function SocialProfilePage({
           tabs={tabs}
           storyCount={view.storyCount}
           initialTab={tabFrom(query.tab, tabs)}
+          labels={t.socialProfile}
           data={{ posts, replies, media, activity, properties, stories, reviews }}
         />
 

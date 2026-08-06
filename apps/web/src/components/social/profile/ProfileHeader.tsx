@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatNumber, type Locale } from "@naijafinds/i18n";
+import { formatNumber, type Dictionary, type Locale } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { BackChevron } from "./BackChevron";
@@ -10,39 +10,51 @@ import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profile
 /**
  * The top of a person's page.
  *
- * Read top to bottom it is: the cover, the person, what they are, who follows
- * them, what they are good at if they sell property, what they say about
- * themselves, and where and since when. Every one of those is a different kind
- * of fact, so every one gets its own band and its own air. The owner asked for
- * neat and not jam-packed twice, and the way you get that is not smaller type,
- * it is fewer things per row.
+ * Read top to bottom it is: a way back, the banner, the person, what to do
+ * about them, who they are, what they say about themselves, where and since
+ * when, and how many people are listening. Every one of those is a different
+ * kind of fact, so every one gets its own band and its own air. The way you
+ * make a dense page feel calm is fewer things per row, not smaller type.
  *
- * **The cover is the backdrop, never a card.** It runs edge to edge and up
- * behind the app's own translucent top bar, and the two controls that ride on
- * it float over a scrim rather than sitting in a strip, so the photograph is
- * the first thing the screen is made of. The avatar then overlaps its lower
- * edge from below, which is what makes the cover read as behind the person
+ * **The banner is the backdrop, never a card.** It runs edge to edge and up
+ * behind the app's own translucent top bar, and the avatar overlaps its lower
+ * edge from below, which is what makes the banner read as behind the person
  * instead of above them.
  *
- * **The two controls on the right are Share and the overflow, and neither is a
- * bookmark.** The reference board draws one in that corner. A bookmark on this
- * platform means keep this flat (`saved_items`) or keep this post
- * (`post_reactions` with the mark `SAVE`); a person is neither, and the thing
- * somebody actually wants when they reach for it is Follow, which is already on
- * this screen, writes a real row, has a list behind it and notifies the person.
- * The reasoning is set out in full in `ProfileShare`, and the position does not
- * get relitigated without a `saved_people` table and a screen that reads it
- * back.
+ * **Back is a labelled pill, not a bare chevron.** A round glyph floating on a
+ * photograph is the one control on this screen somebody has to guess at, and it
+ * is also the one they reach for most, because a profile is nearly always
+ * arrived at from a post they were halfway through reading. The word costs
+ * twelve pixels of banner and removes the guess.
+ *
+ * **Follow and the overflow sit on the avatar's row, right aligned.** That row
+ * is the first place the eye lands after the picture, and those two are the
+ * only things on this page that act on the PERSON rather than on the page.
+ * Share stays up on the banner beside nothing else, because sending somebody a
+ * page acts on the page. On your own page the same slot carries Edit profile,
+ * so the geometry does not change shape depending on whose page it is.
+ *
+ * **The role badge names a place, and only when the database says so.** It
+ * reads MOD then the area, because a moderator is a moderator OF somewhere and
+ * the abbreviation alone would be a rank with no jurisdiction. Nobody who is
+ * not in `area_moderators` gets one, and there is no styling in here that could
+ * produce one from an empty array.
+ *
+ * **Pronouns render only when the person set them.** They are optional in the
+ * schema, optional in the editor, and absent from this line entirely when the
+ * column is null. A default would be the platform guessing at something it has
+ * no business guessing at, and "she/her" on somebody who never typed it is a
+ * worse failure than a shorter line.
  *
  * **The ring on the avatar is ADR-012 and not decoration.** A luminous gradient
  * on the border box with the fill on the padding box, brightest at the upper
- * left, lit from the same direction as the commissioned 3D icon family. It is
- * the one thing on this page a clone cannot copy by copying the layout.
+ * left, lit from the same direction as the commissioned 3D icon family.
  *
- * Three things are deliberately absent when there is nothing true to put in
- * them: an occupation chip nobody chose, a place nobody set, and the agent
- * band on somebody who is not an agent. None of them becomes a dash or a
- * placeholder. A profile should never look like a form somebody abandoned.
+ * Four things are deliberately absent when there is nothing true to put in
+ * them: an occupation chip nobody chose, a place nobody set, pronouns nobody
+ * typed, and the agent band on somebody who is not an agent. None of them
+ * becomes a dash or a placeholder. A profile should never look like a form
+ * somebody abandoned.
  */
 export function ProfileHeader({
   profile,
@@ -50,6 +62,7 @@ export function ProfileHeader({
   homeArea,
   moderatorOf,
   locale,
+  t,
   occupation,
   standing,
   place,
@@ -64,25 +77,36 @@ export function ProfileHeader({
   homeArea: { slug: string; name: string; city: string } | null;
   moderatorOf: ModeratorOf[];
   locale: Locale;
+  /** The whole dictionary. This is a server component, so it costs nothing. */
+  t: Dictionary;
   occupation: Occupation | null;
   standing: Standing[];
   place: ProfilePlace | null;
   /** Agents only. Null on everybody else, and the band is then absent. */
   trust: AgentTrust | null;
+  /** Already formatted in the reader's language by the page. */
   joinedLabel: string;
   /** The follow control, supplied by the page so this stays a server component. */
   follow?: React.ReactNode;
   /** The overflow menu. */
   menu?: React.ReactNode;
-  /** Share, floating on the cover. */
+  /** Share, floating on the banner. */
   share?: React.ReactNode;
 }) {
+  const copy = t.socialProfile;
   const name = profile.displayLabel || `@${profile.handle}`;
   const monogram = (profile.displayLabel || profile.handle).charAt(0).toUpperCase();
+  /*
+   * One badge, not a stack of them. Somebody who looks after four areas would
+   * otherwise push the name off a 390px line, and the fifth badge tells a
+   * stranger nothing the first one did not. The rest are still reachable: the
+   * places themselves list who looks after them.
+   */
+  const mod = moderatorOf[0];
 
   return (
-    <header>
-      {/* ------------------------------------------------------- the cover */}
+    <header data-testid="profile-header">
+      {/* ------------------------------------------------------ the banner */}
       <div className="nf-social-cover">
         {profile.coverUrl ? (
           /* The bucket is public, so the CDN URL renders without a signed
@@ -97,15 +121,14 @@ export function ProfileHeader({
         <div className="nf-social-cover__scrim" aria-hidden="true" />
 
         <div className="nf-social-float nf-social-float--start">
-          <BackChevron fallback="/around" />
+          <BackChevron fallback="/around" label={copy.back} labelled />
         </div>
-        <div className="nf-social-float nf-social-float--end">
-          {share}
-          {menu}
-        </div>
+        {share ? (
+          <div className="nf-social-float nf-social-float--end">{share}</div>
+        ) : null}
       </div>
 
-      {/* ---------------------------------------------------- the person */}
+      {/* --------------------------------- the person, and what to do next */}
       <div className="nf-social-identity">
         <div className="nf-social-avatar nf-social-avatar--ring">
           <span className="nf-social-avatar__disc">
@@ -124,33 +147,76 @@ export function ProfileHeader({
             aria-hidden="true"
           />
         </div>
+
+        <div className="nf-social-identity__actions">
+          {isOwner ? (
+            <Link href={`/u/${profile.handle}/edit`} className="nf-btn nf-btn--glass">
+              {copy.editProfile}
+            </Link>
+          ) : (
+            follow
+          )}
+          {menu}
+        </div>
       </div>
 
+      {/* -------------------------------------------------------- the name */}
       <div className="nf-social-namerow">
         <div className="min-w-0">
-          <h1 className="nf-social-name">
-            <span className="truncate-none">{name}</span>
-            {profile.isAgent ? (
+          <div className="nf-social-nameline">
+            <h1 className="nf-social-name">
+              <span className="truncate-none">{name}</span>
+              {profile.isAgent ? (
+                <span
+                  className="nf-social-verified"
+                  title={copy.verifiedTitle}
+                  aria-label={copy.verified}
+                >
+                  <UiIcon name="verified" size={20} />
+                </span>
+              ) : null}
+            </h1>
+            {/*
+              The visible text is the abbreviation and the place; the accessible
+              name is the whole sentence. An abbreviation a screen reader spells
+              out letter by letter is not a badge, it is noise.
+            */}
+            {mod ? (
               <span
-                className="nf-social-verified"
-                title="A verified RentMe agent"
-                aria-label="Verified agent"
+                className="nf-social-role"
+                aria-label={copy.moderatorOf.replace("{place}", mod.name)}
+                data-testid="profile-role-badge"
               >
-                <UiIcon name="verified" size={17} />
+                <span aria-hidden="true">{copy.moderatorShort}</span>
+                <span className="nf-social-role__dot" aria-hidden="true">
+                  ·
+                </span>
+                <span aria-hidden="true">{mod.name}</span>
               </span>
             ) : null}
-          </h1>
-          <p className="nf-social-handle">@{profile.handle}</p>
+          </div>
+
+          <p className="nf-social-handle" data-testid="profile-handle-line">
+            @{profile.handle}
+            {/* Only when they typed it. Never inferred, never defaulted. */}
+            {profile.pronouns ? (
+              <>
+                <span className="nf-social-handle__dot" aria-hidden="true">
+                  ·
+                </span>
+                <span data-testid="profile-pronouns">{profile.pronouns}</span>
+              </>
+            ) : null}
+          </p>
         </div>
-        {follow ? <div className="shrink-0">{follow}</div> : null}
       </div>
 
-      {/* ------------------------------------------------- what they are */}
-      {(occupation || standing.length > 0 || moderatorOf.length > 0 || profile.pidginOk) && (
+      {/* -------------------------------------------------- what they are */}
+      {(occupation || standing.length > 0 || profile.pidginOk) && (
         <div className="nf-social-chips">
           {occupation ? (
             <span className="nf-social-chip">
-              <UiIcon name="user" size={13} />
+              <UiIcon name="user" size={12} />
               {occupation.name}
             </span>
           ) : null}
@@ -160,55 +226,14 @@ export function ProfileHeader({
               {badge.name}
             </span>
           ))}
-          {moderatorOf.map((area) => (
-            <span key={area.slug} className="nf-social-chip">
-              <UiIcon name="key" size={13} />
-              Looks after {area.name}
-            </span>
-          ))}
           {profile.pidginOk ? (
             <span className="nf-social-chip">
-              <UiIcon name="chat-bubble" size={13} />
-              Pidgin welcome
+              <UiIcon name="chat-bubble" size={12} />
+              {copy.pidginWelcome}
             </span>
           ) : null}
         </div>
       )}
-
-      {/* --------------------------------------- followers and following */}
-      <div className="nf-social-counts">
-        <Link href={`/u/${profile.handle}/followers`} className="nf-social-count">
-          <span className="nf-social-count__value nf-numeric">
-            {formatNumber(profile.followerCount, locale)}
-          </span>
-          <span className="nf-social-count__label">Followers</span>
-        </Link>
-        <span className="nf-social-count__rule" aria-hidden="true" />
-        <Link href={`/u/${profile.handle}/following`} className="nf-social-count">
-          <span className="nf-social-count__value nf-numeric">
-            {formatNumber(profile.followingCount, locale)}
-          </span>
-          <span className="nf-social-count__label">Following</span>
-        </Link>
-      </div>
-
-      {/* --------------------------------------------- agents only, ever */}
-      {trust ? (
-        <dl className="nf-social-trust">
-          <div className="nf-social-trust__cell">
-            <dt>Trust score</dt>
-            <dd className="nf-numeric">{trust.score}</dd>
-          </div>
-          <div className="nf-social-trust__cell">
-            <dt>Completed deals</dt>
-            <dd className="nf-numeric">{formatNumber(trust.completedDeals, locale)}</dd>
-          </div>
-          <div className="nf-social-trust__cell">
-            <dt>Response time</dt>
-            <dd className="nf-numeric">{trust.responseTime}</dd>
-          </div>
-        </dl>
-      ) : null}
 
       {/* --------------------------------------------------------- the bio */}
       {isOwner && profile.bioStatus === "HELD" && (
@@ -229,44 +254,85 @@ export function ProfileHeader({
           href={profile.link}
           rel="nofollow noopener noreferrer ugc"
           target="_blank"
-          className="mt-3 inline-flex items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-brand-secondary)]"
+          className="nf-social-link"
         >
-          <UiIcon name="share" size={14} />
+          <UiIcon name="share" size={16} />
           {linkLabel(profile.link)}
         </a>
       )}
 
       {/* ------------------------------------------------------- the meta */}
       {(place || homeArea || joinedLabel) && (
-        <div className="nf-social-meta">
+        <div className="nf-social-meta" data-testid="profile-meta">
           {place ? (
             <span>
-              <UiIcon name="location" size={14} />
+              <UiIcon name="location" size={16} />
               {place.label}
             </span>
           ) : homeArea ? (
             <span>
-              <UiIcon name="location" size={14} />
+              <UiIcon name="location" size={16} />
               {homeArea.name}, {homeArea.city}
             </span>
           ) : null}
           {joinedLabel ? (
             <span>
-              <UiIcon name="calendar-booking" size={14} />
-              Joined {joinedLabel}
+              <UiIcon name="calendar-booking" size={16} />
+              {copy.joined.replace("{month}", joinedLabel)}
             </span>
           ) : null}
         </div>
       )}
 
-      {isOwner && (
-        <Link
-          href={`/u/${profile.handle}/edit`}
-          className="nf-btn nf-btn--glass mt-5 w-full sm:w-auto"
-        >
-          Edit profile
+      {/* ------------------------------------------------------ the counts */}
+      {/*
+        Three numbers the database maintains with triggers, not three numbers
+        this component added up. Followers and Following are links because both
+        lists exist as routes; Posts is plain text because there is no
+        `/u/[handle]/posts` list to point at. A number wearing an underline that
+        goes nowhere is a dead end, and this platform has a written rule against
+        those. The Posts TAB below is where that list lives.
+      */}
+      <div className="nf-social-counts" data-testid="profile-counts">
+        <Link href={`/u/${profile.handle}/followers`} className="nf-social-count">
+          <span className="nf-social-count__value nf-numeric">
+            {formatNumber(profile.followerCount, locale)}
+          </span>
+          <span className="nf-social-count__label">{copy.followers}</span>
         </Link>
-      )}
+        <span className="nf-social-count__rule" aria-hidden="true" />
+        <Link href={`/u/${profile.handle}/following`} className="nf-social-count">
+          <span className="nf-social-count__value nf-numeric">
+            {formatNumber(profile.followingCount, locale)}
+          </span>
+          <span className="nf-social-count__label">{copy.following}</span>
+        </Link>
+        <span className="nf-social-count__rule" aria-hidden="true" />
+        <span className="nf-social-count nf-social-count--static">
+          <span className="nf-social-count__value nf-numeric">
+            {formatNumber(profile.postCount, locale)}
+          </span>
+          <span className="nf-social-count__label">{copy.posts}</span>
+        </span>
+      </div>
+
+      {/* --------------------------------------------- agents only, ever */}
+      {trust ? (
+        <dl className="nf-social-trust">
+          <div className="nf-social-trust__cell">
+            <dt>{copy.trustScore}</dt>
+            <dd className="nf-numeric">{trust.score}</dd>
+          </div>
+          <div className="nf-social-trust__cell">
+            <dt>{copy.completedDeals}</dt>
+            <dd className="nf-numeric">{formatNumber(trust.completedDeals, locale)}</dd>
+          </div>
+          <div className="nf-social-trust__cell">
+            <dt>{copy.responseTime}</dt>
+            <dd className="nf-numeric">{trust.responseTime}</dd>
+          </div>
+        </dl>
+      ) : null}
     </header>
   );
 }

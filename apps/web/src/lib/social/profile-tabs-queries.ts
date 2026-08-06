@@ -17,6 +17,7 @@ import "server-only";
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { DEFAULT_LOCALE, intlTag, type Locale } from "@naijafinds/i18n";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";
@@ -227,11 +228,23 @@ export async function getProfileMediaGrid(userId: string): Promise<MediaTile[]> 
   }
 }
 
-/** "May 2025", for a joined line and a review date. */
-export function monthYear(iso: string): string {
+/**
+ * "May 2025", for a joined line and a review date.
+ *
+ * The tag comes from `intlTag` rather than being hard-coded to en-GB, because
+ * "Joined March 2024" translated to Yoruba with an English month in the middle
+ * of it is a sentence in two languages. Node carries full ICU here, so yo-NG,
+ * ha-NG and ig-NG each give their own month names.
+ *
+ * The locale is optional and English is the default deliberately: the review
+ * date this also formats is read from a server module that has no request
+ * locale in hand, and quietly changing what that renders is not this
+ * function's business.
+ */
+export function monthYear(iso: string, locale: Locale = DEFAULT_LOCALE): string {
   if (!iso || !Number.isFinite(new Date(iso).getTime())) return "";
   try {
-    return new Intl.DateTimeFormat("en-GB", {
+    return new Intl.DateTimeFormat(intlTag[locale], {
       month: "long",
       year: "numeric",
       timeZone: "Africa/Lagos",
