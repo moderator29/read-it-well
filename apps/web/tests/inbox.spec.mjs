@@ -121,7 +121,6 @@ async function run(theme) {
         "All is the one selected on arrival",
         (await page.locator('[role="tab"][aria-selected="true"]').innerText()).startsWith("All"),
       );
-    }
 
     const rows = await page.locator('[data-testid="inbox-row"]').count();
     console.log(`    rows: ${rows}`);
@@ -151,13 +150,15 @@ async function run(theme) {
       /zzzzqqq/.test(await noMatch.innerText()),
     );
 
-    await page.fill('[data-testid="inbox-search"]', "");
-    await page.waitForTimeout(300);
-    check(
-      "clearing the search brings the rows back",
-      (await page.locator('[data-testid="inbox-row"]').count()) === rows,
-    );
+      await page.fill('[data-testid="inbox-search"]', "");
+      await page.waitForTimeout(300);
+      check(
+        "clearing the search brings the rows back",
+        (await page.locator('[data-testid="inbox-row"]').count()) === rows,
+      );
+    }
 
+    /* True either way: the signed-out screen must not scroll sideways either. */
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
