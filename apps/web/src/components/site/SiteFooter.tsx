@@ -95,12 +95,20 @@ export function SiteFooter({ t }: { t: Dictionary }) {
           {columns.map((col) => (
             <nav key={col.title} aria-label={col.title}>
               <h2 className="nf-overline mb-3.5">{col.title}</h2>
-              <ul className="space-y-2.5">
+              {/*
+                No `space-y` here on purpose. These links painted at 17px, well
+                under the 44px floor, and the gap between them was margin
+                rather than target: a thumb aiming at Privacy could land
+                between Privacy and Terms and hit neither. The rows now carry
+                their own height, so the spacing IS the target rather than
+                sitting beside it.
+              */}
+              <ul>
                 {col.links.map((l) => (
                   <li key={l.label}>
                     <Link
                       href={l.href}
-                      className="text-[0.875rem] text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)]"
+                      className="flex min-h-11 items-center text-[0.875rem] text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)]"
                     >
                       {l.label}
                     </Link>
