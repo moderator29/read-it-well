@@ -462,6 +462,19 @@ export default async function SearchPage({
       {/* -------------------------------------------------------- map view */}
       {query.view === "map" && (
         <Reveal className="mt-5" delay={60}>
+          {/*
+            Skip to the map itself.
+
+            The filter rail, the sort control and the active-filter chips all
+            sit above it, so reaching the map with a keyboard means tabbing
+            through every one of them on every visit. The same argument as the
+            skip-to-content link in the root layout, applied to the one region
+            on this page that a person came here to use. Hidden until focused,
+            using the platform's own skip-link treatment.
+          */}
+          <a href="#map-view" className="nf-skip-link">
+            Skip to the map
+          </a>
           <div className="nf-card relative overflow-hidden p-0">
             <RealMap
               active={query.q?.trim()}

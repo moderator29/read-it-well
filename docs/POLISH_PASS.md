@@ -89,8 +89,12 @@ proof.
     tapped. `#164`
 42. **Map and list hover synchronised**: a card highlight lights its pin, and
     back. `#36`
-43. **Skip-to-map, and keyboard map controls**: arrow pan, plus and minus zoom.
-    `#247`
+43. **Skip-to-map, and keyboard map controls.** DONE, `map-keyboard.spec.mjs`.
+    Arrow pan, plus and minus zoom, visible zoom buttons at 44px, and a skip
+    link. Two faults were hiding here: `zoomControl: false` had removed the
+    only zoom affordance and nothing replaced it, and Leaflet's own arrow
+    handling was bound to the `aria-hidden` container, so a keyboard could
+    never reach it. `#247`
 44. **Map pin counts and the selected city announced** when the map filters.
     `#248`
 45. **Alt text required on listing photos**, with inline guidance at upload.

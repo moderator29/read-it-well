@@ -13,6 +13,8 @@
 
 export type UiIconName =
   | "search"
+  | "plus"
+  | "minus"
   | "close"
   | "star"
   | "bed"
@@ -84,6 +86,16 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="m16 16 4.4 4.4" />
     </>
   ),
+  // Zoom in and out. Drawn rather than typed: a "+" glyph inherits the font's
+  // own weight and optical centre and would not sit on the stroke language the
+  // rest of this set shares.
+  plus: (
+    <>
+      <path d="M12 5.2v13.6" />
+      <path d="M5.2 12h13.6" />
+    </>
+  ),
+  minus: <path d="M5.2 12h13.6" />,
   star: (
     <path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83Z" />
   ),

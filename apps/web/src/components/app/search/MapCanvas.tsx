@@ -425,6 +425,24 @@ export function MapCanvas({
     setSoloIds(new Set<string>());
   }, []);
 
+  /**
+   * Zoom, as buttons rather than as a gesture only.
+   *
+   * `zoomControl: false` turns off Leaflet's own pair because they are drawn
+   * in Leaflet's styling rather than ours, and nothing replaced them. That
+   * left pinch and the scroll wheel as the only way to zoom, which is no way
+   * at all on a laptop trackpad in a browser that treats the gesture as page
+   * zoom, and nothing whatsoever for somebody using a keyboard or a switch.
+   *
+   * Leaflet does bind +/- on the focused container, but an invisible shortcut
+   * is not an affordance: nothing on screen says it exists.
+   */
+  const zoomBy = useCallback((delta: number) => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.setZoom(map.getZoom() + delta);
+  }, []);
+
   const locateMe = useCallback(() => {
     if (locate.phase === "working") return;
     const geolocation =
@@ -526,14 +544,50 @@ export function MapCanvas({
   return (
     <div
       ref={frameRef}
+      id="map-view"
       data-testid="map-view"
       role="region"
-      aria-label="Map of places. Every pin is a button, and the list control opens the same places as text."
-      className="relative h-[440px] w-full overflow-hidden sm:h-[560px]"
+      /* Focusable, because a region nobody can reach with a keyboard has no
+         keyboard controls no matter what it binds. The Leaflet container
+         itself is aria-hidden on purpose (the pins are the real controls and
+         they are separate buttons), which means Leaflet's own arrow handling
+         sits behind a hidden element. So the panning lives here instead, on
+         the element a keyboard actually lands on. */
+      tabIndex={0}
+      aria-label="Map of places. Every pin is a button, and the list control opens the same places as text. Arrow keys pan, plus and minus zoom."
+      className="relative h-[440px] w-full overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-[var(--nf-brand-primary)] sm:h-[560px]"
       onKeyDown={(event) => {
         if (event.key === "Escape" && selectedId) {
           event.stopPropagation();
           setSelectedId(null);
+          return;
+        }
+        const map = mapRef.current;
+        if (!map) return;
+
+        /* A fifth of the shorter side per press: far enough that holding the
+           key crosses a city at a useful rate, small enough that one press is
+           a nudge rather than a jump to somewhere unrecognisable. */
+        const box = frameRef.current?.getBoundingClientRect();
+        const step = box ? Math.max(40, Math.min(box.width, box.height) / 5) : 80;
+        const pan: Record<string, [number, number]> = {
+          ArrowUp: [0, -step],
+          ArrowDown: [0, step],
+          ArrowLeft: [-step, 0],
+          ArrowRight: [step, 0],
+        };
+        const move = pan[event.key];
+        if (move) {
+          event.preventDefault();
+          map.panBy(move);
+          return;
+        }
+        if (event.key === "+" || event.key === "=") {
+          event.preventDefault();
+          zoomBy(1);
+        } else if (event.key === "-" || event.key === "_") {
+          event.preventDefault();
+          zoomBy(-1);
         }
       }}
     >
@@ -780,6 +834,24 @@ export function MapCanvas({
             className="nf-icon-btn pointer-events-auto h-10 w-10 bg-[var(--nf-surface-primary)]"
           >
             <UiIcon name="grid" size={16} />
+          </button>
+          <button
+            type="button"
+            data-testid="map-zoom-in"
+            aria-label="Zoom in"
+            onClick={() => zoomBy(1)}
+            className="nf-icon-btn pointer-events-auto h-11 w-11 bg-[var(--nf-surface-primary)]"
+          >
+            <UiIcon name="plus" size={16} />
+          </button>
+          <button
+            type="button"
+            data-testid="map-zoom-out"
+            aria-label="Zoom out"
+            onClick={() => zoomBy(-1)}
+            className="nf-icon-btn pointer-events-auto h-11 w-11 bg-[var(--nf-surface-primary)]"
+          >
+            <UiIcon name="minus" size={16} />
           </button>
           <button
             type="button"
