@@ -4,7 +4,12 @@ import { isFeatureEnabled, type FeatureKey } from "../flags";
 import type { Listing, ListingSearchFilter } from "../listings/types";
 import { isPartnerId, parsePartnerId } from "./mapping";
 import { amadeusConfigured, amadeusHotelById, amadeusProvider } from "./providers/amadeus";
-import { placesConfigured, placesProvider, placesRestaurantById } from "./providers/places";
+import {
+  placesById,
+  placesConfigured,
+  placesHotelProvider,
+  placesRestaurantProvider,
+} from "./providers/places";
 import {
   providerDisabled,
   providerTimeout,
@@ -60,9 +65,26 @@ type Registered = {
   readonly configured: () => boolean;
 };
 
+/*
+ * Three registrations, two provider names.
+ *
+ * Places appears twice because it serves two shelves that must be able to be
+ * switched off independently: `hybrid_restaurants` and `hybrid_hotels` are
+ * separate kill switches and the registry gates one flag per entry. Both
+ * entries answer to the name "places", so the partner id scheme is unchanged
+ * and a card minted before hotels existed still resolves.
+ *
+ * Amadeus stays registered and stays keyless. Its self-service tier was
+ * decommissioned and what remains is an enterprise product behind a signed
+ * agreement, so it contributes nothing today. It is left in place rather than
+ * deleted because the code is complete and correct, and the day a contract
+ * exists it is two environment variables away. With no credentials it costs
+ * one synchronous string check per search and runs no code at all.
+ */
 const REGISTRY: readonly Registered[] = [
   { provider: amadeusProvider, flag: "hybrid_hotels", configured: amadeusConfigured },
-  { provider: placesProvider, flag: "hybrid_restaurants", configured: placesConfigured },
+  { provider: placesRestaurantProvider, flag: "hybrid_restaurants", configured: placesConfigured },
+  { provider: placesHotelProvider, flag: "hybrid_hotels", configured: placesConfigured },
 ];
 
 /**
@@ -75,9 +97,16 @@ export function partnerProvidersConfigured(): boolean {
   return REGISTRY.some((entry) => entry.configured());
 }
 
-/** Which providers have keys right now. For diagnostics and logs. */
+/**
+ * Which providers have keys right now. For diagnostics and logs.
+ *
+ * Deduplicated, because Places is registered twice and reporting it twice would
+ * read as two credentials where there is one.
+ */
 export function configuredPartnerProviders(): PartnerProviderName[] {
-  return REGISTRY.filter((entry) => entry.configured()).map((entry) => entry.provider.name);
+  return [
+    ...new Set(REGISTRY.filter((entry) => entry.configured()).map((entry) => entry.provider.name)),
+  ];
 }
 
 /**
@@ -94,6 +123,11 @@ async function runProvider(
   const enabled = await isFeatureEnabled(entry.flag);
   if (!enabled) return providerDisabled(entry.provider.name);
   return entry.provider.search(filter);
+}
+
+/** Whether a registration's flag is the one that governs this category. */
+function governs(entry: Registered, kind: Listing["kind"]): boolean {
+  return entry.flag === (kind === "hotel" ? "hybrid_hotels" : "hybrid_restaurants");
 }
 
 /**
@@ -178,12 +212,29 @@ export async function partnerListingById(id: string): Promise<Listing | null> {
   const parsed = parsePartnerId(id);
   if (!parsed) return null;
 
-  const entry = REGISTRY.find((candidate) => candidate.provider.name === parsed.provider);
-  if (!entry || !entry.configured()) return null;
-  if (!(await isFeatureEnabled(entry.flag))) return null;
+  const entries = REGISTRY.filter((candidate) => candidate.provider.name === parsed.provider);
+  if (entries.length === 0 || !entries[0]!.configured()) return null;
+
+  /*
+   * A partner id carries a provider and a reference, never a category, so for
+   * Places there is no way to know which flag governs this venue until it has
+   * been fetched and classified. So the gate is applied twice: any of the
+   * provider's shelves being live is enough to spend the request, and the
+   * shelf this venue actually belongs to must be live for it to be returned.
+   *
+   * Getting that order wrong in either direction is a real fault. Checking only
+   * the first entry would let a hotel through on the restaurant flag; refusing
+   * to fetch until the category is known would mean never knowing it.
+   */
+  const flags = await Promise.all(entries.map((entry) => isFeatureEnabled(entry.flag)));
+  if (!flags.some(Boolean)) return null;
 
   if (parsed.provider === "amadeus") return amadeusHotelById(parsed.reference);
-  return placesRestaurantById(parsed.reference);
+
+  const listing = await placesById(parsed.reference);
+  if (!listing) return null;
+  const governing = entries.find((entry, index) => flags[index] && governs(entry, listing.kind));
+  return governing ? listing : null;
 }
 
 export { isPartnerId, parsePartnerId } from "./mapping";

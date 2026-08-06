@@ -33,6 +33,15 @@ const config = [
   {
     ignores: [
       ".next/**",
+      /*
+       * Parallel sessions build into their own dist directory (`next build
+       * --distDir .next-a2`), and eight of those had accumulated here: 1.5GB on
+       * disk and, because only `.next` itself was ignored, 1,879 files of
+       * generated output being linted. `npm run lint` reported 117,622 problems
+       * of which every single error was in build output, which is the same as
+       * reporting nothing: a signal that noisy is one nobody reads.
+       */
+      ".next-*/**",
       "node_modules/**",
       "public/**",
       "next-env.d.ts",
