@@ -199,7 +199,7 @@ export function AccountHero({
               className="nf-btn nf-btn--glass px-3 py-2 text-[0.75rem]"
               data-testid="account-cover-button"
             >
-              <UiIcon name="sparkle" size={14} />
+              <UiIcon name="sparkle" size={16} />
               {busy === "cover" ? "Working" : cover ? "Change cover" : "Add a cover"}
             </button>
           </div>
@@ -230,7 +230,7 @@ export function AccountHero({
             aria-hidden="true"
             className="absolute bottom-0 right-0 grid h-7 w-7 place-items-center rounded-full border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-elevated)] text-[var(--nf-content-secondary)]"
           >
-            <UiIcon name={busy === "avatar" ? "sparkle" : "settings-gear"} size={13} />
+            <UiIcon name={busy === "avatar" ? "sparkle" : "settings-gear"} size={12} />
           </span>
         </button>
       </div>
@@ -245,7 +245,7 @@ export function AccountHero({
                 title="A verified RentMe agent"
                 aria-label="Verified agent"
               >
-                <UiIcon name="verified" size={17} />
+                <UiIcon name="verified" size={16} />
               </span>
             ) : null}
           </h1>
@@ -289,13 +289,13 @@ export function AccountHero({
         <div className="nf-social-meta">
           {metaLine.place && (
             <span>
-              <UiIcon name="location" size={14} />
+              <UiIcon name="location" size={16} />
               {metaLine.place}
             </span>
           )}
           {metaLine.joined && (
             <span>
-              <UiIcon name="calendar-booking" size={14} />
+              <UiIcon name="calendar-booking" size={16} />
               {metaLine.joined}
             </span>
           )}
