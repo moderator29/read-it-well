@@ -83,7 +83,14 @@ const retired = [];
 for (const f of files) {
   if (f.rel.startsWith("design-system/icons/")) continue;
   const src = readFileSync(f.path, "utf8");
-  if (/from ["']@?[./\w-]*icons\/(Icon3D|Icon|glyphs)["']/.test(src) || /\bIcon3D\b/.test(src)) {
+  /* An IMPORT or a USE, not a mention. The bare `\bIcon3D\b` also matched the
+     styleguide sentence that tells everybody the thing is retired - so writing
+     the rule down broke the rule. A guard that punishes its own documentation
+     gets the documentation deleted. */
+  if (
+    /from ["']@?[./\w-]*icons\/(Icon3D|Icon|glyphs)["']/.test(src) ||
+    /<Icon3D[\s/>]/.test(src)
+  ) {
     retired.push(f.rel);
   }
 }
