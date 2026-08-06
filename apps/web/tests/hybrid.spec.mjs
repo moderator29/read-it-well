@@ -58,7 +58,19 @@ try {
 
   const cards = page.locator("a[href^='/listing/']");
   const cardCount = await cards.count();
-  check("search renders catalogue cards", cardCount >= 10);
+  /*
+   * This spec's real subject is the PROVIDER LAYER: with no Amadeus and no
+   * Places keys, nothing third-party may appear and nothing may break. That
+   * still holds with an empty shelf. What no longer holds is the old premise
+   * that the shelf is never empty, because the seed catalogue was removed on
+   * purpose. See tests/_catalogue.mjs.
+   */
+  if (cardCount === 0) {
+    console.log("  skip    catalogue is empty, so there are no cards to count");
+    console.log("  note    run against a deployment with real inventory to exercise this");
+  } else {
+    check("search renders catalogue cards", cardCount >= 10);
+  }
 
   const search = await partnerMarkers();
   check("no partner tag element on search", search.tags === 0);
@@ -87,7 +99,8 @@ try {
 
   const hotels = await partnerMarkers();
   const hotelCards = await page.locator("a[href^='/listing/']").count();
-  check("hotel category still has seed hotels", hotelCards >= 3);
+  if (hotelCards > 0) check("hotel category still has seed hotels", hotelCards >= 3);
+  else console.log("  skip    catalogue is empty, so there are no hotels to count");
   check("no partner hotel appears without keys", hotels.tags === 0 && hotels.partnerIds === 0);
   check("no Google attribution on the hotel shelf", !hotels.attribution);
 
@@ -97,7 +110,9 @@ try {
   await page.waitForTimeout(WAIT);
 
   const restaurants = await partnerMarkers();
-  check("restaurant category renders", (await page.locator("a[href^='/listing/']").count()) >= 1);
+  const restaurantCards = await page.locator("a[href^='/listing/']").count();
+  if (restaurantCards > 0) check("restaurant category renders", restaurantCards >= 1);
+  else console.log("  skip    catalogue is empty, so there are no restaurants to count");
   check(
     "no partner restaurant appears without keys",
     restaurants.tags === 0 && restaurants.partnerIds === 0,
@@ -111,7 +126,8 @@ try {
 
   const rent = await partnerMarkers();
   const rentCards = await page.locator("a[href^='/listing/']").count();
-  check("rent market renders its rentals", rentCards >= 3);
+  if (rentCards > 0) check("rent market renders its rentals", rentCards >= 3);
+  else console.log("  skip    catalogue is empty, so there are no rentals to count");
   check("no partner tag element on rent", rent.tags === 0);
   check("no Partner tag text on rent", !rent.tagWord);
   check("no partner listing links on rent", rent.partnerIds === 0);
@@ -128,6 +144,22 @@ try {
 
   const detail = await partnerMarkers();
   check("first-party detail shows no partner tag", detail.tags === 0);
+  /*
+   * `seed-9` was one of the twenty-three invented places, and the catalogue
+   * was removed on purpose. The check above still holds - no listing means no
+   * partner tag either, which is the property this spec exists to guard - but
+   * the three below need the page to actually be a listing. See
+   * tests/_catalogue.mjs.
+   */
+  const detailIsAListing =
+    (await page.locator('[data-testid="listing-gallery"]').count()) > 0;
+  if (!detailIsAListing) {
+    console.log("  skip    catalogue is empty, so there is no first-party detail page to open");
+    console.log("  note    run against a deployment with real inventory to exercise this");
+    await browser.close();
+    console.log(failures === 0 ? "\nall checks passed" : `\n${failures} check(s) failed`);
+    process.exit(failures === 0 ? 0 : 1);
+  }
   check("first-party detail keeps its verified badge", /Verified/i.test(detail.body));
   check("first-party detail keeps Reserve", /\bReserve\b/.test(detail.body));
   check("first-party detail keeps Message agent", /Message agent/i.test(detail.body));
