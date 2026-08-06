@@ -117,8 +117,11 @@ proof.
     until X, half until Y. `#66`
 48. **`globals.css` split into partials**: ambient, glass, buttons, motion,
     light. `#226`
-49. **A `/styleguide` route** showing the tokens, glass, motion and icon rules
-    that already exist. `#210`
+49. **A `/styleguide` route.** DONE, `styleguide.spec.mjs`. Twelve sections,
+    every swatch painting its own token rather than a copied value, so the page
+    cannot drift from the sheet. Noindex. It immediately earned its keep: the
+    spec that holds it to its own rules found the site footer's links were
+    17px targets. `#210`
 50. **Odometer-roll digits** on the numbers band. `#204`
 
 ---
