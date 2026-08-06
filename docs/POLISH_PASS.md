@@ -95,8 +95,13 @@ proof.
     `#248`
 45. **Alt text required on listing photos**, with inline guidance at upload.
     `#150`
-46. **Power and water filters in discovery.** The columns and their indexes
-    exist. Without the filter the data is a label, not a lever.
+46. **Power and water filters in discovery.** DONE. Backup power, Band A feeder
+    and water source, in the drawer, in the URL (`power=`, `water=`), pushed
+    down to the partial indexes, removable as chips, proved end to end by
+    `apps/web/tests/light-and-water.spec.mjs`. All three are strict: a host who
+    did not answer is never offered to somebody who asked, and because that
+    makes an all-unanswered pool unfilterable, the section only appears when
+    the pool in front of the reader holds an answer.
 47. **The cancellation policy as a timeline**, not a paragraph: full refund
     until X, half until Y. `#66`
 48. **`globals.css` split into partials**: ambient, glass, buttons, motion,

@@ -41,6 +41,15 @@ export type ListingFacts = {
   instantBook: boolean;
   verified: boolean;
   source?: "rentme" | "partner";
+  /**
+   * Light and water, where the host has answered.
+   *
+   * Carried in the facts rather than looked up later because the drawer's
+   * match count runs in the browser against this shape alone, and a count that
+   * silently ignored a filter it could not see would be worse than no count.
+   * Absent means unanswered, which every predicate below treats as "no".
+   */
+  utilities?: Listing["utilities"];
 };
 
 /** Just the facts, for shipping a candidate set to the drawer. */
@@ -54,7 +63,20 @@ export function factsOf(l: Listing): ListingFacts {
     instantBook: l.instantBook,
     verified: l.verified,
     source: l.source,
+    ...(l.utilities !== undefined ? { utilities: l.utilities } : {}),
   };
+}
+
+/**
+ * True when the host says there is a way to keep the lights on.
+ *
+ * `NONE` is a real answer and it is a no. So is the absence of an answer: a
+ * listing that never said cannot be offered to somebody who asked, which is
+ * the whole difference between this and a tick box nobody has to fill in.
+ */
+export function hasBackupPower(facts: ListingFacts): boolean {
+  const backup = facts.utilities?.powerBackup;
+  return backup !== undefined && backup !== "NONE";
 }
 
 /**
@@ -118,6 +140,16 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
 
   if (filter.instantBook && !facts.instantBook) return false;
   if (filter.verifiedOnly && !isVerifiedFirstParty(facts)) return false;
+
+  if (filter.powerBackup && !hasBackupPower(facts)) return false;
+  if (filter.powerBandA && facts.utilities?.powerGrid !== "BAND_A") return false;
+
+  if (filter.waterSupply && filter.waterSupply.length > 0) {
+    // OR, not AND: one column, one value. See the note on the filter type.
+    const source = facts.utilities?.waterSupply;
+    if (source === undefined) return false;
+    if (!filter.waterSupply.includes(source)) return false;
+  }
 
   return true;
 }

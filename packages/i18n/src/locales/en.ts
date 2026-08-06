@@ -154,7 +154,7 @@ export const en = {
       title: "Ready to find your next place?",
       subtitle: "Join thousands discovering stays, food and experiences across Nigeria.",
       action: "Get started free",
-      secondary: "Browse without an account",
+      secondary: "See how it works",
     },
     footer: {
       tagline: "Find it. Rent it. Love it. Around Nigeria.",
@@ -169,6 +169,7 @@ export const en = {
       contact: "Contact",
       privacy: "Privacy",
       terms: "Terms",
+      docs: "Docs",
       becomeAgent: "Become an agent",
     },
   },

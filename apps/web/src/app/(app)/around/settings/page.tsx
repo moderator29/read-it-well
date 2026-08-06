@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDictionary } from "@naijafinds/i18n";
+import { formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
 import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getLocale } from "@/lib/locale";
@@ -21,7 +21,7 @@ import { JoinButton } from "../JoinButton";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { isSocialEnabled } from "@/lib/social/flag";
 
-export const metadata: Metadata = { title: "Manage places" };
+export const metadata: Metadata = { title: "Feed settings" };
 
 /**
  * The directory of places.
@@ -205,7 +205,7 @@ export default async function AroundManagePage({
         {mine.length > 0 ? (
           <ul className="flex flex-col gap-2">
             {mine.map((area) => (
-              <AreaRow key={area.id} area={area} joined signedIn={signedIn} />
+              <AreaRow key={area.id} area={area} joined signedIn={signedIn} locale={locale} />
             ))}
           </ul>
         ) : (
@@ -222,7 +222,7 @@ export default async function AroundManagePage({
         {others.length > 0 ? (
           <ul className="flex flex-col gap-2">
             {others.map((area) => (
-              <AreaRow key={area.id} area={area} joined={false} signedIn={signedIn} />
+              <AreaRow key={area.id} area={area} joined={false} signedIn={signedIn} locale={locale} />
             ))}
           </ul>
         ) : (
@@ -251,10 +251,17 @@ function AreaRow({
   area,
   joined,
   signedIn,
+  locale,
 }: {
   area: AreaSummary;
   joined: boolean;
   signedIn: boolean;
+  /* The count below was formatted with a hardcoded "en-NG". All four locales
+     this platform ships group with commas and use Latin digits, so the string
+     is identical today; see KNOWN_GAPS. It is threaded here because the page
+     already resolves the locale one call away, and because the row is the
+     component that renders the figure, which is where the tag has to be. */
+  locale: Locale;
 }) {
   return (
     <li className="nf-card flex items-start gap-3 p-4">
@@ -281,7 +288,7 @@ function AreaRow({
         </div>
         <p className="mt-0.5 text-xs leading-relaxed text-[var(--nf-content-muted)]">
           {AREA_KIND_LABEL[area.kind]} &middot; {area.city} &middot;{" "}
-          <span className="nf-numeric">{area.memberCount.toLocaleString("en-NG")}</span>{" "}
+          <span className="nf-numeric">{formatNumber(area.memberCount, locale)}</span>{" "}
           {area.memberCount === 1 ? "member" : "members"}
         </p>
         {area.blurb ? (

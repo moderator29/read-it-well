@@ -7,6 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CarouselRail } from "./CarouselRail";
 import { Words } from "@/components/site/Words";
 import { Amount } from "@/components/ui/Amount";
+import { gatedHref } from "@/lib/site/gated-href";
 
 /**
  * Featured this week.
@@ -62,7 +63,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
             return (
               <li key={l.id} className="w-[16.5rem] sm:w-[19rem]">
                 <Link
-                  href={`/listing/${l.id}`}
+                  href={gatedHref(`/listing/${l.id}`)}
                   className="nf-card nf-card--interactive group block h-full overflow-hidden"
                 >
                   <div className="relative aspect-[4/3] w-full overflow-hidden">

@@ -452,6 +452,29 @@ export class SupabaseListingRepository implements ListingRepository {
       }
       if (filter.instantBook) query = query.eq("instant_book", true);
 
+      /*
+       * Light and water, pushed down rather than filtered after the fact.
+       *
+       * `listings_power_idx` and `listings_water_idx` are partial indexes on
+       * `status = 'PUBLISHED'`, which is the predicate already on this query,
+       * so these three land on an index rather than a scan.
+       *
+       * The null half matters as much as the value half: a row where the host
+       * never answered must not come back for somebody who asked for a
+       * generator, and `neq` alone would not exclude it, because in SQL
+       * `null <> 'NONE'` is null and a null predicate is not true. The
+       * shared matcher runs afterwards and would catch it, but a predicate
+       * that leans on a later pass to be correct is one refactor from being
+       * wrong, so it is stated here too.
+       */
+      if (filter.powerBackup) {
+        query = query.not("power_backup", "is", null).neq("power_backup", "NONE");
+      }
+      if (filter.powerBandA) query = query.eq("power_grid", "BAND_A");
+      if (filter.waterSupply && filter.waterSupply.length > 0) {
+        query = query.in("water_supply", filter.waterSupply);
+      }
+
       const { data, error } = await query
         .order("featured", { ascending: false })
         .order("published_at", { ascending: false, nullsFirst: false })

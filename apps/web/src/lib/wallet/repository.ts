@@ -3,7 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import type { Database, Json } from "../supabase/database.types";
-import type { ViewerWallet, WalletEntry, WalletRepository, WalletSummary } from "./types";
+import type { ViewerWallet, WalletEntry, WalletSummary } from "./types";
 
 /**
  * Wallet data access.
@@ -18,119 +18,24 @@ import type { ViewerWallet, WalletEntry, WalletRepository, WalletSummary } from 
  * it can never disagree in either mode.
  */
 
-const HOUR_MS = 3_600_000;
 const STATEMENT_LIMIT = 100;
 
-/** An ISO timestamp `daysBack` days and `hoursBack` hours before now. */
-function at(daysBack: number, hoursBack = 0): string {
-  return new Date(Date.now() - (daysBack * 24 + hoursBack) * HOUR_MS).toISOString();
-}
-
-/** Newest first, matching the WalletSummary contract. All amounts integer kobo. */
-function seedEntries(): WalletEntry[] {
-  return [
-    {
-      id: "wal-entry-09",
-      kind: "withdrawal",
-      direction: "debit",
-      amountMinor: 5_000_000, // ₦50,000.00
-      reference: "WD-GTB-0087-2201",
-      status: "PENDING",
-      createdAt: at(0, 2),
-      note: "Withdrawal to GTBank ****1294",
-    },
-    {
-      id: "wal-entry-08",
-      kind: "deposit",
-      direction: "credit",
-      amountMinor: 1_000_000, // ₦10,000.00
-      reference: "ZEN-TRF-8841-XK",
-      status: "COMPLETED",
-      createdAt: at(1, 4),
-      note: "Zenith Bank transfer",
-    },
-    {
-      id: "wal-entry-07",
-      kind: "transfer_in",
-      direction: "credit",
-      amountMinor: 3_000_000, // ₦30,000.00
-      reference: "NF-TRF-IN-55201",
-      status: "COMPLETED",
-      createdAt: at(3, 6),
-      note: "Transfer from Adewale B.",
-    },
-    {
-      id: "wal-entry-06",
-      kind: "payment",
-      direction: "debit",
-      amountMinor: 6_355_000, // ₦63,550.00
-      reference: "BK-VI-20418",
-      status: "COMPLETED",
-      createdAt: at(6, 3),
-      note: "Booking payment, Victoria Island suite",
-    },
-    {
-      id: "wal-entry-05",
-      kind: "refund",
-      direction: "credit",
-      amountMinor: 4_200_075, // ₦42,000.75
-      reference: "RF-IKJ-77031",
-      status: "COMPLETED",
-      createdAt: at(8, 5),
-      note: "Refund, Ikeja studio cancellation",
-    },
-    {
-      id: "wal-entry-04",
-      kind: "transfer_out",
-      direction: "debit",
-      amountMinor: 2_500_000, // ₦25,000.00
-      reference: "NF-TRF-OUT-41977",
-      status: "COMPLETED",
-      createdAt: at(10, 2),
-      note: "Transfer to Chidinma O.",
-    },
-    {
-      id: "wal-entry-03",
-      kind: "deposit",
-      direction: "credit",
-      amountMinor: 20_000_000, // ₦200,000.00
-      reference: "PSK-CARD-9F2K7Q",
-      status: "COMPLETED",
-      createdAt: at(12, 7),
-      note: "Paystack card funding",
-    },
-    {
-      id: "wal-entry-02",
-      kind: "payment",
-      direction: "debit",
-      amountMinor: 8_500_000, // ₦85,000.00
-      reference: "BK-LKK-19834",
-      status: "COMPLETED",
-      createdAt: at(14, 4),
-      note: "Booking payment, Lekki 2BR",
-    },
-    {
-      id: "wal-entry-01",
-      kind: "deposit",
-      direction: "credit",
-      amountMinor: 15_000_000, // ₦150,000.00
-      reference: "GTB-TRF-4402-AA",
-      status: "COMPLETED",
-      createdAt: at(16, 6),
-      note: "GTBank transfer",
-    },
-  ];
-}
-
-/** sum(credits) - sum(debits) over COMPLETED entries only. Integer kobo. */
-function deriveBalanceMinor(entries: WalletEntry[]): number {
-  let balance = 0;
-  for (const e of entries) {
-    if (e.status !== "COMPLETED") continue;
-    balance += e.direction === "credit" ? e.amountMinor : -e.amountMinor;
-  }
-  return balance;
-}
+/*
+ * THERE IS NO SEEDED LEDGER HERE ANY MORE.
+ *
+ * This module used to carry nine invented wallet entries, a GTBank withdrawal
+ * to an account ending 1294 among them, and a helper that summed them into a
+ * balance. Nothing had imported either for some time, which is the only reason
+ * a signed-out visitor stopped being shown somebody else's money.
+ *
+ * A wallet is the one screen where designed content cannot be labelled its way
+ * out of trouble: a balance is a number about YOU, and a reference like
+ * WD-GTB-0087-2201 is the kind of thing a person quotes to support. Both are
+ * gone rather than merely unused, so neither can be imported back by accident.
+ *
+ * A wallet with no rows is an honest empty state and the screen already draws
+ * one.
+ */
 
 /** The display note a ledger row was written with, when metadata carries one. */
 function noteFrom(metadata: Json): string | undefined {

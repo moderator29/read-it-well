@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Words } from "@/components/site/Words";
+import { gatedHref } from "@/lib/site/gated-href";
 
 /**
  * Find your vibe.
@@ -42,7 +43,7 @@ export function MoodRow() {
           {MOODS.map((m) => (
             <li key={m.label} className="w-[11.5rem] sm:w-[13rem]">
               <Link
-                href={`/search?q=${encodeURIComponent(m.q)}`}
+                href={gatedHref(`/search?q=${encodeURIComponent(m.q)}`)}
                 className="nf-glass nf-card--interactive flex h-full flex-col items-start gap-3 rounded-[var(--nf-radius-lg)] p-4 sm:p-5"
               >
                 <span className="h-13 w-13 sm:h-12 sm:w-12">

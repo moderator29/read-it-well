@@ -3,6 +3,7 @@ import type { Dictionary } from "@naijafinds/i18n";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Words } from "@/components/site/Words";
+import { gatedHref } from "@/lib/site/gated-href";
 
 /**
  * Popular destinations.
@@ -40,7 +41,7 @@ export function PopularDestinations({ t }: { t: Dictionary }) {
           {DESTINATIONS.map((d) => (
             <li key={d.city} className="w-[16.5rem] sm:w-auto">
               <Link
-                href={`/search?q=${encodeURIComponent(d.city)}`}
+                href={gatedHref(`/search?q=${encodeURIComponent(d.city)}`)}
                 className="nf-glass nf-card--interactive flex h-full items-center gap-3.5 rounded-[var(--nf-radius-lg)] p-4 sm:p-5"
               >
                 <span className="h-16 w-16 shrink-0 sm:h-12 sm:w-12">

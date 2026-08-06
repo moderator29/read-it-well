@@ -21,7 +21,14 @@ import {
 } from "../types";
 
 /**
- * Partner restaurants, from the Google Places API (New) Text Search.
+ * Partner restaurants AND hotels, from the Google Places API (New) Text Search.
+ *
+ * Hotels arrived here rather than from Amadeus because Amadeus decommissioned
+ * its self-service portal: what is left is an enterprise product behind a
+ * signed agreement, which is not a thing a platform can be blocked on before
+ * launch. Places already had a key, a cache policy and a mapping layer, and it
+ * covers lodging as readily as it covers food, so both categories are served by
+ * one credential and one set of rules.
  *
  * Caching here is a licence condition, not an optimisation. Google's terms let
  * us keep a `place_id` indefinitely but only cache place DETAILS briefly, so
@@ -77,6 +84,13 @@ const SEARCH_FIELD_MASK = [
   "places.websiteUri",
   "places.businessStatus",
   "places.primaryTypeDisplayName",
+  // Google's own classification decides whether a venue is a hotel or a
+  // restaurant. We ask for a category with `includedType`, but the answer is
+  // read off the place rather than assumed from the question, because a text
+  // search is a suggestion and these two categories genuinely overlap: a hotel
+  // with a well known restaurant is returned by both.
+  "places.primaryType",
+  "places.types",
 ].join(",");
 
 /** The same fields for a single place, where the mask carries no prefix. */
@@ -161,6 +175,100 @@ async function rememberPlaceIds(placeIds: string[], foundFor: string, city: stri
   }
 }
 
+/* --------------------------------------------------------------------- categories */
+
+/**
+ * What this provider sells, and how it asks for each.
+ *
+ * `includedType` is `lodging` rather than `hotel` on purpose. Nigerian stock is
+ * full of guest houses, resorts and serviced apartments that carry `lodging`
+ * and never carry `hotel`, and asking for the narrow type would quietly drop
+ * most of a city. The classifier below then reads the answer back, so a venue
+ * that is really a restaurant cannot arrive on the hotel shelf.
+ */
+type PlacesCategory = {
+  readonly kind: "restaurant" | "hotel";
+  /** The single Places type the search is restricted to. */
+  readonly includedType: string;
+  /** The words used when the visitor typed nothing to search for. */
+  readonly subject: string;
+};
+
+const RESTAURANTS: PlacesCategory = {
+  kind: "restaurant",
+  includedType: "restaurant",
+  subject: "restaurants",
+};
+
+const HOTELS: PlacesCategory = {
+  kind: "hotel",
+  includedType: "lodging",
+  subject: "hotels",
+};
+
+/**
+ * Somewhere to sleep, as Google spells it.
+ *
+ * Deliberately wide. Every one of these is a place a traveller books a night
+ * in, and a platform that showed only the ones labelled `hotel` would be
+ * missing most of what people here actually stay in.
+ */
+const LODGING_TYPES = new Set([
+  "lodging",
+  "hotel",
+  "motel",
+  "inn",
+  "resort_hotel",
+  "extended_stay_hotel",
+  "bed_and_breakfast",
+  "guest_house",
+  "hostel",
+  "cottage",
+  "farmstay",
+  "private_guest_room",
+]);
+
+const FOOD_TYPES = new Set([
+  "restaurant",
+  "cafe",
+  "coffee_shop",
+  "bar",
+  "bakery",
+  "meal_takeaway",
+  "meal_delivery",
+  "food",
+]);
+
+/**
+ * Which shelf a place belongs on, decided by Google's classification.
+ *
+ * Lodging wins a tie, and that ordering is the whole point. A hotel with a
+ * famous restaurant carries both sets of types; putting it under Restaurants
+ * would offer a night's stay as a table for two. Somewhere to sleep is the
+ * bigger promise, so it is the one that decides.
+ *
+ * Null means Google gave us nothing to go on, and the caller falls back to the
+ * category it asked for rather than guessing.
+ */
+function kindFromPlace(place: Record<string, unknown>): "restaurant" | "hotel" | null {
+  const types = new Set<string>();
+  const primary = asString(place["primaryType"]);
+  if (primary) types.add(primary);
+  for (const entry of asArray(place["types"])) {
+    if (typeof entry === "string") types.add(entry);
+  }
+  if (types.size === 0) return null;
+
+  for (const type of types) if (LODGING_TYPES.has(type)) return "hotel";
+  // `*_restaurant` covers the long tail Google keeps adding: nigerian_restaurant,
+  // seafood_restaurant, and so on. Matching the suffix means a new one works the
+  // day Google ships it rather than the day somebody notices it missing.
+  for (const type of types) {
+    if (FOOD_TYPES.has(type) || type.endsWith("_restaurant")) return "restaurant";
+  }
+  return null;
+}
+
 /* ---------------------------------------------------------------------- mapping */
 
 /** The sub-city locality Google gives, so a card can print a real area. */
@@ -185,7 +293,11 @@ function areaFrom(place: Record<string, unknown>, city: PartnerCity): string {
  * Only permanently or temporarily closed venues are refused; everything else
  * maps, with the venue placed by its own coordinates where Google gives them.
  */
-function mapPlace(entry: unknown, fallbackCity: PartnerCity): Listing | null {
+function mapPlace(
+  entry: unknown,
+  fallbackCity: PartnerCity,
+  fallbackKind: "restaurant" | "hotel",
+): Listing | null {
   const place = asRecord(entry);
   if (!place) return null;
   const placeId = asString(place["id"]);
@@ -209,14 +321,16 @@ function mapPlace(entry: unknown, fallbackCity: PartnerCity): Listing | null {
       ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodeURIComponent(placeId)}`
       : mapsUri;
   // The venue's own page where it has one, and its Maps page otherwise. Never a
-  // booking link: we do not take restaurant reservations for partner venues.
+  // booking link, for either category: we do not take reservations on somebody
+  // else's stock, and a hotel booked through us that we cannot confirm would be
+  // the worst promise on the platform.
   const venueUrl = websiteUri ?? mapsUri;
 
   return {
     id,
     slug: [slugify(title), slugify(city.name)].filter((p) => p.length > 0).join("-") || id,
     title,
-    kind: "restaurant",
+    kind: kindFromPlace(place) ?? fallbackKind,
     area: areaFrom(place, city),
     city: city.name,
     state: city.state,
@@ -246,25 +360,39 @@ function mapPlace(entry: unknown, fallbackCity: PartnerCity): Listing | null {
 /* -------------------------------------------------------------------- the provider */
 
 /** The query Google is asked, from a filter that only carries free text. */
-function textQuery(filter: ListingSearchFilter, city: PartnerCity): string {
+function textQuery(
+  filter: ListingSearchFilter,
+  city: PartnerCity,
+  category: PlacesCategory,
+): string {
   const q = filter.q?.trim();
-  const subject = q && q.length > 1 ? q : "restaurants";
+  const subject = q && q.length > 1 ? q : category.subject;
   return `${subject} in ${city.name}, Nigeria`;
 }
 
-export const placesProvider: InventoryProvider = {
+/**
+ * One provider per category, sharing every rule.
+ *
+ * Two registrations rather than one that returns both, because the two shelves
+ * are governed by different kill switches: `hybrid_restaurants` and
+ * `hybrid_hotels` have to be able to move independently, and the registry gates
+ * one flag per entry. Both still answer to the name "places", so the partner id
+ * scheme and every card that already carries one are untouched.
+ */
+function makePlacesProvider(category: PlacesCategory): InventoryProvider {
+  return {
   name: "places",
 
   async search(filter: ListingSearchFilter): Promise<ProviderResult> {
     const key = apiKey();
     if (!key) return providerNoKey("places");
-    // Everything this provider sells is a restaurant.
-    if (filter.kind && filter.kind !== "restaurant") return providerNotApplicable("places");
+    // A search for one category is not a question this shelf can answer.
+    if (filter.kind && filter.kind !== category.kind) return providerNotApplicable("places");
 
     const deadline = Date.now() + BUDGET_MS;
     try {
       const city = cityForFilter(filter);
-      const query = textQuery(filter, city);
+      const query = textQuery(filter, city, category);
       const outcome = await requestJson(
         SEARCH_URL,
         {
@@ -276,7 +404,7 @@ export const placesProvider: InventoryProvider = {
           },
           body: JSON.stringify({
             textQuery: query,
-            includedType: "restaurant",
+            includedType: category.includedType,
             maxResultCount: RESULT_LIMIT,
             languageCode: "en",
             regionCode: "NG",
@@ -296,8 +424,12 @@ export const placesProvider: InventoryProvider = {
       const listings: Listing[] = [];
       const placeIds: string[] = [];
       for (const entry of places) {
-        const listing = mapPlace(entry, city);
+        const listing = mapPlace(entry, city, category.kind);
         if (!listing) continue;
+        // Google classifies, we do not argue, but a venue that came back on the
+        // wrong shelf is dropped rather than relabelled: a restaurant listed
+        // among hotels is a worse result than one fewer hotel.
+        if (listing.kind !== category.kind) continue;
         listings.push(listing);
         const placeId = asString(asRecord(entry)?.["id"]);
         if (placeId) {
@@ -314,16 +446,25 @@ export const placesProvider: InventoryProvider = {
       return providerError("places", error instanceof Error ? error.name : "unknown fault");
     }
   },
-};
+  };
+}
+
+export const placesRestaurantProvider: InventoryProvider = makePlacesProvider(RESTAURANTS);
+export const placesHotelProvider: InventoryProvider = makePlacesProvider(HOTELS);
 
 /**
- * One partner restaurant, refetched, for the detail page.
+ * One partner venue, refetched, for the detail page.
  *
  * Serves the brief in-process cache when the venue was seen in the last few
  * minutes, and otherwise asks Google again. Details are never read back from
  * Postgres, which is the whole point of splitting the two caches.
+ *
+ * The category is not a parameter, because a partner id carries a Google
+ * place_id and nothing else. It is read off the response, which is why the
+ * classifier had to be built from Google's types rather than from the search
+ * we happened to run: this path has no search to remember.
  */
-export async function placesRestaurantById(placeId: string): Promise<Listing | null> {
+export async function placesById(placeId: string): Promise<Listing | null> {
   const key = apiKey();
   if (!key) return null;
   const cached = readDetailCache(placeId);
@@ -342,7 +483,11 @@ export async function placesRestaurantById(placeId: string): Promise<Listing | n
       deadline,
     );
     if (!outcome.ok) return null;
-    const listing = mapPlace(outcome.data, cityForFilter({}));
+    /* A venue reached by id was classified once already, when its card was
+       built. Restaurant is the fallback only for the case where Google returns
+       no types at all, which is the same fallback the old single-category
+       version had, so nothing that worked before behaves differently. */
+    const listing = mapPlace(outcome.data, cityForFilter({}), "restaurant");
     if (listing) writeDetailCache(listing, placeId);
     return listing;
   } catch {

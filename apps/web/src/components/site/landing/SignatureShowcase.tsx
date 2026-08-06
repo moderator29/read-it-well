@@ -4,6 +4,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { LogoMark } from "@/design-system/brand/Logo";
+import { gatedHref } from "@/lib/site/gated-href";
 
 /**
  * The signature landing showcases, built around the three commissioned
@@ -57,7 +58,7 @@ export function VillaShowcase() {
               </li>
             </ul>
 
-            <ButtonLink href="/search" variant="primary" size="lg" className="mt-8">
+            <ButtonLink href={gatedHref("/search")} variant="primary" size="lg" className="mt-8">
               Explore Properties
             </ButtonLink>
           </div>
@@ -93,7 +94,7 @@ export function CoverageMap() {
           </p>
         </div>
         <Link
-          href="/search?view=map"
+          href={gatedHref("/search?view=map")}
           aria-label="Open the RentMe coverage map"
           className="nf-card nf-card--interactive block overflow-hidden p-0"
         >
@@ -148,7 +149,7 @@ export function AssistantShowcase() {
               ].map((prompt) => (
                 <li key={prompt}>
                   <Link
-                    href={`/assistant?q=${encodeURIComponent(prompt)}`}
+                    href={gatedHref(`/assistant?q=${encodeURIComponent(prompt)}`)}
                     className="nf-chip text-[0.8125rem]"
                   >
                     {prompt}
@@ -157,7 +158,7 @@ export function AssistantShowcase() {
               ))}
             </ul>
 
-            <ButtonLink href="/assistant" variant="primary" size="lg" className="mt-8">
+            <ButtonLink href={gatedHref("/assistant")} variant="primary" size="lg" className="mt-8">
               Meet the assistant
             </ButtonLink>
           </div>

@@ -149,3 +149,31 @@ so reclaiming them wants a sweep that goes through the storage API and deletes
 every `social-media` object whose name no `post_media` row and no
 `stories.image_path` mentions. Nothing is readable in the meantime; this is
 storage cost, not exposure.
+
+**Three counts in the social layer are formatted with a hardcoded `en-NG`, and
+it currently changes nothing.** `PlacePicker` (a member count and a result
+total) and `PostCard` (a view count in a `title`) call
+`toLocaleString("en-NG")` rather than `formatNumber(value, locale)`. The
+equivalent calls on `/around` and `/around/[slug]` are fixed, because those are
+server components and the locale is one `getLocale()` away.
+
+These three are not, and the fix is not worth what it costs today. Measured
+across every locale the platform ships:
+
+    en  842   1,234   12,500   1,234,567
+    yo  842   1,234   12,500   1,234,567
+    ha  842   1,234   12,500   1,234,567
+    ig  842   1,234   12,500   1,234,567
+
+All four are identical, because all four use Latin digits and comma grouping,
+so the hardcoded tag produces the same string as the correct call for every
+reader the product has. There is no client locale hook and no locale context,
+only `<html lang>`, so fixing these three means either inventing a context or
+threading a prop through several social components for a change nobody can see.
+
+Worth doing the moment either of two things happens: a locale is added that
+groups or digits differently (Arabic and most Indic locales do), or a context
+appears for another reason and these become one line each. **Not** worth doing
+as its own piece of work. Note that the same defect on *money* was real and was
+fixed: `ha-NG` writes `₦ 5,000` with a space, so currency did differ where
+integers do not.

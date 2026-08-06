@@ -23,6 +23,13 @@ const NOTICES: Record<string, string> = {
   "link-invalid": "That link was incomplete. Sign in below and it will work as normal.",
   unconfigured: "Accounts switch on the moment the platform keys land.",
   "signed-out": "You are signed out. Sign in whenever you are ready.",
+  /*
+   * Sent by the middleware when somebody reaches a product address without a
+   * session. It names the reason rather than dropping them on a bare form,
+   * because arriving at a sign-in screen you did not ask for is confusing
+   * enough to read as a bug.
+   */
+  "sign-in-required": "Sign in to open that. It takes a moment, and new accounts are free.",
 };
 
 export default async function SignInPage({

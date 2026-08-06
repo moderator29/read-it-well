@@ -39,8 +39,6 @@ function check(name, condition, detail) {
 /* ------------------------------------------------------------ one rule only */
 
 console.log("\nThere is exactly one phone rule");
-
-const phoneModule = readFileSync(join(SRC, "lib/phone.ts"), "utf8");
 const application = readFileSync(join(SRC, "lib/agent/application.ts"), "utf8");
 const schema = readFileSync(join(SRC, "lib/bookings/schema.ts"), "utf8");
 

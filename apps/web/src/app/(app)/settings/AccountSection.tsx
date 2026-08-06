@@ -5,7 +5,7 @@ import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { RowButton, RowLink, RowValue, SettingsGroup } from "@/components/app/account/rows";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { deleteAccountAction, signOut } from "@/lib/profile/actions";
 import { DELETE_CONFIRM_PHRASE } from "@/lib/profile/schema";

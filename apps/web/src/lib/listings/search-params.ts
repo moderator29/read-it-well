@@ -1,4 +1,4 @@
-import type { ListingKind, ListingSearchFilter } from "./types";
+import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSupply } from "./types";
 
 /**
  * The discovery URL contract.
@@ -21,6 +21,16 @@ import type { ListingKind, ListingSearchFilter } from "./types";
  *   amenities  comma separated amenity codes, all of which must be present
  *   instant    "1" for instant book only
  *   verified   "1" for first-party verified inventory only
+ *   power      comma separated, ALL must hold: "backup", "band-a"
+ *   water      comma separated water sources, ANY of which will do:
+ *              "mains", "borehole", "storage", "tanker"
+ *
+ * The two utility parameters use opposite set logic on purpose, and the URL
+ * says so by naming one after a requirement and one after a source. Backup
+ * power and a Band A feeder are independent facts a place can have both of, so
+ * asking for both means both. Water comes from one place, so asking for a
+ * borehole and treated mains means either would do; as an AND it would match
+ * nothing, every time, which is not a filter but a trap.
  *
  * Money: the URL is the human boundary, so it carries naira, and this module is
  * the only place that multiplies. Everything downstream, including every field
@@ -72,6 +82,44 @@ export type DiscoveryQuery = {
   amenities: string[];
   instantBook: boolean;
   verifiedOnly: boolean;
+  /** The host has a generator, inverter or solar. Unanswered is not a yes. */
+  powerBackup: boolean;
+  /** The address sits on a Band A feeder. */
+  powerBandA: boolean;
+  /** Water sources, any of which will do. Empty means the reader did not ask. */
+  waterSupply: WaterSupply[];
+};
+
+/**
+ * The water sources, as a URL says them.
+ *
+ * Short, lowercase and readable in an address bar, because a shared search is
+ * a link somebody looks at. `TREATED_MAINS` in a query string is shouting.
+ */
+const WATER_SLUG: Record<WaterSupply, string> = {
+  TREATED_MAINS: "mains",
+  BOREHOLE: "borehole",
+  PUMPED_STORAGE: "storage",
+  TANKER: "tanker",
+  NONE: "none",
+};
+
+const WATER_BY_SLUG = new Map<string, WaterSupply>(
+  WATER_SOURCES.map((value) => [WATER_SLUG[value], value]),
+);
+
+/** The URL spelling of a water source, for a link this module did not build. */
+export function waterSlug(value: WaterSupply): string {
+  return WATER_SLUG[value];
+}
+
+/** What a water source is called on screen. One list, four readers. */
+export const WATER_LABEL: Record<WaterSupply, string> = {
+  TREATED_MAINS: "Treated mains",
+  BOREHOLE: "Borehole",
+  PUMPED_STORAGE: "Pumped storage",
+  TANKER: "Tanker delivery",
+  NONE: "No running water",
 };
 
 /** The raw shape Next hands a page, before anything has been trusted. */
@@ -148,6 +196,34 @@ function readAmenities(value: string | string[] | undefined): string[] {
   return out;
 }
 
+/**
+ * The power requirements named in an address, as a pair of flags.
+ *
+ * Unknown words are dropped rather than refused, on the same principle as
+ * everything else here: an address full of rubbish renders the unfiltered page.
+ */
+function readPower(value: string | string[] | undefined): {
+  backup: boolean;
+  bandA: boolean;
+} {
+  const raw = first(value);
+  if (typeof raw !== "string") return { backup: false, bandA: false };
+  const parts = raw.split(",").map((p) => p.trim().toLowerCase());
+  return { backup: parts.includes("backup"), bandA: parts.includes("band-a") };
+}
+
+/** Water sources named in an address. Duplicates and rubbish are dropped. */
+function readWater(value: string | string[] | undefined): WaterSupply[] {
+  const raw = first(value);
+  if (typeof raw !== "string") return [];
+  const out: WaterSupply[] = [];
+  for (const part of raw.split(",")) {
+    const found = WATER_BY_SLUG.get(part.trim().toLowerCase());
+    if (found && !out.includes(found)) out.push(found);
+  }
+  return out;
+}
+
 /** Category, accepting the two legacy aliases older links still carry. */
 export function parseKind(type: string | undefined): ListingKind | undefined {
   if (!type) return undefined;
@@ -169,12 +245,17 @@ export function parseDiscoveryQuery(params: RawSearchParams): DiscoveryQuery {
     [minNaira, maxNaira] = [maxNaira, minNaira];
   }
 
+  const power = readPower(params.power);
+
   const query: DiscoveryQuery = {
     sort,
     view: readText(params.view) === "map" ? "map" : "list",
     amenities: readAmenities(params.amenities),
     instantBook: readFlag(params.instant),
     verifiedOnly: readFlag(params.verified),
+    powerBackup: power.backup,
+    powerBandA: power.bandA,
+    waterSupply: readWater(params.water),
   };
 
   const q = readText(params.q);
@@ -207,6 +288,9 @@ export function toFilter(query: DiscoveryQuery): ListingSearchFilter {
   if (query.amenities.length > 0) filter.amenities = query.amenities;
   if (query.instantBook) filter.instantBook = true;
   if (query.verifiedOnly) filter.verifiedOnly = true;
+  if (query.powerBackup) filter.powerBackup = true;
+  if (query.powerBandA) filter.powerBandA = true;
+  if (query.waterSupply.length > 0) filter.waterSupply = query.waterSupply;
   return filter;
 }
 
@@ -236,6 +320,13 @@ export function toSearchHref(query: DiscoveryQuery): string {
   if (query.amenities.length > 0) params.set("amenities", query.amenities.join(","));
   if (query.instantBook) params.set("instant", "1");
   if (query.verifiedOnly) params.set("verified", "1");
+  const power: string[] = [];
+  if (query.powerBackup) power.push("backup");
+  if (query.powerBandA) power.push("band-a");
+  if (power.length > 0) params.set("power", power.join(","));
+  if (query.waterSupply.length > 0) {
+    params.set("water", query.waterSupply.map(waterSlug).join(","));
+  }
   const qs = params.toString();
   return qs ? `/search?${qs}` : "/search";
 }
@@ -264,6 +355,9 @@ export function clearedFilters(query: DiscoveryQuery): DiscoveryQuery {
     amenities: [],
     instantBook: false,
     verifiedOnly: false,
+    powerBackup: false,
+    powerBandA: false,
+    waterSupply: [],
   };
   if (query.q) cleared.q = query.q;
   if (query.kind) cleared.kind = query.kind;
@@ -285,5 +379,10 @@ export function activeFilterCount(query: DiscoveryQuery): number {
   count += query.amenities.length;
   if (query.instantBook) count += 1;
   if (query.verifiedOnly) count += 1;
+  if (query.powerBackup) count += 1;
+  if (query.powerBandA) count += 1;
+  // Water counts once however many sources are ticked, for the same reason a
+  // price range does: the reader set one thing, where the water comes from.
+  if (query.waterSupply.length > 0) count += 1;
   return count;
 }

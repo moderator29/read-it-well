@@ -1,7 +1,5 @@
 import Link from "next/link";
-import type { Dictionary } from "@naijafinds/i18n";
 import type { AgentProfile } from "@/lib/agent/types";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**

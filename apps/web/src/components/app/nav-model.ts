@@ -198,8 +198,12 @@ export function buildNav({
     heading: t.landing.footer.legal,
     items: [
       { href: "/help", label: t.landing.footer.help, icon: "chat-bubble" },
-      { href: "/terms", label: t.landing.footer.terms, icon: "document" },
-      { href: "/privacy", label: t.landing.footer.privacy, icon: "verified" },
+      /* In-product routes, not the marketing pages. Tapping these used to
+         leave the product entirely, and the back button then returned to the
+         landing site rather than to the screen the reader came from. Same
+         text, from `lib/legal/`, inside the app shell. */
+      { href: "/legal/terms", label: t.landing.footer.terms, icon: "document" },
+      { href: "/legal/privacy", label: t.landing.footer.privacy, icon: "verified" },
     ],
   });
 
