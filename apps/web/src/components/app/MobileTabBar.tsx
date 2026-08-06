@@ -173,11 +173,16 @@ export function MobileTabBar({
       <Link
         href={profile.href}
         aria-current={profileActive ? "page" : undefined}
+        /* One dictionary sentence with both slots, not a translated noun with
+           an English tail welded on. The old version also inflected the plural
+           by appending "s", which is an English rule: Yoruba, Hausa and Igbo do
+           not mark a plural noun that way, so it produced a word that exists in
+           no language on the platform. */
         aria-label={
           marked
-            ? `${profile.label}, ${unreadNotifications} unread notification${
-                unreadNotifications === 1 ? "" : "s"
-              }`
+            ? t.a11y.unreadOn
+                .replace("{label}", profile.label)
+                .replace("{count}", String(unreadNotifications))
             : profile.label
         }
         className={[
