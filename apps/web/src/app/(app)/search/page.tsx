@@ -423,10 +423,24 @@ export default async function SearchPage({
             {/*
              * The count is the number of cards below it, never a rounded or
              * inflated figure, and it says plainly whether filters produced it.
+             *
+             * Announced, because applying a filter is a full server navigation
+             * that replaces the grid in place. Sighted readers see the number
+             * change; without a live region a screen reader user got silence
+             * and had to hunt for the heading again to find out whether their
+             * filter had matched forty places or none. `polite` rather than
+             * `assertive`: it is the outcome of something they just did, so it
+             * should wait its turn rather than interrupt.
+             *
+             * `atomic` because the sentence only means anything whole. Reading
+             * out a changed digit without "places match your filters" is worse
+             * than reading nothing.
              */}
             <p
               data-testid="results-count"
               data-count={listings.length}
+              aria-live="polite"
+              aria-atomic="true"
               className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]"
             >
               {formatNumber(listings.length, locale)}{" "}
@@ -462,6 +476,19 @@ export default async function SearchPage({
       {/* -------------------------------------------------------- map view */}
       {query.view === "map" && (
         <Reveal className="mt-5" delay={60}>
+          {/*
+            Skip to the map itself.
+
+            The filter rail, the sort control and the active-filter chips all
+            sit above it, so reaching the map with a keyboard means tabbing
+            through every one of them on every visit. The same argument as the
+            skip-to-content link in the root layout, applied to the one region
+            on this page that a person came here to use. Hidden until focused,
+            using the platform's own skip-link treatment.
+          */}
+          <a href="#map-view" className="nf-skip-link">
+            Skip to the map
+          </a>
           <div className="nf-card relative overflow-hidden p-0">
             <RealMap
               active={query.q?.trim()}

@@ -68,7 +68,12 @@ proof.
 26. **Undo instead of a confirm dialog** on unsave and draft delete. `#26`
 27. **Verified listings rank above unverified** at equal relevance. `#158`
 28. **`aria-live` for form errors, result counts and booking status changes.**
-    `#149`
+    DONE. Form errors were already covered (`Field`, `fields`, all four auth
+    forms), as were booking status changes (`ReservePanel`, `PayPanel`,
+    `BookingsWorkspace`) and the map's own place count. The gap was the search
+    result count, which changed silently on every filter: `polite` because it
+    answers something the reader just did, `atomic` because a changed digit
+    without "match your filters" is worse than silence. `#149`
 29. **A sticky mobile booking bar** on listing detail: price, dates, action.
     `#42`
 30. **The tab bar hides on scroll down and returns on scroll up.** `#212`
@@ -89,9 +94,15 @@ proof.
     tapped. `#164`
 42. **Map and list hover synchronised**: a card highlight lights its pin, and
     back. `#36`
-43. **Skip-to-map, and keyboard map controls**: arrow pan, plus and minus zoom.
-    `#247`
-44. **Map pin counts and the selected city announced** when the map filters.
+43. **Skip-to-map, and keyboard map controls.** DONE, `map-keyboard.spec.mjs`.
+    Arrow pan, plus and minus zoom, visible zoom buttons at 44px, and a skip
+    link. Two faults were hiding here: `zoomControl: false` had removed the
+    only zoom affordance and nothing replaced it, and Leaflet's own arrow
+    handling was bound to the `aria-hidden` container, so a keyboard could
+    never reach it. `#247`
+44. **Map pin counts and the selected city announced.** DONE, and already was:
+    `MapCanvas` carries a polite live region on the "N places on this map"
+    chip and another on the locate status. Verified rather than assumed.
     `#248`
 45. **Alt text required on listing photos**, with inline guidance at upload.
     `#150`
