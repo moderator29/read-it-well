@@ -1,0 +1,59 @@
+/*
+ * The type scale. Display, three headings, the overline and gradient text.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  /* ------------------------------------------------------------ typography */
+
+  .nf-display,
+  .nf-h1,
+  .nf-h2,
+  .nf-h3 {
+    font-family: var(--nf-font-display);
+  }
+
+  .nf-display {
+    font-size: var(--nf-text-display);
+    line-height: 0.98;
+    font-weight: 700;
+    letter-spacing: var(--nf-tracking-display);
+  }
+
+  .nf-h1 {
+    font-size: var(--nf-text-h1);
+    line-height: 1.14;
+    font-weight: 700;
+    letter-spacing: var(--nf-tracking-tight);
+  }
+
+  .nf-h2 {
+    font-size: var(--nf-text-h2);
+    line-height: 1.22;
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+  }
+
+  .nf-h3 {
+    font-size: var(--nf-text-h3);
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+  }
+
+  .nf-overline {
+    font-size: var(--nf-text-overline);
+    text-transform: uppercase;
+    letter-spacing: var(--nf-tracking-overline);
+    font-weight: 650;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-gradient-text {
+    background: var(--nf-gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}

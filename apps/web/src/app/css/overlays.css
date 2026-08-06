@@ -1,0 +1,144 @@
+/*
+ * The two overlay shapes: the side drawer and the bottom sheet.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  /* -------------------------------------------------------------- drawer */
+
+  /*
+   * The side drawer.
+   *
+   * The mobile navigation was a full-bleed `inset-0` panel: not a drawer, a
+   * page that replaced the app. Nothing signalled the app was still behind it,
+   * and there was no edge to dismiss from.
+   *
+   * This stops just short of the far edge - 88% of the viewport, capped at
+   * 26rem so it does not become absurd on a tablet - leaving a strip of the
+   * dimmed app visible and tappable. That strip is the whole trick: it is what
+   * makes the panel read as sitting OVER the product rather than replacing it.
+   */
+  @keyframes nf-drawer-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  .nf-drawer {
+    width: min(88%, 26rem);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-elev-4-rim), var(--nf-elev-4);
+    overscroll-behavior: contain;
+  }
+  .nf-drawer--right {
+    border-left: 1px solid var(--nf-elev-4-border);
+    animation: nf-drawer-in-right var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-drawer--right {
+      animation: none;
+    }
+  }
+
+  /* --------------------------------------------------------------- sheet */
+
+  /*
+   * The bottom sheet.
+   *
+   * There were eight hand-rolled sheets on the platform and not one of them
+   * had a drag handle, a detent, spring physics, drag-to-dismiss, or a focus
+   * trap - several declared aria-modal="true" while trapping nothing, and two
+   * never locked body scroll, so the page behind them scrolled under your
+   * finger. They all animated in with an 18px fade. On iOS that single fact is
+   * the clearest tell that a screen is a web page rather than an app.
+   *
+   * The surface rides `translateY`, which the component drives directly during
+   * a drag and hands back to the spring on release.
+   */
+  .nf-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    background: rgb(0 0 0 / 0.55);
+    backdrop-filter: blur(6px) saturate(120%);
+    -webkit-backdrop-filter: blur(6px) saturate(120%);
+    opacity: 0;
+    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-sheet-backdrop[data-open="true"] {
+    opacity: 1;
+  }
+
+  .nf-sheet {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 81;
+    display: flex;
+    flex-direction: column;
+    max-height: 92dvh;
+    border-radius: var(--nf-radius-2xl) var(--nf-radius-2xl) 0 0;
+    background: var(--nf-surface-elevated);
+    border: 1px solid var(--nf-elev-3-border);
+    border-bottom: 0;
+    box-shadow: var(--nf-elev-3-rim), var(--nf-elev-3);
+    /* Starts fully off-screen and is driven in. A fade would defeat the point. */
+    transform: translateY(100%);
+    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    touch-action: none;
+  }
+  .nf-sheet[data-open="true"] {
+    transform: translateY(var(--nf-sheet-y, 0px));
+  }
+  /* While a finger is down the surface tracks it exactly; no easing, or it lags. */
+  .nf-sheet[data-dragging="true"] {
+    transition: none;
+  }
+
+  /* The handle. Also the drag affordance, so it is a real target, not a hairline. */
+  .nf-sheet__grip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    height: 1.75rem;
+    cursor: grab;
+  }
+  .nf-sheet__grip::before {
+    content: "";
+    width: 2.25rem;
+    height: 0.25rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-content-muted);
+    opacity: 0.5;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-sheet__grip:active::before {
+    opacity: 0.8;
+  }
+  .nf-sheet[data-dragging="true"] .nf-sheet__grip {
+    cursor: grabbing;
+  }
+
+  .nf-sheet__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Content scrolls normally; only the surface itself owns the drag. */
+    touch-action: pan-y;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-sheet,
+    .nf-sheet-backdrop {
+      transition: none;
+    }
+  }
+}

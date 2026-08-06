@@ -96,11 +96,27 @@ check("the shared hook still does all four: Escape, Tab, scroll lock, focus retu
 
 console.log("\nStatus colours");
 
-const globals = readFileSync(join(SRC, "app/globals.css"), "utf8");
+/* globals.css is now nothing but an ordered list of imports, so read it and
+   everything it pulls in. Reading the one file was a check on where a rule
+   lived rather than on whether it exists, and moving the badge rules into
+   chips.css broke it without changing a single declaration. */
+const stylesheet = (() => {
+  const seen = new Set();
+  const read = (rel) => {
+    if (seen.has(rel)) return "";
+    seen.add(rel);
+    const text = readFileSync(join(SRC, "app", rel), "utf8");
+    const dir = rel.includes("/") ? `${rel.slice(0, rel.lastIndexOf("/"))}/` : "";
+    let out = text;
+    for (const m of text.matchAll(/@import\s+"\.\/([^"]+)"/g)) out += read(`${dir}${m[1]}`);
+    return out;
+  };
+  return read("globals.css");
+})();
 for (const state of ["pending", "approved", "rejected", "verified"]) {
   check(
     `.nf-badge--${state} reads --nf-status-${state}`,
-    new RegExp(`\\.nf-badge--${state}\\s*\\{[^}]*var\\(--nf-status-${state}\\)`, "s").test(globals),
+    new RegExp(`\\.nf-badge--${state}\\s*\\{[^}]*var\\(--nf-status-${state}\\)`, "s").test(stylesheet),
   );
 }
 /* A status must never be written as a hand-made colour pair again. Rejected

@@ -1,0 +1,140 @@
+/*
+ * The live map: price pins, cluster drops, and the small amount of Leaflet
+ * chrome that has to be restyled rather than replaced.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+
+  /* ------------------------------------------------------------- live map */
+
+  /* Price pins on the live map. Rendered by Leaflet divIcons. */
+  .nf-map-pin {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translate(-50%, -100%);
+    padding: 4px 11px;
+    border-radius: var(--nf-radius-pill);
+    background: rgb(1 1 24 / 0.88);
+    border: 1px solid rgb(92 124 255 / 0.5);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    line-height: 1.25;
+    white-space: nowrap;
+    box-shadow:
+      0 6px 18px rgb(0 0 0 / 0.4),
+      0 0 14px rgb(12 57 239 / 0.35);
+    cursor: pointer;
+  }
+  .nf-map-pin i {
+    font-style: normal;
+    font-weight: 500;
+    font-size: 0.625rem;
+    color: rgb(255 255 255 / 0.65);
+  }
+  .nf-map-pin--active {
+    border-color: var(--nf-electric-300);
+    box-shadow: 0 0 20px rgb(12 57 239 / 0.6);
+  }
+  :root[data-theme="light"] .nf-map-pin {
+    background: #ffffff;
+    color: var(--nf-content-primary);
+    border-color: rgb(18 21 26 / 0.18);
+    box-shadow: 0 6px 18px rgb(18 21 26 / 0.18);
+  }
+  :root[data-theme="light"] .nf-map-pin i {
+    color: rgb(18 21 26 / 0.6);
+  }
+
+  /*
+   * The living city. Marks are ordinary React buttons projected onto the
+   * frame every frame (see MapCanvas), not Leaflet divIcons, so their motion
+   * is plain CSS on real DOM nodes: cheap even with dozens of pins on screen,
+   * because nothing here runs a JS animation loop.
+   *
+   * Pins and clusters drop in with a small stagger on mount, `--pin-i` set
+   * inline per mark. `backwards` fill (not `forwards`) is deliberate: the
+   * animation only paints the hidden-to-settled state during its own delay
+   * and run, then gets out of the way, so a later selection's own scale
+   * (Tailwind's `scale-110`) is never left fighting a lingering animation.
+   */
+  .nf-map-pin-drop {
+    animation: nf-map-pin-drop 640ms var(--nf-ease-spring) backwards;
+    animation-delay: calc(var(--pin-i, 0) * 26ms);
+  }
+  @keyframes nf-map-pin-drop {
+    0% { opacity: 0; transform: translate(-50%, -100%) translateY(-22px) scale(0.4); }
+    60% { opacity: 1; transform: translate(-50%, -100%) translateY(3px) scale(1.08); }
+    100% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+  }
+  .nf-map-cluster-drop {
+    animation: nf-map-cluster-drop 640ms var(--nf-ease-spring) backwards;
+    animation-delay: calc(var(--pin-i, 0) * 26ms);
+  }
+  @keyframes nf-map-cluster-drop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+    60% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
+
+  /*
+   * A still map reads as a dead one. Idle marks breathe: a slow, small scale
+   * on an inner span, kept off the button's own element so it never fights
+   * the button's positioning transform or a selected pin's own scale-110.
+   * Selected pins drop the class entirely (see MapCanvas), so the moment a
+   * pin is chosen it holds still.
+   */
+  .nf-map-pin-breathe {
+    animation: nf-map-pin-breathe 5s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-map-pin-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+
+  /*
+   * The pin nearest the searched city blooms once when the map opens there:
+   * an expanding ring that fades out, marking where the search landed. Fires
+   * once (`both` fill holds the finished, invisible state) rather than
+   * looping, because a ring that never stops would stop meaning "you are
+   * here" and start meaning "something is wrong".
+   */
+  .nf-map-pin-drop[data-hero]::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border-radius: var(--nf-radius-pill);
+    border: 1.5px solid var(--nf-electric-300);
+    animation: nf-map-pin-bloom 1.5s var(--nf-ease-standard) 500ms both;
+    pointer-events: none;
+  }
+  @keyframes nf-map-pin-bloom {
+    0% { opacity: 0.85; transform: scale(0.72); }
+    100% { opacity: 0; transform: scale(2); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-map-pin-drop,
+    .nf-map-cluster-drop,
+    .nf-map-pin-breathe {
+      animation: none;
+    }
+    .nf-map-pin-drop[data-hero]::after {
+      animation: none;
+      opacity: 0;
+    }
+  }
+
+  /* Leaflet chrome, restyled to the theme. */
+  .leaflet-container {
+    background: var(--nf-surface-inset);
+    font-family: inherit;
+  }
+  .leaflet-control-zoom a {
+    background: var(--nf-surface-elevated) !important;
+    color: var(--nf-content-primary) !important;
+    border-color: var(--nf-border-subtle) !important;
+  }
+}

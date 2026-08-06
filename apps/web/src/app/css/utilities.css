@@ -1,0 +1,92 @@
+/*
+ * Layout utilities: the console, the queue list, the shell and horizontal
+ * scrollers.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  /* ------------------------------------------------------------- utilities */
+
+  /*
+   * The console, and the queue lists inside it.
+   *
+   * Every admin screen was `mx-auto max-w-3xl`, which is 768px. That is the
+   * right measure for a page somebody READS - an article, a settings list -
+   * and the wrong one for a tool somebody WORKS in. On the 1440px display an
+   * operator actually reviews reports on, two thirds of the screen was empty
+   * and the queue ran twice as long as it needed to, which is more scrolling
+   * between the item and the decision.
+   *
+   * 90rem is the console measure. Wide enough that the rail, the list and a
+   * card's own detail all fit at once; bounded so a 4K monitor does not
+   * stretch a row to a metre of unreadable line length.
+   */
+  .nf-console {
+    width: 100%;
+    max-width: 90rem;
+    margin-inline: auto;
+  }
+
+  /*
+   * A queue is a grid, not a column.
+   *
+   * One card per row is correct while a card is the width of the screen. Past
+   * `xl` the screen is wider than two cards, and a second column halves the
+   * distance between the top of the queue and the bottom of it. `align-items:
+   * start` because two cards in a row are rarely the same height and stretching
+   * the shorter one to match invents whitespace inside a bordered box.
+   */
+  .nf-queue-list {
+    display: grid;
+    gap: 0.75rem;
+  }
+  @media (min-width: 1280px) {
+    .nf-queue-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
+  }
+
+  .nf-shell {
+    width: 100%;
+    max-width: var(--nf-content-max);
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .nf-shell {
+      padding-inline: 2rem;
+    }
+  }
+
+  /*
+   * Horizontal rails: chip rows, category strips, carousels.
+   *
+   * `overscroll-behavior-x: contain` is the important line. Without it, swiping
+   * a rail to its end chains the gesture into the document, so the whole page
+   * slides sideways and springs back - which reads as the layout being loose
+   * and unfinished rather than as a scroll.
+   *
+   * Snap and the right-edge fade come from the reference set: the next item is
+   * always partly visible and softly cut rather than hard-clipped, which is how
+   * a rail says "there is more" without a scrollbar.
+   */
+  .nf-scroll-x {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-snap-type: x proximity;
+  }
+  .nf-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-scroll-x > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+  .nf-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+}

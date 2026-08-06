@@ -1,0 +1,348 @@
+/*
+ * Application chrome: the logo, the assistant banner, the mobile tab bar and
+ * the desktop dock.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  /* ----------------------------------------------------------------- logo */
+
+  .nf-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .nf-logo__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+  }
+  .nf-logo__word {
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--nf-content-primary);
+  }
+  .nf-logo__word-accent {
+    background: var(--nf-gradient-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .nf-logo__tagline {
+    font-size: 0.6875rem;
+    color: var(--nf-content-muted);
+    letter-spacing: 0.01em;
+  }
+
+  /*
+   * AI Assistant banner.
+   *
+   * The card gradient is CSS so it stretches to any width without distortion, and
+   * the supplied robot rides on top as its own layer, anchored bottom right with
+   * a feathered edge so it dissolves into the gradient rather than showing a
+   * rectangle seam. Composited this way the robot is never cropped, which a
+   * single cover-sized background image could not avoid on a wide banner.
+   */
+  .nf-ai-banner {
+    aspect-ratio: 2.15 / 1;
+    background: var(--nf-canvas-base);
+    box-shadow:
+      inset 0 0 0 1px rgb(92 124 255 / 0.18),
+      0 18px 46px -14px color-mix(in oklab, var(--nf-brand-primary) 85%, transparent);
+  }
+
+  /* Mobile tab bar: glass slab pinned to the bottom, above the safe area. */
+  /*
+   * A floating dock, not an edge-to-edge bar: lifted clear of the bottom
+   * edge with margin on every side, same material as the desktop dock so
+   * the two read as one family. Position (the margin and the safe-area
+   * clearance) is set by the component via Tailwind utilities; this class
+   * only carries the material.
+   */
+  /*
+   * How much bottom space the floating tab bar occupies, measured from the
+   * viewport edge: its own offset (0.9rem + the home-indicator inset), its
+   * height, and a gap so anything stacking above it does not touch it.
+   * Sticky footers on tab-bar routes offset by this instead of guessing.
+   * The previous guess was a flat 80px, which cleared nothing on a notch.
+   */
+  :root {
+    --nf-tabbar-clearance: calc(0.35rem + env(safe-area-inset-bottom, 0px) + 3.5rem + 0.75rem);
+  }
+
+  /*
+   * The dock: detached islands, not one continuous bar.
+   *
+   * The supplied reference is the iOS Photos bottom bar - a standalone circular
+   * control, a wide capsule carrying the main destinations, and another
+   * standalone circle - all floating clear of every edge with real gaps between
+   * them. The separation is the whole effect: three objects sitting above the
+   * content rather than one strip welded across it.
+   *
+   * The row itself carries no material. Each island brings its own, so they
+   * blur the content independently and read as genuinely separate pieces.
+   */
+  .nf-dockrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+  }
+
+  .nf-tabbar {
+    background: var(--nf-glass-fill-strong);
+    border: 1px solid var(--nf-glass-border);
+    border-radius: var(--nf-radius-pill);
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow-lifted);
+  }
+
+  /*
+   * The detached island. Same material as the capsule so the group reads as one
+   * family, but circular and standing on its own.
+   */
+  .nf-dock-island {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-primary);
+    background: var(--nf-glass-fill-strong);
+    border: 1px solid var(--nf-glass-border);
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow-lifted);
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-spring),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-dock-island:active {
+    transform: scale(0.93);
+  }
+  /* The island's own active state: brand fill, matching the capsule's pill. */
+  .nf-dock-island[aria-current="page"] {
+    color: #fff;
+    background: var(--nf-gradient-brand);
+    border-color: transparent;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.24),
+      0 6px 18px -4px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-dock-island {
+      transition: none;
+    }
+    .nf-dock-island:active {
+      transform: none;
+    }
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    /* The detached island is the same material and needs the same fallback, or
+       it becomes an 11%-white wash with content scrolling through it. */
+    .nf-dock-island,
+    .nf-tabbar {
+      background: var(--nf-surface-elevated);
+    }
+  }
+
+  /*
+   * The tab bar's active destination pops a soft brand pill in behind it
+   * rather than only recolouring text. The pill's opacity and scale are
+   * driven off `aria-current`, so switching tabs always plays the same
+   * settle-in motion on whichever tab just became active.
+   */
+  @keyframes nf-tab-pop-in {
+    0% {
+      transform: scale(0.82);
+    }
+    55% {
+      transform: scale(1.06);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  /*
+   * The tab.
+   *
+   * The reference standard is an active tab that EXPANDS into a labelled
+   * capsule while its neighbours stay icon-only circles, with the highlight
+   * sliding between positions rather than cross-fading.
+   *
+   * What was here did neither. No tab text was ever painted - labels existed
+   * only in aria-label - and the pill was `inset: 0` on a 48x48 circle, so each
+   * tab owned its own separate blob and moving between them was a fade out plus
+   * a fade in. Nothing travelled.
+   *
+   * The slide is produced without JavaScript, measurement or a shared indicator
+   * element: the outgoing tab's label collapses its max-width to zero at the
+   * same moment the incoming tab's expands. Both animate on the same spring, so
+   * the capsule visibly travels along the bar. Keeping it CSS-only is what lets
+   * the tab bar stay a server component.
+   */
+  .nf-tab-pop {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    height: 3rem;
+    min-width: 3rem;
+    padding-inline: 0.75rem;
+    border-radius: var(--nf-radius-pill);
+    transition:
+      gap var(--nf-duration-base) var(--nf-ease-spring),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-tab-pop[aria-current="page"] {
+    gap: 0.4rem;
+  }
+
+  .nf-tab-pop__pill {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--nf-radius-pill);
+    opacity: 0;
+    transform: scale(0.82);
+    background: var(--nf-gradient-brand);
+    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
+    transition:
+      opacity var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-tab-pop[aria-current="page"] .nf-tab-pop__pill {
+    opacity: 1;
+    transform: scale(1);
+    animation: nf-tab-pop-in 0.4s var(--nf-ease-standard);
+  }
+
+  .nf-tab-pop__icon {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-tab-pop[aria-current="page"] .nf-tab-pop__icon {
+    transform: translateY(-1px);
+  }
+
+  /*
+   * The label. Collapsed to zero width when inactive rather than hidden, so it
+   * has a width to animate to. `max-width` rather than `width` because the
+   * content sizes itself and locales differ wildly in length - the Igbo label
+   * for one destination is 3.25x the English.
+   */
+  .nf-tab-pop__label {
+    position: relative;
+    display: block;
+    max-width: 0;
+    overflow: hidden;
+    /* Elide rather than clip. On a 320px phone the capsule leaves very little
+       room once four tabs and the island are placed, and the longer locale
+       strings - Igbo "Chogharia" for explore - overrun it. */
+    text-overflow: ellipsis;
+    opacity: 0;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    transition:
+      max-width var(--nf-duration-base) var(--nf-ease-spring),
+      opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-tab-pop[aria-current="page"] .nf-tab-pop__label {
+    max-width: 7rem;
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-tab-pop,
+    .nf-tab-pop__label {
+      transition: none;
+    }
+    .nf-tab-pop[aria-current="page"] .nf-tab-pop__pill {
+      animation: none;
+    }
+    .nf-tab-pop[aria-current="page"] .nf-tab-pop__icon {
+      transform: none;
+    }
+  }
+
+  /*
+   * The desktop dock: a small floating capsule of quick-access icons, fixed
+   * to the bottom centre on `lg` and up. Same dark glass material as the
+   * mobile tab bar, at a fraction of the footprint, since the rail already
+   * carries full navigation here and this is reach, not a second menu.
+   */
+  .nf-dock {
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-glass-fill-strong);
+    border: 1px solid var(--nf-border-subtle);
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
+    box-shadow:
+      0 12px 32px -10px rgb(0 0 0 / 0.55),
+      inset 0 1px 0 rgb(255 255 255 / 0.06);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nf-dock {
+      background: var(--nf-surface-elevated);
+    }
+  }
+  .nf-dock__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-secondary);
+    transition:
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-dock__btn:hover {
+    color: var(--nf-content-primary);
+    background: rgb(255 255 255 / 0.06);
+    transform: translateY(-1px);
+  }
+  .nf-dock__btn[aria-current="page"] {
+    color: var(--nf-electric-300);
+    background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-dock__btn:hover {
+      transform: none;
+    }
+  }
+  :root[data-theme="light"] .nf-dock {
+    background: rgb(18 21 26 / 0.92);
+    border-color: rgb(18 21 26 / 0.92);
+  }
+  :root[data-theme="light"] .nf-dock__btn {
+    color: rgb(255 255 255 / 0.7);
+  }
+  :root[data-theme="light"] .nf-dock__btn:hover {
+    color: #fff;
+    background: rgb(255 255 255 / 0.12);
+  }
+  :root[data-theme="light"] .nf-dock__btn[aria-current="page"] {
+    color: var(--nf-electric-300);
+    background: rgb(255 255 255 / 0.14);
+  }
+}

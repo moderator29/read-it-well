@@ -1,0 +1,389 @@
+/*
+ * Form controls: the range, the segment, the auth row, fields, labels, the icon
+ * button, the skeleton and horizontal snap rows.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  /*
+   * The two-handle range control.
+   *
+   * Two native range inputs stacked over one drawn track. Native because a
+   * div with pointer handlers is not keyboard operable, not announced, and
+   * not draggable with a switch: the browser's own control is all three for
+   * free. The inputs are transparent and only their thumbs take pointer
+   * events, so the lower half of the track belongs to the minimum handle and
+   * the upper half to the maximum, and neither can swallow the other.
+   */
+  .nf-range {
+    position: relative;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+  }
+  .nf-range__track,
+  .nf-range__fill {
+    position: absolute;
+    height: 0.35rem;
+    border-radius: var(--nf-radius-pill);
+    pointer-events: none;
+  }
+  .nf-range__track {
+    left: 0;
+    right: 0;
+    background: var(--nf-surface-secondary);
+    border: 1px solid var(--nf-border-subtle);
+  }
+  .nf-range__fill {
+    background: var(--nf-gradient-brand, var(--nf-brand-primary));
+  }
+  .nf-range__input {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    margin: 0;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    pointer-events: none;
+  }
+  .nf-range__input:focus-visible {
+    outline: none;
+  }
+  .nf-range__input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    pointer-events: auto;
+    height: 1.5rem;
+    width: 1.5rem;
+    border-radius: 50%;
+    border: 3px solid var(--nf-surface-primary);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 10px rgb(12 57 239 / 0.45);
+    cursor: grab;
+  }
+  .nf-range__input::-moz-range-thumb {
+    pointer-events: auto;
+    height: 1.5rem;
+    width: 1.5rem;
+    border-radius: 50%;
+    border: 3px solid var(--nf-surface-primary);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 10px rgb(12 57 239 / 0.45);
+    cursor: grab;
+  }
+  /* The thumb is filled with --nf-brand-primary, so a ring in the same colour
+     was a blue ring on a blue disc: focus on the price slider was invisible in
+     both themes. The ring takes the focus token like everything else. */
+  .nf-range__input:focus-visible::-webkit-slider-thumb {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 3px;
+  }
+  .nf-range__input:focus-visible::-moz-range-thumb {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 3px;
+  }
+
+  /*
+   * A segmented option: one of a row where exactly one can be on. Quiet
+   * outline when it is not, brand fill when it is, which is the whole
+   * vocabulary the filter rows and the bedroom row share.
+   */
+  .nf-segment {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.55rem 0.5rem;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: transparent;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+    cursor: pointer;
+    transition:
+      background var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-segment:hover {
+    border-color: var(--nf-border-strong);
+    color: var(--nf-content-primary);
+  }
+  .nf-segment--on,
+  .nf-segment--on:hover {
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+
+  /* The quiet size, for controls that sit inside a card rather than under one:
+     a reply, an edit, a withdraw. Still a 40px target, so it stays a thumb
+     target on a phone rather than becoming a link pretending to be a button. */
+  .nf-btn--sm {
+    padding: 0.52rem 0.95rem;
+    font-size: var(--nf-text-body-sm);
+    border-radius: var(--nf-radius-md);
+  }
+
+  /* Devices without backdrop-filter get a solid body, never a washed out panel. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nf-btn--glass {
+      background:
+        linear-gradient(180deg, var(--nf-surface-raised), var(--nf-surface-elevated)) padding-box,
+        linear-gradient(142deg, var(--nf-brand-primary), rgb(255 255 255 / 0.08)) border-box;
+    }
+  }
+
+  /*
+   * Auth provider row. Full width, pill mark on the left, label left aligned.
+   * Matches the supplied sign in reference.
+   */
+  .nf-auth-row {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.95rem 1.1rem;
+    border-radius: var(--nf-radius-xl);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    font-weight: 650;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: rgb(255 255 255 / 0.04);
+    border: 1.5px solid rgb(255 255 255 / 0.14);
+    backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.2),
+      inset 0 -2px 8px rgb(0 0 0 / 0.28),
+      0 10px 28px -12px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+    transition:
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-auth-row::after {
+    content: "";
+    position: absolute;
+    inset: 1px 1px 52% 1px;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0));
+    pointer-events: none;
+    z-index: -1;
+  }
+  .nf-auth-row:hover:not(:disabled) {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.28),
+      inset 0 -2px 8px rgb(0 0 0 / 0.26),
+      0 16px 38px -12px color-mix(in oklab, var(--nf-brand-primary) 88%, transparent);
+  }
+  .nf-auth-row:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .nf-auth-row:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+  }
+
+  .nf-auth-row__mark {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-glass-fill);
+  }
+  .nf-auth-row__mark--email {
+    background: var(--nf-gradient-brand);
+    color: #fff;
+  }
+
+  /* ------------------------------------------------------------ form fields */
+
+  .nf-field {
+    width: 100%;
+    /*
+     * A form control carries an intrinsic preferred width that `width: 100%`
+     * does not lower, and `input[type="date"]` carries a large one because the
+     * UA sizes it to the widest date it can render. Inside a two-column grid
+     * that made the check-out field the widest thing on the listing screen and
+     * pushed it past the card it lives in. `min-width: 0` lets the control
+     * follow its container instead of the container following the control.
+     */
+    min-width: 0;
+    border: 1px solid transparent;
+    border-radius: var(--nf-radius-lg);
+    padding: 0.95rem 1.05rem;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    background:
+      linear-gradient(var(--nf-surface-inset), var(--nf-surface-inset)) padding-box,
+      linear-gradient(
+          142deg,
+          color-mix(in oklab, var(--nf-brand-primary) 55%, white) 0%,
+          color-mix(in oklab, var(--nf-brand-accent) 32%, transparent) 40%,
+          rgb(255 255 255 / 0.07) 74%
+        )
+        border-box;
+    box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.34);
+    transition:
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
+      background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-field::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-field:focus {
+    outline: none;
+    background:
+      linear-gradient(var(--nf-surface-inset), var(--nf-surface-inset)) padding-box,
+      linear-gradient(142deg, var(--nf-electric-300), color-mix(in oklab, var(--nf-brand-accent) 70%, transparent))
+        border-box;
+    box-shadow:
+      inset 0 2px 6px rgb(0 0 0 / 0.32),
+      0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 24%, transparent),
+      0 0 26px -6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+  }
+  .nf-field[aria-invalid="true"] {
+    border-color: var(--nf-state-error);
+  }
+
+  .nf-label {
+    display: block;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    margin-bottom: 0.4rem;
+  }
+
+  /*
+   * Round glass icon button: back controls, close controls, small actions.
+   * Same material as nf-btn--glass at a 44px touch target, icon centred.
+   *
+   * THE MINIMUMS ARE LOAD BEARING. This comment has always claimed a 44px
+   * target and the rule set 2.6rem, which is 41.6px, so the class missed its
+   * own promise by 2.4px everywhere. Worse, call sites routinely override with
+   * `h-9 w-9` (36px) and `h-8 w-8` (32px), and a measuring sweep across
+   * fifteen routes found those two sizes on the back control, the theme
+   * toggle, the gallery arrows, the assistant history opener and the guest
+   * steppers. `min-width`/`min-height` are a different property from the
+   * `width`/`height` those utilities set, and a minimum beats a length, so
+   * this one declaration lifts every instance to 44px without touching a
+   * single call site or changing any icon.
+   */
+  .nf-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 2.75rem = 44px, the Apple HIG minimum. This was 2.6rem (41.6px) while
+       the comment above already claimed 44px. */
+    width: 2.75rem;
+    height: 2.75rem;
+    /* Anchors the guaranteed hit area below. */
+    position: relative;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-primary);
+    cursor: pointer;
+    border: 1px solid rgb(12 57 239 / 0.45);
+    background: linear-gradient(180deg, rgb(0 3 32 / 0.55), rgb(0 1 16 / 0.7));
+    box-shadow: 0 0 10px rgb(12 57 239 / 0.22), inset 0 0 10px rgb(12 57 239 / 0.1);
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  /*
+   * 44px tappable, whatever a utility does to the box.
+   *
+   * The class itself is already 44, but call sites override it with `h-10 w-10`
+   * and `h-9 w-9`, and those utilities are layered so they win. Measured on the
+   * merged tree: the header menu button at 40, the theme toggle at 36, the
+   * notifications link at 40, on the landing page, home and search in both
+   * themes.
+   *
+   * Fixing it here rather than at seven call sites means the eighth cannot be
+   * wrong. The pseudo-element is transparent and centred, so the drawn control
+   * keeps whatever size the design gave it and only the reachable area grows.
+   */
+  .nf-icon-btn::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+  .nf-icon-btn:hover {
+    border-color: rgb(12 57 239 / 0.9);
+    box-shadow: 0 0 18px rgb(12 57 239 / 0.4), inset 0 0 14px rgb(12 57 239 / 0.16);
+  }
+  .nf-icon-btn:active {
+    transform: scale(0.94);
+  }
+
+  /*
+   * The square variant. A round control reads as "one more action"; a square
+   * one reads as a panel you open, which is what the filter drawer is. The
+   * radius is deliberately the card radius, not the pill, so the opener looks
+   * like the surface it summons rather than like the search button beside it.
+   * Everything else is inherited, so the two shapes stay one material.
+   */
+  .nf-icon-btn--square {
+    border-radius: var(--nf-radius-md);
+  }
+
+  /*
+   * Skeleton shimmer for loading and preview states: an inset slab with a
+   * highlight sweeping across it. Static slab under reduced motion.
+   */
+  @keyframes nf-shimmer {
+    from {
+      background-position: -200% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
+  }
+  .nf-skeleton {
+    border-radius: var(--nf-radius-md);
+    background:
+      linear-gradient(
+        100deg,
+        rgb(255 255 255 / 0.04) 36%,
+        rgb(255 255 255 / 0.1) 50%,
+        rgb(255 255 255 / 0.04) 64%
+      )
+      var(--nf-surface-inset);
+    background-size: 200% 100%;
+    animation: nf-shimmer 1.8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-skeleton {
+      animation: none !important;
+    }
+  }
+
+  /* Horizontal snap rows: category pills, card carousels on phones. */
+  .nf-snap-x {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  .nf-snap-x::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-snap-x > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+}

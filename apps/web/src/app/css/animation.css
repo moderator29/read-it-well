@@ -1,0 +1,219 @@
+/*
+ * The shared animation utilities: rise, float, reveal, card entrance and shine.
+ * Distinct from motion.css, which animates named components.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  /* ------------------------------------------------------------- animation */
+
+  @keyframes nf-rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes nf-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes nf-pulse-ring {
+    0% {
+      transform: scale(0.85);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(1.7);
+      opacity: 0;
+    }
+  }
+
+  .nf-rise {
+    animation: nf-rise var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+
+  /* Staggered entrances: each step lands a beat after the one before it, so
+     the hero reads as a sequence rather than a single card flip. */
+  .nf-rise-2 { animation-delay: 140ms; }
+  .nf-rise-3 { animation-delay: 280ms; }
+  .nf-rise-4 { animation-delay: 420ms; }
+  .nf-rise-5 { animation-delay: 560ms; }
+
+  .nf-float {
+    animation: nf-float 7s var(--nf-ease-standard) infinite;
+  }
+
+  /*
+   * The hero scene. The villa dissolves into the canvas through a radial
+   * mask, so it reads as the platform's own atmosphere behind the headline
+   * rather than a picture placed on the page. No edges ever print.
+   */
+  .nf-hero-scene {
+    opacity: 0.9;
+    filter: saturate(1.08);
+    -webkit-mask-image: radial-gradient(80% 78% at 60% 42%, rgb(0 0 0) 40%, transparent 75%);
+    mask-image: radial-gradient(80% 78% at 60% 42%, rgb(0 0 0) 40%, transparent 75%);
+  }
+
+  /* A second, slower float on an offset phase, for scattered accent objects. */
+  .nf-float-slow {
+    animation: nf-float 11s var(--nf-ease-standard) infinite;
+    animation-delay: -3s;
+  }
+
+  /*
+   * Scroll reveal. Hidden state lifts and fades; shown state settles.
+   *
+   * `will-change` is scoped to the hidden state only, never held past it: a
+   * permanent `will-change: transform` on the settled element would leave
+   * every one of these wrappers a live CSS containing block, which silently
+   * traps any `position: fixed` descendant (a full-page drawer, a dialog)
+   * to this box instead of the viewport. That was a real bug, not a
+   * hypothetical one: the wallet's Add money drawer rendered as a sliver
+   * clipped to its trigger row because of exactly this.
+   */
+  .nf-reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity var(--nf-duration-deliberate) var(--nf-ease-entrance),
+      transform var(--nf-duration-deliberate) var(--nf-ease-entrance);
+    will-change: opacity, transform;
+  }
+  .nf-reveal[data-shown="true"] {
+    opacity: 1;
+    transform: none;
+    will-change: auto;
+  }
+  /*
+   * Where scroll-driven animation exists, the reveal is handed to the
+   * compositor and tied to the block's own scroll position: it lifts,
+   * unblurs and settles as it enters, and replays on the way back. The
+   * observer state above stays as the fallback for older engines.
+   *
+   * The range lives entirely inside "entry" (the element's own transit into
+   * the viewport), never "cover": a "cover" endpoint needs scroll distance
+   * AFTER the element is already visible to finish, which the last section
+   * on any page does not have. That was leaving whatever a guest scrolled
+   * to last permanently blurred, since there was no more page left to
+   * scroll through to complete it. Entry alone finishes the moment the
+   * element has fully entered, regardless of what does or does not follow.
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+        animation: nf-reveal-in linear both;
+        animation-timeline: view();
+        animation-range: entry 4% entry 76%;
+      }
+      /*
+       * A block already on screen at first paint has no entry transit left to
+       * animate through, so it holds at whatever point of the range its
+       * position happens to fall on: the first result card on /search sat at
+       * 56% opacity behind a 1.3px blur until the visitor scrolled. An
+       * animation outranks a normal declaration in the cascade, so this has to
+       * cancel the animation outright rather than restate the end state.
+       * Reveal marks those blocks on mount.
+       */
+      .nf-reveal[data-instant="true"] {
+        animation: none;
+        opacity: 1;
+        transform: none;
+        filter: none;
+      }
+    }
+  }
+  @keyframes nf-reveal-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 30px, 0) scale(0.988);
+      filter: blur(3px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .nf-float-slow {
+      animation: none !important;
+    }
+  }
+
+  /*
+   * Result grid assembly. Cards in a freshly loaded or refiltered list rise
+   * and fade in on a short stagger, so the grid reads as assembling rather
+   * than dropping in as one block. The delay is read from --card-i, which
+   * the grid caps at 5 (six steps) so a long page of results does not keep
+   * animating for seconds after the first row has already settled.
+   */
+  .nf-card-in {
+    animation: nf-card-in var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--card-i, 0) * 70ms);
+  }
+  @keyframes nf-card-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 14px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-card-in {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
+  /* Gradient sheen that sweeps across a headline, used sparingly on the hero. */
+  @keyframes nf-shine {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  .nf-shine {
+    background-size: 200% auto;
+    animation: nf-shine 6s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-shine {
+      animation: none !important;
+    }
+  }
+
+  /*
+   * Reduced motion kills looping decorative animation outright. Entrance
+   * animations survive because their duration already collapses to 1ms, so
+   * content still appears rather than staying invisible.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-float,
+    .nf-pulse-ring {
+      animation: none !important;
+    }
+  }
+}

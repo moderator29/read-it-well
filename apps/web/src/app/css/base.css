@@ -1,0 +1,211 @@
+/*
+ * Base elements, and the four things every screen leans on: the focus well, the
+ * tap target helper, tabular figures and the skip link. Deliberately unlayered,
+ * because these are element defaults rather than components.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+/* ---------------------------------------------------------------- base */
+
+* {
+  border-color: var(--nf-border-subtle);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/*
+ * The photo camera move. A listing card and the gallery it opens into tag
+ * matching elements with the same `view-transition-name` (set inline, since
+ * it is per-listing), and the browser's own View Transitions API morphs one
+ * into the other on navigation. Nothing here is conditional on JavaScript:
+ * unsupporting browsers simply never read `view-transition-name` and never
+ * see this rule fire, which is the whole no-op fallback. Reduced motion is
+ * a second, CSS-only guard behind the JS feature check in the card itself.
+ */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+html {
+  background-color: var(--nf-surface-canvas);
+}
+
+body {
+  background-color: transparent;
+  color: var(--nf-content-primary);
+  font-family: var(--nf-font-sans);
+  font-size: var(--nf-text-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /*
+   * `clip`, not `hidden`. Both stop sideways scrolling, but `hidden` turns the
+   * element into a scroll container, which silently breaks `position: sticky`
+   * for every descendant - and every shell on this platform has sticky chrome.
+   */
+  overflow-x: clip;
+  /* Native app feel on touch: no grey tap flash, no rubber-band past the ends. */
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/*
+ * The same guard on the root element. Without it a child wider than the
+ * viewport still shifts the document sideways on iOS, which is the "the whole
+ * page slides left and right" feeling: nothing is scrolling on purpose, the
+ * layout is just wider than the screen and the browser lets you drag it.
+ */
+html {
+  overflow-x: clip;
+}
+
+/* Pointer clicks never draw a focus rectangle; keyboard focus keeps the ring. */
+:where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex],
+    [role="button"],
+    [role="tab"],
+    [role="switch"],
+    [contenteditable]
+  ):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/*
+ * Every interactive element gets a visible focus ring, in both themes.
+ *
+ * Three things were wrong here, and one of them was ours.
+ *
+ * The ring was drawn in --nf-brand-primary, a deep electric blue that measures
+ * 2.11:1 against the near-black canvas, so on the DEFAULT theme it was a ring
+ * nobody could see. And the selector listed only the five native element names,
+ * which missed `summary` and every ARIA control the app builds out of a div.
+ *
+ * The third was introduced by the fix for the first two: setting border-radius
+ * here. This rule is unlayered, so it beats Tailwind's layered utilities, and
+ * every pill-shaped nav item and chip visibly squared off to 6px the moment it
+ * took keyboard focus. `outline` already follows the element's own radius in
+ * every browser we support, so the ring hugs the real shape without reshaping
+ * it. That line is gone and this comment is why it must not come back.
+ *
+ * The colour comes from --nf-focus-ring, the member of the same blue family
+ * that clears 3:1 in both themes: 5.68:1 on night, 7.44:1 on paper. The offset
+ * is what makes it work over any material, floating the ring clear so a
+ * brand-blue button does not swallow a brand-blue ring.
+ */
+:where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex],
+    [role="button"],
+    [role="tab"],
+    [role="switch"],
+    [contenteditable]
+  ):focus-visible {
+  outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+  outline-offset: var(--nf-focus-ring-offset);
+}
+
+/*
+ * A bare input inside a styled shell.
+ *
+ * Three search bars (the landing hero, the search page and the place picker)
+ * suppress the input's own outline so the shell reads as one control, and then
+ * nothing drew a ring at all: tabbing into the platform's most-used field
+ * showed a keyboard user absolutely nothing. The shell carries it instead.
+ */
+.nf-focus-well:focus-within {
+  outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+  outline-offset: var(--nf-focus-ring-offset);
+}
+
+/*
+ * A 44 by 44 hit target on a control that is meant to look smaller.
+ *
+ * A runtime sweep of every visible control on twenty-one routes, in both
+ * themes, found twenty-eight distinct targets under 44px: the header wordmark
+ * at 38, the avatar at 38 square, the settings toggles at 28 tall, "View all"
+ * at 22, the map cluster pips at 34 by 38, the wizard step dots at 32 square.
+ *
+ * Some of those can simply grow. These cannot: a toggle track is 28px because
+ * that is what a toggle looks like, and a text link that says "View all" cannot
+ * become a button without changing what the row means. So the TARGET grows and
+ * the control does not. The pseudo-element is centred on the control and
+ * measures at least 44 in each axis; it is part of the control, so it needs no
+ * event handling of its own, and it moves not one visible pixel.
+ *
+ * It sits behind the control's own content (`z-index: -1` is wrong here because
+ * it would fall behind the page; auto stacking with no paint is enough since
+ * the element has no background).
+ */
+.nf-tap {
+  position: relative;
+}
+.nf-tap::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  /* Never let the expanded target paint or capture text selection. */
+  pointer-events: auto;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
+  color: #fff;
+}
+
+/*
+ * Tabular figures everywhere money or metrics appear, so columns line up.
+ *
+ * The letter-spacing that used to live here has been split out into
+ * .nf-numeric--tight below. This rule is unlayered, so it beat every Tailwind
+ * utility: fourteen `tracking-*` utilities across the app were dead code, and
+ * one page asked for +0.04em on a reference ID and silently rendered -0.02em.
+ * Tabular figures are the job; tracking is a separate decision.
+ */
+.nf-numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.nf-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 999;
+  padding: 0.75rem 1.25rem;
+  background: var(--nf-brand-primary);
+  color: #fff;
+  border-radius: 0 0 var(--nf-radius-md) 0;
+  font-weight: 600;
+}
+.nf-skip-link:focus {
+  left: 0;
+}

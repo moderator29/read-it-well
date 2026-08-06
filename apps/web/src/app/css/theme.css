@@ -1,0 +1,36 @@
+/*
+ * The bridge between the semantic tokens and Tailwind, so utilities and hand
+ * written CSS draw from one source. Nothing anywhere may introduce a raw colour.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@theme inline {
+  --color-canvas: var(--nf-surface-canvas);
+  --color-surface: var(--nf-surface-primary);
+  --color-surface-2: var(--nf-surface-secondary);
+  --color-surface-3: var(--nf-surface-elevated);
+  --color-raised: var(--nf-surface-raised);
+
+  --color-content: var(--nf-content-primary);
+  --color-content-2: var(--nf-content-secondary);
+  --color-muted: var(--nf-content-muted);
+
+  --color-brand: var(--nf-brand-primary);
+  --color-brand-strong: var(--nf-brand-primary-strong);
+  --color-brand-2: var(--nf-brand-secondary);
+  --color-accent: var(--nf-brand-accent);
+
+  --color-success: var(--nf-state-success);
+  --color-warning: var(--nf-state-warning);
+  --color-danger: var(--nf-state-error);
+  --color-info: var(--nf-state-info);
+
+  --radius-sm: var(--nf-radius-sm);
+  --radius-md: var(--nf-radius-md);
+  --radius-lg: var(--nf-radius-lg);
+  --radius-xl: var(--nf-radius-xl);
+  --radius-2xl: var(--nf-radius-2xl);
+
+  --font-sans: var(--nf-font-sans);
+}

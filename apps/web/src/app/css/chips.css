@@ -1,0 +1,478 @@
+/*
+ * Chips, badges, tag pills, sunken panels, action circles, the pinned action
+ * bar and the moment card. The status badges carry one meaning per colour,
+ * platform wide.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  /* ---------------------------------------------------------------- chips */
+
+  /*
+   * Chips are the primary control on /search: city, sort, type, every active
+   * filter. They measured 37px tall, which is a miss on a thumb and the single
+   * most-tapped control in discovery. The minimum lifts them to 44px; the
+   * padding is left alone so the drawn pill keeps its proportions and simply
+   * centres inside a taller box.
+   */
+  .nf-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    gap: 0.45rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    border: 1px solid rgb(12 57 239 / 0.35);
+    background: linear-gradient(180deg, rgb(0 3 32 / 0.55), rgb(0 1 16 / 0.7));
+    box-shadow: 0 0 10px rgb(12 57 239 / 0.16), inset 0 0 10px rgb(12 57 239 / 0.07);
+    transition:
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  /*
+   * A chip paints at 36.6px because that is the right visual weight in a filter
+   * row, but a tappable chip still owes the user a 44pt target. Rather than
+   * inflating every chip and breaking the rows, interactive chips grow their
+   * hit area with a centred overlay. Visual size is unchanged; only the touch
+   * region grows. Non-interactive status pills are excluded deliberately.
+   */
+  a.nf-chip,
+  button.nf-chip,
+  label.nf-chip {
+    position: relative;
+  }
+
+  a.nf-chip::after,
+  button.nf-chip::after,
+  label.nf-chip::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    translate: 0 -50%;
+    min-height: 2.75rem;
+    height: 100%;
+  }
+  .nf-chip:hover {
+    color: var(--nf-content-primary);
+    border-color: rgb(12 57 239 / 0.7);
+    transform: translateY(-1px);
+    box-shadow: 0 0 16px rgb(12 57 239 / 0.3), inset 0 0 12px rgb(12 57 239 / 0.1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-chip:hover {
+      transform: none;
+    }
+  }
+  .nf-chip[aria-pressed="true"],
+  .nf-chip--active {
+    color: var(--nf-content-primary);
+    border-color: rgb(12 57 239 / 0.9);
+    box-shadow: 0 0 18px rgb(12 57 239 / 0.4), inset 0 0 14px rgb(12 57 239 / 0.16);
+  }
+
+  .nf-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .nf-badge--success {
+    background: var(--nf-state-success-surface);
+    color: var(--nf-state-success);
+  }
+  .nf-badge--brand {
+    background: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+    color: var(--nf-electric-300);
+  }
+  .nf-badge--warning {
+    background: var(--nf-state-warning-surface);
+    color: var(--nf-state-warning);
+  }
+
+  /*
+   * The four status badges. One meaning per colour, platform-wide.
+   *
+   * These are NOT synonyms for the tone classes above. A tone says how loud a
+   * chip is; a status says what the platform has decided about a thing. Read
+   * the reasoning in packages/design-tokens/src/tokens.css. If a badge is not
+   * one of these four states it must not use one of these four classes.
+   */
+  .nf-badge--pending {
+    background: var(--nf-status-pending-surface);
+    color: var(--nf-status-pending);
+  }
+  .nf-badge--approved {
+    background: var(--nf-status-approved-surface);
+    color: var(--nf-status-approved);
+  }
+  .nf-badge--rejected {
+    background: var(--nf-status-rejected-surface);
+    color: var(--nf-status-rejected);
+  }
+  .nf-badge--verified {
+    background: var(--nf-status-verified-surface);
+    color: var(--nf-status-verified);
+  }
+  /* A label that is not a status: a category, a tier, a device. Quiet, so the
+     four status colours keep their monopoly on meaning. */
+  .nf-badge--neutral {
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
+  }
+
+  /*
+   * A pill that rides the corner of whatever it is pinned to (a selected plan
+   * card, a segmented option), the way a "Save 40%" ribbon sits half on and
+   * half off a pricing tile. The parent needs `position: relative`; nothing
+   * else has to change about it.
+   */
+  .nf-badge-overlap {
+    position: absolute;
+    top: -0.65rem;
+    right: -0.5rem;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-overline);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #fff;
+    background: var(--nf-gradient-brand);
+    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent),
+      0 0 0 3px var(--nf-surface-canvas);
+  }
+  .nf-badge-overlap--success {
+    background: var(--nf-state-success);
+    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-state-success) 60%, transparent),
+      0 0 0 3px var(--nf-surface-canvas);
+  }
+
+  /* Small circular count badge riding next to a section header ("Messages 3"). */
+  .nf-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.375rem;
+    height: 1.375rem;
+    padding: 0 0.4rem;
+    border-radius: var(--nf-radius-pill);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-electric-300);
+    background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
+  }
+
+  /*
+   * Hero figure: the huge tabular number a screen is built around (a wallet
+   * balance, a price, a countdown). One display size, always tabular, always
+   * tight tracking so digits read as one mass rather than loose type.
+   */
+  .nf-hero-figure {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-size: clamp(2.75rem, 11vw, 4.25rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    color: var(--nf-content-primary);
+  }
+  .nf-hero-figure__unit {
+    font-size: 0.32em;
+    font-weight: 700;
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * Colour-coded tag pill for a compact identifier a card wants to surface as
+   * data rather than prose ("P2 · ROW F", "Studio · 2BR"). Small, monospaced
+   * rhythm, brand tint by default with state variants for the same shape.
+   */
+  .nf-tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.55rem;
+    border-radius: var(--nf-radius-sm);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--nf-electric-300);
+    background: color-mix(in oklab, var(--nf-brand-primary) 15%, transparent);
+    border: 1px solid color-mix(in oklab, var(--nf-brand-primary) 28%, transparent);
+  }
+  .nf-tag-pill--success {
+    color: var(--nf-state-success);
+    background: var(--nf-state-success-surface);
+    border-color: color-mix(in oklab, var(--nf-state-success) 32%, transparent);
+  }
+  .nf-tag-pill--warning {
+    color: var(--nf-state-warning);
+    background: var(--nf-state-warning-surface);
+    border-color: color-mix(in oklab, var(--nf-state-warning) 32%, transparent);
+  }
+  .nf-tag-pill--neutral {
+    color: var(--nf-content-secondary);
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-subtle);
+  }
+
+  /*
+   * Sunken well for a live meter or timer, cut into the surface rather than
+   * sitting on it. Near black in the dark theme, near white and inset in
+   * daylight; either way the content inside reads as recessed, not raised.
+   */
+  .nf-panel-sunken {
+    border-radius: var(--nf-radius-lg);
+    padding: 1.1rem 1.25rem;
+    background: linear-gradient(180deg, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.68));
+    box-shadow:
+      inset 0 2px 10px rgb(0 0 0 / 0.55),
+      inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  }
+
+  /* Stat card chart: the line carries a faint glow at night, flattens to a
+     plain stroke on paper so it never smears against a white card. */
+  .nf-statchart polyline {
+    filter: drop-shadow(0 0 4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent));
+  }
+  :root[data-theme="light"] .nf-statchart polyline {
+    filter: none;
+  }
+
+  /*
+   * Circular icon action button: the Scan / Send / Receive row, two or three
+   * primary actions given equal weight as icon-first, label-under controls
+   * instead of a row of rectangular pills.
+   */
+  .nf-action-circle {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--nf-content-secondary);
+    cursor: pointer;
+  }
+  .nf-action-circle__ring {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-primary);
+    border: 1px solid rgb(12 57 239 / 0.45);
+    background: linear-gradient(180deg, rgb(0 3 32 / 0.55), rgb(0 1 16 / 0.7));
+    box-shadow: 0 0 10px rgb(12 57 239 / 0.22), inset 0 0 10px rgb(12 57 239 / 0.1);
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-action-circle__ring--solid {
+    border-color: transparent;
+    background: var(--nf-gradient-brand);
+    color: #fff;
+    box-shadow: 0 10px 24px -8px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
+  }
+  .nf-action-circle:hover .nf-action-circle__ring {
+    transform: translateY(-2px);
+    border-color: rgb(12 57 239 / 0.9);
+    box-shadow: 0 0 18px rgb(12 57 239 / 0.4), inset 0 0 14px rgb(12 57 239 / 0.16);
+  }
+  .nf-action-circle:active .nf-action-circle__ring {
+    transform: scale(0.94);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-action-circle:hover .nf-action-circle__ring {
+      transform: none;
+    }
+  }
+  .nf-action-circle__label {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+
+  /*
+   * Three-tier bottom action bar: a ghost icon circle, a ghost pill and a
+   * solid pill sharing one row, safe-area aware. The row itself carries no
+   * material of its own; it is a layout convention over the existing button
+   * primitives so it drops into any sticky footer.
+   */
+  .nf-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .nf-action-bar__fill {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /*
+   * The pinned variant used by <ActionBar>. Rounds nothing, spans the viewport,
+   * drops its side and bottom borders, and absorbs the home-indicator inset so
+   * the CTA never sits on top of it.
+   */
+  .nf-action-bar-pinned {
+    border-inline: 0;
+    border-bottom: 0;
+    border-radius: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  /* The scrim above it, so content dissolves into the bar instead of hitting a seam. */
+  .nf-action-bar-pinned::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 100% 0;
+    height: 1.75rem;
+    pointer-events: none;
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 0%,
+      transparent 100%
+    );
+  }
+
+  /*
+   * Safe-area top.
+   *
+   * layout.tsx sets viewportFit:"cover" and apple-mobile-web-app-status-bar-style
+   * black-translucent, which together extend the viewport up into the status bar
+   * area. Anything pinned to top:0 therefore paints *underneath* the notch and
+   * the clock. Bottom insets were handled in thirteen places; the top inset was
+   * honoured in exactly one file on the whole platform.
+   *
+   * Sticky chrome carries .nf-safe-top so its own padding absorbs the inset and
+   * its material still extends edge to edge behind the status bar. Full-bleed
+   * overlays carry .nf-safe-top-inset when their *content* needs clearing but
+   * their background should stay full-bleed.
+   */
+  .nf-safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .nf-safe-top-inset {
+    top: env(safe-area-inset-top, 0px);
+  }
+
+  /*
+   * Full-bleed moment screen: the one-thing-happened surface (payment landed,
+   * booking confirmed, verification passed). A glowing badge, a headline, an
+   * optional line under it, and the actions pinned near the bottom. No card,
+   * no list, the whole viewport is the message.
+   */
+  @keyframes nf-moment-badge-in {
+    from {
+      opacity: 0;
+      transform: scale(0.7);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .nf-moment {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 60vh;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    position: relative;
+  }
+  .nf-moment__glow {
+    position: absolute;
+    top: 12%;
+    left: 50%;
+    width: 20rem;
+    height: 20rem;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--nf-moment-color, var(--nf-brand-primary)) 32%, transparent) 0%,
+      transparent 68%
+    );
+    filter: blur(4px);
+    pointer-events: none;
+  }
+  .nf-moment__badge {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1.75rem;
+    animation: nf-moment-badge-in 0.5s var(--nf-ease-standard) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-moment__badge {
+      animation: none;
+    }
+  }
+  .nf-moment__title {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+    max-width: 26rem;
+  }
+  .nf-moment__description {
+    position: relative;
+    z-index: 1;
+    margin-top: 0.6rem;
+    max-width: 24rem;
+    color: var(--nf-content-secondary);
+    line-height: 1.5;
+  }
+  .nf-moment__actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 22rem;
+    margin-top: 2.25rem;
+  }
+  .nf-moment__footnote {
+    position: relative;
+    z-index: 1;
+    margin-top: 1rem;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-moment--success {
+    --nf-moment-color: var(--nf-state-success);
+  }
+  .nf-moment--warning {
+    --nf-moment-color: var(--nf-state-warning);
+  }
+  .nf-moment--brand {
+    --nf-moment-color: var(--nf-brand-primary);
+  }
+}

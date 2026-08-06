@@ -1,0 +1,637 @@
+/*
+ * Component motion. A message arriving, a header verifying, the assistant
+ * thinking, a listing folding in, onboarding, the odometer, a balance moving,
+ * and the scroll driven entrances on the landing page.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  /* -------------------------------------------------------- conversation */
+
+  /*
+   * A message bubble springs in from the side its sender occupies: mine from
+   * the right, theirs from the left, so a reply reads as arriving from the
+   * person who sent it rather than just fading into place.
+   */
+  .nf-msg-in--mine {
+    animation: nf-msg-in-right var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  .nf-msg-in--theirs {
+    animation: nf-msg-in-left var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  @keyframes nf-msg-in-right {
+    from { opacity: 0; transform: translate3d(28px, 0, 0) scale(0.94); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes nf-msg-in-left {
+    from { opacity: 0; transform: translate3d(-28px, 0, 0) scale(0.94); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* Three breathing dots inside a real bubble shape, so "typing" reads as
+     part of the conversation rather than a spinner bolted on beside it. */
+  .nf-typing-dot {
+    animation: nf-typing-breathe 1.2s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-typing-breathe {
+    0%, 100% { transform: scale(0.72); opacity: 0.45; }
+    50% { transform: scale(1); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-typing-dot {
+      animation: none;
+      opacity: 0.8;
+    }
+  }
+
+  /*
+   * The thread header, the moment an inspection is confirmed. A real state
+   * change deserves more than new copy: the row tints the same success green
+   * the confirmed pill already uses and settles in once with the platform's
+   * own confirm pop, reusing `nf-confirm-pop` rather than inventing a second
+   * "something just landed" motion.
+   */
+  .nf-page-header--verified {
+    padding: 0.5rem 0.625rem;
+    margin-inline: -0.625rem;
+    background: color-mix(in oklab, var(--nf-state-success) 12%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-state-success) 32%, transparent);
+    animation: nf-confirm-pop var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-page-header--verified {
+      animation: none;
+    }
+  }
+
+  /*
+   * The assistant thinking, visibly. A ring spins around the avatar while a
+   * reply is actively streaming (a real signal, `streamingHere` in
+   * AssistantChat, not an idle loop), so the bot reads as reasoning rather
+   * than stalled. The ring sits on its own pseudo-element, never on the
+   * avatar tile's own transform, so it never fights the tile's parallax
+   * lean or its living-glass sheen.
+   */
+  .nf-bot-thinking {
+    position: relative;
+  }
+  .nf-bot-thinking::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    border-top-color: var(--nf-electric-300);
+    border-right-color: color-mix(in oklab, var(--nf-electric-300) 35%, transparent);
+    animation: nf-bot-spin 850ms linear infinite;
+    pointer-events: none;
+  }
+  @keyframes nf-bot-spin {
+    to { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-bot-thinking::after {
+      animation: none;
+      opacity: 0.7;
+    }
+  }
+
+  /*
+   * Real listing results fan into the thread with a staggered rise, `--i`
+   * set inline per card, rather than appearing as one flat block the moment
+   * the assistant's search resolves.
+   */
+  .nf-listing-fold-in {
+    animation: nf-listing-fold var(--nf-duration-slow) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--i, 0) * 90ms);
+    transform-origin: 50% 0%;
+  }
+  @keyframes nf-listing-fold {
+    from { opacity: 0; transform: translateY(14px) rotateX(-16deg) scale(0.96); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /*
+   * The guided flight: a brief full-screen onboarding over story-world.png
+   * on first visit (see components/site/Onboarding.tsx for the honest,
+   * localStorage-gated, reduced-motion-skipping trigger). It reuses the
+   * paper stage the artwork was actually rendered on, so text sits on real
+   * ink rather than the page's own theme colour, which would print
+   * near-white on this ground under the dark default.
+   */
+  .nf-onboarding {
+    color: rgb(18 21 26);
+    opacity: 1;
+    transition: opacity 260ms var(--nf-ease-standard);
+  }
+  .nf-onboarding .nf-overline {
+    color: rgb(18 21 26 / 0.6);
+  }
+  .nf-onboarding--leaving {
+    opacity: 0;
+  }
+  .nf-onboarding-frame {
+    filter: drop-shadow(0 24px 48px rgb(18 21 26 / 0.18));
+  }
+  .nf-onboarding-skip {
+    /* 58 by 38 before this line. The first control a new visitor ever meets. */
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--nf-radius-pill);
+    border: 1.5px solid rgb(18 21 26 / 0.14);
+    background: rgb(255 255 255 / 0.72);
+    backdrop-filter: blur(6px);
+    color: rgb(18 21 26 / 0.82);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-onboarding-skip:hover {
+    background: rgb(255 255 255 / 0.94);
+  }
+  /* The camera move: a slow pull back from a close crop of the world mark to
+     the full scene, so the flight opens on a detail and reveals the whole
+     promise as it settles. */
+  .nf-onboarding-image {
+    animation: nf-onboarding-pan 5.2s var(--nf-ease-standard) both;
+  }
+  @keyframes nf-onboarding-pan {
+    0% { transform: scale(1.22) translate3d(1.5%, 1%, 0); }
+    100% { transform: scale(1) translate3d(0, 0, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-onboarding-image {
+      animation: none;
+    }
+    .nf-onboarding {
+      transition: none;
+    }
+  }
+
+  /*
+   * The agent verification ceremony. The status icon assembles itself, a
+   * quick scale up from small with a slight rotate settling flat, the one
+   * time a browser renders this application as just approved (see
+   * app/agents/status/StatusIcon.tsx for the honest, one-shot trigger).
+   */
+  .nf-status-assemble {
+    animation: nf-status-assemble 600ms var(--nf-ease-spring) both;
+  }
+  @keyframes nf-status-assemble {
+    0% { opacity: 0; transform: scale(0.7) rotate(-8deg); }
+    70% { opacity: 1; transform: scale(1.05) rotate(2deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-status-assemble {
+      animation: none;
+    }
+  }
+
+  /*
+   * Living glass.
+   *
+   * A specular highlight travels slowly across every object tile, the way
+   * light moves over real glass when you turn it. Long cycle and low opacity,
+   * so it registers as the surface being alive rather than as an animation
+   * demanding attention. Staggered per tile by index so a grid never pulses
+   * in lockstep.
+   */
+  .nf-icon-tile::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    overflow: hidden;
+    background: linear-gradient(
+      115deg,
+      transparent 38%,
+      rgb(255 255 255 / 0.6) 47%,
+      rgb(160 190 255 / 0.35) 52%,
+      transparent 62%
+    );
+    background-size: 260% 100%;
+    background-position: 160% 0;
+    animation: nf-tile-sheen 7s var(--nf-ease-standard) infinite;
+    animation-delay: calc(var(--tile-i, 0) * 900ms);
+    mix-blend-mode: screen;
+    opacity: 0.75;
+  }
+  :root[data-theme="light"] .nf-icon-tile::after {
+    mix-blend-mode: normal;
+    opacity: 0.5;
+  }
+  @keyframes nf-tile-sheen {
+    0%, 62% { background-position: 160% 0; }
+    92%, 100% { background-position: -60% 0; }
+  }
+
+  /*
+   * Page scene anchor. The artwork dissolves into the canvas behind a page's
+   * opening lines: masked in every direction, low contrast, and drifting, so
+   * it belongs to the surface rather than sitting on it.
+   */
+  .nf-page-scene {
+    opacity: 0.4;
+    filter: saturate(1.1);
+    -webkit-mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
+    mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
+    animation: nf-scene-live 20s var(--nf-ease-standard) infinite;
+  }
+  :root[data-theme="light"] .nf-page-scene {
+    opacity: 0.3;
+  }
+  /*
+   * The one hole in an otherwise thorough reduced-motion story. Duration
+   * tokens collapse to 1ms everywhere else, but this animation hard-codes its
+   * own 20s and loops forever, so it kept drifting for users who asked for
+   * stillness. The artwork keeps its mask and opacity; only the drift stops.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-page-scene {
+      animation: none;
+    }
+  }
+
+  /* ---------------------------------------------------------- odometer */
+
+  /* Figures paint solid brand ink: a clipped gradient cannot cross the
+     transformed digit strips, which leaves the numbers invisible. */
+  .nf-odometer-figure {
+    color: var(--nf-electric-300);
+  }
+  :root[data-theme="light"] .nf-odometer-figure {
+    color: var(--nf-brand-primary);
+  }
+
+  .nf-odometer__slot {
+    display: inline-block;
+    height: 1em;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+  .nf-odometer__sep {
+    display: inline-block;
+    vertical-align: bottom;
+  }
+  .nf-odometer__strip {
+    display: flex;
+    flex-direction: column;
+    transition: transform 1.15s var(--nf-ease-entrance);
+    will-change: transform;
+  }
+  .nf-odometer__digit {
+    display: block;
+    height: 1em;
+    line-height: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-odometer__strip {
+      transition: none;
+    }
+  }
+
+  /*
+   * Wallet balance pulse. A band of light travels through the card the
+   * moment the balance actually changes: upward and success-tinted for a
+   * deposit landing, downward and brand-tinted for a spend leaving. The
+   * component sets and clears data-pulse itself, so this only ever plays
+   * once per real change, never on a loop.
+   */
+  .nf-balance-pulse {
+    position: relative;
+  }
+  .nf-balance-pulse::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0;
+  }
+  .nf-balance-pulse[data-pulse="up"]::before {
+    background: linear-gradient(
+      0deg,
+      transparent 0%,
+      color-mix(in oklab, var(--nf-state-success) 35%, transparent) 45%,
+      transparent 85%
+    );
+    animation: nf-balance-pulse-up 1.1s var(--nf-ease-standard) both;
+  }
+  .nf-balance-pulse[data-pulse="down"]::before {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      color-mix(in oklab, var(--nf-brand-primary) 32%, transparent) 45%,
+      transparent 85%
+    );
+    animation: nf-balance-pulse-down 1.1s var(--nf-ease-standard) both;
+  }
+  @keyframes nf-balance-pulse-up {
+    0% { transform: translateY(22%); opacity: 0; }
+    35% { opacity: 1; }
+    100% { transform: translateY(-10%); opacity: 0; }
+  }
+  @keyframes nf-balance-pulse-down {
+    0% { transform: translateY(-22%); opacity: 0; }
+    35% { opacity: 1; }
+    100% { transform: translateY(10%); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-balance-pulse[data-pulse]::before {
+      animation: none !important;
+      display: none;
+    }
+  }
+
+  /*
+   * Transaction row entrance. Money arriving slides in from the left, money
+   * leaving slides in from the right, so the direction of a row is felt
+   * before its amount is even read. Short and small: a nudge, not a slide.
+   */
+  @keyframes nf-tx-slide-in {
+    from { opacity: 0; transform: translate3d(-14px, 0, 0); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes nf-tx-slide-out {
+    from { opacity: 0; transform: translate3d(14px, 0, 0); }
+    to { opacity: 1; transform: none; }
+  }
+  .nf-tx-in {
+    animation: nf-tx-slide-in 420ms var(--nf-ease-entrance) both;
+  }
+  .nf-tx-out {
+    animation: nf-tx-slide-out 420ms var(--nf-ease-entrance) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-tx-in,
+    .nf-tx-out {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
+  /*
+   * Scroll-linked hero. The villa grows and its glow deepens across the first
+   * viewport, so page motion drives the artwork instead of the artwork just
+   * looping beside it. Falls back to the ambient drift where scroll timelines
+   * are unavailable.
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-hero-scene {
+        animation: nf-hero-scroll linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 70%;
+      }
+    }
+  }
+  @keyframes nf-hero-scroll {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+      filter: saturate(1) brightness(0.98);
+    }
+    to {
+      transform: translate3d(0, -34px, 0) scale(1.1);
+      filter: saturate(1.2) brightness(1.1);
+    }
+  }
+
+  /* Scene artwork breathes very slightly, so a still render never looks dead
+     next to the moving canvas behind it. */
+  .nf-story-art {
+    animation: nf-art-breathe 12s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-art-breathe {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(0, -6px, 0) scale(1.015); }
+  }
+
+  /* The hero scene drifts and its light shifts, tying the artwork to the
+     ambient canvas instead of sitting on top of it. */
+  .nf-hero-scene {
+    animation: nf-scene-live 18s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-scene-live {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); filter: saturate(1.05) brightness(1); }
+    50% { transform: translate3d(0, -14px, 0) scale(1.02); filter: saturate(1.12) brightness(1.05); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-icon-tile::after,
+    .nf-story-art,
+    .nf-hero-scene {
+      animation: none !important;
+    }
+    .nf-icon-tile::after { display: none; }
+  }
+
+  /*
+   * Story stage.
+   *
+   * The commissioned character scenes are lit product shots on white, so
+   * they get a studio ground rather than a dark panel: a soft silver-white
+   * sweep with a faint blue floor glow, which reads as the same photographic
+   * space the artwork was rendered in. At night the stage keeps its bright
+   * ground so the character stays the light source of the card.
+   */
+  /*
+   * Story stages.
+   *
+   * Each commissioned scene was lit on its own ground: some are studio white
+   * product shots, some are neon objects on black. Cutting either one out
+   * leaves halos on the opposite ground, so instead the stage adopts the
+   * light the artwork was rendered in, and the image edges are feathered so
+   * the square dissolves into it. The result is seamless in both themes.
+   */
+  .nf-story-stage--paper {
+    background:
+      radial-gradient(75% 55% at 50% 100%, rgb(12 57 239 / 0.1) 0%, transparent 70%),
+      radial-gradient(120% 90% at 70% -10%, #FFFFFF 0%, rgb(255 255 255 / 0) 62%),
+      linear-gradient(180deg, #FBFCFD 0%, #F1F3F7 100%);
+    border-bottom: 1px solid rgb(18 21 26 / 0.07);
+  }
+  .nf-story-stage--night {
+    background:
+      radial-gradient(70% 50% at 50% 100%, rgb(12 57 239 / 0.3) 0%, transparent 70%),
+      linear-gradient(180deg, #05060F 0%, #01010A 100%);
+    border-bottom: 1px solid rgb(92 124 255 / 0.28);
+  }
+  .nf-story-art {
+    -webkit-mask-image: radial-gradient(76% 76% at 50% 48%, #000 62%, transparent 92%);
+    mask-image: radial-gradient(76% 76% at 50% 48%, #000 62%, transparent 92%);
+  }
+
+  /* A scene shown small inside the platform gets a rounded chip, never a hard
+     square block sitting on the card. */
+  .nf-scene-chip {
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid rgb(18 21 26 / 0.07);
+    overflow: hidden;
+  }
+  :root:not([data-theme="light"]) .nf-scene-chip {
+    border-color: rgb(92 124 255 / 0.28);
+  }
+
+  /* Anchored headings clear the sticky header instead of hiding under it. */
+  [id^="nf-"] {
+    scroll-margin-top: 5.5rem;
+  }
+
+  /* ------------------------------------------------ landing motion system */
+
+  /*
+   * The living page.
+   *
+   * Below the hero, the landing tells its story in movement: sections lift
+   * into place as they enter, headlines wipe in word by word, rails drift,
+   * numbers breathe and edges catch light. Every effect is scroll driven or
+   * pure CSS, GPU friendly (transform and opacity only), and every one of
+   * them collapses under reduced motion.
+   */
+
+  /* Scroll-driven entrance. Sections animate against their own scroll
+     position where supported, so scrubbing back up replays them. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-enter {
+        animation: nf-enter-up linear both;
+        animation-timeline: view();
+        animation-range: entry 8% cover 34%;
+      }
+      .nf-enter-scale {
+        animation: nf-enter-scale linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 40%;
+      }
+      /* Rails drift a touch as the page scrolls past them, which reads as
+         depth without any JavaScript scroll listener. */
+      .nf-parallax-soft {
+        animation: nf-parallax-soft linear both;
+        animation-timeline: view();
+        animation-range: cover 0% cover 100%;
+      }
+    }
+  }
+  @keyframes nf-enter-up {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 34px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-enter-scale {
+    from {
+      opacity: 0;
+      transform: scale(0.965);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-parallax-soft {
+    from {
+      transform: translate3d(0, 18px, 0);
+    }
+    to {
+      transform: translate3d(0, -18px, 0);
+    }
+  }
+
+  /*
+   * Word by word headline wipe. Each word is a span that lifts and fades in
+   * on a stagger set inline, so a heading assembles itself rather than
+   * appearing whole.
+   */
+  .nf-words > span {
+    display: inline-block;
+    animation: nf-word-in var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-words > span {
+        animation-timeline: view();
+        animation-range: entry 10% cover 30%;
+        animation-delay: 0s;
+        animation-duration: calc(1s + var(--i, 0) * 0.18s);
+      }
+    }
+  }
+  @keyframes nf-word-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.5em, 0) rotate(1.5deg);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  /* A hairline that draws itself across a section as it arrives. */
+  .nf-rule-draw {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--nf-brand-primary) 50%,
+      transparent 100%
+    );
+    transform-origin: center;
+    animation: nf-rule-draw var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-rule-draw {
+        animation-timeline: view();
+        animation-range: entry 0% cover 26%;
+      }
+    }
+  }
+  @keyframes nf-rule-draw {
+    from {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+    to {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+  }
+
+  /* Slow ambient drift for decorative objects sitting inside sections. */
+  .nf-drift {
+    animation: nf-drift 14s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-drift {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    50% { transform: translate3d(0, -10px, 0) rotate(-1.2deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-enter,
+    .nf-enter-scale,
+    .nf-parallax-soft,
+    .nf-words > span,
+    .nf-rule-draw,
+    .nf-drift {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
+  }
+}
