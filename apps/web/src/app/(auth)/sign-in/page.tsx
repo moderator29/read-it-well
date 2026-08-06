@@ -35,14 +35,20 @@ const NOTICES: Record<string, string> = {
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ notice?: string }>;
+  searchParams: Promise<{ notice?: string; next?: string }>;
 }) {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const { notice } = await searchParams;
+  const { notice, next } = await searchParams;
   const noticeText = notice ? NOTICES[notice] : undefined;
 
   return (
-    <AuthChoices mode="sign-in" t={t} providers={getProviderStates()} notice={noticeText} />
+    <AuthChoices
+      mode="sign-in"
+      t={t}
+      providers={getProviderStates()}
+      notice={noticeText}
+      next={next}
+    />
   );
 }

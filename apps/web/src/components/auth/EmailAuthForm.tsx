@@ -38,12 +38,15 @@ export function EmailAuthForm({
   t,
   action,
   states = [],
+  next,
 }: {
   mode: "sign-in" | "sign-up";
   t: Dictionary;
   action: (prev: AuthFormState, formData: FormData) => Promise<AuthFormState>;
   /** The 37 states, read on the server. Sign-in does not need them. */
   states?: StateOption[];
+  /** Where to land afterwards. Re-validated in the action, never trusted. */
+  next?: string | undefined;
 }) {
   const [state, formAction, pending] = useActionState(action, EMPTY);
   const [password, setPassword] = useState("");
@@ -106,6 +109,10 @@ export function EmailAuthForm({
         className={isSignUp ? "text-left" : "space-y-3.5 text-left"}
         noValidate
       >
+        {/* Where the middleware was sending them before it asked them to sign
+            in. A hidden field is an input like any other, so the action
+            re-checks it rather than trusting the round trip. */}
+        {next ? <input type="hidden" name="next" value={next} /> : null}
         {isSignUp ? (
           <>
             <FormGroup title={t.signUp.groups.identity} step={step(1)}>

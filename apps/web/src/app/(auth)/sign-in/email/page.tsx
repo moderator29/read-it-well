@@ -9,9 +9,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function SignInEmailPage() {
+export default async function SignInEmailPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
   const locale = await getLocale();
   const t = getDictionary(locale);
 
-  return <EmailAuthForm mode="sign-in" t={t} action={signInWithEmail} />;
+  return <EmailAuthForm mode="sign-in" t={t} action={signInWithEmail} next={next} />;
 }
