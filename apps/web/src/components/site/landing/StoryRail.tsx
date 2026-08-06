@@ -4,6 +4,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { CarouselRail } from "./CarouselRail";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { gatedHref } from "@/lib/site/gated-href";
 
 /**
  * The story rail.
@@ -42,7 +43,7 @@ const STORIES: Story[] = [
     overline: "RentMe AI",
     title: "An assistant that knows every street",
     body: "Ask in plain words for a two bedroom in Lekki under 300k with a pool. It reads the whole catalogue and hands back places you can actually book.",
-    href: "/assistant",
+    href: gatedHref("/assistant"),
     action: "Meet the assistant",
     points: [
       { icon: "bot-chat", label: "Plain language search" },
@@ -56,7 +57,7 @@ const STORIES: Story[] = [
     overline: "Smart search",
     title: "Find the exact place, not a page of noise",
     body: "Filter by city, budget and bedrooms, and by the things that actually matter here: prepaid meter, borehole, estate security, real photos.",
-    href: "/search",
+    href: gatedHref("/search"),
     action: "Start searching",
     points: [
       { icon: "home-search", label: "Every state covered" },
@@ -70,7 +71,7 @@ const STORIES: Story[] = [
     overline: "Explore nearby",
     title: "See what is around you, live on the map",
     body: "Pan the map and watch prices light up city by city. Tap a pin and the whole area opens, from Lekki to Maitama to Old GRA.",
-    href: "/search?view=map",
+    href: gatedHref("/search?view=map"),
     action: "Open the map",
     points: [
       { icon: "map-route", label: "Live map view" },
@@ -98,7 +99,7 @@ const STORIES: Story[] = [
     overline: "Secure payments",
     title: "One naira wallet, recorded to the kobo",
     body: "Fund it, book with it, get refunded into it. Every movement is written to a ledger you can read, and we charge you nothing to use it.",
-    href: "/wallet",
+    href: gatedHref("/wallet"),
     action: "See the wallet",
     points: [
       { icon: "wallet-secure", label: "Naira wallet" },
@@ -112,7 +113,7 @@ const STORIES: Story[] = [
     overline: "Easy booking",
     title: "From the first tap to the keys in your hand",
     body: "Pick your dates, reserve in seconds, and keep every trip, message and receipt together. Your whole move lives in one account.",
-    href: "/bookings",
+    href: gatedHref("/bookings"),
     action: "View bookings",
     points: [
       { icon: "calendar-check", label: "Instant confirmation" },
@@ -126,7 +127,7 @@ const STORIES: Story[] = [
     overline: "One platform",
     title: "Search, book, message and pay in one place",
     body: "Your account, your wallet, your bookings and your conversations all live together, so nothing about a move is scattered across five apps.",
-    href: "/home",
+    href: gatedHref("/home"),
     action: "Explore the platform",
     points: [
       { icon: "homes-sparkle", label: "Homes, hotels, more" },
@@ -140,7 +141,7 @@ const STORIES: Story[] = [
     overline: "The rent market",
     title: "Real homes, real yearly rent, real agents",
     body: "The serious side of RentMe: annual tenancies priced per year. Message the agent, inspect the property, then pay. No shortcuts, no pressure.",
-    href: "/rent",
+    href: gatedHref("/rent"),
     action: "Browse rentals",
     points: [
       { icon: "keys-tag", label: "Annual tenancies" },
