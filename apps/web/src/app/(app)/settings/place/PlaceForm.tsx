@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlaceFields, type PlaceValues } from "@/components/app/place/PlaceFields";
+import type { Dictionary } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { updatePlaceAction, type PlaceSaved } from "@/lib/places/actions";
 import type { StateOption } from "@/lib/places/reference";
@@ -21,10 +22,14 @@ import type { ActionResult } from "@/lib/actions/envelope";
  * than from what the form hoped for.
  */
 export function PlaceForm({
+  t,
   states,
   initial,
   initialLabels,
 }: {
+  /* The locale is resolved on the page; the pickers below draw a dozen words
+     each and none of them may be English. */
+  t: Dictionary;
   states: StateOption[];
   initial: PlaceValues;
   initialLabels: { lgaName: string; occupationName: string };
@@ -55,6 +60,7 @@ export function PlaceForm({
   return (
     <form action={formAction} className="nf-card p-5 sm:p-6" data-testid="place-form">
       <PlaceFields
+        t={t}
         states={states}
         value={values}
         onChange={setValues}

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@naijafinds/i18n";
+import { getLocale } from "@/lib/locale";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -27,6 +29,7 @@ export const dynamic = "force-dynamic";
  * given the way in, rather than being shown an empty form that cannot save.
  */
 export default async function PlacePage() {
+  const t = getDictionary(await getLocale());
   const session = await resolveSession();
   const states = await listStates();
 
@@ -85,6 +88,7 @@ export default async function PlacePage() {
       )}
 
       <PlaceForm
+        t={t}
         states={states}
         initial={{ stateCode, lgaCode, occupationCode }}
         initialLabels={{

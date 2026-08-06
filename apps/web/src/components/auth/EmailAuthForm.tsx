@@ -22,8 +22,9 @@ const EMPTY: AuthFormState = { ok: false };
  * route rather than a piece of component state.
  *
  * Sign-up collects the full profile; sign-in stays lean with email and password
- * only. The extra sign-up copy is authored here in English until the auth
- * dictionary grows the matching keys.
+ * only. Every word either of them draws comes out of the dictionary under
+ * `signUp` or `auth`; there is nothing English left inline, which is what the
+ * note that used to sit here was waiting for.
  *
  * The sign-up form is grouped rather than stacked. Nine fields in one unbroken
  * column is a wall, and a wall is where people abandon. Four headed groups with
@@ -54,9 +55,33 @@ export function EmailAuthForm({
   });
   const isSignUp = mode === "sign-up";
 
+  /*
+   * "1 of 4" is a sentence, not a format. Yoruba, Hausa and Igbo do not all
+   * put the two numbers either side of one word, so the whole thing is a
+   * dictionary string with two slots rather than a template assembled here.
+   */
+  const step = (current: number) =>
+    t.signUp.stepOf.replace("{current}", String(current)).replace("{total}", "4");
+
+  /*
+   * The word shown and the value posted, apart.
+   *
+   * `HEAR_ABOUT_OPTIONS` carries the English value the server validates and the
+   * database stores - frozen, because every row written before this form spoke
+   * four languages holds one of those six words - alongside the key its label
+   * lives under. Translating in place would have quietly stopped the validator
+   * matching answers already saved.
+   */
+  const hearAbout = HEAR_ABOUT_OPTIONS.map((option) => ({
+    value: option.value,
+    label: t.signUp.hearAbout[option.labelKey],
+  }));
+
   // Live mismatch feedback on the confirm field; the server re-checks it.
   const mismatch = confirm.length > 0 && confirm !== password;
-  const confirmError = mismatch ? "Passwords do not match." : state.fieldErrors?.confirmPassword;
+  const confirmError = mismatch
+    ? t.signUp.passwordMismatch
+    : state.fieldErrors?.confirmPassword;
 
   return (
     <div className="w-full">
@@ -83,41 +108,45 @@ export function EmailAuthForm({
       >
         {isSignUp ? (
           <>
-            <FormGroup title="Who you are" step="1 of 4">
+            <FormGroup title={t.signUp.groups.identity} step={step(1)}>
               <div className="grid grid-cols-2 gap-4">
                 <Field
+                  t={t}
                   id="firstName"
                   name="firstName"
                   type="text"
-                  label="First name"
-                  placeholder="Ada"
+                  label={t.signUp.firstNameLabel}
+                  placeholder={t.signUp.firstNamePlaceholder}
                   autoComplete="given-name"
                   error={state.fieldErrors?.firstName}
                 />
                 <Field
+                  t={t}
                   id="surname"
                   name="surname"
                   type="text"
-                  label="Surname"
-                  placeholder="Okafor"
+                  label={t.signUp.surnameLabel}
+                  placeholder={t.signUp.surnamePlaceholder}
                   autoComplete="family-name"
                   error={state.fieldErrors?.surname}
                 />
               </div>
               <Field
+                t={t}
                 id="nickname"
                 name="nickname"
                 type="text"
-                label="Nickname"
+                label={t.signUp.nicknameLabel}
                 optional
-                placeholder="What friends call you"
+                placeholder={t.signUp.nicknamePlaceholder}
                 autoComplete="nickname"
                 error={state.fieldErrors?.nickname}
               />
             </FormGroup>
 
-            <FormGroup title="How you sign in" step="2 of 4">
+            <FormGroup title={t.signUp.groups.credentials} step={step(2)}>
               <Field
+                t={t}
                 id="email"
                 name="email"
                 type="email"
@@ -127,6 +156,7 @@ export function EmailAuthForm({
                 error={state.fieldErrors?.email}
               />
               <PasswordField
+                t={t}
                 id="password"
                 label={t.auth.passwordLabel}
                 placeholder={t.auth.passwordPlaceholder}
@@ -135,11 +165,12 @@ export function EmailAuthForm({
                 value={password}
                 onChange={setPassword}
               />
-              <StrengthMeter password={password} />
+              <StrengthMeter password={password} t={t} />
               <PasswordField
+                t={t}
                 id="confirmPassword"
-                label="Confirm password"
-                placeholder="Repeat your password"
+                label={t.auth.confirmPasswordLabel}
+                placeholder={t.auth.confirmPasswordPlaceholder}
                 autoComplete="new-password"
                 error={confirmError}
                 value={confirm}
@@ -148,11 +179,12 @@ export function EmailAuthForm({
             </FormGroup>
 
             <FormGroup
-              title="Where you stay, and what you do"
-              step="3 of 4"
-              note="Your local government decides which places your home screen opens on. Both can be changed later in settings."
+              title={t.signUp.groups.place}
+              step={step(3)}
+              note={t.signUp.placeNote}
             >
               <PlaceFields
+                t={t}
                 states={states}
                 value={place}
                 onChange={setPlace}
@@ -160,22 +192,23 @@ export function EmailAuthForm({
               />
             </FormGroup>
 
-            <FormGroup title="How you found us" step="4 of 4">
+            <FormGroup title={t.signUp.groups.discovery} step={step(4)}>
               <SelectField
                 id="hearAbout"
                 name="hearAbout"
-                label="Where did you hear about us"
-                placeholder="Select an option"
-                options={HEAR_ABOUT_OPTIONS}
+                label={t.signUp.hearAboutLabel}
+                placeholder={t.signUp.hearAboutPlaceholder}
+                options={hearAbout}
                 error={state.fieldErrors?.hearAbout}
               />
               <Field
+                t={t}
                 id="referralCode"
                 name="referralCode"
                 type="text"
-                label="Referral code"
+                label={t.signUp.referralLabel}
                 optional
-                placeholder="Enter your code"
+                placeholder={t.signUp.referralPlaceholder}
                 autoComplete="off"
                 error={state.fieldErrors?.referralCode}
               />
@@ -184,6 +217,7 @@ export function EmailAuthForm({
         ) : (
           <>
             <Field
+              t={t}
               id="email"
               name="email"
               type="email"
@@ -193,6 +227,7 @@ export function EmailAuthForm({
               error={state.fieldErrors?.email}
             />
             <PasswordField
+              t={t}
               id="password"
               label={t.auth.passwordLabel}
               placeholder={t.auth.passwordPlaceholder}

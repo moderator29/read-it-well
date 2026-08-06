@@ -77,7 +77,12 @@ export const COMMON_OCCUPATIONS_CATEGORY = "Common in Nigeria";
  * key collision. The picker drops the shortcut group while a search is running,
  * which is where a duplicate would otherwise read as a bug.
  */
-export function groupOccupations(options: OccupationOption[]): OccupationGroup[] {
+export function groupOccupations(
+  options: OccupationOption[],
+  /* The heading, in the reader's language. Defaults to English so a caller
+     that has no dictionary - a test, a script - still gets a sensible one. */
+  commonLabel: string = COMMON_OCCUPATIONS_CATEGORY,
+): OccupationGroup[] {
   const groups: OccupationGroup[] = [];
   const index = new Map<string, OccupationGroup>();
 
@@ -98,7 +103,7 @@ export function groupOccupations(options: OccupationOption[]): OccupationGroup[]
   if (common.length === 0) return groups;
 
   return [
-    { category: COMMON_OCCUPATIONS_CATEGORY, options: common, shortcut: true },
+    { category: commonLabel, options: common, shortcut: true },
     ...groups,
   ];
 }

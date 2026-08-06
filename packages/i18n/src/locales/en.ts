@@ -201,6 +201,117 @@ export const en = {
     confirmPasswordPlaceholder: "Repeat your password",
   },
 
+  /**
+   * The sign-up form's own copy.
+   *
+   * Apart from `auth` because these words belong to one screen and one shape:
+   * four headed groups, the counter beside each heading, and the fields inside
+   * them. `auth` is read by sign-in, the reset flow and the provider rows too,
+   * and a key only the sign-up form can ever reach does not belong in a
+   * section three other screens have to read past. The two password keys the
+   * form shares with the reset screen stay in `auth`, where they already were.
+   *
+   * `stepOf` is a template. Keep both placeholders in every translation, and
+   * keep their spelling, or a group loses its place in the count.
+   */
+  signUp: {
+    groups: {
+      identity: "Who you are",
+      credentials: "How you sign in",
+      place: "Where you stay, and what you do",
+      discovery: "How you found us",
+    },
+    stepOf: "{current} of {total}",
+    optional: "Optional",
+    firstNameLabel: "First name",
+    /** An example, not a default. Each locale names somebody it would name. */
+    firstNamePlaceholder: "Ada",
+    surnameLabel: "Surname",
+    surnamePlaceholder: "Okafor",
+    nicknameLabel: "Nickname",
+    nicknamePlaceholder: "What friends call you",
+    passwordMismatch: "Passwords do not match.",
+    /** The four rungs of the strength meter. Rung 0 shows nothing at all. */
+    strength: {
+      weak: "Weak",
+      fair: "Fair",
+      good: "Good",
+      strong: "Strong",
+    },
+    showPassword: "Show password",
+    hidePassword: "Hide password",
+    placeNote:
+      "Your local government decides which places your home screen opens on. Both can be changed later in settings.",
+    hearAboutLabel: "Where did you hear about us",
+    hearAboutPlaceholder: "Select an option",
+    /**
+     * The LABELS only.
+     *
+     * What is stored and what the server validates against is the English
+     * value in `lib/auth/signup-options.ts`, which is why these are a separate
+     * lookup rather than the option list itself. Translate freely: nothing
+     * here reaches the database, and rows written before this existed keep
+     * matching.
+     */
+    hearAbout: {
+      instagram: "Instagram",
+      tiktok: "TikTok",
+      x: "X",
+      friendOrFamily: "Friend or family",
+      googleSearch: "Google search",
+      other: "Other",
+    },
+    referralLabel: "Referral code",
+    referralPlaceholder: "Enter your code",
+  },
+
+  /**
+   * The long-list pickers, and the three place fields that mount them.
+   *
+   * Its own section rather than a corner of `signUp`, because these same three
+   * fields are the whole of `/settings/place`. Somebody changing their state a
+   * year after joining reads every one of these words and is not signing up,
+   * so folding them into the sign-up section would have put the settings
+   * screen's copy behind a name that lies about where it is used.
+   *
+   * `searchIn` carries the chosen state's name and `commonOccupations` is a
+   * heading over rows, not a row itself. The occupation and local government
+   * NAMES come from the database and are English there; translating them is a
+   * data question, not a dictionary one.
+   */
+  pickers: {
+    clear: "Clear",
+    close: "Close",
+    search: "Search",
+    clearSearch: "Clear the search",
+    loading: "Loading the list.",
+    emptyTitle: "Nothing matches that",
+    emptyUnreachable:
+      "We could not load the list just now. Close this and try again in a moment.",
+    emptySearch: "Try a shorter word, or part of the name.",
+
+    countryLabel: "Country",
+    countryName: "Nigeria",
+    countryOnly: "The only one, for now",
+
+    stateLabel: "State",
+    statePlaceholder: "Choose your state",
+    stateSearch: "Search 37 states",
+
+    lgaLabel: "Local government",
+    lgaPlaceholder: "Choose your local government",
+    lgaLocked: "Choose a state first",
+    lgaDisabledHint: "Your state decides which local governments are on this list.",
+    searchIn: "Search {place}",
+
+    occupationLabel: "What you do",
+    occupationHint:
+      "The common ones are at the top, the rest are grouped by field. Prefer not to say is on the list and is a real answer.",
+    occupationPlaceholder: "Choose your occupation",
+    occupationSearch: "Search 749 occupations",
+    commonOccupations: "Common in Nigeria",
+  },
+
   home: {
     greeting: "Welcome back",
     prompt: "Where are you going today?",

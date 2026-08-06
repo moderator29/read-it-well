@@ -60,6 +60,7 @@ export function ForgotPasswordForm({ t }: { t: Dictionary }) {
       ) : (
         <form action={formAction} className="space-y-4 text-left" noValidate>
           <Field
+            t={t}
             id="email"
             name="email"
             type="email"

@@ -186,6 +186,79 @@ export const ig: Dictionary = {
     confirmPasswordPlaceholder: "Pịghachi okwuntughe gị",
   },
 
+  signUp: {
+    groups: {
+      identity: "Onye ị bụ",
+      credentials: "Otú ị si abanye",
+      place: "Ebe ị bi, na ihe ị na-eme",
+      discovery: "Otú ị si chọta anyị",
+    },
+    stepOf: "{current} nke {total}",
+    optional: "Nhọrọ",
+    firstNameLabel: "Aha mbụ",
+    firstNamePlaceholder: "Ada",
+    surnameLabel: "Aha ezinụlọ",
+    surnamePlaceholder: "Okafor",
+    nicknameLabel: "Aha ọzọ",
+    nicknamePlaceholder: "Ihe ndị enyi gị na-akpọ gị",
+    passwordMismatch: "Okwuntughe abụọ ahụ adabaghị ibe ha.",
+    strength: {
+      weak: "Adịghị ike",
+      fair: "Nke etiti",
+      good: "Dị mma",
+      strong: "Siri ike",
+    },
+    showPassword: "Gosi okwuntughe",
+    hidePassword: "Zoo okwuntughe",
+    placeNote:
+      "Ọchịchị ime obodo gị na-ekpebi ebe ndị ihuenyo ụlọ gị ga-emeghe na ha. Ị nwere ike ịgbanwe ha abụọ na ntọala ma emesịa.",
+    hearAboutLabel: "Ebee ka ị nụrụ maka anyị",
+    hearAboutPlaceholder: "Họrọ otu",
+    hearAbout: {
+      instagram: "Instagram",
+      tiktok: "TikTok",
+      x: "X",
+      friendOrFamily: "Enyi ma ọ bụ ezinụlọ",
+      googleSearch: "Nchọta Google",
+      other: "Ihe ọzọ",
+    },
+    referralLabel: "Koodu ntụzi",
+    referralPlaceholder: "Tinye koodu gị",
+  },
+
+  pickers: {
+    clear: "Hichapụ",
+    close: "Mechie",
+    search: "Chọọ",
+    clearSearch: "Hichapụ nchọta",
+    loading: "Na-ebu ndepụta ahụ.",
+    emptyTitle: "Ọ dịghị ihe dabara na nke ahụ",
+    emptyUnreachable:
+      "Anyị enweghị ike ibu ndepụta ahụ ugbu a. Mechie nke a ma nwaa ọzọ obere oge.",
+    emptySearch: "Nwaa okwu dị mkpụmkpụ, ma ọ bụ akụkụ aha ahụ.",
+
+    countryLabel: "Obodo",
+    countryName: "Naịjirịa",
+    countryOnly: "Sọọsọ ya, ugbu a",
+
+    stateLabel: "Steeti",
+    statePlaceholder: "Họrọ steeti gị",
+    stateSearch: "Chọọ steeti 37",
+
+    lgaLabel: "Ọchịchị ime obodo",
+    lgaPlaceholder: "Họrọ ọchịchị ime obodo gị",
+    lgaLocked: "Buru ụzọ họrọ steeti",
+    lgaDisabledHint: "Steeti gị na-ekpebi ọchịchị ime obodo ndị dị na ndepụta a.",
+    searchIn: "Chọọ {place}",
+
+    occupationLabel: "Ihe ị na-eme",
+    occupationHint:
+      "Ndị a na-ahụkarị dị n'elu, ndị fọdụrụ ka ekewara n'ụdị ọrụ. Achọghị m ikwu dị na ndepụta ahụ, ọ bụkwa azịza ezi okwu.",
+    occupationPlaceholder: "Họrọ ọrụ gị",
+    occupationSearch: "Chọọ ọrụ 749",
+    commonOccupations: "Ndị a na-ahụkarị na Naịjirịa",
+  },
+
   home: {
     greeting: "Nnọọ ọzọ",
     prompt: "Ebee ka ị na-aga taa?",

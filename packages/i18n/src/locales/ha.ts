@@ -186,6 +186,79 @@ export const ha: Dictionary = {
     confirmPasswordPlaceholder: "Sake rubuta kalmar sirrinka",
   },
 
+  signUp: {
+    groups: {
+      identity: "Wane ne kai",
+      credentials: "Yadda kake shiga",
+      place: "Inda kake zama, da abin da kake yi",
+      discovery: "Yadda ka same mu",
+    },
+    stepOf: "{current} daga {total}",
+    optional: "Ba dole ba",
+    firstNameLabel: "Sunan farko",
+    firstNamePlaceholder: "Amina",
+    surnameLabel: "Sunan iyali",
+    surnamePlaceholder: "Sani",
+    nicknameLabel: "Laƙabi",
+    nicknamePlaceholder: "Abin da abokai suke kiranka",
+    passwordMismatch: "Kalmomin sirri biyu ba su yi daidai ba.",
+    strength: {
+      weak: "Rauni",
+      fair: "Matsakaici",
+      good: "Mai kyau",
+      strong: "Mai ƙarfi",
+    },
+    showPassword: "Nuna kalmar sirri",
+    hidePassword: "Ɓoye kalmar sirri",
+    placeNote:
+      "Ƙaramar hukumarka ce ke tantance wuraren da allon gidanka zai buɗe a kansu. Ana iya sauya duka biyun a saituna daga baya.",
+    hearAboutLabel: "Ina ka ji labarinmu",
+    hearAboutPlaceholder: "Zaɓi ɗaya",
+    hearAbout: {
+      instagram: "Instagram",
+      tiktok: "TikTok",
+      x: "X",
+      friendOrFamily: "Aboki ko dangi",
+      googleSearch: "Binciken Google",
+      other: "Wani abu dabam",
+    },
+    referralLabel: "Lambar gayyata",
+    referralPlaceholder: "Shigar da lambarka",
+  },
+
+  pickers: {
+    clear: "Share",
+    close: "Rufe",
+    search: "Nema",
+    clearSearch: "Share neman",
+    loading: "Ana ɗaukar jerin.",
+    emptyTitle: "Babu abin da ya yi daidai da haka",
+    emptyUnreachable:
+      "Ba mu iya ɗaukar jerin a yanzu ba. Rufe wannan ka sake gwadawa bayan ɗan lokaci.",
+    emptySearch: "Gwada gajeriyar kalma, ko wani sashe na sunan.",
+
+    countryLabel: "Ƙasa",
+    countryName: "Najeriya",
+    countryOnly: "Ita kaɗai ce, a yanzu",
+
+    stateLabel: "Jiha",
+    statePlaceholder: "Zaɓi jiharka",
+    stateSearch: "Nemi jihohi 37",
+
+    lgaLabel: "Ƙaramar hukuma",
+    lgaPlaceholder: "Zaɓi ƙaramar hukumarka",
+    lgaLocked: "Fara zaɓen jiha",
+    lgaDisabledHint: "Jiharka ce ke tantance ƙananan hukumomin da ke wannan jerin.",
+    searchIn: "Nemi {place}",
+
+    occupationLabel: "Abin da kake yi",
+    occupationHint:
+      "Waɗanda suka fi yawa suna sama, sauran kuma an haɗa su bisa fanni. Ba na so in faɗa yana cikin jerin, kuma amsa ce ta gaske.",
+    occupationPlaceholder: "Zaɓi sana'arka",
+    occupationSearch: "Nemi sana'o'i 749",
+    commonOccupations: "Waɗanda suka zama ruwan dare a Najeriya",
+  },
+
   home: {
     greeting: "Barka da dawowa",
     prompt: "Ina za ka je yau?",

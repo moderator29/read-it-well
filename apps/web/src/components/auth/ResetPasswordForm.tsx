@@ -41,6 +41,7 @@ export function ResetPasswordForm({ t }: { t: Dictionary }) {
 
       <form action={formAction} className="space-y-3.5 text-left" noValidate>
         <PasswordField
+          t={t}
           id="password"
           label={t.auth.newPasswordLabel}
           placeholder={t.auth.passwordPlaceholder}
@@ -49,8 +50,9 @@ export function ResetPasswordForm({ t }: { t: Dictionary }) {
           value={password}
           onChange={setPassword}
         />
-        <StrengthMeter password={password} />
+        <StrengthMeter password={password} t={t} />
         <PasswordField
+          t={t}
           id="confirmPassword"
           label={t.auth.confirmPasswordLabel}
           placeholder={t.auth.confirmPasswordPlaceholder}

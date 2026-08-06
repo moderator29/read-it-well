@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { siteUrl } from "@/lib/site";
 import { getProviderStates } from "./providers";
-import { HEAR_ABOUT_OPTIONS, REFERRAL_CODE_RE } from "./signup-options";
+import { HEAR_ABOUT_VALUES, REFERRAL_CODE_RE } from "./signup-options";
 
 export type AuthField =
   | "firstName"
@@ -89,8 +89,10 @@ function validateSignUp(formData: FormData): Partial<Record<AuthField, string>> 
       errors.confirmPassword = "Passwords do not match.";
   }
 
+  /* The English value, never the translated label. The select posts the one
+     and shows the other, so this check is the same in all four languages. */
   if (!hearAbout) errors.hearAbout = "Tell us where you heard about us.";
-  else if (!(HEAR_ABOUT_OPTIONS as readonly string[]).includes(hearAbout))
+  else if (!HEAR_ABOUT_VALUES.includes(hearAbout))
     errors.hearAbout = "Choose one of the listed options.";
 
   /* Codes, not names. `profiles.state_code` and `profiles.lga_code` are keyed

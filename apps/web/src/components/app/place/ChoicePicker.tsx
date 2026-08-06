@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TextField } from "@/components/ui/Field";
 import { matchesSearch } from "@/lib/places/reference";
+import type { Dictionary } from "@naijafinds/i18n";
 
 /**
  * One choice out of a very long list, without a very long list.
@@ -58,6 +59,7 @@ const INVALID_STYLE: CSSProperties = {
 };
 
 export function ChoicePicker({
+  t,
   name,
   label,
   hint,
@@ -71,9 +73,16 @@ export function ChoicePicker({
   loading = false,
   error,
   allowClear = true,
-  searchPlaceholder = "Search",
+  searchPlaceholder,
   testId,
 }: {
+  /*
+   * The dictionary, handed down. Every word this drawer draws - the clear
+   * affordance, the close label, both empty states - used to be an English
+   * literal, and this control is on the sign-up form, which is the first screen
+   * somebody who chose Hausa ever sees.
+   */
+  t: Dictionary;
   /** The form field name the choice is posted under. */
   name: string;
   label: string;
@@ -90,7 +99,7 @@ export function ChoicePicker({
   loading?: boolean;
   error?: string | undefined;
   allowClear?: boolean;
-  searchPlaceholder?: string;
+  searchPlaceholder?: string | undefined;
   testId?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -167,7 +176,7 @@ export function ChoicePicker({
             onClick={() => onChange("")}
             className="text-[0.6875rem] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
           >
-            Clear
+            {t.pickers.clear}
           </button>
         )}
       </div>
@@ -243,7 +252,7 @@ export function ChoicePicker({
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    aria-label="Close"
+                    aria-label={t.pickers.close}
                     onClick={() => setOpen(false)}
                     className="nf-icon-btn h-10 w-10 shrink-0"
                   >
@@ -266,15 +275,15 @@ export function ChoicePicker({
                 */}
                 <TextField
                   className="mt-4"
-                  label={searchPlaceholder}
+                  label={searchPlaceholder ?? t.pickers.search}
                   hideLabel
                   type="search"
                   leadingIcon="search"
-                  clearable="Clear the search"
+                  clearable={t.pickers.clearSearch}
                   onClear={() => setQuery("")}
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder={searchPlaceholder}
+                  placeholder={searchPlaceholder ?? t.pickers.search}
                   autoComplete="off"
                   spellCheck={false}
                 />
@@ -283,15 +292,13 @@ export function ChoicePicker({
               <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2">
                 {loading ? (
                   <p className="py-8 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
-                    Loading the list.
+                    {t.pickers.loading}
                   </p>
                 ) : total === 0 ? (
                   <div className="py-10 text-center">
-                    <p className="text-[0.9375rem] font-semibold">Nothing matches that</p>
+                    <p className="text-[0.9375rem] font-semibold">{t.pickers.emptyTitle}</p>
                     <p className="mx-auto mt-1.5 max-w-[34ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-                      {groups.length === 0
-                        ? "We could not load the list just now. Close this and try again in a moment."
-                        : "Try a shorter word, or part of the name."}
+                      {groups.length === 0 ? t.pickers.emptyUnreachable : t.pickers.emptySearch}
                     </p>
                   </div>
                 ) : (

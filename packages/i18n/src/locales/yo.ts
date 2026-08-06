@@ -186,6 +186,79 @@ export const yo: Dictionary = {
     confirmPasswordPlaceholder: "Tún ọ̀rọ̀ ìpamọ́ rẹ tẹ",
   },
 
+  signUp: {
+    groups: {
+      identity: "Nípa rẹ",
+      credentials: "Bí o ṣe ń wọlé",
+      place: "Ibi tí o ń gbé, àti iṣẹ́ rẹ",
+      discovery: "Bí o ṣe rí wa",
+    },
+    stepOf: "{current} nínú {total}",
+    optional: "Kò pọn dandan",
+    firstNameLabel: "Orúkọ àkọ́kọ́",
+    firstNamePlaceholder: "Adéọlá",
+    surnameLabel: "Orúkọ ìdílé",
+    surnamePlaceholder: "Adéyẹmí",
+    nicknameLabel: "Ìnagijẹ",
+    nicknamePlaceholder: "Ohun tí àwọn ọ̀rẹ́ ń pè ọ́",
+    passwordMismatch: "Àwọn ọ̀rọ̀ ìpamọ́ kò bára mu.",
+    strength: {
+      weak: "Kò lágbára",
+      fair: "Àárín",
+      good: "Dáadáa",
+      strong: "Lágbára",
+    },
+    showPassword: "Fi ọ̀rọ̀ ìpamọ́ hàn",
+    hidePassword: "Bo ọ̀rọ̀ ìpamọ́",
+    placeNote:
+      "Ìjọba ìbílẹ̀ rẹ ni ó pinnu àwọn ibi tí ojú ìwé ilé rẹ yóò ṣí sí. O lè yí àwọn méjèèjì padà nínú ètò lẹ́yìn náà.",
+    hearAboutLabel: "Ibo ni o ti gbọ́ nípa wa",
+    hearAboutPlaceholder: "Yan ọ̀kan",
+    hearAbout: {
+      instagram: "Instagram",
+      tiktok: "TikTok",
+      x: "X",
+      friendOrFamily: "Ọ̀rẹ́ tàbí ẹbí",
+      googleSearch: "Ìwáàrí Google",
+      other: "Òmíràn",
+    },
+    referralLabel: "Kóòdù ìtọ́kasí",
+    referralPlaceholder: "Tẹ kóòdù rẹ",
+  },
+
+  pickers: {
+    clear: "Pa rẹ́",
+    close: "Tì",
+    search: "Wá",
+    clearSearch: "Pa ìwáàrí rẹ́",
+    loading: "Ń gbé àtòjọ náà wọlé.",
+    emptyTitle: "Kò sí ohun tí ó bá a mu",
+    emptyUnreachable:
+      "A kò lè mú àtòjọ náà wá lọ́wọ́lọ́wọ́. Tì í, kí o sì gbìyànjú lẹ́ẹ̀kansí ní ìṣẹ́jú díẹ̀.",
+    emptySearch: "Gbìyànjú ọ̀rọ̀ tí ó kúrú, tàbí apá kan orúkọ náà.",
+
+    countryLabel: "Orílẹ̀-èdè",
+    countryName: "Nàìjíríà",
+    countryOnly: "Òun nìkan ni fún ìsinsìnyí",
+
+    stateLabel: "Ìpínlẹ̀",
+    statePlaceholder: "Yan ìpínlẹ̀ rẹ",
+    stateSearch: "Wá àwọn ìpínlẹ̀ 37",
+
+    lgaLabel: "Ìjọba ìbílẹ̀",
+    lgaPlaceholder: "Yan ìjọba ìbílẹ̀ rẹ",
+    lgaLocked: "Yan ìpínlẹ̀ ní àkọ́kọ́",
+    lgaDisabledHint: "Ìpínlẹ̀ rẹ ni ó pinnu àwọn ìjọba ìbílẹ̀ tí ó wà lórí àtòjọ yìí.",
+    searchIn: "Wá {place}",
+
+    occupationLabel: "Iṣẹ́ tí o ń ṣe",
+    occupationHint:
+      "Àwọn tí ó wọ́pọ̀ wà lókè, àwọn yòókù wà ní àkójọpọ̀ nípa ẹ̀ka. Kò fẹ́ sọ wà lórí àtòjọ náà, ó sì jẹ́ ìdáhùn gidi.",
+    occupationPlaceholder: "Yan iṣẹ́ rẹ",
+    occupationSearch: "Wá àwọn iṣẹ́ 749",
+    commonOccupations: "Èyí tí ó wọ́pọ̀ ní Nàìjíríà",
+  },
+
   home: {
     greeting: "Káàbọ̀ padà",
     prompt: "Ibo ni o ń lọ lónìí?",

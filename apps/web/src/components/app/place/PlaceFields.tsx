@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChoicePicker, type ChoiceGroup } from "./ChoicePicker";
 import { fetchLocalGovernments, fetchOccupations } from "@/lib/places/actions";
 import { groupOccupations, type StateOption } from "@/lib/places/reference";
+import type { Dictionary } from "@naijafinds/i18n";
 
 /**
  * Country, state, local government, and what you do.
@@ -27,6 +28,7 @@ export type PlaceValues = {
 };
 
 export function PlaceFields({
+  t,
   states,
   value,
   onChange,
@@ -35,6 +37,9 @@ export function PlaceFields({
       long lists have been fetched. */
   initialLabels,
 }: {
+  /* Handed down from the server component that resolved the locale. Both
+     pickers below draw a dozen words each and none of them may be English. */
+  t: Dictionary;
   states: StateOption[];
   value: PlaceValues;
   onChange: (next: PlaceValues) => void;
@@ -122,13 +127,19 @@ export function PlaceFields({
     }
   }, [value.stateCode, lgas.length, loadLgas]);
 
+  /* Read once into a local: the callback below closes over the label, and a
+     property access inside a dependency array is narrower than what the
+     compiler infers from the body, which drops the component from
+     optimisation - the same trap `initialLabels` records above. */
+  const commonLabel = t.pickers.commonOccupations;
+
   const loadOccupations = useCallback(async () => {
     if (occupationsAsked.current) return;
     occupationsAsked.current = true;
     setOccupationsLoading(true);
     try {
       const result = await fetchOccupations();
-      setOccupations(result.ok ? groupOccupations(result.data) : []);
+      setOccupations(result.ok ? groupOccupations(result.data, commonLabel) : []);
       if (!result.ok) occupationsAsked.current = false;
     } catch {
       setOccupations([]);
@@ -136,7 +147,7 @@ export function PlaceFields({
     } finally {
       setOccupationsLoading(false);
     }
-  }, []);
+  }, [commonLabel]);
 
   const chooseState = (stateCode: string) => {
     setLgas([]);
@@ -150,20 +161,21 @@ export function PlaceFields({
   return (
     <div className="space-y-5">
       <div>
-        <span className="nf-label">Country</span>
+        <span className="nf-label">{t.pickers.countryLabel}</span>
         <div className="nf-field mt-1.5 flex items-center justify-between gap-3 opacity-80">
-          <span>Nigeria</span>
+          <span>{t.pickers.countryName}</span>
           <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-            The only one, for now
+            {t.pickers.countryOnly}
           </span>
         </div>
       </div>
 
       <ChoicePicker
+        t={t}
         name="stateCode"
-        label="State"
-        placeholder="Choose your state"
-        searchPlaceholder="Search 37 states"
+        label={t.pickers.stateLabel}
+        placeholder={t.pickers.statePlaceholder}
+        searchPlaceholder={t.pickers.stateSearch}
         value={value.stateCode}
         groups={stateGroups}
         onChange={chooseState}
@@ -172,15 +184,18 @@ export function PlaceFields({
       />
 
       <ChoicePicker
+        t={t}
         name="lgaCode"
-        label="Local government"
-        placeholder={value.stateCode ? "Choose your local government" : "Choose a state first"}
-        searchPlaceholder={stateName ? `Search ${stateName}` : "Search"}
+        label={t.pickers.lgaLabel}
+        placeholder={value.stateCode ? t.pickers.lgaPlaceholder : t.pickers.lgaLocked}
+        searchPlaceholder={
+          stateName ? t.pickers.searchIn.replace("{place}", stateName) : t.pickers.search
+        }
         value={value.lgaCode}
         groups={lgaGroups}
         loading={lgaLoading}
         disabled={value.stateCode === ""}
-        disabledHint="Your state decides which local governments are on this list."
+        disabledHint={t.pickers.lgaDisabledHint}
         onChange={(lgaCode) => onChange({ ...value, lgaCode })}
         onOpen={() => void loadLgas(value.stateCode)}
         error={fieldErrors?.lgaCode}
@@ -188,11 +203,12 @@ export function PlaceFields({
       />
 
       <ChoicePicker
+        t={t}
         name="occupationCode"
-        label="What you do"
-        hint="The common ones are at the top, the rest are grouped by field. Prefer not to say is on the list and is a real answer."
-        placeholder="Choose your occupation"
-        searchPlaceholder="Search 749 occupations"
+        label={t.pickers.occupationLabel}
+        hint={t.pickers.occupationHint}
+        placeholder={t.pickers.occupationPlaceholder}
+        searchPlaceholder={t.pickers.occupationSearch}
         value={value.occupationCode}
         groups={occupationGroups}
         loading={occupationsLoading}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { Dictionary } from "@naijafinds/i18n";
 
 /**
  * The form furniture the auth screens share.
@@ -11,6 +12,11 @@ import { useState } from "react";
  * strength meter and a show/hide toggle that no other field on the platform
  * needs, and folding all three into the shared primitive would put auth-only
  * behaviour in front of every form in the product.
+ *
+ * Every word any of them draws arrives as a prop. There is no locale context
+ * on this platform: the server component that renders the form reads the
+ * cookie and hands the dictionary down, which is why `t` appears on three of
+ * the four components below rather than being reached for inside them.
  */
 
 /** One headed group inside the sign-up form. */
@@ -45,7 +51,13 @@ export function FormGroup({
   );
 }
 
-/** Label row with an optional marker chip for non-required fields. */
+/**
+ * Label row with an optional marker chip for non-required fields.
+ *
+ * `optional` is the chip's own word rather than a boolean, so the row never has
+ * to know which language it is in: a field that is required passes nothing and
+ * gets no chip, exactly as before.
+ */
 function LabelRow({
   htmlFor,
   label,
@@ -53,14 +65,14 @@ function LabelRow({
 }: {
   htmlFor: string;
   label: string;
-  optional?: boolean;
+  optional?: string;
 }) {
   return (
     <span className="flex items-center justify-between gap-2">
       <label htmlFor={htmlFor} className="nf-label">
         {label}
       </label>
-      {optional && <span className="nf-chip mb-1.5 px-2 py-0.5 text-[0.625rem]">Optional</span>}
+      {optional && <span className="nf-chip mb-1.5 px-2 py-0.5 text-[0.625rem]">{optional}</span>}
     </span>
   );
 }
@@ -83,6 +95,7 @@ export function Field({
   autoComplete,
   error,
   optional,
+  t,
 }: {
   id: string;
   name: string;
@@ -92,11 +105,12 @@ export function Field({
   autoComplete: string;
   error?: string;
   optional?: boolean;
+  t: Dictionary;
 }) {
   const errorId = `${id}-error`;
   return (
     <div>
-      <LabelRow htmlFor={id} label={label} optional={optional} />
+      <LabelRow htmlFor={id} label={label} optional={optional ? t.signUp.optional : undefined} />
       <input
         id={id}
         name={name}
@@ -129,7 +143,12 @@ export function SelectField({
   name: string;
   label: string;
   placeholder: string;
-  options: readonly string[];
+  /**
+   * The value posted and the word shown, apart. They were one string until the
+   * form learned to speak four languages, and merging them again would post a
+   * Yoruba answer at a validator that only knows the English one.
+   */
+  options: readonly { value: string; label: string }[];
   error?: string;
 }) {
   const errorId = `${id}-error`;
@@ -149,8 +168,8 @@ export function SelectField({
             {placeholder}
           </option>
           {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
@@ -194,6 +213,7 @@ export function PasswordField({
   error,
   value,
   onChange,
+  t,
 }: {
   id: string;
   label: string;
@@ -202,6 +222,7 @@ export function PasswordField({
   error?: string;
   value: string;
   onChange: (next: string) => void;
+  t: Dictionary;
 }) {
   const [visible, setVisible] = useState(false);
   const errorId = `${id}-error`;
@@ -226,7 +247,7 @@ export function PasswordField({
           type="button"
           onClick={() => setVisible((v) => !v)}
           aria-pressed={visible}
-          aria-label={visible ? "Hide password" : "Show password"}
+          aria-label={visible ? t.signUp.hidePassword : t.signUp.showPassword}
           className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-[var(--nf-radius-lg)] text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
         >
           <EyeGlyph off={visible} />
@@ -254,13 +275,25 @@ function scorePassword(pw: string): StrengthScore {
   return met as StrengthScore;
 }
 
-const STRENGTH_LABELS: Record<StrengthScore, string> = {
-  0: "",
-  1: "Weak",
-  2: "Fair",
-  3: "Good",
-  4: "Strong",
-};
+/*
+ * The rungs, in the reader's language. Rung 0 is deliberately empty in every
+ * locale: an empty field has no strength to report and a word there would be a
+ * verdict on nothing.
+ */
+function strengthLabel(score: StrengthScore, t: Dictionary): string {
+  switch (score) {
+    case 0:
+      return "";
+    case 1:
+      return t.signUp.strength.weak;
+    case 2:
+      return t.signUp.strength.fair;
+    case 3:
+      return t.signUp.strength.good;
+    case 4:
+      return t.signUp.strength.strong;
+  }
+}
 
 const STRENGTH_COLOURS: Record<StrengthScore, string> = {
   0: "transparent",
@@ -271,7 +304,7 @@ const STRENGTH_COLOURS: Record<StrengthScore, string> = {
 };
 
 /** Four-segment strength bar with a text label, announced politely. */
-export function StrengthMeter({ password }: { password: string }) {
+export function StrengthMeter({ password, t }: { password: string; t: Dictionary }) {
   const score = scorePassword(password);
   const colour = STRENGTH_COLOURS[score];
 
@@ -294,7 +327,7 @@ export function StrengthMeter({ password }: { password: string }) {
           className="min-w-[3.25rem] text-right text-[0.6875rem] font-semibold"
           style={{ color: score === 0 ? "var(--nf-content-muted)" : colour }}
         >
-          {STRENGTH_LABELS[score]}
+          {strengthLabel(score, t)}
         </span>
       </div>
     </div>
