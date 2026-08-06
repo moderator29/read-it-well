@@ -482,30 +482,30 @@ export function Sheet({
 
   return (
     <>
-      <div className="nf-sheet__scrim" onClick={close} aria-hidden="true" />
+      <div className="nf-rows-sheet__scrim" onClick={close} aria-hidden="true" />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="nf-sheet"
+        className="nf-rows-sheet"
       >
-        <div className="nf-sheet__head">
-          <h2 id={titleId} className="nf-sheet__title">
+        <div className="nf-rows-sheet__head">
+          <h2 id={titleId} className="nf-rows-sheet__title">
             {title}
           </h2>
           <button
             type="button"
             onClick={close}
             aria-label="Close"
-            className="nf-sheet__close nf-tap"
+            className="nf-rows-sheet__close nf-tap"
           >
             <UiIcon name="close" size={16} />
           </button>
         </div>
-        <div className="nf-sheet__body">{children}</div>
-        {footer && <div className="nf-sheet__foot">{footer}</div>}
+        <div className="nf-rows-sheet__body">{children}</div>
+        {footer && <div className="nf-rows-sheet__foot">{footer}</div>}
       </div>
     </>
   );

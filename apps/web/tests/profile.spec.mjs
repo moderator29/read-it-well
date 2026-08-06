@@ -132,18 +132,30 @@ try {
        click fails outright with "element is outside of the viewport", which is
        a worse failure than the one it was trying to route around. */
     /*
-     * THIS IS RED ON A REAL BUG, AND IT SHOULD STAY RED.
+     * THIS WAS RED ON A REAL BUG. THE BUG IS FIXED; KEEP THE CHECK.
      *
-     * Measured at 390x844 with the sheet open: `[role="dialog"]` has
-     * `top: 844` and `bottom: 1227`. The panel is entirely below the fold -
-     * it is sitting at its CLOSED transform and never travelled up - so Save
-     * is at y=1160 and Playwright reports "element is outside of the viewport"
-     * after scrolling as far as the sheet's own container allows.
+     * What it caught: measured at 390x844 with the sheet open, the panel sat
+     * at `top: 844`, `bottom: 1227`, entirely below the fold at its CLOSED
+     * transform, so Save was at y=1160 and Playwright reported "element is
+     * outside of the viewport".
      *
-     * An earlier pass here used `click({ force: true })`, which skips the
-     * scroll and then fails on the same geometry with a worse message. That
-     * was routing around the symptom. A person on a phone cannot reach this
-     * control either, and the spec's job is to say so.
+     * The cause was not this sheet's scroll container, which is what earlier
+     * passes here assumed. It was a class name collision: these settings and
+     * profile sheets painted through `.nf-sheet`, and so does the newer
+     * primitive in `components/ui/Sheet.tsx`. The newer one parks its surface
+     * at `translateY(100%)` and drives it in with `[data-open="true"]`, which
+     * this sheet never sets, so the only thing holding the panel on screen was
+     * this sheet's own rise animation winning the cascade.
+     *
+     * Which is why it only ever failed HERE: this context asks for
+     * `reducedMotion: "reduce"`, that swaps the rise animation for an
+     * opacity-only one, the transform stops being overridden, and the sheet
+     * drops off the bottom of the screen. Eight surfaces across /profile and
+     * /settings were unreachable for anyone who had asked their operating
+     * system to reduce motion, and only this spec was standing on it.
+     *
+     * The families are now `.nf-rows-sheet` and `.nf-sheet`. The long note in
+     * `app/settings-rows.css` explains why they must not be merged by name.
      */
     const save = page.locator('[data-testid="device-name-save"]');
     await save.scrollIntoViewIfNeeded();
