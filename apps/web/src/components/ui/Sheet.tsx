@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 
 /**
  * The bottom sheet.
@@ -26,6 +27,19 @@ import type { ReactNode } from "react";
  *   - a focus trap, focus restoration, and Escape
  *   - body scroll lock
  *   - the home-indicator inset
+ *
+ * The last four of those are NOT written here. Escape, the Tab trap, the
+ * counted scroll lock and the focus return all come from
+ * `lib/ui/use-overlay`, which is the one implementation the whole platform
+ * shares. This file kept its own for a while and the two disagreed in the way
+ * that matters: this one set `body.style.overflow` outright, so a sheet opened
+ * over a drawer handed scrolling back to the page underneath the moment the
+ * sheet closed, while the drawer was still up. The hook counts its openers.
+ *
+ * What is still local is the FIRST focus. This sheet has always focused its
+ * first control with `preventScroll`, because a sheet that scrolls the page
+ * behind it as it opens is exactly the tell this primitive exists to remove,
+ * and the hook has no reason to know that.
  */
 
 const FOCUSABLE =
@@ -107,17 +121,21 @@ export function Sheet({
     return { vh, offsets: sorted.map((d) => (tallest - d) * vh).sort((a, b) => a - b) };
   }, [detents]);
 
-  /* Body scroll lock. Two of the old sheets simply did not do this. */
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
+  /* Escape, the Tab trap, the counted scroll lock and the focus return, from
+     the one shared implementation. `autoFocus` is off because the effect below
+     needs `preventScroll`, which the hook does not pass. */
+  const close = useCallback(() => onOpenChange(false), [onOpenChange]);
+  useOverlay({ open, onClose: close, panelRef: sheetRef, autoFocus: false });
 
-  /* Focus: move into the sheet on open, put it back where it was on close. */
+  /*
+   * First focus, and the drag offset reset.
+   *
+   * `restoreFocus` is still read on the way out, and it is not a duplicate of
+   * what the hook does. The hook restores to whatever was focused when it ran;
+   * this restores across the open/closed boundary of a sheet that stays mounted
+   * while closed. Both land on the opener, and whichever runs second finds
+   * focus already there and moves nothing.
+   */
   useEffect(() => {
     if (!open) {
       restoreFocus.current?.focus?.();
@@ -131,36 +149,6 @@ export function Sheet({
     const first = node.querySelector<HTMLElement>(FOCUSABLE);
     (first ?? node).focus({ preventScroll: true });
   }, [open]);
-
-  /* Escape, and a real focus trap rather than a claimed one. */
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.stopPropagation();
-        onOpenChange(false);
-        return;
-      }
-      if (e.key !== "Tab") return;
-      const node = sheetRef.current;
-      if (!node) return;
-      const items = Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-        (el) => el.offsetParent !== null,
-      );
-      if (items.length === 0) return;
-      const first = items[0]!;
-      const last = items[items.length - 1]!;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey, true);
-    return () => document.removeEventListener("keydown", onKey, true);
-  }, [open, onOpenChange]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);

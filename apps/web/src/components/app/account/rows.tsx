@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { useOverlay } from "@/lib/ui/use-overlay";
 
 /**
  * Grouped rows: the one shape every account surface on this platform uses.
@@ -73,7 +74,7 @@ function RowInner({
     <>
       {icon ? (
         <span className="nf-srow__icon" aria-hidden="true">
-          <UiIcon name={icon} size={19} />
+          <UiIcon name={icon} size={20} />
         </span>
       ) : (
         /* Keeps the label column aligned in a group where only some rows carry
@@ -262,7 +263,7 @@ export function RowSwitch({
     <div className="nf-srow">
       {icon ? (
         <span className="nf-srow__icon" aria-hidden="true">
-          <UiIcon name={icon} size={19} />
+          <UiIcon name={icon} size={20} />
         </span>
       ) : (
         <span className="nf-srow__icon" aria-hidden="true" />
@@ -336,7 +337,7 @@ export function RowSelect<T extends string>({
           adjacent-sibling rule in the stylesheet handles that. */}
       {icon ? (
         <span className="nf-srow__icon" aria-hidden="true">
-          <UiIcon name={icon} size={19} />
+          <UiIcon name={icon} size={20} />
         </span>
       ) : (
         <span className="nf-srow__icon" aria-hidden="true" />
@@ -405,7 +406,7 @@ export function RowSegment<T extends string>({
     <div className="nf-srow flex-wrap">
       {icon ? (
         <span className="nf-srow__icon" aria-hidden="true">
-          <UiIcon name={icon} size={19} />
+          <UiIcon name={icon} size={20} />
         </span>
       ) : (
         <span className="nf-srow__icon" aria-hidden="true" />
@@ -428,7 +429,19 @@ export function RowSegment<T extends string>({
  *
  * Escape closes it, focus is trapped inside it, the page behind it does not
  * scroll, and focus returns to whatever opened it. Those four are the whole
- * difference between a modal and a div that happens to be on top.
+ * difference between a modal and a div that happens to be on top, and all four
+ * now come from `lib/ui/use-overlay` rather than being written out here.
+ *
+ * The hand-rolled version set `body.style.overflow` outright and restored
+ * whatever it had captured on the way out. Open a sheet from inside a drawer
+ * that is already holding the page still and the sheet closing hands scrolling
+ * straight back to a page nobody can see, under a drawer that is still up. The
+ * shared hook COUNTS its openers, so the page only moves again when the last
+ * overlay has gone.
+ *
+ * `autoFocus` is off here deliberately. This sheet has always focused its own
+ * panel rather than the first control inside it: landing on Close would read to
+ * a screen reader as though the sheet were already finished.
  */
 export function Sheet({
   open,
@@ -444,58 +457,26 @@ export function Sheet({
   footer?: ReactNode;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const returnTo = useRef<HTMLElement | null>(null);
   const titleId = useId();
 
   const close = useCallback(() => onClose(), [onClose]);
 
+  useOverlay({ open, onClose: close, panelRef, autoFocus: false });
+
+  /*
+   * The panel, not the first control, and deliberately AFTER the hook.
+   *
+   * Effect order is load-bearing here. `useOverlay` reads `document.activeElement`
+   * to learn who opened the sheet, so anything that moves focus has to run
+   * second or the hook records the panel as its own opener and, on close, hands
+   * focus back to an element that is being removed. A first attempt did this in
+   * a ref callback, which fires during commit and therefore BEFORE any effect;
+   * the sheet closed and focus landed on the body instead of the row.
+   */
   useEffect(() => {
     if (!open) return;
-
-    returnTo.current = document.activeElement as HTMLElement | null;
-
-    const { body } = document;
-    const previousOverflow = body.style.overflow;
-    body.style.overflow = "hidden";
-
-    // Focus the panel itself rather than the first control. Landing on Close
-    // would read to a screen reader as though the sheet were already finished.
     panelRef.current?.focus();
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.stopPropagation();
-        close();
-        return;
-      }
-      if (event.key !== "Tab") return;
-
-      const panel = panelRef.current;
-      if (!panel) return;
-      const focusable = panel.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      );
-      if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!first || !last) return;
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", onKeyDown, true);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown, true);
-      body.style.overflow = previousOverflow;
-      returnTo.current?.focus?.();
-    };
-  }, [open, close]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -520,7 +501,7 @@ export function Sheet({
             aria-label="Close"
             className="nf-sheet__close nf-tap"
           >
-            <UiIcon name="close" size={17} />
+            <UiIcon name="close" size={16} />
           </button>
         </div>
         <div className="nf-sheet__body">{children}</div>

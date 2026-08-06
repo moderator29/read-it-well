@@ -13,6 +13,7 @@ import {
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { PhotoFrame } from "./PhotoFrame";
 
 /**
@@ -101,7 +102,6 @@ function Lightbox({
 }) {
   const track = useRef<HTMLDivElement | null>(null);
   const surface = useRef<HTMLDivElement | null>(null);
-  const restoreFocus = useRef<HTMLElement | null>(null);
   const [mounted, setMounted] = useState(false);
   const [entered, setEntered] = useState(false);
   const [active, setActive] = useState(startIndex);
@@ -121,23 +121,30 @@ function Lightbox({
     return () => cancelAnimationFrame(raf);
   }, [mounted]);
 
-  /* Page scroll stays where it was; only the viewer moves. */
-  useEffect(() => {
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, []);
+  /*
+   * Escape, the Tab trap, the scroll lock and the focus return, from the one
+   * shared implementation rather than a fourth copy of three quarters of it.
+   *
+   * The lock is the reason this matters here in particular. A lightbox opens
+   * from inside the "Show all photos" sheet, which is already holding the page
+   * still. The version this replaces set `body.style.overflow` outright and
+   * restored what it had captured, so closing the photo handed scrolling back
+   * to a page nobody could see, underneath a sheet that was still open. The
+   * hook counts its openers, so the page only moves again when the last one
+   * has gone.
+   */
+  const close = useCallback(() => onClose(), [onClose]);
+  useOverlay({ open: mounted, onClose: close, panelRef: surface, autoFocus: false });
 
-  /* Focus moves in on open and goes back where it came from on close. */
+  /* First focus, with `preventScroll`: the viewer covers the page it opened
+     from, and letting the browser scroll to the control it just focused would
+     move that page behind it. Putting focus BACK on close is the hook's, which
+     captured the opener before this ran. */
   useEffect(() => {
     if (!mounted) return;
-    restoreFocus.current = document.activeElement as HTMLElement | null;
     const node = surface.current;
     const first = node?.querySelector<HTMLElement>(FOCUSABLE);
     (first ?? node)?.focus({ preventScroll: true });
-    return () => restoreFocus.current?.focus?.();
   }, [mounted]);
 
   /* The track opens on the photo that was tapped, not on the first one. */
@@ -156,14 +163,10 @@ function Lightbox({
     setActive(clamped);
   }, []);
 
-  /* Escape closes, arrows move, Tab stays inside. */
+  /* The arrows, which are this viewer's own and belong to nothing else. Escape
+     and Tab are handled by `useOverlay` above. */
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.stopPropagation();
-        onClose();
-        return;
-      }
       if (event.key === "ArrowRight") {
         event.preventDefault();
         go(active + 1);
@@ -172,28 +175,11 @@ function Lightbox({
       if (event.key === "ArrowLeft") {
         event.preventDefault();
         go(active - 1);
-        return;
-      }
-      if (event.key !== "Tab") return;
-      const node = surface.current;
-      if (!node) return;
-      const items = Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-        (el) => el.offsetParent !== null,
-      );
-      if (items.length === 0) return;
-      const first = items[0]!;
-      const last = items[items.length - 1]!;
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
       }
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, [active, go, onClose]);
+  }, [active, go]);
 
   const onScroll = useCallback(() => {
     const el = track.current;
