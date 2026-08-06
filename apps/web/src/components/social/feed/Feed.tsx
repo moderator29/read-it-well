@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_LOCALE, type Locale } from "@naijafinds/i18n";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PostCard, type PostView } from "./PostCard";
@@ -46,6 +47,7 @@ import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
  */
 export function Feed({
   initial,
+  locale = DEFAULT_LOCALE,
   signedIn,
   isMember,
   areaId,
@@ -54,6 +56,9 @@ export function Feed({
   district,
 }: {
   initial: PostView[];
+  /* Only the counts need it, but they are on every card, so it rides down from
+     the server component that resolved it rather than each card guessing. */
+  locale?: Locale;
   signedIn: boolean;
   isMember: boolean;
   areaId?: string;
@@ -359,6 +364,7 @@ export function Feed({
           <ViewportPost postId={post.id}>
             <PostCard
               post={post}
+              locale={locale}
               onLike={() => onLike(post)}
               onRepost={() => onRepost(post)}
               onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}

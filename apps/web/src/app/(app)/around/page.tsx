@@ -189,6 +189,7 @@ export default async function AroundPage({
         */}
         <Feed
           initial={feed.posts}
+          locale={locale}
           signedIn={signedIn}
           isMember={Boolean(selected)}
           areaId={selected && selected.status === "ACTIVE" ? selected.id : undefined}

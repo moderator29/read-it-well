@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_LOCALE, formatNumber, type Locale } from "@naijafinds/i18n";
 import Link from "next/link";
 import Image from "next/image";
 import { PostGlyph } from "./PostGlyph";
@@ -96,14 +97,30 @@ export type PostView = {
   media: PostMedia[];
 };
 
-function compact(n: number): string {
-  if (n < 1000) return String(n);
-  if (n < 1_000_000) {
-    const k = n / 1000;
-    return `${k < 10 ? k.toFixed(1).replace(/\.0$/, "") : Math.round(k)}k`;
-  }
-  const m = n / 1_000_000;
-  return `${m < 10 ? m.toFixed(1).replace(/\.0$/, "") : Math.round(m)}m`;
+/**
+ * A count, in the reader's language.
+ *
+ * This was hand-rolled: `String(n)` under a thousand, then a suffix glued on
+ * with `toFixed`. Three faults in nine lines. It hardcoded ASCII digits and a
+ * full stop as the decimal separator, which is the exact fault the platform
+ * already fixed for money and for ratings by routing them through `Intl`. It
+ * skipped grouping entirely, so eight thousand views rendered as `8140` with
+ * nothing to break the digits up. And it went compact at a THOUSAND, so a post
+ * with 5,902 views said `5.9k` - a number nobody can compare against the post
+ * under it, on a card where the whole point of the figure is comparison.
+ *
+ * Grouped up to a hundred thousand, compact above it, and the suffix lowered
+ * the way `formatMoney` already lowers it, because that is how these are
+ * written in Nigeria: 45k, never 45K.
+ */
+const COMPACT_FROM = 100_000;
+
+function compact(n: number, locale: Locale): string {
+  if (Math.abs(n) < COMPACT_FROM) return formatNumber(n, locale);
+  return formatNumber(n, locale, { notation: "compact", maximumFractionDigits: 1 }).replace(
+    /[A-Za-z]+$/,
+    (suffix) => suffix.toLowerCase(),
+  );
 }
 
 function Avatar({ author }: { author: PostAuthor | null }) {
@@ -141,19 +158,16 @@ function Avatar({ author }: { author: PostAuthor | null }) {
  * people saw something is a fact about it, not something anybody can do to it,
  * and rendering it as a control would promise an action that does not exist.
  *
- * Repost is not here. It is a real write with a real counter, and it lives in
- * the action sheet rather than in this row, because five controls plus a number
- * do not fit at 390px without every one of them becoming too small to hit.
- *
- * That sentence was true about this row and false about the sheet, which had no
- * repost row at all. The card took an `onRepost` prop that nothing ever called,
- * both surfaces held an optimistic patch for a counter no control could move,
- * and the profile's Activity tab rendered "reposted this" entries the product
- * could not produce. The sheet has the row now, so this card no longer needs a
- * handler it never used.
+ * Repost IS here now. The note that used to sit in its place said the row was
+ * full at 390px and sent people to the action sheet for it - and the sheet had
+ * no repost row either, so a real RLS-bound write sat unreachable behind an
+ * `onRepost` prop nothing ever passed. Five controls and a number do fit,
+ * because the counts are the only thing that grows and they are the thing a
+ * reader most wants beside the control.
  */
 function ActionRow({
   post,
+  locale,
   onLike,
   onReply,
   onRepost,
@@ -161,6 +175,7 @@ function ActionRow({
   onSave,
 }: {
   post: PostView;
+  locale: Locale;
   onLike: () => void;
   onReply: () => void;
   onRepost: () => void;
@@ -176,13 +191,13 @@ function ActionRow({
         onClick={onLike}
       >
         <PostGlyph name="like" active={post.liked} />
-        <span className="nf-numeric">{compact(post.likeCount)}</span>
+        <span className="nf-numeric">{compact(post.likeCount, locale)}</span>
         <span className="sr-only">{post.liked ? "liked, undo" : "likes, like this"}</span>
       </button>
 
       <button type="button" className="nf-post__act" onClick={onReply}>
         <PostGlyph name="reply" />
-        <span className="nf-numeric">{compact(post.replyCount)}</span>
+        <span className="nf-numeric">{compact(post.replyCount, locale)}</span>
         <span className="sr-only">
           {post.replyCount === 1 ? "reply" : "replies"}, reply to this
         </span>
@@ -196,7 +211,7 @@ function ActionRow({
         data-active={post.reposted ? "" : undefined}
       >
         <PostGlyph name="repost" active={post.reposted} />
-        <span className="nf-numeric">{compact(post.repostCount)}</span>
+        <span className="nf-numeric">{compact(post.repostCount, locale)}</span>
         <span className="sr-only">
           {post.reposted ? "reposted, undo" : "reposts, repost this"}
         </span>
@@ -213,10 +228,10 @@ function ActionRow({
 
       <span
         className="nf-post__act nf-post__act--fact"
-        title={`${post.viewCount.toLocaleString("en-NG")} views`}
+        title={`${formatNumber(post.viewCount, locale)} views`}
       >
         <PostGlyph name="views" />
-        <span className="nf-numeric">{compact(post.viewCount)}</span>
+        <span className="nf-numeric">{compact(post.viewCount, locale)}</span>
         <span className="sr-only">views</span>
       </span>
 
@@ -235,6 +250,7 @@ function ActionRow({
 
 export function PostCard({
   post,
+  locale = DEFAULT_LOCALE,
   onLike,
   onReply,
   onRepost,
@@ -244,6 +260,10 @@ export function PostCard({
   editor,
 }: {
   post: PostView;
+  /* Optional so a caller that has not been threaded yet still compiles and
+     still renders correct English, rather than the whole platform having to
+     change in one commit. */
+  locale?: Locale;
   onLike: () => void;
   onReply: () => void;
   onRepost: () => void;
@@ -461,6 +481,7 @@ export function PostCard({
       */}
       <ActionRow
         post={post}
+        locale={locale}
         onLike={onLike}
         onReply={onReply}
         onRepost={onRepost}
