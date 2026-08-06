@@ -440,9 +440,15 @@ export const ha: Dictionary = {
 
     security: {
       label: "Tsaro",
+      // NATIVE REVIEW: "session" was `zama`, which in this very dictionary is
+      // the word for a guest's STAY at a property (`bookings`, `agentBookings`
+      // and the admin stays queue all use it). One word for two unrelated
+      // things on the same product is worse than clunky. Said in plain Hausa
+      // now: the device you are signed in on. `shiga` is `common.signIn`.
       signOutNote:
-        "Wannan ita ce zamanka kaɗai, don haka babu wani abin fitarwa. Da zarar asusun sun fara aiki, wannan maɓallin zai kawo ƙarshen kowace zama a kowace na'ura lokaci ɗaya.",
-      appLock: "Kulle manhaja da jiki",
+        "Wannan ita ce na'urar da ka shiga a kanta kaɗai, don haka babu wani wurin fita. Da zarar asusun sun fara aiki, wannan maɓallin zai fitar da kai a kowace na'ura lokaci ɗaya.",
+      // NATIVE REVIEW: was `da jiki`, "with the body". Names the two methods.
+      appLock: "Kulle manhaja da yatsa ko fuska",
       appLockSub:
         "Nemi yatsa ko fuska duk lokacin da manhajar ta buɗe, a na'urorin da suka goyi bayan hakan.",
       signedInOn: "Ka shiga a kan",
@@ -531,7 +537,11 @@ export const ha: Dictionary = {
 
     about: {
       label: "Game da",
-      note: "Saitunan da aka ajiye a wannan na'urar suna nan a wannan na'urar. Ana kare saitunan asusu da tsaron matakin layi, don haka kai kaɗai za ka iya karanta ko canja layinka.",
+      // NATIVE REVIEW: "row level security" kept in English, it names the
+      // database feature the way "audit log" does. `tsaron matakin layi` was a
+      // calque, and `layi` is not the Hausa for a database row, so it was less
+      // recognisable than the English term it replaced.
+      note: "Saitunan da aka ajiye a wannan na'urar suna nan a wannan na'urar. Ana kare saitunan asusu da row level security, don haka kai kaɗai za ka iya karanta ko canja naka.",
       help: "Taimako",
       helpSub: "Sami amsa daga mutum",
       terms: "Sharuɗɗa",

@@ -440,9 +440,16 @@ export const ig: Dictionary = {
 
     security: {
       label: "Nchekwa",
+      // NATIVE REVIEW: `nnọkọ` KEPT. Yorùbá and Hausa both had to drop their
+      // word for "session" here, but Igbo does not: `nnọkọ` is the ordinary
+      // Igbo term for a session in the sense of a sitting that runs and then
+      // ends, it is what Igbo broadcasting uses, and unlike Hausa `zama` it
+      // collides with nothing else in this dictionary.
       signOutNote:
         "Nke a bụ naanị nnọkọ gị, ya mere ọ dịghị nke ọzọ ị ga-apụ na ya. Ozugbo akaụntụ malitere, ihe njikwa a ga-akwụsị nnọkọ ọ bụla na ngwaọrụ ọ bụla n'otu mgbe.",
-      appLock: "Mkpọchi ngwa site n'ahụ",
+      // NATIVE REVIEW: was `site n'ahụ`, "through the body". Names the two
+      // methods, matching the sub-line and what the phone itself calls them.
+      appLock: "Mkpọchi ngwa site na mkpịsị aka ma ọ bụ ihu",
       appLockSub:
         "Rịọ maka mkpịsị aka ma ọ bụ ihu mgbe ngwa a mepere, na ngwaọrụ ndị kwadoro ya.",
       signedInOn: "Ị banyere na",
@@ -506,7 +513,13 @@ export const ig: Dictionary = {
       },
       hideActivity: "Zoo ihe m na-eme",
       hideActivitySub: "Mee ka nyocha gị na obibi gị nso nso a ghara ịpụta na profaịlụ ọha gị.",
-      dataSaver: "Onye nchekwa data",
+      // NATIVE REVIEW: was `Onye nchekwa data`. `Onye` makes it a PERSON, "the
+      // one who guards data", which is not what a switch is. Worse, `nchekwa`
+      // is `settings.security.label` two groups up this same screen, so the
+      // row read as "data security" - a switch that loads smaller photos
+      // claiming to protect your data is a wrong promise, not a clumsy one.
+      // `Mbelata ojiji data`, "cutting down data use", says what it does.
+      dataSaver: "Mbelata ojiji data",
       dataSaverSub: "Buru foto ndị dị mfe na data ekwentị. Ọ dị mma maka obere bundulu.",
     },
 
@@ -531,7 +544,11 @@ export const ig: Dictionary = {
 
     about: {
       label: "Banyere",
-      note: "Ntọala echekwara na ngwaọrụ a na-anọgide na ngwaọrụ a. E ji nchekwa ọkwa ahịrị echedo ntọala akaụntụ, ya mere naanị gị nwere ike ịgụ ma ọ bụ gbanwee ahịrị nke gị.",
+      // NATIVE REVIEW: "row level security" kept in English, it names the
+      // database feature the way "audit log" does. `nchekwa ọkwa ahịrị` was a
+      // calque, and it reused `nchekwa`, which is already the Security group's
+      // own label further up this same screen.
+      note: "Ntọala echekwara na ngwaọrụ a na-anọgide na ngwaọrụ a. E ji row level security echedo ntọala akaụntụ, ya mere naanị gị nwere ike ịgụ ma ọ bụ gbanwee nke gị.",
       help: "Enyemaka",
       helpSub: "Nweta azịza site n'aka mmadụ",
       terms: "Usoro",

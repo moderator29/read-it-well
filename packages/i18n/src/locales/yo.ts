@@ -440,9 +440,15 @@ export const yo: Dictionary = {
 
     security: {
       label: "Ààbò",
+      // NATIVE REVIEW: "session" was `ìjókòó`, "a sitting", which is a calque
+      // nobody uses for a login. Yorùbá has no settled noun for it, so the
+      // sentence now says what the session IS in plain Yorùbá: the device you
+      // are signed in on. `wọlé` is already `common.signIn`, so the two agree.
       signOutNote:
-        "Èyí nìkan ni ìjókòó rẹ, nítorí náà kò sí òmíràn láti jáde nínú rẹ̀. Ní kété tí àwọn àkàǹtì bá bẹ̀rẹ̀, ìdarí yìí yóò parí gbogbo ìjókòó lórí gbogbo ẹ̀rọ lẹ́ẹ̀kan náà.",
-      appLock: "Ìtìpa ohun èlò pẹ̀lú ara",
+        "Ẹ̀rọ yìí nìkan ni o ti wọlé sí, nítorí náà kò sí ibòmíràn láti jáde. Ní kété tí àwọn àkàǹtì bá bẹ̀rẹ̀, ìdarí yìí yóò mú ọ jáde lórí gbogbo ẹ̀rọ lẹ́ẹ̀kan náà.",
+      // NATIVE REVIEW: was `pẹ̀lú ara`, "with the body". Names the two methods
+      // instead, the way Apple and Google do in their own localisations.
+      appLock: "Ìtìpa ohun èlò pẹ̀lú ìka ọwọ́ tàbí ojú",
       appLockSub:
         "Béèrè fún ìka ọwọ́ tàbí ojú nígbà tí ohun èlò náà bá ṣí, lórí àwọn ẹ̀rọ tí ó lè ṣe é.",
       signedInOn: "O wọlé lórí",
@@ -532,7 +538,13 @@ export const yo: Dictionary = {
 
     about: {
       label: "Nípa",
-      note: "Àwọn ètò tí a fi pamọ́ sórí ẹ̀rọ yìí yóò dúró sórí ẹ̀rọ yìí. A fi ààbò ìpele ìlà bo àwọn ètò àkàǹtì, nítorí náà ìwọ nìkan ni ó lè ka tàbí yí ìlà tirẹ padà.",
+      // NATIVE REVIEW: "row level security" kept in English, it is the name of
+      // the database feature the way "audit log" is. `ààbò ìpele ìlà` was a
+      // word-for-word calque, and `ìlà` is not what anybody calls a database
+      // row, so the translation was less recognisable than the English. The
+      // clause after it carries the meaning in Yorùbá, which is the part a
+      // reader actually needs.
+      note: "Àwọn ètò tí a fi pamọ́ sórí ẹ̀rọ yìí yóò dúró sórí ẹ̀rọ yìí. A fi row level security bo àwọn ètò àkàǹtì, nítorí náà ìwọ nìkan ni ó lè ka tàbí yí àwọn tirẹ padà.",
       help: "Ìrànlọ́wọ́",
       helpSub: "Gba ìdáhùn lọ́wọ́ ènìyàn",
       terms: "Àdéhùn",
