@@ -206,7 +206,13 @@ export default async function AgentDashboardPage() {
                 key={l.id}
                 className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-3"
               >
-                <div className="flex items-baseline justify-between gap-4">
+                {/*
+                  The title is the label of the figure beside it, so it stacks
+                  rather than clips. Measured at 320px, where the row gave the
+                  title 167px for 169px of name and ate the last two pixels of
+                  it. A 320px screen is not a rare one here.
+                */}
+                <div className="flex flex-col gap-0.5 min-[360px]:flex-row min-[360px]:items-baseline min-[360px]:justify-between min-[360px]:gap-4">
                   <p className="min-w-0 truncate text-[0.8125rem] font-semibold">{l.title}</p>
                   <Amount
                     minorUnits={l.revenueMinor}
