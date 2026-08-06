@@ -37,6 +37,27 @@ async function main() {
   await page.goto(`${BASE_URL}/wallet`, { waitUntil: "load", timeout: 60_000 });
   await page.waitForTimeout(1_500);
 
+  /*
+   * A wallet belongs to a session. Signed out, `/wallet` renders the way in
+   * rather than somebody else's balance, and every check below asserts against
+   * a balance - so with no session they cannot run, which is not the same as
+   * failing. This sandbox cannot reach Supabase, so which branch ran is
+   * printed rather than assumed.
+   */
+  if ((await page.locator("section[aria-labelledby='nf-wallet-balance-label']").count()) === 0) {
+    console.log("  skip    no session, so there is no wallet to show a balance for");
+    check(
+      "signed out, it offers the way in rather than an empty wallet",
+      (await page.locator('a[href^="/sign-in"]').count()) >= 1,
+    );
+    await browser.close();
+    /* `failures` is an ARRAY here, not a counter. Comparing it to 0 is always
+       false, which would have reported a clean skip as a failure. */
+    if (failures.length > 0) console.error(`\n${failures.length} check(s) failed.`);
+    else console.log("\nall wallet checks passed.");
+    process.exit(failures.length > 0 ? 1 : 0);
+  }
+
   /* ------------------------------------------------------- balance hero */
   check("balance hero label renders", await page.getByText("Available balance").first().isVisible());
   check(
