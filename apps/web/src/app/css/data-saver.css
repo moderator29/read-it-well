@@ -1,0 +1,119 @@
+/*
+ * Less data, when the reader has asked for it or the link cannot carry it.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one. It sits after light.css on purpose,
+ * because it has to be able to turn off anything either theme paints.
+ *
+ * Inbox item 246. The flag is `data-save-data="on"` on the root, set two ways:
+ * from the `Save-Data: on` request header before a byte is rendered, and from
+ * `navigator.connection` before first paint for the reader on a 2g link who
+ * has not switched anything on. `lib/save-data.ts` explains why both.
+ *
+ * WHAT THIS IS ACTUALLY WORTH, measured at 390px against the running build
+ * with an empty catalogue, which is to say before a single listing photograph
+ * exists:
+ *
+ *   /home   3,676KB, of which 3,520KB is imagery
+ *   /       1,585KB, of which 1,429KB is imagery
+ *   /search 1,517KB, of which 1,360KB is imagery
+ *
+ * Two files are nearly all of it. `rentme-city.png` is 2,149KB and
+ * `rentme-bg.png` is 1,343KB, both served raw out of /public because they are
+ * background artwork and the brief is explicit that the supplied artwork is
+ * the canonical visual source and must be used as an image rather than
+ * recreated in CSS. That is the right call and it is not in question here.
+ * What is in question is whether somebody paying by the megabyte on a 2g link
+ * in Onitsha should be sent three and a half megabytes of scenery before they
+ * can read a price, and the answer is no.
+ *
+ * A background image on an element that is never painted is never fetched, so
+ * these rules do not hide the artwork, they stop it existing. That only works
+ * for backgrounds: an `<img>` in the markup is requested whatever CSS says
+ * about it, which is why the server side of this signal skips rendering rather
+ * than styling.
+ *
+ * The Ken Burns pan, the drifting blooms, the film grain and the aurora go
+ * too. They are not payload but they are the other half of what a slow device
+ * on a slow link cannot afford, and the item names them.
+ *
+ * What stays: every colour, every token, every piece of the layout, and the
+ * whole product. This is a lighter render of the same thing, not a lesser one.
+ */
+
+/* --------------------------------------------------- the heavy artwork */
+
+/*
+ * The living canvas keeps its canvas colour and loses its 1.3MB of scenery,
+ * on both themes. The blooms that drift over it go with it: they are pure CSS
+ * and cost nothing to download, but they are four animated gradient layers
+ * running forever on a device that is telling us it is struggling.
+ */
+:root[data-save-data="on"] .nf-ambient,
+:root[data-save-data="on"][data-theme="light"] .nf-ambient {
+  background-image: none;
+}
+
+:root[data-save-data="on"] .nf-ambient > span,
+:root[data-save-data="on"] .nf-ambient::before,
+:root[data-save-data="on"] .nf-ambient::after,
+:root[data-save-data="on"] .nf-aurora,
+:root[data-save-data="on"] .nf-grid-veil,
+:root[data-save-data="on"] .nf-grain,
+:root[data-save-data="on"] .nf-icon-field {
+  display: none;
+}
+
+/*
+ * The city card on the home screen, 2.1MB of it. `!important` because the
+ * artwork is an inline style on the element, which is how a background that
+ * one component owns is set, and an inline style outranks a stylesheet. This
+ * is the one place in the platform where that is the right tool: the rule has
+ * to win against markup it does not control.
+ */
+:root[data-save-data="on"] [data-artwork] {
+  /*
+   * A ground, not a redrawing. The brief is explicit that the supplied artwork
+   * must not be recreated in CSS, and this does not try to: it is one deep
+   * blue wash so the card reads as a designed surface rather than as a picture
+   * that failed to load. Costs nothing, says nothing it should not.
+   */
+  background-image: linear-gradient(
+    160deg,
+    var(--nf-surface-elevated) 0%,
+    var(--nf-canvas-base) 62%
+  ) !important;
+}
+
+/* ------------------------------------------------------- the movement */
+
+/*
+ * No Ken Burns, on a card or in a gallery. The slow pan across a photograph is
+ * the single most expensive thing on this platform per pixel of value: it runs
+ * continuously, on the largest image on the screen, forever.
+ */
+:root[data-save-data="on"] .nf-gallery-kenburns,
+:root[data-save-data="on"] .nf-story-art,
+:root[data-save-data="on"] .nf-hero-scene,
+:root[data-save-data="on"] .nf-breathe,
+:root[data-save-data="on"] .nf-drift,
+:root[data-save-data="on"] .nf-float,
+:root[data-save-data="on"] .nf-float-slow,
+:root[data-save-data="on"] .nf-card--live {
+  animation: none;
+}
+
+:root[data-save-data="on"] .nf-card--interactive img.object-cover,
+:root[data-save-data="on"] .nf-card--interactive:hover img.object-cover {
+  transform: none;
+  transition: none;
+}
+
+/*
+ * Video and animated media do not start themselves. There is none on the
+ * platform today; this is here so the first one added inherits the rule rather
+ * than needing somebody to remember it.
+ */
+:root[data-save-data="on"] video[autoplay] {
+  display: none;
+}

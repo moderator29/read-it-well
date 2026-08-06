@@ -123,6 +123,9 @@ export function CityHero({
     <section aria-label={`Places open in ${cityLabel || "Nigeria"}`}>
       <div
         className="relative isolate overflow-hidden rounded-[var(--nf-radius-2xl)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_38%,transparent)] shadow-[0_24px_60px_-30px_rgb(0_16_224_/_0.75)]"
+        /* The hook data-saver.css turns off. 2.1MB of artwork, and a reader
+           on a 2g link needs the prices under it far more than the scenery. */
+        data-artwork="city"
         style={{
           backgroundImage: "url('/brand/rentme-city.png')",
           backgroundSize: "cover",

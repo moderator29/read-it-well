@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
+import { prefersLessData } from "@/lib/save-data";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { TiltField } from "@/components/site/TiltField";
@@ -135,9 +136,17 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  /* Read before a byte is rendered, because that is the only point at which a
+     background image can be prevented rather than merely hidden. */
+  const lessData = await prefersLessData();
 
   return (
-    <html lang={locale} dir={t.meta.dir} suppressHydrationWarning>
+    <html
+      lang={locale}
+      dir={t.meta.dir}
+      data-save-data={lessData ? "on" : undefined}
+      suppressHydrationWarning
+    >
       <head>
         {/*
           The face arrives with the stylesheet rather than after it. `crossorigin`
@@ -173,6 +182,26 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html:
               "try{var t=localStorage.getItem('nf_theme');if(t==='light'||(t==='system'&&matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.dataset.theme='light'}catch(e){}",
+          }}
+        />
+        {/*
+          The other half of the data-saver signal (inbox item 246).
+
+          `Save-Data: on` is a header and only Chromium sends it, and only when
+          the reader has switched data saver on. This covers the reader nobody
+          asked: somebody on a 2g or slow-2g link, which on a lot of this
+          market is simply what the connection is. Runs before first paint, in
+          front of the ambient layer below it, so the 3.5MB of background
+          artwork is never requested rather than requested and hidden.
+
+          Only ever sets the flag. It cannot clear one the server set, because
+          the header is the reader saying so outright and a connection reading
+          does not overrule that.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var c=navigator.connection;if(c&&(c.saveData||/^(slow-)?2g$/.test(c.effectiveType||'')))document.documentElement.dataset.saveData='on'}catch(e){}",
           }}
         />
         {/* The living canvas, mounted once behind every page. */}
