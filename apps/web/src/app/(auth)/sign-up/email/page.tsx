@@ -16,10 +16,15 @@ export const metadata: Metadata = {
  * their pickers fetch themselves when opened, so nobody pays for a list they
  * never look at.
  */
-export default async function SignUpEmailPage() {
+export default async function SignUpEmailPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
   const locale = await getLocale();
   const t = getDictionary(locale);
   const states = await listStates();
 
-  return <EmailAuthForm mode="sign-up" t={t} action={signUpWithEmail} states={states} />;
+  return <EmailAuthForm mode="sign-up" t={t} action={signUpWithEmail} states={states} next={next} />;
 }

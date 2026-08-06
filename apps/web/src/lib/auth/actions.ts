@@ -196,6 +196,28 @@ async function callerIp(): Promise<string> {
   return ipFromHeaders(await headers());
 }
 
+
+/**
+ * Where to land after signing in.
+ *
+ * The middleware sends somebody who reached a product address without a
+ * session to /sign-in with `next` carrying where they were going, and this is
+ * the half that honours it. Without this every sign-in landed on /home, so a
+ * person who followed a link to a listing signed in and lost the listing.
+ *
+ * Re-validated here rather than trusted from the query string, because the
+ * value crosses a form and a form is an endpoint anybody can post to. Only a
+ * path is accepted: no scheme, no protocol-relative `//host`, and no
+ * backslash, which the URL parser treats as a path separator and which is
+ * exactly how `/\evil.example` became an open redirect in the auth callback.
+ */
+function landingAfterAuth(formData: FormData): string {
+  const raw = formData.get("next");
+  if (typeof raw !== "string" || raw.length === 0) return "/home";
+  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) return "/home";
+  return raw;
+}
+
 export async function signInWithEmail(
   _prev: AuthFormState,
   formData: FormData,
@@ -211,6 +233,7 @@ export async function signInWithEmail(
   if (paced) return paced;
 
   const supabase = await createClient();
+  const landing = landingAfterAuth(formData);
   const { error } = await supabase.auth.signInWithPassword({
     email: field(formData, "email").trim(),
     password: field(formData, "password"),
@@ -221,7 +244,7 @@ export async function signInWithEmail(
   // The session cookies are set. Drop every cached render so the shell picks
   // up the real identity instead of the signed out view.
   revalidatePath("/", "layout");
-  redirect("/home");
+  redirect(landing);
 }
 
 export async function signUpWithEmail(
@@ -278,7 +301,7 @@ export async function signUpWithEmail(
   }
 
   revalidatePath("/", "layout");
-  redirect("/home");
+  redirect(landingAfterAuth(formData));
 }
 
 /**
@@ -294,15 +317,20 @@ export async function signUpWithEmail(
  * browser, which means a crafted form cannot ask for a provider we never
  * enabled.
  */
-export async function startGoogleOAuth(): Promise<void> {
-  await startOAuth("google");
+/* A `<form action={...}>` hands the action its FormData, which is how the
+   hidden `next` field reaches the provider round trip. */
+export async function startGoogleOAuth(formData: FormData): Promise<void> {
+  await startOAuth("google", formData);
 }
 
-export async function startAppleOAuth(): Promise<void> {
-  await startOAuth("apple");
+export async function startAppleOAuth(formData: FormData): Promise<void> {
+  await startOAuth("apple", formData);
 }
 
-export async function startOAuth(provider: "google" | "apple"): Promise<AuthFormState> {
+export async function startOAuth(
+  provider: "google" | "apple",
+  formData: FormData = new FormData(),
+): Promise<AuthFormState> {
   const states = getProviderStates();
   if (!states.some((p) => p.id === provider && p.configured)) {
     return {
@@ -315,7 +343,10 @@ export async function startOAuth(provider: "google" | "apple"): Promise<AuthForm
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent("/home")}`,
+      /* The provider round trip loses everything except this URL, so where
+         the person was going has to travel inside it. The callback re-checks
+         the value against its own origin before using it. */
+      redirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent(landingAfterAuth(formData))}`,
     },
   });
 

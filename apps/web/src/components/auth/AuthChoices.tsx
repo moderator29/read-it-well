@@ -28,12 +28,20 @@ export function AuthChoices({
   t,
   providers,
   notice,
+  next,
 }: {
   mode: "sign-in" | "sign-up";
   t: Dictionary;
   providers: ProviderState[];
   /** A message from the auth callback, for example an expired link. */
   notice?: string | undefined;
+  /**
+   * Where the person was going when the middleware stopped them, carried
+   * through every route out of this screen so signing in returns them there
+   * rather than dropping them on the home shelf. Validated again server side,
+   * because a hidden field is an input like any other.
+   */
+  next?: string | undefined;
 }) {
   const isSignUp = mode === "sign-up";
   const configured = (id: ProviderId) => providers.find((p) => p.id === id)?.configured ?? false;
@@ -68,7 +76,15 @@ export function AuthChoices({
       </div>
 
       <div className="space-y-2.5">
-        <Link href={isSignUp ? "/sign-up/email" : "/sign-in/email"} className="nf-auth-row">
+        {/* The destination has to travel with the link, or the chain breaks at
+            this hop: the person reaches the email form and the form has
+            forgotten where they were going. */}
+        <Link
+          href={`${isSignUp ? "/sign-up/email" : "/sign-in/email"}${
+            next ? `?next=${encodeURIComponent(next)}` : ""
+          }`}
+          className="nf-auth-row"
+        >
           <span className="nf-auth-row__mark nf-auth-row__mark--email">
             <MailMark size={16} />
           </span>
@@ -84,6 +100,7 @@ export function AuthChoices({
             below, rather than sending someone to an error page. */}
         {oauth.map((p) => (
           <form key={p.id} action={p.id === "google" ? startGoogleOAuth : startAppleOAuth}>
+            {next ? <input type="hidden" name="next" value={next} /> : null}
             <button type="submit" disabled={!configured(p.id)} className="nf-auth-row w-full">
               <span className="nf-auth-row__mark">{p.mark}</span>
               <span className="flex-1 text-left">{p.label}</span>
