@@ -91,6 +91,23 @@ user-facing, the agent application wizard's step label. Note that three test
 specs legitimately CONTAIN the character, because they are the guards that
 search for it, and a sweep must not "fix" those.
 
+**Three of the 72 specs are red, and all three predate this session.** The
+whole suite was run against a production build, then the same three were run
+again against the commit before this session's first, and the failing checks
+came back byte for byte identical. So they are a standing debt rather than a
+regression, and none of them had been written down.
+
+| Spec | What fails | Read |
+|---|---|---|
+| `session-memory` | Times out waiting for `a[href^="/listing/"]` | The empty catalogue. It is one of the specs that needs real inventory, but unlike the four that skip loudly it hangs for thirty seconds first. Worth giving it the same honest skip |
+| `social-people` | "no dock, and the page says why", twice, on `/around` in light | Needs a look. It is the only one of the three that might be a product fault rather than an absent shelf |
+| `admin-console` | Four geometry checks: the console measures 374px on a phone, the queue renders one column where two are expected, and on a 2560px display it spans 2544px with `left: 8` rather than stopping and centring | The admin console has no maximum width. A queue row stretched to a metre is the thing the spec was written to prevent |
+
+A fourth, `truncation`, failed inside the 72-spec sweep with "Failed to open a
+new tab" and passes on its own. That is Chromium running out of room in this
+sandbox after seventy consecutive launches, not a product fault. Run the suite
+in batches if it happens again.
+
 **`apps/web/tsconfig.json` carries ten dead `include` entries.** Parallel builds
 add `".next-a1/types/**"` and friends as they are used, but `exclude` holds
 `".next-*"`, and exclude filters include, so every one of those entries does
