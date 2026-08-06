@@ -72,6 +72,7 @@ which buttons are safe to show, which is `NEXT_PUBLIC_AUTH_PROVIDERS` below.
 | `AMADEUS_CLIENT_ID` / `AMADEUS_CLIENT_SECRET` | **server** | No partner hotel inventory. Own listings are unaffected. Partner stock never carries the verified badge and never opens in-platform messaging — see `docs/HYBRID_INVENTORY.md`. |
 | `AMADEUS_ENV` | server | `test` or `production`. Defaults to `test`. Switch after certification. |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | public | Six surfaces show a support address. Until this names a real mailbox they show the in-app route instead of an address that bounces. |
+| `NEXT_PUBLIC_MAPTILER_KEY` | public | **A licence, not a feature.** Unset, the map draws on CARTO's public basemaps, which are **non-commercial use only** — and a marketplace taking a booking fee is a commercial use. Set it and the map switches provider, zoom ceiling and attribution together. [cloud.maptiler.com/account/keys](https://cloud.maptiler.com/account/keys) |
 | `NEXT_PUBLIC_NGN_USD_RATE` | public | The wallet's naira→dollar toggle simply does not appear. It is gated rather than defaulted because a made-up FX rate on a wallet balance is a lie about money. |
 | `NF_DATA_SOURCE` | server | `repository` (default) or `api`. Selects the listing/agent data source. Leave unset. |
 
@@ -85,7 +86,6 @@ wondering why.
 
 | Variable | Status |
 |---|---|
-| `NEXT_PUBLIC_MAPTILER_KEY` | The map renders on Carto's free basemap tiles (`basemaps.cartocdn.com`), which are **non-commercial use only**. A commercial tile provider is a real pre-launch task, and this key is where it will land — but no code reads it yet. |
 | `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Not needed. Checkout is a server-initiated redirect, so the browser never holds a Paystack key. |
 | `TERMII_API_KEY` | Phone/SMS OTP has not shipped. |
 | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | No analytics client is installed. |
@@ -112,5 +112,6 @@ Read by specs under `apps/web/tests/`, never by the application: `BASE_URL`,
 5. **Google OAuth, then Apple.** Apple is mandatory for the App Store the
    moment Google is offered.
 6. **Google Places, then Amadeus.** Both widen inventory; neither blocks launch.
-7. **A commercial map tile provider.** Carto's free tiles are non-commercial,
-   so this is a licensing item, not a feature item.
+7. **`NEXT_PUBLIC_MAPTILER_KEY`.** Wired now — see section 3. It is a
+   licensing item rather than a feature item, and it is the only one on this
+   list that can cost you a letter rather than a bug report.

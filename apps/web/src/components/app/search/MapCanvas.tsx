@@ -1,5 +1,6 @@
 "use client";
 
+import { tileProvider, warnIfNonCommercialTiles } from "@/lib/maps/tiles";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { formatMoney, type Locale } from "@naijafinds/i18n";
 import "leaflet/dist/leaflet.css";
@@ -38,8 +39,13 @@ import type { MapCopy, MapListing } from "./mapTypes";
  * containing block for any fixed descendant.
  */
 
-const DARK_TILES = "https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-const LIGHT_TILES = "https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+/*
+ * The tile URLs used to be two constants here, on CARTO's free basemaps, which
+ * are NON-COMMERCIAL USE ONLY - and a marketplace taking a booking fee is a
+ * commercial use. `lib/maps/tiles.ts` owns the choice now, carries the
+ * attribution each provider's terms require, and moves the whole map to a paid
+ * provider the moment NEXT_PUBLIC_MAPTILER_KEY is set.
+ */
 
 /** Grid cell for clustering, in CSS pixels. Roughly two pin widths. */
 const CELL = 76;
@@ -100,6 +106,11 @@ export function MapCanvas({
   const [engineReady, setEngineReady] = useState(false);
   const [imagery, setImagery] = useState<"loading" | "ready" | "offline">("loading");
   const [theme, setTheme] = useState<"dark" | "light" | null>(null);
+  /* The credit line belongs to whichever provider is actually serving tiles.
+     Both providers credit the same names whatever the style, so the theme here
+     only picks a variant; it is passed for completeness rather than because the
+     answer changes with it. */
+  const credits = tileProvider(theme === "light" ? "light" : "dark").credits;
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [soloIds, setSoloIds] = useState<ReadonlySet<string>>(() => new Set<string>());
@@ -223,8 +234,10 @@ export function MapCanvas({
     const leaflet = leafletRef.current;
     if (!map || !leaflet || !theme) return;
     tileRef.current?.remove();
-    const layer = leaflet.tileLayer(theme === "light" ? LIGHT_TILES : DARK_TILES, {
-      maxZoom: 19,
+    warnIfNonCommercialTiles();
+    const tiles = tileProvider(theme === "light" ? "light" : "dark");
+    const layer = leaflet.tileLayer(tiles.url, {
+      maxZoom: tiles.maxZoom,
       minZoom: 4,
     });
     layer.on("tileload", () => {
@@ -789,23 +802,22 @@ export function MapCanvas({
             </span>
           ) : (
             <>
-              <a
-                href="https://www.openstreetmap.org/copyright"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline-offset-2 hover:underline"
-              >
-                OpenStreetMap
-              </a>
-              {" and "}
-              <a
-                href="https://carto.com/attributions"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline-offset-2 hover:underline"
-              >
-                CARTO
-              </a>
+              {/* Whoever the provider's terms name, in the order they ask
+                  for. Hard-coding the pair here is how a provider swap
+                  replaces one licence breach with another. */}
+              {credits.map((credit, i) => (
+                <span key={credit.href}>
+                  {i > 0 ? " and " : null}
+                  <a
+                    href={credit.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline-offset-2 hover:underline"
+                  >
+                    {credit.label}
+                  </a>
+                </span>
+              ))}
             </>
           )}
           {approximate && <span>{" · Pins show the area, not the address."}</span>}
