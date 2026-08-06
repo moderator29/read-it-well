@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getDictionary } from "@naijafinds/i18n";
+import { getLocale } from "@/lib/locale";
 import { InterestChoices } from "@/components/app/welcome/InterestChoices";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { loadInterestsState } from "@/lib/interests/queries";
@@ -31,6 +33,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function WelcomePage() {
+  const t = getDictionary(await getLocale());
   const intent = await loadInterestsState();
 
   if (intent.state === "signed-out") redirect("/sign-in");
@@ -56,7 +59,7 @@ export default async function WelcomePage() {
         </div>
 
         <div className="nf-rise mt-7" style={{ animationDelay: "90ms" }}>
-          <InterestChoices initial={intent.interests} />
+          <InterestChoices initial={intent.interests} t={t} />
         </div>
       </div>
     </main>

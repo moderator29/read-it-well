@@ -69,6 +69,7 @@ export default async function SettingsPage() {
               whole of what the platform knows about somebody before they have
               searched for anything: where they are and what they came for. */}
           <InterestsCard
+            t={t}
             signedIn={signedIn}
             interests={intent.state === "signed-in" ? intent.interests : []}
             asked={intent.state === "signed-in" ? intent.asked : false}

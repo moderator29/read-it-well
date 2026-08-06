@@ -68,9 +68,16 @@ check(
   /firstRun && \(\s*<Button[\s\S]{0,400}welcome-skip/.test(choices),
   "the Skip button is not gated on firstRun",
 );
+/* The sentence moved into the dictionary when the screen learned four
+   languages, so the check follows it: the component still appends a
+   first-run-only note, and the English one still names Settings. */
 check(
-  "the first-run copy now names the screen this can be changed on",
-  /firstRun \? " You can change it later in Settings\." : ""/.test(choices),
+  "the first-run copy appends a note only on the first run",
+  /firstRun \? t\.interests\.noteFirstRun : ""/.test(choices),
+);
+check(
+  "and that note names the screen this can be changed on",
+  /noteFirstRun: "[^"]*Settings/.test(read("../../packages/i18n/src/locales/en.ts")),
 );
 
 /* ----------------------------------------------------------------- the screens */

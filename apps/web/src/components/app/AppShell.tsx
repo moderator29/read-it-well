@@ -261,10 +261,19 @@ export function AppShell({
                 number is unreadable. Zero renders no marker at all. */}
             <Link
               href="/notifications"
+              /* The count is INSIDE one dictionary sentence rather than
+                 appended to a translated noun. English writes "Notifications,
+                 3 unread" and the other three do not all put the number in the
+                 same place, so a template assembled here could only ever be
+                 right in one language. The marker beside it is a dot, so this
+                 label is the only place the number is stated at all. */
               aria-label={
                 unreadNotifications > 0
-                  ? `Notifications, ${unreadNotifications} unread`
-                  : "Notifications"
+                  ? t.a11y.notificationsUnread.replace(
+                      "{count}",
+                      String(unreadNotifications),
+                    )
+                  : t.nav.notifications
               }
               className="nf-icon-btn relative h-10 w-10 shrink-0"
             >

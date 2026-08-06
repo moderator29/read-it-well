@@ -1,5 +1,6 @@
 import { RowLink, SettingsGroup } from "@/components/app/account/rows";
-import { INTEREST_COPY, type PropertyType } from "@/lib/interests/schema";
+import type { Dictionary } from "@naijafinds/i18n";
+import { type PropertyType } from "@/lib/interests/schema";
 
 /**
  * The row that owns what somebody came here for.
@@ -17,10 +18,15 @@ import { INTEREST_COPY, type PropertyType } from "@/lib/interests/schema";
  * direction or the other.
  */
 export function InterestsCard({
+  t,
   signedIn,
   interests,
   asked,
 }: {
+  /* Handed down from the settings page, which resolved the locale. The market
+     names come from the dictionary too, so a Hausa reader is not shown an
+     English list of what they said they came for. */
+  t: Dictionary;
   signedIn: boolean;
   interests: PropertyType[];
   /** True once the first-run question has been answered or skipped. */
@@ -28,25 +34,25 @@ export function InterestsCard({
 }) {
   const value = signedIn
     ? interests.length > 0
-      ? interests.map((type) => INTEREST_COPY[type].label).join(", ")
+      ? interests.map((type) => t.interests.markets[type]).join(", ")
       : asked
-        ? "Nothing in particular"
-        : "Not answered yet"
-    : "Not set";
+        ? t.interests.rowNothing
+        : t.interests.rowNotAsked
+    : t.common.notSet;
 
   return (
     <SettingsGroup
-      label="What you are here for"
+      label={t.interests.screenTitle}
       note={
         signedIn
-          ? "This only decides what we put in front of you first. Any search or filter you set yourself always wins."
-          : "Sign in to keep this with your account, so it follows you to every device."
+          ? t.interests.rowNote
+          : t.interests.rowNoteSignedOut
       }
     >
       <RowLink
         href={signedIn ? "/settings/interests" : "/sign-in"}
         icon="compass"
-        label="What you are looking for"
+        label={t.interests.rowLabel}
         value={value}
         testId="settings-interests-row"
       />

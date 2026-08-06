@@ -27,6 +27,7 @@ export const ha: Dictionary = {
     reviews: "sharhi",
     verified: "An tabbatar",
     skipToContent: "Tsallake zuwa abun ciki",
+    notSet: "Ba a saita ba",
   },
 
   nav: {

@@ -10,7 +10,8 @@ import {
   skipInterests,
   type InterestsSaved,
 } from "@/lib/interests/actions";
-import { INTEREST_COPY, PROPERTY_TYPES, type PropertyType } from "@/lib/interests/schema";
+import type { Dictionary } from "@naijafinds/i18n";
+import { PROPERTY_TYPES, type PropertyType } from "@/lib/interests/schema";
 
 /**
  * The one question worth asking at the door.
@@ -59,8 +60,13 @@ import { INTEREST_COPY, PROPERTY_TYPES, type PropertyType } from "@/lib/interest
 export function InterestChoices({
   initial,
   mode = "welcome",
+  t,
 }: {
   initial: PropertyType[];
+  /* The nine market names and every word around them. `INTEREST_COPY` in
+     lib/interests/schema.ts stays as the English source the dictionary was
+     written from, but nothing renders it now. */
+  t: Dictionary;
   /** `welcome` is the first run. `settings` is somebody changing their mind. */
   mode?: "welcome" | "settings";
 }) {
@@ -133,12 +139,12 @@ export function InterestChoices({
 
       <div
         role="group"
-        aria-label="What are you here for?"
+        aria-label={t.interests.question}
         className="grid grid-cols-2 gap-3 sm:grid-cols-3"
       >
         {PROPERTY_TYPES.map((value) => {
           const selected = chosen.includes(value);
-          const copy = INTEREST_COPY[value];
+
           return (
             <button
               key={value}
@@ -168,10 +174,10 @@ export function InterestChoices({
                 />
               )}
               <span className="pr-5 text-[0.9375rem] font-semibold leading-tight text-[var(--nf-content-primary)]">
-                {copy.label}
+                {t.interests.markets[value]}
               </span>
               <span className="text-[0.75rem] leading-snug text-[var(--nf-content-muted)]">
-                {copy.hint}
+                {t.interests.hints[value]}
               </span>
             </button>
           );
@@ -205,8 +211,8 @@ export function InterestChoices({
           className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-3.5 py-2.5 text-center text-[0.8125rem] leading-relaxed text-[var(--nf-state-success)]"
         >
           {chosen.length === 0
-            ? "Saved. You have said nothing in particular, so nothing is ranked ahead of anything else."
-            : "Saved. This is what we will put in front of you first."}
+            ? t.interests.savedNothing
+            : t.interests.savedSomething}
         </p>
       )}
 
@@ -226,7 +232,7 @@ export function InterestChoices({
         data-testid="welcome-save"
         className="mt-6"
       >
-        {firstRun ? "Continue" : "Save what I am here for"}
+        {firstRun ? t.common.continue : t.interests.save}
       </Button>
 
       {firstRun && (
@@ -240,7 +246,7 @@ export function InterestChoices({
           data-testid="welcome-skip"
           className="mt-2"
         >
-          Skip
+          {t.interests.skip}
         </Button>
       )}
 
@@ -252,9 +258,8 @@ export function InterestChoices({
         built.
       */}
       <p className="mt-4 text-center text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
-        This only changes what we show first. Any search or filter you set
-        yourself always wins.
-        {firstRun ? " You can change it later in Settings." : ""}
+        {t.interests.note}
+        {firstRun ? t.interests.noteFirstRun : ""}
       </p>
     </form>
   );

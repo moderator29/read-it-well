@@ -16,15 +16,19 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 type DockItem = { href: string; label: string; icon: UiIconName };
 
 export function DesktopDock({ t, active }: { t: Dictionary; active: string }) {
+  /* Every one of the three is the ONLY name its target gets here: the dock is
+     glyph-only, so the label is both the tooltip and the accessible name, and
+     an English word among two translated ones is the whole destination
+     unreadable rather than a small blemish. */
   const items: DockItem[] = [
-    { href: "/notifications", label: "Notifications", icon: "bell" },
+    { href: "/notifications", label: t.nav.notifications, icon: "bell" },
     { href: "/messages", label: t.nav.messages, icon: "chat-bubble" },
     { href: "/settings", label: t.nav.settings, icon: "settings-gear" },
   ];
 
   return (
     <nav
-      aria-label="Quick access"
+      aria-label={t.a11y.quickAccess}
       className="nf-dock fixed inset-x-0 bottom-6 z-40 mx-auto hidden w-fit lg:flex"
     >
       {items.map((item) => {

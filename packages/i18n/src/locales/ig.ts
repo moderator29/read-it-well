@@ -27,6 +27,7 @@ export const ig: Dictionary = {
     reviews: "nyocha",
     verified: "Enyochala",
     skipToContent: "Wụga na ọdịnaya",
+    notSet: "Edobeghị ya",
   },
 
   nav: {

@@ -27,6 +27,7 @@ export const yo: Dictionary = {
     reviews: "àtúnyẹ̀wò",
     verified: "Tí fọwọ́sí",
     skipToContent: "Fò sí àkóónú",
+    notSet: "Kò tíì sí",
   },
 
   nav: {
