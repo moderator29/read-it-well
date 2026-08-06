@@ -599,7 +599,8 @@ export async function blockUser(input: {
     .insert({ user_id: session.user.id, other_id: parsed.data.userId });
 
   if (error && error.code !== "23505") {
-    if (error.code === "23514") return fail("You cannot block yourself.");
+    if (error.code === "23514")
+      return fail("You cannot block yourself. Your own page is always yours.");
     return fail(POST_FAILURE.down);
   }
 

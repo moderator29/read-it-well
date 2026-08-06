@@ -126,7 +126,7 @@ export const STORY_FAILURE = {
   tooBig: "That picture is over 10MB. Please choose a smaller one.",
   wrongType: "Choose a JPG, PNG or WebP picture.",
   notInArea: "Join this place before you write a story about it.",
-  gone: "That story is no longer there.",
+  gone: "That story is no longer there. It may have been taken down. Refresh to see the ones still up.",
   /*
    * 42P01 is "no such table", which is the honest answer while the migration is
    * on its way. It is a platform state, not something the person did, and it

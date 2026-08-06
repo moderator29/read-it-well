@@ -134,7 +134,8 @@ export async function addPayoutAccount(
     // 23514 is the ten-digit check constraint.
     if (insertError.code === "23514") {
       return fail("A Nigerian account number is exactly ten digits.", {
-        accountNumber: "A Nigerian account number is exactly ten digits.",
+        accountNumber:
+          "A Nigerian account number is exactly ten digits. Check the number on your card or in your bank app, then enter it again.",
       });
     }
     if (insertError.code === "42501") {

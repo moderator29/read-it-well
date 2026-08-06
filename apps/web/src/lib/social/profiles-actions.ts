@@ -228,7 +228,7 @@ export async function setSocialCover(input: {
       return fail(parsed.error.issues[0]?.message ?? "That photo could not be filed.");
     }
     if (!parsed.data.toLowerCase().startsWith(`${user.id.toLowerCase()}/`)) {
-      return fail("That photo does not belong to this account.");
+      return fail("That photo does not belong to this account. Choose one you uploaded yourself.");
     }
     coverPath = parsed.data;
   }

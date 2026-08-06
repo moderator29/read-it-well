@@ -31,7 +31,7 @@ const NOT_AGENT_MESSAGE =
   "Only the host of a listing can answer its reviews. Apply to host and we will take it from there.";
 
 const NOT_YOURS_MESSAGE =
-  "That review is not on one of your listings, so it is not yours to answer.";
+  "That review is not on one of your listings, so it is not yours to answer. Open it from the listing it was left on.";
 
 const SERVICE_DOWN_MESSAGE =
   "We could not save your reply just then. Nothing was lost, please try again in a moment.";

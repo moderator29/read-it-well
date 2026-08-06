@@ -32,8 +32,8 @@ import {
  * envelope carried or refresh the page so the queue re-renders from the
  * database rather than from optimistic guesswork.
  *
- * The sheet mechanics — portal, drag handle, detents, focus trap, focus
- * restoration, Escape, backdrop and body scroll lock — belong to `<Sheet>`.
+ * The sheet mechanics (portal, drag handle, detents, focus trap, focus
+ * restoration, Escape, backdrop and body scroll lock) belong to `<Sheet>`.
  * What stays here is the decision: the required note, the refusal, the
  * in-sheet success state.
  *

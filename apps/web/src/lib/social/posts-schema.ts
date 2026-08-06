@@ -257,7 +257,7 @@ export const POST_COPY = {
 
 export const POST_FAILURE = {
   down: "We could not do that just now. Please try again in a moment.",
-  gone: "That post is no longer there.",
+  gone: "That post is no longer there. It may have been taken down. Refresh the feed.",
   notInArea: "Join this place before you post in it.",
   tooDeep:
     "This thread is as deep as it goes. Reply higher up so people can follow it.",
@@ -290,7 +290,7 @@ export const POST_FAILURE = {
    */
   pictureReencode:
     "We could not prepare that picture safely on this device, so it was not uploaded. Try a different one.",
-  pictureTooMany: "Four pictures is the most a post can carry.",
+  pictureTooMany: "Four pictures is the most a post can carry. Remove one and try again.",
   pictureUpload: "That upload did not go through. Check your connection and try again.",
 } as const;
 

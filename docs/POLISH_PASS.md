@@ -35,8 +35,16 @@ proof.
    checked the rest.
 6. **Every overlay closes on Escape**, traps focus, and locks the page behind
    it.
-7. **No sentence is ever truncated.** `grep` every `truncate` and justify it. A
-   handle in a tight row is fine. "Places on R..." is not.
+7. **No sentence is ever truncated.** DONE, `truncation.spec.mjs`. Forty
+   routes at 320, 390, 768 and 1280. Three checks, because with an empty
+   catalogue the first two pass on rows that have never held anything: nothing
+   is clipping, no sentence sits under a single-line truncation, and every
+   truncating box still holds a long Nigerian name without bursting its
+   container or giving the page a sideways scroll. It found the listing
+   performance card in the agent workspace giving its title 167px for 169px of
+   name at 320px, which now stacks. 1,480 elements reached of 75 source sites;
+   the spec prints that gap on every run rather than implying coverage it does
+   not have.
 8. **Aspect-ratio boxes on every image**, so nothing shifts under a thumb as it
    loads.
 9. **Status colours locked into tokens**: pending, approved, rejected, verified.
@@ -54,8 +62,13 @@ proof.
     wizard, not only the first. `#37`
 16. **Smart default dates** in search: the upcoming weekend. `#29`
 17. **`+234` phone input mask** with carrier-aware validation. `#33`
-18. **Every error says what happened and what to do next**, in plain language. A
-    sweep, not one screen. `#40`
+18. **Every error says what happened and what to do next**, in plain language.
+    DONE, `error-copy.spec.mjs`. 202 refusals, every one reached through the
+    `ActionResult` envelope, including the ones routed through shared
+    constants: `SIGNED_OUT_MESSAGE` alone is used 58 times. Eighteen said only
+    what happened. The rule is structural plus a vocabulary, so a bark cannot
+    pass by being short and an instruction cannot fail by using a verb nobody
+    predicted. `#40`
 19. **Every empty state offers a next action.** Discovery DONE: the search
     empty state now tells three different nothings apart, because they need
     different answers. A filter that matched nothing offers Clear filters, a
@@ -70,7 +83,13 @@ proof.
 23. **The last chosen view, list or map, is remembered.** `#155`
 24. **Recent searches as chips** under the search bar. `#160`
 25. **A recently-viewed rail** on home and search. `#23`
-26. **Undo instead of a confirm dialog** on unsave and draft delete. `#26`
+26. **Undo instead of a confirm dialog** on unsave and draft delete. Unsave was
+    already done and unmarked. Draft delete now inverts the order, because the
+    action deletes the row and its photos and cannot be undone afterwards: the
+    row leaves at once, the slot offers six seconds with a draining bar, and
+    nothing reaches the server until that runs out. Timing in
+    `lib/ui/undo-window.ts` with nine unit tests. NOT PROVED IN A BROWSER: the
+    workspace needs an approved agent with a draft. `#26`
 27. **Verified listings rank above unverified** at equal relevance. `#158`
 28. **`aria-live` for form errors, result counts and booking status changes.**
     DONE. Form errors were already covered (`Field`, `fields`, all four auth
@@ -81,16 +100,34 @@ proof.
     without "match your filters" is worse than silence. `#149`
 29. **A sticky mobile booking bar** on listing detail: price, dates, action.
     `#42`
-30. **The tab bar hides on scroll down and returns on scroll up.** `#212`
+30. **The tab bar hides on scroll down and returns on scroll up.** DONE,
+    `dock-autohide.spec.mjs`. Never in the top 96px, never at the end of a
+    page, ignores movements under 8px, and returns on focus so a hidden dock
+    leaves the tab order. The spec found two real faults: a new screen opened
+    still hidden, because an app navigation is a transition and a render-phase
+    reset does not survive it (the dock is keyed on the route and remounts);
+    and `scroll-behavior: smooth` ends a page in one and two pixel steps, every
+    one under the jitter threshold, which left the dock hidden at the very
+    bottom of a list. `#212`
 31. **Long-press quick actions on a listing card**: save, share, hide. `#218`
 32. **Haptic feedback** on save, book and send, where the device has it. `#213`
 33. **Prefetch listing detail on card press-down.** `#141`
-34. **Self-host and preload the exact Inter subsets in use.** `#145`
+34. **Self-host and preload the exact Inter subsets in use.** DONE,
+    `fonts.spec.mjs`. Both faces were already self-hosted through next/font and
+    NOT ONE preload link ever reached a browser. Nineteen files existed, ten
+    were fetched on every load, four of those were never painted. Seven files
+    now, checked in, preloaded per locale, immutable for a year. The declared
+    subset list was also wrong: the Yoruba and Igbo dotted vowels live in
+    `vietnamese`, which was never asked for. `#145`
 35. **Confirm Leaflet is lazy** and no eager chunk survived the dynamic import.
     `#245`
 36. **A data-saver toggle**: no ambient canvas, no grain, no autoplay. `#20`
-37. **`save-data` and connection-aware media**: smaller images, no Ken Burns on
-    a slow link. `#246`
+37. **`save-data` and connection-aware media**. DONE, `save-data.spec.mjs`.
+    /home was 3,676KB at 390px with an empty catalogue, 3,520KB of it imagery,
+    almost all of it two raw background PNGs. Under the `Save-Data` header or a
+    2g connection it is 28KB: the artwork is never requested rather than hidden,
+    which is the whole design, and the Ken Burns pan, the blooms, the grain and
+    the aurora go with it. Every colour, control and heading stays. `#246`
 38. **The map viewport in the URL** (lat, lng, zoom), so a map link is
     shareable. `#153`
 39. **A "search this area" chip** when somebody pans the map. `#154`
@@ -118,10 +155,16 @@ proof.
     did not answer is never offered to somebody who asked, and because that
     makes an all-unanswered pool unfilterable, the section only appears when
     the pool in front of the reader holds an answer.
-47. **The cancellation policy as a timeline**, not a paragraph: full refund
-    until X, half until Y. `#66`
-48. **`globals.css` split into partials**: ambient, glass, buttons, motion,
-    light. `#226`
+47. **The cancellation policy as a timeline**, not a paragraph. The timeline
+    was built and rendered only on /cancellations and /safety, which are where
+    somebody goes after they want out. It is now on the listing as the plain
+    policy and at checkout against the guest's own dates and total. NEITHER
+    PLACEMENT IS PROVED: /listing 404s with an empty catalogue and a checkout
+    needs a booking. `trust-surfaces` skips out loud on both. `#66`
+48. **`globals.css` split into partials.** DONE. 4,544 lines became eighteen
+    ordered imports. Byte identical: the emitted stylesheet is 259,411 bytes
+    before and after with an empty diff. THE ORDER IS THE CASCADE, and three
+    selectors are declared twice on purpose. `#226`
 49. **A `/styleguide` route.** DONE, `styleguide.spec.mjs`. Twelve sections,
     every swatch painting its own token rather than a copied value, so the page
     cannot drift from the sheet. Noindex. It immediately earned its keep: the

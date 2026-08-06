@@ -282,7 +282,7 @@ export async function summonBot(input: { postId: string }): Promise<ActionResult
     .select("id, body, status, area_id, depth")
     .eq("id", parsed.data.postId)
     .maybeSingle();
-  if (!post) return fail("That post could not be found.");
+  if (!post) return fail("That post could not be found. It may have been taken down. Refresh the feed.");
   if (post.status !== "LIVE") return fail(BOT_COPY.notLive);
   if (!mentionsBot(post.body ?? "")) return ok({ replyId: null, refused: null });
   /* The depth cap is three and a reply to this post is one deeper, so at three

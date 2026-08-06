@@ -681,7 +681,9 @@ export async function unpublishListing(input: {
   const listing = await ownedListing(gate.supabase, gate.agentId, parsed.data.listingId);
   if (!listing) return fail(NOT_FOUND_MESSAGE);
   if (listing.status !== "APPROVED" && listing.status !== "PUBLISHED") {
-    return fail("Only a listing that is approved or live can be taken back to a draft.");
+    return fail(
+      "Only a listing that is approved or live can be taken back to a draft. Refresh to see where this one stands.",
+    );
   }
 
   const { error } = await gate.supabase

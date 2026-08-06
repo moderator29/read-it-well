@@ -149,12 +149,21 @@ try {
     `bottom ${Math.round(dock.bottom)} of ${dock.viewport}`,
   ]);
 
-  /* 5. The end of the page. */
+  /*
+   * 5. The end of the page.
+   *
+   * `html` sets `scroll-behavior: smooth`, so this is an animation and not a
+   * jump, and the last few frames of it are one and two pixel steps. That is
+   * the point of testing it this way rather than setting scrollTop by hand: it
+   * is how a real thumb arrives at the foot of a page, and the first version
+   * of the dock failed it, leaving the dock hidden at the very end of a list
+   * with no way to bring it back but scrolling up again.
+   */
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(900);
   dock = await readDock();
   check("it does not hide at the end of the page", !dock.offScreen, [
-    `scrollY ${dock.scrollY}, dock top ${Math.round(dock.top)}`,
+    `scrollY ${dock.scrollY}, dock top ${Math.round(dock.top)} of ${dock.viewport}`,
   ]);
 
   /*

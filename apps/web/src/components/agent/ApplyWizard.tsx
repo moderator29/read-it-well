@@ -216,7 +216,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
            There is no `stepCounter` key in this dictionary slice yet, so the
            bar reuses the wording that is already on the screen rather than
            inventing an English sentence in a four-locale flow. */
-        label={`${step + 1} / ${stepTitles.length} — ${stepTitles[step]}`}
+        label={`${step + 1} / ${stepTitles.length}: ${stepTitles[step]}`}
         className="mb-3"
       />
       <ol className="mb-2 flex items-start sm:mb-8" aria-label={a.title}>

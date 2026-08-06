@@ -74,15 +74,32 @@ export function AutoHideDock({
     const read = () => {
       frame = 0;
       const y = window.scrollY;
-      const delta = y - lastY.current;
-      if (Math.abs(delta) < JITTER) return;
-      lastY.current = y;
 
+      /*
+       * WHERE the page is, before HOW it got there.
+       *
+       * These two guards used to sit behind the jitter check, and that was
+       * wrong in a way only a browser found: `html` sets `scroll-behavior:
+       * smooth`, so arriving at the foot of a page is an animation that ends
+       * in a run of one and two pixel steps. Every one of those was under the
+       * jitter threshold and returned early, so the last position the dock
+       * ever acted on was somewhere mid-flight, scrolling down, hidden. The
+       * page was at its very end with the dock off the screen and the rule
+       * saying it must be there. Real momentum scrolling settles the same way.
+       *
+       * Jitter is a guard on the DIRECTION decision, which is the only thing a
+       * two pixel wobble can get wrong. It has no business gating a fact.
+       */
       const atEnd = y + window.innerHeight >= document.documentElement.scrollHeight - SHOW_NEAR_END;
       if (y <= SHOW_ABOVE || atEnd) {
+        lastY.current = y;
         setHidden(false);
         return;
       }
+
+      const delta = y - lastY.current;
+      if (Math.abs(delta) < JITTER) return;
+      lastY.current = y;
       setHidden(delta > 0);
     };
 

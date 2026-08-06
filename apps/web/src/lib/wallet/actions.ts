@@ -465,7 +465,9 @@ export async function verifyFunding(
       return fail("The payment did not go through, so nothing was credited.");
     }
     if (tx.status === "reversed") {
-      return fail("The payment was reversed by the processor, so it was not credited.");
+      return fail(
+        "The payment was reversed by the processor, so it was not credited. Your balance is untouched.",
+      );
     }
     return fail("The payment is still processing. Your wallet updates the moment it settles.");
   }

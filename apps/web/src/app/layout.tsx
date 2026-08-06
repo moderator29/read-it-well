@@ -117,7 +117,7 @@ export const viewport: Viewport = {
    * One theme-color per theme.
    *
    * This used to be a single navy for both, so a user on the light theme got a
-   * near-black browser chrome above a #F4F5F7 canvas — a hard seam exactly
+   * near-black browser chrome above a #F4F5F7 canvas, a hard seam exactly
    * where the reference set expects the chrome to disappear into the page.
    * The dark value still matches `background_color` and `theme_color` in the
    * manifest, so install, splash and canvas remain one continuous colour.
