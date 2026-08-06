@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Locale } from "@naijafinds/i18n";
+import { formatNumber, type Locale } from "@naijafinds/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Odometer } from "@/components/site/Odometer";
 import type { WalletEntry } from "@/lib/wallet/types";
@@ -220,7 +220,11 @@ export function BalanceCard({
       </p>
       <p className="relative mt-2 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
         {inUsd && usdRate
-          ? `Converted at \u20A6${usdRate.toLocaleString()} to $1. Your wallet is held in naira.`
+          ? /* `toLocaleString()` with no argument reads the BROWSER's locale,
+               not the app's, so this line grouped the rate "1.600" on a German
+               phone while every other figure on the same card used commas.
+               There is one number formatter on this platform. */
+            `Converted at \u20A6${formatNumber(usdRate, locale)} to $1. Your wallet is held in naira.`
           : "Naira wallet. Every movement is recorded to the kobo."}
       </p>
 
