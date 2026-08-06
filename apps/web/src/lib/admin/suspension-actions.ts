@@ -131,7 +131,29 @@ export async function stopAgentTrading(
   const { agentId, reason } = parsed.data;
 
   try {
-    const { data, error } = await access.supabase.rpc("suspend_agent", {
+    /*
+     * The service-role client, not the admin's own.
+     *
+     * `suspend_agent` and `reinstate_agent` are granted to `service_role`
+     * alone, so calling them through `access.supabase`, which acts as
+     * `authenticated`, was refused every single time and this desk answered
+     * SERVICE_DOWN on every press. It failed closed, which is the right way to
+     * fail, but it meant the feature did not exist.
+     *
+     * The grant is not the thing to change. A security audit found that the
+     * sibling functions `grant_staff_role` and `revoke_staff_role` HAD been
+     * granted to `authenticated`, and because they authorise off an argument
+     * rather than off the caller, any signed-in user could make themselves a
+     * super admin with one request. Widening this grant to match would have
+     * reintroduced exactly that shape.
+     *
+     * So authorisation happens here instead, before the call: `requireAdmin()`
+     * above has already proved this caller is staff, and `access.user.id` is
+     * their real id from their own session rather than anything the form
+     * carried. The function then re-checks that id on its own account. The
+     * service-role client is only the transport.
+     */
+    const { data, error } = await createAdminClient().rpc("suspend_agent", {
       acting_admin: access.user.id,
       target_agent: agentId,
       stop_reason: reason,
@@ -185,7 +207,29 @@ export async function liftAgentStop(
   const note = parsed.data.note && parsed.data.note.length > 0 ? parsed.data.note : undefined;
 
   try {
-    const { data, error } = await access.supabase.rpc(LIFT_RPC, {
+    /*
+     * The service-role client, not the admin's own.
+     *
+     * `suspend_agent` and `reinstate_agent` are granted to `service_role`
+     * alone, so calling them through `access.supabase`, which acts as
+     * `authenticated`, was refused every single time and this desk answered
+     * SERVICE_DOWN on every press. It failed closed, which is the right way to
+     * fail, but it meant the feature did not exist.
+     *
+     * The grant is not the thing to change. A security audit found that the
+     * sibling functions `grant_staff_role` and `revoke_staff_role` HAD been
+     * granted to `authenticated`, and because they authorise off an argument
+     * rather than off the caller, any signed-in user could make themselves a
+     * super admin with one request. Widening this grant to match would have
+     * reintroduced exactly that shape.
+     *
+     * So authorisation happens here instead, before the call: `requireAdmin()`
+     * above has already proved this caller is staff, and `access.user.id` is
+     * their real id from their own session rather than anything the form
+     * carried. The function then re-checks that id on its own account. The
+     * service-role client is only the transport.
+     */
+    const { data, error } = await createAdminClient().rpc(LIFT_RPC, {
       acting_admin: access.user.id,
       target_agent: agentId,
       ...(note === undefined ? {} : { note }),
