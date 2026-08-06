@@ -358,6 +358,189 @@ export const ig: Dictionary = {
     rowNotAsked: "Azabeghị ya",
 },
 
+  settings: {
+    appearance: {
+      label: "Ọdịdị",
+      note: "Echekwara ya na ngwaọrụ a. Ọchịchịrị bụ nhọrọ mbụ e mere.",
+      theme: "Agba ihuenyo",
+      themeSystem: "Nke ngwaọrụ",
+      themeLight: "Ìhè",
+      themeDark: "Ọchịchịrị",
+      textSize: "Ogo mkpụrụedemede",
+      textSmall: "Obere",
+      textMedium: "Etiti",
+      textLarge: "Buru ibu",
+      reduceMotion: "Belata mmegharị",
+      reduceMotionSub: "Ọ na-eme ka mmegharị mbata na nke mmetụ dajụọ n'ebe niile n'ime ngwa a.",
+      lessData: "Jiri data dị ntakịrị",
+      lessDataSub:
+        "Ọ na-egbochi ngwa a ibu ebe tupu i mepee ya, ọ na-arịọkwa maka foto ndị dị nta.",
+    },
+
+    language: {
+      label: "Asụsụ",
+      appLanguage: "Asụsụ ngwa",
+    },
+
+    place: {
+      label: "Ebe ị nọ",
+      noteSet:
+        "Nke a bụ obodo peeji ụlọ ga-emepe na ya. Ọrụ gị si na ndepụta ikpo okwu a nke 749, ya mere enwere ike ịchọ ya.",
+      noteUnset: "Hazie ndị a ka peeji ụlọ mepee ebe ị nọ.",
+      noteSignedOut: "Banye ka steeti gị na ọchịchị ime obodo gị nọrọ na akaụntụ gị.",
+      lga: "Ọchịchị ime obodo",
+      state: "Steeti",
+      occupation: "Ihe ị na-eme",
+      screenTitle: "Ebe ị nọ",
+      screenSubtitle: "Naịjirịa, mgbe ahụ steeti gị, mgbe ahụ ọchịchị ime obodo gị",
+      accountTitle: "Nke a bụ nke akaụntụ gị",
+      accountBodyUnconfigured:
+        "Akaụntụ ga-amalite ozugbo igodo ikpo okwu rutere. Echekwara steeti gị, ọchịchị ime obodo gị na ọrụ gị na akaụntụ gị, ya mere ha na-eso gị na ngwaọrụ ọ bụla.",
+      accountBodySignedOut:
+        "Echekwara steeti gị, ọchịchị ime obodo gị na ọrụ gị na akaụntụ gị, ya mere ha na-eso gị na ngwaọrụ ọ bụla ma na-ekpebi ebe peeji ụlọ ga-emepe na ya.",
+      statesUnavailable:
+        "Ndepụta steeti abụghị ibu ugbu a. Megharịa peeji a, ọ ga-alọta. Ọ dịghị ihe i chekwaralarị gbanwere.",
+    },
+
+    notifications: {
+      label: "Ọkwa",
+      note: "Echekwara ha na ngwaọrụ a ruo mgbe ị banyere, mgbe ahụ ha ga-eso akaụntụ gị.",
+      push: "Ọkwa ozugbo",
+      pushSub: "Mmelite ndebe na nzaghachi, ozugbo na ngwaọrụ a.",
+      email: "Email",
+      emailSub: "Akwụkwọ nnata, nkwenye na ozi ndị pụrụ iche mgbe ụfọdụ.",
+      sms: "SMS",
+      smsSub: "Ọkwa ndebe ngwa ngwa site na ozi ekwentị.",
+      whatsapp: "WhatsApp",
+      whatsappSub: "Nkwenye ndebe na nzaghachi onye nwe ụlọ na WhatsApp.",
+    },
+
+    privacy: {
+      label: "Nzuzo",
+      note: "Onye nwere ike ịhụ m metụtara aha gị na nyocha gị n'elu ihe ndepụta.",
+      whoCanSeeMe: "Onye nwere ike ịhụ m",
+      everyone: "Onye ọ bụla",
+      onlyMe: "Naanị m",
+      readReceipts: "Akara ọgụgụ",
+      readReceiptsSub: "Mee ka ndị nwe ụlọ hụ mgbe ị gụrụ ozi ha.",
+      personalised: "Ndụmọdụ dabara gị",
+      personalisedSub: "Jiri nchọta gị na ndebe gị hazie ebe ndị ga-amasị gị.",
+    },
+
+    search: {
+      label: "Nchọta",
+      note: "Nchọta na-emepe na mpaghara mbụ gị, ị nwekwara ike ile ebe ọ bụla mgbe ọ bụla. A na-egosi ọnụahịa niile na RentMe na Naira.",
+      defaultArea: "Mpaghara mbụ",
+      allOfNigeria: "Naịjirịa dum",
+      currency: "Ego",
+      mapDistances: "Ebe dị anya na maapụ",
+      kilometres: "Kilomita",
+      miles: "Maịl",
+    },
+
+    security: {
+      label: "Nchekwa",
+      signOutNote:
+        "Nke a bụ naanị nnọkọ gị, ya mere ọ dịghị nke ọzọ ị ga-apụ na ya. Ozugbo akaụntụ malitere, ihe njikwa a ga-akwụsị nnọkọ ọ bụla na ngwaọrụ ọ bụla n'otu mgbe.",
+      appLock: "Mkpọchi ngwa site n'ahụ",
+      appLockSub:
+        "Rịọ maka mkpịsị aka ma ọ bụ ihu mgbe ngwa a mepere, na ngwaọrụ ndị kwadoro ya.",
+      signedInOn: "Ị banyere na",
+      thisDevice: "Ngwaọrụ a",
+      deviceOn: "{browser} na {os}",
+      unknownBrowser: "Ihe nchọgharị",
+      unknownOs: "ngwaọrụ a",
+      signOutEverywhere: "Pụọ n'ebe niile",
+    },
+
+    data: {
+      label: "Data gị",
+      exportNote:
+        "Ugbu a ihe niile RentMe maara banyere gị nọ n'ime ihe nchọgharị a, ọ dịghịkwa ihe hapụrụ ngwaọrụ a. Mbupụ data zuru oke ga-abịa na mwepụta mmalite.",
+      download: "Budata data m",
+      downloadSub: "Otu ndetu nke ihe niile RentMe ji banyere gị.",
+      clear: "Hichapụ data ngwaọrụ a",
+      clearAgain: "Pịa ọzọ iji kwado",
+      clearSub:
+        "Ọ na-ewepụ aha profaịlụ gị, ntọala gị na mkparịta ụka echekwara na ngwaọrụ a, mgbe ahụ ọ megharịa peeji ahụ.",
+    },
+
+    account: {
+      label: "Akaụntụ",
+      saved: "Echekwara ya na akaụntụ gị",
+      unconfiguredNote:
+        "Akaụntụ ga-amalite ozugbo igodo ikpo okwu rutere. Ihe niile ị hazicharala ebe a ka echekwara na ngwaọrụ a ruo mgbe ahụ.",
+      signedIn: "Ị banyere",
+      notSignedIn: "Ị banyeghị",
+      signedOutSub: "Banye ka profaịlụ gị na ntọala gị nọrọ na akaụntụ gị kama ịnọ na ngwaọrụ a.",
+      unconfiguredSub: "Echekwara ya na ngwaọrụ a ugbu a.",
+      activeOnThisDevice: "Ọ na-arụ ọrụ na ngwaọrụ a",
+      signingOut: "Na-apụ",
+      deleteAccount: "Hichapụ akaụntụ m",
+      deleteAccountSub:
+        "Ọ na-ewepụ profaịlụ gị, ntọala gị, ebe ndị i chekwara na akụkọ ozi gị kpamkpam. Enweghị ike ịtụgharị nke a.",
+    },
+
+    notify: {
+      guest: {
+        bookings: "Ndebe",
+        bookingsSub: "Arịrịọ, nkwenye na mgbanwe na njem gị.",
+        messages: "Ozi",
+        messagesSub: "Nzaghachi ọhụrụ site n'aka ndị nwe ụlọ na ndị nnọchiteanya ị na-agwa okwu.",
+        wallet: "Obere akpa ego",
+        walletSub:
+          "Email banyere ego batara na ego pụrụ. Ihe ọ bụla na-etinye ego n'ihe ize ndụ ka na-apụta n'ime ngwa a.",
+        marketing: "Echiche na onyinye",
+        marketingSub: "Ozi pụrụ iche site na gburugburu Naịjirịa mgbe ụfọdụ. Ọ gbanyụrụ na mbụ.",
+      },
+      host: {
+        bookings: "Ndebe",
+        bookingsSub: "Arịrịọ ọhụrụ, nkagbu na ịkwụ ụgwọ n'elu ihe ndepụta gị.",
+        messages: "Ozi",
+        messagesSub: "Ajụjụ ọhụrụ site n'aka ndị ọbịa banyere ihe ndepụta gị.",
+        wallet: "Ego na ụgwọ a na-akwụ",
+        walletSub:
+          "Email banyere ego batara na ego pụrụ. Ihe ọ bụla na-etinye ego n'ihe ize ndụ ka na-apụta n'ime ngwa a.",
+        marketing: "Echiche na onyinye",
+        marketingSub: "Ndụmọdụ nnabata ọbịa na ihe na-eme na mpaghara gị. Ọ gbanyụrụ na mbụ.",
+      },
+      hideActivity: "Zoo ihe m na-eme",
+      hideActivitySub: "Mee ka nyocha gị na obibi gị nso nso a ghara ịpụta na profaịlụ ọha gị.",
+      dataSaver: "Onye nchekwa data",
+      dataSaverSub: "Buru foto ndị dị mfe na data ekwentị. Ọ dị mma maka obere bundulu.",
+    },
+
+    delete: {
+      title: "Hichapụ akaụntụ",
+      close: "Mechie",
+      doneTitle: "Ehichapụla akaụntụ gị",
+      doneBody:
+        "Ihe niile jikọrọ ya esorola ya laa, e mekwara ka ị pụọ. Anyị na-akpọghachi gị na peeji ụlọ ugbu a. Ị nwere ike ịmalitegharị mgbe ọ bụla.",
+      permanentTitle: "Nke a bụ ebighị ebi",
+      losesProfile: "A na-ewepụ profaịlụ gị, foto gị na ntọala gị.",
+      losesContent: "Ebe ndị i chekwara, ozi gị na nyocha gị ga-eso ha laa.",
+      keepsBookings:
+        "Ndebe e mereworị ga-anọgide na ndekọ onye nwe ụlọ, dị ka iwu chọrọ, mana ha ejikọtaghịkwa gị ebe a ọzọ.",
+      talkFirst:
+        "Ọ bụrụ na ihe emebiela, buru ụzọ gwa anyị okwu. Enwere ike idozi ọtụtụ ihe n'atụfughị akụkọ gị.",
+      keep: "Hapụ akaụntụ m",
+      typeToConfirm: "Pịnye {phrase} iji kwado",
+      capitals: "Mkpụrụedemede ukwu kpọmkwem ka e gosiri. Ihe ọzọ agaghị emeghe bọtịnụ ahụ.",
+      confirm: "Hichapụ kpamkpam",
+    },
+
+    about: {
+      label: "Banyere",
+      note: "Ntọala echekwara na ngwaọrụ a na-anọgide na ngwaọrụ a. E ji nchekwa ọkwa ahịrị echedo ntọala akaụntụ, ya mere naanị gị nwere ike ịgụ ma ọ bụ gbanwee ahịrị nke gị.",
+      help: "Enyemaka",
+      helpSub: "Nweta azịza site n'aka mmadụ",
+      terms: "Usoro",
+      privacy: "Amụma nzuzo",
+      version: "Ụdị",
+      licences: "Ikike isi mmalite mepere emepe",
+    },
+  },
+
   home: {
     greeting: "Nnọọ ọzọ",
     prompt: "Ebee ka ị na-aga taa?",

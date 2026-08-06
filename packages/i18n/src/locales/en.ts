@@ -460,6 +460,219 @@ export const en = {
       "Sign in to keep this with your account, so it follows you to every device.",
   },
 
+  /**
+   * The settings screen, end to end.
+   *
+   * Grouped by the card each string belongs to rather than by kind, because
+   * that is how somebody translating reads it: a group's label, its note and
+   * its rows are one paragraph of meaning, and splitting them into "labels"
+   * and "descriptions" would hand a translator three words with no context.
+   *
+   * `notify` carries the account-backed switches TWICE, once for a guest and
+   * once for a host. It is one preference either way; a host reading "changes
+   * to your trips" would reasonably think it meant trips they had booked
+   * rather than the guests arriving at their property. Two honest descriptions
+   * of one setting, not two settings.
+   *
+   * `delete.typeToConfirm` carries the phrase in a `{phrase}` slot because
+   * `DELETE_CONFIRM_PHRASE` is a constant in the app, not a word to translate,
+   * and the sentence around it does not put it in the same place in four
+   * languages.
+   */
+  settings: {
+    appearance: {
+      label: "Appearance",
+      note: "Kept on this device. Dark is the designed default.",
+      theme: "Theme",
+      themeSystem: "System",
+      themeLight: "Light",
+      themeDark: "Dark",
+      textSize: "Text size",
+      textSmall: "Small",
+      textMedium: "Medium",
+      textLarge: "Large",
+      reduceMotion: "Reduce motion",
+      reduceMotionSub: "Calms entrance animations and hover movement across the app.",
+      lessData: "Use less data",
+      lessDataSub:
+        "Stops the app loading a place before you have opened it, and asks for smaller photographs.",
+    },
+
+    language: {
+      label: "Language",
+      appLanguage: "App language",
+    },
+
+    /* The three rows that point at /settings/place, and the screen itself. */
+    place: {
+      label: "Where you are",
+      noteSet:
+        "This is the city home opens on. Your occupation comes from the platform's own list of 749, so it can be searched on.",
+      noteUnset: "Set these and home opens where you are.",
+      noteSignedOut: "Sign in to keep your state and local government with your account.",
+      lga: "Local government",
+      state: "State",
+      occupation: "What you do",
+      screenTitle: "Where you are",
+      screenSubtitle: "Nigeria, then your state, then your local government",
+      accountTitle: "This one belongs to your account",
+      accountBodyUnconfigured:
+        "Accounts switch on the moment the platform keys land. Your state, local government and occupation are kept on your account, so they follow you to every device.",
+      accountBodySignedOut:
+        "Your state, local government and occupation are kept on your account, so they follow you to every device and decide which places home opens on.",
+      statesUnavailable:
+        "The state list would not load just now. Refresh the page and it should come back. Nothing you had already saved has changed.",
+    },
+
+    /* The on-device notification switches, shown before somebody signs in. */
+    notifications: {
+      label: "Notifications",
+      note: "Kept on this device until you sign in, then they follow your account.",
+      push: "Push notifications",
+      pushSub: "Booking updates and replies, straight to this device.",
+      email: "Email",
+      emailSub: "Receipts, confirmations and occasional highlights.",
+      sms: "SMS",
+      smsSub: "Time-critical booking alerts by text message.",
+      whatsapp: "WhatsApp",
+      whatsappSub: "Booking confirmations and host replies on WhatsApp.",
+    },
+
+    privacy: {
+      label: "Privacy",
+      note: "Who can see me covers your name and reviews on listings.",
+      whoCanSeeMe: "Who can see me",
+      everyone: "Everyone",
+      onlyMe: "Only me",
+      readReceipts: "Read receipts",
+      readReceiptsSub: "Let hosts see when you have read their messages.",
+      personalised: "Personalised recommendations",
+      personalisedSub: "Use your searches and saves to rank places you will like.",
+    },
+
+    search: {
+      label: "Search",
+      note: "Search opens on your default area, and you can always look anywhere. Every price across RentMe is shown in Naira.",
+      defaultArea: "Default area",
+      allOfNigeria: "All of Nigeria",
+      currency: "Currency",
+      mapDistances: "Map distances",
+      kilometres: "Kilometres",
+      miles: "Miles",
+    },
+
+    security: {
+      label: "Security",
+      signOutNote:
+        "This is your only session, so there is nothing else to sign out. Once accounts launch, this control ends every session on every device at once.",
+      appLock: "Biometric app lock",
+      appLockSub:
+        "Ask for fingerprint or face unlock when the app opens, on devices that support it.",
+      signedInOn: "Signed in on",
+      thisDevice: "This device",
+      /* Browser and platform names are proper nouns and stay as they are; only
+         the word joining them is language, which is why this is a whole
+         sentence with two slots rather than a hard-coded " on ". */
+      deviceOn: "{browser} on {os}",
+      unknownBrowser: "Browser",
+      unknownOs: "this device",
+      signOutEverywhere: "Sign out everywhere",
+    },
+
+    data: {
+      label: "Your data",
+      exportNote:
+        "Right now everything RentMe knows about you lives in this browser, and nothing has left this device. Full data export ships with the launch release.",
+      download: "Download my data",
+      downloadSub: "A copy of everything RentMe holds about you.",
+      clear: "Clear local data",
+      clearAgain: "Tap again to confirm",
+      clearSub:
+        "Removes your profile name, preferences and saved conversations from this device, then reloads.",
+    },
+
+    /* The account-backed groups. `saved` is the tick under the card, and it
+       says WHERE the answer went, because that is the whole difference between
+       these switches and the on-device ones above. */
+    account: {
+      label: "Account",
+      saved: "Saved to your account",
+      unconfiguredNote:
+        "Accounts switch on the moment the platform keys land. Everything you set here is kept on this device until then.",
+      signedIn: "Signed in",
+      notSignedIn: "Not signed in",
+      signedOutSub:
+        "Sign in to keep your profile and preferences with your account instead of this device.",
+      unconfiguredSub: "Kept on this device for now.",
+      activeOnThisDevice: "Active on this device",
+      signingOut: "Signing out",
+      deleteAccount: "Delete my account",
+      deleteAccountSub:
+        "Removes your profile, preferences, saved places and message history for good. This cannot be undone.",
+    },
+
+    notify: {
+      guest: {
+        bookings: "Bookings",
+        bookingsSub: "Requests, confirmations and changes to your trips.",
+        messages: "Messages",
+        messagesSub: "New replies from hosts and agents you are talking to.",
+        wallet: "Wallet",
+        walletSub:
+          "Emails about money in and money out. Anything putting money at risk still appears in the app.",
+        marketing: "Ideas and offers",
+        marketingSub: "Occasional highlights from around Nigeria. Off by default.",
+      },
+      host: {
+        bookings: "Bookings",
+        bookingsSub: "New requests, cancellations and payments on your listings.",
+        messages: "Messages",
+        messagesSub: "New enquiries from guests about your listings.",
+        wallet: "Earnings and payouts",
+        walletSub:
+          "Emails about money in and money out. Anything putting money at risk still appears in the app.",
+        marketing: "Ideas and offers",
+        marketingSub: "Hosting tips and what is moving in your area. Off by default.",
+      },
+      hideActivity: "Hide my activity",
+      hideActivitySub: "Keep your reviews and recent stays off your public profile.",
+      dataSaver: "Data saver",
+      dataSaverSub: "Load lighter photos on mobile data. Kinder to a small bundle.",
+    },
+
+    /* The two-step drawer. Slow on purpose: this is the one control in the app
+       that cannot be undone. */
+    delete: {
+      title: "Delete account",
+      close: "Close",
+      doneTitle: "Your account is deleted",
+      doneBody:
+        "Everything tied to it has gone with it and you have been signed out. Taking you back to the home page now. You are welcome to start again any time.",
+      permanentTitle: "This is permanent",
+      losesProfile: "Your profile, photo and preferences are removed.",
+      losesContent: "Your saved places, messages and reviews go with them.",
+      keepsBookings:
+        "Bookings already made stay on record with the host, as the law requires, but are no longer linked to you here.",
+      talkFirst:
+        "If something has gone wrong, talk to us first. Most things can be fixed without losing your history.",
+      keep: "Keep my account",
+      typeToConfirm: "Type {phrase} to confirm",
+      capitals: "Capitals exactly as shown. Anything else will not unlock the button.",
+      confirm: "Delete for good",
+    },
+
+    about: {
+      label: "About",
+      note: "Preferences kept on this device stay on this device. Account preferences are protected with row level security, so only you can read or change your own row.",
+      help: "Help",
+      helpSub: "Get an answer from a person",
+      terms: "Terms",
+      privacy: "Privacy policy",
+      version: "Version",
+      licences: "Open source licences",
+    },
+  },
+
   home: {
     greeting: "Welcome back",
     prompt: "Where are you going today?",

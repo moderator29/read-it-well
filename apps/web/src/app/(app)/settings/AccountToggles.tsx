@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import { RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { updateSettings } from "@/lib/profile/actions";
+import type { Dictionary } from "@naijafinds/i18n";
 import type { ResolvedProfileSettings, SettingsPatch } from "@/lib/profile/schema";
 
 /**
@@ -53,7 +54,7 @@ function useSettingsSaver() {
  * confirmation never pushes the switches themselves down the screen while
  * somebody is still flipping them.
  */
-function saveNote(saved: boolean, error: string | null) {
+function saveNote(t: Dictionary, saved: boolean, error: string | null) {
   if (error) {
     return (
       <span role="alert" className="text-[var(--nf-state-error)]">
@@ -68,8 +69,8 @@ function saveNote(saved: boolean, error: string | null) {
       data-testid="settings-saved"
       className="nf-rise inline-flex items-center gap-1.5 text-[var(--nf-state-success)]"
     >
-      <UiIcon name="verified" size={15} className="shrink-0" />
-      Saved to your account
+      <UiIcon name="verified" size={16} className="shrink-0" />
+      {t.settings.account.saved}
     </span>
   );
 }
@@ -83,40 +84,31 @@ type NotifyKey = "bookings" | "messages" | "wallet" | "marketing";
  *
  * A host reading "changes to your trips" under Agent Mode would reasonably
  * assume it was about trips they had booked, not about the guests arriving at
- * their property. One preference, two honest descriptions of it.
+ * their property. One preference, two honest descriptions of it, which is why
+ * the dictionary carries `notify.guest` and `notify.host` rather than one set
+ * of words and a component that tries to bend them.
  */
-const NOTIFY_COPY: Record<"guest" | "host", Record<NotifyKey, [string, string]>> = {
-  guest: {
-    bookings: ["Bookings", "Requests, confirmations and changes to your trips."],
-    messages: ["Messages", "New replies from hosts and agents you are talking to."],
-    wallet: [
-      "Wallet",
-      "Emails about money in and money out. Anything putting money at risk still appears in the app.",
-    ],
-    marketing: ["Ideas and offers", "Occasional highlights from around Nigeria. Off by default."],
-  },
-  host: {
-    bookings: ["Bookings", "New requests, cancellations and payments on your listings."],
-    messages: ["Messages", "New enquiries from guests about your listings."],
-    wallet: [
-      "Earnings and payouts",
-      "Emails about money in and money out. Anything putting money at risk still appears in the app.",
-    ],
-    marketing: ["Ideas and offers", "Hosting tips and what is moving in your area. Off by default."],
-  },
-};
-
 export function AccountNotificationsCard({
+  t,
   initial,
   variant = "guest",
 }: {
+  /* Handed down from whichever server component resolved the locale: /settings
+     for a guest, /agent/settings for a host. */
+  t: Dictionary;
   initial: ResolvedProfileSettings["notifications"];
   /** Whose words to use. The preference itself is one account-wide setting. */
   variant?: "guest" | "host";
 }) {
   const [value, setValue] = useState(initial);
   const { save, error, saved, pending } = useSettingsSaver();
-  const copy = NOTIFY_COPY[variant];
+  const words = t.settings.notify[variant];
+  const copy: Record<NotifyKey, [string, string]> = {
+    bookings: [words.bookings, words.bookingsSub],
+    messages: [words.messages, words.messagesSub],
+    wallet: [words.wallet, words.walletSub],
+    marketing: [words.marketing, words.marketingSub],
+  };
 
   const flip = (key: NotifyKey, next: boolean) => {
     const previous = value;
@@ -146,7 +138,7 @@ export function AccountNotificationsCard({
   };
 
   return (
-    <SettingsGroup label="Notifications" note={saveNote(saved, error)}>
+    <SettingsGroup label={t.settings.notifications.label} note={saveNote(t, saved, error)}>
       {row("bookings")}
       {row("messages")}
       {row("wallet")}
@@ -158,22 +150,25 @@ export function AccountNotificationsCard({
 /* --------------------------------------------------------------- privacy */
 
 export function AccountPrivacyCard({
+  t,
   initialPrivacy,
   initialDataSaver,
 }: {
+  t: Dictionary;
   initialPrivacy: ResolvedProfileSettings["privacy"];
   initialDataSaver: boolean;
 }) {
   const [hideActivity, setHideActivity] = useState(initialPrivacy.hideActivity);
   const [dataSaver, setDataSaver] = useState(initialDataSaver);
   const { save, error, saved, pending } = useSettingsSaver();
+  const copy = t.settings.notify;
 
   return (
-    <SettingsGroup label="Privacy" note={saveNote(saved, error)}>
+    <SettingsGroup label={t.settings.privacy.label} note={saveNote(t, saved, error)}>
       <RowSwitch
         icon="user"
-        label="Hide my activity"
-        sub="Keep your reviews and recent stays off your public profile."
+        label={copy.hideActivity}
+        sub={copy.hideActivitySub}
         checked={hideActivity}
         onChange={(next) => {
           const previous = hideActivity;
@@ -184,8 +179,8 @@ export function AccountPrivacyCard({
       />
       <RowSwitch
         icon="compass"
-        label="Data saver"
-        sub="Load lighter photos on mobile data. Kinder to a small bundle."
+        label={copy.dataSaver}
+        sub={copy.dataSaverSub}
         checked={dataSaver}
         onChange={(next) => {
           const previous = dataSaver;

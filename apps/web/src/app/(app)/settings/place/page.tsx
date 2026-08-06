@@ -8,10 +8,14 @@ import { resolveSession } from "@/lib/actions/session";
 import { listStates, readLocalGovernment, readOccupation } from "@/lib/places/queries";
 import { PlaceForm } from "./PlaceForm";
 
-export const metadata: Metadata = {
-  title: "Where you are",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  // Static metadata cannot read the locale cookie, and this tab title is the
+  // same sentence as the page heading, so the two would have disagreed.
+  return {
+    title: getDictionary(await getLocale()).settings.place.screenTitle,
+    robots: { index: false, follow: false },
+  };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -33,23 +37,25 @@ export default async function PlacePage() {
   const session = await resolveSession();
   const states = await listStates();
 
+  const copy = t.settings.place;
+
   if (session.state !== "signed-in") {
     return (
       <div className="mx-auto max-w-lg">
-        <PageHeader title="Where you are" fallback="/settings" />
+        <PageHeader title={copy.screenTitle} fallback="/settings" />
         <div className="nf-card p-6 text-center sm:p-8">
           <span className="mx-auto block h-16 w-16">
             <BrandIcon name="globe-pin" fill />
           </span>
-          <h2 className="nf-h3 mt-4">This one belongs to your account</h2>
+          <h2 className="nf-h3 mt-4">{copy.accountTitle}</h2>
           <p className="mx-auto mt-2 max-w-[42ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
             {session.state === "unconfigured"
-              ? "Accounts switch on the moment the platform keys land. Your state, local government and occupation are kept on your account, so they follow you to every device."
-              : "Your state, local government and occupation are kept on your account, so they follow you to every device and decide which places home opens on."}
+              ? copy.accountBodyUnconfigured
+              : copy.accountBodySignedOut}
           </p>
           {session.state === "signed-out" && (
             <Link href="/sign-in" className="nf-btn nf-btn--primary mt-5 w-full sm:w-auto">
-              Sign in
+              {t.common.signIn}
             </Link>
           )}
         </div>
@@ -75,15 +81,14 @@ export default async function PlacePage() {
   return (
     <div className="mx-auto max-w-lg">
       <PageHeader
-        title="Where you are"
-        subtitle="Nigeria, then your state, then your local government"
+        title={copy.screenTitle}
+        subtitle={copy.screenSubtitle}
         fallback="/settings"
       />
 
       {states.length === 0 && (
         <p className="nf-card mb-4 p-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-          The state list would not load just now. Refresh the page and it should
-          come back. Nothing you had already saved has changed.
+          {copy.statesUnavailable}
         </p>
       )}
 

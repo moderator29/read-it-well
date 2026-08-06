@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { LOCALES, localeMeta, type Locale } from "@naijafinds/i18n";
+import { LOCALES, localeMeta, type Dictionary, type Locale } from "@naijafinds/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { RowButton, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";
@@ -41,21 +41,15 @@ import {
  * The account-backed groups live in `app/(app)/settings/AccountToggles.tsx` and
  * draw from the same primitives, so the two look identical and only the storage
  * differs.
+ *
+ * Every group takes `t` as a prop. There is no locale context on this platform:
+ * the server component that resolved the cookie hands the dictionary down, the
+ * same way `components/app/place/PlaceFields.tsx` receives it. A client
+ * component that reached for the locale itself would resolve it a second time
+ * and could disagree with the tree it is rendering inside.
  */
 
 /* ------------------------------------------------------------- appearance */
-
-const THEME_OPTIONS: { value: ThemeChoice; label: string }[] = [
-  { value: "system", label: "System" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-];
-
-const TEXT_SIZES: { value: TextSize; label: string }[] = [
-  { value: "s", label: "Small" },
-  { value: "m", label: "Medium" },
-  { value: "l", label: "Large" },
-];
 
 /**
  * Appearance: theme, motion and text size.
@@ -65,8 +59,23 @@ const TEXT_SIZES: { value: TextSize; label: string }[] = [
  * agree. Text size scales the root font size, which every rem measure in the
  * app follows. All three apply instantly and persist on this device.
  */
-export function AppearanceCard() {
+export function AppearanceCard({ t }: { t: Dictionary }) {
   const { settings, set } = useNfSettings();
+  const copy = t.settings.appearance;
+
+  /* Built from the dictionary rather than held as module constants, because a
+     module constant is evaluated once per bundle and would freeze whichever
+     language happened to load first. */
+  const themeOptions: { value: ThemeChoice; label: string }[] = [
+    { value: "system", label: copy.themeSystem },
+    { value: "light", label: copy.themeLight },
+    { value: "dark", label: copy.themeDark },
+  ];
+  const textSizes: { value: TextSize; label: string }[] = [
+    { value: "s", label: copy.textSmall },
+    { value: "m", label: copy.textMedium },
+    { value: "l", label: copy.textLarge },
+  ];
   // Dark is the platform default, so that is what this shows selected until the
   // effect below reads whatever this device actually chose.
   const [theme, setTheme] = useState<ThemeChoice>("dark");
@@ -96,26 +105,26 @@ export function AppearanceCard() {
   };
 
   return (
-    <SettingsGroup label="Appearance" note="Kept on this device. Dark is the designed default.">
+    <SettingsGroup label={copy.label} note={copy.note}>
       <RowSelect
         icon="sparkle"
-        label="Theme"
+        label={copy.theme}
         value={theme}
-        options={THEME_OPTIONS}
+        options={themeOptions}
         onChange={chooseTheme}
         testId="setting-theme"
       />
       <RowSelect
         icon="grid"
-        label="Text size"
+        label={copy.textSize}
         value={settings.textSize}
-        options={TEXT_SIZES}
+        options={textSizes}
         onChange={(next) => set("textSize", next)}
       />
       <RowSwitch
         icon="sliders"
-        label="Reduce motion"
-        sub="Calms entrance animations and hover movement across the app."
+        label={copy.reduceMotion}
+        sub={copy.reduceMotionSub}
         checked={settings.reduceMotion}
         onChange={(next) => {
           set("reduceMotion", next);
@@ -136,8 +145,8 @@ export function AppearanceCard() {
        */}
       <RowSwitch
         icon="compass"
-        label="Use less data"
-        sub="Stops the app loading a place before you have opened it, and asks for smaller photographs."
+        label={copy.lessData}
+        sub={copy.lessDataSub}
         checked={settings.dataSaver}
         onChange={(next) => set("dataSaver", next)}
       />
@@ -155,7 +164,7 @@ export function AppearanceCard() {
  * radio rows: a language is one answer, and the four rows took a third of the
  * screen to say so.
  */
-export function LanguageCard({ current }: { current: Locale }) {
+export function LanguageCard({ t, current }: { t: Dictionary; current: Locale }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [selected, setSelected] = useState<Locale>(current);
@@ -169,10 +178,10 @@ export function LanguageCard({ current }: { current: Locale }) {
   };
 
   return (
-    <SettingsGroup label="Language">
+    <SettingsGroup label={t.settings.language.label}>
       <RowSelect
         icon="chat-bubble"
-        label="App language"
+        label={t.settings.language.appLanguage}
         value={selected}
         /* The native name first, because somebody looking for Yoruba is
            looking for "Yorùbá". The English name follows only where the two
@@ -195,8 +204,9 @@ export function LanguageCard({ current }: { current: Locale }) {
 
 type NotifyKey = "notifyPush" | "notifyEmail" | "notifySms" | "notifyWhatsapp";
 
-export function NotificationsCard() {
+export function NotificationsCard({ t }: { t: Dictionary }) {
   const { settings, set } = useNfSettings();
+  const copy = t.settings.notifications;
 
   const row = (key: NotifyKey, icon: "bell" | "share" | "chat-bubble", label: string, sub: string) => (
     <RowSwitch
@@ -209,49 +219,44 @@ export function NotificationsCard() {
   );
 
   return (
-    <SettingsGroup
-      label="Notifications"
-      note="Kept on this device until you sign in, then they follow your account."
-    >
-      {row("notifyPush", "bell", "Push notifications", "Booking updates and replies, straight to this device.")}
-      {row("notifyEmail", "share", "Email", "Receipts, confirmations and occasional highlights.")}
-      {row("notifySms", "chat-bubble", "SMS", "Time-critical booking alerts by text message.")}
-      {row("notifyWhatsapp", "chat-bubble", "WhatsApp", "Booking confirmations and host replies on WhatsApp.")}
+    <SettingsGroup label={copy.label} note={copy.note}>
+      {row("notifyPush", "bell", copy.push, copy.pushSub)}
+      {row("notifyEmail", "share", copy.email, copy.emailSub)}
+      {row("notifySms", "chat-bubble", copy.sms, copy.smsSub)}
+      {row("notifyWhatsapp", "chat-bubble", copy.whatsapp, copy.whatsappSub)}
     </SettingsGroup>
   );
 }
 
 /* ---------------------------------------------------------------- privacy */
 
-export function PrivacyCard() {
+export function PrivacyCard({ t }: { t: Dictionary }) {
   const { settings, set } = useNfSettings();
+  const copy = t.settings.privacy;
 
   return (
-    <SettingsGroup
-      label="Privacy"
-      note="Who can see me covers your name and reviews on listings."
-    >
+    <SettingsGroup label={copy.label} note={copy.note}>
       <RowSelect
         icon="user"
-        label="Who can see me"
+        label={copy.whoCanSeeMe}
         value={settings.profileVisibility}
         options={[
-          { value: "everyone", label: "Everyone" },
-          { value: "private", label: "Only me" },
+          { value: "everyone", label: copy.everyone },
+          { value: "private", label: copy.onlyMe },
         ]}
         onChange={(next) => set("profileVisibility", next)}
       />
       <RowSwitch
         icon="verified"
-        label="Read receipts"
-        sub="Let hosts see when you have read their messages."
+        label={copy.readReceipts}
+        sub={copy.readReceiptsSub}
         checked={settings.readReceipts}
         onChange={(next) => set("readReceipts", next)}
       />
       <RowSwitch
         icon="sparkle"
-        label="Personalised recommendations"
-        sub="Use your searches and saves to rank places you will like."
+        label={copy.personalised}
+        sub={copy.personalisedSub}
         checked={settings.personalisedRecs}
         onChange={(next) => set("personalisedRecs", next)}
       />
@@ -261,32 +266,32 @@ export function PrivacyCard() {
 
 /* ----------------------------------------------------------------- search */
 
-export function SearchCard() {
+export function SearchCard({ t }: { t: Dictionary }) {
   const { settings, set } = useNfSettings();
+  const copy = t.settings.search;
 
   return (
-    <SettingsGroup
-      label="Search"
-      note="Search opens on your default area, and you can always look anywhere. Every price across RentMe is shown in Naira."
-    >
+    <SettingsGroup label={copy.label} note={copy.note}>
       <RowSelect
         icon="search"
-        label="Default area"
+        label={copy.defaultArea}
         value={settings.defaultCity}
+        /* The 37 state names are proper nouns and stay as they are in every
+           language, exactly as the long pickers leave them. */
         options={[
-          { value: "", label: "All of Nigeria" },
+          { value: "", label: copy.allOfNigeria },
           ...NIGERIAN_STATES.map((state) => ({ value: state, label: state })),
         ]}
         onChange={(next) => set("defaultCity", next)}
       />
-      <RowValue icon="wallet" label="Currency" value="₦ NGN" />
+      <RowValue icon="wallet" label={copy.currency} value="₦ NGN" />
       <RowSelect
         icon="map"
-        label="Map distances"
+        label={copy.mapDistances}
         value={settings.distanceUnit}
         options={[
-          { value: "km", label: "Kilometres" },
-          { value: "mi", label: "Miles" },
+          { value: "km", label: copy.kilometres },
+          { value: "mi", label: copy.miles },
         ]}
         onChange={(next) => set("distanceUnit", next)}
       />
@@ -301,9 +306,10 @@ export function SearchCard() {
  * exactly one session today, this device, so that is what the row shows, and
  * sign out everywhere says plainly when it will start doing something.
  */
-export function SecurityCard() {
+export function SecurityCard({ t }: { t: Dictionary }) {
   const { settings, set } = useNfSettings();
-  const [device, setDevice] = useState("This device");
+  const copy = t.settings.security;
+  const [device, setDevice] = useState(copy.thisDevice);
   const [signOutNote, setSignOutNote] = useState(false);
 
   useEffect(() => {
@@ -318,7 +324,7 @@ export function SecurityCard() {
             ? "Firefox"
             : /safari/i.test(ua)
               ? "Safari"
-              : "Browser";
+              : copy.unknownBrowser;
     const os = /android/i.test(ua)
       ? "Android"
       : /iphone|ipad|ipod/i.test(ua)
@@ -329,30 +335,23 @@ export function SecurityCard() {
             ? "Windows"
             : /linux/i.test(ua)
               ? "Linux"
-              : "this device";
-    setDevice(`${browser} on ${os}`);
-  }, []);
+              : copy.unknownOs;
+    setDevice(copy.deviceOn.replace("{browser}", browser).replace("{os}", os));
+  }, [copy]);
 
   return (
-    <SettingsGroup
-      label="Security"
-      note={
-        signOutNote
-          ? "This is your only session, so there is nothing else to sign out. Once accounts launch, this control ends every session on every device at once."
-          : undefined
-      }
-    >
+    <SettingsGroup label={copy.label} note={signOutNote ? copy.signOutNote : undefined}>
       <RowSwitch
         icon="key"
-        label="Biometric app lock"
-        sub="Ask for fingerprint or face unlock when the app opens, on devices that support it."
+        label={copy.appLock}
+        sub={copy.appLockSub}
         checked={settings.appLock}
         onChange={(next) => set("appLock", next)}
       />
-      <RowValue icon="verified" label="Signed in on" value={device} />
+      <RowValue icon="verified" label={copy.signedInOn} value={device} />
       <RowButton
         icon="arrow-right"
-        label="Sign out everywhere"
+        label={copy.signOutEverywhere}
         onClick={() => setSignOutNote(true)}
         chevron={false}
       />
@@ -366,7 +365,8 @@ export function SecurityCard() {
  * Data: an export request that says exactly where it stands, and a working
  * clear-out that removes every RentMe key from this device and reloads.
  */
-export function DataCard() {
+export function DataCard({ t }: { t: Dictionary }) {
+  const copy = t.settings.data;
   const [exportNote, setExportNote] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
 
@@ -389,24 +389,17 @@ export function DataCard() {
   };
 
   return (
-    <SettingsGroup
-      label="Your data"
-      note={
-        exportNote
-          ? "Right now everything RentMe knows about you lives in this browser, and nothing has left this device. Full data export ships with the launch release."
-          : undefined
-      }
-    >
+    <SettingsGroup label={copy.label} note={exportNote ? copy.exportNote : undefined}>
       <RowButton
         icon="share"
-        label="Download my data"
-        sub="A copy of everything RentMe holds about you."
+        label={copy.download}
+        sub={copy.downloadSub}
         onClick={() => setExportNote(true)}
       />
       <RowButton
         icon="close"
-        label={confirmClear ? "Tap again to confirm" : "Clear local data"}
-        sub="Removes your profile name, preferences and saved conversations from this device, then reloads."
+        label={confirmClear ? copy.clearAgain : copy.clear}
+        sub={copy.clearSub}
         onClick={clearLocalData}
         danger={confirmClear}
         chevron={false}

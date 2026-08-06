@@ -21,7 +21,11 @@ import { PlaceCard } from "./PlaceCard";
 import { InterestsCard } from "./InterestsCard";
 import { loadInterestsState } from "@/lib/interests/queries";
 
-export const metadata: Metadata = { title: "Settings" };
+export async function generateMetadata(): Promise<Metadata> {
+  // Static metadata cannot read the locale cookie, so the tab said "Settings"
+  // to a Hausa reader whose whole screen was in Hausa.
+  return { title: getDictionary(await getLocale()).nav.settings };
+}
 
 /**
  * Settings.
@@ -51,13 +55,14 @@ export default async function SettingsPage() {
 
       <div className="space-y-6">
         <Reveal>
-          <AppearanceCard />
+          <AppearanceCard t={t} />
         </Reveal>
         <Reveal delay={40}>
-          <LanguageCard current={locale} />
+          <LanguageCard t={t} current={locale} />
         </Reveal>
         <Reveal delay={60}>
           <PlaceCard
+            t={t}
             signedIn={signedIn}
             stateName={signedIn ? account.place.stateName : ""}
             lgaName={signedIn ? account.place.lgaName : ""}
@@ -77,32 +82,34 @@ export default async function SettingsPage() {
         </Reveal>
         <Reveal delay={80}>
           {signedIn ? (
-            <AccountNotificationsCard initial={account.settings.notifications} />
+            <AccountNotificationsCard t={t} initial={account.settings.notifications} />
           ) : (
-            <NotificationsCard />
+            <NotificationsCard t={t} />
           )}
         </Reveal>
         <Reveal delay={120}>
           {signedIn ? (
             <AccountPrivacyCard
+              t={t}
               initialPrivacy={account.settings.privacy}
               initialDataSaver={account.settings.dataSaver}
             />
           ) : (
-            <PrivacyCard />
+            <PrivacyCard t={t} />
           )}
         </Reveal>
         <Reveal delay={160}>
-          <SearchCard />
+          <SearchCard t={t} />
         </Reveal>
         <Reveal delay={200}>
-          <SecurityCard />
+          <SecurityCard t={t} />
         </Reveal>
         <Reveal delay={240}>
-          <DataCard />
+          <DataCard t={t} />
         </Reveal>
         <Reveal delay={280}>
           <AccountSection
+            t={t}
             state={account.state}
             email={account.state === "signed-in" ? account.email : ""}
           />
@@ -118,22 +125,21 @@ export default async function SettingsPage() {
               looking for their rights that the page did not exist. They are
               rows now, and they go there. */}
           <div id="legal">
-            <SettingsGroup
-              label="About"
-              note="Preferences kept on this device stay on this device. Account preferences are protected with row level security, so only you can read or change your own row."
-            >
+            <SettingsGroup label={t.settings.about.label} note={t.settings.about.note}>
               <RowLink
                 href="/help"
                 icon="ticket"
-                label="Help"
-                sub="Get an answer from a person"
+                label={t.settings.about.help}
+                sub={t.settings.about.helpSub}
               />
-              <RowLink href="/terms" icon="grid" label="Terms" />
-              <RowLink href="/privacy" icon="verified" label="Privacy policy" />
-              <RowValue icon="sparkle" label="Version" value="0.1.0" />
+              <RowLink href="/terms" icon="grid" label={t.settings.about.terms} />
+              <RowLink href="/privacy" icon="verified" label={t.settings.about.privacy} />
+              <RowValue icon="sparkle" label={t.settings.about.version} value="0.1.0" />
+              {/* The library names are the products' own names and are not
+                  translated, in any language. */}
               <RowValue
                 icon="share"
-                label="Open source licences"
+                label={t.settings.about.licences}
                 value="Next.js, React, Tailwind CSS (MIT)"
               />
             </SettingsGroup>

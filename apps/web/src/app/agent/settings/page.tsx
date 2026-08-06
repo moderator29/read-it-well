@@ -83,7 +83,11 @@ export default async function Page() {
       <div className="mx-auto max-w-2xl space-y-4">
         {/* ------------------------------------------------ notifications */}
         {account.state === "signed-in" ? (
-          <AccountNotificationsCard initial={account.settings.notifications} variant="host" />
+          <AccountNotificationsCard
+            t={t}
+            initial={account.settings.notifications}
+            variant="host"
+          />
         ) : (
           <div className="nf-card p-5">
             <p className="nf-overline">Notifications</p>

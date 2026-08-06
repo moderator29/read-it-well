@@ -358,6 +358,189 @@ export const ha: Dictionary = {
     rowNotAsked: "Ba a amsa ba tukuna",
 },
 
+  settings: {
+    appearance: {
+      label: "Kamanni",
+      note: "Ana ajiye shi a wannan na'urar. Duhu shi ne tsohon zaɓi da aka tsara.",
+      theme: "Launin allo",
+      themeSystem: "Na na'ura",
+      themeLight: "Haske",
+      themeDark: "Duhu",
+      textSize: "Girman rubutu",
+      textSmall: "Ƙarami",
+      textMedium: "Matsakaici",
+      textLarge: "Babba",
+      reduceMotion: "Rage motsi",
+      reduceMotionSub: "Yana kwantar da motsin shigowa da na taɓawa a duk faɗin manhajar.",
+      lessData: "Yi amfani da ƙarancin data",
+      lessDataSub:
+        "Yana hana manhajar ɗaukar wuri kafin ka buɗe shi, kuma yana neman ƙananan hotuna.",
+    },
+
+    language: {
+      label: "Harshe",
+      appLanguage: "Harshen manhaja",
+    },
+
+    place: {
+      label: "Inda kake",
+      noteSet:
+        "Wannan ita ce birnin da shafin gida zai buɗe a kai. Sana'arka ta fito daga jerin dandalin na 749, don haka ana iya neman ta.",
+      noteUnset: "Saita waɗannan sai shafin gida ya buɗe inda kake.",
+      noteSignedOut: "Shiga don ajiye jiharka da ƙaramar hukumarka a asusunka.",
+      lga: "Ƙaramar hukuma",
+      state: "Jiha",
+      occupation: "Abin da kake yi",
+      screenTitle: "Inda kake",
+      screenSubtitle: "Najeriya, sannan jiharka, sannan ƙaramar hukumarka",
+      accountTitle: "Wannan na asusunka ne",
+      accountBodyUnconfigured:
+        "Asusun zai fara aiki da zarar makullan dandalin sun iso. Ana ajiye jiharka, ƙaramar hukumarka da sana'arka a asusunka, don haka suna bin ka zuwa kowace na'ura.",
+      accountBodySignedOut:
+        "Ana ajiye jiharka, ƙaramar hukumarka da sana'arka a asusunka, don haka suna bin ka zuwa kowace na'ura kuma su ne ke yanke shawarar wuraren da shafin gida zai buɗe a kai.",
+      statesUnavailable:
+        "Jerin jihohin bai ɗauku ba a yanzu. Sabunta shafin sai ya dawo. Babu abin da ka riga ka ajiye da ya canja.",
+    },
+
+    notifications: {
+      label: "Sanarwa",
+      note: "Ana ajiye su a wannan na'urar har sai ka shiga, sannan su bi asusunka.",
+      push: "Sanarwar kai tsaye",
+      pushSub: "Sabuntawar ajiye da amsoshi, kai tsaye zuwa wannan na'urar.",
+      email: "Imel",
+      emailSub: "Rasidi, tabbatarwa da wasu muhimman labarai lokaci zuwa lokaci.",
+      sms: "SMS",
+      smsSub: "Faɗakarwar ajiye mai gaggawa ta saƙon waya.",
+      whatsapp: "WhatsApp",
+      whatsappSub: "Tabbatar da ajiye da amsoshin mai gida a WhatsApp.",
+    },
+
+    privacy: {
+      label: "Sirri",
+      note: "Wa zai iya ganina ya shafi sunanka da sharhinka a kan kadarori.",
+      whoCanSeeMe: "Wa zai iya ganina",
+      everyone: "Kowa",
+      onlyMe: "Ni kaɗai",
+      readReceipts: "Alamar karantawa",
+      readReceiptsSub: "Bari masu gida su ga lokacin da ka karanta saƙonninsu.",
+      personalised: "Shawarwarin da suka dace da kai",
+      personalisedSub: "Yi amfani da bincikenka da ajiyenka wajen jera wuraren da za su burge ka.",
+    },
+
+    search: {
+      label: "Bincike",
+      note: "Bincike yana buɗewa a yankinka na asali, kuma kana iya dubawa ko'ina koyaushe. Ana nuna kowane farashi a RentMe da Naira.",
+      defaultArea: "Yankin asali",
+      allOfNigeria: "Duk Najeriya",
+      currency: "Kuɗi",
+      mapDistances: "Nisa a taswira",
+      kilometres: "Kilomita",
+      miles: "Mil",
+    },
+
+    security: {
+      label: "Tsaro",
+      signOutNote:
+        "Wannan ita ce zamanka kaɗai, don haka babu wani abin fitarwa. Da zarar asusun sun fara aiki, wannan maɓallin zai kawo ƙarshen kowace zama a kowace na'ura lokaci ɗaya.",
+      appLock: "Kulle manhaja da jiki",
+      appLockSub:
+        "Nemi yatsa ko fuska duk lokacin da manhajar ta buɗe, a na'urorin da suka goyi bayan hakan.",
+      signedInOn: "Ka shiga a kan",
+      thisDevice: "Wannan na'urar",
+      deviceOn: "{browser} a kan {os}",
+      unknownBrowser: "Burauza",
+      unknownOs: "wannan na'urar",
+      signOutEverywhere: "Fita ko'ina",
+    },
+
+    data: {
+      label: "Bayananka",
+      exportNote:
+        "A yanzu duk abin da RentMe ya sani game da kai yana cikin wannan burauzar, kuma babu abin da ya bar wannan na'urar. Cikakken fitar da bayanai zai zo tare da sakin ƙaddamarwa.",
+      download: "Sauke bayanaina",
+      downloadSub: "Kwafin duk abin da RentMe ke riƙe game da kai.",
+      clear: "Share bayanan na'urar",
+      clearAgain: "Sake danna don tabbatarwa",
+      clearSub:
+        "Yana cire sunan bayananka, saitunanka da tattaunawar da aka ajiye daga wannan na'urar, sannan ya sabunta shafin.",
+    },
+
+    account: {
+      label: "Asusu",
+      saved: "An ajiye a asusunka",
+      unconfiguredNote:
+        "Asusun zai fara aiki da zarar makullan dandalin sun iso. Duk abin da ka saita a nan ana ajiye shi a wannan na'urar har sai lokacin.",
+      signedIn: "Ka shiga",
+      notSignedIn: "Ba ka shiga ba",
+      signedOutSub: "Shiga don ajiye bayananka da saitunanka a asusunka maimakon wannan na'urar.",
+      unconfiguredSub: "Ana ajiye shi a wannan na'urar a yanzu.",
+      activeOnThisDevice: "Yana aiki a wannan na'urar",
+      signingOut: "Ana fita",
+      deleteAccount: "Share asusuna",
+      deleteAccountSub:
+        "Yana cire bayananka, saitunanka, wuraren da ka ajiye da tarihin saƙonninka gaba ɗaya. Ba za a iya mayar da wannan ba.",
+    },
+
+    notify: {
+      guest: {
+        bookings: "Ajiye",
+        bookingsSub: "Buƙatu, tabbatarwa da canje-canje ga tafiyarka.",
+        messages: "Saƙonni",
+        messagesSub: "Sabbin amsoshi daga masu gida da wakilan da kake magana da su.",
+        wallet: "Jakar kuɗi",
+        walletSub:
+          "Imel game da kuɗin shigowa da na fita. Duk abin da ke sanya kuɗi cikin haɗari yana bayyana a cikin manhajar duk da haka.",
+        marketing: "Shawarwari da tayi",
+        marketingSub: "Muhimman labarai daga sassan Najeriya lokaci zuwa lokaci. A kashe yake tun farko.",
+      },
+      host: {
+        bookings: "Ajiye",
+        bookingsSub: "Sabbin buƙatu, sokewa da biyan kuɗi a kan kadarorinka.",
+        messages: "Saƙonni",
+        messagesSub: "Sabbin tambayoyi daga baƙi game da kadarorinka.",
+        wallet: "Kuɗin shiga da biya",
+        walletSub:
+          "Imel game da kuɗin shigowa da na fita. Duk abin da ke sanya kuɗi cikin haɗari yana bayyana a cikin manhajar duk da haka.",
+        marketing: "Shawarwari da tayi",
+        marketingSub: "Shawarwarin karɓar baƙi da abin da ke faruwa a yankinka. A kashe yake tun farko.",
+      },
+      hideActivity: "Ɓoye ayyukana",
+      hideActivitySub: "Kiyaye sharhinka da zamanka na baya-bayan nan daga bayananka na jama'a.",
+      dataSaver: "Mai tsimin data",
+      dataSaverSub: "Ɗauki hotuna masu sauƙi a kan data ta waya. Ya fi dacewa da ƙaramin bundel.",
+    },
+
+    delete: {
+      title: "Share asusu",
+      close: "Rufe",
+      doneTitle: "An share asusunka",
+      doneBody:
+        "Duk abin da ke haɗe da shi ya tafi tare da shi kuma an fitar da kai. Muna komar da kai shafin gida yanzu. Kana da maraba ka sake farawa kowane lokaci.",
+      permanentTitle: "Wannan na dindindin ne",
+      losesProfile: "An cire bayananka, hotonka da saitunanka.",
+      losesContent: "Wuraren da ka ajiye, saƙonninka da sharhinka za su tafi tare da su.",
+      keepsBookings:
+        "Ajiyen da aka riga aka yi zai kasance a rikodin mai gida, kamar yadda doka ta buƙata, amma ba a haɗa shi da kai a nan kuma.",
+      talkFirst:
+        "Idan wani abu ya lalace, fara magana da mu. Ana iya gyara yawancin abubuwa ba tare da rasa tarihinka ba.",
+      keep: "Bar asusuna",
+      typeToConfirm: "Rubuta {phrase} don tabbatarwa",
+      capitals: "Manyan baƙaƙe daidai kamar yadda aka nuna. Wani abu daban ba zai buɗe maɓallin ba.",
+      confirm: "Share gaba ɗaya",
+    },
+
+    about: {
+      label: "Game da",
+      note: "Saitunan da aka ajiye a wannan na'urar suna nan a wannan na'urar. Ana kare saitunan asusu da tsaron matakin layi, don haka kai kaɗai za ka iya karanta ko canja layinka.",
+      help: "Taimako",
+      helpSub: "Sami amsa daga mutum",
+      terms: "Sharuɗɗa",
+      privacy: "Manufar sirri",
+      version: "Sigar",
+      licences: "Lasisin buɗaɗɗen tushe",
+    },
+  },
+
   home: {
     greeting: "Barka da dawowa",
     prompt: "Ina za ka je yau?",

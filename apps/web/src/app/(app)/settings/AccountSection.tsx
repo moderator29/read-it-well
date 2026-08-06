@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { deleteAccountAction, signOut } from "@/lib/profile/actions";
 import { DELETE_CONFIRM_PHRASE } from "@/lib/profile/schema";
+import type { Dictionary } from "@naijafinds/i18n";
 import type { ActionResult } from "@/lib/actions/envelope";
 
 /**
@@ -22,13 +23,19 @@ import type { ActionResult } from "@/lib/actions/envelope";
  * nothing, and points at a person who can help.
  */
 export function AccountSection({
+  t,
   state,
   email,
 }: {
+  /* Handed down from the settings page, which resolved the locale. The drawer
+     below is the one control in the app that cannot be undone, so not one word
+     of it may arrive in a language the person did not choose. */
+  t: Dictionary;
   state: "signed-in" | "signed-out" | "unconfigured";
   email: string;
 }) {
   const router = useRouter();
+  const copy = t.settings.account;
   const [drawer, setDrawer] = useState(false);
   const [signingOut, startSignOut] = useTransition();
   const [signOutError, setSignOutError] = useState<string | null>(null);
@@ -48,40 +55,40 @@ export function AccountSection({
 
   return (
     <SettingsGroup
-      label="Account"
+      label={copy.label}
       note={
         signOutError ? (
           <span role="alert" className="text-[var(--nf-state-error)]">
             {signOutError}
           </span>
         ) : state === "unconfigured" ? (
-          "Accounts switch on the moment the platform keys land. Everything you set here is kept on this device until then."
+          copy.unconfiguredNote
         ) : undefined
       }
     >
       <RowValue
         icon="user"
-        label={state === "signed-in" ? "Signed in" : "Not signed in"}
+        label={state === "signed-in" ? copy.signedIn : copy.notSignedIn}
         sub={
           state === "signed-in"
             ? undefined
             : state === "signed-out"
-              ? "Sign in to keep your profile and preferences with your account instead of this device."
-              : "Kept on this device for now."
+              ? copy.signedOutSub
+              : copy.unconfiguredSub
         }
-        value={state === "signed-in" ? email || "Active on this device" : undefined}
+        value={state === "signed-in" ? email || copy.activeOnThisDevice : undefined}
       />
 
       {state === "signed-in" ? (
         <RowButton
           icon="arrow-right"
-          label={signingOut ? "Signing out" : "Sign out"}
+          label={signingOut ? copy.signingOut : t.common.signOut}
           onClick={leave}
           disabled={signingOut}
           chevron={false}
         />
       ) : state === "signed-out" ? (
-        <RowLink href="/sign-in" icon="key" label="Sign in" />
+        <RowLink href="/sign-in" icon="key" label={t.common.signIn} />
       ) : null}
 
       {/* Deletion sits last and reads as what it is before it is pressed, not
@@ -89,22 +96,23 @@ export function AccountSection({
           the second demanding the exact phrase in capitals. */}
       <RowButton
         icon="close"
-        label="Delete my account"
-        sub="Removes your profile, preferences, saved places and message history for good. This cannot be undone."
+        label={copy.deleteAccount}
+        sub={copy.deleteAccountSub}
         onClick={() => setDrawer(true)}
         danger
         testId="delete-open"
       />
 
-      {drawer && <DeleteDrawer onClose={() => setDrawer(false)} />}
+      {drawer && <DeleteDrawer t={t} onClose={() => setDrawer(false)} />}
     </SettingsGroup>
   );
 }
 
 /* ------------------------------------------------------------------ drawer */
 
-function DeleteDrawer({ onClose }: { onClose: () => void }) {
+function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
   const router = useRouter();
+  const copy = t.settings.delete;
   const [step, setStep] = useState<"explain" | "confirm">("explain");
   const [phrase, setPhrase] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -147,7 +155,7 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
       className="fixed inset-0 z-[80]"
       role="dialog"
       aria-modal="true"
-      aria-label="Delete account"
+      aria-label={copy.title}
       data-testid="delete-drawer"
     >
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
@@ -158,10 +166,10 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
       >
         <div className="mx-auto max-w-lg">
           <div className="mb-5 flex items-center justify-between gap-4">
-            <h2 className="nf-h3">Delete account</h2>
+            <h2 className="nf-h3">{copy.title}</h2>
             <button
               type="button"
-              aria-label="Close"
+              aria-label={copy.close}
               onClick={onClose}
               className="nf-icon-btn h-10 w-10"
             >
@@ -173,39 +181,29 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
             <div className="nf-card p-5" data-testid="delete-done">
               <p className="flex items-center gap-2 text-[1.0625rem] font-semibold">
                 <UiIcon name="verified" size={20} className="shrink-0 text-[var(--nf-state-success)]" />
-                Your account is deleted
+                {copy.doneTitle}
               </p>
               <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                Everything tied to it has gone with it and you have been signed
-                out. Taking you back to the home page now. You are welcome to
-                start again any time.
+                {copy.doneBody}
               </p>
             </div>
           ) : step === "explain" ? (
             <div className="nf-card p-5">
-              <p className="text-[0.9375rem] font-semibold">This is permanent</p>
+              <p className="text-[0.9375rem] font-semibold">{copy.permanentTitle}</p>
               <ul className="mt-3 space-y-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                <li className="flex gap-3">
-                  <span aria-hidden="true" className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-error)]" />
-                  Your profile, photo and preferences are removed.
-                </li>
-                <li className="flex gap-3">
-                  <span aria-hidden="true" className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-error)]" />
-                  Your saved places, messages and reviews go with them.
-                </li>
-                <li className="flex gap-3">
-                  <span aria-hidden="true" className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-error)]" />
-                  Bookings already made stay on record with the host, as the law
-                  requires, but are no longer linked to you here.
-                </li>
+                {[copy.losesProfile, copy.losesContent, copy.keepsBookings].map((line) => (
+                  <li key={line} className="flex gap-3">
+                    <span aria-hidden="true" className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-error)]" />
+                    {line}
+                  </li>
+                ))}
               </ul>
               <p className="mt-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-                If something has gone wrong, talk to us first. Most things can
-                be fixed without losing your history.
+                {copy.talkFirst}
               </p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <Button variant="primary" full onClick={onClose}>
-                  Keep my account
+                  {copy.keep}
                 </Button>
                 <Button
                   variant="dangerQuiet"
@@ -213,14 +211,17 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
                   data-testid="delete-continue"
                   onClick={() => setStep("confirm")}
                 >
-                  Continue
+                  {t.common.continue}
                 </Button>
               </div>
             </div>
           ) : (
             <form action={formAction} className="nf-card p-5">
+              {/* The phrase is a constant the server checks against, not a word
+                  to translate, so it arrives in a slot rather than being
+                  concatenated around a hard-coded "Type". */}
               <label htmlFor={phraseId} className="nf-label mb-1.5 block">
-                Type {DELETE_CONFIRM_PHRASE} to confirm
+                {copy.typeToConfirm.replace("{phrase}", DELETE_CONFIRM_PHRASE)}
               </label>
               <input
                 id={phraseId}
@@ -235,8 +236,7 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
                 className="nf-field"
               />
               <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
-                Capitals exactly as shown. Anything else will not unlock the
-                button.
+                {copy.capitals}
               </p>
 
               {state && !state.ok && (
@@ -250,7 +250,7 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <Button variant="primary" full onClick={onClose}>
-                  Keep my account
+                  {copy.keep}
                 </Button>
                 <Button
                   type="submit"
@@ -260,7 +260,7 @@ function DeleteDrawer({ onClose }: { onClose: () => void }) {
                   disabled={!ready}
                   loading={pending}
                 >
-                  Delete for good
+                  {copy.confirm}
                 </Button>
               </div>
             </form>

@@ -358,6 +358,190 @@ export const yo: Dictionary = {
     rowNotAsked: "A kò tíì dáhùn",
 },
 
+  settings: {
+    appearance: {
+      label: "Ìrísí",
+      note: "A fi pamọ́ sórí ẹ̀rọ yìí. Dúdú ni ìpìlẹ̀ tí a ṣe.",
+      theme: "Àwọ̀ ojú ìwé",
+      themeSystem: "Ti ẹ̀rọ",
+      themeLight: "Ìmọ́lẹ̀",
+      themeDark: "Òkùnkùn",
+      textSize: "Ìwọ̀n lẹ́tà",
+      textSmall: "Kékeré",
+      textMedium: "Àárín",
+      textLarge: "Ńlá",
+      reduceMotion: "Dín ìṣípòpadà kù",
+      reduceMotionSub: "Ó ń tu ìṣípòpadà ìwọlé àti ìrìn lórí gbogbo ohun èlò náà.",
+      lessData: "Lo dátà díẹ̀",
+      lessDataSub:
+        "Ó dá ohun èlò náà dúró láti gbé ibì kan wọlé kí o tó ṣí i, ó sì ń béèrè fún àwòrán kékeré.",
+    },
+
+    language: {
+      label: "Èdè",
+      appLanguage: "Èdè ohun èlò",
+    },
+
+    place: {
+      label: "Ibi tí o wà",
+      noteSet:
+        "Èyí ni ìlú tí ojú ilé yóò ṣí sí. Iṣẹ́ rẹ wá láti inú àtòjọ 749 ti pátákò náà, nítorí náà a lè wá a.",
+      noteUnset: "Ṣètò ìwọ̀nyí kí ojú ilé lè ṣí síbi tí o wà.",
+      noteSignedOut: "Wọlé kí ìpínlẹ̀ àti ìjọba ìbílẹ̀ rẹ lè wà pẹ̀lú àkàǹtì rẹ.",
+      lga: "Ìjọba ìbílẹ̀",
+      state: "Ìpínlẹ̀",
+      occupation: "Iṣẹ́ tí o ń ṣe",
+      screenTitle: "Ibi tí o wà",
+      screenSubtitle: "Nàìjíríà, lẹ́yìn náà ìpínlẹ̀ rẹ, lẹ́yìn náà ìjọba ìbílẹ̀ rẹ",
+      accountTitle: "Èyí jẹ́ ti àkàǹtì rẹ",
+      accountBodyUnconfigured:
+        "Àwọn àkàǹtì yóò ṣí ní kété tí àwọn kọ́kọ́rọ́ pátákò bá dé. Ìpínlẹ̀, ìjọba ìbílẹ̀ àti iṣẹ́ rẹ ni a fi pamọ́ sí àkàǹtì rẹ, kí wọ́n lè tẹ̀lé ọ sí gbogbo ẹ̀rọ.",
+      accountBodySignedOut:
+        "Ìpínlẹ̀, ìjọba ìbílẹ̀ àti iṣẹ́ rẹ ni a fi pamọ́ sí àkàǹtì rẹ, kí wọ́n lè tẹ̀lé ọ sí gbogbo ẹ̀rọ, kí wọ́n sì pinnu àwọn ibi tí ojú ilé yóò ṣí sí.",
+      statesUnavailable:
+        "Àtòjọ àwọn ìpínlẹ̀ kò wọlé lọ́wọ́lọ́wọ́. Tún ojú ìwé náà ṣe, ó sì yẹ kí ó padà. Kò sí ohun tí o ti fi pamọ́ tẹ́lẹ̀ tí ó yí padà.",
+    },
+
+    notifications: {
+      label: "Ìfitónilétí",
+      note: "A fi pamọ́ sórí ẹ̀rọ yìí títí tí o fi wọlé, lẹ́yìn náà wọ́n máa tẹ̀lé àkàǹtì rẹ.",
+      push: "Ìfitónilétí tààrà",
+      pushSub: "Ìròyìn ìfipamọ́ àti ìdáhùn, tààrà sí ẹ̀rọ yìí.",
+      email: "Ímeèlì",
+      emailSub: "Ìwé ẹ̀rí, ìfẹsẹ̀múlẹ̀ àti àwọn ìròyìn pàtàkì lẹ́ẹ̀kọ̀ọ̀kan.",
+      sms: "SMS",
+      smsSub: "Ìkìlọ̀ ìfipamọ́ tí ó kánjú nípasẹ̀ ìṣẹ́ tẹlifóònù.",
+      whatsapp: "WhatsApp",
+      whatsappSub: "Ìfẹsẹ̀múlẹ̀ ìfipamọ́ àti ìdáhùn olùgbàlejò lórí WhatsApp.",
+    },
+
+    privacy: {
+      label: "Àṣírí",
+      note: "Ta ni ó lè rí mi kàn orúkọ rẹ àti àtúnyẹ̀wò rẹ lórí àwọn àtòjọ.",
+      whoCanSeeMe: "Ta ni ó lè rí mi",
+      everyone: "Gbogbo ènìyàn",
+      onlyMe: "Èmi nìkan",
+      readReceipts: "Ìjẹ́rìí kíkà",
+      readReceiptsSub: "Jẹ́ kí àwọn olùgbàlejò rí ìgbà tí o ka ìránṣẹ́ wọn.",
+      personalised: "Àbá tí ó bá ọ mu",
+      personalisedSub: "Lo ìwádìí àti ìfipamọ́ rẹ láti to àwọn ibi tí yóò wù ọ́.",
+    },
+
+    search: {
+      label: "Ìwádìí",
+      note: "Ìwádìí máa ṣí sí agbègbè ìpìlẹ̀ rẹ, o sì lè wo ibi gbogbo nígbà gbogbo. Gbogbo owó lórí RentMe ni a fi hàn ní Náírà.",
+      defaultArea: "Agbègbè ìpìlẹ̀",
+      allOfNigeria: "Gbogbo Nàìjíríà",
+      currency: "Owó",
+      mapDistances: "Ìjìnnà lórí máàpù",
+      kilometres: "Kìlómítà",
+      miles: "Máìlì",
+    },
+
+    security: {
+      label: "Ààbò",
+      signOutNote:
+        "Èyí nìkan ni ìjókòó rẹ, nítorí náà kò sí òmíràn láti jáde nínú rẹ̀. Ní kété tí àwọn àkàǹtì bá bẹ̀rẹ̀, ìdarí yìí yóò parí gbogbo ìjókòó lórí gbogbo ẹ̀rọ lẹ́ẹ̀kan náà.",
+      appLock: "Ìtìpa ohun èlò pẹ̀lú ara",
+      appLockSub:
+        "Béèrè fún ìka ọwọ́ tàbí ojú nígbà tí ohun èlò náà bá ṣí, lórí àwọn ẹ̀rọ tí ó lè ṣe é.",
+      signedInOn: "O wọlé lórí",
+      thisDevice: "Ẹ̀rọ yìí",
+      deviceOn: "{browser} lórí {os}",
+      unknownBrowser: "Aṣàwákiri",
+      unknownOs: "ẹ̀rọ yìí",
+      signOutEverywhere: "Jáde ní ibi gbogbo",
+    },
+
+    data: {
+      label: "Dátà rẹ",
+      exportNote:
+        "Lọ́wọ́lọ́wọ́, gbogbo ohun tí RentMe mọ̀ nípa rẹ wà nínú aṣàwákiri yìí, kò sì sí ohun tí ó ti kúrò lórí ẹ̀rọ yìí. Gbígba dátà ní kíkún yóò dé pẹ̀lú ìdásílẹ̀ ìbẹ̀rẹ̀.",
+      download: "Gba dátà mi",
+      downloadSub: "Ẹ̀dà gbogbo ohun tí RentMe ní nípa rẹ.",
+      clear: "Pa dátà ẹ̀rọ yìí rẹ́",
+      clearAgain: "Tẹ̀ ẹ́ lẹ́ẹ̀kansí láti fẹsẹ̀múlẹ̀",
+      clearSub:
+        "Ó ń yọ orúkọ profáìlì rẹ, àwọn ètò àti ìjíròrò tí a fipamọ́ kúrò lórí ẹ̀rọ yìí, lẹ́yìn náà ó tún ojú ìwé ṣe.",
+    },
+
+    account: {
+      label: "Àkàǹtì",
+      saved: "A ti fi pamọ́ sí àkàǹtì rẹ",
+      unconfiguredNote:
+        "Àwọn àkàǹtì yóò ṣí ní kété tí àwọn kọ́kọ́rọ́ pátákò bá dé. Gbogbo ohun tí o ṣètò níbí ni a fi pamọ́ sórí ẹ̀rọ yìí títí di ìgbà náà.",
+      signedIn: "O ti wọlé",
+      notSignedIn: "O kò tíì wọlé",
+      signedOutSub: "Wọlé kí profáìlì àti àwọn ètò rẹ lè wà pẹ̀lú àkàǹtì rẹ dípò ẹ̀rọ yìí.",
+      unconfiguredSub: "A fi pamọ́ sórí ẹ̀rọ yìí fún ìsinsìnyí.",
+      activeOnThisDevice: "Ń ṣiṣẹ́ lórí ẹ̀rọ yìí",
+      signingOut: "Ń jáde",
+      deleteAccount: "Pa àkàǹtì mi rẹ́",
+      deleteAccountSub:
+        "Ó ń yọ profáìlì rẹ, àwọn ètò, ibi tí o fipamọ́ àti ìtàn ìránṣẹ́ rẹ kúrò pátápátá. A kò lè yí èyí padà.",
+    },
+
+    notify: {
+      guest: {
+        bookings: "Ìfipamọ́",
+        bookingsSub: "Ìbéèrè, ìfẹsẹ̀múlẹ̀ àti ìyípadà sí ìrìnàjò rẹ.",
+        messages: "Ìránṣẹ́",
+        messagesSub: "Ìdáhùn tuntun láti ọ̀dọ̀ àwọn olùgbàlejò àti aṣojú tí o ń bá sọ̀rọ̀.",
+        wallet: "Àpò owó",
+        walletSub:
+          "Ímeèlì nípa owó tí ó wọlé àti tí ó jáde. Ohunkóhun tí ó fi owó sínú ewu ṣì ń hàn nínú ohun èlò náà.",
+        marketing: "Àbá àti àǹfààní",
+        marketingSub: "Ìròyìn pàtàkì láti àyíká Nàìjíríà lẹ́ẹ̀kọ̀ọ̀kan. Ó wà ní pípa ní ìpìlẹ̀.",
+      },
+      host: {
+        bookings: "Ìfipamọ́",
+        bookingsSub: "Ìbéèrè tuntun, ìfagilé àti ìsanwó lórí àwọn àtòjọ rẹ.",
+        messages: "Ìránṣẹ́",
+        messagesSub: "Ìbéèrè tuntun láti ọ̀dọ̀ àwọn àlejò nípa àwọn àtòjọ rẹ.",
+        wallet: "Owó àti ìsanwó",
+        walletSub:
+          "Ímeèlì nípa owó tí ó wọlé àti tí ó jáde. Ohunkóhun tí ó fi owó sínú ewu ṣì ń hàn nínú ohun èlò náà.",
+        marketing: "Àbá àti àǹfààní",
+        marketingSub:
+          "Ìmọ̀ràn ìgbàlejò àti ohun tí ń lọ ní agbègbè rẹ. Ó wà ní pípa ní ìpìlẹ̀.",
+      },
+      hideActivity: "Fi ìṣe mi pamọ́",
+      hideActivitySub: "Jẹ́ kí àtúnyẹ̀wò rẹ àti ìsinmi rẹ tuntun má hàn lórí profáìlì gbangba rẹ.",
+      dataSaver: "Ìfowópamọ́ dátà",
+      dataSaverSub: "Gbé àwòrán fúyẹ́ wọlé lórí dátà fóònù. Ó sàn fún ìwọ̀n dátà kékeré.",
+    },
+
+    delete: {
+      title: "Pa àkàǹtì rẹ́",
+      close: "Tì",
+      doneTitle: "A ti pa àkàǹtì rẹ rẹ́",
+      doneBody:
+        "Gbogbo ohun tí ó so mọ́ ọn ti lọ pẹ̀lú rẹ̀, o sì ti jáde. À ń mú ọ padà sí ojú ilé báyìí. O ṣì lè bẹ̀rẹ̀ lẹ́ẹ̀kansí nígbà kankan.",
+      permanentTitle: "Èyí jẹ́ pípẹ́ títí",
+      losesProfile: "A ó yọ profáìlì rẹ, àwòrán rẹ àti àwọn ètò rẹ kúrò.",
+      losesContent: "Ibi tí o fipamọ́, àwọn ìránṣẹ́ àti àtúnyẹ̀wò rẹ yóò lọ pẹ̀lú wọn.",
+      keepsBookings:
+        "Àwọn ìfipamọ́ tí o ti ṣe tẹ́lẹ̀ yóò dúró lórí ìwé pẹ̀lú olùgbàlejò, gẹ́gẹ́ bí òfin ṣe fẹ́, ṣùgbọ́n wọn kò ní so mọ́ ọ mọ́ níbí.",
+      talkFirst:
+        "Bí ohun kan bá ti bàjẹ́, bá wa sọ̀rọ̀ ní àkọ́kọ́. Ọ̀pọ̀ ohun ni a lè ṣàtúnṣe láìsí pípàdánù ìtàn rẹ.",
+      keep: "Fi àkàǹtì mi sílẹ̀",
+      typeToConfirm: "Tẹ {phrase} láti fẹsẹ̀múlẹ̀",
+      capitals: "Lẹ́tà ńlá gẹ́gẹ́ bí a ti fi hàn. Ohunkóhun mìíràn kò ní ṣí bọ́tìnì náà.",
+      confirm: "Pa á rẹ́ pátápátá",
+    },
+
+    about: {
+      label: "Nípa",
+      note: "Àwọn ètò tí a fi pamọ́ sórí ẹ̀rọ yìí yóò dúró sórí ẹ̀rọ yìí. A fi ààbò ìpele ìlà bo àwọn ètò àkàǹtì, nítorí náà ìwọ nìkan ni ó lè ka tàbí yí ìlà tirẹ padà.",
+      help: "Ìrànlọ́wọ́",
+      helpSub: "Gba ìdáhùn lọ́wọ́ ènìyàn",
+      terms: "Àdéhùn",
+      privacy: "Ìlànà àṣírí",
+      version: "Ẹ̀yà",
+      licences: "Àṣẹ orísun ṣíṣí",
+    },
+  },
+
   home: {
     greeting: "Káàbọ̀ padà",
     prompt: "Ibo ni o ń lọ lónìí?",
