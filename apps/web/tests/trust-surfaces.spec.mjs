@@ -254,9 +254,50 @@ async function run(theme) {
   }
 }
 
+/*
+ * The schedule where the decision is actually made.
+ *
+ * Inbox item 66 asks for the policy as a timeline rather than a paragraph, and
+ * the timeline has existed for a while on /cancellations and in the safety
+ * centre. Those are the two places somebody goes AFTER they want out. The
+ * point of a timeline is that it can be read in four seconds while deciding,
+ * so it now renders on a listing, as the plain platform policy, and again at
+ * checkout against the guest's own dates and their own total.
+ *
+ * NEITHER OF THOSE CAN BE REACHED TODAY. The catalogue is empty, so every
+ * /listing route 404s, and a checkout needs a booking, which needs a listing.
+ * This section says so out loud rather than passing quietly, because a spec
+ * that skips silently is indistinguishable from one that proves something.
+ */
+async function decisionSurfaces() {
+  console.log("\n[dark] where the decision is made");
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    colorScheme: "dark",
+  });
+  try {
+    const page = await context.newPage();
+    const res = await page.goto(`${BASE_URL}/listing/lekki-palm-grove`, { waitUntil: "load" });
+    await page.waitForTimeout(WAIT);
+    const found = await page.locator('[data-testid="cancellation-timeline"]').count();
+
+    if (res.status() === 404 || (await page.locator("text=404").count()) > 0) {
+      console.log("  SKIPPED the listing and checkout placements.");
+      console.log("          The catalogue is empty, so /listing 404s and there is no");
+      console.log("          booking to reach a checkout with. Both placements are");
+      console.log("          UNPROVED and stay unproved until somebody signs up.");
+      return;
+    }
+    check("the schedule is on the listing, before anyone has committed", found === 1);
+  } finally {
+    await context.close();
+  }
+}
+
 try {
   await run("dark");
   await run("light");
+  await decisionSurfaces();
 } finally {
   await browser.close();
 }

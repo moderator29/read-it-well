@@ -9,6 +9,7 @@ import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
+import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { HoldCountdown } from "./HoldCountdown";
@@ -285,6 +286,29 @@ export default async function CheckoutPage({
             <PayPanel view={view} />
           </Reveal>
         </>
+      )}
+
+      {/*
+        The cancellation schedule, against THESE dates and THIS total, on the
+        screen where the money moves (inbox item 66).
+
+        The timeline component has existed for a while and rendered only on the
+        cancellation page and in the safety centre, which are the two places
+        somebody goes AFTER they want out. The point of a timeline rather than a
+        paragraph is that it can be read in four seconds while deciding, so it
+        belongs here, where the guest is about to pay and the boundary dates are
+        real rather than abstract. Not shown once a stay is paid or cancelled:
+        by then the schedule is support's business and there is a person on it.
+      */}
+      {!view.paid && view.status !== "CANCELLED" && (
+        <Reveal delay={180} className="mt-8">
+          <CancellationTimeline
+            checkIn={view.checkIn}
+            totalMinor={view.totalMinor}
+            locale={view.locale}
+            headingLevel="h2"
+          />
+        </Reveal>
       )}
 
       <Reveal delay={200} className="mt-6">
