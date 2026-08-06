@@ -56,8 +56,13 @@ proof.
 17. **`+234` phone input mask** with carrier-aware validation. `#33`
 18. **Every error says what happened and what to do next**, in plain language. A
     sweep, not one screen. `#40`
-19. **Every empty state offers a next action**: broaden the filters, show nearby
-    areas, create an alert. `#35`
+19. **Every empty state offers a next action.** Discovery DONE: the search
+    empty state now tells three different nothings apart, because they need
+    different answers. A filter that matched nothing offers Clear filters, a
+    search term offers Clear this search, and an empty catalogue says so
+    plainly and offers listing a place, since "browse everything from the home
+    screen" pointed at the same empty catalogue and led straight back. The
+    remaining surfaces are not swept yet. `#35`
 20. **Skeletons shaped like the real cards**, using the stride ring. Not
     spinners. `#41`, `#205`
 21. **Search state survives the back button.** `#27`

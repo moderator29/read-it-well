@@ -517,13 +517,35 @@ export default async function SearchPage({
               <span className="nf-story-art mx-auto block h-20 w-20">
                 <BrandIcon name="search-home" fill />
               </span>
-              <p className="mt-4 font-semibold">No places matched</p>
-              <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
+              {/*
+               * Three different nothings, and telling them apart is the whole
+               * job of this block.
+               *
+               * A filter that matched nothing is the reader's own doing and
+               * one tap undoes it. A search term that matched nothing is
+               * nearly the same. But a catalogue with nothing in it at all is
+               * not a search problem, and answering it with "try a different
+               * search" sends somebody to type the same query again and get
+               * the same page. It also used to point at the home screen,
+               * which is fed by the same empty catalogue, so the one offered
+               * way out led straight back here.
+               *
+               * `pool` is this text and category with no structured bounds, so
+               * an empty pool and no query means the shelves themselves are
+               * bare. That happens before supply arrives, and the honest
+               * answer is to say so and offer the thing that would change it.
+               */}
+              <p className="mt-4 font-semibold">
+                {narrowed || query.q ? "No places matched" : "Nothing on the shelves yet"}
+              </p>
+              <p className="mt-1 text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
                 {narrowed
                   ? "Your filters are narrower than the catalogue right now. Widen them and the results come straight back."
-                  : "Try a different search, or browse everything from the home screen."}
+                  : query.q
+                    ? "Nothing here matches those words yet. Try a place name, or a state."
+                    : "Agents are still listing. When a place goes live it appears here the same minute, and there is nothing to wait for on your side."}
               </p>
-              <div className="mt-6 flex justify-center">
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
                 {narrowed ? (
                   <ButtonLink
                     href={toSearchHref(clearedFilters(query))}
@@ -533,10 +555,27 @@ export default async function SearchPage({
                   >
                     Clear filters
                   </ButtonLink>
-                ) : (
-                  <ButtonLink href="/home" variant="primary">
-                    {t.nav.home}
+                ) : query.q ? (
+                  <ButtonLink
+                    href="/search"
+                    prefetch
+                    data-testid="empty-clear-search"
+                    variant="primary"
+                  >
+                    Clear this search
                   </ButtonLink>
+                ) : (
+                  <>
+                    {/* A real next action, not a lap of the same empty
+                        shelves: the person reading this may be the one with
+                        a place to let. */}
+                    <ButtonLink href="/agents" variant="primary" data-testid="empty-list-place">
+                      List your place
+                    </ButtonLink>
+                    <ButtonLink href="/docs" variant="secondary">
+                      How RentMe works
+                    </ButtonLink>
+                  </>
                 )}
               </div>
               {narrowed && pool.length > 0 && (
