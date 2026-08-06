@@ -88,6 +88,49 @@
     align-items: center;
     justify-content: center;
     gap: 0.55rem;
+    transition:
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 160ms ease;
+  }
+
+  /*
+   * Out of the way while somebody is reading (inbox item 212). The decision is
+   * `AutoHideDock`'s; this is only how it leaves.
+   *
+   * It travels DOWN and out, past its own bottom margin and the safe area
+   * under it, so nothing of it is left peeping above the home indicator.
+   * `visibility` rather than `pointer-events: none` alone, because a control
+   * that has left the screen must also leave the tab order: a hidden dock that
+   * is still focusable puts five invisible destinations between the reader and
+   * whatever comes next.
+   */
+  .nf-dockrow[data-dock-hidden="true"] {
+    transform: translateY(calc(100% + 0.35rem + env(safe-area-inset-bottom)));
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  /*
+   * And back, for a keyboard. `visibility` is animatable in the sense that
+   * matters here: the dock becomes visible at the start of the transition
+   * back, so focus lands on something that is on its way in rather than on
+   * something that is not there.
+   */
+  .nf-dockrow:focus-within {
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /*
+   * Reduced motion still hides it, without the slide. The point of the item is
+   * the screen space, and taking that away would be answering a request about
+   * animation by removing a feature.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-dockrow {
+      transition: none;
+    }
   }
 
   .nf-tabbar {
