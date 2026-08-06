@@ -423,10 +423,24 @@ export default async function SearchPage({
             {/*
              * The count is the number of cards below it, never a rounded or
              * inflated figure, and it says plainly whether filters produced it.
+             *
+             * Announced, because applying a filter is a full server navigation
+             * that replaces the grid in place. Sighted readers see the number
+             * change; without a live region a screen reader user got silence
+             * and had to hunt for the heading again to find out whether their
+             * filter had matched forty places or none. `polite` rather than
+             * `assertive`: it is the outcome of something they just did, so it
+             * should wait its turn rather than interrupt.
+             *
+             * `atomic` because the sentence only means anything whole. Reading
+             * out a changed digit without "places match your filters" is worse
+             * than reading nothing.
              */}
             <p
               data-testid="results-count"
               data-count={listings.length}
+              aria-live="polite"
+              aria-atomic="true"
               className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]"
             >
               {formatNumber(listings.length, locale)}{" "}
