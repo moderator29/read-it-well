@@ -41,7 +41,17 @@ export type PostGlyphName =
      It is drawn here for the same reason `compose` and `close` are: `UiIcon`
      carries no camera and no picture, and adding to the platform's navigation
      set is not this layer's to do. */
-  | "picture";
+  | "picture"
+  /* The overflow menu's own marks. They were borrowed from `UiIcon` - a gear
+     stood in for both Delete and Report, a slider for Mute, a person for Block -
+     which is four rows of a destructive menu wearing the wrong shape. A menu
+     where two different consequences share an icon is a menu people misread,
+     and two of these rows cannot be undone. */
+  | "link"
+  | "report"
+  | "mute"
+  | "block"
+  | "trash";
 
 const STROKE = {
   fill: "none",
@@ -73,40 +83,47 @@ export function PostGlyph({
       focusable="false"
     >
       {name === "like" ? (
-        /* A node inside a ring. Marked or not marked, with nothing borrowed
-           from a heart, and it fills from the centre outward on tap. */
-        <>
-          <circle cx="12" cy="12" r="7.2" {...STROKE} />
-          <circle
-            cx="12"
-            cy="12"
-            r={active ? 4 : 0}
-            fill="currentColor"
-            stroke="none"
-            style={{ transition: "r var(--nf-duration-fast) var(--nf-ease-spring)" }}
-          />
-        </>
+        /*
+         * A ring with a node in it read as a radio button, not as a like. An
+         * icon that has to be learned is an icon that does not work, and this
+         * one sits on every post on the platform.
+         *
+         * So the SILHOUETTE is the one everybody already knows and the DRAWING
+         * is ours: two arcs meeting at a chamfered point rather than a soft
+         * curve, a flat cut across the shoulders, and a single weight. That is
+         * how a house set is built - a recognisable form drawn in one voice -
+         * rather than by inventing a shape nobody can read.
+         */
+        <path
+          d="M12 19.4 5.4 13a4.3 4.3 0 0 1 0-6.1 4.3 4.3 0 0 1 6.1 0l.5.5.5-.5a4.3 4.3 0 0 1 6.1 0 4.3 4.3 0 0 1 0 6.1Z"
+          {...STROKE}
+          fill={active ? "currentColor" : "none"}
+        />
       ) : null}
 
       {name === "reply" ? (
-        /* A stroke that turns once and ends in a node: the conversation
-           branching, rather than a speech bubble. */
-        <>
-          <path d="M6.5 5.5v6.2a4 4 0 0 0 4 4h5.2" {...STROKE} />
-          <circle cx="17.6" cy="15.7" r="2.1" fill="currentColor" stroke="none" />
-        </>
+        /* A bubble, but squared and with the tail CUT from the corner rather
+           than hung off the bottom edge - which is the one detail that keeps it
+           from being the same speech bubble as everything else, and it reads at
+           19px, which the branching stroke it replaces did not. */
+        <path
+          d="M5.2 9.1a3.4 3.4 0 0 1 3.4-3.4h6.8a3.4 3.4 0 0 1 3.4 3.4v3.6a3.4 3.4 0 0 1-3.4 3.4H10l-4.8 3.2Z"
+          {...STROKE}
+        />
       ) : null}
 
       {name === "repost" ? (
         /* Two nodes joined by a stroke that closes back on itself. It carries
            the same words to another place, so the line returns. */
         <>
-          <path d="M8 6.6h5.4a4.6 4.6 0 0 1 4.6 4.6v1.4" {...STROKE} />
-          <path d="M16 17.4h-5.4A4.6 4.6 0 0 1 6 12.8v-1.4" {...STROKE} />
-          {/* Spread first, then fill. The other way round, STROKE's own
-              `fill: none` silently wins and the marked state never fills. */}
-          <circle {...STROKE} cx="6" cy="6.6" r={active ? 2.4 : 1.9} fill={active ? "currentColor" : "none"} />
-          <circle {...STROKE} cx="18" cy="17.4" r={active ? 2.4 : 1.9} fill={active ? "currentColor" : "none"} />
+          {/* Two rails and two chevrons: the same words travelling to another
+              place and back. Squared corners rather than the soft recycle loop
+              every other product uses, and the heads are open chevrons so the
+              direction survives at 19px. */}
+          <path d="M7.4 9.2V7.6A1.8 1.8 0 0 1 9.2 5.8h7.4" {...STROKE} />
+          <path d="M14.2 3.4 16.8 5.8 14.2 8.2" {...STROKE} />
+          <path d="M16.6 14.8v1.6a1.8 1.8 0 0 1-1.8 1.8H7.4" {...STROKE} />
+          <path d="M9.8 15.8 7.2 18.2 9.8 20.6" {...STROKE} />
         </>
       ) : null}
 
@@ -115,9 +132,13 @@ export function PostGlyph({
            with an eye, which is the glyph every other product reaches for and
            which quietly says "we are watching you". */
         <>
-          <path d="M5.5 17.5v-3.2" {...STROKE} />
-          <path d="M12 17.5v-6.6" {...STROKE} />
-          <path d="M18.5 17.5V7.5" {...STROKE} />
+          {/* Three strokes rising, the tallest capped with the family's node.
+              Nothing to do with an eye, which is the glyph every other product
+              reaches for and which quietly says "we are watching you". */}
+          <path d="M5.5 17.8v-3.4" {...STROKE} />
+          <path d="M12 17.8v-6.8" {...STROKE} />
+          <path d="M18.5 17.8V9.2" {...STROKE} />
+          <circle cx="18.5" cy="6.4" r="1.8" fill="currentColor" stroke="none" />
         </>
       ) : null}
 
@@ -125,10 +146,13 @@ export function PostGlyph({
         /* A node with three strokes leaving it. One thing going to several
            places, which is what sharing is. */
         <>
-          <circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none" />
-          <path d="M12 9.6V4.4" {...STROKE} />
-          <path d="M10 13.4 6 17.2" {...STROKE} />
-          <path d="M14 13.4 18 17.2" {...STROKE} />
+          {/* Not the iOS box-and-arrow, and not the three-node network every
+              other set uses. A frame that is OPEN at the top with the thing
+              leaving through the opening: the gap is the whole idea, and it is
+              the one mark in the family that reads as "out of here". */}
+          <path d="M7.6 10.4H6.2A1.8 1.8 0 0 0 4.4 12.2v5.6A1.8 1.8 0 0 0 6.2 19.6h11.6a1.8 1.8 0 0 0 1.8-1.8v-5.6a1.8 1.8 0 0 0-1.8-1.8h-1.4" {...STROKE} />
+          <path d="M12 14.2V4.4" {...STROKE} />
+          <path d="M8.6 7.6 12 4.2l3.4 3.4" {...STROKE} />
         </>
       ) : null}
 
@@ -174,6 +198,52 @@ export function PostGlyph({
           <rect x="4.2" y="5.8" width="15.6" height="12.4" rx="3.2" {...STROKE} />
           <circle cx="9" cy="10.3" r="1.5" fill="currentColor" stroke="none" />
           <path d="M5.4 16.6 9.8 12.6l2.8 2.5 2.4-1.9 3.4 3" {...STROKE} />
+        </>
+      ) : null}
+
+      {name === "link" ? (
+        /* Two chamfered capsules holding each other. A link is a join, and the
+           join is what the mark draws. */
+        <>
+          <path d="M10.4 13.6a3.6 3.6 0 0 0 5.4.4l2.2-2.2a3.6 3.6 0 0 0-5.1-5.1l-1.3 1.3" {...STROKE} />
+          <path d="M13.6 10.4a3.6 3.6 0 0 0-5.4-.4L6 12.2a3.6 3.6 0 0 0 5.1 5.1l1.3-1.3" {...STROKE} />
+        </>
+      ) : null}
+
+      {name === "report" ? (
+        /* A flag on a mast, the cloth cut square. A gear stood here before,
+           which is the icon for settings on every screen of this platform. */
+        <>
+          <path d="M6.6 20.2V4.6" {...STROKE} />
+          <path d="M6.6 5.4h9.8l-2.2 3.6 2.2 3.6H6.6" {...STROKE} />
+        </>
+      ) : null}
+
+      {name === "mute" ? (
+        /* A bell with the clapper gone and a cut through it. Muting is not
+           blocking: the bell is still there, it just says nothing. */
+        <>
+          <path d="M8 10.6a4 4 0 0 1 8 0c0 3.4 1.2 4.6 1.2 4.6H6.8S8 14 8 10.6Z" {...STROKE} />
+          <path d="M5 5 19 19" {...STROKE} />
+        </>
+      ) : null}
+
+      {name === "block" ? (
+        /* The prohibition sign, and the ONE mark in this set that is
+           deliberately universal. An invented glyph for the most permanent
+           action in the menu is an invented glyph somebody presses by mistake. */
+        <>
+          <circle cx="12" cy="12" r="7.6" {...STROKE} />
+          <path d="M6.6 6.6 17.4 17.4" {...STROKE} />
+        </>
+      ) : null}
+
+      {name === "trash" ? (
+        /* A lid, a body, and nothing inside it. */
+        <>
+          <path d="M5.4 7.4h13.2" {...STROKE} />
+          <path d="M9.6 7.4V5.8a1.4 1.4 0 0 1 1.4-1.4h2a1.4 1.4 0 0 1 1.4 1.4v1.6" {...STROKE} />
+          <path d="M7 7.4l.9 11a1.6 1.6 0 0 0 1.6 1.5h5a1.6 1.6 0 0 0 1.6-1.5l.9-11" {...STROKE} />
         </>
       ) : null}
 

@@ -181,15 +181,31 @@ export function actionsForPost(options: {
       key: "contact",
       title: "Contact agent",
       note: "Send a message about this place",
-      icon: "chat-bubble",
+      glyph: "reply",
     });
   }
 
   rows.push({
     key: "share",
     title: "Share",
-    note: "Send it to somebody, or copy the link",
+    note: "Send it to somebody",
     glyph: "share",
+  });
+
+  /*
+   * Copy link, on its own row at last.
+   *
+   * The `copy` branch has been in the feed's menu handler since the sheet
+   * landed and no row ever asked for it, so the only way to get a link was to
+   * open the share sheet and hope the platform offered copying. Share now says
+   * what it does and this says what it does, which is also the pair every
+   * reference screen shows.
+   */
+  rows.push({
+    key: "copy",
+    title: "Copy link",
+    note: "Paste it anywhere",
+    glyph: "link",
   });
 
   if (options.isMine) {
@@ -205,7 +221,7 @@ export function actionsForPost(options: {
       key: "delete",
       title: "Delete this post",
       note: "Replies under it stay, with a note where it was",
-      icon: "settings-gear",
+      glyph: "trash",
       danger: true,
     });
     return rows;
@@ -240,7 +256,7 @@ export function actionsForPost(options: {
       key: "mute",
       title: `Mute ${options.who}`,
       note: "They stop showing up in your feeds, stories and threads",
-      icon: "sliders",
+      glyph: "mute",
     });
   }
 
@@ -248,7 +264,7 @@ export function actionsForPost(options: {
     key: "report",
     title: "Report",
     note: "Tell us what is wrong with this",
-    icon: "settings-gear",
+    glyph: "report",
     danger: true,
   });
 
@@ -257,7 +273,7 @@ export function actionsForPost(options: {
       key: "block",
       title: `Block ${options.who}`,
       note: "You will not see each other anywhere on RentMe",
-      icon: "user",
+      glyph: "block",
       danger: true,
     });
   }
