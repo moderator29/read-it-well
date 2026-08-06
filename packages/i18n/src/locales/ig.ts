@@ -1033,11 +1033,6 @@ export const ig: Dictionary = {
             "Ọ na-apụ na nchọta ozugbo ma laghachi na akwụkwọ mbụ gị. Ị nwere ike idezi ya ma zipu ya maka nyocha mgbe ọ bụla ị dị njikere.",
           confirm: "Wepụ ya",
         },
-        delete: {
-          title: "Hichapụ akwụkwọ mbụ a?",
-          body: "A na-ewepụ akwụkwọ mbụ ahụ na foto ya kpamkpam. Enweghị ike ịkwatu nke a.",
-          confirm: "Hichapụ akwụkwọ mbụ",
-        },
       },
     },
 

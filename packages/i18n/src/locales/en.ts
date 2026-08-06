@@ -1155,11 +1155,6 @@ export const en = {
             "It leaves search straight away and returns to your drafts. You can edit it and send it back for review whenever you are ready.",
           confirm: "Take it down",
         },
-        delete: {
-          title: "Delete this draft?",
-          body: "The draft and its photos are removed for good. This cannot be undone.",
-          confirm: "Delete draft",
-        },
       },
     },
 

@@ -1024,11 +1024,6 @@ export const ha: Dictionary = {
             "Zai bar bincike nan take ya koma daftarinka. Kana iya gyara shi ka sake aika don nazari duk lokacin da ka shirya.",
           confirm: "Cire shi",
         },
-        delete: {
-          title: "A share wannan daftari?",
-          body: "Ana cire daftarin da hotunansa gaba ɗaya. Ba za a iya mayar da wannan ba.",
-          confirm: "Share daftari",
-        },
       },
     },
 

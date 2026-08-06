@@ -1031,11 +1031,6 @@ export const yo: Dictionary = {
             "Ó máa kúrò nínú ìwádìí lẹ́sẹ̀kẹsẹ̀ kí ó padà sí àkọ̀wé rẹ. O lè ṣàtúnṣe rẹ̀ kí o sì fi ránṣẹ́ padà fún àtúnyẹ̀wò nígbàkigbà tí o ṣetán.",
           confirm: "Mú kúrò",
         },
-        delete: {
-          title: "Ṣé kí a pa àkọ̀wé yìí rẹ́?",
-          body: "A ó yọ àkọ̀wé náà àti àwọn àwòrán rẹ̀ kúrò pátápátá. Èyí kò ṣe é padà.",
-          confirm: "Pa àkọ̀wé rẹ́",
-        },
       },
     },
 
