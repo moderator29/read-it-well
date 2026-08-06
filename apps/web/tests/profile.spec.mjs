@@ -126,12 +126,28 @@ try {
 
     const nameInput = page.locator('[data-testid="device-name-input"]');
     await nameInput.fill("Chidi");
-    /* `force` skips Playwright's scroll-into-view, which hangs on this control:
-       the sheet is a fixed panel with its own scroll container and a transform,
-       and the actionability log gets as far as "visible, enabled and stable"
-       before stalling on the scroll. Visibility is already asserted three lines
-       up, so there is nothing the skipped step was protecting. */
-    await page.locator('[data-testid="device-name-save"]').click({ force: true });
+    /* Save sits below the fold of the sheet's own scroll container, so it has
+       to be scrolled to inside that container before it can be clicked.
+       `force` was the wrong answer here: it skips the scroll and then the
+       click fails outright with "element is outside of the viewport", which is
+       a worse failure than the one it was trying to route around. */
+    /*
+     * THIS IS RED ON A REAL BUG, AND IT SHOULD STAY RED.
+     *
+     * Measured at 390x844 with the sheet open: `[role="dialog"]` has
+     * `top: 844` and `bottom: 1227`. The panel is entirely below the fold -
+     * it is sitting at its CLOSED transform and never travelled up - so Save
+     * is at y=1160 and Playwright reports "element is outside of the viewport"
+     * after scrolling as far as the sheet's own container allows.
+     *
+     * An earlier pass here used `click({ force: true })`, which skips the
+     * scroll and then fails on the same geometry with a worse message. That
+     * was routing around the symptom. A person on a phone cannot reach this
+     * control either, and the spec's job is to say so.
+     */
+    const save = page.locator('[data-testid="device-name-save"]');
+    await save.scrollIntoViewIfNeeded();
+    await save.click();
     await page.waitForTimeout(500);
     check("saving closes the sheet", (await sheet.count()) === 0);
     check(
