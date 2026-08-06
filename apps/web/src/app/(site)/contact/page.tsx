@@ -156,11 +156,8 @@ export default async function ContactPage({
             <div className="nf-card p-5">
               <p className="nf-overline">Careers</p>
               <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                Applications and anything hiring related go to{" "}
-                <a href="mailto:careers@naijafinds.com" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
-                  careers@naijafinds.com
-                </a>
-                .
+                Applications and anything hiring related go through the form
+                above. Put Careers in the topic and it reaches the same queue.
               </p>
             </div>
             <div className="nf-card p-5">

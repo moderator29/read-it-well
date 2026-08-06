@@ -128,7 +128,7 @@ export const yo: Dictionary = {
       title: "Ṣé o ti ṣetán láti wá ibi tókàn rẹ?",
       subtitle: "Dara pọ̀ mọ́ ẹgbẹẹgbẹ̀rún tó ń ṣàwárí ibùgbé, oúnjẹ àti ìrírí.",
       action: "Bẹ̀rẹ̀ lọ́fẹ̀ẹ́",
-      secondary: "Wò ó láìní àkàǹtì",
+      secondary: "Wo bí ó ṣe ń ṣiṣẹ́",
     },
     footer: {
       tagline: "Wá a. Fi pamọ́. Gbé e. Ní Nàìjíríà.",
@@ -143,6 +143,7 @@ export const yo: Dictionary = {
       contact: "Kàn sí wa",
       privacy: "Àṣírí",
       terms: "Àdéhùn",
+      docs: "Ìwé ìtọ́sọ́nà",
       becomeAgent: "Di aṣojú",
     },
   },

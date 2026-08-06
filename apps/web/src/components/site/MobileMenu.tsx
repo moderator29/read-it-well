@@ -7,23 +7,36 @@ import Link from "next/link";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { SUPPORT_HREF, SUPPORT_IS_EMAIL } from "@/lib/support-email";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
+import type { Locale } from "@naijafinds/i18n";
 
 /**
  * Marketing header menu for phones.
  *
- * A three line hamburger opening a right hand slide-in panel: brand row with a
- * close control, the nav stack as chevron rows over hairline dividers, a
- * community strip, and the primary call to action pinned at the foot. Locks
- * page scroll while open and closes on any navigation.
+ * A full-page panel: brand row with a close control, the nav stack as chevron
+ * rows over hairline dividers, the two controls that decide how the page is
+ * presented, and the primary call to action pinned at the foot. Locks page
+ * scroll while open and closes on any navigation.
+ *
+ * The opener is the product's panel glyph rather than the three-line
+ * hamburger it used to be. Two menus on one platform drawn differently is two
+ * platforms as far as a thumb is concerned, and the product settled on this
+ * mark; the marketing site had simply never been brought across.
  */
 export function MobileMenu({
   links,
+  locale,
+  languageLabel,
   signIn,
   signUp,
   openLabel,
   closeLabel,
 }: {
   links: { href: string; label: string }[];
+  locale: Locale;
+  languageLabel: string;
   signIn: string;
   signUp: string;
   openLabel: string;
@@ -43,13 +56,9 @@ export function MobileMenu({
         aria-expanded={open}
         aria-label={openLabel}
         onClick={() => setOpen(true)}
-        className="nf-icon-btn h-10 w-10"
+        className="nf-icon-btn h-11 w-11"
       >
-        <span className="flex w-4 flex-col gap-[4px]" aria-hidden="true">
-          <span className="h-[2px] w-full rounded-full bg-current" />
-          <span className="h-[2px] w-full rounded-full bg-current" />
-          <span className="h-[2px] w-full rounded-full bg-current" />
-        </span>
+        <UiIcon name="panel-left" size={20} />
       </button>
 
       {/*
@@ -108,19 +117,33 @@ export function MobileMenu({
             </nav>
 
             <div className="mt-6">
-              <p className="nf-overline mb-3">Community</p>
-              <div className="mb-5 flex gap-3">
-                <a
-                  href="mailto:hello@rentme.ng"
-                  aria-label="Email RentMe"
-                  className="nf-icon-btn h-11 w-11"
-                >
-                  <UiIcon name="chat-bubble" size={16} />
-                </a>
-                <Link href="/assistant" aria-label="RentMe AI" className="nf-icon-btn h-11 w-11">
-                  <UiIcon name="sparkle" size={16} />
-                </Link>
+              {/*
+                Theme and language, which are the two things a visitor may want
+                to change before reading a word, and which lived only in the
+                product and in the desktop header until now.
+              */}
+              <p className="nf-overline mb-3">Display</p>
+              <div className="mb-5 flex items-center gap-2">
+                <ThemeToggle />
+                <LanguageSwitcher current={locale} label={languageLabel} compact />
               </div>
+
+              {/*
+                One way to reach a person, and it goes wherever the support
+                module says it goes. This was `mailto:hello@rentme.ng`, a
+                mailbox that does not exist, so every tap of it was a message
+                sent nowhere. The RentMe AI link next to it pointed at
+                `/assistant`, which is inside the product and now behind a
+                session, so it was a link to a redirect.
+              */}
+              <a
+                href={SUPPORT_HREF}
+                {...(SUPPORT_IS_EMAIL ? {} : { onClick: () => setOpen(false) })}
+                className="mb-5 flex min-h-11 items-center gap-2 text-[0.9375rem] font-semibold text-[var(--nf-content-secondary)] hover:text-[var(--nf-electric-300)]"
+              >
+                <UiIcon name="chat-bubble" size={16} />
+                Contact support
+              </a>
 
               <ButtonLink
                 href="/sign-up"

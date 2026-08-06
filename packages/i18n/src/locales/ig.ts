@@ -128,7 +128,7 @@ export const ig: Dictionary = {
       title: "Ị dịla njikere ịchọta ebe ọzọ gị?",
       subtitle: "Sonye na ọtụtụ puku na-achọpụta ebe obibi, nri na ahụmahụ.",
       action: "Malite n'efu",
-      secondary: "Chọgharịa na-enweghị akaụntụ",
+      secondary: "Lee ka ọ si arụ ọrụ",
     },
     footer: {
       tagline: "Chọta ya. Debe ya. Bie ya. Na Naịjirịa.",
@@ -143,6 +143,7 @@ export const ig: Dictionary = {
       contact: "Kpọtụrụ anyị",
       privacy: "Nzuzo",
       terms: "Usoro",
+      docs: "Akwụkwọ ntuziaka",
       becomeAgent: "Bụrụ onye nnọchiteanya",
     },
   },

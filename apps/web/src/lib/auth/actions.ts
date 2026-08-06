@@ -1,8 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  consume,
+  ipFromHeaders,
+  subjectForEmail,
+  subjectForIp,
+} from "@/lib/security/rate-limit";
 import { siteUrl } from "@/lib/site";
 import { getProviderStates } from "./providers";
 import { HEAR_ABOUT_VALUES, REFERRAL_CODE_RE } from "./signup-options";
@@ -148,6 +155,47 @@ function authMessage(raw: string): string {
   return "We could not complete that just now. Please try again in a moment.";
 }
 
+/* -------------------------------------------------------------- throttling */
+
+/**
+ * The door, counted.
+ *
+ * Supabase applies its own limits at the auth endpoint, and they are the last
+ * line rather than the first: they are shared across the whole project, tuned
+ * for its own protection rather than this platform's, and they are not reached
+ * at all by an attempt this file refuses on validation. These three actions are
+ * the ones worth counting here, because each is reachable with no session and
+ * each one costs something real: a sign-in attempt is a password guess, a
+ * sign-up writes a row and sends mail, a reset sends mail to an address the
+ * request chose.
+ *
+ * WHY SIGN-IN IS COUNTED BY ADDRESS AND SIGN-IN ONLY IS NOT. Counting reset
+ * requests per address protects the owner of that address from having their
+ * inbox used as a weapon, and costs them nothing, because a throttled reset
+ * never stops them signing in normally. Counting sign-in attempts per address
+ * would do the opposite: anybody who knows a person's email could spend that
+ * allowance on purpose and hold them out of their own account for as long as
+ * they cared to keep it up. So sign-in is counted per address of origin, and
+ * the address typed into the form is not a key here.
+ */
+async function throttle(
+  bucket: string,
+  subject: string,
+  limit: number,
+  windowSeconds: number,
+): Promise<AuthFormState | null> {
+  const verdict = await consume({ bucket, subject, limit, windowSeconds });
+  if (verdict.allowed) return null;
+  return {
+    ok: false,
+    message: `Too many attempts just now. Try again ${verdict.retryIn}.`,
+  };
+}
+
+async function callerIp(): Promise<string> {
+  return ipFromHeaders(await headers());
+}
+
 export async function signInWithEmail(
   _prev: AuthFormState,
   formData: FormData,
@@ -156,6 +204,11 @@ export async function signInWithEmail(
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
   if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+
+  // Ten guesses a minute from one place is far more than a person mistyping a
+  // password and far less than a stuffing run is worth mounting.
+  const paced = await throttle("sign_in", subjectForIp(await callerIp()), 10, 60);
+  if (paced) return paced;
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({
@@ -179,6 +232,12 @@ export async function signUpWithEmail(
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
   if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+
+  // An account and a confirmation email per attempt, so this is the cheapest
+  // of the three to abuse and the tightest of the three to allow. A household
+  // or an office behind one address can still make five in an hour.
+  const paced = await throttle("sign_up", subjectForIp(await callerIp()), 5, 3_600);
+  if (paced) return paced;
 
   const firstName = field(formData, "firstName").trim();
   const surname = field(formData, "surname").trim();
@@ -293,6 +352,17 @@ export async function requestPasswordReset(
   }
 
   if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+
+  /*
+   * Counted twice, and both counts are spent before Supabase is asked
+   * anything, so neither one can become an account-existence oracle: the
+   * allowance for an address that has no account is spent exactly as fast as
+   * the allowance for one that does.
+   */
+  const byIp = await throttle("password_reset_ip", subjectForIp(await callerIp()), 10, 3_600);
+  if (byIp) return byIp;
+  const byEmail = await throttle("password_reset_email", subjectForEmail(email), 3, 3_600);
+  if (byEmail) return byEmail;
 
   const supabase = await createClient();
   /*

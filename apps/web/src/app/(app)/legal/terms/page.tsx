@@ -1,0 +1,22 @@
+import type { Metadata } from "next";
+import { TERMS_SECTIONS } from "@/lib/legal/terms";
+import { LegalDocument } from "../LegalDocument";
+
+export const metadata: Metadata = {
+  title: "Terms of service",
+  // Same reasoning as the privacy route: /terms is the canonical public copy.
+  robots: { index: false, follow: false },
+};
+
+export default function AppTermsPage() {
+  return (
+    <LegalDocument
+      title="Terms of service"
+      intro="The agreement between you and RentMe when you use the platform, book a place, or list one."
+      updated="28 July 2026"
+      sections={TERMS_SECTIONS}
+      otherHref="/legal/privacy"
+      otherLabel="Privacy policy"
+    />
+  );
+}

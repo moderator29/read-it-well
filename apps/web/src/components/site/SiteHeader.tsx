@@ -4,23 +4,30 @@ import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
+import { ThemeToggle } from "./ThemeToggle";
 
 /**
  * Marketing header.
  *
- * Navigation matches the landing reference exactly: Home, Properties, Hotels,
- * Restaurants, Experiences, Services. This is the marketing rail and is not the
- * same as the in product rail, which is a different, longer list.
+ * This rail used to be the product's categories: Properties, Hotels,
+ * Restaurants, Experiences, Services, each pointing at `/search?type=...`.
+ * Every one of them dropped a signed-out visitor straight into the product,
+ * which is now behind a session, so each was a link to a redirect.
+ *
+ * What belongs on a marketing header is the marketing site: what this is, what
+ * the rules are, and how to get in. Categories are the first thing you see
+ * AFTER signing up, and putting them here promised a catalogue that a stranger
+ * cannot open.
+ *
+ * The links are the same list the phone panel gets, so the two cannot drift.
  */
 export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
   const links = [
     { href: "/", label: t.landing.navHome },
-    { href: "/rent", label: t.nav.rent },
-    { href: "/search?type=property", label: t.nav.properties },
-    { href: "/search?type=hotel", label: t.nav.hotels },
-    { href: "/search?type=restaurant", label: t.nav.restaurants },
-    { href: "/search?type=experience", label: t.nav.experiences },
-    { href: "/search?type=service", label: t.nav.services },
+    { href: "/docs", label: t.landing.footer.docs },
+    { href: "/help", label: t.landing.footer.help },
+    { href: "/privacy", label: t.landing.footer.privacy },
+    { href: "/terms", label: t.landing.footer.terms },
   ];
 
   return (
@@ -44,7 +51,12 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden sm:block">
+            {/* Theme and language sit together because they are the same kind
+                of control: how this page is presented to you, decided by you.
+                Both were already in the product and neither was on the page a
+                first-time visitor actually lands on. */}
+            <div className="hidden items-center gap-1 sm:flex">
+              <ThemeToggle />
               <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
             </div>
             <ButtonLink
@@ -60,6 +72,8 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
             </ButtonLink>
             <MobileMenu
               links={links}
+              locale={locale}
+              languageLabel={t.a11y.languageSwitcher}
               signIn={t.common.signIn}
               signUp={t.common.signUp}
               openLabel={t.a11y.openMenu}

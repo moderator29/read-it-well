@@ -3,6 +3,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { SUPPORT_HREF, SUPPORT_IS_EMAIL, SUPPORT_LABEL } from "@/lib/support-email";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -15,7 +16,10 @@ export const metadata: Metadata = {
  *
  * Culture first, then an honest empty state for open roles: there are none
  * listed yet, so instead of fake vacancies the page invites speculative
- * applications to careers@naijafinds.com and says exactly what to send.
+ * applications through the one support channel and says exactly what to send.
+ * It used to name careers@naijafinds.com, a mailbox on a domain this platform
+ * no longer uses, so every application sent to it went nowhere while the
+ * sender believed they had applied.
  */
 export default function CareersPage() {
   const culture: { icon: BrandIconName; title: string; body: string }[] = [
@@ -125,12 +129,12 @@ export default function CareersPage() {
 
             <div className="mt-6">
               <ButtonLink
-                href="mailto:careers@naijafinds.com"
+                href={SUPPORT_HREF}
                 variant="primary"
                 size="lg"
                 trailingIcon="arrow-right"
               >
-                Email careers@naijafinds.com
+                {SUPPORT_IS_EMAIL ? `Email ${SUPPORT_LABEL}` : "Send your application"}
               </ButtonLink>
             </div>
             <p className="mt-3 text-[0.8125rem] text-[var(--nf-content-muted)]">

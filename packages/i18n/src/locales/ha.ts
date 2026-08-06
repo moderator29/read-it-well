@@ -128,7 +128,7 @@ export const ha: Dictionary = {
       title: "A shirye kake ka samu wuri na gaba?",
       subtitle: "Ka haɗu da dubbai da ke gano masauki, abinci da kwarewa.",
       action: "Fara kyauta",
-      secondary: "Duba ba tare da asusu ba",
+      secondary: "Duba yadda yake aiki",
     },
     footer: {
       tagline: "Nemo shi. Ajiye shi. Rayu da shi. A Najeriya.",
@@ -143,6 +143,7 @@ export const ha: Dictionary = {
       contact: "Tuntuɓe mu",
       privacy: "Sirri",
       terms: "Sharuɗɗa",
+      docs: "Takardu",
       becomeAgent: "Zama wakili",
     },
   },

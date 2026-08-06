@@ -26,6 +26,7 @@ import {
   AssistantShowcase,
 } from "@/components/site/landing/SignatureShowcase";
 import { StoryRail } from "@/components/site/landing/StoryRail";
+import { gatedHref } from "@/lib/site/gated-href";
 
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"];
 
@@ -156,7 +157,7 @@ export default async function LandingPage() {
                 {CITIES.map((city) => (
                   <li key={city}>
                     <Link
-                      href={`/search?q=${encodeURIComponent(city)}`}
+                      href={gatedHref(`/search?q=${encodeURIComponent(city)}`)}
                       prefetch
                       className="nf-chip relative z-10"
                     >
@@ -441,7 +442,12 @@ export default async function LandingPage() {
                   <ButtonLink href="/sign-up" variant="primary" size="lg" className="nf-breathe">
                     {t.landing.cta.action}
                   </ButtonLink>
-                  <ButtonLink href="/search" variant="secondary" size="lg">
+                  {/* This said "Browse without an account" and pointed at
+                      /search. The product is behind a session now, so it was
+                      an offer the next click refused. The docs are the honest
+                      version of the same invitation: see the whole thing,
+                      free, without joining. */}
+                  <ButtonLink href="/docs" variant="secondary" size="lg">
                     {t.landing.cta.secondary}
                   </ButtonLink>
                 </div>

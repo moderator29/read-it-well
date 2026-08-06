@@ -31,6 +31,15 @@ import { createAdminClient } from "../supabase/admin";
  * no anonymous insert policy by design. When Supabase is not configured the
  * action says so honestly instead of inventing a reference.
  *
+ * THE LIMIT LIVES HERE, not only on the callers. `submitContactForm` throttles
+ * itself before delegating, but a "use server" export is its own HTTP endpoint:
+ * a caller who posts straight at this function skips every check the contact
+ * form performs on the way in. Unthrottled, that is an anonymous service-role
+ * insert repeated as fast as the network allows, and worse, an open relay for
+ * our own domain, because the acknowledgement below goes to whatever address
+ * the request names with whatever name the request supplies. So the throttle is
+ * on the write path itself and both callers inherit it.
+ *
  * Once the row exists, the acknowledgement email goes to the validated address
  * on the form and nowhere else. It is best effort: the ticket is filed and the
  * reference is real whether or not the email leaves.
@@ -106,6 +115,28 @@ export async function fileSupportTicket(
   if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED_MESSAGE);
 
   const session = await resolveSession();
+
+  // Signed-in callers are counted by account, everyone else by address. Ten an
+  // hour is far above what somebody with a genuine problem needs, including one
+  // who escalates a chat and then files again from the contact form, and far
+  // below what makes a spam run or an email relay worth attempting. The limiter
+  // fails open by design, so an outage in the counter never stops a real person
+  // reaching support.
+  const verdict = await consume({
+    bucket: "support_ticket",
+    subject:
+      session.state === "signed-in"
+        ? subjectForUser(session.user.id)
+        : subjectForIp(ipFromHeaders(await headers())),
+    limit: 10,
+    windowSeconds: 3_600,
+  });
+  if (!verdict.allowed) {
+    return fail(
+      `That is a lot of tickets in one hour. Try again ${verdict.retryIn}, and quote your earlier reference if it is the same problem.`,
+    );
+  }
+
   const { name, email, topic, body, summary } = parsed.data;
 
   try {
