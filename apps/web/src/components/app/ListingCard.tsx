@@ -9,6 +9,8 @@ import type { Listing } from "@/lib/listings/types";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
+import { IntentTune } from "@/components/app/IntentTune";
+import { isPropertyType, type PropertyType } from "@/lib/interests/schema";
 import { isDataSaver } from "@/lib/ui/data-saver";
 
 /**
@@ -83,6 +85,7 @@ export function ListingCard({
   locale,
   t,
   index,
+  intent,
 }: {
   listing: Listing;
   locale: Locale;
@@ -91,6 +94,22 @@ export function ListingCard({
       for cards shown outside a freshly assembled list (rails, admin tables),
       where the entrance would be noise rather than a moment. */
   index?: number;
+  /**
+   * The signed-in caller's stored intent, which is also the permission to show
+   * the per-card control that changes it.
+   *
+   * ONE PROP CARRYING BOTH, deliberately. `undefined` means there is nobody to
+   * save to - signed out, or a platform with no keys - and the control is not
+   * rendered at all rather than rendered and failing. An EMPTY ARRAY is a real
+   * signed-in person who has stated nothing, which is a different thing and has
+   * to stay different: the sheet opens saying this market is not ranked ahead,
+   * which is true, and the tap that follows is their first answer.
+   *
+   * Two props (`canTune` plus `interests`) would let a call site pass one and
+   * forget the other, and the failure mode of that is a control offered to
+   * somebody who cannot use it.
+   */
+  intent?: PropertyType[];
 }) {
   const router = useRouter();
   const [from, to] = HUES[listing.hue % HUES.length] ?? HUES[0]!;
@@ -185,11 +204,34 @@ export function ListingCard({
       ? ({ "--card-i": Math.min(index, 5) } as React.CSSProperties)
       : undefined;
 
+  /*
+   * Can this card's market be stated as an interest at all?
+   *
+   * `ListingKind` is `property_type` PLUS restaurant and experience, and the
+   * column that stores the answer is a `property_type[]` that would refuse
+   * either of them. A restaurant card therefore carries no control rather than
+   * one that opens and then fails at the server, which is the same rule the
+   * signed-out case follows for the same reason.
+   */
+  const tunableKind: PropertyType | null = isPropertyType(listing.kind) ? listing.kind : null;
+
   return (
     <article
-      className={`nf-card nf-card--interactive group overflow-hidden ${index !== undefined ? "nf-card-in" : ""}`}
+      className={`nf-card nf-card--interactive group relative overflow-hidden ${index !== undefined ? "nf-card-in" : ""}`}
       style={cardStyle}
     >
+      {/*
+        OUTSIDE the card's own Link, and it has to be. An anchor may not contain
+        a button: the browser's own activation behaviour for the anchor swallows
+        it, and a screen reader announces one control where there are two. So it
+        is an absolutely positioned sibling stacked over the media, which is
+        also why the article gained `relative`.
+      */}
+      {intent !== undefined && tunableKind && (
+        <div className="absolute right-3 top-3 z-10">
+          <IntentTune type={tunableKind} t={t} interests={intent} />
+        </div>
+      )}
       <Link
         href={href}
         prefetch={warmed ? true : undefined}

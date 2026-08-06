@@ -85,3 +85,49 @@ export function knownInterests(raw: readonly string[] | null | undefined): Prope
   const known = new Set<string>(PROPERTY_TYPES);
   return raw.filter((value): value is PropertyType => known.has(value));
 }
+
+/**
+ * Is this string one of the markets we file the catalogue under?
+ *
+ * A discovery result is a `ListingKind`, which is `property_type` PLUS
+ * `restaurant` and `experience` - two things the catalogue lists but nobody can
+ * state an interest in, because the column that stores the answer is a
+ * `property_type[]` and would refuse them. The per-card control asks this
+ * before it renders, so a restaurant card carries no control at all rather than
+ * one that fails on the server. Widening `property_type` in Postgres and
+ * regenerating is all it would take for that to change; nothing here is
+ * hand-listed.
+ */
+export function isPropertyType(value: string): value is PropertyType {
+  return (PROPERTY_TYPES as readonly string[]).includes(value);
+}
+
+/**
+ * The two things somebody can say about a market from a card.
+ *
+ * Deliberately not a boolean. `more` and `less` are what the buttons say, they
+ * are what the confirmation has to name back, and a `{ wanted: true }` payload
+ * would have read as "set" rather than "add", which is a different write.
+ */
+export const INTENT_DIRECTIONS = ["more", "less"] as const;
+export type IntentDirection = (typeof INTENT_DIRECTIONS)[number];
+
+/**
+ * One market, adjusted in one direction.
+ *
+ * The same vocabulary as `saveInterestsSchema` and deliberately no second one:
+ * a card writes into `profiles.interests` exactly as the welcome screen does,
+ * so there is one stored answer and one taxonomy behind both. What differs is
+ * only the shape of the request - a whole list there, a single nudge here -
+ * because a card cannot know, and must not overwrite, the other eight answers.
+ */
+export const adjustInterestSchema = z.object({
+  type: z.enum(PROPERTY_TYPES, {
+    message: "That is not something we list.",
+  }),
+  direction: z.enum(INTENT_DIRECTIONS, {
+    message: "That is not something this control can do.",
+  }),
+});
+
+export type AdjustInterestInput = z.input<typeof adjustInterestSchema>;

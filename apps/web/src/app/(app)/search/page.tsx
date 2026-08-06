@@ -18,7 +18,7 @@ import {
   intentKindsPresent,
   orderByStatedIntent,
 } from "@/lib/listings/intent";
-import { readStatedIntent } from "@/lib/interests/queries";
+import { readIntentTuning } from "@/lib/interests/queries";
 import {
   KIND_NOUN,
   SORTS,
@@ -224,12 +224,13 @@ export default async function SearchPage({
   const sorted = sortListings(rawResults, query.sort);
 
   /*
-   * Stated intent, and the one condition under which it is allowed to speak.
+   * Stated intent. One read of the row, answering two different questions.
    *
-   * `hasOwnRequest` is the gate: if the address bar carries ANYTHING the person
-   * chose - a search term, a category, a sort, the map, a budget, a bedroom
-   * count, an amenity, instant book, verified only - the row is not even read,
-   * let alone applied. An explicit choice outranks a remembered one, always.
+   * RANKING. `hasOwnRequest` is the gate: if the address bar carries ANYTHING
+   * the person chose - a search term, a category, a sort, the map, a budget, a
+   * bedroom count, an amenity, instant book, verified only - the stored answer
+   * is not applied at all. An explicit choice outranks a remembered one,
+   * always.
    *
    * What it then does is reorder, never filter. The count below the heading is
    * the same number either way and every card that matched is still on the
@@ -237,8 +238,20 @@ export default async function SearchPage({
    * personalisation that removed inventory would be the platform deciding what
    * a person is allowed to see, which is not what they agreed to when they
    * answered one question at the door.
+   *
+   * THE CONTROL. The per-card "more like this / not for me" is a different
+   * question and is NOT gated on the address bar. Somebody who has just
+   * filtered to Lekki still has an opinion about rentals, and refusing to
+   * record it because they typed something would throw away the signal at
+   * exactly the moment it is strongest. So the row is read on every request
+   * now, where it used to be skipped whenever a parameter was present - the
+   * cost is one indexed read of the caller's own profile row, and what it buys
+   * is a control that can be honest about whether there is an account behind
+   * it. `signedIn` decides whether the control exists at all: signed out, it is
+   * not rendered, because there is no anonymous store for this.
    */
-  const statedIntent = hasOwnRequest(query) ? [] : await readStatedIntent();
+  const tuning = await readIntentTuning();
+  const statedIntent = hasOwnRequest(query) ? [] : tuning.interests;
   const listings = orderByStatedIntent(sorted, statedIntent);
   const intentApplied = listings !== sorted;
   const intentKinds = intentApplied ? intentKindsPresent(listings, statedIntent) : [];
@@ -514,7 +527,16 @@ export default async function SearchPage({
             >
               {listings.map((l, i) => (
                 <li key={l.id}>
-                  <ListingCard listing={l} locale={locale} t={t} index={i} />
+                  {/* `intent` is both the current answer and the permission to
+                      change it. Undefined for a signed-out visitor, so the card
+                      carries no control rather than one that can only fail. */}
+                  <ListingCard
+                    listing={l}
+                    locale={locale}
+                    t={t}
+                    index={i}
+                    intent={tuning.signedIn ? tuning.interests : undefined}
+                  />
                 </li>
               ))}
             </ul>

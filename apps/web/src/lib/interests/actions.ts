@@ -7,20 +7,25 @@
  * a Zod schema, a refusal in plain English or `ok` with what the database
  * actually stored. Nothing here reports a raw error code to a person.
  *
- * Two writes, deliberately separate:
+ * Three writes, deliberately separate:
  *
- *   saveInterests  the answer, into `profiles.interests`. Validated against
- *                  `public.property_type` before it leaves this process and
- *                  again by the column's own type when it arrives, so an
- *                  unknown value cannot be stored by any route.
- *   skipInterests  the refusal to answer, into `profiles.settings`. It stores
- *                  no intent at all - it records only that we have asked - and
- *                  that is what makes the skip real: the gate on `/home` reads
- *                  it and never asks again.
+ *   saveInterests   the answer, into `profiles.interests`. Validated against
+ *                   `public.property_type` before it leaves this process and
+ *                   again by the column's own type when it arrives, so an
+ *                   unknown value cannot be stored by any route.
+ *   skipInterests   the refusal to answer, into `profiles.settings`. It stores
+ *                   no intent at all - it records only that we have asked - and
+ *                   that is what makes the skip real: the gate on `/home` reads
+ *                   it and never asks again.
+ *   adjustInterest  the same answer, moved by one market, from a card in the
+ *                   middle of results. ONE stored signal, not two: it reads the
+ *                   list, adds or removes a single value, and writes it back.
  *
- * Both go through the caller's own RLS-bound client, so `profiles_update_own`
- * decides whose row moves. The column is granted to `authenticated` and the
- * policy admits exactly one row: the caller's.
+ * All three go through the caller's own RLS-bound client, so
+ * `profiles_update_own` decides whose row moves. The column is granted to
+ * `authenticated` and the policy admits exactly one row: the caller's. Nothing
+ * here ever reaches for the service role, because nothing here has any business
+ * touching a row that is not the caller's own.
  *
  * There is no location picker anywhere near this. `/settings/place` owns where
  * somebody is, together with the local government it has to agree with, and
@@ -36,7 +41,13 @@ import {
   resolveSession,
 } from "../actions/session";
 import { mergeSettings, parseSettings } from "../profile/schema";
-import { knownInterests, saveInterestsSchema, type PropertyType } from "./schema";
+import {
+  adjustInterestSchema,
+  knownInterests,
+  saveInterestsSchema,
+  type IntentDirection,
+  type PropertyType,
+} from "./schema";
 
 const SAVE_FAILED_MESSAGE =
   "We could not save that just now. Your choices are still on this screen, so try again in a moment.";
@@ -165,4 +176,112 @@ export async function skipInterestsAction(
   _formData: FormData,
 ): Promise<ActionResult<null>> {
   return skipInterests();
+}
+
+/**
+ * One market, nudged from a card, in the middle of looking at results.
+ *
+ * WHY THIS EXISTS AT ALL, given `/settings/interests` already does it.
+ *
+ * The settings screen is a backstop, and a backstop is a screen almost nobody
+ * opens. The signal every product of this shape actually runs on is the one
+ * collected in the moment: the card is in front of the person, they have an
+ * opinion about it right then, and the cost of saying so is one tap. An
+ * explicit preferences screen collects the opinion of the small minority who go
+ * looking for it.
+ *
+ * WHAT IT WRITES: `profiles.interests`, the same `property_type[]` the welcome
+ * screen writes and `lib/listings/intent.ts` reads. There is deliberately no
+ * second table and no second vocabulary. A parallel "signals" table would need
+ * a rule for how it combines with the stated answer, that rule would live
+ * nowhere, and the two would disagree about what somebody wants inside a week.
+ *
+ * IDEMPOTENT, IN BOTH DIRECTIONS. `more` on a market already stored, and `less`
+ * on one that was never stored, are both no-ops - and they say so. The result
+ * carries `changed`, which is what lets the screen tell somebody the truth
+ * instead of flashing "Saved" over a write that never happened. A no-op does
+ * not touch the database and does not revalidate anything, because nothing
+ * downstream of it is now stale.
+ *
+ * READ THEN WRITE, and the read matters. A card knows one market; it knows
+ * nothing about the other eight. Sending the whole list from the client would
+ * mean a card that was rendered before another tab changed the answer would
+ * quietly restore the old one. So the current list is read here, one element is
+ * added or removed, and the result is written back.
+ *
+ * That leaves a genuine last-write-wins race between two tabs adjusting two
+ * different markets in the same instant, and it is the honest limit of a plain
+ * array column: closing it needs `array_append`/`array_remove` inside a
+ * function, which is a migration, not a component. The window is one round
+ * trip on one person's own row, the loss is one preference rather than money or
+ * a booking, and the ONE LAW says do not ship the half of a migration nobody
+ * asked for. Recorded here so the next person weighing it has the reasoning.
+ *
+ * `interestsAsked` is set alongside, because acting on a card IS answering the
+ * question. Somebody who tuned their results from a card must not then be
+ * stopped at the door by `/welcome` asking what they came here for.
+ */
+export type InterestAdjusted = {
+  /** The whole stored answer after the write, so a caller can reconcile. */
+  interests: PropertyType[];
+  type: PropertyType;
+  direction: IntentDirection;
+  /** False when the stored answer already said this and nothing was written. */
+  changed: boolean;
+};
+
+const ADJUST_FAILED_MESSAGE =
+  "We could not save that just now. Nothing changed. Try again in a moment.";
+
+export async function adjustInterest(input: unknown): Promise<ActionResult<InterestAdjusted>> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  const parsed = validate(adjustInterestSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const { supabase, user } = session;
+  const { type, direction } = parsed.data;
+
+  const { data: current, error: readError } = await supabase
+    .from("profiles")
+    .select("interests, settings")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (readError) return fail(ADJUST_FAILED_MESSAGE);
+  if (!current) return fail(NO_ROW_MESSAGE);
+
+  const stored = knownInterests(current.interests);
+  const held = stored.includes(type);
+  const wants = direction === "more";
+
+  // Already true. No write, no revalidation, and `changed: false` so the screen
+  // says what actually happened rather than claiming a save.
+  if (held === wants) {
+    return ok({ interests: stored, type, direction, changed: false });
+  }
+
+  const next = wants ? [...stored, type] : stored.filter((value) => value !== type);
+
+  const { data: saved, error } = await supabase
+    .from("profiles")
+    .update({
+      interests: next,
+      settings: mergeSettings(current.settings, { interestsAsked: true }),
+    })
+    .eq("id", user.id)
+    .select("interests")
+    .maybeSingle();
+
+  if (error) return fail(ADJUST_FAILED_MESSAGE);
+  if (!saved) return fail(NO_ROW_MESSAGE);
+
+  // The same three surfaces `saveInterests` refreshes, for the same reason:
+  // each is rendered per request and each reads this row.
+  revalidatePath("/home");
+  revalidatePath("/search");
+  revalidatePath("/settings");
+
+  return ok({ interests: knownInterests(saved.interests), type, direction, changed: true });
 }

@@ -259,6 +259,35 @@ export const ha: Dictionary = {
     commonOccupations: "Waɗanda suka zama ruwan dare a Najeriya",
   },
 
+  interests: {
+    markets: {
+      apartment: "Gidaje masu ɗaki",
+      hotel: "Otal-otal",
+      home: "Muhallai",
+      villa: "Villa",
+      shortlet: "Shortlet",
+      rental: "Haya",
+      shop: "Shaguna",
+      office: "Ofisoshi",
+      land: "Filaye",
+    },
+    tune: {
+      open: "Canja abin da ke zuwa gaba",
+      title: "Me ya kamata ya zo gaba?",
+      explain:
+        "Wannan yana canja tsarin sakamakon da ba ka tace da kanka ba kawai. Ba a ɓoye kome, kuma duk binciken ko tacewar da kai ka saita ita ce ta fi ƙarfi.",
+      more: "Ƙara irin wannan",
+      less: "Ba nawa ba ne",
+      close: "Rufe",
+      standingOn: "{market} suna zuwa gaba yanzu.",
+      standingOff: "{market} ba sa zuwa gaba yanzu.",
+      movedUp: "{market} sun hau gaba.",
+      alreadyUp: "{market} sun riga sun kasance a gaba, don haka babu abin da ya canja.",
+      steppedBack: "{market} ba za su ƙara zuwa gaba ba.",
+      alreadyBack: "{market} ba sa zuwa gaba tun farko, don haka babu abin da ya canja.",
+    },
+  },
+
   home: {
     greeting: "Barka da dawowa",
     prompt: "Ina za ka je yau?",

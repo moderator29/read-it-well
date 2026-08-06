@@ -312,6 +312,53 @@ export const en = {
     commonOccupations: "Common in Nigeria",
   },
 
+  /**
+   * What somebody came here for, and the control that changes it from a card.
+   *
+   * `markets` is the nine values of `public.property_type` said out loud, in
+   * the plural, because a person is choosing a market to be shown rather than
+   * one building. It is ONE list: the welcome cards, the settings row and the
+   * per-card control all name a market from here, so an enum that grows is
+   * translated once and appears everywhere at once.
+   *
+   * `tune` is the control that sits on a search result. Its sentences are whole
+   * sentences with a `{market}` slot rather than fragments assembled in the
+   * component, because "moved up" does not attach to a noun the same way in
+   * four languages, and a component that concatenates cannot know that.
+   *
+   * Both the "already" lines exist because the write is idempotent. Saying
+   * "moved up" over a list that already held that market would be the screen
+   * claiming a save that never happened.
+   */
+  interests: {
+    markets: {
+      apartment: "Apartments",
+      hotel: "Hotels",
+      home: "Homes",
+      villa: "Villas",
+      shortlet: "Shortlets",
+      rental: "Rentals",
+      shop: "Shops",
+      office: "Offices",
+      land: "Land",
+    },
+    tune: {
+      open: "Change what comes first",
+      title: "What should come first?",
+      explain:
+        "This only changes the order of results you have not narrowed yourself. Nothing is ever hidden, and any search or filter you set always wins.",
+      more: "More like this",
+      less: "Not for me",
+      close: "Close",
+      standingOn: "{market} come first right now.",
+      standingOff: "{market} are not ranked ahead right now.",
+      movedUp: "{market} moved up.",
+      alreadyUp: "{market} already came first, so nothing changed.",
+      steppedBack: "{market} will not be ranked ahead.",
+      alreadyBack: "{market} were not being ranked ahead, so nothing changed.",
+    },
+  },
+
   home: {
     greeting: "Welcome back",
     prompt: "Where are you going today?",

@@ -259,6 +259,35 @@ export const yo: Dictionary = {
     commonOccupations: "Èyí tí ó wọ́pọ̀ ní Nàìjíríà",
   },
 
+  interests: {
+    markets: {
+      apartment: "Àwọn fúláàtì",
+      hotel: "Àwọn hòtẹ́lì",
+      home: "Àwọn ilé",
+      villa: "Àwọn villa",
+      shortlet: "Àwọn shortlet",
+      rental: "Àwọn ilé yíyà",
+      shop: "Àwọn ṣọ́ọ̀bù",
+      office: "Àwọn ọ́fíìsì",
+      land: "Ilẹ̀",
+    },
+    tune: {
+      open: "Yí ohun tí yóò kọ́kọ́ hàn padà",
+      title: "Kí ni kí ó kọ́kọ́ hàn?",
+      explain:
+        "Èyí kàn yí ètò àbájáde tí ìwọ kò tí ì há mọ́lẹ̀ fúnra rẹ padà. A kì í fi ohunkóhun pamọ́, ìwádìí tàbí àyẹ̀wò tí ìwọ fúnra rẹ ṣètò máa borí nígbà gbogbo.",
+      more: "Fi irú èyí hàn mí sí i",
+      less: "Èyí kọ́ ni fún mi",
+      close: "Tì",
+      standingOn: "{market} ni ó ń kọ́kọ́ hàn báyìí.",
+      standingOff: "{market} kò sí níwájú báyìí.",
+      movedUp: "{market} ti gòkè.",
+      alreadyUp: "{market} ti wà níwájú tẹ́lẹ̀, nítorí náà kò sí ohun tí ó yí padà.",
+      steppedBack: "{market} kò ní kọ́kọ́ hàn mọ́.",
+      alreadyBack: "{market} kò sí níwájú tẹ́lẹ̀, nítorí náà kò sí ohun tí ó yí padà.",
+    },
+  },
+
   home: {
     greeting: "Káàbọ̀ padà",
     prompt: "Ibo ni o ń lọ lónìí?",

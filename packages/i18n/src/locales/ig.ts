@@ -259,6 +259,35 @@ export const ig: Dictionary = {
     commonOccupations: "Ndị a na-ahụkarị na Naịjirịa",
   },
 
+  interests: {
+    markets: {
+      apartment: "Ụlọ obibi",
+      hotel: "Họtel",
+      home: "Ebe obibi",
+      villa: "Villa",
+      shortlet: "Shortlet",
+      rental: "Mgbazinye",
+      shop: "Ụlọ ahịa",
+      office: "Ọfịs",
+      land: "Ala",
+    },
+    tune: {
+      open: "Gbanwee ihe na-ebu ụzọ",
+      title: "Gịnị kwesịrị ibu ụzọ?",
+      explain:
+        "Nke a na-agbanwe naanị usoro nsonaazụ ị na-akpachaghị onwe gị. Ọ dịghị ihe a na-ezochi, ọchụchọ ma ọ bụ nzacha ọ bụla ị hazichara na-emeri mgbe niile.",
+      more: "Chọrọ ihe dị ka nke a",
+      less: "Ọ bụghị maka m",
+      close: "Mechie",
+      standingOn: "{market} na-ebu ụzọ ugbu a.",
+      standingOff: "{market} anaghị ebu ụzọ ugbu a.",
+      movedUp: "{market} arịgoola elu.",
+      alreadyUp: "{market} ebuburu ụzọ, ya mere ọ dịghị ihe gbanwere.",
+      steppedBack: "{market} agaghị ebu ụzọ ọzọ.",
+      alreadyBack: "{market} anaghị ebu ụzọ na mbụ, ya mere ọ dịghị ihe gbanwere.",
+    },
+  },
+
   home: {
     greeting: "Nnọọ ọzọ",
     prompt: "Ebee ka ị na-aga taa?",
