@@ -67,6 +67,17 @@ const nextConfig: NextConfig = {
   // Security headers. Applied at the edge for every route.
   async headers() {
     return [
+      /*
+       * The self-hosted faces. Everything under /public is served with
+       * `max-age=0` by default, which for a font means a revalidation request
+       * on every navigation for bytes that will never change. These seven files
+       * are immutable by construction: the name IS the version, and replacing
+       * one means giving it a new name. See public/fonts/README.md.
+       */
+      {
+        source: "/fonts/:file*.woff2",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
       {
         source: "/:path*",
         headers: [

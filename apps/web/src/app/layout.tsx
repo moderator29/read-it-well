@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Poppins } from "next/font/google";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
@@ -9,28 +8,38 @@ import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar"
 import "./globals.css";
 
 /*
- * Inter is chosen for coverage, not fashion. It carries the naira sign (U+20A6),
- * the Yoruba and Igbo dotted vowels (ẹ ọ ṣ ị ụ), the Hausa hooked letters
- * (ɓ ɗ ƙ ƴ) and the combining tone marks that stack on top of those vowels.
- * Most display faces break on that last requirement.
+ * The fonts are declared in `css/fonts.css` and served from `public/fonts`,
+ * not through next/font. That file explains which subsets ship and why; this
+ * one decides which of them the browser is told to fetch before it needs them.
+ *
+ * Inter is chosen for coverage, not fashion. It carries the naira sign
+ * (U+20A6), the Yoruba and Igbo dotted vowels (ẹ ọ ṣ ị ụ), the Hausa hooked
+ * letters (ɓ ɗ ƙ ƴ) and the combining tone marks that stack on top of those
+ * vowels. Most display faces break on that last requirement.
+ *
+ * Preload is per locale, because the face a locale reads is per locale.
+ * `tokens.css` swaps the display stack to Inter for Yoruba and Igbo, since
+ * Poppins cannot draw their vowels, so on those two locales Poppins is never
+ * painted at all and preloading it would be a download nobody uses. In its
+ * place they get the vietnamese subset, which is the only one carrying
+ * U+1EA0-1EF9, and on those locales it is needed by the first heading.
+ *
+ * Everything in these lists was measured, not assumed: a browser sweep of six
+ * routes at 390px and at 1280px fetched Inter latin, Inter latin-ext and both
+ * Poppins subsets on every single load.
  */
-const inter = Inter({
-  subsets: ["latin", "latin-ext"],
-  display: "swap",
-  variable: "--nf-font-inter",
-});
-
-/*
- * Display face, per the design system sheet. Poppins does not carry the Yoruba
- * and Igbo dotted vowels, so `tokens.css` swaps the display stack to Inter for
- * those two locales rather than letting a heading render half in each face.
- */
-const poppins = Poppins({
-  subsets: ["latin", "latin-ext"],
-  weight: ["500", "600", "700", "800"],
-  display: "swap",
-  variable: "--nf-font-poppins",
-});
+const PRELOADED_FONTS: Record<string, readonly string[]> = {
+  yo: ["inter-latin", "inter-latin-ext", "inter-vietnamese"],
+  ig: ["inter-latin", "inter-latin-ext", "inter-vietnamese"],
+  default: [
+    "inter-latin",
+    "inter-latin-ext",
+    "poppins-700-latin",
+    "poppins-700-latin-ext",
+    "poppins-600-latin",
+    "poppins-600-latin-ext",
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
@@ -128,12 +137,25 @@ export default async function RootLayout({
   const t = getDictionary(locale);
 
   return (
-    <html
-      lang={locale}
-      dir={t.meta.dir}
-      className={`${inter.variable} ${poppins.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang={locale} dir={t.meta.dir} suppressHydrationWarning>
+      <head>
+        {/*
+          The face arrives with the stylesheet rather than after it. `crossorigin`
+          is not optional even though these are our own files: a font is always
+          fetched in CORS mode, so a preload without it is a second, separate
+          request and the first one is thrown away.
+        */}
+        {(PRELOADED_FONTS[locale] ?? PRELOADED_FONTS.default ?? []).map((name) => (
+          <link
+            key={name}
+            rel="preload"
+            as="font"
+            type="font/woff2"
+            href={`/fonts/${name}.woff2`}
+            crossOrigin="anonymous"
+          />
+        ))}
+      </head>
       <body>
         {/*
           Apply the stored theme before first paint, so a chosen light mode

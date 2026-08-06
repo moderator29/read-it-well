@@ -50,6 +50,7 @@
  * its component classes inside `@layer components` so Tailwind's utilities,
  * which are emitted in a later layer, stay authoritative over them.
  */
+@import "./css/fonts.css";
 @import "./css/theme.css";
 @import "./css/base.css";
 @import "./css/glass.css";
