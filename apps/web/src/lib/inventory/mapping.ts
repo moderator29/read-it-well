@@ -23,31 +23,107 @@ export type PartnerCity = {
 };
 
 /**
- * The covered cities, with the same coordinates the search map pins use. Partner
- * inventory is only ever fetched for one of these, so a partner result can
- * always be placed on the map and filtered by city exactly like a first-party
- * one.
+ * Every state, with the city a search for it should actually look in.
+ *
+ * This list was six entries: Lagos, Abuja, Port Harcourt, Ibadan, Enugu and
+ * Calabar. Thirty-one states had no coverage at all, so a search for Kano or
+ * Jos fetched Lagos, failed the free-text filter, and returned nothing. Not a
+ * wrong answer, but an empty one, which reads to a visitor as "there is
+ * nothing in Kano" rather than as "we never looked".
+ *
+ * `state` matches `public.states.name` EXACTLY, including "FCT (Abuja)", which
+ * is why that row does not simply say FCT. The catalogue files a listing under
+ * that same string and the shared free-text matcher searches it, so a mismatch
+ * here would silently stop a state's own listings matching its own name.
+ *
+ * Coordinates are the state capital, because that is where the inventory is
+ * and because a partner search is biased to a radius around this point. The
+ * aliases are the places people actually type instead of the capital: Aba for
+ * Abia, Onitsha for Anambra, Warri for Delta, Zaria for Kaduna. They are not
+ * exhaustive and are not meant to be, since a listing's own city and area text
+ * is still searched by the shared matcher; they exist so that naming a
+ * well-known city sends the partner call to the right part of the map.
  */
 export const PARTNER_CITIES: readonly PartnerCity[] = [
-  { name: "Lagos", state: "Lagos", lat: 6.5244, lng: 3.3792, aliases: ["eko", "ikeja", "lekki", "ikoyi", "victoria island"] },
-  { name: "Abuja", state: "FCT", lat: 9.0765, lng: 7.3986, aliases: ["fct", "wuse", "maitama", "gwarinpa"] },
-  { name: "Port Harcourt", state: "Rivers", lat: 4.8156, lng: 7.0498, aliases: ["port-harcourt", "portharcourt", "phc", "rivers"] },
-  { name: "Ibadan", state: "Oyo", lat: 7.3775, lng: 3.947, aliases: ["oyo", "bodija"] },
-  { name: "Enugu", state: "Enugu", lat: 6.4584, lng: 7.5464, aliases: [] },
-  { name: "Calabar", state: "Cross River", lat: 4.9757, lng: 8.3417, aliases: ["cross river"] },
+  { name: "Lagos", state: "Lagos", lat: 6.5244, lng: 3.3792, aliases: ["eko", "ikeja", "lekki", "ikoyi", "victoria island", "yaba", "surulere", "ajah"] },
+  { name: "Abuja", state: "FCT (Abuja)", lat: 9.0765, lng: 7.3986, aliases: ["fct", "abuja", "wuse", "maitama", "gwarinpa", "asokoro", "garki", "kubwa"] },
+  { name: "Port Harcourt", state: "Rivers", lat: 4.8156, lng: 7.0498, aliases: ["port-harcourt", "portharcourt", "phc"] },
+  { name: "Ibadan", state: "Oyo", lat: 7.3775, lng: 3.947, aliases: ["bodija", "ringroad", "ring road"] },
+  { name: "Enugu", state: "Enugu", lat: 6.4584, lng: 7.5464, aliases: ["independence layout", "new haven"] },
+  { name: "Calabar", state: "Cross River", lat: 4.9757, lng: 8.3417, aliases: ["marian", "calabar municipal"] },
+  { name: "Umuahia", state: "Abia", lat: 5.525, lng: 7.494, aliases: ["aba", "abia"] },
+  { name: "Yola", state: "Adamawa", lat: 9.2035, lng: 12.4954, aliases: ["jimeta"] },
+  { name: "Uyo", state: "Akwa Ibom", lat: 5.0378, lng: 7.9128, aliases: ["eket", "ikot ekpene"] },
+  { name: "Awka", state: "Anambra", lat: 6.2109, lng: 7.0741, aliases: ["onitsha", "nnewi"] },
+  { name: "Bauchi", state: "Bauchi", lat: 10.3158, lng: 9.8442, aliases: ["azare"] },
+  { name: "Yenagoa", state: "Bayelsa", lat: 4.9267, lng: 6.2676, aliases: [] },
+  { name: "Makurdi", state: "Benue", lat: 7.7322, lng: 8.5391, aliases: ["gboko", "otukpo"] },
+  { name: "Maiduguri", state: "Borno", lat: 11.8311, lng: 13.151, aliases: [] },
+  { name: "Asaba", state: "Delta", lat: 6.198, lng: 6.728, aliases: ["warri", "sapele", "ughelli"] },
+  { name: "Abakaliki", state: "Ebonyi", lat: 6.3249, lng: 8.1137, aliases: [] },
+  { name: "Benin City", state: "Edo", lat: 6.335, lng: 5.6037, aliases: ["benin", "auchi", "ekpoma"] },
+  { name: "Ado Ekiti", state: "Ekiti", lat: 7.6211, lng: 5.2214, aliases: ["ado-ekiti", "ikere"] },
+  { name: "Gombe", state: "Gombe", lat: 10.2897, lng: 11.1673, aliases: [] },
+  { name: "Owerri", state: "Imo", lat: 5.4836, lng: 7.0333, aliases: ["orlu"] },
+  { name: "Dutse", state: "Jigawa", lat: 11.7564, lng: 9.3386, aliases: ["hadejia"] },
+  { name: "Kaduna", state: "Kaduna", lat: 10.5222, lng: 7.4383, aliases: ["zaria", "barnawa"] },
+  { name: "Kano", state: "Kano", lat: 12.0022, lng: 8.592, aliases: [] },
+  { name: "Katsina", state: "Katsina", lat: 12.9908, lng: 7.6018, aliases: ["daura"] },
+  { name: "Birnin Kebbi", state: "Kebbi", lat: 12.4539, lng: 4.1975, aliases: ["kebbi"] },
+  { name: "Lokoja", state: "Kogi", lat: 7.8023, lng: 6.7333, aliases: ["okene"] },
+  { name: "Ilorin", state: "Kwara", lat: 8.4966, lng: 4.5421, aliases: ["offa"] },
+  { name: "Lafia", state: "Nasarawa", lat: 8.4939, lng: 8.5157, aliases: ["keffi"] },
+  { name: "Minna", state: "Niger", lat: 9.614, lng: 6.5568, aliases: ["suleja", "bida"] },
+  { name: "Abeokuta", state: "Ogun", lat: 7.1475, lng: 3.3619, aliases: ["ijebu ode", "sagamu", "ota"] },
+  { name: "Akure", state: "Ondo", lat: 7.2571, lng: 5.2058, aliases: ["ondo town", "owo"] },
+  { name: "Osogbo", state: "Osun", lat: 7.7827, lng: 4.5418, aliases: ["oshogbo", "ile ife", "ife", "ilesa"] },
+  { name: "Jos", state: "Plateau", lat: 9.8965, lng: 8.8583, aliases: ["rayfield"] },
+  { name: "Sokoto", state: "Sokoto", lat: 13.0059, lng: 5.2476, aliases: [] },
+  { name: "Jalingo", state: "Taraba", lat: 8.894, lng: 11.3594, aliases: [] },
+  { name: "Damaturu", state: "Yobe", lat: 11.748, lng: 11.966, aliases: ["potiskum"] },
+  { name: "Gusau", state: "Zamfara", lat: 12.1704, lng: 6.6641, aliases: [] },
 ];
 
 /** Lagos leads the market, so an unplaced search looks there. */
 export const DEFAULT_PARTNER_CITY: PartnerCity = PARTNER_CITIES[0]!;
 
-/** The first covered city named anywhere in the query, or null. */
+/**
+ * The first covered place named anywhere in the query, or null.
+ *
+ * Matched on WHOLE WORDS, longest needle first, and both halves of that are
+ * load-bearing rather than tidy. Plain `includes` was the original rule and it
+ * put three states in the wrong place the moment the list grew past six:
+ *
+ *   "Taraba"        contains "aba", the alias for Abia
+ *   "Asaba"         contains "aba" too, so Delta's own capital found Abia
+ *   "nassarawa gra" contained "gra", which used to be an alias for Rivers
+ *
+ * None of these fail loudly. The search runs, looks in the wrong state, finds
+ * nothing matching the text, and returns an empty page that reads as "we have
+ * nothing there". A unit test found all three; a person would have reported it
+ * as "search is broken in the north" and nobody would have known where to look.
+ *
+ * Longest first because the needles genuinely overlap, so a query naming
+ * "Cross River" is not won by a shorter needle sitting inside it. The capital,
+ * the state name and every alias are all needles, so "hotels in Rivers" and
+ * "hotels in Port Harcourt" reach the same place.
+ */
+const NEEDLES: readonly { pattern: RegExp; city: PartnerCity }[] = PARTNER_CITIES.flatMap(
+  (city) => [city.name, city.state, ...city.aliases].map((term) => ({ term, city })),
+)
+  .sort((a, b) => b.term.length - a.term.length)
+  .map(({ term, city }) => ({
+    // State names carry brackets ("FCT (Abuja)") and aliases carry hyphens, so
+    // the term is escaped before it becomes a pattern.
+    pattern: new RegExp(`\\b${term.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`),
+    city,
+  }));
+
 export function resolveCity(q: string | undefined): PartnerCity | null {
   const text = q?.trim().toLowerCase();
   if (!text) return null;
-  for (const city of PARTNER_CITIES) {
-    if (text.includes(city.name.toLowerCase())) return city;
-    if (text.includes(city.state.toLowerCase())) return city;
-    for (const alias of city.aliases) if (text.includes(alias)) return city;
+  for (const { pattern, city } of NEEDLES) {
+    if (pattern.test(text)) return city;
   }
   return null;
 }
