@@ -51,6 +51,11 @@ export function SiteFooter({ t }: { t: Dictionary }) {
       title: t.landing.footer.support,
       links: [
         { href: "/help", label: t.landing.footer.help },
+        /* The header and the landing page have pointed at /docs the whole
+           time. The footer is where somebody looks for it second, and the
+           label is the same translated key the header already uses, so the
+           two can never end up calling it different things. */
+        { href: "/docs", label: t.landing.footer.docs },
         { href: "/contact", label: t.landing.footer.contact },
       ],
     },

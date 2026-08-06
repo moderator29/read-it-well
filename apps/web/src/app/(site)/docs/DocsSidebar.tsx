@@ -38,36 +38,42 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
   const current = items.find((item) => pathname === `/docs/${item.slug}`);
   const onContents = pathname === "/docs";
 
-  const label = onContents
-    ? "Contents"
-    : current
-      ? `${current.number}. ${current.title}`
-      : "Contents";
+  const label = current ? `${current.number}. ${current.title}` : "Contents";
 
   return (
     <div className="lg:sticky lg:top-24 lg:w-[248px] lg:shrink-0 lg:self-start">
-      {/* ------------------------------------------------- phone opener */}
-      <button
-        type="button"
-        onClick={() => setOpen((was) => !was)}
-        aria-expanded={open}
-        aria-controls={panelId}
-        className="nf-tap flex min-h-11 w-full items-center justify-between gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-default)] bg-[var(--nf-surface-secondary)] px-4 py-2.5 text-left lg:hidden"
-      >
-        <span className="flex min-w-0 items-center gap-2.5">
-          <UiIcon name="panel-left" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
-          <span className="min-w-0 text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
-            {label}
+      {/*
+        The phone opener, which the contents page itself does not get: that
+        page IS the list of chapters, so a control that unfolds the same twelve
+        titles above it is one tap to see what is already on screen.
+      */}
+      {!onContents && (
+        <button
+          type="button"
+          onClick={() => setOpen((was) => !was)}
+          aria-expanded={open}
+          aria-controls={panelId}
+          className="nf-tap flex min-h-11 w-full items-center justify-between gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-default)] bg-[var(--nf-surface-secondary)] px-4 py-2.5 text-left lg:hidden"
+        >
+          <span className="flex min-w-0 items-center gap-2.5">
+            <UiIcon
+              name="panel-left"
+              size={16}
+              className="shrink-0 text-[var(--nf-content-muted)]"
+            />
+            <span className="min-w-0 text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+              {label}
+            </span>
           </span>
-        </span>
-        <UiIcon
-          name="chevron-down"
-          size={16}
-          className={`shrink-0 text-[var(--nf-content-muted)] transition-transform duration-200 ${
-            open ? "rotate-180" : ""
-          }`}
-        />
-      </button>
+          <UiIcon
+            name="chevron-down"
+            size={16}
+            className={`shrink-0 text-[var(--nf-content-muted)] transition-transform duration-200 ${
+              open ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+      )}
 
       {/* ---------------------------------------------------- the list */}
       <nav

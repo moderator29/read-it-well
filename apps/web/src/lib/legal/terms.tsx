@@ -15,7 +15,6 @@
 
 import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import Link from "next/link";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
   {

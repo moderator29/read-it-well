@@ -1,4 +1,3 @@
-import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
