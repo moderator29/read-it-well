@@ -105,6 +105,53 @@ export const en = {
       "Nothing has been said in any open place yet. Nothing is hidden and nothing is missing: Around is this new.",
   },
 
+  /**
+   * A person's page, and only its chrome.
+   *
+   * The words a profile is BUILT from - somebody's name, their bio, the place
+   * they set - are theirs and are never translated. What is here is everything
+   * the platform says around those: what a control does, what a number means,
+   * and what each tab is a list of. Those are read by whoever is looking, in
+   * whatever language they chose, so they belong here rather than in a server
+   * module that only speaks English.
+   *
+   * `{handle}`, `{place}` and `{month}` are substituted by the caller. Each
+   * sentence carries its own slot so a language can put the number, the name or
+   * the date wherever its grammar wants it, rather than having an English word
+   * order welded on by concatenation.
+   */
+  socialProfile: {
+    back: "Back",
+    verified: "Verified agent",
+    verifiedTitle: "A verified RentMe agent",
+    /* The badge beside the name reads MOD, then the place. Short because it
+       sits on the same line as a display name at 390px. The full sentence is
+       the badge's accessible name, so nothing is lost to the abbreviation. */
+    moderatorShort: "MOD",
+    moderatorOf: "Looks after {place}",
+    pidginWelcome: "Pidgin welcome",
+    follow: "Follow",
+    followingAction: "Following",
+    followAria: "Follow @{handle}",
+    unfollowAria: "Following @{handle}. Tap to unfollow.",
+    followers: "Followers",
+    following: "Following",
+    posts: "Posts",
+    joined: "Joined {month}",
+    editProfile: "Edit profile",
+    trustScore: "Trust score",
+    completedDeals: "Completed deals",
+    responseTime: "Response time",
+    tabsLabel: "What @{handle} has on their page",
+    tabPosts: "Posts",
+    tabReplies: "Replies",
+    tabMedia: "Media",
+    tabActivity: "Activity",
+    tabProperties: "Properties",
+    tabStories: "Stories",
+    tabReviews: "Reviews",
+  },
+
   landing: {
     navHome: "Home",
     hero: {
