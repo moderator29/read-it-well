@@ -5,6 +5,7 @@ import {
   activeFilterCount,
   clearedFilters,
   toSearchHref,
+  WATER_LABEL,
   type DiscoveryQuery,
 } from "@/lib/listings/search-params";
 import { amenityLabel } from "./amenities";
@@ -174,6 +175,49 @@ export function ActiveFilters({
         href={toSearchHref({ ...query, verifiedOnly: false })}
         label="Verified only"
         removes="verified only"
+      />,
+    );
+  }
+
+  if (query.powerBackup) {
+    chips.push(
+      <RemoveChip
+        key="power-backup"
+        testId="active-power-backup"
+        href={toSearchHref({ ...query, powerBackup: false })}
+        label="Backup power"
+        removes="the backup power requirement"
+      />,
+    );
+  }
+
+  if (query.powerBandA) {
+    chips.push(
+      <RemoveChip
+        key="power-band-a"
+        testId="active-power-band-a"
+        href={toSearchHref({ ...query, powerBandA: false })}
+        label="Band A feeder"
+        removes="the Band A requirement"
+      />,
+    );
+  }
+
+  /* One chip per source, each removing only itself, because these are
+     alternatives: dropping "tanker" from "borehole or tanker" leaves a search
+     that still means something, and a single lumped chip would make undoing
+     one of them impossible without clearing both. */
+  for (const source of query.waterSupply) {
+    chips.push(
+      <RemoveChip
+        key={`water-${source}`}
+        testId={`active-water-${source.toLowerCase()}`}
+        href={toSearchHref({
+          ...query,
+          waterSupply: query.waterSupply.filter((v) => v !== source),
+        })}
+        label={WATER_LABEL[source]}
+        removes={WATER_LABEL[source]}
       />,
     );
   }

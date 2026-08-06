@@ -110,10 +110,10 @@ export type Listing = {
    * honest answer, and rendered as unanswered rather than as good news.
    */
   utilities?: {
-    powerGrid?: "BAND_A" | "MOSTLY_ON" | "PATCHY" | "RARELY" | "NONE";
-    powerBackup?: "NONE" | "GENERATOR" | "INVERTER" | "SOLAR" | "GENERATOR_INVERTER";
+    powerGrid?: PowerGrid;
+    powerBackup?: PowerBackup;
     powerBackupHours?: number;
-    waterSupply?: "TREATED_MAINS" | "BOREHOLE" | "PUMPED_STORAGE" | "TANKER" | "NONE";
+    waterSupply?: WaterSupply;
     prepaidMeter?: boolean;
     /** True when the host has stored gate details. Never the details themselves. */
     hasEstateAccess: boolean;
@@ -131,6 +131,26 @@ export type Listing = {
   /** Deterministic hue index for the gradient fallback tile, 0 to 5. */
   hue: number;
 };
+
+/**
+ * Light and water, as the database spells them.
+ *
+ * These mirror `public.power_grid`, `public.power_backup` and
+ * `public.water_supply` exactly, and they are named here rather than inlined
+ * so that the filter, the card, the detail panel and the agent wizard cannot
+ * drift into four spellings of the same closed list.
+ */
+export type PowerGrid = "BAND_A" | "MOSTLY_ON" | "PATCHY" | "RARELY" | "NONE";
+export type PowerBackup = "NONE" | "GENERATOR" | "INVERTER" | "SOLAR" | "GENERATOR_INVERTER";
+export type WaterSupply = "TREATED_MAINS" | "BOREHOLE" | "PUMPED_STORAGE" | "TANKER" | "NONE";
+
+/** Every water source that is water. `NONE` is an answer, not an option. */
+export const WATER_SOURCES: readonly WaterSupply[] = [
+  "TREATED_MAINS",
+  "BOREHOLE",
+  "PUMPED_STORAGE",
+  "TANKER",
+] as const;
 
 export type ListingSearchFilter = {
   /** Free text matched against title, area, city and state. */
@@ -164,6 +184,30 @@ export type ListingSearchFilter = {
   instantBook?: boolean;
   /** Only first-party verified inventory. Partner stock can never satisfy it. */
   verifiedOnly?: boolean;
+  /**
+   * Light and water: the two questions asked here before the price.
+   *
+   * All three are **strict**, and that is the point rather than an oversight.
+   * A listing whose host has not answered is excluded the moment one of these
+   * is asked for, because "we do not know" cannot be shown to somebody who
+   * asked for a generator. The seed catalogue and partner stock carry no
+   * answer at all, so they never satisfy one of these, which is correct: no
+   * feed can promise a borehole.
+   *
+   * Because a filter that can only ever return nothing is a dead end, the
+   * drawer offers these controls only when the pool in front of the reader
+   * actually holds an answer, and the water chips list only the sources
+   * present in it. See `FilterDrawer`.
+   */
+  powerBackup?: boolean;
+  /** Only a Band A feeder, the top grid band the discos sell. */
+  powerBandA?: boolean;
+  /**
+   * Water sources, any of which will do. This is the one filter here with OR
+   * semantics, because a source is one column with one value: asking for both
+   * a borehole and treated mains as an AND would match nothing, every time.
+   */
+  waterSupply?: WaterSupply[];
 };
 
 export interface ListingRepository {

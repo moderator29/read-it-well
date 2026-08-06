@@ -6,7 +6,8 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { formatMoney, formatNumber, type Locale } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { matchesFacts, type ListingFacts } from "@/lib/listings/filter";
+import { hasBackupPower, matchesFacts, type ListingFacts } from "@/lib/listings/filter";
+import { WATER_SOURCES, type WaterSupply } from "@/lib/listings/types";
 import {
   KIND_NOUN,
   activeFilterCount,
@@ -15,6 +16,7 @@ import {
   nairaToKobo,
   toFilter,
   toSearchHref,
+  WATER_LABEL,
   type DiscoveryQuery,
 } from "@/lib/listings/search-params";
 import { amenityLabel, sortAmenityCodes } from "./amenities";
@@ -58,6 +60,9 @@ type Draft = {
   amenities: string[];
   instantBook: boolean;
   verifiedOnly: boolean;
+  powerBackup: boolean;
+  powerBandA: boolean;
+  waterSupply: WaterSupply[];
 };
 
 function draftFrom(query: DiscoveryQuery): Draft {
@@ -71,6 +76,9 @@ function draftFrom(query: DiscoveryQuery): Draft {
     amenities: query.amenities,
     instantBook: query.instantBook,
     verifiedOnly: query.verifiedOnly,
+    powerBackup: query.powerBackup,
+    powerBandA: query.powerBandA,
+    waterSupply: query.waterSupply,
   };
 }
 
@@ -98,6 +106,9 @@ function queryFrom(base: DiscoveryQuery, draft: Draft): DiscoveryQuery {
     amenities: draft.amenities,
     instantBook: draft.instantBook,
     verifiedOnly: draft.verifiedOnly,
+    powerBackup: draft.powerBackup,
+    powerBandA: draft.powerBandA,
+    waterSupply: draft.waterSupply,
   };
   const q = draft.q.trim();
   if (q.length > 0) next.q = q;
@@ -244,6 +255,41 @@ export function FilterDrawer({
     return sortAmenityCodes([...codes]);
   }, [facts, draft.amenities]);
 
+  /**
+   * What this pool can honestly be asked about light and water.
+   *
+   * A filter nobody's listing can satisfy is a dead end with a nice control on
+   * it, and these three are strict by design: a host who never answered is
+   * excluded, and the seed catalogue and partner stock never answer at all. So
+   * each control appears only when the pool holds at least one place it could
+   * return, and the water chips list only the sources actually present. This
+   * is the same rule the amenity chips above already follow, for the same
+   * reason.
+   *
+   * A choice the reader has already made is always kept in the list even if
+   * nothing carries it, because a control that vanishes while switched on
+   * leaves an active filter with no way to turn it off.
+   */
+  const utilityOptions = useMemo(() => {
+    let backup = draft.powerBackup;
+    let bandA = draft.powerBandA;
+    const water = new Set<WaterSupply>(draft.waterSupply);
+    for (const fact of facts) {
+      if (hasBackupPower(fact)) backup = true;
+      if (fact.utilities?.powerGrid === "BAND_A") bandA = true;
+      const source = fact.utilities?.waterSupply;
+      if (source !== undefined && source !== "NONE") water.add(source);
+    }
+    return {
+      backup,
+      bandA,
+      water: WATER_SOURCES.filter((value) => water.has(value)),
+    };
+  }, [facts, draft.powerBackup, draft.powerBandA, draft.waterSupply]);
+
+  const showUtilities =
+    utilityOptions.backup || utilityOptions.bandA || utilityOptions.water.length > 0;
+
   const pending = useMemo(() => queryFrom(query, draft), [query, draft]);
   const matchCount = useMemo(() => {
     const filter = toFilter(pending);
@@ -303,6 +349,15 @@ export function FilterDrawer({
     setDraft(draftFrom(cleared));
     router.push(toSearchHref(cleared));
     setOpen(false);
+  }
+
+  function toggleWater(value: WaterSupply) {
+    setDraft((current) => ({
+      ...current,
+      waterSupply: current.waterSupply.includes(value)
+        ? current.waterSupply.filter((v) => v !== value)
+        : [...current.waterSupply, value],
+    }));
   }
 
   function toggleAmenity(code: string) {
@@ -537,6 +592,90 @@ export function FilterDrawer({
                     );
                   })}
                 </ul>
+              </section>
+            )}
+
+            {/* --------------------------------------- light and water */}
+            {/*
+              Above Booking and trust on purpose. Instant book and a verified
+              badge matter; whether there will be light and water when you
+              arrive decides whether the rest of the search was worth doing,
+              and no competitor here asks it structurally. It sits below price
+              and bedrooms only because those are what a person types first.
+
+              Every control in this section is strict: a place whose host has
+              not answered is not offered to somebody who asked. That is why
+              the whole section is conditional on the pool holding an answer,
+              and why the copy says "the host has answered" rather than
+              implying an absence is a no.
+            */}
+            {showUtilities && (
+              <section className="nf-card p-4" aria-labelledby="filter-utilities">
+                <h2
+                  id="filter-utilities"
+                  className="text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
+                >
+                  Light and water
+                </h2>
+                <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+                  Only places where the host has answered. Somewhere that has not said is
+                  left out rather than assumed.
+                </p>
+
+                <div className="mt-1 divide-y divide-[var(--nf-border-subtle)]">
+                  {utilityOptions.backup && (
+                    <SwitchRow
+                      label="Backup power"
+                      hint="A generator, an inverter or solar, on top of the grid"
+                      checked={draft.powerBackup}
+                      testId="filter-power-backup"
+                      onChange={(next) =>
+                        setDraft((current) => ({ ...current, powerBackup: next }))
+                      }
+                    />
+                  )}
+                  {utilityOptions.bandA && (
+                    <SwitchRow
+                      label="Band A feeder"
+                      hint="The top grid band, which is what the disco bills for"
+                      checked={draft.powerBandA}
+                      testId="filter-power-band-a"
+                      onChange={(next) =>
+                        setDraft((current) => ({ ...current, powerBandA: next }))
+                      }
+                    />
+                  )}
+                </div>
+
+                {utilityOptions.water.length > 0 && (
+                  <>
+                    <h3 className="mt-4 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
+                      Where the water comes from
+                    </h3>
+                    <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+                      Pick any that would do. Water comes from one place, so these widen
+                      the search rather than narrowing it.
+                    </p>
+                    <ul className="mt-3 flex flex-wrap gap-2">
+                      {utilityOptions.water.map((value) => {
+                        const on = draft.waterSupply.includes(value);
+                        return (
+                          <li key={value} data-testid={`filter-water-${value.toLowerCase()}`}>
+                            <Chip
+                              size="sm"
+                              behaviour="filter"
+                              selected={on}
+                              icon={on ? "verified" : undefined}
+                              onSelectedChange={() => toggleWater(value)}
+                            >
+                              {WATER_LABEL[value]}
+                            </Chip>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                )}
               </section>
             )}
 
