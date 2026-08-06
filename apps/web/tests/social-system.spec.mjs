@@ -21,7 +21,7 @@
  *
  * Self-contained node script, no runner and no config:
  *
- *   BASE_URL=http://localhost:3232 node apps/web/tests/social-system.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/social-system.spec.mjs
  *
  * The sandbox has no route to the Supabase host by organisation proxy policy,
  * so the spec carries its own read-only stand-in for PostgREST holding one
@@ -46,7 +46,7 @@
 import { createServer } from "node:http";
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3232";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const STANDIN_PORT = Number(process.env.SOCIAL_STANDIN_PORT ?? 54331);
 const STANDIN_DELAY_MS = Number(process.env.SOCIAL_STANDIN_DELAY_MS ?? 0);
 const WAIT = 1600;

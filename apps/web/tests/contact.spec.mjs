@@ -1,7 +1,7 @@
 /**
  * The contact form, which now files a real ticket.
  *
- *   BASE_URL=http://localhost:3213 node apps/web/tests/contact.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/contact.spec.mjs
  *
  * It used to set a local flag and say, honestly, that nothing had been sent and
  * to email support instead. The honesty was real and the write path it
@@ -19,7 +19,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3213";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
 const ACTION_WAIT = 2500;
 

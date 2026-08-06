@@ -1,7 +1,7 @@
 /**
  * Notifications must never invent an event.
  *
- *   BASE_URL=http://localhost:3213 node apps/web/tests/notifications.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/notifications.spec.mjs
  *
  * The defect this guards: /notifications rendered a hardcoded list of five
  * invented notifications, unlabelled, to every visitor including one who had
@@ -17,7 +17,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3213";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
 
 let failures = 0;

@@ -1,7 +1,7 @@
 /**
  * How many guests a place takes, said once and said the same everywhere.
  *
- *   BASE_URL=http://localhost:3213 node apps/web/tests/capacity.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/capacity.spec.mjs
  *
  * Agent inventory has carried listings.max_guests since the listings_core
  * migration. The wizard collects it at step 5, the admin reviewer reads it, and
@@ -22,7 +22,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3213";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1400;
 
 /* Eko Pearl Waterfront Apartment: two bedrooms, no declared capacity, so the

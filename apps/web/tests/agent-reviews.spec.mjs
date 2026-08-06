@@ -1,7 +1,7 @@
 /**
  * The host reviews console, and the answer a host can now give.
  *
- *   BASE_URL=http://localhost:3213 node apps/web/tests/agent-reviews.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/agent-reviews.spec.mjs
  *
  * Guests could review a completed stay, the rating went onto the public listing
  * page, and the host had no way to answer it anywhere on the platform.
@@ -24,7 +24,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3213";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
 
 let failures = 0;

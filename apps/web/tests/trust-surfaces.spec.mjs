@@ -1,7 +1,7 @@
 /**
  * The three public trust surfaces.
  *
- *   BASE_URL=http://localhost:3213 node apps/web/tests/trust-surfaces.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/trust-surfaces.spec.mjs
  *
  * Before these pages existed, the platform's single most important rule lived
  * only in a database trigger, a scanner and an admin queue. The person being
@@ -18,7 +18,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3213";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 900;
 
 let failures = 0;

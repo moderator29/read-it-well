@@ -67,7 +67,7 @@ import { chromium } from "playwright-core";
 const { LGA_CODE_RE, PLACE_COPY, ENTER_FAILURE, ENTER_SQLSTATE, enterPlaceSchema } =
   await import("../src/lib/social/places-schema.ts");
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3232";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const STANDIN_PORT = Number(process.env.SOCIAL_STANDIN_PORT ?? 54331);
 const WAIT = 1500;
 

@@ -1,7 +1,7 @@
 /**
  * The landing page's numbers, and the ones it is no longer allowed to invent.
  *
- *   BASE_URL=http://localhost:3213 node apps/web/tests/landing-numbers.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/landing-numbers.spec.mjs
  *
  * The band used to hardcode "Listings 17+" and "Cities 6". Seventeen was the
  * size of the seed catalogue, six was the number of cities in it, and the
@@ -18,7 +18,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3213";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
 
 let failures = 0;

@@ -1,7 +1,7 @@
 /**
  * Reporting a listing.
  *
- *   BASE_URL=http://localhost:3213 node apps/web/tests/report.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/report.spec.mjs
  *
  * public.reports has had a correct owner policy and an admin queue since the
  * trust migration, and exactly one writer: the social layer's report-a-post
@@ -23,7 +23,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3213";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1400;
 
 let failures = 0;

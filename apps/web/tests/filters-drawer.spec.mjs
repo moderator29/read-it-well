@@ -1,7 +1,7 @@
 /**
  * The filters drawer, rebuilt.
  *
- *   BASE_URL=http://localhost:3213 node apps/web/tests/filters-drawer.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/filters-drawer.spec.mjs
  *
  * What it is now, top to bottom: a search field scoped to wherever the reader
  * already is, the price range with both figures printed above a real
@@ -27,7 +27,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3213";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1400;
 
 let failures = 0;

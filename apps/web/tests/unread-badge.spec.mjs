@@ -1,7 +1,7 @@
 /**
  * The unread badge must come from a count, never from a literal.
  *
- *   BASE_URL=http://localhost:3213 node apps/web/tests/unread-badge.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/unread-badge.spec.mjs
  *
  * Two defects guarded here.
  *
@@ -23,7 +23,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3213";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
 
 let failures = 0;

@@ -1,7 +1,7 @@
 /**
  * The agent calendar loop, from the outside.
  *
- *   BASE_URL=http://localhost:3213 node apps/web/tests/agent-calendar.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/agent-calendar.spec.mjs
  *
  * What this proves, and what it deliberately does not.
  *
@@ -20,7 +20,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3213";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
 
 let failures = 0;

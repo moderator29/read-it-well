@@ -1,7 +1,7 @@
 /**
  * The notification switches, and the host settings page that now exists.
  *
- *   BASE_URL=http://localhost:3213 node apps/web/tests/notification-preferences.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/notification-preferences.spec.mjs
  *
  * /settings has offered four notification switches since it shipped. They wrote
  * to profiles.settings under RLS, the card said "Saved to your account", and
@@ -26,7 +26,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3213";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
 
 let failures = 0;

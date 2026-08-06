@@ -4,7 +4,7 @@
  * Self-contained node script, no runner and no config, matching the other specs
  * in this directory:
  *
- *   BASE_URL=http://localhost:3231 node apps/web/tests/social-summon.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/social-summon.spec.mjs
  *
  * **Why this spec could not exist until now.** `private.bot_may_run` is the
  * ceiling every summon has to pass, and PostgREST exposes `public` only, so
@@ -79,7 +79,7 @@ const { BOT_HANDLE, BOT_COPY, BOT_REFUSALS, costMinorFor, mentionsBot, sourceNot
   "../src/lib/social/bot-schema.ts"
 );
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3231";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const STANDIN_PORT = Number(process.env.SOCIAL_STANDIN_PORT ?? 54329);
 /** Hold every answer back by this many milliseconds, so a `loading.tsx` is
     on screen long enough to be looked at. Zero unless asked for. */

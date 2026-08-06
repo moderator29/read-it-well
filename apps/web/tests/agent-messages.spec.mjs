@@ -1,7 +1,7 @@
 /**
  * The host inbox, and the badge that used to lie.
  *
- *   BASE_URL=http://localhost:3213 node apps/web/tests/agent-messages.spec.mjs
+ *   BASE_URL=http://localhost:3210 node apps/web/tests/agent-messages.spec.mjs
  *
  * The headline check here is a regression guard with teeth: the agent
  * navigation carried a hardcoded `badge: 3` on /agent/messages, so every agent
@@ -18,7 +18,7 @@
 
 import { chromium } from "playwright-core";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3213";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
 
 let failures = 0;
