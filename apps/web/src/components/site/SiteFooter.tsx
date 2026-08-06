@@ -3,6 +3,7 @@ import type { Dictionary } from "@naijafinds/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TrustIcon } from "@/design-system/icons/TrustIcon";
+import { gatedHref } from "@/lib/site/gated-href";
 
 /**
  * Site footer.
@@ -33,10 +34,10 @@ export function SiteFooter({ t }: { t: Dictionary }) {
     {
       title: t.landing.footer.product,
       links: [
-        { href: "/search?type=hotel", label: t.nav.hotels },
-        { href: "/search?type=property", label: t.nav.apartments },
-        { href: "/search?type=restaurant", label: t.nav.restaurants },
-        { href: "/search?type=experience", label: t.nav.experiences },
+        { href: gatedHref("/search?type=hotel"), label: t.nav.hotels },
+        { href: gatedHref("/search?type=property"), label: t.nav.apartments },
+        { href: gatedHref("/search?type=restaurant"), label: t.nav.restaurants },
+        { href: gatedHref("/search?type=experience"), label: t.nav.experiences },
       ],
     },
     {
