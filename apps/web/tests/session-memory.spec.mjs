@@ -113,9 +113,25 @@ console.log(`            ${backControls.length} back control(s) checked`);
 /* A destructive confirm sheet on a draft delete is the thing item 26 removes. */
 const workspace = files.find((f) => f.rel === "app/agent/listings/ListingsWorkspace.tsx");
 check("the draft-delete confirm sheet is gone", workspace && !/kind: SheetKind[\s\S]{0,200}"delete"/.test(workspace.src));
+/*
+ * DELIBERATELY REPORTED, NOT WEAKENED.
+ *
+ * This asserts a deferred delete with an undo window, and neither
+ * `UNDO_WINDOW_MS` nor a `setTimeout` exists anywhere in the repository any
+ * more: `ListingsWorkspace.run()` calls `deleteListing` inside a transition
+ * and closes. So the check is red because the BEHAVIOUR went, not because the
+ * spec drifted, and that is the one case where the right move is to leave the
+ * red standing.
+ *
+ * Rewriting it to match what the code does now would launder a lost feature
+ * into a passing suite, which is the failure mode every other change in this
+ * sweep exists to avoid. Restoring the undo window is a real piece of work on
+ * somebody's list; until it is done this stays red and says why.
+ */
 check(
   "deleting a draft is deferred, not sent straight away",
   workspace && /UNDO_WINDOW_MS/.test(workspace.src) && /setTimeout/.test(workspace.src),
+  "UNDO_WINDOW_MS is gone from the repo: the undo window was removed, not renamed",
 );
 
 /* ----------------------------------------------------------------- runtime */
