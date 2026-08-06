@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { canGoBackInApp } from "@/lib/ui/history";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * Page header with the platform back flow.
@@ -22,7 +23,7 @@ export function PageHeader({
   title,
   subtitle,
   fallback = "/home",
-  backLabel = "Back",
+  backLabel,
   actions,
   leading,
   tone = "default",
@@ -30,6 +31,11 @@ export function PageHeader({
   title: string;
   subtitle?: string;
   fallback?: string;
+  /**
+   * Accessible name for the back control. Optional: a caller holding a real
+   * `t` from a server component still wins, and when nobody passes one the
+   * client dictionary supplies `common.back` in the reader's language.
+   */
   backLabel?: string;
   actions?: React.ReactNode;
   /** A mark placed before the title, e.g. a verified-state BrandIcon. */
@@ -42,6 +48,12 @@ export function PageHeader({
   tone?: "default" | "verified";
 }) {
   const router = useRouter();
+  /* The back control is the only thing on this header the component names
+     itself, and it appears on every app screen. It reads the locale cookie
+     directly because there is no server parent to hand it a dictionary and
+     there are ~50 call sites; see the hook for why that is a last resort. */
+  const t = useClientDictionary();
+  const label = backLabel ?? t.common.back;
 
   const back = () => {
     if (canGoBackInApp()) router.back();
@@ -61,7 +73,7 @@ export function PageHeader({
           post card's action row. */}
       <button
         type="button"
-        aria-label={backLabel}
+        aria-label={label}
         onClick={back}
         className="nf-icon-btn relative h-9 w-9 before:absolute before:-inset-1 before:content-[''] sm:h-10 sm:w-10 sm:before:inset-0"
       >

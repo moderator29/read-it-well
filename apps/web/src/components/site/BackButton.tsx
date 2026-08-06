@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { canGoBackInApp } from "@/lib/ui/history";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * Universal back control.
@@ -24,18 +25,27 @@ import { canGoBackInApp } from "@/lib/ui/history";
  */
 export function BackButton({
   fallback = "/home",
-  label = "Back",
+  label,
   className,
 }: {
   fallback?: string;
+  /**
+   * Accessible name. Optional: a caller that already holds a `t` from its
+   * server parent still wins, and otherwise the client dictionary answers
+   * with `common.back` rather than leaving one English word on the screen.
+   */
   label?: string;
   className?: string;
 }) {
   const router = useRouter();
+  /* No server parent to thread `t` from, on any of the pages that use this.
+     See `lib/i18n/use-client-dictionary.ts` for why that is allowed here and
+     why it must not spread. */
+  const t = useClientDictionary();
   return (
     <button
       type="button"
-      aria-label={label}
+      aria-label={label ?? t.common.back}
       onClick={() => {
         if (canGoBackInApp()) router.back();
         else router.push(fallback);

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { canGoBackInApp } from "@/lib/ui/history";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 import { ListingActions } from "./ListingActions";
 import { PhotoFrame } from "./PhotoFrame";
 import { usePhotoViewer } from "./PhotoViewer";
@@ -50,6 +51,10 @@ export function ListingGallery({
   backFallback?: string;
 }) {
   const router = useRouter();
+  /* The gallery's floating back circle is icon-only, so its accessible name is
+     the ONLY thing a screen reader has to go on. It was the English literal
+     "Back" on a page whose every other word is translated. */
+  const t = useClientDictionary();
   const viewer = usePhotoViewer();
   const track = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(0);
@@ -163,7 +168,7 @@ export function ListingGallery({
         <button
           type="button"
           onClick={back}
-          aria-label="Back"
+          aria-label={t.common.back}
           className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="arrow-left" size={16} />
