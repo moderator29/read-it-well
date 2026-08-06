@@ -24,7 +24,7 @@ import { fill, type AdminCommon } from "./copy";
  * The console no longer owns a status vocabulary.
  *
  * `Tone`, `statusTone` and `TONE_STYLE` used to live here, and were one of four
- * competing implementations across the platform — so the same MORE_INFO_REQUIRED
+ * competing implementations across the platform, so the same MORE_INFO_REQUIRED
  * row was one colour in the admin queue and another in the agent's workspace.
  * Everything now routes through `toneForStatus` and `<StatusPill>`, which is the
  * single map; the console's job is to name a status, not to colour it.

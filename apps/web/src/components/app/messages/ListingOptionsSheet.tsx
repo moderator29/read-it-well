@@ -12,8 +12,8 @@ import { Sheet } from "@/components/ui/Sheet";
  * The verification step lives inside the conversation: the sheet shows the
  * listing's approved and verified status and carries the single action the
  * platform asks of guests before any money moves, confirming that the property
- * has actually been inspected. The container mechanics — drag handle, detents,
- * focus trap, focus restoration, Escape, backdrop and body scroll lock — belong
+ * has actually been inspected. The container mechanics (drag handle, detents,
+ * focus trap, focus restoration, Escape, backdrop and body scroll lock) belong
  * to `<Sheet>`.
  */
 
