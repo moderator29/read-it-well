@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
@@ -116,7 +117,7 @@ export const viewport: Viewport = {
    * One theme-color per theme.
    *
    * This used to be a single navy for both, so a user on the light theme got a
-   * near-black browser chrome above a #F4F5F7 canvas — a hard seam exactly
+   * near-black browser chrome above a #F4F5F7 canvas, a hard seam exactly
    * where the reference set expects the chrome to disappear into the page.
    * The dark value still matches `background_color` and `theme_color` in the
    * manifest, so install, splash and canvas remain one continuous colour.
@@ -135,6 +136,20 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  /*
+   * The nonce the middleware minted for this request.
+   *
+   * Next stamps its own inline scripts automatically, by reading the policy off
+   * the request. The theme script below is ours, written by hand, so it has to
+   * be stamped by hand or the Content Security Policy blocks it and light mode
+   * flashes dark on every load for the people who chose it.
+   *
+   * Undefined rather than empty when the header is absent: React omits the
+   * attribute entirely for undefined, and a `nonce=""` would match nothing and
+   * be blocked. The header is absent only on a path the middleware matcher
+   * skips, none of which render this layout.
+   */
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     <html lang={locale} dir={t.meta.dir} suppressHydrationWarning>
@@ -170,6 +185,7 @@ export default async function RootLayout({
           has to go into Settings and ask for.
         */}
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html:
               "try{var t=localStorage.getItem('nf_theme');if(t==='light'||(t==='system'&&matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.dataset.theme='light'}catch(e){}",

@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { contentSecurityPolicy, createNonce } from "./lib/security/csp";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
 
 /**
@@ -75,7 +76,43 @@ function safeReturnPath(pathname: string, search: string): string | null {
 }
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  /*
+   * The Content Security Policy, built fresh for this request.
+   *
+   * It goes on the REQUEST as well as the response, and that is not
+   * belt-and-braces. Next reads the nonce back out of the request's policy in
+   * order to stamp it onto the inline scripts it emits itself, so a policy set
+   * only on the response would forbid Next's own hydration payload and leave
+   * every page dead on arrival. `app/layout.tsx` reads the same nonce from
+   * `x-nonce` for the one inline script this codebase writes by hand.
+   *
+   * Built before the `isSupabaseConfigured` gate below, because a deployment
+   * waiting on its keys still serves real HTML to real browsers and has no
+   * business serving it unprotected.
+   */
+  const nonce = createNonce();
+  const policy = contentSecurityPolicy(nonce, process.env.NODE_ENV === "development");
+
+  /**
+   * A response carrying the policy, derived from the request as it stands right
+   * now.
+   *
+   * Recomputed rather than captured once, because Supabase's `setAll` writes
+   * refreshed auth cookies onto `request.cookies` and then rebuilds the
+   * response so the page sees them. Taking a copy of the headers up front would
+   * hand that rebuild the pre-refresh cookie header and quietly undo the token
+   * rotation this middleware exists to perform.
+   */
+  const secured = () => {
+    const headers = new Headers(request.headers);
+    headers.set("x-nonce", nonce);
+    headers.set("content-security-policy", policy);
+    const next = NextResponse.next({ request: { headers } });
+    next.headers.set("content-security-policy", policy);
+    return next;
+  };
+
+  let response = secured();
 
   if (!isSupabaseConfigured()) {
     return response;
@@ -90,7 +127,7 @@ export async function middleware(request: NextRequest) {
         for (const { name, value } of cookiesToSet) {
           request.cookies.set(name, value);
         }
-        response = NextResponse.next({ request });
+        response = secured();
         for (const { name, value, options } of cookiesToSet) {
           response.cookies.set(name, value, options);
         }
@@ -115,7 +152,13 @@ export async function middleware(request: NextRequest) {
       const back = safeReturnPath(request.nextUrl.pathname, request.nextUrl.search);
       if (back) target.searchParams.set("next", back);
       target.searchParams.set("notice", "sign-in-required");
-      return NextResponse.redirect(target);
+      const redirect = NextResponse.redirect(target);
+      /* A redirect carries no markup, so nothing here needs a nonce, but the
+         policy still travels with it: `form-action` and `frame-ancestors` are
+         the two that matter on a 307, and a response without a policy is a
+         response an injected page can point at. */
+      redirect.headers.set("content-security-policy", policy);
+      return redirect;
     }
   }
 

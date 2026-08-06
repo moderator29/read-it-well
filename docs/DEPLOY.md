@@ -153,6 +153,28 @@ Security headers (`X-Content-Type-Options`, `X-Frame-Options`,
 to every route by `apps/web/next.config.ts`. Do not duplicate them in Vercel's
 headers configuration.
 
+**The Content Security Policy is the one exception, and it is set elsewhere.**
+It lives in `apps/web/src/lib/security/csp.ts` and is applied per request by
+`apps/web/src/middleware.ts`, because it carries a fresh nonce every time and a
+static header cannot. Do not move it into `next.config.ts` and do not add a
+second policy in Vercel: two `Content-Security-Policy` headers are intersected
+by the browser, so the stricter one wins and the nonce in ours stops matching,
+which takes the whole application down rather than degrading it.
+
+Two things in that policy follow the environment rather than being fixed, so
+check them after any change of Supabase project or payment provider:
+
+- The Supabase origin in `connect-src`, `img-src` and `form-action` is derived
+  from `NEXT_PUBLIC_SUPABASE_URL`. A deployment without that variable simply
+  contributes no origin, which matches how the rest of the platform degrades.
+- `form-action` also names Paystack's checkout host, because a server action
+  that finishes with a `redirect()` off-origin is a form navigation on the
+  no-JavaScript path. The reasoning is written out in full in `csp.ts`.
+
+`apps/web/tests/csp.spec.mjs` proves the policy against a running browser,
+including that nothing on the page is actually blocked. Run it after any change
+to the header.
+
 Note on HSTS: `Strict-Transport-Security` is sent with `max-age=63072000`,
 `includeSubDomains` and `preload`. That is a two year commitment for the domain
 and all of its subdomains. Be certain every subdomain you will ever use can
