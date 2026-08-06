@@ -42,11 +42,11 @@ export default async function LandingPage() {
   ];
 
   const categories: { icon: BrandIconName; label: string; href: string }[] = [
-    { icon: "hotel-star", label: t.nav.hotels, href: "/search?type=hotel" },
-    { icon: "homes-sparkle", label: t.nav.apartments, href: "/search?type=property" },
-    { icon: "house-sparkle", label: t.nav.homes, href: "/search?type=home" },
-    { icon: "keys-home", label: t.nav.rent, href: "/rent" },
-    { icon: "luggage-check", label: t.nav.experiences, href: "/search?type=experience" },
+    { icon: "hotel-star", label: t.nav.hotels, href: gatedHref("/search?type=hotel") },
+    { icon: "homes-sparkle", label: t.nav.apartments, href: gatedHref("/search?type=property") },
+    { icon: "house-sparkle", label: t.nav.homes, href: gatedHref("/search?type=home") },
+    { icon: "keys-home", label: t.nav.rent, href: gatedHref("/rent") },
+    { icon: "luggage-check", label: t.nav.experiences, href: gatedHref("/search?type=experience") },
   ];
 
   const visionPoints: { icon: BrandIconName; title: string; body: string }[] = [
