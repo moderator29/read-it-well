@@ -88,7 +88,11 @@ export function MobileTabBar({
    * is the thing this product has that a listings app does not.
    */
   const tabs: Tab[] = [
-    { href: "/around", label: t.nav.around, icon: "grid" },
+    /* "Feed", not "Around". The owner's word for the destination, and the
+       destination changed under it: this tab used to open a directory of
+       places and now opens a timeline. The icon does not change - people
+       find a tab by its shape long before they read its label. */
+    { href: "/around", label: t.nav.feed, icon: "grid" },
     { href: "/search", label: t.nav.explore, icon: "compass" },
     /*
      * The map is back, as an ordinary tab rather than the raised centre button

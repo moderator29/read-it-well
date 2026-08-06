@@ -44,14 +44,14 @@ import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
  * Both Around surfaces.
  *
  * `/around` is the feed, stitched from the places somebody is in, and
- * `/around/manage` is the directory that prints those same places with a Joined
+ * `/around/settings` is the directory that prints those same places with a Joined
  * control beside them. Anything that changes a membership or a place's status
  * changes both, and revalidating only `/around` was the whole answer for
  * exactly as long as `/around` WAS the directory.
  */
 function revalidateAround(): void {
   revalidatePath("/around");
-  revalidatePath("/around/manage");
+  revalidatePath("/around/settings");
 }
 
 

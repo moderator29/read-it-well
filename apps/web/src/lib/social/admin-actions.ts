@@ -44,14 +44,14 @@ import { createAdminClient } from "../supabase/admin";
  * Both Around surfaces.
  *
  * `/around` is the feed, stitched from the places somebody is in, and
- * `/around/manage` is the directory that prints those same places with a Joined
+ * `/around/settings` is the directory that prints those same places with a Joined
  * control beside them. Anything that changes a membership or a place's status
  * changes both, and revalidating only `/around` was the whole answer for
  * exactly as long as `/around` WAS the directory.
  */
 function revalidateAround(): void {
   revalidatePath("/around");
-  revalidatePath("/around/manage");
+  revalidatePath("/around/settings");
 }
 
 
@@ -143,7 +143,7 @@ export async function decideArea(input: {
         /* A declined suggestion is printed under "We came back to you" on the
            directory, so that is where the notification has to land. `/around`
            is the feed now and would open on a screen the decision is not on. */
-        href: approving ? `/around/${area.slug}` : "/around/manage",
+        href: approving ? `/around/${area.slug}` : "/around/settings",
       });
     }
 

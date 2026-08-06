@@ -61,6 +61,17 @@ export const yo: Dictionary = {
   },
 
   social: {
+    feedName: "Ìdásílẹ̀ RentMe",
+    tabForYou: "Fún ọ",
+    tabFollowing: "Tí o tẹ̀lé",
+    tabNew: "Tuntun",
+    tabsLabel: "Ìdásílẹ̀ wo ni kí a kà",
+    feedSettings: "Ètò ìdásílẹ̀",
+    filters: "Ìtọ́jú",
+    emptyFollowing: "O kò tíì darapọ̀ mọ́ ibi kankan. Yan àwọn tí o mọ̀, èyí yóò sì di ìdásílẹ̀ rẹ.",
+    emptyFollowingSignedOut: "Tí o tẹ̀lé máa ń fi àwọn ibi tí o ti darapọ̀ mọ́ hàn. Wọlé kí o sì yan díẹ̀.",
+    emptyNew: "Kò sí ohun tuntun tí a ti sọ ní ibi tí ó ṣí sílẹ̀ síbẹ̀.",
+    settingsLede: "Ibi tí ìdásílẹ̀ yìí ti wá, àti ohun tí ó lè fi hàn ọ́.",
     manage: "Ṣàkóso àwọn ibi",
     allPlaces: "Gbogbo àwọn ibi rẹ",
     pickPlaces: "Yan àwọn ibi rẹ",
@@ -1558,5 +1569,8 @@ export const yo: Dictionary = {
     closeMenu: "Ti àkójọ",
     languageSwitcher: "Yí èdè padà",
     favourite: "Fi pamọ́ sí àyànfẹ́",
+    quickAccess: "Ìwọlé kíákíá",
+    notificationsUnread: "Ìfitónilétí, {count} tí a kò tí ì kà",
+    unreadOn: "{label}, ìfitónilétí {count} tí a kò tí ì kà",
   },
 };

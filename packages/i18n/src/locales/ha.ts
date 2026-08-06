@@ -61,6 +61,17 @@ export const ha: Dictionary = {
   },
 
   social: {
+    feedName: "Labaran RentMe",
+    tabForYou: "A gare ka",
+    tabFollowing: "Waɗanda kake bi",
+    tabNew: "Sabo",
+    tabsLabel: "Wane labari za a karanta",
+    feedSettings: "Saitin labarai",
+    filters: "Tacewa",
+    emptyFollowing: "Ba ka shiga wani wuri ba tukuna. Zaɓi waɗanda ka sani, wannan kuma ya zama labaranka.",
+    emptyFollowingSignedOut: "Waɗanda kake bi yana nuna wuraren da ka shiga. Shiga ka zaɓi kaɗan.",
+    emptyNew: "Ba a faɗi wani sabon abu a wani buɗaɗɗen wuri ba tukuna.",
+    settingsLede: "Inda wannan labarin ya fito, da abin da aka yarda ya nuna maka.",
     manage: "Sarrafa wurare",
     allPlaces: "Duk wuraren ka",
     pickPlaces: "Zaɓi wuraren ka",
@@ -1540,5 +1551,8 @@ export const ha: Dictionary = {
     closeMenu: "Rufe menu",
     languageSwitcher: "Canza harshe",
     favourite: "Ajiye cikin abubuwan so",
+    quickAccess: "Isa da sauri",
+    notificationsUnread: "Sanarwa, {count} da ba a karanta ba",
+    unreadOn: "{label}, sanarwa {count} da ba a karanta ba",
   },
 };

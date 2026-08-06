@@ -67,7 +67,7 @@ export function ProposeAreaForm({
             /* The directory, not the feed: the suggestion just made is printed
                there under "Waiting on us", so this is the one screen that can
                show the person what they have done. */
-            onClick={() => router.push("/around/manage")}
+            onClick={() => router.push("/around/settings")}
           >
             Back to your places
           </button>

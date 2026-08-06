@@ -80,7 +80,7 @@ export function buildNav({
         },
         {
           href: "/around",
-          label: t.nav.around,
+          label: t.nav.feed,
           icon: "map",
           /* Three children, and only three, because those are the three index
              routes the social layer actually has. Stories are reached from a
@@ -93,7 +93,7 @@ export function buildNav({
              directory behind it. */
           children: [
             { href: "/around", label: t.nav.feed, icon: "grid" },
-            { href: "/around/manage", label: t.nav.places, icon: "compass" },
+            { href: "/around/settings", label: t.nav.places, icon: "compass" },
             { href: "/u", label: t.nav.people, icon: "user" },
           ],
         },

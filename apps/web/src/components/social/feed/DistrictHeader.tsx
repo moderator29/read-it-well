@@ -22,7 +22,7 @@ import { BackChevron } from "@/components/social/profile/BackChevron";
  *
  * Only places the person is actually in are listed. Offering every open place
  * here would make this a directory wearing a header, and the directory already
- * exists at `/around/manage`, which is where the last row goes.
+ * exists at `/around/settings`, which is where the last row goes.
  */
 export function DistrictHeader({
   name,
@@ -116,7 +116,7 @@ export function DistrictHeader({
               </Link>
               <Link
                 role="menuitem"
-                href="/around/manage"
+                href="/around/settings"
                 className="nf-post__menu-item"
                 onClick={() => setOpen(false)}
               >

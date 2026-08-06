@@ -156,12 +156,14 @@ function ActionRow({
   post,
   onLike,
   onReply,
+  onRepost,
   onShare,
   onSave,
 }: {
   post: PostView;
   onLike: () => void;
   onReply: () => void;
+  onRepost: () => void;
   onShare: () => void;
   onSave: () => void;
 }) {
@@ -183,6 +185,20 @@ function ActionRow({
         <span className="nf-numeric">{compact(post.replyCount)}</span>
         <span className="sr-only">
           {post.replyCount === 1 ? "reply" : "replies"}, reply to this
+        </span>
+      </button>
+
+      <button
+        type="button"
+        className="nf-post__act"
+        aria-pressed={post.reposted}
+        onClick={onRepost}
+        data-active={post.reposted ? "" : undefined}
+      >
+        <PostGlyph name="repost" active={post.reposted} />
+        <span className="nf-numeric">{compact(post.repostCount)}</span>
+        <span className="sr-only">
+          {post.reposted ? "reposted, undo" : "reposts, repost this"}
         </span>
       </button>
 
@@ -221,6 +237,7 @@ export function PostCard({
   post,
   onLike,
   onReply,
+  onRepost,
   onShare,
   onSave,
   onMenu,
@@ -229,6 +246,7 @@ export function PostCard({
   post: PostView;
   onLike: () => void;
   onReply: () => void;
+  onRepost: () => void;
   onShare: () => void;
   onSave: () => void;
   /** Opens the action sheet. The sheet itself belongs to the surface, so one
@@ -430,15 +448,25 @@ export function PostCard({
 
       {post.listing && !hasPlate ? <ListingBlock listing={post.listing} /> : null}
 
-      {isSystem ? null : (
-        <ActionRow
-          post={post}
-          onLike={onLike}
-          onReply={onReply}
-          onShare={onShare}
-          onSave={onSave}
-        />
-      )}
+      {/*
+        The row is on every card, a platform post included.
+        
+        It used to be suppressed for `isSystem`, on the reasoning that an
+        announcement is not a conversation. In practice the only posts that
+        exist on a new deployment ARE announcements, so the feed opened on a
+        column of text blocks with no like, no reply, no count and nothing to
+        press - which reads as a broken feed rather than a restrained one.
+        A platform post is still a post: it can be saved, replied to, and it
+        has a view count somebody may want to see.
+      */}
+      <ActionRow
+        post={post}
+        onLike={onLike}
+        onReply={onReply}
+        onRepost={onRepost}
+        onShare={onShare}
+        onSave={onSave}
+      />
     </>
   );
 

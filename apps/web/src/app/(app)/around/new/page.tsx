@@ -30,7 +30,7 @@ export default async function ProposeAreaPage() {
           where the suggestion appears once it is made. */}
       <PageHeader
         title="Suggest a place"
-        fallback="/around/manage"
+        fallback="/around/settings"
       />
 
       <p className="mb-6 text-sm leading-relaxed text-[var(--nf-content-muted)]">

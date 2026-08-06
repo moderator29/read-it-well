@@ -34,7 +34,7 @@ export function TrendingStrip({
             promise. */}
         {hasPlaces && (
           <Link
-            href="/around/manage"
+            href="/around/settings"
             className="shrink-0 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
           >
             All places

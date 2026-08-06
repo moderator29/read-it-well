@@ -100,24 +100,15 @@ export function Feed({
   const patch = (id: string, next: Partial<PostView>) =>
     setPosts((all) => all.map((p) => (p.id === id ? { ...p, ...next } : p)));
 
-  const onLike = (post: PostView) => {
-    if (!signedIn) {
-      router.push("/sign-in");
-      return;
-    }
-    const liked = !post.liked;
-    patch(post.id, { liked, likeCount: post.likeCount + (liked ? 1 : -1) });
-    startTransition(async () => {
-      const result = await toggleMark({ postId: post.id, mark: "LIKE" });
-      if (!result.ok) {
-        patch(post.id, { liked: post.liked, likeCount: post.likeCount });
-        setNotice(result.error);
-        return;
-      }
-      router.refresh();
-    });
-  };
-
+  /*
+   * Repost, wired at last.
+   *
+   * `toggleRepost` has been a real, RLS-bound server action since the social
+   * layer landed and nothing ever called it: the card took an `onRepost` prop
+   * that was never passed, so the count sat on every post with no way to move
+   * it. Same optimistic shape as a like, reverted the moment the server
+   * disagrees.
+   */
   const onRepost = (post: PostView) => {
     if (!signedIn) {
       router.push("/sign-in");
@@ -129,6 +120,24 @@ export function Feed({
       const result = await toggleRepost({ postId: post.id });
       if (!result.ok) {
         patch(post.id, { reposted: post.reposted, repostCount: post.repostCount });
+        setNotice(result.error);
+        return;
+      }
+      router.refresh();
+    });
+  };
+
+  const onLike = (post: PostView) => {
+    if (!signedIn) {
+      router.push("/sign-in");
+      return;
+    }
+    const liked = !post.liked;
+    patch(post.id, { liked, likeCount: post.likeCount + (liked ? 1 : -1) });
+    startTransition(async () => {
+      const result = await toggleMark({ postId: post.id, mark: "LIKE" });
+      if (!result.ok) {
+        patch(post.id, { liked: post.liked, likeCount: post.likeCount });
         setNotice(result.error);
         return;
       }
@@ -351,6 +360,7 @@ export function Feed({
             <PostCard
               post={post}
               onLike={() => onLike(post)}
+              onRepost={() => onRepost(post)}
               onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
               onShare={() => onMenuAction(post, "share")}
               onSave={() => onMenuAction(post, "save")}

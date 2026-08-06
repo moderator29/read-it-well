@@ -333,7 +333,7 @@ export async function listPlacesWithinLga(
  *
  * Null when nobody has opened the local government yet, because opening it is a
  * write and a link that silently creates a place is not a link. That person can
- * still reach it from the picker on `/around/manage`, which is where opening
+ * still reach it from the picker on `/around/settings`, which is where opening
  * belongs.
  */
 export async function getLgaDoor(

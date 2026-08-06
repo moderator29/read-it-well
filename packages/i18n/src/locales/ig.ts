@@ -61,6 +61,17 @@ export const ig: Dictionary = {
   },
 
   social: {
+    feedName: "Akụkọ RentMe",
+    tabForYou: "Maka gị",
+    tabFollowing: "Ndị ị na-eso",
+    tabNew: "Ọhụrụ",
+    tabsLabel: "Akụkọ ole ka a ga-agụ",
+    feedSettings: "Ntọala akụkọ",
+    filters: "Nzacha",
+    emptyFollowing: "Ị sonyebeghị ebe ọ bụla. Họrọ ndị ị maara, nke a ga-abụ akụkọ gị.",
+    emptyFollowingSignedOut: "Ndị ị na-eso na-egosi ebe ndị ị sonyeere. Banye ma họrọ ole na ole.",
+    emptyNew: "E kwubeghị ihe ọhụrụ ọ bụla n'ebe mepere emepe.",
+    settingsLede: "Ebe akụkọ a si bịa, na ihe o kwere igosi gị.",
     manage: "Jikwaa ebe",
     allPlaces: "Ebe gị niile",
     pickPlaces: "Họrọ ebe gị",
@@ -1541,5 +1552,8 @@ export const ig: Dictionary = {
     closeMenu: "Mechie menu",
     languageSwitcher: "Gbanwee asụsụ",
     favourite: "Chekwaa na ndị masịrị gị",
+    quickAccess: "Nnweta ngwa ngwa",
+    notificationsUnread: "Ọkwa, {count} a gụghị agụ",
+    unreadOn: "{label}, ọkwa {count} a gụghị agụ",
   },
 };

@@ -205,6 +205,7 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
       <PostCard
         post={post}
         onLike={() => onLike(post)}
+        onRepost={() => onRepost(post)}
         onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
         onShare={() => onMenuAction(post, "share")}
         onSave={() => onMenuAction(post, "save")}

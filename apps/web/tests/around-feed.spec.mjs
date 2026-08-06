@@ -5,12 +5,12 @@
  *
  * The owner tapped Around in the bottom navigation expecting the conversation
  * and got a list of rooms. `/around` is now the timeline of the places somebody
- * is in, `/around/manage` is the directory that used to be there, and this spec
+ * is in, `/around/settings` is the directory that used to be there, and this spec
  * guards the split rather than the contents.
  *
  * 1. `/around` renders the feed surface and NOT the place tree.
- * 2. `/around/manage` renders the directory and the way into the country.
- * 3. The switcher above the feed is a real control: links carrying `?place=`,
+ * 2. `/around/settings` renders the directory and the way into the country.
+ * 3. The tab row above the feed is a real control: links carrying `?tab=`,
  *    with the live one marked, so a reload and the back button both work.
  * 4. Neither screen scrolls sideways at 390px, in dark or in light.
  * 5. No route answers with a 5xx.
@@ -82,11 +82,11 @@ async function run(theme) {
       "the place tree is not on the feed",
       (await page.getByTestId("place-picker-search").count()) === 0 &&
         (await page.getByTestId("place-picker-states").count()) === 0 &&
-        (await page.getByTestId("around-manage-unconfigured").count()) === 0,
+        (await page.getByTestId("around-settings-unconfigured").count()) === 0,
     );
     check(
       "the directory surface is not on the feed",
-      (await page.getByTestId("around-manage").count()) === 0,
+      (await page.getByTestId("around-settings").count()) === 0,
     );
     /* The directory's two lists, by their headings. `text-transform: uppercase`
        means `innerText` reads them back shouting, so this asks the DOM for the
@@ -107,62 +107,77 @@ async function run(theme) {
       feedText.slice(0, 160),
     );
 
-    /* -------------------------------------------------------- the switcher */
-    const switcher = page.getByTestId("around-switcher");
-    check("the switcher is above the feed", (await switcher.count()) === 1);
+    /* ------------------------------------------------------------ the head */
+    const masthead = page.getByTestId("feed-masthead");
+    check("the masthead is there", (await masthead.count()) === 1);
     check(
-      "the switcher is a real control, not a caption",
-      (await switcher.locator("a").count()) >= 2,
-      `${await switcher.locator("a").count()} links`,
+      "it carries the mark, not the word Around",
+      (await masthead.locator("svg, img").count()) >= 1,
     );
     check(
-      "the switcher is a named landmark",
-      (await switcher.evaluate((node) => node.tagName.toLowerCase())) === "nav",
-    );
-    const all = page.getByTestId("around-switcher-all");
-    check(
-      "the combined feed is the live chip on /around",
-      (await all.getAttribute("aria-current")) === "page",
+      "filters on the left, settings on the right",
+      (await page.getByTestId("feed-filters").count()) === 1 &&
+        (await page.getByTestId("feed-settings").count()) === 1,
     );
     check(
-      "every switcher chip navigates rather than posting",
-      await switcher.evaluate((node) =>
-        Array.from(node.querySelectorAll("a")).every((a) => (a.getAttribute("href") ?? "").startsWith("/around")),
-      ),
+      "no back chevron on a primary tab",
+      (await masthead.locator('[aria-label="Back"]').count()) === 0,
     );
 
-    /* One obvious control from the feed to everything behind it.
-       Scoped to the feed surface on purpose: the desktop navigation rail also
-       carries the row, and it is `display: none` on a phone, so an unscoped
-       locator would pass on a link nobody can see and then fail to click it. */
-    const toManage = feed.locator('a[href="/around/manage"]');
-    check("the feed carries a way to the directory", (await toManage.count()) >= 1);
+    const tabs = page.getByTestId("feed-tabs");
+    check("the tab row is above the feed", (await tabs.count()) === 1);
+    check(
+      "it is a named landmark",
+      (await tabs.evaluate((node) => node.tagName.toLowerCase())) === "nav",
+    );
+    for (const tab of ["for-you", "following", "new"]) {
+      check(`the ${tab} tab is there`, (await page.getByTestId(`feed-tab-${tab}`).count()) === 1);
+    }
+    check(
+      "For you is the live tab on /around",
+      (await page.getByTestId("feed-tab-for-you").getAttribute("aria-current")) === "page",
+    );
+    check(
+      "every tab navigates rather than posting",
+      await tabs.evaluate((node) =>
+        Array.from(node.querySelectorAll("a")).every((a) => a.getAttribute("href")?.startsWith("/around")),
+      ),
+    );
+    check(
+      "the place chip row is gone from the feed",
+      (await page.getByTestId("around-switcher").count()) === 0,
+    );
+
+    /* The gear in the masthead, not any link on the page: the side navigation
+       also lists settings, and it is off-screen at 390px. */
+    const toManage = page.getByTestId("feed-settings");
+    check("the feed carries a way to settings", (await toManage.count()) === 1);
 
     const feedOverflow = await overflowOf(page);
     check(`the feed does not scroll sideways (overflow ${feedOverflow}px)`, feedOverflow <= 1);
 
     /* -------------------------------------------------- the manage surface */
-    console.log(`\n[${theme} 390px] /around/manage`);
+    console.log(`\n[${theme} 390px] /around/settings`);
     await toManage.first().click();
     await page.waitForLoadState("load");
     await page.waitForTimeout(WAIT);
 
     check(
       "the control on the feed lands on the directory",
-      new URL(page.url()).pathname === "/around/manage",
+      new URL(page.url()).pathname === "/around/settings",
       page.url(),
     );
 
     check(
       "the directory renders as itself",
-      (await page.getByTestId("around-manage").count()) === 1,
+      (await page.getByTestId("around-settings").count()) === 1,
     );
 
     /* The way into the country: the picker, or the one sentence that honestly
        replaces it when there are no platform keys. Either is a pass; which one
        is printed so a green run cannot hide an empty screen. */
     const picker = await page.getByTestId("place-picker-search").count();
-    const unconfigured = await page.getByTestId("around-manage-unconfigured").count();
+    const unconfigured = await page.getByTestId("around-settings-unconfigured").count();
     check(
       "the way into the 774 local governments is on the directory",
       picker === 1 || unconfigured === 1,
@@ -201,7 +216,7 @@ async function run(theme) {
        static `manage` segment did not swallow the dynamic one. */
     check(
       "a place slug still resolves to a place, not to the directory",
-      (await page.getByTestId("around-manage").count()) === 0 &&
+      (await page.getByTestId("around-settings").count()) === 0 &&
         (await page.getByTestId("around-feed").count()) === 0,
     );
 

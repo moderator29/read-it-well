@@ -95,7 +95,7 @@ export function StoryComposer({
         </p>
         {/* The directory, because being in no place is what this state is
             about and only the directory can end it. */}
-        <Link href="/around/manage" className="nf-btn nf-btn--primary mt-6">
+        <Link href="/around/settings" className="nf-btn nf-btn--primary mt-6">
           Find a place
         </Link>
       </div>

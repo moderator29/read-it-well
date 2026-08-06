@@ -1,7 +1,7 @@
 /**
  * The wait, on the directory of places.
  *
- * `/around/manage` is force-dynamic and makes five reads before it can render a
+ * `/around/settings` is force-dynamic and makes five reads before it can render a
  * word, because membership is per viewer and the page changes shape when you
  * join one. On a slow Nigerian connection Next holds the previous screen for
  * that whole time, so a tap on Manage places looks like a tap that did nothing.

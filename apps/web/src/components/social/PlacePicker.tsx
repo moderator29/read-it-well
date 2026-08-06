@@ -41,7 +41,7 @@ import {
  * router navigation, because re-rendering a dynamic page to record which chip
  * is lit would put a round trip in front of every tap.
  *
- * This control lives on `/around/manage` now that `/around` itself is the feed,
+ * This control lives on `/around/settings` now that `/around` itself is the feed,
  * which is why the sign-in return path below points there: sending somebody
  * back to the feed after they asked to open a door would lose the door.
  */
@@ -174,7 +174,7 @@ export function PlacePicker({
        needs an account. Sending them back to the state they were looking at
        means one tap after signing in rather than starting over. */
     if (!signedIn) {
-      const back = `/around/manage?state=${encodeURIComponent(lgaStateCode)}`;
+      const back = `/around/settings?state=${encodeURIComponent(lgaStateCode)}`;
       router.push(`/sign-in?next=${encodeURIComponent(back)}`);
       return;
     }

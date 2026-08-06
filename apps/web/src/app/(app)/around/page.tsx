@@ -14,6 +14,12 @@ import {
 } from "@/lib/social/posts-queries";
 import { POST_COPY } from "@/lib/social/posts-schema";
 import { Feed } from "@/components/social/feed/Feed";
+import {
+  FeedMasthead,
+  FeedTabs,
+  isFeedTab,
+  type FeedTab,
+} from "@/components/social/feed/FeedMasthead";
 import { AroundFab } from "@/components/social/AroundFab";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { isSocialEnabled } from "@/lib/social/flag";
@@ -29,7 +35,7 @@ export const dynamic = "force-dynamic";
  * directory of rooms rather than the conversation happening inside them. The
  * owner named it exactly: it should go straight to the feed, and everything
  * that makes the feed deeper belongs behind a control inside it. So this screen
- * is the timeline and `/around/manage` is the directory.
+ * is the timeline and `/around/settings` is the directory.
  *
  * Three states, and none of them is a blank screen with an invitation on it:
  *
@@ -50,7 +56,7 @@ export const dynamic = "force-dynamic";
 export default async function AroundPage({
   searchParams,
 }: {
-  searchParams: Promise<{ place?: string | string[] }>;
+  searchParams: Promise<{ place?: string | string[]; tab?: string | string[] }>;
 }) {
   if (!(await isSocialEnabled())) return <SocialPaused />;
 
@@ -77,22 +83,48 @@ export default async function AroundPage({
   /* One of three reads, never two. `getJoinedFeed` resolves the membership
      through the viewer's own RLS-bound client, so this passes an id rather than
      a list of places it read itself and the database stays the authority. */
+  const rawTab = Array.isArray(params.tab) ? params.tab[0] : params.tab;
+  const tab: FeedTab = isFeedTab(rawTab) ? rawTab : "for-you";
+
+  /*
+   * Three timelines, and each one is honest about what it is.
+   *
+   *   For you    your places if you have any, the busiest open ones if not.
+   *              A first visit must never be an empty screen.
+   *   Following  ONLY your places. It says nothing when you have joined
+   *              nothing, because pretending otherwise would make the two tabs
+   *              the same tab.
+   *   New        the open places, whoever you are. This is the tab that works
+   *              signed out, and it is why the feed is worth opening on day one.
+   */
   const feed = selected
     ? await getAreaFeed(selected.id)
-    : viewerId && mine.length > 0
-      ? await getJoinedFeed(viewerId)
-      : await getOpenAreasFeed();
+    : tab === "following"
+      ? viewerId && mine.length > 0
+        ? await getJoinedFeed(viewerId)
+        : { posts: [], cursor: null, ended: true }
+      : tab === "new"
+        ? await getOpenAreasFeed()
+        : viewerId && mine.length > 0
+          ? await getJoinedFeed(viewerId)
+          : await getOpenAreasFeed();
 
   /** True when the person is reading places they have not joined. */
-  const browsingOpen = !selected && mine.length === 0;
+  const browsingOpen = !selected && tab === "for-you" && mine.length === 0;
 
   const emptyMessage = selected
     ? signedIn
       ? POST_COPY.emptyFeed
       : POST_COPY.emptyFeedSignedOut
-    : browsingOpen
-      ? t.social.emptyAnywhere
-      : t.social.emptyJoined;
+    : tab === "following"
+      ? signedIn
+        ? t.social.emptyFollowing
+        : t.social.emptyFollowingSignedOut
+      : tab === "new"
+        ? t.social.emptyNew
+        : browsingOpen
+          ? t.social.emptyAnywhere
+          : t.social.emptyJoined;
 
   return (
     <div
@@ -104,24 +136,21 @@ export default async function AroundPage({
       style={{ paddingBottom: "var(--nf-tabbar-clearance)" }}
       data-testid="around-feed"
     >
-      <PageHeader
-        title={selected ? selected.name : t.nav.around}
-        subtitle={selected ? selected.city : undefined}
-        fallback="/home"
-        actions={
-          /* The one obvious way from the feed to everything that makes it
-             deeper: the country, the directory, your places, your proposals. */
-          <Link
-            href="/around/manage"
-            className="nf-btn nf-btn--ghost inline-flex h-10 items-center gap-2 px-4 text-sm"
-          >
-            <UiIcon name="sliders" size={16} />
-            {t.social.manage}
-          </Link>
-        }
-      />
+      <FeedMasthead t={t} />
+      <FeedTabs active={tab} t={t} />
 
-      <PlaceSwitcher places={mine} activeSlug={selected?.slug ?? null} t={t} />
+      {/* One place, chosen from the directory. It is named here rather than in
+          the masthead because the masthead is the product's identity and this
+          is a filter on top of it. */}
+      {selected ? (
+        <p className="mb-3 flex items-center gap-2 text-sm text-[var(--nf-content-secondary)]">
+          <UiIcon name="location" size={15} />
+          <span className="font-semibold text-[var(--nf-content-primary)]">{selected.name}</span>
+          <Link href="/around" className="ms-auto text-[var(--nf-brand-secondary)]">
+            {t.social.allPlaces}
+          </Link>
+        </p>
+      ) : null}
 
       {browsingOpen ? (
         <div className="nf-card mb-4 p-4">
@@ -129,7 +158,7 @@ export default async function AroundPage({
             {signedIn ? t.social.browsingOpen : t.social.browsingOpenSignedOut}
           </p>
           <Link
-            href="/around/manage"
+            href="/around/settings"
             className="nf-btn nf-btn--primary mt-4 inline-flex h-10 items-center px-5 text-sm"
           >
             {t.social.pickPlaces}
@@ -231,7 +260,7 @@ function PlaceSwitcher({
             {place.name}
           </Chip>
         ))}
-        <Chip behaviour="link" href="/around/manage" size="sm" icon="sliders">
+        <Chip behaviour="link" href="/around/settings" size="sm" icon="sliders">
           {t.social.pickPlaces}
         </Chip>
       </ChipRow>

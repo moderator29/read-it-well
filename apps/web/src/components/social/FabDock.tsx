@@ -143,7 +143,7 @@ export function FabDock({
                     person is in no place at all, and the feed cannot fix that;
                     picking a place is what fixes it. */}
                 <Link
-                  href="/around/manage"
+                  href="/around/settings"
                   className="nf-btn nf-btn--primary mt-5 w-full"
                   onClick={() => setComposing(false)}
                 >

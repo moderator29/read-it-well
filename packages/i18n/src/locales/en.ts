@@ -73,6 +73,17 @@ export const en = {
    * server module that only speaks English.
    */
   social: {
+    feedName: "RentMe feed",
+    tabForYou: "For you",
+    tabFollowing: "Following",
+    tabNew: "New",
+    tabsLabel: "Which feed to read",
+    feedSettings: "Feed settings",
+    filters: "Filters",
+    emptyFollowing: "You have not joined a place yet. Pick the ones you know and this becomes your feed.",
+    emptyFollowingSignedOut: "Following shows the places you have joined. Sign in and pick a few.",
+    emptyNew: "Nothing new has been said in an open place yet.",
+    settingsLede: "Where this feed comes from, and what it is allowed to show you.",
     /** The header control that leaves the feed for the directory. */
     manage: "Manage places",
     /** The first chip of the switcher: the combined timeline. */
@@ -356,6 +367,246 @@ export const en = {
       alreadyUp: "{market} already came first, so nothing changed.",
       steppedBack: "{market} will not be ranked ahead.",
       alreadyBack: "{market} were not being ranked ahead, so nothing changed.",
+    },
+    /* The line under each market name on the nine cards. It exists because
+       "rental" and "shortlet" are not the same thing to somebody arriving for
+       the first time, and neither is "apartment" versus "home". */
+    hints: {
+      apartment: "Nightly stays in a flat",
+      hotel: "Rooms, booked by the night",
+      home: "A whole house for your stay",
+      villa: "Larger private places",
+      shortlet: "A few nights to a few weeks",
+      rental: "Somewhere to live, by the year",
+      shop: "Retail space, by the year",
+      office: "Workspace, by the year",
+      land: "Plots to buy or lease",
+    },
+    /* The screen the cards live on, at the door and in settings. */
+    question: "What are you here for?",
+    save: "Save what I am here for",
+    skip: "Skip",
+    savedSomething: "Saved. This is what we will put in front of you first.",
+    savedNothing:
+      "Saved. You have said nothing in particular, so nothing is ranked ahead of anything else.",
+    note:
+      "This only changes what we show first. Any search or filter you set yourself always wins.",
+    noteFirstRun: " You can change it later in Settings.",
+    screenTitle: "What you are here for",
+    screenSubtitle: "Choose as many as you like, or none at all",
+    accountTitle: "This one belongs to your account",
+    accountBodyUnconfigured:
+      "Accounts switch on the moment the platform keys land. What you are here for is kept on your account, so it follows you to every device.",
+    accountBodySignedOut:
+      "What you are here for is kept on your account, so it follows you to every device and decides what we put in front of you first.",
+    /* The settings row that reads the answer back. */
+    rowLabel: "What you are looking for",
+    rowNothing: "Nothing in particular",
+    rowNotAsked: "Not answered yet",
+    rowNote:
+      "This only decides what we put in front of you first. Any search or filter you set yourself always wins.",
+    rowNoteSignedOut:
+      "Sign in to keep this with your account, so it follows you to every device.",
+  },
+
+  /**
+   * Settings.
+   *
+   * The whole screen, including the groups that store on the device and the
+   * groups that store on the account. Both are read by the same person in the
+   * same language, so both live here rather than one being a dictionary section
+   * and the other a pile of literals.
+   *
+   * `notSet` is shared by every row that has no answer yet, because "Not set"
+   * appearing three different ways down one screen reads as three different
+   * states.
+   */
+  settings: {
+    notSet: "Not set",
+
+    appearance: {
+      label: "Appearance",
+      note: "Kept on this device. Dark is the designed default.",
+      theme: "Theme",
+      themeSystem: "System",
+      themeLight: "Light",
+      themeDark: "Dark",
+      textSize: "Text size",
+      sizeSmall: "Small",
+      sizeMedium: "Medium",
+      sizeLarge: "Large",
+      reduceMotion: "Reduce motion",
+      reduceMotionSub: "Calms entrance animations and hover movement across the app.",
+      lessData: "Use less data",
+      lessDataSub:
+        "Stops the app loading a place before you have opened it, and asks for smaller photographs.",
+    },
+
+    language: {
+      label: "Language",
+      appLanguage: "App language",
+    },
+
+    deviceNotifications: {
+      label: "Notifications",
+      note: "Kept on this device until you sign in, then they follow your account.",
+      push: "Push notifications",
+      pushSub: "Booking updates and replies, straight to this device.",
+      email: "Email",
+      emailSub: "Receipts, confirmations and occasional highlights.",
+      sms: "SMS",
+      smsSub: "Time-critical booking alerts by text message.",
+      whatsapp: "WhatsApp",
+      whatsappSub: "Booking confirmations and host replies on WhatsApp.",
+    },
+
+    devicePrivacy: {
+      label: "Privacy",
+      note: "Who can see me covers your name and reviews on listings.",
+      whoCanSee: "Who can see me",
+      everyone: "Everyone",
+      onlyMe: "Only me",
+      readReceipts: "Read receipts",
+      readReceiptsSub: "Let hosts see when you have read their messages.",
+      personalised: "Personalised recommendations",
+      personalisedSub: "Use your searches and saves to rank places you will like.",
+    },
+
+    search: {
+      label: "Search",
+      note:
+        "Search opens on your default area, and you can always look anywhere. Every price across RentMe is shown in Naira.",
+      defaultArea: "Default area",
+      allNigeria: "All of Nigeria",
+      currency: "Currency",
+      mapDistances: "Map distances",
+      kilometres: "Kilometres",
+      miles: "Miles",
+    },
+
+    security: {
+      label: "Security",
+      signOutNote:
+        "This is your only session, so there is nothing else to sign out. Once accounts launch, this control ends every session on every device at once.",
+      appLock: "Biometric app lock",
+      appLockSub:
+        "Ask for fingerprint or face unlock when the app opens, on devices that support it.",
+      signedInOn: "Signed in on",
+      thisDevice: "This device",
+      /* The last resort when the user agent names no browser we recognise. */
+      unknownBrowser: "Browser",
+      unknownDevice: "this device",
+      signOutEverywhere: "Sign out everywhere",
+    },
+
+    data: {
+      label: "Your data",
+      exportNote:
+        "Right now everything RentMe knows about you lives in this browser, and nothing has left this device. Full data export ships with the launch release.",
+      download: "Download my data",
+      downloadSub: "A copy of everything RentMe holds about you.",
+      clearLocal: "Clear local data",
+      clearAgain: "Tap again to confirm",
+      clearSub:
+        "Removes your profile name, preferences and saved conversations from this device, then reloads.",
+    },
+
+    /* The account-backed groups. Same switches, stored on the row instead. */
+    accountSaved: "Saved to your account",
+    accountNotifications: {
+      bookings: "Bookings",
+      bookingsSub: "Requests, confirmations and changes to your trips.",
+      bookingsHostSub: "New requests, cancellations and payments on your listings.",
+      messages: "Messages",
+      messagesSub: "New replies from hosts and agents you are talking to.",
+      messagesHostSub: "New enquiries from guests about your listings.",
+      wallet: "Wallet",
+      walletHost: "Earnings and payouts",
+      walletSub:
+        "Emails about money in and money out. Anything putting money at risk still appears in the app.",
+      marketing: "Ideas and offers",
+      marketingSub: "Occasional highlights from around Nigeria. Off by default.",
+      marketingHostSub: "Hosting tips and what is moving in your area. Off by default.",
+    },
+    accountPrivacy: {
+      hideActivity: "Hide my activity",
+      hideActivitySub: "Keep your reviews and recent stays off your public profile.",
+      dataSaver: "Data saver",
+      dataSaverSub: "Load lighter photos on mobile data. Kinder to a small bundle.",
+    },
+
+    /* Where you are, and what you do. The rows plus the screen behind them. */
+    place: {
+      label: "Where you are",
+      noteSet:
+        "This is the city home opens on. Your occupation comes from the platform's own list of 749, so it can be searched on.",
+      noteUnset: "Set these and home opens where you are.",
+      noteSignedOut: "Sign in to keep your state and local government with your account.",
+      localGovernment: "Local government",
+      state: "State",
+      whatYouDo: "What you do",
+      screenTitle: "Where you are",
+      screenSubtitle: "Nigeria, then your state, then your local government",
+      accountTitle: "This one belongs to your account",
+      accountBodyUnconfigured:
+        "Accounts switch on the moment the platform keys land. Your state, local government and occupation are kept on your account, so they follow you to every device.",
+      accountBodySignedOut:
+        "Your state, local government and occupation are kept on your account, so they follow you to every device and decide which places home opens on.",
+      statesUnavailable:
+        "The state list would not load just now. Refresh the page and it should come back. Nothing you had already saved has changed.",
+    },
+
+    account: {
+      label: "Account",
+      unconfiguredNote:
+        "Accounts switch on the moment the platform keys land. Everything you set here is kept on this device until then.",
+      signedIn: "Signed in",
+      notSignedIn: "Not signed in",
+      signedOutSub:
+        "Sign in to keep your profile and preferences with your account instead of this device.",
+      unconfiguredSub: "Kept on this device for now.",
+      activeOnDevice: "Active on this device",
+      signOut: "Sign out",
+      signingOut: "Signing out",
+      deleteLabel: "Delete my account",
+      deleteSub:
+        "Removes your profile, preferences, saved places and message history for good. This cannot be undone.",
+    },
+
+    /*
+     * Deletion. The one control in the app that cannot be undone, so every one
+     * of these lines is doing work: what goes, what stays, and why the phrase
+     * has to be typed. `{phrase}` is NOT translated - it is the exact string
+     * `deleteAccountAction` compares against, so it stays in the slot.
+     */
+    deleteAccount: {
+      dialogLabel: "Delete account",
+      title: "Delete account",
+      close: "Close",
+      doneTitle: "Your account is deleted",
+      doneBody:
+        "Everything tied to it has gone with it and you have been signed out. Taking you back to the home page now. You are welcome to start again any time.",
+      permanentTitle: "This is permanent",
+      pointProfile: "Your profile, photo and preferences are removed.",
+      pointContent: "Your saved places, messages and reviews go with them.",
+      pointBookings:
+        "Bookings already made stay on record with the host, as the law requires, but are no longer linked to you here.",
+      talkFirst:
+        "If something has gone wrong, talk to us first. Most things can be fixed without losing your history.",
+      keep: "Keep my account",
+      typeToConfirm: "Type {phrase} to confirm",
+      capitalsNote: "Capitals exactly as shown. Anything else will not unlock the button.",
+      deleteForGood: "Delete for good",
+    },
+
+    about: {
+      label: "About",
+      note:
+        "Preferences kept on this device stay on this device. Account preferences are protected with row level security, so only you can read or change your own row.",
+      help: "Help",
+      terms: "Terms",
+      privacy: "Privacy policy",
+      version: "Version",
     },
   },
 
@@ -1634,6 +1885,16 @@ export const en = {
     closeMenu: "Close menu",
     languageSwitcher: "Change language",
     favourite: "Save to favourites",
+    /* The dock of shortcuts that only exists from lg up. */
+    quickAccess: "Quick access",
+    /*
+     * Whole sentences with slots rather than a label plus a fragment. English
+     * puts the count after the noun and drops an "s" at one; not every language
+     * here does either, and a component that concatenates cannot know that.
+     * `{label}` is the destination's own translated name.
+     */
+    notificationsUnread: "Notifications, {count} unread",
+    unreadOn: "{label}, {count} unread notifications",
   },
 };
 
