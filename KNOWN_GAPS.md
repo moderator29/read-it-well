@@ -3,7 +3,7 @@
 Everything deliberately incomplete, with why and what unblocks it. Nothing here
 is hidden behind a passing build.
 
-Last updated: 2026-08-04.
+Last updated: 2026-08-06.
 
 **This file had rotted badly and was rewritten.** It was last accurate on
 2026-07-28 and still described a platform with no session layer, no search, no
@@ -16,11 +16,6 @@ the date above.
 ---
 
 ## Genuinely still missing
-
-**No Content Security Policy.** Verified: nothing sets one in `next.config` or
-middleware. It needs a nonce strategy compatible with Next streaming. The other
-security headers are set at the edge. This is the largest outstanding security
-item.
 
 **`pg_cron` is not enabled.** It is a Supabase toggle, not code, and attempts to
 enable it have been blocked. Until it lands, three things cannot run on a
@@ -45,12 +40,25 @@ and gain counts with no redesign once a real aggregate exists.
 `/agent/messages`, `/agent/reviews`, `/agent/analytics`, `/agent/verification`,
 `/agent/settings`. Bookings, earnings, listings and list are real.
 
-**No `Accept-Language` negotiation.** Locale resolves from a cookie then falls
-back to English, so a first-time visitor with a Yoruba browser still sees
-English. `lib/locale.ts` carries a comment pointing here.
+**Yoruba, Hausa and Igbo counted nouns need native review specifically.** The
+plural entries added with `Intl.PluralRules` sit inside the same native review
+the rest of those three files are waiting on, but two of them are worth naming.
+Yorùbá and Igbo have a single CLDR plural category, so one form has to serve
+every count, and the Igbo entries deliberately use the unmarked noun with the
+numeral after it (`okenye {count}`, `nwa {count}`) rather than the plural-marked
+`ndị okenye` and `ụmụaka` used elsewhere in that file, which would read as
+"adults 1" beside a numeral. A native speaker should confirm that choice.
 
-**No pluralisation rules.** `Intl.PluralRules` is not wired anywhere. Some
-existing copy already needs it: the booking card renders "1 adults, 1 children".
+**The reserve panel on a listing is still written in English in the component.**
+Only the three sentences that state a count were moved into the dictionary
+(`reserve.confirmedRange`, `reserve.capacityNote`, `reserve.totalForNights`),
+because a counted noun cannot be pluralised without owning the words around it.
+Roughly forty other strings in `ReservePanel.tsx`, and the `en-GB` date
+formatter it uses for the stay range, are unchanged. The same is true of the
+generated "about" paragraphs on `/listing/[id]`, the search history label built
+in `/search`, the booking validation messages in `lib/bookings/actions.ts`, the
+stay emails in `lib/email/messages.ts` and the "N nights selected" caption in
+the agent calendar editor. All are correct English; none are localised.
 
 **Yoruba, Hausa and Igbo need native review before launch.** The translations
 are functional and use correct diacritics and hooked letters, but marketing copy
@@ -61,10 +69,33 @@ literally. Every locale file carries this warning in its header.
 system for sheets, map transitions and AI states is not built. Reduced motion is
 honoured throughout via token collapse.
 
-**`apps/web/src/lib/security/rate-limit.ts` contains a literal NUL byte**, so
-tooling classifies it as binary and it disappears from `grep` and from GitHub
-code search. The code works; the file is invisible to search. Worth rewriting
-cleanly so nobody concludes the rate limiter does not exist.
+**There are two sheet implementations and they are only now properly apart.**
+`components/ui/Sheet.tsx` is the primitive, with a drag handle, detents and a
+transform driven by `[data-open]`. `components/app/account/rows.tsx` carries an
+older, simpler one that opens by animating, and it is what all eight surfaces
+across `/profile` and `/settings` use. They shared the class name `.nf-sheet`
+until this round, which made the older one unreachable under reduced motion;
+the older family is now `.nf-rows-sheet` and `app/settings-rows.css` explains
+why at length. **That fixed the bug, not the duplication.** Merging the two is
+real work worth doing: one sheet, one set of mechanics, eight call sites to
+migrate. It was not attempted here because the primitive belongs to another
+session's file scope.
+
+**963 em dashes remain in `docs/ui-audit/`,** across ten files, against a house
+rule that says zero anywhere including documentation. They are historical audit
+records from a single session, and a mechanical replacement would produce
+ungrammatical prose in documents nobody is going to reread. The live documents
+are clean: `docs/ENVIRONMENT.md` was fixed this round, as were the four source
+files and the one test comment that carried them. One of the four was
+user-facing, the agent application wizard's step label. Note that three test
+specs legitimately CONTAIN the character, because they are the guards that
+search for it, and a sweep must not "fix" those.
+
+**`apps/web/tsconfig.json` carries ten dead `include` entries.** Parallel builds
+add `".next-a1/types/**"` and friends as they are used, but `exclude` holds
+`".next-*"`, and exclude filters include, so every one of those entries does
+nothing. Only the default `.next/types` is live, because it has no dash. Not
+harmful, and worth a tidy the next time somebody is in that file.
 
 ---
 
@@ -86,6 +117,8 @@ Recorded so nobody rebuilds them.
 
 | Was listed as missing | Reality |
 |---|---|
+| No Content Security Policy | Built. Per-request nonce minted in `middleware.ts`, policy in `lib/security/csp.ts`, `strict-dynamic` with no `unsafe-inline` on scripts. Proved in a browser by `tests/csp.spec.mjs`, which also asserts nothing on the page is blocked |
+| `rate-limit.ts` holds a literal NUL byte and is invisible to grep | Rewritten with the byte written as a unicode escape. `file` now reports ASCII text, the compiled string is unchanged, and the separator carries a comment explaining why the separator has to be NUL |
 | No session layer | `lib/auth/actions.ts` has real `signInWithPassword`, `signUp`, sign-out and Google/Apple OAuth |
 | No search, map, filters or pagination | `/search` has a real engine, `FilterDrawer`, `MapCanvas`, `MapDock` and a square filter opener |
 | Light theme scaffolded, must not be exposed | Fully designed exchange-grade paper twin, shipped, and the default is dark |
@@ -98,6 +131,8 @@ Recorded so nobody rebuilds them.
 | Listing wizard step count undecided | Built |
 | Location model blocked on LGA | Built on state, city, area |
 | Service fee ownership undefined | Settled: the platform charges NO fees anywhere |
+| No `Accept-Language` negotiation | Wired. `lib/locale.ts` resolves cookie, then `Accept-Language`, then English. The header parser is `parseAcceptLanguage`/`matchAcceptLanguage` in `packages/i18n/src/negotiate.ts`: no dependency, q values honoured and ordered, `yo-NG` matched on its primary subtag, `q=0` and `*` handled. Covered by `apps/web/src/lib/accept-language.test.ts` |
+| No pluralisation rules, and the booking card renders "1 adults, 1 children" | Wired. `plural()` and `formatParty()` in `packages/i18n` select through `Intl.PluralRules` on the same `intlTag` map `formatMoney` uses, so the categories come from the locale: `one`/`other` for English and Hausa, `other` alone for Yorùbá and Igbo. The dictionary carries a `counts` block in all four files. Every party, guest and night count on the admin stay board and detail, the host booking card, the guest bookings deck (signed in and signed out), checkout and the listing reserve panel and sticky bar now goes through it. Covered by `apps/web/src/lib/plurals.test.ts` |
 
 ---
 
