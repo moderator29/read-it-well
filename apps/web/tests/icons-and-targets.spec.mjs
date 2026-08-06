@@ -148,7 +148,13 @@ for (const f of product) {
 check("every icon size outside the social layer is on its scale", offScale.length === 0, offScale);
 check(
   "the component snaps anything else onto the scale, so a size cannot drift off it",
-  /export function snapUiIconSize/.test(uiIconSource) && /const edge = snapUiIconSize\(size\)/.test(uiIconSource),
+  /* The regex used to pin the ARGUMENT as well - `snapUiIconSize(size)` - and
+     went stale the day the component learned named sizes and started resolving
+     `ICON_SIZE[size]` first. What must hold is that the single place the edge
+     is computed goes through the snap, whatever it is handed; pinning the
+     expression too made a correct refactor look like a regression. */
+  /export function snapUiIconSize/.test(uiIconSource) &&
+    /const edge = snapUiIconSize\(/.test(uiIconSource),
 );
 
 /* 4. Vector sources exist and still match the component they came from. */
