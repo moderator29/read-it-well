@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDictionary, type Dictionary } from "@naijafinds/i18n";
-import { PageHeader } from "@/components/app/PageHeader";
+import { getDictionary } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Chip, ChipRow } from "@/components/ui/Chip";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { listMyAreas, type AreaSummary } from "@/lib/social/areas-queries";
@@ -210,61 +208,5 @@ export default async function AroundPage({
         currentAreaId={selected && selected.status === "ACTIVE" ? selected.id : undefined}
       />
     </div>
-  );
-}
-
-/**
- * Which places this timeline is made of.
- *
- * `ChipRow` and `Chip` rather than a hand-rolled rail, so this row gets the
- * platform's 44px hit target, its snap behaviour, its hidden scrollbar and its
- * trailing fade for free, and so a change to any of those lands here too.
- *
- * Every chip is a link carrying `?place=`, which is what makes the choice
- * survive a reload and put a real entry in the history stack. `aria-current`
- * comes from `Chip` itself for a selected link, because nothing was toggled:
- * the row is describing where the reader already is.
- *
- * The last chip is always the way to the directory, even for somebody in forty
- * places, so this row is never a control with one dead option in it.
- */
-function PlaceSwitcher({
-  places,
-  activeSlug,
-  t,
-}: {
-  places: AreaSummary[];
-  activeSlug: string | null;
-  t: Dictionary;
-}) {
-  return (
-    <nav aria-label={t.social.switcherLabel} className="mb-4" data-testid="around-switcher">
-      <ChipRow label={t.social.switcherLabel}>
-        <Chip
-          behaviour="link"
-          href="/around"
-          size="sm"
-          icon="grid"
-          selected={activeSlug === null}
-          data-testid="around-switcher-all"
-        >
-          {t.social.allPlaces}
-        </Chip>
-        {places.map((place) => (
-          <Chip
-            key={place.slug}
-            behaviour="link"
-            href={`/around?place=${encodeURIComponent(place.slug)}`}
-            size="sm"
-            selected={place.slug === activeSlug}
-          >
-            {place.name}
-          </Chip>
-        ))}
-        <Chip behaviour="link" href="/around/settings" size="sm" icon="sliders">
-          {t.social.pickPlaces}
-        </Chip>
-      </ChipRow>
-    </nav>
   );
 }
