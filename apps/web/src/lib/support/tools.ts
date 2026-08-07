@@ -1,10 +1,22 @@
 import "server-only";
 
 import { formatMoney } from "@naijafinds/i18n";
-import { getMyBookings, type BookingGroups, type BookingView } from "../bookings/queries";
-import { readStatement } from "../wallet/repository";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { resolveSession, type SessionState } from "../actions/session";
-import { faqAnswerById, searchFaq } from "./faq";
+import { lagosToday } from "../bookings/schema";
+import { loadConversationSummaries } from "../messages/live";
+import { parseSettings } from "../profile/schema";
+import type { Database } from "../supabase/database.types";
+import {
+  CANCELLATION_STOPS,
+  FULL_REFUND_HOURS,
+  refundAtStop,
+  refundForCancellation,
+} from "../trust/cancellation";
+import { RESPONSE_COMMITMENTS } from "../trust/standards";
+import { SUPPORT_TOPICS, SUPPORT_TOPIC_LABEL, gradeForTopic } from "../trust/support-topics";
+import { readStatement } from "../wallet/repository";
+import { searchFaq } from "./faq";
 import { fileSupportTicket } from "./actions";
 import type { SupportAction } from "./types";
 
@@ -16,13 +28,26 @@ import type { SupportAction } from "./types";
  * auth cookies, and never on the service role. `resolveSession()` hands back
  * that client already bound to the signed-in user, and each read is filtered
  * by the caller's own id on top of RLS, so a tool physically cannot return
- * another person's booking, wallet or ticket. A signed-out caller has no such
- * client, so the personal tools answer "unavailable, offer sign-in" rather
- * than guessing, and the model is told to say exactly that.
+ * another person's booking, wallet, ticket or thread. A signed-out caller has
+ * no such client, so the personal tools answer "unavailable, offer sign-in"
+ * rather than guessing, and the model is told to say exactly that.
  *
- * The one service-role touch in the whole feature is the anonymous ticket
- * insert inside `fileSupportTicket`, which is a write of the name and email
- * the person just gave, never a read, and it long predates the agent.
+ * Two service-role touches exist in the whole feature and both are named here
+ * rather than buried. The anonymous ticket insert inside `fileSupportTicket` is
+ * a write of the name and email the person just gave, never a read. And
+ * `loadConversationSummaries` resolves the counterpart's DISPLAY NAME through
+ * the admin client strictly after RLS has already chosen which conversations
+ * exist for this caller, exactly as the inbox does, because profiles and agents
+ * are select-own tables and a thread with "RentMe member" on every row answers
+ * nobody's question about whether their agent replied.
+ *
+ * THE RULE THAT SHAPES EVERY RETURN BELOW: the model never receives a bare
+ * number that is money, and never receives a figure the platform was not told.
+ * Amounts are formatted here, in kobo-exact naira, and an amount we could not
+ * read comes back as an explicit "unknown" the model is instructed to repeat
+ * rather than as a zero. A zero beside a currency symbol reads as "free", and
+ * this platform has already had one surface tell people that an unpriced
+ * partner hotel cost nothing.
  */
 
 /* ------------------------------------------------------------------ shapes */
@@ -36,6 +61,11 @@ export type ToolOutcome = {
   /** Set when a ticket was really written, so the UI can show the receipt. */
   reference?: string;
 };
+
+type Db = SupabaseClient<Database>;
+
+/** The one session shape the personal tools can act on. */
+type SignedIn = Extract<SessionState, { state: "signed-in" }>;
 
 const SIGN_IN_ACTION: SupportAction = {
   kind: "sign-in",
@@ -67,17 +97,50 @@ const SIGNED_OUT = {
     "This person is not signed in, so their own records cannot be read. Say so plainly and offer sign in. Never guess what their booking or balance might be.",
 } as const;
 
+/**
+ * Not the same answer as signed out, and telling them apart matters.
+ *
+ * Every personal tool used to hand back SIGNED_OUT for both, so a caller on an
+ * instance with no database keys was told to sign in: an instruction that
+ * cannot work, on a screen where the sign-in form cannot work either. The
+ * honest version names the state and points at the one path that still runs,
+ * which is a ticket to a person.
+ */
+const UNCONFIGURED = {
+  available: false,
+  reason:
+    "This platform's database is not connected on this instance, so no account records exist to read and signing in cannot help. Say that the records cannot be reached right now, do not offer sign in, and offer to put the question in front of a person instead.",
+} as const;
+
+/**
+ * The one reply for a read that failed.
+ *
+ * A failed read and an empty account are the same shape in a database client
+ * and the opposite thing to a reader, so they are never allowed to share a
+ * sentence: "you have no bookings" is a statement of fact about somebody's
+ * account and it must not be what a dropped connection sounds like.
+ */
+function unreadable(what: string): ToolOutcome {
+  return {
+    result: {
+      available: false,
+      reason: `Their ${what} could not be read just now. Say plainly that you could not reach it, do not say it is empty, and offer to try again or to bring in a person.`,
+    },
+  };
+}
+
 /* ------------------------------------------------------------ declarations */
 
 /**
- * The tool set, deliberately small. Four reads and one write: anything wider
- * would be a way for the model to wander off the caller's own record.
+ * The tool set. Seven reads and one write, every one of them scoped to the
+ * caller's own record: anything wider would be a way for the model to wander
+ * off the person it is talking to.
  */
 export const SUPPORT_TOOLS = [
   {
     name: "search_help",
     description:
-      "Search RentMe's canonical help notes: how bookings, payments, the wallet, listing a property, verification, cancellations, languages, privacy and messaging safety actually work. Call this before answering any question about policy or how the platform works, and answer from what it returns rather than from memory.",
+      "Search RentMe's canonical help notes: how bookings, payments, the wallet, listing a property, verification, cancellations, refunds, reviews, reporting, languages, privacy and messaging safety actually work. Call this before answering any question about policy or how the platform works, and answer from what it returns rather than from memory.",
     input_schema: {
       type: "object",
       properties: {
@@ -93,7 +156,7 @@ export const SUPPORT_TOOLS = [
   {
     name: "my_bookings",
     description:
-      "Read the signed-in caller's own bookings: status, dates, listing title and total. Use it whenever they ask about their trip, their dates or their booking. Returns unavailable when nobody is signed in.",
+      "Read the signed-in caller's own bookings: status, dates, listing, total, what they have actually paid, any refund already decided, and what they can do next on each one. Use it whenever they ask about their trip, their dates, their booking or their money on a booking. Returns unavailable when nobody is signed in.",
     input_schema: {
       type: "object",
       properties: {},
@@ -103,7 +166,7 @@ export const SUPPORT_TOOLS = [
   {
     name: "my_wallet",
     description:
-      "Read the signed-in caller's own wallet: the derived naira balance and their last few ledger entries. Use it for questions about balance, a refund landing, a withdrawal or a transaction. Returns unavailable when nobody is signed in.",
+      "Read the signed-in caller's own wallet: the settled naira balance, how much of it is held against a withdrawal in flight, what is therefore spendable, and their last few ledger entries. Use it for questions about balance, a refund landing, a withdrawal or a transaction. Returns unavailable when nobody is signed in.",
     input_schema: {
       type: "object",
       properties: {},
@@ -113,7 +176,7 @@ export const SUPPORT_TOOLS = [
   {
     name: "booking_policy",
     description:
-      "For one of the caller's own bookings, say whether it can still be cancelled and what cancelling does. Pass the booking id returned by my_bookings. Returns unavailable when nobody is signed in, and not found when the booking is not theirs.",
+      "For one of the caller's own bookings, say exactly how it can be called off, by whom, and what the published cancellation schedule is worth against what they actually paid. Pass the booking id returned by my_bookings. Returns unavailable when nobody is signed in, and not found when the booking is not theirs.",
     input_schema: {
       type: "object",
       properties: {
@@ -127,15 +190,47 @@ export const SUPPORT_TOOLS = [
     },
   },
   {
+    name: "my_tickets",
+    description:
+      "Read the support tickets the signed-in caller has already filed: reference, subject, status, when it was filed and whether the team has replied. Use it whenever they ask what happened to a ticket, quote an NF-SUP reference, or say nobody has come back to them. Returns unavailable when nobody is signed in.",
+    input_schema: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "my_messages",
+    description:
+      "Read the signed-in caller's own message threads with agents: who the thread is with, which listing it is about, how many messages are unread, and whether the last word was theirs or the other side's. Use it when they say an agent has not replied, or ask where a conversation went. Never reveal message bodies beyond the short preview this returns.",
+    input_schema: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "my_account",
+    description:
+      "Read the signed-in caller's own account: the email replies go to, their name, whether a phone number is set, when they joined, and which notification channels they have switched on. Use it for questions about which address we write to, why they are not hearing from us, or what is missing from their profile.",
+    input_schema: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+  },
+  {
     name: "file_ticket",
     description:
-      "Hand the matter to the human support team by filing a real support ticket, and return its NF-SUP reference. Call this when the person asks for a human, or when the matter is money lost, safety, fraud, or an account they cannot get into, or when you genuinely cannot answer. For a signed-out caller you must have their name and email first: ask for both in the conversation, or point them at the Talk to a person control. Never say a ticket exists unless this tool returned a reference.",
+      "Hand the matter to the human support team by filing a real support ticket, and return its NF-SUP reference and the response time it is now under. Call this when the person asks for a human, or when the matter is money lost, safety, fraud, or an account they cannot get into, or when you genuinely cannot answer. For a signed-out caller you must have their name and email first: ask for both in the conversation, or point them at the Talk to a person control. Never say a ticket exists unless this tool returned a reference.",
     input_schema: {
       type: "object",
       properties: {
         topic: {
           type: "string",
-          description: "A short subject line, e.g. Refund not received.",
+          enum: [...SUPPORT_TOPICS],
+          description:
+            "Which queue this belongs in. Choose safety for anyone asked to pay outside RentMe, anything unsafe, or money already lost: it carries a four hour response time, and the wrong choice here slows a real person down.",
         },
         question: {
           type: "string",
@@ -152,7 +247,8 @@ export const SUPPORT_TOOLS = [
         },
         email: {
           type: "string",
-          description: "Their email address. Required when nobody is signed in.",
+          description:
+            "Their email address. Required when nobody is signed in, and ignored when they are, because a signed-in ticket always answers to the address on the account.",
         },
       },
       required: ["topic", "question", "summary"],
@@ -171,30 +267,284 @@ function asString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-/** Flatten the grouped trips read into one list the model can reason over. */
-function flatten(groups: BookingGroups): { group: string; booking: BookingView }[] {
-  return [
-    ...groups.upcoming.map((booking) => ({ group: "upcoming", booking })),
-    ...groups.completed.map((booking) => ({ group: "completed", booking })),
-    ...groups.cancelled.map((booking) => ({ group: "cancelled", booking })),
-  ];
+/**
+ * Money for a machine to read aloud.
+ *
+ * The only way an amount reaches the model. Integer kobo in, formatted naira
+ * out, so there is no path where the model is handed 12000000 and decides for
+ * itself whether that is twelve million naira or a hundred and twenty thousand.
+ */
+function naira(minor: number, currency: string): string {
+  return formatMoney(Math.trunc(minor), "en", currency);
 }
 
-function bookingForModel(group: string, booking: BookingView) {
-  return {
-    id: booking.id,
-    title: booking.title,
-    city: booking.city,
-    status: booking.status,
-    group,
-    checkIn: booking.checkIn,
-    checkOut: booking.checkOut,
-    dates: booking.dateRange,
-    nights: booking.nights,
-    guests: booking.guests,
-    total: booking.totalDisplay,
-    cancellable: booking.cancellable,
-  };
+/** "Fri 14 Aug 2026" from a date-only booking column. */
+const DAY_LABEL = new Intl.DateTimeFormat("en-GB", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+function dayLabel(iso: string): string {
+  // Noon UTC, the same trick the trips hub uses: a date-only column has no
+  // instant, and midnight would land on the previous day in some zones.
+  const at = new Date(`${iso}T12:00:00Z`);
+  return Number.isNaN(at.getTime()) ? iso : DAY_LABEL.format(at);
+}
+
+/** "14 Aug 2026, 09:14" in Lagos, from a true timestamp column. */
+const INSTANT_LABEL = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Africa/Lagos",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+function instantLabel(iso: string): string {
+  const at = new Date(iso);
+  // Formatted in Lagos rather than handed over as an ISO instant, because a
+  // model given "2026-08-14T23:40:00Z" will read the date off the front of it
+  // and tell a Nigerian reader the wrong day for anything after 11pm UTC.
+  return Number.isNaN(at.getTime()) ? "" : INSTANT_LABEL.format(at);
+}
+
+/* -------------------------------------------------------- the bookings read */
+
+/**
+ * What one booking looks like to the model.
+ *
+ * `paid` is a formatted amount or the word unknown, never a number and never a
+ * silent zero: a payments read that failed must not come out the other end as
+ * "you have paid nothing", which is how a guest ends up being told their money
+ * is not there.
+ */
+type SupportBooking = {
+  id: string;
+  listing: string | null;
+  where: string | null;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED";
+  stage: "upcoming" | "staying" | "completed" | "cancelled";
+  dates: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  guests: number;
+  total: string;
+  paid: string;
+  refund?: string;
+  cancelInApp: boolean;
+  nextSteps: string[];
+};
+
+type BookingContext = {
+  bookings: SupportBooking[];
+  /** The raw figures the policy tool needs; never handed to the model. */
+  money: Map<string, { paidMinor: number | null; currency: string; totalMinor: number }>;
+};
+
+const BOOKING_LIMIT = 20;
+
+/**
+ * The caller's own trips, read as them, with the money on each one.
+ *
+ * This deliberately does NOT reuse `getMyBookings` from the trips hub, and the
+ * reasons are all correctness rather than taste. That read resolves the session
+ * from cookies a second time, which defeats the single resolution this whole
+ * feature is built on. It returns an empty group set when the query ERRORS, so
+ * a dropped connection arrives here indistinguishable from a person with no
+ * bookings, and the tool would state the second as fact. It throws rather than
+ * degrading, which takes the entire conversation down with it. And it keeps
+ * only a formatted total, when a truthful cancellation answer needs the kobo
+ * and needs to know what was actually paid, which lives in `transactions`.
+ *
+ * Five bounded reads, all on the caller's own client: the bookings, the titles,
+ * the successful payments, any refund already decided, and which stays they
+ * have reviewed. Everything after the first is best effort, because a missing
+ * title is worth less than a missing answer, and each failure narrows what may
+ * be said rather than what is returned.
+ */
+async function readBookings(client: Db, userId: string): Promise<BookingContext | null> {
+  const { data: rows, error } = await client
+    .from("bookings")
+    .select(
+      "id, listing_id, check_in, check_out, nights, adults, children, total_minor, currency, status",
+    )
+    .eq("guest_id", userId)
+    .order("check_in", { ascending: false })
+    .limit(BOOKING_LIMIT);
+  if (error || !rows) return null;
+
+  const ids = rows.map((row) => row.id);
+  const listingIds = [...new Set(rows.map((row) => row.listing_id))];
+
+  const titles = new Map<string, { title: string; area: string | null; city: string | null }>();
+  if (listingIds.length > 0) {
+    const { data } = await client.from("listings").select("id, title, area, city").in("id", listingIds);
+    for (const row of data ?? []) titles.set(row.id, row);
+  }
+
+  // Successful payments per booking. `null` for the whole map when the read
+  // failed, so every booking says unknown rather than nothing.
+  let paidByBooking: Map<string, number> | null = null;
+  if (ids.length > 0) {
+    const { data, error: payError } = await client
+      .from("transactions")
+      .select("booking_id, amount_minor, status")
+      .in("booking_id", ids);
+    if (!payError) {
+      paidByBooking = new Map();
+      for (const row of data ?? []) {
+        if (row.status !== "SUCCESSFUL") continue;
+        paidByBooking.set(row.booking_id, (paidByBooking.get(row.booking_id) ?? 0) + row.amount_minor);
+      }
+    }
+  } else {
+    paidByBooking = new Map();
+  }
+
+  const refunds = new Map<string, { refundMinor: number; createdAt: string }>();
+  if (ids.length > 0) {
+    const { data } = await client
+      .from("booking_refunds")
+      .select("booking_id, refund_minor, created_at")
+      .in("booking_id", ids);
+    for (const row of data ?? []) {
+      refunds.set(row.booking_id, { refundMinor: row.refund_minor, createdAt: row.created_at });
+    }
+  }
+
+  const reviewed = new Set<string>();
+  if (ids.length > 0) {
+    const { data } = await client
+      .from("reviews")
+      .select("booking_id")
+      .eq("author_id", userId)
+      .in("booking_id", ids);
+    for (const row of data ?? []) reviewed.add(row.booking_id);
+  }
+
+  const today = lagosToday();
+  const bookings: SupportBooking[] = [];
+  const money: BookingContext["money"] = new Map();
+
+  for (const row of rows) {
+    const listing = titles.get(row.listing_id);
+    const paidMinor = paidByBooking ? (paidByBooking.get(row.id) ?? 0) : null;
+    const refund = refunds.get(row.id);
+    const stage: SupportBooking["stage"] =
+      row.status === "CANCELLED"
+        ? "cancelled"
+        : row.check_out <= today
+          ? "completed"
+          : row.check_in <= today
+            ? "staying"
+            : "upcoming";
+
+    const where = [listing?.area ?? "", listing?.city ?? ""].filter(Boolean).join(", ");
+
+    money.set(row.id, {
+      paidMinor,
+      currency: row.currency,
+      totalMinor: row.total_minor,
+    });
+
+    bookings.push({
+      id: row.id,
+      listing: listing?.title ?? null,
+      where: where.length > 0 ? where : null,
+      status: row.status,
+      stage,
+      dates: `${dayLabel(row.check_in)} to ${dayLabel(row.check_out)}`,
+      checkIn: row.check_in,
+      checkOut: row.check_out,
+      nights: row.nights,
+      guests: row.adults + row.children,
+      total: naira(row.total_minor, row.currency),
+      paid:
+        paidMinor === null
+          ? "unknown, the payment record could not be read"
+          : paidMinor === 0
+            ? "nothing yet, this stay is still an unpaid hold"
+            : naira(paidMinor, row.currency),
+      ...(refund
+        ? {
+            refund: `${naira(refund.refundMinor, row.currency)} was returned to their wallet on ${instantLabel(refund.createdAt)}`,
+          }
+        : {}),
+      cancelInApp: cancellableInApp(row.status, row.check_in, paidMinor, today),
+      nextSteps: nextStepsFor(row.status, stage, paidMinor, reviewed.has(row.id)),
+    });
+  }
+
+  return { bookings, money };
+}
+
+/**
+ * Can the guest still cancel this from the app, honestly?
+ *
+ * The trips hub's own `cancellable` says yes for any live booking with a
+ * future check-in, and the cancel action then refuses a stay that has been paid
+ * for, because /cancellations says in plain words that once money has moved a
+ * person handles it. The support agent was reading the first and telling guests
+ * to press a button that would turn them away, which is worse than saying no:
+ * it spends their trust to find out. Unknown payment state answers false, so
+ * the agent describes the route that always works rather than promising one
+ * that might not.
+ */
+function cancellableInApp(
+  status: string,
+  checkIn: string,
+  paidMinor: number | null,
+  today: string,
+): boolean {
+  if (status !== "PENDING" && status !== "CONFIRMED") return false;
+  if (checkIn <= today) return false;
+  return paidMinor === 0;
+}
+
+/** What this person can actually DO with this booking, from its real state. */
+function nextStepsFor(
+  status: string,
+  stage: SupportBooking["stage"],
+  paidMinor: number | null,
+  reviewed: boolean,
+): string[] {
+  if (status === "CANCELLED") {
+    return [
+      "Nothing to do on this one. The dates were released and the agent was told when it was cancelled.",
+    ];
+  }
+  if (stage === "completed") {
+    return reviewed
+      ? ["This stay is finished and they have already reviewed it."]
+      : [
+          "This stay is finished, so they can write a review of it from Bookings. A stay can be reviewed once.",
+        ];
+  }
+  if (stage === "staying") {
+    return [
+      "They are in this stay now. If they could not get in, or the place is not what was listed, they should message the agent in the thread first so there is a time stamp, then tell support: do not cancel, because that case is refunded in full once it is confirmed.",
+    ];
+  }
+  if (paidMinor === null) {
+    return [
+      "The payment record could not be read, so do not tell them whether this is paid for. Offer to check it with a person.",
+    ];
+  }
+  if (paidMinor === 0) {
+    return [
+      "This stay is an unpaid hold. They can pay it from Bookings to confirm the dates, or call it off from Bookings at any hour for nothing while it is unpaid.",
+    ];
+  }
+  return [
+    "This stay is paid for, so cancelling it is done by a person rather than by the button: ask support here and the published schedule decides the amount, which goes back to their RentMe wallet.",
+    "Call booking_policy with this booking id before quoting any figure.",
+  ];
 }
 
 /* ------------------------------------------------------------------- tools */
@@ -218,78 +568,133 @@ function runSearchHelp(input: unknown): ToolOutcome {
   };
 }
 
-/**
- * The caller's own trips, read as them.
- *
- * `getMyBookings` is the same read the trips hub uses: it resolves the session
- * from the request's own cookies and selects with `guest_id` pinned to that
- * user under RLS. We check the resolved session first so a signed-out caller
- * never reaches the query at all.
- */
-async function runMyBookings(session: SessionState): Promise<ToolOutcome> {
-  if (session.state !== "signed-in") {
-    return { result: SIGNED_OUT, actions: [SIGN_IN_ACTION] };
-  }
-  const groups = await getMyBookings("en");
-  if (!groups) return { result: SIGNED_OUT, actions: [SIGN_IN_ACTION] };
+/** The caller's own trips, read as them. */
+async function runMyBookings(session: SignedIn): Promise<ToolOutcome> {
+  const context = await readBookings(session.supabase, session.user.id);
+  if (!context) return unreadable("bookings");
 
-  const rows = flatten(groups);
-  if (rows.length === 0) {
+  if (context.bookings.length === 0) {
     return {
-      result: { bookings: [], note: "This person has no bookings on their account yet." },
+      result: {
+        bookings: [],
+        note: "This account has no bookings on it. That is the read, not a failure: say so plainly, and if they believe they have booked, ask whether they might have used another account.",
+      },
       actions: [BOOKINGS_ACTION],
     };
   }
   return {
-    result: { bookings: rows.slice(0, 20).map((row) => bookingForModel(row.group, row.booking)) },
+    result: {
+      bookings: context.bookings,
+      note: "Quote the amounts exactly as they are written here. Where paid says unknown, say the payment record could not be read rather than naming any figure.",
+    },
     actions: [BOOKINGS_ACTION, MESSAGES_ACTION],
   };
 }
 
 /** The caller's own balance and last few entries, read as them. */
-async function runMyWallet(session: SessionState): Promise<ToolOutcome> {
-  if (session.state !== "signed-in") {
-    return { result: SIGNED_OUT, actions: [SIGN_IN_ACTION] };
-  }
+async function runMyWallet(session: SignedIn): Promise<ToolOutcome> {
+  let statement;
   try {
-    const statement = await readStatement(session.supabase, session.user.id);
+    statement = await readStatement(session.supabase, session.user.id);
+  } catch {
+    return unreadable("wallet");
+  }
+
+  const { currency } = statement;
+
+  if (statement.id === null) {
+    // The lazy-creation contract: a wallet row appears on first use. Saying
+    // "your balance is zero" would be true and would still mislead, because it
+    // sounds like money that went missing rather than an account never funded.
     return {
       result: {
-        balance: formatMoney(statement.balanceMinor, "en", statement.currency),
-        note: "The balance is derived from the full ledger, never stored.",
-        recent: statement.entries.slice(0, 5).map((entry) => ({
-          kind: entry.kind,
-          direction: entry.direction,
-          amount: formatMoney(entry.amountMinor, "en", statement.currency),
-          status: entry.status,
-          reference: entry.reference,
-          when: entry.createdAt,
-          ...(entry.note ? { note: entry.note } : {}),
-        })),
+        walletCreated: false,
+        note: "No wallet has been opened on this account yet, which happens the first time money moves. There is no balance to state and nothing has gone missing.",
       },
       actions: [WALLET_ACTION],
     };
-  } catch {
-    return {
-      result: {
-        available: false,
-        reason:
-          "The wallet could not be read just now. Say so honestly and offer to hand this to a person; do not state a balance.",
-      },
-    };
   }
+
+  /*
+   * Two figures, because the platform has two and they are not the same one.
+   *
+   * The derived balance counts COMPLETED entries only, while a withdrawal in
+   * flight sits as a PENDING debit and is held out of what can be spent
+   * (`availableBalanceMinor`). Reporting the settled balance alone is how a
+   * guest is told they have money that checkout will then refuse. Read here
+   * rather than taken from the statement's newest hundred rows, because a hold
+   * older than that would be silently dropped from the subtraction.
+   */
+  let heldMinor: number | null = null;
+  const held = await session.supabase
+    .from("wallet_entries")
+    .select("amount_minor")
+    .eq("wallet_id", statement.id)
+    .eq("status", "PENDING")
+    .eq("direction", "debit");
+  if (!held.error) {
+    heldMinor = 0;
+    for (const row of held.data ?? []) heldMinor += row.amount_minor;
+  }
+
+  return {
+    result: {
+      walletCreated: true,
+      balance: naira(statement.balanceMinor, currency),
+      heldForWithdrawals:
+        heldMinor === null
+          ? "unknown, the pending entries could not be read"
+          : naira(heldMinor, currency),
+      spendable:
+        heldMinor === null
+          ? "unknown, because the amount held could not be read. Give the balance and say the spendable figure could not be confirmed."
+          : naira(statement.balanceMinor - heldMinor, currency),
+      note: "The balance is derived from the ledger, never stored. Money committed to a withdrawal that has not settled is held out of the spendable figure, so quote spendable when they ask what they can use, and explain the difference only when the two are not equal.",
+      recent:
+        statement.entries.length === 0
+          ? []
+          : statement.entries.slice(0, 5).map((entry) => ({
+              kind: entry.kind,
+              direction: entry.direction,
+              amount: naira(entry.amountMinor, currency),
+              status: entry.status,
+              reference: entry.reference,
+              when: instantLabel(entry.createdAt),
+              ...(entry.note ? { note: entry.note } : {}),
+            })),
+      ...(statement.entries.length === 0
+        ? { recentNote: "This wallet has no entries yet, so there is no history to describe." }
+        : {
+            statusMeaning:
+              "PENDING is in flight and not yet settled, COMPLETED has landed, FAILED did not go through and the money was never taken, REVERSED was undone.",
+          }),
+    },
+    actions: [WALLET_ACTION],
+  };
 }
 
-/** Whether one of the caller's own bookings can still be called off. */
-async function runBookingPolicy(session: SessionState, input: unknown): Promise<ToolOutcome> {
-  if (session.state !== "signed-in") {
-    return { result: SIGNED_OUT, actions: [SIGN_IN_ACTION] };
-  }
+/**
+ * How one of the caller's own bookings can be called off, and what that is
+ * worth against what they actually paid.
+ *
+ * This used to hand the model the FAQ paragraph on cancellations and a boolean
+ * from the trips hub. Both were wrong in the same direction, towards promising
+ * more than the platform does: the paragraph described per-listing deadlines,
+ * which RentMe deliberately does not have, and the boolean said a paid stay
+ * could be cancelled with a button that refuses paid stays. The schedule now
+ * comes from `lib/trust/cancellation.ts`, the single module the public policy
+ * page, the listing, the booking and the admin refund desk all compute from, so
+ * the agent cannot tell somebody a different story about their own money than
+ * the page they can go and read.
+ */
+async function runBookingPolicy(session: SignedIn, input: unknown): Promise<ToolOutcome> {
   const bookingId = asString(asRecord(input).bookingId);
-  const groups = await getMyBookings("en");
-  const match = groups ? flatten(groups).find((row) => row.booking.id === bookingId) : undefined;
+  const context = await readBookings(session.supabase, session.user.id);
+  if (!context) return unreadable("bookings");
 
-  if (!match) {
+  const booking = context.bookings.find((row) => row.id === bookingId);
+  const figures = context.money.get(bookingId);
+  if (!booking || !figures) {
     return {
       result: {
         found: false,
@@ -299,25 +704,244 @@ async function runBookingPolicy(session: SessionState, input: unknown): Promise<
     };
   }
 
-  const { booking, group } = match;
-  const policy = faqAnswerById("cancellations");
+  const { paidMinor, currency } = figures;
+  const scheduleNote = `One schedule covers every stay on RentMe. The free-cancellation deadline is ${FULL_REFUND_HOURS} hours before check-in.`;
+
+  if (booking.status === "CANCELLED") {
+    return {
+      result: {
+        booking,
+        route: "nothing to cancel",
+        whatHappens:
+          "This booking is already cancelled, so there is nothing left to call off. The dates were released and the agent was told.",
+        ...(booking.refund
+          ? { refundAlready: booking.refund }
+          : {
+              refundAlready:
+                "No refund decision is recorded against this booking. If they paid and expect money back, do not guess: bring in a person.",
+            }),
+      },
+      actions: [BOOKINGS_ACTION],
+    };
+  }
+
+  if (paidMinor === null) {
+    // Everything below this line is arithmetic on what they paid. Without that
+    // figure there is no honest answer, and inventing a zero would turn "we
+    // could not check" into "you are owed nothing".
+    return {
+      result: {
+        booking,
+        route: "unknown",
+        whatHappens:
+          "The payment record for this booking could not be read, so nothing can be said about what cancelling is worth. Say exactly that and offer to bring in a person, who can see it.",
+        schedule: scheduleNote,
+      },
+      actions: [BOOKINGS_ACTION],
+    };
+  }
+
+  if (paidMinor === 0) {
+    return {
+      result: {
+        booking,
+        route: booking.cancelInApp ? "the guest, from Bookings" : "a person on the support team",
+        whatHappens: booking.cancelInApp
+          ? "Nothing has been paid, so this is a hold on the calendar and nothing more. Cancelling it from Bookings releases the dates immediately, costs nothing, and there is no refund to work out because no money moved."
+          : "Nothing has been paid, so there is no money to return. The stay has started or is past, so it can no longer be called off from the app and a person has to look at it.",
+        where: "Bookings, then the trip, then Cancel booking.",
+        schedule: scheduleNote,
+      },
+      actions: [BOOKINGS_ACTION],
+    };
+  }
+
+  // Paid. The amount is decided by the same function the refund desk runs, so
+  // what the agent quotes and what the desk pays are one number.
+  const outcome = refundForCancellation(paidMinor, booking.checkIn);
   return {
     result: {
-      booking: bookingForModel(group, booking),
-      cancellable: booking.cancellable,
-      whatCancellingDoes: booking.cancellable
-        ? "Cancelling releases the dates and moves this booking to cancelled straight away. The agent is told. Money already paid follows the cancellation policy below, and returns to the RentMe wallet rather than to a card."
-        : booking.status === "CANCELLED"
-          ? "This booking is already cancelled, so there is nothing left to call off."
-          : "This booking can no longer be cancelled from the app, because it has started or is already past. A person on the support team has to look at it.",
-      policy:
-        policy ??
-        "Cancellation terms are set by each listing. Do not state terms you have not read here.",
-      where: "Bookings, then the trip, then Cancel booking.",
+      booking,
+      route: "a person on the support team",
+      whatHappens:
+        "This stay is paid for, so it is not cancelled by the button in the app: ask here and a person applies the published schedule, returns the money to their RentMe wallet in naira, and puts the amount and the reason in writing. Cancellation requests are answered within 1 day, sooner when check-in is close.",
+      paid: naira(paidMinor, currency),
+      ifCancelledNow: {
+        tier: outcome.stop.label,
+        backToWallet: naira(outcome.refundMinor, currency),
+        keptByHost: naira(outcome.retainedMinor, currency),
+        why: outcome.stop.detail,
+      },
+      schedule: CANCELLATION_STOPS.map((stop) => ({
+        step: stop.label,
+        when:
+          stop.closesHoursBeforeCheckIn === null
+            ? "From the start of check-in day onwards"
+            : `More than ${stop.closesHoursBeforeCheckIn} hours before check-in`,
+        worth: naira(refundAtStop(stop, paidMinor), currency),
+        detail: stop.detail,
+      })),
+      exceptions:
+        "The schedule only governs a cancellation the guest chose. If the host cancelled, the place was not what was listed, or they could not get in, everything comes back whatever the hour. Do not cancel in those cases: report it.",
+      note: "Quote these amounts exactly. Never round them and never work out a figure of your own.",
     },
     actions: [BOOKINGS_ACTION],
   };
 }
+
+/* --------------------------------------------------------------- tickets */
+
+const TICKET_STATUS_MEANING: Record<string, string> = {
+  open: "filed and waiting to be picked up",
+  pending: "with the team, waiting on something",
+  resolved: "answered and closed out",
+  closed: "closed",
+};
+
+/**
+ * Tickets this person has already filed.
+ *
+ * The single most common thing somebody asks support twice is what happened to
+ * the first time they asked, and until now the agent had no way to answer it
+ * and would file a second ticket about the first one. Tickets filed while
+ * signed out carry no user_id by design, so they are genuinely not lookupable
+ * here, and the tool says so rather than reporting an empty list as "you have
+ * never contacted us".
+ */
+async function runMyTickets(session: SignedIn): Promise<ToolOutcome> {
+  const { data: tickets, error } = await session.supabase
+    .from("support_tickets")
+    .select("id, reference, topic, status, created_at, updated_at")
+    .eq("user_id", session.user.id)
+    .order("created_at", { ascending: false })
+    .limit(5);
+  if (error || !tickets) return unreadable("support tickets");
+
+  if (tickets.length === 0) {
+    return {
+      result: {
+        tickets: [],
+        note: "No ticket is attached to this account. A ticket filed without signing in is not attached to an account at all, so if they filed one that way it exists and the reply comes by email, it simply cannot be looked up here.",
+      },
+    };
+  }
+
+  // One sweep for the whole thread rather than a read per ticket. RLS on
+  // support_ticket_messages already limits this to threads they own.
+  const byTicket = new Map<string, { replied: boolean; lastAt: string; lastRole: string }>();
+  const { data: messages } = await session.supabase
+    .from("support_ticket_messages")
+    .select("ticket_id, sender_role, created_at")
+    .in(
+      "ticket_id",
+      tickets.map((ticket) => ticket.id),
+    )
+    .order("created_at", { ascending: false })
+    .limit(100);
+  for (const row of messages ?? []) {
+    const seen = byTicket.get(row.ticket_id);
+    if (!seen) {
+      byTicket.set(row.ticket_id, {
+        replied: row.sender_role === "admin",
+        lastAt: row.created_at,
+        lastRole: row.sender_role,
+      });
+      continue;
+    }
+    if (row.sender_role === "admin") seen.replied = true;
+  }
+
+  return {
+    result: {
+      tickets: tickets.map((ticket) => {
+        const thread = byTicket.get(ticket.id);
+        return {
+          reference: ticket.reference,
+          about: SUPPORT_TOPIC_LABEL[ticket.topic as keyof typeof SUPPORT_TOPIC_LABEL] ?? ticket.topic,
+          status: ticket.status,
+          meaning: TICKET_STATUS_MEANING[ticket.status] ?? ticket.status,
+          filed: instantLabel(ticket.created_at),
+          answeredBySupport: thread?.replied ?? false,
+          lastActivity: thread ? instantLabel(thread.lastAt) : instantLabel(ticket.updated_at),
+          answeredWithin: RESPONSE_COMMITMENTS[gradeForTopic(ticket.topic)].label,
+        };
+      }),
+      note: "Give the reference exactly as written. Replies land by email and in the bell tab. If a ticket is past the response time on it, say so plainly and offer to add a note to it rather than filing a second one.",
+    },
+  };
+}
+
+/* -------------------------------------------------------------- messages */
+
+/** The caller's own agent threads: who is waiting on whom. */
+async function runMyMessages(session: SignedIn): Promise<ToolOutcome> {
+  let threads;
+  try {
+    threads = await loadConversationSummaries(session.supabase, session.user);
+  } catch {
+    return unreadable("message threads");
+  }
+
+  if (threads.length === 0) {
+    return {
+      result: {
+        threads: [],
+        note: "There are no message threads on this account. A conversation starts from a listing page, with Message the agent.",
+      },
+      actions: [MESSAGES_ACTION],
+    };
+  }
+
+  return {
+    result: {
+      threads: threads.slice(0, 6).map((thread) => ({
+        with: thread.counterpartName,
+        about: thread.listingTitle,
+        unread: thread.unread,
+        lastWordWas: thread.lastFromMe ? "theirs" : "the other side's",
+        when: thread.whenLabel,
+        waitingOnTheOtherSide: thread.lastFromMe,
+      })),
+      note: "Do not quote message text back at them beyond what is here. If an agent has not replied, say how long it has been and offer to bring in a person; never promise on an agent's behalf.",
+    },
+    actions: [MESSAGES_ACTION],
+  };
+}
+
+/* --------------------------------------------------------------- account */
+
+/** The account itself: the address we answer to, and what is missing. */
+async function runMyAccount(session: SignedIn): Promise<ToolOutcome> {
+  const { data: row, error } = await session.supabase
+    .from("profiles")
+    .select("display_name, first_name, surname, phone, avatar_url, created_at, settings")
+    .eq("id", session.user.id)
+    .maybeSingle();
+  if (error) return unreadable("profile");
+
+  const email = session.user.email ?? "";
+  const settings = parseSettings(row?.settings ?? {});
+  const missing: string[] = [];
+  if (!row) missing.push("their profile row, which normally exists from sign-up");
+  if (!(row?.first_name ?? "").trim() && !(row?.display_name ?? "").trim()) missing.push("a name");
+  if (!(row?.phone ?? "").trim()) missing.push("a phone number");
+  if (!email) missing.push("an email address on the account");
+
+  return {
+    result: {
+      email: email || "none on the account, which is unusual and worth a person looking at",
+      name: (row?.display_name ?? "").trim() || (row?.first_name ?? "").trim() || null,
+      phoneOnFile: Boolean((row?.phone ?? "").trim()),
+      memberSince: row?.created_at ? instantLabel(row.created_at) : null,
+      notifications: settings.notifications,
+      language: settings.locale ?? "en",
+      missing,
+      note: "Replies to a ticket go to the email above. A channel switched off under notifications is why somebody stops hearing from us, and it is changed in Settings, Notifications. Never read their phone number out unless they ask for it.",
+    },
+  };
+}
+
+/* ---------------------------------------------------------------- ticket */
 
 /**
  * The escalation. A ticket only counts when the row was written, so the model
@@ -325,19 +949,44 @@ async function runBookingPolicy(session: SessionState, input: unknown): Promise<
  */
 async function runFileTicket(session: SessionState, input: unknown): Promise<ToolOutcome> {
   const raw = asRecord(input);
-  const topic = asString(raw.topic).slice(0, 140) || "Support chat escalation";
   const question = asString(raw.question);
   const summary = asString(raw.summary);
 
+  /*
+   * The topic is a CODE, not a sentence.
+   *
+   * `support_tickets.topic` is read back by the admin queue through
+   * `supportTopicLabel` and, more importantly, by `gradeForTopic`, which puts
+   * the four hour clock on anything filed as safety. A free-text subject line
+   * stored here renders raw in the queue and can never match that grade, so an
+   * escalation about somebody being asked to pay outside RentMe would sit in
+   * the ordinary pile. An unrecognised value falls back to "other" rather than
+   * being stored, because a topic the queue does not know is worth less than a
+   * topic it can sort.
+   */
+  const asked = asString(raw.topic);
+  const topic = (SUPPORT_TOPICS as readonly string[]).includes(asked) ? asked : "other";
+  const grade = gradeForTopic(topic);
+
   const signedIn = session.state === "signed-in";
-  const accountEmail = signedIn ? (session.user.email ?? "") : "";
+  const accountEmail = signedIn ? asString(session.user.email) : "";
   const metadata = signedIn ? asRecord(session.user.user_metadata) : {};
   const accountName = signedIn
-    ? asString(metadata.full_name) || asString(metadata.name) || "RentMe member"
+    ? asString(metadata.full_name) || asString(metadata.name)
     : "";
 
-  const name = asString(raw.name) || accountName;
-  const email = asString(raw.email) || accountEmail;
+  /*
+   * The account's own address wins for a signed-in caller.
+   *
+   * It used to be `asString(raw.email) || accountEmail`, which let the model
+   * name the address instead: the ticket was attributed to the signed-in user
+   * and the acknowledgement, carrying our domain and their chosen name, went
+   * wherever the conversation said. That is a relay with a person's real
+   * account behind it. A signed-out caller has no account address, so there the
+   * conversation is the only source there is and it stays that way.
+   */
+  const email = signedIn ? accountEmail || asString(raw.email) : asString(raw.email);
+  const name = accountName || asString(raw.name) || (signedIn ? "RentMe member" : "");
 
   if (!name || !email) {
     return {
@@ -373,7 +1022,9 @@ async function runFileTicket(session: SessionState, input: unknown): Promise<Too
     result: {
       filed: true,
       reference: outcome.data.reference,
-      note: "The ticket row is written. Give them this reference exactly and say a person replies by email.",
+      about: SUPPORT_TOPIC_LABEL[topic as keyof typeof SUPPORT_TOPIC_LABEL] ?? topic,
+      answeredWithin: RESPONSE_COMMITMENTS[grade].label,
+      note: `The ticket row is written. Give them this reference exactly, tell them it is answered ${RESPONSE_COMMITMENTS[grade].label.toLowerCase()} and that a person replies to ${email}.`,
     },
     reference: outcome.data.reference,
   };
@@ -381,29 +1032,51 @@ async function runFileTicket(session: SessionState, input: unknown): Promise<Too
 
 /* ------------------------------------------------------------- the switch */
 
+/** The tools that need an account behind them, and cannot answer without one. */
+type PersonalTool = (session: SignedIn, input: unknown) => Promise<ToolOutcome>;
+
+const PERSONAL_TOOLS: Record<string, PersonalTool> = {
+  my_bookings: (session) => runMyBookings(session),
+  my_wallet: (session) => runMyWallet(session),
+  booking_policy: (session, input) => runBookingPolicy(session, input),
+  my_tickets: (session) => runMyTickets(session),
+  my_messages: (session) => runMyMessages(session),
+  my_account: (session) => runMyAccount(session),
+};
+
 /**
  * Run one tool call. `session` is resolved once per request and shared, so
  * every tool in a turn acts as the same caller and no tool can widen its own
  * authority mid-conversation.
+ *
+ * Nothing here is allowed to throw. A tool call happens in the middle of a
+ * streamed answer, so an exception does not fail one tool, it takes down the
+ * turn: the person watching loses the sentence being written and gets a generic
+ * upstream error instead of the honest "I could not read that". The guards are
+ * inside each read as well; this is the backstop for the failure nobody
+ * predicted, and it degrades to a sentence the model can say out loud.
  */
 export async function runSupportTool(
   name: string,
   input: unknown,
   session: SessionState,
 ): Promise<ToolOutcome> {
-  switch (name) {
-    case "search_help":
-      return runSearchHelp(input);
-    case "my_bookings":
-      return runMyBookings(session);
-    case "my_wallet":
-      return runMyWallet(session);
-    case "booking_policy":
-      return runBookingPolicy(session, input);
-    case "file_ticket":
-      return runFileTicket(session, input);
-    default:
-      return { result: { error: `No tool named ${name}.` } };
+  try {
+    if (name === "search_help") return runSearchHelp(input);
+    if (name === "file_ticket") return await runFileTicket(session, input);
+
+    const personal = PERSONAL_TOOLS[name];
+    if (personal) {
+      if (session.state === "unconfigured") return { result: UNCONFIGURED };
+      if (session.state !== "signed-in") {
+        return { result: SIGNED_OUT, actions: [SIGN_IN_ACTION] };
+      }
+      return await personal(session, input);
+    }
+
+    return { result: { error: `No tool named ${name}.` } };
+  } catch {
+    return unreadable("records");
   }
 }
 
@@ -417,3 +1090,6 @@ export async function resolveSupportCaller(): Promise<SessionState> {
     return { state: "signed-out" };
   }
 }
+
+/** Exported for the unit tests that hold the guards; not part of the tool API. */
+export const __testing = { cancellableInApp, nextStepsFor, readBookings };
