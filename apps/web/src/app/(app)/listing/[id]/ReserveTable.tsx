@@ -90,7 +90,7 @@ export function ReserveTable({
     return (
       <div className="nf-card p-5">
         <p className="flex items-center gap-2 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
-          <UiIcon name="chat-bubble" size={18} className="shrink-0 opacity-80" aria-hidden />
+          <UiIcon name="chat-bubble" size={20} className="shrink-0 opacity-80" aria-hidden />
           Request sent
         </p>
         {/* Deliberately not "Table booked". Nothing is held until a person at
