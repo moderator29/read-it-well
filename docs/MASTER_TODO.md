@@ -4,7 +4,7 @@ The single organising document for RentMe delivery. Every other plan defers
 to this one. It records what is built, what is left, who owns each piece, what it
 depends on, and how each item is verified as done.
 
-Last updated: 2026-07-29. Owner: moderator29. Repository: `read-it-well`. The
+Last updated: 2026-08-07. Owner: moderator29. Repository: `read-it-well`. The
 NaijaFinds to RentMe rename is complete in product naming and copy; the npm
 package identifiers `@naijafinds/i18n` and `@naijafinds/design-tokens` are
 real code identifiers and are staying as-is (see `docs/HANDOFF.md` section 4).
@@ -30,8 +30,24 @@ real code identifiers and are staying as-is (see `docs/HANDOFF.md` section 4).
 
 ## 1. Current state snapshot
 
-**Build health (last independently re-run 2026-07-28; not re-run this
-session, see the note below):**
+> **Corrected 2026-08-07.** Everything in this section was nine days stale and
+> understated the platform by a wide margin: it reported 23 migrations against
+> 113, 35 tables against 71, 38 routes against 91, and it said the agent listing
+> CRUD write path "is not built yet" when the whole supply loop from wizard to
+> admin approval had shipped. The phase tables in section 5 carried the same
+> rot and are corrected in place. The numbers below were re-counted against the
+> live database, the build output and the repository on that date.
+
+**Build health, re-run 2026-08-07:**
+
+| Check | Command | Result |
+|---|---|---|
+| Typecheck, all workspaces | `npm run typecheck` | PASS |
+| Unit tests | `cd apps/web && npx vitest run` | PASS, 66 tests in 5 files |
+| Production build | `npm run build` | PASS, 91 entries in the route table, 4 of them API routes |
+
+**Superseded build health (2026-07-28), kept because the route count in it is
+the number this document repeated for over a week:**
 
 | Check | Command | Result |
 |---|---|---|
@@ -58,8 +74,22 @@ authorship rewrite) was resolved by rebasing onto `origin/main` with
 code conflict, confirmed with `git merge-tree`. A safety branch
 `backup/feat-pre-rebase` preserves the pre-rebase tip.
 
-**Supabase (verified live 2026-07-29):** project `uccixoonmbhrnyczyigt` is
-connected, `ACTIVE_HEALTHY`, Postgres 17, region eu-west-1. **23 migrations
+**Supabase (verified live 2026-08-07):** project `uccixoonmbhrnyczyigt` is
+connected, Postgres 17, region eu-west-1. **113 migrations applied, 71 tables in
+`public`, RLS enabled on every one of them.** On top of the subsystems listed
+below, the schema now also carries the whole social layer (`areas`, `posts`,
+`stories`, follows, reactions, reposts, blocks, mutes, badges, events), the
+agent verification ladder (`agent_verification_checks`), support-initiated
+refunds (`booking_refunds`), agent suspensions, `listing_access`, all 774
+`local_governments` and 749 `occupations`. The policy count was not re-run and
+is not restated.
+
+Real data, counted the same day: `profiles` 1 holding 2 `user_roles`,
+`audit_log` 4, `areas` 6, `posts` 12 (all `author_kind = 'SYSTEM'`, the designed
+cold start). `agents`, `agent_applications`, `listings` and `bookings` are all
+still zero, so the supply chain has an admin and no agents yet.
+
+**Superseded (verified live 2026-07-29), kept for the record:** **23 migrations
 applied, 35 tables, RLS on every table (0 without), 86 policies across
 `public` and `storage`.** Identity, location, agents, listings, bookings and
 a real payments ledger, engagement (reviews, messaging, saved), admin/trust
@@ -82,15 +112,22 @@ still fall back to. One migration recorded server-side,
 `20260729174306_rls_initplan_and_fk_index`, has no matching committed file
 in `supabase/migrations/`; see `docs/HANDOFF.md` section 9.
 
-**What is live in the web app (36 page routes plus 2 API routes; the 20-route
-snapshot above is well out of date):**
+*(That last sentence is no longer true: the file is committed. The mirror has
+drifted in other places instead, and the current state of it is recorded in
+`KNOWN_GAPS.md` under "Still open with the owner".)*
+
+**What is live in the web app.** 91 entries in the build's route table, 4 of
+them API routes (`/api/admin/inventory`, `/api/assistant`,
+`/api/paystack/webhook`, `/api/support`). The table below was written when there
+were 38 and has been corrected row by row; rows it never had, for the admin
+console and the social layer, are added at the end.
 
 | Area | Routes | Status |
 |---|---|---|
 | Landing | `/` | DONE |
-| Auth | `/sign-in`, `/sign-up` | DONE (UI only; Supabase Auth wiring itself is still P2-1, READY not DONE) |
+| Auth | `/sign-in`, `/sign-up`, `/sign-up/verify`, `/forgot-password`, `/reset-password` | DONE. Real Supabase Auth: `signInWithPassword`, `signUp`, sign out, Google and Apple OAuth, password reset, and a middleware lock on the product. P2-1 is closed |
 | Personal home | `/home` | DONE |
-| Discovery | `/search`, `/listing/[id]`, `/rent` | PARTIAL (real Leaflet map and live sort/filter params; catalogue is still the seed repository, not the database, because `listings` has zero rows) |
+| Discovery | `/search`, `/listing/[id]`, `/rent` | REAL, and empty. `SupabaseListingRepository` reads published rows from Postgres and appends partner venues from Google Places. **The seed catalogue of twenty-three invented places was deleted**, so a thin shelf is now a true statement about supply rather than a shelf of places that do not exist. See the note at the top of `lib/listings/repository.ts` |
 | Bookings | `/bookings` | PARTIAL, real loop (reads real bookings under RLS and cancels for real when signed in; seeded trips are the fallback, not the norm, for signed-out visitors) |
 | Wallet | `/wallet` | PARTIAL, real loop (fund/withdraw/transfer/statement are real actions against the ledger; blocked on `PAYSTACK_SECRET_KEY` landing before any money actually moves) |
 | Messaging | `/messages`, `/messages/[id]`, `/messages/new` | PARTIAL, real loop (send, attach, confirm inspection and mark-read are real for signed-in users; no admin queue yet for the flags the safety scan raises) |
@@ -100,9 +137,11 @@ snapshot above is well out of date):**
 | Saved | `/saved` | REAL. `toggleSave` writes `saved_items` under RLS (`lib/saved/actions.ts`), with a device-local shortlist for catalogue rows that cannot be a foreign key. This row said STUB long after it stopped being one |
 | Payments | `/api/paystack/webhook` | DONE as code, BLOCKED on env (webhook verifies signatures and settles the ledger; no key configured yet so nothing has actually charged) |
 | Become an Agent | `/agents`, `/agents/apply`, `/agents/status` | DONE (form posts to a server action that persists under RLS) |
-| Agent dashboard | `/agent/dashboard` | DONE (seed data, labelled sample) |
-| Agent workspace | `/agent/{listings,bookings,messages,reviews,earnings,analytics,verification,settings,list}` | PARTIAL, up from STUB (`listings` and `list` are real, and `bookings`/`earnings` closed 2026-07-30 as real consoles, `BookingsWorkspace.tsx` with Accept/Decline and `EarningsWorkspace.tsx` reading the ledger; `messages`, `reviews`, `analytics`, `verification` and `settings` are still coming-soon stubs) |
-| Site pages | `/about`, `/careers`, `/contact`, `/help`, `/privacy`, `/terms` | DONE |
+| Agent dashboard | `/agent/dashboard` | DONE, and real. `RealDashboard.tsx` reads listing counts by status, upcoming stays and unread messages through `readAgentNumbers`. The "seed data, labelled sample" note is void: sample labelling was banned outright by the owner |
+| Agent workspace | `/agent/{listings,bookings,messages,reviews,earnings,analytics,verification,settings,list}` | REAL except two. `list` is the eight step wizard, `listings` the workspace, `bookings` and `earnings` real consoles, `messages` an inbox over `messages-queries`, `reviews` a workspace with host replies, `settings` the notification and payout surface. **Only `analytics` and `verification` are still `AgentComingSoon` stubs**, verified by grep as the only two importing it |
+| Admin console | `/admin` plus agents, alerts, bookings, flags, listings, moderation, reference, reports, social, standing, stops, support, switches | DONE. B-10 was resolved 2026-07-28 and the rail was built; this table never had a row for it |
+| Social layer | `/around`, `/around/[slug]`, `/u`, `/u/[handle]`, `/post/[id]`, `/stories/*` | DONE. Not on the original plan at all. See `docs/HANDOFF.md` section 3.2b |
+| Site pages | `/about`, `/careers`, `/contact`, `/help`, `/privacy`, `/terms`, `/safety`, `/standards`, `/cancellations`, `/docs`, `/styleguide` | DONE |
 
 **Shared packages:** `@naijafinds/design-tokens` (token CSS + TS mirror),
 `@naijafinds/i18n` (en, yo, ha, ig dictionaries, money and number formatters).
@@ -154,8 +193,14 @@ is extracted for current screens, the rest awaits source files.
 ## 3. Infrastructure and API surface map
 
 Derived from the Production Infrastructure and API Master Prompt (works under the
-80 Master Rules, does not replace them). This is the target the backend builds
-toward. Nothing here is built yet; the database is empty.
+80 Master Rules, does not replace them). This was the target the backend built
+toward.
+
+> **"Nothing here is built yet; the database is empty" was the original sentence
+> and it is long dead.** Section 3.2's target of roughly 40 tables was passed:
+> there are 71. The adapter table in 3.1 is corrected below. The one row in it
+> that never happened is Travelgate, which was replaced by LiteAPI after
+> Amadeus was decommissioned; see `docs/HYBRID_INVENTORY.md`.
 
 ### 3.1 Provider adapter layer
 
@@ -165,14 +210,14 @@ seed or stub adapter, and a `NF_*` env switch.
 
 | Adapter | Provider | Purpose | Status |
 |---|---|---|---|
-| `AuthProvider` | Supabase Auth | sign up, sign in, sessions, social | READY |
-| `DataProvider` | Supabase Postgres | canonical data store | READY |
-| `MapsProvider` | Google Maps | geocoding, map tiles, places | LATER |
-| `PaymentProvider` | Paystack | charges, transfers, webhooks | LATER |
-| `HotelProvider` | Travelgate | hotel inventory (needs signed agreement, B-10 lead time) | LATER |
-| `AIProvider` | Anthropic | assistant, grounded retrieval, tools | LATER |
-| `EmailProvider` | Resend | transactional + branded auth emails | READY |
-| `SmsProvider` | Termii | OTP, alerts | LATER |
+| `AuthProvider` | Supabase Auth | sign up, sign in, sessions, social | DONE |
+| `DataProvider` | Supabase Postgres | canonical data store | DONE |
+| `MapsProvider` | Leaflet with CARTO or MapTiler tiles, Google Places | map tiles, places | DONE. Not Google Maps: the map is Leaflet, and `NEXT_PUBLIC_MAPTILER_KEY` is a licensing item because CARTO's public basemaps are non-commercial only |
+| `PaymentProvider` | Paystack | charges, transfers, webhooks | DONE as code, waiting on `PAYSTACK_SECRET_KEY` |
+| `HotelProvider` | LiteAPI (Nuitée Connect) | hotel inventory and naira rates | DONE for search and rates, NOT for booking. **Travelgate was never used**, and Amadeus was written and then decommissioned by its vendor on 17 July 2026 |
+| `AIProvider` | Anthropic | assistant, grounded retrieval, tools | DONE, with a monthly kobo ceiling in `bot_settings` |
+| `EmailProvider` | Resend | transactional + branded auth emails | DONE |
+| `SmsProvider` | Termii | OTP, alerts | LATER. `TERMII_API_KEY` is read by nothing |
 | `PushProvider` | FCM | mobile push | LATER |
 
 ### 3.2 Domain model (target ~40 tables)
@@ -224,11 +269,11 @@ finished until the matching decision is made. Full context in
 | B-11 | Is RentMe Pro in scope | entitlement gating, second revenue model | defer, out of MVP |
 | B-12 | RESOLVED 2026-07-28: 7-step wizard (Ref 03) is canonical; photos only for MVP, video/tours/docs LATER. | (was) `/agent/list`, media model | settled |
 | B-09 | Are icon source files vector, or only the contact sheet | final icon quality | need vector/Lottie source |
-| B-07 | Canonical location model (no LGA field is designed) | location tables, wizard | store State/LGA/Ward + City/Area layer |
-| B-09b | Guest-paid service fee recipient and platform take rate | payments ledger, settlement | needs commercial decision |
-| B-06 | Agent Mode on mobile after mode switch | responsive agent scope | responsive full workspace |
-| B-03 | Admin review: add a Request Changes action | listing state machine enum | add the action |
-| B-07c | Supabase vs NestJS boundary; is RLS used | auth ownership, all authorisation | Supabase Auth + RLS on, service layer for the rest |
+| B-07 | RESOLVED. Canonical location model | (was) location tables, wizard | Settled on state, city and area for a listing, with all 774 `local_governments` seeded as their own layer and used by the social place picker. No Ward layer exists |
+| B-09b | RESOLVED by owner ruling | (was) payments ledger, settlement | The platform charges NO fees anywhere. The ledger keeps the platform column and records zero in it, so `gross = platform + agent + processor` still balances |
+| B-06 | RESOLVED. Agent Mode on mobile after mode switch | (was) responsive agent scope | Built responsive: slide-in drawer, stacked-card tables, and the listing wizard is authored for one thumb at 390px |
+| B-03 | RESOLVED. Admin review: add a Request Changes action | (was) listing state machine enum | Shipped as `MORE_INFO_REQUIRED`, which is the one canonical name for the concept per the vocabulary below |
+| B-07c | RESOLVED. Supabase vs NestJS boundary; is RLS used | (was) auth ownership, all authorisation | Supabase Auth with RLS on all 71 tables. There is no NestJS layer and no service-role write path in any user-facing feature |
 
 **Canonical vocabulary to lock before schema (resolves C-03):** application status
 `DRAFT / SUBMITTED / UNDER_REVIEW / MORE_INFO_REQUIRED / APPROVED / REJECTED /
@@ -265,15 +310,15 @@ the three owners unless a `depends` note says otherwise.
 | P1-4 | Supabase clients (browser/server/admin) + middleware | BACKEND | DONE | none | `npm run build` | env-guarded clients, session refresh |
 | P1-5 | Generate TS types from DB, wire repositories | BACKEND | PARTIAL | P1-1 | `generate_typescript_types` | types generated + stored; bookings, wallet, messaging and notifications read and write the database directly (`lib/bookings/queries.ts`, `lib/wallet/ledger.ts`, `lib/messages/live.ts`); the listing repository itself is still seed-only, no `SupabaseListingRepository` exists, and `listings` holds zero rows regardless |
 
-### Phase 2: Auth and identity  (STATUS: READY)
+### Phase 2: Auth and identity  (STATUS: DONE, up from READY)
 
 | ID | Task | Owner | Status | Depends | Verify | DoD |
 |---|---|---|---|---|---|---|
-| P2-1 | Real sign up / sign in via Supabase Auth | BACKEND+FRONTEND | READY | P1-1, P1-4 | manual + test | session persists, protected routes gated |
-| P2-2 | Server-side agent-mode gate (not cookie alone) | BACKEND | READY | P2-1 | test | non-approved user cannot reach `/agent/*` |
-| P2-3 | Profile + role model wired to UI | FRONTEND | READY | P2-1 | typecheck | identity card shows real user |
+| P2-1 | Real sign up / sign in via Supabase Auth | BACKEND+FRONTEND | DONE | P1-1, P1-4 | `tests/{auth-callback,password-reset,signup-verify}.spec.mjs` | `lib/auth/actions.ts` carries real `signInWithPassword`, `signUp`, sign out and Google/Apple OAuth; middleware gates the product and returns you to what you were opening, including across the OAuth round trip |
+| P2-2 | Server-side agent-mode gate (not cookie alone) | BACKEND | DONE | P2-1 | `tests/agent-identity.spec.mjs` | `getAgentContext()` walks `agents.user_id = auth.uid()` server side, and every write in `listings-actions.ts` re-resolves it through `requireAgent()`. A cookie decides nothing |
+| P2-3 | Profile + role model wired to UI | FRONTEND | DONE | P2-1 | `tests/profile.spec.mjs` | the agent rail's identity card is built from the real `agents` row through `agentProfileFrom` |
 
-### Phase 3: Agent Mode completion  (STATUS: IN PROGRESS)
+### Phase 3: Agent Mode completion  (STATUS: SUBSTANTIALLY DONE, up from IN PROGRESS)
 
 | ID | Task | Owner | Status | Depends | Verify | DoD |
 |---|---|---|---|---|---|---|
@@ -281,8 +326,8 @@ the three owners unless a `depends` note says otherwise.
 | P3-2 | Become an Agent 6-step wizard (ref 02) | FRONTEND | DONE | none | build | draft autosave, validation |
 | P3-3 | Agent dashboard (ref 02, 04) | FRONTEND | DONE | none | build | seed data labelled sample |
 | P3-4 | Agent application persisted to DB | BACKEND | DONE | P1-1 | server action | inserts SUBMITTED row under RLS, returns NF-AGT ref |
-| P3-5 | List Apartment 7-step wizard (ref 03) | FRONTEND | BLOCKED | B-12 | build | wizard posts a listing draft |
-| P3-6 | My Listings, Bookings, Messages, Reviews, Earnings, Analytics, Verification, Settings | FRONTEND+BACKEND | PARTIAL, up from BLOCKED | P1-1, B-10 | build | My Listings, Bookings and Earnings are real data views now, Bookings and Earnings closed 2026-07-30; Messages, Reviews, Analytics, Verification and Settings remain stubs |
+| P3-5 | List Apartment wizard (ref 03) | FRONTEND | DONE, up from BLOCKED | B-12 (resolved 2026-07-28) | `tests/agent-listings.spec.mjs` | Built, and it is EIGHT steps rather than the referenced seven: basics, photos, location, amenities, utilities, pricing, guest view, submit. The utilities step is ours and not in ref 03, because light, water and getting through the gate are the first three questions a Nigerian guest asks. Autosaves to a real DRAFT row on every step change, uploads photos straight to the `listing-photos` bucket with EXIF stripped in the browser, and `submitRequirements` in `listings-schema.ts` is the one gate both the checklist and the server run |
+| P3-6 | My Listings, Bookings, Messages, Reviews, Earnings, Analytics, Verification, Settings | FRONTEND+BACKEND | SUBSTANTIALLY DONE, up from PARTIAL | P1-1, B-10 | build, plus `tests/{agent-listings,agent-messages,agent-reviews,agent-calendar}.spec.mjs` | Six of the eight are real: Listings, Bookings, Earnings, Messages, Reviews and Settings. Only **Analytics and Verification** are still `AgentComingSoon`. Verification is the one that costs something, because `agent_verification_checks` and its admin screen already exist and the host has no view of the ladder they are climbing |
 
 ### Phase 4: Discovery and property detail  (STATUS: PARTIAL)
 
@@ -305,14 +350,18 @@ the three owners unless a `depends` note says otherwise.
 | P5-5 | Payouts, refunds, chargebacks | BACKEND | LATER | P5-4 | test | settlement rows correct |
 | P5-6 | Release stale PENDING booking holds after 48 hours | BACKEND | PARTIAL | P5-3 | `private.release_stale_booking_holds()` exists and is correct | the function is written, tested by hand and safe to call; as of 2026-07-30 it also releases the calendar nights it wrote (`supabase/migrations/20260730121247_release_stale_booking_holds_calendar.sql`), so an abandoned request no longer locks a listing's calendar forever; `pg_cron` is still not installed on the project, so nothing schedules the function to run |
 
-### Phase 6: Admin command centre  (STATUS: BLOCKED on B-10)
+### Phase 6: Admin command centre  (STATUS: DONE, up from BLOCKED on B-10)
+
+B-10 was resolved on 2026-07-28 and this whole phase was built. It sat marked
+BLOCKED for over a week afterwards, which is the single most misleading row this
+document carried: a reader would have concluded there was no admin console.
 
 | ID | Task | Owner | Status | Depends | Verify | DoD |
 |---|---|---|---|---|---|---|
-| P6-1 | Admin shell + canonical rail (ref 04) | ADMIN/QA | BLOCKED | B-10 | build | rail frozen, routes exist |
-| P6-2 | Listing approvals queue + review screen (ref 03) | ADMIN/QA | BLOCKED | B-03, P1-1 | test | approve/reject/request-changes transitions |
-| P6-3 | Users, Agents, Payments, Reports, Security sections | ADMIN/QA | BLOCKED | B-10, P1-1 | build | each section reads real data |
-| P6-4 | Audit log on every admin action | BACKEND | READY | P1-1 | test | action writes an immutable audit row |
+| P6-1 | Admin shell + canonical rail (ref 04) | ADMIN/QA | DONE, up from BLOCKED | B-10 (resolved) | build, `tests/admin-console.spec.mjs` | 13 sections under `/admin`: agents, alerts, bookings, flags, listings, moderation, reference, reports, social, standing, stops, support, switches |
+| P6-2 | Listing approvals queue + review screen (ref 03) | ADMIN/QA | DONE, up from BLOCKED | B-03, P1-1 | `tests/admin.spec.mjs` | `/admin/listings` carries the approve, reject and `MORE_INFO_REQUIRED` transitions, which is B-03's Request Changes under the one canonical name |
+| P6-3 | Users, Agents, Payments, Reports, Security sections | ADMIN/QA | DONE, up from BLOCKED | B-10, P1-1 | build | each reads real data under the admin's own RLS-bound client. Agent verification opens documents through short-lived signed URLs; `/admin/stops` can suspend an agent and let them back |
+| P6-4 | Audit log on every admin action | BACKEND | DONE, up from READY | P1-1 | `20260805094300_the_audit_log_can_only_be_added_to` | append-only in the strong sense: UPDATE, DELETE and TRUNCATE are revoked from every client role and refused by trigger for all roles, including the service role |
 
 ### Phase 7: AI assistant  (STATUS: SUBSTANTIALLY DONE, up from LATER)
 

@@ -682,7 +682,7 @@ export const yo: Dictionary = {
         nin: "Nọ́mbà Ìdánimọ̀ Orílẹ̀-èdè (NIN)",
         bvn: "Nọ́mbà Ìfọwọ́sí Báńkì (BVN)",
         businessName: "Orúkọ ilé-iṣẹ́",
-        rcNumber: "Nọ́mbà RC (àṣàyàn)",
+        rcNumber: "Nọ́mbà RC",
         state: "Ìpínlẹ̀",
         city: "Ìlú",
         address: "Àdírẹ́sì",
@@ -698,7 +698,7 @@ export const yo: Dictionary = {
         idBack: "Káàdì ìdánimọ̀, ẹ̀yìn",
         registration: "Ìforúkọsílẹ̀ ilé-iṣẹ́",
         upload: "Gbé sókè",
-        chooseFile: "Yan fáìlì, PNG tàbí JPG tàbí PDF, dé 5MB",
+        chooseFile: "Yan fáìlì, PNG tàbí JPG tàbí PDF, dé 10MB",
       },
       review: {
         title: "Àtúnyẹ̀wò kí o sì fi ránṣẹ́",

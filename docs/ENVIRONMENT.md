@@ -113,7 +113,12 @@ Read by specs under `apps/web/tests/`, never by the application: `BASE_URL`,
 4. **Paystack.** Required before anyone can pay.
 5. **Google OAuth, then Apple.** Apple is mandatory for the App Store the
    moment Google is offered.
-6. **Google Places, then Amadeus.** Both widen inventory; neither blocks launch.
+6. **Google Places, then LiteAPI.** Both widen inventory; neither blocks launch.
+   Not Amadeus: section 3 of this same file already says its keys were disabled
+   by the vendor and no value would work, so this step used to send the reader
+   to spend an afternoon on a provider the document itself calls dead.
+   `LITEAPI_KEY` is the one that replaces it, and its sandbox key is free and
+   instant.
 7. **`NEXT_PUBLIC_MAPTILER_KEY`.** Wired now — see section 3. It is a
    licensing item rather than a feature item, and it is the only one on this
    list that can cost you a letter rather than a bug report.

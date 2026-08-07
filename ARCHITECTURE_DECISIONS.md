@@ -46,6 +46,13 @@ replace.
 
 ## ADR-003. Vector icon family instead of the supplied raster pack
 
+> **VOID. Superseded by ADR-010**, which reverses it and explains why. Read that
+> entry instead. This banner is here because ADR-010 sits two hundred lines
+> further down and nothing at this end of the file said so, while the text below
+> still describes `Icon3D` as the production component. `Icon3D` is retired and
+> must never be imported; the live tiers are `BrandIcon` for content objects and
+> `UiIcon` for navigation, per ADR-011.
+
 **Decision.** The production icon set is authored as SVG in
 `apps/web/src/design-system/icons/`. The supplied pack is kept in
 `assets/icon-pack/` as visual reference only.
@@ -92,6 +99,26 @@ cheapest possible moment to fix it, which is why it is fixed now.
 selects a seed implementation or the real API, and the seed source is labelled
 in the UI wherever it renders.
 
+> **Half of this decision was reversed and this entry did not say so.**
+> Corrected 2026-08-07. The interface stands and was worth every line of it:
+> `SupabaseListingRepository` slotted in behind it and every surface widened
+> without a component change, which is the whole argument below.
+>
+> The seed implementation is gone. It held twenty-three invented places, and
+> twenty-two of them carried `verified: true` with fabricated ratings on
+> addresses that do not exist, which put this platform's own trust mark on
+> inventory nobody had checked. The labelling this entry promised also never
+> reached discovery: `isSeed` was read in exactly two places, neither of them
+> search, a listing page or the map. The owner then banned sample, preview and
+> demo strings from UI copy outright, which closed the option of fixing it by
+> labelling harder.
+>
+> What replaced it is not a second source but an honest absence. With no
+> Supabase credentials, discovery returns nothing and every screen draws its
+> designed empty state. The full reasoning is written at the top of
+> `apps/web/src/lib/listings/repository.ts`, where anyone tempted to put a
+> catalogue back will read it first.
+
 **Why.** Master Rule 8 forbids fake functionality and Master Rule 66 requires
 provider abstraction. Hardcoding sample listings into components creates work
 that has to be deleted later and risks sample data reaching production
@@ -135,8 +162,13 @@ rail, which is recorded as contradiction C-10 and is not adopted.
 **Cost to change.** Moderate and rising. Routing, layout shells and permission
 boundaries all key off it.
 
-**Open.** The admin rail has four conflicting variants and is NOT decided. No
-admin surface is built until the owner picks one.
+**Resolved 2026-07-28, recorded here 2026-08-07.** The admin rail had four
+conflicting variants. The owner picked reference 04 (B-10) and the console was
+built on it: 13 sections under `/admin`, covering agents, alerts, bookings,
+flags, listings, moderation, reference, reports, social, standing, stops,
+support and switches. This entry stood as "NOT decided. No admin surface is
+built" for ten days after the console shipped, which is the kind of line that
+gets an ADR file disbelieved as a whole.
 
 ---
 
@@ -164,9 +196,18 @@ four libvips CVEs and two postcss advisories. `npm audit fix --force` proposes
 downgrading Next to version 9, which is absurd. The overrides resolve all six
 while the build stays green.
 
-**Residual.** Nine high severity advisories remain in the ESLint toolchain via
-`brace-expansion`. They are lint-time only and never reach the shipped bundle or
-the request path. Tracked rather than papered over.
+**Residual, re-run 2026-08-07.** `npm audit` reports **2** high severity
+advisories, not the nine this entry recorded. Both are still lint-time only and
+neither reaches the shipped bundle or the request path, which is the reason the
+decision stands unchanged:
+
+- `brace-expansion`, the original residual, reduced from nine advisories to one.
+- `js-yaml` 4.3.0, reached through `eslint > @eslint/eslintrc`. Newer than this
+  entry and never recorded until now. Quadratic CPU consumption resolving
+  `!!omap`, on input that is only ever an ESLint config file we wrote.
+
+Tracked rather than papered over. Re-count before quoting this number: it moved
+by seven without anybody noticing, in both directions.
 
 ---
 

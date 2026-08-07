@@ -2,7 +2,11 @@
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import type { Dictionary } from "@naijafinds/i18n";
-import { submitAgentApplication, type ApplicationResult } from "@/lib/agent/application";
+import {
+  submitAgentApplication,
+  type ApplicationField,
+  type ApplicationResult,
+} from "@/lib/agent/application";
 import { NIGERIAN_BANKS, NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { createClient } from "@/lib/supabase/client";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -40,6 +44,50 @@ type DocumentSlot = {
   error?: string;
 };
 
+/**
+ * Which step owns each field the server is allowed to reject.
+ *
+ * Every step of this form stays mounted and is merely `hidden`, which is what
+ * lets one submit carry all six steps' fields. The cost of that decision was a
+ * dead end nobody could get out of: the applicant is standing on the review
+ * step when the action answers, and a rejected first name renders its message
+ * inside a `hidden` fieldset five steps behind them. They saw the button stop
+ * spinning and nothing else. No sentence, no highlight, no clue which of
+ * thirteen fields was wrong, and pressing Submit again produced the same
+ * silence, forever. That is the single worst thing this flow could do to
+ * somebody ten minutes into an application, and it is indistinguishable from
+ * the platform being broken.
+ *
+ * So the wizard now walks to the earliest step the server complained about.
+ * The field errors were already being rendered correctly by the shared field
+ * primitives; the only thing missing was standing in front of them. Earliest
+ * rather than any, because an applicant fixing errors from the top down passes
+ * every later one on the way back to Submit, whereas jumping to the last error
+ * hides the earlier ones behind them a second time.
+ *
+ * The map is written out rather than derived because the step indices are
+ * already literals in this file (`hidden={step !== 3}`), and one table a reader
+ * can check against those literals is safer than a clever derivation that
+ * silently drifts from them.
+ */
+const STEP_OF_FIELD: Record<ApplicationField, number> = {
+  firstName: 0,
+  lastName: 0,
+  phone: 0,
+  idType: 1,
+  idNumber: 1,
+  businessName: 2,
+  rcNumber: 2,
+  state: 2,
+  city: 2,
+  address: 2,
+  documents: 3,
+  bankName: 4,
+  accountNumber: 4,
+  accountName: 4,
+  agreeTerms: 5,
+};
+
 /** A stable folder per wizard session, so retries do not scatter objects. */
 function newBatchId(): string {
   try {
@@ -62,6 +110,43 @@ const TEXT_FIELDS = [
   "bankName", "accountNumber", "accountName",
 ] as const;
 
+/**
+ * A document slot as it survives a closed tab.
+ *
+ * The preview is a blob URL and dies with the page, which is why it is not
+ * here. The path is not: it names an object that is already sitting in the
+ * private bucket, uploaded under this account's own folder, and it stays there
+ * whether or not the browser remembers it. The file name and the PDF flag come
+ * along only so the restored slot can say which file it is holding instead of
+ * looking like an empty one.
+ */
+type StoredDocument = { kind: string; path: string; fileName: string; isPdf: boolean };
+
+type StoredDraft = {
+  values?: Values;
+  agentType?: AgentType;
+  batchId?: string;
+  documents?: StoredDocument[];
+};
+
+/** Read back the document half of a stored draft, discarding anything odd. */
+function slotsFrom(stored: StoredDocument[] | undefined): Record<string, DocumentSlot> {
+  const out: Record<string, DocumentSlot> = {};
+  if (!Array.isArray(stored)) return out;
+  for (const item of stored) {
+    if (item === null || typeof item !== "object") continue;
+    if (typeof item.kind !== "string" || typeof item.path !== "string") continue;
+    if (item.kind.length === 0 || item.path.length === 0) continue;
+    out[item.kind] = {
+      path: item.path,
+      fileName: typeof item.fileName === "string" ? item.fileName : "",
+      isPdf: item.isPdf === true,
+      uploading: false,
+    };
+  }
+  return out;
+}
+
 export function ApplyWizard({ t }: { t: Dictionary }) {
   const a = t.agent.apply;
   const stepTitles = [a.steps.personal, a.steps.identity, a.steps.business, a.steps.documents, a.steps.payout, a.steps.review];
@@ -73,7 +158,14 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
   const [docs, setDocs] = useState<Record<string, DocumentSlot>>({});
   const [state, formAction, pending] = useActionState(submitAgentApplication, EMPTY);
   const restored = useRef(false);
-  const batchId = useMemo(newBatchId, []);
+
+  /* A lazy ref rather than `useMemo`, because a restored draft has to be able
+     to REPLACE this before the first upload runs. Re-uploading a slot into the
+     batch its earlier attempt used overwrites that object (`upsert: true`)
+     instead of leaving a stray copy of somebody's identity document behind in
+     a private bucket that nothing will ever collect. */
+  const batchId = useRef<string | null>(null);
+  if (batchId.current === null) batchId.current = newBatchId();
 
   // What the server action is actually given: the objects that exist in the
   // bucket, never the local previews.
@@ -86,14 +178,34 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
   );
   const uploading = Object.values(docs).some((slot) => slot.uploading);
 
-  // Restore draft once, on mount (Master Rule 57).
+  /*
+   * Restore draft once, on mount (Master Rule 57).
+   *
+   * The documents come back too, and that is the point of the change. Photos
+   * of both sides of an ID are the slowest step of this form by a wide margin
+   * on a Nigerian mobile connection, and they were the one part of it that did
+   * not survive a closed tab: the objects were sitting in the bucket the whole
+   * time, uploaded and paid for in data, while the wizard had forgotten their
+   * paths and asked for them again. A host who put the phone down at the
+   * documents step and came back an hour later was made to re-shoot and
+   * re-upload work that had already succeeded, which is precisely the point in
+   * the flow where somebody decides this is not worth it.
+   *
+   * Nothing is trusted on the way back in. Every restored path is re-checked
+   * server side against the caller's own uid prefix before it is recorded, the
+   * same check a fresh upload passes, so a tampered localStorage entry can only
+   * ever name an object this account already owns.
+   */
   useEffect(() => {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (raw) {
-        const d = JSON.parse(raw) as { values?: Values; agentType?: AgentType };
+        const d = JSON.parse(raw) as StoredDraft;
         if (d.values) setValues(d.values);
         if (d.agentType) setAgentType(d.agentType);
+        if (typeof d.batchId === "string" && d.batchId.length > 0) batchId.current = d.batchId;
+        const slots = slotsFrom(d.documents);
+        if (Object.keys(slots).length > 0) setDocs(slots);
       }
     } catch {
       /* ignore malformed draft */
@@ -105,11 +217,50 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
   useEffect(() => {
     if (!restored.current) return;
     try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ values, agentType }));
+      const documents: StoredDocument[] = Object.entries(docs)
+        .filter(([, slot]) => typeof slot.path === "string")
+        .map(([kind, slot]) => ({
+          kind,
+          path: slot.path as string,
+          fileName: slot.fileName,
+          isPdf: slot.isPdf,
+        }));
+      const draft: StoredDraft = { values, agentType, batchId: batchId.current ?? "", documents };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     } catch {
       /* storage full or unavailable, non-fatal */
     }
-  }, [values, agentType]);
+  }, [values, agentType, docs]);
+
+  /*
+   * Once the application is filed, the draft has done its job and keeping it
+   * is a hazard rather than a courtesy: the next visit to this page would
+   * reload thirteen fields belonging to an application that already exists and
+   * invite the applicant to file it a second time.
+   */
+  useEffect(() => {
+    if (!state.ok) return;
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* nothing depends on this */
+    }
+  }, [state.ok]);
+
+  /*
+   * Stand in front of whatever the server refused. See STEP_OF_FIELD above for
+   * why this is not cosmetic: without it a rejected field on a hidden step is
+   * a submit button that does nothing and says nothing.
+   */
+  useEffect(() => {
+    const errors = state.fieldErrors;
+    if (!errors) return;
+    const steps = Object.keys(errors)
+      .map((field) => STEP_OF_FIELD[field as ApplicationField])
+      .filter((index): index is number => typeof index === "number");
+    if (steps.length === 0) return;
+    setStep(Math.min(...steps));
+  }, [state]);
 
   function set(name: string, v: string) {
     setValues((prev) => ({ ...prev, [name]: v }));
@@ -174,7 +325,7 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
         return;
       }
 
-      const path = `${user.id}/${batchId}/${name}.${extensionFor(file)}`;
+      const path = `${user.id}/${batchId.current}/${name}.${extensionFor(file)}`;
       const upload = await supabase.storage
         .from(DOCUMENT_BUCKET)
         .upload(path, file, { contentType: file.type, upsert: true });
@@ -405,10 +556,32 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
             <p role="alert" className="text-[0.75rem] text-[var(--nf-state-error)]">{err.agreeTerms}</p>
           )}
 
+          {/*
+            One box, two meanings, and until now it painted both of them as a
+            problem. A filed application answers here with its NF-AGT reference,
+            and it was arriving inside a warning-toned panel, which reads as
+            "something went wrong" on the one screen where the applicant most
+            needs to know that nothing did. The tone follows the outcome now:
+            the four state tokens carry the meaning, so this picks the state
+            rather than a colour.
+          */}
           {state.message && (
             <p
               role="alert"
-              className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-3.5 py-2.5 text-[0.8125rem] text-[var(--nf-state-warning)]"
+              className="rounded-[var(--nf-radius-md)] border px-3.5 py-2.5 text-[0.8125rem]"
+              style={
+                state.ok
+                  ? {
+                      borderColor: "color-mix(in oklab, var(--nf-state-success) 35%, transparent)",
+                      background: "var(--nf-state-success-surface)",
+                      color: "var(--nf-state-success)",
+                    }
+                  : {
+                      borderColor: "color-mix(in oklab, var(--nf-state-warning) 35%, transparent)",
+                      background: "var(--nf-state-warning-surface)",
+                      color: "var(--nf-state-warning)",
+                    }
+              }
             >
               {state.message}
             </p>
@@ -439,7 +612,18 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
               {a.next}
             </Button>
           ) : (
-            <Button type="submit" variant="primary" loading={pending || uploading}>
+            /* Disabled once the application is filed. The action has no
+               "already applied" guard of its own, so a second press wrote a
+               second SUBMITTED row against the same account: two references
+               support would be asked about, and two items in the review queue
+               describing one person. The reference is on screen at that point,
+               so there is nothing left for this button to do. */
+            <Button
+              type="submit"
+              variant="primary"
+              loading={pending || uploading}
+              disabled={state.ok}
+            >
               {a.submit}
             </Button>
           )}
@@ -530,6 +714,12 @@ function UploadZone({
   onFile: (name: string, file: File | undefined) => void;
 }) {
   const done = typeof slot?.path === "string";
+  /* A slot restored from a stored draft has a real object behind it and no
+     preview, because the blob URL died with the page that made it. Naming the
+     file is what stops that slot from looking like an empty one sitting under
+     an "Uploaded" tick, which is a contradiction the applicant would resolve by
+     uploading the document a second time. */
+  const named = slot !== undefined && !slot.preview && (slot.isPdf || done);
   return (
     <div>
       <span className="nf-label">{label}</span>
@@ -548,12 +738,15 @@ function UploadZone({
         {slot?.preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={slot.preview} alt="" className="h-full w-full object-cover" />
-        ) : slot?.isPdf ? (
-          /* A PDF has no thumbnail to show, so the file itself is the label. */
+        ) : named && slot ? (
+          /* A PDF has no thumbnail to show, and a restored slot no longer has
+             one, so the file itself is the label in both cases. */
           <>
-            <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-1.5 py-0.5 text-[0.625rem] font-bold tracking-wide text-[var(--nf-content-secondary)]">
-              PDF
-            </span>
+            {slot.isPdf && (
+              <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-1.5 py-0.5 text-[0.625rem] font-bold tracking-wide text-[var(--nf-content-secondary)]">
+                PDF
+              </span>
+            )}
             <span className="max-w-full truncate px-3 text-[0.6875rem] text-[var(--nf-content-secondary)]">
               {slot.fileName}
             </span>
