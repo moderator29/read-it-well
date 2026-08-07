@@ -37,7 +37,9 @@ export async function reserveTable(
 ): Promise<ActionResult<Reserved>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") {
-    return fail("Reservations are not available yet.");
+    return fail(
+      "Reservations are not available yet. The restaurant's phone number is on its page, so you can call and hold a table that way in the meantime.",
+    );
   }
   if (session.state === "signed-out") {
     return fail("Sign in to hold a table.");
@@ -164,7 +166,11 @@ export async function cancelReservation(
   }
 
   const id = formDataToObject(formData)["reservationId"] ?? "";
-  if (id.length === 0) return fail("That reservation could not be identified.");
+  if (id.length === 0) {
+    return fail(
+      "That reservation could not be identified. Open it again from your bookings and cancel it from there.",
+    );
+  }
 
   const { data, error } = await session.supabase
     .from("reservations")

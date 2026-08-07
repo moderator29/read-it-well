@@ -489,11 +489,24 @@ export async function recordView(input: {
   //
   // A repeat view on the same day collides on the primary key, which is the
   // point: one person counts once a day, and the collision IS the success. So
-  // the error is swallowed rather than reported, and a view is never something
-  // a reader has to be told about.
+  // it is never reported, and a view is never something a reader has to be
+  // told about.
+  //
+  // It is now a DO NOTHING rather than a swallowed error, and that is not
+  // cosmetic. As a plain insert, every second look at a post raised
+  // "duplicate key value violates unique constraint post_views_pkey", which
+  // Postgres writes to the error log and PostgREST answers with a 409. So the
+  // ordinary act of scrolling past something twice filled the database's error
+  // log with the sound of the system working correctly, and cost a failed round
+  // trip to do it. Those entries were also the loudest thing in the log while a
+  // real 500 was being chased, which is exactly the cost of routine noise.
+  //
+  // `ignoreDuplicates` sends `Prefer: resolution=ignore-duplicates`, which
+  // becomes ON CONFLICT DO NOTHING and needs no named constraint, so the
+  // trigger that computes the viewer bucket is untouched.
   await session.supabase
     .from("post_views")
-    .insert({ post_id: parsed.data.postId } as never);
+    .upsert({ post_id: parsed.data.postId } as never, { ignoreDuplicates: true });
   return ok(null);
 }
 
