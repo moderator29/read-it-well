@@ -98,16 +98,35 @@ describe("liteapiKeyShapeNote", () => {
     expect(liteapiKeyShapeNote()).toBeNull();
   });
 
-  it("says nothing about a sandbox private key", async () => {
+  /*
+   * It speaks even when the key is fine, and that is the point. Returning null
+   * on a good key meant an empty `notes` beside a 401 could mean either "the
+   * shape is right" or "this deploy predates the check", and silence that could
+   * mean either reads as a clean bill of health.
+   */
+  it("names a sandbox private key and what a 401 on one implies", async () => {
     process.env.LITEAPI_KEY = "sand_00000000-1111-2222-3333-444444444444";
     const { liteapiKeyShapeNote } = await import("./providers/liteapi");
-    expect(liteapiKeyShapeNote()).toBeNull();
+    const note = liteapiKeyShapeNote() ?? "";
+    expect(note).toContain("sandbox");
+    expect(note).toContain("right shape");
+    expect(note).toContain("regenerate");
   });
 
-  it("says nothing about a production private key", async () => {
+  it("names a production private key the same way", async () => {
     process.env.LITEAPI_KEY = "prod_00000000-1111-2222-3333-444444444444";
     const { liteapiKeyShapeNote } = await import("./providers/liteapi");
-    expect(liteapiKeyShapeNote()).toBeNull();
+    const note = liteapiKeyShapeNote() ?? "";
+    expect(note).toContain("production");
+    expect(note).toContain("right shape");
+  });
+
+  /* A prefix is one of two published constants naming an environment, not a
+     credential. The body of the key must never appear. */
+  it("reports the prefix without the key behind it", async () => {
+    process.env.LITEAPI_KEY = "sand_secret-body-that-must-not-appear";
+    const { liteapiKeyShapeNote } = await import("./providers/liteapi");
+    expect(liteapiKeyShapeNote() ?? "").not.toContain("secret-body-that-must-not-appear");
   });
 
   it("names the public-key mistake when the prefix is missing", async () => {

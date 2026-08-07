@@ -117,16 +117,44 @@ export function liteapiConfigured(): boolean {
  * does is put the sentence next to the 401 in the admin diagnostic, where the
  * person holding both keys is looking.
  *
- * Never returns any part of the key.
+ * **It speaks in every case, including the one where nothing is wrong.** The
+ * first version returned null on a well-shaped key, which meant an empty
+ * `notes` next to a 401 carried two completely different meanings: the key is
+ * the right shape, or the deploy predates this check. Silence that could mean
+ * either is worse than no check at all, because it reads as a clean bill of
+ * health. Saying which prefix was found makes the next 401 immediately
+ * actionable: a `sand_` key refused is a key to regenerate, and no prefix at
+ * all is the public key.
+ *
+ * Never returns any part of the key. A prefix is not a credential: it is one of
+ * two constants published in LiteAPI's own documentation, and it identifies an
+ * environment rather than an account.
  */
 export function liteapiKeyShapeNote(): string | null {
   const key = apiKey();
   if (key === null) return null;
-  if (key.startsWith("sand_") || key.startsWith("prod_")) return null;
+
+  if (key.startsWith("sand_")) {
+    return (
+      "The key begins sand_, so it is a LiteAPI sandbox PRIVATE key, which is the " +
+      "right shape for these calls. A 401 on a key of this shape is the key itself " +
+      "being refused: regenerate it in the LiteAPI dashboard and check the sandbox " +
+      "account is activated."
+    );
+  }
+  if (key.startsWith("prod_")) {
+    return (
+      "The key begins prod_, so it is a LiteAPI production PRIVATE key, which is the " +
+      "right shape for these calls. A 401 on a key of this shape is the key itself " +
+      "being refused: regenerate it in the LiteAPI dashboard and check the production " +
+      "account is approved and live."
+    );
+  }
   return (
     "The key does not begin with sand_ or prod_, which is the shape of a LiteAPI " +
     "PRIVATE key. Server calls need the private key; the public key is for their " +
-    "front-end SDK and is refused here with the same 401 as a bad key."
+    "front-end SDK and is refused here with the same 401 as a bad key. Copy the " +
+    "private key from the same dashboard page."
   );
 }
 
