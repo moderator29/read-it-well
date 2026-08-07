@@ -1233,6 +1233,105 @@ export const ig: Dictionary = {
       "A na-kewa ego abanyela ụzọ atọ: òkè gị, òkè ikpo okwu, na ihe processor nke ịkwụ ụgwọ na-ewere. Atọ ahụ na-agbakọ mgbe niile ruo ihe ọbịa kwụrụ, nke ahụ bụ ihe mere ahịrị ọ bụla ebe a na-adaba.",
   },
 
+  /*
+   * NATIVE REVIEW, and this section more than most.
+   *
+   * The three `notCounted` paragraphs are the argument for why a number is
+   * absent, and an argument is exactly the kind of writing that survives a
+   * literal translation least well. If any of it reads as an apology rather
+   * than as a plain statement of what is and is not recorded, it should be
+   * rewritten rather than corrected.
+   */
+  agentAnalytics: {
+    title: "Ọnụọgụgụ",
+    lede: "Ihe ihe onwunwe gị mere n'ezie, agụtara ya site na ndekọ nke gị.",
+    unconfigured:
+      "Ọnụọgụ gị ga-apụta ebe a ozugbo igodo nke ikpo okwu rutere. Ọ dịghị ihe furu efu n'etiti oge ahụ.",
+    unavailable:
+      "Anyị enweghị ike ịgụ nke a ugbu a, ya mere anaghị egosi ihe ọ bụla kama igosi ọnụọgụ na-ezighị ezi.",
+    emptyTitle: "Ọ dịghị ihe a ga-atụ ugbu a",
+    emptyBody:
+      "Ibe a na-agụ arịrịọ, obibi, ego abanyela na nyocha. Ọ ga-anọ efu ruo mgbe otu n'ime ha mere n'ezie, n'ihi na eserese ihe atụ agaghị agwa gị ihe ọ bụla banyere onye ọ bụla.",
+    emptyAction: "Malite ndepụta",
+
+    headline: {
+      settled: "Ihe abanyere gị",
+      stays: "Obibi akwadoro",
+      rating: "Ogo ndị ọbịa nyere",
+      ratingNone: "Ọ dịghị nyocha ugbu a",
+      ratingFrom: "Site na nyocha {count}",
+      ratingFromOne: "Site n'otu nyocha",
+      booked: "Edebere, abalị {nights} na-abịa",
+    },
+
+    trend: {
+      title: "Ego abanyela kwa ọnwa",
+      blurb:
+        "Ogwe ọ bụla bụ mkpokọta òkè gị n'ego abanyere n'ọnwa ahụ. A na-ese ọnwa nke ọ dịghị ihe dị na ya na efu, n'ihi na ọ bụ ya mere.",
+      peak: "Ọnwa kacha mma ruo ugbu a",
+      empty:
+        "Ọ dịghị ego abanyela ugbu a, ya mere ọ dịghị eserese a ga-ese. Ọ ga-ejupụta n'onwe ya na mbụ ego kwagara.",
+    },
+
+    requests: {
+      title: "Otú arịrịọ si akwụsị",
+      blurb: "Arịrịọ ọ bụla ihe onwunwe gị natara, n'ọnọdụ ọ nọ taa.",
+      received: "Arịrịọ anatara",
+      confirmed: "Akwadoro",
+      cancelled: "Akagburu",
+      waiting: "Na-eche gị",
+      lapsed: "Azaghị ya mgbe ijide gafere",
+      lapsedNote:
+        "Arịrịọ na-ejide abalị ya ruo elekere {hours}. Ndị a gafere nke ahụ n'enweghị azịza, nke ọbịa na-agụ dị ka jụ.",
+      answerTitle: "Oge ị na-ewekarị iji zaa",
+      answerBody:
+        "Ọnụọgụ dị n'etiti n'ime arịrịọ {count} nke gị onwe gị zara. Ọkara dị ngwa karịa, ọkara were ogologo oge karịa.",
+      answerBodyOne: "Atụrụ ya na otu arịrịọ gị onwe gị zaworo.",
+      answerNone:
+        "Ị zabeghị arịrịọ ọ bụla n'onwe gị, ya mere ọ dịghị oge a ga-akọ. Nke a abụghị efu.",
+      answerUnavailable: "Anyị enweghị ike ịgụ akụkọ arịrịọ gị ugbu a.",
+      empty: "Ọ dịghị arịrịọ eruteela ihe onwunwe gị ugbu a.",
+    },
+
+    listings: {
+      title: "Ihe onwunwe n'otu n'otu",
+      blurb:
+        "Edobere ha n'usoro ihe abanyere n'ezie, ya mere ihe onwunwe na-enweta karịa dị n'elu.",
+      columnListing: "Ihe onwunwe",
+      columnRequests: "Arịrịọ",
+      columnConfirmed: "Akwadoro",
+      columnNights: "Abalị",
+      columnSettled: "Abanyela",
+      columnRating: "Ogo",
+      ratingWith: "{rating} site na nyocha {count}",
+      ratingWithOne: "{rating} site n'otu nyocha",
+      noRating: "Ọ dịghị nyocha",
+      empty: "Ị nweghị ihe onwunwe ọ bụla ugbu a, ya mere ọ dịghị ihe a ga-atụnyere.",
+    },
+
+    calendar: {
+      title: "Abalị {nights} gị na-abịa",
+      body: "N'ihe onwunwe {count} na-arụ ọrụ, nke ahụ bụ abalị {offered} e nyere n'ahịa.",
+      bodyOne: "N'otu ihe onwunwe gị na-arụ ọrụ, nke ahụ bụ abalị {offered} e nyere n'ahịa.",
+      booked: "Edebere",
+      blocked: "Ị mechiri",
+      open: "Ka ghere oghe",
+      none: "Ọ dịghị nke gị na-arụ ọrụ ugbu a, ya mere ọ dịghị abalị a ga-agụ.",
+      blockedNote:
+        "A na-agụ abalị gị onwe gị mechiri iche na ndị edebere. Nhọrọ gị ka ha bụ, ọ bụghị azụmahịa furu efu.",
+    },
+
+    notCounted: {
+      title: "Ihe ibe a na-adịghị agụ",
+      views:
+        "Nlele. RentMe anaghị agụ ọnụ ọgụgụ ndị lere ihe onwunwe anya, ya mere ọ dịghị ọnụọgụ nlele ebe a ma ọ dịghị ọnụego mgbanwe e wuru na ya. Igosi nke ọ bụla ga-abụ ihe e chepụtara.",
+      saves:
+        "Nchekwa. Ndepụta nchekwa nke ọbịa bụ nke onwe ya, ọbịa na-abanyeghị na-edobe nke ya na ekwentị ya, ya mere ọnụọgụ ọ bụla anyị nwere ike inye ga-adị ntakịrị site n'ọnụọgụ onye ọ bụla na-apụghị ịtụ.",
+      occupancy:
+        "Pasent nke ojiji gara aga. A na-agụ abalị e rere n'ụzọ ziri ezi, mana ịmata pasent nke ike gị nke ahụ bụ chọrọ ịmata ihe onwunwe ole ka ị nwere na-arụ ọrụ n'abalị ọ bụla gara aga, nke a na-edekọghị. A na-egosi abalị 30 na-abịa kama nke ahụ, n'ihi na ọnụọgụ ndị na-arụ ọrụ taa bụ eziokwu.",
+    },
+  },
+
   admin: {
     console: {
       // NATIVE REVIEW: "console" kept in English the way Nigerian staff say it.

@@ -1391,6 +1391,110 @@ export const en = {
   },
 
   /**
+   * Analytics, which is the surface most able to mislead and therefore the one
+   * written most carefully.
+   *
+   * Every sentence here has to survive a host acting on it. Somebody reads this
+   * screen and then prices a flat, turns down a guest or borrows against next
+   * month, so a figure that is roughly right is not a smaller version of a
+   * right figure, it is a wrong one with a friendly face. The copy is built
+   * around that: each panel names its own source, the empty states say plainly
+   * that there is nothing rather than filling the space, and `notCounted`
+   * exists so a host is told what this page cannot see instead of assuming
+   * silence means zero.
+   */
+  agentAnalytics: {
+    title: "Analytics",
+    lede: "What your properties have actually done, counted from your own records.",
+    unconfigured:
+      "Your figures appear here the moment the platform keys land. Nothing is lost in the meantime.",
+    unavailable: "We could not read this just now, so nothing is shown rather than a wrong figure.",
+    emptyTitle: "Nothing to measure yet",
+    emptyBody:
+      "This page counts requests, stays, settled payments and reviews. It stays empty until one of those has actually happened, because a sample chart would tell you about nobody.",
+    emptyAction: "Start a listing",
+
+    headline: {
+      settled: "Settled to you",
+      stays: "Confirmed stays",
+      rating: "Guest rating",
+      ratingNone: "No reviews yet",
+      /* The count sits under the average because they are not separable: 5.0
+         from one review and 5.0 from two hundred are different facts, and an
+         average shown alone invites the wrong one to be read. */
+      ratingFrom: "From {count} reviews",
+      ratingFromOne: "From 1 review",
+      booked: "Booked, next {nights} nights",
+    },
+
+    trend: {
+      title: "Settled by month",
+      blurb:
+        "Each bar is the sum of your share on settled payments that month. A month with nothing in it is drawn at zero, because that is what happened.",
+      peak: "Best month so far",
+      empty:
+        "No payment has settled yet, so there is no trend to draw. This fills in on its own the first time money moves.",
+    },
+
+    requests: {
+      title: "How requests end up",
+      blurb: "Every request your properties have received, by where it stands today.",
+      received: "Requests received",
+      confirmed: "Confirmed",
+      cancelled: "Cancelled",
+      waiting: "Waiting on you",
+      lapsed: "Unanswered past the hold",
+      lapsedNote:
+        "A request holds its nights for {hours} hours. These went past that with no answer, which a guest reads as a no.",
+      answerTitle: "Your usual time to answer",
+      answerBody:
+        "The middle value across the {count} requests you answered yourself. Half were quicker, half took longer.",
+      answerBodyOne: "Measured across the one request you have answered yourself so far.",
+      answerNone:
+        "You have not answered a request yourself yet, so there is no time to report. This is not a zero.",
+      answerUnavailable: "We could not read your request history just now.",
+      empty: "No request has reached your properties yet.",
+    },
+
+    listings: {
+      title: "Property by property",
+      blurb: "Sorted by what has actually settled, so the property earning most is on top.",
+      columnListing: "Property",
+      columnRequests: "Requests",
+      columnConfirmed: "Confirmed",
+      columnNights: "Nights",
+      columnSettled: "Settled",
+      columnRating: "Rating",
+      ratingWith: "{rating} from {count} reviews",
+      ratingWithOne: "{rating} from 1 review",
+      noRating: "No reviews",
+      empty: "You have no properties yet, so there is nothing to compare.",
+    },
+
+    calendar: {
+      title: "Your next {nights} nights",
+      body: "Across {count} live properties, that is {offered} nights on offer.",
+      bodyOne: "Across your one live property, that is {offered} nights on offer.",
+      booked: "Booked",
+      blocked: "Closed by you",
+      open: "Still open",
+      none: "Nothing of yours is live yet, so there are no nights to count.",
+      blockedNote:
+        "Nights you closed yourself are counted apart from booked nights. They are a choice, not lost business.",
+    },
+
+    notCounted: {
+      title: "What this page does not count",
+      views:
+        "Views. RentMe does not count how many people looked at a property, so there is no view figure here and no conversion rate built on one. Publishing either would mean making them up.",
+      saves:
+        "Saves. A guest's saved list is private to them, and a guest who has not signed in keeps it on their own phone, so any count we could produce would be short by an amount nobody can measure.",
+      occupancy:
+        "Past occupancy as a percentage. Nights sold are counted exactly, but working out what share of your capacity that was needs to know how many properties you had live on each past night, which is not recorded. The next 30 nights are shown instead, because today's live count is a fact.",
+    },
+  },
+
+  /**
    * The admin console. Staff-only copy, but copy all the same: an operator in
    * Kano works the same queues as an operator in Lagos.
    */
