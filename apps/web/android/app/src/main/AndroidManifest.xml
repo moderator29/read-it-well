@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="false">
+        <!--
+            `allowBackup` was `true`, which is the template default and the wrong
+            answer for this application. Android Auto Backup copies an
+            application's private data directory to the person's Google Drive
+            and restores it onto whatever device they sign in to next. This
+            shell's data directory holds the WebView cookie store, and that
+            store holds the Supabase session cookie the middleware refreshes on
+            every navigation, so leaving backup on means an authenticated
+            RentMe session, with a wallet behind it, travelling through a cloud
+            backup and landing on a second handset. There is nothing in here
+            worth restoring: the account lives on the server and signing in
+            again takes seconds.
+
+            `usesCleartextTraffic` is already false by default at this target
+            SDK, and it is written out anyway because it is the flag that
+            silently flips back if anyone ever lowers the target. The web
+            platform sends HSTS with preload for the same reason, and
+            `capacitor.config.ts` sets `cleartext: false` on the server block.
+            All three have to agree or the weakest one wins.
+        -->
+
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!--
+                Android App Links. This is the half of the deep link contract
+                that lives in the binary; the other half is
+                `apps/web/public/.well-known/assetlinks.json`, and NEITHER WORKS
+                WITHOUT THE OTHER.
+
+                `android:autoVerify="true"` makes Android fetch
+                `https://<host>/.well-known/assetlinks.json` at install time and
+                compare the signing certificate fingerprint in that file against
+                the one the installed binary was actually signed with. If they
+                match, every listed URL opens here instead of in a browser,
+                with no disambiguation dialogue and no way for another
+                application to claim our links. If they do not match, or the
+                file is missing, verification fails quietly and every link falls
+                back to the browser. That failure is invisible unless somebody
+                goes looking, so verify it deliberately after the first release:
+
+                    adb shell pm get-app-links ng.rentme.app
+
+                and read the state beside each host. Anything other than
+                `verified` almost always means the fingerprint in
+                `assetlinks.json` is wrong, so here is where the owner gets the
+                two values that file is waiting for. BOTH belong in the array,
+                and leaving either one out is the failure people spend a day on.
+
+                First, the Play app signing key. Play Console, the app, Release,
+                Setup, App signing, then the field labelled "SHA-256 certificate
+                fingerprint" under App signing key certificate. THIS IS THE ONE
+                THAT MATTERS on a shipped install, because Play App Signing
+                strips our upload signature and re-signs the binary with a key
+                Google holds, so the certificate on the device is never the one
+                we signed with.
+
+                Second, the upload key. That one is ours, it is the fingerprint
+                of the keystore named in `android/keystore.properties`, and it
+                is read locally with
+
+                    keytool -list -v -keystore upload-keystore.jks -alias upload
+
+                taking the line beginning SHA256. It is in the array because
+                every build installed by hand, from Android Studio or a direct
+                APK, carries the upload signature rather than Google's, and
+                without it App Links never verify during testing.
+
+                Both are 32 colon-separated hex pairs in upper case. The
+                placeholders in `assetlinks.json` are deliberately not hex, so
+                a file that was never filled in fails verification loudly rather
+                than looking plausible.
+
+                Hosts are `rentme.ng` and `www.rentme.ng` because that is the
+                domain this repository defaults to everywhere, in
+                `src/lib/email/render.ts` and in the profile share copy. If the
+                owner sets `NEXT_PUBLIC_SITE_URL` to anything else, these two
+                lines have to change with it, because a verified host is an
+                exact string and not a suffix.
+
+                The path prefixes are the shareable half of the product and
+                nothing else. A listing forwarded on WhatsApp is the case that
+                pays for this whole feature, and the others are the addresses
+                the product itself tells people to share. Deliberately absent:
+                `/checkout/`, `/wallet` and `/auth/`. Those three are return
+                paths from Paystack and from OAuth, they complete in the system
+                browser where their cookies and PKCE verifier live, and pulling
+                them into the application mid-flow would break the very
+                transaction it interrupted.
+
+                Worth knowing before this is switched on: `/listing/`, `/u/`,
+                `/post/`, `/stories/` and `/around/` are all protected product
+                segments in `src/middleware.ts`. A signed-out person following a
+                shared link arrives at the sign-in redirect rather than at the
+                listing, inside the application exactly as on the web. That is
+                existing product behaviour, not something this filter causes,
+                but it is what the owner will see the first time they test it.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="rentme.ng" />
+                <data android:scheme="https" android:host="www.rentme.ng" />
+                <data android:pathPrefix="/listing/" />
+                <data android:pathPrefix="/around/" />
+                <data android:pathPrefix="/u/" />
+                <data android:pathPrefix="/post/" />
+                <data android:pathPrefix="/stories/" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+
+    <!--
+        PERMISSIONS.
+
+        The inventory in `docs/MOBILE_READINESS.md` section 4 is the source of
+        truth for this list, and it was compiled from the code rather than from
+        habit. The rule it sets is that the native build declares exactly what
+        the web build already declares and nothing more, because the edge sends
+
+            Permissions-Policy: camera=(), microphone=(), geolocation=(self)
+
+        on every response, and a native shell that asks for more than the site
+        it loads is asking for something the site cannot use.
+    -->
+
+    <!--
+        Required. The shell has no packaged application to run: it loads the
+        live origin over https, so with no network there is nothing but the
+        offline card in `native-shell`.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+        Location. COARSE is what the product needs, and the FINE line below it
+        is not a contradiction. Read both comments before changing either.
+
+        WHAT THE PRODUCT NEEDS. There is exactly one consumer of location on
+        this platform, the locate-me control in
+        `src/components/app/search/MapCanvas.tsx`, and all it does with the fix
+        is `setView([lat, lng], 13)`. Zoom 13 shows several kilometres of a city
+        across a 390px screen, so a coarse fix of one to three kilometres lands
+        inside the same view a precise one would have produced. Nothing routes,
+        nothing measures a distance to a listing, nothing geofences and nothing
+        stores the position: it is read in the browser and never posted, which
+        is what the data inventory in `docs/MOBILE_READINESS.md` section 5
+        records. That control does pass `enableHighAccuracy: true`, but that is
+        only ever a hint, and at reduced precision the same callback fires and
+        the map still recentres. So coarse is the honest ask.
+
+        `ACCESS_BACKGROUND_LOCATION` is absent and must stay absent. Nothing
+        runs when the application is not in front of the person.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!--
+        AND WHY FINE IS HERE ANYWAY, CAPPED AT ANDROID 11.
+
+        This is not a hedge, it is a defect in the layer underneath us, and
+        removing this line breaks the locate control on every device below
+        Android 12. The reasoning, from
+        `@capacitor/android` 8.5.0, `BridgeWebChromeClient.java`:
+
+        When the web layer asks for a position, the bridge intercepts it in
+        `onGeolocationPermissionsShowPrompt` and requests BOTH coarse and fine
+        as one batch. Its result handler then ANDs the outcomes, so a batch in
+        which fine came back denied is treated as an outright refusal. There is
+        a rescue path for exactly this case, but it is guarded on
+        `Build.VERSION.SDK_INT >= S`: on Android 12 and above, a granted coarse
+        permission is accepted on its own and the web callback fires.
+
+        Below Android 12 there is no such path. An undeclared permission is
+        denied by the system without a prompt, so with coarse alone the batch
+        can never come back all-true, and the bridge tells the web layer the
+        person refused. The locate control would report "denied" and degrade
+        into its designed state, which means the failure is quiet and correct
+        looking, and nobody would connect it to this file. Android 11 and below
+        is not a rounding error on the handsets this product is built for.
+
+        `android:maxSdkVersion="30"` is what makes this an honest declaration
+        rather than a widened one. Android 12 is where approximate location
+        became a first-class choice a person can make in the prompt, and it is
+        also exactly where the bridge learned to accept it. So fine location is
+        held only on the versions that have no way to express what we actually
+        want, and it is stripped from the merged manifest everywhere else. On a
+        modern handset this application cannot request precise location at all.
+
+        Play's data safety form should be answered accordingly: approximate
+        location, used for app functionality, not shared, not stored.
+
+        None of the above has been on a handset. It is read from the bridge
+        source in `node_modules/@capacitor/android`, and it is the kind of claim
+        that deserves a real device before the first release.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+
+    <!--
+        Not declared, on purpose, so that the next person does not add them
+        back wondering whether they were forgotten:
+
+        CAMERA. Listing photos, avatars, verification documents and message
+        attachments all arrive through an ordinary `<input type="file">`. On
+        Android that opens the system document picker, which reads the file on
+        the application's behalf and needs no grant of ours.
+
+        This one is worth stating precisely rather than by habit, because
+        Capacitor's `onShowFileChooser` DOES request the camera permission, and
+        the condition it does it under is `fileChooserParams.isCaptureEnabled()`
+        together with an `image/*` accept. That flag comes from the `capture`
+        attribute on the input, and there is no `capture` attribute anywhere in
+        `src`: every one of the eleven file inputs on the platform names its
+        accepted types and leaves the choice of source to the person. So the
+        branch that needs the camera cannot be reached, and declaring the
+        permission would ask for something no code path uses. If a `capture`
+        attribute is ever added, this comment is where the consequence is
+        written down.
+
+        READ_EXTERNAL_STORAGE and READ_MEDIA_IMAGES. Same reason, and this is
+        the one people get wrong. The Storage Access Framework hands back a
+        content URI the application already has read rights to. Declaring a
+        media permission here would trigger a Play policy declaration for
+        broad file access that this application cannot justify, and it would
+        gain nothing.
+
+        RECORD_AUDIO, READ_CONTACTS, READ_CALENDAR. Nothing in the product
+        records audio, reads an address book or writes a calendar entry.
+
+        POST_NOTIFICATIONS. Notifications on this platform are database rows
+        rendered in-product. Web Push is not wired and there is no FCM
+        registration, so asking for the notification prompt today would spend
+        the one prompt a person reliably grants on a channel that cannot yet
+        deliver anything.
+    -->
+
+    <!--
+        Package visibility, not a permission.
+
+        From Android 11 an application cannot see which other applications can
+        handle an intent unless it says what it is looking for. Without this
+        block `@capacitor/browser` cannot resolve a Custom Tabs provider, and
+        the external handoff described in `capacitor.config.ts` is exactly
+        where that matters: a Paystack checkout and an OAuth sign-in have to
+        open in the system browser rather than inside our WebView, and a failed
+        resolution there is a dead payment button rather than a visible error.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+</manifest>

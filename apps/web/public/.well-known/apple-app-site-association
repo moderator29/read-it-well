@@ -1,0 +1,51 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID.ng.rentme.app"],
+        "components": [
+          {
+            "/": "/auth/*",
+            "exclude": true,
+            "comment": "Excluded first, because order decides. OAuth finishes in the system browser where the PKCE verifier and the cookies for the exchange live, so pulling the callback into the app would hand it a code it cannot redeem."
+          },
+          {
+            "/": "/api/*",
+            "exclude": true,
+            "comment": "Excluded. These are route handlers, including the Paystack webhook. Nothing here is a page a person should ever land on."
+          },
+          {
+            "/": "/checkout/*",
+            "exclude": true,
+            "comment": "Excluded. This is where Paystack returns a guest after a hosted card payment, and that return has to complete in the browser session that started it."
+          },
+          {
+            "/": "/wallet*",
+            "exclude": true,
+            "comment": "Excluded for the same reason as checkout: it is the return path for wallet funding."
+          },
+          {
+            "/": "/listing/*",
+            "comment": "The case that pays for this whole feature. A listing forwarded on WhatsApp opens in the app for anyone who has it installed."
+          },
+          {
+            "/": "/around/*",
+            "comment": "An area page. Shared the same way a listing is, and the product prints this address in the propose-an-area form."
+          },
+          {
+            "/": "/u/*",
+            "comment": "A member profile. The product tells people their address is rentme.ng/u/handle, so it has to open here."
+          },
+          {
+            "/": "/post/*",
+            "comment": "A single post, shared out of the social layer."
+          },
+          {
+            "/": "/stories/*",
+            "comment": "A single story, shared out of the social layer."
+          }
+        ]
+      }
+    ]
+  }
+}

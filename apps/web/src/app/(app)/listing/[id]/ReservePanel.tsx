@@ -2,7 +2,7 @@
 
 import { useActionState, useId, useState, useMemo } from "react";
 import Link from "next/link";
-import { type Locale } from "@naijafinds/i18n";
+import { getDictionary, plural, type Locale } from "@naijafinds/i18n";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -131,6 +131,16 @@ export function ReservePanel({
   // The panel renders twice on one page (inline on phones, sticky aside from
   // lg up), so input ids must be instance-unique.
   const uid = useId();
+
+  /* The counted phrases on this panel used to be written as
+     `nights === 1 ? "night" : "nights"`, which is two defects in one
+     expression: it assumes every language has exactly two forms, and it writes
+     the English ones straight into a product that ships in four languages.
+     Both go through the dictionary now. The sentences that WRAP a count come
+     from `t.reserve`, because a counted noun cannot be pluralised properly
+     without also owning the words on either side of it. */
+  const t = getDictionary(locale);
+
   const [state, formAction, pending] = useActionState<
     ActionResult<ReserveReceipt> | null,
     FormData
@@ -212,9 +222,11 @@ export function ReservePanel({
           </p>
         </div>
         <p className="nf-rise mt-2 text-center text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-          {labelDate(r.checkIn)} to {labelDate(r.checkOut)}, {r.nights}{" "}
-          {r.nights === 1 ? "night" : "nights"} for {r.adults + r.children}{" "}
-          {r.adults + r.children === 1 ? "guest" : "guests"}.
+          {t.reserve.confirmedRange
+            .replace("{from}", labelDate(r.checkIn))
+            .replace("{to}", labelDate(r.checkOut))
+            .replace("{nights}", plural(r.nights, t.counts.nights, locale))
+            .replace("{guests}", plural(r.adults + r.children, t.counts.guests, locale))}
         </p>
         {r.arrivingName && (
           <p
@@ -401,7 +413,10 @@ export function ReservePanel({
           />
           {capacity !== null && (
             <p className="border-t border-[var(--nf-border-subtle)] pt-2.5 text-[0.78rem] text-[var(--nf-content-muted)]">
-              This place takes up to {capacity} {capacity === 1 ? "guest" : "guests"}.
+              {t.reserve.capacityNote.replace(
+                "{guests}",
+                plural(capacity, t.counts.guests, locale),
+              )}
             </p>
           )}
         </div>
@@ -534,7 +549,7 @@ export function ReservePanel({
                 <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
                   <dt>
                     <Amount minorUnits={priceMinor} locale={locale} currency={currency} /> &times;{" "}
-                    {nights} {nights === 1 ? "night" : "nights"}
+                    {plural(nights, t.counts.nights, locale)}
                   </dt>
                   <dd>
                     <Amount minorUnits={subtotalMinor} locale={locale} currency={currency} />

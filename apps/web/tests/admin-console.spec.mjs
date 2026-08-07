@@ -77,11 +77,68 @@ check(
 
 /* --------------------------------------------------------------- the geometry */
 
-const CSS = await (await fetch(
-  `${BASE_URL}/_next/static/chunks/%5Broot-of-the-server%5D__0rd0r_d._.css`,
-)).text();
+/**
+ * The stylesheet, discovered rather than named.
+ *
+ * This used to fetch one hardcoded chunk,
+ * `/_next/static/chunks/[root-of-the-server]__0rd0r_d._.css`. That name is a
+ * build hash, so it stopped existing the next time anybody built, and the
+ * fetch quietly 404ed. `fetch` does not throw on a 404, so `CSS` became the
+ * body of an error page and the fixture below rendered with NO STYLES AT ALL.
+ *
+ * Every geometry check then measured an unstyled div, and the numbers it
+ * reported were the browser's own defaults: 374px on a 390px phone and 2544px
+ * with `left: 8` on a 2560px display are both just the 8px default margin on
+ * `<body>`, and "the queue is one column" was true because there was no grid.
+ * Four checks failed and every one of them read like a real layout fault in
+ * the console. `.nf-console` and `.nf-queue-list` were correct the whole time.
+ *
+ * So the sheet is found the way a browser finds it: load a real page from the
+ * running server, read the `<link rel="stylesheet">` hrefs the app actually
+ * asked for, and fetch those. A build hash can change as often as it likes.
+ */
+async function stylesheet() {
+  const page = await fetch(`${BASE_URL}/admin`);
+  if (!page.ok) throw new Error(`/admin answered ${page.status}, so no stylesheet can be read.`);
+  const html = await page.text();
+
+  const hrefs = [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]*>/g)]
+    .map((tag) => tag[0].match(/href="([^"]+)"/)?.[1])
+    .filter((href) => typeof href === "string");
+
+  if (hrefs.length === 0) {
+    throw new Error("No stylesheet link on /admin, so the geometry cannot be measured.");
+  }
+
+  const sheets = await Promise.all(
+    hrefs.map(async (href) => {
+      const response = await fetch(new URL(href, BASE_URL));
+      if (!response.ok) throw new Error(`Stylesheet ${href} answered ${response.status}.`);
+      return response.text();
+    }),
+  );
+
+  const css = sheets.join("\n");
+  /* Prove the sheet carries the classes this spec measures, so a future change
+     of bundling strategy fails here with a sentence rather than four counterfeit
+     layout failures. */
+  for (const name of ["nf-console", "nf-queue-list"]) {
+    if (!css.includes(name)) {
+      throw new Error(`The served CSS does not define .${name}, so the fixture would measure nothing.`);
+    }
+  }
+  return css;
+}
+
+const CSS = await stylesheet();
 
 const FIXTURE = `<!doctype html><html data-theme="dark"><head><meta charset="utf-8">
+<style>
+  /* The fixture measures the console's own geometry, so the page around it must
+     contribute none. Without this the browser's default 8px body margin is what
+     the numbers report. */
+  html, body { margin: 0; padding: 0; }
+</style>
 <style>${CSS}</style></head><body>
 <div id="console" class="nf-console">
   <ul id="queue" class="nf-queue-list">

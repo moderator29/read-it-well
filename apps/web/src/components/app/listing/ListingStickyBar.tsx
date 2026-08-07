@@ -1,6 +1,6 @@
 "use client";
 
-import { type Locale } from "@naijafinds/i18n";
+import { getDictionary, plural, type Locale } from "@naijafinds/i18n";
 import { useStayDatesOptional } from "./StayDates";
 import { ButtonLink } from "@/components/ui/Button";
 import { ActionBar } from "@/components/ui/ActionBar";
@@ -73,9 +73,17 @@ export function ListingStickyBar({
   const quoting = variant === "stay" && stay !== null && stay.ready && stay.totalMinor > 0;
 
   const amount = quoting && stay ? stay.totalMinor : priceMinor;
+
+  /* The caption once dates are picked. It was built by gluing an English
+     ternary onto an English preposition, so a Yoruba reader was quoted a total
+     in their own currency format under an English sentence. Both the sentence
+     and the night count come from the dictionary now, and the count picks its
+     form from `Intl.PluralRules` rather than from an assumption that every
+     language has a singular and a plural. */
+  const t = getDictionary(locale);
   const caption =
     quoting && stay
-      ? `Total for ${stay.nights} ${stay.nights === 1 ? "night" : "nights"}`
+      ? t.reserve.totalForNights.replace("{nights}", plural(stay.nights, t.counts.nights, locale))
       : perLabel;
 
   const external = (a: StickyAction) =>

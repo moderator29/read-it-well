@@ -394,13 +394,28 @@ export function MapCanvas({
   }, [locate.at, engineReady, tick]);
 
   // ----------------------------------------------------------------- actions
+  /*
+   * `setSelectedId` is listed here, and again on `fitAll` below, even though a
+   * `useState` setter never changes identity and the dependency is therefore a
+   * no-op at runtime. It is listed because the React Compiler cannot prove the
+   * stability in this particular component: the setter is also captured by the
+   * inline `onDismiss` closure handed to `MapDock` at the foot of the tree, and
+   * once a setter is captured by a closure the compiler has to hoist out of a
+   * conditional branch, it stops treating that identifier as one of its stable
+   * values and treats it as an ordinary reactive dependency everywhere. The
+   * consequence of leaving it out is not a stale closure, it is that the
+   * compiler refuses to optimise the whole of MapCanvas, and this component
+   * reprojects every mark on every frame the map moves, so that optimisation is
+   * worth more than a tidy dependency array. Nothing about the behaviour of
+   * `choose` changes either way.
+   */
   const choose = useCallback(
     (listing: MapListing) => {
       setSaveMessage(null);
       setSelectedId(listing.id);
       mapRef.current?.panTo([listing.lat, listing.lng], { animate: true });
     },
-    [],
+    [setSelectedId],
   );
 
   const expand = useCallback((group: PinGroup<MapListing & ScreenPoint>) => {
@@ -491,7 +506,10 @@ export function MapCanvas({
     setSelectedId(null);
     setPanned(false);
     fitToPlaces();
-  }, [fitToPlaces]);
+    // `setSelectedId` is here for the reason given at `choose` above: it is a
+    // stable setter, so this costs nothing at runtime, and without it the React
+    // Compiler bails out of optimising the component.
+  }, [fitToPlaces, setSelectedId]);
 
   const save = useCallback(
     (listing: MapListing) => {

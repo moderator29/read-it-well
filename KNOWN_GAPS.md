@@ -84,12 +84,25 @@ one ladder that decides how much of the platform they can use has to be told
 over the phone. A table with an admin screen and no host screen is half a loop
 by this repository's own law.
 
-**No `Accept-Language` negotiation.** Locale resolves from a cookie then falls
-back to English, so a first-time visitor with a Yoruba browser still sees
-English. `lib/locale.ts` carries a comment pointing here.
+**Yoruba, Hausa and Igbo counted nouns need native review specifically.** The
+plural entries added with `Intl.PluralRules` sit inside the same native review
+the rest of those three files are waiting on, but two of them are worth naming.
+Yorùbá and Igbo have a single CLDR plural category, so one form has to serve
+every count, and the Igbo entries deliberately use the unmarked noun with the
+numeral after it (`okenye {count}`, `nwa {count}`) rather than the plural-marked
+`ndị okenye` and `ụmụaka` used elsewhere in that file, which would read as
+"adults 1" beside a numeral. A native speaker should confirm that choice.
 
-**No pluralisation rules.** `Intl.PluralRules` is not wired anywhere. Some
-existing copy already needs it: the booking card renders "1 adults, 1 children".
+**The reserve panel on a listing is still written in English in the component.**
+Only the three sentences that state a count were moved into the dictionary
+(`reserve.confirmedRange`, `reserve.capacityNote`, `reserve.totalForNights`),
+because a counted noun cannot be pluralised without owning the words around it.
+Roughly forty other strings in `ReservePanel.tsx`, and the `en-GB` date
+formatter it uses for the stay range, are unchanged. The same is true of the
+generated "about" paragraphs on `/listing/[id]`, the search history label built
+in `/search`, the booking validation messages in `lib/bookings/actions.ts`, the
+stay emails in `lib/email/messages.ts` and the "N nights selected" caption in
+the agent calendar editor. All are correct English; none are localised.
 
 **The restaurant copy in Yoruba, Hausa and Igbo is mine, not a speaker's.**
 Eight strings across `interests.markets`, `interests.hints`, `admin.propertyType`
@@ -110,10 +123,53 @@ literally. Every locale file carries this warning in its header.
 system for sheets, map transitions and AI states is not built. Reduced motion is
 honoured throughout via token collapse.
 
-**`apps/web/src/lib/security/rate-limit.ts` contains a literal NUL byte**, so
-tooling classifies it as binary and it disappears from `grep` and from GitHub
-code search. The code works; the file is invisible to search. Worth rewriting
-cleanly so nobody concludes the rate limiter does not exist.
+**There are two sheet implementations and they are only now properly apart.**
+`components/ui/Sheet.tsx` is the primitive, with a drag handle, detents and a
+transform driven by `[data-open]`. `components/app/account/rows.tsx` carries an
+older, simpler one that opens by animating, and it is what all eight surfaces
+across `/profile` and `/settings` use. They shared the class name `.nf-sheet`
+until this round, which made the older one unreachable under reduced motion;
+the older family is now `.nf-rows-sheet` and `app/settings-rows.css` explains
+why at length. **That fixed the bug, not the duplication.** Merging the two is
+real work worth doing: one sheet, one set of mechanics, eight call sites to
+migrate. It was not attempted here because the primitive belongs to another
+session's file scope.
+
+**963 em dashes remain in `docs/ui-audit/`,** across ten files, against a house
+rule that says zero anywhere including documentation. They are historical audit
+records from a single session, and a mechanical replacement would produce
+ungrammatical prose in documents nobody is going to reread. The live documents
+are clean: `docs/ENVIRONMENT.md` was fixed this round, as were the four source
+files and the one test comment that carried them. One of the four was
+user-facing, the agent application wizard's step label. Note that three test
+specs legitimately CONTAIN the character, because they are the guards that
+search for it, and a sweep must not "fix" those.
+
+**The suite is 79 specs. 75 pass. None of the four that do not is caused by this
+branch, and each was checked rather than assumed.**
+
+| Spec | State |
+|---|---|
+| `gate` | **Aborts by design** and says so: without `NEXT_PUBLIC_SUPABASE_URL` and the anon key the guard is a pass-through, so it refuses to pretend it proved anything. Environmental |
+| `intent-tune` | `src/lib/interests/schema.ts` AND the spec itself are byte for byte identical to `origin/main`, so this is red on main |
+| `interests-settings` | `welcome/page.tsx` carries no `InterestChoices` mount on this branch or on `origin/main`. Red on main |
+| `session-memory` | One check. `ListingsWorkspace.tsx` is byte for byte identical to `origin/main`. Red on main |
+| `truncation` | Passes alone. Chromium running out of room after seventy consecutive launches in this sandbox. Run the suite in batches |
+
+**A sandbox trap that cost two full sweeps, written down so it costs nobody a
+third.** `next start` on a port that is already held does NOT fail loudly: the
+old server keeps serving and the new one exits, so a sweep silently measures the
+PREVIOUS build. It read as 49 unrelated specs failing at once. Before trusting a
+sweep, confirm exactly one `next-server` process and that `.next-*/BUILD_ID`
+matches the build just made. Killing `next-server` alone is not enough either,
+because `npm exec` respawns it; kill the `npm exec`, the `sh -c` and the
+`next-server` together.
+
+**`apps/web/tsconfig.json` carries ten dead `include` entries.** Parallel builds
+add `".next-a1/types/**"` and friends as they are used, but `exclude` holds
+`".next-*"`, and exclude filters include, so every one of those entries does
+nothing. Only the default `.next/types` is live, because it has no dash. Not
+harmful, and worth a tidy the next time somebody is in that file.
 
 ---
 
@@ -152,6 +208,7 @@ Recorded so nobody rebuilds them.
 | `20260729174306_rls_initplan_and_fk_index` is applied with no committed file | It has a file. The mirror has drifted elsewhere instead, recorded below |
 | `payout_accounts` has no writer | `lib/agent/payout-actions.ts` adds, defaults and removes accounts through the agent's own RLS-bound client, re-resolving the account name against the bank rather than trusting the form |
 | Reviews have no writer | Guests write from `/bookings/[bookingId]/review`; hosts answer through `lib/agent/reviews-actions.ts` |
+| `rate-limit.ts` holds a literal NUL byte and is invisible to grep | Rewritten with the byte written as a unicode escape. `file` now reports ASCII text, the compiled string is unchanged, and the separator carries a comment explaining why it has to be NUL |
 | No session layer | `lib/auth/actions.ts` has real `signInWithPassword`, `signUp`, sign-out and Google/Apple OAuth |
 | No search, map, filters or pagination | `/search` has a real engine, `FilterDrawer`, `MapCanvas`, `MapDock` and a square filter opener |
 | Light theme scaffolded, must not be exposed | Fully designed exchange-grade paper twin, shipped, and the default is dark |
@@ -164,6 +221,8 @@ Recorded so nobody rebuilds them.
 | Listing wizard step count undecided | Built |
 | Location model blocked on LGA | Built on state, city, area |
 | Service fee ownership undefined | Settled: the platform charges NO fees anywhere |
+| No `Accept-Language` negotiation | Wired. `lib/locale.ts` resolves cookie, then `Accept-Language`, then English. The header parser is `parseAcceptLanguage`/`matchAcceptLanguage` in `packages/i18n/src/negotiate.ts`: no dependency, q values honoured and ordered, `yo-NG` matched on its primary subtag, `q=0` and `*` handled. Covered by `apps/web/src/lib/accept-language.test.ts` |
+| No pluralisation rules, and the booking card renders "1 adults, 1 children" | Wired. `plural()` and `formatParty()` in `packages/i18n` select through `Intl.PluralRules` on the same `intlTag` map `formatMoney` uses, so the categories come from the locale: `one`/`other` for English and Hausa, `other` alone for Yorùbá and Igbo. The dictionary carries a `counts` block in all four files. Every party, guest and night count on the admin stay board and detail, the host booking card, the guest bookings deck (signed in and signed out), checkout and the listing reserve panel and sticky bar now goes through it. Covered by `apps/web/src/lib/plurals.test.ts` |
 
 ---
 

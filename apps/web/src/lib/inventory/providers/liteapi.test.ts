@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { bookingUrl, joinContentAndRates, whitelabelHost, type HotelContent } from "./liteapi";
 import { DEFAULT_PARTNER_CITY } from "../mapping";
 

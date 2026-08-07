@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CAPACITOR_DEBUG</key>
+	<string>$(CAPACITOR_DEBUG)</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+        <string>RentMe</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<!--
+		Both version keys are build settings rather than literals, and they stay
+		that way. `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` live in
+		`App.xcodeproj/project.pbxproj`, and `scripts/sync-native-versions.mjs`
+		writes them there from `apps/web/package.json` in the same run that
+		writes the Android pair. Putting a literal here would give the platform a
+		fourth place to hold a version number and a fourth place for it to drift.
+
+		What each one means to App Store Connect, because they are easy to swap:
+		`CFBundleShortVersionString` is what a person sees on the store page, and
+		`CFBundleVersion` is the build number, which must increase with every
+		upload inside a given marketing version and is never shown to anyone.
+	-->
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<!--
+		Export compliance, answered once here instead of on every upload.
+
+		Without this key App Store Connect asks the encryption question against
+		each build and holds the build out of TestFlight until somebody answers
+		it. The honest answer is that this application uses only https and the
+		platform's own keychain and cookie storage, which is the exemption
+		Apple's own documentation describes, so nothing here is subject to
+		export regulations. If a future release ever adds its own cryptography,
+		this is a legal declaration and it has to be revisited rather than left.
+	-->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<!--
+		App Transport Security, written out although it matches the default.
+
+		The default already refuses plain http, and that is the behaviour we
+		want: the shell loads the live origin, the web platform sends HSTS with
+		preload, `capacitor.config.ts` sets `cleartext: false` and the Android
+		manifest sets `usesCleartextTraffic="false"`. This key is here so that
+		the next person who hits a local development host over http adds an
+		exception deliberately, with this comment in front of them, rather than
+		reaching for `NSAllowsArbitraryLoads` and shipping it.
+	-->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+	</dict>
+	<!--
+		PURPOSE STRINGS.
+
+		Apple shows these words verbatim in the permission alert, and App Review
+		rejects a string that restates the permission instead of explaining what
+		the person gets for granting it. So each one below names the feature, in
+		the second person, and says where the data goes. They are also the only
+		place on the platform where the honest answer "it never leaves your
+		device" can be said to somebody at the moment they are deciding.
+
+		The inventory in `docs/MOBILE_READINESS.md` section 4 is the source of
+		truth for which keys exist here at all. Every key present is a
+		capability something in `src/` actually reaches for.
+	-->
+	<!--
+		Read by WKWebView when the locate-me control in
+		`src/components/app/search/MapCanvas.tsx` calls `getCurrentPosition`. It
+		is `WhenInUse` and there is deliberately no `Always` variant: nothing
+		runs in the background, and asking for background location would be a
+		review question with no answer.
+	-->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>RentMe centres the search map on where you are when you tap the locate button, so you can see homes and places near you without typing an address. Your position is used on this device only and is never sent to RentMe.</string>
+	<!--
+		Read when the person picks an existing image or document from the file
+		inputs behind listing photos, profile pictures, message attachments and
+		agent verification uploads. Nothing on this platform writes to the photo
+		library, so `NSPhotoLibraryAddUsageDescription` is absent.
+	-->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>RentMe opens your photos when you choose one to upload, so you can add pictures to a listing, set your profile picture, send a photo in a message, or supply an agent verification document. Only the files you pick are read.</string>
+	<!--
+		The camera, and why it is present when the permission inventory calls it
+		unused.
+
+		Both statements are true, because they are about two different
+		mechanisms. `docs/MOBILE_READINESS.md` records that nothing on this
+		platform opens a camera STREAM, and that is still correct: no
+		`getUserMedia` call exists anywhere in `src`, and the web platform sends
+		`Permissions-Policy: camera=()` on every response to keep it that way.
+
+		This key is not about that. Eleven `<input type="file">` elements exist,
+		and the three behind listing photos, message attachments and agent
+		verification carry `accept="image/*"`. On iOS a WKWebView renders that as
+		an action sheet offering "Photo Library", "Take Photo or Video" and
+		"Browse". The camera entry is drawn by the operating system's own picker
+		and cannot be removed by the page, `Permissions-Policy` does not reach it
+		because no web API is being called, and iOS TERMINATES an application
+		that reaches the camera with no purpose string.
+
+		So the choice was between a purpose string and a crash on one tap, in the
+		middle of an agent uploading the document that gets them verified. The
+		string wins, and it does not widen anything the web policy was holding
+		shut: on iOS Safari the same input offers the same camera today, with
+		Safari holding the permission instead of us.
+	-->
+	<key>NSCameraUsageDescription</key>
+	<string>RentMe opens your camera only when you choose "Take Photo" while adding a picture, so you can photograph a place you are listing, a document that verifies you as an agent, or something you want to send in a message. Nothing is captured until you tap the shutter, and RentMe never records video or opens the camera on its own.</string>
+	<!--
+		DELIBERATELY ABSENT, and each one is a decision rather than an omission.
+
+		NSMicrophoneUsageDescription. Nothing records audio.
+
+		NSContactsUsageDescription, NSCalendarsUsageDescription. Nothing reads
+		an address book or writes a calendar entry, and asking would be a review
+		question with no good answer.
+
+		NSFaceIDUsageDescription. Biometric unlock is discussed in
+		`docs/MOBILE_READINESS.md` as something a native shell buys, but nothing
+		implements it yet. The key arrives with the feature.
+
+		NSUserTrackingUsageDescription. There is no analytics vendor and no
+		crash reporting anywhere in this codebase, so there is no tracking to
+		ask permission for. That is worth keeping true: it makes the App
+		Privacy questionnaire short and honest.
+	-->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+    <false/>
+    <key>UISceneConfigurations</key>
+    <dict>
+      <key>UIWindowSceneSessionRoleApplication</key>
+      <array>
+        <dict>
+            <key>UISceneConfigurationName</key>
+            <string>Default Configuration</string>
+            <key>UISceneDelegateClassName</key>
+            <string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+            <key>UISceneStoryboardFile</key>
+            <string>Main</string>
+        </dict>
+      </array>
+    </dict>
+	</dict>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<!--
+		This said `armv7`, which the Capacitor template has carried for years
+		and which is now wrong in a way that only shows up at submission. The
+		deployment target is iOS 15 and no 32-bit device ever ran it, so the
+		requirement described a set of devices that cannot install this
+		application at all. `arm64` is the truthful statement and it is what
+		App Store Connect expects to see beside a modern deployment target.
+	-->
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+</dict>
+</plist>

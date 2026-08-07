@@ -8,6 +8,27 @@ import type { Dictionary } from "./en";
  * speaker rather than translated literally. Tracked in KNOWN_GAPS.md.
  */
 export const ha: Dictionary = {
+  /*
+   * Hausa uses `one` and `other`, the same two categories as English, and it
+   * does inflect: dare becomes darare, baƙo becomes baƙi, babba becomes manya,
+   * yaro becomes yara. Both forms are filled in for every noun, and the count
+   * of one is written with ɗaya rather than a numeral because that is how the
+   * rest of this dictionary already writes it.
+   */
+  counts: {
+    nights: { one: "dare ɗaya", other: "darare {count}" },
+    guests: { one: "baƙo ɗaya", other: "baƙi {count}" },
+    adults: { one: "babba ɗaya", other: "manya {count}" },
+    children: { one: "yaro ɗaya", other: "yara {count}" },
+    party: "{adults}, {children}",
+  },
+
+  reserve: {
+    confirmedRange: "{from} zuwa {to}, {nights} don {guests}.",
+    capacityNote: "Wannan wurin yana ɗaukar har {guests}.",
+    totalForNights: "Jimilla don {nights}",
+  },
+
   meta: { localeName: "Hausa", localeNativeName: "Hausa", dir: "ltr" },
 
   /*
@@ -1110,11 +1131,6 @@ export const ha: Dictionary = {
     },
     card: {
       dates: "{from} zuwa {to}",
-      nights: "Darare {count}",
-      nightsOne: "Dare ɗaya",
-      guests: "Baƙi {count}",
-      guestsOne: "Baƙo ɗaya",
-      composition: "Manya {adults}, yara {children}",
       total: "Jimilla",
       requested: "An buƙata {date}",
       waiting: "Yana jira {duration}",
@@ -1720,10 +1736,6 @@ export const ha: Dictionary = {
       back: "Duk zaman baƙi",
       goneTitle: "Wannan zaman ba ya nan",
       goneBody: "Koma jeri ka ga abin da ke nan yanzu.",
-      nights: "Dare {count}",
-      nightsOne: "Dare 1",
-      party: "Manya {adults}, yara {children}",
-      partyAdultsOnly: "Manya {adults}",
       settledChip: "An biya {amount}",
       unpaidChip: "Ba a biya komai tukuna",
       refundedChip: "An mayar da {amount}",

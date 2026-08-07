@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDictionary, plural } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getCheckoutView } from "@/lib/bookings/checkout-view";
 import { isBookingReference } from "@/lib/payments/references";
@@ -131,6 +132,12 @@ export default async function CheckoutPage({
 
   const view = read.view;
 
+  /* The guest and night counts on the summary. They were a pair of English
+     ternaries sitting directly above money that was already being formatted for
+     the reader's locale, which is the same half-localised screen the booking
+     card had. Both now resolve their form through `Intl.PluralRules`. */
+  const counts = getDictionary(locale).counts;
+
   /* ----------------------------------------------------------- the screen */
 
   return (
@@ -189,8 +196,8 @@ export default async function CheckoutPage({
             <div className="flex items-start justify-between gap-4">
               <dt className="text-[0.8125rem] text-[var(--nf-content-muted)]">Guests</dt>
               <dd className="text-right text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
-                {view.guests} {view.guests === 1 ? "guest" : "guests"} &middot; {view.nights}{" "}
-                {view.nights === 1 ? "night" : "nights"}
+                {plural(view.guests, counts.guests, locale)} &middot;{" "}
+                {plural(view.nights, counts.nights, locale)}
               </dd>
             </div>
             {view.lines.map((line) => (

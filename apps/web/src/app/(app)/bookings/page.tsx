@@ -75,9 +75,13 @@ export default async function BookingsPage({
       <Reveal>
         <div className="nf-card p-4 sm:p-5">
           {groups ? (
-            <MyBookings groups={groups} justBookedId={justBooked} />
+            <MyBookings groups={groups} locale={locale} justBookedId={justBooked} />
           ) : (
-            <BookingsTabs upcoming={seeded?.upcoming ?? []} past={seeded?.past ?? []} />
+            <BookingsTabs
+              upcoming={seeded?.upcoming ?? []}
+              past={seeded?.past ?? []}
+              locale={locale}
+            />
           )}
         </div>
       </Reveal>

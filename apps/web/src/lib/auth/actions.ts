@@ -1,5 +1,6 @@
 "use server";
 
+import { safeReturnPath } from "@/lib/security/return-path";
 import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -221,8 +222,13 @@ async function callerIp(): Promise<string> {
 function landingAfterAuth(formData: FormData): string {
   const raw = formData.get("next");
   if (typeof raw !== "string" || raw.length === 0) return "/home";
-  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) return "/home";
-  return raw;
+  /* One implementation, in `lib/security/return-path.ts`, with unit tests. This
+     used to be a third hand-rolled copy of the same three checks, and it was
+     the copy that mattered most, because this is where an attacker-supplied
+     `next` is actually acted on. All three copies missed TAB, LF and CR, which
+     a URL parser strips before resolving, so `/<TAB>/evil.example` passed every
+     one of them and then left the origin. */
+  return safeReturnPath(raw, "") ?? "/home";
 }
 
 export async function signInWithEmail(
@@ -590,8 +596,9 @@ export async function completeEmailVerification(input: {
  */
 function landingFromPath(raw: string | undefined): string {
   if (typeof raw !== "string" || raw.length === 0) return "/home";
-  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) return "/home";
-  return raw;
+  /* Same single implementation as `landingAfterAuth` above. See the note there
+     for the control-character bypass all three copies shared. */
+  return safeReturnPath(raw, "") ?? "/home";
 }
 
 /**

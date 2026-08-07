@@ -348,17 +348,45 @@
    * It rises from the foot of the screen on a phone and centres on a desktop,
    * carries its own title and one close control, and locks the page behind it.
    * The scrim is what makes it read as a layer rather than a card that grew.
+   *
+   * WHY THIS FAMILY IS PREFIXED `nf-rows-sheet` AND MUST STAY THAT WAY.
+   *
+   * These rules used to be called `.nf-sheet`, which is also the class the
+   * newer primitive in `components/ui/Sheet.tsx` paints through
+   * `css/overlays.css`. Two different sheets, one class name, and
+   * `overlays.css` is imported after this file, so on every surface driven by
+   * `components/app/account/rows.tsx` the two were being merged.
+   *
+   * That was not a cosmetic clash. The newer primitive parks its surface at
+   * `transform: translateY(100%)` and drives it in with `[data-open="true"]`,
+   * a hook this sheet does not set, because it opens by animating instead. So
+   * the panel's resting position became fully off-screen, and the only thing
+   * holding it on screen was this file's own `nf-rows-sheet-rise` animation,
+   * which ends at `translateY(0)` and wins the cascade purely because an
+   * animation outranks a normal declaration.
+   *
+   * Take the animation away and the sheet vanishes below the fold. That is
+   * exactly what `prefers-reduced-motion: reduce` did: it swaps the animation
+   * for the opacity-only one, the transform stopped being overridden, and
+   * every control inside every sheet on /profile and /settings sat at roughly
+   * y=1160 in an 844px viewport. Unreachable, on eight surfaces, for anybody
+   * who had asked the operating system to reduce motion. `profile.spec.mjs`
+   * had been red on it and was reading it as a scroll-container problem.
+   *
+   * Renaming the family is what actually separates them. If these two sheets
+   * are ever merged into one implementation, that is a real piece of work and
+   * a good idea; do not do it by giving them the same class name again.
    */
-  .nf-sheet__scrim {
+  .nf-rows-sheet__scrim {
     position: fixed;
     inset: 0;
     z-index: 60;
     background: color-mix(in oklab, var(--nf-canvas-base) 72%, transparent);
     backdrop-filter: blur(var(--nf-glass-blur-thin));
-    animation: nf-sheet-in var(--nf-duration-base) var(--nf-ease-standard) both;
+    animation: nf-rows-sheet-in var(--nf-duration-base) var(--nf-ease-standard) both;
   }
 
-  .nf-sheet {
+  .nf-rows-sheet {
     position: fixed;
     z-index: 61;
     inset-inline: 0;
@@ -371,11 +399,11 @@
     border-bottom: 0;
     background: var(--nf-elev-3);
     box-shadow: var(--nf-glass-shadow-lifted);
-    animation: nf-sheet-rise var(--nf-duration-slow) var(--nf-ease-entrance) both;
+    animation: nf-rows-sheet-rise var(--nf-duration-slow) var(--nf-ease-entrance) both;
   }
 
   @media (min-width: 40rem) {
-    .nf-sheet {
+    .nf-rows-sheet {
       inset-inline: auto;
       inset-block: auto;
       top: 50%;
@@ -384,11 +412,11 @@
       transform: translate(-50%, -50%);
       border-radius: var(--nf-radius-2xl);
       border-bottom: 1px solid var(--nf-elev-3-border);
-      animation-name: nf-sheet-in;
+      animation-name: nf-rows-sheet-in;
     }
   }
 
-  .nf-sheet__head {
+  .nf-rows-sheet__head {
     position: relative;
     display: flex;
     align-items: center;
@@ -398,14 +426,14 @@
     min-height: 3.5rem;
   }
 
-  .nf-sheet__title {
+  .nf-rows-sheet__title {
     font-family: var(--nf-font-display), var(--nf-font-sans);
     font-size: 1.0625rem;
     font-weight: 700;
     color: var(--nf-content-primary);
   }
 
-  .nf-sheet__close {
+  .nf-rows-sheet__close {
     position: absolute;
     inset-inline-end: 0.75rem;
     top: 50%;
@@ -421,25 +449,25 @@
     cursor: pointer;
   }
 
-  .nf-sheet__close:focus-visible {
+  .nf-rows-sheet__close:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
 
-  .nf-sheet__body {
+  .nf-rows-sheet__body {
     flex: 1 1 auto;
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 0 1rem 1.25rem;
   }
 
-  .nf-sheet__foot {
+  .nf-rows-sheet__foot {
     flex: none;
     padding: 0.75rem 1rem calc(1rem + env(safe-area-inset-bottom));
     border-top: 1px solid var(--nf-border-subtle);
   }
 
-  @keyframes nf-sheet-in {
+  @keyframes nf-rows-sheet-in {
     from {
       opacity: 0;
     }
@@ -448,7 +476,7 @@
     }
   }
 
-  @keyframes nf-sheet-rise {
+  @keyframes nf-rows-sheet-rise {
     from {
       opacity: 0;
       transform: translateY(1.5rem);
@@ -462,8 +490,8 @@
   /* Reduced motion keeps the fade and drops the travel: the sheet still needs
      to read as arriving, it just must not slide. */
   @media (prefers-reduced-motion: reduce) {
-    .nf-sheet {
-      animation-name: nf-sheet-in;
+    .nf-rows-sheet {
+      animation-name: nf-rows-sheet-in;
     }
   }
 
@@ -477,7 +505,7 @@
     background: color-mix(in oklab, var(--nf-content-primary) 6%, transparent);
   }
 
-  :root[data-theme="light"] .nf-sheet__scrim {
+  :root[data-theme="light"] .nf-rows-sheet__scrim {
     background: color-mix(in oklab, #0b1020 38%, transparent);
   }
 }

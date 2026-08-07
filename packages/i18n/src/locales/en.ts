@@ -1,3 +1,23 @@
+import type { CountForms } from "../plural";
+
+/**
+ * The counted nouns, in every form English uses.
+ *
+ * Annotated with `CountForms` rather than left to inference on purpose. The
+ * `Dictionary` type is `typeof en`, so an inferred shape here would demand a
+ * `one` key from Yoruba and Igbo, and neither language has a `one` category:
+ * `Intl` would never select it, so three files would carry a key that could not
+ * be reached. The annotation makes every category except `other` optional, and
+ * each locale fills in the ones CLDR says it actually uses.
+ */
+const counts: CountForms = {
+  nights: { one: "1 night", other: "{count} nights" },
+  guests: { one: "1 guest", other: "{count} guests" },
+  adults: { one: "1 adult", other: "{count} adults" },
+  children: { one: "1 child", other: "{count} children" },
+  party: "{adults}, {children}",
+};
+
 /**
  * English. The source of truth.
  *
@@ -5,6 +25,26 @@
  * key is a compile error rather than a blank space in production.
  */
 export const en = {
+  counts,
+
+  /*
+   * The reserve panel on a listing.
+   *
+   * Only the two sentences that state a count live here so far. The rest of
+   * that panel is still written in English in the component, which is a real
+   * gap and a larger piece of work than a plural fix: it needs its own pass,
+   * including the date formatting, which currently goes through a hardcoded
+   * en-GB formatter. These two are here because a sentence that wraps a counted
+   * noun cannot be pluralised without also owning the words around it.
+   */
+  reserve: {
+    /** The confirmation moment. Both counts arrive already pluralised. */
+    confirmedRange: "{from} to {to}, {nights} for {guests}.",
+    capacityNote: "This place takes up to {guests}.",
+    /** The sticky bar caption once real dates are picked. */
+    totalForNights: "Total for {nights}",
+  },
+
   meta: {
     localeName: "English",
     localeNativeName: "English",
@@ -1251,11 +1291,6 @@ export const en = {
     },
     card: {
       dates: "{from} to {to}",
-      nights: "{count} nights",
-      nightsOne: "1 night",
-      guests: "{count} guests",
-      guestsOne: "1 guest",
-      composition: "{adults} adults, {children} children",
       total: "Total",
       requested: "Requested {date}",
       waiting: "Waiting {duration}",
@@ -1867,10 +1902,6 @@ export const en = {
       back: "All stays",
       goneTitle: "That stay is not there",
       goneBody: "Go back to the list to see what is there now.",
-      nights: "{count} nights",
-      nightsOne: "1 night",
-      party: "{adults} adults, {children} children",
-      partyAdultsOnly: "{adults} adults",
       settledChip: "{amount} settled",
       unpaidChip: "Nothing paid yet",
       refundedChip: "{amount} returned",

@@ -7,6 +7,7 @@ import {
   NONCE_HEADER,
   REPORTING_ENDPOINTS,
 } from "@/lib/security/csp";
+import { safeReturnPath } from "@/lib/security/return-path";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
 
 /**
@@ -81,22 +82,6 @@ const PRODUCT_SEGMENTS = new Set([
  * `/styleguide/` is the same page to a browser and a different string here.
  */
 const PRODUCT_PATHS = new Set(["/agents/apply", "/agents/status", "/styleguide"]);
-
-/**
- * Where to send somebody back to after they sign in.
- *
- * Returned as a path, never a URL, and re-checked on the way out. A `next`
- * parameter that accepts an absolute address is an open redirect: an attacker
- * sends `/sign-in?next=https://rentme.ng.evil.example` and the sign-in page
- * they trusted hands them to somebody else. The two leading-slash cases matter
- * as much as the scheme, because `//evil.example` is protocol-relative and a
- * browser reads it as a host.
- */
-function safeReturnPath(pathname: string, search: string): string | null {
-  if (!pathname.startsWith("/") || pathname.startsWith("//")) return null;
-  const full = `${pathname}${search}`;
-  return full.includes("\\") ? null : full;
-}
 
 /**
  * Stamp the policy on a response, whichever response it turned out to be.
@@ -175,7 +160,29 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   // Run on everything except static assets and image files.
+  /*
+   * THE EXTENSION RULE THAT USED TO BE HERE WAS A HOLE.
+   *
+   * It ended `|.*\.(?:svg|png|jpg|...)$`, which excluded ANY path ending in one
+   * of those, not only paths under an asset directory. Every dynamic route on
+   * this platform accepts such a suffix inside its own parameter, so the
+   * middleware simply did not run for them. Measured against a production
+   * build: `/checkout/abc.png`, `/listing/abc.png`, `/messages/abc.svg` and
+   * `/u/somebody.png` all returned 200 with full HTML, no Content Security
+   * Policy and no nonce.
+   *
+   * Three things were lost on those responses. The policy was absent entirely,
+   * so an injected inline script would execute on a page where it could not on
+   * the same route without the suffix. The signed-out gate below was never
+   * consulted. And the Supabase token refresh, which the comment at the top of
+   * this file says must not be removed, did not run.
+   *
+   * No data leak sat behind it: those pages call `resolveSession()` with RLS
+   * behind that, so they render their signed-out state. It was a defence in
+   * depth bypass rather than a breach, and it is closed by anchoring on the
+   * directories that hold assets rather than on how a path happens to end.
+   */
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|brand|icons|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|brand/|icons/|fonts/|pwa/|\\.well-known/|sw\\.js$|manifest\\.webmanifest$).*)",
   ],
 };

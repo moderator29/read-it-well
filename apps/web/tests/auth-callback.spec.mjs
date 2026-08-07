@@ -140,9 +140,27 @@ try {
     /verifyOtp\(\{ token_hash: input\.tokenHash/.test(actions),
   );
   check("the implicit tokens are set as a session", /setSession\(\{/.test(actions));
+  /*
+   * This used to grep for `startsWith("//")` in this file, which is the shape
+   * the check had when it was written by hand here. It is not written by hand
+   * here any more: both `landingAfterAuth` and `landingFromPath` now delegate
+   * to `safeReturnPath` in `lib/security/return-path.ts`, which is the single
+   * implementation and the only one with unit tests behind it.
+   *
+   * That change was made because all three hand-rolled copies shared a hole.
+   * None refused TAB, LF or CR, which a URL parser STRIPS before resolving, so
+   * `/<TAB>/evil.example` passed every one of them and then left the origin.
+   * Asserting on the literal comparison would now fail on code that is strictly
+   * safer than the code it was written against, so the assertion moved up a
+   * level: what must hold is that this file validates through the shared guard
+   * rather than re-deriving the rules.
+   */
   check(
-    "next is re-validated, so a forged link cannot carry somebody off-site",
-    /landingFromPath/.test(actions) && /startsWith\("\/\/"\)/.test(actions),
+    "next is re-validated through the one tested guard, so a forged link cannot carry somebody off-site",
+    /landingFromPath/.test(actions) &&
+      /landingAfterAuth/.test(actions) &&
+      /lib\/security\/return-path/.test(actions) &&
+      (actions.match(/safeReturnPath\(/g) ?? []).length >= 2,
   );
   check(
     "the old route handler is gone, so there are not two answers to one URL",

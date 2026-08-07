@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatMoney, getDictionary } from "@naijafinds/i18n";
+import { formatMoney, formatParty, getDictionary, plural } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { lagosToday } from "@/lib/bookings/schema";
 import { getBookingDetail } from "@/lib/admin/bookings-queries";
@@ -113,19 +113,15 @@ export default async function AdminBookingPage({
             label={f.dates}
             value={`${ui.day(stay.checkIn)} to ${ui.day(stay.checkOut)}`}
           />
-          <ui.DetailRow
-            label={f.length}
-            value={
-              stay.nights === 1 ? copy.nightsOne : fill(copy.nights, { count: stay.nights })
-            }
-          />
+          <ui.DetailRow label={f.length} value={plural(stay.nights, t.counts.nights, locale)} />
+          {/* This row read "1 adults" for a party of one, in every language, for
+              the whole life of the console. The count nouns now go through
+              `Intl.PluralRules` for the request's locale, and the adults-only
+              case is decided by `formatParty` rather than by a ternary here, so
+              every surface that states a party states it the same way. */}
           <ui.DetailRow
             label={f.party}
-            value={
-              stay.children > 0
-                ? fill(copy.party, { adults: stay.adults, children: stay.children })
-                : fill(copy.partyAdultsOnly, { adults: stay.adults })
-            }
+            value={formatParty(stay.adults, stay.children, t.counts, locale)}
           />
           <ui.DetailRow label={f.status} value={ui.statusLabel(stay.status)} />
         </ui.DetailSection>

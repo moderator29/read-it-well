@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cancel } from "@/lib/bookings/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
+import { getDictionary, plural, type Locale } from "@naijafinds/i18n";
 import type { BookingGroups, BookingView } from "@/lib/bookings/queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -53,16 +54,24 @@ const STATUS_LABEL: Record<BookingView["status"], string> = {
 
 function BookingCard({
   booking: b,
+  locale,
   onCancel,
   justBooked,
 }: {
   booking: BookingView;
+  locale: Locale;
   onCancel: (booking: BookingView) => void;
   /** True for the reservation that just landed here from the listing page,
       so the confirmation moment finishes on this card rather than stopping
       at the listing. */
   justBooked?: boolean;
 }) {
+  /* The guest and night counts were hand-inflected English inside a product
+     that ships in four languages, and the inflection itself only ever had two
+     forms. Both now come from the shared `counts` block and pick their category
+     through `Intl.PluralRules` for the reader's own locale. */
+  const counts = getDictionary(locale).counts;
+
   return (
     <li
       className={`nf-card overflow-hidden p-0 text-left ${justBooked ? "nf-confirm-sweep nf-just-booked" : ""}`}
@@ -103,8 +112,8 @@ function BookingCard({
 
           <p className="mt-1.5 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
             <UiIcon name="user" size={16} className="shrink-0" />
-            {b.guests} {b.guests === 1 ? "guest" : "guests"} &middot; {b.nights}{" "}
-            {b.nights === 1 ? "night" : "nights"}
+            {plural(b.guests, counts.guests, locale)} &middot;{" "}
+            {plural(b.nights, counts.nights, locale)}
           </p>
 
           {/* Booked for somebody else. The payer needs to see who they named,
@@ -267,9 +276,11 @@ function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () =
 
 export function MyBookings({
   groups,
+  locale,
   justBookedId,
 }: {
   groups: BookingGroups;
+  locale: Locale;
   /** Id of a reservation that just landed here from the listing page's
       confirmation moment, carried across the navigation as `?justBooked=`. */
   justBookedId?: string;
@@ -320,6 +331,7 @@ export function MyBookings({
             <BookingCard
               key={b.id}
               booking={b}
+              locale={locale}
               onCancel={setCancelling}
               justBooked={b.id === justBookedId}
             />

@@ -275,12 +275,28 @@ async function run(theme) {
       await page.keyboard.press("Escape");
     } else {
       /* The dock renders nothing at all when the platform has no keys, which is
-         correct: there is genuinely nothing behind it. */
+         correct: there is genuinely nothing behind it.
+
+         The assertion under it is the other half of that decision and it stands
+         as written. This pair failed for a long time and the product was the
+         side that was wrong: `AroundFab` was right to disappear, but `/around`
+         then said "Nothing has been said in any open place yet. Nothing is
+         hidden and nothing is missing", which is a claim about the country a
+         build that read nothing cannot make. Every sibling door already carried
+         the honest line, `/around/[slug]`, `/around/settings`, `/u/[handle]`
+         and both follow lists, so this was the one screen out of step rather
+         than an assertion nobody had earned. Do not soften it back. */
       const text = await page.locator("body").innerText();
-      check(
-        "no dock, and the page says why",
-        /switch on the moment the platform keys land/.test(text),
-      );
+      const said = /switch on the moment the platform keys land/.test(text);
+      check("no dock, and the page says why", said);
+      /* What it said instead, when it did not say that. A bare red here sends
+         the next reader to the wrong file: the copy is the evidence, and the
+         first lines of the body are where it lives. */
+      if (!said) {
+        for (const line of text.split("\n").filter((l) => l.trim().length > 0).slice(0, 12)) {
+          console.log(`          said: ${line.trim()}`);
+        }
+      }
     }
 
     /* --------------------------------------------------- the directory */

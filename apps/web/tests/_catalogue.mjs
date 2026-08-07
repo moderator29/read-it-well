@@ -4,7 +4,7 @@
  * The seed catalogue of twenty-three invented places was removed on purpose:
  * a full shelf of homes that do not exist is a worse answer than an empty one,
  * and `lib/listings/repository.ts` says so at length. Fifteen specs were
- * written against that catalogue and now fail on its absence — which is a red
+ * written against that catalogue and now fail on its absence, which is a red
  * tick for a decision somebody made deliberately, and a suite where a third of
  * the reds mean "correct" is a suite people stop reading.
  *
