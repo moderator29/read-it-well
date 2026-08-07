@@ -24,8 +24,18 @@ import { CreateRing } from "./CreateRing";
  * The place picker exists because the dock travels. On an area page the place
  * is already known and the picker collapses to a line naming it. Somewhere
  * else it is the first decision, because posting into the wrong place is the
- * mistake this whole product is built to avoid. Where somebody is in exactly
- * one place, there is no choice to make and the picker does not appear.
+ * mistake this whole product is built to avoid.
+ *
+ * **Everyone is a destination, and it is the default one.** This used to end at
+ * a wall: somebody in no place at all tapped the plus, was told "you are not in
+ * any place yet, and what you write belongs to a place", and was sent to a
+ * directory. That was never true of the database, where `posts.area_id` is
+ * nullable and `posts_insert_self` allows a null area outright. It was a rule
+ * this file invented, and it made joining a room the price of saying anything,
+ * on the very first tap of the very first session. A post with no place is
+ * addressed to the whole platform and appears in every feed that is not one
+ * place's own, so the picker now opens with that as its first row and lands
+ * there when nothing else is chosen.
  *
  * A full page rather than a half sheet, which is the house rule and is also
  * right here: a task pushed into the bottom third of a phone ends up with the
@@ -46,12 +56,15 @@ export function FabDock({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [composing, setComposing] = useState(false);
-  /* The only place somebody is in is not a choice, so it is not offered as one.
-     A picker with one row in it is a screen that exists to be dismissed. */
-  const only = areas.length === 1 ? areas[0]?.id : undefined;
-  const opening = currentAreaId ?? only;
+  /* Opened from inside a place, that place is the destination. Anywhere else,
+     the destination is everybody, which is a real answer rather than a prompt
+     to go and join something. */
+  const opening = currentAreaId;
   const [areaId, setAreaId] = useState<string | undefined>(opening);
-  const [picking, setPicking] = useState(!opening);
+  /* Never opens on the picker. The composer is what somebody tapped the plus
+     for, and where it lands is written under the box and changeable in one tap
+     from there. */
+  const [picking, setPicking] = useState(false);
   /* Which kind the ring asked for. The composer opens straight onto it, so
      "Question" never lands somebody on a form that says "Say something". */
   const [composeKind, setComposeKind] = useState<"GIST" | "ASK">("GIST");
@@ -96,7 +109,7 @@ export function FabDock({
           }
           setComposeKind(kind);
           setAreaId(opening);
-          setPicking(!opening);
+          setPicking(false);
           setComposing(true);
         }}
       />
@@ -115,9 +128,11 @@ export function FabDock({
                   {composeKind === "ASK" ? "Ask a question" : "Say something"}
                 </h2>
                 <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-                  {chosen && !picking
-                    ? `Around ${chosen.name}, ${chosen.city}`
-                    : "Choose where this belongs"}
+                  {picking
+                    ? "Choose where this belongs"
+                    : chosen
+                      ? `Around ${chosen.name}, ${chosen.city}`
+                      : "Everyone on RentMe"}
                 </p>
               </div>
               <button
@@ -130,28 +145,25 @@ export function FabDock({
               </button>
             </header>
 
-            {areas.length === 0 ? (
-              /* Not an error and not a spinner: a real answer with the one
-                 thing that fixes it. Posting needs a place, and being in a
-                 place is a deliberate act. */
-              <>
-                <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                  You are not in any place yet, and what you write belongs to a
-                  place. Join one and you can write in it straight away.
-                </p>
-                {/* The directory, not the feed. This row exists because the
-                    person is in no place at all, and the feed cannot fix that;
-                    picking a place is what fixes it. */}
-                <Link
-                  href="/around/settings"
-                  className="nf-btn nf-btn--primary mt-5 w-full"
-                  onClick={() => setComposing(false)}
-                >
-                  Find a place
-                </Link>
-              </>
-            ) : picking || !chosen ? (
+            {picking ? (
               <ul className="flex flex-col gap-2">
+                {/* Everybody, first and always present. It is the destination
+                    that needs no membership and no setup, so it is the one a
+                    person can always get back to. */}
+                <li>
+                  <button
+                    type="button"
+                    className="nf-fab__place"
+                    onClick={() => {
+                      setAreaId(undefined);
+                      setPicking(false);
+                    }}
+                    data-testid="post-to-everyone"
+                  >
+                    <span className="nf-fab__place-name">Everyone on RentMe</span>
+                    <span className="nf-fab__place-city">Seen in every feed</span>
+                  </button>
+                </li>
                 {areas.map((area) => (
                   <li key={area.id}>
                     <button
@@ -167,24 +179,38 @@ export function FabDock({
                     </button>
                   </li>
                 ))}
+                {areas.length === 0 ? (
+                  /* An offer rather than a wall. Somebody in no place can post
+                     right now, and joining one is a thing they may also want to
+                     do, in that order. */
+                  <li>
+                    <Link
+                      href="/around/settings"
+                      className="nf-fab__place"
+                      onClick={() => setComposing(false)}
+                    >
+                      <span className="nf-fab__place-name">Find a place to join</span>
+                      <span className="nf-fab__place-city">
+                        Then you can post there too
+                      </span>
+                    </Link>
+                  </li>
+                ) : null}
               </ul>
             ) : (
               <>
-                {areas.length > 1 ? (
-                  <button
-                    type="button"
-                    onClick={() => setPicking(true)}
-                    className="mb-3 text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)]"
-                  >
-                    Post somewhere else
-                  </button>
-                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setPicking(true)}
+                  className="mb-3 text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)]"
+                >
+                  {chosen ? "Post somewhere else" : "Post in a place instead"}
+                </button>
 
                 <Composer
-                  areaId={chosen.id}
-                  areaName={chosen.name}
+                  areaId={chosen?.id}
+                  areaName={chosen?.name}
                   signedIn={signedIn}
-                  isMember
                   autoFocus
                   initialKind={composeKind}
                   onDone={() => {

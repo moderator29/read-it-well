@@ -47,9 +47,25 @@ console.log("\n[source] one set of cards, two mounts");
 const welcome = read("src/app/welcome/page.tsx");
 const settings = read("src/app/(app)/settings/interests/page.tsx");
 const choices = read("src/components/app/welcome/InterestChoices.tsx");
+/*
+ * First run gained a step in front of the question: three cards saying what
+ * this place is, which can be slid through or skipped. `FirstRun` owns that
+ * order now, so the welcome PAGE mounts `FirstRun` and `FirstRun` mounts the
+ * choices. This check used to read the page and grep for the component name,
+ * which went red on a page that is still perfectly correct: the mount simply
+ * moved one file down.
+ *
+ * So it follows the indirection rather than asserting on a shape that a
+ * refactor is allowed to change. What must hold is that the welcome screen
+ * REACHES the one component, not that it names it in a particular file.
+ */
+const firstRun = read("src/components/app/welcome/FirstRun.tsx");
 
 const IMPORT = /InterestChoices/;
-check("the welcome screen mounts InterestChoices", IMPORT.test(welcome));
+check(
+  "the welcome screen reaches InterestChoices, directly or through FirstRun",
+  IMPORT.test(welcome) || (/FirstRun/.test(welcome) && IMPORT.test(firstRun)),
+);
 check("the settings screen mounts the same component", IMPORT.test(settings));
 check(
   "settings mounts it in settings mode",

@@ -57,15 +57,20 @@ const nextConfig: NextConfig = {
        *
        * Somebody who signs up with Google has a face on file, and until this
        * was here it was discarded and they were drawn as a grey disc with a
-       * letter in it. Worse than discarded, in fact: `next/image` THROWS on a
-       * host it was not told about, so the moment the avatar was written to the
-       * profile, every screen that drew it would have answered 500 rather than
-       * fallen back. Narrowed to the avatar path, which is the only thing on
-       * this host we ever want to render.
+       * letter in it. `next/image` THROWS on a host it was not told about, so
+       * an avatar reaching an optimised image on an unlisted host is a 500 on
+       * whatever screen drew it rather than a missing picture.
+       *
+       * Every avatar in the product is a plain img tag today, so nothing
+       * currently needs this. It is here because Google hands the same photo
+       * out from lh3 through lh6 and picks the shard itself, and a future
+       * `<Image>` on any of them must not be able to take a screen down. The
+       * path is pinned to the avatar prefix, which is the only thing on this
+       * host we would ever render.
        */
       {
         protocol: "https",
-        hostname: "lh3.googleusercontent.com",
+        hostname: "**.googleusercontent.com",
         pathname: "/a/**",
       },
       ...(supabaseImageHost

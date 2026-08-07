@@ -202,9 +202,24 @@ console.log("\n[source] a market the column cannot hold gets no control");
 const schema = await import(
   pathToFileURL(path.join(ROOT, "src/lib/interests/schema.ts")).href
 );
-check("restaurant is not a property_type", schema.isPropertyType("restaurant") === false);
-check("experience is not a property_type", schema.isPropertyType("experience") === false);
+/*
+ * `restaurant` used to be the example of a market the column cannot hold, and
+ * it was the right example right up until the column learned to hold it. The
+ * property_type enum gained RESTAURANT, so both checks that named it went red
+ * against a schema that is now doing exactly what it should.
+ *
+ * The example is a value that no enum will ever grow into, so the check tests
+ * the RULE rather than a snapshot of the enum's contents: whatever the platform
+ * comes to list, a market it does not list is refused.
+ */
+const NOT_A_MARKET = "sailing-yacht";
+check(`${NOT_A_MARKET} is not a property_type`, schema.isPropertyType(NOT_A_MARKET) === false);
+check("nor is a market nobody named", schema.isPropertyType("experience") === false);
 check("rental is", schema.isPropertyType("rental") === true);
+check(
+  "and restaurant now is, because the enum grew",
+  schema.isPropertyType("restaurant") === true,
+);
 check(
   "and the card asks before it renders",
   /isPropertyType\(listing\.kind\)/.test(card),
@@ -216,7 +231,7 @@ const good = schema.adjustInterestSchema.safeParse({ type: "rental", direction: 
 check("a real market and a real direction pass", good.success === true);
 check(
   "an unknown market is refused, not dropped",
-  schema.adjustInterestSchema.safeParse({ type: "restaurant", direction: "more" }).success ===
+  schema.adjustInterestSchema.safeParse({ type: NOT_A_MARKET, direction: "more" }).success ===
     false,
 );
 check(

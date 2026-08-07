@@ -92,7 +92,7 @@ function Decision({ reservationId }: { reservationId: string }) {
         </form>
       </div>
       {state && !state.ok && (
-        <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-status-danger)]">
+        <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-error)]">
           {state.error}
         </p>
       )}

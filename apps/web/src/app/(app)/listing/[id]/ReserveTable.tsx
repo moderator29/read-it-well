@@ -140,7 +140,7 @@ export function ReserveTable({
                 aria-pressed={active}
                 className={`shrink-0 rounded-full px-3 py-1.5 text-[0.8125rem] transition-colors ${
                   active
-                    ? "bg-[var(--nf-content-primary)] font-semibold text-[var(--nf-surface-base)]"
+                    ? "bg-[var(--nf-brand-primary)] font-semibold text-[var(--nf-content-on-brand)]"
                     : "border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)]"
                 }`}
               >
@@ -170,7 +170,7 @@ export function ReserveTable({
                 aria-pressed={active}
                 className={`shrink-0 rounded-full px-3 py-1.5 text-[0.8125rem] tabular-nums transition-colors ${
                   active
-                    ? "bg-[var(--nf-content-primary)] font-semibold text-[var(--nf-surface-base)]"
+                    ? "bg-[var(--nf-brand-primary)] font-semibold text-[var(--nf-content-on-brand)]"
                     : "border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)]"
                 }`}
               >
@@ -247,7 +247,7 @@ export function ReserveTable({
       </div>
 
       {state && !state.ok && (
-        <p role="alert" className="mt-3 text-[0.8125rem] text-[var(--nf-status-danger)]">
+        <p role="alert" className="mt-3 text-[0.8125rem] text-[var(--nf-state-error)]">
           {state.error}
         </p>
       )}

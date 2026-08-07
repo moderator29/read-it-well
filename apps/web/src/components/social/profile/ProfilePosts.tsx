@@ -143,7 +143,6 @@ export function ProfilePosts({
         key={tab}
         initial={posts}
         signedIn={signedIn}
-        isMember={false}
         emptyMessage={
           isOwner ? feedEmpty.mine : feedEmpty.theirs.replace("{handle}", handle)
         }

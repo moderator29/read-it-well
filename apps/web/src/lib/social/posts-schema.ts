@@ -83,7 +83,21 @@ export const attachMediaSchema = z.object({
 });
 
 export const dropPostSchema = z.object({
-  areaId: z.string().uuid("Choose a place to post in."),
+  /**
+   * Optional, and that is the whole point.
+   *
+   * A post used to REQUIRE a place, so the only way to say anything was to
+   * join a room first, and the composer on the main feed showed "Join this
+   * place first and you can post in it" to somebody who had opened the app to
+   * write one sentence. Nothing in the database ever demanded it:
+   * `posts.area_id` is nullable, `posts_insert_self` allows null outright and
+   * `posts_select` shows it to everybody. The requirement existed in this line
+   * and nowhere else.
+   *
+   * Omitted, the post is addressed to the whole platform and appears in every
+   * feed that is not a single place's own.
+   */
+  areaId: z.string().uuid("Choose a place to post in.").optional(),
   kind: z.enum(COMPOSABLE_KINDS),
   body: z
     .string()

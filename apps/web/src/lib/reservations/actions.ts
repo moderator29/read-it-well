@@ -37,12 +37,8 @@ export async function reserveTable(
 ): Promise<ActionResult<Reserved>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") {
-    /* Says what to do next, which `error-copy.spec.mjs` requires of every
-       refusal. "Not available yet" tells somebody holding a phone nothing
-       they can act on, and this state is a platform without its keys rather
-       than anything they did. */
     return fail(
-      "Table reservations are not switched on yet. Message the place directly for now, and this will open here once it is live.",
+      "Reservations are not available yet. The restaurant's phone number is on its page, so you can call and hold a table that way in the meantime.",
     );
   }
   if (session.state === "signed-out") {
@@ -171,9 +167,9 @@ export async function cancelReservation(
 
   const id = formDataToObject(formData)["reservationId"] ?? "";
   if (id.length === 0) {
-    /* Same rule. A form that arrived without its id is a stale tab or a
-       half-loaded page, and reloading is the thing that actually fixes it. */
-    return fail("That reservation could not be identified. Reload the page and try cancelling again.");
+    return fail(
+      "That reservation could not be identified. Open it again from your bookings and cancel it from there.",
+    );
   }
 
   const { data, error } = await session.supabase
