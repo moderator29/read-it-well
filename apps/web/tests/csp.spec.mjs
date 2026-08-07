@@ -130,6 +130,28 @@ async function auditRoute(page, refusals, route) {
     String(inlineNonce),
   );
 
+  /*
+   * EVERY inline script, not just the one we knew about.
+   *
+   * An earlier version of this spec checked only the theme script by name, and
+   * a merge then landed a second hand-written inline script for save-data
+   * detection with no nonce on it. The violation check below caught it, which
+   * is the point of having one, but a named check would have gone on passing
+   * while a new script was blocked on every route. Counting them is the
+   * invariant that survives somebody adding a third.
+   */
+  const unnonced = await page.evaluate(() =>
+    [...document.querySelectorAll("script:not([src])")]
+      .filter((tag) => tag.textContent.trim().length > 0)
+      .filter((tag) => !(tag.nonce || tag.getAttribute("nonce")))
+      .map((tag) => tag.textContent.trim().slice(0, 60)),
+  );
+  check(
+    `${route} nonces every inline script it writes`,
+    unnonced.length === 0,
+    unnonced.join(" | "),
+  );
+
   const violations = await page.evaluate(() => window.__cspViolations ?? []);
   check(`${route} triggers no policy violations`, violations.length === 0, violations.join(", "));
   check(`${route} logs no console refusals`, refusals.length === 0, refusals.join(" | "));

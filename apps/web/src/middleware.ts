@@ -169,8 +169,40 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Run on everything except static assets and image files.
+  /*
+   * Everything except the directories that hold static assets.
+   *
+   * THE EXTENSION RULE THAT USED TO BE HERE WAS A HOLE, AND A LARGE ONE.
+   *
+   * It ended `|.*\.(?:svg|png|jpg|jpeg|gif|webp)$`, which excluded ANY path
+   * ending in one of those, not just paths under an asset directory. Every
+   * dynamic route on this platform accepts such a suffix inside its own
+   * parameter, so the middleware simply did not run for them. Measured against
+   * a production build:
+   *
+   *     /checkout/abc.png   200, full HTML, no policy, no nonce
+   *     /listing/abc.png    200, full HTML, no policy, no nonce
+   *     /messages/abc.svg   200, full HTML, no policy, no nonce
+   *     /u/somebody.png     200, full HTML, no policy, no nonce
+   *
+   * Three things were lost on every one of those responses. The Content
+   * Security Policy was absent entirely, so an injected inline script would
+   * execute on a page where it could not on the same route without the suffix,
+   * which defeats the whole of `lib/security/csp.ts`. The signed-out gate
+   * below was never consulted. And the Supabase token refresh, which the
+   * comment at the top of this file says must not be removed, did not run.
+   *
+   * No data leak was found behind it, because every one of those pages calls
+   * `resolveSession()` and RLS stands behind that, so they render their
+   * signed-out state. It was a defence-in-depth bypass rather than a breach,
+   * and it is closed by anchoring on the directories that actually hold assets
+   * rather than on how a path happens to end.
+   *
+   * `public/` files that are NOT under one of these prefixes now pass through
+   * the middleware. That costs one cheap function call on a handful of files,
+   * which is the right trade against a hole this shape.
+   */
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|brand|icons|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|brand/|icons/|fonts/|pwa/|\\.well-known/|sw\\.js$|manifest\\.webmanifest$).*)",
   ],
 };

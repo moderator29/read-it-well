@@ -32,6 +32,42 @@ describe("safeReturnPath", () => {
     expect(safeReturnPath("//evil.example/path", "?a=1")).toBeNull();
   });
 
+  /*
+   * The bypass the first version of this guard shipped with.
+   *
+   * A URL parser DELETES tab, newline and carriage return before it resolves,
+   * so a string this function reads as starting with one slash is handed to the
+   * browser starting with two. Proved against the real parser below rather than
+   * asserted, so this test fails if that behaviour ever changes.
+   */
+  it("refuses the control characters a URL parser strips rather than rejects", () => {
+    for (const control of ["\t", "\n", "\r", "\u0000", "\u001f"]) {
+      expect(safeReturnPath(`/${control}/evil.example`, "")).toBeNull();
+      expect(safeReturnPath("/search", `?next=${control}//evil.example`)).toBeNull();
+    }
+  });
+
+  it("the stripped-control bypass really did resolve off-origin", () => {
+    // The reason the rule above exists, stated as an executable fact.
+    for (const control of ["\t", "\n", "\r"]) {
+      expect(new URL(`/${control}/evil.example`, "https://rentme.ng").origin).toBe(
+        "https://evil.example",
+      );
+    }
+  });
+
+  it("refuses percent-encoded forms of the same characters", () => {
+    for (const encoded of ["%09", "%0a", "%0d", "%0A", "%0D"]) {
+      expect(safeReturnPath(`/${encoded}/evil.example`, "")).toBeNull();
+    }
+    // And an encoded slash that would become a protocol-relative host.
+    expect(safeReturnPath("/%2f/evil.example", "")).toBeNull();
+  });
+
+  it("refuses a malformed percent sequence rather than guessing at it", () => {
+    expect(safeReturnPath("/%zz", "")).toBeNull();
+  });
+
   it("refuses a backslash anywhere, because a URL parser treats it as a separator", () => {
     // This is the shape that got past an earlier version of the auth callback.
     expect(safeReturnPath("/\\evil.example", "")).toBeNull();

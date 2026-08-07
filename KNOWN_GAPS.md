@@ -91,43 +91,24 @@ user-facing, the agent application wizard's step label. Note that three test
 specs legitimately CONTAIN the character, because they are the guards that
 search for it, and a sweep must not "fix" those.
 
-**One of the 72 specs is red, and it is red about a real thing.** The suite was
-run in full against a production build. Two of the three that were failing have
-been fixed and are green: `admin-console` was a broken spec, not a broken
-console, and `social-people` was a genuine product fault on `/around`. Both are
-described in the commits that closed them.
+**The suite is 79 specs. 75 pass, and the four that do not are each understood.**
 
-`session-memory` remains red on two checks, and both point at the same unbuilt
-half of `docs/POLISH_PASS.md` item 26, which asks for undo in place of a
-confirm dialog on unsave and on draft delete:
+| Spec | State |
+|---|---|
+| `gate` | **Aborts by design.** It says so itself: without `NEXT_PUBLIC_SUPABASE_URL` and the anon key the middleware guard is a pass-through, so the spec refuses to pretend it proved anything. Environmental, not a fault. It needs a server started with real keys |
+| `session-memory` | One check, "deleting a draft is deferred". `ListingsWorkspace.tsx` is byte for byte identical to `origin/main`, so this red predates and survives this branch. Its own comment says it stays red until the work is done |
+| `interests-settings` | One check, "the welcome screen mounts InterestChoices". `welcome/page.tsx` contains no such mount on this branch OR on `origin/main`, so the spec and the screen disagree on main and did before the merge |
+| `truncation` | Passes alone, fails inside a full sweep with "Failed to open a new tab". Chromium running out of room in this sandbox after seventy consecutive launches. Run the suite in batches |
 
-- **The unsave half is built.** `SavedBoard.tsx` carries `data-testid="undo-chip"`.
-- **The draft delete half is not.** `ListingsWorkspace.tsx` still declares
-  `type SheetKind = "submit" | "unpublish" | "delete"`, still renders an
-  `onAction("delete", listing)` button, and `ConfirmSheet.run()` calls
-  `deleteListing` immediately inside `startTransition`. There is no timer, no
-  deferral and no undo affordance anywhere in the repository.
+Two reds that WERE real were closed here. `admin-console` was a broken spec
+rather than a broken console: it fetched a hardcoded stylesheet chunk whose name
+is a build hash, got a 404, and measured unstyled HTML. `social-people` was a
+genuine product fault, `/around` claiming the country was quiet in a build that
+had read nothing.
 
-**One of those two reds used to be a green, and that is the more important
-finding.** The check asserting the confirm sheet was gone matched
-`kind: SheetKind[\s\S]{0,200}"delete"`, a two hundred character window after
-one declaration. The file grew a doc comment, `"delete"` fell outside the
-window, the regex stopped matching and its negation turned into a pass. The
-sheet had never moved. The suite was reporting a destructive dialog as removed
-while it was fully present. It now asserts on the union type itself, which is
-where the vocabulary is declared and cannot drift out of a character window,
-and it is honestly red. **The fix is the product, not the line.**
-
-The spec also used to hang for thirty seconds on a listing link the empty
-catalogue will never produce, and then die with a stack trace that hid every
-section after it. It now takes the same honest loud skip the other
-inventory-dependent specs take, in four places, and the fourteen checks that do
-not need inventory all run and pass.
-
-A fourth spec, `truncation`, failed inside the 72-spec sweep with "Failed to
-open a new tab" and passes on its own. That is Chromium running out of room in
-this sandbox after seventy consecutive launches, not a product fault. Run the
-suite in batches if it happens again.
+And the draft-delete undo that `session-memory`'s other check wanted **is built**
+now, on `main`, by the parallel session: `lib/ui/undo-window.ts`, a six second
+window, an `UndoStrip`, and nine unit tests.
 
 **`apps/web/tsconfig.json` carries ten dead `include` entries.** Parallel builds
 add `".next-a1/types/**"` and friends as they are used, but `exclude` holds

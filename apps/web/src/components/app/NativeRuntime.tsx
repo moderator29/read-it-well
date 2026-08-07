@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { canGoBackInApp } from "@/lib/ui/history";
 import { startNativeRuntime } from "@/lib/native/boot";
 
 /**
@@ -30,7 +31,24 @@ export function NativeRuntime() {
   const router = useRouter();
 
   useEffect(
-    () => startNativeRuntime({ goBack: () => router.back() }),
+    () =>
+      startNativeRuntime({
+        /*
+         * The same question every other back control on this platform asks.
+         *
+         * `startBackButton` already asks `canGoBackInApp()` before it calls
+         * this, and exits the application when the answer is no, so in practice
+         * the guard here never changes the outcome. It is here anyway for two
+         * reasons. It keeps the invariant visible at the call site rather than
+         * three modules away, which is what `session-memory.spec.mjs` checks
+         * for across every `router.back()` in the codebase and what caught this
+         * file. And it means a future caller of `goBack` that forgets to ask
+         * cannot push this router past the start of its own history.
+         */
+        goBack: () => {
+          if (canGoBackInApp()) router.back();
+        },
+      }),
     [router],
   );
 

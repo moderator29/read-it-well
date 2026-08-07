@@ -37,10 +37,13 @@ import { KeyboardResize } from "@capacitor/keyboard";
  * The live origin the shell loads.
  *
  * Read from the environment rather than hardcoded, because this repository does
- * not know the production domain: the owner sets `NEXT_PUBLIC_SITE_URL` in
- * Vercel and it has never been visible here. `cap sync` evaluates this file, so
- * the variable has to be present in the shell that runs the sync, which is
- * exactly what `docs/MOBILE.md` and the Codemagic notes say to do.
+ * not know the production domain: the owner sets it in Vercel and it has never
+ * been visible here. The variable is `CAPACITOR_SERVER_URL`, read eleven lines
+ * below, and NOT `NEXT_PUBLIC_SITE_URL`, which this comment used to name by
+ * mistake. They are different variables and only the first is read here.
+ *
+ * `cap sync` evaluates this file, so the variable has to be present in the
+ * shell that runs the sync, which is exactly what `docs/MOBILE.md` says to do.
  *
  * Left unset, `server` is omitted entirely and the binary loads `webDir`, which
  * means the shell opens on its own offline card and says so in plain words.

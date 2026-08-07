@@ -215,7 +215,17 @@ export default async function RootLayout({
           the header is the reader saying so outright and a connection reading
           does not overrule that.
         */}
+        {/*
+          Nonced for the same reason the theme script above is. This one arrived
+          from a parallel branch that predates the Content Security Policy, and
+          the merge kept it verbatim because nothing conflicted: it is a new
+          script in a region neither side had touched. Without the attribute the
+          policy blocks it on every route, which is exactly what happened, and
+          the reader on the 2g link this script exists to protect would have
+          downloaded 3.5MB of scenery anyway.
+        */}
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html:
               "try{var c=navigator.connection;if(c&&(c.saveData||/^(slow-)?2g$/.test(c.effectiveType||'')))document.documentElement.dataset.saveData='on'}catch(e){}",
