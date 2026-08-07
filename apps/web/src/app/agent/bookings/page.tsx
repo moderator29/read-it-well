@@ -7,6 +7,11 @@ import { readHostBookings, type HostBookingBoard } from "@/lib/agent/bookings-qu
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ListingPitch } from "../list/ListingPitch";
 import { BookingsWorkspace } from "./BookingsWorkspace";
+import { ReservationsBoard } from "./ReservationsBoard";
+import {
+  readHostReservations,
+  EMPTY_RESERVATION_BOARD,
+} from "@/lib/agent/reservations-queries";
 import { ButtonLink } from "@/components/ui/Button";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -64,7 +69,14 @@ export default async function Page() {
     );
   }
 
-  const board = (await readHostBookings(context)) ?? EMPTY_BOARD;
+  /* Both boards, in parallel. A restaurant reservation and a stay are separate
+     tables with separate policies, so neither read can answer for the other,
+     and an agent who lets flats and runs a restaurant needs both on one screen
+     rather than a second console to remember. */
+  const [board, tables] = await Promise.all([
+    readHostBookings(context).catch(() => EMPTY_BOARD),
+    readHostReservations(context).catch(() => EMPTY_RESERVATION_BOARD),
+  ]);
 
   return (
     <AgentShell
@@ -78,7 +90,11 @@ export default async function Page() {
         <p className="mt-1 text-[var(--nf-content-secondary)]">{t.agentBookings.lede}</p>
       </div>
 
-      <BookingsWorkspace t={t.agentBookings} board={board} locale={locale} />
+      <BookingsWorkspace t={t.agentBookings} board={board ?? EMPTY_BOARD} locale={locale} />
+
+      {/* Renders nothing at all for an agent with no restaurant, rather than
+          three empty headings explaining a product they do not sell. */}
+      <ReservationsBoard board={tables} />
     </AgentShell>
   );
 }
