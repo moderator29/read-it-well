@@ -67,8 +67,17 @@ export default async function BookingsPage({
   const justBookedRaw = params.justBooked;
   const justBooked = typeof justBookedRaw === "string" ? justBookedRaw : undefined;
 
-  const groups = await getMyBookings(locale);
-  const seeded = groups === null ? buildBookings(await getBookedStays(), locale) : null;
+  const loaded = await getMyBookings(locale);
+  /*
+   * Three states, not two. Signed out draws the example stays that explain what
+   * this screen is for; signed in draws real trips; and a read that FAILED
+   * draws neither, because both of the others would be a lie: "you have none"
+   * about an account that may have several, or a set of stays that are not
+   * theirs.
+   */
+  const unavailable = loaded === "unavailable";
+  const groups = unavailable ? null : loaded;
+  const seeded = loaded === null ? buildBookings(await getBookedStays(), locale) : null;
 
   const steps: { icon: BrandIconName; title: string; body: string }[] = [
     { icon: "calendar-check", title: "Choose your dates", body: "Pick check-in and check-out on a live calendar." },
@@ -85,7 +94,17 @@ export default async function BookingsPage({
 
       <Reveal>
         <div className="nf-card p-4 sm:p-5">
-          {groups ? (
+          {unavailable ? (
+            <div className="py-6 text-center" data-testid="bookings-unavailable">
+              <p className="font-semibold text-[var(--nf-content-primary)]">
+                We could not load your trips
+              </p>
+              <p className="mx-auto mt-2 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                Something on our side did not answer just now. Nothing has changed about
+                your bookings. Reload the page and they should come straight back.
+              </p>
+            </div>
+          ) : groups ? (
             <MyBookings groups={groups} locale={locale} justBookedId={justBooked} />
           ) : (
             <BookingsTabs

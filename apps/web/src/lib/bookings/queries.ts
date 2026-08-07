@@ -96,7 +96,9 @@ function labelDate(iso: string): string {
  * Resolves null when Supabase is unconfigured or nobody is signed in, so the
  * page can keep its seeded rendering for those states.
  */
-export async function getMyBookings(locale: Locale): Promise<BookingGroups | null> {
+export async function getMyBookings(
+  locale: Locale,
+): Promise<BookingGroups | null | "unavailable"> {
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;
 
@@ -108,7 +110,27 @@ export async function getMyBookings(locale: Locale): Promise<BookingGroups | nul
     .eq("guest_id", session.user.id)
     .order("check_in", { ascending: false })
     .limit(100);
-  if (error || !rows) return { upcoming: [], completed: [], cancelled: [] };
+  /*
+   * A DROPPED READ IS NOT AN EMPTY ACCOUNT.
+   *
+   * This returned three empty groups on `error`, so a query that failed
+   * rendered the trips hub as "you have no trips". Somebody with a stay next
+   * week, on a bad connection or during a database blip, was told their
+   * booking did not exist. That is the same shape as a partner venue with no
+   * price being reported as costing zero: an absence of data stated as a fact
+   * about the world.
+   *
+   * It does NOT return null either, which was the obvious fix and is a second
+   * bug wearing the first one's clothes: null already means signed out, and the
+   * hub answers signed out by drawing example stays. A failed read would then
+   * show a signed-in person a set of bookings that are not theirs and do not
+   * exist, which is worse than the empty list it replaced.
+   *
+   * So the failure has its own value and the screen says the true thing: we
+   * could not load your trips, rather than you have none, and rather than here
+   * are some.
+   */
+  if (error || !rows) return "unavailable";
 
   // Display data: platform listing rows first, seed catalogue as the
   // fallback for titles and photography, a plain placeholder after that.
@@ -143,6 +165,32 @@ export async function getMyBookings(locale: Locale): Promise<BookingGroups | nul
     for (const r of reviewRows ?? []) reviewedBookingIds.add(r.booking_id);
   }
 
+  /*
+   * Which of these stays has money settled against it, in one read, for the
+   * `cancellable` decision below.
+   *
+   * Read through the guest's own client like everything else here, so it can
+   * only ever see their own payments. A failed read leaves the set empty,
+   * which offers the button on a paid stay and lands the guest on the action's
+   * own honest refusal. That is the right way round: the failure mode of not
+   * knowing is one clear sentence, and the alternative would hide the control
+   * from people who are entitled to it every time the payments table blinked.
+   */
+  const paidBookingIds = new Set<string>();
+  if (rows.length > 0) {
+    const { data: paidRows } = await session.supabase
+      .from("transactions")
+      .select("booking_id")
+      .eq("status", "SUCCESSFUL")
+      .in(
+        "booking_id",
+        rows.map((r) => r.id),
+      );
+    for (const r of paidRows ?? []) {
+      if (r.booking_id) paidBookingIds.add(r.booking_id);
+    }
+  }
+
   const today = lagosToday();
   const groups: BookingGroups = { upcoming: [], completed: [], cancelled: [] };
 
@@ -163,8 +211,25 @@ export async function getMyBookings(locale: Locale): Promise<BookingGroups | nul
       guests: row.adults + row.children,
       totalDisplay: formatMoney(row.total_minor, locale, row.currency),
       status: row.status,
+      /*
+       * Cancellable means cancel() WILL take it, not that the status looks
+       * right.
+       *
+       * This asked only about status and date. `cancel()` additionally refuses
+       * any stay carrying a SUCCESSFUL transaction, and says so plainly, so
+       * every guest who had actually paid was shown a Cancel button that then
+       * turned them away. A control that refuses is worse than no control: it
+       * reads as the platform breaking at the moment somebody is trying to get
+       * their money back.
+       *
+       * Paid stays are settled by a person, which is what the action's own
+       * refusal tells them, so the screen no longer offers the shortcut that
+       * cannot work.
+       */
       cancellable:
-        (row.status === "PENDING" || row.status === "CONFIRMED") && row.check_in > today,
+        (row.status === "PENDING" || row.status === "CONFIRMED") &&
+        row.check_in > today &&
+        !paidBookingIds.has(row.id),
       arrivingName: (row.guest_name ?? "").trim() || null,
       arrivingPhone: (row.guest_phone ?? "").trim() || null,
       reviewed: reviewedBookingIds.has(row.id),
