@@ -45,8 +45,12 @@ proof.
    name at 320px, which now stacks. 1,480 elements reached of 75 source sites;
    the spec prints that gap on every run rather than implying coverage it does
    not have.
-8. **Aspect-ratio boxes on every image**, so nothing shifts under a thumb as it
-   loads.
+8. **Aspect-ratio boxes on every image.** DONE, and it already was, which is
+   why it needed measuring rather than fixing: a sweep of 43 routes at 390 and
+   1280 found ZERO images without a reserved box. The guard that holds it lives
+   in `polish-overlays-copy-status.spec.mjs` and used to cover 22 routes, which
+   proved half the platform. It covers all 43 now, because an unreserved image
+   only ever shifts the page it is on.
 9. **Status colours locked into tokens**: pending, approved, rejected, verified.
    One meaning per colour, platform-wide. `#50`
 10. **Contrast of gradient text over glass**, both themes, against WCAG AA. `#148`

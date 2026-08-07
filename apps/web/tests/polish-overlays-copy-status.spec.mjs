@@ -136,11 +136,24 @@ check("no surface hand-writes a status colour pair inline", inlineStatus.length 
 
 /* ------------------------------------------------------------- the browser */
 
+/*
+ * Forty-three routes, not the twenty-two this started with.
+ *
+ * The image check below is item 8, and an image with no reserved box shifts the
+ * page under a thumb at the moment it loads, which is a defect that only ever
+ * appears on the route carrying that image. Checking a third of the platform
+ * for it proves a third of the platform. Every route a signed-out visitor or a
+ * signed-in reader can reach is swept now, at 390 and at 1280.
+ */
 const ROUTES = [
   "/", "/home", "/search", "/search?view=map", "/listing/lekki-palm-grove", "/saved",
-  "/messages", "/notifications", "/profile", "/settings", "/wallet", "/bookings",
-  "/rent", "/agents", "/agents/apply", "/help", "/contact",
-  "/agent/dashboard", "/agent/bookings", "/agent/listings", "/admin", "/admin/support",
+  "/messages", "/notifications", "/profile", "/settings", "/settings/interests",
+  "/settings/place", "/wallet", "/bookings", "/rent", "/assistant", "/around", "/u",
+  "/stories", "/agents", "/agents/apply", "/agents/status", "/help", "/contact",
+  "/about", "/careers", "/safety", "/standards", "/cancellations", "/docs",
+  "/styleguide", "/privacy", "/terms", "/sign-in", "/sign-up", "/sign-up/email",
+  "/sign-up/verify", "/agent/dashboard", "/agent/bookings", "/agent/listings",
+  "/agent/earnings", "/agent/reviews", "/admin", "/admin/support",
 ];
 
 /*
