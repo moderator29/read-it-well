@@ -24,7 +24,7 @@ In priority order. The first two are the whole hotel and restaurant shelf.
 | | |
 |---|---|
 | **Portal** | https://nuitee.com, then **Developers → API Keys** |
-| **Env var** | `LITEAPI_KEY` |
+| **Env vars** | `LITEAPI_KEY`, and `LITEAPI_WHITELABEL_DOMAIN` for the booking step |
 | **Key shape** | Sandbox `sand_…` instantly, production `prod_…` after the account is completed |
 | **Card needed** | No |
 | **Cost** | The core Rates → Prebook → Book workflow is free at a reasonable look-to-book ratio; they earn a commission on bookings |
@@ -39,6 +39,19 @@ the key is sandbox or production, so nothing has to change when you swap it.
 
 Get the sandbox key first. It costs nothing, it proves the integration, and the
 production key is the same field.
+
+**Then do the second step, which is what makes a hotel bookable.** In the same
+dashboard, switch on the **Whitelabel** booking site, give it a name, and put
+the host in `LITEAPI_WHITELABEL_DOMAIN` as `<yourname>.nuitee.link`. Partner
+hotel cards then carry a Book action that opens their checkout on the same
+dates the price was quoted for. The guest pays there, LiteAPI confirms with the
+supplier and we earn the commission without ever holding the money, which is
+what keeps us clear of the one failure that matters: a card charged here for a
+room a supplier then refuses.
+
+Until that second variable is set the platform is still correct, just smaller:
+hotels carry a real naira price and the detail page says plainly that they
+cannot be booked on RentMe yet.
 
 ### Google Places API (New): restaurants, hotel coverage, addresses
 

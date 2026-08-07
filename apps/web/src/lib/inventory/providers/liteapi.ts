@@ -96,6 +96,56 @@ export function liteapiConfigured(): boolean {
   return apiKey() !== null;
 }
 
+/**
+ * The whitelabel booking site's host, or null.
+ *
+ * LiteAPI hosts a booking site for each account at `<name>.nuitee.link`, and it
+ * takes deep links straight to one hotel. That is what makes a partner hotel
+ * genuinely bookable without this platform touching the money: the guest lands
+ * on a checkout that revalidates the rate, takes the card and confirms with the
+ * supplier, and we earn the commission on it. The failure mode that panel
+ * warned about in HYBRID_INVENTORY section 7 (money captured here, supplier
+ * confirmation failed) cannot happen, because we never capture.
+ *
+ * It is a separate environment variable from the key on purpose. The site has
+ * to be switched on and named in their dashboard, which is a step after getting
+ * a key, so the two arrive at different times and the product has to be correct
+ * in between: with a key and no whitelabel, partner hotels carry a price and
+ * say plainly that they are not bookable here.
+ *
+ * Accepts `name.nuitee.link` or `https://name.nuitee.link`, with or without a
+ * trailing slash, and refuses anything carrying a path, a query or whitespace,
+ * because this value is interpolated into a URL a guest is sent to.
+ */
+export function whitelabelHost(): string | null {
+  const raw = (process.env.LITEAPI_WHITELABEL_DOMAIN ?? "").trim();
+  if (raw.length === 0) return null;
+  const host = raw.replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+  return /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9-]+)+$/i.test(host) ? host : null;
+}
+
+/**
+ * Where a guest completes this booking, or null when no site is configured.
+ *
+ * The dates are the SAME window the price was quoted for, which is the whole
+ * point of building this here rather than in the component: a link that opened
+ * on different dates from the ones on the card would show a different number
+ * the moment it loaded.
+ *
+ * Occupancy is deliberately NOT passed. Their deep link accepts an
+ * `occupancies` parameter but the documented encoding is ambiguous, and a
+ * malformed one risks breaking the page a paying guest just landed on. A
+ * default occupancy that disagrees with our single-adult quote costs a
+ * reconfirmed rate, which the panel already tells the guest to expect; a broken
+ * checkout costs the booking.
+ */
+export function bookingUrl(hotelId: string, window: { checkin: string; checkout: string }): string | null {
+  const host = whitelabelHost();
+  if (!host) return null;
+  const query = new URLSearchParams({ checkin: window.checkin, checkout: window.checkout });
+  return `https://${host}/hotels/${encodeURIComponent(hotelId)}?${query.toString()}`;
+}
+
 /** `YYYY-MM-DD`, `offsetDays` from today, in UTC. */
 function isoDay(offsetDays: number): string {
   return new Date(Date.now() + offsetDays * MS_PER_DAY).toISOString().slice(0, 10);
@@ -279,6 +329,8 @@ function toListing(
     content.lat !== null && content.lng !== null ? nearestCity(content.lat, content.lng) : null;
   const city = placed ?? fallbackCity;
   const id = partnerId("liteapi", content.hotelId);
+  // Same window the rate above was quoted for. See `bookingUrl`.
+  const book = bookingUrl(content.hotelId, stayWindow());
 
   return {
     id,
@@ -304,6 +356,10 @@ function toListing(
     source: "partner",
     partner: {
       provider: "liteapi",
+      // Absent until the whitelabel site is configured, and the detail panel
+      // reads that absence as "priced here, not bookable here" rather than
+      // rendering a button that goes nowhere.
+      ...(book ? { bookUrl: book } : {}),
       ...(priced.offerRef ? { offerRef: priced.offerRef } : {}),
     },
     // The rates call prices a room, not a floor plan, and the content call does
