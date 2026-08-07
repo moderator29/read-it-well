@@ -70,6 +70,7 @@ export const yo: Dictionary = {
     next: "Tókàn",
     continue: "Tẹ̀síwájú",
     loading: "Ń gbéwọlé",
+    travelTime: "Àkókò ìrìnàjò",
     perNight: "fún alẹ́ kan",
     night: "alẹ́",
     year: "ọdún",

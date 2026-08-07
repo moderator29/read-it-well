@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
+import { VerifyingPanel } from "./VerifyingPanel";
 import type { VerificationOutcome } from "@/lib/auth/actions";
 
 /**
@@ -30,6 +31,17 @@ import type { VerificationOutcome } from "@/lib/auth/actions";
  * need code running here. The `<noscript>` below sends those readers to the six
  * digit code instead, which is a plain form and needs nothing.
  */
+
+/**
+ * The shortest a verification is allowed to be on screen.
+ *
+ * The work itself can finish in 200ms, and a screen that appears and vanishes
+ * inside a blink is worse than no screen: it reads as a flicker, or as a fault.
+ * Holding it for a beat is what makes it a moment somebody remembers rather
+ * than a frame they half saw. Two seconds is long enough to read the sentence
+ * and short enough that nobody waits.
+ */
+const MIN_ON_SCREEN_MS = 2000;
 
 export function Verifying({
   code,
@@ -72,11 +84,22 @@ export function Verifying({
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
     }
 
+    const opened = Date.now();
+    /* The floor applies to success only. A refusal has something to read and
+       something to do, so holding it back would be delay for its own sake. */
+    const settle = (run: () => void) => {
+      const left = MIN_ON_SCREEN_MS - (Date.now() - opened);
+      if (left <= 0) run();
+      else window.setTimeout(run, left);
+    };
+
     void complete({ code, tokenHash, type, accessToken, refreshToken, next }).then((result) => {
       if (result.ok) {
-        router.replace(result.next);
-        /* The tree behind this screen was rendered signed out. */
-        router.refresh();
+        settle(() => {
+          router.replace(result.next);
+          /* The tree behind this screen was rendered signed out. */
+          router.refresh();
+        });
         return;
       }
       setFailed(result);
@@ -119,35 +142,5 @@ export function Verifying({
     );
   }
 
-  return (
-    <div className="w-full max-w-[24rem] text-center" data-testid="verifying" aria-live="polite">
-      <span className="flex justify-center">
-        <LogoMark size={44} title="RentMe" />
-      </span>
-      <h1 className="nf-h2 mt-5">Verifying your email</h1>
-      <p className="mt-3 leading-relaxed text-[var(--nf-content-secondary)]">
-        One moment. We are confirming your address and opening your account.
-      </p>
-      {/* A determinate-looking bar rather than a spinner: this has a known end,
-          and a bar says so where a spinner says only that something is
-          happening. Purely decorative, so the sentence above carries it for a
-          screen reader. */}
-      <span
-        aria-hidden="true"
-        className="mx-auto mt-7 block h-1 w-40 overflow-hidden rounded-full bg-[var(--nf-border-subtle)]"
-      >
-        <span className="nf-verify-sweep block h-full w-1/3 rounded-full bg-[var(--nf-brand-primary)]" />
-      </span>
-
-      <noscript>
-        <p className="mt-7 leading-relaxed text-[var(--nf-content-secondary)]">
-          This step needs JavaScript to finish. The same email carries a six digit code, and
-          entering it needs nothing but the form.
-        </p>
-        <ButtonLink href="/sign-up/verify" variant="primary" size="lg" className="mt-5">
-          Enter the code instead
-        </ButtonLink>
-      </noscript>
-    </div>
-  );
+  return <VerifyingPanel />;
 }

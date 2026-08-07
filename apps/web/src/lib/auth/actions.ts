@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   consume,
   ipFromHeaders,
@@ -34,6 +35,8 @@ export type AuthField =
 
 export type AuthFormState = {
   ok: boolean;
+  /** Where to go once the verifying moment has been on screen long enough. */
+  verified?: string;
   message?: string;
   fieldErrors?: Partial<Record<AuthField, string>>;
 };
@@ -441,7 +444,70 @@ export async function verifySignUpCode(
   // The session cookies are set. Drop every cached render so the shell picks
   // the signed-in tree rather than the anonymous one it rendered a moment ago.
   revalidatePath("/", "layout");
-  redirect(landingAfterAuth(formData));
+  /*
+   * Handed back rather than redirected from here.
+   *
+   * A server redirect would take somebody from the code field to the inside of
+   * the platform in one frame, and the link path does not do that: it holds a
+   * "Verifying your email" moment for two seconds first. Two ways into the same
+   * account should not feel like two different products, so the code path shows
+   * the same moment, and the only way to show anything after this succeeds is
+   * to let the screen navigate rather than the server.
+   */
+  return { ok: true, verified: landingAfterAuth(formData) };
+}
+
+/**
+ * Is this address already signed up, and if so, how?
+ *
+ * Called as the email field loses focus, so somebody is told before they fill
+ * in a password, a state, a local government and an occupation. The old
+ * behaviour was to find out on submit, after all of it, and the first real
+ * sign-up on this platform hit exactly that: an account made with Google, the
+ * same address typed into the email form, and Supabase answering 200 while
+ * sending nothing.
+ *
+ * "google" is the answer worth having. "You already have an account" is not
+ * actionable; "use Continue with Google, that is how you made it" is, and it
+ * is the difference between somebody getting in and somebody resetting a
+ * password that does not exist.
+ *
+ * This tells a caller whether an address is registered, which is an
+ * enumeration oracle, and that is a deliberate trade rather than an oversight.
+ * It is bounded: the database function is executable by the service role and
+ * by nothing else, so this action is the only door; the door is rate limited
+ * per connection; and the answer is never more than which button to press. It
+ * reveals nothing that trying to sign in would not.
+ */
+export type EmailStatus = "none" | "email" | "google" | "unknown";
+
+export async function signUpMethodForEmail(email: string): Promise<EmailStatus> {
+  const address = email.trim().toLowerCase();
+  if (!EMAIL_RE.test(address)) return "unknown";
+  if (!emailConfigured()) return "unknown";
+
+  /* Sixty an hour is far more than a person mistyping their own address and
+     far less than a list is worth walking. A refusal answers "unknown", which
+     the form treats as no answer rather than as good news. */
+  const verdict = await consume({
+    bucket: "signup_email_probe",
+    subject: subjectForIp(await callerIp()),
+    limit: 60,
+    windowSeconds: 3_600,
+  });
+  if (!verdict.allowed) return "unknown";
+
+  try {
+    const { data, error } = await createAdminClient().rpc("signup_method_for_email", {
+      p_email: address,
+    });
+    if (error) return "unknown";
+    return data === "google" || data === "email" ? data : "none";
+  } catch {
+    /* No service role key in this environment. Saying "unknown" leaves the
+       form exactly as it was before this existed, which is the right failure. */
+    return "unknown";
+  }
 }
 
 /**

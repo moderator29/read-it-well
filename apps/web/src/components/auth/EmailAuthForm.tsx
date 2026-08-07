@@ -10,6 +10,8 @@ import type { StateOption } from "@/lib/places/reference";
 import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Field, FormGroup, PasswordField, SelectField, StrengthMeter } from "./fields";
+import { EmailTakenNotice } from "./EmailTakenNotice";
+import { signUpMethodForEmail } from "@/lib/auth/actions";
 
 const EMPTY: AuthFormState = { ok: false };
 
@@ -152,15 +154,13 @@ export function EmailAuthForm({
             </FormGroup>
 
             <FormGroup title={t.signUp.groups.credentials} step={step(2)}>
-              <Field
+              {/* The address is checked as the field loses focus, so an
+                  account that already exists is named here rather than
+                  discovered after four groups of questions and a submit. */}
+              <EmailTakenNotice
                 t={t}
-                id="email"
-                name="email"
-                type="email"
-                label={t.auth.emailLabel}
-                placeholder={t.auth.emailPlaceholder}
-                autoComplete="email"
                 error={state.fieldErrors?.email}
+                check={signUpMethodForEmail}
               />
               <PasswordField
                 t={t}

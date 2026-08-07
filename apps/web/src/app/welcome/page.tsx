@@ -41,7 +41,9 @@ export default async function WelcomePage() {
 
   if (intent.state === "signed-out") redirect("/sign-in");
   if (intent.state === "unconfigured") redirect("/home");
-  if (intent.asked || intent.interests.length > 0) redirect("/home");
+  /* Nothing left to show. Both halves of first run are done, so this screen
+     has no reason to exist for this person and never will again. */
+  if ((intent.asked || intent.interests.length > 0) && intent.welcomeSeen) redirect("/home");
 
   return (
     <main
@@ -51,7 +53,7 @@ export default async function WelcomePage() {
       <div className="nf-aurora" aria-hidden="true" />
       <div className="nf-grid-veil" aria-hidden="true" />
 
-      <FirstRun t={t} interests={intent.interests} />
+      <FirstRun t={t} interests={intent.interests} showCards={!intent.welcomeSeen} />
     </main>
   );
 }

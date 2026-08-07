@@ -72,6 +72,7 @@ export const ig: Dictionary = {
     next: "Osote",
     continue: "Gaa n'ihu",
     loading: "Na-ebu",
+    travelTime: "Oge njem",
     perNight: "kwa abalị",
     night: "abalị",
     year: "afọ",

@@ -3039,6 +3039,10 @@ export type Database = {
           states: number
         }[]
       }
+      signup_method_for_email: {
+        Args: { p_email: string }
+        Returns: string
+      }
       record_idempotency_result: {
         Args: { key: string; result: Json; scope: string; subject: string }
         Returns: boolean

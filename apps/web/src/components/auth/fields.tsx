@@ -98,6 +98,7 @@ export function Field({
   t,
   value,
   onChange,
+  onBlur,
   inputMode,
   className,
 }: {
@@ -125,6 +126,11 @@ export function Field({
    */
   value?: string;
   onChange?: (value: string) => void;
+  /* Fires when the field loses focus, with its current value. The sign-up
+     email field uses it to ask whether the address is already registered,
+     which is a question worth asking once somebody has finished typing and
+     not thirty times while they are. */
+  onBlur?: (value: string) => void;
   inputMode?: "numeric" | "text" | "email" | "tel";
   className?: string;
 }) {
@@ -150,6 +156,7 @@ export function Field({
         {...(controlled
           ? { value, onChange: (event) => onChange(event.target.value) }
           : {})}
+        {...(onBlur ? { onBlur: (event) => onBlur(event.target.value) } : {})}
       />
       <FieldError id={errorId} error={error} />
     </div>

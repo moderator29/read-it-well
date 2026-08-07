@@ -170,6 +170,46 @@ export async function skipInterests(): Promise<ActionResult<null>> {
   return ok(null);
 }
 
+/**
+ * Remember that the three welcome cards have been shown.
+ *
+ * Written the moment they are dismissed, by reading through or by skipping,
+ * and that timing is the whole point. A RETURNING USER MUST NEVER SEE THEM: a
+ * person who has been told what this place is and then signs in a week later
+ * is not a new person, and showing them the introduction again is the platform
+ * failing to remember a conversation it started.
+ *
+ * Marked on dismissal rather than on first render, so a screen that flickered
+ * or a tab that closed mid-way does not cost somebody the one card that
+ * matters, which is the one telling them never to send money off the platform.
+ *
+ * Deliberately quiet about failure. This is a note to ourselves, not a thing
+ * anybody asked for, and a person on their way into the product must never be
+ * stopped by it. The worst case of a failed write is seeing three cards twice.
+ */
+export async function markWelcomeSeen(): Promise<ActionResult<null>> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return ok(null);
+  if (session.state === "signed-out") return ok(null);
+
+  const { supabase, user } = session;
+
+  const { data: current } = await supabase
+    .from("profiles")
+    .select("settings")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!current) return ok(null);
+  if (parseSettings(current.settings).welcomeSeen) return ok(null);
+
+  await supabase
+    .from("profiles")
+    .update({ settings: mergeSettings(current.settings, { welcomeSeen: true }) })
+    .eq("id", user.id);
+
+  return ok(null);
+}
+
 /** Form binding for useActionState. A skip carries no fields. */
 export async function skipInterestsAction(
   _prev: ActionResult<null> | null,

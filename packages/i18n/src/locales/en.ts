@@ -91,6 +91,7 @@ export const en = {
     next: "Next",
     continue: "Continue",
     loading: "Loading",
+    travelTime: "Travel time",
     perNight: "per night",
     night: "night",
     year: "year",

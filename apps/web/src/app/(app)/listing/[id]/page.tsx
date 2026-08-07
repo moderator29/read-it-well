@@ -13,6 +13,7 @@ import { getSavedListings } from "@/lib/saved/queries";
 import { lagosToday } from "@/lib/bookings/schema";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { RecordVisit } from "@/components/app/listing/RecordVisit";
+import { TravelTime } from "@/components/app/listing/TravelTime";
 import { ReservePanel } from "./ReservePanel";
 import { RentalPanel } from "./RentalPanel";
 import { ListingAbout } from "@/components/app/listing/ListingAbout";
@@ -198,7 +199,14 @@ export default async function ListingDetailPage({
   // Rentals are annual tenancies: no Reserve control anywhere on the page.
   // The path is message the agent, inspect the property, then pay.
   const isRental = listing.kind === "rental";
-  const isBookable = !isPartner && !isRental;
+
+  /* A restaurant is ours to take a booking for, and it is NOT a stay.
+     Without this it fell into the nightly branch and drew a date range picker,
+     a cleaning fee and a per-night total for a table. What a restaurant takes
+     is a party size at a moment, which is public.reservations and a different
+     panel entirely (docs/HYBRID_INVENTORY.md section 9). */
+  const isRestaurant = listing.kind === "restaurant";
+  const isBookable = !isPartner && !isRental && !isRestaurant;
 
   // Nights a guest cannot pick: booked or blocked dates from the platform
   // calendar. Empty for catalogue listings and when Supabase is not
@@ -349,7 +357,7 @@ export default async function ListingDetailPage({
     ? partnerAction
       ? { ...partnerAction, external: true }
       : null
-    : isRental
+    : isRental || isRestaurant
       ? { label: "Message agent", href: `/messages/new?listing=${listing.id}` }
       : { label: "Check availability", href: "#reserve" };
 
@@ -366,12 +374,14 @@ export default async function ListingDetailPage({
     ? partner?.venueUrl && partnerAction && partner.venueUrl !== partnerAction.href
       ? { label: "Menu", href: partner.venueUrl, external: true }
       : null
-    : isRental
+    : isRental || isRestaurant
       ? null
       : { label: "Message agent", href: messageHref };
 
   const bookingPanel = isPartner ? (
     <PartnerPanel listing={listing} locale={locale} t={t} action={partnerAction} />
+  ) : isRestaurant ? (
+    <RestaurantPanel listing={listing} locale={locale} t={t} messageHref={messageHref} />
   ) : isRental ? (
     <RentalPanel
       listingId={listing.id}
@@ -756,9 +766,76 @@ function PartnerPanel({
         </ButtonLink>
       )}
 
+      {/* Only on food. Nobody cross-references a hotel against where they are
+          standing, but "can I be there by eight" is the whole question about
+          dinner, and in Lagos it is a traffic question rather than a distance
+          one. Rendered for partner venues as much as for ours, because it is
+          the one useful thing we can offer about a restaurant we cannot book. */}
+      {!isHotel && <TravelTime listingId={listing.id} label={t.common.travelTime} workingLabel={t.common.loading} />}
+
       {partner?.attribution === "Google" && (
         <p className="mt-3 text-[0.6875rem] text-[var(--nf-content-muted)]">Powered by Google</p>
       )}
+    </div>
+  );
+}
+
+/**
+ * The panel a restaurant of ours gets.
+ *
+ * The whole difference between this and the partner panel above is the two
+ * things partner stock cannot have: somebody to message, and a table that can
+ * actually be held. A Google venue is a name, a photo and a pin; this is a
+ * place a RentMe agent put their name to, so it carries the badge, the agent
+ * and the reservation (docs/HYBRID_INVENTORY.md section 9).
+ *
+ * The price is per head rather than per night, which is the rule
+ * lib/listings/types.ts already states for this category, so the nightly suffix
+ * every stay uses would be wrong here and is not shown. A restaurant that has
+ * not stated a price shows none rather than a zero.
+ */
+function RestaurantPanel({
+  listing,
+  locale,
+  t,
+  messageHref,
+}: {
+  listing: Listing;
+  locale: Locale;
+  t: Dictionary;
+  messageHref: string;
+}) {
+  return (
+    <div className="nf-card p-5">
+      {listing.priceMinor > 0 && (
+        <p>
+          <Amount
+            minorUnits={listing.priceMinor}
+            locale={locale}
+            currency={listing.currency}
+            className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+            secondaryClassName="text-[0.54em] font-semibold opacity-60"
+          />
+          <span className="ml-1 text-[0.8125rem] text-[var(--nf-content-secondary)]">
+            per head
+          </span>
+        </p>
+      )}
+
+      <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        Listed on RentMe by the person who runs it. Message them to ask about a
+        table, a large party or anything the page does not answer.
+      </p>
+
+      <ButtonLink href={messageHref} variant="primary" full className="mt-4">
+        Message
+      </ButtonLink>
+
+      <TravelTime
+        listingId={listing.id}
+        label={t.common.travelTime}
+        workingLabel={t.common.loading}
+      />
     </div>
   );
 }
