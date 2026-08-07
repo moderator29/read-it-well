@@ -1698,6 +1698,48 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_stay_intents: {
+        Row: {
+          checkin: string
+          checkout: string
+          created_at: string
+          currency: string
+          guest_id: string
+          hotel_name: string
+          id: string
+          prebook_id: string | null
+          provider: string
+          provider_hotel_id: string
+          quoted_minor: number | null
+        }
+        Insert: {
+          checkin: string
+          checkout: string
+          created_at?: string
+          currency?: string
+          guest_id: string
+          hotel_name: string
+          id?: string
+          prebook_id?: string | null
+          provider: string
+          provider_hotel_id: string
+          quoted_minor?: number | null
+        }
+        Update: {
+          checkin?: string
+          checkout?: string
+          created_at?: string
+          currency?: string
+          guest_id?: string
+          hotel_name?: string
+          id?: string
+          prebook_id?: string | null
+          provider?: string
+          provider_hotel_id?: string
+          quoted_minor?: number | null
+        }
+        Relationships: []
+      }
       payout_accounts: {
         Row: {
           account_name: string
@@ -3039,10 +3081,6 @@ export type Database = {
           states: number
         }[]
       }
-      signup_method_for_email: {
-        Args: { p_email: string }
-        Returns: string
-      }
       record_idempotency_result: {
         Args: { key: string; result: Json; scope: string; subject: string }
         Returns: boolean
@@ -3074,6 +3112,7 @@ export type Database = {
         }
         Returns: Json
       }
+      signup_method_for_email: { Args: { p_email: string }; Returns: string }
       story_count: { Args: { p_author: string }; Returns: number }
       suspend_agent: {
         Args: {

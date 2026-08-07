@@ -14,6 +14,7 @@ import { lagosToday } from "@/lib/bookings/schema";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { RecordVisit } from "@/components/app/listing/RecordVisit";
 import { TravelTime } from "@/components/app/listing/TravelTime";
+import { BookPartnerStay } from "@/components/app/listing/BookPartnerStay";
 import { ReservePanel } from "./ReservePanel";
 import { RentalPanel } from "./RentalPanel";
 import { ReserveTable } from "./ReserveTable";
@@ -745,18 +746,25 @@ function PartnerPanel({
           : "Supplied by one of our restaurant partners. Head straight to the venue; it takes its own bookings."}
       </p>
 
-      {action && (
-        <ButtonLink
-          href={action.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          variant="primary"
-          full
-          className="mt-4"
-        >
-          {action.label}
-        </ButtonLink>
-      )}
+      {action &&
+        (isHotel ? (
+          /* A hotel rate is revalidated on the tap, because the price beside
+             this button came from a search and rooms reprice continuously.
+             Directions and a menu have no price to go stale, so they stay
+             ordinary links. */
+          <BookPartnerStay listingId={listing.id} href={action.href} label={action.label} />
+        ) : (
+          <ButtonLink
+            href={action.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="primary"
+            full
+            className="mt-4"
+          >
+            {action.label}
+          </ButtonLink>
+        ))}
       {showSecondary && secondary && (
         <ButtonLink
           href={secondary}

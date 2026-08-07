@@ -132,6 +132,25 @@ writes a `bookings` row against a first-party listing, a Paystack charge settles
 against that row, and `ledger_entries` decomposes the take. A partner hotel has
 no listing row, so every one of those steps has nothing to point at.
 
+**What exists now, and what it deliberately stops short of.** A partner hotel's
+Book control no longer just opens a link. It revalidates the rate through
+`POST /rates/prebook` at the moment of the tap, records the intent in
+`public.partner_stay_intents` so the guest has a history, and only then hands
+over. Rooms reprice continuously, so the price on a card is a photograph, and
+this is what makes the number somebody leaves with a true one. A price that
+moved past two per cent is said out loud; a revalidation that could not be
+reached says nothing at all, because a warning about a move nobody measured is
+worse than silence.
+
+That is everything that can be built without a commercial decision. The rest
+needs one, and it is this: `POST /rates/book` with `ACC_CREDIT_CARD` makes
+RentMe the MERCHANT OF RECORD. We would pay LiteAPI from a funded wallet,
+collect naira ourselves through Paystack, and owe the guest a refund out of our
+own pocket every time a supplier failed after we had taken their card. It is a
+funded account and an accepted liability before it is a line of code. Until
+somebody makes that call, the guest pays on the whitelabel, where LiteAPI
+carries both the supplier risk and the refund obligation.
+
 Closing it means four things, in this order:
 
 1. **A booking row that can represent stock we do not own**, carrying the
