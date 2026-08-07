@@ -3,7 +3,7 @@
 Everything deliberately incomplete, with why and what unblocks it. Nothing here
 is hidden behind a passing build.
 
-Last updated: 2026-08-04.
+Last updated: 2026-08-07.
 
 **This file had rotted badly and was rewritten.** It was last accurate on
 2026-07-28 and still described a platform with no session layer, no search, no
@@ -58,9 +58,21 @@ figures like "Hotels 5,130+", which are mockup numbers. Publishing invented
 inventory counts is misleading advertising, so the hero cards render label-only
 and gain counts with no redesign once a real aggregate exists.
 
-**Several agent workspace routes are still `AgentComingSoon` stubs**:
-`/agent/messages`, `/agent/reviews`, `/agent/analytics`, `/agent/verification`,
-`/agent/settings`. Bookings, earnings, listings and list are real.
+**Two agent workspace routes are still `AgentComingSoon` stubs**:
+`/agent/analytics` and `/agent/verification`. Verified by grep: those are the
+only two files in `apps/web/src/app` that import the component. Everything else
+in the workspace is real, including messages, reviews and settings, which this
+file listed as stubs long after they shipped.
+
+**`/agent/verification` is the one that costs something.** The ladder behind it
+exists: `public.agent_verification_checks` holds one row per rung per agent
+across identity, address, payout and in_person, and `agents.verification_tier`
+is derived from those rows rather than set by hand. An admin can move an agent
+up it through `lib/admin/verification-actions.ts`. Nothing shows the agent where
+they stand, what the next rung is worth, or what to send, so a host climbing the
+one ladder that decides how much of the platform they can use has to be told
+over the phone. A table with an admin screen and no host screen is half a loop
+by this repository's own law.
 
 **No `Accept-Language` negotiation.** Locale resolves from a cookie then falls
 back to English, so a first-time visitor with a Yoruba browser still sees
@@ -89,11 +101,22 @@ cleanly so nobody concludes the rate limiter does not exist.
 gone.** Four probe users, one held post, one held story, one held story comment
 and one held bio were created to prove the moderation queue writes under RLS,
 then deleted. Verified afterwards: `profiles`, `posts`, `stories`,
-`social_profiles`, `notifications`, `risk_alerts` and `audit_log` are all back
+`social_profiles`, `notifications`, `risk_alerts` and `audit_log` were all back
 to zero rows. The cleanup also removed one pre-existing `risk_alerts` row of
-unknown origin; no migration seeds that table and the platform holds no real
+unknown origin; no migration seeds that table and the platform held no real
 user data, so nothing of value was lost, but it is recorded here rather than
 left to be noticed.
+
+**Those tables are no longer at zero, and that is the platform working rather
+than a probe left behind.** Counted live on 2026-08-07: `profiles` 1 with 2
+`user_roles`, `audit_log` 4, `areas` 6, `posts` 12. Every one of the twelve
+posts is `author_kind = 'SYSTEM'`, `kind = 'SYSTEM'`, `status = 'LIVE'`, which
+is the designed cold start answer rather than anybody's content, and the six
+areas come from `seed_first_areas_lagos`. `agents`, `agent_applications`,
+`listings`, `bookings`, `social_profiles` and `risk_alerts` are still empty, so
+the supply chain has not started; somebody has an account now, and nobody has
+applied to be an agent yet. Written down because two documents in this
+repository still open by telling the reader nobody has signed up at all.
 
 ---
 
@@ -103,6 +126,10 @@ Recorded so nobody rebuilds them.
 
 | Was listed as missing | Reality |
 |---|---|
+| `/agent/messages` is a coming-soon stub | Real. `AgentInbox.tsx` over `lib/agent/messages-queries.ts`, replying through the existing thread route and the existing `sendMessage` action |
+| `/agent/reviews` is a coming-soon stub | Real. `ReviewsWorkspace.tsx` and `ReplyForm.tsx` over `lib/agent/reviews-queries.ts`, answering through `lib/agent/reviews-actions.ts` |
+| `/agent/settings` is a coming-soon stub | Real. Notification preferences over the one `profiles.settings` document, plus the payout accounts and a deliberately read-only trading identity |
+| `20260729174306_rls_initplan_and_fk_index` is applied with no committed file | It has a file. The mirror has drifted elsewhere instead, recorded below |
 | `payout_accounts` has no writer | `lib/agent/payout-actions.ts` adds, defaults and removes accounts through the agent's own RLS-bound client, re-resolving the account name against the bank rather than trusting the form |
 | Reviews have no writer | Guests write from `/bookings/[bookingId]/review`; hosts answer through `lib/agent/reviews-actions.ts` |
 | No session layer | `lib/auth/actions.ts` has real `signInWithPassword`, `signUp`, sign-out and Google/Apple OAuth |
@@ -121,6 +148,27 @@ Recorded so nobody rebuilds them.
 ---
 
 ## Still open with the owner
+
+**The migration mirror has drifted, in both directions.** House rule: every
+applied migration is mirrored into `supabase/migrations/` with its timestamp
+prefix, so the repository never lies about the database. Compared on 2026-08-07,
+113 versions are recorded server side and 111 files are committed, and the two
+lists disagree on nine entries. Four of them are the same migration under two
+timestamps, where the file carries a rounded hand-written prefix and the server
+carries the real one: `a_second_admin_and_a_way_to_remove_one`,
+`one_honest_question_at_the_door` and
+`making_somebody_staff_is_not_a_thing_a_signed_in_user_can_do` each appear once
+on each side with prefixes minutes or hours apart, and the server's
+`occupations_common_rank` is almost certainly the file
+`20260805183000_the_answers_most_people_here_give.sql`. That is cosmetic but it
+defeats the check the rule exists for, because a diff by filename reports eight
+problems where there is really one habit.
+
+The one that is not cosmetic: the server records
+`20260807101114_the_last_foreign_key_without_a_covering_index` and no file of
+that name or any other carries it. Reconciling this wants somebody who knows
+which of those migrations they wrote, which is why it is recorded rather than
+guessed at.
 
 **Repository is named `read-it-well`**, which does not match the product. Cosmetic,
 but it surprises everyone who clones it.
