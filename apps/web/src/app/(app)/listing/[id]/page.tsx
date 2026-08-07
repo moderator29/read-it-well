@@ -23,6 +23,7 @@ import { readListingAccess } from "@/lib/listings/access-queries";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { ListingHostPanel } from "@/components/app/listing/ListingHostPanel";
+import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { ListingReviews } from "@/components/app/listing/ListingReviews";
 import {
   ListingStickyBar,
@@ -589,6 +590,26 @@ export default async function ListingDetailPage({
                 locale={locale}
                 t={t}
               />
+            </Reveal>
+          )}
+
+          {/* ---------------------------------------- cancellation policy */}
+          {/*
+            The schedule, in front of somebody who has not committed to
+            anything yet (inbox item 66). No dates are chosen at this point, so
+            it renders as the platform policy in shares rather than in naira;
+            the same component renders again at checkout against the guest's
+            own dates and their own total.
+
+            Not on a rental, which is message, inspect then pay and has no
+            booking to cancel. Not on partner stock either: that inventory
+            belongs to somebody else and so does its refund policy, and
+            printing ours over theirs would be the most expensive kind of
+            wrong.
+          */}
+          {!isPartner && !isRental && (
+            <Reveal as="section" className="mt-8" delay={40}>
+              <CancellationTimeline locale={locale} headingLevel="h2" />
             </Reveal>
           )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type Dictionary, type Locale, formatMoneyGlance } from "@naijafinds/i18n";
@@ -17,6 +17,7 @@ import {
   type ListingStatus,
 } from "@/lib/agent/listings-schema";
 import type { ListingSummary } from "@/lib/agent/listings-queries";
+import { createUndoWindow, type UndoWindow } from "@/lib/ui/undo-window";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
@@ -27,14 +28,37 @@ import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
  *
  * Cards grouped by where each listing stands, because that is the question an
  * agent actually has: what is earning, what is waiting on us, what is waiting
- * on them. Every state change goes through a confirm sheet and then a router
- * refresh, so the list always re-renders from the database rather than from an
- * optimistic guess. Unmet quality requirements come back from the submit action
- * and are shown in the sheet, in the same words the wizard checklist uses.
+ * on them. Sending for review and taking a listing down go through a confirm
+ * sheet and then a router refresh, so the list always re-renders from the
+ * database rather than from an optimistic guess. Unmet quality requirements
+ * come back from the submit action and are shown in the sheet, in the same
+ * words the wizard checklist uses.
+ *
+ * DELETING A DRAFT OPENS NOTHING (inbox item 26). It used to raise the same
+ * confirm sheet, which asks the question in the wrong direction: a dialogue
+ * defends against the tap somebody meant to make, and the tap that needs
+ * defending against is the one they did not. The row leaves immediately, its
+ * slot offers the way back for six seconds, and NOTHING REACHES THE SERVER
+ * until that offer runs out. Which matters here more than it does on a
+ * shortlist: the action deletes the row and its photos out of storage, so
+ * there is nothing to put back afterwards. The undo has to come first or it
+ * cannot exist.
+ *
+ * Leaving the screen inside the window commits the delete rather than
+ * cancelling it, because the agent asked for it and walking away is not a
+ * change of mind. Closing the tab outright is the one case that will not
+ * land, and the draft simply survives.
  *
  * All copy arrives from the page as a dictionary slice, so the workspace reads
  * in the agent's language, including the status vocabulary.
  */
+
+/**
+ * How long the way back stands. Six seconds is long enough to notice the row
+ * has gone and reach the control, short enough that nobody wonders whether the
+ * delete happened.
+ */
+const UNDO_WINDOW_MS = 6000;
 
 export type WorkspaceCopy = Dictionary["agentListings"];
 
@@ -52,7 +76,7 @@ const GROUPS: Group[] = [
 
 const EDITABLE: ListingStatus[] = ["DRAFT", "MORE_INFO_REQUIRED", "REJECTED"];
 
-type SheetKind = "submit" | "unpublish" | "delete";
+type SheetKind = "submit" | "unpublish";
 
 type SheetState = { kind: SheetKind; listing: ListingSummary };
 
@@ -121,11 +145,7 @@ function ConfirmSheet({
     startTransition(async () => {
       const input = { listingId: state.listing.id };
       const result =
-        state.kind === "submit"
-          ? await submitListing(input)
-          : state.kind === "unpublish"
-            ? await unpublishListing(input)
-            : await deleteListing(input);
+        state.kind === "submit" ? await submitListing(input) : await unpublishListing(input);
 
       if (!result.ok) {
         setError(result.error);
@@ -205,16 +225,76 @@ function ConfirmSheet({
   );
 }
 
+/**
+ * The slot a deleted draft leaves behind.
+ *
+ * It holds the row's own height so the list does not jump under a thumb, says
+ * what happened in the past tense because from the agent's side it has, and
+ * carries the way back. The bar underneath is the clock: without it nobody can
+ * tell whether the offer stands for one more second or ten.
+ */
+function UndoStrip({
+  t,
+  title,
+  onUndo,
+}: {
+  t: WorkspaceCopy;
+  title: string;
+  onUndo: () => void;
+}) {
+  const button = useRef<HTMLButtonElement>(null);
+
+  /* The row that held focus has just been removed from the document, so focus
+     would otherwise fall to the body and a keyboard user would lose both the
+     place in the list and the only chance to take it back. */
+  useEffect(() => {
+    button.current?.focus();
+  }, []);
+
+  return (
+    <li className="nf-card overflow-hidden p-0" data-testid="draft-undo">
+      <div className="flex items-center justify-between gap-4 p-3.5" role="status">
+        <span className="min-w-0 leading-tight">
+          <span className="block text-[0.875rem] font-semibold">{t.workspace.undo.removed}</span>
+          <span className="block truncate text-[0.78rem] text-[var(--nf-content-muted)]">
+            {title}
+          </span>
+        </span>
+        <Button
+          ref={button}
+          variant="secondary"
+          size="sm"
+          onClick={onUndo}
+          data-testid="draft-undo-action"
+        >
+          <UiIcon name="arrow-left" size={16} />
+          {t.workspace.undo.action}
+        </Button>
+      </div>
+      <span
+        aria-hidden="true"
+        className="nf-undo-drain block h-0.5 bg-[var(--nf-brand-primary)]"
+        style={{ ["--nf-undo-window" as string]: `${UNDO_WINDOW_MS}ms` }}
+      />
+    </li>
+  );
+}
+
 function ListingRow({
   t,
   listing,
   locale,
+  error,
   onAction,
+  onDelete,
 }: {
   t: WorkspaceCopy;
   listing: ListingSummary;
   locale: Locale;
+  /** A delete the server refused. The row is back and this says why. */
+  error?: string | undefined;
   onAction: (kind: SheetKind, listing: ListingSummary) => void;
+  onDelete: (listing: ListingSummary) => void;
 }) {
   const editable = EDITABLE.includes(listing.status);
   const live = listing.status === "PUBLISHED" || listing.status === "APPROVED";
@@ -324,17 +404,23 @@ function ListingRow({
           than solid, because a solid red pill among four text links would make
           deletion the loudest thing on the card; the point is that it should
           be legible as destructive, not that it should be shouted.
+
+          It no longer opens anything. The row leaves and offers its way back.
         */}
         {listing.status === "DRAFT" && (
-          <Button
-            variant="dangerQuiet"
-            size="sm"
-            onClick={() => onAction("delete", listing)}
-          >
+          <Button variant="dangerQuiet" size="sm" onClick={() => onDelete(listing)}>
             {t.workspace.actions.delete}
           </Button>
         )}
       </div>
+      {error && (
+        <p
+          role="alert"
+          className="border-t border-[var(--nf-border-subtle)] px-3.5 py-2.5 text-[0.75rem] text-[var(--nf-state-error)]"
+        >
+          {error}
+        </p>
+      )}
     </li>
   );
 }
@@ -349,6 +435,75 @@ export function ListingsWorkspace({
   locale: Locale;
 }) {
   const [sheet, setSheet] = useState<SheetState | null>(null);
+
+  /* Drafts whose delete is scheduled but has not been sent, and the failure a
+     rejected delete came back with. A row in `pending` is off the screen and
+     still in the database. */
+  const [pending, setPending] = useState<string[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const router = useRouter();
+
+  /*
+   * The timing lives in `createUndoWindow`, which owns one rule this component
+   * must not get wrong: one delete per draft, ever, whichever of the three
+   * paths reaches it first. Held in a ref, and built once, because the unmount
+   * cleanup has to flush the CURRENT set rather than whatever was outstanding
+   * when an effect last ran.
+   */
+  const send = useCallback(
+    (id: string) => {
+      void deleteListing({ listingId: id }).then((result) => {
+        if (!result.ok) {
+          /* Nothing was deleted, so the row comes back where it was and says
+             why. This is the only path that puts a listing back on screen
+             without the agent asking. */
+          setPending((prev) => prev.filter((p) => p !== id));
+          setErrors((prev) => ({ ...prev, [id]: result.error }));
+          return;
+        }
+        router.refresh();
+      });
+    },
+    [router],
+  );
+
+  /* The window is built once and outlives every render, so the indirection
+     through a ref is what lets it call the current `send` rather than the one
+     that existed when the first draft was deleted. */
+  const sendRef = useRef(send);
+  useEffect(() => {
+    sendRef.current = send;
+  }, [send]);
+
+  const undoWindow = useRef<UndoWindow | null>(null);
+  undoWindow.current ??= createUndoWindow({
+    windowMs: UNDO_WINDOW_MS,
+    onCommit: (id) => sendRef.current(id),
+  });
+
+  const scheduleDelete = useCallback((listing: ListingSummary) => {
+    setErrors((prev) => {
+      if (!(listing.id in prev)) return prev;
+      const next = { ...prev };
+      delete next[listing.id];
+      return next;
+    });
+    setPending((prev) => (prev.includes(listing.id) ? prev : [...prev, listing.id]));
+    undoWindow.current?.schedule(listing.id);
+  }, []);
+
+  const undoDelete = useCallback((id: string) => {
+    undoWindow.current?.cancel(id);
+    setPending((prev) => prev.filter((p) => p !== id));
+  }, []);
+
+  /* Leaving the screen commits what was scheduled. The agent asked for the
+     delete; navigating away is not a change of mind, and a draft that quietly
+     survived because somebody tapped Bookings would be the worse surprise. */
+  useEffect(() => {
+    const scheduled = undoWindow.current;
+    return () => scheduled?.flush();
+  }, []);
 
   if (listings.length === 0) {
     return (
@@ -376,25 +531,39 @@ export function ListingsWorkspace({
         const rows = listings.filter((l) => group.statuses.includes(l.status));
         if (rows.length === 0) return null;
         const heading = t.workspace.groups[group.key];
+        /* A draft on its way out is not in the group any more, as far as the
+           agent is concerned, so the count says what the list shows. */
+        const count = rows.filter((l) => !pending.includes(l.id)).length;
         return (
           <section key={group.key}>
             <span className="flex items-center gap-2">
               <h2 className="nf-h3">{heading.title}</h2>
-              <span className="nf-count-badge">{rows.length}</span>
+              <span className="nf-count-badge">{count}</span>
             </span>
             <p className="mb-3 mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
               {heading.blurb}
             </p>
             <ul className="space-y-3">
-              {rows.map((listing) => (
-                <ListingRow
-                  key={listing.id}
-                  t={t}
-                  listing={listing}
-                  locale={locale}
-                  onAction={(kind, target) => setSheet({ kind, listing: target })}
-                />
-              ))}
+              {rows.map((listing) =>
+                pending.includes(listing.id) ? (
+                  <UndoStrip
+                    key={listing.id}
+                    t={t}
+                    title={listing.title}
+                    onUndo={() => undoDelete(listing.id)}
+                  />
+                ) : (
+                  <ListingRow
+                    key={listing.id}
+                    t={t}
+                    listing={listing}
+                    locale={locale}
+                    error={errors[listing.id]}
+                    onAction={(kind, target) => setSheet({ kind, listing: target })}
+                    onDelete={scheduleDelete}
+                  />
+                ),
+              )}
             </ul>
           </section>
         );

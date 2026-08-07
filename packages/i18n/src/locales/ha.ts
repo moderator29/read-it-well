@@ -31,6 +31,35 @@ export const ha: Dictionary = {
 
   meta: { localeName: "Hausa", localeNativeName: "Hausa", dir: "ltr" },
 
+  /*
+   * The three cards on the way in, shown once, straight after a confirmed
+   * sign-up. Three sentences about what this place is: what is on it, what it
+   * costs, and the one rule that keeps somebody's money safe. That last card
+   * is not marketing, it is the messaging trust rule stated before anybody has
+   * a chance to break it.
+   */
+  welcomeCards: {
+    label: "Menene RentMe",
+    skip: "Tsallake",
+    start: "Bari in shiga",
+    goTo: "Je katin {n}",
+    one: {
+      title: "Ko'ina, a wuri guda",
+      body:
+        "Gidajen haya, otal na karshen mako, gidajen abinci da abubuwan ji. Duk Najeriya, duk jihohi talatin da shida, bincike guda.",
+    },
+    two: {
+      title: "Babu wanda ke biyan mu kudin sabis",
+      body:
+        "Ba kai ba, ba mai gidan ba. Abin da ka gani shi ne abin da za ka biya, har kwabo, alamar tabbaci kuma tana nufin mu da kanmu mun duba shi.",
+    },
+    three: {
+      title: "Ka fara aika saƙo, ka biya sa'ad da ka tabbata",
+      body:
+        "Ka yi magana da mai gidan, ka duba wurin, sannan ka biya a dandalin. Kada ka taɓa aika kudi ga kowa a wajen RentMe.",
+    },
+  },
+
   common: {
     search: "Nema",
     signIn: "Shiga",
@@ -746,7 +775,19 @@ export const ha: Dictionary = {
       revenue: "Kudin shiga",
       confirmed: "An tabbatar",
       pending: "Ana jira",
-      sampleNote: "Lambobin da aka tsara. Lambobinka na gaskiya za su bayyana nan idan jerinka ya fara aiki.",
+      /* The workspace with nobody in it. Three states and no fourth:
+         signed out, signed in without an agent row, and unconfigured.
+         The deck of invented figures this replaced is gone. */
+      signedOutTitle: "Wurin aiki ga masu saka gidaje",
+      signedOutBody:
+        "Kudin shigarka, ajiyeyyun kwanakinka, kalandarka da gidajenka, duk a wuri guda. Shiga don buɗe naka.",
+      notAgentTitle: "Ba ka saka gida ba tukuna",
+      notAgentBody:
+        "Wannan wurin aiki zai cika lokacin da ka sami gida a RentMe. Nema yana ɗaukar kusan minti biyu kuma mutum yana karanta kowace buƙata.",
+      unconfiguredTitle: "Ba a haɗa wurin aiki ba tukuna",
+      unconfiguredBody:
+        "Wannan dandalin bai riƙe makullansa ba, don haka babu abin karantawa a nan. Sauran abubuwan RentMe suna aiki.",
+      applyCta: "Nemi ka saka gida",
     },
   },
 
@@ -1044,11 +1085,6 @@ export const ha: Dictionary = {
           body:
             "Zai bar bincike nan take ya koma daftarinka. Kana iya gyara shi ka sake aika don nazari duk lokacin da ka shirya.",
           confirm: "Cire shi",
-        },
-        delete: {
-          title: "A share wannan daftari?",
-          body: "Ana cire daftarin da hotunansa gaba ɗaya. Ba za a iya mayar da wannan ba.",
-          confirm: "Share daftari",
         },
       },
     },

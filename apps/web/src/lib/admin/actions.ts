@@ -596,7 +596,7 @@ export async function toggleFeatureFlag(input: {
     .eq("key", parsed.data.key)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);
-  if (!flag) return fail("There is no switch by that name.");
+  if (!flag) return fail("There is no switch by that name. Reload the console to see the switches there are.");
   if (flag.enabled === parsed.data.enabled) {
     return fail("That switch is already in this position. Refresh to see the current state.");
   }

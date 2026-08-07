@@ -73,7 +73,10 @@ export async function grantStandingBadge(
       .select("code, manual_only, name")
       .eq("code", badgeCode)
       .maybeSingle();
-    if (!badge) return fail("That badge does not exist.", { badgeCode: "Unknown badge." });
+    if (!badge)
+      return fail("That badge does not exist.", {
+        badgeCode: "No badge carries that code. Reload the console to see the ones that do.",
+      });
     if (!badge.manual_only) {
       return fail(
         `${badge.name} is earned, not granted. Awarding it by hand would make every earned one worth less.`,

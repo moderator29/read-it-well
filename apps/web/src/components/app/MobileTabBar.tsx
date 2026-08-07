@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AutoHideDock } from "./AutoHideDock";
 import type { Dictionary } from "@naijafinds/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
@@ -113,8 +114,11 @@ export function MobileTabBar({
   const marked = unreadNotifications > 0;
 
   return (
-    <nav
-      aria-label={t.nav.primaryLabel}
+    <AutoHideDock
+      /* Keyed on the route, so an app navigation remounts the dock and it
+         never arrives on a new screen still hidden from the last one. */
+      key={active}
+      label={t.nav.primaryLabel}
       /*
        * `max(0.9rem, env(...))` looked safe but collapsed the dock's own margin
        * on exactly the devices that need it: on a notched iPhone the bottom
@@ -200,6 +204,6 @@ export function MobileTabBar({
           />
         )}
       </Link>
-    </nav>
+    </AutoHideDock>
   );
 }

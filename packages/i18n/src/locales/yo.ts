@@ -30,6 +30,35 @@ export const yo: Dictionary = {
 
   meta: { localeName: "Yoruba", localeNativeName: "Yorùbá", dir: "ltr" },
 
+  /*
+   * The three cards on the way in, shown once, straight after a confirmed
+   * sign-up. Three sentences about what this place is: what is on it, what it
+   * costs, and the one rule that keeps somebody's money safe. That last card
+   * is not marketing, it is the messaging trust rule stated before anybody has
+   * a chance to break it.
+   */
+  welcomeCards: {
+    label: "Kín ni RentMe",
+    skip: "Fò ó",
+    start: "Jẹ́ kí n wọlé",
+    goTo: "Lọ sí káàdì {n}",
+    one: {
+      title: "Gbogbo ibi, ní ibì kan",
+      body:
+        "Ilé ìyàlégbé, hotẹ́ẹ̀lì fún ìparí ọ̀sẹ̀, ilé oúnjẹ àti ìrírí. Gbogbo Nàìjíríà, gbogbo ìpínlẹ̀ mẹ́rìndínlógójì, ìwádìí kan ṣoṣo.",
+    },
+    two: {
+      title: "Kò sí ẹni tó ń san owó ìdí fún wa",
+      body:
+        "Kì í ṣe ìwọ, kì í ṣe olùgbàlejò. Ohun tí o rí ni ohun tí o san, dé kóbò, àmì ìdánilójú sì túmọ̀ sí pé àwa fúnra wa ṣàyẹ̀wò rẹ̀.",
+    },
+    three: {
+      title: "Kọ̀wé kọ́kọ́, san owó nígbà tí ó dá ọ lójú",
+      body:
+        "Bá olùgbàlejò sọ̀rọ̀, wo ilé náà, kí o sì san owó lórí ẹ̀rọ náà. Má ṣe fi owó ránṣẹ́ sí ẹnikẹ́ni lóde RentMe.",
+    },
+  },
+
   common: {
     search: "Wá",
     signIn: "Wọlé",
@@ -748,7 +777,19 @@ export const yo: Dictionary = {
       revenue: "Owó tí ń wọlé",
       confirmed: "Tí fọwọ́sí",
       pending: "Ń dúró",
-      sampleNote: "Nọ́mbà tí a ṣe àpẹẹrẹ. Àwọn nọ́mbà gidi rẹ máa hàn níbí nígbà tí atokọ rẹ bá ń ṣiṣẹ́.",
+      /* The workspace with nobody in it. Three states and no fourth:
+         signed out, signed in without an agent row, and unconfigured.
+         The deck of invented figures this replaced is gone. */
+      signedOutTitle: "Ibi iṣẹ́ fún àwọn tó ń ta ilé",
+      signedOutBody:
+        "Owó tí o rí, àwọn ìwé ìforúkọsílẹ̀ rẹ, kàlẹ́ndà rẹ àti àwọn ilé rẹ, gbogbo rẹ̀ ní ibì kan. Wọlé láti ṣí tirẹ.",
+      notAgentTitle: "O kò tíì ta ilé kankan",
+      notAgentBody:
+        "Ibi iṣẹ́ yìí máa kún nígbà tí o bá ní ilé lórí RentMe. Ìbéèrè náà gba nǹkan bí ìṣẹ́jú méjì, ẹnìyàn sì ń ka gbogbo ìbéèrè.",
+      unconfiguredTitle: "Ibi iṣẹ́ náà kò tíì so pọ̀",
+      unconfiguredBody:
+        "Ẹ̀rọ yìí kò dì kọ́kọ́rọ́ rẹ̀ mú, nítorí náà kò sí ohun tí a lè kà níbí. Gbogbo ohun mìíràn lórí RentMe ṣì ń ṣiṣẹ́.",
+      applyCta: "Bèèrè láti ta ilé",
     },
   },
 
@@ -1050,11 +1091,6 @@ export const yo: Dictionary = {
           body:
             "Ó máa kúrò nínú ìwádìí lẹ́sẹ̀kẹsẹ̀ kí ó padà sí àkọ̀wé rẹ. O lè ṣàtúnṣe rẹ̀ kí o sì fi ránṣẹ́ padà fún àtúnyẹ̀wò nígbàkigbà tí o ṣetán.",
           confirm: "Mú kúrò",
-        },
-        delete: {
-          title: "Ṣé kí a pa àkọ̀wé yìí rẹ́?",
-          body: "A ó yọ àkọ̀wé náà àti àwọn àwòrán rẹ̀ kúrò pátápátá. Èyí kò ṣe é padà.",
-          confirm: "Pa àkọ̀wé rẹ́",
         },
       },
     },

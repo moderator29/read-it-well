@@ -216,4 +216,62 @@
       animation: none !important;
     }
   }
+  /*
+   * An undo window, draining.
+   *
+   * The bar IS the clock. A row that has left the list with an Undo beside it
+   * says nothing about how long the offer stands, and somebody who looks away
+   * for four seconds has no way to know whether they still have time. The
+   * duration is passed in from the component that owns the timer, so the bar
+   * and the delete cannot disagree about how long six seconds is.
+   */
+  @keyframes nf-undo-drain {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+  .nf-undo-drain {
+    transform-origin: left center;
+    animation: nf-undo-drain var(--nf-undo-window, 6s) linear forwards;
+  }
+  /* Reduced motion keeps the bar, still and full. It is a meter, not a
+     flourish, and removing it would remove the information with it. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-undo-drain {
+      animation: none;
+      transform: scaleX(1);
+    }
+  }
+
+  /*
+   * The bar on the verifying screen.
+   *
+   * A sweep rather than a spinner, because this wait has a known end: a single
+   * round trip that either lets somebody into their new account or does not.
+   * A spinner says something is happening; a bar travelling in one direction
+   * says it is going somewhere.
+   */
+  @keyframes nf-verify-sweep {
+    0% {
+      transform: translateX(-110%);
+    }
+    100% {
+      transform: translateX(310%);
+    }
+  }
+  .nf-verify-sweep {
+    animation: nf-verify-sweep 1.15s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+  /* Still, and filled, when motion is unwelcome. The sentence above it is what
+     carries the meaning either way. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-verify-sweep {
+      animation: none;
+      width: 100%;
+    }
+  }
+
 }

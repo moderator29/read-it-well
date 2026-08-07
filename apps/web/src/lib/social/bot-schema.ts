@@ -107,7 +107,8 @@ export const BOT_COPY = {
   already: "I have already answered on this one. Reply to me and I will read it.",
   paced:
     "You have summoned me a few times in quick succession. Give it a moment and ask again.",
-  notLive: "I do not answer on a post that is being read by somebody first.",
+  notLive:
+    "I do not answer on a post that a person is still reading. Summon me again once it is live.",
   slowMode:
     "This place is still finding its feet, so I stay out of it until it has. The people here will answer you.",
 } as const;

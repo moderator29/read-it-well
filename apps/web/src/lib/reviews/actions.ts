@@ -73,7 +73,9 @@ export async function submitReview(
     return fail("This stay was cancelled, so there is nothing to review.");
   }
   if (booking.status !== "CONFIRMED") {
-    return fail("This stay is still awaiting the host, so it cannot be reviewed yet.");
+    return fail(
+      "This stay is still awaiting the host, so it cannot be reviewed yet. You can write one once the host has accepted and the stay has finished.",
+    );
   }
   if (booking.check_out > lagosToday()) {
     return fail("You can share a review once the stay has finished. Enjoy the rest of it.");

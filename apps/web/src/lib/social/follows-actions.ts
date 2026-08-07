@@ -57,7 +57,8 @@ const SERVICE_DOWN_MESSAGE =
 const BLOCKED_MESSAGE =
   "This account cannot be followed. That happens when either of you has blocked the other.";
 
-const GONE_MESSAGE = "That page is not available.";
+const GONE_MESSAGE =
+  "That page is not available. The account may have been closed. Search for the person again.";
 
 export type FollowOutcome = {
   handle: string;
@@ -143,7 +144,8 @@ export async function toggleFollow(input: {
     /* 23503: the account went away between the render and the tap. */
     if (error.code === "23503") return fail(GONE_MESSAGE);
     /* 23514: follows_not_self_chk, which the check above should have caught. */
-    if (error.code === "23514") return fail("You cannot follow yourself.");
+    if (error.code === "23514")
+      return fail("You cannot follow yourself. Your own page is always yours.");
     return fail(SERVICE_DOWN_MESSAGE);
   }
 

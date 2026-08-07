@@ -555,7 +555,7 @@ export function gateFieldErrors(unmet: GateRequirement[]): Record<string, string
 
 /** The one sentence shown above the list of unmet requirements. */
 export const GATE_SUMMARY_MESSAGE =
-  "A few things are still needed before this listing can go for review.";
+  "A few things are still needed before this listing can go for review. Each one is listed below.";
 
 /* -------------------------------------------------------------- statuses */
 
