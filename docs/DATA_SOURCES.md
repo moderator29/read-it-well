@@ -57,7 +57,8 @@ cannot be booked on RentMe yet.
 
 | | |
 |---|---|
-| **Portal** | https://console.cloud.google.com/apis/credentials, enable **"Places API (New)"** |
+| **Portal** | https://console.cloud.google.com/apis/library/places.googleapis.com, then the key at https://console.cloud.google.com/apis/credentials |
+| **Which product** | **Places API (New)**, service `places.googleapis.com`. NOT "Places API", service `places-backend.googleapis.com`, which is the legacy product and does nothing for us. The two sit next to each other in the library and the title is the only difference; enabling the wrong one reads exactly like the fix failing to take. Linking by service name rather than by search avoids the choice entirely. |
 | **Env var** | `GOOGLE_PLACES_API_KEY` |
 | **Card needed** | Yes, a billing account, though there is a standing monthly free allowance |
 | **Wired** | Yes, and it has been for a while. `providers/places.ts` |
@@ -83,7 +84,7 @@ rather than reduced to a status code.
 | What the reason says | What is actually wrong | Where to fix it |
 |---|---|---|
 | `no_key` | The variable is unset. No call was made. | Vercel env |
-| `answered 403: ... has not been used in project N before or it is disabled` | The API is not switched on for that project. Note it must be **Places API (New)**; the legacy "Places API" is a different product and enabling it does nothing for us. | Console → the URL in the message |
+| `answered 403: ... has not been used in project N before or it is disabled` | The API is not switched on for that project. Check WHICH one you switched on: the message names `places.googleapis.com`, and enabling the legacy "Places API" instead leaves this message completely unchanged. | `console.cloud.google.com/apis/library/places.googleapis.com?project=N` |
 | `answered 403: Requests to this API ... method ... are blocked` | The API is enabled, but the KEY is restricted to a set of APIs that does not include Places API (New). | Console → Credentials → the key → **API restrictions** |
 | `answered 403: Requests from referer <empty> are blocked` | The key carries HTTP referrer restrictions. Every call we make is server side and sends no referrer, so a browser-restricted key can never pass. | Console → Credentials → the key → **Application restrictions**, unrestricted or IP |
 | `answered 429` | Over quota for the day. | Console → Quotas, or wait |
