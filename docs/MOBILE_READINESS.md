@@ -4,10 +4,18 @@ Written 2026-08-06. Everything below was checked against the repository rather
 than assumed, and the counts are reproducible with the commands quoted beside
 them.
 
-The short version: this platform is already a serious mobile product, and it is
-a **Progressive Web App**, not a packaged native one. Packaging it for the App
-Store and Google Play is not a configuration task. It needs one architectural
-decision from the owner, and that decision is the subject of this document.
+The short version: this platform is already a serious mobile product, and it was
+a **Progressive Web App** only. Packaging it for the App Store and Google Play
+needed one architectural decision, and section 3 below is where that decision
+was priced.
+
+**The owner has since chosen, and Path A is built.** Capacitor 8 is installed,
+both native projects are generated, and the operating manual is
+`docs/MOBILE.md`. Section 2 is retained because it is still the reason the
+architecture is what it is, and section 3 is retained because Path C remains
+the better long-term answer for iOS.
+
+Updated 2026-08-07.
 
 ---
 
@@ -93,6 +101,11 @@ permission declarations.
   more tolerant.
 - **Verdict:** viable for Play, genuinely risky for the App Store. Do not
   present it to the owner as a solved store submission.
+- **CHOSEN AND BUILT.** The native capabilities in `apps/web/src/lib/native/`
+  are the argument against 4.2: hardware back, status bar bound to the theme,
+  keyboard insets, splash control, and the system-browser handoff that makes
+  Google sign-in possible at all inside a web view. They are an argument and
+  not a guarantee.
 
 ### Path B. Capacitor over a client-rendered twin
 
@@ -139,7 +152,7 @@ build would need to declare it. This is the list a store questionnaire asks for.
 |---|---|---|---|
 | Geolocation | `components/app/search/MapCanvas.tsx`, the locate-me control | Centres the map on the person searching | Falls back to the fitted viewport, and the control reports its own status through a live region |
 | Photo library / file read | `ProfilePhotos`, `StoryComposer`, `Composer`, `MessageThread`, `ApplyWizard` | Listing photos, avatars, agent verification documents, message attachments | A standard file input, so the platform never sees a denial, only an empty selection |
-| Camera | Not requested | The file inputs accept a camera capture through the operating system picker, which needs no separate grant on the web | n/a |
+| Camera | **Declared on iOS only**, `NSCameraUsageDescription` | No `getUserMedia` call exists anywhere, and the web still sends `camera=()`. This key is about a different mechanism: three file inputs carry `accept="image/*"`, iOS draws a "Take Photo or Video" row in its own picker for those, and iOS terminates an app that reaches the camera with no purpose string. The choice was a purpose string or a crash mid-upload | The picker is the operating system's own, so a refusal returns an empty selection |
 | Microphone | Not requested | Nothing records audio | n/a |
 | Notifications | Not requested in the browser today | Notifications are database rows rendered in-product. Web Push is not wired | n/a |
 | Contacts, calendar, background location | Never | Nothing needs them, and asking would be a store review question with no good answer | n/a |
@@ -203,16 +216,21 @@ None of these can be done from inside the repository.
 
 ## 7. What was NOT done, and why
 
-- **No `capacitor.config.ts` was added.** Committing a Capacitor config that
-  cannot build is worse than committing nothing, because the next person reads
-  it as a working integration. Section 2 is the reason it cannot build, and
-  section 3 is the decision that unblocks it.
-- **No `android/` or `ios/` project was generated.** Same reason, and both are
-  generated artefacts that follow the decision rather than preceding it.
-- **Push notifications were not wired.** The notification layer exists as
-  database rows with triggers, which is the hard half. Delivery to a device
-  needs the native shell to exist first.
-- **No device testing happened.** This sandbox has Chromium and no emulator, so
-  every mobile claim above is a claim about the code and the viewport, not about
-  a handset. Layout is verified at 390px through the Playwright specs. Nothing
-  here has been on a real phone in this session.
+Superseded in part. This section described the state before Capacitor was
+installed. What still stands:
+
+- **No native build has ever run here.** The sandbox proxy denies
+  `dl.google.com`, so the Android SDK and the Android Gradle Plugin cannot be
+  fetched, and there is no macOS. `docs/MOBILE.md` section 6 lists precisely
+  what was verified and what was not, and it is the honest record.
+- **Push notifications are still not wired.** The notification layer exists as
+  database rows with triggers, which is the hard half. Delivery to a device is
+  a separate piece of work and it spends the one permission prompt a person
+  will ever grant, so it should ship with something worth saying.
+- **No device testing happened.** Every mobile claim is about code and
+  viewport, not about a handset. Layout is verified at 390px by the Playwright
+  specs.
+
+No longer true, and left here only so the change is legible: this section
+previously said no `capacitor.config.ts` was added and no `android/` or `ios/`
+project was generated. All three now exist.
