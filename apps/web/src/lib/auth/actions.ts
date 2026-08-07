@@ -10,7 +10,7 @@ import {
   subjectForEmail,
   subjectForIp,
 } from "@/lib/security/rate-limit";
-import { siteUrl } from "@/lib/site";
+import { authOrigin } from "@/lib/site";
 import { getProviderStates } from "./providers";
 import { HEAR_ABOUT_VALUES, REFERRAL_CODE_RE } from "./signup-options";
 
@@ -279,7 +279,7 @@ export async function signUpWithEmail(
     email,
     password: field(formData, "password"),
     options: {
-      emailRedirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent("/home")}`,
+      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent("/home")}`,
       data: {
         first_name: firstName,
         surname,
@@ -295,6 +295,31 @@ export async function signUpWithEmail(
   });
 
   if (error) return { ok: false, message: authMessage(error.message) };
+
+  /*
+   * THE ADDRESS ALREADY HAS AN ACCOUNT, and Supabase will not say so.
+   *
+   * A repeated sign-up answers 200 with a user object that looks real and an
+   * EMPTY `identities` array, and it sends no email. That is deliberate on
+   * their side: telling a stranger which addresses are registered is an
+   * enumeration oracle. It is also the exact shape of a silent dead end, and
+   * it happened on the first real sign-up this platform ever had. An account
+   * was made with Google, the same address was then used on the email form,
+   * Supabase answered 200, no email was ever sent, and the person was handed a
+   * code screen to wait on for a code that did not exist and never would.
+   *
+   * So it is caught here and answered honestly, without confirming anything a
+   * stranger could not already have guessed by trying to sign in: the sentence
+   * is about what to do next rather than about whether the address is known.
+   */
+  if (data.user && (data.user.identities?.length ?? 0) === 0) {
+    return {
+      ok: false,
+      message:
+        "That address cannot be signed up again. If it is yours, sign in instead, and use Continue with Google if that is how you made it.",
+      fieldErrors: { email: "Try signing in with this address." },
+    };
+  }
 
   /*
    * With email confirmation switched on in Supabase there is no session yet.
@@ -533,7 +558,7 @@ export async function resendSignUpCode(
     type: "signup",
     email,
     options: {
-      emailRedirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent("/home")}`,
+      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent("/home")}`,
     },
   });
 
@@ -586,7 +611,7 @@ export async function startOAuth(
       /* The provider round trip loses everything except this URL, so where
          the person was going has to travel inside it. The callback re-checks
          the value against its own origin before using it. */
-      redirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent(landingAfterAuth(formData))}`,
+      redirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent(landingAfterAuth(formData))}`,
     },
   });
 
@@ -643,7 +668,7 @@ export async function requestPasswordReset(
    * password - and it can only do so because that exchange happened.
    */
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent("/reset-password")}`,
+    redirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent("/reset-password")}`,
   });
 
   /*
