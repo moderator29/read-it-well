@@ -1,0 +1,17 @@
+-- An agent could not list a restaurant, because property_type had no value for
+-- one. Discovery has carried a restaurants category since the beginning, but
+-- every row in it came from Google Places, which means partner stock: no
+-- verified badge, no messaging, no reservation. The category was read-only by
+-- accident of the enum rather than by decision.
+--
+-- Adding the value is the whole change. Every check constraint on public.listings
+-- is already satisfiable by a restaurant: bedrooms and bathrooms allow zero,
+-- max_guests carries the largest party the room takes rather than a bed count,
+-- and price_per_night_minor carries the price per head, which is the convention
+-- lib/listings/types.ts already documents for this category and for experiences.
+--
+-- price_period is deliberately NOT extended with a 'head' value. Restaurants are
+-- priced per head regardless of that column, which the domain type states and
+-- every reader already honours, so a third enum value would add a case to every
+-- switch in the codebase and change nothing a visitor sees.
+alter type public.property_type add value if not exists 'restaurant';

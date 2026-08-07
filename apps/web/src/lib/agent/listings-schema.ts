@@ -52,7 +52,8 @@ export type PropertyType =
   | "rental"
   | "shop"
   | "office"
-  | "land";
+  | "land"
+  | "restaurant";
 
 export const PROPERTY_TYPE_VALUES = [
   "apartment",
@@ -64,6 +65,7 @@ export const PROPERTY_TYPE_VALUES = [
   "shop",
   "office",
   "land",
+  "restaurant",
 ] as const satisfies readonly PropertyType[];
 
 export const PROPERTY_TYPES: { value: PropertyType; label: string; blurb: string }[] = [
@@ -80,6 +82,26 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string; blurb: string
   { value: "shop", label: "Shop", blurb: "Retail space let by the year." },
   { value: "office", label: "Office", blurb: "Workspace let by the year." },
   { value: "land", label: "Land", blurb: "A plot, priced per year of tenure." },
+  /*
+   * The one thing on this list nobody sleeps in.
+   *
+   * Discovery has shown restaurants since the beginning, but every one of them
+   * came from Google Places, which means partner stock: a name, a photo and a
+   * pin, with no verified badge, nobody to message and no way to hold anybody a
+   * table. This value is what lets a restaurant be ours instead, and the whole
+   * difference a guest sees is the two things partner stock cannot have, a
+   * message button and a reservation (docs/HYBRID_INVENTORY.md section 9).
+   *
+   * Priced per head, which needs no new price period: `YEARLY` below does not
+   * contain it, so it files as a nightly figure, and every reader of a
+   * restaurant already treats that number as a head price by the rule stated in
+   * lib/listings/types.ts.
+   */
+  {
+    value: "restaurant",
+    label: "Restaurant",
+    blurb: "A place to eat, with tables guests reserve. Priced per head.",
+  },
 ];
 
 /**

@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       admin_bootstrap: {
         Row: {
+          added_by: string | null
           claimed_at: string | null
           created_at: string
           email: string
@@ -23,6 +24,7 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
         }
         Insert: {
+          added_by?: string | null
           claimed_at?: string | null
           created_at?: string
           email: string
@@ -30,6 +32,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
         }
         Update: {
+          added_by?: string | null
           claimed_at?: string | null
           created_at?: string
           email?: string
@@ -2136,6 +2139,53 @@ export type Database = {
         }
         Relationships: []
       }
+      reservations: {
+        Row: {
+          created_at: string
+          guest_id: string
+          id: string
+          listing_id: string
+          note: string | null
+          party_size: number
+          reserved_for: string
+          responded_at: string | null
+          status: Database["public"]["Enums"]["booking_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          guest_id: string
+          id?: string
+          listing_id: string
+          note?: string | null
+          party_size: number
+          reserved_for: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          guest_id?: string
+          id?: string
+          listing_id?: string
+          note?: string | null
+          party_size?: number
+          reserved_for?: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_responses: {
         Row: {
           agent_id: string
@@ -2964,8 +3014,12 @@ export type Database = {
           status: Database["public"]["Enums"]["area_status"]
         }[]
       }
-      lift_agent_suspension: {
-        Args: { acting_admin: string; note?: string; target_agent: string }
+      grant_staff_role: {
+        Args: {
+          acting_admin: string
+          new_role: Database["public"]["Enums"]["app_role"]
+          target_email: string
+        }
         Returns: Json
       }
       pay_booking_from_wallet: {
@@ -3007,6 +3061,14 @@ export type Database = {
       release_idempotency: {
         Args: { key: string; scope: string; subject: string }
         Returns: boolean
+      }
+      revoke_staff_role: {
+        Args: {
+          acting_admin: string
+          old_role: Database["public"]["Enums"]["app_role"]
+          target_user: string
+        }
+        Returns: Json
       }
       story_count: { Args: { p_author: string }; Returns: number }
       suspend_agent: {
@@ -3095,6 +3157,7 @@ export type Database = {
         | "shop"
         | "office"
         | "land"
+        | "restaurant"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
       social_status: "LIVE" | "HELD" | "REMOVED"
       support_ticket_status: "open" | "pending" | "resolved" | "closed"
@@ -3323,6 +3386,7 @@ export const Constants = {
         "shop",
         "office",
         "land",
+        "restaurant",
       ],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
       social_status: ["LIVE", "HELD", "REMOVED"],

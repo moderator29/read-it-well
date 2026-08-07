@@ -341,6 +341,7 @@ export const ha: Dictionary = {
       shop: "Shaguna",
       office: "Ofisoshi",
       land: "Filaye",
+      restaurant: "Gidan abinci",
     },
     tune: {
       open: "Canja abin da ke zuwa gaba",
@@ -367,6 +368,7 @@ export const ha: Dictionary = {
       shop: "Wurin kasuwanci, na shekara",
       office: "Wurin aiki, na shekara",
       land: "Filaye don saya ko haya",
+      restaurant: "Tebur a gidan abinci",
     },
     accountTitle: "Wannan na asusunka ne",
     accountBodySignedOut: "Abin da ka zo nema ana ajiye shi a asusunka, don haka yana bin ka zuwa kowace na'ura kuma yana yanke shawarar abin da za mu fara nuna maka.",
@@ -834,6 +836,7 @@ export const ha: Dictionary = {
       shop: { label: "Shago", blurb: "Wurin kasuwanci da ake haya na shekara." },
       office: { label: "Ofis", blurb: "Wurin aiki da ake haya na shekara." },
       land: { label: "Fili", blurb: "Fili, farashinsa na shekara." },
+      restaurant: { label: "Gidan abinci", blurb: "Wurin cin abinci, da tebur da baƙi ke ajiyewa. Farashi ga kowane mutum." },
     },
 
     photos: {
@@ -1581,6 +1584,7 @@ export const ha: Dictionary = {
         shop: "Shago",
         office: "Ofis",
         land: "Fili",
+        restaurant: "Gidan abinci",
       },
       checklistLines: "Layukan jerin dubawa {count} da za a duba",
       checklistLineOne: "Layin jerin dubawa ɗaya da za a duba",

@@ -406,7 +406,7 @@ export const en = {
   /**
    * What somebody came here for, and the control that changes it from a card.
    *
-   * `markets` is the nine values of `public.property_type` said out loud, in
+   * `markets` is every value of `public.property_type` said out loud, in
    * the plural, because a person is choosing a market to be shown rather than
    * one building. It is ONE list: the welcome cards, the settings row and the
    * per-card control all name a market from here, so an enum that grows is
@@ -432,6 +432,7 @@ export const en = {
       shop: "Shops",
       office: "Offices",
       land: "Land",
+      restaurant: "Restaurants",
     },
     tune: {
       open: "Change what comes first",
@@ -461,6 +462,7 @@ export const en = {
       shop: "Retail space, by the year",
       office: "Workspace, by the year",
       land: "Plots to buy or lease",
+      restaurant: "Tables at places to eat",
     },
     /* The screen the cards live on, at the door and in settings. */
     question: "What are you here for?",
@@ -961,6 +963,7 @@ export const en = {
       shop: { label: "Shop", blurb: "Retail space let by the year." },
       office: { label: "Office", blurb: "Workspace let by the year." },
       land: { label: "Land", blurb: "A plot, priced per year of tenure." },
+      restaurant: { label: "Restaurant", blurb: "A place to eat, with tables guests reserve. Priced per head." },
     },
 
     photos: {
@@ -1726,6 +1729,7 @@ export const en = {
         shop: "Shop",
         office: "Office",
         land: "Land",
+        restaurant: "Restaurant",
       },
       checklistLines: "{count} checklist lines to look at",
       checklistLineOne: "1 checklist line to look at",

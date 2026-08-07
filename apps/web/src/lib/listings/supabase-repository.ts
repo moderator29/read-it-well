@@ -117,6 +117,23 @@ const KIND_BY_PROPERTY_TYPE: Record<string, ListingKind> = {
   shop: "shop",
   office: "office",
   land: "land",
+  /*
+   * Restaurants an agent listed, which is a different thing from the
+   * restaurants already in discovery.
+   *
+   * The category has always been full, and every row in it came from Google
+   * Places: partner stock, so no verified badge, no messaging and no way to
+   * hold anybody a table. This value is what lets a restaurant be OURS, with an
+   * agent to message and a reservation to make, sitting on the same shelf as
+   * the partner venues that can only be looked at (docs/HYBRID_INVENTORY.md
+   * section 9).
+   *
+   * Priced per head rather than per night, which needs no column: the domain
+   * type already states that restaurants and experiences ignore `pricePeriod`,
+   * and `YEARLY_KINDS` does not contain this kind, so the mapping below leaves
+   * it at "night" and every reader treats it as a head price.
+   */
+  restaurant: "restaurant",
 };
 
 /** Kinds priced by the year rather than by the night. */

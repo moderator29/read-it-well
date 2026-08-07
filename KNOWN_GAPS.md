@@ -79,6 +79,16 @@ English. `lib/locale.ts` carries a comment pointing here.
 **No pluralisation rules.** `Intl.PluralRules` is not wired anywhere. Some
 existing copy already needs it: the booking card renders "1 adults, 1 children".
 
+**The restaurant copy in Yoruba, Hausa and Igbo is mine, not a speaker's.**
+Eight strings across `interests.markets`, `interests.hints`, `admin.propertyType`
+and `agent.list.propertyTypes`. Where the word already existed in a locale it was
+reused rather than retranslated, so the labels carry each file's own verified
+noun (`Ilé oúnjẹ`, `Gidan abinci`, `Ụlọ oriri`) and the Yoruba plural takes the
+`Àwọn` marker the same block uses eight times. The hints and blurbs are new
+sentences and are the ones to check: they use the standard loanword for table
+(`tábìlì`, `tebur`, `tebul`) and a literal rendering of "priced per head". They
+are honest placeholders, not finished copy.
+
 **Yoruba, Hausa and Igbo need native review before launch.** The translations
 are functional and use correct diacritics and hooked letters, but marketing copy
 in particular should be rewritten by a native speaker rather than translated
