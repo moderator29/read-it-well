@@ -161,6 +161,43 @@ page.on("console", (message) => {
   if (/Content Security Policy|Refused to/i.test(text)) refusals.push(text);
 });
 
+/**
+ * The rest of the product, checked for one thing only: that nothing is blocked.
+ *
+ * The full audit above is about the shape of the policy, and the shape is the
+ * same on every route because one function builds it. What differs per route is
+ * what the page actually tries to LOAD, and that is where a policy breaks
+ * something: a script-src that forbids a chunk, an img-src missing a tile host,
+ * a connect-src missing an endpoint. None of that shows up on a landing page.
+ *
+ * `/search` is the one that matters most. It dynamically imports Leaflet, which
+ * is exactly the case `strict-dynamic` exists to permit and exactly the case a
+ * badly written policy breaks: the nonced bootstrap injects the chunk, and if
+ * the browser does not trust it the map never draws. It also fetches raster
+ * tiles from a third party, which is the only cross-origin image load on the
+ * platform, and it is the only surface that asks for geolocation.
+ *
+ * This sandbox has no Supabase keys, so the middleware is a pass through and
+ * these product routes render their signed-out or unconfigured states rather
+ * than redirecting. That is what makes them reachable to walk here at all.
+ */
+const WALK = ["/search", "/wallet", "/assistant", "/styleguide", "/docs", "/privacy"];
+
+async function walkRoute(page, refusals, route) {
+  refusals.length = 0;
+  const response = await page.goto(`${BASE_URL}${route}`, { waitUntil: "load" });
+  /* Longer than the audit's wait: the map has to import its chunk, construct
+     itself and ask for tiles before there is anything to be blocked. */
+  await page.waitForTimeout(2500);
+
+  const policy = response?.headers()["content-security-policy"] ?? "";
+  check(`${route} carries the policy`, policy.length > 0);
+
+  const violations = await page.evaluate(() => window.__cspViolations ?? []);
+  check(`${route} blocks nothing`, violations.length === 0, violations.join(", "));
+  check(`${route} logs no refusals`, refusals.length === 0, refusals.join(" | "));
+}
+
 try {
   const landing = await auditRoute(page, refusals, "/");
   const signIn = await auditRoute(page, refusals, "/sign-in");
@@ -170,6 +207,49 @@ try {
     "the nonce is minted per request, not fixed at build time",
     landing !== null && signIn !== null && landing !== signIn,
     landing === signIn ? "both requests served the same script-src" : "",
+  );
+
+  console.log("nothing blocked across the product");
+  for (const route of WALK) {
+    await walkRoute(page, refusals, route);
+  }
+
+  /*
+   * The map, asserted rather than assumed.
+   *
+   * "/search blocks nothing" above is worth very little on its own, because a
+   * page where the map never opened also blocks nothing. The two things this
+   * policy could plausibly break are both here and neither is visible from a
+   * violation count: `strict-dynamic` has to let the nonced bootstrap import
+   * the Leaflet chunk, and `img-src` has to name the tile host. If either is
+   * wrong the map is a grey box, the page still loads, and every check above
+   * still passes.
+   *
+   * So this opens the map and insists on the evidence: a constructed Leaflet
+   * container, and raster tiles actually fetched from the third party.
+   */
+  console.log("the map, which is what strict-dynamic and img-src are for");
+  const tiles = [];
+  page.on("request", (request) => {
+    if (/cartocdn|maptiler/.test(request.url())) tiles.push(request.url());
+  });
+
+  await page.goto(`${BASE_URL}/search`, { waitUntil: "load" });
+  await page.waitForTimeout(2500);
+  const mapOpener = page.locator('button:has-text("Map"), [data-testid*="map"]').first();
+  if (await mapOpener.count()) {
+    await mapOpener.click().catch(() => {});
+    await page.waitForTimeout(3500);
+  }
+
+  check(
+    "Leaflet's chunk loads and constructs, so strict-dynamic permits the import",
+    (await page.locator(".leaflet-container").count()) > 0,
+  );
+  check("tiles load from the third party, so img-src names the host", tiles.length > 0, `${tiles.length} tile requests`);
+  check(
+    "and the map triggered no violations",
+    (await page.evaluate(() => window.__cspViolations ?? [])).length === 0,
   );
 } finally {
   await browser.close();
