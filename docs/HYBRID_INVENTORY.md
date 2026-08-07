@@ -33,12 +33,30 @@ admission.
 first-party supply grows, the way Trip.com and Google Travel blend partner
 feeds:
 
-- **Hotels: Amadeus Self-Service APIs** (`AMADEUS_CLIENT_ID/SECRET`,
-  test then production). Hotel Search returns live rates and availability;
-  Hotel Booking places the reservation. Revenue is commission per booking.
+- **Hotels: LiteAPI / Nuitée Connect** (`LITEAPI_KEY`, sandbox then
+  production). `GET /data/hotels` for static content near a covered city,
+  `POST /hotels/rates` for live naira rates. Revenue is commission per booking.
   Partner hotel cards show a neutral "Partner" tag, never the verified badge,
-  and their CTA is Book (through our checkout against the Amadeus order),
-  not Message, because there is no agent to message.
+  and never a Message action, because there is no agent to message.
+
+  This section named **Amadeus Self-Service** until 2026-08-07 and that is no
+  longer a thing anybody can sign up for: the portal was decommissioned on
+  17 July 2026 and the keys were disabled with it. `providers/amadeus.ts`
+  survives as dead code and is recorded as such in KNOWN_GAPS.md. LiteAPI was
+  chosen on the same test the owner set for everything else, a working key
+  without a sales call, and the full comparison is in docs/DATA_SOURCES.md.
+
+  Note what partner hotels do NOT do yet: they carry a price and no Reserve
+  button. LiteAPI has a real prebook/book pair, but the platform's checkout
+  settles money against a first-party booking row, and selling a night we
+  cannot confirm is the worst promise this platform could make. Section 7 has
+  the shape of the missing half.
+
+- **Hotels, coverage: Google Places** (same key as restaurants). Places answers
+  with a price LEVEL rather than an amount, so its hotels carry no price. It
+  exists on this shelf for reach: every covered state, including ones a rate
+  feed has thin stock in. Where both feeds return the same hotel, the priced
+  record wins (`lib/inventory/dedupe.ts`).
 - **Restaurants: Google Places API (New)** (`GOOGLE_PLACES_API_KEY`).
   Text and Nearby Search fill the restaurants category with real venues,
   photos, ratings and hours. Places policy allows caching `place_id`
@@ -47,19 +65,25 @@ feeds:
   must render where Places data shows. Partner restaurant cards deep link to
   directions and the venue; no verified badge, no messaging.
 
-## 3. The provider layer (build next)
+## 3. The provider layer
 
-`apps/web/src/lib/inventory/` with one interface, three providers:
+`apps/web/src/lib/inventory/`, one interface and one registry. Places is
+registered twice, once per shelf, so the two kill switches move independently:
 
 - `providers/rentme.ts`: the existing repository (Supabase once live).
-- `providers/amadeus.ts`: OAuth2 client-credentials token cache, hotel
-  search mapped into `Listing` with `source: "partner"`, env-guarded so the
-  provider silently contributes nothing until keys land.
-- `providers/places.ts`: restaurant search mapped the same way, place_id
-  cache table, attribution flag on the mapped listing.
+- `providers/liteapi.ts`: static content cached for hours, live rates never
+  cached, both hops sharing one time budget. Env-guarded so the provider
+  silently contributes nothing until a key lands.
+- `providers/places.ts`: restaurant AND hotel search mapped the same way,
+  place_id cache table, attribution flag on the mapped listing.
+- `providers/amadeus.ts`: dead. Registered, permanently keyless, kept only
+  because deleting a complete module is the owner's call.
 - `search()` merges: first-party ranks above partner at equal relevance
   (verification is worth reach). Partner results are clearly tagged in the
   UI. All provider calls are server-side only; keys never reach the browser.
+- `dedupe.ts`: one entry per real place. Two feeds describing one hotel
+  collapse to one card, and a first-party listing is never displaced by a
+  feed. Section 8.
 
 Failure rule: a provider that errors or has no key contributes zero results
 and never breaks search.
@@ -70,7 +94,7 @@ and never breaks search.
 |---|---|---|---|---|
 | rentme rental | yes | yes (primary) | no | yes |
 | rentme lodging | yes | yes | yes | yes |
-| partner hotel | never | no | yes (Amadeus order) | no |
+| partner hotel | never | no | not yet: priced, no Reserve (section 7) | no |
 | partner restaurant | never | no | no (directions/menu) | no |
 
 ## 5. Listing quality at admission (first party)
@@ -96,3 +120,60 @@ Shown on `/rent`, on every rental detail, and in first-message education:
 "For your safety, keep every chat and payment inside RentMe. Deals made
 outside the platform are not protected by us. Pay only after you have
 inspected the property."
+
+## 7. Booking a partner hotel: the half that is not built
+
+Partner hotels currently carry a price and no Reserve button. That is a
+deliberate stop, not an oversight, and this section says exactly what closing it
+needs so the decision is costed rather than discovered.
+
+The platform's money path assumes it owns the thing being sold. `reserve()`
+writes a `bookings` row against a first-party listing, a Paystack charge settles
+against that row, and `ledger_entries` decomposes the take. A partner hotel has
+no listing row, so every one of those steps has nothing to point at.
+
+Closing it means four things, in this order:
+
+1. **A booking row that can represent stock we do not own**, carrying the
+   provider, the upstream hotel id and the prebook transaction id, and a status
+   that can express "guest paid, supplier not yet confirmed".
+2. **Prebook before charge, never after.** LiteAPI's `POST /rates/prebook`
+   revalidates the rate and returns a transaction id. Taking a card first and
+   discovering the rate moved is how a guest ends up paid-up with no room.
+3. **Confirm inside the webhook, on the same idempotency key** the existing
+   `charge.success` path uses, so a replayed delivery cannot book twice.
+4. **A refund path for the case that will happen**: money captured, supplier
+   confirmation failed. It needs to be automatic and it needs to be fast,
+   because the guest is standing at a desk.
+
+Until all four exist, a partner hotel is a price and a link, and the honest
+version of that is no Reserve button. The failure this avoids is not
+hypothetical: it is the original plan's flow, where a Paystack webhook fired a
+booking call at a third party and had no answer for what happens when that call
+returns 500 after the money is taken.
+
+## 8. De-duplication
+
+Three sources now overlap on the same buildings, and in Lagos and Abuja the
+overlap is most of the shelf rather than an edge case. `lib/inventory/dedupe.ts`
+collapses them to one entry per real place.
+
+A pair is the same place when **both** signals agree: within 150 metres by
+haversine, and the names match on token containment once category nouns and
+place names are stripped. Requiring both is the safety argument. Name alone
+merges the Bogobiri House in Ikoyi with the one in Calabar; distance alone merges
+a hotel with the shortlet block next door. Where a coordinate is missing
+(`listings.latitude` is nullable and the wizard does not force a pin), the rule
+tightens to identical name and identical city rather than falling back to the
+unsafe half.
+
+Which record survives is the trust rule as a number: first party always wins and
+is never displaced by a feed; between two partner records, the one carrying a
+real naira price wins, so a LiteAPI rate beats a priceless Places card for the
+same hotel. Position belongs to the first record seen, so a feed can never
+reorder the shelf by answering better.
+
+The asymmetry that governs the thresholds: a missed duplicate shows a hotel
+twice, which is untidy and self-evident. A wrong merge deletes a real agent's
+listing from search while their dashboard still says published, and nobody finds
+out. The rules are tuned to prefer the first failure.

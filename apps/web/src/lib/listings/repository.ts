@@ -5,6 +5,7 @@ import {
   partnerListings,
   partnerProvidersConfigured,
 } from "../inventory";
+import { dedupeListings } from "../inventory/dedupe";
 import { isSupabaseConfigured } from "../supabase/env";
 import { diversePick, matchesFilter } from "./filter";
 import { SupabaseListingRepository } from "./supabase-repository";
@@ -246,29 +247,23 @@ class PartnerAugmentedRepository implements ListingRepository {
   }
 
   /**
-   * Partner listings after first-party ones, de-duplicated twice over: by id,
-   * and by the same property showing up in both halves. A hotel we have
-   * admitted ourselves must not appear again through a feed, so a partner
-   * listing whose title and city already exist first party is dropped.
+   * Partner listings after first-party ones, with one entry per real place.
+   *
+   * The rule itself lives in `lib/inventory/dedupe.ts` and is passed the two
+   * halves already in their final order, first party leading. That ordering is
+   * the whole interface between the two files: `dedupeListings` keeps the
+   * position of the first record of a place, so putting first party first is
+   * what guarantees a feed can never displace a verified listing, and the
+   * decorator does not need to say so a second time.
+   *
+   * This used to be an exact-string fingerprint of kind, title and city, which
+   * matched only when two feeds spelled a property identically. They do not:
+   * see the worked examples at the top of `dedupe.ts`. Since a second hotel
+   * feed now runs alongside Google Places, the duplicates it missed were about
+   * to be most of the hotel shelf in Lagos rather than an occasional pair.
    */
   private static appendPartners(first: Listing[], partner: Listing[]): Listing[] {
-    const ids = new Set(first.map((l) => l.id));
-    const fingerprints = new Set(first.map((l) => PartnerAugmentedRepository.fingerprint(l)));
-    const out = [...first];
-    for (const listing of partner) {
-      if (ids.has(listing.id)) continue;
-      const fingerprint = PartnerAugmentedRepository.fingerprint(listing);
-      if (fingerprints.has(fingerprint)) continue;
-      ids.add(listing.id);
-      fingerprints.add(fingerprint);
-      out.push(listing);
-    }
-    return out;
-  }
-
-  /** Same name, same city, same category: the same place. */
-  private static fingerprint(l: Listing): string {
-    return `${l.kind}|${l.title.toLowerCase().replace(/[^a-z0-9]+/g, "")}|${l.city.toLowerCase()}`;
+    return dedupeListings([...first, ...partner]);
   }
 }
 

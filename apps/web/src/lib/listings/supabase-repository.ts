@@ -62,6 +62,8 @@ const LISTING_SELECT = `
   area,
   city,
   state_code,
+  latitude,
+  longitude,
   published_at,
   created_at,
   power_grid,
@@ -96,6 +98,8 @@ type ListingRow = {
   area: string | null;
   city: string | null;
   state_code: string | null;
+  latitude: number | null;
+  longitude: number | null;
   published_at: string | null;
   created_at: string;
   listing_photos: { storage_path: string; position: number }[];
@@ -290,6 +294,13 @@ function mapRow(
     area: row.area ?? row.city ?? "",
     city: row.city ?? "",
     state: (row.state_code ? stateNames.get(row.state_code) : undefined) ?? row.state_code ?? "",
+    /* Both columns are nullable and the wizard does not force a pin, so a row
+       carries a coordinate or it carries neither. A half pair is refused rather
+       than mapped, because a latitude with no longitude places a property on
+       the Gulf of Guinea. */
+    ...(row.latitude !== null && row.longitude !== null
+      ? { lat: row.latitude, lng: row.longitude }
+      : {}),
     // Kobo per pricePeriod unit, straight from the column. Rentals are always
     // an annual figure, which is what the RENT market and its cards expect.
     priceMinor: row.price_per_night_minor,

@@ -33,7 +33,7 @@ export type ListingKind =
  */
 export type PartnerMeta = {
   /** Which feed supplied the listing. */
-  provider: "amadeus" | "places";
+  provider: "amadeus" | "places" | "liteapi";
   /**
    * Attribution the data source requires wherever its data is shown. Google
    * Places content must render "powered by Google" on the surfaces it appears
@@ -60,6 +60,24 @@ export type Listing = {
   /** Settlement, e.g. "Lagos". */
   city: string;
   state: string;
+  /**
+   * Where the place actually is, when the source knows.
+   *
+   * Optional because two of the three sources genuinely may not know:
+   * `listings.latitude` and `listings.longitude` are nullable columns and the
+   * agent wizard does not force a pin, and a partner feed occasionally answers
+   * without a geocode. Absent is therefore a real state, not a mapping bug, and
+   * every reader has to handle it.
+   *
+   * This is what lets two feeds be told apart from two listings of the same
+   * building: a name match alone cannot distinguish "Bogobiri House" in Ikoyi
+   * from a second place of the same name in Calabar, and a coordinate can.
+   * See `lib/inventory/dedupe.ts`, which is the only place that reads it for
+   * that purpose. `RealMap` still places by area centroid, so nothing about the
+   * map changes by these arriving.
+   */
+  lat?: number;
+  lng?: number;
   /**
    * Rate in MINOR UNITS (kobo). Never a float, never naira.
    * 25_000_000 kobo is 250,000 naira. Nightly for stays, per head for

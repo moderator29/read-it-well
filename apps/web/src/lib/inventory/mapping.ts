@@ -222,7 +222,7 @@ export function partnerId(provider: PartnerProviderName, reference: string): str
 export function parsePartnerId(
   id: string,
 ): { provider: PartnerProviderName; reference: string } | null {
-  for (const provider of ["amadeus", "places"] as const) {
+  for (const provider of ["amadeus", "places", "liteapi"] as const) {
     const head = `${PARTNER_ID_PREFIX}-${provider}-`;
     if (id.startsWith(head)) {
       const reference = id.slice(head.length);

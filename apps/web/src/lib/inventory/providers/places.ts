@@ -334,6 +334,12 @@ function mapPlace(
     area: areaFrom(place, city),
     city: city.name,
     state: city.state,
+    /* Google's own geocode, carried rather than discarded. It was already read
+       above to choose the city and to build the directions link; the third
+       reader is de-duplication, which is the one that needs it most, because a
+       hotel we have admitted ourselves and the same hotel arriving from Google
+       are 20 metres apart and spelled differently. */
+    ...(lat !== null && lng !== null ? { lat, lng } : {}),
     // Places reports a price level, never an amount. We do not convert a level
     // into naira, so there is no price to show and the card shows none.
     priceMinor: 0,

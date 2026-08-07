@@ -17,6 +17,31 @@ the date above.
 
 ## Genuinely still missing
 
+**`lib/inventory/providers/amadeus.ts` is dead code, 417 lines of it.** Amadeus
+decommissioned its Self-Service portal on 17 July 2026 and disabled the keys
+with it, so the endpoints this provider calls now answer 401 to everybody,
+permanently. It is still registered, still permanently keyless, and costs one
+synchronous string check per search. The comment in `inventory/index.ts` used to
+say it was "two environment variables away" from working, which was the reason
+nobody deleted it; that is now corrected, because Amadeus Enterprise is a
+different portal, a different auth flow and a different API surface, so reaching
+it would be a new provider rather than a credential. Deleting somebody's
+complete module is the owner's call, so it is recorded here rather than removed.
+`LITEAPI_KEY` replaces it (`providers/liteapi.ts`, and docs/DATA_SOURCES.md).
+
+**No partner hotel can be booked, only priced.** `providers/liteapi.ts` maps
+search and rates; it does not call `POST /rates/prebook` or `POST /rates/book`,
+so partner hotel cards carry a naira price and no Reserve button. This is a stop
+rather than an omission: the checkout settles money against a first-party
+`bookings` row, and there is no row for stock we do not own. What closing it
+needs is costed in docs/HYBRID_INVENTORY.md section 7.
+
+**Restaurants can be discovered but not booked.** Google Places fills the
+category with real venues; nothing takes a table reservation. No aggregator
+fixes this (resOS issues its key to a restaurant that already runs resOS as its
+POS, and OpenTable has no self-serve tier), so it wants a slot engine of ours,
+which means new tables and a migration. Not started.
+
 **No Content Security Policy.** Verified: nothing sets one in `next.config` or
 middleware. It needs a nonce strategy compatible with Next streaming. The other
 security headers are set at the edge. This is the largest outstanding security

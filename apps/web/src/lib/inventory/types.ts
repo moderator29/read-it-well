@@ -22,7 +22,7 @@ import type { Listing, ListingSearchFilter } from "../listings/types";
  * partner feed.
  */
 
-export type PartnerProviderName = "amadeus" | "places";
+export type PartnerProviderName = "amadeus" | "places" | "liteapi";
 
 type ProviderResultBase = {
   readonly provider: PartnerProviderName;
