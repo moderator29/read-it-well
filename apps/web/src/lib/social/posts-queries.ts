@@ -470,17 +470,47 @@ const EMPTY_PAGE: FeedPage = { posts: [], cursor: null, ended: true };
 async function readFeedPage(
   supabase: Awaited<ReturnType<typeof createClient>>,
   viewerId: string | null,
-  areaIds: string[],
-  { cursor, muteAreas }: { cursor?: string; muteAreas: boolean },
+  /**
+   * Which places to read, or `null` for "everywhere".
+   *
+   * `null` is not the empty list and does not mean the same thing. An empty
+   * list is a question with no rows behind it. `null` is no area restriction at
+   * all, which hands the whole decision to `posts_select`, and `posts_select`
+   * already says exactly the right thing: LIVE, in an ACTIVE or PAUSED place or
+   * in no place at all, and not from somebody who blocked you. Filtering by a
+   * list on top of that could only ever remove rows the policy had already
+   * allowed, which is how posts went missing from a feed that claimed to show
+   * everything.
+   */
+  areaIds: string[] | null,
+  {
+    cursor,
+    muteAreas,
+    includePublic = false,
+  }: { cursor?: string; muteAreas: boolean; includePublic?: boolean },
 ): Promise<FeedPage> {
   // No places is not an error and not an empty read: it is a question with no
   // rows behind it, and asking Postgres `in ()` would be a wasted round trip.
-  if (areaIds.length === 0) return EMPTY_PAGE;
+  // Unless public posts are wanted too, in which case there is still a feed to
+  // read: somebody who has joined nothing can post to the whole platform and
+  // must be able to see what they wrote.
+  if (areaIds !== null && areaIds.length === 0 && !includePublic) return EMPTY_PAGE;
 
-  let query = supabase
-    .from("posts")
-    .select(POST_COLUMNS)
-    .in("area_id", areaIds)
+  let query = supabase.from("posts").select(POST_COLUMNS);
+
+  if (areaIds === null) {
+    /* Everywhere. No area predicate at all; the policy is the filter. */
+  } else if (areaIds.length === 0) {
+    query = query.is("area_id", null);
+  } else if (includePublic) {
+    // A post with no place belongs to everybody, so it sits alongside the
+    // places this person reads rather than in a feed of its own.
+    query = query.or(`area_id.is.null,area_id.in.(${areaIds.join(",")})`);
+  } else {
+    query = query.in("area_id", areaIds);
+  }
+
+  query = query
     .is("parent_id", null)
     .order("created_at", { ascending: false })
     .limit(PAGE_SIZE + 1);
@@ -565,43 +595,38 @@ export async function getJoinedFeed(userId: string, cursor?: string): Promise<Fe
     .map((row) => row.area_id)
     .filter((id): id is string => Boolean(id));
 
-  return readFeedPage(supabase, viewerId, areaIds, { cursor, muteAreas: true });
+  return readFeedPage(supabase, viewerId, areaIds, {
+    cursor,
+    muteAreas: true,
+    // Your places, plus what was said to the whole platform. A public post is
+    // addressed to everybody, and "everybody" includes somebody who has joined
+    // three places.
+    includePublic: true,
+  });
 }
 
 /**
- * What is being said in the open places, for somebody who has joined none of
- * them or is not signed in at all.
+ * Everything anybody may read, newest first.
  *
- * The alternative was an empty screen with an invitation on it, and an empty
- * screen is the one thing a social product cannot afford to open with. The
- * places are chosen busiest first, which is the order the directory already
- * uses and for the same reason: sorting by newest sends the first visitor to
- * the emptiest room. Nothing here is fabricated. If these places have said
- * nothing, the feed is empty and the screen says so.
+ * This used to read the twenty-four busiest places and pass their ids as an
+ * `in` list, which was two mistakes wearing one name. It could not see a post
+ * that belongs to no place at all, which is now the ordinary way to write
+ * something here. And it silently cut the feed off at place twenty-five, so a
+ * post in the twenty-sixth busiest place existed, was public, was allowed by
+ * policy, and simply never appeared: the screen said "nothing has been said"
+ * about rooms it had not looked in.
  *
- * `areas_select` is what makes this safe to read signed out: it returns the
- * ACTIVE and PAUSED places and nothing else, so a private proposal can never
- * become a source for this timeline.
+ * There is no list now. `posts_select` is the filter, and it is a better one
+ * than any list this function could build: LIVE, in an ACTIVE or PAUSED place
+ * or in no place at all, not from somebody who blocked you, plus your own held
+ * posts. That is precisely "everything this person may read", it is enforced by
+ * the database rather than by this file remembering to, and it is what makes
+ * the read safe signed out.
  */
-export async function getOpenAreasFeed(cursor?: string): Promise<FeedPage> {
+export async function getEverywhereFeed(cursor?: string): Promise<FeedPage> {
   if (!isSupabaseConfigured()) return EMPTY_PAGE;
-
   const { supabase, viewerId } = await feedClient();
-
-  const { data, error } = await supabase
-    .from("areas")
-    .select("id")
-    .in("status", ["ACTIVE", "PAUSED"])
-    .order("member_count", { ascending: false })
-    .order("name", { ascending: true })
-    /* Twenty-four busiest places, not the whole 774. An `in` list of every door
-       Nigeria has would be a worse query for a strictly worse answer: the rows
-       past the busiest two dozen are places nobody has posted in. */
-    .limit(24);
-  if (error || !data) return EMPTY_PAGE;
-
-  const areaIds = (data as { id: string }[]).map((row) => row.id);
-  return readFeedPage(supabase, viewerId, areaIds, { cursor, muteAreas: true });
+  return readFeedPage(supabase, viewerId, null, { cursor, muteAreas: true });
 }
 
 export type ThreadReply = PostView & {

@@ -71,9 +71,16 @@ function messageForPostError(code: string | undefined, fallback: string): string
   }
 }
 
-/** Post into a place. */
+/**
+ * Post into a place, or to the whole platform.
+ *
+ * Leaving `areaId` out is the ordinary case now rather than an error. See the
+ * note on `dropPostSchema`: nothing in the database ever required a place, and
+ * demanding one meant the first thing a new person was asked to do was join a
+ * room before they could say anything at all.
+ */
 export async function dropPost(input: {
-  areaId: string;
+  areaId?: string;
   kind: "GIST" | "ASK";
   body: string;
 }): Promise<ActionResult<{ postId: string; held: boolean }>> {
@@ -94,7 +101,7 @@ export async function dropPost(input: {
   const { data, error } = await session.supabase
     .from("posts")
     .insert({
-      area_id: parsed.data.areaId,
+      area_id: parsed.data.areaId ?? null,
       author_id: session.user.id,
       author_kind: "USER",
       kind: parsed.data.kind,

@@ -39,18 +39,34 @@ const nextConfig: NextConfig = {
   // Workspace packages ship raw TypeScript, so Next compiles them in place.
   transpilePackages: ["@naijafinds/design-tokens", "@naijafinds/i18n"],
 
-  // Two image sources, both explicitly allowed through the optimiser and
-  // nothing else: the seed catalogue's Unsplash photography, and the Supabase
+  // Three image sources, all explicitly allowed through the optimiser and
+  // nothing else: the seed catalogue's Unsplash photography, the Supabase
   // storage CDN that serves agent-uploaded listing photos and avatars once
-  // real supply lands. The Supabase host is derived from the project URL so it
-  // follows the environment rather than being hardcoded, and the pattern is
-  // omitted entirely when the URL is absent, which keeps the allowlist tight
-  // in a build without keys.
+  // real supply lands, and Google's avatar CDN. The Supabase host is derived
+  // from the project URL so it follows the environment rather than being
+  // hardcoded, and the pattern is omitted entirely when the URL is absent,
+  // which keeps the allowlist tight in a build without keys.
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      /*
+       * The photo a Google account already has.
+       *
+       * Somebody who signs up with Google has a face on file, and until this
+       * was here it was discarded and they were drawn as a grey disc with a
+       * letter in it. Worse than discarded, in fact: `next/image` THROWS on a
+       * host it was not told about, so the moment the avatar was written to the
+       * profile, every screen that drew it would have answered 500 rather than
+       * fallen back. Narrowed to the avatar path, which is the only thing on
+       * this host we ever want to render.
+       */
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/a/**",
       },
       ...(supabaseImageHost
         ? ([

@@ -7,8 +7,8 @@ import { resolveSession } from "@/lib/actions/session";
 import { listMyAreas, type AreaSummary } from "@/lib/social/areas-queries";
 import {
   getAreaFeed,
+  getEverywhereFeed,
   getJoinedFeed,
-  getOpenAreasFeed,
 } from "@/lib/social/posts-queries";
 import { POST_COPY } from "@/lib/social/posts-schema";
 import { PLACE_COPY } from "@/lib/social/places-schema";
@@ -38,14 +38,15 @@ export const dynamic = "force-dynamic";
  *
  * Three states, and none of them is a blank screen with an invitation on it:
  *
- * 1. Signed in with places joined: everything said in those places, newest
- *    first, through `getJoinedFeed`.
- * 2. Signed in with none joined, or signed out entirely: the busiest open
- *    places, through `getOpenAreasFeed`, under a line saying plainly that these
- *    are not yours yet and one control that goes and picks them. Real posts by
- *    real people in real places. Nothing on this screen is invented, and if
- *    those places have genuinely said nothing then the feed is empty and says
- *    so rather than filling itself.
+ * 1. Signed in with places joined: everything said in those places plus
+ *    everything addressed to the whole platform, newest first, through
+ *    `getJoinedFeed`.
+ * 2. Signed in with none joined, or signed out entirely: everything anybody may
+ *    read, through `getEverywhereFeed`, under a line saying plainly that these
+ *    places are not yours yet and one control that goes and picks them. Real
+ *    posts by real people. Nothing on this screen is invented, and if the
+ *    platform has genuinely said nothing then the feed is empty and says so
+ *    rather than filling itself.
  * 3. One of your places chosen in the switcher: that place's own timeline,
  *    which is the same read `/around/[slug]` makes.
  *
@@ -110,13 +111,16 @@ export default async function AroundPage({
   /*
    * Three timelines, and each one is honest about what it is.
    *
-   *   For you    your places if you have any, the busiest open ones if not.
-   *              A first visit must never be an empty screen.
-   *   Following  ONLY your places. It says nothing when you have joined
-   *              nothing, because pretending otherwise would make the two tabs
-   *              the same tab.
-   *   New        the open places, whoever you are. This is the tab that works
-   *              signed out, and it is why the feed is worth opening on day one.
+   *   For you    your places and everything said to the platform at large. A
+   *              first visit must never be an empty screen, so somebody who has
+   *              joined nothing gets everywhere rather than nothing.
+   *   Following  ONLY your places, plus the public posts, because a public post
+   *              is addressed to everybody and that includes you. It says
+   *              nothing when you have joined nothing, because pretending
+   *              otherwise would make the two tabs the same tab.
+   *   New        everything anybody may read, whoever you are. This is the tab
+   *              that works signed out, and it is why the feed is worth opening
+   *              on day one.
    */
   const feed = selected
     ? await getAreaFeed(selected.id)
@@ -125,10 +129,10 @@ export default async function AroundPage({
         ? await getJoinedFeed(viewerId)
         : { posts: [], cursor: null, ended: true }
       : tab === "new"
-        ? await getOpenAreasFeed()
+        ? await getEverywhereFeed()
         : viewerId && mine.length > 0
           ? await getJoinedFeed(viewerId)
-          : await getOpenAreasFeed();
+          : await getEverywhereFeed();
 
   /** True when the person is reading places they have not joined. */
   const browsingOpen = !selected && tab === "for-you" && mine.length === 0;
@@ -220,15 +224,16 @@ export default async function AroundPage({
           and on a combined timeline there is no single answer. `/around/[slug]`
           is where a place gets its own head, and it still does.
 
-          The composer appears only when one place is chosen, because a post has
-          to land somewhere. On the combined feed the dock carries the picker,
-          which is what it was built for.
+          The composer used to appear only when one place was chosen, because a
+          post had to land somewhere. It does not any more: with no place
+          selected the post is addressed to the whole platform, which is what
+          the composer now says under the box.
         */}
         <Feed
           initial={feed.posts}
           locale={locale}
           signedIn={signedIn}
-          isMember={Boolean(selected)}
+          canCompose
           areaId={selected && selected.status === "ACTIVE" ? selected.id : undefined}
           areaName={selected?.name}
           emptyMessage={emptyMessage}

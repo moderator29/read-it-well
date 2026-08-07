@@ -267,7 +267,6 @@ function Panel({
         key={tab}
         initial={posts}
         signedIn={signedIn}
-        isMember={false}
         emptyMessage={
           isOwner
             ? "Everything you write around a place sits here."

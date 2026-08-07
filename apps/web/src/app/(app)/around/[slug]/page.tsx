@@ -140,7 +140,7 @@ export default async function AreaPage({
         <Feed
           initial={feed.posts}
           signedIn={viewer.signedIn}
-          isMember={viewer.member}
+          canCompose
           areaId={area.status === "ACTIVE" ? area.id : undefined}
           areaName={area.name}
           emptyMessage={

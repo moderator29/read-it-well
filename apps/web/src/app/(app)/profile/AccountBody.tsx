@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { formatNumber, type Locale } from "@naijafinds/i18n";
 import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import type { PostView } from "@/components/social/feed/PostCard";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -68,7 +69,7 @@ export function AccountBody({
   posts,
   handle,
   hasBio,
-  formatCount,
+  locale,
 }: {
   counts: AccountCounts;
   copy: AccountRowsCopy;
@@ -81,10 +82,25 @@ export function AccountBody({
   handle: string | null;
   /** Drives the owner's first useful action while the Posts tab is empty. */
   hasBio: boolean;
-  formatCount: (value: number) => string;
+  /**
+   * The locale, NOT a formatter.
+   *
+   * This used to take `formatCount: (value: number) => string`, built in the
+   * server component above and handed down. That is a function crossing the
+   * server/client boundary, which React refuses outright: it throws
+   * "Functions cannot be passed directly to Client Components" while rendering,
+   * and the whole page answers 500. Nothing in the database was wrong, which is
+   * why every probe of every query on this page came back clean. The signed-out
+   * branch returns before this component is ever reached, so every spec passed
+   * and only a real signed-in person ever saw it.
+   *
+   * A locale is a string. It crosses fine, and the formatting happens here.
+   */
+  locale: Locale;
 }) {
   const [tab, setTab] = useState<Tab>("account");
   const [editing, setEditing] = useState(false);
+  const formatCount = (value: number) => formatNumber(value, locale);
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "account", label: "Account" },

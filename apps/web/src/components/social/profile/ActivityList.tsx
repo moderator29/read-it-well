@@ -67,7 +67,6 @@ export function ActivityList({
           <Feed
             initial={[entry.post]}
             signedIn={signedIn}
-            isMember={false}
             emptyMessage="That post is no longer there."
           />
         </div>
