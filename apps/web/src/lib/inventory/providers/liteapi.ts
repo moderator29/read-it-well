@@ -97,6 +97,40 @@ export function liteapiConfigured(): boolean {
 }
 
 /**
+ * Whether the key even has the shape of one that can call this API, said as a
+ * note rather than enforced as a rule.
+ *
+ * LiteAPI's dashboard hands out two credentials per environment and only one of
+ * them works here. The PRIVATE key (`sand_...` in sandbox, `prod_...` in
+ * production) is the one every server call authenticates with. The PUBLIC key
+ * is for their front-end SDK and the whitelabel booking site, and presenting it
+ * to `/data/hotels` gets a flat 401 that says nothing about which of the two
+ * you used. That is an easy mistake to make once and impossible to diagnose
+ * afterwards, because both are "the key they gave me" and the failure is
+ * identical to a revoked key, a typo, or a sandbox key sent to production.
+ *
+ * So this is advisory and ONLY advisory. It never blocks a call and never
+ * decides `configured()`: this is somebody else's credential format, they may
+ * change it tomorrow, and a hard check on a guess about a third party's key
+ * shape would turn a working key into a dead feed on the day they add a prefix.
+ * The call is made either way and the upstream stays the authority. All this
+ * does is put the sentence next to the 401 in the admin diagnostic, where the
+ * person holding both keys is looking.
+ *
+ * Never returns any part of the key.
+ */
+export function liteapiKeyShapeNote(): string | null {
+  const key = apiKey();
+  if (key === null) return null;
+  if (key.startsWith("sand_") || key.startsWith("prod_")) return null;
+  return (
+    "The key does not begin with sand_ or prod_, which is the shape of a LiteAPI " +
+    "PRIVATE key. Server calls need the private key; the public key is for their " +
+    "front-end SDK and is refused here with the same 401 as a bad key."
+  );
+}
+
+/**
  * The whitelabel booking site's host, or null.
  *
  * LiteAPI hosts a booking site for each account at `<name>.nuitee.link`, and it
@@ -541,6 +575,10 @@ export const liteapiProvider: InventoryProvider = {
 
     const deadline = Date.now() + BUDGET_MS;
     const notes: string[] = [];
+    /* Carried on every outcome, not only the failing one. A key of the wrong
+       shape that somehow works is worth knowing about too. */
+    const shape = liteapiKeyShapeNote();
+    if (shape) notes.push(shape);
 
     try {
       const city = cityForFilter(filter);

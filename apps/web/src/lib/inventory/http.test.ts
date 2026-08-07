@@ -90,3 +90,39 @@ describe("redactSecrets", () => {
     );
   });
 });
+
+/* ------------------------------------------------------------- key shapes */
+
+describe("liteapiKeyShapeNote", () => {
+  it("says nothing when there is no key at all", async () => {
+    delete process.env.LITEAPI_KEY;
+    const { liteapiKeyShapeNote } = await import("./providers/liteapi");
+    expect(liteapiKeyShapeNote()).toBeNull();
+  });
+
+  it("says nothing about a sandbox private key", async () => {
+    process.env.LITEAPI_KEY = "sand_00000000-1111-2222-3333-444444444444";
+    const { liteapiKeyShapeNote } = await import("./providers/liteapi");
+    expect(liteapiKeyShapeNote()).toBeNull();
+  });
+
+  it("says nothing about a production private key", async () => {
+    process.env.LITEAPI_KEY = "prod_00000000-1111-2222-3333-444444444444";
+    const { liteapiKeyShapeNote } = await import("./providers/liteapi");
+    expect(liteapiKeyShapeNote()).toBeNull();
+  });
+
+  it("names the public-key mistake when the prefix is missing", async () => {
+    process.env.LITEAPI_KEY = "00000000-1111-2222-3333-444444444444";
+    const { liteapiKeyShapeNote } = await import("./providers/liteapi");
+    const note = liteapiKeyShapeNote();
+    expect(note).toContain("private key");
+  });
+
+  /* The note is a diagnostic, so it must never carry the thing it is about. */
+  it("never quotes the key", async () => {
+    process.env.LITEAPI_KEY = "public-key-value-that-should-never-appear";
+    const { liteapiKeyShapeNote } = await import("./providers/liteapi");
+    expect(liteapiKeyShapeNote() ?? "").not.toContain("public-key-value-that-should-never-appear");
+  });
+});
