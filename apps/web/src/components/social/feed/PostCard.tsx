@@ -126,12 +126,30 @@ function compact(n: number, locale: Locale): string {
 function Avatar({ author }: { author: PostAuthor | null }) {
   const initial = (author?.displayLabel ?? author?.handle ?? "?").charAt(0).toUpperCase();
   if (author?.avatarPath) {
+    /*
+     * A plain img, like every one of its seven siblings.
+     *
+     * This was `next/image`, and it was the only avatar on the platform that
+     * was: ProfileHeader, PeopleList, StoryViewer twice, CommentsSheet, AppRail
+     * and /u all draw the same avatar with a plain tag. Being the odd one out
+     * mattered once a real photo arrived, because `next/image` THROWS on a host
+     * that is not in `remotePatterns`, and a throw here is a 500 on the whole
+     * feed rather than a missing picture. Google alone serves avatars from lh3
+     * through lh6, so listing one shard would have left three that crash.
+     *
+     * There is nothing to optimise either: a 96px avatar from Google's CDN is
+     * already the right bytes, and routing it through the optimiser adds a
+     * round trip to serve the same image slightly later.
+     */
+    // eslint-disable-next-line @next/next/no-img-element
     return (
-      <Image
+      <img
         src={author.avatarPath}
         alt=""
         width={46}
         height={46}
+        loading="lazy"
+        decoding="async"
         className="size-[var(--nf-feed-avatar)] shrink-0 rounded-full object-cover ring-1 ring-[var(--nf-border-default)]"
       />
     );
