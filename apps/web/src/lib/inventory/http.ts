@@ -37,8 +37,6 @@ function secrets(): string[] {
     process.env.GOOGLE_PLACES_API_KEY,
     process.env.GOOGLE_ROUTES_API_KEY,
     process.env.LITEAPI_KEY,
-    process.env.AMADEUS_CLIENT_ID,
-    process.env.AMADEUS_CLIENT_SECRET,
     process.env.SUPABASE_SERVICE_ROLE_KEY,
     process.env.NEXT_PUBLIC_MAPTILER_KEY,
   ].filter((value): value is string => typeof value === "string" && value.length >= 8);

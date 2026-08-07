@@ -192,7 +192,7 @@ Recorded with reasons so none of these gets researched twice.
 
 | Source | Why not |
 |---|---|
-| **Amadeus Self-Service** | **Dead.** The portal was decommissioned on 17 July 2026 and existing keys were disabled with it; new registration had already been paused that spring. Amadeus Enterprise is a different portal, a different auth flow and a signed agreement. Our `providers/amadeus.ts` can never work again. |
+| **Amadeus Self-Service** | **Dead.** The portal was decommissioned on 17 July 2026 and existing keys were disabled with it; new registration had already been paused that spring. Amadeus Enterprise is a different portal, a different auth flow and a signed agreement. Our `providers/amadeus.ts` could never work again, so it was removed on 2026-08-07 rather than carried as dead code. |
 | **Booking.com / Expedia EPS / RateHawk direct** | All real, none self-serve. Affiliate or partner review before keys, which is the gate the brief rules out. LiteAPI resells overlapping inventory without the queue. |
 | **RapidAPI "Booking.com" wrappers** | Unofficial scrapers. Read-only, no booking, terms risk. The endpoint in the original plan (`POST https://rapidapi.com`) is not an endpoint at all. RapidAPI is a marketplace, and each listed API has its own host. |
 | **Travelpayouts / Hotellook** | Instant token, genuinely self-serve, but it is an **affiliate deep-link** programme: you send the traveller to a partner site to book. There is no booking API, so it cannot fill a marketplace shelf. Only interesting as a revenue experiment. |

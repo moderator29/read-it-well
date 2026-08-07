@@ -3,7 +3,6 @@ import "server-only";
 import { isFeatureEnabled, type FeatureKey } from "../flags";
 import type { Listing, ListingSearchFilter } from "../listings/types";
 import { isPartnerId, parsePartnerId } from "./mapping";
-import { amadeusConfigured, amadeusHotelById, amadeusProvider } from "./providers/amadeus";
 import { liteapiConfigured, liteapiHotelById, liteapiProvider } from "./providers/liteapi";
 import {
   placesById,
@@ -125,21 +124,20 @@ type Registered = {
  * than two that each turn off half of it. De-duplication decides which record
  * of a hotel both feeds returned actually shows (`dedupe.ts`).
  *
- * Amadeus stays registered and stays keyless, and it can no longer become
- * anything else. Its Self-Service portal was decommissioned on 17 July 2026
- * and the keys were disabled with it, so the endpoints `providers/amadeus.ts`
- * calls now answer 401 to everybody, permanently. An earlier version of this
- * note said the code was "two environment variables away" from working again;
- * that is not true and was the reason this file kept a provider nobody could
- * ever turn on. Amadeus Enterprise is a different portal, a different auth
- * flow and a different API surface, so reaching it would be a new provider
- * rather than a credential. The 417 lines are kept only because deleting
- * another engineer's complete module is the owner's call, not this change's;
- * it is recorded as dead code in KNOWN_GAPS.md. With no credentials it costs
- * one synchronous string check per search and runs nothing.
+ * Amadeus is gone. Its Self-Service portal was decommissioned on 17 July 2026
+ * and the keys were disabled with it, so its endpoints answered 401 to
+ * everybody, permanently. Amadeus Enterprise is a different portal, a different
+ * auth flow and a different API surface, so reaching it would be a new provider
+ * rather than a credential.
+ *
+ * It stayed registered and keyless for a while because deleting another
+ * engineer's complete module is the owner's call rather than a passing
+ * change's, and it was recorded as dead code in the meantime. The owner has now
+ * made that call, so the 417 lines and the three type members are gone rather
+ * than carried. Nothing referenced a partner id anywhere in the database, so
+ * removing the name from `parsePartnerId` orphans nothing.
  */
 const REGISTRY: readonly Registered[] = [
-  { provider: amadeusProvider, flag: "hybrid_hotels", configured: amadeusConfigured },
   { provider: liteapiProvider, flag: "hybrid_hotels", configured: liteapiConfigured },
   { provider: placesRestaurantProvider, flag: "hybrid_restaurants", configured: placesConfigured },
   { provider: placesHotelProvider, flag: "hybrid_hotels", configured: placesConfigured },
@@ -294,7 +292,6 @@ export async function partnerListingById(id: string): Promise<Listing | null> {
   // Both hotel feeds mint an id that carries a category implicitly: they sell
   // nights and nothing else, so the shelf a card belongs to is known before the
   // fetch and the flag above has already settled it.
-  if (parsed.provider === "amadeus") return amadeusHotelById(parsed.reference);
   if (parsed.provider === "liteapi") return liteapiHotelById(parsed.reference);
 
   const listing = await placesById(parsed.reference);

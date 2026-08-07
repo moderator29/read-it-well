@@ -76,7 +76,7 @@ registered twice, once per shelf, so the two kill switches move independently:
   silently contributes nothing until a key lands.
 - `providers/places.ts`: restaurant AND hotel search mapped the same way,
   place_id cache table, attribution flag on the mapped listing.
-- `providers/amadeus.ts`: dead. Registered, permanently keyless, kept only
+- `providers/amadeus.ts`: REMOVED on 2026-08-07. It was dead, registered, permanently keyless, and kept only
   because deleting a complete module is the owner's call.
 - `search()` merges: first-party ranks above partner at equal relevance
   (verification is worth reach). Partner results are clearly tagged in the

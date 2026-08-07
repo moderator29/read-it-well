@@ -33,7 +33,7 @@ export type ListingKind =
  */
 export type PartnerMeta = {
   /** Which feed supplied the listing. */
-  provider: "amadeus" | "places" | "liteapi";
+  provider: "places" | "liteapi";
   /**
    * Attribution the data source requires wherever its data is shown. Google
    * Places content must render "powered by Google" on the surfaces it appears
