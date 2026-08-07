@@ -8,6 +8,24 @@
     ],
     "allowJs": false,
     "skipLibCheck": true,
+    /* Which @types packages are loaded as AMBIENT globals.
+       Without this TypeScript loads every directory under node_modules/@types,
+       which is not the four this app declares: it is those four plus whatever
+       the toolchain drags in transitively. Today that means chai, estree, json5,
+       minimist, fs-extra, normalize-package-data and slice-ansi, none of which
+       this application imports and all of which it would then depend on being
+       installed perfectly.
+       That dependency is not theoretical. Four of those directories were once
+       left empty by an interrupted install, and the app's typecheck failed with
+       four TS2688 errors naming Node CLI tooling it has never used.
+       Only globals belong here. Anything reached through an import, which is
+       how @types/leaflet and @types/geojson are used, resolves through
+       moduleResolution and needs no entry. */
+    "types": [
+      "node",
+      "react",
+      "react-dom"
+    ],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,

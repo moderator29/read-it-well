@@ -11,6 +11,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "skipLibCheck": true,
+    /* No ambient globals at all. This package is pure ES2022 with no DOM and no
+       Node, so every directory under node_modules/@types that TypeScript would
+       otherwise load is something it neither imports nor needs. An empty array
+       is the tightest correct answer and it makes this typecheck immune to a
+       half-installed toolchain dependency, which is a failure that has already
+       happened once here. */
+    "types": [],
     "noEmit": true
   },
   "include": ["src/**/*.ts"],
