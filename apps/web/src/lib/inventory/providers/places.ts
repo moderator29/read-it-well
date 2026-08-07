@@ -4,11 +4,11 @@ import { isSupabaseConfigured } from "../../supabase/env";
 import type { Listing, ListingSearchFilter } from "../../listings/types";
 import { asArray, asNumber, asRecord, asString, requestJson } from "../http";
 import {
-  cityForFilter,
+  DEFAULT_PARTNER_CITY,
   hueFor,
   nearestCity,
   partnerId,
-  queryIsPlaceName,
+  resolveCity,
   slugify,
   type PartnerCity,
 } from "../mapping";
@@ -272,8 +272,49 @@ function kindFromPlace(place: Record<string, unknown>): "restaurant" | "hotel" |
 
 /* ---------------------------------------------------------------------- mapping */
 
+/** One named address component off a place, by type. */
+function componentNamed(place: Record<string, unknown>, want: string): string | null {
+  for (const entry of asArray(place["addressComponents"])) {
+    const component = asRecord(entry);
+    if (!component) continue;
+    const types = asArray(component["types"]).filter((t): t is string => typeof t === "string");
+    if (!types.includes(want)) continue;
+    const name = asString(component["longText"]) ?? asString(component["shortText"]);
+    if (name) return name;
+  }
+  return null;
+}
+
+/**
+ * Where a venue actually is, in Google's own words, for the ones our own map
+ * cannot place.
+ *
+ * `nearestCity` answers with one of 38 capitals within 120km, which covers most
+ * of the country and not all of it. Everything it could not place used to fall
+ * back to the DEFAULT city, so a hotel in a town far from any capital was
+ * labelled Lagos. That is not a cosmetic mislabel: the shared filter matches a
+ * query against title, area, city and state, so a venue stamped with the wrong
+ * city is then DROPPED from the results of the search that found it, and the
+ * shelf goes empty for the same reason it did before, one layer further down.
+ *
+ * Google already told us the locality and the state on every place. Reading
+ * them is strictly better than guessing, and returns null only when it said
+ * neither.
+ */
+function placeFromComponents(
+  place: Record<string, unknown>,
+): { name: string; state: string } | null {
+  const locality =
+    componentNamed(place, "locality") ??
+    componentNamed(place, "administrative_area_level_2") ??
+    componentNamed(place, "sublocality_level_1");
+  const state = componentNamed(place, "administrative_area_level_1");
+  if (!locality && !state) return null;
+  return { name: locality ?? state ?? "", state: state ?? locality ?? "" };
+}
+
 /** The sub-city locality Google gives, so a card can print a real area. */
-function areaFrom(place: Record<string, unknown>, city: PartnerCity): string {
+function areaFrom(place: Record<string, unknown>, city: { name: string }): string {
   const wanted = ["sublocality_level_1", "sublocality", "neighborhood", "locality"];
   for (const want of wanted) {
     for (const entry of asArray(place["addressComponents"])) {
@@ -311,7 +352,16 @@ function mapPlace(
   const location = asRecord(place["location"]);
   const lat = asNumber(location?.["latitude"]);
   const lng = asNumber(location?.["longitude"]);
-  const city = (lat !== null && lng !== null ? nearestCity(lat, lng) : null) ?? fallbackCity;
+  /*
+   * Three answers, best first: our own map, then Google's words, then the
+   * default. The middle one is new and it is the one that stops a venue outside
+   * the 120km reach of any covered capital being stamped "Lagos" and then
+   * filtered out of the very search that found it.
+   */
+  const city: { name: string; state: string } =
+    (lat !== null && lng !== null ? nearestCity(lat, lng) : null) ??
+    placeFromComponents(place) ??
+    fallbackCity;
 
   const id = partnerId("places", placeId);
   const mapsUri = asString(place["googleMapsUri"]);
@@ -375,32 +425,40 @@ export function textQuery(
   const q = filter.q?.trim();
 
   /*
-   * A query that is a place name is the LOCATION, not the subject.
+   * WHATEVER SOMEBODY TYPED IS THE PLACE. Nigeria has tens of thousands of
+   * them and this file knows 38.
    *
-   * This used to be `q || category.subject` on its own, and the free text was
-   * then used twice: once by `cityForFilter` to choose where to search, and
-   * again here as the thing to search for. Searching "Lagos" therefore asked
-   * Google for "Lagos in Lagos, Nigeria" restricted to `includedType: lodging`,
-   * and Google answered 200 with an empty list, because the one thing in Lagos
-   * actually named "Lagos" is the locality and a locality is not lodging.
+   * The first version of this used the visitor's words as the SUBJECT and the
+   * resolved city as the location, so "Lagos" went out as "Lagos in Lagos,
+   * Nigeria" with `includedType: lodging`. The one thing in Lagos actually
+   * named "Lagos" is the locality, a locality is not lodging, and Google
+   * answered 200 with an empty list. Valid key, enabled API, successful call,
+   * `outcome: "ok"`, empty shelf.
    *
-   * That is the worst shape a bug can have: the key was valid, the API was
-   * enabled, the call succeeded, the provider reported `ok`, and the shelf was
-   * empty. It is indistinguishable from a city with no hotels in it, which is
-   * exactly how it read for as long as nobody could get a key working to
-   * notice. Searching a city name is also the single most common thing anybody
-   * does here; the app's own filter chip said "Lagos".
+   * The fix for that only recognised a place if it appeared in `PARTNER_CITIES`
+   * (38 entries: the state capitals and a handful of aliases). So it fixed
+   * "Lagos" and left every real Nigerian locality broken in the original way.
+   * Awoyaya is in Ibeju-Lekki and Dutse is in Bwari, neither is on that list,
+   * and both went out as a SUBJECT against a Lagos bias: "Awoyaya in Lagos,
+   * Nigeria", "Dutse in Lagos, Nigeria". The second one is not even the right
+   * state.
    *
-   * So a bare place name becomes the location and the category supplies the
-   * subject, which also keeps more precision than falling back to the resolved
-   * city would: "Lekki" resolves to Lagos for the search bias, but the text
-   * still says Lekki. Anything with another word in it stays the subject, so
-   * "eko hotel" is unchanged.
+   * A hardcoded gazetteer of Nigeria is the wrong shape of answer, and we do
+   * not need one: Google already has it. `searchText` resolves a place from the
+   * text far better than a 38 row table ever will, so the text now says what we
+   * want and where, and the resolution is left to the service that has the map.
+   *
+   * "eko hotel" reads as "hotels in eko hotel, Nigeria", which looks odd and
+   * works: a text search matches strongly on a venue's own name, so the venue
+   * still comes back. That is the deliberate trade. The partner shelf is a
+   * discovery surface rather than a venue lookup, searching a place is the
+   * overwhelmingly common case, and one form that serves both beats two forms
+   * where the common one is broken.
    */
-  if (queryIsPlaceName(q)) return `${category.subject} in ${q}, Nigeria`;
+  if (q && q.length > 1) return `${category.subject} in ${q}, Nigeria`;
 
-  const subject = q && q.length > 1 ? q : category.subject;
-  return `${subject} in ${city.name}, Nigeria`;
+  // Nothing typed. The default market, named explicitly.
+  return `${category.subject} in ${city.name}, Nigeria`;
 }
 
 /**
@@ -424,7 +482,19 @@ function makePlacesProvider(category: PlacesCategory): InventoryProvider {
 
     const deadline = Date.now() + BUDGET_MS;
     try {
-      const city = cityForFilter(filter);
+      /*
+       * Two different jobs, deliberately not the same value any more.
+       *
+       * `city` is the FALLBACK used to label a venue Google gave no usable
+       * coordinates for. It always has a value, because a listing needs a city.
+       *
+       * `bias` is the hint sent upstream, and it is null whenever the query
+       * names somewhere this file does not recognise. That is most of Nigeria,
+       * and pretending otherwise is what centred a search for Dutse on Lagos.
+       */
+      const known = filter.q ? resolveCity(filter.q) : null;
+      const city = known ?? DEFAULT_PARTNER_CITY;
+      const bias = known ?? (filter.q ? null : DEFAULT_PARTNER_CITY);
       const query = textQuery(filter, city, category);
       const outcome = await requestJson(
         SEARCH_URL,
@@ -440,13 +510,34 @@ function makePlacesProvider(category: PlacesCategory): InventoryProvider {
             includedType: category.includedType,
             maxResultCount: RESULT_LIMIT,
             languageCode: "en",
+            /* Nigeria, always. This is what keeps an unbiased search national
+               rather than global, and it is why dropping the circle below is
+               safe. */
             regionCode: "NG",
-            locationBias: {
-              circle: {
-                center: { latitude: city.lat, longitude: city.lng },
-                radius: BIAS_RADIUS_M,
-              },
-            },
+            /*
+             * A 20km circle, but ONLY when we actually know where.
+             *
+             * This used to be sent unconditionally, centred on whatever
+             * `cityForFilter` returned, which is Lagos for every query it does
+             * not recognise. So a search for Dutse, which is in Abuja, was
+             * pulled towards Lagos, and one for Awoyaya was centred 45km away
+             * from the place being asked for. The bias was actively fighting
+             * the question on every search outside the 38 known names.
+             *
+             * Omitted, Google resolves the place from the text and `regionCode`
+             * keeps it in the country. A bias is a hint about where to look,
+             * and a hint we are not entitled to give is worse than none.
+             */
+            ...(bias
+              ? {
+                  locationBias: {
+                    circle: {
+                      center: { latitude: bias.lat, longitude: bias.lng },
+                      radius: BIAS_RADIUS_M,
+                    },
+                  },
+                }
+              : {}),
           }),
         },
         deadline,
@@ -520,7 +611,7 @@ export async function placesById(placeId: string): Promise<Listing | null> {
        built. Restaurant is the fallback only for the case where Google returns
        no types at all, which is the same fallback the old single-category
        version had, so nothing that worked before behaves differently. */
-    const listing = mapPlace(outcome.data, cityForFilter({}), "restaurant");
+    const listing = mapPlace(outcome.data, DEFAULT_PARTNER_CITY, "restaurant");
     if (listing) writeDetailCache(listing, placeId);
     return listing;
   } catch {

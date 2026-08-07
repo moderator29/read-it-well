@@ -209,12 +209,22 @@ describe("not spending a request that cannot help", () => {
     expect(String(calls[1]!.body["textQuery"])).toContain("restaurants");
   });
 
-  it("uses the visitor's own words when they typed some", async () => {
+  /*
+   * The visitor's words are carried, as the PLACE rather than as the subject.
+   *
+   * "hotels in Eko Hotel, Nigeria" looks odd written down and it works: a text
+   * search matches strongly on a venue's own name, so the venue comes back.
+   * That is the deliberate trade for making every locality in the country
+   * searchable, and it is written up in full on `textQuery`. The alternative
+   * kept venue lookups reading nicely and left "Awoyaya" and "Dutse" broken,
+   * which is the common case.
+   */
+  it("carries the visitor's own words when they typed some", async () => {
     stubGoogle([]);
     const { placesHotelProvider } = await import("./places");
     await placesHotelProvider.search({ q: "Eko Hotel" });
 
-    expect(String(calls[0]!.body["textQuery"])).toBe("Eko Hotel in Lagos, Nigeria");
+    expect(String(calls[0]!.body["textQuery"])).toBe("hotels in Eko Hotel, Nigeria");
   });
 
   it("searches the city the visitor named, not always Lagos", async () => {
@@ -263,12 +273,48 @@ describe("not spending a request that cannot help", () => {
     expect(String(calls[0]!.body["textQuery"])).toBe("restaurants in wuse, Nigeria");
   });
 
-  it("still treats a venue name as something to look for", async () => {
+  /*
+   * A place this file has never heard of. Awoyaya is in Ibeju-Lekki and Dutse
+   * is in Bwari, and neither is one of the 38 names in PARTNER_CITIES. Both
+   * used to go out as a SUBJECT against a Lagos bias, so "Dutse in Lagos,
+   * Nigeria" searched the wrong state for a thing that is not a hotel.
+   */
+  it("reaches a locality it has never heard of", async () => {
     stubGoogle([]);
     const { placesHotelProvider } = await import("./places");
-    await placesHotelProvider.search({ q: "Lagos hotels" });
+    await placesHotelProvider.search({ q: "Awoyaya" });
 
-    // Mentions a city but is not one, so it stays the subject.
-    expect(String(calls[0]!.body["textQuery"])).toBe("Lagos hotels in Lagos, Nigeria");
+    expect(String(calls[0]!.body["textQuery"])).toBe("hotels in Awoyaya, Nigeria");
+  });
+
+  /*
+   * And sends no bias for one, which is the other half. A 20km circle centred
+   * on Lagos is not a hint about Sangotedo, it is a hint AGAINST it.
+   *
+   * "Dutse" would have been the obvious example and it is the wrong one: Dutse
+   * is ALSO the capital of Jigawa, so it is in PARTNER_CITIES and does get a
+   * bias, to Jigawa. The owner meant the Dutse inside Bwari in Abuja, and no
+   * table this file could carry would tell those apart from four letters.
+   * Google has the same problem and answers it by prominence.
+   */
+  it("gives no location hint for a place it cannot place", async () => {
+    stubGoogle([]);
+    const { placesHotelProvider } = await import("./places");
+    await placesHotelProvider.search({ q: "Sangotedo" });
+
+    expect(calls[0]!.body["locationBias"]).toBeUndefined();
+    // regionCode is what keeps an unbiased search national rather than global.
+    expect(calls[0]!.body["regionCode"]).toBe("NG");
+  });
+
+  it("still hints at the city when it genuinely knows one", async () => {
+    stubGoogle([]);
+    const { placesRestaurantProvider } = await import("./places");
+    await placesRestaurantProvider.search({ q: "wuse" });
+
+    const bias = calls[0]!.body["locationBias"] as {
+      circle: { center: { latitude: number } };
+    };
+    expect(bias.circle.center.latitude).toBeCloseTo(9.0765, 2);
   });
 });

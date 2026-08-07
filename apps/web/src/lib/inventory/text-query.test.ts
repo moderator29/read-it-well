@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { queryIsPlaceName, resolveCity, cityForFilter } from "./mapping";
 
 /**
+ * NOTE ON SCOPE. `queryIsPlaceName` was written to decide whether a query was a
+ * location or a subject, and it is no longer used for that: the provider now
+ * treats every query as a location, because Nigeria has tens of thousands of
+ * localities and this repository knows 38 of them. The helper survives as the
+ * exact-match place test, and these cases still hold the boundary that matters
+ * for anything reading it: a whole-query match, never a substring.
+ *
  * The query we actually send to Google, which was asking for the wrong thing.
  *
  * `textQuery` built "<q or subject> in <resolved city>, Nigeria", and the free
