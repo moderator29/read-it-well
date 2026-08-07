@@ -38,13 +38,30 @@ real code identifiers and are staying as-is (see `docs/HANDOFF.md` section 4).
 > rot and are corrected in place. The numbers below were re-counted against the
 > live database, the build output and the repository on that date.
 
-**Build health, re-run 2026-08-07:**
+**Build health, re-run 2026-08-07, later the same day:**
 
 | Check | Command | Result |
 |---|---|---|
-| Typecheck, all workspaces | `npm run typecheck` | PASS |
-| Unit tests | `cd apps/web && npx vitest run` | PASS, 66 tests in 5 files |
-| Production build | `npm run build` | PASS, 91 entries in the route table, 4 of them API routes |
+| Typecheck, all workspaces | `npm run typecheck` | PASS, 0 errors |
+| Lint | `cd apps/web && npx eslint .` | PASS, 0 errors, 69 warnings |
+| Unit tests | `cd apps/web && npx vitest run` | PASS, 143 tests in 9 files |
+| Production build | `npm run build` | PASS |
+| Browser specs | `node tests/<name>.spec.mjs` against a served build | 75 of 79. The four are named in `KNOWN_GAPS.md` and none is caused by application code: one aborts by design without Supabase keys, three are byte for byte identical to what is on `main`, and one is a Chromium resource limit in this sandbox |
+
+> The row above this one said 66 tests in 5 files a few hours earlier. That was
+> accurate when written. It is recorded rather than overwritten because the rate
+> of change here is the point: two sessions are committing to `main` in parallel,
+> so any snapshot in this file is stale within hours. Re-run the four commands
+> rather than trusting the table.
+
+**A sandbox trap that invalidates a spec sweep silently.** `next start` on a port
+that is already held does NOT fail loudly: the old server keeps serving and the
+new process exits, so the sweep measures the PREVIOUS build. It presents as
+dozens of unrelated specs failing at once, or as `text/plain` MIME refusals on
+chunks that exist. Before trusting a sweep, confirm the port was free first, and
+that `.next-*/BUILD_ID` matches the build just made. Killing `next-server` alone
+is not enough, because `npm exec` respawns it: kill the `npm exec`, the `sh -c`
+and the `next-server` together.
 
 **Superseded build health (2026-07-28), kept because the route count in it is
 the number this document repeated for over a week:**

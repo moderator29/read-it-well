@@ -118,7 +118,7 @@ export function TravelTime({
   if (state.phase === "answered") {
     return (
       <p className="mt-3 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
-        <UiIcon name="compass" size={15} className="shrink-0 opacity-70" aria-hidden />
+        <UiIcon name="compass" size={16} className="shrink-0 opacity-70" aria-hidden />
         <span>
           {/* Numbers and units only. The duration is already rounded to five
               minutes by the server, so nothing here can claim a precision a
@@ -142,7 +142,7 @@ export function TravelTime({
       aria-busy={working}
       className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--nf-border-subtle)] px-3 py-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)] transition-opacity hover:opacity-80 disabled:opacity-60"
     >
-      <UiIcon name="compass" size={15} className="shrink-0 opacity-70" aria-hidden />
+      <UiIcon name="compass" size={16} className="shrink-0 opacity-70" aria-hidden />
       {working ? workingLabel : label}
     </button>
   );

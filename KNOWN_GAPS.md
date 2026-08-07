@@ -174,6 +174,30 @@ matches the build just made. Killing `next-server` alone is not enough either,
 because `npm exec` respawns it; kill the `npm exec`, the `sh -c` and the
 `next-server` together.
 
+**Seven orphan modules, 1,197 lines, verified unimported but deliberately NOT
+deleted.** Each was checked with an exact module-path grep, not a bare
+identifier, and each has zero importers:
+
+| File | Lines |
+|---|---|
+| `components/app/messages/MessageThread.tsx` | 320 |
+| `components/app/wallet/WalletActions.tsx` | 306 |
+| `components/app/account/ProfileIdentityCard.tsx` | 201 |
+| `lib/social/comments-queries.ts` | 149 |
+| `components/agent/charts/DonutChart.tsx` | 78 |
+| `components/agent/StatCard.tsx` | 76 |
+| `components/agent/charts/AreaSparkline.tsx` | 67 |
+
+They are left in place on purpose. A parallel session is working in this tree
+and several of these look like components staged just ahead of the screen that
+will mount them, which is a normal way to build and a hostile thing to delete
+out from under somebody. The retired icon tier WAS removed, because
+`docs/HANDOFF.md` states outright that `Icon` and `Icon3D` are retired and must
+never be imported, so that one is sanctioned rather than guessed.
+
+Whoever owns these should confirm and remove them, or wire them up. The
+evidence is above; it does not need re-deriving.
+
 **`apps/web/tsconfig.json` carries ten dead `include` entries.** Parallel builds
 add `".next-a1/types/**"` and friends as they are used, but `exclude` holds
 `".next-*"`, and exclude filters include, so every one of those entries does
