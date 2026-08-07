@@ -220,7 +220,19 @@ export default async function SearchPage({
   const [rawResults, pool, whole] = await Promise.all([
     repo.search(toFilter(query)),
     repo.search(toPoolFilter(query)),
-    repo.search({}),
+    /*
+     * Our own inventory only, and this is a cost decision rather than a
+     * behaviour one.
+     *
+     * `whole` feeds the map's per-city price floor, and the loop that builds it
+     * skips any row without a real price. Google Places reports a price LEVEL
+     * rather than an amount, so every Places row this fetched was discarded a
+     * few lines below. It was spending two billed SearchText requests per page
+     * view on data written to be thrown away, and with the other two searches
+     * that put the page at up to six. A day of quota goes quickly at six a
+     * view, and the 429 it ends in looks exactly like every other empty shelf.
+     */
+    repo.search({}, { partners: false }),
   ]);
   const sorted = sortListings(rawResults, query.sort);
 

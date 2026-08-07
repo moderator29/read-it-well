@@ -228,12 +228,25 @@ export type ListingSearchFilter = {
   waterSupply?: WaterSupply[];
 };
 
+/**
+ * How a search should be answered, as opposed to what it asks for.
+ *
+ * `partners: false` says "our own inventory only, do not call anybody". It
+ * exists because a partner call is a BILLED REQUEST against somebody's daily
+ * quota, and the discovery page was spending three sets of them per render for
+ * one set of results. See the note on the map floor in the search page.
+ */
+export type ListingSearchOptions = {
+  /** Default true. False skips every partner feed and spends nothing. */
+  partners?: boolean;
+};
+
 export interface ListingRepository {
   /** True when results come from local seed content rather than the platform. */
   readonly isSeed: boolean;
   recommended(limit?: number): Promise<Listing[]>;
   /** Filtered catalogue lookup for the discovery surface. */
-  search(filter?: ListingSearchFilter): Promise<Listing[]>;
+  search(filter?: ListingSearchFilter, opts?: ListingSearchOptions): Promise<Listing[]>;
   /** Single listing lookup for the detail page. Resolves null when unknown. */
   byId(id: string): Promise<Listing | null>;
 }

@@ -27,7 +27,18 @@ async function getBookedStays(): Promise<Listing[]> {
   const picked = await Promise.all(BOOKED_IDS.map((id) => repo.byId(id)));
   const stays = picked.filter((l): l is Listing => l !== null);
   if (stays.length >= BOOKED_IDS.length) return stays;
-  const pool = (await repo.search()).filter(
+  /*
+   * Our own inventory only, and this one is a correctness fix as much as a
+   * cost one.
+   *
+   * Partner stock cannot be booked on this platform at all: there is no
+   * checkout for inventory we do not own, which is why a partner card carries
+   * a price and no Reserve button (docs/HYBRID_INVENTORY.md section 7). So a
+   * partner hotel appearing in a list of stays is wrong twice over, and the
+   * unfiltered search that fetched it was also spending two billed Places
+   * requests on every visit to this page.
+   */
+  const pool = (await repo.search({}, { partners: false })).filter(
     (l) =>
       l.kind !== "restaurant" &&
       l.kind !== "experience" &&

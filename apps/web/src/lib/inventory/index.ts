@@ -12,6 +12,7 @@ import {
 } from "./providers/places";
 import {
   providerDisabled,
+  providerError,
   providerNoKey,
   providerTimeout,
   type InventoryProvider,
@@ -96,6 +97,45 @@ function report(result: ProviderResult): void {
 const RESULT_TTL_MS = 60_000;
 
 const resultCache = new Map<string, { value: ProviderResult[]; expires: number }>();
+
+/**
+ * How long a provider is left alone after it says we are over quota.
+ *
+ * Exceeding a daily quota is the one failure that gets WORSE when you retry.
+ * Every other error here is worth another go on the next render: a timeout may
+ * have been a slow minute, a 500 may have passed. A 429 that names a per-day
+ * limit will answer the same way for hours, and each attempt still counts
+ * against the account making it.
+ *
+ * The old shape made that as bad as it could be. `searchPartners` caches only a
+ * COMPLETE answer, deliberately, so a failure is retried rather than inherited.
+ * Correct for a blip, and for a quota error it meant every page view, from
+ * every visitor, fired a fresh request at a service already refusing us, all
+ * day. The shelf could not fill either way; the only thing the retries changed
+ * was how long the quota stayed exhausted once it reset.
+ *
+ * Fifteen minutes is a compromise. Long enough that a burnt quota is not being
+ * hammered, short enough that raising the limit in the console takes effect
+ * while somebody is still sitting there watching for it.
+ */
+const QUOTA_BACKOFF_MS = 15 * 60_000;
+
+/** Provider name to the time it may be called again. */
+const backoffUntil = new Map<PartnerProviderName, number>();
+
+/**
+ * Whether an upstream refusal was about quota rather than about this request.
+ *
+ * Matched on the status code we put in the reason string, plus the word every
+ * provider uses for it. Deliberately generous: treating a quota error as an
+ * ordinary one costs a day of hammering, and treating an ordinary one as quota
+ * costs fifteen minutes of a feed nobody could see anyway.
+ */
+function isQuotaRefusal(result: ProviderResult): boolean {
+  if (result.outcome !== "error") return false;
+  const reason = result.reason.toLowerCase();
+  return reason.includes(" 429") || reason.includes("quota") || reason.includes("rate limit");
+}
 
 /** The cache key is the filter, because the filter is the whole request. */
 function filterKey(filter: ListingSearchFilter): string {
@@ -224,13 +264,42 @@ export async function searchPartners(
   const hit = resultCache.get(key);
   if (hit && hit.expires > Date.now()) return hit.value;
 
-  const settled = await Promise.allSettled(keyed.map((entry) => withTimeout(entry, filter)));
+  /*
+   * A provider inside its back-off is not called at all. It reports the reason
+   * it is being skipped, so the admin diagnostic says "over quota, resting"
+   * rather than going quiet and looking like a different fault.
+   */
+  const now = Date.now();
+  const settled = await Promise.allSettled(
+    keyed.map((entry) => {
+      const until = backoffUntil.get(entry.provider.name) ?? 0;
+      if (until > now) {
+        const minutes = Math.max(1, Math.ceil((until - now) / 60_000));
+        return Promise.resolve(
+          providerError(
+            entry.provider.name,
+            `over quota, not calling again for about ${minutes} minute${minutes === 1 ? "" : "s"}`,
+          ),
+        );
+      }
+      return withTimeout(entry, filter);
+    }),
+  );
 
   const results = settled.map((result, index) => {
     if (result.status === "fulfilled") return result.value;
     const name = keyed[index]?.provider.name ?? "liteapi";
     return providerTimeout(name);
   });
+
+  // Arm the back-off before anything else reads these results.
+  for (const result of results) {
+    if (!isQuotaRefusal(result)) continue;
+    /* Do not re-arm off our own skip message, or the back-off would renew
+       itself for ever and the provider would never be tried again. */
+    if (result.outcome === "error" && result.reason.startsWith("over quota")) continue;
+    backoffUntil.set(result.provider, Date.now() + QUOTA_BACKOFF_MS);
+  }
 
   // Reported before the cache decision, so a failure is seen every time it
   // happens rather than only on the renders that miss the cache.

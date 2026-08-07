@@ -9,7 +9,12 @@ import { dedupeListings } from "../inventory/dedupe";
 import { isSupabaseConfigured } from "../supabase/env";
 import { diversePick, matchesFilter } from "./filter";
 import { SupabaseListingRepository } from "./supabase-repository";
-import type { Listing, ListingRepository, ListingSearchFilter } from "./types";
+import type {
+  Listing,
+  ListingRepository,
+  ListingSearchFilter,
+  ListingSearchOptions,
+} from "./types";
 
 /**
  * Listing data access.
@@ -218,7 +223,28 @@ class PartnerAugmentedRepository implements ListingRepository {
     this.isSeed = base.isSeed;
   }
 
-  async search(filter: ListingSearchFilter = {}): Promise<Listing[]> {
+  async search(
+    filter: ListingSearchFilter = {},
+    opts: ListingSearchOptions = {},
+  ): Promise<Listing[]> {
+    /*
+     * A partner call is a BILLED REQUEST, so a caller that cannot use the
+     * answer must be able to say so.
+     *
+     * This decorator used to call out on every search unconditionally, and the
+     * discovery page makes three searches per render: the results, the pool the
+     * filter drawer counts against, and the whole catalogue for the map's price
+     * floor. Two Places requests each, so up to six per page view, per visitor.
+     * That is what exhausted a day of SearchText quota, and the 429 that
+     * followed looked exactly like every other empty shelf.
+     *
+     * The map floor is the clearest case: it skips any row without a real
+     * price, and Google Places answers with a price LEVEL rather than an
+     * amount, so every Places row it fetched was discarded a few lines later.
+     * It was paying for data it was written to throw away.
+     */
+    if (opts.partners === false) return this.base.search(filter);
+
     // First party is fetched first and never waits on a partner: both halves run
     // in parallel, and the partner half has its own hard timeout inside.
     const [first, partner] = await Promise.all([
