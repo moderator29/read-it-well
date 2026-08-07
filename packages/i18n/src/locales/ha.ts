@@ -1223,6 +1223,105 @@ export const ha: Dictionary = {
       "Ana raba kuɗin da ya shiga hanya uku: rabonka, rabon dandalin, da abin da processor na biyan kuɗi ya ɗauka. Ukun kullum suna haɗuwa zuwa abin da baƙon ya biya, shi ya sa kowane layi a nan yana daidaita.",
   },
 
+  /*
+   * NATIVE REVIEW, and this section more than most.
+   *
+   * The three `notCounted` paragraphs are the argument for why a number is
+   * absent, and an argument is exactly the kind of writing that survives a
+   * literal translation least well. If any of it reads as an apology rather
+   * than as a plain statement of what is and is not recorded, it should be
+   * rewritten rather than corrected.
+   */
+  agentAnalytics: {
+    title: "Bincike",
+    lede: "Abin da kadarorinka suka yi da gaske, an ƙidaya shi daga tarihinka.",
+    unconfigured:
+      "Adadinka za su bayyana a nan da zarar maɓallan dandalin suka iso. Babu abin da ya ɓace a tsakani.",
+    unavailable:
+      "Ba mu iya karanta wannan yanzu ba, don haka ba a nuna komai maimakon nuna adadi mara daidai.",
+    emptyTitle: "Babu abin da za a auna tukuna",
+    emptyBody:
+      "Wannan shafin yana ƙidaya buƙatu, zama, kuɗin da ya shiga da sharhi. Zai zauna babu komai har sai ɗaya daga cikinsu ya faru da gaske, domin zanen misali ba zai gaya maka komai game da kowa ba.",
+    emptyAction: "Fara jeri",
+
+    headline: {
+      settled: "Abin da ya shiga gare ka",
+      stays: "Zaman da aka tabbatar",
+      rating: "Ƙimar baƙi",
+      ratingNone: "Babu sharhi tukuna",
+      ratingFrom: "Daga sharhi {count}",
+      ratingFromOne: "Daga sharhi ɗaya",
+      booked: "An ajiye, darare {nights} masu zuwa",
+    },
+
+    trend: {
+      title: "Kuɗin da ya shiga kowane wata",
+      blurb:
+        "Kowane sanda shi ne jimillar rabonka a kuɗin da ya shiga wannan watan. Ana zana watan da babu komai a cikinsa da sifili, domin haka ya faru.",
+      peak: "Mafi kyawun wata zuwa yanzu",
+      empty:
+        "Babu kuɗin da ya shiga tukuna, don haka babu zanen da za a yi. Zai cika da kansa a karo na farko da kuɗi ya motsa.",
+    },
+
+    requests: {
+      title: "Yadda buƙatu ke ƙarewa",
+      blurb: "Kowace buƙata da kadarorinka suka karɓa, a matsayin da take yau.",
+      received: "Buƙatun da aka karɓa",
+      confirmed: "An tabbatar",
+      cancelled: "An soke",
+      waiting: "Suna jiran ka",
+      lapsed: "Ba a amsa ba bayan riƙon",
+      lapsedNote:
+        "Buƙata tana riƙe dararenta na awa {hours}. Waɗannan sun wuce wancan ba tare da amsa ba, wanda baƙo ke karantawa a matsayin ƙi.",
+      answerTitle: "Lokacin da ka saba ɗauka kafin ka amsa",
+      answerBody:
+        "Tsakiyar adadi a cikin buƙatu {count} da kai da kanka ka amsa. Rabi sun fi sauri, rabi sun fi jinkiri.",
+      answerBodyOne: "An auna shi a kan buƙata ɗaya tilo da kai da kanka ka amsa.",
+      answerNone:
+        "Ba ka amsa wata buƙata da kanka ba tukuna, don haka babu lokacin da za a bayar. Wannan ba sifili ba ne.",
+      answerUnavailable: "Ba mu iya karanta tarihin buƙatunka yanzu ba.",
+      empty: "Babu buƙatar da ta isa kadarorinka tukuna.",
+    },
+
+    listings: {
+      title: "Kadara bayan kadara",
+      blurb:
+        "An jera su bisa abin da ya shiga da gaske, don haka kadarar da ke samun mafi yawa tana kan gaba.",
+      columnListing: "Kadara",
+      columnRequests: "Buƙatu",
+      columnConfirmed: "An tabbatar",
+      columnNights: "Darare",
+      columnSettled: "Ya shiga",
+      columnRating: "Ƙima",
+      ratingWith: "{rating} daga sharhi {count}",
+      ratingWithOne: "{rating} daga sharhi ɗaya",
+      noRating: "Babu sharhi",
+      empty: "Ba ka da kadara tukuna, don haka babu abin da za a kwatanta.",
+    },
+
+    calendar: {
+      title: "Dararenka {nights} masu zuwa",
+      body: "A kan kadarori {count} masu aiki, wannan yana nufin darare {offered} a kasuwa.",
+      bodyOne: "A kan kadara ɗaya tilo mai aiki, wannan yana nufin darare {offered} a kasuwa.",
+      booked: "An ajiye",
+      blocked: "Kai ka rufe",
+      open: "Har yanzu a buɗe",
+      none: "Babu naka da ke aiki tukuna, don haka babu dararen da za a ƙidaya.",
+      blockedNote:
+        "Ana ƙidaya dararen da kai ka rufe daban da waɗanda aka ajiye. Zaɓinka ne, ba kasuwancin da ya ɓace ba.",
+    },
+
+    notCounted: {
+      title: "Abin da wannan shafin bai ƙidaya ba",
+      views:
+        "Kallo. RentMe ba ya ƙidaya yawan mutanen da suka duba kadara, don haka babu adadin kallo a nan kuma babu ƙimar juyawa da aka gina a kansa. Nuna ko wanne zai zama ƙirƙira.",
+      saves:
+        "Ajiyewa. Jerin ajiyar baƙo mallakarsa ne kaɗai, kuma baƙon da bai shiga ba yana ajiye nasa a wayarsa, don haka duk adadin da za mu iya bayarwa zai gaza da adadin da babu wanda zai iya aunawa.",
+      occupancy:
+        "Kason amfani da ya wuce. Ana ƙidaya dararen da aka sayar daidai, amma sanin wane kason ƙarfinka ne hakan yana buƙatar sanin kadarori nawa ne suke aiki a kowane daren da ya wuce, wanda ba a rubuta ba. Ana nuna darare 30 masu zuwa maimakon haka, domin adadin kadarorin da ke aiki yau gaskiya ne.",
+    },
+  },
+
   admin: {
     console: {
       // NATIVE REVIEW: "console" kept in English the way Nigerian staff say it.

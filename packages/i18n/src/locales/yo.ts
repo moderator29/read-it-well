@@ -1228,6 +1228,105 @@ export const yo: Dictionary = {
       "A pín owó tí ó wọlé ní ọ̀nà mẹ́ta: ìpín rẹ, ìpín pátákó náà, àti ohun tí ẹni tó ń gbé owó náà kọjá mú. Àwọn mẹ́tẹ̀ẹ̀ta ń papọ̀ dé ohun tí àlejò san, ìdí nìyẹn tí ìlà kọ̀ọ̀kan níbí ń bá ara rẹ̀ mu.",
   },
 
+  /*
+   * NATIVE REVIEW, and this section more than most.
+   *
+   * The three `notCounted` paragraphs are the argument for why a number is
+   * absent, and an argument is exactly the kind of writing that survives a
+   * literal translation least well. If any of it reads as an apology rather
+   * than as a plain statement of what is and is not recorded, it should be
+   * rewritten rather than corrected.
+   */
+  agentAnalytics: {
+    title: "Ìṣirò",
+    lede: "Ohun tí àwọn ohun ìní rẹ ṣe ní tòótọ́, tí a kà láti inú àkọsílẹ̀ tìrẹ.",
+    unconfigured:
+      "Àwọn iye rẹ máa hàn níbí ní kété tí àwọn kọ́kọ́rọ́ pátákó bá dé. Kò sí ohun tí ó sọnù láàrin ìgbà náà.",
+    unavailable:
+      "A kò lè kà èyí báyìí, nítorí náà a kò fi ohunkóhun hàn dípò kí a fi iye tí kò tọ́ hàn.",
+    emptyTitle: "Kò sí ohun tí a lè díwọ̀n síbẹ̀",
+    emptyBody:
+      "Ojú-ìwé yìí ń ka ìbéèrè, ìbùgbé, owó tí ó wọlé àti àtúnyẹ̀wò. Ó máa wà ní òfìfo títí ọ̀kan nínú wọn yóò fi ṣẹlẹ̀ ní tòótọ́, nítorí pé àwòrán àpẹẹrẹ kì yóò sọ nípa ẹnikẹ́ni fún ọ.",
+    emptyAction: "Bẹ̀rẹ̀ àtòjọ kan",
+
+    headline: {
+      settled: "Tí ó ti wọlé fún ọ",
+      stays: "Ìbùgbé tí a fọwọ́sí",
+      rating: "Ìdíwọ̀n àwọn àlejò",
+      ratingNone: "Kò sí àtúnyẹ̀wò síbẹ̀",
+      ratingFrom: "Láti inú àtúnyẹ̀wò {count}",
+      ratingFromOne: "Láti inú àtúnyẹ̀wò kan",
+      booked: "A ti fi pamọ́, alẹ́ {nights} tó ń bọ̀",
+    },
+
+    trend: {
+      title: "Owó tí ó wọlé ní oṣù kọ̀ọ̀kan",
+      blurb:
+        "Ọ̀pá kọ̀ọ̀kan ni àpapọ̀ ìpín rẹ nínú owó tí ó wọlé ní oṣù náà. A ń fi oṣù tí kò ní nǹkan nínú hàn ní òdo, nítorí pé bẹ́ẹ̀ ni ó ṣẹlẹ̀.",
+      peak: "Oṣù tí ó dára jù lọ",
+      empty:
+        "Kò sí owó tí ó wọlé síbẹ̀, nítorí náà kò sí àwòrán tí a lè fà. Ó máa kún fúnra rẹ̀ ní ìgbà àkọ́kọ́ tí owó bá rìn.",
+    },
+
+    requests: {
+      title: "Bí àwọn ìbéèrè ṣe ń parí",
+      blurb: "Gbogbo ìbéèrè tí àwọn ohun ìní rẹ ti gbà, ní ipò tí ó wà lónìí.",
+      received: "Ìbéèrè tí a gbà",
+      confirmed: "A ti fọwọ́sí",
+      cancelled: "A ti fagilé",
+      waiting: "Ń dúró dè ọ́",
+      lapsed: "Kò sí ìdáhùn lẹ́yìn ìdìmọ́",
+      lapsedNote:
+        "Ìbéèrè kan dì àwọn alẹ́ rẹ̀ mọ́ fún wákàtí {hours}. Àwọn wọ̀nyí kọjá ìyẹn láìsí ìdáhùn, èyí tí àlejò kà sí bí ìkọ̀.",
+      answerTitle: "Àkókò tí o sábà máa ń fi dáhùn",
+      answerBody:
+        "Iye àárín láàrin ìbéèrè {count} tí ìwọ fúnra rẹ dáhùn. Ìdajì yá ju bẹ́ẹ̀ lọ, ìdajì sì pẹ́ ju bẹ́ẹ̀ lọ.",
+      answerBodyOne: "A díwọ̀n rẹ̀ lórí ìbéèrè kan ṣoṣo tí ìwọ fúnra rẹ ti dáhùn.",
+      answerNone:
+        "Ìwọ kò tíì dáhùn ìbéèrè kankan fúnra rẹ, nítorí náà kò sí àkókò tí a lè sọ. Èyí kì í ṣe òdo.",
+      answerUnavailable: "A kò lè kà ìtàn ìbéèrè rẹ báyìí.",
+      empty: "Kò sí ìbéèrè tí ó ti dé àwọn ohun ìní rẹ síbẹ̀.",
+    },
+
+    listings: {
+      title: "Ohun ìní kọ̀ọ̀kan",
+      blurb:
+        "A tò wọ́n ní ìbámu pẹ̀lú ohun tí ó ti wọlé ní tòótọ́, nítorí náà ohun ìní tí ó ń mú owó jù wà lókè.",
+      columnListing: "Ohun ìní",
+      columnRequests: "Ìbéèrè",
+      columnConfirmed: "A fọwọ́sí",
+      columnNights: "Alẹ́",
+      columnSettled: "Tí ó wọlé",
+      columnRating: "Ìdíwọ̀n",
+      ratingWith: "{rating} láti inú àtúnyẹ̀wò {count}",
+      ratingWithOne: "{rating} láti inú àtúnyẹ̀wò kan",
+      noRating: "Kò sí àtúnyẹ̀wò",
+      empty: "O kò ní ohun ìní kankan síbẹ̀, nítorí náà kò sí ohun tí a lè fiwéra.",
+    },
+
+    calendar: {
+      title: "Alẹ́ {nights} rẹ tó ń bọ̀",
+      body: "Láàrin ohun ìní {count} tí ń ṣiṣẹ́, ìyẹn jẹ́ alẹ́ {offered} tí o fi lélẹ̀.",
+      bodyOne: "Láàrin ohun ìní kan ṣoṣo tí ń ṣiṣẹ́, ìyẹn jẹ́ alẹ́ {offered} tí o fi lélẹ̀.",
+      booked: "A ti fi pamọ́",
+      blocked: "O ti tì wọ́n",
+      open: "Ó ṣì ṣí sílẹ̀",
+      none: "Kò sí èyíkéyìí nínú tìrẹ tí ń ṣiṣẹ́ síbẹ̀, nítorí náà kò sí alẹ́ tí a lè kà.",
+      blockedNote:
+        "A ń ka àwọn alẹ́ tí ìwọ fúnra rẹ tì lọ́tọ̀ sí àwọn tí a ti fi pamọ́. Ìpinnu rẹ ni wọ́n, kì í ṣe òwò tí ó sọnù.",
+    },
+
+    notCounted: {
+      title: "Ohun tí ojú-ìwé yìí kò kà",
+      views:
+        "Ìwòye. RentMe kò ka iye àwọn tí ó wo ohun ìní kan, nítorí náà kò sí iye ìwòye níbí, bẹ́ẹ̀ ni kò sí ìṣirò ìyípadà tí a gbé kà á. Fífi èyíkéyìí hàn yóò jẹ́ ohun tí a hun.",
+      saves:
+        "Ìfipamọ́. Àtòjọ ìfipamọ́ àlejò jẹ́ ti ara rẹ̀ nìkan, àlejò tí kò wọlé sì ń fi tirẹ̀ pamọ́ sí fóònù ara rẹ̀, nítorí náà iye èyíkéyìí tí a bá kà yóò kéré ní ìwọ̀n tí ẹnikẹ́ni kò lè díwọ̀n.",
+      occupancy:
+        "Ìpín ọgọ́rùn-ún ti ìlò àtijọ́. A ń ka àwọn alẹ́ tí a tà ní pípé, ṣùgbọ́n láti mọ ìpín agbára rẹ tí ìyẹn jẹ́, a gbọ́dọ̀ mọ iye ohun ìní tí o ní tí ń ṣiṣẹ́ ní alẹ́ kọ̀ọ̀kan tí ó kọjá, èyí tí a kò kọ sílẹ̀. A fi alẹ́ 30 tó ń bọ̀ hàn dípò rẹ̀, nítorí pé iye ohun ìní tí ń ṣiṣẹ́ lónìí jẹ́ òtítọ́.",
+    },
+  },
+
   admin: {
     console: {
       // NATIVE REVIEW: "console" kept in English the way Nigerian staff say it.

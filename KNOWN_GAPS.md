@@ -80,11 +80,44 @@ figures like "Hotels 5,130+", which are mockup numbers. Publishing invented
 inventory counts is misleading advertising, so the hero cards render label-only
 and gain counts with no redesign once a real aggregate exists.
 
-**One agent workspace route is still an `AgentComingSoon` stub**:
-`/agent/analytics`. Verified by grep: it is the only file in `apps/web/src/app`
-that still imports the component. Everything else in the workspace is real,
-including messages, reviews, settings and now verification, all of which this
-file listed as stubs after they shipped.
+**No agent workspace route is an `AgentComingSoon` stub any more.**
+`/agent/analytics` was the last one and it now reads real figures. Verified by
+grep: no file under `apps/web/src/app` imports the component. The component
+itself is kept rather than deleted, because the rail will gain destinations
+again and a placeholder that states plainly it is a placeholder is the designed
+answer for that (Master Rules 17 and 55).
+
+**`/agent/analytics` deliberately does not count three things, and one of them
+is a product decision the owner still owns.** The page states all three on the
+screen itself, under "What this page does not count", because silence about a
+metric on an analytics surface is read as a zero rather than as an absence.
+
+*Views.* Nothing on this platform counts a view of a listing. `post_views`
+exists but belongs to the social feed and keys on `posts.id`, so it cannot be
+joined to a listing at all. With no view count there is also no view-to-booking
+conversion rate, which is the figure a host would most want. Adding view
+counting is a real piece of work (a write path, a bot filter, a retention
+policy) and it has not been started.
+
+*Saves.* `saved_items` is owner-only by policy (`saved_items_own`, `for all
+using auth.uid() = user_id`), so a host's own client cannot read it. The service
+role could, and the analytics read deliberately does not: that policy was
+written to be strict rather than left incomplete, and bypassing it to publish a
+count of who fancied a flat is a privacy posture change, not an implementation
+detail. Separately the number would be wrong anyway, because a signed-out
+visitor's saves live in `localStorage` and a cookie (`lib/saved/local.ts`) and
+never become rows, so a database count is short by an unmeasurable margin.
+**Owner decision needed:** whether hosts should ever see an aggregate save count,
+and if so whether the guest-facing copy on the save control should say so.
+
+*Historical occupancy as a percentage.* Nights sold can be counted exactly. The
+denominator cannot: a percentage of capacity needs to know how many listings
+were published on each past night, and `listings` carries one `published_at` and
+one current `status` rather than a history of either, so a listing paused last
+March would silently rewrite last March's occupancy on every page load. The page
+shows forward occupancy over the next 30 nights instead, where the denominator
+is today's published count and today is a fact. A `listing_status_events` table
+would make the historical figure answerable and does not exist.
 
 **`/agent/verification` shows the ladder but cannot move anybody up it.** The
 screen exists now: an agent sees all four rungs, which they have passed, which
@@ -108,6 +141,29 @@ every count, and the Igbo entries deliberately use the unmarked noun with the
 numeral after it (`okenye {count}`, `nwa {count}`) rather than the plural-marked
 `ndị okenye` and `ụmụaka` used elsewhere in that file, which would read as
 "adults 1" beside a numeral. A native speaker should confirm that choice.
+
+**The `agentAnalytics` block in Yoruba, Hausa and Igbo is a best effort and is
+named here rather than passed off as verified.** Every one of its roughly fifty
+strings was written for this change. The short labels reuse vocabulary already
+established in each file (`ìbéèrè` / `buƙatu` / `arịrịọ` for requests, `ìbùgbé` /
+`zama` / `obibi` for stays, `ìpín` / `rabo` / `òkè` for a share, `alẹ́` / `dare`
+/ `abalị` for a night), so those carry the same confidence as the surrounding
+booking and earnings copy.
+
+The three `notCounted` paragraphs are the ones that need a native speaker most,
+and they are flagged in a comment above the block in each file. They are not
+labels, they are an argument for why a number is absent, and an argument is the
+kind of writing that survives a literal translation least well. If any of them
+reads as an apology rather than as a plain statement of what is and is not
+recorded, it should be rewritten from the intent rather than corrected word by
+word. The same applies to `requests.answerBody`, which explains a median in a
+sentence, and to `emptyBody`, which has to say "a sample chart would tell you
+about nobody" without sounding like a fault.
+
+Two terms were left in a form that may not be idiomatic and are worth a specific
+look: the Igbo section title `Ọnụọgụgụ` for "Analytics", and the Yoruba
+`Ìdíwọ̀n` for a guest rating, neither of which had an established form anywhere
+else in the file to copy.
 
 **The reserve panel on a listing is still written in English in the component.**
 Only the three sentences that state a count were moved into the dictionary
