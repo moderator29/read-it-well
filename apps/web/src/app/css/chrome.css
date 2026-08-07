@@ -72,6 +72,48 @@
   }
 
   /*
+   * The native keyboard, and what the bottom of the screen means while it is
+   * up.
+   *
+   * `data-keyboard="open"` and `--nf-keyboard-inset` are set on the root by
+   * `lib/native/keyboard.ts` and by nothing else, so both rules below are
+   * inert on the website and on any device with no keyboard showing. The
+   * inset is declared here at zero so a surface may read it unconditionally,
+   * the same way the safe areas are read across chips.css and overlays.css.
+   *
+   * The Capacitor keyboard plugin is configured with `resize: "native"`, so
+   * the web view itself shrinks to the space above the keys and every fixed
+   * and sticky surface re-resolves against the smaller viewport. Two things it
+   * cannot do for us:
+   *
+   *   The safe-area inset above still describes the home indicator at the
+   *   bottom of the DEVICE, and with the keyboard up the bottom of the view is
+   *   the top of the keyboard, where no home indicator exists. Left in, it is
+   *   34 points of dead air wedged between a submit button and the keys.
+   *
+   *   The floating dock keeps its place, and at 390 by 844 with a keyboard up
+   *   there is around 300 points of viewport left. Spending a quarter of it on
+   *   destinations nobody navigates to mid sentence is why native applications
+   *   hide their tab bar while typing. Hidden in CSS rather than by unmounting,
+   *   so nothing re-renders and it returns the instant the keyboard does.
+   */
+  :root {
+    --nf-keyboard-inset: 0px;
+  }
+  :root[data-keyboard="open"] {
+    --nf-tabbar-clearance: 0.75rem;
+  }
+  :root[data-keyboard="open"] .nf-dockrow {
+    display: none;
+  }
+  /* The same stale inset, on the pinned action bar that carries the submit
+     button. Higher specificity than the declaration in chips.css, so this
+     holds wherever the two files sit in the cascade. */
+  :root[data-keyboard="open"] .nf-action-bar-pinned {
+    padding-bottom: 0;
+  }
+
+  /*
    * The dock: detached islands, not one continuous bar.
    *
    * The supplied reference is the iOS Photos bottom bar - a standalone circular

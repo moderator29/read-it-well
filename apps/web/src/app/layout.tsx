@@ -6,6 +6,7 @@ import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { TiltField } from "@/components/site/TiltField";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
+import { NativeRuntime } from "@/components/app/NativeRuntime";
 import "./globals.css";
 
 /*
@@ -205,6 +206,14 @@ export default async function RootLayout({
         <ScrollToTop />
         {/* Installs the offline shell after load, in production only. Renders nothing. */}
         <ServiceWorkerRegistrar />
+        {/*
+          The native shell's runtime: splash dismissal, the status bar, the
+          keyboard inset, Android's back button and the payment and OAuth
+          handoff to the system browser. Renders nothing, and on the web it is
+          a complete no-op that fetches none of the Capacitor packages. See
+          `lib/native/boot.ts`.
+        */}
+        <NativeRuntime />
         <a href="#main" className="nf-skip-link">
           {t.common.skipToContent}
         </a>
