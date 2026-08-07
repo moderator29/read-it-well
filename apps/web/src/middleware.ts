@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { contentSecurityPolicy, createNonce } from "./lib/security/csp";
+import { safeReturnPath } from "./lib/security/return-path";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
 
 /**
@@ -58,22 +59,6 @@ const PRODUCT_SEGMENTS = new Set([
   // First run, which is a signed-in experience by definition.
   "welcome",
 ]);
-
-/**
- * Where to send somebody back to after they sign in.
- *
- * Returned as a path, never a URL, and re-checked on the way out. A `next`
- * parameter that accepts an absolute address is an open redirect: an attacker
- * sends `/sign-in?next=https://rentme.ng.evil.example` and the sign-in page
- * they trusted hands them to somebody else. The two leading-slash cases matter
- * as much as the scheme, because `//evil.example` is protocol-relative and a
- * browser reads it as a host.
- */
-function safeReturnPath(pathname: string, search: string): string | null {
-  if (!pathname.startsWith("/") || pathname.startsWith("//")) return null;
-  const full = `${pathname}${search}`;
-  return full.includes("\\") ? null : full;
-}
 
 export async function middleware(request: NextRequest) {
   /*
