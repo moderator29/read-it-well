@@ -72,6 +72,9 @@ const PUBLIC = [
   "/sign-up/email",
   "/sign-up/verify",
   "/sign-in/email",
+  /* Where every confirmation link lands. It MUST be reachable without a
+     session: a session is the thing it is about to create. */
+  "/auth/callback",
   "/forgot-password",
   "/reset-password",
 ];

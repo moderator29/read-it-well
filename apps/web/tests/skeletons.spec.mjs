@@ -60,6 +60,9 @@ const NO_WAIT = [
   "/sign-in", "/sign-in/email", "/sign-up", "/sign-up/email", "/sign-up/verify",
   "/forgot-password", "/reset-password", "/offline", "/agents", "/agents/apply",
   "/welcome",
+  /* The callback awaits nothing before painting. It IS the wait, and it draws
+     its own: a heading, a sentence and a bar, on the first frame. */
+  "/auth/callback",
 ];
 
 /** Walk the app directory and collect every route with a page. */

@@ -414,6 +414,96 @@ export async function verifySignUpCode(
 }
 
 /**
+ * Finish an email confirmation, whichever shape the link arrived in.
+ *
+ * Supabase sends one of three things depending on how the project is set up
+ * and which flow the client is on, and a confirmation that only handles one of
+ * them is a confirmation that works until somebody changes a setting:
+ *
+ *   `code`         the PKCE authorisation code. Exchanged for a session. Needs
+ *                  the verifier cookie the sign-up left behind, so it only
+ *                  works in the browser the account was made in.
+ *   `token_hash`   the hashed one-time token. Verified outright, with no
+ *                  verifier needed, so this is the shape that survives opening
+ *                  the email on a different device.
+ *   access/refresh the implicit flow, which puts the tokens in the URL
+ *                  FRAGMENT. A server never sees a fragment, which is why this
+ *                  runs as an action called from the browser rather than as a
+ *                  route handler: the handler was structurally incapable of
+ *                  reading this case and quietly sent those people to
+ *                  "link-expired".
+ *
+ * A server action rather than a route handler for the other half of that
+ * reason too: only an action or a handler may write cookies, and only an
+ * action can be called from a screen that is already showing the reader what
+ * is happening.
+ *
+ * Returns the path to go to, so the caller navigates rather than this throwing
+ * a redirect through a fetch. `next` is re-validated here and never trusted.
+ */
+export type VerificationOutcome =
+  | { ok: true; next: string }
+  | { ok: false; reason: "expired" | "invalid" | "unconfigured" };
+
+export async function completeEmailVerification(input: {
+  code?: string | undefined;
+  tokenHash?: string | undefined;
+  type?: string | undefined;
+  accessToken?: string | undefined;
+  refreshToken?: string | undefined;
+  next?: string | undefined;
+}): Promise<VerificationOutcome> {
+  if (!emailConfigured()) return { ok: false, reason: "unconfigured" };
+
+  const next = landingFromPath(input.next);
+  const supabase = await createClient();
+
+  if (input.code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(input.code);
+    if (error) return { ok: false, reason: "expired" };
+  } else if (input.tokenHash) {
+    /* The type decides what is being confirmed. Anything we do not recognise
+       is treated as a signup, which is the only one that reaches this screen
+       without a type in practice. */
+    const type = ["signup", "email", "email_change", "recovery", "invite", "magiclink"].includes(
+      input.type ?? "",
+    )
+      ? (input.type as "signup" | "email" | "email_change" | "recovery" | "invite" | "magiclink")
+      : "signup";
+    const { error } = await supabase.auth.verifyOtp({ token_hash: input.tokenHash, type });
+    if (error) return { ok: false, reason: "expired" };
+  } else if (input.accessToken && input.refreshToken) {
+    const { error } = await supabase.auth.setSession({
+      access_token: input.accessToken,
+      refresh_token: input.refreshToken,
+    });
+    if (error) return { ok: false, reason: "expired" };
+  } else {
+    return { ok: false, reason: "invalid" };
+  }
+
+  await forgetPendingEmail();
+  // The session cookies are set. Drop every cached render so the shell picks
+  // the signed-in tree rather than the anonymous one behind this screen.
+  revalidatePath("/", "layout");
+  return { ok: true, next };
+}
+
+/**
+ * The same rule `landingAfterAuth` applies, for a value that arrives as a
+ * string rather than on a form. A `next` that accepts an absolute address is
+ * an open redirect, and the two leading slashes matter as much as the scheme
+ * because `//evil.example` is protocol-relative and a browser reads it as a
+ * host. A backslash matters too: the URL parser treats it as a separator, so
+ * `/\evil.example` resolves off-origin.
+ */
+function landingFromPath(raw: string | undefined): string {
+  if (typeof raw !== "string" || raw.length === 0) return "/home";
+  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) return "/home";
+  return raw;
+}
+
+/**
  * Send another confirmation code to the same address.
  *
  * Deliberately quiet about whether the address has an account waiting. The
