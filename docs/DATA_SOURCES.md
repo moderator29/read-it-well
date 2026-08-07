@@ -71,6 +71,29 @@ Attribution is a licence condition: "powered by Google" must render wherever
 this data shows, and the mapped listing already carries the obligation so the UI
 cannot forget.
 
+#### Reading a refusal
+
+Run `/api/admin/inventory?q=Lagos` signed in as an admin. It makes one live call
+per feed and reports what came back. Every case below was hit for real while
+getting this key working, in this order, and each one looks identical from the
+app: a thin shelf and no explanation. The reason string is the only thing that
+tells them apart, which is why the upstream's own message is now carried through
+rather than reduced to a status code.
+
+| What the reason says | What is actually wrong | Where to fix it |
+|---|---|---|
+| `no_key` | The variable is unset. No call was made. | Vercel env |
+| `answered 403: ... has not been used in project N before or it is disabled` | The API is not switched on for that project. Note it must be **Places API (New)**; the legacy "Places API" is a different product and enabling it does nothing for us. | Console → the URL in the message |
+| `answered 403: Requests to this API ... method ... are blocked` | The API is enabled, but the KEY is restricted to a set of APIs that does not include Places API (New). | Console → Credentials → the key → **API restrictions** |
+| `answered 403: Requests from referer <empty> are blocked` | The key carries HTTP referrer restrictions. Every call we make is server side and sends no referrer, so a browser-restricted key can never pass. | Console → Credentials → the key → **Application restrictions**, unrestricted or IP |
+| `answered 429` | Over quota for the day. | Console → Quotas, or wait |
+| `outcome: ok` with `listings: 0` | The key works. There is genuinely nothing matching in that city. | Nothing. Try another `?q=` |
+
+The same route reports LiteAPI, whose 401 body says only "unauthorized". The
+shape note beside it carries the diagnosis instead: a key that does not begin
+`sand_` or `prod_` is the PUBLIC key, which their front-end SDK uses and which
+these server calls refuse identically to a bad key.
+
 ### MapTiler: map tiles
 
 | | |
