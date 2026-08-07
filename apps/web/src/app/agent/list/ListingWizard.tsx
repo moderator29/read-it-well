@@ -374,8 +374,24 @@ export function ListingWizard({
 
   /* ---------------------------------------------------------- draft safety */
 
-  // Restore a device draft once, and only when the platform did not hand us
-  // one, so a stored listing always wins over whatever this browser remembers.
+  /*
+   * Restore a device draft once, and only when the platform did not hand us
+   * one, so a stored listing always wins over whatever this browser remembers.
+   *
+   * The device draft now records WHICH listing it is a copy of, and that turns
+   * out to be the load-bearing field. Without it the two halves of the save
+   * could not tell each other apart: this browser remembered the words, the
+   * platform held the row, the photos and the amenities, and nothing connected
+   * them. Restoring the words into a wizard with no id meant the next autosave
+   * INSERTED a second listing, so the host ended up owning two half drafts, saw
+   * neither set of photos, and had every reason to believe their work was gone.
+   *
+   * When the stored draft names a listing the platform did NOT hand back, the
+   * right answer is to drop it rather than retype it. That combination means
+   * the listing has been deleted, or has moved past DRAFT and is no longer the
+   * host's to edit; in both cases writing its old text into a brand new row
+   * would resurrect something the host or a reviewer already settled.
+   */
   useEffect(() => {
     if (restored.current) return;
     restored.current = true;
@@ -383,7 +399,15 @@ export function ListingWizard({
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return;
-      const parsed = JSON.parse(raw) as { values?: Partial<Values>; amenities?: string[] };
+      const parsed = JSON.parse(raw) as {
+        listingId?: string | null;
+        values?: Partial<Values>;
+        amenities?: string[];
+      };
+      if (typeof parsed.listingId === "string" && parsed.listingId.length > 0) {
+        localStorage.removeItem(DRAFT_KEY);
+        return;
+      }
       if (parsed.values) setValues((prev) => ({ ...prev, ...parsed.values }));
       if (parsed.amenities) setChosenAmenities(parsed.amenities);
     } catch {
@@ -394,11 +418,14 @@ export function ListingWizard({
   useEffect(() => {
     if (!restored.current) return;
     try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ values, amenities: chosenAmenities }));
+      localStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({ listingId, values, amenities: chosenAmenities }),
+      );
     } catch {
       /* storage unavailable, the platform copy still holds */
     }
-  }, [values, chosenAmenities]);
+  }, [listingId, values, chosenAmenities]);
 
   function set<K extends keyof Values>(key: K, value: Values[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -721,7 +748,11 @@ export function ListingWizard({
             <ButtonLink href="/agent/listings" variant="primary">
               {copy.submitted.goToListings}
             </ButtonLink>
-            <ButtonLink href="/agent/list" variant="secondary">
+            {/* "List another" is the one control on the platform that means a
+                blank wizard and nothing else, so it says so. Bare /agent/list
+                resumes an open draft now, which is right for the navigation
+                entry and would be wrong here. */}
+            <ButtonLink href="/agent/list?new=1" variant="secondary">
               {copy.submitted.another}
             </ButtonLink>
           </>

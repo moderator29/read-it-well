@@ -677,7 +677,7 @@ export const ha: Dictionary = {
         nin: "Lambar Shaida ta Kasa (NIN)",
         bvn: "Lambar Tabbatar da Banki (BVN)",
         businessName: "Sunan kasuwanci",
-        rcNumber: "Lambar RC (na zabi)",
+        rcNumber: "Lambar RC",
         state: "Jiha",
         city: "Birni",
         address: "Adireshi",
@@ -693,7 +693,7 @@ export const ha: Dictionary = {
         idBack: "Katin shaida, baya",
         registration: "Rajistar kasuwanci",
         upload: "Loda",
-        chooseFile: "Zabi fayil, PNG ko JPG ko PDF, har 5MB",
+        chooseFile: "Zabi fayil, PNG ko JPG ko PDF, har 10MB",
       },
       review: {
         title: "Duba ka aika",

@@ -799,7 +799,7 @@ export const en = {
         nin: "National Identification Number (NIN)",
         bvn: "Bank Verification Number (BVN)",
         businessName: "Business name",
-        rcNumber: "RC number (optional)",
+        rcNumber: "RC number",
         state: "State",
         city: "City",
         address: "Address",
@@ -815,7 +815,7 @@ export const en = {
         idBack: "ID card, back",
         registration: "Business registration",
         upload: "Upload",
-        chooseFile: "Choose a file, PNG or JPG or PDF, up to 5MB",
+        chooseFile: "Choose a file, PNG or JPG or PDF, up to 10MB",
       },
       review: {
         title: "Review and submit",

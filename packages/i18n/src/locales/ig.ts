@@ -684,7 +684,7 @@ export const ig: Dictionary = {
         nin: "Nọmba Njirimara Mba (NIN)",
         bvn: "Nọmba Nkwenye Ụlọ akụ (BVN)",
         businessName: "Aha azụmahịa",
-        rcNumber: "Nọmba RC (nhọrọ)",
+        rcNumber: "Nọmba RC",
         state: "Steeti",
         city: "Obodo",
         address: "Adreesị",
@@ -700,7 +700,7 @@ export const ig: Dictionary = {
         idBack: "Kaadị njirimara, azụ",
         registration: "Ndebanye aha azụmahịa",
         upload: "Bulite",
-        chooseFile: "Họrọ faịlụ, PNG ma ọ bụ JPG ma ọ bụ PDF, ruo 5MB",
+        chooseFile: "Họrọ faịlụ, PNG ma ọ bụ JPG ma ọ bụ PDF, ruo 10MB",
       },
       review: {
         title: "Nyochaa ma zipu",
