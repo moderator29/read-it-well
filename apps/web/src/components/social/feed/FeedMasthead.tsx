@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Chip, ChipRow } from "@/components/ui/Chip";
 
 /** The three feeds, in the order every product of this shape puts them. */
 export const FEED_TABS = ["for-you", "following", "new"] as const;
@@ -70,9 +69,18 @@ export function FeedMasthead({ t }: { t: Dictionary }) {
  * rest of the directory already lives.
  *
  * Each tab is a link carrying `?tab=`, so the choice survives a reload, puts a
- * real entry in the history stack, and costs no JavaScript. `Chip` supplies the
- * 44pt target and `aria-current` for the live one, because nothing is being
- * toggled: the row describes where the reader already is.
+ * real entry in the history stack, and costs no JavaScript. `aria-current` marks
+ * the live one, because nothing is being toggled: the row describes where the
+ * reader already is.
+ *
+ * **These are not chips any more.** They were, and a chip is the wrong object:
+ * a chip is a filter, a fat 44px pill built for a row of eight on /search, and
+ * drawn that way these three were the loudest thing above the reading. The
+ * owner asked for them smaller and rectangular rather than round, which is also
+ * what they should have been: this is the feed's top-level navigation, so it
+ * gets a tab's shape and a tab's rule underneath. `.nf-feedtab` keeps the 44pt
+ * touch target with a centred overlay, so nothing is given up for the smaller
+ * paint.
  */
 export function FeedTabs({ active, t }: { active: FeedTab; t: Dictionary }) {
   const label: Record<FeedTab, string> = {
@@ -83,20 +91,19 @@ export function FeedTabs({ active, t }: { active: FeedTab; t: Dictionary }) {
 
   return (
     <nav aria-label={t.social.tabsLabel} className="mb-4" data-testid="feed-tabs">
-      <ChipRow label={t.social.tabsLabel}>
+      <div className="nf-feedtabs border-b border-[var(--nf-border-subtle)]">
         {FEED_TABS.map((tab) => (
-          <Chip
+          <Link
             key={tab}
-            behaviour="link"
             href={tab === "for-you" ? "/around" : `/around?tab=${tab}`}
-            size="sm"
-            selected={tab === active}
+            className="nf-feedtab"
+            aria-current={tab === active ? "page" : undefined}
             data-testid={`feed-tab-${tab}`}
           >
             {label[tab]}
-          </Chip>
+          </Link>
         ))}
-      </ChipRow>
+      </div>
     </nav>
   );
 }

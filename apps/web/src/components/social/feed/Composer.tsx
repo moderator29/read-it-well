@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PostGlyph } from "./PostGlyph";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { createClient } from "@/lib/supabase/client";
 import { attachPostMedia, dropPost, replyToPost } from "@/lib/social/posts-actions";
@@ -71,7 +72,6 @@ export function Composer({
   areaId,
   parentId,
   signedIn,
-  isMember,
   areaName,
   autoFocus = false,
   initialKind = "GIST",
@@ -80,7 +80,6 @@ export function Composer({
   areaId?: string;
   parentId?: string;
   signedIn: boolean;
-  isMember?: boolean;
   areaName?: string;
   autoFocus?: boolean;
   /** Chosen before the composer opened, by the create ring. */
@@ -113,15 +112,20 @@ export function Composer({
     );
   }
 
-  if (!isReply && isMember === false) {
-    return (
-      <div className="nf-card nf-post p-4 text-center">
-        <p className="text-sm leading-relaxed text-[var(--nf-content-muted)]">
-          Join this place first and you can post in it.
-        </p>
-      </div>
-    );
-  }
+  /*
+   * There used to be a wall here.
+   *
+   * `isMember === false` returned "Join this place first and you can post in
+   * it", so somebody who opened the app, tapped the plus and wanted to say one
+   * sentence was told to go and join a room first. Nothing in the database ever
+   * asked for that: `posts.area_id` is nullable, `posts_insert_self` allows a
+   * null area outright, and there is no membership check anywhere in the schema.
+   * The requirement lived in this component and in one `.uuid()` on a zod field,
+   * and between them they made joining a place the price of speaking.
+   *
+   * It is gone. With a place, the post lands in that place. Without one, it
+   * lands on the whole platform, and the line under the box says which.
+   */
 
   if (held) {
     return (
@@ -270,7 +274,7 @@ export function Composer({
     startTransition(async () => {
       const result = parentId
         ? await replyToPost({ parentId, body })
-        : await dropPost({ areaId: areaId as string, kind, body });
+        : await dropPost(areaId ? { areaId, kind, body } : { kind, body });
 
       if (!result.ok) {
         setError(result.error);
@@ -388,6 +392,19 @@ export function Composer({
             {POST_COPY.pictureNote}
           </p>
         </>
+      ) : null}
+
+      {/* Where it lands. Nobody should have to guess whether the thing they
+          just wrote went to one street or to the whole country, and the answer
+          changes with a prop rather than with anything on screen. */}
+      {!isReply ? (
+        <p
+          className="mt-2 flex items-center gap-1.5 text-xs text-[var(--nf-content-secondary)]"
+          data-testid="composer-destination"
+        >
+          <UiIcon name={areaId ? "location" : "compass"} size={16} />
+          {areaId && areaName ? `Posting in ${areaName}` : "Posting to everyone on RentMe"}
+        </p>
       ) : null}
 
       {!isReply && pictures.length === 0 ? (

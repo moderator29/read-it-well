@@ -49,7 +49,7 @@ export function Feed({
   initial,
   locale = DEFAULT_LOCALE,
   signedIn,
-  isMember,
+  canCompose = false,
   areaId,
   areaName,
   emptyMessage,
@@ -60,7 +60,18 @@ export function Feed({
      the server component that resolved it rather than each card guessing. */
   locale?: Locale;
   signedIn: boolean;
-  isMember: boolean;
+  /**
+   * Whether this timeline is one somebody can write into.
+   *
+   * This replaces `isMember`, which asked the wrong question. The composer used
+   * to be gated on `areaId && isMember`, so it appeared only inside a place the
+   * viewer had joined, and the main feed, which is where most people are when
+   * they think of something to say, had no way to write at all. A post no
+   * longer needs a place, so the real question is whether this list is a
+   * timeline or a record: the feed on `/around` and inside an area is one, a
+   * profile's own posts and an activity list are not.
+   */
+  canCompose?: boolean;
   areaId?: string;
   areaName?: string;
   emptyMessage: string;
@@ -333,13 +344,8 @@ export function Feed({
         )
       ) : null}
 
-      {areaId && chip !== "stories" && chip !== "reviews" ? (
-        <Composer
-          areaId={areaId}
-          areaName={areaName}
-          signedIn={signedIn}
-          isMember={isMember}
-        />
+      {canCompose && chip !== "stories" && chip !== "reviews" ? (
+        <Composer areaId={areaId} areaName={areaName} signedIn={signedIn} />
       ) : null}
 
       {notice ? (

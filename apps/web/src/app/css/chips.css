@@ -79,6 +79,94 @@
     box-shadow: 0 0 18px rgb(12 57 239 / 0.4), inset 0 0 14px rgb(12 57 239 / 0.16);
   }
 
+  /* ------------------------------------------------------- the feed tabs */
+
+  /*
+   * For you, Following, New.
+   *
+   * These were `.nf-chip`, and a chip is the wrong object for them. A chip is a
+   * filter: a pill you switch on and off, sized to be tapped in a row of eight
+   * on /search. These three are the top-level navigation of the whole feed, and
+   * drawn as fat rounded pills at 44px they were the loudest thing above the
+   * reading, which is exactly backwards for a surface whose job is to get out
+   * of the way. The owner said it plainly: smaller, and rectangular, not
+   * circles.
+   *
+   * So: a rectangle at the small radius, 34px of drawn height, the weight of a
+   * label rather than a button. The live one is marked by the brand rule under
+   * it, which is how a tab has said "you are here" since tabs existed, rather
+   * than by a glowing outline around the whole shape.
+   *
+   * The 44pt target is not given up for the smaller drawing. The same centred
+   * ::after overlay the chips use grows the touch region without moving a
+   * pixel of the paint.
+   */
+  .nf-feedtab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    padding: 0 0.85rem;
+    border-radius: var(--nf-radius-sm);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--nf-content-muted);
+    border: 1px solid transparent;
+    background: transparent;
+    transition:
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  .nf-feedtab::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    translate: 0 -50%;
+    min-height: 2.75rem;
+    height: 100%;
+  }
+
+  .nf-feedtab:hover {
+    color: var(--nf-content-primary);
+    background: var(--nf-surface-inset);
+  }
+
+  .nf-feedtab[aria-current="page"] {
+    color: var(--nf-content-primary);
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-brand);
+  }
+
+  /* The rule under the live tab. Drawn on the element rather than on the row,
+     so it tracks the tab's own width and needs no second node. */
+  .nf-feedtab[aria-current="page"]::before {
+    content: "";
+    position: absolute;
+    left: 0.85rem;
+    right: 0.85rem;
+    bottom: -1px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--nf-brand-secondary);
+  }
+
+  /* The row itself. Left aligned and flush with the feed, because a navigation
+     that centres itself reads as a banner. */
+  .nf-feedtabs {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nf-feedtabs::-webkit-scrollbar {
+    display: none;
+  }
+
   .nf-badge {
     display: inline-flex;
     align-items: center;
