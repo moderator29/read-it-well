@@ -105,6 +105,18 @@ export type ProfileSettings = {
    * silence is a skip that asks again tomorrow.
    */
   interestsAsked?: boolean;
+  /**
+   * True once the three welcome cards have been shown and dismissed, by
+   * reading them through or by skipping.
+   *
+   * Separate from `interestsAsked` because they are two different promises.
+   * The cards are us talking and the question is them answering, and somebody
+   * who read the cards and then closed the tab has been told what this place
+   * is; putting them through it again on their next sign-in is the platform
+   * failing to remember a conversation it started. A RETURNING USER MUST NEVER
+   * SEE THEM.
+   */
+  welcomeSeen?: boolean;
 };
 
 /** Settings with every optional filled in, which is what the UI renders from. */
@@ -116,6 +128,7 @@ export const SETTINGS_DEFAULTS: ResolvedProfileSettings = {
   locale: "en",
   dataSaver: false,
   interestsAsked: false,
+  welcomeSeen: false,
 };
 
 /**
@@ -138,6 +151,7 @@ const storedSettingsSchema = z
     locale: z.enum(LOCALE_CODES).optional().catch(undefined),
     dataSaver: z.boolean().optional().catch(undefined),
     interestsAsked: z.boolean().optional().catch(undefined),
+    welcomeSeen: z.boolean().optional().catch(undefined),
   })
   .partial()
   .catch({});
@@ -149,6 +163,7 @@ export function parseSettings(raw: unknown): ResolvedProfileSettings {
     privacy: { ...SETTINGS_DEFAULTS.privacy, ...stored.privacy },
     locale: stored.locale ?? SETTINGS_DEFAULTS.locale,
     dataSaver: stored.dataSaver ?? SETTINGS_DEFAULTS.dataSaver,
+    welcomeSeen: stored.welcomeSeen ?? SETTINGS_DEFAULTS.welcomeSeen,
     interestsAsked: stored.interestsAsked ?? SETTINGS_DEFAULTS.interestsAsked,
   };
 }
@@ -169,6 +184,7 @@ export const settingsPatchSchema = z
     locale: z.enum(LOCALE_CODES).optional(),
     dataSaver: z.boolean().optional(),
     interestsAsked: z.boolean().optional(),
+    welcomeSeen: z.boolean().optional(),
   })
   .refine((patch) => Object.values(patch).some((value) => value !== undefined), {
     message: "Nothing to save. Change a preference first.",
@@ -192,6 +208,7 @@ export function mergeSettings(
     locale: patch.locale ?? current.locale,
     dataSaver: patch.dataSaver ?? current.dataSaver,
     interestsAsked: patch.interestsAsked ?? current.interestsAsked,
+    welcomeSeen: patch.welcomeSeen ?? current.welcomeSeen,
   };
 }
 

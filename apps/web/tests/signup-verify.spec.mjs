@@ -48,6 +48,13 @@ function check(name, condition, detail) {
   }
 }
 
+const actions = readFileSync(join(SRC, "lib/auth/actions.ts"), "utf8");
+const notice = readFileSync(join(SRC, "components/auth/EmailTakenNotice.tsx"), "utf8");
+const codeForm = readFileSync(join(SRC, "components/auth/VerifyCodeForm.tsx"), "utf8");
+const linkScreen = readFileSync(join(SRC, "components/auth/Verifying.tsx"), "utf8");
+const firstRun = readFileSync(join(SRC, "components/app/welcome/FirstRun.tsx"), "utf8");
+const welcome = readFileSync(join(SRC, "app/welcome/page.tsx"), "utf8");
+
 const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
 
@@ -94,7 +101,6 @@ try {
   /* ------------------------------------------------- the shape of the flow */
 
   console.log("\nThe flow, in the source that defines it");
-  const actions = readFileSync(join(SRC, "lib/auth/actions.ts"), "utf8");
 
   check(
     "signing up with confirmation on goes to the code screen, not to a dead end",
@@ -106,7 +112,7 @@ try {
   );
   check(
     "a verified account is taken inside rather than asked to sign in",
-    /verifySignUpCode[\s\S]{0,3000}?redirect\(landingAfterAuth/.test(actions),
+    /verifySignUpCode[\s\S]{0,4000}?return \{ ok: true, verified: landingAfterAuth/.test(actions),
   );
   check(
     "the address is held in an httpOnly cookie rather than in the URL",
@@ -124,6 +130,47 @@ try {
   await context.close();
   await browser.close();
 }
+
+/* ------------------------------------- the rest of the industry standard */
+
+console.log("\nTelling somebody the address is taken, while it still helps");
+
+check(
+  "the address is checked as the field loses focus, not on submit",
+  /onBlur/.test(notice),
+  ["the old shape asked for six more answers first and then refused"],
+);
+check("and it names WHICH method, because that is the actionable half", /Continue with Google/.test(notice));
+check(
+  "the lookup is rate limited, because it is an enumeration oracle by design",
+  /signup_email_probe/.test(actions),
+);
+check(
+  "a refusal answers unknown, which shows nothing rather than good news",
+  /if \(!verdict\.allowed\) return "unknown"/.test(actions),
+);
+
+console.log("\nOne moment, whichever way in");
+check(
+  "confirming by code shows the same panel as confirming by link",
+  /VerifyingPanel/.test(codeForm) && /VerifyingPanel/.test(linkScreen),
+);
+check(
+  "the code path no longer redirects from the server, so a screen can be shown",
+  /return \{ ok: true, verified:/.test(actions),
+);
+check("and it is held on screen for a beat", /MIN_ON_SCREEN_MS = 2000/.test(linkScreen));
+
+console.log("\nThe cards, once");
+check("dismissing the cards is remembered", /markWelcomeSeen\(\)/.test(firstRun));
+check(
+  "and a returning sign-in is not shown them again",
+  /showCards=\{!intent\.welcomeSeen\}/.test(welcome),
+);
+check(
+  "remembered on dismissal rather than on render, so a closed tab does not cost the trust card",
+  /onDone[\s\S]{0,500}?markWelcomeSeen/.test(firstRun),
+);
 
 console.log(failures === 0 ? "\nAll checks passed." : `\n${failures} check(s) failed.`);
 process.exit(failures === 0 ? 0 : 1);
