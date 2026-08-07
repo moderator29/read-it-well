@@ -16,6 +16,7 @@ import { RecordVisit } from "@/components/app/listing/RecordVisit";
 import { TravelTime } from "@/components/app/listing/TravelTime";
 import { ReservePanel } from "./ReservePanel";
 import { RentalPanel } from "./RentalPanel";
+import { ReserveTable } from "./ReserveTable";
 import { ListingAbout } from "@/components/app/listing/ListingAbout";
 import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
 import { ListingPhotoGrid } from "@/components/app/listing/ListingPhotoGrid";
@@ -381,7 +382,10 @@ export default async function ListingDetailPage({
   const bookingPanel = isPartner ? (
     <PartnerPanel listing={listing} locale={locale} t={t} action={partnerAction} />
   ) : isRestaurant ? (
-    <RestaurantPanel listing={listing} locale={locale} t={t} messageHref={messageHref} />
+    <div className="flex flex-col gap-4">
+      <ReserveTable listingId={listing.id} messageHref={messageHref} />
+      <RestaurantPanel listing={listing} locale={locale} t={t} messageHref={messageHref} />
+    </div>
   ) : isRental ? (
     <RentalPanel
       listingId={listing.id}
@@ -827,7 +831,7 @@ function RestaurantPanel({
         table, a large party or anything the page does not answer.
       </p>
 
-      <ButtonLink href={messageHref} variant="primary" full className="mt-4">
+      <ButtonLink href={messageHref} variant="secondary" full className="mt-4">
         Message
       </ButtonLink>
 
