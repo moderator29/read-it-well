@@ -43,6 +43,25 @@ function check(label, condition, detail = "") {
   }
 }
 
+/**
+ * The policy, under whichever header name is actually serving it.
+ *
+ * The platform ships REPORT-ONLY by default and flips to enforcing on
+ * `CSP_ENFORCE=true`, so the header is `Content-Security-Policy-Report-Only`
+ * most of the time and `Content-Security-Policy` in production once the reports
+ * are quiet. Both carry the identical policy string, built by one function, so
+ * every check below holds either way and this spec must not care which it got.
+ *
+ * An earlier version read only the enforcing name and reported "serves no
+ * Content Security Policy" on a server that was serving one perfectly well.
+ */
+function servedPolicy(response) {
+  const headers = response?.headers() ?? {};
+  return (
+    headers["content-security-policy"] ?? headers["content-security-policy-report-only"] ?? ""
+  );
+}
+
 /** Pull one directive's source list out of a policy string. */
 function directive(policy, name) {
   const found = policy
@@ -80,7 +99,7 @@ async function auditRoute(page, refusals, route) {
 
   check(`${route} responds without a server error`, (response?.status() ?? 500) < 500);
 
-  const policy = response?.headers()["content-security-policy"] ?? "";
+  const policy = servedPolicy(response);
   check(`${route} serves a Content Security Policy`, policy.length > 0);
   if (policy.length === 0) return null;
 
@@ -212,7 +231,7 @@ async function walkRoute(page, refusals, route) {
      itself and ask for tiles before there is anything to be blocked. */
   await page.waitForTimeout(2500);
 
-  const policy = response?.headers()["content-security-policy"] ?? "";
+  const policy = servedPolicy(response);
   check(`${route} carries the policy`, policy.length > 0);
 
   const violations = await page.evaluate(() => window.__cspViolations ?? []);

@@ -145,24 +145,25 @@ user-facing, the agent application wizard's step label. Note that three test
 specs legitimately CONTAIN the character, because they are the guards that
 search for it, and a sweep must not "fix" those.
 
-**The suite is 79 specs. 75 pass, and the four that do not are each understood.**
+**The suite is 79 specs. 75 pass. None of the four that do not is caused by this
+branch, and each was checked rather than assumed.**
 
 | Spec | State |
 |---|---|
-| `gate` | **Aborts by design.** It says so itself: without `NEXT_PUBLIC_SUPABASE_URL` and the anon key the middleware guard is a pass-through, so the spec refuses to pretend it proved anything. Environmental, not a fault. It needs a server started with real keys |
-| `session-memory` | One check, "deleting a draft is deferred". `ListingsWorkspace.tsx` is byte for byte identical to `origin/main`, so this red predates and survives this branch. Its own comment says it stays red until the work is done |
-| `interests-settings` | One check, "the welcome screen mounts InterestChoices". `welcome/page.tsx` contains no such mount on this branch OR on `origin/main`, so the spec and the screen disagree on main and did before the merge |
-| `truncation` | Passes alone, fails inside a full sweep with "Failed to open a new tab". Chromium running out of room in this sandbox after seventy consecutive launches. Run the suite in batches |
+| `gate` | **Aborts by design** and says so: without `NEXT_PUBLIC_SUPABASE_URL` and the anon key the guard is a pass-through, so it refuses to pretend it proved anything. Environmental |
+| `intent-tune` | `src/lib/interests/schema.ts` AND the spec itself are byte for byte identical to `origin/main`, so this is red on main |
+| `interests-settings` | `welcome/page.tsx` carries no `InterestChoices` mount on this branch or on `origin/main`. Red on main |
+| `session-memory` | One check. `ListingsWorkspace.tsx` is byte for byte identical to `origin/main`. Red on main |
+| `truncation` | Passes alone. Chromium running out of room after seventy consecutive launches in this sandbox. Run the suite in batches |
 
-Two reds that WERE real were closed here. `admin-console` was a broken spec
-rather than a broken console: it fetched a hardcoded stylesheet chunk whose name
-is a build hash, got a 404, and measured unstyled HTML. `social-people` was a
-genuine product fault, `/around` claiming the country was quiet in a build that
-had read nothing.
-
-And the draft-delete undo that `session-memory`'s other check wanted **is built**
-now, on `main`, by the parallel session: `lib/ui/undo-window.ts`, a six second
-window, an `UndoStrip`, and nine unit tests.
+**A sandbox trap that cost two full sweeps, written down so it costs nobody a
+third.** `next start` on a port that is already held does NOT fail loudly: the
+old server keeps serving and the new one exits, so a sweep silently measures the
+PREVIOUS build. It read as 49 unrelated specs failing at once. Before trusting a
+sweep, confirm exactly one `next-server` process and that `.next-*/BUILD_ID`
+matches the build just made. Killing `next-server` alone is not enough either,
+because `npm exec` respawns it; kill the `npm exec`, the `sh -c` and the
+`next-server` together.
 
 **`apps/web/tsconfig.json` carries ten dead `include` entries.** Parallel builds
 add `".next-a1/types/**"` and friends as they are used, but `exclude` holds
