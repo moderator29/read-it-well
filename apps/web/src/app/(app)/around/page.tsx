@@ -11,6 +11,7 @@ import {
   getOpenAreasFeed,
 } from "@/lib/social/posts-queries";
 import { POST_COPY } from "@/lib/social/posts-schema";
+import { PLACE_COPY } from "@/lib/social/places-schema";
 import { Feed } from "@/components/social/feed/Feed";
 import {
   FeedMasthead,
@@ -48,6 +49,23 @@ export const dynamic = "force-dynamic";
  * 3. One of your places chosen in the switcher: that place's own timeline,
  *    which is the same read `/around/[slug]` makes.
  *
+ * There is a fourth state, and it is not a variant of the third: a build with
+ * no platform keys cannot read anything at all. Every other door in this family
+ * already says so in the person's own words. `/around/[slug]` and
+ * `/around/settings` both carry the same sentence, and so do `/u/[handle]` and
+ * both follow lists. This screen was the one that did not. It rendered the
+ * ordinary empty feed, which on the combined timeline reads "Nothing has been
+ * said in any open place yet. Nothing is hidden and nothing is missing", and
+ * that is a claim about the country an unconfigured build has no standing to
+ * make: nothing was read, so nothing is known.
+ *
+ * The same visit also loses its create dock, because `AroundFab` renders
+ * nothing when there is genuinely nothing behind it, and that part is right.
+ * What was wrong is that the screen then said nothing about it, so a control
+ * vanished and a falsehood was asserted in the same paint. The dock stays gone
+ * and the sentence below explains it, by letting the unconfigured line win over
+ * every other empty state.
+ *
  * The choice lives in `?place=`, not in state, so a reload lands where the
  * person was and the back button walks back through the places they looked at.
  */
@@ -67,6 +85,11 @@ export default async function AroundPage({
 
   const t = getDictionary(locale);
   const signedIn = session.state === "signed-in";
+  /* Not the same thing as signed out. Signed out is a person we know nothing
+     about; unconfigured is a platform that cannot look anybody up, and the two
+     deserve different sentences because only one of them is fixed by signing
+     in. `AroundFab` already makes exactly this distinction one level down. */
+  const unconfigured = session.state === "unconfigured";
   const viewerId = signedIn ? session.user.id : null;
 
   const rawPlace = Array.isArray(params.place) ? params.place[0] : params.place;
@@ -110,19 +133,27 @@ export default async function AroundPage({
   /** True when the person is reading places they have not joined. */
   const browsingOpen = !selected && tab === "for-you" && mine.length === 0;
 
-  const emptyMessage = selected
-    ? signedIn
-      ? POST_COPY.emptyFeed
-      : POST_COPY.emptyFeedSignedOut
-    : tab === "following"
+  /* Unconfigured is tested first and beats every branch under it on purpose.
+     Each of those branches is a statement of fact about what is out there, that
+     nothing new has been said, that nobody has said anything anywhere, that
+     your own places are quiet, and without keys not one of them was checked.
+     Saying any of them would be inventing an answer, which is the one thing
+     an empty state must never do. */
+  const emptyMessage = unconfigured
+    ? PLACE_COPY.unconfigured
+    : selected
       ? signedIn
-        ? t.social.emptyFollowing
-        : t.social.emptyFollowingSignedOut
-      : tab === "new"
-        ? t.social.emptyNew
-        : browsingOpen
-          ? t.social.emptyAnywhere
-          : t.social.emptyJoined;
+        ? POST_COPY.emptyFeed
+        : POST_COPY.emptyFeedSignedOut
+      : tab === "following"
+        ? signedIn
+          ? t.social.emptyFollowing
+          : t.social.emptyFollowingSignedOut
+        : tab === "new"
+          ? t.social.emptyNew
+          : browsingOpen
+            ? t.social.emptyAnywhere
+            : t.social.emptyJoined;
 
   return (
     <div
@@ -150,7 +181,15 @@ export default async function AroundPage({
         </p>
       ) : null}
 
-      {browsingOpen ? (
+      {/* Suppressed without keys, and not merely because it would be a second
+          card. Both of its sentences open "this is the busiest open places",
+          which names something the page did not read and cannot show, and the
+          control under them goes to a directory that is itself unconfigured, so
+          the one action offered leads to the same apology in different words.
+          The empty state below says the true thing once, and once is the count
+          `/around/settings` settled on for this same fact: a screen that
+          apologises twice for one thing reads as a screen nobody looked at. */}
+      {browsingOpen && !unconfigured ? (
         <div className="nf-card mb-4 p-4">
           <p className="text-sm leading-relaxed text-[var(--nf-content-secondary)]">
             {signedIn ? t.social.browsingOpen : t.social.browsingOpenSignedOut}
