@@ -1,11 +1,13 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import type { AuthFormState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/Button";
 import { Field } from "./fields";
+import { useRouter } from "next/navigation";
+import { VerifyingPanel } from "./VerifyingPanel";
 
 /**
  * The six digits from the confirmation email.
@@ -49,6 +51,29 @@ export function VerifyCodeForm({
   const [address, setAddress] = useState(email);
   const [code, setCode] = useState("");
   const form = useRef<HTMLFormElement>(null);
+  const router = useRouter();
+
+  /*
+   * The same moment the link path shows.
+   *
+   * Confirming by code used to redirect from the server, which put somebody
+   * inside the platform on the next frame, while confirming by link held
+   * "Verifying your email" for two seconds first. Two ways into one account
+   * should not feel like two products. The floor lives in `VerifyingPanel`.
+   */
+  useEffect(() => {
+    if (!state.ok || !state.verified) return;
+    const to = state.verified;
+    const timer = window.setTimeout(() => {
+      router.replace(to);
+      router.refresh();
+    }, 2000);
+    return () => window.clearTimeout(timer);
+  }, [state.ok, state.verified, router]);
+
+  if (state.ok && state.verified) {
+    return <VerifyingPanel />;
+  }
 
   /* Digits only, and never more than six, so a pasted "  123 456 " arrives as
      123456 rather than as a value the server has to refuse. */

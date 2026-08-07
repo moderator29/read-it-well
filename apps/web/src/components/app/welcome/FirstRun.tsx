@@ -6,6 +6,7 @@ import { LogoMark } from "@/design-system/brand/Logo";
 import { InterestChoices } from "./InterestChoices";
 import type { ComponentProps } from "react";
 import { WelcomeCards } from "./WelcomeCards";
+import { markWelcomeSeen } from "@/lib/interests/actions";
 
 /**
  * First run, in two beats.
@@ -29,13 +30,17 @@ import { WelcomeCards } from "./WelcomeCards";
 export function FirstRun({
   t,
   interests,
+  showCards,
 }: {
   t: Dictionary;
   /* The typed market keys, not loose strings: the choices component owns the
      union and this is only carrying it through. */
   interests: ComponentProps<typeof InterestChoices>["initial"];
+  /* False for anybody who has already been shown them. A returning sign-in
+     goes straight to the question, or past this screen entirely. */
+  showCards: boolean;
 }) {
-  const [read, setRead] = useState(false);
+  const [read, setRead] = useState(!showCards);
 
   if (!read) {
     return (
@@ -44,7 +49,18 @@ export function FirstRun({
           <LogoMark size={40} title="RentMe" />
         </div>
         <div className="nf-rise mt-7 w-full" style={{ animationDelay: "90ms" }}>
-          <WelcomeCards t={t} onDone={() => setRead(true)} />
+          <WelcomeCards
+            t={t}
+            onDone={() => {
+              /* Remembered before the question, not after it. Somebody who
+                 reads the cards and then closes the tab has still been told
+                 what this place is, and must not be told again. Fire and
+                 forget: nothing about entering the product waits on a note we
+                 are writing to ourselves. */
+              void markWelcomeSeen();
+              setRead(true);
+            }}
+          />
         </div>
       </div>
     );

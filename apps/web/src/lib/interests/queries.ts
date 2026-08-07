@@ -30,6 +30,8 @@ export type InterestsState =
       interests: PropertyType[];
       /** True once the question has been answered or skipped. */
       asked: boolean;
+      /** True once the three welcome cards have been dismissed. */
+      welcomeSeen: boolean;
     };
 
 export async function loadInterestsState(): Promise<InterestsState> {
@@ -48,12 +50,13 @@ export async function loadInterestsState(): Promise<InterestsState> {
    * question in front of somebody. `asked: true` is the conservative answer:
    * it says nothing about their intent and it does not interrupt them.
    */
-  if (error || !row) return { state: "signed-in", interests: [], asked: true };
+  if (error || !row) return { state: "signed-in", interests: [], asked: true, welcomeSeen: true };
 
   return {
     state: "signed-in",
     interests: knownInterests(row.interests),
     asked: parseSettings(row.settings).interestsAsked,
+    welcomeSeen: parseSettings(row.settings).welcomeSeen,
   };
 }
 
