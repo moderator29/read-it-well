@@ -16,6 +16,14 @@
  * by driving the real pages rather than by looking at them. Nothing in here
  * asserts a colour, a size or a class name.
  *
+ * Three of the six runtime sections need a listing to exist, as does the
+ * recently-viewed half of a fourth, and the catalogue of twenty-three invented
+ * places was removed on purpose. On an empty shelf those parts say out loud
+ * that they are skipping and why, rather than waiting thirty seconds on a card
+ * that is never coming. See tests/_catalogue.mjs. The static scan, the fallback
+ * back control, the remembered view and recent searches need nothing on the
+ * shelf and are asserted on every run.
+ *
  * Run with the server already up:
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/session-memory.spec.mjs
@@ -110,9 +118,35 @@ check(
 );
 console.log(`            ${backControls.length} back control(s) checked`);
 
-/* A destructive confirm sheet on a draft delete is the thing item 26 removes. */
+/*
+ * A destructive confirm sheet on a draft delete is the thing item 26 removes.
+ *
+ * THIS CHECK USED TO PASS, AND IT WAS LYING.
+ *
+ * It matched `kind: SheetKind[\s\S]{0,200}"delete"`, which is a window of two
+ * hundred characters after one particular declaration. `ListingsWorkspace.tsx`
+ * has since grown a long doc comment between `type SheetState = { kind:
+ * SheetKind; ... }` and anything mentioning delete, so `"delete"` fell outside
+ * the window, the regex stopped matching, and the negation turned that into a
+ * green. The sheet had not moved: `type SheetKind = "submit" | "unpublish" |
+ * "delete"` is on line 55, an `onAction("delete", listing)` button on line 332,
+ * and `ConfirmSheet` still runs the delete branch.
+ *
+ * So the suite was reporting a destructive dialog as removed while it was fully
+ * present, which is worse than either a red or no check at all: a red is a
+ * question and a false green is an answer nobody will revisit.
+ *
+ * It now asserts on the union type itself, which is where the vocabulary is
+ * declared and which cannot drift out of a character window. That makes it RED,
+ * correctly: item 26 wants undo in place of the dialog, the unsave half is
+ * genuinely built (`SavedBoard.tsx`, `data-testid="undo-chip"`), and the draft
+ * delete half is not in the code. Fix the product, not this line.
+ */
 const workspace = files.find((f) => f.rel === "app/agent/listings/ListingsWorkspace.tsx");
-check("the draft-delete confirm sheet is gone", workspace && !/kind: SheetKind[\s\S]{0,200}"delete"/.test(workspace.src));
+check(
+  "the draft-delete confirm sheet is gone",
+  Boolean(workspace) && !/type SheetKind\s*=[^\n]*"delete"/.test(workspace.src),
+);
 /*
  * DELIBERATELY REPORTED, NOT WEAKENED.
  *
@@ -158,11 +192,41 @@ const HUNT = "/search?q=Lagos&beds=2&sort=price-asc&verified=1";
 try {
   /* --------------------------------------- 21 and 22: back keeps the hunt */
   console.log("\nBack from a listing, 390px");
-  {
+  /*
+   * A LABELLED BLOCK so the empty-catalogue guard below can leave this section
+   * without leaving the spec. The sections after it do not need a listing and
+   * must still run, so `process.exit` here would silence checks that are
+   * perfectly capable of answering.
+   */
+  backFromListing: {
     const ctx = await freshContext();
     const page = await ctx.newPage();
     await page.goto(BASE_URL + HUNT, { waitUntil: "load", timeout: 45000 });
     await page.waitForTimeout(SETTLE);
+
+    /*
+     * NOTHING ON THE SHELF MEANS NOTHING TO COME BACK FROM.
+     *
+     * The catalogue of twenty-three invented places was removed on purpose, and
+     * every check in this block starts by opening one of them: without a result
+     * card there is no listing to open, so there is no journey back from it and
+     * no scroll position to restore. See tests/_catalogue.mjs. Until this guard
+     * existed the spec waited the full thirty seconds for a link that was never
+     * going to appear and then died with a stack trace, which reads as a broken
+     * suite rather than as an unrun one.
+     *
+     * The scroll check goes with the rest of the block rather than staying
+     * behind it, because "the results page is long enough to scroll" is the
+     * setup for the restoration assertion and not a claim in its own right. An
+     * empty state that happens to be taller than the viewport would tick it
+     * green while proving nothing at all about item 22.
+     */
+    if ((await page.locator('a[href^="/listing/"]').count()) === 0) {
+      console.log("  skip    catalogue is empty, so there is no listing to open and come back from");
+      console.log("  note    run against a deployment with real inventory to exercise this");
+      await ctx.close();
+      break backFromListing;
+    }
 
     const countBefore = await page.getAttribute('[data-testid="results-count"]', "data-count");
 
@@ -334,12 +398,29 @@ try {
     /* Recently viewed is recorded on the listing, whatever route reached it. */
     await page.goto(BASE_URL + "/listing/seed-1", { waitUntil: "load", timeout: 45000 });
     await page.waitForTimeout(SETTLE);
+    /*
+     * `seed-1` was one of the twenty-three invented places, so on an empty
+     * catalogue this navigation lands on a page with no listing behind it,
+     * nothing is recorded as viewed, and item 25 has nothing to answer with.
+     * The gallery is the same tell the other specs use for that. See
+     * tests/_catalogue.mjs.
+     *
+     * Item 24 above and the clearing check below are NOT skipped with it: a
+     * recent search is a record of a query, not of a result, so it is made and
+     * remembered whether or not anything came back.
+     */
+    const opened = (await page.locator('[data-testid="listing-gallery"]').count()) > 0;
     await page.goto(BASE_URL + "/search", { waitUntil: "load", timeout: 45000 });
     await page.waitForTimeout(SETTLE);
-    const viewed = page.locator('[data-testid="recent-listing"]');
-    check("a place that was opened is offered back", (await viewed.count()) >= 1);
-    const href = await viewed.first().getAttribute("href");
-    check("and its chip links to that place", href === "/listing/seed-1", [String(href)]);
+    if (opened) {
+      const viewed = page.locator('[data-testid="recent-listing"]');
+      check("a place that was opened is offered back", (await viewed.count()) >= 1);
+      const href = await viewed.first().getAttribute("href");
+      check("and its chip links to that place", href === "/listing/seed-1", [String(href)]);
+    } else {
+      console.log("  skip    catalogue is empty, so there is no place that could have been opened");
+      console.log("  note    run against a deployment with real inventory to exercise this");
+    }
 
     /* Clearing means cleared, and it survives a reload. */
     await page.locator('[data-testid="recent-strip"] button').first().click();
@@ -384,22 +465,43 @@ try {
         (await page.locator('[role="dialog"]').count()) === 0,
       );
     } else {
-      /* Saving needs a session the sandbox cannot reach, so this half is
-         reported rather than silently skipped. */
-      console.log("  ....    no saved card to unsave in this environment, static half stands");
+      /*
+       * Two different reasons land here and both are stated rather than
+       * silently passed over. With the catalogue empty there is no place to
+       * save in the first place, and even with inventory the save itself needs
+       * a session the sandbox cannot reach. Either way the assertion did not
+       * run, and an unrun assertion that prints nothing is the one outcome
+       * worse than a red. See tests/_catalogue.mjs.
+       */
+      console.log("  skip    no saved card to unsave, so undo has nothing to offer");
+      console.log("  note    run against a deployment with real inventory, signed in, to exercise this");
     }
     await ctx.close();
   }
 
   /* ------------------------------------- 16: the dates open on the weekend */
   console.log("\nThe date fields on arrival");
-  {
+  dateFields: {
     const ctx = await freshContext();
     const page = await ctx.newPage();
     await page.goto(BASE_URL + "/listing/seed-1", { waitUntil: "load", timeout: 45000 });
     await page.waitForTimeout(SETTLE);
 
     const panel = page.locator('[data-testid="reserve-panel"]').first();
+    /*
+     * The weekend defaults are computed and shown by the reserve panel, which
+     * only exists on a listing, and `seed-1` was one of the twenty-three
+     * invented places that were removed on purpose. Reading `inputValue()`
+     * from a panel that is not there waits the full timeout and then throws,
+     * so the absence is answered before it is read. See tests/_catalogue.mjs.
+     */
+    if ((await panel.count()) === 0) {
+      console.log("  skip    catalogue is empty, so there is no reserve panel to open on a weekend");
+      console.log("  note    run against a deployment with real inventory to exercise this");
+      await ctx.close();
+      break dateFields;
+    }
+
     const checkIn = await panel.locator('input[name="checkIn"]').inputValue();
     const checkOut = await panel.locator('input[name="checkOut"]').inputValue();
     check("check-in opens filled in", /^\d{4}-\d{2}-\d{2}$/.test(checkIn), [checkIn]);
