@@ -682,9 +682,17 @@ export async function startOAuth(
     provider,
     options: {
       /* The provider round trip loses everything except this URL, so where
-         the person was going has to travel inside it. The callback re-checks
-         the value against its own origin before using it. */
-      redirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent(landingAfterAuth(formData))}`,
+         the person was going has to travel inside it, and so does which door
+         they came through. The callback re-checks `next` against its own
+         origin before using it; `intent` only ever chooses a form of words,
+         so it is compared to one literal and otherwise ignored.
+
+         Without `intent`, both doors landed on the same screen and that screen
+         said "Verifying your email" to a person who had held an account for a
+         month and simply tapped Continue with Google to sign in. */
+      redirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent(
+        landingAfterAuth(formData),
+      )}&intent=${formData.get("intent") === "sign-in" ? "sign-in" : "sign-up"}`,
     },
   });
 

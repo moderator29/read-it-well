@@ -128,6 +128,47 @@ export default async function AdminOverviewPage() {
               <UiIcon name="arrow-right" size={16} />
             </Link>
           </section>
+
+          {/*
+            Why the shelves are empty, answered rather than guessed at.
+
+            `/api/admin/inventory` has been able to answer this for a while and
+            nothing pointed at it, so the only way to reach it was to already
+            know the URL. That is a diagnostic nobody runs. An empty hotel
+            shelf looks identical whether a key is missing, refused, rate
+            limited, switched off in feature_flags, or pointed at a city with
+            no supply, and those are five different problems with five
+            different fixes.
+
+            Deliberately not localised, and deliberately outside the tile grid.
+            It answers raw JSON, it names upstream status codes, and it is read
+            by whoever holds the keys rather than by anybody using RentMe.
+          */}
+          <section className="nf-card mt-4 p-4 sm:p-5">
+            <h2 className="nf-h3">Why is the shelf empty?</h2>
+            <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              Runs one live search against every partner feed and reports what came back:
+              which have credentials, which are switched off, which answered an error, and
+              how many places each returned. Spends a real request per provider, so it is
+              the honest answer rather than a guess from the shape of the key.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+              <a
+                href="/api/admin/inventory?q=Lagos"
+                className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+              >
+                Check Lagos
+                <UiIcon name="arrow-right" size={16} />
+              </a>
+              <a
+                href="/api/admin/inventory"
+                className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+              >
+                Check the default market
+                <UiIcon name="arrow-right" size={16} />
+              </a>
+            </div>
+          </section>
         </>
       )}
     </div>

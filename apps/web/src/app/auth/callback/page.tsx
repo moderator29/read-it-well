@@ -3,8 +3,11 @@ import { redirect } from "next/navigation";
 import { completeEmailVerification } from "@/lib/auth/actions";
 import { Verifying } from "@/components/auth/Verifying";
 
+/* Neutral, because one page serves both doors and the tab title is written
+   before the query is read. "Verifying your email" sat in the tab while
+   somebody was being signed back in. */
 export const metadata: Metadata = {
-  title: "Verifying your email",
+  title: "One moment",
   robots: { index: false, follow: false },
 };
 
@@ -56,6 +59,10 @@ export default async function AuthCallbackPage({
         tokenHash={one("token_hash") ?? one("token")}
         type={one("type")}
         next={one("next")}
+        /* Anything that is not explicitly a sign-in is treated as a sign-up,
+           which is the safe default: a confirmation link from an email carries
+           no intent at all, and that case IS a sign-up. */
+        moment={one("intent") === "sign-in" ? "sign-in" : "sign-up"}
         complete={completeEmailVerification}
       />
     </main>

@@ -101,6 +101,12 @@ export function AuthChoices({
         {oauth.map((p) => (
           <form key={p.id} action={p.id === "google" ? startGoogleOAuth : startAppleOAuth}>
             {next ? <input type="hidden" name="next" value={next} /> : null}
+            {/* Which door this is. The provider round trip loses everything
+                except the callback URL, and both doors post to the same
+                action, so the callback cannot tell a returning person from a
+                new one unless this travels with them. Without it, somebody
+                signing back in was told we were "verifying your email". */}
+            <input type="hidden" name="intent" value={isSignUp ? "sign-up" : "sign-in"} />
             <button type="submit" disabled={!configured(p.id)} className="nf-auth-row w-full">
               <span className="nf-auth-row__mark">{p.mark}</span>
               <span className="flex-1 text-left">{p.label}</span>
