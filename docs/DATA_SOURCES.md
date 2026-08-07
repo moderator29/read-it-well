@@ -218,3 +218,30 @@ Nothing has to be deployed differently, and this is by design:
 - **Duplicates are handled.** Two feeds describing one hotel collapse to one
   card, and a first-party listing always wins against a feed
   (`lib/inventory/dedupe.ts`).
+
+## 6. Checking whether a key actually works
+
+A key that parses is not a key that works, and this layer hides the difference
+on purpose: a partner feed must never break a search, so a 401 produces exactly
+the same empty shelf as a city with no supply. Two ways to tell them apart.
+
+**Signed in as an admin, open `/api/admin/inventory`.** It runs a real search
+through every provider and answers JSON: whether each has credentials, whether
+its kill switch is on, what the call actually returned, how many listings came
+back and how long it took. Add `?q=Abuja` to point it at a specific city.
+
+A healthy LiteAPI looks like `"outcome": "ok"` with a non-zero `listings`.
+The four failures and where each is fixed:
+
+| `outcome` | Means | Fix it in |
+|---|---|---|
+| `no_key` | The environment variable is missing or empty | Vercel, then redeploy |
+| `disabled` | The key is fine, the kill switch is off | `public.feature_flags` |
+| `error` | Upstream refused or was unreachable. `reason` carries the status code and host | Usually the key itself |
+| `timeout` | Upstream took longer than the budget | Upstream, or raise the budget |
+
+**Or read the deployment log.** Any provider outcome that is not `ok` writes one
+`[inventory]` line, throttled to once a minute per provider so a broken key
+cannot bury the log. A key that is refused says so on the first search after
+deploy.
+
