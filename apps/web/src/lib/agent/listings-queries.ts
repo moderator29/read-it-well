@@ -34,6 +34,15 @@ export type AgentIdentity = {
   status: Database["public"]["Enums"]["agent_application_status"];
   type: Database["public"]["Enums"]["agent_type"];
   verified: boolean;
+  /**
+   * Where they stand on the verification ladder, 0 to 4.
+   *
+   * Carried on the identity rather than fetched where it is needed, because the
+   * agents row is already being read here and one more column on a query that
+   * runs on every workspace page beats a second round trip on one of them.
+   * `private.agent_tier` owns the arithmetic; this is only the answer.
+   */
+  verificationTier: number;
 };
 
 export type AgentContext =
@@ -60,7 +69,7 @@ export async function getAgentContext(): Promise<AgentContext> {
 
   const { data, error } = await session.supabase
     .from("agents")
-    .select("id, display_name, status, type, verified")
+    .select("id, display_name, status, type, verified, verification_tier")
     .eq("user_id", session.user.id)
     .maybeSingle();
 
@@ -78,6 +87,7 @@ export async function getAgentContext(): Promise<AgentContext> {
       status: data.status,
       type: data.type,
       verified: data.verified,
+      verificationTier: data.verification_tier ?? 0,
     },
   };
 }

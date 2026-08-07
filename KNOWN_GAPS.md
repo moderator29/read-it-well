@@ -80,21 +80,25 @@ figures like "Hotels 5,130+", which are mockup numbers. Publishing invented
 inventory counts is misleading advertising, so the hero cards render label-only
 and gain counts with no redesign once a real aggregate exists.
 
-**Two agent workspace routes are still `AgentComingSoon` stubs**:
-`/agent/analytics` and `/agent/verification`. Verified by grep: those are the
-only two files in `apps/web/src/app` that import the component. Everything else
-in the workspace is real, including messages, reviews and settings, which this
-file listed as stubs long after they shipped.
+**One agent workspace route is still an `AgentComingSoon` stub**:
+`/agent/analytics`. Verified by grep: it is the only file in `apps/web/src/app`
+that still imports the component. Everything else in the workspace is real,
+including messages, reviews, settings and now verification, all of which this
+file listed as stubs after they shipped.
 
-**`/agent/verification` is the one that costs something.** The ladder behind it
-exists: `public.agent_verification_checks` holds one row per rung per agent
-across identity, address, payout and in_person, and `agents.verification_tier`
-is derived from those rows rather than set by hand. An admin can move an agent
-up it through `lib/admin/verification-actions.ts`. Nothing shows the agent where
-they stand, what the next rung is worth, or what to send, so a host climbing the
-one ladder that decides how much of the platform they can use has to be told
-over the phone. A table with an admin screen and no host screen is half a loop
-by this repository's own law.
+**`/agent/verification` shows the ladder but cannot move anybody up it.** The
+screen exists now: an agent sees all four rungs, which they have passed, which
+failed, the reviewer's note in full, and what the next rung asks for. That
+closes the half-loop where an admin could move somebody up the one ladder that
+decides how much of the platform they can use and the only way the host found
+out was a phone call.
+
+What it still does not have is a way to send anything. There is no upload
+control, because nothing behind the page accepts a document: the evidence for
+every rung arrived with the application, and a rung is a decision a member of
+staff records after reading it. So an agent who wants to move up is pointed at
+support rather than at a form. Whether re-submitting evidence should be
+self-serve is a product decision, not a missing screen.
 
 **Yoruba, Hausa and Igbo counted nouns need native review specifically.** The
 plural entries added with `Intl.PluralRules` sit inside the same native review
