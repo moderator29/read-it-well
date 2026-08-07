@@ -208,6 +208,25 @@ describe("the booking link", () => {
     }
   });
 
+  it("accepts the real booking site, hyphens and digits and all", () => {
+    /* The actual whitelabel this platform provisioned. It is pinned here
+       because the generated name carries both a hyphenated label and a digit
+       suffix, and a tightened pattern that still passed every invented example
+       above could quietly stop matching the one host that matters. */
+    for (const value of [
+      "naija-finds-3twpj.nuitee.link",
+      "https://naija-finds-3twpj.nuitee.link/",
+    ]) {
+      process.env.LITEAPI_WHITELABEL_DOMAIN = value;
+      expect(whitelabelHost()).toBe("naija-finds-3twpj.nuitee.link");
+    }
+
+    process.env.LITEAPI_WHITELABEL_DOMAIN = "naija-finds-3twpj.nuitee.link";
+    expect(bookingUrl("lp4aa75", { checkin: "2026-08-08", checkout: "2026-08-09" })).toBe(
+      "https://naija-finds-3twpj.nuitee.link/hotels/lp4aa75?checkin=2026-08-08&checkout=2026-08-09",
+    );
+  });
+
   it("refuses anything that is not a bare host", () => {
     // This value is interpolated into a URL a paying guest is sent to, so a
     // pasted path, a query or whitespace is refused rather than patched up.

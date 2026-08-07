@@ -134,10 +134,10 @@ export function whitelabelHost(): string | null {
  *
  * Occupancy is deliberately NOT passed. Their deep link accepts an
  * `occupancies` parameter but the documented encoding is ambiguous, and a
- * malformed one risks breaking the page a paying guest just landed on. A
- * default occupancy that disagrees with our single-adult quote costs a
- * reconfirmed rate, which the panel already tells the guest to expect; a broken
- * checkout costs the booking.
+ * malformed one risks breaking the page a paying guest just landed on. It does
+ * not need to be passed anyway: the site defaults to one room for two adults,
+ * which is exactly what `fetchRates` quotes, so leaving it off lands the guest
+ * on the occupancy we priced rather than despite it.
  */
 export function bookingUrl(hotelId: string, window: { checkin: string; checkout: string }): string | null {
   const host = whitelabelHost();
@@ -152,15 +152,14 @@ function isoDay(offsetDays: number): string {
 }
 
 /**
- * The window a shelf price is quoted for: one night, starting tomorrow, one
- * adult.
+ * The window a shelf price is quoted for: one night, starting tomorrow, two
+ * adults, matching the booking site's own default.
  *
  * Discovery carries no dates (`ListingSearchFilter` has none, and the search
  * surface does not ask for any), so a partner hotel on a shelf has to be priced
- * for SOME window or priced not at all. This is the same window the Amadeus
- * provider used, and matching it is the point rather than a coincidence: two
- * rate feeds can now describe the same hotel, de-duplication picks between
- * them, and prices quoted for different windows would not be comparable.
+ * for SOME window or priced not at all. The window is chosen to match the
+ * whitelabel checkout a guest is sent to, so that tapping Book does not change
+ * the number in front of them.
  *
  * A guest whose real dates differ will see a different number at the point they
  * choose dates. That is why the card price is an indication and why this
@@ -459,7 +458,18 @@ async function fetchRates(
         // amount is believed.
         currency: "NGN",
         guestNationality: "NG",
-        occupancies: [{ adults: 1 }],
+        /* Two adults, matching the whitelabel booking site's own default of
+           "1 room, 2 Guests". This is the number that keeps the card and the
+           checkout telling the same story: quote one adult here and a guest
+           reads a price, taps Book, and lands on a page quoting more for the
+           same hotel on the same night. Nothing about that would look like a
+           default occupancy to them; it would look like a bait price.
+
+           It was one adult first, copied from the Amadeus provider for
+           consistency between two rate feeds. That reasoning died with Amadeus,
+           and agreeing with the page we actually send people to is worth more
+           than agreeing with a provider that cannot answer. */
+        occupancies: [{ adults: 2 }],
       }),
     },
     deadline,
