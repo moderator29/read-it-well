@@ -36,20 +36,23 @@ rather than an omission: the checkout settles money against a first-party
 `bookings` row, and there is no row for stock we do not own. What closing it
 needs is costed in docs/HYBRID_INVENTORY.md section 7.
 
-**A restaurant reservation has no notification and no host screen yet.** The
-loop itself is built: an agent can list a restaurant, a guest can request a
-table from the listing page, and `public.reservations` holds it PENDING under
-RLS with the host scoped by policy. What is missing is the two ends. Nothing
-tells the restaurant a request arrived, because the notification triggers are
-written for `bookings` and do not know this table exists. And
-`respondToReservation` has no screen calling it, so a host cannot accept or
-decline from the agent workspace. Until both land, a request reaches the
-database and waits there, which is why the guest receipt says the request is
-with the restaurant rather than claiming a table is held.
+**A restaurant reservation cannot be paid for, and does not need to be yet.**
+The loop is closed end to end: an agent lists a restaurant, a guest requests a
+table from the listing page, `reservations_notify` tells the restaurant, the
+host accepts or declines from the Tables section of `/agent/bookings`, and the
+guest is notified of the answer. Both notifications go through `private.notify`,
+so somebody who switched booking notifications off stays undisturbed.
 
-No aggregator was ever going to fix this: resOS issues its key to a restaurant
-that already runs resOS as its POS, and OpenTable has no self-serve tier
-(docs/DATA_SOURCES.md section 3).
+What does not exist is money. There is no deposit, no card hold and no no-show
+charge, so a table costs nothing to request and nothing to abandon. That is the
+right starting point for a market where almost no restaurant takes a deposit
+today, and nothing about the schema blocks adding one: a per-venue amount where
+zero means free is a column and a checkout step, not a migration of anything
+that already exists.
+
+No aggregator was ever going to supply this: resOS issues its key to a
+restaurant that already runs resOS as its POS, and OpenTable has no self-serve
+tier (docs/DATA_SOURCES.md section 3).
 
 **The Content Security Policy is reported, not enforced.** It exists now:
 `lib/security/csp.ts` builds it, the middleware serves it with a per-request
