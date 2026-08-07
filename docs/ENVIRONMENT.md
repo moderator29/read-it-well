@@ -75,6 +75,7 @@ which buttons are safe to show, which is `NEXT_PUBLIC_AUTH_PROVIDERS` below.
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | public | Six surfaces show a support address. Until this names a real mailbox they show the in-app route instead of an address that bounces. |
 | `NEXT_PUBLIC_MAPTILER_KEY` | public | **A licence, not a feature.** Unset, the map draws on CARTO's public basemaps, which are **non-commercial use only** — and a marketplace taking a booking fee is a commercial use. Set it and the map switches provider, zoom ceiling and attribution together. [cloud.maptiler.com/account/keys](https://cloud.maptiler.com/account/keys) |
 | `NEXT_PUBLIC_NGN_USD_RATE` | public | The wallet's naira→dollar toggle simply does not appear. It is gated rather than defaulted because a made-up FX rate on a wallet balance is a lie about money. |
+| `CSP_ENFORCE` | **server** | The Content Security Policy is reported, not enforced. That is the intended starting state: violations post to `/api/csp-report` and appear as `[csp]` lines in the deployment log. Set to the literal `true` to start blocking, once those lines have stopped. Any other value keeps reporting. |
 | `NF_DATA_SOURCE` | server | `repository` (default) or `api`. Selects the listing/agent data source. Leave unset. |
 
 ---

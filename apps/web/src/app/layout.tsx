@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { prefersLessData } from "@/lib/save-data";
+import { NONCE_HEADER } from "@/lib/security/csp";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { TiltField } from "@/components/site/TiltField";
@@ -140,6 +142,17 @@ export default async function RootLayout({
      background image can be prevented rather than merely hidden. */
   const lessData = await prefersLessData();
 
+  /* This request's Content Security Policy nonce, minted in middleware.
+
+     The two scripts below run before first paint and are the reason this is
+     read at all: without the nonce they are exactly what the policy is designed
+     to stop, an inline script in the document, and the theme would flash on
+     every first load. Undefined when the middleware did not run, which is every
+     path its matcher excludes; React omits the attribute entirely rather than
+     writing `nonce="undefined"`, and no policy is being served on those paths
+     either, so the two absences agree. */
+  const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
+
   return (
     <html
       lang={locale}
@@ -179,6 +192,7 @@ export default async function RootLayout({
           has to go into Settings and ask for.
         */}
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html:
               "try{var t=localStorage.getItem('nf_theme');if(t==='light'||(t==='system'&&matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.dataset.theme='light'}catch(e){}",
@@ -199,6 +213,7 @@ export default async function RootLayout({
           does not overrule that.
         */}
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html:
               "try{var c=navigator.connection;if(c&&(c.saveData||/^(slow-)?2g$/.test(c.effectiveType||'')))document.documentElement.dataset.saveData='on'}catch(e){}",

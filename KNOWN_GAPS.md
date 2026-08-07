@@ -42,10 +42,20 @@ fixes this (resOS issues its key to a restaurant that already runs resOS as its
 POS, and OpenTable has no self-serve tier), so it wants a slot engine of ours,
 which means new tables and a migration. Not started.
 
-**No Content Security Policy.** Verified: nothing sets one in `next.config` or
-middleware. It needs a nonce strategy compatible with Next streaming. The other
-security headers are set at the edge. This is the largest outstanding security
-item.
+**The Content Security Policy is reported, not enforced.** It exists now:
+`lib/security/csp.ts` builds it, the middleware serves it with a per-request
+nonce on all three of its exits, and the root layout nonces its two before-paint
+scripts. Verified against a running server: the nonce in the header matches
+every one of the 67 script tags in the document, and no script is left without
+one, because Next propagates the nonce to its own scripts once it sees the
+header.
+
+What remains is the decision to enforce, which is deliberately the owner's and
+deliberately not automatic. `CSP_ENFORCE` is unset, so violations are reported
+to `/api/csp-report` and logged rather than blocked. A wrong policy does not
+degrade, it white-screens, and the reports are the only honest way to find the
+directive nobody predicted. Set it to `true` once the `[csp]` lines stop
+appearing across real traffic.
 
 **`pg_cron` is not enabled.** It is a Supabase toggle, not code, and attempts to
 enable it have been blocked. Until it lands, three things cannot run on a

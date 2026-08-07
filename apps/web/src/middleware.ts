@@ -1,5 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  contentSecurityPolicy,
+  createNonce,
+  cspHeaderName,
+  NONCE_HEADER,
+  REPORTING_ENDPOINTS,
+} from "@/lib/security/csp";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
 
 /**
@@ -91,11 +98,37 @@ function safeReturnPath(pathname: string, search: string): string | null {
   return full.includes("\\") ? null : full;
 }
 
+/**
+ * Stamp the policy on a response, whichever response it turned out to be.
+ *
+ * This middleware has three exits: the early one when Supabase is not
+ * configured, the redirect that sends a signed-out visitor to sign in, and the
+ * ordinary pass-through. A CSP applied to only the last of those is a CSP with
+ * holes in it exactly where a visitor is least authenticated, so every exit
+ * goes through here instead of setting the header itself.
+ */
+function withSecurityPolicy(response: NextResponse, nonce: string): NextResponse {
+  response.headers.set(cspHeaderName(), contentSecurityPolicy(nonce));
+  response.headers.set("Reporting-Endpoints", REPORTING_ENDPOINTS);
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
+  /*
+   * One nonce per request, minted before anything else so that every exit below
+   * shares it. It travels two ways at once and needs to: forward on the REQUEST
+   * headers, where the root layout reads it to mark its two before-paint
+   * scripts as ours, and back on the RESPONSE headers inside the policy itself.
+   * If those two ever disagreed, the theme and data-saver scripts would be
+   * blocked and every first paint would flash the wrong theme.
+   */
+  const nonce = createNonce();
+  request.headers.set(NONCE_HEADER, nonce);
+
   let response = NextResponse.next({ request });
 
   if (!isSupabaseConfigured()) {
-    return response;
+    return withSecurityPolicy(response, nonce);
   }
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -133,11 +166,11 @@ export async function middleware(request: NextRequest) {
       const back = safeReturnPath(request.nextUrl.pathname, request.nextUrl.search);
       if (back) target.searchParams.set("next", back);
       target.searchParams.set("notice", "sign-in-required");
-      return NextResponse.redirect(target);
+      return withSecurityPolicy(NextResponse.redirect(target), nonce);
     }
   }
 
-  return response;
+  return withSecurityPolicy(response, nonce);
 }
 
 export const config = {
