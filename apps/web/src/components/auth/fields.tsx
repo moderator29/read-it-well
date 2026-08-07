@@ -96,6 +96,10 @@ export function Field({
   error,
   optional,
   t,
+  value,
+  onChange,
+  inputMode,
+  className,
 }: {
   id: string;
   name: string;
@@ -105,21 +109,47 @@ export function Field({
   autoComplete: string;
   error?: string;
   optional?: boolean;
-  t: Dictionary;
+  /* Optional, because a controlled field needs no dictionary for the one word
+     this component would use it for. */
+  t?: Dictionary;
+  /*
+   * Controlled, optionally.
+   *
+   * Every field on the sign-up form is uncontrolled and should stay that way:
+   * the browser fills them, the action reads the FormData, and no state exists
+   * to disagree with what is on the screen. The confirmation code is the one
+   * field that has to be watched as it is typed, because reaching six digits
+   * IS the submit. Adding two optional props keeps that field inside the same
+   * component as every other one, which is what keeps the aria-invalid and
+   * aria-describedby wiring in a single place.
+   */
+  value?: string;
+  onChange?: (value: string) => void;
+  inputMode?: "numeric" | "text" | "email" | "tel";
+  className?: string;
 }) {
   const errorId = `${id}-error`;
+  const controlled = value !== undefined && onChange !== undefined;
   return (
     <div>
-      <LabelRow htmlFor={id} label={label} optional={optional ? t.signUp.optional : undefined} />
+      <LabelRow
+        htmlFor={id}
+        label={label}
+        optional={optional && t ? t.signUp.optional : undefined}
+      />
       <input
         id={id}
         name={name}
         type={type}
         placeholder={placeholder}
         autoComplete={autoComplete}
+        inputMode={inputMode}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
-        className="nf-field"
+        className={className ? `nf-field ${className}` : "nf-field"}
+        {...(controlled
+          ? { value, onChange: (event) => onChange(event.target.value) }
+          : {})}
       />
       <FieldError id={errorId} error={error} />
     </div>

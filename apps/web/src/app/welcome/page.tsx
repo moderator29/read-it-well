@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
-import { InterestChoices } from "@/components/app/welcome/InterestChoices";
-import { LogoMark } from "@/design-system/brand/Logo";
+import { FirstRun } from "@/components/app/welcome/FirstRun";
 import { loadInterestsState } from "@/lib/interests/queries";
 
 export const metadata: Metadata = {
@@ -12,7 +11,11 @@ export const metadata: Metadata = {
 };
 
 /**
- * First run: the one question.
+ * First run: three cards, then the one question.
+ *
+ * The cards say what this place is and can be slid through or skipped. The
+ * question after them asks what the reader is here for. `FirstRun` owns the
+ * order; this file owns who is allowed to see it at all.
  *
  * Rendered outside the app shell on purpose. This screen has exactly two ways
  * out, Continue and Skip, and both of them land on home. A tab bar underneath
@@ -48,20 +51,7 @@ export default async function WelcomePage() {
       <div className="nf-aurora" aria-hidden="true" />
       <div className="nf-grid-veil" aria-hidden="true" />
 
-      <div className="relative z-10 w-full max-w-[32rem]">
-        <div className="nf-rise flex flex-col items-center text-center">
-          <LogoMark size={40} title="RentMe" />
-          <h1 className="nf-h2 mt-4">What are you here for?</h1>
-          <p className="mt-2 max-w-[26rem] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-            Pick as many as you like. We will put those first when you open
-            search. Skip if you would rather just look around.
-          </p>
-        </div>
-
-        <div className="nf-rise mt-7" style={{ animationDelay: "90ms" }}>
-          <InterestChoices initial={intent.interests} t={t} />
-        </div>
-      </div>
+      <FirstRun t={t} interests={intent.interests} />
     </main>
   );
 }

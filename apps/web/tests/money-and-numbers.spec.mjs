@@ -224,7 +224,30 @@ try {
   }
 
   check("no figure reaches the screen ungrouped", ungrouped.length === 0, ungrouped);
-  check("money actually rendered on these routes", seen.size > 5, [`${seen.size} distinct strings`]);
+  /*
+   * Money only reaches a screen when there is something priced on it.
+   *
+   * This was a hard check, and it passed for the wrong reason: the only money
+   * on any of these routes with an empty catalogue came from the agent
+   * dashboard's seeded deck, which invented 845,060,000 kobo of earnings for
+   * whoever opened it. That deck is gone, so nothing is priced anywhere and
+   * this check found nought strings.
+   *
+   * It skips loudly instead of failing, for the same reason the other four
+   * empty-catalogue skips do. Making it green again by putting invented
+   * figures back would undo the point of deleting them. Everything above this
+   * line still runs: the moment a real listing exists, its price is swept and
+   * held to the same two shapes as before.
+   */
+  if (seen.size === 0) {
+    console.log("  skip    no money reached a screen, because nothing is priced yet.");
+    console.log("          The catalogue is empty and the invented agent figures are");
+    console.log("          gone. This check returns the moment one listing exists.");
+  } else {
+    check("money actually rendered on these routes", seen.size > 5, [
+      `${seen.size} distinct strings`,
+    ]);
+  }
 
   /*
    * Every money string must be a shape the formatter can produce: either the

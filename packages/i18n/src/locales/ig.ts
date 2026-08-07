@@ -10,6 +10,35 @@ import type { Dictionary } from "./en";
 export const ig: Dictionary = {
   meta: { localeName: "Igbo", localeNativeName: "Igbo", dir: "ltr" },
 
+  /*
+   * The three cards on the way in, shown once, straight after a confirmed
+   * sign-up. Three sentences about what this place is: what is on it, what it
+   * costs, and the one rule that keeps somebody's money safe. That last card
+   * is not marketing, it is the messaging trust rule stated before anybody has
+   * a chance to break it.
+   */
+  welcomeCards: {
+    label: "Gịnị bụ RentMe",
+    skip: "Wufee",
+    start: "Hapụ m banye",
+    goTo: "Gaa na kaadị {n}",
+    one: {
+      title: "Ebe niile, n'otu ebe",
+      body:
+        "Ụlọ mgbazinye, họtel maka ngwụcha izu, ụlọ oriri na ahụmahụ. Naịjịrịa niile, steeti iri atọ na isii niile, otu ọchụchọ.",
+    },
+    two: {
+      title: "Ọ dịghị onye na-akwụ anyị ụgwọ ọrụ",
+      body:
+        "Ọ bụghị gị, ọ bụghị onye nwe ụlọ. Ihe ị hụrụ bụ ihe ị ga-akwụ, ruo kobo, akara nkwenye pụtakwara na anyị onwe anyị lere ya anya.",
+    },
+    three: {
+      title: "Ziga ozi bụ ụzọ, kwụọ ụgwọ mgbe obi siri gị ike",
+      body:
+        "Gwa onye nwe ụlọ okwu, lelee ebe ahụ, wee kwụọ ụgwọ na ikpo okwu a. Ezigala mmadụ ọ bụla ego na mpụga RentMe.",
+    },
+  },
+
   common: {
     search: "Chọọ",
     signIn: "Banye",
@@ -732,7 +761,19 @@ export const ig: Dictionary = {
       revenue: "Ego mbata",
       confirmed: "Akwadoro",
       pending: "Na-echere",
-      sampleNote: "Ọnụọgụ e haziri. Ọnụọgụ gị n'ezie ga-apụta ebe a mgbe ndepụta gị malitere ịrụ ọrụ.",
+      /* The workspace with nobody in it. Three states and no fourth:
+         signed out, signed in without an agent row, and unconfigured.
+         The deck of invented figures this replaced is gone. */
+      signedOutTitle: "Ebe ọrụ maka ndị na-edepụta ụlọ",
+      signedOutBody:
+        "Ego i nwetara, ndebanye aha gị, kalenda gị na ụlọ gị, ha niile n'otu ebe. Banye ka i mepee nke gị.",
+      notAgentTitle: "Ị depụtabeghị ụlọ ọ bụla",
+      notAgentBody:
+        "Ebe ọrụ a ga-ejupụta ozugbo i nwere ebe na RentMe. Ịrịọ na-ewe ihe dịka nkeji abụọ, mmadụ na-agụkwa arịrịọ ọ bụla.",
+      unconfiguredTitle: "Ejikọtabeghị ebe ọrụ a",
+      unconfiguredBody:
+        "Ikpo okwu a ejighị igodo ya, ya mere ọ dịghị ihe a ga-agụ ebe a. Ihe niile ọzọ dị na RentMe ka na-arụ ọrụ.",
+      applyCta: "Rịọ ka i depụta ụlọ",
     },
   },
 

@@ -59,6 +59,23 @@ const PRODUCT_SEGMENTS = new Set([
 ]);
 
 /**
+ * Product that does not own its own first segment.
+ *
+ * `/agents` is the pitch and stays open, because somebody has to be able to
+ * read what listing on RentMe means before they have an account. Everything
+ * under it that DOES something is inside: an application is attached to a
+ * person, and a status screen is a person's own application. Both used to
+ * render to anybody who typed the address.
+ *
+ * `/styleguide` is the design reference. It carries noindex and it is ours,
+ * not a page a visitor has any business reading.
+ *
+ * Matched on the exact path, and on the path with a trailing slash, because
+ * `/styleguide/` is the same page to a browser and a different string here.
+ */
+const PRODUCT_PATHS = new Set(["/agents/apply", "/agents/status", "/styleguide"]);
+
+/**
  * Where to send somebody back to after they sign in.
  *
  * Returned as a path, never a URL, and re-checked on the way out. A `next`
@@ -104,8 +121,9 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    const [, first = ""] = request.nextUrl.pathname.split("/");
-    if (PRODUCT_SEGMENTS.has(first)) {
+    const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
+    const [, first = ""] = path.split("/");
+    if (PRODUCT_SEGMENTS.has(first) || PRODUCT_PATHS.has(path)) {
       const target = request.nextUrl.clone();
       target.pathname = "/sign-in";
       target.search = "";

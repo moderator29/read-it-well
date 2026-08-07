@@ -11,6 +11,35 @@ export const en = {
     dir: "ltr",
   },
 
+  /*
+   * The three cards on the way in, shown once, straight after a confirmed
+   * sign-up. Three sentences about what this place is: what is on it, what it
+   * costs, and the one rule that keeps somebody's money safe. That last card
+   * is not marketing, it is the messaging trust rule stated before anybody has
+   * a chance to break it.
+   */
+  welcomeCards: {
+    label: "What RentMe is",
+    skip: "Skip",
+    start: "Let me in",
+    goTo: "Go to card {n}",
+    one: {
+      title: "Everywhere, in one place",
+      body:
+        "Homes to rent, hotels for the weekend, restaurants and experiences. All of Nigeria, all thirty-six states, one search.",
+    },
+    two: {
+      title: "Nobody pays a fee to us",
+      body:
+        "Not you, not the host. What you see is what you pay, to the kobo, and a verified badge only ever means we checked it ourselves.",
+    },
+    three: {
+      title: "Message first, pay when you are sure",
+      body:
+        "Talk to the host, inspect the place, then pay on the platform. Never send money to anybody outside RentMe.",
+    },
+  },
+
   common: {
     search: "Search",
     signIn: "Sign in",
@@ -849,7 +878,19 @@ export const en = {
       pending: "Pending",
       // The key name is historical. The copy must never call the workspace a
       // sample, a demo or a preview: those words are banned in product copy.
-      sampleNote: "Designed figures. Your real numbers appear here once your listings go live.",
+      /* The workspace with nobody in it. Three states and no fourth:
+         signed out, signed in without an agent row, and unconfigured.
+         The deck of invented figures this replaced is gone. */
+      signedOutTitle: "The workspace for people who list",
+      signedOutBody:
+        "Your earnings, your bookings, your calendar and your listings, all in one place. Sign in to open yours.",
+      notAgentTitle: "You are not listing yet",
+      notAgentBody:
+        "This workspace fills in the moment you have a place on RentMe. Applying takes about two minutes and a person reads every application.",
+      unconfiguredTitle: "The workspace is not connected yet",
+      unconfiguredBody:
+        "This platform is not holding its keys, so there is nothing to read here. Everything else on RentMe still works.",
+      applyCta: "Apply to list",
     },
   },
 
