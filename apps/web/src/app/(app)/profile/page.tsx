@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { formatNumber, getDictionary } from "@naijafinds/i18n";
+import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { RowLink, SettingsGroup } from "@/components/app/account/rows";
 import { loadProfileState } from "@/lib/profile/queries";
@@ -63,8 +63,6 @@ export default async function ProfilePage() {
     settings: t.nav.settings,
     becomeAgent: t.landing.footer.becomeAgent,
   };
-
-  const formatCount = (value: number) => formatNumber(value, locale);
 
   if (account.state !== "signed-in") {
     return (
@@ -135,7 +133,7 @@ export default async function ProfilePage() {
           place: placeLabel,
           joined: `Joined ${monthAndYear(profile.memberSince)}`,
         }}
-        formatCount={formatCount}
+        locale={locale}
       />
 
       <AccountBody
@@ -153,7 +151,7 @@ export default async function ProfilePage() {
         posts={posts}
         handle={identity?.handle ?? null}
         hasBio={(identity?.bio.length ?? 0) > 0}
-        formatCount={formatCount}
+        locale={locale}
       />
     </div>
   );

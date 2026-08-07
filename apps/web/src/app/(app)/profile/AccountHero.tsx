@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { formatNumber, type Locale } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { setAvatar } from "@/lib/profile/actions";
 import { setSocialCover } from "@/lib/social/profiles-actions";
@@ -60,7 +61,7 @@ export function AccountHero({
   avatarUrl,
   identity,
   metaLine,
-  formatCount,
+  locale,
 }: {
   userId: string;
   displayName: string;
@@ -70,10 +71,16 @@ export function AccountHero({
   identity: HeroIdentity | null;
   /** Place and member-since, already worded and localised by the page. */
   metaLine: { place: string; joined: string };
-  /** Locale-aware number formatting, passed in so this stays a client island. */
-  formatCount: (value: number) => string;
+  /**
+   * The locale, NOT a formatter. See the long note in `AccountBody`: handing a
+   * function across the server/client boundary is what made this whole page
+   * answer 500 to every signed-in person while every database probe came back
+   * clean.
+   */
+  locale: Locale;
 }) {
   const router = useRouter();
+  const formatCount = (value: number) => formatNumber(value, locale);
   const coverInput = useRef<HTMLInputElement>(null);
   const avatarInput = useRef<HTMLInputElement>(null);
 
