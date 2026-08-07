@@ -1104,5 +1104,9 @@ export async function resolveSupportCaller(): Promise<SessionState> {
   }
 }
 
-/** Exported for the unit tests that hold the guards; not part of the tool API. */
-export const __testing = { cancellableInApp, nextStepsFor, readBookings };
+/**
+ * Exported for the unit test that holds the one judgement with no read behind
+ * it. Not part of the tool API: everything else is proved through
+ * `runSupportTool` with a scripted client, which is the shape the route calls.
+ */
+export const __testing = { cancellableInApp };
