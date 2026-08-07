@@ -112,7 +112,7 @@ describe("what a booking request actually sends", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
 
-    expect(url).toBe("https://api.liteapi.travel/v3.0/rates/book");
+    expect(url).toBe("https://book.liteapi.travel/v3.0/rates/book");
     expect(init.method).toBe("POST");
     expect((init.headers as Record<string, string>)["X-API-Key"]).toBe(KEY);
 
@@ -344,13 +344,39 @@ describe("cancellation money", () => {
   });
 });
 
+describe("which host the booking family talks to", () => {
+  it("is the booking host, not the search host", async () => {
+    /* LiteAPI documents search and content on api.liteapi.travel and the
+       booking family on book.liteapi.travel, writing the second out in full as
+       https://book.liteapi.travel/v3.0/rates/book. All three modules originally
+       hardcoded the search host, so the one call that takes somebody's money
+       was pointed at a host its own documentation does not put it on.
+
+       This is pinned because of how that fails. Not at build time and not in a
+       test that mocks fetch by shape, but against a production key, as a 404 on
+       the call made immediately after a card has been charged. */
+    process.env.LITEAPI_KEY = "prod_test";
+    delete process.env.LITEAPI_BOOKING_HOST;
+
+    const seen: string[] = [];
+    globalThis.fetch = (async (url: string) => {
+      seen.push(String(url));
+      return new Response(JSON.stringify({ data: {} }), { status: 200 });
+    }) as unknown as typeof fetch;
+
+    await cancelStay("bk_1");
+    expect(seen[0]).toContain("book.liteapi.travel");
+    expect(seen[0]).not.toContain("api.liteapi.travel");
+  });
+});
+
 describe("cancelling a booking", () => {
   it("addresses the booking by id, with PUT and the key on the header", async () => {
     const fetchMock = respondWith({ bookingId: "bk_7719", status: "CANCELLED", currency: "NGN" });
     await cancelStay("bk_7719");
 
     const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
-    expect(url).toBe("https://api.liteapi.travel/v3.0/bookings/bk_7719");
+    expect(url).toBe("https://book.liteapi.travel/v3.0/bookings/bk_7719");
     expect(init.method).toBe("PUT");
     expect((init.headers as Record<string, string>)["X-API-Key"]).toBe(KEY);
   });
@@ -363,7 +389,7 @@ describe("cancelling a booking", () => {
     await cancelStay("bk/../evil");
 
     const [url] = fetchMock.mock.calls[0]! as unknown as [string];
-    expect(url).toBe("https://api.liteapi.travel/v3.0/bookings/bk%2F..%2Fevil");
+    expect(url).toBe("https://book.liteapi.travel/v3.0/bookings/bk%2F..%2Fevil");
   });
 
   it("makes no call when there is no booking id", async () => {

@@ -39,7 +39,7 @@ import { decimalToMinor } from "../mapping";
  * because a revalidation that did not answer is not a reason to block a booking.
  */
 
-const BASE_URL = "https://api.liteapi.travel/v3.0";
+import { bookingHost } from "./liteapi-hosts";
 
 /** Shorter than a search budget. A guest is waiting on a tap, not a page load. */
 const BUDGET_MS = 4_000;
@@ -114,7 +114,7 @@ export async function prebookOffer(offerId: string): Promise<Prebooked> {
 
   const deadline = Date.now() + BUDGET_MS;
   const result = await requestJson<unknown>(
-    `${BASE_URL}/rates/prebook`,
+    `${bookingHost()}/rates/prebook`,
     {
       method: "POST",
       headers: {

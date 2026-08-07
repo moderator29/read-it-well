@@ -74,7 +74,9 @@ import { decimalToMinor } from "../mapping";
  * confirming it is a one-line change rather than a hunt. Nothing else in this
  * file depends on the answer.
  */
-const BASE_URL = "https://api.liteapi.travel/v3.0";
+/* The booking family is documented on a DIFFERENT host from search. See
+   liteapi-hosts.ts, which is the only place either is written down. */
+import { bookingHost } from "./liteapi-hosts";
 
 /**
  * Longer than the search and prebook budgets on purpose.
@@ -276,7 +278,7 @@ export async function bookPrebookedStay(input: BookStayInput): Promise<Booked> {
 
   const deadline = Date.now() + BOOK_BUDGET_MS;
   const result = await requestJson<unknown>(
-    `${BASE_URL}/rates/book`,
+    `${bookingHost()}/rates/book`,
     {
       method: "POST",
       headers: {
@@ -422,7 +424,7 @@ export async function cancelStay(bookingId: string): Promise<Cancelled> {
 
   const deadline = Date.now() + CANCEL_BUDGET_MS;
   const result = await requestJson<unknown>(
-    `${BASE_URL}/bookings/${encodeURIComponent(id)}`,
+    `${bookingHost()}/bookings/${encodeURIComponent(id)}`,
     {
       method: "PUT",
       headers: {

@@ -67,7 +67,7 @@ import {
  * Nothing here throws. Every failure resolves to an empty envelope.
  */
 
-const BASE_URL = "https://api.liteapi.travel/v3.0";
+import { DATA_HOST as BASE_URL } from "./liteapi-hosts";
 
 /** The provider's own time budget, inside the caller's hard timeout. */
 const BUDGET_MS = 2_300;
