@@ -64,7 +64,11 @@ export default function Error({
             <Button variant="primary" onClick={reset}>
               Try again
             </Button>
-            <ButtonLink href="/" variant="secondary">
+            {/* Not "/". An error boundary is a client component by requirement,
+                so it cannot read a session and the auth cookies are httpOnly by
+                design. This route answers the question on the server and sends
+                the reader to whichever home is actually theirs. */}
+            <ButtonLink href="/home-or-landing" variant="secondary">
               Back to home
             </ButtonLink>
           </div>

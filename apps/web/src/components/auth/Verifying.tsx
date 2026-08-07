@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
-import { VerifyingPanel } from "./VerifyingPanel";
+import { VerifyingPanel, type AuthMoment } from "./VerifyingPanel";
 import type { VerificationOutcome } from "@/lib/auth/actions";
 
 /**
@@ -48,12 +48,21 @@ export function Verifying({
   tokenHash,
   type,
   next,
+  moment = "sign-up",
   complete,
 }: {
   code?: string | undefined;
   tokenHash?: string | undefined;
   type?: string | undefined;
   next?: string | undefined;
+  /**
+   * Which event this is, so the screen can name it.
+   *
+   * Sign-in and sign-up land on this same callback, because the OAuth
+   * handshake is identical either way. Nothing here can tell them apart, so
+   * the intent travels from the button that started it.
+   */
+  moment?: AuthMoment;
   complete: (input: {
     code?: string | undefined;
     tokenHash?: string | undefined;
@@ -142,5 +151,5 @@ export function Verifying({
     );
   }
 
-  return <VerifyingPanel />;
+  return <VerifyingPanel moment={moment} />;
 }

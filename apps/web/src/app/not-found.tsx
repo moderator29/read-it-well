@@ -3,16 +3,30 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { LogoMark } from "@/design-system/brand/Logo";
+import { resolveSession } from "@/lib/actions/session";
 
 /**
  * 404.
  *
  * Says what happened and offers the next step, per the no dead ends rule.
- * Deliberately static so it renders even when data sources are unavailable.
  * The floating category objects are decorative and hidden from assistive
  * technology, a quiet reminder of everything that is still findable.
+ *
+ * **"Back to home" means the home the reader actually has.** It pointed at
+ * `/`, the landing page, which for a signed-in person is not home at all: it
+ * is the page that explains the product to somebody who has never seen it, and
+ * being dropped there mid-session reads as having been signed out. The owner
+ * hit exactly this and said so. This renders on the server, so it can simply
+ * ask, and a signed-in reader is offered `/home` instead.
+ *
+ * It used to be marked as deliberately static, which is what made the wrong
+ * link look correct: a static page cannot know who is reading it. The cost of
+ * asking is one session read on a page nobody is meant to reach often, and the
+ * screen still renders in full if that read comes back with nothing.
  */
-export default function NotFound() {
+export default async function NotFound() {
+  const session = await resolveSession();
+  const home = session.state === "signed-in" ? "/home" : "/";
   return (
     <main
       id="main"
@@ -66,7 +80,7 @@ export default function NotFound() {
         </div>
 
         <div className="mt-5 flex flex-wrap justify-center gap-4">
-          <ButtonLink href="/" variant="primary" size="lg">
+          <ButtonLink href={home} variant="primary" size="lg">
             Back to home
           </ButtonLink>
           <ButtonLink href="/search" variant="secondary" size="lg" leadingIcon="sparkle">

@@ -614,12 +614,32 @@ export default async function SearchPage({
       {query.view === "list" && listings.length > 0 && (
         <Reveal className="mt-8 text-center" delay={90}>
           {/*
-           * Visual shell for pagination. The catalogue is fully shown, so the
-           * button is disabled and says why instead of pretending more exists.
+           * A disabled button is not an explanation.
+           *
+           * The comment here used to say the control "is disabled and says why
+           * instead of pretending more exists". It did not say why. It was a
+           * greyed-out "Load more" with nothing next to it, which reads as
+           * broken rather than as finished, and it is the last thing on the
+           * page so it is what somebody is left looking at.
+           *
+           * It never showed at all while the shelves were empty, because this
+           * whole block needs `listings.length > 0`. That is exactly why it
+           * has to be right now: the moment a partner key lands and results
+           * appear, this is the first new thing anybody sees, and a dead
+           * button under a first page of hotels reads as the page having
+           * failed halfway.
+           *
+           * So when there is no cursor behind it, there is no button. A
+           * sentence says the shelf is fully shown, which is true and is the
+           * end of a list rather than a control that refuses.
            */}
-          <Button variant="secondary" disabled={repo.isSeed}>
-            Load more
-          </Button>
+          {repo.isSeed ? (
+            <p className="text-[0.875rem] text-[var(--nf-content-muted)]">
+              That is everything matching this search.
+            </p>
+          ) : (
+            <Button variant="secondary">Load more</Button>
+          )}
         </Reveal>
       )}
     </>
