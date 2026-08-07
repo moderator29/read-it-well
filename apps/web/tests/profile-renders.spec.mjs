@@ -65,8 +65,10 @@ function walk(dir, out = []) {
 
 const files = walk(SRC);
 const source = new Map(files.map((f) => [f, readFileSync(f, "utf8")]));
+/* Only the predicate is needed. The list of client files was computed here too
+   and never read, because the sweep below deliberately runs the other way: it
+   starts from the SERVER files, for the reason the next comment gives. */
 const isClient = (f) => /^\s*["']use client["']/m.test(source.get(f) ?? "");
-const clientFiles = files.filter(isClient);
 
 /* --------------------------------------------------- the defect, everywhere */
 

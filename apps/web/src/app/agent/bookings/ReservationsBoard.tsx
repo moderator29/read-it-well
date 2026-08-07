@@ -135,7 +135,7 @@ function ReservationCard({
 
       <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.875rem] text-[var(--nf-content-secondary)]">
         <span className="inline-flex items-center gap-1.5">
-          <UiIcon name="user" size={15} className="opacity-70" aria-hidden />
+          <UiIcon name="user" size={16} className="opacity-70" aria-hidden />
           {reservation.guestName}
         </span>
         <span className="tabular-nums">
