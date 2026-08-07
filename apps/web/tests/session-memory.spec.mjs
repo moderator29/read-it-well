@@ -148,24 +148,36 @@ check(
   Boolean(workspace) && !/type SheetKind\s*=[^\n]*"delete"/.test(workspace.src),
 );
 /*
- * DELIBERATELY REPORTED, NOT WEAKENED.
+ * This stood red on purpose for a while, and the note here said so: the undo
+ * window had been removed rather than renamed, `ListingsWorkspace.run()` sent
+ * the delete straight away inside a transition, and rewriting the check to
+ * match would have laundered a lost feature into a passing suite.
  *
- * This asserts a deferred delete with an undo window, and neither
- * `UNDO_WINDOW_MS` nor a `setTimeout` exists anywhere in the repository any
- * more: `ListingsWorkspace.run()` calls `deleteListing` inside a transition
- * and closes. So the check is red because the BEHAVIOUR went, not because the
- * spec drifted, and that is the one case where the right move is to leave the
- * red standing.
+ * The window is back, so the red comes down. It is not back in the shape this
+ * check was written against, and that is the reason the check itself had to
+ * change: the timer no longer lives in the component. `createUndoWindow` in
+ * `lib/ui/undo-window.ts` owns it, behind an injectable clock, which is what
+ * lets `undo-window.test.ts` prove the commit and the cancel without waiting
+ * six real seconds.
  *
- * Rewriting it to match what the code does now would launder a lost feature
- * into a passing suite, which is the failure mode every other change in this
- * sweep exists to avoid. Restoring the undo window is a real piece of work on
- * somebody's list; until it is done this stays red and says why.
+ * So the assertion follows the timer rather than demanding it stay in one
+ * file. What must hold is that a delete is DEFERRED and can be taken back:
+ * the component schedules into a window rather than calling the action, and
+ * somewhere behind that window there is a real timer.
  */
+const undoWindow = files.find((f) => f.rel === "lib/ui/undo-window.ts");
 check(
   "deleting a draft is deferred, not sent straight away",
-  workspace && /UNDO_WINDOW_MS/.test(workspace.src) && /setTimeout/.test(workspace.src),
-  "UNDO_WINDOW_MS is gone from the repo: the undo window was removed, not renamed",
+  Boolean(workspace) &&
+    /UNDO_WINDOW_MS/.test(workspace.src) &&
+    /undoWindow\.current\?\.schedule\(/.test(workspace.src) &&
+    Boolean(undoWindow) &&
+    /setTimeout/.test(undoWindow.src),
+  "the component must schedule into the window, and the window must hold a real timer",
+);
+check(
+  "and taking it back is a real path, not just a button",
+  Boolean(workspace) && /undoDelete/.test(workspace.src) && /cancel\(/.test(undoWindow?.src ?? ""),
 );
 
 /* ----------------------------------------------------------------- runtime */
