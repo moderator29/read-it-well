@@ -50,6 +50,7 @@ export const ha: Dictionary = {
     next: "Na gaba",
     continue: "Ci gaba",
     loading: "Ana ɗaukowa",
+    travelTime: "Lokacin tafiya",
     perNight: "kowane dare",
     night: "dare",
     year: "shekara",
