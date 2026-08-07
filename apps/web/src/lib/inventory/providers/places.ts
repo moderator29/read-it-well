@@ -71,6 +71,9 @@ const RESULT_LIMIT = 20;
 /** Search bias radius around a covered city centre, in metres. */
 const BIAS_RADIUS_M = 20_000;
 
+/** Photos carried per venue. A card shows one; the detail page shows the rest. */
+const PHOTO_LIMIT = 6;
+
 /** The fields we ask for, and the only fields we are billed for. */
 const SEARCH_FIELD_MASK = [
   "places.id",
@@ -92,6 +95,20 @@ const SEARCH_FIELD_MASK = [
   // with a well known restaurant is returned by both.
   "places.primaryType",
   "places.types",
+  /*
+   * The fields that turn a name on a grey tile into a place somebody can
+   * decide about. Every one of these is billed in the same Text Search SKU as
+   * the fields above it, so asking for them costs nothing extra per request.
+   *
+   * `photos` is the one that mattered most: partner cards had no image at all,
+   * because the media URL carries the server key. They are served through
+   * `/api/places/photo` now, so the key stays here and the card gets a picture.
+   */
+  "places.photos",
+  "places.regularOpeningHours",
+  "places.nationalPhoneNumber",
+  "places.editorialSummary",
+  "places.priceLevel",
 ].join(",");
 
 /** The same fields for a single place, where the mask carries no prefix. */
@@ -330,6 +347,52 @@ function areaFrom(place: Record<string, unknown>, city: { name: string }): strin
 }
 
 /**
+ * Google's photo references, as URLs this origin can serve.
+ *
+ * The media endpoint wants the API key on the URL and this is a server key, so
+ * a direct link would publish it to every visitor. `/api/places/photo` spends
+ * the key on our side and redirects to Google's CDN, so what reaches the
+ * browser carries no credential. Same-origin, which also means `next/image`
+ * needs no allowlist entry for it.
+ *
+ * Capped at PHOTO_LIMIT. A venue can carry ten and a card shows one.
+ */
+function photosFrom(place: Record<string, unknown>): string[] {
+  const out: string[] = [];
+  for (const entry of asArray(place["photos"])) {
+    const name = asString(asRecord(entry)?.["name"]);
+    if (!name) continue;
+    out.push(`/api/places/photo?name=${encodeURIComponent(name)}&w=800`);
+    if (out.length >= PHOTO_LIMIT) break;
+  }
+  return out;
+}
+
+/**
+ * The handful of true, useful facts Google already told us.
+ *
+ * These ride in `amenities`, which is the one free-form list on a Listing and
+ * is rendered as plain chips. Nothing here is invented or inferred: each line
+ * is a field Google returned, reworded into the platform's own voice. A venue
+ * that answered none of them gets an empty list rather than filler.
+ */
+function factsFrom(place: Record<string, unknown>): string[] {
+  const facts: string[] = [];
+
+  const hours = asRecord(place["regularOpeningHours"]);
+  const openNow = hours?.["openNow"];
+  if (openNow === true) facts.push("Open now");
+  else if (openNow === false) facts.push("Closed now");
+
+  if (asString(place["nationalPhoneNumber"])) facts.push("Phone number listed");
+
+  const type = asString(asRecord(place["primaryTypeDisplayName"])?.["text"]);
+  if (type) facts.push(type);
+
+  return facts;
+}
+
+/**
  * A Place into a Listing.
  *
  * Only permanently or temporarily closed venues are refused; everything else
@@ -408,8 +471,8 @@ function mapPlace(
     reviewCount: asNumber(place["userRatingCount"]) ?? 0,
     verified: false,
     instantBook: false,
-    amenities: [],
-    photos: [],
+    amenities: factsFrom(place),
+    photos: photosFrom(place),
     hue: hueFor(id),
   };
 }

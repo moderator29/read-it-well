@@ -131,6 +131,28 @@ function pricePeriod(l: Listing): string {
   return l.pricePeriod === "year" ? "year" : "night";
 }
 
+/**
+ * What the model is allowed to say about a price, including when there is none.
+ *
+ * This used to be `formatMoney(l.priceMinor)` unconditionally, which was
+ * correct for every row the assistant could see at the time and became a lie
+ * the moment partner stock arrived. Google Places reports a price LEVEL, never
+ * an amount, so `priceMinor` is 0 on every venue it supplies, and the assistant
+ * would have told people that the Radisson Blu costs zero naira a night.
+ *
+ * The card and the detail page have always guarded this with
+ * `priceMinor > 0`; the assistant was the one surface that did not, and it is
+ * the surface where a wrong number is stated as a sentence rather than shown in
+ * a slot somebody can see is empty.
+ *
+ * "Not published" is the honest phrase. The venue has a price, we were not told
+ * it, and neither of those is the same as free.
+ */
+function priceLine(l: Listing): string {
+  if (l.priceMinor <= 0) return "price not published on RentMe";
+  return `${formatMoney(l.priceMinor)} per ${pricePeriod(l)}`;
+}
+
 /** Run the catalogue search server-side; the model only ever sees real rows. */
 async function runListingSearch(
   input: unknown,
@@ -155,7 +177,16 @@ async function runListingSearch(
       if (city && !l.city.toLowerCase().includes(city) && !l.state.toLowerCase().includes(city)) {
         return false;
       }
-      if (maxNaira !== undefined && l.priceMinor > Math.round(maxNaira * 100)) return false;
+      if (maxNaira !== undefined) {
+        /* Zero is "we were not told", not "free", so an unpriced venue is not
+           an answer to a budget question. This is the same ruling
+           `matchesFacts` already makes for the search page, said here because
+           this filter is hand written rather than shared: without it, asking
+           for hotels under fifty thousand naira would return every Google
+           venue on the shelf, all of them priceless in the literal sense. */
+        if (l.priceMinor <= 0) return false;
+        if (l.priceMinor > Math.round(maxNaira * 100)) return false;
+      }
       if (bedrooms !== undefined && l.bedrooms < bedrooms) return false;
       return true;
     });
@@ -175,7 +206,7 @@ async function runListingSearch(
     title: l.title,
     city: l.city,
     kind: l.kind,
-    price: `${formatMoney(l.priceMinor)} per ${pricePeriod(l)}`,
+    price: priceLine(l),
     rating: l.rating,
     href: `/listing/${l.id}`,
   }));

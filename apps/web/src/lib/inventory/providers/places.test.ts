@@ -53,6 +53,13 @@ function place({
     addressComponents: [
       { longText: "Victoria Island", shortText: "VI", types: ["sublocality_level_1"] },
     ],
+    photos: [
+      { name: `places/${id}/photos/AXQ_first` },
+      { name: `places/${id}/photos/AXQ_second` },
+    ],
+    regularOpeningHours: { openNow: true },
+    nationalPhoneNumber: "01 271 8930",
+    primaryTypeDisplayName: { text: "Hotel" },
   };
 }
 
@@ -161,8 +168,20 @@ describe("what a partner listing may claim", () => {
     // Places reports a price LEVEL. Converting one into naira would be an
     // invented figure on somebody else's room rate.
     expect(listing!.priceMinor).toBe(0);
-    // A photo URL needs the key on it, so shipping one leaks a server key.
-    expect(listing!.photos).toEqual([]);
+    /*
+     * This used to assert `photos: []`, and the reason given was that a photo
+     * URL needs the key on it. That was true of Google's media URL and it was
+     * never the property worth protecting: the property is that a SERVER KEY
+     * NEVER REACHES A BROWSER, and "ship no photos" was one way to get it.
+     *
+     * `/api/places/photo` gets the same property a better way, so the
+     * assertion moves to the invariant rather than to the workaround. Photos
+     * exist now, and none of them carries a credential or points off origin.
+     */
+    for (const photo of listing!.photos) {
+      expect(photo.startsWith("/api/places/photo?name=")).toBe(true);
+      expect(photo).not.toContain("test-key-not-a-real-one");
+    }
     expect(listing!.partner?.attribution).toBe("Google");
   });
 
@@ -305,6 +324,56 @@ describe("not spending a request that cannot help", () => {
     expect(calls[0]!.body["locationBias"]).toBeUndefined();
     // regionCode is what keeps an unbiased search national rather than global.
     expect(calls[0]!.body["regionCode"]).toBe("NG");
+  });
+
+  /*
+   * Photos were the single largest hole in the partner shelf. Google returns
+   * them on every venue and the provider set `photos: []`, because the media
+   * URL carries the API key and this is a server key. Every partner card fell
+   * back to a gradient tile, so a shelf of real hotels looked like placeholder
+   * furniture. They go through our own origin now, so the key stays server side
+   * and the browser gets a picture.
+   */
+  it("carries photos, through this origin rather than with a key on them", async () => {
+    stubGoogle([place({ id: "p1", name: "Eko Hotel", types: ["lodging"] })]);
+    const { placesHotelProvider } = await import("./places");
+    const result = await placesHotelProvider.search({});
+
+    const photos = result.listings[0]!.photos;
+    expect(photos.length).toBeGreaterThan(0);
+    for (const photo of photos) {
+      expect(photo.startsWith("/api/places/photo?name=")).toBe(true);
+      // The one thing that must never appear in what a browser is handed.
+      expect(photo).not.toContain("test-key-not-a-real-one");
+      expect(photo).not.toContain("googleapis.com");
+    }
+  });
+
+  it("carries the facts Google already gave, and invents none", async () => {
+    stubGoogle([place({ id: "p1", name: "Eko Hotel", types: ["lodging"] })]);
+    const { placesHotelProvider } = await import("./places");
+    const result = await placesHotelProvider.search({});
+
+    expect(result.listings[0]!.amenities).toContain("Open now");
+    expect(result.listings[0]!.amenities).toContain("Hotel");
+  });
+
+  it("says nothing at all about a venue that answered nothing", async () => {
+    stubGoogle([
+      {
+        id: "bare",
+        displayName: { text: "A Place" },
+        businessStatus: "OPERATIONAL",
+        location: { latitude: 6.43, longitude: 3.42 },
+        types: ["lodging"],
+      },
+    ]);
+    const { placesHotelProvider } = await import("./places");
+    const result = await placesHotelProvider.search({});
+
+    // No photos, no invented facts. An empty list, not filler.
+    expect(result.listings[0]!.photos).toEqual([]);
+    expect(result.listings[0]!.amenities).toEqual([]);
   });
 
   it("still hints at the city when it genuinely knows one", async () => {
