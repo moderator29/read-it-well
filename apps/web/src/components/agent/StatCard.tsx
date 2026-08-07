@@ -16,6 +16,19 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
  * "vs last month" underneath the percentage and colliding with it. So on phones
  * the icon takes its own row, the label wraps freely, and the delta gets a line
  * to itself. From `sm` up there is room, and the original row returns.
+ *
+ * WHY THE DELTA IS OPTIONAL. It was required, and that is why this component
+ * went unused the moment a second surface wanted it: the analytics screen has
+ * four headline figures and three of them have no honest period-over-period
+ * comparison to make. Forward occupancy is a statement about the next thirty
+ * nights and there is no previous thirty to hold it against. Requiring a delta
+ * left exactly two ways out, inventing a number or not using the component, and
+ * a stat tile reading a confident green +0% next to a figure nobody compared is
+ * the worse of the two by a distance.
+ *
+ * So a tile with nothing to compare says the number and stops. The delta row is
+ * not rendered at all rather than rendered empty, because a blank line where a
+ * trend belongs reads as a trend that failed to load.
  */
 export function StatCard({
   icon,
@@ -29,11 +42,20 @@ export function StatCard({
   label: string;
   /** A rendered figure: `<Amount>` for money, `<Figure>` for a bare count. */
   value: React.ReactNode;
-  deltaPct: number;
-  deltaLabel: string;
+  /**
+   * Signed month-over-month change, when there is an honest one.
+   *
+   * Both delta fields are optional and BOTH must be present for the row to
+   * render. A percentage with no period named beside it is not a fact somebody
+   * can act on, and a period with no percentage is not a fact at all.
+   */
+  deltaPct?: number;
+  deltaLabel?: string;
   className?: string;
 }) {
-  const up = deltaPct >= 0;
+  // Both, or neither. See the note on the props.
+  const hasDelta = typeof deltaPct === "number" && typeof deltaLabel === "string";
+  const up = (deltaPct ?? 0) >= 0;
   return (
     <div
       className={[
@@ -51,6 +73,7 @@ export function StatCard({
         <p className="nf-numeric mt-1 text-[1.25rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)] sm:text-[1.375rem]">
           {value}
         </p>
+        {hasDelta && (
         <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[0.75rem] leading-snug">
           <span
             className="nf-numeric inline-flex items-center gap-1 font-semibold"
@@ -70,6 +93,7 @@ export function StatCard({
           </span>
           <span className="text-[var(--nf-content-muted)]">{deltaLabel}</span>
         </p>
+        )}
       </div>
     </div>
   );

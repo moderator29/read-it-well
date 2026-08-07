@@ -524,6 +524,12 @@ function ListingsPanel({
               {t.listings.columnConfirmed} {formatNumber(row.confirmed, locale)}
               {" · "}
               {t.listings.columnNights} {formatNumber(row.nightsSold, locale)}
+              {row.savedSignedIn !== null && (
+                <>
+                  {" · "}
+                  {t.listings.saved} {formatNumber(row.savedSignedIn, locale)}
+                </>
+              )}
             </p>
             <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
               {ratingCell(t, row, locale)}
@@ -541,6 +547,11 @@ function ListingsPanel({
               <TH align="end">{t.listings.columnConfirmed}</TH>
               <TH align="end">{t.listings.columnNights}</TH>
               <TH align="end">{t.listings.columnSettled}</TH>
+              {/* The header carries "signed in" rather than a footnote doing
+                  it, because a column called Saved beside a low number tells a
+                  host their listing is unwanted, when what they are seeing is
+                  how many people bothered to make an account. */}
+              <TH align="end">{t.listings.saved}</TH>
               <TH>{t.listings.columnRating}</TH>
             </TR>
           </THead>
@@ -558,6 +569,16 @@ function ListingsPanel({
                 <TD align="end">{formatNumber(row.nightsSold, locale)}</TD>
                 <TD align="end" className="font-semibold text-[var(--nf-content-primary)]">
                   <Amount minorUnits={row.settledShareMinor} locale={locale} />
+                </TD>
+                <TD align="end">
+                  {/* Null is "could not be read", zero is "nobody has". A dash
+                      for the first rather than a nought, which would say
+                      nobody wants it. */}
+                  {row.savedSignedIn === null ? (
+                    <span className="text-[var(--nf-content-muted)]">&ndash;</span>
+                  ) : (
+                    formatNumber(row.savedSignedIn, locale)
+                  )}
                 </TD>
                 <TD>{ratingCell(t, row, locale)}</TD>
               </TR>

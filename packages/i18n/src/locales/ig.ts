@@ -1305,6 +1305,7 @@ export const ig: Dictionary = {
       columnRating: "Ogo",
       ratingWith: "{rating} site na nyocha {count}",
       ratingWithOne: "{rating} site n'otu nyocha",
+      saved: "Echekwara (abanyela)",
       noRating: "Ọ dịghị nyocha",
       empty: "Ị nweghị ihe onwunwe ọ bụla ugbu a, ya mere ọ dịghị ihe a ga-atụnyere.",
     },
@@ -1326,7 +1327,7 @@ export const ig: Dictionary = {
       views:
         "Nlele. RentMe anaghị agụ ọnụ ọgụgụ ndị lere ihe onwunwe anya, ya mere ọ dịghị ọnụọgụ nlele ebe a ma ọ dịghị ọnụego mgbanwe e wuru na ya. Igosi nke ọ bụla ga-abụ ihe e chepụtara.",
       saves:
-        "Nchekwa. Ndepụta nchekwa nke ọbịa bụ nke onwe ya, ọbịa na-abanyeghị na-edobe nke ya na ekwentị ya, ya mere ọnụọgụ ọ bụla anyị nwere ike inye ga-adị ntakịrị site n'ọnụọgụ onye ọ bụla na-apụghị ịtụ.",
+        "Nchekwa sitere n'aka ndị ọbịa na-abanyeghị. Ndepụta nchekwa nke onye na-abanyeghị na-anọ na ekwentị ya, ọ dịghịkwa erute anyị, ya mere ọnụọgụ dị n'akụkụ ụlọ ọ bụla na-agụta naanị ndị ọbịa nwere akaụntụ. Gụọ ya dị ka ala, ọ bụghị mkpokọta.",
       occupancy:
         "Pasent nke ojiji gara aga. A na-agụ abalị e rere n'ụzọ ziri ezi, mana ịmata pasent nke ike gị nke ahụ bụ chọrọ ịmata ihe onwunwe ole ka ị nwere na-arụ ọrụ n'abalị ọ bụla gara aga, nke a na-edekọghị. A na-egosi abalị 30 na-abịa kama nke ahụ, n'ihi na ọnụọgụ ndị na-arụ ọrụ taa bụ eziokwu.",
     },

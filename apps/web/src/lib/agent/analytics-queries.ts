@@ -1,5 +1,7 @@
 import "server-only";
 
+import { createAdminClient } from "../supabase/admin";
+
 /**
  * The agent's own numbers, and only the ones the database can actually answer.
  *
@@ -125,6 +127,21 @@ export type ListingPerformance = {
   reviews: number;
   /** Mean rating, unrounded. Null when nobody has reviewed it. */
   rating: number | null;
+  /**
+   * How many SIGNED-IN guests have saved this listing. Null when the count
+   * could not be read at all.
+   *
+   * The qualifier is not hedging, it is the whole truth about this number.
+   * `saved_items` only ever receives a row from somebody with an account: a
+   * signed-out visitor's saves live in localStorage with a cookie mirror
+   * (`lib/saved/local.ts`) and never reach the database. So this undercounts by
+   * a margin nobody can measure, and every surface that prints it has to say
+   * "signed in" out loud rather than "saves". A host comparing this against
+   * their own sense of interest and finding it low would otherwise conclude
+   * their listing is unwanted, when what they are actually looking at is the
+   * shape of who bothered to make an account.
+   */
+  savedSignedIn: number | null;
 };
 
 /**
@@ -674,10 +691,23 @@ export async function readAgentAnalytics(context: AgentContext): Promise<AgentAn
           Date.now(),
         );
 
+  /* Read after the listings, because it can only ask about listings the host's
+     own RLS already handed us. That ordering is the guard: the id list is not
+     an argument this function chooses, it is the answer to a query that was
+     already scoped to the caller. */
+  const saved =
+    listings === null ? null : await readSavedCounts(listings.map((listing) => listing.id));
+
   const performance =
     listings === null
       ? null
-      : buildListingPerformance(listings, bookings, settledByListing, ratings?.byListing ?? null);
+      : buildListingPerformance(
+          listings,
+          bookings,
+          settledByListing,
+          ratings?.byListing ?? null,
+          saved,
+        );
 
   const money = earnings ?? UNREADABLE_EARNINGS;
 
@@ -710,11 +740,59 @@ export async function readAgentAnalytics(context: AgentContext): Promise<AgentAn
  * listing missing from the table entirely would be the worse failure: a host
  * would conclude they had deleted it.
  */
+/**
+ * How many signed-in guests have saved each of these listings.
+ *
+ * THE ONLY SERVICE-ROLE READ ON THIS SCREEN, and it is here because
+ * `saved_items_own` is `ALL` scoped to `auth.uid() = user_id`. That policy is
+ * strict by design: a save is a private signal about what somebody is
+ * considering, and the table has no host-side policy because until now no host
+ * had any business reading it. Showing a host an aggregate is a change in
+ * privacy posture rather than a feature toggle, and it was made deliberately by
+ * the owner rather than assumed here.
+ *
+ * What keeps it defensible is the shape of what comes back. This reads ONE
+ * column, `listing_id`, restricted to listings the caller already owns, and
+ * returns nothing but counts. No user id crosses this boundary, so a host
+ * learns how many people saved a property and never which people, which is
+ * the difference between an audience figure and surveillance.
+ *
+ * The listing ids are supplied by the caller and were themselves read under the
+ * host's own RLS, so this cannot be pointed at somebody else's inventory by a
+ * bug in the argument.
+ *
+ * Null on any failure, including a missing service key, and null means "not
+ * read" rather than zero. A nought where a number could not be fetched would
+ * tell a host nobody wants their listing.
+ */
+async function readSavedCounts(listingIds: string[]): Promise<Map<string, number> | null> {
+  if (listingIds.length === 0) return new Map();
+  try {
+    const admin = createAdminClient();
+    if (!admin) return null;
+    const { data, error } = await admin
+      .from("saved_items")
+      .select("listing_id")
+      .in("listing_id", listingIds);
+    if (error) return null;
+
+    const counts = new Map<string, number>();
+    for (const row of data ?? []) {
+      const id = (row as { listing_id: string | null }).listing_id;
+      if (typeof id === "string") counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    return counts;
+  } catch {
+    return null;
+  }
+}
+
 function buildListingPerformance(
   listings: ListingRow[],
   bookings: BookingAggregateRow[] | null,
   settled: Map<string, number> | null,
   ratings: Map<string, RatingTally> | null,
+  saved: Map<string, number> | null,
 ): ListingPerformance[] {
   const requests = new Map<string, number>();
   const confirmed = new Map<string, number>();
@@ -741,6 +819,10 @@ function buildListingPerformance(
         settledShareMinor: settled?.get(listing.id) ?? 0,
         reviews: tally?.count ?? 0,
         rating: tally && tally.count > 0 ? tally.total / tally.count : null,
+        /* Null when the whole read failed, zero when it succeeded and this
+           listing simply has none. The two are different facts and the screen
+           says different things about them. */
+        savedSignedIn: saved === null ? null : saved.get(listing.id) ?? 0,
       };
     })
     .sort(

@@ -1467,6 +1467,7 @@ export const en = {
       columnRating: "Rating",
       ratingWith: "{rating} from {count} reviews",
       ratingWithOne: "{rating} from 1 review",
+      saved: "Saved (signed in)",
       noRating: "No reviews",
       empty: "You have no properties yet, so there is nothing to compare.",
     },
@@ -1488,7 +1489,7 @@ export const en = {
       views:
         "Views. RentMe does not count how many people looked at a property, so there is no view figure here and no conversion rate built on one. Publishing either would mean making them up.",
       saves:
-        "Saves. A guest's saved list is private to them, and a guest who has not signed in keeps it on their own phone, so any count we could produce would be short by an amount nobody can measure.",
+        "Saves from guests who are not signed in. A signed-out visitor's saved list stays on their own phone and never reaches us, so the saved figure beside each property counts only guests with an account and is short by an amount nobody can measure. Read it as a floor, not a total.",
       occupancy:
         "Past occupancy as a percentage. Nights sold are counted exactly, but working out what share of your capacity that was needs to know how many properties you had live on each past night, which is not recorded. The next 30 nights are shown instead, because today's live count is a fact.",
     },

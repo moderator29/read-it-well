@@ -1295,6 +1295,7 @@ export const ha: Dictionary = {
       columnRating: "Ƙima",
       ratingWith: "{rating} daga sharhi {count}",
       ratingWithOne: "{rating} daga sharhi ɗaya",
+      saved: "An ajiye (an shiga)",
       noRating: "Babu sharhi",
       empty: "Ba ka da kadara tukuna, don haka babu abin da za a kwatanta.",
     },
@@ -1316,7 +1317,7 @@ export const ha: Dictionary = {
       views:
         "Kallo. RentMe ba ya ƙidaya yawan mutanen da suka duba kadara, don haka babu adadin kallo a nan kuma babu ƙimar juyawa da aka gina a kansa. Nuna ko wanne zai zama ƙirƙira.",
       saves:
-        "Ajiyewa. Jerin ajiyar baƙo mallakarsa ne kaɗai, kuma baƙon da bai shiga ba yana ajiye nasa a wayarsa, don haka duk adadin da za mu iya bayarwa zai gaza da adadin da babu wanda zai iya aunawa.",
+        "Ajiyar baƙin da ba su shiga ba. Jerin ajiyar wanda bai shiga ba yana kan wayarsa kuma bai taɓa isa gare mu ba, saboda haka adadin da ke gefen kowane gida yana ƙidaya baƙi masu asusu kaɗai. Karanta shi a matsayin mafi ƙaranci, ba jimla ba.",
       occupancy:
         "Kason amfani da ya wuce. Ana ƙidaya dararen da aka sayar daidai, amma sanin wane kason ƙarfinka ne hakan yana buƙatar sanin kadarori nawa ne suke aiki a kowane daren da ya wuce, wanda ba a rubuta ba. Ana nuna darare 30 masu zuwa maimakon haka, domin adadin kadarorin da ke aiki yau gaskiya ne.",
     },

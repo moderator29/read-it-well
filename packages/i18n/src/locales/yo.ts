@@ -1300,6 +1300,7 @@ export const yo: Dictionary = {
       columnRating: "Ìdíwọ̀n",
       ratingWith: "{rating} láti inú àtúnyẹ̀wò {count}",
       ratingWithOne: "{rating} láti inú àtúnyẹ̀wò kan",
+      saved: "Ó fi pamọ́ (wọlé)",
       noRating: "Kò sí àtúnyẹ̀wò",
       empty: "O kò ní ohun ìní kankan síbẹ̀, nítorí náà kò sí ohun tí a lè fiwéra.",
     },
@@ -1321,7 +1322,7 @@ export const yo: Dictionary = {
       views:
         "Ìwòye. RentMe kò ka iye àwọn tí ó wo ohun ìní kan, nítorí náà kò sí iye ìwòye níbí, bẹ́ẹ̀ ni kò sí ìṣirò ìyípadà tí a gbé kà á. Fífi èyíkéyìí hàn yóò jẹ́ ohun tí a hun.",
       saves:
-        "Ìfipamọ́. Àtòjọ ìfipamọ́ àlejò jẹ́ ti ara rẹ̀ nìkan, àlejò tí kò wọlé sì ń fi tirẹ̀ pamọ́ sí fóònù ara rẹ̀, nítorí náà iye èyíkéyìí tí a bá kà yóò kéré ní ìwọ̀n tí ẹnikẹ́ni kò lè díwọ̀n.",
+        "Ìfipamọ́ láti ọ̀dọ̀ àwọn àlejò tí kò wọlé. Àkọsílẹ̀ ìfipamọ́ ẹni tí kò wọlé wà lórí fóònù ara rẹ̀, kò sì dé ọ̀dọ̀ wa, nítorí náà iye tí ó wà lẹ́gbẹ̀ẹ́ ilé kọ̀ọ̀kan kàn ka àwọn àlejò tí ó ní àkántì nìkan. Kà á gẹ́gẹ́ bí ìlẹ̀, kì í ṣe àpapọ̀.",
       occupancy:
         "Ìpín ọgọ́rùn-ún ti ìlò àtijọ́. A ń ka àwọn alẹ́ tí a tà ní pípé, ṣùgbọ́n láti mọ ìpín agbára rẹ tí ìyẹn jẹ́, a gbọ́dọ̀ mọ iye ohun ìní tí o ní tí ń ṣiṣẹ́ ní alẹ́ kọ̀ọ̀kan tí ó kọjá, èyí tí a kò kọ sílẹ̀. A fi alẹ́ 30 tó ń bọ̀ hàn dípò rẹ̀, nítorí pé iye ohun ìní tí ń ṣiṣẹ́ lónìí jẹ́ òtítọ́.",
     },
