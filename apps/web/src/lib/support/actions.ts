@@ -19,6 +19,7 @@ import { supportTicketFiled } from "../email/messages";
 import { isFeatureEnabled } from "../flags";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createAdminClient } from "../supabase/admin";
+import { SUPPORT_TOPICS } from "../trust/support-topics";
 
 /**
  * Support ticket filing.
@@ -193,21 +194,31 @@ export async function fileSupportTicket(
 
 /* ------------------------------------------------------------ contact form */
 
-/**
- * The topics the public contact form offers, and what each one is called on
- * the ticket a human will read.
+/*
+ * THE TOPIC LIST LIVES IN lib/trust/support-topics.ts, AND IT USED TO LIVE
+ * HERE AS WELL.
  *
- * Kept as a map rather than free text so the select cannot file a topic the
- * queue does not recognise, and so renaming a label never invalidates the
- * tickets already filed under it.
+ * That module was written to stop exactly this: "two lists means the queue
+ * eventually shows 'safety' as a bare word to the operator while the person who
+ * chose it read a whole sentence". The second list stayed behind in this file
+ * and the two drifted, in the way that costs the most.
+ *
+ * The form's select posts the CODE, and it offers six of them because
+ * `SUPPORT_TOPICS` has six. The copy of the list here had five, with no
+ * "safety" in it, so `value in CONTACT_TOPICS` was false for the one topic
+ * worded as the thing this queue exists for, and anybody choosing "Someone
+ * asked me to pay outside RentMe" was refused with "Pick one of the topics
+ * listed" for picking a topic that was listed.
+ *
+ * The second half was quieter and just as wrong: this file translated the code
+ * into a label before storing it, so `support_tickets.topic` held "A booking"
+ * where the admin queue's `gradeForTopic` and `supportTopicLabel` both expect
+ * "booking". The four hour clock on a safety ticket could therefore never fire,
+ * even once the refusal above was gone.
+ *
+ * So: one list, validated as codes, stored as codes. Rows filed before this
+ * carry a label, which `supportTopicLabel` already falls back to printing raw.
  */
-const CONTACT_TOPICS: Record<string, string> = {
-  booking: "A booking",
-  payment: "A payment or refund",
-  listing: "Listing a property",
-  verification: "Verification",
-  other: "Something else",
-};
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, "Add your name so we know who to reply to.").max(120),
@@ -220,7 +231,10 @@ const contactSchema = z.object({
   topic: z
     .string()
     .trim()
-    .refine((value) => value in CONTACT_TOPICS, "Pick one of the topics listed.")
+    .refine(
+      (value) => (SUPPORT_TOPICS as readonly string[]).includes(value),
+      "Pick one of the topics listed.",
+    )
     .default("other"),
   message: z
     .string()
@@ -273,10 +287,5 @@ export async function submitContactForm(
   }
 
   const { name, email, topic, message } = parsed.data;
-  return fileSupportTicket({
-    name,
-    email,
-    topic: CONTACT_TOPICS[topic] ?? CONTACT_TOPICS.other,
-    body: message,
-  });
+  return fileSupportTicket({ name, email, topic, body: message });
 }

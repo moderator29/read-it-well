@@ -98,7 +98,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
   },
   {
     id: "cancellations",
-    keywords: ["cancel", "call it off", "not as described", "not as listed", "could not get in"],
+    keywords: ["cancel", "call it off", "not as described", "not as listed"],
     answer:
       "One cancellation schedule covers every stay on RentMe, not a different one for each host. The free-cancellation deadline is 72 hours before check-in: cancel before it and everything you paid comes back to your wallet, cancel inside it and half comes back, and once check-in day has started nothing does. A stay you have not paid for is only a hold on the calendar, so you can call it off from Bookings at any hour for nothing.",
   },

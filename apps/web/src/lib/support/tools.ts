@@ -1,10 +1,10 @@
 import "server-only";
 
 import { formatMoney } from "@naijafinds/i18n";
-import type { SupabaseClient, User } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession, type SessionState } from "../actions/session";
 import { lagosToday } from "../bookings/schema";
-import { loadConversationSummaries } from "../messages/live";
+import { loadConversationSummaries, type LiveConversationSummary } from "../messages/live";
 import { parseSettings } from "../profile/schema";
 import type { Database } from "../supabase/database.types";
 import {
@@ -14,8 +14,9 @@ import {
   refundForCancellation,
 } from "../trust/cancellation";
 import { RESPONSE_COMMITMENTS } from "../trust/standards";
-import { SUPPORT_TOPICS, SUPPORT_TOPIC_LABEL, gradeForTopic } from "../trust/support-topics";
+import { SUPPORT_TOPICS, gradeForTopic, supportTopicLabel } from "../trust/support-topics";
 import { readStatement } from "../wallet/repository";
+import type { WalletSummary } from "../wallet/types";
 import { searchFaq } from "./faq";
 import { fileSupportTicket } from "./actions";
 import type { SupportAction } from "./types";
@@ -202,7 +203,7 @@ export const SUPPORT_TOOLS = [
   {
     name: "my_messages",
     description:
-      "Read the signed-in caller's own message threads with agents: who the thread is with, which listing it is about, how many messages are unread, and whether the last word was theirs or the other side's. Use it when they say an agent has not replied, or ask where a conversation went. Never reveal message bodies beyond the short preview this returns.",
+      "Read the signed-in caller's own message threads with agents: who the thread is with, which listing it is about, how many messages are unread, and whether the last word was theirs or the other side's. Use it when they say an agent has not replied, or ask where a conversation went. It deliberately returns no message text, so you can say who is waiting without reading anybody's conversation back at them.",
     input_schema: {
       type: "object",
       properties: {},
@@ -273,9 +274,21 @@ function asString(value: unknown): string {
  * The only way an amount reaches the model. Integer kobo in, formatted naira
  * out, so there is no path where the model is handed 12000000 and decides for
  * itself whether that is twelve million naira or a hundred and twenty thousand.
+ *
+ * Kobo-exact, by the same integer split as `nairaExact` in lib/payments/money:
+ * `formatMoney` alone renders whole naira, and half of an odd kobo total is
+ * exactly the shape a cancellation refund takes, so rounding here would have
+ * the agent quoting a figure fifty kobo away from the one the refund desk pays.
+ * Written out rather than imported because support has to carry the booking's
+ * own currency and the sign of a balance, neither of which refusal copy needed.
  */
-function naira(minor: number, currency: string): string {
-  return formatMoney(Math.trunc(minor), "en", currency);
+function naira(minor: number, currency = "NGN"): string {
+  const whole = Math.trunc(minor);
+  const abs = Math.abs(whole);
+  const kobo = abs % 100;
+  const sign = whole < 0 ? "-" : "";
+  const major = formatMoney(abs - kobo, "en", currency);
+  return kobo === 0 ? `${sign}${major}` : `${sign}${major}.${String(kobo).padStart(2, "0")}`;
 }
 
 /** "Fri 14 Aug 2026" from a date-only booking column. */
@@ -593,7 +606,7 @@ async function runMyBookings(session: SignedIn): Promise<ToolOutcome> {
 
 /** The caller's own balance and last few entries, read as them. */
 async function runMyWallet(session: SignedIn): Promise<ToolOutcome> {
-  let statement;
+  let statement: WalletSummary;
   try {
     statement = await readStatement(session.supabase, session.user.id);
   } catch {
@@ -857,7 +870,7 @@ async function runMyTickets(session: SignedIn): Promise<ToolOutcome> {
         const thread = byTicket.get(ticket.id);
         return {
           reference: ticket.reference,
-          about: SUPPORT_TOPIC_LABEL[ticket.topic as keyof typeof SUPPORT_TOPIC_LABEL] ?? ticket.topic,
+          about: supportTopicLabel(ticket.topic) ?? "not stated",
           status: ticket.status,
           meaning: TICKET_STATUS_MEANING[ticket.status] ?? ticket.status,
           filed: instantLabel(ticket.created_at),
@@ -875,7 +888,7 @@ async function runMyTickets(session: SignedIn): Promise<ToolOutcome> {
 
 /** The caller's own agent threads: who is waiting on whom. */
 async function runMyMessages(session: SignedIn): Promise<ToolOutcome> {
-  let threads;
+  let threads: LiveConversationSummary[];
   try {
     threads = await loadConversationSummaries(session.supabase, session.user);
   } catch {
@@ -902,7 +915,7 @@ async function runMyMessages(session: SignedIn): Promise<ToolOutcome> {
         when: thread.whenLabel,
         waitingOnTheOtherSide: thread.lastFromMe,
       })),
-      note: "Do not quote message text back at them beyond what is here. If an agent has not replied, say how long it has been and offer to bring in a person; never promise on an agent's behalf.",
+      note: "No message text is returned here, so do not quote any. If an agent has not replied, say how long it has been and offer to bring in a person; never promise on an agent's behalf.",
     },
     actions: [MESSAGES_ACTION],
   };
@@ -1022,7 +1035,7 @@ async function runFileTicket(session: SessionState, input: unknown): Promise<Too
     result: {
       filed: true,
       reference: outcome.data.reference,
-      about: SUPPORT_TOPIC_LABEL[topic as keyof typeof SUPPORT_TOPIC_LABEL] ?? topic,
+      about: supportTopicLabel(topic) ?? topic,
       answeredWithin: RESPONSE_COMMITMENTS[grade].label,
       note: `The ticket row is written. Give them this reference exactly, tell them it is answered ${RESPONSE_COMMITMENTS[grade].label.toLowerCase()} and that a person replies to ${email}.`,
     },
