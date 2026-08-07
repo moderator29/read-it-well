@@ -78,6 +78,33 @@ const nextConfig: NextConfig = {
         source: "/fonts/:file*.woff2",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
+      /*
+       * The Apple app site association file, which is the iOS half of the deep
+       * link contract and the one piece of it that a correct file on disk is
+       * not enough for.
+       *
+       * Apple requires the file to be served with no extension, at exactly
+       * `/.well-known/apple-app-site-association`, AND as `application/json`.
+       * A file with no extension has nothing for a MIME lookup to work from, so
+       * the static handler falls back to `application/octet-stream`, Apple's
+       * CDN discards it, and Universal Links fail with no error anywhere: the
+       * link simply keeps opening in the browser. The sibling file
+       * `assetlinks.json` needs none of this, because its extension answers the
+       * question by itself.
+       *
+       * This also has to be a real header rather than a guess, because the
+       * catch-all block below sends `X-Content-Type-Options: nosniff` on every
+       * response, so nothing downstream is permitted to correct a wrong type.
+       *
+       * Both files are static under `public/` and `src/middleware.ts` lets
+       * `/.well-known` through untouched, which is what the fetchers need:
+       * Apple and Google both read these anonymously, over https, with no
+       * redirect allowed.
+       */
+      {
+        source: "/.well-known/apple-app-site-association",
+        headers: [{ key: "Content-Type", value: "application/json" }],
+      },
       {
         source: "/:path*",
         headers: [

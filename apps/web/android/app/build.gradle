@@ -1,0 +1,144 @@
+apply plugin: 'com.android.application'
+
+/*
+ * Release signing, supplied from outside the repository.
+ *
+ * A release build has to be signed with the upload key the owner registered
+ * with Play, and that key must never be in git. So this reads
+ * `apps/web/android/keystore.properties`, which `.gitignore` refuses to track,
+ * and only wires a release signing config when that file is actually present.
+ *
+ * The shape of the file, four lines:
+ *
+ *     storeFile=upload-keystore.jks
+ *     storePassword=...
+ *     keyAlias=upload
+ *     keyPassword=...
+ *
+ * When the file is absent, `assembleRelease` still runs and produces an
+ * UNSIGNED artefact rather than falling back to the debug key. That is the
+ * behaviour we want. Android Gradle only auto-signs the debug build type, and a
+ * release accidentally signed with the debug key is both a Play rejection and,
+ * if it ever escaped, an application anybody can forge an update for. An
+ * unsigned output fails loudly at upload instead, which is the honest failure.
+ */
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def hasReleaseKeystore = keystorePropertiesFile.exists()
+def keystoreProperties = new Properties()
+if (hasReleaseKeystore) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
+android {
+    namespace = "ng.rentme.app"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "ng.rentme.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        /*
+         * DO NOT EDIT THESE TWO LINES BY HAND.
+         *
+         * `scripts/sync-native-versions.mjs` writes both of them from
+         * `apps/web/package.json`, which is the one place a version is chosen
+         * for this platform, and it writes the matching pair into the Xcode
+         * project in the same run. Three numbers maintained in three files
+         * drift, and the way that drift is discovered is a Play upload
+         * rejected for a `versionCode` that did not move, hours after the
+         * build that was supposed to ship.
+         *
+         * Run `npm run sync:versions` from the repository root before every
+         * release build, and `npm run sync:versions -- --check` in CI to fail
+         * a build whose native versions no longer match the manifest.
+         */
+        versionCode 100000
+        versionName "0.1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            release {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (hasReleaseKeystore) {
+                signingConfig signingConfigs.release
+            }
+
+            /*
+             * Written out rather than left to the default, because this is the
+             * flag that ends careers. Play refuses a debuggable release upload,
+             * and one that slipped through would leave the WebView open to
+             * remote inspection on a shipped handset, which on this product
+             * means somebody else's session and somebody else's wallet.
+             * `capacitor.config.ts` sets `webContentsDebuggingEnabled: false`
+             * for the same reason at the other layer.
+             */
+            debuggable false
+
+            /*
+             * R8 was off, which is the template default and means the release
+             * ships every unused class in every dependency with its original
+             * names. Capacitor is safe to shrink: `@capacitor/android` declares
+             * `consumerProguardFiles` and those rules already keep everything
+             * the bridge reaches reflectively, which is the plugin classes,
+             * their `@PluginMethod` members and the Cordova compatibility
+             * surface. `proguard-rules.pro` beside this file adds the ones that
+             * belong to this application rather than to the library.
+             *
+             * `shrinkResources` stays OFF and that is a deliberate exception
+             * rather than an oversight. `capacitor.config.ts` sets
+             * `androidSplashResourceName: "splash"`, and the splash plugin
+             * turns that string into a drawable at runtime through
+             * `Resources.getIdentifier`. Resource shrinking works from static
+             * references, cannot see a lookup by name, and would strip the
+             * splash art as unused. The failure would be a black first frame on
+             * a release build only, which is precisely the kind of defect that
+             * survives every debug test and greets the first reviewer.
+             */
+            minifyEnabled true
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

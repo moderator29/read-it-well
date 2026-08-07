@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+	Associated Domains, which is the iOS half of the deep link contract.
+
+	READ THIS BEFORE ASSUMING UNIVERSAL LINKS WORK. This file is INERT as it
+	stands. Nothing in `App.xcodeproj` points at it yet, on purpose, and here is
+	the reasoning: setting `CODE_SIGN_ENTITLEMENTS` by hand makes every build
+	fail with "provisioning profile does not include the
+	com.apple.developer.associated-domains entitlement" until the capability
+	exists on the App ID, and the owner does not have an Apple Developer account
+	yet. A repository that cannot be built is worse than one with a documented
+	next step.
+
+	THE OWNER'S THREE STEPS, in order. None can be done from inside this
+	repository.
+
+	1. Apple Developer portal, Certificates Identifiers and Profiles, the App ID
+	   `ng.rentme.app`. Tick Associated Domains, save, and let the provisioning
+	   profiles regenerate.
+	2. Xcode, the App target, Signing and Capabilities, the plus button,
+	   Associated Domains. Xcode finds this file at `App/App.entitlements`,
+	   adopts it rather than creating a second one, and sets the build setting
+	   itself. The two domains below should appear already filled in.
+	3. Publish `apps/web/public/.well-known/apple-app-site-association` on the
+	   live origin with the real Team ID in it. That file carries an obvious
+	   placeholder today, `PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID`, and the
+	   whole `appIDs` entry has to read `<TeamID>.ng.rentme.app`.
+
+	   The Team ID is ten alphanumeric characters and there are two places to
+	   read it. Apple Developer, Membership details, the field named Team ID.
+	   Or in Xcode, the App target, Signing and Capabilities, where it is shown
+	   in brackets beside the selected team. It is NOT the Apple ID email and
+	   it is NOT the bundle identifier, which are the two things people paste
+	   in by mistake. The placeholder is deliberately longer than ten
+	   characters so that a file nobody filled in fails to match rather than
+	   looking plausible.
+
+	Then verify, because a silent failure here looks exactly like success:
+	Apple caches the association file through its own CDN, so check what Apple
+	actually has rather than what the server returns, at
+
+	    https://app-site-association.cdn-apple.com/a/v1/rentme.ng
+
+	and expect a device to take up to a day to pick up a change. During
+	development, the `applinks:` entries can be suffixed with
+	`?mode=developer` to bypass the CDN, which is the only sane way to test a
+	change to the file.
+
+	The two domains are `rentme.ng` and `www.rentme.ng`, matching the Android
+	manifest's verified hosts and the domain this repository defaults to in
+	`src/lib/email/render.ts`. If `NEXT_PUBLIC_SITE_URL` ends up somewhere else,
+	these change with it, because an associated domain is an exact host and not
+	a suffix.
+-->
+<dict>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:rentme.ng</string>
+		<string>applinks:www.rentme.ng</string>
+	</array>
+</dict>
+</plist>

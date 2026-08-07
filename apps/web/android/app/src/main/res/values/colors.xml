@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The three theme colours `styles.xml` references.
+
+    This file did not exist, and the application was resolving all three from
+    the defaults inside `@capacitor/android`, which are Material indigo
+    `#3F51B5`, its dark variant `#303F9F`, and a magenta accent `#FF4081`. An
+    application resource of the same name wins over a library one, so these
+    four lines are all it takes to replace them.
+
+    It matters because those values are not invisible. `colorPrimaryDark` paints
+    the status bar before the web layer has loaded and had a chance to repaint
+    it, `colorAccent` tints the text selection handles and the cursor inside
+    every input in the WebView, and `colorPrimary` is what the launcher and the
+    recents screen sample. A person would meet magenta selection handles inside
+    a product that has had every warm and violet token deleted from its palette
+    on the owner's explicit instruction.
+
+    The values are the sampled brand anchors: base `#010118` for the darkest
+    surface, mid `#000F98` for the primary, and glow `#0C39EF` for the accent
+    that has to be visible against dark. `packages/design-tokens` remains the
+    control surface for the product itself. These three are only the small
+    amount of system-drawn chrome that never reaches the web layer, and they are
+    written as literals because an Android resource cannot read a CSS token.
+-->
+<resources>
+    <color name="colorPrimary">#000F98</color>
+    <color name="colorPrimaryDark">#010118</color>
+    <color name="colorAccent">#0C39EF</color>
+</resources>
