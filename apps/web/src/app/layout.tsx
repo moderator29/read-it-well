@@ -3,11 +3,11 @@ import { headers } from "next/headers";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { prefersLessData } from "@/lib/save-data";
+import { NONCE_HEADER } from "@/lib/security/csp";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { TiltField } from "@/components/site/TiltField";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
-import { NativeRuntime } from "@/components/app/NativeRuntime";
 import "./globals.css";
 
 /*
@@ -138,23 +138,20 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  /*
-   * The nonce the middleware minted for this request.
-   *
-   * Next stamps its own inline scripts automatically, by reading the policy off
-   * the request. The theme script below is ours, written by hand, so it has to
-   * be stamped by hand or the Content Security Policy blocks it and light mode
-   * flashes dark on every load for the people who chose it.
-   *
-   * Undefined rather than empty when the header is absent: React omits the
-   * attribute entirely for undefined, and a `nonce=""` would match nothing and
-   * be blocked. The header is absent only on a path the middleware matcher
-   * skips, none of which render this layout.
-   */
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
   /* Read before a byte is rendered, because that is the only point at which a
      background image can be prevented rather than merely hidden. */
   const lessData = await prefersLessData();
+
+  /* This request's Content Security Policy nonce, minted in middleware.
+
+     The two scripts below run before first paint and are the reason this is
+     read at all: without the nonce they are exactly what the policy is designed
+     to stop, an inline script in the document, and the theme would flash on
+     every first load. Undefined when the middleware did not run, which is every
+     path its matcher excludes; React omits the attribute entirely rather than
+     writing `nonce="undefined"`, and no policy is being served on those paths
+     either, so the two absences agree. */
+  const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
 
   return (
     <html
@@ -215,15 +212,6 @@ export default async function RootLayout({
           the header is the reader saying so outright and a connection reading
           does not overrule that.
         */}
-        {/*
-          Nonced for the same reason the theme script above is. This one arrived
-          from a parallel branch that predates the Content Security Policy, and
-          the merge kept it verbatim because nothing conflicted: it is a new
-          script in a region neither side had touched. Without the attribute the
-          policy blocks it on every route, which is exactly what happened, and
-          the reader on the 2g link this script exists to protect would have
-          downloaded 3.5MB of scenery anyway.
-        */}
         <script
           nonce={nonce}
           dangerouslySetInnerHTML={{
@@ -245,14 +233,6 @@ export default async function RootLayout({
         <ScrollToTop />
         {/* Installs the offline shell after load, in production only. Renders nothing. */}
         <ServiceWorkerRegistrar />
-        {/*
-          The native shell's runtime: splash dismissal, the status bar, the
-          keyboard inset, Android's back button and the payment and OAuth
-          handoff to the system browser. Renders nothing, and on the web it is
-          a complete no-op that fetches none of the Capacitor packages. See
-          `lib/native/boot.ts`.
-        */}
-        <NativeRuntime />
         <a href="#main" className="nf-skip-link">
           {t.common.skipToContent}
         </a>

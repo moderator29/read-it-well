@@ -92,68 +92,74 @@ describe("createNonce", () => {
 });
 
 describe("contentSecurityPolicy", () => {
-  const production = () => contentSecurityPolicy("TESTNONCE", false);
-  const development = () => contentSecurityPolicy("TESTNONCE", true);
+  const policy = () => contentSecurityPolicy("TESTNONCE");
 
   /** Pull one directive's source list out of a policy string. */
-  const directive = (policy: string, name: string) =>
-    policy
+  const directive = (value: string, name: string) =>
+    value
       .split(";")
       .map((part) => part.trim())
       .find((part) => part === name || part.startsWith(`${name} `)) ?? null;
 
   it("carries the nonce it was given", () => {
-    expect(directive(production(), "script-src")).toContain("'nonce-TESTNONCE'");
+    expect(directive(policy(), "script-src")).toContain("'nonce-TESTNONCE'");
   });
 
-  it("never allows inline script, in either mode", () => {
-    expect(directive(production(), "script-src")).not.toContain("'unsafe-inline'");
-    expect(directive(development(), "script-src")).not.toContain("'unsafe-inline'");
+  it("never allows inline or eval'd script", () => {
+    const script = directive(policy(), "script-src") ?? "";
+    expect(script).not.toContain("'unsafe-inline'");
+    expect(script).not.toContain("'unsafe-eval'");
   });
 
-  it("allows eval only in development, because Turbopack's refresh runtime needs it", () => {
-    expect(directive(production(), "script-src")).not.toContain("'unsafe-eval'");
-    expect(directive(development(), "script-src")).toContain("'unsafe-eval'");
+  it("sets the directives that cost nothing and close real attacks", () => {
+    const value = policy();
+    expect(directive(value, "default-src")).toBe("default-src 'self'");
+    expect(directive(value, "object-src")).toBe("object-src 'none'");
+    expect(directive(value, "base-uri")).toBe("base-uri 'self'");
+    expect(directive(value, "frame-ancestors")).toBe("frame-ancestors 'none'");
+    expect(directive(value, "frame-src")).toBe("frame-src 'none'");
   });
 
-  it("opens a websocket to localhost only in development", () => {
-    expect(directive(production(), "connect-src")).not.toContain("ws://localhost");
-    expect(directive(development(), "connect-src")).toContain("ws://localhost:*");
-  });
-
-  it("upgrades insecure requests only where there is TLS to upgrade to", () => {
-    expect(production()).toContain("upgrade-insecure-requests");
-    expect(development()).not.toContain("upgrade-insecure-requests");
-  });
-
-  it("sets the four directives that cost nothing and close real attacks", () => {
-    const policy = production();
-    expect(directive(policy, "object-src")).toBe("object-src 'none'");
-    expect(directive(policy, "base-uri")).toBe("base-uri 'self'");
-    expect(directive(policy, "frame-ancestors")).toBe("frame-ancestors 'none'");
-    expect(directive(policy, "frame-src")).toBe("frame-src 'none'");
-  });
-
-  it("keeps form-action rooted at 'self' and names only Paystack beyond it", () => {
+  it("keeps form-action rooted at 'self'", () => {
     /*
-     * Supabase is absent from this expectation on purpose: it is derived from
-     * NEXT_PUBLIC_SUPABASE_URL, which is unset in the test environment, and an
-     * absent variable contributing no origin is the designed behaviour rather
-     * than a gap. The browser spec covers the configured case.
+     * Worth a note rather than a wider assertion. Two server actions finish
+     * with a `redirect()` off-origin, Supabase authorize for Google and Apple
+     * and Paystack for a card. With JavaScript running neither is a form
+     * navigation, so `form-action` does not govern them. Without it, Next
+     * degrades the action to a real form POST and browsers disagree about
+     * whether the following redirect is still part of that navigation.
+     *
+     * This policy ships REPORT-ONLY by default, which is the reason not to
+     * pre-emptively widen the directive: if that path is real it arrives at
+     * `/api/csp-report` as a `form-action` violation before anybody enforces,
+     * which is a measurement rather than a guess. Widen it then, not now.
      */
-    const value = directive(production(), "form-action");
-    expect(value).toBe("form-action 'self' https://checkout.paystack.com");
+    expect(directive(policy(), "form-action")).toBe("form-action 'self'");
   });
 
-  it("names the tile hosts on img-src, or the map draws a grey box", () => {
-    const value = directive(production(), "img-src") ?? "";
-    expect(value).toContain("https://basemaps.cartocdn.com");
-    expect(value).toContain("https://api.maptiler.com");
+  it("lets the map's tiles through, or it draws a grey box", () => {
+    /*
+     * The invariant is REACHABILITY, not naming. This policy allows `https:`
+     * wholesale on images rather than listing hosts, which is looser than an
+     * allowlist and is a deliberate choice: listing photography arrives from
+     * whatever CDN an agent's image sits behind, and a named list would fail
+     * closed on a host nobody predicted, turning a listing into a broken frame.
+     *
+     * So this asserts the two tile hosts are covered one way or the other. If
+     * somebody later tightens `img-src` to an allowlist, this fails unless they
+     * remember the map, which is exactly when it should.
+     */
+    const value = directive(policy(), "img-src") ?? "";
+    const covered = (host: string) => value.includes(host) || /(^|\s)https:(\s|$)/.test(value);
+    expect(covered("https://basemaps.cartocdn.com")).toBe(true);
+    expect(covered("https://api.maptiler.com")).toBe(true);
     // A chosen photo is previewed from a blob before it is ever uploaded.
     expect(value).toContain("blob:");
   });
 
-  it("starts from default-src 'self'", () => {
-    expect(directive(production(), "default-src")).toBe("default-src 'self'");
+  it("allows the service worker and the manifest it needs", () => {
+    const value = policy();
+    expect(directive(value, "worker-src")).toContain("blob:");
+    expect(directive(value, "manifest-src")).toBe("manifest-src 'self'");
   });
 });

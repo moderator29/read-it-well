@@ -317,6 +317,45 @@ export async function readDraft(
   return toDraft(data as unknown as ListingWithChildren);
 }
 
+/**
+ * The draft a host would expect to walk back into, or null.
+ *
+ * The wizard already saved everything: the row, the photos, the amenities and
+ * the gate details all went to Postgres on every step change. What it could not
+ * do was find that work again. Opening /agent/list with no `?id=` handed the
+ * wizard a blank draft, and the next autosave INSERTED a second listings row,
+ * because the id lived only in the state of a page that had been closed. A host
+ * who typed a title in the taxi, put the phone down, and opened the app again
+ * that evening was looking at an empty form with their four uploaded photos
+ * attached to a listing they had no way to see, and their honest reading of
+ * that screen is that the platform lost their work.
+ *
+ * DRAFT only, deliberately. MORE_INFO_REQUIRED and REJECTED are also editable,
+ * but both mean a reviewer has said something, and the workspace groups them
+ * under "Needs your attention" with that note attached. Dropping somebody
+ * straight into one of those without the reviewer's sentence in front of them
+ * would answer a question they did not ask.
+ *
+ * Most recently touched first, because with several drafts open the one a host
+ * means is the one they were last in.
+ */
+export async function readOpenDraft(
+  supabase: SupabaseClient<Database>,
+  agentId: string,
+): Promise<WizardDraft | null> {
+  const { data, error } = await supabase
+    .from("listings")
+    .select(LISTING_SELECT)
+    .eq("agent_id", agentId)
+    .eq("status", "DRAFT")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return toDraft(data as unknown as ListingWithChildren);
+}
+
 /* ------------------------------------------------------- reference data */
 
 /** The 37 states for the location select, names from the platform. */

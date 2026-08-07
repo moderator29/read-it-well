@@ -44,7 +44,7 @@ so you know which ones cost money before launch and which do not.
 | **Paystack** | [dashboard.paystack.com → Settings → API Keys & Webhooks](https://dashboard.paystack.com/#/settings/developers) | Card, transfer and USSD payments in naira | No fee to hold an account; per-transaction fee |
 | **Resend** | [resend.com/api-keys](https://resend.com/api-keys) | Booking confirmations, receipts, every transactional email | Yes, 3k emails/month |
 | **Google Cloud** | [console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials), enable **Places API (New)** | Restaurant discovery and address autocomplete | Monthly credit, then paid |
-| **Amadeus Self-Service** | [developers.amadeus.com/register](https://developers.amadeus.com/register) → My Self-Service Workspace → Create app | Third-party hotel inventory | Test environment free; production after certification |
+| **LiteAPI (Nuitée Connect)** | [nuitee.com](https://nuitee.com) → sign up → Developers → API Keys | Third-party hotel rates, the only partner source that puts a naira figure on a hotel card | Sandbox key free and instant, no card. Core booking workflow free; they earn commission per booking |
 | **Google Cloud (OAuth)** | Same console, **Credentials → OAuth client ID** | "Continue with Google" | Free |
 | **Apple Developer** | [developer.apple.com/account/resources/identifiers](https://developer.apple.com/account/resources/identifiers) | "Continue with Apple", **required by App Store guideline 4.8** if any other third-party sign-in is offered | $99/year, which you need anyway to ship on iOS |
 
@@ -69,11 +69,13 @@ which buttons are safe to show, which is `NEXT_PUBLIC_AUTH_PROVIDERS` below.
 | `RESEND_API_KEY` | **server** | `sendEmail` returns `{sent: false, reason: "unconfigured"}` and nothing leaves the process. No booking confirmations, no receipts. |
 | `EMAIL_FROM` | server | Defaults to `RentMe <hello@rentme.ng>`. Must be a **verified sender on your Resend domain** or delivery is rejected outright. |
 | `GOOGLE_PLACES_API_KEY` | **server** | Restaurant discovery and address autocomplete return nothing. Server-only on purpose: the key never ships to the browser and responses can be policy-cached. |
-| `AMADEUS_CLIENT_ID` / `AMADEUS_CLIENT_SECRET` | **server** | No partner hotel inventory. Own listings are unaffected. Partner stock never carries the verified badge and never opens in-platform messaging, see `docs/HYBRID_INVENTORY.md`. |
-| `AMADEUS_ENV` | server | `test` or `production`. Defaults to `test`. Switch after certification. |
+| `LITEAPI_KEY` | **server** | Partner hotels show no price at all, because the only other hotel feed is Google Places and Places reports a price level rather than an amount. Own listings are unaffected. Key from https://nuitee.com → Developers → API Keys; the sandbox key works in the same field. Partner stock never carries the verified badge and never opens in-platform messaging. See `docs/HYBRID_INVENTORY.md`. |
+| `LITEAPI_WHITELABEL_DOMAIN` | **server** | Partner hotels are priced but not bookable, and the detail page says so instead of showing a button that goes nowhere. Set it to `<yourname>.nuitee.link` after switching the whitelabel on in the Nuitée dashboard. The guest pays there, they confirm with the supplier, we earn commission and never handle the money. |
+| `AMADEUS_CLIENT_ID` / `AMADEUS_CLIENT_SECRET` / `AMADEUS_ENV` | **server** | Nothing. These configure a dead provider: Amadeus decommissioned its Self-Service portal on 17 July 2026 and disabled the keys, so there is no way to obtain a value and no value that would work. See `KNOWN_GAPS.md` and `docs/DATA_SOURCES.md`. |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | public | Six surfaces show a support address. Until this names a real mailbox they show the in-app route instead of an address that bounces. |
 | `NEXT_PUBLIC_MAPTILER_KEY` | public | **A licence, not a feature.** Unset, the map draws on CARTO's public basemaps, which are **non-commercial use only**, and a marketplace taking a booking fee is a commercial use. Set it and the map switches provider, zoom ceiling and attribution together. [cloud.maptiler.com/account/keys](https://cloud.maptiler.com/account/keys) |
 | `NEXT_PUBLIC_NGN_USD_RATE` | public | The wallet's naira→dollar toggle simply does not appear. It is gated rather than defaulted because a made-up FX rate on a wallet balance is a lie about money. |
+| `CSP_ENFORCE` | **server** | The Content Security Policy is reported, not enforced. That is the intended starting state: violations post to `/api/csp-report` and appear as `[csp]` lines in the deployment log. Set to the literal `true` to start blocking, once those lines have stopped. Any other value keeps reporting. |
 | `NF_DATA_SOURCE` | server | `repository` (default) or `api`. Selects the listing/agent data source. Leave unset. |
 
 ---
@@ -111,7 +113,12 @@ Read by specs under `apps/web/tests/`, never by the application: `BASE_URL`,
 4. **Paystack.** Required before anyone can pay.
 5. **Google OAuth, then Apple.** Apple is mandatory for the App Store the
    moment Google is offered.
-6. **Google Places, then Amadeus.** Both widen inventory; neither blocks launch.
+6. **Google Places, then LiteAPI.** Both widen inventory; neither blocks launch.
+   Not Amadeus: section 3 of this same file already says its keys were disabled
+   by the vendor and no value would work, so this step used to send the reader
+   to spend an afternoon on a provider the document itself calls dead.
+   `LITEAPI_KEY` is the one that replaces it, and its sandbox key is free and
+   instant.
 7. **`NEXT_PUBLIC_MAPTILER_KEY`.** Wired now, see section 3. It is a
    licensing item rather than a feature item, and it is the only one on this
    list that can cost you a letter rather than a bug report.

@@ -1,7 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { contentSecurityPolicy, createNonce } from "./lib/security/csp";
-import { safeReturnPath } from "./lib/security/return-path";
+import {
+  contentSecurityPolicy,
+  createNonce,
+  cspHeaderName,
+  NONCE_HEADER,
+  REPORTING_ENDPOINTS,
+} from "@/lib/security/csp";
+import { safeReturnPath } from "@/lib/security/return-path";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
 
 /**
@@ -77,47 +83,37 @@ const PRODUCT_SEGMENTS = new Set([
  */
 const PRODUCT_PATHS = new Set(["/agents/apply", "/agents/status", "/styleguide"]);
 
+/**
+ * Stamp the policy on a response, whichever response it turned out to be.
+ *
+ * This middleware has three exits: the early one when Supabase is not
+ * configured, the redirect that sends a signed-out visitor to sign in, and the
+ * ordinary pass-through. A CSP applied to only the last of those is a CSP with
+ * holes in it exactly where a visitor is least authenticated, so every exit
+ * goes through here instead of setting the header itself.
+ */
+function withSecurityPolicy(response: NextResponse, nonce: string): NextResponse {
+  response.headers.set(cspHeaderName(), contentSecurityPolicy(nonce));
+  response.headers.set("Reporting-Endpoints", REPORTING_ENDPOINTS);
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   /*
-   * The Content Security Policy, built fresh for this request.
-   *
-   * It goes on the REQUEST as well as the response, and that is not
-   * belt-and-braces. Next reads the nonce back out of the request's policy in
-   * order to stamp it onto the inline scripts it emits itself, so a policy set
-   * only on the response would forbid Next's own hydration payload and leave
-   * every page dead on arrival. `app/layout.tsx` reads the same nonce from
-   * `x-nonce` for the one inline script this codebase writes by hand.
-   *
-   * Built before the `isSupabaseConfigured` gate below, because a deployment
-   * waiting on its keys still serves real HTML to real browsers and has no
-   * business serving it unprotected.
+   * One nonce per request, minted before anything else so that every exit below
+   * shares it. It travels two ways at once and needs to: forward on the REQUEST
+   * headers, where the root layout reads it to mark its two before-paint
+   * scripts as ours, and back on the RESPONSE headers inside the policy itself.
+   * If those two ever disagreed, the theme and data-saver scripts would be
+   * blocked and every first paint would flash the wrong theme.
    */
   const nonce = createNonce();
-  const policy = contentSecurityPolicy(nonce, process.env.NODE_ENV === "development");
+  request.headers.set(NONCE_HEADER, nonce);
 
-  /**
-   * A response carrying the policy, derived from the request as it stands right
-   * now.
-   *
-   * Recomputed rather than captured once, because Supabase's `setAll` writes
-   * refreshed auth cookies onto `request.cookies` and then rebuilds the
-   * response so the page sees them. Taking a copy of the headers up front would
-   * hand that rebuild the pre-refresh cookie header and quietly undo the token
-   * rotation this middleware exists to perform.
-   */
-  const secured = () => {
-    const headers = new Headers(request.headers);
-    headers.set("x-nonce", nonce);
-    headers.set("content-security-policy", policy);
-    const next = NextResponse.next({ request: { headers } });
-    next.headers.set("content-security-policy", policy);
-    return next;
-  };
-
-  let response = secured();
+  let response = NextResponse.next({ request });
 
   if (!isSupabaseConfigured()) {
-    return response;
+    return withSecurityPolicy(response, nonce);
   }
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -129,7 +125,7 @@ export async function middleware(request: NextRequest) {
         for (const { name, value } of cookiesToSet) {
           request.cookies.set(name, value);
         }
-        response = secured();
+        response = NextResponse.next({ request });
         for (const { name, value, options } of cookiesToSet) {
           response.cookies.set(name, value, options);
         }
@@ -155,52 +151,36 @@ export async function middleware(request: NextRequest) {
       const back = safeReturnPath(request.nextUrl.pathname, request.nextUrl.search);
       if (back) target.searchParams.set("next", back);
       target.searchParams.set("notice", "sign-in-required");
-      const redirect = NextResponse.redirect(target);
-      /* A redirect carries no markup, so nothing here needs a nonce, but the
-         policy still travels with it: `form-action` and `frame-ancestors` are
-         the two that matter on a 307, and a response without a policy is a
-         response an injected page can point at. */
-      redirect.headers.set("content-security-policy", policy);
-      return redirect;
+      return withSecurityPolicy(NextResponse.redirect(target), nonce);
     }
   }
 
-  return response;
+  return withSecurityPolicy(response, nonce);
 }
 
 export const config = {
+  // Run on everything except static assets and image files.
   /*
-   * Everything except the directories that hold static assets.
+   * THE EXTENSION RULE THAT USED TO BE HERE WAS A HOLE.
    *
-   * THE EXTENSION RULE THAT USED TO BE HERE WAS A HOLE, AND A LARGE ONE.
+   * It ended `|.*\.(?:svg|png|jpg|...)$`, which excluded ANY path ending in one
+   * of those, not only paths under an asset directory. Every dynamic route on
+   * this platform accepts such a suffix inside its own parameter, so the
+   * middleware simply did not run for them. Measured against a production
+   * build: `/checkout/abc.png`, `/listing/abc.png`, `/messages/abc.svg` and
+   * `/u/somebody.png` all returned 200 with full HTML, no Content Security
+   * Policy and no nonce.
    *
-   * It ended `|.*\.(?:svg|png|jpg|jpeg|gif|webp)$`, which excluded ANY path
-   * ending in one of those, not just paths under an asset directory. Every
-   * dynamic route on this platform accepts such a suffix inside its own
-   * parameter, so the middleware simply did not run for them. Measured against
-   * a production build:
+   * Three things were lost on those responses. The policy was absent entirely,
+   * so an injected inline script would execute on a page where it could not on
+   * the same route without the suffix. The signed-out gate below was never
+   * consulted. And the Supabase token refresh, which the comment at the top of
+   * this file says must not be removed, did not run.
    *
-   *     /checkout/abc.png   200, full HTML, no policy, no nonce
-   *     /listing/abc.png    200, full HTML, no policy, no nonce
-   *     /messages/abc.svg   200, full HTML, no policy, no nonce
-   *     /u/somebody.png     200, full HTML, no policy, no nonce
-   *
-   * Three things were lost on every one of those responses. The Content
-   * Security Policy was absent entirely, so an injected inline script would
-   * execute on a page where it could not on the same route without the suffix,
-   * which defeats the whole of `lib/security/csp.ts`. The signed-out gate
-   * below was never consulted. And the Supabase token refresh, which the
-   * comment at the top of this file says must not be removed, did not run.
-   *
-   * No data leak was found behind it, because every one of those pages calls
-   * `resolveSession()` and RLS stands behind that, so they render their
-   * signed-out state. It was a defence-in-depth bypass rather than a breach,
-   * and it is closed by anchoring on the directories that actually hold assets
-   * rather than on how a path happens to end.
-   *
-   * `public/` files that are NOT under one of these prefixes now pass through
-   * the middleware. That costs one cheap function call on a handful of files,
-   * which is the right trade against a hole this shape.
+   * No data leak sat behind it: those pages call `resolveSession()` with RLS
+   * behind that, so they render their signed-out state. It was a defence in
+   * depth bypass rather than a breach, and it is closed by anchoring on the
+   * directories that hold assets rather than on how a path happens to end.
    */
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|brand/|icons/|fonts/|pwa/|\\.well-known/|sw\\.js$|manifest\\.webmanifest$).*)",

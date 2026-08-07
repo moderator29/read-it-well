@@ -717,9 +717,17 @@ function PartnerPanel({
         </p>
       )}
 
+      {/* The hotel copy has to answer to whether there is actually a button
+          under it. It used to say the stay "is booked with the partner"
+          unconditionally, and a hotel feed that supplies a rate but no booking
+          destination renders no action at all, so the page promised a booking
+          and then offered nowhere to make one. The sentence now follows the
+          action rather than assuming it. */}
       <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
         {isHotel
-          ? "Supplied by one of our hotel partners. The stay is booked with the partner, and the rate is reconfirmed there before you pay."
+          ? action
+            ? "Supplied by one of our hotel partners. The stay is booked with the partner, and the rate is reconfirmed there before you pay."
+            : "Supplied by one of our hotel partners. The rate is what it costs for one night from tomorrow, and it moves with your dates. This one cannot be booked on RentMe yet."
           : "Supplied by one of our restaurant partners. Head straight to the venue; it takes its own bookings."}
       </p>
 

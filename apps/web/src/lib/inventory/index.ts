@@ -4,6 +4,7 @@ import { isFeatureEnabled, type FeatureKey } from "../flags";
 import type { Listing, ListingSearchFilter } from "../listings/types";
 import { isPartnerId, parsePartnerId } from "./mapping";
 import { amadeusConfigured, amadeusHotelById, amadeusProvider } from "./providers/amadeus";
+import { liteapiConfigured, liteapiHotelById, liteapiProvider } from "./providers/liteapi";
 import {
   placesById,
   placesConfigured,
@@ -12,6 +13,7 @@ import {
 } from "./providers/places";
 import {
   providerDisabled,
+  providerNoKey,
   providerTimeout,
   type InventoryProvider,
   type PartnerProviderName,
@@ -41,6 +43,48 @@ import {
 /** The hard ceiling on a provider, no matter what it is doing. */
 const PROVIDER_TIMEOUT_MS = 2_500;
 
+/* ------------------------------------------------------------------- reporting
+ *
+ * Every failure in this directory is swallowed on purpose, because a partner
+ * feed must never break a search. The cost of that is an operator who cannot
+ * tell a key that is working from a key that is silently answering 401: the
+ * shelf looks the same either way, thin and blameless.
+ *
+ * So the outcome is logged even though it is never rendered. This is the only
+ * place in the layer that writes anything, and it writes to the server log,
+ * which on Vercel is the runtime log for the deployment. `providerError`
+ * already carries a reason built from the status code and the host and never
+ * from a request body, so a credential cannot reach a log line through here.
+ *
+ * "no_key" and "not_applicable" are NOT logged. Both are the normal, correct
+ * state of a provider on most requests, and a log that reports normality is a
+ * log nobody reads.
+ */
+
+/** How long the same provider and outcome stays quiet after being reported. */
+const LOG_QUIET_MS = 60_000;
+
+const lastLogged = new Map<string, number>();
+
+function report(result: ProviderResult): void {
+  if (result.outcome === "ok" || result.outcome === "no_key" || result.outcome === "not_applicable") {
+    return;
+  }
+
+  // A provider that is down is down on every render, and search runs twice per
+  // page. Without this, one bad key writes thousands of identical lines an hour
+  // and buries everything else in the log.
+  const key = `${result.provider}:${result.outcome}`;
+  const now = Date.now();
+  const previous = lastLogged.get(key);
+  if (previous !== undefined && now - previous < LOG_QUIET_MS) return;
+  lastLogged.set(key, now);
+
+  const detail = result.outcome === "error" ? `: ${result.reason}` : "";
+  const notes = result.notes.length > 0 ? ` (${result.notes.join("; ")})` : "";
+  console.warn(`[inventory] ${result.provider} ${result.outcome}${detail}${notes}`);
+}
+
 /**
  * How long one filter's partner answer is reused.
  *
@@ -66,7 +110,7 @@ type Registered = {
 };
 
 /*
- * Three registrations, two provider names.
+ * Four registrations, three provider names.
  *
  * Places appears twice because it serves two shelves that must be able to be
  * switched off independently: `hybrid_restaurants` and `hybrid_hotels` are
@@ -74,15 +118,29 @@ type Registered = {
  * entries answer to the name "places", so the partner id scheme is unchanged
  * and a card minted before hotels existed still resolves.
  *
- * Amadeus stays registered and stays keyless. Its self-service tier was
- * decommissioned and what remains is an enterprise product behind a signed
- * agreement, so it contributes nothing today. It is left in place rather than
- * deleted because the code is complete and correct, and the day a contract
- * exists it is two environment variables away. With no credentials it costs
- * one synchronous string check per search and runs no code at all.
+ * LiteAPI is the hotel RATE feed, and it shares `hybrid_hotels` with Places
+ * deliberately: they describe the same shelf from two angles, Places supplying
+ * coverage without prices and LiteAPI supplying prices, and one switch that
+ * turns the partner hotel shelf off is easier to reason about under incident
+ * than two that each turn off half of it. De-duplication decides which record
+ * of a hotel both feeds returned actually shows (`dedupe.ts`).
+ *
+ * Amadeus stays registered and stays keyless, and it can no longer become
+ * anything else. Its Self-Service portal was decommissioned on 17 July 2026
+ * and the keys were disabled with it, so the endpoints `providers/amadeus.ts`
+ * calls now answer 401 to everybody, permanently. An earlier version of this
+ * note said the code was "two environment variables away" from working again;
+ * that is not true and was the reason this file kept a provider nobody could
+ * ever turn on. Amadeus Enterprise is a different portal, a different auth
+ * flow and a different API surface, so reaching it would be a new provider
+ * rather than a credential. The 417 lines are kept only because deleting
+ * another engineer's complete module is the owner's call, not this change's;
+ * it is recorded as dead code in KNOWN_GAPS.md. With no credentials it costs
+ * one synchronous string check per search and runs nothing.
  */
 const REGISTRY: readonly Registered[] = [
   { provider: amadeusProvider, flag: "hybrid_hotels", configured: amadeusConfigured },
+  { provider: liteapiProvider, flag: "hybrid_hotels", configured: liteapiConfigured },
   { provider: placesRestaurantProvider, flag: "hybrid_restaurants", configured: placesConfigured },
   { provider: placesHotelProvider, flag: "hybrid_hotels", configured: placesConfigured },
 ];
@@ -172,9 +230,13 @@ export async function searchPartners(
 
   const results = settled.map((result, index) => {
     if (result.status === "fulfilled") return result.value;
-    const name = keyed[index]?.provider.name ?? "amadeus";
+    const name = keyed[index]?.provider.name ?? "liteapi";
     return providerTimeout(name);
   });
+
+  // Reported before the cache decision, so a failure is seen every time it
+  // happens rather than only on the renders that miss the cache.
+  for (const result of results) report(result);
 
   // Only a complete answer is worth reusing. A timeout or an upstream failure is
   // not cached, so the next render gets a fresh attempt rather than inheriting a
@@ -229,12 +291,79 @@ export async function partnerListingById(id: string): Promise<Listing | null> {
   const flags = await Promise.all(entries.map((entry) => isFeatureEnabled(entry.flag)));
   if (!flags.some(Boolean)) return null;
 
+  // Both hotel feeds mint an id that carries a category implicitly: they sell
+  // nights and nothing else, so the shelf a card belongs to is known before the
+  // fetch and the flag above has already settled it.
   if (parsed.provider === "amadeus") return amadeusHotelById(parsed.reference);
+  if (parsed.provider === "liteapi") return liteapiHotelById(parsed.reference);
 
   const listing = await placesById(parsed.reference);
   if (!listing) return null;
   const governing = entries.find((entry, index) => flags[index] && governs(entry, listing.kind));
   return governing ? listing : null;
+}
+
+/**
+ * What each partner provider does when actually asked, right now.
+ *
+ * This exists because every failure in this layer is deliberately invisible to
+ * a visitor, which leaves an operator unable to answer the only question that
+ * matters the day a key lands: is it working? A thin shelf looks identical
+ * whether the key is absent, refused, rate limited or simply pointed at a city
+ * with no supply, and those need four different responses.
+ *
+ * It runs a REAL search rather than reporting cached state, because a key that
+ * parses is not a key that works. The cost is one live request per provider,
+ * which is why it sits behind the admin guard at its call site and is not
+ * something any page renders.
+ *
+ * `configured` and `flag` are read separately from the outcome on purpose: a
+ * provider that has a key but a flag turned off answers "disabled", and knowing
+ * which of the two is responsible is the difference between fixing it in the
+ * database and fixing it in Vercel.
+ */
+export type ProviderHealth = {
+  readonly provider: PartnerProviderName;
+  readonly flag: FeatureKey;
+  /** Whether the credentials for this provider are present in the environment. */
+  readonly configured: boolean;
+  /** Whether its kill switch is on. */
+  readonly enabled: boolean;
+  readonly outcome: ProviderResult["outcome"];
+  /** Only ever present on an error outcome. Status code and host, never a body. */
+  readonly reason?: string;
+  readonly listings: number;
+  readonly notes: readonly string[];
+  readonly millis: number;
+};
+
+export async function partnerHealth(
+  filter: ListingSearchFilter = {},
+): Promise<ProviderHealth[]> {
+  return Promise.all(
+    REGISTRY.map(async (entry): Promise<ProviderHealth> => {
+      const configured = entry.configured();
+      const enabled = await isFeatureEnabled(entry.flag).catch(() => false);
+      const started = Date.now();
+      // Through the same timeout the real search uses, so a hanging provider
+      // reports a timeout here exactly as a visitor would experience it.
+      const result = configured
+        ? await withTimeout(entry, filter)
+        : providerNoKey(entry.provider.name);
+
+      return {
+        provider: entry.provider.name,
+        flag: entry.flag,
+        configured,
+        enabled,
+        outcome: result.outcome,
+        ...(result.outcome === "error" ? { reason: result.reason } : {}),
+        listings: result.listings.length,
+        notes: result.notes,
+        millis: Date.now() - started,
+      };
+    }),
+  );
 }
 
 export { isPartnerId, parsePartnerId } from "./mapping";

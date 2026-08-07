@@ -7,6 +7,7 @@ import {
   getAgentContext,
   readAmenities,
   readDraft,
+  readOpenDraft,
   readStates,
   type WizardDraft,
 } from "@/lib/agent/listings-queries";
@@ -28,15 +29,29 @@ export async function generateMetadata(): Promise<Metadata> {
  * and anyone signed out, gets the pitch and a route to the application. When
  * the platform keys are not in place the wizard still opens, saving to the
  * device, with a calm banner saying what switches on later.
+ *
+ * WITH NO `?id=`, THIS RESUMES THE HOST'S MOST RECENT DRAFT rather than opening
+ * a blank one. This route is the only entry the navigation offers ("List
+ * Apartment"), so a blank form here was the default answer to "I came back to
+ * finish my listing", and it was the wrong one twice over: the host saw none of
+ * their work, and the wizard, having no id, filed a second listings row on the
+ * next save while the photos they had already uploaded stayed attached to the
+ * first. Two half listings and an apparent data loss, from closing a tab.
+ * `readOpenDraft` explains which draft is chosen and why.
+ *
+ * `?new=1` is the way to a blank wizard, so resuming is never a trap. It is not
+ * a dead end for anyone: a host who genuinely wants a second listing while one
+ * is unfinished can reach it, and nothing about the resumed draft is hidden
+ * from them, since the workspace lists every draft they own.
  */
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ id?: string }>;
+  searchParams: Promise<{ id?: string; new?: string }>;
 }) {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const { id } = await searchParams;
+  const { id, new: startFresh } = await searchParams;
   const context = await getAgentContext();
 
   if (context.state === "signed-out" || context.state === "not-agent") {
@@ -73,7 +88,9 @@ export default async function Page({
     readAmenities(context.supabase),
     id
       ? readDraft(context.supabase, context.agent.id, id)
-      : Promise.resolve<WizardDraft | null>(null),
+      : startFresh
+        ? Promise.resolve<WizardDraft | null>(null)
+        : readOpenDraft(context.supabase, context.agent.id),
   ]);
 
   return (

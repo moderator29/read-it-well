@@ -30,16 +30,24 @@ table with no screen is a half.
 Neither is code. Both are the owner's to do, and most of the remaining work
 cannot be verified until they are done.
 
-### The database is empty and nobody has signed up
+### The supply chain has not started, and somebody HAS signed up
+
+Counted live on 2026-08-07, correcting the `profiles 0` this section carried:
 
 ```
-listings 0   agents 0   profiles 0   bookings 0   reviews 0
+listings 0   agents 0   agent_applications 0   bookings 0   reviews 0
+profiles 1   user_roles 2   audit_log 4   areas 6   posts 12
 ```
 
-The owner's address sits in `public.admin_bootstrap` as `super_admin`,
-waiting. The signup trigger reads that table, so signing up is what starts
-the whole supply chain: admin exists, agent gets approved, agent lists,
-search has something to return.
+The owner's address sat in `public.admin_bootstrap` as `super_admin`, waiting,
+and the row is now claimed: there is one profile holding two roles, and four
+audit rows behind it. The signup trigger reads that table, so signing up is what
+starts the whole supply chain: admin exists, agent gets approved, agent lists,
+search has something to return. The first link is done. The second has not
+happened, because nobody has applied to be an agent yet.
+
+The twelve posts are not people. Every one is `author_kind = 'SYSTEM'`, which is
+the designed cold start, and the six areas come from `seed_first_areas_lagos`.
 
 Until then discovery is genuinely empty. That is correct now rather than
 broken: the invented catalogue of twenty-three places was deleted this
@@ -54,10 +62,18 @@ routing is proved by 11 unit tests against a stubbed Google; the live pull is
 not proved at all. **Do not report it as working until you have seen a real
 hotel come back.**
 
-Amadeus is dead for now: the self-service portal was decommissioned and what
-remains needs a signed commercial agreement. The code stays registered and
-keyless, costing one string check per search, and is two variables away if a
-contract ever exists.
+Amadeus is dead. The self-service portal was decommissioned on 17 July 2026 and
+the keys were disabled with it. The code stays registered and keyless, costing
+one string check per search.
+
+**It is NOT "two variables away", and this sentence used to say it was.** That
+reading is what kept 417 lines of dead code in the tree, because a module one
+credential from working is worth keeping and a module that would have to be
+rewritten is not. Amadeus Enterprise is a different portal, a different auth
+flow and a different API surface, so reaching it would be writing a new
+provider, not pasting a key. `KNOWN_GAPS.md` carries the same correction and
+the comment in `lib/inventory/index.ts` was fixed to match. `LITEAPI_KEY`
+replaces it.
 
 ---
 
@@ -180,12 +196,18 @@ Run the server first, then the specs against it.
 ```
 npm run build && (cd apps/web && npx next start -p 3210 &)
 BASE_URL=http://localhost:3210 node apps/web/tests/<name>.spec.mjs
-cd apps/web && npx vitest run     # 21 unit tests, no server needed
+cd apps/web && npx vitest run     # 66 unit tests, no server needed
 ```
 
-Green as of `d22f76e`: `icons-and-targets`, `polish-overlays-copy-status`,
-`styleguide`, `map-keyboard`, `listing-detail`, `filters`,
-`discovery-behaviour`, `light-and-water`, `money-and-numbers`, `i18n`.
+There are 78 node specs and 66 vitest tests as of 2026-08-07. This said 21 unit
+tests, which was the count on the day it was written; the number is checked
+rather than remembered now, because a suite that is quoted from memory is a
+suite somebody assumes they have run.
+
+Green as of `d22f76e`, which is a snapshot of that day rather than a list to
+maintain: `icons-and-targets`, `polish-overlays-copy-status`, `styleguide`,
+`map-keyboard`, `listing-detail`, `filters`, `discovery-behaviour`,
+`light-and-water`, `money-and-numbers`, `i18n`.
 
 Four specs skip loudly when the catalogue is empty and say so on the console.
 That is deliberate. **If you make them pass by putting invented listings

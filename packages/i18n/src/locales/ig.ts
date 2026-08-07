@@ -363,6 +363,7 @@ export const ig: Dictionary = {
       shop: "Ụlọ ahịa",
       office: "Ọfịs",
       land: "Ala",
+      restaurant: "Ụlọ oriri",
     },
     tune: {
       open: "Gbanwee ihe na-ebu ụzọ",
@@ -389,6 +390,7 @@ export const ig: Dictionary = {
       shop: "Ebe ahịa, kwa afọ",
       office: "Ebe ọrụ, kwa afọ",
       land: "Ala ị ga-azụ ma ọ bụ gbaziri",
+      restaurant: "Tebul na ụlọ oriri",
     },
     accountTitle: "Nke a bụ nke akaụntụ gị",
     accountBodySignedOut: "Ihe ị bịara maka ya ka echekwara na akaụntụ gị, ya mere ọ na-eso gị na ngwaọrụ ọ bụla ma na-ekpebi ihe anyị ga-ebu ụzọ gosi gị.",
@@ -706,7 +708,7 @@ export const ig: Dictionary = {
         nin: "Nọmba Njirimara Mba (NIN)",
         bvn: "Nọmba Nkwenye Ụlọ akụ (BVN)",
         businessName: "Aha azụmahịa",
-        rcNumber: "Nọmba RC (nhọrọ)",
+        rcNumber: "Nọmba RC",
         state: "Steeti",
         city: "Obodo",
         address: "Adreesị",
@@ -722,7 +724,7 @@ export const ig: Dictionary = {
         idBack: "Kaadị njirimara, azụ",
         registration: "Ndebanye aha azụmahịa",
         upload: "Bulite",
-        chooseFile: "Họrọ faịlụ, PNG ma ọ bụ JPG ma ọ bụ PDF, ruo 5MB",
+        chooseFile: "Họrọ faịlụ, PNG ma ọ bụ JPG ma ọ bụ PDF, ruo 10MB",
       },
       review: {
         title: "Nyochaa ma zipu",
@@ -865,6 +867,7 @@ export const ig: Dictionary = {
       shop: { label: "Ụlọ ahịa", blurb: "Ebe ịre ahịa a na-agbazite kwa afọ." },
       office: { label: "Ọfịs", blurb: "Ebe ọrụ a na-agbazite kwa afọ." },
       land: { label: "Ala", blurb: "Otu ala, ọnụahịa ya bụ nke afọ." },
+      restaurant: { label: "Ụlọ oriri", blurb: "Ebe iri nri, na tebul ndị ọbịa na-edebe. Ọnụahịa maka onye ọ bụla." },
     },
 
     photos: {
@@ -1607,6 +1610,7 @@ export const ig: Dictionary = {
         shop: "Ụlọ ahịa",
         office: "Ọfịs",
         land: "Ala",
+        restaurant: "Ụlọ oriri",
       },
       checklistLines: "Ahịrị nlele {count} ka a ga-elele",
       checklistLineOne: "Ahịrị nlele otu ka a ga-elele",

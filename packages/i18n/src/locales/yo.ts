@@ -361,6 +361,7 @@ export const yo: Dictionary = {
       shop: "Àwọn ṣọ́ọ̀bù",
       office: "Àwọn ọ́fíìsì",
       land: "Ilẹ̀",
+      restaurant: "Àwọn ilé oúnjẹ",
     },
     tune: {
       open: "Yí ohun tí yóò kọ́kọ́ hàn padà",
@@ -387,6 +388,7 @@ export const yo: Dictionary = {
       shop: "Ibi títà, lọ́dọọdún",
       office: "Ibi iṣẹ́, lọ́dọọdún",
       land: "Ilẹ̀ láti rà tàbí yá",
+      restaurant: "Tábìlì ní ilé oúnjẹ",
     },
     accountTitle: "Èyí jẹ́ ti àkàǹtì rẹ",
     accountBodySignedOut: "Ohun tí o wá fún ni a fi pamọ́ sí àkàǹtì rẹ, kí ó lè tẹ̀lé ọ sí gbogbo ẹ̀rọ, kí ó sì pinnu ohun tí a ó kọ́kọ́ fi hàn ọ́.",
@@ -700,7 +702,7 @@ export const yo: Dictionary = {
         nin: "Nọ́mbà Ìdánimọ̀ Orílẹ̀-èdè (NIN)",
         bvn: "Nọ́mbà Ìfọwọ́sí Báńkì (BVN)",
         businessName: "Orúkọ ilé-iṣẹ́",
-        rcNumber: "Nọ́mbà RC (àṣàyàn)",
+        rcNumber: "Nọ́mbà RC",
         state: "Ìpínlẹ̀",
         city: "Ìlú",
         address: "Àdírẹ́sì",
@@ -716,7 +718,7 @@ export const yo: Dictionary = {
         idBack: "Káàdì ìdánimọ̀, ẹ̀yìn",
         registration: "Ìforúkọsílẹ̀ ilé-iṣẹ́",
         upload: "Gbé sókè",
-        chooseFile: "Yan fáìlì, PNG tàbí JPG tàbí PDF, dé 5MB",
+        chooseFile: "Yan fáìlì, PNG tàbí JPG tàbí PDF, dé 10MB",
       },
       review: {
         title: "Àtúnyẹ̀wò kí o sì fi ránṣẹ́",
@@ -857,6 +859,7 @@ export const yo: Dictionary = {
       shop: { label: "Ṣọ́ọ̀bù", blurb: "Àyè ìtajà tí a yá lọ́dọọdún." },
       office: { label: "Ọ́fíìsì", blurb: "Àyè iṣẹ́ tí a yá lọ́dọọdún." },
       land: { label: "Ilẹ̀", blurb: "Ilẹ̀ kan, owó rẹ̀ jẹ́ ti ọdún." },
+      restaurant: { label: "Ilé oúnjẹ", blurb: "Ibi jíjẹun, pẹ̀lú tábìlì tí àwọn àlejò lè fi pamọ́. Owó rẹ̀ jẹ́ ti orí ẹnìkọ̀ọ̀kan." },
     },
 
     photos: {
@@ -1608,6 +1611,7 @@ export const yo: Dictionary = {
         shop: "Ṣọ́ọ̀bù",
         office: "Ọ́fíìsì",
         land: "Ilẹ̀",
+        restaurant: "Ilé oúnjẹ",
       },
       checklistLines: "Ìlà ìyẹ̀wò {count} láti wò",
       checklistLineOne: "Ìlà ìyẹ̀wò kan láti wò",

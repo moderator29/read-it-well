@@ -39,8 +39,9 @@ In this order. They are not background reading, they are the brief.
 | File | What it is | Why you need it |
 |---|---|---|
 | `docs/HANDOFF.md` | This file | The contract |
-| `docs/SOCIAL_TODO.md` | The social layer plan | Your main build. 45 unchecked boxes, 0 done |
-| `docs/SOCIAL_LAYER.md` | Earlier thinking behind it | The reasoning, superseded in part by SOCIAL_TODO |
+| `docs/SOCIAL_DESIGN.md` | The social layer argument | Supersedes SOCIAL_TODO and SOCIAL_LAYER, both of which say so in their own headers |
+| `docs/SOCIAL_BUILD.md` | The social layer build order | The slices. **Its checkboxes were never ticked and are not a status**, see section 3.2 |
+| `docs/SOCIAL_TODO.md`, `docs/SOCIAL_LAYER.md` | Earlier thinking | Superseded 2026-08-04. History, not a plan |
 | `docs/BADGES.md` | Earned standing for agents and members | Feeds the social layer's S5 |
 | `RECOMMENDATIONS.md` | 52 formal R-01 to R-52 entries | The considered upgrade list |
 | `docs/recommendations-inbox.md` | 250 raw numbered items | **The full pool agent 1 picks from** |
@@ -162,12 +163,34 @@ were then removed:
 
 ### 3.2 Not started
 
-- **The social layer.** `docs/SOCIAL_TODO.md` has 45 unchecked boxes and zero
-  ticked. No `compounds`, `gists`, `talks`, `social_reactions` or `echoes`
-  tables. No `/compound` or `/u/[handle]` routes. It is a document, not a
-  feature. **This is your main job.**
-- **The recommendations queue.** 52 formal entries plus a 250-item inbox,
-  essentially untouched. **This is agent 1's job.**
+- **The recommendations queue.** 52 formal entries plus a 250-item inbox. Worked
+  through in part since this was written; treat the count as unverified rather
+  than as untouched.
+
+### 3.2b The social layer is BUILT. Do not rebuild it.
+
+This section used to say the social layer was "a document, not a feature" and
+"your main job". That has been false since 2026-08-04 and it is the single most
+expensive wrong sentence this file could carry, because acting on it means
+rebuilding a shipped subsystem.
+
+What actually exists, verified against the live database and the route table on
+2026-08-07: `areas`, `area_members`, `area_moderator_applications`,
+`social_profiles`, `follows`, `posts`, `post_media`, `post_reactions`,
+`post_reposts`, `post_views`, `blocks`, `mutes`, `bot_invocations`, `badges`,
+`user_badges`, `stories` and its four companion tables, `events` and
+`event_attendees`. The routes are `/around`, `/around/[slug]`, `/u`,
+`/u/[handle]` and its follower views, `/post/[id]`, `/stories/[id]`,
+`/stories/new`, plus `/admin/social`, `/admin/moderation` and `/admin/standing`.
+The shape moved from what the old plan drew: one `posts` table rather than
+`gists` plus `talks`, a third `SYSTEM` author kind answering the cold start, and
+"around" in place of "compound", because a compound is a different thing in
+Nigerian property. `docs/SOCIAL_DESIGN.md` section 0 argues all five changes.
+
+**The checkboxes in `docs/SOCIAL_BUILD.md` and `docs/SOCIAL_TODO.md` are all
+still unticked and mean nothing.** 112 and 45 empty boxes respectively, against
+work that is done. Nobody went back to them. Read the database and the route
+table, not those files, and do not treat an empty box there as a gap.
 
 ### 3.3 Blockers and hazards
 
@@ -186,7 +209,13 @@ were then removed:
 
 ## 4. Your two jobs, and the order
 
-### Job 1: the social layer. You lead it.
+**Job 1 is finished.** The owner said go, it was designed and it was built. See
+section 3.2b. The instruction below is kept because the way it was approached,
+argue with the plan first and present before building, is how the next large
+piece should be approached too, but nobody should read it as an outstanding
+task.
+
+### Job 1: the social layer. You lead it. (COMPLETE)
 
 **Do not start building the moment you finish reading.**
 
@@ -331,6 +360,13 @@ screenshot or probing the live database, never by reading code.
 
 ## 7. Deep advice on the social layer
 
+**Written before the layer was built, and kept as the record of what it was
+asked to answer.** `docs/SOCIAL_DESIGN.md` is where each of these landed. The
+two worth re-reading against the shipped product rather than as future advice
+are point 3, the cold start, which the `SYSTEM` author kind answers, and point
+5, the utility record being gameable, which is the one this section was most
+right about.
+
 `docs/SOCIAL_TODO.md` is a foundation, and the owner is right that it is not
 good enough yet. Here is an honest read of where it is strong and where you
 should push much harder.
@@ -425,7 +461,14 @@ npm workspaces monorepo.
 - `supabase/templates/` and `scripts/build-auth-emails.mjs`: five branded auth
   emails.
 - `scripts/verify-shots.mjs`: the screenshot harness.
-- `apps/web/tests/*.spec.mjs`: 18 standalone node specs (NOT vitest suites).
+- `apps/web/tests/*.spec.mjs`: 78 standalone node specs (NOT vitest suites).
+  They need a server on port 3210. Counted 2026-08-07; this said 18 for long
+  enough that section 9's list of spec names is also short by sixty.
+- `apps/web/src/**/*.test.ts`: 66 vitest unit tests across 5 files, for the
+  handful of things a browser cannot reach (the partner provider mappers and
+  the undo window). `apps/web/vitest.config.ts` explains why they exist at all.
+  **Run vitest from `apps/web`**, never from the repo root: the root resolves a
+  different config and the run appears to fail.
 
 ---
 
@@ -435,18 +478,23 @@ Run all of it. Every time.
 
 ```bash
 npm run typecheck          # must be 0 errors, all workspaces
+cd apps/web && npx vitest run && cd ../..   # 66 unit tests, no server needed
 npm run build              # must be clean; typecheck passing is NOT enough
 ```
 
+Vitest is run from `apps/web` on purpose. From the repo root it picks up a
+different config, fails to resolve `server-only`, and reports a wall of
+failures that have nothing to do with your change.
+
 Then, with the app served on port 3210 (`npx next start -p 3210` from
 `apps/web`), run the specs. They are standalone node scripts, so `npm test`
-will NOT run them correctly:
+will NOT run them correctly. There are 78 of them now, so run the directory
+rather than a hand-kept list, which is what let the list below fall sixty
+behind without anyone noticing:
 
 ```bash
 cd apps/web
-for s in filters checkout bookings listing-detail admin agent-listings wallet \
-         saved support i18n pwa profile messages assistant map hybrid \
-         rate-limit email-render; do node tests/$s.spec.mjs; done
+for s in tests/*.spec.mjs; do node "$s" || echo "FAILED $s"; done
 ```
 
 Then screenshots, and **look at them**:
