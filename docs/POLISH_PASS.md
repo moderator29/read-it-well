@@ -76,8 +76,18 @@ proof.
     plainly and offers listing a place, since "browse everything from the home
     screen" pointed at the same empty catalogue and led straight back. The
     remaining surfaces are not swept yet. `#35`
-20. **Skeletons shaped like the real cards**, using the stride ring. Not
-    spinners. `#41`, `#205`
+20. **Skeletons shaped like the real cards**, using the stride ring. DONE,
+    `skeletons.spec.mjs`. 60 loading states across 84 routes, and the 28 that
+    were missing are the ones that mattered: profile, settings, checkout, a
+    message thread, the assistant, a listing's calendar and every agent and
+    admin console screen. Each one shows the PREVIOUS screen until its data
+    lands otherwise, which on a slow connection reads as a tap that did nothing
+    followed by a page that jumps. Four rules hold now: every route that reads
+    has one, none of them is a spinner, every one announces itself with
+    `aria-busy` and a live region, and none hand-draws a grey box outside the
+    shared `Skeleton` that carries the shimmer. Static routes are exempt BY
+    NAME, so an exemption that stops being true is a failure rather than a
+    silence. `#41`, `#205`
 21. **Search state survives the back button.** `#27`
 22. **Search scroll position survives coming back from a listing.** `#214`
 23. **The last chosen view, list or map, is remembered.** `#155`
