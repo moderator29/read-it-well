@@ -119,6 +119,26 @@ const NEEDLES: readonly { pattern: RegExp; city: PartnerCity }[] = PARTNER_CITIE
     city,
   }));
 
+/**
+ * True when the query is a PLACE and nothing else.
+ *
+ * `resolveCity` answers "which covered city is named anywhere in here", which
+ * is the right question for choosing where to search and the wrong one for
+ * deciding what to search FOR. "eko hotel" names Lagos by implication and is
+ * plainly a subject; "Lagos" names Lagos and is plainly a location.
+ *
+ * Whole-query match, not a substring, so only a bare place name counts. Anything
+ * with another word in it keeps its role as the subject, which is what makes
+ * "Lagos hotels" and "hotels in Lekki" behave sensibly without a parser.
+ */
+export function queryIsPlaceName(q: string | undefined): boolean {
+  const text = q?.trim().toLowerCase();
+  if (!text) return false;
+  return PARTNER_CITIES.some((city) =>
+    [city.name, city.state, ...city.aliases].some((term) => term.toLowerCase() === text),
+  );
+}
+
 export function resolveCity(q: string | undefined): PartnerCity | null {
   const text = q?.trim().toLowerCase();
   if (!text) return null;

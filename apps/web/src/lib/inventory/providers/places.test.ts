@@ -222,6 +222,53 @@ describe("not spending a request that cannot help", () => {
     const { placesHotelProvider } = await import("./places");
     await placesHotelProvider.search({ q: "wuse" });
 
-    expect(String(calls[0]!.body["textQuery"])).toContain("Abuja");
+    /*
+     * WHERE is the location bias, and it is the thing this test is actually
+     * about. It used to be asserted through the text query, which happened to
+     * carry the city name and no longer does. Reading it off `locationBias`
+     * asserts the claim directly rather than through a string that was only
+     * ever a proxy for it: Abuja's centre, not Lagos's.
+     */
+    const bias = calls[0]!.body["locationBias"] as {
+      circle: { center: { latitude: number; longitude: number } };
+    };
+    expect(bias.circle.center.latitude).toBeCloseTo(9.0765, 2);
+    expect(bias.circle.center.longitude).toBeCloseTo(7.3986, 2);
+  });
+
+  /*
+   * The bug that made a working key look like an empty country.
+   *
+   * "wuse" is an alias for Abuja, so it is a PLACE. The old rule used the
+   * visitor's words as the subject whatever they were, and asked Google for
+   * "wuse in Abuja, Nigeria" restricted to `includedType: lodging`. Wuse is a
+   * district; a district is not lodging; Google answered 200 with an empty
+   * list and the provider reported `ok`. Same for the far more common "Lagos".
+   */
+  it("asks for the category when the words are a place, not for the place itself", async () => {
+    stubGoogle([]);
+    const { placesHotelProvider } = await import("./places");
+    await placesHotelProvider.search({ q: "Lagos" });
+
+    expect(String(calls[0]!.body["textQuery"])).toBe("hotels in Lagos, Nigeria");
+  });
+
+  it("keeps the precision of a district rather than widening to its city", async () => {
+    stubGoogle([]);
+    const { placesRestaurantProvider } = await import("./places");
+    await placesRestaurantProvider.search({ q: "wuse" });
+
+    // "restaurants in wuse" beats "restaurants in Abuja": the bias already
+    // carries the city, so the text can afford to be the narrower of the two.
+    expect(String(calls[0]!.body["textQuery"])).toBe("restaurants in wuse, Nigeria");
+  });
+
+  it("still treats a venue name as something to look for", async () => {
+    stubGoogle([]);
+    const { placesHotelProvider } = await import("./places");
+    await placesHotelProvider.search({ q: "Lagos hotels" });
+
+    // Mentions a city but is not one, so it stays the subject.
+    expect(String(calls[0]!.body["textQuery"])).toBe("Lagos hotels in Lagos, Nigeria");
   });
 });

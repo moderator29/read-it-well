@@ -8,6 +8,7 @@ import {
   hueFor,
   nearestCity,
   partnerId,
+  queryIsPlaceName,
   slugify,
   type PartnerCity,
 } from "../mapping";
@@ -366,12 +367,38 @@ function mapPlace(
 /* -------------------------------------------------------------------- the provider */
 
 /** The query Google is asked, from a filter that only carries free text. */
-function textQuery(
+export function textQuery(
   filter: ListingSearchFilter,
   city: PartnerCity,
   category: PlacesCategory,
 ): string {
   const q = filter.q?.trim();
+
+  /*
+   * A query that is a place name is the LOCATION, not the subject.
+   *
+   * This used to be `q || category.subject` on its own, and the free text was
+   * then used twice: once by `cityForFilter` to choose where to search, and
+   * again here as the thing to search for. Searching "Lagos" therefore asked
+   * Google for "Lagos in Lagos, Nigeria" restricted to `includedType: lodging`,
+   * and Google answered 200 with an empty list, because the one thing in Lagos
+   * actually named "Lagos" is the locality and a locality is not lodging.
+   *
+   * That is the worst shape a bug can have: the key was valid, the API was
+   * enabled, the call succeeded, the provider reported `ok`, and the shelf was
+   * empty. It is indistinguishable from a city with no hotels in it, which is
+   * exactly how it read for as long as nobody could get a key working to
+   * notice. Searching a city name is also the single most common thing anybody
+   * does here; the app's own filter chip said "Lagos".
+   *
+   * So a bare place name becomes the location and the category supplies the
+   * subject, which also keeps more precision than falling back to the resolved
+   * city would: "Lekki" resolves to Lagos for the search bias, but the text
+   * still says Lekki. Anything with another word in it stays the subject, so
+   * "eko hotel" is unchanged.
+   */
+  if (queryIsPlaceName(q)) return `${category.subject} in ${q}, Nigeria`;
+
   const subject = q && q.length > 1 ? q : category.subject;
   return `${subject} in ${city.name}, Nigeria`;
 }
