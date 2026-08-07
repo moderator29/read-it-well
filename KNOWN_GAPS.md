@@ -53,14 +53,6 @@ schedule: the stale booking hold sweep (`private.release_stale_booking_holds`,
 which exists and works when called), badge awarding, and the social layer's gist
 expiry. Raise it with the owner rather than engineering around it.
 
-**`payout_accounts` has no writer.** Verified: no insert or upsert anywhere in
-`apps/web/src/lib`. The table and its RLS exist. An agent therefore cannot add
-the bank account their earnings would be paid into, so withdrawal-to-bank is
-open at the supply end even though the guest-side wallet loop is closed.
-
-**Reviews have no writer.** The table exists and the read path renders. Nothing
-creates a review after a completed stay.
-
 **`getPlatformStats()` returns null on purpose.** The landing reference shows
 figures like "Hotels 5,130+", which are mockup numbers. Publishing invented
 inventory counts is misleading advertising, so the hero cards render label-only
@@ -111,6 +103,8 @@ Recorded so nobody rebuilds them.
 
 | Was listed as missing | Reality |
 |---|---|
+| `payout_accounts` has no writer | `lib/agent/payout-actions.ts` adds, defaults and removes accounts through the agent's own RLS-bound client, re-resolving the account name against the bank rather than trusting the form |
+| Reviews have no writer | Guests write from `/bookings/[bookingId]/review`; hosts answer through `lib/agent/reviews-actions.ts` |
 | No session layer | `lib/auth/actions.ts` has real `signInWithPassword`, `signUp`, sign-out and Google/Apple OAuth |
 | No search, map, filters or pagination | `/search` has a real engine, `FilterDrawer`, `MapCanvas`, `MapDock` and a square filter opener |
 | Light theme scaffolded, must not be exposed | Fully designed exchange-grade paper twin, shipped, and the default is dark |
