@@ -89,7 +89,6 @@ export function Feed({
 }) {
   const router = useRouter();
   const [posts, setPosts] = useState(initial);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   /* The post a report sheet is open for. A report used to fire on the first tap
      with reason OTHER and no way back, which is both an untriageable queue and
@@ -373,7 +372,7 @@ export function Feed({
               locale={locale}
               onLike={() => onLike(post)}
               onRepost={() => onRepost(post)}
-              onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
+              onReply={() => router.push(`/post/${post.id}?reply=1`)}
               onShare={() => onMenuAction(post, "share")}
               onSave={() => onMenuAction(post, "save")}
               onMenu={() => setSheetFor(post)}
@@ -394,17 +393,26 @@ export function Feed({
             />
           </ViewportPost>
 
-          {/* The card unfolds. No new page, no lost scroll position. */}
-          {replyingTo === post.id ? (
-            <div className="ps-4">
-              <Composer
-                parentId={post.id}
-                signedIn={signedIn}
-                autoFocus
-                onDone={() => setReplyingTo(null)}
-              />
-            </div>
-          ) : null}
+          {/*
+            THE CARD NO LONGER UNFOLDS A COMPOSER, AND IT USED TO.
+
+            Tapping the reply glyph opened a text box under the card, in the
+            feed, with the conversation you were joining still collapsed to a
+            single reply count above it. So the one moment a person most needs
+            to see what has already been said is the one moment this hid it,
+            and the reply they wrote was written blind.
+
+            It goes to the thread now, with `?reply=1`, which opens the post
+            with every answer under it and the composer focused and already
+            addressed. That is one tap, the same as before, and it lands
+            somewhere with a URL: the back button returns to the feed, the
+            address can be sent to somebody, and a reload does not lose a
+            half-written reply's context.
+
+            The old comment defended this as "no new page, no lost scroll
+            position". Scroll position is worth less than knowing what you are
+            replying to.
+          */}
         </div>
         ))}
       </div>
