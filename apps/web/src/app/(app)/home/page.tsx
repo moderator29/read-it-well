@@ -338,11 +338,33 @@ export default async function HomePage() {
              as one block. `--card-i` is what `nf-card-in` reads, and it is
              capped by the same rule the search grid uses so a long list does
              not keep animating after the eye has arrived. */
-          <ul className="grid grid-cols-1 gap-lg sm:grid-cols-2 lg:grid-cols-3">
+          /*
+           * A RAIL ON A PHONE, A GRID ON A DESKTOP.
+           *
+           * This was a single column stack, so a phone showed one property and
+           * then a lot of scrolling to reach the second. That is the difference
+           * the owner keeps pointing at between this and the reference: theirs
+           * moves sideways and reads as a shelf you are browsing, ours read as
+           * a list you are working through.
+           *
+           * `basis-[78%]` is the number that does the work. At 78 percent the
+           * next card is visibly cut off at the right edge, which is what tells
+           * a thumb there is more without any arrow or dot needing to say so. A
+           * full-width card looks like the end of the row and nobody swipes.
+           *
+           * `snap-x snap-mandatory` with `scroll-pl-gutter` lands each card on
+           * the page gutter rather than at the raw viewport edge, so a settled
+           * card lines up with the heading above it.
+           *
+           * The negative gutter and its restore let the rail bleed to the
+           * screen edges while its contents stay on the page's own margin. Same
+           * pair as the category rail above, so the two scroll in step.
+           */
+          <ul className="nf-scroll-x -mx-gutter flex snap-x snap-mandatory gap-lg px-gutter pb-3xs scroll-pl-gutter sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-xl sm:px-0 sm:pb-0 lg:grid-cols-3">
             {listings.map((l, i) => (
               <li
                 key={l.id}
-                className="nf-card-in"
+                className="nf-card-in min-w-0 shrink-0 basis-[78%] snap-start sm:basis-auto"
                 style={{ "--card-i": Math.min(i, 5) } as React.CSSProperties}
               >
                 <ListingCard listing={l} locale={locale} t={t} />
