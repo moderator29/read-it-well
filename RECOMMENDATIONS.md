@@ -2249,12 +2249,161 @@ attribute, clients that strip `<style>` get a complete light email rather than a
 degraded one, and `color-scheme: light dark` stops Apple Mail inverting a
 hand-built dark palette back into a light one nobody designed.
 
+### EM-1b. The palette, the measurements and the shell are one thing across the twenty builders and the five auth templates. **DONE. Was implicit in EM-1**
+
+**What landed.** `apps/web/src/lib/email/theme.ts` is the single resolved
+palette, and it is the one file in this repository where a literal hex is
+correct rather than a violation: Gmail strips `:root` custom property
+declarations, Outlook never supported them, and a `var()` that resolves to
+nothing paints text the colour of its background. The file says so at length so
+a future reader does not "fix" it back into a broken email. `render.ts` now
+carries no colour of its own and `shell.test.ts` fails if one reappears, with
+`#FFFFFF` the single sanctioned exception because it is the text on brand blue
+in both schemes.
+
+The shell is 600px and fluid below, which is what the Outlook desktop reading
+pane fits without a horizontal scrollbar, verified at 360px with no horizontal
+overflow on any of the twenty five. Type and spacing were opened up: 27px heading,
+16px body at 1.65, 40px card padding, the footer moved outside the card so it
+reads as small print by position as well as by size.
+
+**One contrast defect found and fixed while doing it.** The brand blue measures
+2.7:1 as text on the dark card, which fails even the relaxed large-text
+threshold, so the wordmark and the fallback link now carry a class the dark
+override swaps to `--nf-electric-300` at 5.5:1. The muted grey had been measured
+on white and was being used on the canvas, where it was 4.37:1; it is now 4.7:1
+on the surface it actually sits on.
+
+### EM-1c. The five auth templates were a different product from every email after them. **DONE. Was unnamed and it was the biggest gap in this section**
+
+**The problem.** `supabase/templates/` was dark first: a navy canvas with light
+text baked into the inline styles. The transactional shell had already been
+moved to light first, so a new user got a black rectangle on Monday and a white
+card on Tuesday, and the black rectangle was the FIRST email RentMe ever sent
+them.
+
+Light is correct for email and it is not a taste question. Some clients strip
+the `<style>` block, some apply their own inversion to a palette they did not
+design, and Outlook renders through Word. A dark email that half renders is
+black text on a black card, in exactly the message carrying somebody's sign-in
+link. A light email that half renders is a light email.
+
+**What landed.** `scripts/build-auth-emails.mjs` emits the same shell as
+`render.ts`, value for value out of the same palette: same cap rule, same
+lockup, same button, same code box, same footer.
+
+**Three things the copy was saying that it should not.**
+
+It advertised restaurants and experiences. Per S-3 the restaurant loop holds
+zero rows, so that was inventory this platform does not have, which is the same
+class of harm as naming a property that does not exist.
+
+It claimed every listing carried a verified host and a real location before
+publication, under a heading reading "How RentMe protects you". Verification
+here is a ladder and most listers have not climbed it. The band is now headed
+"Worth knowing before you start" and says only what can be checked, in the same
+words the welcome uses.
+
+The logo carried `alt="RentMe"` beside a live wordmark that also said RentMe, so
+a reader with images blocked got the brand twice.
+
+**Still open, and it is EM-3.** The regeneration reaches `supabase/templates/`
+and stops there. Nothing pushes it to the dashboard.
+
+### EM-1d. The email layer is tested as email rather than as source text. **DONE. Was a hole nobody had named**
+
+**What was wrong.** `apps/web/tests/email-render.spec.mjs` read four source
+files as text and matched regular expressions against them. It was failing 18 of
+its 74 checks because the layer had been rewritten underneath it, it was wired
+into no runner so nothing noticed, and it asserted the shell sets a dark colour
+scheme, which is the thing that was deliberately reversed. It is retired.
+
+**What replaced it.** `shell.test.ts` runs one set of rules over the
+transactional messages and the five auth templates together, which is what makes
+"one shell" checkable rather than merely claimed: table layout with no flex,
+grid, float or positioning; nothing loaded from outside the document; inline
+styles with exactly one `<style>` block; 600px and fluid; both colour schemes
+declared; the light palette in the inline layer with the dark values confined to
+the style block; no em dash, no emoji, no banned word, no legal or financial
+promise, no sign-in method this platform does not have, and no inventory it
+lacks.
+
+Two checks are worth naming. Every email has exactly one image, with explicit
+dimensions and an empty alt, and the test strips every `<img>` and asserts the
+brand, the sign-off and 200 characters of real message survive, because an email
+must make complete sense with images blocked. And the auth generator cannot
+import `theme.ts`, being plain Node with no TypeScript loader, so the test
+asserts every theme value appears in the generator and that the generator
+declares no colour the theme has not sanctioned. The five templates are also
+regenerated into a temporary directory and diffed against what is committed,
+which catches the hand edit that the next generator run would erase with no diff
+to explain it.
+
+`fixtures.ts` is now the single catalogue matrix that both test files read, and
+`shell.test.ts` fails when the catalogue exports a builder it has no entry for,
+so a message added without a fixture cannot ship untested.
+
+`client.test.ts` replaces the regex checks on the send guards with behaviour: no
+key means no request attempted, an invalid address is refused before the
+network, `sendMessage` carries the text part to the wire, every failure is a
+typed value rather than an exception, `bestEffortEmail` swallows what its work
+throws, and a rejection logs the status and Resend's machine code while logging
+no address, no subject and no body.
+
+**What still cannot be checked here, and it is worth being blunt.** No test
+proves an email looks right in Outlook 2016 or arrives at all. There is no mail
+client and no sending key in this environment. Markup, palette, copy rules and
+generator freshness are provable; delivery and client rendering are not, and
+EM-4 is the part of that an owner can act on.
+
+### EM-1e. Eleven of the twenty builders in the catalogue have no send site. **NEW. OPEN. P1**
+
+**Verified by grepping every import of `lib/email/messages`.** Five modules send:
+`bookings/actions.ts`, `bookings/arrival.ts`, `wallet/actions.ts`,
+`support/actions.ts`, `admin/bookings-actions.ts`, plus the Paystack webhook.
+Between them they reach `bookingRequested`, `bookingRequestedHost`,
+`bookingConfirmed`, `stayArrivalDetails`, `bookingCancelled`, `bookingRefunded`,
+`walletFunded`, `withdrawalFailed` and `supportTicketFiled`.
+
+Nothing sends `welcome`, `verificationCode`, `passwordReset`,
+`withdrawalOutcome` in its paid or reversed form, `escrowFunded`,
+`escrowReleased`, `inspectionScheduled`, `listingApproved`, `listingRejected`,
+`verificationRungPassed` or `newEnquiry`.
+
+They divide into three groups and the right answer differs for each.
+
+`verificationCode` and `passwordReset` are duplicates of work Supabase already
+does: a signup confirmation and a recovery link go out through
+`supabase/templates/`, not through this catalogue. They are dead code unless
+this product moves off GoTrue's mailer.
+
+`escrowFunded`, `escrowReleased`, `listingApproved`, `listingRejected`,
+`verificationRungPassed` and `inspectionScheduled` are written ahead of flows
+that do not exist yet. Per E-1 and E-6 the escrow pair must not be wired until
+legal review clears the wording, and neither should be treated as a licence to
+ship the flow because the email is ready.
+
+`welcome` and `newEnquiry` are the two with a live flow and no send. A person
+signs up today and RentMe never says hello, which is the single cheapest gap in
+this section. `newEnquiry` is the one a lister actually loses money to.
+
+**Do.** Wire `welcome` behind the existing `signup_role` declaration and
+`newEnquiry` behind the message insert, both through `bestEffortEmail` and both
+respecting the `messages` and `marketing` channels in
+`profiles.settings.notifications`. Leave the rest unwired and do not delete
+them: the copy is reviewed and the flows are coming.
+
 ### EM-2. Nothing proves a transactional message was delivered. **OPEN. P1**
 
-`lib/email/messages.ts` exports nine builders and live sends run from reserve,
-cancel, arrival, the admin booking actions, wallet withdrawal and support filing,
-all wrapped in `bestEffortEmail` so a mail failure never rolls back a committed
-write. That wrapper is correct and it means a delivery failure is invisible.
+`lib/email/messages.ts` exports twenty builders, nine of which have a live send
+site. Sends run from reserve, cancel, arrival, the admin booking
+actions, wallet withdrawal, the Paystack webhook and support filing, all wrapped
+in `bestEffortEmail` so a mail failure never rolls back a committed write. That
+wrapper is correct and it means a delivery failure is invisible.
+
+`client.test.ts` now proves the swallowing is deliberate and that nothing
+private reaches the logs. It does not make the swallowed failure countable,
+which is what this item is about.
 
 **Do.** Folded into W-8: one shared `swallow()` helper that logs what it
 swallows. `bestEffortEmail` is right to swallow and wrong to forget. Then a
@@ -2266,9 +2415,20 @@ surfaces a silent regression.
 `supabase/templates/` holds five branded templates generated by
 `scripts/build-auth-emails.mjs`. They are applied through the dashboard.
 
+**More urgent than it was.** Per EM-1c these five were just rewritten from dark
+to light and had three false claims removed from their copy. Until somebody
+pastes them into the dashboard, production is still sending the old dark
+templates that advertise restaurants and promise every listing carries a
+verified host. The repository being right is not the same as the product being
+right, and this is now the gap between them.
+
 **Do.** Script the Management API path so the repository is the source of truth
 and the dashboard is a deploy target. Today a regeneration silently does not
 reach production, which is the same class of drift as section 22.
+
+**Owner action in the meantime.** Paste all five from `supabase/templates/` into
+Authentication -> Email Templates. `shell.test.ts` proves the files match their
+generator; nothing can prove the dashboard matches the files.
 
 ### EM-4. `EMAIL_FROM` must be a verified sender. **OPEN. P1**
 
