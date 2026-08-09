@@ -80,21 +80,56 @@ export function WalletDeck({
 
   return (
     <div>
-      <div className="grid grid-cols-3 gap-2" role="group" aria-label="Wallet actions">
-        {TILES.map((tile) => (
-          <button
-            key={tile.key}
-            type="button"
-            aria-haspopup="dialog"
-            onClick={() => setOpen(tile.key)}
-            className="nf-card nf-card--interactive flex flex-col items-center gap-2 px-2 py-4 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]"
-          >
-            <span className="h-12 w-12">
-              <BrandIcon name={tile.icon} fill />
-            </span>
-            {tile.label}
-          </button>
-        ))}
+      {/*
+        ONE PRIMARY ACTION, TWO QUIET ONES. IT WAS THREE OF EQUAL WEIGHT.
+
+        This was a three column grid of identical cards, each a bordered and
+        shadowed box wrapping a 48px object with a label under it. Two problems
+        in one component.
+
+        The boxes. A plate behind an object is the thing the owner has asked us
+        to stop doing everywhere, and here there were three of them in a row,
+        each adding an edge and a shadow around artwork that is already lit and
+        already has its own edge.
+
+        The equal weight. Adding money is what somebody comes to this screen to
+        do, and it is the only one of the three that works on an empty wallet.
+        Withdraw and Transfer both need a balance to act on, so presenting all
+        three identically offers a person with zero naira two doors that lead
+        straight to "you do not have enough". Add money is now the full width
+        primary; the other two sit under it as quiet siblings, still one tap
+        away, nothing hidden.
+
+        No icons on the buttons at all. A label on a button is faster to read
+        than a picture of a wallet, and three objects competing above three
+        words was noise standing where a decision should be.
+      */}
+      <div role="group" aria-label="Wallet actions">
+        <Button
+          type="button"
+          variant="primary"
+          size="lg"
+          full
+          aria-haspopup="dialog"
+          onClick={() => setOpen("fund")}
+        >
+          {TILES[0]!.label}
+        </Button>
+
+        <div className="mt-2.5 grid grid-cols-2 gap-2.5">
+          {TILES.slice(1).map((tile) => (
+            <Button
+              key={tile.key}
+              type="button"
+              variant="secondary"
+              size="lg"
+              aria-haspopup="dialog"
+              onClick={() => setOpen(tile.key)}
+            >
+              {tile.label}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {TILES.map((tile) => (
@@ -464,8 +499,15 @@ function BalanceLine({ balanceMinor, locale }: { balanceMinor: number; locale: L
   const absMinor = Math.abs(balanceMinor);
   const koboRemainder = absMinor % 100;
   const wholeNaira = (absMinor - koboRemainder) / 100;
+  /*
+   * Was border-white/10 on bg-white/[0.04]. A white wash reads as a subtle
+   * inset on a dark ground and as nothing at all on a light one, so in
+   * daylight this line lost its container and floated loose in the form. The
+   * inset surface and the subtle border are the two tokens that mean this in
+   * both themes.
+   */
   return (
-    <p className="rounded-[var(--nf-radius-md)] border border-white/10 bg-white/[0.04] px-3 py-2 text-[0.78rem] text-[var(--nf-content-muted)]">
+    <p className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-3 py-2 text-[0.8125rem] text-[var(--nf-content-muted)]">
       Available balance{" "}
       <span className="nf-numeric font-semibold text-[var(--nf-content-primary)]">
         {"₦"}
