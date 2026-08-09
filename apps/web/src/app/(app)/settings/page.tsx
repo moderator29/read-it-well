@@ -4,7 +4,7 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import {
   AppearanceCard,
-  LanguageCard,
+  LanguageRow,
   NotificationsCard,
   PrivacyCard,
   SearchCard,
@@ -53,12 +53,15 @@ export default async function SettingsPage() {
     <div className="mx-auto max-w-2xl">
       <PageHeader title={t.nav.settings} />
 
-      <div className="space-y-6">
+      <div className="space-y-block">
         <Reveal>
-          <AppearanceCard t={t} />
-        </Reveal>
-        <Reveal delay={40}>
-          <LanguageCard t={t} current={locale} />
+          {/* Language is a ROW of this group now, not a card of its own. A
+              labelled glass surface wrapped around one select is a container
+              that has not earned its border, and this screen was stacking
+              eleven of them. See `AppearanceCard`. */}
+          <AppearanceCard t={t}>
+            <LanguageRow t={t} current={locale} />
+          </AppearanceCard>
         </Reveal>
         <Reveal delay={60}>
           <PlaceCard

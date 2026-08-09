@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { LOCALES, localeMeta, type Dictionary, type Locale } from "@naijafinds/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
@@ -59,7 +59,7 @@ import {
  * agree. Text size scales the root font size, which every rem measure in the
  * app follows. All three apply instantly and persist on this device.
  */
-export function AppearanceCard({ t }: { t: Dictionary }) {
+export function AppearanceCard({ t, children }: { t: Dictionary; children?: ReactNode }) {
   const { settings, set } = useNfSettings();
   const copy = t.settings.appearance;
 
@@ -150,6 +150,22 @@ export function AppearanceCard({ t }: { t: Dictionary }) {
         checked={settings.dataSaver}
         onChange={(next) => set("dataSaver", next)}
       />
+      {/*
+       * LANGUAGE ARRIVES HERE AS A ROW RATHER THAN AS ITS OWN CARD.
+       *
+       * It was a whole `SettingsGroup` - a labelled glass surface with a note
+       * slot and a rounded 22px edge - wrapped around ONE select. A container
+       * that holds a single row is a container that has not earned its border,
+       * and on a screen that already stacked eleven of them it was the clearest
+       * one to lose.
+       *
+       * It belongs here rather than anywhere else because it is the same KIND
+       * of choice as the four rows above it: how the product presents itself,
+       * stored on this device, applying to this device, belonging to no
+       * account. That is what "Appearance" means on this screen and the file's
+       * own header already said language was in that category.
+       */}
+      {children}
     </SettingsGroup>
   );
 }
@@ -164,7 +180,7 @@ export function AppearanceCard({ t }: { t: Dictionary }) {
  * radio rows: a language is one answer, and the four rows took a third of the
  * screen to say so.
  */
-export function LanguageCard({ t, current }: { t: Dictionary; current: Locale }) {
+export function LanguageRow({ t, current }: { t: Dictionary; current: Locale }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [selected, setSelected] = useState<Locale>(current);
@@ -178,7 +194,6 @@ export function LanguageCard({ t, current }: { t: Dictionary; current: Locale })
   };
 
   return (
-    <SettingsGroup label={t.settings.language.label}>
       <RowSelect
         icon="chat-bubble"
         label={t.settings.language.appLanguage}
@@ -196,7 +211,6 @@ export function LanguageCard({ t, current }: { t: Dictionary; current: Locale })
         onChange={choose}
         testId="setting-language"
       />
-    </SettingsGroup>
   );
 }
 
