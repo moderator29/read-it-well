@@ -23,6 +23,7 @@ import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
 import { lagosToday } from "@/lib/bookings/schema";
+import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { RecordVisit } from "@/components/app/listing/RecordVisit";
 import { TravelTime } from "@/components/app/listing/TravelTime";
@@ -427,15 +428,44 @@ export default async function ListingDetailPage({
    * exactly one honest path, which is to talk to the agent, so it gets one
    * button at full strength and no decorative twin beside it.
    */
-  const stickyAction: StickyAction | null = isBookable
-    ? { label: "Check availability", href: "#reserve" }
-    : { label: isSale ? "Message agent" : "Message agent", href: messageHref };
+  /*
+   * AN EXAMPLE LISTING OFFERS NOTHING, BECAUSE THERE IS NOTHING TO OFFER.
+   *
+   * The database refuses every transaction against these rows: bookings,
+   * inspection requests and reviews are all turned away by trigger, and the
+   * lister is an institutional account with nobody behind it to message. So a
+   * "Check availability" button here is not merely decorative, it is an offer
+   * the platform cannot honour, and the person who presses it gets an error
+   * they can do nothing about.
+   *
+   * Both the panel and the sticky bar therefore explain instead of acting. The
+   * one link offered goes to search, because the honest next step for somebody
+   * who liked this place is to look for a real one.
+   */
+  const isExample = listing.isDemo;
 
-  const stickySecondary: StickyAction | null = isBookable
-    ? { label: "Message agent", href: messageHref }
-    : null;
+  const stickyAction: StickyAction | null = isExample
+    ? { label: "Browse real listings", href: "/search" }
+    : isBookable
+      ? { label: "Check availability", href: "#reserve" }
+      : { label: "Message agent", href: messageHref };
 
-  const bookingPanel = isRestaurant ? (
+  const stickySecondary: StickyAction | null =
+    isExample || !isBookable ? null : { label: "Message agent", href: messageHref };
+
+  const bookingPanel = isExample ? (
+    <div className="nf-card p-card">
+      <ExampleNotice variant="page" />
+      <p className={`mt-block ${TYPE.body}`}>
+        Nothing can be booked, inspected or paid for here, and there is nobody
+        to message about it. When real properties are listed in this area they
+        will appear in search with an owner you can actually reach.
+      </p>
+      <ButtonLink href="/search" variant="primary" className="mt-block w-full">
+        Browse real listings
+      </ButtonLink>
+    </div>
+  ) : isRestaurant ? (
     <div className="flex flex-col gap-4">
       <ReserveTable listingId={listing.id} messageHref={messageHref} />
       <RestaurantPanel listing={listing} locale={locale} t={t} messageHref={messageHref} />
@@ -657,6 +687,15 @@ export default async function ListingDetailPage({
                     <UiIcon name="location" size={ICON.inline} className="shrink-0" />
                     <span className="min-w-0">{where}</span>
                   </p>
+
+                  {/*
+                    ABOVE THE PRICE, AND THAT POSITION IS THE POINT.
+                    A reader forms a belief about a property from its price. The
+                    disclosure has to land before that belief does, not after it
+                    in a footnote, so it sits between the location and the
+                    figure rather than at the end of the page.
+                  */}
+                  {listing.isDemo && <ExampleNotice variant="page" className="mt-block" />}
 
                   {/* The price is what this screen sells, so it is the hero
                       figure. It never truncates: a clipped price states a wrong
