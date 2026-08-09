@@ -232,6 +232,24 @@
     background: var(--nf-status-verified-surface);
     color: var(--nf-status-verified);
   }
+  /*
+   * The example mark, in the corner where a verified tick would go.
+   *
+   * The warning tone rather than the brand one, deliberately: a filled pill in
+   * that position is the visual grammar of Featured and Superhost, and the one
+   * thing this must never be read as is an endorsement. Drawn in the same shape
+   * as the tick so the eye finds it in the same place, in a colour that means
+   * "take note" rather than "well done".
+   *
+   * They cannot both appear. A demo listing is never verified, by the badge
+   * rule in the repository and by a database constraint under it.
+   */
+  .nf-badge--example {
+    background: var(--nf-state-warning-surface);
+    color: var(--nf-state-warning);
+    letter-spacing: 0.02em;
+  }
+
   /* A label that is not a status: a category, a tier, a device. Quiet, so the
      four status colours keep their monopoly on meaning. */
   .nf-badge--neutral {

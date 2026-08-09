@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
 import { CategoryRail } from "@/components/app/search/CategoryRail";
 import { RealMap } from "@/components/app/search/RealMap";
-import { RecentStrip } from "@/components/app/search/RecentStrip";
-import { SearchMemory } from "@/components/app/search/SearchMemory";
-import { VIEW_COOKIE, isViewKey } from "@/lib/search/memory";
 import { ActiveFilters } from "@/components/app/filters/ActiveFilters";
 import { FilterDrawer } from "@/components/app/filters/FilterDrawer";
 import { ViewToggle } from "@/components/app/filters/ViewToggle";
@@ -139,35 +135,6 @@ function carriedParams(query: DiscoveryQuery): [string, string][] {
   return [...new URLSearchParams(href.slice(index + 1))].filter(([key]) => key !== "q");
 }
 
-/**
- * A hunt in a few words, for the recent-searches chip.
- *
- * Built from the SAME parsed query that produced the results, so a chip can
- * never describe a search the page did not run. Returns "" when there is
- * nothing worth remembering: a bare `/search` with no text, no category and no
- * filters is not a hunt, and recording it every time somebody opened the tab
- * would push five real searches off the end of the list.
- */
-function describeQuery(query: DiscoveryQuery, locale: Locale): string {
-  const parts: string[] = [];
-  if (query.q) parts.push(query.q);
-  if (query.kind) parts.push(KIND_NOUN[query.kind].many);
-  if (query.bedrooms !== undefined) parts.push(`${query.bedrooms}+ beds`);
-  if (query.bathrooms !== undefined) parts.push(`${query.bathrooms}+ baths`);
-  if (query.guests !== undefined) {
-    parts.push(`${query.guests} ${query.guests === 1 ? "guest" : "guests"}`);
-  }
-  if (query.maxMinor !== undefined) parts.push(`under ${formatMoney(query.maxMinor, locale)}`);
-  else if (query.minMinor !== undefined) parts.push(`over ${formatMoney(query.minMinor, locale)}`);
-  if (query.amenities.length > 0) {
-    parts.push(`${query.amenities.length} ${query.amenities.length === 1 ? "amenity" : "amenities"}`);
-  }
-  if (query.instantBook) parts.push("instant book");
-  if (query.verifiedOnly) parts.push("verified");
-  if (parts.length === 0) return "";
-  return parts.join(", ").slice(0, 80);
-}
-
 /** Real coordinates for the covered cities. */
 const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
   Lagos: { lat: 6.5244, lng: 3.3792 },
@@ -189,21 +156,21 @@ export default async function SearchPage({
   const parsed = parseDiscoveryQuery(raw);
 
   /*
-   * The remembered view, applied only when the address does not state one.
+   * THE LIST IS THE DEFAULT, ALWAYS, AND THE COOKIE NO LONGER OVERRULES IT.
    *
-   * An address that says `view=` always wins: a link somebody sent, a chip
-   * somebody just tapped, and the back button are all explicit statements
-   * about which view to show, and a stored preference must never overrule any
-   * of them. The cookie exists for exactly one case, the person who arrives at
-   * a bare `/search` from the tab bar or the home screen, and it is read on
-   * the server so the map-preferring person gets a map in the first render
-   * rather than a list that flips a beat later.
+   * A stored view preference was read here, so somebody who had once opened the
+   * map got the map every time they tapped Explore afterwards, including on a
+   * bare `/search` from the tab bar. That is defensible as a preference and it
+   * is wrong as a default: Explore exists to show properties, the map shows
+   * five city pins and a price floor, and arriving at a country outline when
+   * you meant to browse is the wrong first screen however faithfully it
+   * remembers what you did last week.
+   *
+   * The address bar still decides completely. `?view=map` is a link somebody
+   * sent or a control somebody just tapped, and it wins as it always did. What
+   * is gone is the invisible third opinion.
    */
-  const remembered = (await cookies()).get(VIEW_COOKIE)?.value;
-  const query: DiscoveryQuery =
-    raw.view === undefined && isViewKey(remembered)
-      ? { ...parsed, view: remembered }
-      : parsed;
+  const query: DiscoveryQuery = parsed;
 
   const repo = getListingRepository();
   /*
@@ -429,16 +396,19 @@ export default async function SearchPage({
       */}
       <CategoryRail query={query} counts={kindCount} locale={locale} />
 
-      {/* Nothing rendered. Records the view and the hunt for the strip below. */}
-      <SearchMemory
-        view={query.view}
-        label={describeQuery(query, locale)}
-        href={toSearchHref(query)}
-      />
+      {/*
+        RECENT SEARCHES AND RECENTLY VIEWED ARE GONE FROM THIS SCREEN.
 
-      {/* The last few hunts and the last few places opened. Empty on the
-          server and on a first visit, so it costs nothing until it is real. */}
-      <RecentStrip />
+        Two full rows of chips between the market rail and the first property,
+        and on a real device they filled with "Abuja, Abuja, Abuja, Abuja"
+        because every keystroke through the search box recorded another hunt.
+        Even working perfectly they are a history of what you already did on a
+        screen whose job is to show you what is there now.
+
+        Nothing is lost that anybody was using: a search is a URL, so the
+        browser's own back button and history already hold every one of them,
+        and a place you opened is one tap from the Saved screen if you kept it.
+      */}
 
       {/* ---------------------------------------------------- results header */}
       <Reveal as="section" className="mt-heading">
@@ -703,7 +673,18 @@ export default async function SearchPage({
             <ul
               key={toSearchHref(query)}
               data-testid="results-grid"
-              className="grid grid-cols-1 gap-lg sm:grid-cols-2 lg:grid-cols-3"
+              /*
+                TWO ACROSS ON A PHONE, and it was one.
+                A single column of full-width cards shows ONE property per
+                screen on a 390px device, so browsing sixty four of them is
+                sixty four scrolls. Two across shows four in the same space and
+                is what every property app on this market does, because the
+                decision a person is making here is a COMPARISON and you cannot
+                compare things you can only see one at a time.
+                The card was written to survive it: the photo is a ratio, the
+                price never wraps, and the facts row is already a wrapping list.
+              */
+              className="grid grid-cols-2 gap-md sm:gap-lg lg:grid-cols-4"
             >
               {listings.map((l, i) => (
                 <li key={l.id}>

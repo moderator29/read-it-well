@@ -212,7 +212,17 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
    * strokes, evenly spaced, no decorative shortening of the middle one, no
    * animation into a cross.
    */
-  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
+  /*
+   * THREE LINES, AND THE THIRD IS SHORTER.
+   *
+   * Three equal rules is the generic hamburger every product has drawn since
+   * 2010. Shortening the bottom one is a small thing that does two jobs: it
+   * gives the mark an asymmetry the eye reads as deliberate rather than as a
+   * default, and it points the weight of the glyph toward the leading edge the
+   * drawer arrives from. Round caps, because the rest of this set has them and
+   * a square-capped mark in a round-capped family reads as imported.
+   */
+  menu: <path d="M4 7h16M4 12h16M4 17h10" strokeLinecap="round" />,
   "panel-left": (
     <>
       <rect x="3.2" y="4.4" width="17.6" height="15.2" rx="3" />

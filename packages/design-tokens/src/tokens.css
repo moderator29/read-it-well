@@ -236,10 +236,45 @@
    * gradient makes an empty result look like a designed feature. These are
    * quiet depths of the surface family, so a missing photo reads as a place
    * that has no photo rather than as a decoration. */
-  --nf-media-ground-from: var(--nf-ink-850);
-  --nf-media-ground-to: var(--nf-ink-950);
-  --nf-media-silhouette: rgb(0 0 0 / 0.42);
-  --nf-media-moon: rgb(255 255 255 / 0.16);
+  /*
+   * THE SKY, AND IT USED TO BE NEARLY BLACK.
+   *
+   * `ink-850` to `ink-950` is two shades of almost-nothing, and the drawn
+   * property in front of it was translucent white at thirteen percent. On a
+   * card at 170px the result was a dark grey smudge on a dark navy square:
+   * technically a picture of a building, visually a box that failed to load,
+   * which is exactly what it was called.
+   *
+   * A photograph in a listing grid is the single loudest thing on the card, and
+   * whatever stands in for one has to hold that position or the whole grid
+   * reads as broken. So this is a dusk sky with real colour in it rather than
+   * two greys, and every part of the building below has been lifted to match.
+   * The reasoning that put quiet neutrals here was about not letting a missing
+   * photo look like a designed feature; the correction is that it was not
+   * reading as a picture at all.
+   */
+  --nf-media-ground-from: #1B2A52;
+  --nf-media-ground-to: #0B1226;
+  --nf-media-silhouette: rgb(0 0 0 / 0.34);
+  --nf-media-moon: rgb(255 246 224 / 0.5);
+
+  /* The drawn property, for a listing with no photograph yet.
+   *
+   * Five values, because a building needs a face, a side the light does not
+   * reach, a roof, glass, and the ground it stands on. They are neutrals lifted
+   * off the surface family rather than brand colours, for the same reason the
+   * ground above is not brand blue: an illustration standing in for a missing
+   * photograph must read as a placeholder that happens to be well drawn, never
+   * as a feature somebody chose.
+   *
+   * The one exception is `--nf-media-glass`, which carries a little warmth: a
+   * lit window is the single detail that tells the eye this is a building
+   * somebody lives in rather than a shape. */
+  --nf-media-wall: rgb(226 234 250 / 0.34);
+  --nf-media-wall-shade: rgb(6 10 26 / 0.46);
+  --nf-media-roof: rgb(226 234 250 / 0.52);
+  --nf-media-glass: rgb(255 226 158 / 0.88);
+  --nf-media-land: rgb(10 16 36 / 0.55);
 
   /* The drawn property, for a listing with no photograph yet.
    *

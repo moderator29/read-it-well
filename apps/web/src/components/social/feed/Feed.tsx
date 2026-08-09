@@ -4,7 +4,6 @@ import { DEFAULT_LOCALE, type Locale } from "@naijafinds/i18n";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PostCard, type PostView } from "./PostCard";
-import { Composer } from "./Composer";
 import { ReportSheet } from "../ReportSheet";
 import { ActionSheet, actionsForPost } from "../ActionSheet";
 import {
@@ -49,8 +48,6 @@ export function Feed({
   initial,
   locale = DEFAULT_LOCALE,
   signedIn,
-  canCompose = false,
-  areaId,
   areaName,
   emptyMessage,
   district,
@@ -71,6 +68,12 @@ export function Feed({
    * timeline or a record: the feed on `/around` and inside an area is one, a
    * profile's own posts and an activity list are not.
    */
+  /* Accepted and ignored since the permanent composer left the top of the
+     feed. Both are still passed by every caller and both still matter to
+     POSTING, which now happens through `AroundFab`; the page hands the same
+     values to it. Removing them from this type would mean editing four call
+     sites to delete a prop that is about to be needed again the moment
+     anything else on this screen wants to know which place it is in. */
   canCompose?: boolean;
   areaId?: string;
   areaName?: string;
@@ -343,9 +346,22 @@ export function Feed({
         )
       ) : null}
 
-      {canCompose && chip !== "stories" && chip !== "reviews" ? (
-        <Composer areaId={areaId} areaName={areaName} signedIn={signedIn} />
-      ) : null}
+      {/*
+        THE PERMANENT COMPOSER IS GONE FROM THE TOP OF THE FEED.
+
+        It sat above the first post as an open panel: two mode chips, a
+        four-line text area, an audience line, a hint sentence, an image button
+        and a Post button. That is roughly a third of a phone screen, on every
+        visit, offered to somebody who came to READ. A person who arrives
+        wanting to post is one tap from the same composer through the plus
+        control that floats over this list; a person who arrives wanting to read
+        was scrolling past a form.
+
+        Nothing was removed from the product. `AroundFab` opens the composer,
+        and it is the control this platform already uses for "make something"
+        on every other screen, so posting now works the way listing and messaging
+        already do rather than being the one thing with a permanent form.
+      */}
 
       {notice ? (
         <p

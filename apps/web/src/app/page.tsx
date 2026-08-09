@@ -17,7 +17,7 @@ import { FeaturedCarousel } from "@/components/site/landing/FeaturedCarousel";
 import { MoodRow } from "@/components/site/landing/MoodRow";
 import { NumbersBand } from "@/components/site/landing/NumbersBand";
 import { PlatformConsole } from "@/components/site/landing/PlatformConsole";
-import { CoverageMap, AssistantShowcase } from "@/components/site/landing/SignatureShowcase";
+import { AssistantShowcase } from "@/components/site/landing/SignatureShowcase";
 import { StoryRail } from "@/components/site/landing/StoryRail";
 import { gatedHref } from "@/lib/site/gated-href";
 
@@ -340,8 +340,21 @@ export default async function LandingPage() {
 
         <PopularDestinations t={t} />
 
-        {/* --------------------------------------------------- coverage map */}
-        <CoverageMap />
+
+        {/*
+          THE NATIONWIDE MAP IS GONE.
+
+          "All 36 states. One lit map. From Lagos to Maiduguri, every covered
+          city glows on the RentMe grid." It was a rendered illustration of a
+          country lit end to end, on a platform whose catalogue is six cities,
+          under a heading making the coverage claim this page has just spent a
+          commit correcting everywhere else. The picture was the loudest version
+          of it and it survived the copy fix.
+
+          The real map is on Explore, drawn from the catalogue, with the number
+          of places on it printed in the corner. That one is true by
+          construction and updates itself.
+        */}
 
         <AgentsBand t={t} />
 
