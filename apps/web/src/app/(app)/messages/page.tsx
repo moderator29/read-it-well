@@ -44,7 +44,7 @@ export default async function InboxPage() {
             <PageScene art="/brand/story-assistant.png" />
             <PageHeader title="Inbox" />
           </div>
-          <p className="nf-card p-6 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
+          <p className="nf-card nf-body p-card sm:p-cell text-center text-[var(--nf-content-muted)]">
             Messaging is paused for maintenance. Your conversations are safe and will be
             back shortly.
           </p>
