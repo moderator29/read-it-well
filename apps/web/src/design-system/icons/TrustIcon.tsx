@@ -29,7 +29,30 @@
  */
 import { token } from "@naijafinds/design-tokens";
 
-export type TrustIconName = "globe" | "shield" | "ai-chip" | "africa";
+export type TrustIconName =
+  | "globe"
+  | "shield"
+  | "ai-chip"
+  | "africa"
+  /*
+   * The two store marks, added back for the landing page's fifth trust item at
+   * the owner's request.
+   *
+   * They are drawn here rather than restored from the pre-session version of
+   * this file. That version carried 42 raw hex literals, cleaning them was a
+   * real improvement, and bringing the old file back wholesale would have
+   * undone it to gain two glyphs. These two are built from the same ramp and
+   * the same ink token as their four neighbours, so they sit in the row
+   * looking like they belong to it.
+   *
+   * Both are simplified marks, not the official badges. Apple and Google both
+   * publish brand guidelines that govern their exact artwork, and a redrawn
+   * approximation of an official badge is the kind of thing that gets a store
+   * submission rejected. A generic bag and a generic play triangle say
+   * "available on" without pretending to be either company's asset.
+   */
+  | "app-store"
+  | "play-store";
 
 type Ramp = [string, string, string];
 
@@ -41,6 +64,8 @@ const RAMPS: Record<TrustIconName, Ramp> = {
   shield: [token.brandAccent, token.brandPrimary, token.brandPrimaryStrong],
   "ai-chip": [token.brandAccent, token.brandSecondary, token.brandPrimary],
   africa: [token.brandAccent, token.brandPrimary, token.brandPrimaryStrong],
+  "app-store": [token.brandAccent, token.brandSecondary, token.brandPrimaryStrong],
+  "play-store": [token.brandAccent, token.brandPrimary, token.brandPrimaryStrong],
 };
 
 /**
@@ -86,6 +111,58 @@ function Glyph({ name }: { name: TrustIconName }) {
             strokeWidth="2.1"
             fill="none"
             strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>
+      );
+
+    /* A shopping bag with a download arrow: "get the app", drawn generically
+       so it is not a redrawn Apple badge. */
+    case "app-store":
+      return (
+        <>
+          <path
+            d="M5.6 8.2h12.8l-1 11.1a1.9 1.9 0 0 1-1.9 1.7H8.5a1.9 1.9 0 0 1-1.9-1.7Z"
+            fill={MARK_INK}
+            fillOpacity="0.92"
+          />
+          <path
+            d="M9.1 8.2V6.6a2.9 2.9 0 0 1 5.8 0v1.6"
+            stroke={MARK_INK}
+            strokeWidth="1.7"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M12 11.4v5.2m0 0 2.1-2.1M12 16.6l-2.1-2.1"
+            stroke={token.brandPrimaryStrong}
+            strokeWidth="1.9"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>
+      );
+
+    /* The play triangle inside a rounded tile, again generic rather than the
+       Google Play chevron mark. */
+    case "play-store":
+      return (
+        <>
+          <rect
+            x="4.4"
+            y="4.4"
+            width="15.2"
+            height="15.2"
+            rx="3.6"
+            fill={MARK_INK}
+            fillOpacity="0.92"
+          />
+          <path
+            d="M10.4 8.9v6.2l5.1-3.1Z"
+            fill={token.brandPrimaryStrong}
+            stroke={token.brandPrimaryStrong}
+            strokeWidth="1.4"
             strokeLinejoin="round"
           />
         </>
