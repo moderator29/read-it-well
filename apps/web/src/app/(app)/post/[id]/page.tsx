@@ -41,10 +41,23 @@ export async function generateMetadata({
  */
 export default async function PostPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  /*
+   * `?reply=1` means somebody arrived here by tapping the comment glyph on a
+   * card rather than by tapping the card itself. The two are different
+   * intentions and the page should answer the one they had: open with the
+   * composer addressed and focused, under the whole conversation, so they can
+   * see what they are joining and start typing without a second tap.
+   *
+   * In the address bar rather than in client state, so it survives a reload
+   * and can be linked: "reply to this" is a shareable thing to hand somebody.
+   */
+  const wantsReply = (await searchParams).reply === "1";
   if (!(await isSocialEnabled())) return <SocialPaused title="Post" />;
   const [thread, session] = await Promise.all([getThread(id), resolveSession()]);
   if (!thread) notFound();
@@ -58,7 +71,7 @@ export default async function PostPage({
         subtitle={thread.root.areaName ? `Around ${thread.root.areaName}` : undefined}
         fallback={thread.root.areaSlug ? `/around/${thread.root.areaSlug}` : "/around"}
       />
-      <ThreadView thread={thread} signedIn={signedIn} />
+      <ThreadView thread={thread} signedIn={signedIn} openReply={wantsReply} />
       <AroundFab />
     </div>
   );

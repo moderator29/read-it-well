@@ -18,7 +18,7 @@ import {
 } from "@/lib/social/posts-actions";
 import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
 
-type ThreadReply = PostView & { depth: number; mutedAuthor: boolean };
+type ThreadReply = PostView & { depth: number; parentId: string | null; mutedAuthor: boolean };
 
 type Thread = {
   root: PostView;
@@ -36,11 +36,22 @@ type Thread = {
  * because deleting the row would take everybody's replies with it and a thread
  * that suddenly starts halfway through is a thread nobody can follow.
  */
-export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boolean }) {
+export function ThreadView({
+  thread,
+  signedIn,
+  openReply = false,
+}: {
+  thread: Thread;
+  signedIn: boolean;
+  /** Arrived from a card's comment glyph: open addressed to the root. */
+  openReply?: boolean;
+}) {
   const router = useRouter();
   const [root, setRoot] = useState(thread.root);
   const [replies, setReplies] = useState(thread.replies);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(
+    openReply ? thread.root.id : null,
+  );
   const [notice, setNotice] = useState<string | null>(null);
   /* The post a report sheet is open for. Reporting is a decision, not a tap. */
   const [reporting, setReporting] = useState<PostView | null>(null);
@@ -200,6 +211,30 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
    * surface where somebody has deliberately opened a post to read it was the one
    * surface that recorded nothing. Replies were invisible to it too.
    */
+  /*
+   * WHERE A REPLY TO THIS ACTUALLY ATTACHES.
+   *
+   * `private.place_post` refuses an insert at depth greater than three, with
+   * "This thread is as deep as it goes. Reply higher up so people can follow
+   * it." Every card in this view carried a reply control regardless, so a
+   * person answering the deepest comment in a conversation typed a reply, sent
+   * it, and got an error they could do nothing about. That is the same defect
+   * as a Reserve button on a listing that cannot be booked: a control offered
+   * for an action the database will always refuse.
+   *
+   * So at the cap the reply attaches to the PARENT instead, which is exactly
+   * what the error message asks for and lands the new reply in the same visible
+   * branch, one level shallower. Nobody is told to go and find somewhere else
+   * to click. The composer still names the person being answered, because that
+   * is who is being answered whichever row the row hangs off.
+   */
+  const MAX_DEPTH = 3;
+  const replyTargetOf = (post: PostView): string => {
+    const reply = replies.find((r) => r.id === post.id);
+    if (!reply || reply.depth < MAX_DEPTH) return post.id;
+    return reply.parentId ?? post.id;
+  };
+
   const card = (post: PostView) => (
     <ViewportPost postId={post.id}>
       <PostCard
@@ -207,6 +242,8 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
         onLike={() => onLike(post)}
         onRepost={() => onRepost(post)}
         onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
+        // The control is keyed on the post tapped; where the reply LANDS is
+        // decided by `replyTargetOf` when the composer renders.
         onShare={() => onMenuAction(post, "share")}
         onSave={() => onMenuAction(post, "save")}
         onMenu={() => setSheetFor(post)}
@@ -242,7 +279,26 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
       {card(root)}
 
       {replyingTo === root.id ? (
-        <Composer parentId={root.id} signedIn={signedIn} autoFocus onDone={() => setReplyingTo(null)} />
+        <>
+          {/*
+            WHO IS BEING ANSWERED, SAID OUT LOUD.
+
+            A composer under a card is ambiguous the moment there is more than
+            one card on the screen: at three levels of nesting the box under a
+            reply and the box under the post look identical, and the only way to
+            tell which one you are writing into is to remember which control you
+            pressed. Naming the person removes the guess, and it is the same
+            line every platform with threaded replies has settled on because it
+            is the one that works.
+          */}
+          <ReplyingTo who={handleOf(root)} />
+          <Composer
+            parentId={root.id}
+            signedIn={signedIn}
+            autoFocus
+            onDone={() => setReplyingTo(null)}
+          />
+        </>
       ) : null}
 
       {/* Always offered, so somebody arriving from a link can answer without
@@ -273,12 +329,15 @@ export function ThreadView({ thread, signedIn }: { thread: Thread; signedIn: boo
             card(reply)
           )}
           {replyingTo === reply.id ? (
-            <Composer
-              parentId={reply.id}
-              signedIn={signedIn}
-              autoFocus
-              onDone={() => setReplyingTo(null)}
-            />
+            <>
+              <ReplyingTo who={handleOf(reply)} />
+              <Composer
+                parentId={replyTargetOf(reply)}
+                signedIn={signedIn}
+                autoFocus
+                onDone={() => setReplyingTo(null)}
+              />
+            </>
           ) : null}
         </div>
       ))}
@@ -357,3 +416,24 @@ function MutedReply({ who, onShow }: { who: string; onShow: () => void }) {
  * the two apart at all. Every card everywhere now gets the same answer, and the
  * "replies are still here" line only appears when there are some.
  */
+
+/** The handle to address a reply to, or an honest stand-in for a deleted one. */
+function handleOf(post: PostView): string {
+  if (post.author?.handle) return `@${post.author.handle}`;
+  return post.author?.displayLabel ?? "this post";
+}
+
+/**
+ * The line above an open composer, naming who it answers.
+ *
+ * Deliberately not a placeholder inside the text box: a placeholder disappears
+ * the moment somebody types, which is exactly when they most want to be able to
+ * glance up and check. It stays for the whole time the composer is open.
+ */
+function ReplyingTo({ who }: { who: string }) {
+  return (
+    <p className="ps-1 text-[0.8125rem] leading-snug text-[var(--nf-content-muted)]">
+      Replying to <span className="font-semibold text-[var(--nf-brand-secondary)]">{who}</span>
+    </p>
+  );
+}

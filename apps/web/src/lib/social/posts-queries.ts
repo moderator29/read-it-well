@@ -632,6 +632,14 @@ export async function getEverywhereFeed(cursor?: string): Promise<FeedPage> {
 export type ThreadReply = PostView & {
   depth: number;
   /**
+   * The row this one hangs off, which the thread view needs for one reason: a
+   * reply to something already at the depth cap has to attach to the parent
+   * instead, because `private.place_post` refuses anything deeper. Without it
+   * the deepest comment in every conversation carried a reply control that
+   * could only ever produce an error.
+   */
+  parentId: string | null;
+  /**
    * The viewer muted this reply's author.
    *
    * The row is still returned rather than filtered out, and that is the whole
@@ -714,6 +722,9 @@ export async function getThread(postId: string): Promise<Thread | null> {
                 : null
             : null,
         depth: row.depth,
+        /* Carried so the thread view can retarget a reply that would land
+           deeper than the trigger allows. See `replyTargetOf` in ThreadView. */
+        parentId: row.parent_id,
         mutedAuthor: Boolean(
           muted.posts.has(row.id) || (row.author_id && muted.users.has(row.author_id)),
         ),
