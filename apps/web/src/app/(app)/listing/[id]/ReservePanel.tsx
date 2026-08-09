@@ -6,6 +6,7 @@ import { getDictionary, plural, type Locale } from "@naijafinds/i18n";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ICON } from "@/components/app/Screen";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Amount } from "@/components/ui/Amount";
@@ -82,21 +83,21 @@ function Stepper({
   onChange: (next: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-[0.875rem] text-[var(--nf-content-secondary)]">{label}</span>
-      <span className="flex items-center gap-3">
+    <div className="flex items-center justify-between gap-group">
+      <span className="nf-body-sm text-[var(--nf-content-secondary)]">{label}</span>
+      <span className="flex items-center gap-row">
         <button
           type="button"
           aria-label={`Fewer ${label.toLowerCase()}`}
           disabled={value <= min}
           onClick={() => onChange(Math.max(min, value - 1))}
-          className="nf-icon-btn h-8 w-8 disabled:opacity-40"
+          className="nf-icon-btn h-11 w-11 disabled:opacity-40"
         >
           <span aria-hidden="true" className="text-[1rem] leading-none">
             &minus;
           </span>
         </button>
-        <span className="nf-numeric w-5 text-center text-[0.9375rem] font-semibold">{value}</span>
+        <span className="nf-numeric w-5 text-center nf-body font-semibold">{value}</span>
         <button
           type="button"
           aria-label={`More ${label.toLowerCase()}`}
@@ -211,17 +212,17 @@ export function ReservePanel({
   if (state?.ok) {
     const r = state.data;
     return (
-      <div className="nf-card nf-confirm-sweep p-5" data-testid="reserve-success">
+      <div className="nf-card nf-confirm-sweep p-card" data-testid="reserve-success">
         <span aria-hidden="true" className="nf-confirm-dim" />
-        <div className="flex flex-col items-center gap-2 text-center">
+        <div className="flex flex-col items-center gap-xs text-center">
           <span className="h-14 w-14 shrink-0">
             <BrandIcon name="calendar-check" state="confirmed" fill />
           </span>
-          <p className="text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+          <p className="nf-lede font-semibold text-[var(--nf-content-primary)]">
             Booking requested
           </p>
         </div>
-        <p className="nf-rise mt-2 text-center text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-rise mt-heading text-center nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
           {t.reserve.confirmedRange
             .replace("{from}", labelDate(r.checkIn))
             .replace("{to}", labelDate(r.checkOut))
@@ -231,13 +232,13 @@ export function ReservePanel({
         {r.arrivingName && (
           <p
             data-testid="reserve-arriving"
-            className="nf-rise mt-1.5 text-center text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]"
+            className="nf-rise mt-row text-center nf-body-sm leading-relaxed text-[var(--nf-content-muted)]"
           >
             {r.arrivingName} is the one arriving. We send them the details the moment the host
             confirms.
           </p>
         )}
-        <dl className="nf-rise mt-3 space-y-1.5 border-t border-[var(--nf-border-subtle)] pt-3 text-[0.875rem]">
+        <dl className="nf-rise nf-body-sm mt-heading space-y-inline border-t border-[var(--nf-divider)] pt-heading">
           {r.cleaningMinor > 0 && (
             <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
               <dt>Cleaning</dt>
@@ -253,7 +254,7 @@ export function ReservePanel({
             </dd>
           </div>
         </dl>
-        <p className="nf-rise mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="nf-rise mt-heading nf-body-sm leading-relaxed text-[var(--nf-content-muted)]">
           {instantBook
             ? "Your dates are held. Paying now confirms the stay straight away."
             : "The agent will confirm your dates personally. You can pay now to secure them, and we will notify you the moment the agent confirms."}
@@ -265,7 +266,7 @@ export function ReservePanel({
           href={`/checkout/${r.bookingId}`}
           variant="primary"
           full
-          className="mt-4"
+          className="mt-block"
         >
           Pay <Amount minorUnits={r.totalMinor} locale={locale} currency={currency} /> for this
           stay
@@ -274,7 +275,7 @@ export function ReservePanel({
           href={`/bookings?justBooked=${r.bookingId}`}
           variant="ghost"
           full
-          className="mt-2"
+          className="mt-row"
         >
           Pay later, view your bookings
         </ButtonLink>
@@ -283,8 +284,8 @@ export function ReservePanel({
   }
 
   return (
-    <div className="nf-card p-5" data-testid="reserve-panel">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+    <div className="nf-card p-card" data-testid="reserve-panel">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-row gap-y-inline-tight">
         <p>
           <Amount
             minorUnits={priceMinor}
@@ -297,14 +298,14 @@ export function ReservePanel({
         </p>
 
         {instantBook && (
-          <p className="flex items-center gap-1.5 text-[0.78rem] font-semibold text-[var(--nf-state-warning)]">
-            <UiIcon name="sparkle" size={12} />
+          <p className="flex items-center gap-inline nf-caption font-semibold text-[var(--nf-state-warning)]">
+            <UiIcon name="sparkle" size={ICON.inline} />
             Instant Book available
           </p>
         )}
       </div>
 
-      <form action={formAction} noValidate className="mt-4">
+      <form action={formAction} noValidate className="mt-block">
         <input type="hidden" name="listingId" value={listingId} />
 
         {/* ------------------------------------------------------- dates */}
@@ -325,8 +326,8 @@ export function ReservePanel({
           chips write to the same `useStayDates` setters, so the two controls
           are one state, not two.
         */}
-        <div className="mb-3">
-          <p className="nf-label mb-1.5">Check in</p>
+        <div className="mb-heading">
+          <p className="nf-label mb-inline">Check in</p>
           <ChipRow label="Check-in date" radiogroup>
             {quickDates.map((iso) => (
               <Chip
@@ -351,7 +352,7 @@ export function ReservePanel({
             its min-content width, so a date input's intrinsic size decided the
             column rather than the column deciding the input. Two of them then
             measured wider than the card. */}
-        <div className="grid grid-cols-2 gap-3 [&>*]:min-w-0">
+        <div className="grid grid-cols-2 gap-row [&>*]:min-w-0">
           <div>
             <label htmlFor={`${uid}-checkin`} className="nf-label">
               Check-in
@@ -384,7 +385,7 @@ export function ReservePanel({
           </div>
         </div>
         {(hint || fieldError("checkIn") || fieldError("checkOut")) && (
-          <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
+          <p role="alert" className="mt-row nf-body-sm text-[var(--nf-state-warning)]">
             {hint ?? fieldError("checkIn") ?? fieldError("checkOut")}
           </p>
         )}
@@ -394,7 +395,7 @@ export function ReservePanel({
             two steppers, so a party the agent would turn away at the gate can
             never be assembled here. The server checks it again against the
             listing row; this is the courtesy, not the guard. */}
-        <div className="mt-3.5 space-y-2.5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3.5">
+        <div className="mt-block space-y-row rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-card-sm">
           <Stepper
             label="Adults"
             name="adults"
@@ -412,7 +413,7 @@ export function ReservePanel({
             onChange={setChildren}
           />
           {capacity !== null && (
-            <p className="border-t border-[var(--nf-border-subtle)] pt-2.5 text-[0.78rem] text-[var(--nf-content-muted)]">
+            <p className="border-t border-[var(--nf-divider)] pt-row nf-caption text-[var(--nf-content-muted)]">
               {t.reserve.capacityNote.replace(
                 "{guests}",
                 plural(capacity, t.counts.guests, locale),
@@ -427,7 +428,7 @@ export function ReservePanel({
             to London. Naming somebody means giving a number the gate can ring,
             which is why the phone is required alongside the name and the email
             is not. */}
-        <div className="mt-3.5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3.5 py-1">
+        <div className="mt-block rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-md py-2xs">
           <Toggle
             checked={forSomeoneElse}
             onChange={toggleForSomeoneElse}
@@ -437,7 +438,7 @@ export function ReservePanel({
         </div>
 
         {forSomeoneElse && (
-          <div className="nf-rise mt-3 grid gap-3">
+          <div className="nf-rise mt-heading grid gap-row">
             <div>
               <label htmlFor={`${uid}-guest-name`} className="nf-label">
                 Their full name
@@ -455,7 +456,7 @@ export function ReservePanel({
                 className="nf-field"
               />
               {fieldError("guestName") && (
-                <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
+                <p role="alert" className="mt-row nf-body-sm text-[var(--nf-state-warning)]">
                   {fieldError("guestName")}
                 </p>
               )}
@@ -493,13 +494,13 @@ export function ReservePanel({
               />
               <p
                 id={`${uid}-guest-email-hint`}
-                className="mt-1.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]"
+                className="mt-row nf-caption leading-relaxed text-[var(--nf-content-muted)]"
               >
                 We send them the dates and how to get through the gate once the host confirms.
                 Leave it blank and it all comes to you to pass on.
               </p>
               {fieldError("guestEmail") && (
-                <p role="alert" className="mt-1.5 text-[0.78rem] text-[var(--nf-state-warning)]">
+                <p role="alert" className="mt-row nf-body-sm text-[var(--nf-state-warning)]">
                   {fieldError("guestEmail")}
                 </p>
               )}
@@ -520,8 +521,8 @@ export function ReservePanel({
             which is the only reason a per-night number is worth printing at
             all. */}
         {ready && (
-          <div className="mt-3.5 border-t border-[var(--nf-border-subtle)] pt-3.5">
-            <div className="flex items-baseline justify-between gap-3">
+          <div className="nf-hairline mt-block pt-block">
+            <div className="flex items-baseline justify-between gap-row">
               {/* The `Amount` primitive, not a hand-assembled figure: the
                   tabular digits, the locale-built currency symbol and the
                   two-tone qualifier all come from one place. "total" is the
@@ -531,21 +532,26 @@ export function ReservePanel({
                 locale={locale}
                 currency={currency}
                 suffix="total"
-                className="text-[1.0625rem] font-bold text-[var(--nf-content-primary)]"
-                secondaryClassName="text-[0.8125rem] font-medium text-[var(--nf-content-muted)]"
+                className="nf-lede font-bold text-[var(--nf-content-primary)]"
+                secondaryClassName="nf-body-sm font-medium text-[var(--nf-content-muted)]"
               />
               <button
                 type="button"
                 onClick={() => setShowPerNight((v) => !v)}
                 aria-expanded={showPerNight}
-                className="relative shrink-0 text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)] before:absolute before:-inset-2 before:content-['']"
+                /* The 44px floor DRAWN, not faked. This was a 17px-tall link
+                   with a `before:-inset-2` overlay reaching for the target it
+                   should have had: an invisible box that pushes the hit region
+                   over the total beside it, so a thumb aiming at the price
+                   opened the breakdown instead. */
+                className="inline-flex min-h-11 shrink-0 items-center nf-body-sm font-semibold text-[var(--nf-brand-secondary)]"
               >
                 {showPerNight ? "Hide the breakdown" : "See per night"}
               </button>
             </div>
 
             {showPerNight && (
-              <dl className="mt-2.5 space-y-1.5 text-[0.875rem]">
+              <dl className="nf-body-sm mt-heading space-y-inline">
                 <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
                   <dt>
                     <Amount minorUnits={priceMinor} locale={locale} currency={currency} /> &times;{" "}
@@ -574,13 +580,13 @@ export function ReservePanel({
                     </dd>
                   </div>
                 )}
-                <div className="flex items-center justify-between border-t border-[var(--nf-border-subtle)] pt-1.5 font-semibold text-[var(--nf-content-primary)]">
+                <div className="flex items-center justify-between border-t border-[var(--nf-divider)] pt-inline font-semibold text-[var(--nf-content-primary)]">
                   <dt>Total</dt>
                   <dd>
                     <Amount minorUnits={totalMinor} locale={locale} currency={currency} />
                   </dd>
                 </div>
-                <p className="pt-0.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
+                <p className="pt-2xs nf-caption leading-relaxed text-[var(--nf-content-muted)]">
                   RentMe adds nothing of its own. Every figure here is the
                   host&apos;s.
                 </p>
@@ -593,13 +599,13 @@ export function ReservePanel({
         {state && !state.ok && (
           <div
             role="alert"
-            className="mt-3.5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[color-mix(in_oklab,var(--nf-state-warning)_12%,transparent)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+            className="mt-block rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[color-mix(in_oklab,var(--nf-state-warning)_12%,transparent)] p-card-sm nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]"
           >
             {state.error}
             {state.error.startsWith("Sign in") && (
               <Link
                 href="/sign-in"
-                className="mt-1 block font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+                className="mt-row inline-flex min-h-11 items-center font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
               >
                 Sign in
               </Link>
@@ -607,7 +613,7 @@ export function ReservePanel({
           </div>
         )}
 
-        <div className="mt-4 grid gap-3">
+        <div className="mt-block grid gap-row">
           <Button type="submit" variant="primary" full disabled={!ready} loading={pending}>
             Reserve
           </Button>
@@ -617,8 +623,11 @@ export function ReservePanel({
         </div>
       </form>
 
-      <p className="mt-3.5 flex items-start gap-1.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
-        <UiIcon name="verified" size={16} className="mt-0.5 shrink-0 text-[var(--nf-state-success)]" />
+      {/* 12.5px on the sentence that is this platform's single most important
+          piece of consumer protection. Caption is the floor, and this line is
+          the reason somebody does not wire money to a stranger. */}
+      <p className="mt-block flex items-start gap-inline nf-caption leading-relaxed text-[var(--nf-content-muted)]">
+        <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-state-success)]" />
         Pay only after you have inspected the property
       </p>
     </div>
