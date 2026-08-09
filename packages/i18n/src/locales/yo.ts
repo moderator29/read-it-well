@@ -521,6 +521,58 @@ export const yo: Dictionary = {
       signOutEverywhere: "Jáde ní ibi gbogbo",
     },
 
+    /* NATIVE REVIEW. `caveat` is the line that matters most on this screen and
+       the hardest to carry across: it has to say that the old key keeps working
+       for a short while WITHOUT sounding like the button did nothing. Read it
+       against the English before signing it off. */
+    devices: {
+      rowLabel: "Àwọn ẹ̀rọ àti ìjókòó",
+      rowNote:
+        "Àpò owó rẹ wà lẹ́yìn àkàǹtì yìí. Ohunkóhun tí ó wọlé tí o kò mọ̀ ni kí a parí rẹ̀ nísinsìnyí.",
+      rowNoteSignedOut: "Wọlé láti rí ibi tí àkàǹtì rẹ ti wọlé.",
+      rowValueOne: "1 ti wọlé",
+      rowValueMany: "{count} ti wọlé",
+      rowValueUnknown: "Ṣàyẹ̀wò",
+
+      screenTitle: "Ibi tí o ti wọlé",
+      intro:
+        "Gbogbo ẹ̀rọ tí ó ní ìwọlé alààyè sí àkàǹtì yìí. Bí ọ̀kan nínú wọn kò bá jẹ́ ìwọ, parí rẹ̀ kí o sì yí ọ̀rọ̀ ìpamọ́ rẹ padà lẹ́sẹ̀kẹsẹ̀.",
+      caveat:
+        "Ìparí ìjókòó máa ń dá ẹ̀rọ náà dúró láti gba kọ́kọ́rọ́ tuntun. Kọ́kọ́rọ́ tí ó ti ní lọ́wọ́ yóò máa ṣiṣẹ́ títí yóò fi tán, nítorí náà àlàfo kékeré wà. Bí ẹ̀rọ bá wà lọ́wọ́ ẹlòmíràn, yí ọ̀rọ̀ ìpamọ́ rẹ padà pẹ̀lú: ìyẹn ni ìgbésẹ̀ tí ó parí gbogbo kọ́kọ́rọ́ lẹ́ẹ̀kan náà.",
+
+      thisDevice: "Ẹ̀rọ yìí",
+      signedInAt: "Wọlé {when}",
+      whenNow: "ní báyìí",
+      whenMinutes: "ìṣẹ́jú {count} sẹ́yìn",
+      whenToday: "lónìí ní {time}",
+      whenYesterday: "àná ní {time}",
+      lastSeenAt: "Lò ó {when}",
+
+      deviceUnknown: "Kò sí àkọsílẹ̀ ẹ̀rọ",
+      deviceUnknownSub:
+        "Ìwọlé yìí ti dàgbà ju ìyípadà tí ó bẹ̀rẹ̀ sí í ṣàkọsílẹ̀ ẹ̀rọ tí ó ti wá.",
+      deviceUnrecognised: "Ẹ̀rọ tí a kò mọ̀",
+
+      endThis: "Mú ẹ̀rọ yìí jáde",
+      endCurrent: "Jáde nínú aṣàwákiri yìí",
+      endOthers: "Jáde ní gbogbo ibòmíràn",
+      endOthersSub: "Ó parí gbogbo ìjókòó àyàfi èyí tí o ń lò báyìí.",
+      endOthersNone: "Kò sí ohun mìíràn tí ó wọlé, nítorí náà kò sí ohun tí a lè parí.",
+      confirm: "Tẹ̀ lẹ́ẹ̀kan sí i láti fìdí rẹ̀ múlẹ̀",
+      working: "À ń parí rẹ̀",
+
+      endedOne: "Ìjókòó náà ti parí. Ẹ̀rọ náà yóò ní láti wọlé lẹ́ẹ̀kan sí i.",
+      endedOthers: "Gbogbo ìjókòó mìíràn ti parí. Èyí nìkan ni ó kù.",
+      endedNone: "Kò sí ohun mìíràn tí ó wọlé. Kò sí ohun tí ó yípadà.",
+
+      unreadable:
+        "A kò lè ka àwọn ìjókòó rẹ nísinsìnyí. Èyí kò túmọ̀ sí pé kò sí ohun tí ó wọlé, nítorí náà gbìyànjú lẹ́ẹ̀kan sí i kí o tó pinnu ohunkóhun.",
+      accountTitle: "Wọlé láti rí àwọn ẹ̀rọ rẹ",
+      accountBodySignedOut: "Àkójọ yìí jẹ́ ti àkàǹtì rẹ, nítorí náà ó nílò kí o wọlé.",
+      accountBodyUnconfigured:
+        "A kò tí ì tan àwọn àkàǹtì nínú ìtẹ̀jáde yìí, nítorí náà kò sí ìjókòó láti fihàn.",
+    },
+
     data: {
       label: "Dátà rẹ",
       exportNote:

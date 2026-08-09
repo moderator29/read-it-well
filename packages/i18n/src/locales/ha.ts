@@ -522,6 +522,58 @@ export const ha: Dictionary = {
       signOutEverywhere: "Fita ko'ina",
     },
 
+    /* NATIVE REVIEW. `caveat` is the line that matters most on this screen and
+       the hardest to carry across: it has to say that the old key keeps working
+       for a short while WITHOUT sounding like the button did nothing. Read it
+       against the English before signing it off. */
+    devices: {
+      rowLabel: "Na'urori da zaman shiga",
+      rowNote:
+        "Walat ɗinka yana bayan wannan asusun. Duk wani shiga da ba ka gane ba ya kamata a kawo ƙarshensa nan da nan.",
+      rowNoteSignedOut: "Shiga don ka ga inda aka shiga asusunka.",
+      rowValueOne: "1 a shige",
+      rowValueMany: "{count} a shige",
+      rowValueUnknown: "Duba",
+
+      screenTitle: "Inda ka shiga",
+      intro:
+        "Kowace na'ura da ke riƙe da shiga mai rai a wannan asusun. Idan ɗayan ba kai ba ne, ka kawo ƙarshensa sannan ka canza kalmar sirri nan take.",
+      caveat:
+        "Kawo ƙarshen zama yana hana wannan na'urar samun sabon maɓalli. Maɓallin da take riƙe da shi zai ci gaba da aiki har sai ya ƙare, don haka akwai ɗan gibi. Idan na'urar tana hannun wani, ka canza kalmar sirri ma: wannan shi ne matakin da ke ƙare kowane maɓalli lokaci ɗaya.",
+
+      thisDevice: "Wannan na'urar",
+      signedInAt: "An shiga {when}",
+      whenNow: "yanzu-yanzu",
+      whenMinutes: "minti {count} da suka wuce",
+      whenToday: "yau da ƙarfe {time}",
+      whenYesterday: "jiya da ƙarfe {time}",
+      lastSeenAt: "An yi amfani {when}",
+
+      deviceUnknown: "Ba a rubuta na'urar ba",
+      deviceUnknownSub:
+        "Wannan shigar ta girmi canjin da ya fara rubuta na'urar da aka shiga daga gareta.",
+      deviceUnrecognised: "Na'ura da ba a gane ba",
+
+      endThis: "Fitar da wannan na'urar",
+      endCurrent: "Fita daga wannan burauzar",
+      endOthers: "Fita ko'ina sai nan",
+      endOthersSub: "Yana ƙare kowane zama sai wanda kake amfani da shi yanzu.",
+      endOthersNone: "Babu wani abu a shige, don haka babu abin ƙarewa.",
+      confirm: "Sake dannawa don tabbatarwa",
+      working: "Ana kawo ƙarshensa",
+
+      endedOne: "Wannan zaman ya ƙare. Na'urar za ta sake shiga.",
+      endedOthers: "Kowane zama ya ƙare. Wannan kaɗai ya rage.",
+      endedNone: "Babu wani abu a shige. Babu abin da ya canza.",
+
+      unreadable:
+        "Ba mu iya karanta zamanka yanzu ba. Wannan ba alama ba ce cewa babu abin da ke shige, don haka ka sake gwadawa kafin ka yanke shawara.",
+      accountTitle: "Shiga don ka ga na'urorinka",
+      accountBodySignedOut: "Wannan jerin na asusunka ne, don haka yana buƙatar ka shiga.",
+      accountBodyUnconfigured:
+        "Ba a kunna asusun a wannan turawa ba tukuna, don haka babu zaman da za a nuna.",
+    },
+
     data: {
       label: "Bayananka",
       exportNote:

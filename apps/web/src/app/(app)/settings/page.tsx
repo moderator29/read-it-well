@@ -19,7 +19,9 @@ import { AccountNotificationsCard, AccountPrivacyCard } from "./AccountToggles";
 import { AccountSection } from "./AccountSection";
 import { PlaceCard } from "./PlaceCard";
 import { InterestsCard } from "./InterestsCard";
+import { DevicesCard } from "./DevicesCard";
 import { loadInterestsState } from "@/lib/interests/queries";
+import { loadSessions } from "@/lib/security/sessions";
 
 export async function generateMetadata(): Promise<Metadata> {
   // Static metadata cannot read the locale cookie, so the tab said "Settings"
@@ -46,8 +48,17 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const [account, intent] = await Promise.all([loadSettingsState(), loadInterestsState()]);
+  const [account, intent, sessions] = await Promise.all([
+    loadSettingsState(),
+    loadInterestsState(),
+    loadSessions(),
+  ]);
   const signedIn = account.state === "signed-in";
+  /* Null, not zero, when the list could not be read. A row reading "0 signed
+     in" to somebody who is reading it while signed in is a worse lie than no
+     number at all. */
+  const deviceCount =
+    sessions.state === "signed-in" && sessions.readable ? sessions.sessions.length : null;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -106,6 +117,13 @@ export default async function SettingsPage() {
         </Reveal>
         <Reveal delay={200}>
           <SecurityCard t={t} />
+        </Reveal>
+        {/* Directly under Security, because it is the half of security this
+            screen did not have. `SecurityCard` still draws "Sign out
+            everywhere" as a note that explains it will work one day; this row
+            is the one that does. SEC-5. */}
+        <Reveal delay={220}>
+          <DevicesCard t={t} signedIn={signedIn} count={deviceCount} />
         </Reveal>
         <Reveal delay={240}>
           <DataCard t={t} />

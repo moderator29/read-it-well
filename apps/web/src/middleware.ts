@@ -106,6 +106,12 @@ const PRODUCT_PATHS = new Set(["/styleguide"]);
  * holes in it exactly where a visitor is least authenticated, so every exit
  * goes through here instead of setting the header itself.
  */
+/** The visitor's own User-Agent, capped, or nothing at all. See the call site. */
+function forwardedAgent(request: NextRequest): Record<string, string> {
+  const agent = request.headers.get("user-agent");
+  return agent ? { "user-agent": agent.slice(0, 512) } : {};
+}
+
 function withSecurityPolicy(response: NextResponse, nonce: string): NextResponse {
   response.headers.set(cspHeaderName(), contentSecurityPolicy(nonce));
   response.headers.set("Reporting-Endpoints", REPORTING_ENDPOINTS);
@@ -131,6 +137,35 @@ export async function middleware(request: NextRequest) {
   }
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    /*
+     * WHOSE DEVICE THIS IS, PASSED ON RATHER THAN OVERWRITTEN. SEC-5.
+     *
+     * GoTrue stamps `auth.sessions.user_agent` from the User-Agent header of
+     * whichever request last touched the session. That request is this one, so
+     * every row in the table read `Vercel Edge Functions`: the runtime's own
+     * fetch agent, describing our server. `/settings/devices` asks somebody
+     * "do you recognise this device", and until this line the only honest
+     * answer it could give was that the device was not recorded.
+     *
+     * Forwarding the browser's own header fixes it at the source rather than
+     * building a second session store beside the real one. The value is
+     * attacker controlled, as every request header is, and it is never
+     * rendered: `lib/security/device.ts` maps it onto a fixed list of browser
+     * and platform names and returns nothing else, so the worst a crafted
+     * header achieves is a row reading "Unrecognised device".
+     *
+     * Capped, because the header goes into a column and a database is not the
+     * place to discover somebody sent a megabyte. Absent on a request with no
+     * User-Agent, in which case nothing is set and GoTrue records what it
+     * always did.
+     *
+     * The IP is deliberately NOT forwarded. Supabase's own proxy decides what
+     * `auth.sessions.ip` holds and an X-Forwarded-For from us is a claim it may
+     * or may not honour, which is the difference between a fact and a guess.
+     * That is why `my_sessions()` does not return the column and why the screen
+     * shows no location at all.
+     */
+    global: { headers: forwardedAgent(request) },
     cookies: {
       getAll() {
         return request.cookies.getAll();

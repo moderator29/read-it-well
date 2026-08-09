@@ -7,6 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { findFaqEntry } from "@/lib/support/faq";
 import { fileSupportTicket } from "@/lib/support/actions";
 import type { SupportAction, SupportStreamEvent, SupportTurn } from "@/lib/support/types";
+import { ICON } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 
@@ -359,14 +360,17 @@ export function SupportChat() {
     streaming && messages[messages.length - 1]?.text.trim().length === 0;
 
   return (
-    <section className="nf-card p-5 sm:p-6" aria-label="Help and support">
-      <div className="flex items-center gap-4">
+    <section className="nf-card p-card" aria-label="Help and support">
+      <div className="flex items-center gap-group">
         <span className="block h-14 w-14 shrink-0">
           <BrandIcon name="support-shield" fill />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-[0.9375rem] font-semibold leading-tight">Help and support</h2>
-          <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
+          <h2 className="nf-body font-semibold leading-tight">Help and support</h2>
+          {/* A title and its own subtitle are two rows of one object, so they
+              take the row interval. This was mt-0.5, which is 2px: a heading
+              and a sentence touching rather than an interval. */}
+          <p className="mt-row nf-caption text-[var(--nf-content-muted)]">
             An agent that reads your own bookings and hands you to a person when it should.
           </p>
         </div>
@@ -376,7 +380,9 @@ export function SupportChat() {
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen((v) => !v)}
-          className="nf-chip shrink-0 cursor-pointer text-[0.8125rem] font-semibold"
+          /* `.nf-chip` already paints at the caption tier and carries the 44px
+             floor, so the size was one more copy of a decision the class owns. */
+          className="nf-chip shrink-0 cursor-pointer font-semibold"
         >
           {open ? "Close" : "Open chat"}
         </button>
@@ -386,18 +392,24 @@ export function SupportChat() {
         {open && (
           <div
             data-testid="support-panel"
-            className="nf-rise mt-4 overflow-hidden rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)]"
+            className="nf-rise mt-heading overflow-hidden rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)]"
           >
             <div
               ref={scrollerRef}
-              className="max-h-96 min-h-52 space-y-3.5 overflow-y-auto p-4"
+              className="max-h-96 min-h-52 space-y-group overflow-y-auto p-card-sm"
               aria-live="polite"
               aria-label="Support conversation"
             >
               <AgentBubble text={GREETING} />
 
               {empty && (
-                <div className="flex flex-wrap gap-2 pl-9">
+                /* Aligned to the bubble text rather than to the scroller's
+                   edge, so the openers read as the agent offering them. The
+                   lead is DERIVED from the avatar and the row gap beside it,
+                   the same way `--nf-row-divider-lead` is: pl-9 was 36px against
+                   an actual lead of 38 and would drift the moment either
+                   changed. */
+                <div className="flex flex-wrap gap-xs ps-[calc(1.625rem+var(--nf-gap-row))]">
                   {STARTERS.map((s) => (
                     <button
                       key={s}
@@ -415,19 +427,22 @@ export function SupportChat() {
               {messages.map((m) =>
                 m.role === "user" ? (
                   <div key={m.id} className="nf-rise flex justify-end">
-                    <p className="max-w-[85%] break-words rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-3.5 py-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-on-brand)]">
+                    <p className="nf-body-sm max-w-[85%] break-words rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-sm py-xs leading-relaxed text-[var(--nf-content-on-brand)]">
                       {m.text}
                     </p>
                   </div>
                 ) : m.text.trim() || m.escalating || m.reference ? (
                   <AgentBubble key={m.id} text={m.text} error={m.error}>
                     {m.actions && m.actions.length > 0 && (
-                      <div className="mt-2.5 flex flex-wrap gap-2">
+                      <div className="mt-row flex flex-wrap gap-xs">
                         {m.actions.map((action) => (
                           <Link
                             key={action.kind}
                             href={action.href}
-                            className="nf-chip max-w-full cursor-pointer text-[0.75rem] font-semibold"
+                            /* 12px was a step BELOW the chip's own caption
+                               size, on the one element in a reply that is a
+                               place to go. The class already sets it. */
+                            className="nf-chip max-w-full cursor-pointer font-semibold"
                           >
                             <UiIcon name={ACTION_GLYPH[action.kind]} size={12} />
                             <span className="min-w-0 break-words">{action.label}</span>
@@ -454,15 +469,15 @@ export function SupportChat() {
               )}
 
               {awaitingFirstToken && (
-                <div className="nf-rise flex items-end gap-3">
+                <div className="nf-rise flex items-end gap-row">
                   <span className="h-6.5 w-6.5 shrink-0" aria-hidden="true">
                     <BrandIcon name="bot-chat" fill />
                   </span>
                   <div
-                    className="rounded-2xl rounded-bl-md border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-3.5 py-3"
+                    className="rounded-2xl rounded-bl-md border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-sm py-row"
                     aria-label="Support is typing"
                   >
-                    <span className="flex items-center gap-1.5" aria-hidden="true">
+                    <span className="flex items-center gap-inline-tight" aria-hidden="true">
                       {[0, 1, 2].map((i) => (
                         <span
                           key={i}
@@ -481,7 +496,7 @@ export function SupportChat() {
                 e.preventDefault();
                 void send(draft);
               }}
-              className="flex items-center gap-2 border-t border-[var(--nf-border-subtle)] p-3"
+              className="flex items-center gap-xs border-t border-[var(--nf-border-subtle)] p-row"
             >
               <label htmlFor="support-input" className="sr-only">
                 Message support
@@ -511,21 +526,25 @@ export function SupportChat() {
               </Button>
             </form>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--nf-border-subtle)] p-3">
+            {/* Both of these were bare text with no height at all, which is a
+                14px-tall tap target on the two controls that end a conversation
+                or hand it to a person. The 44px floor is drawn on the button
+                rather than faked with an overlay, because there is room here. */}
+            <div className="flex flex-wrap items-center gap-x-group gap-y-inline border-t border-[var(--nf-border-subtle)] p-row">
               <button
                 type="button"
                 data-testid="support-human"
                 onClick={askForHuman}
-                className="inline-flex min-w-0 cursor-pointer items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]"
+                className="inline-flex min-h-11 min-w-0 cursor-pointer items-center gap-inline nf-caption font-semibold text-[var(--nf-content-primary)]"
               >
-                <UiIcon name="user" size={16} className="shrink-0" />
+                <UiIcon name="user" size={ICON.inline} className="shrink-0" />
                 Talk to a person
               </button>
               {messages.length > 0 && (
                 <button
                   type="button"
                   onClick={clearConversation}
-                  className="text-[0.8125rem] font-medium text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
+                  className="min-h-11 nf-caption font-medium text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
                 >
                   Clear conversation
                 </button>
@@ -556,15 +575,15 @@ function AgentBubble({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="nf-rise flex items-end gap-3">
+    <div className="nf-rise flex items-end gap-row">
       <span className="h-6.5 w-6.5 shrink-0" aria-hidden="true">
         <BrandIcon name="bot-chat" fill />
       </span>
-      <div className="min-w-0 max-w-[85%] rounded-2xl rounded-bl-md border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-3.5 py-2.5">
+      <div className="min-w-0 max-w-[85%] rounded-2xl rounded-bl-md border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-sm py-xs">
         {text.trim() && (
           <p
             data-testid="support-reply"
-            className={`whitespace-pre-wrap break-words text-[0.875rem] leading-relaxed ${
+            className={`nf-body-sm whitespace-pre-wrap break-words leading-relaxed ${
               error ? "text-[var(--nf-state-error)]" : "text-[var(--nf-content-secondary)]"
             }`}
           >
@@ -582,15 +601,17 @@ function TicketReceipt({ reference }: { reference: string }) {
   return (
     <div
       data-testid="support-receipt"
-      className="mt-3 rounded-[var(--nf-radius-sm)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_8%,transparent)] p-3"
+      className="mt-row rounded-[var(--nf-radius-sm)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_8%,transparent)] p-row"
     >
-      <p className="flex items-start gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)]">
-        <UiIcon name="verified" size={16} className="mt-0.5 shrink-0" />
+      <p className="flex items-start gap-inline nf-caption font-semibold text-[var(--nf-brand-secondary)]">
+        {/* 3xs is the optical-alignment rung, which is what this is: a glyph
+            nudged onto the baseline of the line beside it, not a gap. */}
+        <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0" />
         <span className="min-w-0 break-words">
           Ticket {reference} is filed. A person replies by email.
         </span>
       </p>
-      <p className="mt-2 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-row nf-caption leading-relaxed text-[var(--nf-content-muted)]">
         We keep only the name and email you gave here, and use them just to
         reply to this ticket.
       </p>
@@ -655,10 +676,10 @@ function EscalationCard({
   return (
     <div
       data-testid="support-escalation"
-      className="mt-3 rounded-[var(--nf-radius-sm)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_8%,transparent)] p-3"
+      className="mt-row rounded-[var(--nf-radius-sm)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_8%,transparent)] p-row"
     >
-      <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)]">
-        <UiIcon name="user" size={16} className="shrink-0" />
+      <p className="flex items-center gap-inline nf-caption font-semibold text-[var(--nf-brand-secondary)]">
+        <UiIcon name="user" size={ICON.inline} className="shrink-0" />
         Bring in a person
       </p>
 
@@ -669,7 +690,7 @@ function EscalationCard({
         on the field wrappers, whose text content IS the message when there is
         one. Same locator, same assertion, and the state is finally visible.
       */}
-      <div className="mt-2.5 space-y-2.5">
+      <div className="mt-heading space-y-row">
         <div data-testid="support-name-error">
           <TextField
             label="Name"
@@ -698,14 +719,14 @@ function EscalationCard({
       </div>
 
       {note && (
-        <p className="mt-2 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">{note}</p>
+        <p className="mt-row nf-caption leading-relaxed text-[var(--nf-content-muted)]">{note}</p>
       )}
 
       <Button
         variant="primary"
         size="sm"
         full
-        className="mt-3"
+        className="mt-heading"
         data-testid="support-file"
         onClick={submit}
         loading={pending}
@@ -713,7 +734,7 @@ function EscalationCard({
         File the ticket
       </Button>
 
-      <p className="mt-2 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-row nf-caption leading-relaxed text-[var(--nf-content-muted)]">
         We collect only the name and email above, and use them just to reply to
         this question.
       </p>

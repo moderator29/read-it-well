@@ -524,6 +524,58 @@ export const ig: Dictionary = {
       signOutEverywhere: "Pụọ n'ebe niile",
     },
 
+    /* NATIVE REVIEW. `caveat` is the line that matters most on this screen and
+       the hardest to carry across: it has to say that the old key keeps working
+       for a short while WITHOUT sounding like the button did nothing. Read it
+       against the English before signing it off. */
+    devices: {
+      rowLabel: "Ngwaọrụ na nnọkọ",
+      rowNote:
+        "Obere akpa ego gị dị n'azụ akaụntụ a. Ihe ọ bụla banyere nke ị na-amaghị kwesịrị ka a kwụsị ya ugbu a.",
+      rowNoteSignedOut: "Banye ka ị hụ ebe akaụntụ gị banyere.",
+      rowValueOne: "1 banyere",
+      rowValueMany: "{count} banyere",
+      rowValueUnknown: "Lelee",
+
+      screenTitle: "Ebe ị banyere",
+      intro:
+        "Ngwaọrụ ọ bụla ji nnọkọ dị ndụ na akaụntụ a. Ọ bụrụ na otu n'ime ndị a abụghị gị, kwụsị ya ma gbanwee okwuntughe gị ozugbo.",
+      caveat:
+        "Ịkwụsị nnọkọ na-egbochi ngwaọrụ ahụ inweta igodo ọhụrụ. Igodo o ji ugbu a ga-anọgide na-arụ ọrụ ruo mgbe ọ gwụchara, ya mere enwere obere oghere. Ọ bụrụ na ngwaọrụ dị n'aka onye ọzọ, gbanwee okwuntughe gị: nke ahụ bụ nzọụkwụ na-akwụsị igodo niile n'otu mgbe.",
+
+      thisDevice: "Ngwaọrụ a",
+      signedInAt: "Banyere {when}",
+      whenNow: "ugbu a",
+      whenMinutes: "nkeji {count} gara aga",
+      whenToday: "taa na {time}",
+      whenYesterday: "ụnyaahụ na {time}",
+      lastSeenAt: "Ejiri ya {when}",
+
+      deviceUnknown: "Edekọtaghị ngwaọrụ",
+      deviceUnknownSub:
+        "Mbanye a tọrọ mgbanwe ahụ malitere idekọ ngwaọrụ o si na ya bịa.",
+      deviceUnrecognised: "Ngwaọrụ a na-amaghị",
+
+      endThis: "Wepụ ngwaọrụ a",
+      endCurrent: "Pụọ na nchọgharị a",
+      endOthers: "Pụọ n'ebe niile ọzọ",
+      endOthersSub: "Ọ na-akwụsị nnọkọ niile ma e wezụga nke ị na-eji ugbu a.",
+      endOthersNone: "Ọ dịghị ihe ọzọ banyere, ya mere ọ dịghị ihe a ga-akwụsị.",
+      confirm: "Pịa ọzọ iji kwado",
+      working: "Na-akwụsị ya",
+
+      endedOne: "Nnọkọ ahụ agwụla. Ngwaọrụ ahụ ga-abanyerịrị ọzọ.",
+      endedOthers: "Nnọkọ ndị ọzọ niile agwụla. Naanị nke a fọdụrụ.",
+      endedNone: "Ọ dịghị ihe ọzọ banyere. Ọ dịghị ihe gbanwere.",
+
+      unreadable:
+        "Anyị enweghị ike ịgụ nnọkọ gị ugbu a. Nke a abụghị ihe ịrịba ama na ọ dịghị ihe banyere, ya mere nwaa ọzọ tupu ị kpebie ihe ọ bụla.",
+      accountTitle: "Banye ka ị hụ ngwaọrụ gị",
+      accountBodySignedOut: "Ndepụta a bụ nke akaụntụ gị, ya mere ọ chọrọ ka ị banye.",
+      accountBodyUnconfigured:
+        "Agbanyebeghị akaụntụ na mbugharị a, ya mere ọ dịghị nnọkọ a ga-egosi.",
+    },
+
     data: {
       label: "Data gị",
       exportNote:

@@ -28,6 +28,16 @@ export function haystack(l: Listing): string {
  * is safe and cheap to hand to the browser for a live match count.
  */
 export type ListingFacts = {
+  /**
+   * The market this place is in.
+   *
+   * Carried here because the category is a FILTER now rather than a rail above
+   * the results. The drawer's live match count runs in the browser against this
+   * shape alone, so a category the facts could not answer would have left the
+   * button reporting the count for the old category while the reader looked at
+   * a new one, which is the one number on that screen anybody trusts.
+   */
+  kind: ListingKind;
   priceMinor: number;
   /**
    * To let, or for sale. Absent reads as "rent", which is what the seed
@@ -65,6 +75,7 @@ export type ListingFacts = {
 /** Just the facts, for shipping a candidate set to the drawer. */
 export function factsOf(l: Listing): ListingFacts {
   return {
+    kind: l.kind,
     priceMinor: l.priceMinor,
     ...(l.intent !== undefined ? { intent: l.intent } : {}),
     bedrooms: l.bedrooms,
@@ -133,6 +144,10 @@ export function isVerifiedFirstParty(facts: ListingFacts): boolean {
  * skipped when it was not asked for, so an empty filter matches everything.
  */
 export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = {}): boolean {
+  // The category, which lives here rather than in `matchesFilter` because the
+  // drawer counts against facts alone and it is the drawer that now asks it.
+  if (filter.kind && facts.kind !== filter.kind) return false;
+
   // Rent and sale are two markets, and a 180m asking price landing in a rent
   // search is the single most confusing thing this catalogue could do. Absent
   // reads as "rent" because that is what every row without the column is.
@@ -194,11 +209,13 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
 }
 
 /**
- * The one filter rule: category must match when asked for, free text must
- * appear somewhere in the haystack, and every structured bound must hold.
+ * The one filter rule: free text must appear somewhere in the haystack, and
+ * every structured bound must hold. The category is one of those bounds and is
+ * judged by `matchesFacts` below, not here: a listing IS a facts object, and a
+ * second copy of the category test up here would be a rule that could drift
+ * from the one the browser runs.
  */
 export function matchesFilter(l: Listing, filter: ListingSearchFilter = {}): boolean {
-  if (filter.kind && l.kind !== filter.kind) return false;
   const q = filter.q?.trim().toLowerCase();
   if (q && !haystack(l).includes(q)) return false;
   return matchesFacts(l, filter);

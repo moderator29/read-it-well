@@ -77,7 +77,11 @@
     ".next-sec/types/**/*.ts",
     ".next-sec/dev/types/**/*.ts",
     ".next-fix/types/**/*.ts",
-    ".next-fix/dev/types/**/*.ts"
+    ".next-fix/dev/types/**/*.ts",
+    ".next-merge/types/**/*.ts",
+    ".next-merge/dev/types/**/*.ts",
+    ".next-fin/types/**/*.ts",
+    ".next-fin/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

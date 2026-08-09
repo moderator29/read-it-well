@@ -34,10 +34,10 @@ import type { UiIconName } from "@/design-system/icons/UiIcon";
  *
  *  - **The five Explore children.** `/search?type=hotel`, `?type=property`,
  *    `?type=home`, `?type=restaurant`, `?type=experience` were five rows
- *    pointing at ONE screen with one query parameter changed. That screen
- *    already draws `CategoryTiles` at the top of itself, which offers twelve
- *    categories rather than five, in a control the reader can actually see the
- *    options in. Five rows in a drawer were a worse copy of a tile grid.
+ *    pointing at ONE screen with one query parameter changed. The category is
+ *    a control on that screen, at the top of the filter drawer, offering every
+ *    market the catalogue actually holds rather than five of them. Five rows in
+ *    a drawer were a worse copy of a filter.
  *
  *  - **Rent.** `/rent` is discovery filtered to the long-let market, which is
  *    the same thing again: a filter presented as a destination.

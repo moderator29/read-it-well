@@ -7,11 +7,13 @@ import { useRouter } from "next/navigation";
 import { formatMoney, formatNumber, type Locale } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { hasBackupPower, matchesFacts, type ListingFacts } from "@/lib/listings/filter";
-import { WATER_SOURCES, type WaterSupply } from "@/lib/listings/types";
+import { WATER_SOURCES, type ListingKind, type WaterSupply } from "@/lib/listings/types";
 import {
   KIND_NOUN,
+  KIND_ORDER,
   activeFilterCount,
   clearedFilters,
+  kindLabel,
   koboToNaira,
   nairaToKobo,
   toFilter,
@@ -20,6 +22,7 @@ import {
   type DiscoveryQuery,
 } from "@/lib/listings/search-params";
 import { amenityLabel, sortAmenityCodes } from "./amenities";
+import { ICON } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { TextField } from "@/components/ui/Field";
@@ -52,6 +55,16 @@ import { Switch } from "@/components/ui/Switch";
 type Draft = {
   /** The scoped text search, applied with everything else on Apply. */
   q: string;
+  /**
+   * The market, applied with everything else on Apply.
+   *
+   * It is in the draft rather than read straight off the address bar because
+   * the category is a CONTROL here now: the rail that used to own it sat above
+   * the results and navigated on tap, so nothing in this drawer could hold a
+   * pending opinion about it. Undefined is every category, which is what
+   * tapping the selected one gives back.
+   */
+  kind?: ListingKind;
   minNaira: string;
   maxNaira: string;
   bedrooms: number;
@@ -68,6 +81,7 @@ type Draft = {
 function draftFrom(query: DiscoveryQuery): Draft {
   return {
     q: query.q ?? "",
+    ...(query.kind !== undefined ? { kind: query.kind } : {}),
     minNaira: query.minMinor === undefined ? "" : String(koboToNaira(query.minMinor)),
     maxNaira: query.maxMinor === undefined ? "" : String(koboToNaira(query.maxMinor)),
     bedrooms: query.bedrooms ?? 0,
@@ -112,7 +126,10 @@ function queryFrom(base: DiscoveryQuery, draft: Draft): DiscoveryQuery {
   };
   const q = draft.q.trim();
   if (q.length > 0) next.q = q;
-  if (base.kind) next.kind = base.kind;
+  // The draft, not `base`. Reading the category off the address bar here was
+  // correct while the rail owned it and is a dropped choice now: the drawer's
+  // own control would have painted a new category and applied the old one.
+  if (draft.kind) next.kind = draft.kind;
   if (min !== undefined) next.minMinor = nairaToKobo(min);
   if (max !== undefined) next.maxMinor = nairaToKobo(max);
   if (draft.bedrooms > 0) next.bedrooms = draft.bedrooms;
@@ -153,6 +170,64 @@ function sliderScale(low: number | undefined, high: number | undefined) {
 /* ------------------------------------------------------------- small parts */
 
 /**
+ * The line under a group's heading that says what the control does.
+ *
+ * One constant because it was typed out six times at `mt-0.5 text-[0.75rem]`,
+ * which is a 2px gap under a heading and 12px type. 2px is not an interval, it
+ * is a heading and a sentence touching; a title and its own subtitle are two
+ * rows of one object and take the row interval, which is what every other
+ * screen on the platform uses for the same pair. 12px was under the readable
+ * floor on the copy that explains what each filter actually means.
+ */
+const HINT = "mt-row nf-caption text-[var(--nf-content-muted)]";
+
+/**
+ * One filter group.
+ *
+ * SEVEN `nf-card`s USED TO SIT HERE, ONE PER GROUP, INSIDE A DRAWER THAT IS
+ * ALREADY A FULL-SCREEN SURFACE.
+ *
+ * Each one carried the card material: a gradient fill, a 14px backdrop blur, a
+ * lit rim and rung-1 elevation. Stacked seven deep in a scrolling column that
+ * is the "jam-packed" reading exactly, and none of them was a card by the
+ * surface language's own definition, which reserves the raised surface for a
+ * discrete OBJECT you could pick up and move somewhere else. A price range is
+ * not an object, it is a section of a form.
+ *
+ * What groups them instead is what groups a section anywhere else on the
+ * platform: the heading, the air, and ONE hairline where a new subject starts.
+ * Seven borders with seven blurs become six lines.
+ *
+ * The `aria-labelledby` wiring is why this is local rather than `Section` from
+ * the screen language: a `<section>` with no accessible name is not announced
+ * as a region at all, and `Section` does not forward the id onto its heading.
+ */
+function Group({
+  id,
+  title,
+  divided = true,
+  children,
+}: {
+  id: string;
+  title: string;
+  /** Off for the first group, where a rule would be drawn against the header. */
+  divided?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      aria-labelledby={id}
+      className={divided ? "nf-hairline pt-block" : undefined}
+    >
+      <h2 id={id} className="nf-h4 text-[var(--nf-content-primary)]">
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+/**
  * The drawer's switch row.
  *
  * This was the platform's second hand-rolled toggle, and the worse one. It
@@ -188,12 +263,12 @@ function SwitchRow({
   testId: string;
 }) {
   return (
-    <div className="flex min-h-11 w-full items-center justify-between gap-4 py-2 text-left">
+    <div className="flex min-h-11 w-full items-center justify-between gap-md py-xs text-left">
       <span className="min-w-0">
-        <span className="block text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+        <span className="block nf-body-sm font-semibold text-[var(--nf-content-primary)]">
           {label}
         </span>
-        <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">{hint}</span>
+        <span className="block nf-caption text-[var(--nf-content-muted)]">{hint}</span>
       </span>
       <span data-testid={testId} className="shrink-0">
         <Switch checked={checked} onCheckedChange={onChange} aria-label={label} />
@@ -246,6 +321,26 @@ export function FilterDrawer({
   }, [open]);
 
   const activeCount = activeFilterCount(query);
+
+  /**
+   * The markets this pool actually holds, so no category promises nothing.
+   *
+   * Same rule the amenity and water controls below already follow, and the
+   * rail it replaces did not: the rail drew twelve fixed objects, one of them
+   * `experience`, which `KIND_BY_PROPERTY_TYPE` in the repository cannot even
+   * produce, so a category that could never return a single place had a
+   * permanent seat above the results.
+   *
+   * The reader's own choice is kept in the list whatever the pool says,
+   * because a control that vanishes while it is switched on leaves an applied
+   * category with nothing to turn it off.
+   */
+  const kindOptions = useMemo(() => {
+    const present = new Set<ListingKind>();
+    for (const fact of facts) present.add(fact.kind);
+    if (draft.kind) present.add(draft.kind);
+    return KIND_ORDER.filter((kind) => present.has(kind));
+  }, [facts, draft.kind]);
 
   /** Amenities the pool actually has, so no chip promises an empty result. */
   const amenityOptions = useMemo(() => {
@@ -317,15 +412,32 @@ export function FilterDrawer({
   const sliderSpan = scale.span;
   const sliderStep = scale.step;
 
-  const noun = query.kind ? KIND_NOUN[query.kind] : { one: "place", many: "places" };
+  /*
+   * Every one of these follows the DRAFT category, not the applied one.
+   *
+   * The noun on the Apply button, the price period and the search field's own
+   * scope all describe what the pending filter set is about. Left on
+   * `query.kind` they would have gone on saying "hotels, per night" while the
+   * reader looked at a shortlet selection they had not applied yet, which is
+   * the button lying about the thing it is counting.
+   */
+  const noun = draft.kind ? KIND_NOUN[draft.kind] : { one: "place", many: "places" };
   const period =
-    query.kind === "rental"
+    draft.kind === "rental"
       ? "per year"
-      : query.kind === "restaurant" || query.kind === "experience"
+      : draft.kind === "restaurant" || draft.kind === "experience"
         ? "per guest"
-        : query.kind
+        : draft.kind
           ? "per night"
           : "per night, or per year for a rental";
+
+  /* What the pool holds in the drafted category, for the header's count. The
+     pool spans every category now, so `facts.length` would report the whole
+     catalogue under a category noun. */
+  const inKind = useMemo(
+    () => (draft.kind ? facts.filter((fact) => fact.kind === draft.kind).length : facts.length),
+    [facts, draft.kind],
+  );
 
   // Naira, because that is what the control holds. It becomes kobo the moment
   // it is shown or stored, and never before. An empty bound means "no limit",
@@ -337,7 +449,7 @@ export function FilterDrawer({
 
   /* What the search is scoped to, for the field's own placeholder. The area
      the reader typed wins, then the category, then the whole catalogue. */
-  const scopeLabel = query.q?.trim() || (query.kind ? KIND_NOUN[query.kind].many : "all places");
+  const scopeLabel = draft.q.trim() || (draft.kind ? KIND_NOUN[draft.kind].many : "all places");
 
   function apply() {
     router.push(toSearchHref(pending));
@@ -349,6 +461,15 @@ export function FilterDrawer({
     setDraft(draftFrom(cleared));
     router.push(toSearchHref(cleared));
     setOpen(false);
+  }
+
+  /* Tapping the selected market clears it rather than dead-ending on it, which
+     is the one behaviour the rail had that a person actually relied on. */
+  function toggleKind(value: ListingKind) {
+    setDraft((current) => {
+      const { kind: _was, ...rest } = current;
+      return current.kind === value ? rest : { ...rest, kind: value };
+    });
   }
 
   function toggleWater(value: WaterSupply) {
@@ -384,7 +505,7 @@ export function FilterDrawer({
         className="absolute inset-0 flex flex-col bg-[var(--nf-surface-primary)]"
       >
         {/* ------------------------------------------------------- header */}
-        <header className="nf-glass flex items-center gap-3 border-b border-[var(--nf-border-subtle)] px-4 py-3">
+        <header className="nf-glass flex items-center gap-row border-b border-[var(--nf-border-subtle)] px-gutter py-row">
           <button
             ref={closeRef}
             type="button"
@@ -392,37 +513,75 @@ export function FilterDrawer({
             aria-label="Close filters"
             className="nf-icon-btn h-11 w-11"
           >
-            <UiIcon name="arrow-left" size={20} />
+            <UiIcon name="arrow-left" size={ICON.inline} />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="text-[0.9375rem] font-bold text-[var(--nf-content-primary)]">Filters</p>
-            <p className="text-[0.75rem] text-[var(--nf-content-muted)]">
-              {formatNumber(facts.length, locale)} {facts.length === 1 ? noun.one : noun.many} to
-              narrow
+            <p className="nf-body font-bold text-[var(--nf-content-primary)]">Filters</p>
+            {/* The count follows the drafted category, so switching market in
+                the control below re-reads the pool the reader is narrowing. */}
+            <p className="nf-caption text-[var(--nf-content-muted)]">
+              {formatNumber(inKind, locale)} {inKind === 1 ? noun.one : noun.many} to narrow
             </p>
           </div>
         </header>
 
         {/* -------------------------------------------------------- body */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-          <div className="mx-auto grid max-w-2xl gap-4 pb-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-gutter py-block">
+          <div className="nf-stack nf-stack--block mx-auto max-w-2xl">
+            {/* ----------------------------------------------- category */}
+            {/*
+              THE CATEGORY LIVES HERE NOW, AND THE RAIL ABOVE THE RESULTS IS
+              GONE.
+
+              It was the last sub-navigation on the platform: twelve objects in
+              a horizontal scroller pinned under the search bar, taking a row of
+              a phone screen on every search whether or not anybody wanted to
+              change market. It could not simply be deleted, because it was the
+              only category control there was and deleting it would have deleted
+              the function.
+
+              Drawn as segments rather than as the rail's objects because that
+              is what a choice inside this drawer already looks like: the
+              bedroom row directly below is the same control, and one of a set
+              with tap-again-to-clear is the same behaviour the rail had. Two
+              up on a phone so every market is readable at once rather than half
+              of them living off the right edge, which was the rail's other
+              fault.
+            */}
+            {kindOptions.length > 1 && (
+              <Group id="filter-kind" title="Category" divided={false}>
+                <p className={HINT}>What kind of place. Tap again to clear.</p>
+                <div className="mt-heading grid grid-cols-2 gap-xs sm:grid-cols-3">
+                  {kindOptions.map((kind) => {
+                    const on = draft.kind === kind;
+                    return (
+                      <button
+                        key={kind}
+                        type="button"
+                        aria-pressed={on}
+                        data-testid={`filter-kind-${kind}`}
+                        onClick={() => toggleKind(kind)}
+                        className={`nf-segment min-h-11 ${on ? "nf-segment--on" : ""}`}
+                      >
+                        {kindLabel(kind)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Group>
+            )}
+
             {/* ------------------------------------------------- search */}
             {/* Scoped to wherever the reader already is, so the field reads as
                 "narrow this" rather than "start again". */}
-            <section className="nf-card p-4" aria-labelledby="filter-search">
-              <h2
-                id="filter-search"
-                className="text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
-              >
-                Search
-              </h2>
+            <Group id="filter-search-group" title="Search" divided={kindOptions.length > 1}>
               {/* The fourth hand-rolled search bar, each at its own icon size
                   and its own left padding. `clearable` is new here and matters
                   most in a drawer: the scoped text is applied on Apply, so a
                   reader who changes their mind needs to empty it before the
                   count on the button means anything. */}
               <TextField
-                className="mt-3"
+                className="mt-heading"
                 label={`Search in ${scopeLabel}`}
                 hideLabel
                 type="search"
@@ -436,35 +595,27 @@ export function FilterDrawer({
                 }
                 placeholder={`Search in ${scopeLabel}...`}
               />
-            </section>
+            </Group>
 
             {/* -------------------------------------------------- price */}
-            <section className="nf-card p-4" aria-labelledby="filter-price">
-              <h2
-                id="filter-price"
-                className="text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
-              >
-                Price range
-              </h2>
-              <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
-                Naira {period}.
-              </p>
+            <Group id="filter-price" title="Price range">
+              <p className={HINT}>Naira {period}.</p>
 
               {/* The two figures the handles are standing on, printed above
                   them, because a slider with no numbers is a guess. Money
                   formats through formatMoney from kobo, never from naira. */}
-              <div className="mt-3 flex items-baseline justify-between gap-3">
-                <p className="nf-numeric text-[1rem] font-bold text-[var(--nf-content-primary)]">
+              <div className="mt-heading flex items-baseline justify-between gap-row">
+                <p className="nf-numeric nf-body font-bold text-[var(--nf-content-primary)]">
                   {formatMoney(nairaToKobo(sliderMin), locale)}
                 </p>
-                <p className="nf-numeric text-[1rem] font-bold text-[var(--nf-content-primary)]">
+                <p className="nf-numeric nf-body font-bold text-[var(--nf-content-primary)]">
                   {sliderMax >= sliderCeiling
                     ? `${formatMoney(nairaToKobo(sliderCeiling), locale)}+`
                     : formatMoney(nairaToKobo(sliderMax), locale)}
                 </p>
               </div>
 
-              <div className="nf-range mt-2.5" data-testid="filter-range">
+              <div className="nf-range mt-group" data-testid="filter-range">
                 <span aria-hidden="true" className="nf-range__track" />
                 <span
                   aria-hidden="true"
@@ -509,23 +660,15 @@ export function FilterDrawer({
                   className="nf-range__input"
                 />
               </div>
-              <p className="mt-2 text-[0.75rem] text-[var(--nf-content-muted)]">
+              <p className="mt-row nf-caption text-[var(--nf-content-muted)]">
                 Drag either end. At the far right there is no upper limit.
               </p>
-            </section>
+            </Group>
 
             {/* ----------------------------------------------- bedrooms */}
-            <section className="nf-card p-4" aria-labelledby="filter-bedrooms">
-              <h2
-                id="filter-bedrooms"
-                className="text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
-              >
-                Bedrooms
-              </h2>
-              <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
-                At least this many. Tap again to clear.
-              </p>
-              <div className="mt-3 grid grid-cols-4 gap-2">
+            <Group id="filter-bedrooms" title="Bedrooms">
+              <p className={HINT}>At least this many. Tap again to clear.</p>
+              <div className="mt-heading grid grid-cols-4 gap-xs">
                 {BEDROOM_STEPS.map((step) => {
                   const on = draft.bedrooms === step.value;
                   return (
@@ -547,20 +690,12 @@ export function FilterDrawer({
                   );
                 })}
               </div>
-            </section>
+            </Group>
 
             {/* -------------------------------------------- more filters */}
             {amenityOptions.length > 0 && (
-              <section className="nf-card p-4" aria-labelledby="filter-amenities">
-                <h2
-                  id="filter-amenities"
-                  className="text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
-                >
-                  More filters
-                </h2>
-                <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
-                  Pick as many as you like. Every one has to be there.
-                </p>
+              <Group id="filter-amenities" title="More filters">
+                <p className={HINT}>Pick as many as you like. Every one has to be there.</p>
                 {/*
                   Wrapping, not a rail: every amenity has to be readable at
                   once, so this stays a `flex-wrap` list rather than becoming a
@@ -574,7 +709,7 @@ export function FilterDrawer({
                   The `data-testid` moves to the `li`, which wraps the chip
                   exactly, because the primitive forwards no unknown props.
                 */}
-                <ul className="mt-3 flex flex-wrap gap-2">
+                <ul className="mt-heading flex flex-wrap gap-xs">
                   {amenityOptions.map((code) => {
                     const on = draft.amenities.includes(code);
                     return (
@@ -592,7 +727,7 @@ export function FilterDrawer({
                     );
                   })}
                 </ul>
-              </section>
+              </Group>
             )}
 
             {/* --------------------------------------- light and water */}
@@ -610,19 +745,13 @@ export function FilterDrawer({
               implying an absence is a no.
             */}
             {showUtilities && (
-              <section className="nf-card p-4" aria-labelledby="filter-utilities">
-                <h2
-                  id="filter-utilities"
-                  className="text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
-                >
-                  Light and water
-                </h2>
-                <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+              <Group id="filter-utilities" title="Light and water">
+                <p className={HINT}>
                   Only places where the host has answered. Somewhere that has not said is
                   left out rather than assumed.
                 </p>
 
-                <div className="mt-1 divide-y divide-[var(--nf-border-subtle)]">
+                <div className="mt-group divide-y divide-[var(--nf-divider)]">
                   {utilityOptions.backup && (
                     <SwitchRow
                       label="Backup power"
@@ -649,14 +778,14 @@ export function FilterDrawer({
 
                 {utilityOptions.water.length > 0 && (
                   <>
-                    <h3 className="mt-4 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
+                    <h3 className="mt-block nf-body-sm font-semibold text-[var(--nf-content-primary)]">
                       Where the water comes from
                     </h3>
-                    <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+                    <p className={HINT}>
                       Pick any that would do. Water comes from one place, so these widen
                       the search rather than narrowing it.
                     </p>
-                    <ul className="mt-3 flex flex-wrap gap-2">
+                    <ul className="mt-heading flex flex-wrap gap-xs">
                       {utilityOptions.water.map((value) => {
                         const on = draft.waterSupply.includes(value);
                         return (
@@ -676,14 +805,12 @@ export function FilterDrawer({
                     </ul>
                   </>
                 )}
-              </section>
+              </Group>
             )}
 
             {/* ----------------------------------------------- switches */}
-            <section className="nf-card divide-y divide-[var(--nf-border-subtle)] p-4">
-              <h2 className="pb-1 text-[0.875rem] font-bold text-[var(--nf-content-primary)]">
-                Booking and trust
-              </h2>
+            <Group id="filter-booking" title="Booking and trust">
+              <div className="mt-group divide-y divide-[var(--nf-divider)]">
               <SwitchRow
                 label="Instant book"
                 hint="Confirmed at once, with no wait for a reply"
@@ -698,7 +825,8 @@ export function FilterDrawer({
                 testId="filter-verified"
                 onChange={(next) => setDraft((current) => ({ ...current, verifiedOnly: next }))}
               />
-            </section>
+              </div>
+            </Group>
           </div>
         </div>
 
@@ -706,14 +834,14 @@ export function FilterDrawer({
         {/* Apply is the whole width because it is the whole point. Reset sits
             directly under it, quiet, so it is reachable without ever being
             the thing a thumb lands on by accident. */}
-        <div className="nf-glass border-t border-[var(--nf-border-subtle)] px-4 py-3">
-          <div className="mx-auto grid max-w-2xl gap-2">
+        <div className="nf-glass border-t border-[var(--nf-border-subtle)] px-gutter py-row">
+          <div className="mx-auto grid max-w-2xl gap-xs">
             <Button
               variant="primary"
               data-testid="filters-apply"
               onClick={apply}
               full
-              className="min-h-12 text-[0.9375rem]"
+              className="min-h-12 nf-body"
             >
               {matchCount === 0
                 ? "No places match yet"
@@ -726,7 +854,7 @@ export function FilterDrawer({
               data-testid="filters-clear"
               onClick={clearAll}
               full
-              className="min-h-11 text-[0.875rem]"
+              className="min-h-11 nf-body-sm"
             >
               Reset
             </Button>
@@ -750,12 +878,15 @@ export function FilterDrawer({
         onClick={() => setOpen(true)}
         className="nf-icon-btn nf-icon-btn--square relative h-[3.25rem] w-[3.25rem] shrink-0"
       >
-        <UiIcon name="sliders" size={20} />
+        <UiIcon name="sliders" size={ICON.inline} />
         {activeCount > 0 && (
           <span
             data-testid="filters-count"
             aria-hidden="true"
-            className="nf-badge-overlap nf-numeric top-[-0.4rem] right-[-0.4rem] min-w-5 justify-center px-1 py-0.5 text-[0.6875rem]"
+            /* 0.6875rem, which is 11px, was below the readable floor on the one
+               number that tells somebody the results are already narrowed.
+               `nf-caption` is the quietest tier that still reads. */
+            className="nf-badge-overlap nf-numeric nf-caption top-[-0.4rem] right-[-0.4rem] min-w-5 justify-center px-2xs py-3xs"
           >
             {activeCount}
           </span>
