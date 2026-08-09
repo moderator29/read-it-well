@@ -26,6 +26,54 @@
   --color-danger: var(--nf-state-error);
   --color-info: var(--nf-state-info);
 
+  /*
+   * SPACE.
+   *
+   * Tailwind's `--spacing-*` namespace, so every spacing utility in the
+   * framework reaches the scale by name: `p-lg`, `gap-row`, `mt-section`,
+   * `space-y-group`, `py-card`, `px-gutter`. This is the same move that gave
+   * type `nf-lede`, `nf-body`, `nf-body-sm`, `nf-caption` and `nf-h4`: a scale
+   * nobody can name is a scale nobody uses, and 4,115 numeric spacing
+   * utilities against zero tokens is what that looks like measured.
+   *
+   * The numeric steps (`p-4`, `mt-12`) still resolve, because Tailwind derives
+   * those from the `--spacing` base rather than from these named keys. That is
+   * deliberate: turning them off would break every screen in the tree at once.
+   * `nf/no-raw-spacing` is what walks them down, file by file, the same way
+   * `nf/no-raw-colour` walked the hex literals down.
+   *
+   * THE ROLE NAMES ARE THE ONES TO REACH FOR. `gap-row`, `gap-group`,
+   * `gap-block`, `mt-heading`, `py-section` say what the space is for, so the
+   * next person can see the decision instead of guessing at a number. The
+   * t-shirt rungs are there for the cases the roles do not cover.
+   */
+  --spacing-3xs: var(--nf-space-3xs);
+  --spacing-2xs: var(--nf-space-2xs);
+  --spacing-xs: var(--nf-space-xs);
+  --spacing-sm: var(--nf-space-sm);
+  --spacing-md: var(--nf-space-md);
+  --spacing-lg: var(--nf-space-lg);
+  --spacing-xl: var(--nf-space-xl);
+  --spacing-2xl: var(--nf-space-2xl);
+  --spacing-3xl: var(--nf-space-3xl);
+  --spacing-4xl: var(--nf-space-4xl);
+  --spacing-5xl: var(--nf-space-5xl);
+
+  --spacing-section: var(--nf-gap-section);
+  --spacing-section-tight: var(--nf-gap-section-tight);
+  --spacing-block: var(--nf-gap-block);
+  --spacing-heading: var(--nf-gap-heading);
+  --spacing-lede: var(--nf-gap-lede);
+  --spacing-group: var(--nf-gap-group);
+  --spacing-row: var(--nf-gap-row);
+  --spacing-inline: var(--nf-gap-inline);
+  --spacing-inline-tight: var(--nf-gap-inline-tight);
+
+  --spacing-gutter: var(--nf-pad-shell);
+  --spacing-card: var(--nf-pad-card);
+  --spacing-card-lg: var(--nf-pad-card-lg);
+  --spacing-card-sm: var(--nf-pad-card-sm);
+
   --radius-sm: var(--nf-radius-sm);
   --radius-md: var(--nf-radius-md);
   --radius-lg: var(--nf-radius-lg);

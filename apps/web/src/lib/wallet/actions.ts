@@ -645,93 +645,36 @@ export async function transferToUser(
   }
 
   /*
-   * THE FALLBACK, AND WHY IT IS STILL HERE.
+   * NO FALLBACK ANY MORE, AND THAT IS THE POINT.
    *
-   * PostgREST exposes the `public` schema only, so private.transfer_between_wallets
-   * reaches this process through a thin public wrapper that arrives with Agent
-   * B's migration. Until it lands, `missing` comes back and the only options are
-   * to refuse every transfer or to run the old two-round-trip path.
+   * There used to be one here: if the public wrapper was absent, this ran the
+   * old path that read the balance and then posted two ledger rows in separate
+   * round trips. Two concurrent transfers both passed the check and both
+   * posted. It was kept deliberately and temporarily, with a loud log line,
+   * because refusing every transfer would have been worse than continuing to
+   * run what already shipped.
    *
-   * The old path is what shipped, so running it is not a new risk; refusing
-   * every transfer would be. It runs with a loud unconfigured line naming the
-   * function that is absent, so this is a visible, dated state and not a quiet
-   * permanent second implementation. DELETE THIS BLOCK the day
-   * public.transfer_between_wallets is applied.
+   * public.transfer_between_wallets is applied now, so the wrapper cannot be
+   * missing, and the block is gone rather than left unreachable. An unlocked
+   * money path that nothing can currently reach is still an unlocked money
+   * path sitting in the file waiting for somebody to call it.
+   *
+   * Anything other than "ok" or "duplicate" above has already returned. This
+   * is the genuinely unexpected case: the function exists and answered with
+   * something the contract does not list.
    */
   logMoney({
     surface: "transfer",
-    outcome: "unconfigured",
-    reason: "atomic_transfer_unavailable_using_unlocked_path",
+    outcome: "failed",
+    reason: `transfer_rpc_missing:${call.outcome}`,
     reference: outReference,
     amountMinor,
     userId: session.user.id,
   });
 
-  try {
-    const senderWalletId = await ensureWalletId(admin, session.user.id);
-    const available = await availableBalanceMinor(admin, senderWalletId);
-    if (amountMinor > available) {
-      return fail(
-        `Your available balance is ${nairaExact(available)}, so this transfer of ${nairaExact(amountMinor)} cannot go through.`,
-        { amount: "There is not enough in your wallet for this amount." },
-      );
-    }
-
-    const recipientWalletId = await ensureWalletId(admin, recipient.id);
-
-    await postEntry(admin, {
-      walletId: senderWalletId,
-      kind: "transfer_out",
-      direction: "debit",
-      amountMinor,
-      reference: outReference,
-      status: "COMPLETED",
-      metadata: {
-        note: `Transfer to ${recipientName}`,
-        counterparty_user_id: recipient.id,
-        ...(parsed.data.note ? { message: parsed.data.note } : {}),
-      },
-    });
-
-    try {
-      await postEntry(admin, {
-        walletId: recipientWalletId,
-        kind: "transfer_in",
-        direction: "credit",
-        amountMinor,
-        reference: inReference,
-        status: "COMPLETED",
-        metadata: {
-          note: `Transfer from ${senderName}`,
-          counterparty_user_id: session.user.id,
-          ...(parsed.data.note ? { message: parsed.data.note } : {}),
-        },
-      });
-    } catch {
-      await setEntryStatus(admin, outReference, "REVERSED", {
-        reversal_reason: "The recipient leg could not be recorded.",
-      });
-      return fail(
-        "The transfer could not reach the recipient, so it was reversed. Your balance is untouched.",
-      );
-    }
-
-    await recordMoneyAudit(admin, {
-      actor: { kind: "user", userId: session.user.id },
-      action: "wallet.transfer.posted",
-      reference: outReference,
-      amountMinor,
-      subjectUserId: session.user.id,
-      walletId: senderWalletId,
-      outcome: "posted",
-      detail: { counterparty_user_id: recipient.id, in_reference: inReference, atomic: false },
-    });
-
-    revalidatePath("/wallet");
-    return ok({ amountMinor, reference: `${P2P_PREFIX}${pairId}`, recipientName });
-  } catch {
-    return fail("The transfer could not be completed. Your balance is untouched. Please try again.");
-  }
+  return fail(
+    "The transfer could not be completed. Your balance is untouched. Please try again.",
+  );
 }
 
 /**

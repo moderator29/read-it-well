@@ -538,6 +538,135 @@
   --nf-radius-pill: 999px;
 
   /* ---------------------------------------------------------------------
+   * SPACE. THE SCALE THAT DID NOT EXIST.
+   *
+   * This file tokenised radius, duration, easing, type, colour, gradient and
+   * shadow, and then stopped. Space, which is the single most frequent design
+   * decision anybody makes in this codebase, had nothing to reach for.
+   *
+   * The count at the time of writing, across 664 files under apps/web/src:
+   *
+   *   34 distinct raw Tailwind steps  (-px, -1.5, 0, 0.5 … 4.5, 7, 9, 11, 28)
+   *   4,115 uses of them
+   *   19 distinct arbitrary bracket escapes in 43 uses
+   *      p-[0.4rem]  gap-[0.55rem]  mt-[1.9rem]  pl-[3.25rem]  p-[2.375rem]
+   *   47 distinct literal values across 70 declarations in the stylesheets
+   *      padding: 0.52rem 0.95rem   padding: 0.85rem 1.5rem   gap: 0.35rem
+   *
+   * That is roughly four thousand one hundred spacing decisions taken against
+   * fifty three different answers, and it is why the product feels choked and
+   * inconsistent no matter how carefully any single screen is built. A gap of
+   * 0.85rem and a gap of 0.875rem are not two designs, they are one design
+   * typed twice; but 4.5 versus 5 versus 4 IS three designs, taken by three
+   * people who had no way of knowing what the other two chose. Nothing here
+   * was comparable to anything else, so every fix was a judgement call on one
+   * screen rather than a step on a shared scale.
+   *
+   * THE LADDER. Eleven steps. It doubles every two steps, so it is two
+   * interleaved doubling ramps (4-8-16-32-64-128 and 6-12-24-48-96) and the
+   * ratio between neighbours is a constant sqrt(2) ~ 1.414 in the middle,
+   * loosening to 1.5/1.33 at the ends where the eye needs finer control.
+   *
+   * A geometric ladder is the point. On a linear ladder (Tailwind's 1,2,3,4,
+   * 5,6,7,8) neighbouring steps are indistinguishable at the small end and
+   * useless at the large end, which is exactly what produced 2 and 2.5 and 3
+   * and 3.5 all in use on one screen. On a geometric ladder every step is a
+   * VISIBLE change, so choosing one is a real decision and the next person can
+   * see which decision you took.
+   *
+   * The base unit is 4px, so every value still lands on the 4px grid the icon
+   * sizes, control heights and hairlines are already drawn on.
+   * ------------------------------------------------------------------ */
+  --nf-space-0: 0rem;
+  --nf-space-3xs: 0.125rem;  /*  2px  hairline nudges, optical alignment */
+  --nf-space-2xs: 0.25rem;   /*  4px  inside a badge, letter-adjacent */
+  --nf-space-xs: 0.5rem;     /*  8px  icon to label, chip to chip */
+  --nf-space-sm: 0.75rem;    /* 12px  row to row, field to field */
+  --nf-space-md: 1rem;       /* 16px  item to item in a group */
+  --nf-space-lg: 1.5rem;     /* 24px  heading to its content, card padding */
+  --nf-space-xl: 2rem;       /* 32px  block to block inside a section */
+  --nf-space-2xl: 3rem;      /* 48px  section to section on a phone */
+  --nf-space-3xl: 4rem;      /* 64px  section to section on a tablet */
+  --nf-space-4xl: 6rem;      /* 96px  section to section on a desktop */
+  --nf-space-5xl: 8rem;      /* 128px the one deliberate silence on a page */
+
+  /* ---------------------------------------------------------------------
+   * VERTICAL RHYTHM. What the space is FOR, not how big it is.
+   *
+   * The ladder above stops the values disagreeing. It does not by itself make
+   * two screens feel the same, because two authors can pick two different
+   * rungs for the same job and both be "on the scale". The reference
+   * platform's calm comes as much from consistent vertical rhythm as it does
+   * from having fewer containers: the air between two sections is the same
+   * everywhere, the air between a heading and its content is the same
+   * everywhere, and the eye learns the interval within one screen and then
+   * trusts it for the rest of the product.
+   *
+   * So these are named for the RELATIONSHIP they express. An author asking
+   * "how much space goes between a heading and the thing it heads" gets one
+   * answer, not a rung to choose from.
+   *
+   * Five intervals, largest to smallest, and the ratio between neighbours is
+   * the same ~1.4 the ladder runs on, which is what makes the nesting legible:
+   * the space around a group is always visibly larger than the space inside it,
+   * so grouping is carried by rhythm rather than by drawing another box. That
+   * is the mechanism behind "fewer containers": you do not need a border to
+   * say these four things belong together if the air already says it.
+   *
+   *   section  96   between two sections of a page
+   *   block    32   between two blocks inside one section
+   *   heading  24   between a heading and the content under it
+   *   group    16   between sibling items in a group
+   *   row      12   between two rows of one list
+   *   inline    8   between an icon and its label
+   *
+   * SECTION AND SHELL ARE FLUID, AND THAT IS THE OTHER HALF OF THE FIX.
+   *
+   * Every section on the landing page currently writes its own responsive
+   * pair by hand: six of them say `py-12 sm:py-16` and the one below them says
+   * `py-16 sm:py-24`, so the same page changes its rhythm halfway down and
+   * jumps at exactly one breakpoint on the way. clamp() removes both faults at
+   * once. There is one section interval, it grows continuously with the
+   * viewport instead of stepping at 640px, and no screen can hold a different
+   * opinion about it because there is nothing per screen left to type.
+   * ------------------------------------------------------------------ */
+  --nf-gap-section: clamp(3rem, 1.5rem + 6vw, 6rem);        /* 48 -> 96 */
+  --nf-gap-section-tight: clamp(2rem, 1.25rem + 3vw, 3rem);  /* 32 -> 48 */
+  --nf-gap-block: var(--nf-space-xl);
+  --nf-gap-heading: var(--nf-space-lg);
+  /* A heading and its own subtitle are one unit, so they sit closer than a
+     heading sits to the content it heads. Without this tier every lede was
+     written at mt-2, mt-3, mt-4 or mt-5 depending on who typed it. */
+  --nf-gap-lede: var(--nf-space-sm);
+  --nf-gap-group: var(--nf-space-md);
+  --nf-gap-row: var(--nf-space-sm);
+  --nf-gap-inline: var(--nf-space-xs);
+  --nf-gap-inline-tight: var(--nf-space-2xs);
+
+  /* ---------------------------------------------------------------------
+   * PADDING ROLES. The inside of an object, by what the object is.
+   *
+   * Card padding was p-4, p-5, p-6, p-7, p-8, p-9 and p-10 in the marketing
+   * tree alone, which is seven answers to "how much air does a card have
+   * inside it". Two remain: the ordinary card and the one that is carrying a
+   * page's whole argument.
+   *
+   * A row supplies its own INLINE padding while the group supplies the block
+   * padding, which is what lets a row's hover and press states reach the full
+   * width of the surface rather than stopping short of it. See .nf-group.
+   * ------------------------------------------------------------------ */
+  --nf-pad-shell: clamp(1.25rem, 0.75rem + 2vw, 2rem);  /* the page gutter, 20 -> 32 */
+  --nf-pad-card: var(--nf-space-lg);       /* 24, the ordinary card */
+  --nf-pad-card-lg: clamp(2rem, 1rem + 4vw, 4rem);      /* the one card a page is built around */
+  --nf-pad-card-sm: var(--nf-space-md);    /* 16, a card inside another surface */
+  --nf-pad-row-block: var(--nf-space-sm);
+  --nf-pad-row-inline: var(--nf-space-md);
+  --nf-pad-control-block: var(--nf-space-sm);
+  --nf-pad-control-inline: var(--nf-space-md);
+  --nf-pad-chip-block: var(--nf-space-xs);
+  --nf-pad-chip-inline: var(--nf-space-sm);
+
+  /* ---------------------------------------------------------------------
    * Motion. Every duration here has a reduced motion answer below.
    * ------------------------------------------------------------------ */
   --nf-duration-instant: 90ms;

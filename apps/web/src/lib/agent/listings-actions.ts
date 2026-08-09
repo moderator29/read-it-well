@@ -145,12 +145,15 @@ async function ownedListing(
   return data;
 }
 
-type OwnedListing = NonNullable<Awaited<ReturnType<typeof ownedListing>>>;
-
 function refreshAgentSurfaces() {
   revalidatePath("/agent/listings");
   revalidatePath("/agent/list");
   revalidatePath("/agent/dashboard");
+  /* Inspections hang off a listing, and both surfaces that show them read a
+     title from it. Publishing, unpublishing or renaming a property has to
+     reach the queue that names it, or an agent sees a row about a listing
+     that no longer says what it says. */
+  revalidatePath("/agent/inspections");
 }
 
 /* --------------------------------------------------------------- drafts */
