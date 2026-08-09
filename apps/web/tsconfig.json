@@ -75,7 +75,9 @@
     ".next-fe/types/**/*.ts",
     ".next-fe/dev/types/**/*.ts",
     ".next-sec/types/**/*.ts",
-    ".next-sec/dev/types/**/*.ts"
+    ".next-sec/dev/types/**/*.ts",
+    ".next-fix/types/**/*.ts",
+    ".next-fix/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

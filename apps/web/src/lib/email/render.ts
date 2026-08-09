@@ -1,5 +1,19 @@
 import { formatDate, formatMoney } from "@naijafinds/i18n";
 
+import {
+  DARK,
+  FONT_MONO,
+  FONT_SANS,
+  GLOW,
+  GRADIENT,
+  GRADIENT_CAP,
+  LIGHT,
+  LOGO_SIZE,
+  MAX_WIDTH,
+  PAD_X,
+  SIGN_OFF,
+} from "./theme";
+
 /**
  * The RentMe transactional email shell.
  *
@@ -52,45 +66,13 @@ import { formatDate, formatMoney } from "@naijafinds/i18n";
  * Everything interpolated goes through escapeHtml first: listing titles, names
  * and references come from the database or a form, and a stray angle bracket
  * must never be able to reshape the markup.
- */
-
-/* ------------------------------------------------------------- the palette */
-
-/**
- * Light first, dark by preference.
  *
- * The dark values are the sampled brand anchors this product has used since
- * the auth templates: deep navy-black canvas, electric blue glow. The light
- * values are their daylight equivalents, chosen so the same message reads as
- * the same message in either inbox rather than as two different brands.
+ * THE PALETTE, THE TYPE STACK AND THE MEASUREMENTS ALL LIVE IN `theme.ts`,
+ * which is also what `scripts/build-auth-emails.mjs` mirrors, so the first
+ * email somebody ever gets from RentMe and the twentieth are the same design.
+ * That file explains at length why literal hex is correct in an email and must
+ * not be "fixed" into a CSS custom property.
  */
-const LIGHT = {
-  base: "#F4F5FB",
-  card: "#FFFFFF",
-  edge: "#DEE1F0",
-  panel: "#F7F8FD",
-  text: "#0A0A1F",
-  body: "#3B4166",
-  muted: "#6B7194",
-} as const;
-
-const DARK = {
-  base: "#010118",
-  card: "#030327",
-  edge: "#101A55",
-  panel: "#060640",
-  text: "#FFFFFF",
-  body: "#C6CDF2",
-  muted: "#7C86C2",
-} as const;
-
-/** The brand blue, which is the same in both schemes. */
-const GLOW = "#0C39EF";
-const ELECTRIC = "#0010D0";
-const GRADIENT = `linear-gradient(135deg,${GLOW} 0%,#0621E8 55%,${ELECTRIC} 100%)`;
-const FONT_SANS =
-  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
-const FONT_MONO = "'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace";
 
 /** The site the emails link back to. Absolute, no trailing slash. */
 const DEFAULT_SITE_URL = "https://rentme.ng";
@@ -250,19 +232,21 @@ function usable(blocks: readonly (Block | null | undefined | false)[]): Block[] 
 function htmlBlock(block: Block): string {
   switch (block.kind) {
     case "heading":
-      return `<h1 class="rm-title" style="margin:0 0 14px;font-size:24px;line-height:1.25;font-weight:700;letter-spacing:-0.02em;color:${LIGHT.text};">${escapeHtml(block.text)}</h1>`;
+      // font-family is repeated on the h1 because several clients reset heading
+      // fonts to a serif default and inheritance from body does not save it.
+      return `<h1 class="rm-title" style="margin:0 0 16px;font-family:${FONT_SANS};font-size:27px;line-height:1.22;font-weight:700;letter-spacing:-0.022em;color:${LIGHT.text};">${escapeHtml(block.text)}</h1>`;
 
     case "paragraph":
-      return `<p class="rm-body" style="margin:0 0 18px;font-size:15px;line-height:1.6;color:${LIGHT.body};">${escapeHtml(block.text)}</p>`;
+      return `<p class="rm-body" style="margin:0 0 20px;font-family:${FONT_SANS};font-size:16px;line-height:1.65;color:${LIGHT.body};">${escapeHtml(block.text)}</p>`;
 
     case "bullets": {
       const items = block.items
         .map(
           (item) =>
-            `<li style="margin:0 0 8px;">${escapeHtml(item)}</li>`,
+            `<li style="margin:0 0 10px;padding-left:2px;">${escapeHtml(item)}</li>`,
         )
         .join("\n                    ");
-      return `<ul class="rm-body" style="margin:0 0 18px;padding:0 0 0 20px;font-size:15px;line-height:1.6;color:${LIGHT.body};">
+      return `<ul class="rm-body" style="margin:0 0 22px;padding:0 0 0 22px;font-family:${FONT_SANS};font-size:16px;line-height:1.65;color:${LIGHT.body};">
                     ${items}
                   </ul>`;
     }
@@ -277,16 +261,18 @@ function htmlBlock(block: Block): string {
           const valueColour = row.strong ? LIGHT.text : LIGHT.body;
           const valueWeight = row.strong ? "700" : "500";
           const valueClass = row.strong ? "rm-title" : "rm-body";
+          // The label column is held at 40% so a long value wraps inside its
+          // own cell instead of squeezing the label to one word per line.
           return `<tr>
-                          <td class="rm-muted rm-rule" style="padding:10px 0;border-top:${top};font-size:13px;line-height:1.5;color:${LIGHT.muted};">${escapeHtml(row.label)}</td>
-                          <td align="right" class="${valueClass} rm-rule" style="padding:10px 0;border-top:${top};font-size:14px;line-height:1.5;font-weight:${valueWeight};color:${valueColour};">${escapeHtml(row.value)}</td>
+                          <td width="40%" class="rm-muted rm-rule" style="width:40%;padding:13px 12px 13px 0;border-top:${top};font-family:${FONT_SANS};font-size:13px;line-height:1.5;vertical-align:top;color:${LIGHT.muted};">${escapeHtml(row.label)}</td>
+                          <td align="right" class="${valueClass} rm-rule" style="padding:13px 0;border-top:${top};font-family:${FONT_SANS};font-size:15px;line-height:1.5;font-weight:${valueWeight};vertical-align:top;color:${valueColour};">${escapeHtml(row.value)}</td>
                         </tr>`;
         })
         .join("\n                        ");
 
-      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 22px;">
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 26px;">
                     <tr>
-                      <td class="rm-panel" style="background:${LIGHT.panel};border:1px solid ${LIGHT.edge};border-radius:14px;padding:6px 18px;">
+                      <td class="rm-panel" style="background:${LIGHT.panel};border:1px solid ${LIGHT.edge};border-radius:16px;padding:6px 22px;">
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                           ${cells}
                         </table>
@@ -296,26 +282,43 @@ function htmlBlock(block: Block): string {
     }
 
     case "button":
-      // Bulletproof: the gradient is a background IMAGE over a solid brand
-      // blue, so a client that drops background images still shows a blue
-      // button with white text rather than white on white.
-      return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 4px;">
+      /*
+       * Bulletproof, in the specific sense the word has in email.
+       *
+       * The gradient is a background IMAGE over a solid brand blue declared
+       * FIRST, so Outlook's Word engine, which drops background images and
+       * keeps colours, still draws a blue button with white text rather than
+       * white text on nothing.
+       *
+       * The padding is on the anchor rather than on the cell, so the whole pill
+       * is a tap target on a phone, which is where most of these are opened.
+       * mso-padding-alt repeats the geometry for Word, which ignores padding on
+       * an inline-block.
+       *
+       * The colour is written #FFFFFF rather than through the palette because
+       * it is the text ON the brand blue in both schemes, not a themed value.
+       */
+      return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:10px 0 6px;">
                     <tr>
-                      <td align="center" style="border-radius:12px;background-color:${GLOW};background-image:${GRADIENT};">
-                        <a href="${escapeHtml(block.href)}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:${FONT_SANS};font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;border-radius:12px;">${escapeHtml(block.label)}</a>
+                      <td align="center" style="border-radius:14px;background-color:${GLOW};background-image:${GRADIENT};mso-padding-alt:16px 34px;">
+                        <a href="${escapeHtml(block.href)}" target="_blank" style="display:inline-block;padding:16px 34px;font-family:${FONT_SANS};font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;">${escapeHtml(block.label)}</a>
                       </td>
                     </tr>
                   </table>`;
 
     case "code":
-      return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;">
+      // Letter-spacing pushes the last glyph off centre, so text-indent puts
+      // the same amount back on the left. Without it a six figure code reads
+      // as though it were nudged right, which is the sort of thing somebody
+      // notices without being able to say why.
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 26px;">
                     <tr>
-                      <td class="rm-panel rm-title" style="background:${LIGHT.panel};border:1px solid ${LIGHT.edge};border-radius:10px;padding:12px 20px;font-family:${FONT_MONO};font-size:22px;font-weight:700;letter-spacing:0.16em;color:${LIGHT.text};">${escapeHtml(block.value)}</td>
+                      <td align="center" class="rm-panel rm-title" style="background:${LIGHT.panel};border:1px solid ${LIGHT.edge};border-radius:16px;padding:20px 16px;font-family:${FONT_MONO};font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.2em;text-indent:0.2em;color:${LIGHT.text};">${escapeHtml(block.value)}</td>
                     </tr>
                   </table>`;
 
     case "note":
-      return `<p class="rm-muted" style="margin:18px 0 0;font-size:12px;line-height:1.6;color:${LIGHT.muted};">${escapeHtml(block.text)}</p>`;
+      return `<p class="rm-muted" style="margin:22px 0 0;font-family:${FONT_SANS};font-size:13px;line-height:1.6;color:${LIGHT.muted};">${escapeHtml(block.text)}</p>`;
   }
 }
 
@@ -384,8 +387,6 @@ export type Composed = {
   /** The text/plain alternative. Always present, always from the same blocks. */
   text: string;
 };
-
-const SIGN_OFF = "RentMe. Find it. Rent it. Love it.";
 
 /**
  * The dark override.
