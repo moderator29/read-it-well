@@ -1,6 +1,6 @@
 import type { Dictionary } from "@naijafinds/i18n";
 import { Reveal } from "@/components/site/Reveal";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Words } from "@/components/site/Words";
 
 /**
@@ -20,31 +20,35 @@ import { Words } from "@/components/site/Words";
  * before they can trade. That is a process, it is real, and it survives
  * somebody finding one listing they do not like.
  */
+/**
+ * TWO PER LINE, SHORTER, AND THE OBJECTS ARE OURS.
+ *
+ * Two changes, both asked for and both the same idea: this band was taking a
+ * full phone screen to say four short things. The bodies were two and three
+ * lines each at a column width of about 150px, so every cell wrapped four or
+ * five times and the row read as a wall. They are one line now, written to the
+ * column rather than crammed into it.
+ *
+ * And the glyphs are the commissioned blue-and-white objects rather than
+ * stroked vectors. The usual rule on the marketing page is the opposite - see
+ * the note on `categories` in app/page.tsx, which argues that a row of rendered
+ * toys reads as an app-store listing rather than as a company. That rule is
+ * about a ROW OF FIVE at the top of the page. This is four cells further down,
+ * at 32px, one per idea, and the owner is right that the objects are the thing
+ * that makes this platform look like itself.
+ *
+ * "Agents are checked" still says what is true and now says it in the same
+ * words the product does: the tick arrives after a person here has looked, not
+ * before the listing goes live. That claim used to read "Every listing and
+ * agent is checked before it goes live", which was false in both halves.
+ */
 export function WhyRentMe({ t }: { t: Dictionary }) {
-  const values: { icon: UiIconName; title: string; body: string }[] = [
-    {
-      icon: "verified",
-      title: "Agents are checked",
-      body: t.landing.vision.points.verified.body,
-    },
-    {
-      icon: "wallet",
-      title: "Honest naira pricing",
-      body: t.landing.vision.points.naira.body,
-    },
-    {
-      icon: "chat-bubble",
-      title: "Four languages",
-      /* Was `t.landing.trust.multiLanguage.body`, which is the string
-         "EN / YO / HA / IG". That is a legend, not a sentence, and it was the
-         only cell in the row that did not read as one. */
-      body: "English, Yoruba, Hausa and Igbo, across every screen.",
-    },
-    {
-      icon: "location",
-      title: "Built for Nigeria",
-      body: "Made here, for the way property is actually rented and sold here.",
-    },
+  void t;
+  const values: { icon: BrandIconName; title: string; body: string }[] = [
+    { icon: "user-verified", title: "Agents are checked", body: "A person here checks the agent before the tick appears." },
+    { icon: "naira-hand", title: "Honest naira pricing", body: "The move-in total in full. No hidden charges." },
+    { icon: "chat-duo", title: "Four languages", body: "English, Yoruba, Hausa and Igbo." },
+    { icon: "map-spot", title: "Built for Nigeria", body: "Light, water and the gate, answered on every listing." },
   ];
 
   return (
@@ -53,9 +57,6 @@ export function WhyRentMe({ t }: { t: Dictionary }) {
         <h2 className="nf-h1">
           <Words text="Why RentMe" accentFrom={1} />
         </h2>
-        {/* Was "every search, booking and stay". Nobody stays in a flat they
-            have taken a year's lease on, and "stay" is the word this platform
-            keeps borrowing from the hotel product it is not. */}
         <p className="nf-lede mt-group">
           What stands behind every search, every listing and every payment.
         </p>
@@ -64,16 +65,14 @@ export function WhyRentMe({ t }: { t: Dictionary }) {
       <Reveal>
         <ul className="nf-card nf-cells nf-cells--quad">
           {values.map((v) => (
-            <li key={v.title} className="flex flex-col gap-row p-cell">
-              <UiIcon
-                name={v.icon}
-                size={28}
-                className="shrink-0 text-[var(--nf-content-primary)]"
-              />
-              <h3 className="nf-body font-semibold text-[var(--nf-content-primary)]">
+            <li key={v.title} className="flex flex-col gap-inline p-cell">
+              <span className="block h-8 w-8">
+                <BrandIcon name={v.icon} fill />
+              </span>
+              <h3 className="nf-body-sm font-semibold leading-snug text-[var(--nf-content-primary)]">
                 {v.title}
               </h3>
-              <p className="nf-body-sm text-[var(--nf-content-secondary)]">{v.body}</p>
+              <p className="nf-caption leading-snug text-[var(--nf-content-secondary)]">{v.body}</p>
             </li>
           ))}
         </ul>

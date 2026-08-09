@@ -200,9 +200,9 @@ export const ha: Dictionary = {
       missionTitle: "Sa neman da yin rijistar komai ya zama mai sauƙi da aminci.",
       missionBody: "Wuraren da aka tabbatar, farashi na gaskiya da naira, sharhi na gaskiya, da mataimaki mai fahimtar abin da kake so.",
       points: {
-        verified: { title: "Tabbatarwa da farko", body: "Ana duba kowace jeri da wakili kafin ya fito." },
+        verified: { title: "Mutum ne ke dubawa", body: "Alamar tabbatarwa tana zuwa kan jeri bayan mun duba wakilin da hannu." },
         naira: { title: "Farashi da naira", body: "Jimillar da ta bayyana, babu abin mamaki ko ɓoyayyen kuɗi." },
-        everywhere: { title: "Dukkan jihohi 36", body: "Ko'ina a ƙasar tun rana ta farko." },
+        everywhere: { title: "An gina shi don jihohi 36", body: "Kowace jiha tana cikin tsarin, muna buɗe birane yayin da wakilai suka iso." },
         assistant: { title: "AI mai taimako", body: "Ka tambaya cikin sauƙin harshe ka sami wuraren gaske." },
       },
     },

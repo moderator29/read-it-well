@@ -201,9 +201,9 @@ export const ig: Dictionary = {
       missionTitle: "Mee ka ịchọta na idebe ihe ọ bụla dị mfe ma dị mma.",
       missionBody: "Ebe akwadoro, ọnụahịa ziri ezi na naira, nyocha ziri ezi, na onye enyemaka nke ghọtara ihe ị chọrọ.",
       points: {
-        verified: { title: "Nkwenye mbụ", body: "A na-enyocha ndepụta na onye nnọchiteanya ọ bụla tupu ọ pụta." },
+        verified: { title: "Mmadụ na-enyocha ya", body: "Akara nkwenye na-abịa na ndepụta mgbe anyị nyochachara onye nnọchiteanya n'aka." },
         naira: { title: "Ọnụahịa na naira", body: "Mkpokọta doro anya, enweghị ihe ijuanya ma ọ bụ ego zoro ezo." },
-        everywhere: { title: "Steeti 36 niile", body: "Na mba niile site n'ụbọchị mbụ." },
+        everywhere: { title: "Ewuru ya maka steeti 36", body: "Steeti niile dị na sistemu, anyị na-emeghe obodo ka ndị nnọchiteanya na-abịa." },
         assistant: { title: "AI na-enye aka", body: "Jụọ n'asụsụ dị mfe ma nweta ebe ndị dị adị." },
       },
     },

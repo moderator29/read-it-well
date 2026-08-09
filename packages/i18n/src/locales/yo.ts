@@ -199,9 +199,9 @@ export const yo: Dictionary = {
       missionTitle: "Jẹ́ kí wíwá àti ìforúkọsílẹ̀ ohunkóhun rọrùn àti ní ààbò.",
       missionBody: "Àwọn ibi tí a ti mọ̀, iye tòótọ́ ní naira, àtúnyẹ̀wò tòótọ́, àti olùrànlọ́wọ́ tí ó lóye ohun tí o fẹ́.",
       points: {
-        verified: { title: "Ìdánimọ̀ ṣáájú", body: "A ń ṣàyẹ̀wò gbogbo àkọsílẹ̀ àti aṣojú kí ó tó jáde." },
+        verified: { title: "Ènìyàn ni ó ń ṣàyẹ̀wò", body: "Àmì ìdánimọ̀ máa ń wá sí àkọsílẹ̀ lẹ́yìn tí a bá ti ṣàyẹ̀wò aṣojú náà pẹ̀lú ọwọ́." },
         naira: { title: "Iye ní naira", body: "Àpapọ̀ tí ó ye kooro, láìsí ìyàlẹ́nu tàbí owó tí a fi pamọ́." },
-        everywhere: { title: "Ìpínlẹ̀ mẹ́rìndínlógójì", body: "Jákèjádò orílẹ̀-èdè láti ọjọ́ kìíní." },
+        everywhere: { title: "A kọ́ ọ fún ìpínlẹ̀ 36", body: "Gbogbo ìpínlẹ̀ wà nínú ètò náà, a sì ń ṣí ìlú sílẹ̀ bí àwọn aṣojú ṣe ń dé." },
         assistant: { title: "AI tí ó ń ràn ọ́ lọ́wọ́", body: "Béèrè ní èdè tí ó rọrùn kí o sì rí ibi gidi." },
       },
     },

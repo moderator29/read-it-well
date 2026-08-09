@@ -10,6 +10,8 @@ import {
   readAgentNumbers,
 } from "@/lib/agent/listings-queries";
 import { RealDashboard } from "./RealDashboard";
+import { KycBanner } from "@/components/agent/KycBanner";
+import { getKycStanding } from "@/lib/agent/kyc-standing";
 import { readInspectionsForLister } from "@/lib/inspections/queries";
 import { ButtonLink } from "@/components/ui/Button";
 
@@ -51,9 +53,18 @@ export default async function AgentDashboardPage() {
     /* Two independent reads, so they cost one round trip rather than two.
        On the connections this product is built for that is the difference
        between a dashboard and a wait. */
-    const [numbers, inspections] = await Promise.all([
+    const [numbers, inspections, standing] = await Promise.all([
       readAgentNumbers(context.supabase, context.agent.id, context.user.id),
       readInspectionsForLister(),
+      /*
+       * Where they stand on verification, on the screen they actually land on.
+       *
+       * It joins the same round trip as the numbers rather than blocking after
+       * them: on the connections this product is built for, a third sequential
+       * read is the difference between a dashboard and a wait, and that is the
+       * reasoning the two above were already written to.
+       */
+      getKycStanding(context),
     ]);
     return (
       <AgentShell
@@ -62,6 +73,7 @@ export default async function AgentDashboardPage() {
         active="/agent/dashboard"
         profile={agentProfileFrom(context.agent)}
       >
+        {standing ? <KycBanner standing={standing} /> : null}
         <RealDashboard
           t={t}
           locale={locale}

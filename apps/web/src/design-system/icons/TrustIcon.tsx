@@ -116,54 +116,58 @@ function Glyph({ name }: { name: TrustIconName }) {
         </>
       );
 
-    /* A shopping bag with a download arrow: "get the app", drawn generically
-       so it is not a redrawn Apple badge. */
+    /*
+     * THE APPLE SILHOUETTE, AND WHY IT IS THIS AND NOT THE OFFICIAL BADGE.
+     *
+     * The owner asked for the real store marks. The official artwork is Apple's
+     * and Google's own badge lockups: trademarked, licensed only for linking to
+     * a live store listing, and not something this repository can fetch or
+     * should carry as a copied path. RentMe is on neither store yet, so there
+     * is nothing to link to either.
+     *
+     * What this draws is the universally read SHAPE, the way a cart glyph
+     * stands for a shop: the apple and its leaf, in the platform's own ink at
+     * the platform's own weight, so it sits in a row beside the other trust
+     * marks instead of looking pasted in from somebody else's brand sheet.
+     *
+     * When the app is on the store, swap this for the licensed badge asset and
+     * link it. That is one file and one href, and the copy beside it already
+     * says "coming to" rather than "available on", so it changes with it.
+     */
     case "app-store":
       return (
         <>
           <path
-            d="M5.6 8.2h12.8l-1 11.1a1.9 1.9 0 0 1-1.9 1.7H8.5a1.9 1.9 0 0 1-1.9-1.7Z"
+            d="M16.2 12.4c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.1.8-.6 0-1.6-.7-2.7-.7-1.4 0-2.7.8-3.4 2-1.4 2.5-.4 6.2 1 8.2.7 1 1.5 2.1 2.5 2.1 1 0 1.4-.6 2.6-.6 1.2 0 1.5.6 2.6.6 1.1 0 1.8-1 2.5-2 .8-1.1 1.1-2.2 1.1-2.3-.1 0-2.1-.8-2.1-3.2Z"
             fill={MARK_INK}
             fillOpacity="0.92"
           />
           <path
-            d="M9.1 8.2V6.6a2.9 2.9 0 0 1 5.8 0v1.6"
-            stroke={MARK_INK}
-            strokeWidth="1.7"
-            fill="none"
-            strokeLinecap="round"
-          />
-          <path
-            d="M12 11.4v5.2m0 0 2.1-2.1M12 16.6l-2.1-2.1"
-            stroke={token.brandPrimaryStrong}
-            strokeWidth="1.9"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            d="M14.3 6.3c.5-.7.9-1.6.8-2.5-.8 0-1.7.5-2.3 1.2-.5.6-.9 1.5-.8 2.4.9.1 1.8-.4 2.3-1.1Z"
+            fill={token.brandPrimaryStrong}
           />
         </>
       );
 
-    /* The play triangle inside a rounded tile, again generic rather than the
-       Google Play chevron mark. */
+    /*
+     * The four-segment play chevron, same reasoning as the apple above: the
+     * read shape rather than the licensed lockup, in our own ink. Two quiet
+     * halves and two accent ones, which is what makes this legible as "the
+     * Android store" and not as a video control.
+     */
     case "play-store":
       return (
         <>
-          <rect
-            x="4.4"
-            y="4.4"
-            width="15.2"
-            height="15.2"
-            rx="3.6"
+          <path
+            d="M5.4 3.6 14.6 12l-9.2 8.4a1.6 1.6 0 0 1-.6-1.3V4.9c0-.5.2-1 .6-1.3Z"
             fill={MARK_INK}
             fillOpacity="0.92"
           />
+          <path d="M14.6 12 5.4 3.6c.35-.24.83-.26 1.2-.04l5.2 3-2.2 5.44Z" fill={token.brandSecondary} />
+          <path d="M14.6 12 6.6 20.44c-.37.22-.85.2-1.2-.04l4.4-3.96 2.2-4.44Z" fill={token.brandAccent} />
           <path
-            d="M10.4 8.9v6.2l5.1-3.1Z"
+            d="m14.6 12 3.9 2.25c.83.48.83 1.68 0 2.16l-2.3 1.33L11.8 12l4.4-5.74 2.3 1.33c.83.48.83 1.68 0 2.16Z"
             fill={token.brandPrimaryStrong}
-            stroke={token.brandPrimaryStrong}
-            strokeWidth="1.4"
-            strokeLinejoin="round"
           />
         </>
       );

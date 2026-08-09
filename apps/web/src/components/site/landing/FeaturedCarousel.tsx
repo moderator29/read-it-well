@@ -7,6 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CarouselRail } from "./CarouselRail";
 import { Words } from "@/components/site/Words";
 import { Amount } from "@/components/ui/Amount";
+import { PERIOD_SUFFIX_SHORT } from "@/lib/listings/pricing";
 import { gatedHref } from "@/lib/site/gated-href";
 import { MediaFrame } from "@/components/app/MediaFrame";
 
@@ -49,7 +50,22 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
         >
           {listings.map((l) => {
             const photo = l.photos[0];
-            const perHead = l.kind === "restaurant" || l.kind === "experience";
+            /*
+             * WHAT THE PRICE BUYS, READ OFF THE LISTING RATHER THAN GUESSED.
+             *
+             * This said "/ night" for everything that was not a restaurant. So
+             * a flat let by the YEAR appeared in the rail at its full annual
+             * rent with "per night" beside it: four and a half million naira a
+             * night, on the front page, which is the single most damaging
+             * number this platform could print about itself.
+             *
+             * `pricePeriod` is on the record and already correct - year for a
+             * tenancy, night for a shortlet or hotel room, guest for a cover
+             * charge - and `PERIOD_SUFFIX_SHORT` is the platform's one map from
+             * it to the words. A listing for SALE carries no period at all, so
+             * it gets nothing after the figure rather than a made-up one.
+             */
+            const suffix = l.pricePeriod ? PERIOD_SUFFIX_SHORT[l.pricePeriod] : "";
             return (
               <li key={l.id} className="w-[16.5rem] sm:w-[19rem]">
                 <Link
@@ -104,7 +120,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                         locale={locale}
                         currency={l.currency}
                         glance
-                        suffix={`/ ${perHead ? "guest" : "night"}`}
+                        suffix={suffix}
                         /* nf-lede rather than text-[1.0625rem], which was the
                            same 17px written as a literal. The class carries a
                            colour and a leading of its own; both are overridden

@@ -385,19 +385,27 @@
     width: 1px;
   }
 
-  /* Three peers: a column on a phone, a row from md. */
-  .nf-cells--trio > * + *::before {
+  /*
+   * Three peers, ACROSS AT EVERY WIDTH.
+   *
+   * This stacked into a column below 768px, which turned "how it works, in
+   * three steps" into three full-width panels a phone has to scroll through.
+   * The one thing that band exists to communicate is that there are three and
+   * they are short, and you cannot see that if you can only see one.
+   *
+   * The copy in the trio is written to a 110px column rather than squeezed
+   * into one; a caller with a paragraph per cell wants a different component.
+   */
+  .nf-cells--trio {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    --nf-cell-inset: var(--nf-space-sm);
+  }
+  .nf-cells--trio > * + *::after {
     display: block;
   }
   @media (min-width: 768px) {
     .nf-cells--trio {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .nf-cells--trio > * + *::before {
-      display: none;
-    }
-    .nf-cells--trio > * + *::after {
-      display: block;
+      --nf-cell-inset: var(--nf-space-lg);
     }
   }
 

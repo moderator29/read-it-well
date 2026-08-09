@@ -25,31 +25,25 @@ import { Words } from "@/components/site/Words";
  * Vector glyphs rather than the 3D family, because this is the marketing page.
  * See the note on `categories` in app/page.tsx.
  */
+/**
+ * THREE ON ONE LINE, ON EVERY WIDTH, AND THE COPY IS CUT TO FIT.
+ *
+ * The trio stacked into a column below 768px, so on a phone the three steps
+ * were three full-width panels each carrying a two-line title and a
+ * three-line paragraph: a band about how simple this is, taking most of a
+ * screen to say it. The whole point of "three steps" is that you can see that
+ * there are three, at a glance, without scrolling.
+ *
+ * So the grid is three across at every width and the copy is written to that
+ * column instead of being squeezed into it. One word or two in the title, one
+ * short line under it. The longer sentences did not move anywhere clever, they
+ * were deleted: a step that needs a paragraph is not a step.
+ */
 export function HowItWorks({ t }: { t: Dictionary }) {
   const steps: { icon: UiIconName; title: string; body: string }[] = [
-    {
-      icon: "search",
-      /* The old body read "Hotels, apartments, homes, restaurants and
-         experiences across Nigeria". Three of those five are categories this
-         platform stopped having: the hero row, the product home, the search
-         filters and now the footer all deal in Rent, Buy, Shortlets, Land and
-         Commercial. A landing page that names a different set of things from
-         the one the search returns is a page describing a different product. */
-      title: "Search and discover",
-      body: `${t.landing.hero.line1} Homes to rent, homes to buy, shortlets, land and commercial space, in one search.`,
-    },
-    {
-      icon: "calendar-booking",
-      title: "Book and pay securely",
-      body: `${t.landing.hero.line2} Clear naira totals and secure payment before anything is confirmed.`,
-    },
-    {
-      icon: "key",
-      title: "Move in",
-      /* Was "Live the experience", with a body about checking in and eating
-         well, which is hotel copy on a page about renting a flat for a year. */
-      body: `${t.landing.hero.line3} Keep the agreement, the payments and every message about the place in one account.`,
-    },
+    { icon: "search", title: t.landing.hero.line1, body: "Rent, buy, shortlet, land and commercial, in one search." },
+    { icon: "calendar-booking", title: t.landing.hero.line2, body: "Naira totals in full, paid safely, before anything is confirmed." },
+    { icon: "key", title: t.landing.hero.line3, body: "Agreement, payments and messages, all in one account." },
   ];
 
   return (
@@ -59,29 +53,22 @@ export function HowItWorks({ t }: { t: Dictionary }) {
         <h2 className="nf-h1 mt-row">
           <Words text="How it works" accentFrom={2} />
         </h2>
-        <p className="nf-lede mt-group">
-          From first search to checked in, the whole journey lives in one account.
-        </p>
       </Reveal>
 
       <Reveal>
         <ol className="nf-card nf-cells nf-cells--trio">
           {steps.map((s, i) => (
-            <li key={s.title} className="flex flex-col gap-group p-cell">
-              <div className="flex items-center gap-row">
-                <UiIcon
-                  name={s.icon}
-                  size={28}
-                  className="shrink-0 text-[var(--nf-content-primary)]"
-                />
-                <span className="nf-overline nf-numeric">
-                  Step {String(i + 1).padStart(2, "0")}
+            <li key={s.title} className="flex flex-col gap-row p-cell">
+              <div className="flex items-center gap-inline">
+                <UiIcon name={s.icon} size={20} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+                <span className="nf-caption nf-numeric text-[var(--nf-content-muted)]">
+                  {String(i + 1).padStart(2, "0")}
                 </span>
               </div>
-              <h3 className="nf-h4 text-[var(--nf-content-primary)]">{s.title}</h3>
-              <p className="nf-body-sm max-w-[36ch] text-[var(--nf-content-secondary)]">
-                {s.body}
-              </p>
+              <h3 className="nf-body font-semibold leading-snug text-[var(--nf-content-primary)]">
+                {s.title}
+              </h3>
+              <p className="nf-caption leading-snug text-[var(--nf-content-secondary)]">{s.body}</p>
             </li>
           ))}
         </ol>
