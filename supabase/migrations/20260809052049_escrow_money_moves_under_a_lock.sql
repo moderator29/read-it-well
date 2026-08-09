@@ -461,6 +461,7 @@ begin
 end;
 $$;
 
+drop trigger if exists inspection_confirmations_feed_escrow on public.inspection_confirmations;
 create trigger inspection_confirmations_feed_escrow
   after insert on public.inspection_confirmations
   for each row
@@ -694,18 +695,23 @@ grant execute on function public.escrow_request_release(uuid) to authenticated;
 grant execute on function public.escrow_raise_dispute(uuid, text) to authenticated;
 grant execute on function public.escrow_admin_resolve(uuid, text, text) to authenticated;
 
+commit;
+
 /*
  * The sweeper on the schedule the platform already runs.
  *
+ * Outside the transaction above, because cron.schedule commits its own row and
+ * a rolled back migration that had already registered a job would leave a cron
+ * entry calling a function that no longer exists.
+ *
  * Hourly rather than by the minute: the hold window is measured in days, so an
  * hour of lateness on a release is invisible to everybody, and a sweep that
- * wakes up sixty times an hour to find nothing is sixty locks taken for no
- * reason.
+ * wakes sixty times an hour to find nothing is sixty locks taken for no reason.
+ * Minute 17 so it does not collide with the stale-hold sweep on the quarter
+ * hours or the rate limit purge on the half hour.
  */
 select cron.schedule(
-  'escrow-sweep-timeouts',
+  'rentme_escrow_sweep_timeouts',
   '17 * * * *',
   $cron$ select private.escrow_sweep_timeouts(); $cron$
 );
-
-commit;

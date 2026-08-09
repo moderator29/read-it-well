@@ -7,13 +7,25 @@
  * Rule 50); a balance is never stored, only derived from COMPLETED entries.
  */
 
+/**
+ * The kinds of movement a ledger row can be.
+ *
+ * The three escrow kinds are here for the same reason they are in the database
+ * enum rather than in a table of their own: escrow money is wallet money and it
+ * shows up in the one statement with everything else. A hold is a debit that
+ * has left the payer's spendable balance and not yet reached anybody; a release
+ * is the credit landing on the other side; a refund is the credit going back.
+ */
 export type WalletEntryKind =
   | "deposit"
   | "withdrawal"
   | "payment"
   | "refund"
   | "transfer_in"
-  | "transfer_out";
+  | "transfer_out"
+  | "escrow_hold"
+  | "escrow_release"
+  | "escrow_refund";
 
 export type WalletEntryDirection = "credit" | "debit";
 

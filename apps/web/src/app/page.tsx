@@ -8,23 +8,12 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { FilterLink } from "@/components/app/filters/FilterLink";
-import { TrustIcon, type TrustIconName } from "@/design-system/icons/TrustIcon";
 import { HowItWorks } from "@/components/site/landing/HowItWorks";
-import { PopularDestinations } from "@/components/site/landing/PopularDestinations";
 import { AgentsBand } from "@/components/site/landing/AgentsBand";
 import { WhyRentMe } from "@/components/site/landing/WhyRentMe";
 import { VoicesBand } from "@/components/site/landing/VoicesBand";
 import { ProductFrame } from "@/components/site/landing/ProductFrame";
 import { FeaturedCarousel } from "@/components/site/landing/FeaturedCarousel";
-import { MoodRow } from "@/components/site/landing/MoodRow";
-import { NumbersBand } from "@/components/site/landing/NumbersBand";
-import { PlatformConsole } from "@/components/site/landing/PlatformConsole";
-import {
-  VillaShowcase,
-  CoverageMap,
-  AssistantShowcase,
-} from "@/components/site/landing/SignatureShowcase";
-import { StoryRail } from "@/components/site/landing/StoryRail";
 import { gatedHref } from "@/lib/site/gated-href";
 
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"];
@@ -59,21 +48,7 @@ export default async function LandingPage() {
     { icon: "keys-tag", label: t.nav.commercial, href: "/search?type=office" },
   ];
 
-  const visionPoints: { icon: BrandIconName; title: string; body: string }[] = [
-    { icon: "user-verified", ...t.landing.vision.points.verified },
-    { icon: "naira-hand", ...t.landing.vision.points.naira },
-    { icon: "map-route", ...t.landing.vision.points.everywhere },
-    { icon: "bot-chat", ...t.landing.vision.points.assistant },
-  ];
 
-  const trust: { icons: TrustIconName[]; title: string; body: string }[] = [
-    { icons: ["globe"], ...t.landing.trust.multiLanguage },
-    { icons: ["shield"], ...t.landing.trust.secure },
-    { icons: ["ai-chip"], ...t.landing.trust.ai },
-    { icons: ["africa"], ...t.landing.trust.africa },
-    /* The fifth cell was "Available on / App Store & Play Store" beside Apple's
-       and Google's real badge artwork. We are on neither store. */
-  ];
 
   return (
     <>
@@ -204,26 +179,76 @@ export default async function LandingPage() {
           </nav>
         </section>
 
-        {/* ------------------------------------------------ the story rail */}
-        <StoryRail />
-
         {/*
-          What the product actually looks like.
+          ================================================================
+          THE PAGE IS SEVEN SECTIONS. IT WAS TWENTY ONE.
+          ================================================================
 
-          Placed directly after HowItWorks, so the three steps are immediately
-          followed by the thing they describe. The hero keeps its villa
-          atmosphere - that is the mood - and this is the product. The audit
-          found the site had no product imagery anywhere, so a visitor could
-          reach the sign-up button without ever seeing what they were signing
-          up to.
+          What came out, and why each one earned removal rather than a
+          rewrite:
+
+          A CATEGORY GRID THAT WAS THE HERO ROW AGAIN. It mapped the same
+          `categories` array, into cards this time, one screen below the
+          objects that now open the page. The same five links twice, drawn
+          two different ways, is how a reader learns that neither is the
+          real one.
+
+          A VISION AND MISSION SPREAD. Two headings, a card inside the
+          column, and four more cards beside it, all of it the platform
+          describing its own feelings. Nobody arriving to find a flat reads
+          a mission statement, and the four points it made are made better
+          by the product further down actually doing them.
+
+          A FACTS BAND, A NUMBERS BAND AND A TRUST STRIP. Three separate
+          rows of small claims, two of them adjacent. "36 + FCT" is
+          coverage we have zero listings in. The trust strip carried five
+          cells of adjective, "Trusted and secure", "Smarter experiences",
+          "Built with love", which is the writing you produce when there
+          is nothing specific to say.
+
+          A VILLA SHOWCASE, A COVERAGE MAP, AN ASSISTANT SHOWCASE AND A
+          MOOD ROW. Four full sections built around four commissioned
+          renders. Beautiful, and every one of them a picture of something
+          rather than the thing. The renders live on inside the product
+          where they illustrate a real screen.
+
+          A TWELVE ITEM FAQ. It said "Card payments switch on at public
+          launch. Until then no money changes hands" on a platform that
+          has taken a payment, promised NDPA compliance as a settled fact,
+          claimed every agent submits proof they own the property when
+          that ladder has never been walked, and asked "What happens after
+          I book?" in the language of a hotel stay, answering with check-in
+          details and a host. All of it belongs on /help, corrected, where
+          somebody goes looking for it.
+
+          What is left is one section per question a visitor actually
+          arrives with. What is on here. How does it work. Why should I
+          trust it. What does it look like. What if I am the one with the
+          property. What do other people say. Shall I start.
         */}
-        <section className="nf-shell grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-2">
+
+        {/* 1. What is actually on the platform. Renders nothing while there
+              is nothing, rather than a shelf of placeholders. */}
+        <FeaturedCarousel locale={locale} />
+
+        {/* 2. How it works, in three steps. */}
+        <HowItWorks t={t} />
+
+        {/* 3. Why this is safer than the alternative, which for most people
+              is a WhatsApp group and a bank transfer to a stranger. */}
+        <WhyRentMe t={t} />
+
+        {/* 4. What it actually looks like. A visitor could previously reach
+              the sign-up button without ever seeing a screen of the thing
+              they were signing up to. */}
+        <section className="nf-shell grid items-center gap-10 py-14 sm:py-20 lg:grid-cols-2">
           <Reveal>
             <p className="nf-overline">The app</p>
             <h2 className="nf-h2 mt-2 max-w-[16ch]">Everything in one place, on your phone</h2>
-            <p className="mt-3 max-w-[48ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-muted)]">
-              Search, book, pay and message from the same screen. No calls, no
-              agent runaround, no bank transfer to a stranger.
+            <p className="mt-3 max-w-[48ch] text-[1rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              Search, inspect, message and pay from the same screen. No calls,
+              no agent runaround, no transfer to an account you were sent in a
+              chat.
             </p>
           </Reveal>
           <Reveal delay={100}>
@@ -231,243 +256,36 @@ export default async function LandingPage() {
           </Reveal>
         </section>
 
-        <HowItWorks t={t} />
-
-        {/* --------------------------------------------- featured this week */}
-        <FeaturedCarousel locale={locale} />
-
-        {/* ------------------------------------------------ signature villa */}
-        <VillaShowcase />
-
-        {/*
-          -------------------------------------------------------- facts band
-
-          TWO CELLS, BOTH COUNTABLE.
-
-          This was four, and the two that are gone were not facts at all. One
-          printed "₦" in the same display weight as a statistic, so a currency
-          symbol sat in a row of numbers reading as a quantity of something. The
-          other printed "24/7", a support-availability promise nobody on this
-          platform has committed to, wedged between two figures that are true.
-
-          What is left is the coverage of the platform and the number of
-          languages it ships in, and both of those can be checked.
-        */}
-        <section className="nf-shell pt-4">
-          <Reveal>
-            <ul className="grid grid-cols-2 gap-3 sm:gap-4">
-              {[
-                { big: "36 + FCT", small: t.landing.vision.points.everywhere.title },
-                { big: "4", small: t.landing.trust.multiLanguage.title },
-              ].map((s) => (
-                <li key={s.small} className="nf-card px-4 py-4 text-center sm:px-5 sm:py-5">
-                  <span className="nf-gradient-text nf-numeric block font-[family-name:var(--nf-font-display)] text-[1.45rem] font-bold leading-none sm:text-[1.8rem]">
-                    {s.big}
-                  </span>
-                  {/* Wraps. This caption is the only thing saying what the
-                      number above it counts, and four locales set it at four
-                      different lengths. */}
-                  <span className="mt-1.5 block text-balance text-[0.72rem] text-[var(--nf-content-muted)] sm:text-[0.8125rem]">
-                    {s.small}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Reveal>
-        </section>
-
-        {/* ----------------------------------------------------- console */}
-        <Reveal>
-          <PlatformConsole />
-        </Reveal>
-
-        {/* --------------------------------------------------- vision / mission */}
-        <section className="relative overflow-hidden py-16 sm:py-20">
-          <div className="nf-shell relative z-10">
-            <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-              <Reveal>
-                <span className="nf-overline">{t.landing.vision.overline}</span>
-                <h2 className="nf-h1 mt-3">{t.landing.vision.title}</h2>
-                <p className="mt-4 max-w-[46ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)]">
-                  {t.landing.vision.body}
-                </p>
-
-                <div className="nf-card mt-7 p-5 sm:p-6">
-                  <span className="nf-overline">{t.landing.vision.missionOverline}</span>
-                  <h3 className="nf-h3 mt-2">{t.landing.vision.missionTitle}</h3>
-                  <p className="mt-3 text-[var(--nf-content-secondary)]">
-                    {t.landing.vision.missionBody}
-                  </p>
-                </div>
-              </Reveal>
-
-              <Reveal delay={80}>
-                <ul className="grid gap-5 sm:grid-cols-2">
-                  {visionPoints.map((p) => (
-                    <li key={p.title} className="nf-card nf-card--interactive p-5">
-                      <span className="mb-3 block h-16 w-16">
-                        <BrandIcon name={p.icon} fill />
-                      </span>
-                      <span className="block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-                        {p.title}
-                      </span>
-                      <span className="mt-1 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-                        {p.body}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </Reveal>
-            </div>
-          </div>
-        </section>
-
-        {/* ----------------------------------------------------- categories */}
-        <section className="nf-shell py-10 sm:py-14">
-          <Reveal className="mb-7 max-w-[52ch] sm:mb-8">
-            <h2 className="nf-h1">{t.landing.categories.title}</h2>
-            <p className="mt-3 text-[var(--nf-content-secondary)]">
-              {t.landing.categories.subtitle}
-            </p>
-          </Reveal>
-
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
-            {categories.map((c, i) => (
-              <Reveal as="li" key={c.href} delay={i * 60}>
-                <Link
-                  href={c.href}
-                  className="nf-card nf-card--interactive flex h-full flex-col items-center gap-4 p-5 text-center sm:p-6"
-                >
-                  <span className="h-14 w-14 sm:h-14 sm:w-14 lg:h-16 lg:w-16">
-                    <BrandIcon name={c.icon} fill />
-                  </span>
-                  <span className="text-[0.875rem] font-semibold sm:text-[0.9375rem]">{c.label}</span>
-                </Link>
-              </Reveal>
-            ))}
-          </ul>
-        </section>
-
-        {/* --------------------------------------------------------- mood row */}
-        <MoodRow />
-
-        <PopularDestinations t={t} />
-
-        {/* --------------------------------------------------- coverage map */}
-        <CoverageMap />
-
+        {/* 5. The other half of a marketplace. Somebody has to have the
+              property. */}
         <AgentsBand t={t} />
 
-        <WhyRentMe t={t} />
-
-        {/*
-          Real guest voices, or nothing at all.
-
-          Placed after WhyRentMe deliberately: that section is the platform
-          making its own case, and this is other people answering it. Renders
-          null until a real review exists, so the page simply does not have a
-          testimonials section rather than having an empty or invented one.
-        */}
+        {/* 6. Other people answering the case the platform just made for
+              itself. Renders null until a real review exists, so the page
+              has no testimonials section rather than an invented one. */}
         <VoicesBand locale={locale} />
 
-        {/* --------------------------------------------- assistant showcase */}
-        <AssistantShowcase />
-
-        {/* ----------------------------------------------------- numbers band */}
-        <NumbersBand locale={locale} />
-
-        {/* ---------------------------------------------------------- trust */}
-        <section className="nf-shell">
+        {/* 7. One way in. */}
+        <section className="nf-shell py-16 sm:py-20">
           <Reveal>
-            <ul className="nf-card grid grid-cols-1 overflow-hidden p-0 sm:grid-cols-2 lg:grid-cols-5">
-              {trust.map((item, i) => (
-                <li
-                  key={item.title}
-                  className={[
-                    "flex items-center gap-4 px-5 py-5",
-                    i > 0 ? "sm:border-l sm:border-[var(--nf-border-subtle)]" : "",
-                    i % 2 === 0 ? "sm:border-l-0 lg:border-l" : "",
-                    i === 0 ? "lg:border-l-0" : "",
-                    i > 0 ? "border-t border-[var(--nf-border-subtle)] sm:border-t-0" : "",
-                    i > 1 ? "sm:border-t sm:lg:border-t-0" : "",
-                  ].join(" ")}
-                >
-                  <span className="flex shrink-0 items-center gap-1.5">
-                    {item.icons.map((n) => (
-                      <TrustIcon key={n} name={n} size={34} />
-                    ))}
-                  </span>
-                  <span className="min-w-0 leading-tight">
-                    {/* The trust strip. Both lines are written copy, and both
-                        were clipping on a desktop viewport: "Your safety is our
-                        priorit" and "App Store & Play Sto". */}
-                    <span className="block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-                      {item.title}
-                    </span>
-                    <span className="block text-[0.8125rem] text-[var(--nf-content-muted)]">
-                      {item.body}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Reveal>
-        </section>
-
-        {/* ------------------------------------------------------------- faq */}
-        <section className="nf-shell pt-14">
-          <Reveal className="mb-6 max-w-[52ch]">
-            <h2 className="nf-h1">Questions, answered</h2>
-          </Reveal>
-          <div className="space-y-2.5">
-            {[
-              ["Is my payment safe?", "Yes. Payments are processed by a licensed Nigerian payment provider, and your card details never touch our servers. You are never charged before you confirm."],
-              ["Can I list my property?", "Yes. Apply in about ten minutes from the Become an Agent page. Every application is reviewed before listings go live."],
-              ["Which languages are supported?", "English, Yoruba, Hausa and Igbo, switchable at any time from the top bar."],
-              ["Where does RentMe operate?", "All 36 states and the FCT from day one, with the deepest coverage growing city by city."],
-              ["How do I get help?", "The AI assistant answers instantly inside the app, and our support team is one message away."],
-              ["How do payments work before launch?", "Card payments switch on at public launch. Until then you can browse, save favourites and shortlist places, and no money changes hands. When payments open they run in naira through a licensed Nigerian payment provider."],
-              ["Is there a booking fee?", "No. There are no booking fees on RentMe right now. The price you see on a listing is the price you pay, with any charges shown in full before you confirm."],
-              ["How do agents get verified?", "Every agent submits a government issued ID and proof that they own or manage the property. Our team reviews each application by hand, and only approved agents can publish listings."],
-              ["Can I pay in instalments?", "Not yet. Bookings are paid in full for now. Instalment payments are on our roadmap, and we will announce them the moment they are ready rather than promise a date."],
-              ["What happens after I book?", "You get an instant confirmation with the address, check in details and the host's contact, and the booking appears in your account. Reminders arrive as your date approaches."],
-              ["How do I contact a host?", "Once your booking is confirmed you can message the host directly from the booking page, and the AI assistant can help draft questions in any of our four languages."],
-              ["Is my data safe under NDPA?", "Yes. RentMe is built to comply with the Nigeria Data Protection Act. Your data is encrypted in transit and at rest, is never sold, and you can request a copy or deletion at any time."],
-            ].map(([q, a]) => (
-              <Reveal key={q}>
-                <details className="nf-card group p-0">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-[0.9375rem] font-semibold [&::-webkit-details-marker]:hidden">
-                    {q}
-                    <span className="text-[var(--nf-content-muted)] transition-transform group-open:rotate-45">+</span>
-                  </summary>
-                  <p className="px-5 pb-4 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">{a}</p>
-                </details>
-              </Reveal>
-            ))}
-          </div>
-        </section>
-
-        {/* ------------------------------------------------------------ cta */}
-        <section className="nf-shell py-16 sm:pt-20">
-          <Reveal>
-            <div className="nf-card nf-card--live relative overflow-hidden p-8 text-center sm:p-10 md:p-14">
+            <div className="nf-card nf-card--live relative overflow-hidden p-8 text-center sm:p-12 md:p-16">
               <div className="nf-aurora opacity-60" aria-hidden="true" />
               <div className="relative z-10">
                 <h2 className="nf-h1 mx-auto max-w-[20ch]">{t.landing.cta.title}</h2>
-                <p className="mx-auto mt-4 max-w-[52ch] text-[var(--nf-content-secondary)]">
+                <p className="mx-auto mt-4 max-w-[52ch] text-[1rem] leading-relaxed text-[var(--nf-content-secondary)]">
                   {t.landing.cta.subtitle}
                 </p>
                 <div className="mt-8 flex flex-wrap justify-center gap-4">
-                  <ButtonLink href="/sign-up" variant="primary" size="lg" className="nf-breathe">
+                  <ButtonLink href="/sign-up" variant="primary" size="lg">
                     {t.landing.cta.action}
                   </ButtonLink>
-                  {/* This said "Browse without an account" and pointed at
-                      /search. The product is behind a session now, so it was
-                      an offer the next click refused. The docs are the honest
-                      version of the same invitation: see the whole thing,
-                      free, without joining. */}
-                  <ButtonLink href="/docs" variant="secondary" size="lg">
-                    {t.landing.cta.secondary}
+                  {/* Back to browsing, which is now a real offer. This pointed
+                      at /docs because the product used to be behind a session
+                      and "browse without an account" was refused by the very
+                      next click. Browsing is open, so the honest invitation is
+                      the one we could not make before. */}
+                  <ButtonLink href="/search" variant="secondary" size="lg">
+                    Browse properties
                   </ButtonLink>
                 </div>
               </div>
