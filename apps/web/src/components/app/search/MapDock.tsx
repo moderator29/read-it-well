@@ -8,6 +8,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MapCopy, MapListing } from "./mapTypes";
 import { Amount } from "@/components/ui/Amount";
 import { MediaFrame } from "@/components/app/MediaFrame";
+import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 
 /**
  * The card that docks at the foot of the map when a pin is chosen.
@@ -92,7 +93,7 @@ export function MapDock({
   return (
     <div
       data-testid="map-dock"
-      className="pointer-events-auto px-3 pb-3"
+      className="pointer-events-auto px-row pb-row"
       role="group"
       aria-label={`Chosen place: ${listing.title}`}
     >
@@ -119,8 +120,26 @@ export function MapDock({
           onClick={(event) => {
             if (dragged.current) event.preventDefault();
           }}
-          className="flex items-stretch gap-3 p-2.5 pt-3.5"
+          className="flex flex-wrap items-stretch gap-row p-inline pt-row"
         >
+          {/*
+            THE DISCLOSURE, ON THE ONE CARD THAT DOES NOT GO THROUGH
+            `ListingCard`.
+
+            This dock is a property card by every measure that matters: a
+            photograph, a title, a place, a rating and a price, arrived at by
+            tapping a pin. It is not built from `ListingCard`, so putting the
+            example statement on that component alone would have left the map
+            as the single surface where somebody meets an invented property
+            with a real Lekki address and a real naira figure and is told
+            nothing.
+
+            Full width above the photograph and the price, for the same reason
+            it sits above them in a grid card: it corrects a belief before the
+            belief forms. `basis-full` because the row it lives in is a flex
+            row built for the thumbnail and the text column beside it.
+          */}
+          {listing.isDemo && <ExampleNotice className="basis-full" />}
           <div className="relative h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]">
             <MediaFrame hue={listing.hue} />
             {listing.photo && (
@@ -135,18 +154,18 @@ export function MapDock({
           </div>
 
           <div className="min-w-0 flex-1 pr-[4.5rem]">
-            <h3 className="truncate text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+            <h3 className="nf-body truncate font-semibold leading-snug text-[var(--nf-content-primary)]">
               {listing.title}
             </h3>
-            <p className="mt-1 flex items-center gap-1.5 text-[0.75rem] text-[var(--nf-content-secondary)]">
-              <UiIcon name="location" size={12} className="shrink-0 opacity-70" />
+            <p className="nf-body-sm mt-inline-tight flex items-center gap-inline-tight text-[var(--nf-content-secondary)]">
+              <UiIcon name="location" size={16} className="shrink-0 opacity-70" />
               <span className="truncate">{where}</span>
             </p>
 
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <div className="mt-inline flex flex-wrap items-center gap-x-inline gap-y-inline-tight">
               {listing.rating > 0 && (
-                <span className="nf-numeric flex items-center gap-1 text-[0.75rem] font-semibold text-[var(--nf-content-primary)]">
-                  <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />
+                <span className="nf-numeric nf-body-sm flex items-center gap-inline-tight font-semibold text-[var(--nf-content-primary)]">
+                  <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
                   {formatRating(listing.rating, locale)}
                   <span className="font-normal text-[var(--nf-content-muted)]">
                     ({listing.reviewCount})
@@ -155,13 +174,13 @@ export function MapDock({
               )}
               {listing.verified && (
                 <span className="nf-badge nf-badge--verified">
-                  <UiIcon name="verified" size={12} />
+                  <UiIcon name="verified" size={16} />
                   {copy.verified}
                 </span>
               )}
             </div>
 
-            <p className="mt-1.5">
+            <p className="mt-inline">
               {hasPrice ? (
                 <Amount
                   minorUnits={listing.priceMinor}
@@ -173,7 +192,7 @@ export function MapDock({
                   secondaryClassName="text-[0.65em] font-semibold opacity-60"
                 />
               ) : (
-                <span className="text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]">
+                <span className="nf-body-sm font-semibold text-[var(--nf-content-secondary)]">
                   {listing.kindLabel}
                 </span>
               )}

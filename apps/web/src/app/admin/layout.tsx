@@ -109,7 +109,12 @@ function AdminPill({ label, className }: { label: string; className?: string }) 
         "nf-caption inline-flex w-fit items-center gap-2xs rounded-[var(--nf-radius-pill)] px-xs py-3xs font-bold",
         className ?? "",
       ].join(" ")}
-      style={{ background: "var(--nf-brand-primary-soft)", color: "var(--nf-electric-300)" }}
+      /* `--nf-brand-secondary` is the layer-2 alias this pill should always
+         have used: it is the same token `.nf-badge--brand` reads for the same
+         job, so the console marker and every brand badge beside it now move
+         together, and it carries a daylight value where the raw palette rung
+         did not. */
+      style={{ background: "var(--nf-brand-primary-soft)", color: "var(--nf-brand-secondary)" }}
     >
       <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--nf-brand-primary)]" />
       {label}

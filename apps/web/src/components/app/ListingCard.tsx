@@ -12,6 +12,7 @@ import { IntentTune } from "@/components/app/IntentTune";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { isPropertyType, type PropertyType } from "@/lib/interests/schema";
 import { isDataSaver } from "@/lib/ui/data-saver";
+import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 import { cardFacts, cardUtility } from "./listing-card-model";
 
 /**
@@ -268,17 +269,39 @@ export function ListingCard({
 
           {/* ----------------------------------------------------- PRIMARY 3
               Where it is, on the photograph where the eye already is. */}
-          <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-on-media)]">
+          <p className="nf-body-sm absolute bottom-3 left-3 right-3 flex items-center gap-inline-tight font-medium text-[var(--nf-content-on-media)]">
             <UiIcon
               name="location"
-              size="xs"
+              size="sm"
               className="shrink-0 text-[var(--nf-content-on-media-muted)]"
             />
             <span className="truncate">{where}</span>
           </p>
         </div>
 
-        <div className="p-4">
+        <div className="p-card">
+          {/*
+            ------------------------------------------------------ DISCLOSURE
+
+            ABOVE THE PRICE, BECAUSE THE PRICE IS THE LIE.
+
+            An example listing carries a real Lagos area and a real naira
+            figure, and until now a reader had no way at all to tell it apart
+            from the flat next to it in the grid. The sentence that says so
+            existed only in Open Graph metadata, which is written for crawlers.
+
+            It goes FIRST in the body, before the price and before the title,
+            because those are the two things somebody believes about a card, and
+            a correction that arrives after the belief has formed is a footnote.
+            Deliberately not a badge on the photograph: a pill in that corner is
+            where every platform draws Featured and Superhost, and dressing a
+            warning as an endorsement is worse than saying nothing.
+
+            See `ExampleNotice` for the rest of the reasoning. It renders the
+            one shared string, so this card and the detail page cannot drift.
+          */}
+          {listing.isDemo && <ExampleNotice className="mb-row" />}
+
           {/* ------------------------------------------------------- PRIMARY 2
               The price, on its own row, above the title.
 
@@ -300,12 +323,12 @@ export function ListingCard({
               />
             </p>
           ) : (
-            <p className="text-[0.875rem] font-semibold text-[var(--nf-content-muted)]">
+            <p className="nf-body-sm font-semibold text-[var(--nf-content-muted)]">
               {t.common.priceOnRequest}
             </p>
           )}
 
-          <h3 className="mt-1.5 line-clamp-2 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+          <h3 className="nf-body mt-inline-tight line-clamp-2 font-semibold leading-snug text-[var(--nf-content-primary)]">
             {listing.title}
           </h3>
 
@@ -313,9 +336,9 @@ export function ListingCard({
               One quiet row, fixed order, muted. Everything in it is a fact the
               reader might filter on, and none of it is worth full contrast. */}
           {facts.length > 0 && (
-            <ul className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+            <ul className="nf-caption mt-inline flex flex-wrap items-center gap-x-inline gap-y-inline-tight text-[var(--nf-content-muted)]">
               {facts.map((fact, i) => (
-                <li key={fact.key} className="flex items-center gap-2.5">
+                <li key={fact.key} className="flex items-center gap-inline">
                   {/* A dot between facts rather than a gap. At 12px muted, a
                       gap alone lets "3" and "2" read as "32". */}
                   {i > 0 && (
@@ -333,7 +356,7 @@ export function ListingCard({
               The one Nigerian field that earns space in a grid. Absent, and
               therefore invisible, when the host has not answered. */}
           {power && (
-            <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-[var(--nf-radius-pill)] bg-[var(--nf-surface-secondary)] px-2.5 py-1 text-[0.75rem] font-medium text-[var(--nf-content-secondary)]">
+            <p className="nf-caption mt-inline inline-flex max-w-full items-center gap-inline-tight rounded-[var(--nf-radius-pill)] bg-[var(--nf-surface-secondary)] px-sm py-2xs font-medium text-[var(--nf-content-secondary)]">
               <UiIcon name="sparkle" size="xs" className="shrink-0 text-[var(--nf-brand-primary)]" />
               <span className="truncate">{power}</span>
             </p>

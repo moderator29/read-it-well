@@ -45,6 +45,9 @@ export default async function AdminPaymentsPage() {
   const ui = adminUi(t, locale);
 
   const read = await getPaymentHealth(STALE_HOLD_MINUTES);
+  /* The moment this page's rows were read, handed to the sweep control so its
+     age arithmetic runs against the same clock the list was built from. */
+  const asOf = new Date().toISOString();
 
   if (read.state !== "ok") {
     return (
@@ -165,7 +168,12 @@ export default async function AdminPaymentsPage() {
               </ul>
             </div>
 
-            <SweepHolds holds={staleHolds} defaultMinutes={staleMinutes} locale={locale} />
+            <SweepHolds
+              holds={staleHolds}
+              defaultMinutes={staleMinutes}
+              locale={locale}
+              asOf={asOf}
+            />
           </div>
         )}
       </ui.Section>

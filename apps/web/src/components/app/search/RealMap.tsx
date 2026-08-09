@@ -103,6 +103,7 @@ export async function RealMap({
       ...(listing.photos[0] ? { photo: listing.photos[0] } : {}),
       hue: listing.hue,
       verified: listing.verified,
+      isDemo: listing.isDemo,
       lat: at.lat,
       lng: at.lng,
       byArea,

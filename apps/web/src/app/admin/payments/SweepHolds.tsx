@@ -34,10 +34,21 @@ export function SweepHolds({
   holds,
   defaultMinutes,
   locale,
+  asOf,
 }: {
   holds: StaleHold[];
   defaultMinutes: number;
   locale: Locale;
+  /**
+   * When the server read these rows, as an ISO instant.
+   *
+   * Reading the clock during render is impure, and it would also give the
+   * server and the browser two different answers about which holds are old
+   * enough to sweep. The page is `force-dynamic`, so this is fresh on every
+   * request, and every age below is measured against the same moment the list
+   * itself was measured against.
+   */
+  asOf: string;
 }) {
   const router = useRouter();
   const [minutes, setMinutes] = useState(String(defaultMinutes));
@@ -57,9 +68,10 @@ export function SweepHolds({
    * people whose money is not about to move. Recomputing here from the same
    * rows keeps the confirmation honest as the input changes.
    */
+  const readAt = Date.parse(asOf);
   const affected = windowIsUsable
     ? holds.filter((hold) => {
-        const age = Date.now() - Date.parse(hold.createdAt);
+        const age = readAt - Date.parse(hold.createdAt);
         return Number.isFinite(age) && age >= parsedMinutes * 60_000;
       })
     : [];
