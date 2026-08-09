@@ -72,8 +72,10 @@
     ".next-ds/dev/types/**/*.ts",
     ".next-admin/types/**/*.ts",
     ".next-admin/dev/types/**/*.ts",
-    ".next-qa/types/**/*.ts",
-    ".next-qa/dev/types/**/*.ts"
+    ".next-fe/types/**/*.ts",
+    ".next-fe/dev/types/**/*.ts",
+    ".next-sec/types/**/*.ts",
+    ".next-sec/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
