@@ -150,8 +150,8 @@ export function ListingUtilities({
       />
 
       {utilities.hasEstateAccess && (
-        <div className="flex gap-4 py-5">
-          <span className="block h-14 w-14 shrink-0">
+        <div className="flex gap-3 py-4">
+          <span className="block h-10 w-10 shrink-0">
             <BrandIcon name="keys-home" fill />
           </span>
           <div className="min-w-0 flex-1">
@@ -219,8 +219,8 @@ function Row({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex gap-4 py-5 first:pt-0">
-      <span className="block h-14 w-14 shrink-0">
+    <div className="flex gap-3 py-4 first:pt-0">
+      <span className="block h-10 w-10 shrink-0">
         <BrandIcon name={icon} fill />
       </span>
       <div className="min-w-0 flex-1">

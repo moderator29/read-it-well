@@ -109,7 +109,7 @@ export function ProfilePosts({
       >
         <div className="nf-card nf-social-card p-6 text-center sm:p-8">
           <div className="mx-auto w-fit">
-            <BrandIcon name={copy.icon} size={56} />
+            <BrandIcon name={copy.icon} size={44} />
           </div>
           <h3 className="nf-h3 mt-3.5 text-[1.05rem]">
             {isOwner ? copy.mineTitle : copy.theirsTitle.replace("{handle}", handle)}

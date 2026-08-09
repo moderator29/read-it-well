@@ -68,6 +68,11 @@ export function ListingOptionsSheet({
           aria-hidden="true"
           className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]"
         >
+          {/* No `kind` here, deliberately. `ConversationListing` is a narrow
+              projection built by the messages query and it does not carry the
+              property type; adding it would mean widening that select for a
+              64px thumbnail inside a sheet. The frame draws its default house
+              scene, which is the honest answer when the market is unknown. */}
           <MediaFrame hue={listing.hue} />
         </div>
         <div className="min-w-0 flex-1">

@@ -1,0 +1,178 @@
+@layer components {
+  /**
+   * Explore: the browse-by-type rail, and the shelf the results sit on.
+   *
+   * ---------------------------------------------------------------------------
+   * THE SIZES IN HERE ARE DELIBERATELY SMALL, AND THAT IS THE POINT.
+   *
+   * The complaint that produced this file was "everything is too big": 56px
+   * objects inside 88px chips inside cards inside sections, so a phone screen
+   * held four controls and no property. A category tile is a SHORTCUT. It is
+   * not the content of this screen, it is the thing you pass on the way to the
+   * content, and it should cost one row of height and no more.
+   *
+   * So the object is 40px, the tile is 84px wide, and the whole rail including
+   * its heading is under 130px on a 390px phone. Nine markets, one row, and the
+   * first property is still above the fold.
+   */
+
+  .nf-market {
+    /* No card, no border, no blur. This is a rail on the page, not a panel: a
+       container drawn around nine tiles that already have their own containers
+       is the nesting that made this product read as choked. */
+    margin-top: var(--nf-space-lg);
+    /*
+     * `display: block`, STATED, because this block was called `.nf-market` only
+     * after it had already been called `.nf-cat` and broken.
+     *
+     * `.nf-cat` is TAKEN. It is the home screen's category link, in
+     * utilities.css: a centred flex column with a lifting glyph. Naming this
+     * section the same thing silently applied all of it, so the `<section>`
+     * became a centred flex container, the rail below became a FLEX ITEM, and a
+     * flex item's `min-width` resolves to `auto`, which means "never shrink
+     * below your own content". `overflow-x: auto` therefore did nothing at all:
+     * the rail sized itself to all nine tiles, 892px, inside a 350px column,
+     * and the flex parent centred that overflow. On a 390px phone the visible
+     * result was the middle five tiles with both ends cut off and no way to
+     * scroll to either.
+     *
+     * Measured, not guessed: `scrollLeft` was 0 while `scrollWidth` and
+     * `clientWidth` were both 892, which is the signature of a scroll container
+     * that was never allowed to be smaller than its contents.
+     *
+     * The name is unique now and this line is no longer load bearing. It stays
+     * as the note that a component stylesheet in a flat namespace has to check
+     * whether its class already means something.
+     */
+    display: block;
+  }
+
+  .nf-market__head {
+    margin-bottom: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * The rail bleeds to both screen edges by cancelling the shell's gutter and
+   * restoring it as padding.
+   *
+   * Without this, a horizontally scrolling row inside a gutter stops short of
+   * the screen edge, which reads as a row that has ended rather than one that
+   * continues. The cancel and the restore take the same value, so they are one
+   * decision and cannot drift the way a hand-written `-mx-5 px-5` pair does.
+   */
+  .nf-market__rail {
+    display: flex;
+    /* Belt and braces on the same defect: if this ever becomes a flex item
+       again, `min-width: 0` is what lets it be narrower than its nine tiles
+       and therefore what lets it scroll at all. */
+    min-width: 0;
+    gap: var(--nf-space-sm);
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding-inline: var(--nf-pad-shell);
+    /* Room for the focus ring and the lift, which would otherwise be clipped
+       by the scroll container's own overflow. */
+    padding-block: 0.25rem;
+  }
+
+  /* Every tile the height of the tallest, so one wrapped label cannot make the
+     row ragged. Belt and braces beside the short names: a translation is free
+     to be longer than the English. */
+  .nf-market__rail > li {
+    display: flex;
+  }
+
+  .nf-market__tile {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    width: 5.25rem;
+    padding: 0.625rem 0.375rem 0.5rem;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-glass-fill-thin);
+    text-align: center;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  .nf-market__tile:hover {
+    border-color: var(--nf-border-brand);
+    background: var(--nf-glass-fill);
+    transform: translateY(-2px);
+  }
+
+  .nf-market__tile:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-market__tile {
+      transition: none;
+    }
+    .nf-market__tile:hover {
+      transform: none;
+    }
+  }
+
+  /* The market you are in. A brand rim and a wash rather than a filled tile:
+     the object inside is white ceramic on a light plinth, and a saturated fill
+     behind it turns the artwork into a sticker. */
+  .nf-market__tile--on {
+    border-color: var(--nf-border-brand);
+    background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+  }
+
+  .nf-market__tile--on .nf-market__name {
+    color: var(--nf-content-primary);
+    font-weight: 650;
+  }
+
+  .nf-market__name {
+    /* Every name in the list fits on ONE line at this width, by construction:
+       see the note in CategoryRail on why "Whole homes" became "Homes". */
+    font-size: 0.75rem;
+    font-weight: 550;
+    line-height: 1.2;
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-market__count {
+    /* Pinned to the bottom of the tile, so a wrapped name in another language
+       pushes its own label down without leaving this row of numbers ragged. */
+    margin-top: auto;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * From `lg` the nine fit across without scrolling, so they stop being a rail
+   * and become a row. `flex-shrink` is reset because `.nf-scroll-x > *` pins it
+   * to zero for the scrolling case, and a row that cannot shrink would push
+   * past the content column at exactly the width where it no longer needs to.
+   */
+  @media (min-width: 64rem) {
+    .nf-market__rail {
+      margin-inline: 0;
+      padding-inline: 0;
+      overflow-x: visible;
+    }
+    .nf-market__rail > * {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+    .nf-market__tile {
+      width: auto;
+    }
+  }
+}

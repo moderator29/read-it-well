@@ -14,6 +14,7 @@ import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
+import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
 
 /**
@@ -49,12 +50,19 @@ export function PhotoViewerProvider({
   title,
   photos,
   hue,
+  kind,
   children,
 }: {
   title: string;
   /** Photo URLs, best first. */
   photos: string[];
   hue: number;
+  /**
+   * Which market this is, so the frame drawn behind a missing photograph is a
+   * drawing of THIS kind of place rather than the same city skyline every
+   * listing used to get. See `MediaFrame`.
+   */
+  kind: ListingKind;
   children: ReactNode;
 }) {
   const [index, setIndex] = useState<number | null>(null);
@@ -77,6 +85,7 @@ export function PhotoViewerProvider({
           title={title}
           photos={photos}
           hue={hue}
+          kind={kind}
           startIndex={index}
           onClose={() => setIndex(null)}
         />
@@ -91,12 +100,14 @@ function Lightbox({
   title,
   photos,
   hue,
+  kind,
   startIndex,
   onClose,
 }: {
   title: string;
   photos: string[];
   hue: number;
+  kind: ListingKind;
   startIndex: number;
   onClose(): void;
 }) {
@@ -219,7 +230,7 @@ function Lightbox({
             className="relative h-full w-full shrink-0 snap-center snap-always overflow-hidden"
           >
             {broken[i] ? (
-              <PhotoFrame hue={hue} index={i} />
+              <PhotoFrame hue={hue} index={i} kind={kind} />
             ) : (
               <Image
                 src={photo}

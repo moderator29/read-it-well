@@ -453,13 +453,29 @@ export default async function ListingDetailPage({
   const stickySecondary: StickyAction | null =
     isExample || !isBookable ? null : { label: "Message agent", href: messageHref };
 
+  /*
+   * THE SAME DISCLOSURE WAS ON THIS PAGE THREE TIMES.
+   *
+   * The notice sat in the hero above the price, again at the top of this
+   * panel, and a third statement of it followed as a full paragraph: "Nothing
+   * can be booked, inspected or paid for here, and there is nobody to message
+   * about it. When real properties are listed in this area they will appear in
+   * search with an owner you can actually reach." Then a filled button, then
+   * the same button again in the sticky bar. Five elements, one fact, and
+   * between them they pushed the actual property below the fold on a phone.
+   *
+   * Saying a thing three times does not make it three times as honest. It
+   * makes the page read as an apology for itself, which is what the owner saw
+   * and objected to. The disclosure stays exactly ONCE, in the hero, where a
+   * reader meets it before the price forms a belief; that placement was argued
+   * for and it is the right one. What is left here is the CONSEQUENCE, in one
+   * line: what you cannot do, and the one link that leads somewhere real.
+   */
   const bookingPanel = isExample ? (
     <div className="nf-card p-card">
-      <ExampleNotice variant="page" />
-      <p className={`mt-block ${TYPE.body}`}>
-        Nothing can be booked, inspected or paid for here, and there is nobody
-        to message about it. When real properties are listed in this area they
-        will appear in search with an owner you can actually reach.
+      <p className={TYPE.rowMeta}>
+        Nothing here can be booked or paid for. Search for a real place with an
+        owner you can reach.
       </p>
       <ButtonLink href="/search" variant="primary" className="mt-block w-full">
         Browse real listings
@@ -590,7 +606,12 @@ export default async function ListingDetailPage({
   const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
 
   const body = (
-    <PhotoViewerProvider title={listing.title} photos={listing.photos} hue={listing.hue}>
+    <PhotoViewerProvider
+      title={listing.title}
+      photos={listing.photos}
+      hue={listing.hue}
+      kind={listing.kind}
+    >
       <div className="mx-auto max-w-5xl">
         {structuredData && (
           <script
@@ -617,6 +638,7 @@ export default async function ListingDetailPage({
           listingId={listing.id}
           title={listing.title}
           hue={listing.hue}
+          kind={listing.kind}
           photos={listing.photos}
           initialSaved={initialSaved}
           backFallback="/home"
@@ -817,6 +839,7 @@ export default async function ListingDetailPage({
                       <ListingPhotoGrid
                         photos={listing.photos}
                         hue={listing.hue}
+                        kind={listing.kind}
                         title={listing.title}
                       />
                     </Section>

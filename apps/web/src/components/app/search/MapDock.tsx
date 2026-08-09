@@ -141,7 +141,7 @@ export function MapDock({
           */}
           {listing.isDemo && <ExampleNotice className="basis-full" />}
           <div className="relative h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]">
-            <MediaFrame hue={listing.hue} />
+            <MediaFrame hue={listing.hue} kind={listing.kind} />
             {listing.photo && (
               <Image
                 src={listing.photo}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
+import { CategoryRail } from "@/components/app/search/CategoryRail";
 import { RealMap } from "@/components/app/search/RealMap";
 import { RecentStrip } from "@/components/app/search/RecentStrip";
 import { SearchMemory } from "@/components/app/search/SearchMemory";
@@ -30,7 +31,7 @@ import {
   type DiscoveryQuery,
   type SortKey,
 } from "@/lib/listings/search-params";
-import type { Listing } from "@/lib/listings/types";
+import type { Listing, ListingKind } from "@/lib/listings/types";
 import { ListingCard } from "@/components/app/ListingCard";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -268,6 +269,19 @@ export default async function SearchPage({
   const intentApplied = listings !== sorted;
   const intentKinds = intentApplied ? intentKindsPresent(listings, statedIntent) : [];
 
+  /*
+   * How much stock each market holds, for the browse-by-type rail.
+   *
+   * Counted from `whole`, the catalogue read the map already needed, so the
+   * rail costs nothing extra and its numbers cannot disagree with the grid.
+   * Deliberately NOT counted from `listings`: the rail is how somebody moves
+   * BETWEEN markets, so a Shortlets tile that read zero because the reader is
+   * currently filtered to hotels under two million would be telling them the
+   * shelf is empty when it is the filter that is narrow.
+   */
+  const kindCount = new Map<ListingKind, number>();
+  for (const l of whole) kindCount.set(l.kind, (kindCount.get(l.kind) ?? 0) + 1);
+
   // The map reads the whole catalogue: every covered city keeps its pin and
   // lowest nightly price regardless of the current text filter.
   const cityFloor = new Map<string, { count: number; minMinor: number; currency: string }>();
@@ -403,6 +417,18 @@ export default async function SearchPage({
         */}
       </div>
 
+      {/*
+        Browse by type: nine markets, each a link, each carrying its own live
+        count. This is the category control BACK ON THE PAGE, and it is not the
+        rail that was removed from the sticky bar: that one was twelve tiles
+        inside the sticky header, above four more control rows, with no counts
+        and no way to tell an empty market from a full one. This sits below the
+        bar, scrolls away with the page, and every tile says how much is behind
+        it. The filter drawer still owns the category as well, for somebody who
+        is already inside it.
+      */}
+      <CategoryRail query={query} counts={kindCount} locale={locale} />
+
       {/* Nothing rendered. Records the view and the hunt for the strip below. */}
       <SearchMemory
         view={query.view}
@@ -500,29 +526,44 @@ export default async function SearchPage({
             reachable, and it can only do that if this parent is allowed to be
             narrower than its contents, which is exactly what `min-w-0` permits.
           */}
-          <div className="flex min-w-0 items-center gap-inline">
-            <nav aria-label="Sort results" className="nf-scroll-x min-w-0">
-              <ul className="flex items-center gap-inline-tight">
-                {SORTS.map((srt) => {
-                  const active = query.sort === srt.key;
-                  return (
-                    <li key={srt.key}>
-                      <Link
-                        href={toSearchHref({ ...query, sort: srt.key })}
-                        prefetch
-                        aria-current={active ? "true" : undefined}
-                        className={`nf-chip whitespace-nowrap ${active ? "nf-chip--active" : ""}`}
-                      >
-                        {srt.label}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </nav>
-            <ViewToggle query={query} />
-          </div>
+          {/*
+            The view toggle sits with the count. The sort rail does NOT.
+
+            They were siblings in one flex row, and on a 390px phone that put
+            four scrolling sort chips and a two-segment toggle in the same
+            track: the rail's overflow was clipped exactly where the toggle
+            began, so "Top rated" appeared cut in half BEHIND the List control.
+            It read as two controls overlapping, which is the specific kind of
+            broken the owner has been pointing at.
+
+            They are different things and they now sit on different lines. The
+            toggle is a two-state choice that always fits, so it stays beside
+            the count. Sort is a rail that has to be allowed to run the full
+            width of the screen, so it gets the row below and nothing to
+            collide with.
+          */}
+          <ViewToggle query={query} />
         </div>
+
+        <nav aria-label="Sort results" className="nf-scroll-x mt-row -mx-gutter px-gutter">
+          <ul className="flex items-center gap-inline-tight">
+            {SORTS.map((srt) => {
+              const active = query.sort === srt.key;
+              return (
+                <li key={srt.key}>
+                  <Link
+                    href={toSearchHref({ ...query, sort: srt.key })}
+                    prefetch
+                    aria-current={active ? "true" : undefined}
+                    className={`nf-chip whitespace-nowrap ${active ? "nf-chip--active" : ""}`}
+                  >
+                    {srt.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
 
         {/* Everything narrowing the results, each one removable in one tap. */}
         <ActiveFilters query={query} locale={locale} />
