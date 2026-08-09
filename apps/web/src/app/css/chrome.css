@@ -174,7 +174,9 @@
   }
 
   .nf-tabbar {
-    background: var(--nf-glass-fill-strong);
+    /* Canvas tint rather than a white wash: this floats over scrolling
+       content. See the note on `.nf-glass--chrome` in glass.css. */
+    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
     border: 1px solid var(--nf-glass-border);
     border-radius: var(--nf-radius-pill);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
@@ -201,7 +203,11 @@
     height: 3.5rem;
     border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
-    background: var(--nf-glass-fill-strong);
+    /* The canvas rather than a white wash, for the same reason the header
+       takes it: this floats over scrolling content, so a white fill lightens
+       whatever passes beneath and the dock stops matching the page it sits on.
+       See the note on `.nf-glass--chrome`. */
+    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
     border: 1px solid var(--nf-glass-border);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
@@ -389,7 +395,9 @@
     gap: var(--nf-gap-inline-tight);
     padding: var(--nf-gap-inline);
     border-radius: var(--nf-radius-pill);
-    background: var(--nf-glass-fill-strong);
+    /* Canvas tint rather than a white wash: this floats over scrolling
+       content. See the note on `.nf-glass--chrome` in glass.css. */
+    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
     border: 1px solid var(--nf-border-subtle);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
     backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
