@@ -220,6 +220,7 @@ export const yo: Dictionary = {
       secure: { title: "Ààbò & Ìgbẹ́kẹ̀lé", body: "Ààbò rẹ ni àkọ́kọ́ wa" },
       ai: { title: "Agbára AI", body: "Ìrírí ọlọ́gbọ́n" },
       africa: { title: "Fún Áfíríkà", body: "Tí a kọ́ pẹ̀lú ìfẹ́ ❤️" },
+      stores: { title: "Wà ní", body: "App Store & Play Store" },
     },
     categories: {
       title: "Gbogbo rẹ̀, ní ibì kan",

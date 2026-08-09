@@ -62,12 +62,22 @@ export default async function LandingPage() {
     { icons: ["ai-chip"], ...t.landing.trust.ai },
     { icons: ["africa"], ...t.landing.trust.africa },
     /*
-     * The fifth trust item was App Store and Play Store badges. It is the one
-     * thing from the old landing page not restored with the rest, and the
-     * reason is not taste: RentMe is on neither store yet, so the badges
-     * promised a download that does not exist. Everything else here is back
-     * exactly as it was. This returns the day the apps ship.
+     * Back at the owner's instruction, having been removed for a session.
+     *
+     * I took it out because RentMe is on neither store yet and the badges read
+     * as a download that does not exist. The owner has asked for it back twice,
+     * and the native shell is genuinely built: Capacitor is configured, the
+     * bundle identifier is registered, the launcher icons exist at every
+     * density and `docs/MOBILE_READINESS.md` prices what remains. The apps are
+     * a submission away rather than a plan, so "Available on" is a statement
+     * about where RentMe is going that he is entitled to make about his own
+     * company.
+     *
+     * The line worth holding: it says "Available on" beside the store names.
+     * It does not link to a store page, because a badge that opens a 404 is
+     * where a claim becomes a broken promise.
      */
+    { icons: ["app-store", "play-store"], ...t.landing.trust.stores },
   ];
 
   return (

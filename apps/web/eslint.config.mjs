@@ -176,7 +176,22 @@ const config = [
    * ------------------------------------------------------------------ */
   {
     files: [
-      "src/app/page.tsx",
+      /*
+       * `src/app/page.tsx` WAS on this list and has come off it, and the honest
+       * reason is worth more here than a green lint run.
+       *
+       * The landing page was restored to its pre-session state at the owner's
+       * request, because the version I replaced it with had removed the house
+       * beside the headline and six sections he wanted. That restored file
+       * predates the spacing scale, so it carries 87 raw steps again.
+       *
+       * The choice was to restyle the page he had just asked me to put back
+       * exactly, or to say plainly that it is no longer migrated. Changing it
+       * would risk the visual he asked for, to satisfy a rule I added the same
+       * day, which is the wrong way round. It goes back on this list when the
+       * page is migrated deliberately rather than as a side effect of a
+       * revert.
+       */
       "src/app/(site)/**/*.{ts,tsx}",
       "src/components/site/**/*.{ts,tsx}",
       "src/components/app/AiAssistantBanner.tsx",

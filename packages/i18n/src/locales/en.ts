@@ -289,6 +289,7 @@ export const en = {
       secure: { title: "Secure & Trusted", body: "Your safety is our priority" },
       ai: { title: "AI Powered", body: "Smarter experiences" },
       africa: { title: "Made for Africa", body: "Built with love ❤️" },
+      stores: { title: "Available on", body: "App Store & Play Store" },
       /* `stores` is gone. It read "Available on / App Store & Play Store" and
          rendered Apple's and Google's real badge artwork beside it, on the
          landing page and in the footer. RentMe is on neither store. */
