@@ -10,7 +10,6 @@ import { MobileTabBar, showsTabBar } from "./MobileTabBar";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
-import { ThemeToggle } from "@/components/site/ThemeToggle";
 
 /**
  * Personal Mode shell.
@@ -284,58 +283,34 @@ export function AppShell({
             */}
             <SignedOutActions t={t} />
 
-            {/* The bell and its marker. A dot, not a numeral: the exact count
-                lives on the rail and on /notifications, and at this size a
-                number is unreadable. Zero renders no marker at all. */}
-            {signedIn && (
-            <Link
-              href="/notifications"
-              /* The count is INSIDE one dictionary sentence rather than
-                 appended to a translated noun. English writes "Notifications,
-                 3 unread" and the other three do not all put the number in the
-                 same place, so a template assembled here could only ever be
-                 right in one language. The marker beside it is a dot, so this
-                 label is the only place the number is stated at all. */
-              aria-label={
-                unreadNotifications > 0
-                  ? t.a11y.notificationsUnread.replace(
-                      "{count}",
-                      String(unreadNotifications),
-                    )
-                  : t.nav.notifications
-              }
-              className="nf-icon-btn relative h-10 w-10 shrink-0"
-            >
-              <UiIcon name="bell" size={20} />
-              {unreadNotifications > 0 && (
-                <span
-                  aria-hidden="true"
-                  data-testid="shell-unread-dot"
-                  className="absolute right-2 top-2 block h-2.5 w-2.5 rounded-full border-2 border-[var(--nf-surface-primary)] bg-[var(--nf-brand-primary)]"
-                />
-              )}
-            </Link>
-            )}
-
             {/*
-              THE TOP RIGHT CARRIES THE THEME TOGGLE, AND ONLY THE THEME
-              TOGGLE.
+              THE TOP RIGHT IS EMPTY, AND THAT IS THE DESIGN.
 
-              The profile avatar that used to sit here is gone. It was a second
-              door to a room the navigation already opens: Profile is a row in
-              the rail, an island on the phone tab bar, and the destination of
-              the account block. Three doors to one place is not convenience, it
-              is a header that has to be read.
+              Three controls used to live here and all three have gone to where
+              they belong:
 
-              The toggle comes BACK here, reversing an earlier move that put it
-              only in Settings. Light and dark is a choice people make by
-              reaction to the room they are sitting in, not by intention, so it
-              has to be one tap from anywhere rather than four taps into a
-              settings page. The Settings entry stays as well: the two write the
-              same `data-theme` on the root element through the same key, so
-              neither can disagree with the other.
+                THE AVATAR was a third door to Profile, which is already a row
+                in the rail and the island on the phone tab bar. Three doors to
+                one room is not convenience, it is a header you have to read.
+
+                THE THEME TOGGLE is in the navigation now, at the foot of the
+                rail and the drawer. A preference is not chrome.
+
+                THE BELL is gone too, and this one was a judgement call. It is
+                genuinely time sensitive in a way a theme preference is not,
+                which is the argument for keeping it. But the unread state is
+                ALREADY carried in both places a person looks: the rail's
+                Notifications row shows the real count as a badge, and on a
+                phone the tab bar's profile island carries the marker. The bell
+                was a third marker for one fact, and it was the last thing
+                standing between this header and a clean top edge.
+
+              What remains is the menu button and the wordmark on phones, both
+              of which are navigation rather than chrome, and neither of which
+              appears on desktop where the rail already carries them. Above
+              `lg`, this bar is empty by design: the greeting and the content
+              start at the top of the screen with nothing hanging off them.
             */}
-            <ThemeToggle className="h-11 w-11 shrink-0" />
           </div>
         </header>
         )}

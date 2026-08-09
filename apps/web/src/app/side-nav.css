@@ -140,6 +140,22 @@
     display: none;
   }
 
+  /*
+   * The foot of the panel: preferences, below the destinations.
+   *
+   * The theme control lives here rather than in the app header. It is the only
+   * thing in this panel that changes how the product LOOKS instead of where you
+   * are, so it sits under a divider at the bottom, out of the way of the
+   * navigation proper but one tap from every screen. `margin-top: auto` pins it
+   * to the bottom of the rail on a tall desktop viewport and lets it sit
+   * directly under the last row in the phone drawer.
+   */
+  .nf-nav__foot {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--nf-divider);
+  }
+
   .nf-nav__section + .nf-nav__section {
     margin-top: 0.75rem;
     padding-top: 0.75rem;

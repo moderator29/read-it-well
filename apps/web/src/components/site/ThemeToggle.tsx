@@ -14,7 +14,22 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  */
 const STORE = "nf_theme";
 
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({
+  className,
+  variant = "icon",
+}: {
+  className?: string;
+  /**
+   * `icon` is the bare glyph button the marketing header uses.
+   *
+   * `row` is a labelled navigation row, added for the app rail and drawer. The
+   * theme control now lives in the product's navigation rather than in its
+   * chrome, and a glyph alone in a list of labelled destinations is a guess: in
+   * a rail the row has room to say what it does, and the label is what makes it
+   * findable by somebody who has never pressed it.
+   */
+  variant?: "icon" | "row";
+}) {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
@@ -34,11 +49,30 @@ export function ThemeToggle({ className }: { className?: string }) {
     }
   };
 
+  const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+
+  if (variant === "row") {
+    return (
+      <button
+        type="button"
+        onClick={flip}
+        className={`nf-nav__row w-full ${className ?? ""}`}
+        data-testid="theme-toggle-row"
+      >
+        <UiIcon name={theme === "dark" ? "sun" : "moon"} size="sm" className="nf-nav__glyph" />
+        {/* The label states the DESTINATION, not the current state: a row
+            reading "Dark" leaves you guessing whether that is what you have or
+            what you would get. */}
+        <span className="nf-nav__label">{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
       onClick={flip}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={label}
       className={`nf-icon-btn h-9 w-9 ${className ?? ""}`}
     >
       {/*

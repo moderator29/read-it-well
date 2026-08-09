@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { formatNumber, type Locale } from "@naijafinds/i18n";
 import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import type { PostView } from "@/components/social/feed/PostCard";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { EmptyState } from "@/components/app/Screen";
 import {
   RowButton,
   RowLink,
@@ -260,6 +260,14 @@ export function AccountBody({
   );
 }
 
+/**
+ * The profile's own empty tab.
+ *
+ * Was a fourth distinct shape: a card, a 56px object and a 1rem title, against
+ * the social layer's 80px and the property side's 64px. It is the platform's
+ * one `EmptyState` now, so the Posts tab of your own profile and the Saved
+ * screen you reach from the same rail no longer look like two products.
+ */
 function EmptyPanel({
   icon,
   title,
@@ -269,17 +277,7 @@ function EmptyPanel({
   title: string;
   body: string;
 }) {
-  return (
-    <div className="nf-card p-6 text-center">
-      <span className="nf-story-art mx-auto block h-14 w-14">
-        <BrandIcon name={icon} fill />
-      </span>
-      <p className="mt-3 text-[1rem] font-semibold text-[var(--nf-content-primary)]">{title}</p>
-      <p className="mx-auto mt-1.5 max-w-[44ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-        {body}
-      </p>
-    </div>
-  );
+  return <EmptyState icon={icon} title={title} body={body} />;
 }
 
 /* ------------------------------------------------------------------ sheet */

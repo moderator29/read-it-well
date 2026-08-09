@@ -63,7 +63,9 @@
     ".next-a2places/types/**/*.ts",
     ".next-a2places/dev/types/**/*.ts",
     ".next-a2/types/**/*.ts",
-    ".next-a2/dev/types/**/*.ts"
+    ".next-a2/dev/types/**/*.ts",
+    ".next-e/types/**/*.ts",
+    ".next-e/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
