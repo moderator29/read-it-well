@@ -122,6 +122,7 @@ export const ig: Dictionary = {
     agentMode: "Ọnọdụ Onye nnọchi",
     consoleLabel: "Njikwa",
     workspacesLabel: "Ebe ọrụ",
+    becomeAgent: "Bụrụ onye nnọchiteanya",
   },
 
   social: {

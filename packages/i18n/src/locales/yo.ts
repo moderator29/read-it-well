@@ -120,6 +120,7 @@ export const yo: Dictionary = {
     agentMode: "Ipò Aṣojú",
     consoleLabel: "Ìdarí",
     workspacesLabel: "Àwọn ibi iṣẹ́",
+    becomeAgent: "Di aṣojú",
   },
 
   social: {

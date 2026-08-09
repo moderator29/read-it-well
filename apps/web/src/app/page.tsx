@@ -455,7 +455,7 @@ export default async function LandingPage() {
                   {t.landing.cta.subtitle}
                 </p>
                 <div className="mt-8 flex flex-wrap justify-center gap-4">
-                  <ButtonLink href="/sign-up" variant="primary" size="lg" className="nf-breathe">
+                  <ButtonLink href="/start" variant="primary" size="lg" className="nf-breathe">
                     {t.landing.cta.action}
                   </ButtonLink>
                   {/* This said "Browse without an account" and pointed at

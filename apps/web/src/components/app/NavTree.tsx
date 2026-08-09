@@ -89,7 +89,10 @@ export function NavTree({
       className={`nf-nav__scroll${accent === "agent" ? " nf-nav__scroll--agent" : ""}`}
     >
       {sections.map((section, index) => (
-        <div key={section.heading ?? `section-${index}`} className="nf-nav__section">
+        <div
+          key={section.heading ?? `section-${index}`}
+          className={`nf-nav__section${section.hideWhenDocked ? " nf-nav__section--docked" : ""}`}
+        >
           {section.heading && <h2 className="nf-nav__heading">{section.heading}</h2>}
           <ul>{section.items.map(row)}</ul>
         </div>

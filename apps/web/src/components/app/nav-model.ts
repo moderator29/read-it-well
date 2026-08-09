@@ -83,6 +83,23 @@ export type NavSection = {
   /** Null on the first section, which needs no heading above the first row. */
   heading: string | null;
   items: NavNode[];
+  /**
+   * Hidden on phones, because the bottom dock already carries these.
+   *
+   * Home, Explore and Feed sit in the dock on a phone, permanently, one thumb
+   * reach away. Repeating them at the top of the drawer means the first thing
+   * somebody sees when they open the menu is three destinations they can
+   * already reach without opening the menu, which pushes everything the drawer
+   * exists for below the fold.
+   *
+   * The desktop rail has no dock beside it, so there they are the only way to
+   * those three screens and they stay.
+   *
+   * A flag on the section rather than a check on its index: the reason travels
+   * with the data, and reordering the sections later cannot silently hide the
+   * wrong one.
+   */
+  hideWhenDocked?: boolean;
 };
 
 export function buildNav({
@@ -110,6 +127,7 @@ export function buildNav({
        * Open to a signed-out visitor, all three, because a marketplace nobody
        * can see cannot be found. Acting is what gates, not looking.
        */
+      hideWhenDocked: true,
       items: [
         { href: "/home", label: t.nav.home, icon: "home" },
         { href: "/search", label: t.nav.explore, icon: "compass" },
@@ -215,6 +233,33 @@ export function buildNav({
    * the rest of this list means.
    */
   const tail: NavNode[] = [];
+
+  /*
+   * BECOME AN AGENT IS A ROW AGAIN, and the note above is now history rather
+   * than current reasoning.
+   *
+   * It was cut as a third door to a page the profile already linked twice, and
+   * that argument was sound about a DUPLICATE row. What replaced it was a
+   * switch-profile sheet reached by tapping an avatar, which is the least
+   * discoverable control on the platform, for the single most important thing
+   * somebody can do here: start listing property.
+   *
+   * A marketplace with no supply has exactly one conversion that matters, and
+   * it was hidden two taps inside a sheet nobody opens. The owner is right
+   * that it belongs where a person can see it.
+   *
+   * ONLY FOR PEOPLE WHO ARE NOT ALREADY AGENTS. An agent sees the workspace
+   * row above instead, and showing both would offer somebody a door into a
+   * room they are standing in.
+   *
+   * `verified` rather than a building or a briefcase, deliberately: the thing
+   * on the other side of this row is a verification ladder, not a job title,
+   * and the icon should say what the flow actually is.
+   */
+  if (signedIn && !isAgent) {
+    tail.push({ href: "/profile/setup", label: t.nav.becomeAgent, icon: "verified" });
+  }
+
   if (signedIn) {
     tail.push({ href: "/settings", label: t.nav.settings, icon: "settings-gear" });
   }
