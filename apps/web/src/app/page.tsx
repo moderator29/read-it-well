@@ -4,10 +4,8 @@ import { getLocale } from "@/lib/locale";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Reveal } from "@/components/site/Reveal";
+import { ButtonLink } from "@/components/ui/Button";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Button, ButtonLink } from "@/components/ui/Button";
-import { FilterLink } from "@/components/app/filters/FilterLink";
 import { HowItWorks } from "@/components/site/landing/HowItWorks";
 import { AgentsBand } from "@/components/site/landing/AgentsBand";
 import { WhyRentMe } from "@/components/site/landing/WhyRentMe";
@@ -94,35 +92,32 @@ export default async function LandingPage() {
                 {t.landing.hero.subtitle}
               </p>
 
-              {/* Real form. GET to the search route. */}
-              <div className="nf-rise nf-rise-4 mt-7 flex items-start gap-2 sm:items-center">
-              <form
-                action="/search"
-                method="get"
-                role="search"
-                className="nf-card nf-card--live nf-focus-well flex min-w-0 flex-1 flex-col gap-2 p-2 sm:flex-row sm:items-center"
-              >
-                <label htmlFor="hero-q" className="sr-only">
-                  {t.landing.hero.searchLabel}
-                </label>
-                <div className="flex min-w-0 flex-1 items-center gap-3 px-3">
-                  <UiIcon name="search" size={20} className="text-[var(--nf-content-muted)]" />
-                  <input
-                    id="hero-q"
-                    name="q"
-                    type="search"
-                    autoComplete="off"
-                    placeholder={t.landing.hero.searchPlaceholder}
-                    className="w-full bg-transparent py-3 text-[var(--nf-text-body-lg)] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
-                  />
-                </div>
-                <Button type="submit" variant="primary" size="lg" className="nf-breathe">
-                  {t.common.search}
-                </Button>
-              </form>
-              {/* Filters live beside the bar here too, so the control is in the
-                  same place on every search surface. */}
-              <FilterLink label={t.common.search} />
+              {/*
+                NO SEARCH BAR HERE.
+
+                There was one, and it looked right: a field under the headline,
+                the same control the product uses inside. It came out because a
+                marketing page and a product are not the same job.
+
+                A search field is a promise of an answer, and a stranger who
+                types into one on a landing page expects results, not a page
+                transition into an app they have not entered. It also competed
+                with the five objects directly below, which ARE the answer to
+                the same question and give a visitor something to look at
+                rather than something to fill in. Asking somebody to compose a
+                query before they have seen a single property is asking them to
+                know what they want before we have shown them what there is.
+
+                The real search bar lives one tap away, at the top of the
+                product home, where a result set is what happens next.
+              */}
+              <div className="nf-rise nf-rise-4 mt-8 flex flex-wrap items-center gap-3">
+                <ButtonLink href="/search" variant="primary" size="lg">
+                  Browse properties
+                </ButtonLink>
+                <ButtonLink href="/sign-up" variant="secondary" size="lg">
+                  {t.landing.cta.action}
+                </ButtonLink>
               </div>
 
               <ul className="nf-rise nf-rise-5 mt-4 flex flex-wrap gap-2">
