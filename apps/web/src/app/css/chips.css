@@ -125,64 +125,69 @@
   .nf-feedtab {
     position: relative;
     display: inline-flex;
+    flex: 1 1 0;
     align-items: center;
     justify-content: center;
-    min-height: 2.75rem;
-    padding: var(--nf-space-0) var(--nf-gap-group);
+    min-height: 2.375rem;
+    padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-pill);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     white-space: nowrap;
-    color: var(--nf-content-secondary);
+    color: var(--nf-content-muted);
+    border: 0;
+    background: transparent;
+    transition:
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      background var(--nf-duration-base) var(--nf-ease-spring);
+  }
+
+  .nf-feedtab:hover {
+    color: var(--nf-content-primary);
+  }
+
+  .nf-feedtab:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+
+  /* The live tab: a filled pill INSIDE the track, which is what makes the row
+     read as one control with a position rather than as three buttons that
+     happen to be next to each other. */
+  .nf-feedtab[aria-current="page"] {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+    /* One rung of elevation, so the live segment sits ON the track rather than
+       being painted into it. `--nf-shadow-sm` was removed from the palette
+       some time ago and had zero uses; `--nf-elev-1` is its replacement. */
+    box-shadow: var(--nf-elev-1);
+  }
+
+  /*
+   * THE ROW IS A SEGMENTED CONTROL NOW, AND IT WAS THREE SEPARATE CHIPS.
+   *
+   * Three glass pills, each with its own border and its own backdrop blur, and
+   * the selected one marked by a tinted fill plus a two-pixel rule underneath
+   * it. Five treatments to answer one question: which of three feeds am I
+   * reading. On a dark screen the tinted fill was nearly the same value as the
+   * untinted one, which is why the rule had to be added, which is why there
+   * were five.
+   *
+   * A segmented control answers it with position. One track, three equal
+   * segments, and the live one carries a solid brand pill that moves along the
+   * track as you switch: the state is the loudest thing in the control instead
+   * of the quietest, the two inactive segments draw nothing at all, and the
+   * whole row is shorter than the three chips it replaces.
+   */
+  .nf-feedtabs {
+    display: flex;
+    gap: 0.125rem;
+    padding: 0.1875rem;
+    border-radius: var(--nf-radius-pill);
     border: 1px solid var(--nf-border-subtle);
     background: var(--nf-surface-glass);
     backdrop-filter: blur(var(--nf-blur-sm));
     -webkit-backdrop-filter: blur(var(--nf-blur-sm));
-    transition:
-      color var(--nf-duration-fast) var(--nf-ease-standard),
-      border-color var(--nf-duration-fast) var(--nf-ease-standard),
-      background var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-
-  /* The pseudo-element that padded a 34px control up to a 44px target is gone
-     with the reason for it: the control is 44px now, so the tap area and the
-     thing you can see are the same rectangle. A hit area larger than its
-     control is a thing people press and think they missed. */
-
-  .nf-feedtab:hover {
-    color: var(--nf-content-primary);
-    border-color: var(--nf-border-strong);
-  }
-
-  .nf-feedtab[aria-current="page"] {
-    color: var(--nf-content-primary);
-    border-color: var(--nf-border-brand);
-    background: color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-glass));
-  }
-
-  /* The rule under the live tab. Drawn on the element rather than on the row,
-     so it tracks the tab's own width and needs no second node. */
-  .nf-feedtab[aria-current="page"]::before {
-    content: "";
-    position: absolute;
-    left: 0.85rem;
-    right: 0.85rem;
-    bottom: -1px;
-    height: 2px;
-    border-radius: 2px;
-    background: var(--nf-brand-secondary);
-  }
-
-  /* The row itself. Left aligned and flush with the feed, because a navigation
-     that centres itself reads as a banner. */
-  .nf-feedtabs {
-    display: flex;
-    gap: var(--nf-gap-inline-tight);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .nf-feedtabs::-webkit-scrollbar {
-    display: none;
   }
 
   .nf-badge {

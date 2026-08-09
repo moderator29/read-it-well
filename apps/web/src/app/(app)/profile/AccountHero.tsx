@@ -309,21 +309,32 @@ export function AccountHero({
         </div>
       )}
 
-      {/* -------------------------------------------------------- actions */}
-      <div className="mt-5 flex flex-wrap gap-2">
+      {/* --------------------------------------------------------- actions
+          SMALLER, AND THEY STOP STRETCHING.
+
+          Two full-height buttons at `flex-1` filled the width of a phone, so
+          the loudest pair of controls on somebody's own profile were the two
+          least urgent things they can do there. They are the compact size now
+          and sized to their words at every width: an action row is not a
+          toolbar, and a control that grows to fill a row is claiming an
+          importance it does not have. The 44pt tap floor is unaffected, which
+          is what `nf-btn--sm` exists to guarantee. */}
+      <div className="mt-block flex flex-wrap gap-inline">
         {identity ? (
           <>
             <Link
               href={`/u/${identity.handle}/edit`}
-              className="nf-btn nf-btn--glass flex-1 sm:flex-none"
+              className="nf-btn nf-btn--sm nf-btn--glass"
             >
+              <UiIcon name="settings-gear" size={16} />
               Edit profile
             </Link>
             <Link
               href={`/u/${identity.handle}`}
-              className="nf-btn nf-btn--ghost flex-1 sm:flex-none"
+              className="nf-btn nf-btn--sm nf-btn--ghost"
               data-testid="account-public-page"
             >
+              <UiIcon name="link" size={16} />
               Your public page
             </Link>
           </>

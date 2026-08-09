@@ -215,6 +215,30 @@
   }
 
   /*
+   * The badge that says the avatar is a control.
+   *
+   * `overflow: hidden` on the avatar clips a photograph to the circle, and it
+   * would clip this too, so the badge sits INSIDE the circle at the lower
+   * trailing edge rather than straddling the rim the way most products draw it.
+   * That is the one adjustment the round mask forces and it costs nothing: the
+   * mark is still exactly where a thumb looks for it.
+   */
+  .nf-social-avatar__edit {
+    position: absolute;
+    inset-inline-end: 0.375rem;
+    inset-block-end: 0.375rem;
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-surface-canvas);
+    color: var(--nf-content-primary);
+    border: 1px solid var(--nf-border-strong);
+    pointer-events: none;
+  }
+
+  /*
    * Pulled up so it sits half on the cover and half on the page.
    *
    * It is a row rather than a block because the profile puts the person on the
