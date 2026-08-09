@@ -148,6 +148,35 @@ export type Database = {
           },
         ]
       }
+      agent_badges: {
+        Row: {
+          agent_id: string
+          updated_at: string
+          verified: boolean
+          verified_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          updated_at?: string
+          verified?: boolean
+          verified_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          updated_at?: string
+          verified?: boolean
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_badges_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: true
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_documents: {
         Row: {
           application_id: string | null
@@ -3465,6 +3494,8 @@ export type Database = {
         Returns: boolean
       }
       current_agent_id: { Args: never; Returns: string }
+      end_other_sessions: { Args: never; Returns: Json }
+      end_session: { Args: { p_session: string }; Returns: Json }
       enter_place: {
         Args: { p_lga_code: string }
         Returns: {
@@ -3590,6 +3621,17 @@ export type Database = {
           property_type: Database["public"]["Enums"]["property_type"]
           state_code: string
           title: string
+        }[]
+      }
+      my_sessions: {
+        Args: never
+        Returns: {
+          aal: string
+          is_current: boolean
+          last_seen_at: string
+          session_id: string
+          signed_in_at: string
+          user_agent: string
         }[]
       }
       pay_booking_from_wallet: {

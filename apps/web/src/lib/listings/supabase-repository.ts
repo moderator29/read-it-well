@@ -189,6 +189,7 @@ const LISTING_SELECT = `
   bathrooms,
   featured,
   is_demo,
+  agent_id,
   area,
   city,
   state_code,
@@ -254,6 +255,7 @@ const LISTING_DETAIL_SELECT = `
   bathrooms,
   featured,
   is_demo,
+  agent_id,
   area,
   city,
   state_code,
@@ -315,6 +317,7 @@ type ListingRow = {
   bathrooms: number;
   featured: boolean;
   is_demo: boolean;
+  agent_id: string;
   power_grid: string | null;
   power_backup: string | null;
   power_backup_hours: number | null;
@@ -650,6 +653,7 @@ function mapRow(
   amenityCodes: Map<string, string>,
   stats: Map<string, { rating: number; count: number }>,
   signedVideos: Map<string, string>,
+  verifiedAgents: Set<string>,
 ): Listing {
   const kind = KIND_BY_PROPERTY_TYPE[row.property_type] ?? "home";
   const stat = stats.get(row.id);
@@ -781,22 +785,35 @@ function mapRow(
     rating: row.is_demo ? 0 : (stat?.rating ?? 0),
     reviewCount: row.is_demo ? 0 : (stat?.count ?? 0),
     /*
-     * THE LINE THAT USED TO BE THE BUG.
+     * THE TICK, AND IT IS EARNED NOW RATHER THAN ASSUMED.
      *
-     * This was `verified: true`, unconditionally, reasoned as "first-party
-     * inventory is admitted through agent approval, so a published listing is
-     * by definition a verified one". That reasoning held exactly as long as
-     * every published row came from an approved agent who had listed a real
-     * property, and it is the mechanism by which this repository once shipped
-     * twenty-three invented places with twenty-two of them badged.
+     * The history of this one line is the history of the same mistake made
+     * twice. It began as `verified: true`, unconditionally, on the reasoning
+     * that first-party inventory is admitted through agent approval so a
+     * published listing is by definition a verified one; that is how this
+     * repository once shipped twenty-three invented places with twenty-two of
+     * them badged. It was then narrowed to `!row.is_demo`, which fixed the
+     * example listings and left the real defect completely intact: EVERY
+     * genuine listing still got the tick the moment it went live, whether or
+     * not one person had ever looked at one document about the agent behind it.
      *
-     * The database now refuses to store a trust mark on an example row, but a
-     * constraint on columns nobody reads cannot help when the badge is DERIVED
-     * rather than stored. So it is derived from the flag instead: an example
-     * listing is never verified, and a real published listing still is, on the
-     * original and still-correct reasoning.
+     * Meanwhile the whole apparatus for deciding this already existed and was
+     * wired to nothing a stranger could see: four rungs in
+     * `agent_verification_checks`, a tier computed by `private.agent_tier`, and
+     * an admin queue that passes and fails each rung by hand.
+     *
+     * So the badge is now that decision, published through `agent_badges`:
+     * a person here looked at a government document and said yes. Both
+     * conditions have to hold. An example listing is never verified whatever
+     * its lister's tier says, and a real listing from an agent nobody has
+     * checked yet is not verified either - it is simply a listing, which is
+     * what it is.
+     *
+     * The consequence is deliberate and is the point: an agent can publish
+     * immediately and sell nothing on our word until we have earned the right
+     * to lend it.
      */
-    verified: !row.is_demo,
+    verified: !row.is_demo && verifiedAgents.has(row.agent_id),
     isDemo: row.is_demo,
     /* Instant book is gone from the schema. The whole product moved from
        "reserve a room tonight" to "rent or buy a property", and no property in
@@ -811,10 +828,42 @@ function mapRow(
   };
 }
 
+/**
+ * Which of these agents a person here has actually checked.
+ *
+ * ONE INDEXED READ OVER A PRIMARY KEY, for the whole page, and it returns one
+ * boolean per agent and nothing else. `agents` itself is RLS-bound to the agent
+ * and to staff, correctly, so the catalogue cannot join it and must not be able
+ * to; `agent_badges` is the one derived fact that is published, maintained by
+ * `private.sync_agent_badge` on the tier the KYC ladder computes.
+ *
+ * A MISSING ROW IS NOT VERIFIED. The migration backfilled every existing agent
+ * and the trigger fires on insert, so a missing row means the agent row itself
+ * is gone. Reading that as "not verified" is the safe direction: the failure
+ * mode of this function is a tick that does not appear, never a tick that
+ * appears without a check behind it.
+ */
+async function getAgentBadges(
+  supabase: Client,
+  agentIds: string[],
+): Promise<Set<string>> {
+  const verified = new Set<string>();
+  if (agentIds.length === 0) return verified;
+  const { data, error } = await supabase
+    .from("agent_badges")
+    .select("agent_id, verified")
+    .in("agent_id", agentIds);
+  if (error || !data) return verified;
+  for (const row of data as { agent_id: string; verified: boolean }[]) {
+    if (row.verified) verified.add(row.agent_id);
+  }
+  return verified;
+}
+
 /** Map raw rows into listings, resolving references and review stats in bulk. */
 async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]> {
   if (rows.length === 0) return [];
-  const [stateNames, amenityCodes, stats, signedVideos] = await Promise.all([
+  const [stateNames, amenityCodes, stats, signedVideos, verifiedAgents] = await Promise.all([
     getStateNames(),
     getAmenityCodes(),
     getReviewStats(
@@ -825,8 +874,11 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
       supabase,
       rows.flatMap((r) => (r.listing_videos ?? []).map((v) => v.storage_path)),
     ),
+    getAgentBadges(supabase, [...new Set(rows.map((r) => r.agent_id))]),
   ]);
-  return rows.map((row) => mapRow(row, stateNames, amenityCodes, stats, signedVideos));
+  return rows.map((row) =>
+    mapRow(row, stateNames, amenityCodes, stats, signedVideos, verifiedAgents),
+  );
 }
 
 /**
