@@ -67,6 +67,36 @@ export const KIND_NOUN: Record<ListingKind, { one: string; many: string }> = {
   land: { one: "plot", many: "plots" },
 };
 
+/**
+ * The order the markets are offered in.
+ *
+ * This used to be a private array inside `CategoryTiles`, which was the rail
+ * above the results. The rail is gone and the category is a control in the
+ * filter drawer now, so the order lives here beside the nouns rather than
+ * inside one component that could be deleted out from under it. Lodging first,
+ * because that is what most arrivals are looking for, then the long-let and
+ * commercial markets, then land.
+ */
+export const KIND_ORDER: ListingKind[] = [
+  "hotel",
+  "apartment",
+  "home",
+  "shortlet",
+  "villa",
+  "rental",
+  "shop",
+  "office",
+  "land",
+  "restaurant",
+  "experience",
+];
+
+/** A category as a person reads it: "Hotels", "Plots". */
+export function kindLabel(kind: ListingKind): string {
+  const many = KIND_NOUN[kind].many;
+  return many.charAt(0).toUpperCase() + many.slice(1);
+}
+
 /** Everything a discovery request is, parsed and clean. */
 export type DiscoveryQuery = {
   q?: string;
@@ -295,13 +325,27 @@ export function toFilter(query: DiscoveryQuery): ListingSearchFilter {
 }
 
 /**
- * The pool a filter drawer counts against: the same text and category, none of
- * the structured bounds. It is what "how many places match" is measured out of.
+ * The pool a filter drawer counts against: the same text, none of the
+ * structured bounds and NO CATEGORY. It is what "how many places match" is
+ * measured out of.
+ *
+ * THE CATEGORY LEFT THIS FUNCTION WHEN THE CATEGORY RAIL LEFT THE SEARCH BAR.
+ *
+ * The rail above the results was the only category control on the screen, so
+ * the pool could safely be narrowed to whatever category the address bar
+ * already carried: nothing inside the drawer could ask about another one. The
+ * category is a control inside the drawer now, and a pool pre-narrowed to
+ * "hotel" answers "how many shortlets" with zero, every time, for every
+ * shortlet in the catalogue. The button would have reported an empty result
+ * set and then applied a filter that returned twenty places.
+ *
+ * So the pool spans every category and `matchesFacts` judges the category like
+ * any other bound. The pool is bounded by the repository's own catalogue limit
+ * either way, and an uncategorised search already shipped exactly this set.
  */
 export function toPoolFilter(query: DiscoveryQuery): ListingSearchFilter {
   const filter: ListingSearchFilter = {};
   if (query.q) filter.q = query.q;
-  if (query.kind) filter.kind = query.kind;
   return filter;
 }
 

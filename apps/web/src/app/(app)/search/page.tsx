@@ -7,7 +7,6 @@ import { RecentStrip } from "@/components/app/search/RecentStrip";
 import { SearchMemory } from "@/components/app/search/SearchMemory";
 import { VIEW_COOKIE, isViewKey } from "@/lib/search/memory";
 import { ActiveFilters } from "@/components/app/filters/ActiveFilters";
-import { CategoryTiles } from "@/components/app/filters/CategoryTiles";
 import { FilterDrawer } from "@/components/app/filters/FilterDrawer";
 import { ViewToggle } from "@/components/app/filters/ViewToggle";
 import { getLocale } from "@/lib/locale";
@@ -210,9 +209,13 @@ export default async function SearchPage({
    * Three questions, asked together:
    *
    *   results  the full request, with every filter applied by the repository.
-   *   pool     the same text and category with no structured bounds. This is
+   *   pool     the same TEXT with no structured bounds and no category. This is
    *            what the drawer counts against, so the number on its button is
    *            produced by the same matcher the server just ran, not guessed.
+   *            The category left this read when the category rail left the
+   *            search bar: the drawer owns the category now, and a pool already
+   *            narrowed to one market would answer every other market with
+   *            zero. See `toPoolFilter`.
    *   whole    the catalogue, for the map's per-city floor.
    */
   const [rawResults, pool, whole] = await Promise.all([
@@ -284,6 +287,19 @@ export default async function SearchPage({
   const noun = query.kind ? KIND_NOUN[query.kind] : { one: "stay", many: "stays" };
   const narrowed = activeFilterCount(query) > 0;
 
+  /*
+   * How many places the applied category holds without the structured bounds,
+   * for the "waiting without them" line under the empty state.
+   *
+   * `pool` spans every category now, so reading its length under a category
+   * noun would have told somebody filtering hotels that four hundred hotels
+   * were waiting when the number was the whole catalogue. Filtered in memory
+   * rather than asked for separately: the rows are already here, and a third
+   * catalogue read to recover a figure we are holding would be a query bought
+   * to undo a query.
+   */
+  const poolInKind = query.kind ? pool.filter((l) => l.kind === query.kind) : pool;
+
   return (
     <>
       {/* ------------------------------------------------ sticky search bar */}
@@ -351,13 +367,8 @@ export default async function SearchPage({
         />
         </div>
 
-        {/* Categories: the markets we actually run, each one a link. */}
-        <div className="mx-auto mt-row max-w-3xl">
-          <CategoryTiles query={query} t={t} />
-        </div>
-
         {/*
-          TWO ROWS ABOVE THE FIRST RESULT. IT WAS FIVE.
+          ONE ROW ABOVE THE FIRST RESULT. IT WAS FIVE.
 
           The sticky bar carried, in order: the search field with its filter
           button, twelve category tiles, five city chips, and a rail of sort
@@ -366,7 +377,7 @@ export default async function SearchPage({
           first property, on a screen whose entire job is to show properties.
           On a phone that is most of the viewport spent on controls.
 
-          The two that left did not lose their function, they went where they
+          None of the three that left lost its function, they went where they
           belong:
 
           CITY CHIPS were a location filter drawn as navigation. Five hardcoded
@@ -380,6 +391,15 @@ export default async function SearchPage({
           visible, and that is where it now is. As a chip rail up here it was
           four permanent options taking a row of a phone screen to answer a
           question most people never ask.
+
+          CATEGORY TILES were the last sub-navigation on the platform, and they
+          could not leave until there was somewhere for them to go: the filter
+          drawer had no category control at all, so deleting the rail would have
+          deleted the only way to choose a market. The drawer has one now, at
+          the top of its own list, and the pool it counts against spans every
+          category so the number on its Apply button is right for a market the
+          reader has picked but not yet applied. The current category is still
+          visible and still one tap from gone, on the active filter row below.
         */}
       </div>
 
@@ -550,8 +570,8 @@ export default async function SearchPage({
              * empty catalogue, so the one offered way out led straight back
              * here.
              *
-             * `pool` is this text and category with no structured bounds, so an
-             * empty pool and no query means the shelves themselves are bare.
+             * `pool` is this text with no structured bounds and no category, so
+             * an empty pool and no query means the shelves themselves are bare.
              * That happens before supply arrives, and the honest answer is to
              * say so and offer the thing that would change it.
              *
@@ -615,10 +635,10 @@ export default async function SearchPage({
                 )
               }
               secondary={
-                narrowed && pool.length > 0 ? (
+                narrowed && poolInKind.length > 0 ? (
                   <span className="nf-body-sm text-[var(--nf-content-muted)]">
-                    {formatNumber(pool.length, locale)}{" "}
-                    {pool.length === 1 ? noun.one : noun.many} waiting without them
+                    {formatNumber(poolInKind.length, locale)}{" "}
+                    {poolInKind.length === 1 ? noun.one : noun.many} waiting without them
                   </span>
                 ) : !narrowed && !query.q ? (
                   <Link href="/docs" className="nf-link-quiet nf-body text-[var(--nf-content-link)]">
