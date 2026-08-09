@@ -29,16 +29,32 @@ import {
   MIN_PHOTO_WIDTH,
   MIN_TITLE_LENGTH,
   collapseSpaces,
+  CONDITION_CHOICES,
   countWords,
+  FURNISHING_CHOICES,
   isRental,
+  isTenancy,
+  LISTING_INTENT_CHOICES,
+  MAX_FLOORS,
+  MAX_TENANCY_MONTHS,
   parseNairaToKobo,
   POWER_BACKUP_CHOICES,
   POWER_GRID_CHOICES,
+  ratePeriodFor,
+  RENT_PERIOD_CHOICES,
+  SALE_STATUS_CHOICES,
   submitRequirements,
+  TENURE_CHOICES,
   WATER_SUPPLY_CHOICES,
+  type BuildCondition,
+  type Furnishing,
+  type LandTenure,
+  type ListingIntent,
   type PowerBackup,
   type PowerGrid,
   type PropertyType,
+  type RentPeriod,
+  type SaleStatus,
   type WaterSupply,
 } from "@/lib/agent/listings-schema";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -82,7 +98,27 @@ const STEP_KEYS = [
 ] as const satisfies readonly (keyof WizardCopy["wizard"]["steps"])[];
 
 /** Display order of the type cards, which is not the schema's storage order. */
-const TYPE_ORDER: PropertyType[] = ["apartment", "shortlet", "home", "villa", "hotel", "rental"];
+/**
+ * Display order of the type cards, which is not the schema's storage order.
+ *
+ * Shops, offices and land are on it now. They were not, which meant the
+ * commercial and land categories existed in search, in the enum and in the
+ * filter drawer, and there was no way on this platform to supply one: a person
+ * with a plot to sell could not choose "Land" and gave up. A market you can
+ * browse and cannot list in is worse than one you do not offer.
+ */
+const TYPE_ORDER: PropertyType[] = [
+  "apartment",
+  "shortlet",
+  "home",
+  "villa",
+  "hotel",
+  "rental",
+  "shop",
+  "office",
+  "land",
+  "restaurant",
+];
 
 const DRAFT_KEY = "nf_listing_draft";
 
@@ -95,14 +131,43 @@ type Values = {
   area: string;
   address: string;
   landmark: string;
-  maxGuests: number;
   bedrooms: number;
-  beds: number;
   bathrooms: number;
-  priceNaira: string;
-  cleaningNaira: string;
-  minStayNights: number;
-  instantBook: boolean;
+  toilets: string;
+  parkingSpaces: string;
+  floor: string;
+  totalFloors: string;
+  sizeSqm: string;
+
+  /** To let, or for sale. The first money question and the one all the rest hang off. */
+  intent: ListingIntent;
+
+  /* A tenancy. */
+  rentNaira: string;
+  rentPeriod: RentPeriod;
+  rentNegotiable: boolean;
+  cautionDepositNaira: string;
+  serviceChargeNaira: string;
+  serviceChargePeriod: RentPeriod;
+  agencyFeeNaira: string;
+  legalFeeNaira: string;
+  agreementFeeNaira: string;
+  totalMoveInNaira: string;
+  minimumTenancyMonths: string;
+  availableFrom: string;
+  furnished: Furnishing | "";
+
+  /* A short stay. The period is never asked for: the category decides it. */
+  rateNaira: string;
+
+  /* A sale. */
+  salePriceNaira: string;
+  priceNegotiable: boolean;
+  tenure: LandTenure | "";
+  saleStatus: SaleStatus;
+  yearBuilt: string;
+  condition: BuildCondition | "";
+
   powerGrid: PowerGrid | "";
   powerBackup: PowerBackup | "";
   powerBackupHours: string;
@@ -116,6 +181,18 @@ type Values = {
 
 type Photo = { id: string; path: string; url: string };
 
+/** How a rent cycle reads beside a figure, in the one place that prints both. */
+const PERIOD_WORD: Record<RentPeriod, string> = {
+  month: "per month",
+  quarter: "per quarter",
+  year: "per year",
+};
+
+/** Keep an input numeric without fighting the caret. Empty stays empty. */
+function digitsOnly(raw: string, max: number): string {
+  return raw.replace(/[^0-9]/g, "").slice(0, max);
+}
+
 const EMPTY: Values = {
   title: "",
   description: "",
@@ -125,14 +202,34 @@ const EMPTY: Values = {
   area: "",
   address: "",
   landmark: "",
-  maxGuests: 2,
   bedrooms: 1,
-  beds: 1,
   bathrooms: 1,
-  priceNaira: "",
-  cleaningNaira: "",
-  minStayNights: 1,
-  instantBook: false,
+  toilets: "",
+  parkingSpaces: "",
+  floor: "",
+  totalFloors: "",
+  sizeSqm: "",
+  intent: "rent",
+  rentNaira: "",
+  rentPeriod: "year",
+  rentNegotiable: false,
+  cautionDepositNaira: "",
+  serviceChargeNaira: "",
+  serviceChargePeriod: "year",
+  agencyFeeNaira: "",
+  legalFeeNaira: "",
+  agreementFeeNaira: "",
+  totalMoveInNaira: "",
+  minimumTenancyMonths: "",
+  availableFrom: "",
+  furnished: "",
+  rateNaira: "",
+  salePriceNaira: "",
+  priceNegotiable: false,
+  tenure: "",
+  saleStatus: "available",
+  yearBuilt: "",
+  condition: "",
   powerGrid: "",
   powerBackup: "",
   powerBackupHours: "",
@@ -154,14 +251,34 @@ function valuesFrom(draft: WizardDraft): Values {
     area: draft.area,
     address: draft.address,
     landmark: draft.landmark,
-    maxGuests: draft.maxGuests,
     bedrooms: draft.bedrooms,
-    beds: draft.beds,
     bathrooms: draft.bathrooms,
-    priceNaira: draft.priceNaira,
-    cleaningNaira: draft.cleaningNaira,
-    minStayNights: draft.minStayNights,
-    instantBook: draft.instantBook,
+    toilets: draft.toilets,
+    parkingSpaces: draft.parkingSpaces,
+    floor: draft.floor,
+    totalFloors: draft.totalFloors,
+    sizeSqm: draft.sizeSqm,
+    intent: draft.intent,
+    rentNaira: draft.rentNaira,
+    rentPeriod: draft.rentPeriod === "" ? "year" : draft.rentPeriod,
+    rentNegotiable: draft.rentNegotiable,
+    cautionDepositNaira: draft.cautionDepositNaira,
+    serviceChargeNaira: draft.serviceChargeNaira,
+    serviceChargePeriod: draft.serviceChargePeriod === "" ? "year" : draft.serviceChargePeriod,
+    agencyFeeNaira: draft.agencyFeeNaira,
+    legalFeeNaira: draft.legalFeeNaira,
+    agreementFeeNaira: draft.agreementFeeNaira,
+    totalMoveInNaira: draft.totalMoveInNaira,
+    minimumTenancyMonths: draft.minimumTenancyMonths,
+    availableFrom: draft.availableFrom,
+    furnished: draft.furnished,
+    rateNaira: draft.rateNaira,
+    salePriceNaira: draft.salePriceNaira,
+    priceNegotiable: draft.priceNegotiable,
+    tenure: draft.tenure,
+    saleStatus: draft.saleStatus === "" ? "available" : draft.saleStatus,
+    yearBuilt: draft.yearBuilt,
+    condition: draft.condition,
     powerGrid: draft.powerGrid,
     powerBackup: draft.powerBackup,
     powerBackupHours: draft.powerBackupHours,
@@ -175,6 +292,42 @@ function valuesFrom(draft: WizardDraft): Values {
 }
 
 /* ------------------------------------------------------------ small parts */
+
+/** The pill switch the pricing step uses twice, for the two negotiable flags. */
+function Toggle({
+  title,
+  body,
+  checked,
+  onChange,
+}: {
+  title: string;
+  body: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="flex w-full items-center justify-between gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3 text-left"
+      aria-pressed={checked}
+      onClick={() => onChange(!checked)}
+    >
+      <span>
+        <span className="block text-[0.9375rem] font-medium">{title}</span>
+        <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">{body}</span>
+      </span>
+      <span
+        className="relative h-7 w-12 shrink-0 rounded-full transition-colors"
+        style={{ background: checked ? "var(--nf-gradient-agent)" : "var(--nf-surface-raised)" }}
+      >
+        <span
+          className="absolute top-1 h-5 w-5 rounded-full bg-white transition-all"
+          style={{ left: checked ? "1.625rem" : "0.25rem" }}
+        />
+      </span>
+    </button>
+  );
+}
 
 function Field({
   label,
@@ -289,12 +442,55 @@ export function ListingWizard({
   const fileInput = useRef<HTMLInputElement | null>(null);
 
   const rental = isRental(values.propertyType);
-  const priceMinor = parseNairaToKobo(values.priceNaira) ?? 0;
-  const cleaningMinor = parseNairaToKobo(values.cleaningNaira) ?? 0;
+  /*
+   * Which of the three money shapes this listing is in.
+   *
+   * `sale` wins over everything: a property being sold has no rent and no
+   * nightly rate. Otherwise the CATEGORY decides, not another question, because
+   * a shop is let by the year and a shortlet is let by the night and asking
+   * somebody to confirm what they already told us is a question with one
+   * answer.
+   */
+  const forSale = values.intent === "sale";
+  const tenancy = !forSale && isTenancy(values.propertyType);
+  const shortStay = !forSale && !tenancy;
+  const perHead = ratePeriodFor(values.propertyType) === "guest";
+
+  const rentMinor = parseNairaToKobo(values.rentNaira) ?? 0;
+  const rateMinor = parseNairaToKobo(values.rateNaira) ?? 0;
+  const saleMinor = parseNairaToKobo(values.salePriceNaira) ?? 0;
+  /* The headline figure, resolved exactly the way the catalogue resolves it, so
+     the preview card on step 7 shows the number a renter will see. */
+  const priceMinor = forSale ? saleMinor : tenancy ? rentMinor : rateMinor;
+
+  /* What has to be found before the keys change hands. Summed live so the
+     lister watches the real number appear as they type the parts, which is the
+     figure a Nigerian tenant is actually shopping on and the one the platform
+     has never shown anybody. */
+  const feeParts = [
+    values.rentNaira,
+    values.cautionDepositNaira,
+    values.agencyFeeNaira,
+    values.legalFeeNaira,
+    values.agreementFeeNaira,
+  ];
+  const partsSumMinor = feeParts.reduce(
+    (total, raw) => total + (parseNairaToKobo(raw) ?? 0),
+    0,
+  );
+  const statedTotalMinor = parseNairaToKobo(values.totalMoveInNaira);
+  const moveInMinor = statedTotalMinor ?? partsSumMinor;
+
   const words = countWords(values.description);
   const stepNames = STEP_KEYS.map((key) => copy.wizard.steps[key]);
   const amenityNames = copy.amenities.names as Record<string, string | undefined>;
-  const pricePeriod = rental ? copy.pricing.perYear : copy.pricing.perNight;
+  const pricePeriod = forSale
+    ? "asking price"
+    : tenancy
+      ? copy.pricing.perYear
+      : perHead
+        ? "per head"
+        : copy.pricing.perNight;
 
   const unmet = useMemo(
     () =>
@@ -305,15 +501,30 @@ export function ListingWizard({
         stateCode: values.stateCode,
         city: values.city,
         area: values.area,
-        priceMinor,
+        intent: values.intent,
+        rentMinor: tenancy ? rentMinor : null,
+        rentPeriod: tenancy ? values.rentPeriod : null,
+        rateMinor: shortStay ? rateMinor : null,
+        ratePeriod: shortStay ? ratePeriodFor(values.propertyType) : null,
+        salePriceMinor: forSale ? saleMinor : null,
+        tenure: values.tenure === "" ? null : values.tenure,
         bedrooms: values.bedrooms,
         bathrooms: values.bathrooms,
-        maxGuests: values.maxGuests,
         amenityCount: chosenAmenities.length,
         photoCount: photos.length,
         hasCover: photos.length > 0,
       }),
-    [values, priceMinor, chosenAmenities.length, photos.length],
+    [
+      values,
+      tenancy,
+      shortStay,
+      forSale,
+      rentMinor,
+      rateMinor,
+      saleMinor,
+      chosenAmenities.length,
+      photos.length,
+    ],
   );
 
   /**
@@ -349,14 +560,27 @@ export function ListingWizard({
         return g.area;
       case "amenities":
         return g.amenities;
-      case "price":
-        return rental ? g.priceYear : g.priceNight;
+      /* The three money branches. The dictionary has two sentences, for a
+         yearly rent and a nightly rate, which is what it was written against.
+         The sale and per-head cases are new markets it has not been translated
+         for yet, so they read in English rather than printing the wrong one of
+         the two it does have. */
+      case "rent":
+        return g.priceYear;
+      case "rate":
+        return perHead ? "Set the price per head in naira." : g.priceNight;
+      case "salePrice":
+        return "Set the asking price in naira.";
+      case "tenure":
+        return "Say what title comes with the property, for example Certificate of Occupancy.";
+      case "rentPeriod":
+        return "Say whether the rent is per year, quarter or month.";
+      case "ratePeriod":
+        return "Say what the rate covers.";
       case "bedrooms":
         return g.bedrooms;
       case "bathrooms":
         return g.bathrooms;
-      case "maxGuests":
-        return g.maxGuests;
       default:
         return fallback;
     }
@@ -454,14 +678,37 @@ export function ListingWizard({
       area: values.area,
       address: values.address,
       landmark: values.landmark,
-      maxGuests: values.maxGuests,
       bedrooms: values.bedrooms,
-      beds: values.beds,
       bathrooms: values.bathrooms,
-      priceNaira: values.priceNaira,
-      cleaningNaira: values.cleaningNaira,
-      minStayNights: values.minStayNights,
-      instantBook: values.instantBook,
+      toilets: values.toilets === "" ? undefined : values.toilets,
+      parkingSpaces: values.parkingSpaces === "" ? undefined : values.parkingSpaces,
+      floor: values.floor === "" ? undefined : values.floor,
+      totalFloors: values.totalFloors === "" ? undefined : values.totalFloors,
+      sizeSqm: values.sizeSqm === "" ? undefined : values.sizeSqm,
+      intent: values.intent,
+      rentNaira: values.rentNaira === "" ? undefined : values.rentNaira,
+      rentPeriod: values.rentPeriod,
+      rentNegotiable: values.rentNegotiable,
+      cautionDepositNaira:
+        values.cautionDepositNaira === "" ? undefined : values.cautionDepositNaira,
+      serviceChargeNaira:
+        values.serviceChargeNaira === "" ? undefined : values.serviceChargeNaira,
+      serviceChargePeriod: values.serviceChargePeriod,
+      agencyFeeNaira: values.agencyFeeNaira === "" ? undefined : values.agencyFeeNaira,
+      legalFeeNaira: values.legalFeeNaira === "" ? undefined : values.legalFeeNaira,
+      agreementFeeNaira: values.agreementFeeNaira === "" ? undefined : values.agreementFeeNaira,
+      totalMoveInNaira: values.totalMoveInNaira === "" ? undefined : values.totalMoveInNaira,
+      minimumTenancyMonths:
+        values.minimumTenancyMonths === "" ? undefined : values.minimumTenancyMonths,
+      availableFrom: values.availableFrom === "" ? undefined : values.availableFrom,
+      furnished: values.furnished === "" ? undefined : values.furnished,
+      rateNaira: values.rateNaira === "" ? undefined : values.rateNaira,
+      salePriceNaira: values.salePriceNaira === "" ? undefined : values.salePriceNaira,
+      priceNegotiable: values.priceNegotiable,
+      tenure: values.tenure === "" ? undefined : values.tenure,
+      saleStatus: values.saleStatus,
+      yearBuilt: values.yearBuilt === "" ? undefined : values.yearBuilt,
+      condition: values.condition === "" ? undefined : values.condition,
       powerGrid: values.powerGrid === "" ? undefined : values.powerGrid,
       powerBackup: values.powerBackup === "" ? undefined : values.powerBackup,
       powerBackupHours: values.powerBackupHours === "" ? undefined : values.powerBackupHours,
@@ -905,16 +1152,17 @@ export function ListingWizard({
               textAreaClassName="min-h-[9rem]"
             />
 
+            {/*
+              Bedrooms and bathrooms, then the four facts a Nigerian listing is
+              expected to state and never could.
+
+              Guests and beds are gone with the short-stay model: `max_guests`
+              and `beds` are no longer columns, and asking for a number nothing
+              stores is asking somebody to type into a void. Toilets, parking,
+              floor and size took their place, which is what a person reading a
+              listing here actually asks after the rent.
+            */}
             <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3">
-              <Counter
-                label={copy.basics.counters.guests}
-                fewerLabel={counterAria("fewer", copy.basics.counters.guests)}
-                moreLabel={counterAria("more", copy.basics.counters.guests)}
-                value={values.maxGuests}
-                min={1}
-                max={30}
-                onChange={(v) => set("maxGuests", v)}
-              />
               <Counter
                 label={copy.basics.counters.bedrooms}
                 fewerLabel={counterAria("fewer", copy.basics.counters.bedrooms)}
@@ -925,24 +1173,72 @@ export function ListingWizard({
                 onChange={(v) => set("bedrooms", v)}
               />
               <Counter
-                label={copy.basics.counters.beds}
-                fewerLabel={counterAria("fewer", copy.basics.counters.beds)}
-                moreLabel={counterAria("more", copy.basics.counters.beds)}
-                value={values.beds}
-                min={1}
-                max={30}
-                onChange={(v) => set("beds", v)}
-              />
-              <Counter
                 label={copy.basics.counters.bathrooms}
                 fewerLabel={counterAria("fewer", copy.basics.counters.bathrooms)}
                 moreLabel={counterAria("more", copy.basics.counters.bathrooms)}
                 value={values.bathrooms}
-                min={1}
+                min={0}
                 max={20}
                 onChange={(v) => set("bathrooms", v)}
               />
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Toilets" error={fieldErrors.toilets}>
+                <input
+                  className="nf-field"
+                  inputMode="numeric"
+                  value={values.toilets}
+                  onChange={(e) => set("toilets", digitsOnly(e.target.value, 2))}
+                  placeholder="3"
+                />
+              </Field>
+              <Field label="Parking spaces" error={fieldErrors.parkingSpaces}>
+                <input
+                  className="nf-field"
+                  inputMode="numeric"
+                  value={values.parkingSpaces}
+                  onChange={(e) => set("parkingSpaces", digitsOnly(e.target.value, 2))}
+                  placeholder="2"
+                />
+              </Field>
+              <Field
+                label="Floor"
+                hint="Ground is 0."
+                error={fieldErrors.floor}
+              >
+                <input
+                  className="nf-field"
+                  inputMode="numeric"
+                  value={values.floor}
+                  onChange={(e) => set("floor", digitsOnly(e.target.value, 3))}
+                  placeholder="2"
+                />
+              </Field>
+              <Field label="Floors in the building" error={fieldErrors.totalFloors}>
+                <input
+                  className="nf-field"
+                  inputMode="numeric"
+                  value={values.totalFloors}
+                  onChange={(e) => set("totalFloors", digitsOnly(e.target.value, 3))}
+                  placeholder="5"
+                />
+              </Field>
+            </div>
+
+            <Field
+              label="Size in square metres"
+              hint={`Optional, and the only figure here that may carry a decimal. Up to ${MAX_FLOORS} floors are accepted above.`}
+              error={fieldErrors.sizeSqm}
+            >
+              <input
+                className="nf-field"
+                inputMode="decimal"
+                value={values.sizeSqm}
+                onChange={(e) => set("sizeSqm", e.target.value.replace(/[^0-9.]/g, "").slice(0, 10))}
+                placeholder="120"
+              />
+            </Field>
           </div>
         )}
 
@@ -1313,98 +1609,416 @@ export function ListingWizard({
         {/* ------------------------------------------------------- 5 pricing */}
         {step === 5 && (
           <div className="space-y-5">
-            <Field
-              label={rental ? copy.pricing.priceYearLabel : copy.pricing.priceNightLabel}
-              // The gate names this "price"; the draft schema names the raw
-              // input "priceNaira". Either can arrive, and both mean this box.
-              error={fieldErrors.price ?? fieldErrors.priceNaira}
-              hint={
-                price
-                  ? fill(copy.pricing.priceWithPeriod, { price, period: pricePeriod })
-                  : copy.pricing.priceHint
-              }
-            >
-              <input
-                className="nf-field"
-                inputMode="decimal"
-                value={values.priceNaira}
-                onChange={(e) => set("priceNaira", e.target.value)}
-                placeholder={
-                  rental ? copy.pricing.priceYearPlaceholder : copy.pricing.priceNightPlaceholder
-                }
-              />
-            </Field>
+            {/*
+              The first question, and everything below it follows.
 
-            {!rental && (
+              This is the choice the whole product turns on and until now the
+              wizard never asked it: a person with a flat to sell had to price
+              it per night. The two cards are deliberately the same size and
+              equally weighted, because RentMe is a marketplace for renting AND
+              buying and leaning the layout toward one of them would quietly
+              tell half the listers they are in the wrong place.
+            */}
+            <fieldset>
+              <legend className="nf-label mb-2">What are you listing it for?</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {LISTING_INTENT_CHOICES.map((choice) => {
+                  const active = values.intent === choice.value;
+                  return (
+                    <button
+                      key={choice.value}
+                      type="button"
+                      onClick={() => set("intent", choice.value)}
+                      aria-pressed={active}
+                      className="nf-card nf-card--interactive p-3 text-left"
+                      style={
+                        active
+                          ? {
+                              borderColor: "var(--nf-mode-agent)",
+                              boxShadow: "0 0 0 1px var(--nf-mode-agent)",
+                            }
+                          : undefined
+                      }
+                    >
+                      <span className="block text-[0.875rem] font-semibold">{choice.label}</span>
+                      <span className="mt-0.5 block text-[0.6875rem] leading-snug text-[var(--nf-content-muted)]">
+                        {choice.blurb}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            {/* ------------------------------------------------------- a sale */}
+            {forSale && (
               <>
                 <Field
-                  label={copy.pricing.cleaningLabel}
-                  error={fieldErrors.cleaningNaira}
+                  label="Asking price"
+                  error={fieldErrors.salePrice ?? fieldErrors.salePriceNaira}
                   hint={
-                    cleaningMinor > 0
-                      ? fill(copy.pricing.cleaningHintSet, {
-                          amount: formatMoney(cleaningMinor, locale),
-                        })
-                      : copy.pricing.cleaningHint
+                    saleMinor > 0
+                      ? `${formatMoney(saleMinor, locale)} asking price`
+                      : "In naira. Buyers filter on this figure, so it is the one number that has to be right."
                   }
                 >
                   <input
                     className="nf-field"
                     inputMode="decimal"
-                    value={values.cleaningNaira}
-                    onChange={(e) => set("cleaningNaira", e.target.value)}
-                    placeholder={copy.pricing.cleaningPlaceholder}
+                    value={values.salePriceNaira}
+                    onChange={(e) => set("salePriceNaira", e.target.value)}
+                    placeholder="180,000,000"
                   />
                 </Field>
 
-                <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3">
-                  <Counter
-                    label={copy.pricing.minStayLabel}
-                    fewerLabel={counterAria("fewer", copy.pricing.minStayLabel)}
-                    moreLabel={counterAria("more", copy.pricing.minStayLabel)}
-                    value={values.minStayNights}
-                    min={1}
-                    max={365}
-                    onChange={(v) => set("minStayNights", v)}
-                  />
-                </div>
+                <Toggle
+                  title="The price is negotiable"
+                  body="Say so and a buyer will open the conversation rather than scroll past."
+                  checked={values.priceNegotiable}
+                  onChange={(v) => set("priceNegotiable", v)}
+                />
 
-                <button
-                  type="button"
-                  className="flex w-full items-center justify-between gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3 text-left"
-                  aria-pressed={values.instantBook}
-                  onClick={() => set("instantBook", !values.instantBook)}
-                >
-                  <span>
-                    <span className="block text-[0.9375rem] font-medium">
-                      {copy.pricing.instantTitle}
-                    </span>
-                    <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">
-                      {copy.pricing.instantBody}
-                    </span>
-                  </span>
-                  <span
-                    className="relative h-7 w-12 shrink-0 rounded-full transition-colors"
-                    style={{
-                      background: values.instantBook
-                        ? "var(--nf-gradient-agent)"
-                        : "var(--nf-surface-raised)",
-                    }}
-                  >
-                    <span
-                      className="absolute top-1 h-5 w-5 rounded-full bg-white transition-all"
-                      style={{ left: values.instantBook ? "1.625rem" : "0.25rem" }}
+                {/*
+                  The question every Nigerian buyer asks first, and the one a
+                  fraudulent listing will not answer. It is required by the
+                  submit gate rather than encouraged, because a property for
+                  sale with no stated title is the shape of every land scam
+                  there has ever been.
+                */}
+                <fieldset>
+                  <legend className="nf-label mb-2">What title comes with it?</legend>
+                  <div className="flex flex-wrap gap-2">
+                    {TENURE_CHOICES.map((choice) => (
+                      <button
+                        key={choice.value}
+                        type="button"
+                        className="nf-chip min-h-11"
+                        aria-pressed={values.tenure === choice.value}
+                        title={choice.blurb}
+                        onClick={() =>
+                          set("tenure", values.tenure === choice.value ? "" : choice.value)
+                        }
+                      >
+                        {values.tenure === choice.value && <UiIcon name="verified" size={16} />}
+                        {choice.label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[0.75rem] text-[var(--nf-content-muted)]">
+                    {TENURE_CHOICES.find((c) => c.value === values.tenure)?.blurb ??
+                      "A buyer will ask before anything else. Answering here saves both of you a journey."}
+                  </p>
+                  {fieldErrors.tenure && (
+                    <p className="mt-1.5 text-[0.75rem] font-medium text-[var(--nf-state-error)]">
+                      {fieldErrors.tenure}
+                    </p>
+                  )}
+                </fieldset>
+
+                <fieldset>
+                  <legend className="nf-label mb-2">Where the sale stands</legend>
+                  <div className="flex flex-wrap gap-2">
+                    {SALE_STATUS_CHOICES.map((choice) => (
+                      <button
+                        key={choice.value}
+                        type="button"
+                        className="nf-chip min-h-11"
+                        aria-pressed={values.saleStatus === choice.value}
+                        onClick={() => set("saleStatus", choice.value)}
+                      >
+                        {values.saleStatus === choice.value && (
+                          <UiIcon name="verified" size={16} />
+                        )}
+                        {choice.label}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Year built" error={fieldErrors.yearBuilt}>
+                    <input
+                      className="nf-field"
+                      inputMode="numeric"
+                      value={values.yearBuilt}
+                      onChange={(e) => set("yearBuilt", digitsOnly(e.target.value, 4))}
+                      placeholder="2019"
                     />
-                  </span>
-                </button>
+                  </Field>
+                  <Field label="Condition">
+                    <select
+                      className="nf-field"
+                      value={values.condition}
+                      onChange={(e) => set("condition", e.target.value as BuildCondition | "")}
+                    >
+                      <option value="">Not stated</option>
+                      {CONDITION_CHOICES.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
               </>
             )}
 
-            {rental && (
-              <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                {copy.pricing.rentalNote}
-              </p>
+            {/* ---------------------------------------------------- a tenancy */}
+            {tenancy && (
+              <>
+                <Field
+                  label="Rent"
+                  error={fieldErrors.rent ?? fieldErrors.rentNaira}
+                  hint={
+                    rentMinor > 0
+                      ? `${formatMoney(rentMinor, locale)} ${PERIOD_WORD[values.rentPeriod]}`
+                      : copy.pricing.priceHint
+                  }
+                >
+                  <input
+                    className="nf-field"
+                    inputMode="decimal"
+                    value={values.rentNaira}
+                    onChange={(e) => set("rentNaira", e.target.value)}
+                    placeholder="4,500,000"
+                  />
+                </Field>
+
+                <fieldset>
+                  <legend className="nf-label mb-2">How often is it paid?</legend>
+                  <div className="flex flex-wrap gap-2">
+                    {RENT_PERIOD_CHOICES.map((choice) => (
+                      <button
+                        key={choice.value}
+                        type="button"
+                        className="nf-chip min-h-11"
+                        aria-pressed={values.rentPeriod === choice.value}
+                        onClick={() => set("rentPeriod", choice.value)}
+                      >
+                        {values.rentPeriod === choice.value && (
+                          <UiIcon name="verified" size={16} />
+                        )}
+                        {choice.label}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+
+                <Toggle
+                  title="The rent is negotiable"
+                  body="Say so and somebody who is close will start the conversation."
+                  checked={values.rentNegotiable}
+                  onChange={(v) => set("rentNegotiable", v)}
+                />
+
+                {/*
+                  WHAT IT ACTUALLY COSTS TO MOVE IN.
+
+                  A 4.5m yearly rent in Lagos routinely means seven million at
+                  the door once caution, agency, legal and agreement fees are
+                  counted, and every one of those was invisible on this platform
+                  until now. A tenant who travels across the city to be told the
+                  real figure has been wasted, and the agent has wasted a
+                  Saturday too. Every field is optional because agents genuinely
+                  quote different subsets, and an unstated fee renders as
+                  unstated rather than as zero: "no agency fee" is a selling
+                  point and "we did not say" is not the same promise.
+                */}
+                <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-4">
+                  <p className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                    What it costs to move in
+                  </p>
+                  <p className="mt-1.5 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+                    Fill in whatever you charge. Anything you leave blank is
+                    shown as not stated, never as zero.
+                  </p>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <Field label="Caution deposit" error={fieldErrors.cautionDepositNaira}>
+                      <input
+                        className="nf-field"
+                        inputMode="decimal"
+                        value={values.cautionDepositNaira}
+                        onChange={(e) => set("cautionDepositNaira", e.target.value)}
+                        placeholder="450,000"
+                      />
+                    </Field>
+                    <Field label="Agency fee" error={fieldErrors.agencyFeeNaira}>
+                      <input
+                        className="nf-field"
+                        inputMode="decimal"
+                        value={values.agencyFeeNaira}
+                        onChange={(e) => set("agencyFeeNaira", e.target.value)}
+                        placeholder="450,000"
+                      />
+                    </Field>
+                    <Field label="Legal fee" error={fieldErrors.legalFeeNaira}>
+                      <input
+                        className="nf-field"
+                        inputMode="decimal"
+                        value={values.legalFeeNaira}
+                        onChange={(e) => set("legalFeeNaira", e.target.value)}
+                        placeholder="225,000"
+                      />
+                    </Field>
+                    <Field label="Agreement fee" error={fieldErrors.agreementFeeNaira}>
+                      <input
+                        className="nf-field"
+                        inputMode="decimal"
+                        value={values.agreementFeeNaira}
+                        onChange={(e) => set("agreementFeeNaira", e.target.value)}
+                        placeholder="225,000"
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <Field label="Service charge" error={fieldErrors.serviceChargeNaira}>
+                      <input
+                        className="nf-field"
+                        inputMode="decimal"
+                        value={values.serviceChargeNaira}
+                        onChange={(e) => set("serviceChargeNaira", e.target.value)}
+                        placeholder="600,000"
+                      />
+                    </Field>
+                    <Field label="Service charge cycle">
+                      <select
+                        className="nf-field"
+                        value={values.serviceChargePeriod}
+                        onChange={(e) =>
+                          set("serviceChargePeriod", e.target.value as RentPeriod)
+                        }
+                      >
+                        {RENT_PERIOD_CHOICES.map((c) => (
+                          <option key={c.value} value={c.value}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+
+                  <div className="mt-4">
+                    <Field
+                      label="Total to move in"
+                      error={fieldErrors.totalMoveInNaira}
+                      hint={
+                        statedTotalMinor === null
+                          ? partsSumMinor > 0
+                            ? `Leave blank and we show ${formatMoney(partsSumMinor, locale)}, which is what the parts above come to.`
+                            : "The one number people shop on. Leave it blank and we add up the parts above."
+                          : `${formatMoney(statedTotalMinor, locale)} at the door. It has to be at least ${formatMoney(partsSumMinor, locale)}, which is what the parts above come to.`
+                      }
+                    >
+                      <input
+                        className="nf-field"
+                        inputMode="decimal"
+                        value={values.totalMoveInNaira}
+                        onChange={(e) => set("totalMoveInNaira", e.target.value)}
+                        placeholder="7,000,000"
+                      />
+                    </Field>
+                  </div>
+
+                  {moveInMinor > 0 && (
+                    <p className="nf-numeric mt-3 text-[0.9375rem] font-bold text-[var(--nf-content-primary)]">
+                      {formatMoney(moveInMinor, locale)}
+                      <span className="ml-1.5 text-[0.75rem] font-normal text-[var(--nf-content-muted)]">
+                        {statedTotalMinor === null ? "from the parts above" : "as you stated it"}
+                      </span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Field
+                    label="Shortest tenancy, in months"
+                    error={fieldErrors.minimumTenancyMonths}
+                  >
+                    <input
+                      className="nf-field"
+                      inputMode="numeric"
+                      value={values.minimumTenancyMonths}
+                      onChange={(e) =>
+                        set("minimumTenancyMonths", digitsOnly(e.target.value, 3))
+                      }
+                      placeholder="12"
+                    />
+                  </Field>
+                  <Field label="Available from" error={fieldErrors.availableFrom}>
+                    <input
+                      className="nf-field"
+                      type="date"
+                      value={values.availableFrom}
+                      onChange={(e) => set("availableFrom", e.target.value)}
+                    />
+                  </Field>
+                </div>
+
+                <Field label="Furnishing">
+                  <select
+                    className="nf-field"
+                    value={values.furnished}
+                    onChange={(e) => set("furnished", e.target.value as Furnishing | "")}
+                  >
+                    <option value="">Not stated</option>
+                    {FURNISHING_CHOICES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                  {copy.pricing.rentalNote}
+                </p>
+              </>
             )}
+
+            {/* ------------------------------------------------- a short stay */}
+            {shortStay && (
+              <Field
+                label={perHead ? "Price per head" : copy.pricing.priceNightLabel}
+                error={fieldErrors.rate ?? fieldErrors.rateNaira}
+                hint={
+                  rateMinor > 0
+                    ? fill(copy.pricing.priceWithPeriod, {
+                        price: formatMoney(rateMinor, locale),
+                        period: perHead ? "per head" : copy.pricing.perNight,
+                      })
+                    : copy.pricing.priceHint
+                }
+              >
+                <input
+                  className="nf-field"
+                  inputMode="decimal"
+                  value={values.rateNaira}
+                  onChange={(e) => set("rateNaira", e.target.value)}
+                  placeholder={copy.pricing.priceNightPlaceholder}
+                />
+              </Field>
+            )}
+
+            <Field
+              label="Available from"
+              hint="Shown on the listing so nobody asks."
+              error={fieldErrors.availableFrom}
+            >
+              {shortStay || forSale ? (
+                <input
+                  className="nf-field"
+                  type="date"
+                  value={values.availableFrom}
+                  onChange={(e) => set("availableFrom", e.target.value)}
+                />
+              ) : (
+                <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">
+                  Set above, with the tenancy terms.
+                </span>
+              )}
+            </Field>
           </div>
         )}
 
@@ -1428,16 +2042,17 @@ export function ListingWizard({
                   className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/65 to-transparent"
                   aria-hidden="true"
                 />
-                {rental && (
+                {/* One badge, and which one it is says which market this is. The
+                    instant-book badge is gone with the column behind it. */}
+                {forSale ? (
+                  <span className="nf-badge nf-badge--warning absolute left-3 top-3">
+                    For sale
+                  </span>
+                ) : rental ? (
                   <span className="nf-badge nf-badge--brand absolute left-3 top-3">
                     {copy.guestView.rentBadge}
                   </span>
-                )}
-                {values.instantBook && !rental && (
-                  <span className="nf-badge nf-badge--warning absolute left-3 top-3">
-                    {copy.guestView.instantBadge}
-                  </span>
-                )}
+                ) : null}
                 <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">
                   <UiIcon name="location" size={12} className="shrink-0 text-white/70" />
                   <span className="truncate">
@@ -1451,11 +2066,17 @@ export function ListingWizard({
                   {values.title || copy.guestView.titlePlaceholder}
                 </h3>
                 <p className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
-                  {fill(copy.guestView.rooms, {
-                    bedrooms: values.bedrooms,
-                    bathrooms: values.bathrooms,
-                    guests: values.maxGuests,
-                  })}
+                  {/* The dictionary sentence names a guest count this model no
+                      longer has, so the preview states the two facts it does
+                      hold rather than printing a number nothing stores. */}
+                  {[
+                    `${values.bedrooms} bed`,
+                    `${values.bathrooms} bath`,
+                    values.toilets ? `${values.toilets} toilet` : null,
+                    values.sizeSqm ? `${values.sizeSqm} sqm` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </p>
                 <p className="mt-2.5 flex items-baseline gap-1.5">
                   <span className="nf-numeric text-[1.0625rem] font-bold">

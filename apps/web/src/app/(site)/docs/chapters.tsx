@@ -51,7 +51,7 @@ export type DocChapter = {
 };
 
 /** How a link inside the prose is drawn. One class, every chapter. */
-const A = "font-semibold text-[var(--nf-electric-300)] hover:underline";
+const A = "font-semibold text-[var(--nf-content-link)] hover:underline";
 
 const MIN_MOVE = formatMoney(MIN_MOVE_KOBO);
 const MAX_MOVE = formatMoney(MAX_MOVE_KOBO);

@@ -80,7 +80,7 @@ export default async function ContactPage({
                 <p className="nf-overline">Support email</p>
                 <a
                   href={`mailto:${SUPPORT_EMAIL}`}
-                  className="nf-tap mt-2 inline-block break-all text-[1.25rem] font-bold text-[var(--nf-electric-300)] hover:underline sm:text-[1.5rem]"
+                  className="nf-tap mt-2 inline-block break-all text-[1.25rem] font-bold text-[var(--nf-content-link)] hover:underline sm:text-[1.5rem]"
                 >
                   {SUPPORT_EMAIL}
                 </a>
@@ -164,7 +164,7 @@ export default async function ContactPage({
               <p className="nf-overline">Agents</p>
               <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                 Applying to list, or checking on an application? Start at{" "}
-                <Link href="/agents" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+                <Link href="/agents" className="font-semibold text-[var(--nf-content-link)] hover:underline">
                   Become an agent
                 </Link>
                 .

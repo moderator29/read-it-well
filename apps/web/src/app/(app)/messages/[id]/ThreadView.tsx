@@ -470,7 +470,7 @@ export function ThreadView({
             <div key={m.id} className="nf-msg-in--theirs flex items-end gap-3">
               <span
                 aria-hidden="true"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-electric-300)]"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-brand-secondary)]"
               >
                 {counterpartName.charAt(0)}
               </span>
@@ -502,7 +502,7 @@ export function ThreadView({
           <div className="nf-msg-in--theirs flex items-end gap-3">
             <span
               aria-hidden="true"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-electric-300)]"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-brand-secondary)]"
             >
               {counterpartName.charAt(0)}
             </span>
@@ -530,7 +530,7 @@ export function ThreadView({
           role="status"
           className="nf-card mb-2 flex items-start gap-3 border-t border-[var(--nf-border-subtle)] p-3.5"
         >
-          <span className="mt-0.5 shrink-0 text-[var(--nf-electric-300)]" aria-hidden="true">
+          <span className="mt-0.5 shrink-0 text-[var(--nf-brand-secondary)]" aria-hidden="true">
             <UiIcon name="verified" size={16} />
           </span>
           <p className="min-w-0 flex-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">

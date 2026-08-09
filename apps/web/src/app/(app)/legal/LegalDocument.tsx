@@ -62,14 +62,14 @@ export function LegalDocument({
         See also our{" "}
         <Link
           href={otherHref}
-          className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+          className="font-semibold text-[var(--nf-content-link)] hover:underline"
         >
           {otherLabel}
         </Link>
         , or{" "}
         <a
           href={SUPPORT_HREF}
-          className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+          className="font-semibold text-[var(--nf-content-link)] hover:underline"
         >
           {SUPPORT_IS_EMAIL ? SUPPORT_LABEL : "the contact form"}
         </a>{" "}

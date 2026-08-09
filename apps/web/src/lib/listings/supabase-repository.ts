@@ -5,6 +5,15 @@ import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { diversePick, matchesFilter } from "./filter";
+import {
+  headlinePrice,
+  moveInTotal,
+  type BuildCondition,
+  type Furnishing,
+  type LandTenure,
+  type RentPeriod,
+  type SaleStatus,
+} from "./pricing";
 import type { Listing, ListingKind, ListingRepository, ListingSearchFilter } from "./types";
 
 /**
@@ -16,10 +25,10 @@ import type { Listing, ListingKind, ListingRepository, ListingSearchFilter } fro
  * a person on this platform, so it carries source "rentme". There is no other
  * source and there is not going to be one.
  *
- * Money stays integer kobo end to end. `price_per_night_minor` is the unit
- * price per `price_period` unit (per night for stays, per year for rentals),
- * which is exactly the convention the seed catalogue uses for `priceMinor`
- * plus `pricePeriod`, so no conversion happens anywhere in the mapping.
+ * Money stays integer kobo end to end. Which of the three money stories a row
+ * leads with (an asking price, a nightly rate, an annual rent) is decided by
+ * `headlinePrice` in ./pricing, once, so a card and a map pin cannot disagree.
+ * No conversion happens anywhere in this mapping.
  *
  * Query shape, deliberately flat: one listings query with photos and amenity
  * joins embedded, one aggregate query for reviews, and two tiny reference
@@ -31,6 +40,16 @@ import type { Listing, ListingKind, ListingRepository, ListingSearchFilter } fro
  */
 
 const PHOTO_BUCKET = "listing-photos";
+/**
+ * Walkthrough videos. Public, exactly like listing-photos.
+ *
+ * A walkthrough of a PUBLISHED listing is public information by definition, it
+ * is the evidence the listing is real, and a signed URL that expires would
+ * break the one thing a video has to do: play when somebody presses play. The
+ * bucket carries a 50MB ceiling and a MIME allowlist in Postgres, so the size
+ * and type rules hold even against a caller that skips the server action.
+ */
+export const VIDEO_BUCKET = "listing-videos";
 
 /** How many published listings one catalogue read pulls. */
 const CATALOGUE_LIMIT = 200;
@@ -50,14 +69,35 @@ const LISTING_SELECT = `
   id,
   title,
   property_type,
-  price_period,
-  price_per_night_minor,
-  cleaning_fee_minor,
-  service_fee_minor,
+  listing_intent,
+  rent_amount_minor,
+  rent_period,
+  rent_negotiable,
+  rate_minor,
+  rate_period,
+  sale_price_minor,
+  price_negotiable,
+  caution_deposit_minor,
+  service_charge_minor,
+  service_charge_period,
+  agency_fee_minor,
+  legal_fee_minor,
+  agreement_fee_minor,
+  total_move_in_cost_minor,
+  minimum_tenancy_months,
+  available_from,
+  furnished,
+  tenure,
+  sale_status,
+  year_built,
+  condition,
+  size_sqm,
+  toilets,
+  parking_spaces,
+  floor,
+  total_floors,
   bedrooms,
   bathrooms,
-  max_guests,
-  instant_book,
   featured,
   area,
   city,
@@ -66,6 +106,8 @@ const LISTING_SELECT = `
   longitude,
   published_at,
   created_at,
+  address_verified_at,
+  physically_inspected_at,
   power_grid,
   power_backup,
   power_backup_hours,
@@ -73,6 +115,7 @@ const LISTING_SELECT = `
   prepaid_meter,
   has_estate_access,
   listing_photos ( storage_path, position ),
+  listing_videos ( storage_path, poster_path, duration_seconds, position ),
   listing_amenities ( amenity_id )
 `;
 
@@ -80,14 +123,35 @@ type ListingRow = {
   id: string;
   title: string;
   property_type: string;
-  price_period: string;
-  price_per_night_minor: number;
-  cleaning_fee_minor: number;
-  service_fee_minor: number;
+  listing_intent: string | null;
+  rent_amount_minor: number | null;
+  rent_period: string | null;
+  rent_negotiable: boolean | null;
+  rate_minor: number | null;
+  rate_period: string | null;
+  sale_price_minor: number | null;
+  price_negotiable: boolean | null;
+  caution_deposit_minor: number | null;
+  service_charge_minor: number | null;
+  service_charge_period: string | null;
+  agency_fee_minor: number | null;
+  legal_fee_minor: number | null;
+  agreement_fee_minor: number | null;
+  total_move_in_cost_minor: number | null;
+  minimum_tenancy_months: number | null;
+  available_from: string | null;
+  furnished: string | null;
+  tenure: string | null;
+  sale_status: string | null;
+  year_built: number | null;
+  condition: string | null;
+  size_sqm: number | string | null;
+  toilets: number | null;
+  parking_spaces: number | null;
+  floor: number | null;
+  total_floors: number | null;
   bedrooms: number;
   bathrooms: number;
-  max_guests: number;
-  instant_book: boolean;
   featured: boolean;
   power_grid: string | null;
   power_backup: string | null;
@@ -102,7 +166,15 @@ type ListingRow = {
   longitude: number | null;
   published_at: string | null;
   created_at: string;
+  address_verified_at: string | null;
+  physically_inspected_at: string | null;
   listing_photos: { storage_path: string; position: number }[];
+  listing_videos: {
+    storage_path: string;
+    poster_path: string | null;
+    duration_seconds: number | null;
+    position: number;
+  }[] | null;
   listing_amenities: { amenity_id: string }[];
 };
 
@@ -153,6 +225,14 @@ function photoUrl(storagePath: string): string {
   const path = storagePath.replace(/^\/+/, "").replace(new RegExp(`^${PHOTO_BUCKET}/`), "");
   const base = SUPABASE_URL.replace(/\/+$/, "");
   return `${base}/storage/v1/object/public/${PHOTO_BUCKET}/${path}`;
+}
+
+/** Public object URL for a stored walkthrough video. */
+function videoUrl(storagePath: string): string {
+  if (/^https?:\/\//i.test(storagePath)) return storagePath;
+  const path = storagePath.replace(/^\/+/, "").replace(new RegExp(`^${VIDEO_BUCKET}/`), "");
+  const base = SUPABASE_URL.replace(/\/+$/, "");
+  return `${base}/storage/v1/object/public/${VIDEO_BUCKET}/${path}`;
 }
 
 function slugPart(value: string): string {
@@ -300,6 +380,18 @@ function mapRow(
     .map((a) => amenityCodes.get(a.amenity_id))
     .filter((code): code is string => Boolean(code))
     .sort();
+  const videos = [...(row.listing_videos ?? [])]
+    .sort((a, b) => a.position - b.position)
+    .map((v) => ({
+      url: videoUrl(v.storage_path),
+      posterUrl: v.poster_path ? photoUrl(v.poster_path) : null,
+      durationSeconds: v.duration_seconds,
+    }));
+
+  const headline = headlinePrice(row);
+  const moveIn = moveInTotal(row);
+  const optionalNumber = (value: number | null) =>
+    value === null || value === undefined ? {} : { value };
 
   return {
     id: row.id,
@@ -316,28 +408,66 @@ function mapRow(
     ...(row.latitude !== null && row.longitude !== null
       ? { lat: row.latitude, lng: row.longitude }
       : {}),
-    // Kobo per pricePeriod unit, straight from the column. Rentals are always
-    // an annual figure, which is what the RENT market and its cards expect.
-    priceMinor: row.price_per_night_minor,
-    /* The two figures a guest is charged on top of the nightly rate. They were
-       read by `reserve()` on the server and by nothing the guest could see, so
-       the panel quoted a "Total" that was only the subtotal and then asked for
-       more at checkout. Carrying them here is what lets the breakdown be true
-       before somebody taps. */
-    cleaningMinor: row.cleaning_fee_minor ?? 0,
-    serviceMinor: row.service_fee_minor ?? 0,
+    /* The headline figure in kobo, whichever of the three markets this row is
+       in. A sale carries its asking price here AND in salePriceMinor, because
+       every card in discovery prints priceMinor and a sale that printed zero
+       would read as free. */
+    priceMinor: headline.minor,
     currency: "NGN",
-    // The yearly market is rental, shop, office and land. The column is the
-    // authority; the kind test is the belt for a row written before the
-    // commercial types existed.
-    pricePeriod:
-      row.price_period === "year" || YEARLY_KINDS.has(kind) ? "year" : "night",
+    intent: row.listing_intent === "sale" ? "sale" : "rent",
+    ...(headline.kind === "sale" ? {} : { pricePeriod: headline.period }),
+    ...(headline.kind === "sale" ? { salePriceMinor: headline.minor } : {}),
+    negotiable:
+      row.listing_intent === "sale"
+        ? (row.price_negotiable ?? false)
+        : (row.rent_negotiable ?? false),
+    /* What it actually costs to move in. Carried only for a rent listing, and
+       only when somebody stated something: an unstated total renders as
+       unstated, never as zero, because "no fees" and "we did not say" are
+       different promises. */
+    ...(row.listing_intent !== "sale" && (moveIn.stated || moveIn.minor > 0)
+      ? { moveInCostMinor: moveIn.minor, moveInCostStated: moveIn.stated }
+      : {}),
+    ...(row.caution_deposit_minor === null
+      ? {}
+      : { cautionDepositMinor: Number(row.caution_deposit_minor) }),
+    ...(row.service_charge_minor === null
+      ? {}
+      : { serviceChargeMinor: Number(row.service_charge_minor) }),
+    ...(row.service_charge_period
+      ? { serviceChargePeriod: row.service_charge_period as RentPeriod }
+      : {}),
+    ...(row.agency_fee_minor === null ? {} : { agencyFeeMinor: Number(row.agency_fee_minor) }),
+    ...(row.legal_fee_minor === null ? {} : { legalFeeMinor: Number(row.legal_fee_minor) }),
+    ...(row.agreement_fee_minor === null
+      ? {}
+      : { agreementFeeMinor: Number(row.agreement_fee_minor) }),
+    ...(row.minimum_tenancy_months === null
+      ? {}
+      : { minimumTenancyMonths: row.minimum_tenancy_months }),
+    ...(row.available_from ? { availableFrom: row.available_from } : {}),
+    ...(row.furnished ? { furnished: row.furnished as Furnishing } : {}),
+    ...(row.tenure ? { tenure: row.tenure as LandTenure } : {}),
+    ...(row.sale_status ? { saleStatus: row.sale_status as SaleStatus } : {}),
+    ...(row.year_built === null ? {} : { yearBuilt: row.year_built }),
+    ...(row.condition ? { condition: row.condition as BuildCondition } : {}),
+    /* size_sqm is the one numeric column on this table rather than an integer,
+       because a plot is measured in fractions of a square metre and rounding it
+       to a whole number would misstate land. PostgREST hands a numeric back as
+       a string to preserve its precision, so it is parsed rather than trusted
+       to already be a number. */
+    ...(row.size_sqm === null || row.size_sqm === undefined
+      ? {}
+      : { sizeSqm: Number(row.size_sqm) }),
+    ...(row.toilets === null ? {} : { toilets: row.toilets }),
+    ...(row.parking_spaces === null ? {} : { parkingSpaces: row.parking_spaces }),
+    ...(row.floor === null ? {} : { floor: row.floor }),
+    ...(row.total_floors === null ? {} : { totalFloors: row.total_floors }),
+    ...(row.physically_inspected_at ? { inspectedAt: row.physically_inspected_at } : {}),
+    ...(row.address_verified_at ? { addressVerifiedAt: row.address_verified_at } : {}),
     source: "rentme",
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
-    // The host's own capacity, not a figure derived from bedroom count. Every
-    // listings row carries one; the check constraint keeps it above zero.
-    maxGuests: row.max_guests,
     utilities: {
       ...(row.power_grid ? { powerGrid: row.power_grid as NonNullable<Listing["utilities"]>["powerGrid"] } : {}),
       ...(row.power_backup
@@ -355,9 +485,15 @@ function mapRow(
     // First-party inventory is admitted through agent approval, so a published
     // listing is by definition a verified one.
     verified: true,
-    instantBook: row.instant_book,
+    /* Instant book is gone from the schema. The whole product moved from
+       "reserve a room tonight" to "rent or buy a property", and no property in
+       either of those markets changes hands without a person on both sides.
+       The field stays on the domain type because the filter drawer and the card
+       still read it; it is false for every database row, which is the truth. */
+    instantBook: false,
     amenities,
     photos,
+    videos,
     hue: hueFor(row.id),
   };
 }
@@ -452,30 +588,60 @@ export class SupabaseListingRepository implements ListingRepository {
         }
       }
       if (amenityIds) query = query.in("id", amenityIds);
+      if (filter.intent) {
+        query = query.eq(
+          "listing_intent",
+          filter.intent as Database["public"]["Enums"]["listing_intent"],
+        );
+      }
 
+      /*
+       * Budget, across three money columns rather than one.
+       *
+       * A row leads with an asking price, a nightly rate or a rent, and which
+       * one it leads with is a property of the row rather than of the query, so
+       * the predicate has to allow any of the three to satisfy the bound. An OR
+       * of three AND groups does exactly that in one PostgREST call.
+       *
+       * This stays an optimisation and never the authority: `matchesFilter`
+       * runs `headlinePrice` over every row that comes back and judges the one
+       * figure the row actually leads with, so a listing whose rent fits the
+       * budget but whose nightly rate does not is filtered out in memory. SQL
+       * narrows, the matcher decides, and the two cannot disagree.
+       */
       const wantsBudget =
         filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
       if (wantsBudget) {
-        // Kobo in, kobo compared. A row with no amount cannot be shown to fit a
-        // budget, which is exactly what the shared matcher decides too.
-        query = query.gt("price_per_night_minor", 0);
-        if (filter.minPriceMinor !== undefined) {
-          query = query.gte("price_per_night_minor", filter.minPriceMinor);
-        }
-        if (filter.maxPriceMinor !== undefined) {
-          query = query.lte("price_per_night_minor", filter.maxPriceMinor);
-        }
+        const bounds = (column: string) => {
+          const parts = [`${column}.gt.0`];
+          if (filter.minPriceMinor !== undefined) {
+            parts.push(`${column}.gte.${filter.minPriceMinor}`);
+          }
+          if (filter.maxPriceMinor !== undefined) {
+            parts.push(`${column}.lte.${filter.maxPriceMinor}`);
+          }
+          return `and(${parts.join(",")})`;
+        };
+        query = query.or(
+          [bounds("rent_amount_minor"), bounds("rate_minor"), bounds("sale_price_minor")].join(
+            ",",
+          ),
+        );
       }
       if (filter.bedrooms !== undefined) query = query.gte("bedrooms", filter.bedrooms);
       if (filter.bathrooms !== undefined) query = query.gte("bathrooms", filter.bathrooms);
-      if (filter.guests !== undefined) {
-        // Every listings row declares its own capacity, so the predicate is
-        // the column itself. This is exactly what `sleeps` decides in the
-        // matcher for a row that carries a declared number, which every row
-        // from this table does, so the two halves cannot disagree.
-        query = query.gte("max_guests", filter.guests);
-      }
-      if (filter.instantBook) query = query.eq("instant_book", true);
+      /*
+       * Party size and instant book are decided in memory now, and there is no
+       * predicate to push down for either.
+       *
+       * `max_guests` and `instant_book` were dropped with the short-stay model.
+       * The matcher still answers both: `sleeps` falls back to the
+       * two-per-bedroom convention where no capacity is declared, which is now
+       * every database row, and `instantBook` is false on every one of them.
+       * Naming that here rather than deleting the branch silently, because the
+       * filter drawer still offers both controls and a reader of this method is
+       * entitled to know why they are missing from the SQL.
+       */
 
       /*
        * Light and water, pushed down rather than filtered after the fact.

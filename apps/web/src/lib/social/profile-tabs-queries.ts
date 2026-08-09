@@ -23,6 +23,12 @@ import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 import { listingPhotoUrl, signMedia, type PostMediaItem } from "./posts-media";
+import {
+  headlinePeriod,
+  headlinePrice,
+  type ListingIntent,
+  type PricePeriod,
+} from "../listings/pricing";
 
 const LIMIT = 30;
 
@@ -41,7 +47,14 @@ export type PropertyCard = {
   area: string;
   city: string;
   priceMinor: number;
-  pricePeriod: "night" | "year";
+  /**
+   * What the figure is quoted in, or "sale" when it is an asking price. Comes
+   * from `headlinePrice`, the same resolution the public catalogue uses, so a
+   * property on somebody's profile and the same property in search cannot
+   * print two different numbers.
+   */
+  pricePeriod: PricePeriod | "sale";
+  intent: ListingIntent;
   bedrooms: number;
   bathrooms: number;
   photoUrl: string | null;
@@ -67,7 +80,7 @@ export async function getAgentProperties(agentId: string | null): Promise<Proper
     const { data, error } = await supabase
       .from("listings")
       .select(
-        "id, title, area, city, price_per_night_minor, price_period, bedrooms, bathrooms, listing_photos ( storage_path, position )",
+        "id, title, area, city, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, bedrooms, bathrooms, listing_photos ( storage_path, position )",
       )
       .eq("agent_id", agentId)
       .eq("status", "PUBLISHED")
@@ -78,13 +91,15 @@ export async function getAgentProperties(agentId: string | null): Promise<Proper
     return data.map((row) => {
       const photos = (row.listing_photos ?? []) as { storage_path: string; position: number }[];
       const first = [...photos].sort((a, b) => a.position - b.position)[0];
+      const headline = headlinePrice(row);
       return {
         id: row.id,
         title: row.title,
         area: row.area ?? "",
         city: row.city ?? "",
-        priceMinor: Number(row.price_per_night_minor ?? 0),
-        pricePeriod: row.price_period === "year" ? "year" : "night",
+        priceMinor: headline.minor,
+        pricePeriod: headlinePeriod(headline),
+        intent: row.listing_intent === "sale" ? "sale" : "rent",
         bedrooms: row.bedrooms ?? 0,
         bathrooms: row.bathrooms ?? 0,
         /* The row stores a bucket path, not an address. Handing that straight

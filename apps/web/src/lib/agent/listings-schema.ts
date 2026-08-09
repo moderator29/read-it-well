@@ -1,5 +1,33 @@
 import { z } from "zod";
 
+import {
+  BUILD_CONDITION_VALUES,
+  FURNISHING_VALUES,
+  LAND_TENURE_VALUES,
+  LISTING_INTENT_VALUES,
+  PERIOD_SUFFIX,
+  RATE_PERIOD_VALUES,
+  RENT_PERIOD_VALUES,
+  SALE_STATUS_VALUES,
+  type BuildCondition,
+  type Furnishing,
+  type LandTenure,
+  type ListingIntent,
+  type RatePeriod,
+  type RentPeriod,
+  type SaleStatus,
+} from "../listings/pricing";
+
+export type {
+  BuildCondition,
+  Furnishing,
+  LandTenure,
+  ListingIntent,
+  RatePeriod,
+  RentPeriod,
+  SaleStatus,
+} from "../listings/pricing";
+
 /**
  * Agent listing input schemas and the canonical submit gate.
  *
@@ -16,8 +44,21 @@ import { z } from "zod";
  *
  * Money crosses the boundary exactly once, here: naira text in,
  * Math.round(naira * 100) integer kobo out. Nothing downstream ever sees a
- * float. Rentals price per year, stays price per night; the same kobo column
- * carries both, read through price_period.
+ * float.
+ *
+ * THREE MARKETS, THREE MONEY SHAPES, and the wizard has to ask for exactly one
+ * of them. `intent` is the first question and everything after it follows:
+ *
+ *   SALE      an asking price, the title being sold, and a sale status.
+ *   TENANCY   a rent and its cycle, plus the fee breakdown a Nigerian tenant
+ *             is actually quoted: caution, service charge, agency, legal,
+ *             agreement, and the total to find at the door.
+ *   SHORT STAY a rate per night, or per head for a restaurant table.
+ *
+ * Which of the two rent shapes applies is decided by the property type through
+ * `isTenancy`, not by another question: a shop is let by the year and a
+ * shortlet is let by the night, and asking somebody to confirm that is asking
+ * them to restate what they already told us.
  */
 
 /* ------------------------------------------------------------- constants */
@@ -104,31 +145,125 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string; blurb: string
 ];
 
 /**
- * The yearly market: a tenancy agreed with the agent, inspected before any
- * money moves, and never reserved by the night. Rentals were the whole of it
- * until shops, offices and land arrived, and every one of those is let the
+ * The tenancy market: let by the year, agreed with the agent, inspected before
+ * any money moves, and never reserved by the night. Rentals were the whole of
+ * it until shops, offices and land arrived, and every one of those is let the
  * same way, so they take the same path rather than a second one that would
  * drift from it.
  */
-const YEARLY: ReadonlySet<PropertyType> = new Set<PropertyType>([
+const TENANCY: ReadonlySet<PropertyType> = new Set<PropertyType>([
   "rental",
   "shop",
   "office",
   "land",
 ]);
 
+/** Priced per head rather than per night. One category, stated once. */
+const PER_HEAD: ReadonlySet<PropertyType> = new Set<PropertyType>(["restaurant"]);
+
+/** True when this category is let on a tenancy rather than by the night. */
+export function isTenancy(type: PropertyType | null | undefined): boolean {
+  return type ? TENANCY.has(type) : false;
+}
+
+/**
+ * Retained under its old name because the agent workspace, the wizard and the
+ * card model all call it, and the question it answers has not changed: is this
+ * the yearly market or the nightly one.
+ */
 export function isRental(type: PropertyType | null | undefined): boolean {
-  return type ? YEARLY.has(type) : false;
+  return isTenancy(type);
 }
 
-export function pricePeriodFor(type: PropertyType | null | undefined): "night" | "year" {
-  return isRental(type) ? "year" : "night";
+/** The rate cycle a short-stay category is quoted in. */
+export function ratePeriodFor(type: PropertyType | null | undefined): RatePeriod {
+  return type && PER_HEAD.has(type) ? "guest" : "night";
 }
 
-/** The words the UI puts after a price, per market. */
+/** The words the UI puts after a price, per market and intent. */
+export function priceSuffixFor(
+  type: PropertyType | null | undefined,
+  intent: ListingIntent = "rent",
+): string {
+  if (intent === "sale") return PERIOD_SUFFIX.sale;
+  if (isTenancy(type)) return PERIOD_SUFFIX.year;
+  return PERIOD_SUFFIX[ratePeriodFor(type)];
+}
+
+/**
+ * Retained for the agent workspace and the wizard, which print "per year" or
+ * "per night" beside a figure. A sale is not a period and is not answered here;
+ * callers that can be looking at one call `priceSuffixFor` with the intent.
+ */
 export function pricePeriodLabel(type: PropertyType | null | undefined): string {
-  return isRental(type) ? "per year" : "per night";
+  return isTenancy(type) ? "per year" : "per night";
 }
+
+/* ------------------------------------------------------- intent and money */
+
+export const LISTING_INTENT_CHOICES: {
+  value: ListingIntent;
+  label: string;
+  blurb: string;
+}[] = [
+  { value: "rent", label: "To let", blurb: "Somebody pays to occupy it. Rent, or a nightly rate." },
+  { value: "sale", label: "For sale", blurb: "Somebody buys it outright, with a title to transfer." },
+];
+
+export const RENT_PERIOD_CHOICES: { value: RentPeriod; label: string }[] = [
+  { value: "year", label: "Per year" },
+  { value: "quarter", label: "Per quarter" },
+  { value: "month", label: "Per month" },
+];
+
+export const TENURE_CHOICES: { value: LandTenure; label: string; blurb: string }[] = [
+  {
+    value: "certificate_of_occupancy",
+    label: "Certificate of Occupancy",
+    blurb: "A C of O issued by the state. The strongest title on offer.",
+  },
+  {
+    value: "governors_consent",
+    label: "Governor's Consent",
+    blurb: "A previously granted title, transferred with the governor's consent.",
+  },
+  {
+    value: "deed_of_assignment",
+    label: "Deed of Assignment",
+    blurb: "The transfer document, without consent obtained yet.",
+  },
+  { value: "gazette", label: "Gazette", blurb: "Excised land recorded in the state gazette." },
+  { value: "freehold", label: "Freehold", blurb: "Held outright, with no term." },
+  { value: "leasehold", label: "Leasehold", blurb: "Held for a fixed term of years." },
+];
+
+export const SALE_STATUS_CHOICES: { value: SaleStatus; label: string }[] = [
+  { value: "available", label: "Available" },
+  { value: "under_offer", label: "Under offer" },
+  { value: "sold", label: "Sold" },
+];
+
+export const FURNISHING_CHOICES: { value: Furnishing; label: string }[] = [
+  { value: "unfurnished", label: "Unfurnished" },
+  { value: "semi_furnished", label: "Semi furnished" },
+  { value: "fully_furnished", label: "Fully furnished" },
+];
+
+export const CONDITION_CHOICES: { value: BuildCondition; label: string }[] = [
+  { value: "newly_built", label: "Newly built" },
+  { value: "renovated", label: "Renovated" },
+  { value: "old", label: "Older build" },
+  { value: "off_plan", label: "Off plan" },
+];
+
+/** A year built earlier than this is a typing accident, not a building. */
+export const MIN_YEAR_BUILT = 1800;
+/** Off plan is real, so a few years ahead of today is a legitimate answer. */
+export const YEAR_BUILT_LOOKAHEAD = 5;
+/** The tallest building in Nigeria has 30 floors. 200 leaves room for the world. */
+export const MAX_FLOORS = 200;
+/** Shortest tenancy anybody offers is a month; longest anybody quotes is a decade. */
+export const MAX_TENANCY_MONTHS = 120;
 
 /* --------------------------------------------------------------- states */
 
@@ -318,6 +453,43 @@ const optionalNaira = (message: string) =>
       }),
   );
 
+/**
+ * A positive decimal, for the one measurement on a listing that is not a whole
+ * number. Land is sold in fractions of a square metre and rounding it to an
+ * integer would misstate the plot, so `listings.size_sqm` is numeric and this
+ * is the only field in the wizard that may carry a fraction. It is still not
+ * money and never becomes money.
+ */
+const optionalDecimal = (message: string) =>
+  z.preprocess(
+    emptyToUndefined,
+    z
+      .union([z.string(), z.number()])
+      .optional()
+      .transform((raw, ctx) => {
+        if (raw === undefined) return undefined;
+        const value = Number(String(raw).replace(/,/g, "").trim());
+        if (!Number.isFinite(value) || value <= 0 || value > 10_000_000) {
+          ctx.addIssue({ code: "custom", message });
+          return z.NEVER;
+        }
+        // Two decimal places is more precision than any survey plan states.
+        return Math.round(value * 100) / 100;
+      }),
+  );
+
+/** An ISO calendar date, the shape both `<input type="date">` and Postgres use. */
+const optionalDate = (message: string) =>
+  z.preprocess(
+    emptyToUndefined,
+    z
+      .string()
+      .trim()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, message)
+      .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00Z`)), message)
+      .optional(),
+  );
+
 const uuid = (message: string) => z.string().trim().uuid(message);
 
 /* --------------------------------------------------------- draft schema */
@@ -352,14 +524,60 @@ export const draftInputSchema = z.object({
   area: optionalText(80, "Keep the area under 80 characters."),
   address: optionalText(200, "Keep the address under 200 characters."),
   landmark: optionalText(120, "Keep the landmark under 120 characters."),
-  maxGuests: optionalCount(1, 30, "Guests can be 1 to 30."),
   bedrooms: optionalCount(0, 20, "Bedrooms can be 0 to 20."),
-  beds: optionalCount(1, 30, "Beds can be 1 to 30."),
-  bathrooms: optionalCount(1, 20, "Bathrooms can be 1 to 20."),
-  priceNaira: optionalNaira("Enter the price in naira, for example 85,000."),
-  cleaningNaira: optionalNaira("Enter the cleaning amount in naira, for example 10,000."),
-  minStayNights: optionalCount(1, 365, "The shortest stay can be 1 to 365 nights."),
-  instantBook: z.preprocess(emptyToUndefined, z.boolean().optional()),
+  bathrooms: optionalCount(0, 20, "Bathrooms can be 0 to 20."),
+  toilets: optionalCount(0, 20, "Toilets can be 0 to 20."),
+  parkingSpaces: optionalCount(0, 50, "Parking spaces can be 0 to 50."),
+  floor: optionalCount(-5, MAX_FLOORS, `The floor can be -5 to ${MAX_FLOORS}.`),
+  totalFloors: optionalCount(1, MAX_FLOORS, `A building has 1 to ${MAX_FLOORS} floors.`),
+  sizeSqm: optionalDecimal("Enter the size in square metres, for example 120."),
+
+  /* ------------------------------------------------------------- intent
+     The first question, and the one every money field below depends on. A
+     draft may be saved without it, in which case the row keeps whatever it
+     had, which is 'rent' by column default. */
+  intent: z.preprocess(emptyToUndefined, z.enum(LISTING_INTENT_VALUES).optional()),
+
+  /* ---------------------------------------------------------- to let, yearly
+     A tenancy: the rent, its cycle, and everything else somebody has to find
+     before the keys change hands. Every fee is optional because agents
+     genuinely quote different subsets, and an unstated fee is rendered as
+     unstated rather than as zero. */
+  rentNaira: optionalNaira("Enter the rent in naira, for example 4,500,000."),
+  rentPeriod: z.preprocess(emptyToUndefined, z.enum(RENT_PERIOD_VALUES).optional()),
+  rentNegotiable: z.preprocess(emptyToUndefined, z.boolean().optional()),
+  cautionDepositNaira: optionalNaira("Enter the caution deposit in naira."),
+  serviceChargeNaira: optionalNaira("Enter the service charge in naira."),
+  serviceChargePeriod: z.preprocess(emptyToUndefined, z.enum(RENT_PERIOD_VALUES).optional()),
+  agencyFeeNaira: optionalNaira("Enter the agency fee in naira."),
+  legalFeeNaira: optionalNaira("Enter the legal fee in naira."),
+  agreementFeeNaira: optionalNaira("Enter the agreement fee in naira."),
+  totalMoveInNaira: optionalNaira("Enter the total move-in cost in naira."),
+  minimumTenancyMonths: optionalCount(
+    1,
+    MAX_TENANCY_MONTHS,
+    `The shortest tenancy can be 1 to ${MAX_TENANCY_MONTHS} months.`,
+  ),
+  availableFrom: optionalDate("Enter the date as YYYY-MM-DD."),
+  furnished: z.preprocess(emptyToUndefined, z.enum(FURNISHING_VALUES).optional()),
+
+  /* --------------------------------------------------------- to let, nightly
+     A shortlet, a hotel room, a restaurant table. One figure and the cycle it
+     is quoted in, which the category decides rather than the lister. */
+  rateNaira: optionalNaira("Enter the rate in naira, for example 85,000."),
+  ratePeriod: z.preprocess(emptyToUndefined, z.enum(RATE_PERIOD_VALUES).optional()),
+
+  /* -------------------------------------------------------------- for sale */
+  salePriceNaira: optionalNaira("Enter the asking price in naira, for example 180,000,000."),
+  priceNegotiable: z.preprocess(emptyToUndefined, z.boolean().optional()),
+  tenure: z.preprocess(emptyToUndefined, z.enum(LAND_TENURE_VALUES).optional()),
+  saleStatus: z.preprocess(emptyToUndefined, z.enum(SALE_STATUS_VALUES).optional()),
+  yearBuilt: optionalCount(
+    MIN_YEAR_BUILT,
+    new Date().getUTCFullYear() + YEAR_BUILT_LOOKAHEAD,
+    `The year built can be ${MIN_YEAR_BUILT} to ${new Date().getUTCFullYear() + YEAR_BUILT_LOOKAHEAD}.`,
+  ),
+  condition: z.preprocess(emptyToUndefined, z.enum(BUILD_CONDITION_VALUES).optional()),
 
   /* Light and water. Undefined means the host has not answered yet and the
      column is left exactly as it was; the listing page renders unanswered as
@@ -466,10 +684,19 @@ export type SubmitSubject = {
   stateCode: string | null | undefined;
   city: string | null | undefined;
   area: string | null | undefined;
-  priceMinor: number | null | undefined;
+  /** To let, or for sale. Absent reads as "rent", the column default. */
+  intent: ListingIntent | null | undefined;
+  /** Tenancy rent in kobo, with the cycle it is quoted in. */
+  rentMinor: number | null | undefined;
+  rentPeriod: RentPeriod | null | undefined;
+  /** Short-stay rate in kobo, per night or per head. */
+  rateMinor: number | null | undefined;
+  ratePeriod: RatePeriod | null | undefined;
+  /** Asking price in kobo, and the title being sold with it. */
+  salePriceMinor: number | null | undefined;
+  tenure: LandTenure | null | undefined;
   bedrooms: number | null | undefined;
   bathrooms: number | null | undefined;
-  maxGuests: number | null | undefined;
   amenityCount: number;
   photoCount: number;
   /** True when a photo sits at position 0, which is the cover. */
@@ -539,27 +766,60 @@ export function submitRequirements(subject: SubmitSubject): GateRequirement[] {
     unmet.push({ field: "amenities", message: "Choose at least one amenity guests will find." });
   }
 
-  const price = subject.priceMinor ?? 0;
-  if (price <= 0) {
-    unmet.push({
-      field: "price",
-      message: isRental(subject.propertyType)
-        ? "Set the yearly rent in naira."
-        : "Set the price per night in naira.",
-    });
+  /*
+   * The money gate, which is three different gates.
+   *
+   * A listing that says nothing about what it costs is the single most useless
+   * thing this catalogue can publish, so exactly one of the three shapes has to
+   * be complete, and which one is not the lister's choice: intent picks sale
+   * against everything else, and the property type picks tenancy against short
+   * stay. Each branch names the field the wizard has to send the agent back to,
+   * so the checklist and the server refusal point at the same input.
+   */
+  const intent: ListingIntent = subject.intent ?? "rent";
+  if (intent === "sale") {
+    if ((subject.salePriceMinor ?? 0) <= 0) {
+      unmet.push({ field: "salePrice", message: "Set the asking price in naira." });
+    }
+    /* A buyer's first question in Nigeria is what title they are taking, and a
+       sale listing that will not answer it is the shape of every land scam
+       there has ever been. It is required rather than encouraged. */
+    if (!subject.tenure) {
+      unmet.push({
+        field: "tenure",
+        message: "Say what title comes with the property, for example Certificate of Occupancy.",
+      });
+    }
+  } else if (isTenancy(subject.propertyType)) {
+    if ((subject.rentMinor ?? 0) <= 0) {
+      unmet.push({ field: "rent", message: "Set the rent in naira." });
+    }
+    if (!subject.rentPeriod) {
+      unmet.push({ field: "rentPeriod", message: "Say whether the rent is per year, quarter or month." });
+    }
+  } else {
+    if ((subject.rateMinor ?? 0) <= 0) {
+      unmet.push({
+        field: "rate",
+        message:
+          subject.propertyType === "restaurant"
+            ? "Set the price per head in naira."
+            : "Set the price per night in naira.",
+      });
+    }
+    if (!subject.ratePeriod) {
+      unmet.push({ field: "ratePeriod", message: "Say what the rate covers." });
+    }
   }
 
   if ((subject.bedrooms ?? -1) < 0) {
     unmet.push({ field: "bedrooms", message: "Say how many bedrooms the property has." });
   }
-  /* A plot of land has no bathroom and sleeps nobody. Asking would be a gate
-     no land listing could ever pass, which is a worse failure than a missing
-     field: the category would exist in search and be impossible to supply. */
+  /* A plot of land has no bathroom. Asking would be a gate no land listing
+     could ever pass, which is a worse failure than a missing field: the
+     category would exist in search and be impossible to supply. */
   if (subject.propertyType !== "land" && (subject.bathrooms ?? 0) < 1) {
     unmet.push({ field: "bathrooms", message: "Say how many bathrooms the property has." });
-  }
-  if (subject.propertyType !== "land" && (subject.maxGuests ?? 0) < 1) {
-    unmet.push({ field: "maxGuests", message: "Say how many guests the property sleeps." });
   }
 
   return unmet;

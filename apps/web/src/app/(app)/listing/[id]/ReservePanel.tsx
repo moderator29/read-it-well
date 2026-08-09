@@ -599,7 +599,7 @@ export function ReservePanel({
             {state.error.startsWith("Sign in") && (
               <Link
                 href="/sign-in"
-                className="mt-1 block font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+                className="mt-1 block font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
               >
                 Sign in
               </Link>

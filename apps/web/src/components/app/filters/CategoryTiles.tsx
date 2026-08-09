@@ -5,16 +5,38 @@ import { toSearchHref, type DiscoveryQuery } from "@/lib/listings/search-params"
 import type { ListingKind } from "@/lib/listings/types";
 
 /**
- * The markets we actually run, as tiles.
+ * The markets we actually run.
  *
- * One tile per real `ListingKind`, never an invented category, each carrying
- * its commissioned 3D object on the platform's glass tile. The icon choices
- * match the home screen's category rail deliberately: the same market must not
- * wear a different face on two surfaces.
+ * One entry per real `ListingKind`, never an invented category. The icon
+ * choices match the home screen's category rail deliberately: the same market
+ * must not wear a different face on two surfaces.
  *
- * Every tile is a link that writes `type=` into the address, so a category is
+ * Each is a link that writes `type=` into the address, so a category is
  * shareable, works with the back button and survives a hard reload. Tapping the
- * active tile clears the category rather than dead-ending on it.
+ * active one clears the category rather than dead-ending on it.
+ *
+ * ---------------------------------------------------------------------------
+ * NOTHING IS DRAWN AROUND THE OBJECTS ANY MORE, AND THE FILE IS NO LONGER
+ * CALLED WHAT IT DOES.
+ *
+ * Twelve `nf-card` boxes in a scrolling row: twelve borders, twelve blurred
+ * fills and twelve shadows, each containing a 44px commissioned 3D object and
+ * 11px type. Three faults, and they compound:
+ *
+ *  - The object is ARTWORK. It is lit from the upper left and carries its own
+ *    shadow, and a plate behind it flattens exactly the depth it was drawn to
+ *    have. Twelve plates in a row read as a toolbar of buttons rather than as a
+ *    set of places to go.
+ *  - 11px semibold is below what anybody reads while scrolling a row sideways
+ *    with a thumb, and it was the label carrying the entire meaning.
+ *  - The active state was a 2px brand RING around the box, so selecting a
+ *    category added a thirteenth edge to a row that already had twelve.
+ *
+ * Now the object sits on the page background with its label under it and
+ * nothing around it, which is how the reference platform draws its category
+ * grid. Bigger: 72px object, 14px label. The active state is a short brand
+ * underline plus full-contrast ink - a mark UNDER the thing rather than a box
+ * around it, which is the difference between pointing and containing.
  */
 const CATEGORIES: { kind: ListingKind; icon: BrandIconName }[] = [
   { kind: "hotel", icon: "hotel-star" },
@@ -51,61 +73,51 @@ export function CategoryTiles({ query, t }: { query: DiscoveryQuery; t: Dictiona
     experience: t.nav.experiences,
   };
 
+  const entries: { kind: ListingKind | null; icon: BrandIconName; text: string }[] = [
+    { kind: null, icon: "home-search", text: "Everything" },
+    ...CATEGORIES.map((c) => ({ kind: c.kind, icon: c.icon, text: label[c.kind] })),
+  ];
+
   return (
     <nav aria-label="Categories" className="nf-scroll-x -mx-5 md:-mx-8">
-      <ul className="flex gap-2.5 px-5 md:px-8">
-        <li className="shrink-0">
-          <Link
-            href={toSearchHref({ ...query, kind: undefined })}
-            prefetch
-            data-testid="category-all"
-            aria-current={query.kind ? undefined : "true"}
-            className={`nf-card nf-card--interactive flex h-full w-[5.5rem] flex-col items-center gap-2 p-2.5 text-center ${
-              query.kind ? "" : "ring-2 ring-[var(--nf-brand-primary)]"
-            }`}
-          >
-            <span className="block h-11 w-11">
-              <BrandIcon name="home-search" fill />
-            </span>
-            <span
-              className={`text-[0.6875rem] font-semibold leading-tight ${
-                query.kind
-                  ? "text-[var(--nf-content-secondary)]"
-                  : "text-[var(--nf-content-primary)]"
-              }`}
-            >
-              Everything
-            </span>
-          </Link>
-        </li>
-        {CATEGORIES.map((category) => {
-          const active = query.kind === category.kind;
+      <ul className="flex gap-6 px-5 md:gap-7 md:px-8">
+        {entries.map((entry) => {
+          const active = entry.kind === null ? !query.kind : query.kind === entry.kind;
+          /* Tapping the active category clears it rather than dead-ending. */
+          const href = toSearchHref({
+            ...query,
+            kind: entry.kind === null || active ? undefined : entry.kind,
+          });
+
           return (
-            <li key={category.kind} className="shrink-0">
+            <li key={entry.kind ?? "all"} className="shrink-0">
               <Link
-                href={toSearchHref({
-                  ...query,
-                  kind: active ? undefined : category.kind,
-                })}
+                href={href}
                 prefetch
-                data-testid={`category-${category.kind}`}
+                data-testid={entry.kind ? `category-${entry.kind}` : "category-all"}
                 aria-current={active ? "true" : undefined}
-                className={`nf-card nf-card--interactive flex h-full w-[5.5rem] flex-col items-center gap-2 p-2.5 text-center ${
-                  active ? "ring-2 ring-[var(--nf-brand-primary)]" : ""
-                }`}
+                className="nf-tap flex w-[5.25rem] flex-col items-center gap-2.5 text-center"
               >
-                <span className="block h-11 w-11">
-                  <BrandIcon name={category.icon} fill />
+                <span className="nf-story-art block h-18 w-18">
+                  <BrandIcon name={entry.icon} fill />
                 </span>
                 <span
-                  className={`text-[0.6875rem] font-semibold leading-tight ${
+                  className={`text-[0.875rem] font-semibold leading-snug ${
                     active
                       ? "text-[var(--nf-content-primary)]"
                       : "text-[var(--nf-content-secondary)]"
                   }`}
                 >
-                  {label[category.kind]}
+                  {entry.text}
                 </span>
+                {/* The active mark: a short brand rule UNDER the label. It
+                    occupies its own row in both states so nothing shifts when
+                    the selection moves along the row. */}
+                <span
+                  aria-hidden="true"
+                  className="block h-[3px] w-7 rounded-full"
+                  style={{ background: active ? "var(--nf-brand-primary)" : "transparent" }}
+                />
               </Link>
             </li>
           );

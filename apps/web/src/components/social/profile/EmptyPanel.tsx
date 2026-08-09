@@ -26,11 +26,21 @@ export function EmptyPanel({
 }) {
   return (
     <div className="nf-card nf-social-card p-7 text-center sm:p-9">
-      {/* Tiled: an empty panel has one object and one sentence in it, so the
-          object is the subject rather than an ornament beside something. */}
-      <div className="mx-auto w-fit">
-        <BrandIcon name={icon} size={56} tile />
-      </div>
+      {/*
+        NO TILE. This was one of the last two `tile` opt-ins on the platform and
+        it is gone with them.
+
+        The argument for it was that an empty panel has one object in it, so the
+        object should be the subject - which is true, and a glass chip drawn
+        around it does not make it the subject, it makes it a chip. The object
+        is commissioned artwork with its own light and its own shadow; a plate
+        behind it flattens exactly the depth it was drawn to have. It sits
+        directly on the panel now, larger, which is what actually makes it the
+        subject.
+      */}
+      <span className="nf-story-art mx-auto block h-20 w-20">
+        <BrandIcon name={icon} fill />
+      </span>
       <h3 className="nf-h3 mt-4 text-[1.05rem]">{title}</h3>
       <p className="mx-auto mt-2.5 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
         {body}

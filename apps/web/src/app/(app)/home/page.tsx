@@ -13,6 +13,10 @@ import { TrendingStrip } from "@/components/app/home/TrendingStrip";
 import { Reveal } from "@/components/site/Reveal";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { getAgentContext } from "@/lib/agent/listings-queries";
+import { getMode } from "@/lib/mode";
+import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
+import { roleStateFrom, type AgentFacts } from "@/components/roles/roles";
 import { ButtonLink } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
@@ -75,8 +79,44 @@ export default async function HomePage() {
   const greeting = DAYPART_GREETING[overview.daypart];
   const name = overview.firstName || (overview.signedIn ? "there" : "");
 
+  /*
+   * Whether this person is a seller or an agent who has not finished verifying.
+   *
+   * Read here rather than inside `VerifyPrompt` because the prompt is a server
+   * component that takes a fact, not a component that goes and finds one: the
+   * same fact drives the sheet on `/profile`, and two independent reads of it
+   * are two chances for the two surfaces to disagree about whether somebody is
+   * verified.
+   *
+   * A renter or buyer never produces a prompt. `needsVerification` is false for
+   * them by construction, so nothing here has to remember that rule.
+   */
+  const [agentContext, mode] = await Promise.all([getAgentContext(), getMode()]);
+  const agentFacts: AgentFacts =
+    agentContext.state === "agent"
+      ? {
+          type: agentContext.agent.type,
+          status: agentContext.agent.status,
+          verified: agentContext.agent.verified,
+        }
+      : null;
+  const roles = roleStateFrom(agentFacts, mode).roles;
+
   return (
     <>
+      {/*
+        THE VERIFICATION PROMPT, on the seller's or agent's own home surface.
+
+        One row: an icon, a headline, a sentence, one action. Persistent but
+        calm - not a modal, no dismiss cross, and it blocks nothing. It is above
+        the greeting because it is the one outstanding thing on the account, and
+        it disappears the moment verification lands rather than when somebody
+        closes it.
+      */}
+      {roles.map((role) => (
+        <VerifyPrompt key={role.id} role={role} className="mb-6" />
+      ))}
+
       {/* ---------------------------------------------------- the greeting */}
       <section className="nf-rise">
         <p className="text-[0.875rem] font-medium text-[var(--nf-content-secondary)]">
@@ -101,7 +141,7 @@ export default async function HomePage() {
           <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
             <Link
               href="/sign-in"
-              className="font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+              className="font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
             >
               Sign in
             </Link>{" "}
@@ -138,17 +178,31 @@ export default async function HomePage() {
       {/* -------------------------------------------------------- categories */}
       <Reveal as="section" className="mt-10 sm:mt-12">
         <h2 className="nf-h3 mb-3">Find a place to stay</h2>
-        <ul className="nf-scroll-x -mx-5 flex snap-x snap-mandatory gap-4 px-5 pb-1 scroll-pl-5 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 sm:pb-0 lg:grid-cols-5">
+        {/*
+          NO BOXES. The objects sit on the page.
+
+          Every one of these used to be an `nf-card` - a bordered, blurred,
+          shadowed container with a 48px object inside it and 13px type under
+          that. Five cards in a row is five borders and five shadows competing
+          with the object each one exists to present, and the object is
+          commissioned artwork with its own light: a plate behind it flattens
+          precisely the depth it was drawn for.
+
+          What replaces the box is SIZE and AIR. The object is 76px on a phone
+          and 88px from `sm`, the label is 15px, and the gaps are wider than the
+          cards were. Nothing is drawn around any of it.
+        */}
+        <ul className="nf-scroll-x -mx-5 flex snap-x snap-mandatory gap-6 px-5 pb-1 scroll-pl-5 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-7 sm:px-0 sm:pb-0 lg:grid-cols-5">
           {categories.map((c) => (
-            <li key={c.href} className="w-[7.25rem] shrink-0 snap-start sm:w-auto">
+            <li key={c.href} className="w-[6rem] shrink-0 snap-start sm:w-auto">
               <Link
                 href={c.href}
-                className="nf-card nf-card--interactive flex h-full flex-col items-center gap-3 p-4 text-center sm:p-5"
+                className="nf-tap flex h-full flex-col items-center gap-3 text-center"
               >
-                <span className="block h-13 w-13 sm:h-12 sm:w-12">
+                <span className="nf-story-art block h-19 w-19 sm:h-22 sm:w-22">
                   <BrandIcon name={c.icon} fill />
                 </span>
-                <span className="text-[0.8125rem] font-semibold sm:text-[0.875rem]">
+                <span className="text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
                   {c.label}
                 </span>
               </Link>
@@ -163,7 +217,7 @@ export default async function HomePage() {
           <h2 className="nf-h2">{t.home.recommended}</h2>
           <Link
             href="/search"
-            className="nf-tap shrink-0 text-[0.875rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+            className="nf-tap shrink-0 text-[0.875rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {t.common.viewAll}
           </Link>

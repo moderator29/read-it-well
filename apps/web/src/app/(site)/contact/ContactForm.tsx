@@ -63,7 +63,7 @@ export function ContactForm({
               Need to add something? Reply to that email, or write to{" "}
               <a
                 href={`mailto:${SUPPORT_EMAIL}`}
-                className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+                className="font-semibold text-[var(--nf-content-link)] hover:underline"
               >
                 {SUPPORT_EMAIL}
               </a>{" "}
@@ -164,7 +164,7 @@ export function ContactForm({
               {" "}You can also email{" "}
               <a
                 href={`mailto:${SUPPORT_EMAIL}`}
-                className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+                className="font-semibold text-[var(--nf-content-link)] hover:underline"
               >
                 {SUPPORT_EMAIL}
               </a>{" "}
@@ -185,7 +185,7 @@ export function ContactForm({
               {" "}If you would rather write to us yourself, the address is{" "}
               <a
                 href={`mailto:${SUPPORT_EMAIL}`}
-                className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+                className="font-semibold text-[var(--nf-content-link)] hover:underline"
               >
                 {SUPPORT_EMAIL}
               </a>

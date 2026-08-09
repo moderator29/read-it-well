@@ -1,30 +1,46 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import {
-  containsCurrent,
-  isCurrent,
-  type NavLeaf,
-  type NavNode,
-  type NavSection,
-} from "./nav-model";
+import { isCurrent, type NavLeaf, type NavSection } from "./nav-model";
 
 /**
- * The navigation tree, for both modes.
+ * The navigation list, for both modes.
  *
  * Personal Mode and Agent Mode used to have two navigations that looked like
  * two products: one stroked glyph list with a brand-blue pill, one column of
  * 26px 3D tiles with an agent-green one. An agent switching between them was
- * learning a second interface for the same job.
+ * learning a second interface for the same job. This renders both from the same
+ * `NavSection[]`, with one prop deciding the accent.
  *
- * This renders both from the same `NavSection[]`, with one prop deciding the
- * accent. Anything that changes about how navigation behaves, from the tree
- * line to the disclosure arrow to which parent opens on arrival, changes once.
+ * ---------------------------------------------------------------------------
+ * IT IS NO LONGER A TREE, AND THAT IS THE CHANGE.
  *
- * The open set is keyed by `storageKey`, so the two modes remember their own
- * groups rather than one clobbering the other.
+ * This file used to render parents with children: a disclosure arrow, an open
+ * set persisted per mode in localStorage, a seeded set so the group containing
+ * the current page opened on arrival, a tree line down the children, and a rule
+ * that the parent's label navigated while only the arrow expanded. Roughly a
+ * third of the code and every hard part of it.
+ *
+ * All of it is gone, because the sub-navigation it served is gone. The rule
+ * now, stated by the owner and applied everywhere: IF SOMETHING NEEDS CHILDREN
+ * IT IS EITHER ITS OWN SCREEN OR IT DOES NOT BELONG IN NAVIGATION.
+ *
+ * What that removed, concretely. Five `/search?type=` rows that were one screen
+ * with a query parameter changed. Three feed rows, the first of which pointed
+ * at its own parent's href. Three profile rows for a destination that is
+ * already a row at the top of the rail. An agent listings parent whose two
+ * children were the list and the button on the list. An earnings parent whose
+ * child was the chart on the earnings page.
+ *
+ * A person should not have to open a thing to find out whether what they want
+ * is inside it. Every row here goes somewhere, immediately, and there is
+ * nothing to discover.
+ *
+ * `NavNode` is still exported by `nav-model` and `children` is still on the
+ * type. This file ignores it. Left in place rather than deleted because
+ * removing a field from a shared type mid-wave changes two other files that are
+ * not this one's to change; nothing constructs it any more.
  */
 
 export function NavTree({
@@ -32,69 +48,21 @@ export function NavTree({
   active,
   activeType = null,
   label,
-  storageKey,
   accent = "brand",
-  expandLabel,
-  collapseLabel,
   onNavigate,
 }: {
   sections: NavSection[];
   active: string;
   activeType?: string | null;
   label: string;
-  /** Where this mode's open groups are remembered. */
-  storageKey: string;
   /** `agent` swaps the active pill and glyph colour for the mode's own. */
   accent?: "brand" | "agent";
-  expandLabel: string;
-  collapseLabel: string;
   onNavigate?: () => void;
 }) {
-  const seeded = useMemo(() => {
-    const open = new Set<string>();
-    for (const section of sections) {
-      for (const item of section.items) {
-        if (containsCurrent(item, active, activeType)) open.add(item.href);
-      }
-    }
-    return open;
-  }, [sections, active, activeType]);
-
-  const [open, setOpen] = useState<Set<string>>(seeded);
-
-  // The stored set arrives after mount so the server and the first client
-  // render agree; a mismatch here is a hydration error on every page.
-  useEffect(() => {
-    let stored: string[] = [];
-    try {
-      stored = JSON.parse(window.localStorage.getItem(storageKey) ?? "[]") as string[];
-    } catch {
-      stored = [];
-    }
-    setOpen(new Set([...seeded, ...(Array.isArray(stored) ? stored : [])]));
-  }, [seeded, storageKey]);
-
-  const toggle = useCallback(
-    (href: string) => {
-      setOpen((previous) => {
-        const next = new Set(previous);
-        if (next.has(href)) next.delete(href);
-        else next.add(href);
-        try {
-          window.localStorage.setItem(storageKey, JSON.stringify([...next]));
-        } catch {
-          // Private browsing. The set holds for this session and no longer.
-        }
-        return next;
-      });
-    },
-    [storageKey],
-  );
-
-  const leaf = (item: NavLeaf, depth: 0 | 1) => {
+  const row = (item: NavLeaf) => {
     const current = isCurrent(item.href, active, activeType);
     return (
-      <li key={`${item.href}-${item.label}`} className={depth === 1 ? "nf-nav__child" : undefined}>
+      <li key={`${item.href}-${item.label}`}>
         <Link
           href={item.href}
           onClick={onNavigate}
@@ -102,56 +70,15 @@ export function NavTree({
           className={`nf-nav__row${current ? " nf-nav__row--on" : ""}`}
         >
           <span className="nf-nav__glyph" aria-hidden="true">
-            <UiIcon name={item.icon} size={16} filled={current} />
+            {/* On the named scale, and a step up with it. This was a literal
+                16, which is now the FLOOR of the scale rather than a middle
+                step; `md` is 24 and is what a row this tall wants beside 16px
+                type. */}
+            <UiIcon name={item.icon} size="md" filled={current} />
           </span>
           <span className="nf-nav__label">{item.label}</span>
           {item.badge ? <span className="nf-nav__badge nf-numeric">{item.badge}</span> : null}
         </Link>
-      </li>
-    );
-  };
-
-  const node = (item: NavNode) => {
-    if (!item.children) return leaf(item, 0);
-
-    const expanded = open.has(item.href);
-    const current = isCurrent(item.href, active, activeType);
-    const panelId = `nav-${storageKey}-${item.href.replace(/[^a-z0-9]/gi, "-")}`;
-
-    return (
-      <li key={item.href}>
-        <div className={`nf-nav__row nf-nav__row--parent${current ? " nf-nav__row--on" : ""}`}>
-          {/* The label navigates; only the arrow expands. A parent that merely
-              toggles is a dead control the first time somebody taps the word. */}
-          <Link
-            href={item.href}
-            onClick={onNavigate}
-            aria-current={current ? "page" : undefined}
-            className="nf-nav__parentlink"
-          >
-            <span className="nf-nav__glyph" aria-hidden="true">
-              <UiIcon name={item.icon} size={16} filled={current} />
-            </span>
-            <span className="nf-nav__label">{item.label}</span>
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => toggle(item.href)}
-            aria-expanded={expanded}
-            aria-controls={panelId}
-            aria-label={`${expanded ? collapseLabel : expandLabel} ${item.label}`}
-            className="nf-nav__disclose nf-tap"
-          >
-            <UiIcon name="chevron-right" size={16} className={expanded ? "rotate-90" : ""} />
-          </button>
-        </div>
-
-        {expanded && (
-          <ul id={panelId} className="nf-nav__children">
-            {item.children.map((child) => leaf(child, 1))}
-          </ul>
-        )}
       </li>
     );
   };
@@ -164,7 +91,7 @@ export function NavTree({
       {sections.map((section, index) => (
         <div key={section.heading ?? `section-${index}`} className="nf-nav__section">
           {section.heading && <h2 className="nf-nav__heading">{section.heading}</h2>}
-          <ul>{section.items.map(node)}</ul>
+          <ul>{section.items.map(row)}</ul>
         </div>
       ))}
     </nav>

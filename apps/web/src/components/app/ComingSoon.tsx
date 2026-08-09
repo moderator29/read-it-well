@@ -29,12 +29,16 @@ export function ComingSoon({
       <PageHeader title={title} />
       <div className="py-4 text-center sm:py-6">
       <Reveal>
-        {/* One of the few surfaces that asks for the tile. The object is the
-            entire content of this screen: nothing else competes with it, there
-            is no card around it, and the chip is what stops a lone icon
-            floating in the middle of an empty page. */}
-        <span className="mx-auto block h-20 w-20 sm:h-24 sm:w-24">
-          <BrandIcon name={icon} fill tile />
+        {/*
+          NO TILE, and this was the last opt-in on the platform.
+
+          The old comment argued that a chip "stops a lone icon floating in the
+          middle of an empty page". That is a real problem and a plate is the
+          wrong answer to it: what stops an object floating is SIZE and the air
+          around it, not a box. So the object is bigger and sits on the page.
+        */}
+        <span className="nf-story-art mx-auto block h-28 w-28 sm:h-32 sm:w-32">
+          <BrandIcon name={icon} fill />
         </span>
         <p className="mx-auto mt-2.5 max-w-[44ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {promise}

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import type { Dictionary, Locale } from "@naijafinds/i18n";
+import type { Dictionary } from "@naijafinds/i18n";
 import { AppRail } from "./AppRail";
 import { MobileTabBar, showsTabBar } from "./MobileTabBar";
 import { Logo } from "@/design-system/brand/Logo";
@@ -54,7 +54,12 @@ import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
  */
 export function AppShell({
   t,
-  locale,
+  /*
+   * `locale` USED TO BE A PROP HERE and is gone with the language switcher.
+   * The header carried a permanent `LanguageSwitcher` on every app screen for a
+   * choice most people make once; it is a card on `/settings`, so the shell no
+   * longer needs to know what language it is in.
+   */
   userName,
   unreadNotifications = 0,
   avatarUrl = "",
@@ -64,7 +69,6 @@ export function AppShell({
   children,
 }: {
   t: Dictionary;
-  locale: Locale;
   userName: string;
   /** Real unread notification count, resolved on the server by the layout. */
   unreadNotifications?: number;
@@ -242,17 +246,20 @@ export function AppShell({
               aria-label={t.a11y.openMenu}
               aria-expanded={drawer}
               onClick={() => setDrawer(true)}
-              className="nf-icon-btn h-10 w-10 lg:hidden"
+              className="nf-icon-btn h-12 w-12 lg:hidden"
             >
               {/*
-                The panel toggle, not a hamburger.
+                THE PLAIN THREE LINE MENU, by request.
 
-                Three stacked lines say "a list is behind this" and nothing
-                more, and they say it identically whether the thing that opens
-                is a menu, a filter sheet or a drawer. This glyph says what
-                actually happens: a panel arrives beside the content.
+                It was `panel-left` - a bordered rectangle with a divider - on
+                the argument that it says what actually happens (a panel arrives
+                beside the content) rather than merely "a list is behind this".
+                True, and beside the point: the three lines are the most
+                recognised control in software and the bordered rectangle is one
+                people have to be taught, on the screen where a first-time
+                visitor has the least patience for learning anything.
               */}
-              <UiIcon name="panel-left" size={20} />
+              <UiIcon name="menu" size="md" />
             </button>
             {/* The wordmark, on phones only: above lg the rail already carries
                 it, and repeating a logo twice on one screen is noise. It used

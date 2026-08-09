@@ -22,8 +22,15 @@ import type { UiIconName } from "@/design-system/icons/UiIcon";
  *                                                                       ==
  *                                                                       25
  *
- * Counted after: ELEVEN for a renter, and every one of them is a place that
- * does something the others do not. What went, and why:
+ * Counted after: ELEVEN for a renter and TWELVE for an agent who is also staff
+ * (the same eleven, minus the Become an agent row they no longer need, plus one
+ * row each for the two workspaces). Every one of them is a place that does
+ * something the others do not.
+ *
+ * THERE IS NO SUB-NAVIGATION LEFT ANYWHERE IN THIS FILE. No row has children,
+ * `NavTree` no longer renders them, and the rule that produced that is the
+ * owner's: if a thing needs children it is either its own screen or it does not
+ * belong in navigation. What went, and why:
  *
  *  - **The five Explore children.** `/search?type=hotel`, `?type=property`,
  *    `?type=home`, `?type=restaurant`, `?type=experience` were five rows
@@ -140,12 +147,19 @@ export function buildNav({
   }
 
   /*
-   * The two workspaces, shown only to somebody who has one.
+   * The two workspaces, shown only to somebody who has one, and each is ONE
+   * ROW.
    *
-   * These keep their children, and that is not an inconsistency with the cuts
-   * above. A workspace child is a distinct surface with its own data - earnings
-   * is not listings with a filter on it - whereas every child removed above was
-   * one screen with a query parameter changed.
+   * The agent group used to carry eight children and the console six, so an
+   * agent who is also staff was offered forty destinations in this one panel.
+   * A workspace is a place you GO, and once you are in it, it has its own
+   * navigation with its own rail: reproducing that rail inside the consumer
+   * drawer is drawing the same eight rows in two places and making the person
+   * who has both choose which copy to use.
+   *
+   * Nothing became unreachable. Every one of those fourteen destinations is a
+   * row in the workspace's own navigation, one tap further in, which is where
+   * somebody who is working looks for it.
    */
   const workspaces: NavNode[] = [];
 
@@ -154,31 +168,11 @@ export function buildNav({
       href: "/agent/dashboard",
       label: t.nav.agentMode,
       icon: "building-apartment",
-      children: [
-        { href: "/agent/dashboard", label: t.agent.nav.dashboard, icon: "grid" },
-        { href: "/agent/listings", label: t.agent.nav.myListings, icon: "house" },
-        { href: "/agent/bookings", label: t.nav.bookings, icon: "calendar-booking" },
-        { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet" },
-        { href: "/agent/verification", label: t.agent.nav.verification, icon: "verified" },
-        { href: "/agent/settings", label: t.nav.settings, icon: "sliders" },
-      ],
     });
   }
 
   if (isAdmin) {
-    workspaces.push({
-      href: "/admin",
-      label: t.nav.consoleLabel,
-      icon: "shield-stop",
-      children: [
-        { href: "/admin", label: t.admin.nav.overview.label, icon: "grid" },
-        { href: "/admin/moderation", label: t.admin.nav.moderation.label, icon: "sliders" },
-        { href: "/admin/reports", label: t.admin.nav.reports.label, icon: "search" },
-        { href: "/admin/agents", label: t.admin.nav.applications.label, icon: "user" },
-        { href: "/admin/stops", label: t.admin.nav.stops.label, icon: "shield-stop" },
-        { href: "/admin/support", label: t.admin.nav.tickets.label, icon: "ticket" },
-      ],
-    });
+    workspaces.push({ href: "/admin", label: t.nav.consoleLabel, icon: "shield-stop" });
   }
 
   if (workspaces.length > 0) {

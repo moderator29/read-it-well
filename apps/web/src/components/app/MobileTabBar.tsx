@@ -4,37 +4,46 @@ import type { Dictionary } from "@naijafinds/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
- * Mobile tab bar.
+ * The bottom tab bar.
  *
- * FOUR destinations in the capsule and one island beside it, down from five and
- * one, and every one of them is now the same destination the rail offers at the
- * same rank. That agreement is the point: before this the dock, the rail and
- * the desktop dock each answered "where can I go" differently, so a person
- * moving between a phone and a laptop had to learn the product twice.
+ * ---------------------------------------------------------------------------
+ * THE EXACT CHANGE, AS ASKED FOR, IN THE ORDER IT WAS ASKED FOR.
  *
- * WHAT LEFT THE DOCK:
+ *   was      Feed    Explore   Map    Messages   Assistant    + Profile
+ *   no map   Feed    Explore   __     Messages   Assistant    + Profile
+ *   home in  Feed    Explore   Home   Messages   Assistant    + Profile
+ *   swap     Home    Explore   Feed   Messages   Assistant    + Profile
  *
- *  - **The Assistant tab.** It was here, in the app header as a filled primary
- *    button, and as a rail row: three placements for one feature. It keeps the
- *    side navigation, which on this viewport is the drawer behind the header's
- *    panel toggle.
- *  - **The Map tab.** It pointed at `/search?view=map`, the same pathname
- *    Explore owns, so the two could never both resolve their active state
- *    correctly, and the search screen carries its own map toggle, which is
- *    where a view switch belongs. A view of a screen is not a destination.
+ * THE MAP TAB IS GONE. It pointed at `/search?view=map`, the same pathname
+ * Explore owns, so the two could never both resolve their active state
+ * correctly - and more to the point a map is a VIEW OF discovery, not a peer
+ * destination beside it. The search screen already carries `ViewToggle`, which
+ * is the control a view switch belongs to.
  *
- * WHAT ARRIVED: Home, which the rail has always had and the dock never did.
+ * HOME TOOK THE SLOT and then Home and Feed exchanged places, which is what
+ * puts Home first. That ordering is also the rail's: Home, Explore, Feed, in
+ * that order, in both places. Before this the dock led with Feed and the rail
+ * led with Home, so the two disagreed about what the product opens on.
  *
- * SIGNED OUT IT IS THREE AND A DOOR. Bookings, wallet and an inbox all lead to
- * the same sign-up screen for a guest, so offering them teaches somebody that
- * this bar wastes taps. A guest gets the three surfaces they can genuinely
+ * THE ASSISTANT TAB IS GONE TOO, for a different reason. It was here, in the
+ * app header as a permanently filled primary button, and as a rail row: three
+ * placements for one feature. It keeps exactly one, the side navigation, which
+ * on this viewport is the drawer behind the header's menu control.
+ *
+ * SIGNED OUT IT IS THREE AND A DOOR. Bookings, a wallet and an inbox all lead
+ * to the same sign-up screen for a guest, so offering them teaches somebody
+ * that this bar wastes taps. A guest gets the three surfaces they can genuinely
  * read, and the island becomes the way to join.
  *
- * A floating dock, lifted clear of every edge rather than an edge-to-edge bar:
- * same shape language as the rest of the chrome. The active tab expands into a
- * labelled capsule while the rest stay icon-only, and because the outgoing
- * label collapses on the same spring the incoming one expands on, the highlight
- * reads as travelling along the bar.
+ * BIGGER, throughout. The glyphs are on the `lg` step, which moved from 24 to
+ * 28 with the scale, the labels are 13px rather than 11, and the row is taller.
+ * The owner asked for navigation that reads as deliberate and tappable rather
+ * than as a dense toolbar, and a dock is where that is felt first.
+ *
+ * A floating dock lifted clear of every edge rather than an edge-to-edge bar.
+ * The active tab expands into a labelled capsule while the rest stay icon-only,
+ * and because the outgoing label collapses on the same spring the incoming one
+ * expands on, the highlight reads as travelling along the bar.
  */
 type Tab = { href: string; label: string; icon: UiIconName };
 

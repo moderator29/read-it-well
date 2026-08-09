@@ -54,11 +54,11 @@ export default function PrivacyPage() {
         {/* -------------------------------------------------- cross link */}
         <p className="mt-8 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
           See also our{" "}
-          <Link href="/terms" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+          <Link href="/terms" className="font-semibold text-[var(--nf-content-link)] hover:underline">
             Terms of service
           </Link>
           , or{" "}
-          <Link href="/contact" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+          <Link href="/contact" className="font-semibold text-[var(--nf-content-link)] hover:underline">
             contact us
           </Link>{" "}
           with any question.

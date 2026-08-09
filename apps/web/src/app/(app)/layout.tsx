@@ -29,7 +29,6 @@ export default async function AppLayout({
   return (
     <AppShell
       t={t}
-      locale={locale}
       userName={userName}
       unreadNotifications={unreadNotifications}
       avatarUrl={avatarUrl}

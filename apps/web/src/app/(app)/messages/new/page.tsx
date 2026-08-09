@@ -32,7 +32,7 @@ function Fallback({
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Inbox" fallback="/messages" />
       <div className="nf-card nf-rise p-6 text-center">
-        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-electric-300)]">
+        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-brand-secondary)]">
           <UiIcon name="chat-bubble" size={24} />
         </span>
         <h2 className="nf-h3 mt-4">{title}</h2>
@@ -78,7 +78,7 @@ export default async function NewMessagePage({
       <div className="mx-auto max-w-2xl">
         <PageHeader title="Inbox" fallback="/messages" />
         <div className="nf-card nf-rise p-6 text-center">
-          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-electric-300)]">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-brand-secondary)]">
             <UiIcon name="chat-bubble" size={24} />
           </span>
           <h2 className="nf-h3 mt-4">Sign in to message the agent</h2>

@@ -103,9 +103,6 @@ export function AppRail({
         active={active}
         activeType={activeType}
         label={t.nav.primaryLabel}
-        storageKey="nf_nav_open"
-        expandLabel={t.a11y.expand}
-        collapseLabel={t.a11y.collapse}
         onNavigate={onNavigate}
       />
     </aside>

@@ -149,7 +149,7 @@ export default async function DocChapterPage({
             Something here unclear, or something missing?{" "}
             <Link
               href="/contact"
-              className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+              className="font-semibold text-[var(--nf-content-link)] hover:underline"
             >
               Tell us
             </Link>{" "}

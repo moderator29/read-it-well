@@ -90,7 +90,7 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
           <span
             className={`mt-1 block truncate text-[0.8125rem] leading-relaxed ${
               typing
-                ? "font-semibold text-[var(--nf-electric-300)]"
+                ? "font-semibold text-[var(--nf-brand-secondary)]"
                 : row.unread > 0
                   ? "font-medium text-[var(--nf-content-primary)]"
                   : "text-[var(--nf-content-secondary)]"

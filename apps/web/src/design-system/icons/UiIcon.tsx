@@ -49,6 +49,7 @@ export type UiIconName =
   | "share"
   | "shield-stop"
   | "panel-left"
+  | "menu"
   | "document"
   | "chevron-right"
   | "map"
@@ -195,6 +196,23 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="M8.8 13h6.4M8.8 16.4h4.2" />
     </>
   ),
+  /*
+   * THE MENU. Three lines, and that is the whole design.
+   *
+   * `panel-left` below is what the app header used before it, on the argument
+   * that three stacked lines "say a list is behind this and nothing more"
+   * while a frame with a divider says what actually happens. That argument is
+   * correct about what the two glyphs MEAN and wrong about what people know.
+   * The three lines are the most recognised control in software; a bordered
+   * rectangle with a line in it is a glyph somebody has to be taught, and it
+   * is also almost exactly the shape of a sidebar TOGGLE in a desktop
+   * application, which is a different control.
+   *
+   * The owner asked for a plain three line menu, so it is plain: three equal
+   * strokes, evenly spaced, no decorative shortening of the middle one, no
+   * animation into a cross.
+   */
+  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   "panel-left": (
     <>
       <rect x="3.2" y="4.4" width="17.6" height="15.2" rx="3" />
@@ -249,12 +267,28 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="m15.7 8.3-1.9 5.5-5.5 1.9 1.9-5.5Z" />
     </>
   ),
+  /*
+   * HOTEL, REDRAWN. The owner called this one out by name.
+   *
+   * What was wrong with it: a tower, a ground line, a door, and then TWELVE
+   * separate window ticks drawn as six pairs of 1.3-unit dashes. At the sizes
+   * this glyph is actually used - 20 to 24px - those twelve marks collapse into
+   * a grey texture, so the icon read as a hatched rectangle rather than as a
+   * building. It was also drawing three things a hotel does not need to be
+   * recognised: the ground it stands on, its front door, and every window.
+   *
+   * This is a bed and a canopy. A hotel is somewhere you SLEEP, which is what
+   * distinguishes it from an office block, and a bed says that in three strokes
+   * where a facade needs fifteen. Four marks total, all of them legible at
+   * 16px, and it reads as a distinct silhouette next to the apartment tower
+   * rather than as the same rectangle with different hatching.
+   */
   "building-hotel": (
     <>
-      <path d="M6.2 20.6V5.3a1.8 1.8 0 0 1 1.8-1.8h8a1.8 1.8 0 0 1 1.8 1.8v15.3" />
-      <path d="M3.6 20.6h16.8" />
-      <path d="M9.4 7.2h1.3M13.3 7.2h1.3M9.4 10.7h1.3M13.3 10.7h1.3M9.4 14.2h1.3M13.3 14.2h1.3" />
-      <path d="M10.6 20.6v-2.4a1.4 1.4 0 0 1 2.8 0v2.4" />
+      <path d="M3.4 19.4v-6.2a2 2 0 0 1 2-2h13.2a2 2 0 0 1 2 2v6.2" />
+      <path d="M3.4 16.2h17.2" />
+      <path d="M6.6 11.2V8a2.4 2.4 0 0 1 2.4-2.4h6a2.4 2.4 0 0 1 2.4 2.4v3.2" />
+      <path d="M12 5.6V3.4" />
     </>
   ),
   "building-apartment": (
@@ -285,12 +319,26 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="M14.8 7.6v1.1M14.8 11.5v1.1M14.8 15.4v1.1" />
     </>
   ),
+  /*
+   * BOOKING, REDRAWN. The other one the owner called out.
+   *
+   * What was wrong with it: a rounded rectangle, a rule under the header, two
+   * hanging rings, and a tick inside. Five elements, and the two rings and the
+   * header rule together put three near-horizontal lines in the top third of a
+   * 24 grid, which at 20px merge into one thick band. The frame also used a
+   * 2.2 radius against the 3-and-up radii the rest of this set settled on, so
+   * it read as slightly boxier than everything beside it.
+   *
+   * Now: one softer frame, one header rule, one tick, and the rings are gone.
+   * A calendar is recognised by the grid-with-a-header shape, not by its
+   * hardware, and the tick is the only thing that says BOOKED rather than
+   * DATE - so it is drawn larger, centred in the body, with room around it.
+   */
   "calendar-booking": (
     <>
-      <rect x="3.6" y="5" width="16.8" height="15.4" rx="2.2" />
-      <path d="M3.6 9.9h16.8" />
-      <path d="M8.1 3.1v3.3M15.9 3.1v3.3" />
-      <path d="m9.4 14.9 1.9 1.9 3.6-3.7" />
+      <rect x="3.4" y="4.6" width="17.2" height="16" rx="3.4" />
+      <path d="M3.4 9.4h17.2" />
+      <path d="m8.6 15 2.4 2.4 4.4-4.6" />
     </>
   ),
   "chat-bubble": (
@@ -685,10 +733,12 @@ const FILLED_PATHS: Partial<Record<UiIconName, React.ReactNode>> = {
   user: (
     <path d="M12 4.4a3.7 3.7 0 1 1 0 7.4 3.7 3.7 0 0 1 0-7.4Zm0 8.7c4.06 0 7.35 2.55 7.35 5.7 0 .94-.76 1.4-1.6 1.4H6.25c-.84 0-1.6-.46-1.6-1.4 0-3.15 3.29-5.7 7.35-5.7Z" />
   ),
+  /* The filled twin of the redrawn outline. The two rings are gone from this
+     one too: a silhouette that disagrees with its own outline is two icons. */
   "calendar-booking": (
     <path
       fillRule="evenodd"
-      d="M8.1 2.3a.9.9 0 0 1 .9.9v.9h6v-.9a.9.9 0 1 1 1.8 0v.9h1.6a2.2 2.2 0 0 1 2.2 2.2v13a2.2 2.2 0 0 1-2.2 2.2H5.6a2.2 2.2 0 0 1-2.2-2.2v-13A2.2 2.2 0 0 1 5.6 4.1h1.6v-.9a.9.9 0 0 1 .9-.9Zm-3.4 7.6v9.3c0 .22.18.4.4.4h13.8a.4.4 0 0 0 .4-.4V9.9Zm4.7 5 1.9 1.9 3.6-3.7 1.28 1.25-4.87 5-3.18-3.19Z"
+      d="M6.8 4.6h10.4a3.4 3.4 0 0 1 3.4 3.4v9.6a3.4 3.4 0 0 1-3.4 3.4H6.8a3.4 3.4 0 0 1-3.4-3.4V8a3.4 3.4 0 0 1 3.4-3.4Zm-1.6 5.6v7.4c0 .88.72 1.6 1.6 1.6h10.4c.88 0 1.6-.72 1.6-1.6v-7.4Zm3.4 4.8 2.4 2.4 4.4-4.6 1.3 1.24-5.66 5.92-3.68-3.68Z"
     />
   ),
   key: (

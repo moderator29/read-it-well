@@ -54,11 +54,11 @@ export default function TermsPage() {
         {/* -------------------------------------------------- cross link */}
         <p className="mt-8 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
           See also our{" "}
-          <Link href="/privacy" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+          <Link href="/privacy" className="font-semibold text-[var(--nf-content-link)] hover:underline">
             Privacy policy
           </Link>
           , or{" "}
-          <Link href="/contact" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+          <Link href="/contact" className="font-semibold text-[var(--nf-content-link)] hover:underline">
             contact us
           </Link>{" "}
           with any question.

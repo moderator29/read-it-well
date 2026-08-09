@@ -8,10 +8,12 @@ import type { NavSection } from "@/components/app/nav-model";
  * because an agent moving between the two modes should not have to learn a
  * second navigation. Only the accent differs.
  *
- * **The destinations are still the ten frozen ones** (Master Rule 17). What
- * changes is that they were a flat list of ten in which "List a property" sat
- * at the same level as "Settings", and analytics sat beside verification.
- * Three of those pairings are genuine parent and child and now read as such.
+ * FLAT, with no parents and no disclosure arrows. Two rows here used to carry
+ * children and both were the same mistake: a listings parent whose children
+ * were the list and the button on the list, and an earnings parent whose child
+ * was the chart. `NavTree` no longer renders children at all - see the note in
+ * that file - and the rule behind it is the owner\'s: if a thing needs children
+ * it is either its own screen or it does not belong in navigation.
  *
  * The other thing that changes is the glyphs. Every row carried a 26px 3D
  * `BrandIcon`, which is the content family: the platform's own rule is
@@ -27,18 +29,12 @@ export function buildAgentNav(t: Dictionary, unreadMessages = 0): NavSection[] {
       heading: null,
       items: [
         { href: "/agent/dashboard", label: t.agent.nav.dashboard, icon: "grid" },
-        {
-          /* The parent is the list of what you already have; adding one is its
-             first child, because that is the thing an agent with no listings
-             opens this group to do. */
-          href: "/agent/listings",
-          label: t.nav.properties,
-          icon: "house",
-          children: [
-            { href: "/agent/listings", label: t.agent.nav.myListings, icon: "house" },
-            { href: "/agent/list", label: t.agent.nav.listApartment, icon: "sparkle" },
-          ],
-        },
+        /* FLAT. This was a parent with two children, and the children were the
+           list of listings and the button that sits on top of the list of
+           listings. Adding a property is an action on that screen, not a
+           destination beside it, so opening a group to find it was a tap spent
+           discovering something that was already in view. */
+        { href: "/agent/listings", label: t.nav.properties, icon: "house" },
         { href: "/agent/bookings", label: t.agent.nav.bookings, icon: "calendar-booking" },
         {
           href: "/agent/messages",
@@ -58,17 +54,13 @@ export function buildAgentNav(t: Dictionary, unreadMessages = 0): NavSection[] {
     {
       heading: t.agent.nav.money,
       items: [
-        {
-          href: "/agent/earnings",
-          label: t.agent.nav.earnings,
-          icon: "wallet",
-          /* Analytics is what the earnings figure is made of, not a separate
-             concern that happens to be nearby. */
-          children: [
-            { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet" },
-            { href: "/agent/analytics", label: t.agent.nav.analytics, icon: "map" },
-          ],
-        },
+        /* Two rows, not a parent and a child. The old comment argued analytics
+           is "what the earnings figure is made of", which is true and is an
+           argument for putting the chart ON the earnings page, not for hiding
+           a second destination behind a disclosure arrow. They are two screens,
+           so they are two rows. */
+        { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet" },
+        { href: "/agent/analytics", label: t.agent.nav.analytics, icon: "map" },
       ],
     },
     {

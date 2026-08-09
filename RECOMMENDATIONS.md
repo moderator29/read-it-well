@@ -1,1165 +1,2343 @@
 # RentMe recommendations
 
-This replaces the previous file of the same name entirely. That one was written
-on 2026-07-28, carried 137 entries plus three appended passes, and described a
-platform that no longer exists: it opened by asking the owner to decide the
-admin navigation, which was decided and built ten days later, and it treated
-third-party hotel inventory as the growth plan, which the owner has since
-deleted from the product.
+This is the second full pass. The first was written on 2026-08-09 and carried 79
+entries. A great many of them have since been built, and the point of this file
+is that it says so, entry by entry, with the commit or the migration that did it,
+rather than quietly rotting into another document that describes a platform which
+no longer exists. That is exactly how its predecessor died.
 
-Every claim below was checked against the code, the migrations, or the live
-Supabase project `uccixoonmbhrnyczyigt` on **2026-08-09**. Where a claim could
-not be verified from here it says so in the entry rather than being softened.
-File and line references were read, not remembered. Line numbers move; the
-symbol names beside them do not, so search for the name if the number has
-drifted.
+Every claim below was checked on **2026-08-09** against the code in the working
+tree, the migration files, or the live Supabase project `uccixoonmbhrnyczyigt`.
+Nothing here is remembered. Where something could not be verified from inside
+this environment it is in section 23 rather than softened into a claim.
 
-Read `docs/PRODUCT.md` first. It says what the product is. This file says what
-is wrong with it.
+Read `docs/PRODUCT.md` first. It says what the product is. This file says what is
+wrong with it and what to do next.
 
-**Priorities.** P0 blocks launch or is actively lying to a user today. P1 is
+---
+
+## How to read this file
+
+**Status.** Every entry carries one, and the status is the first thing on the
+line so the file can be skimmed for what is left.
+
+| Status | Means |
+|---|---|
+| **DONE** | Verified fixed. Kept, with the evidence, so it is not rediscovered |
+| **PARTLY DONE** | Some of it landed. The entry now describes only the remainder |
+| **OPEN** | Not started, or started and not landed |
+| **WITHDRAWN** | The recommendation was wrong, or the world moved. Says why |
+| **NEW** | Added in this pass |
+
+**Priority.** P0 blocks launch or is actively lying to a user today. P1 is
 required before real money and real people arrive at scale. P2 is genuine
 improvement that can wait.
 
-**Contents.** [Scope](#1-product-scope-and-terminology) ·
-[Design](#2-design-system-and-theming) · [Navigation](#3-navigation-and-information-architecture) ·
-[Discovery](#4-property-discovery-and-the-map) · [Data model](#5-property-data-model) ·
-[Wallet](#6-wallet-and-payments) · [Escrow](#7-escrow) · [Trust](#8-verification-and-trust) ·
-[Social](#9-social-layer) · [Assistant](#10-ai-assistant) · [Emails](#11-emails) ·
-[Legal](#12-legal-and-privacy) · [Security](#13-security) · [Performance](#14-performance) ·
-[Mobile](#15-mobile-and-store-readiness) · [Testing](#16-testing-and-enforcement) ·
-[Unknowns](#17-what-is-not-known)
+**Line numbers move; symbol names do not.** Search for the name.
+
+**Contents.**
+[The wallet incident](#0-the-wallet-incident-a-case-study) ·
+[Scope](#1-product-scope-and-terminology) ·
+[Design](#2-design-system-and-theming) ·
+[Navigation](#3-navigation-and-information-architecture) ·
+[Discovery and the map](#4-property-discovery-and-the-map) ·
+[Data model](#5-property-data-model) ·
+[Wallet](#6-wallet-and-payments) ·
+[Escrow](#7-escrow) ·
+[Commission and fees](#8-commission-and-listing-fees) ·
+[KYC](#9-kyc-and-identity) ·
+[Trust](#10-verification-and-trust) ·
+[The empty shelf](#11-the-demo-property-ecosystem) ·
+[Media](#12-media-photographs-and-video) ·
+[Social](#13-social-layer) ·
+[Assistant](#14-ai-assistant) ·
+[Emails](#15-emails) ·
+[Legal](#16-legal-and-privacy) ·
+[Security](#17-security) ·
+[Performance](#18-performance) ·
+[Stores](#19-mobile-and-store-readiness) ·
+[The rename](#20-the-rename) ·
+[Testing](#21-testing-and-enforcement) ·
+[Migrations](#22-the-migration-mirror) ·
+[Unknowns](#23-what-is-not-known)
+
+---
+
+## 0. The wallet incident: a case study
+
+This section is not a recommendation. It is the record of the most instructive
+failure this codebase has produced, written down because the lesson generalises
+to every path that touches money, and because **the fix is only one third
+applied**. Read CASE-1 before writing anything in `lib/wallet`, `lib/payments`,
+`lib/bookings` or `app/api/paystack`.
+
+### CASE-1. A funding was paid for and the wallet showed zero. **P0, and the fix is incomplete**
+
+**What the user saw.** Money left a card. The wallet showed a balance of zero
+and an empty statement. It kept showing zero for days. Nothing anywhere said
+anything had gone wrong. There was no error toast, no support ticket trigger, no
+log line, no failed delivery in the processor's dashboard.
+
+**The four failures, and they are four, not one.**
+
+**One: the configuration failure.** `getAdminClient()` in
+`apps/web/src/lib/wallet/ledger.ts` returns `null` when
+`SUPABASE_SERVICE_ROLE_KEY` is absent or empty, and swallows the throw. Every
+caller treats null as "not configured" and gives up. Both settlement paths, the
+webhook and the redirect verify, take that branch identically. So a single
+missing environment variable disabled the entire money path without disabling
+the ability to take money.
+
+**Two: the acknowledgement failure.** `apps/web/src/app/api/paystack/webhook/route.ts`
+answers HTTP 200 on **every** branch. Read `acknowledged()` at `:70-72`: it is
+hard-wired to `{ status: 200 }`, and it is the only response this file can
+produce. It is returned when the body cannot be read (`:237`), when Paystack is
+unconfigured (`:241`), when the admin client is null (`:243`), when the signature
+does not verify (`:246`), when the JSON does not parse (`:252`), and on the
+success path (`:281`). A 200 tells Paystack the delivery was accepted. Paystack
+therefore never retries, and the delivery is not merely lost, it is **discarded
+with a receipt**. The processor's delivery log stays green, which is the first
+place anybody would look.
+
+Fail-open is correct for a rate limiter, where the alternative is denying a real
+user. It is catastrophic for a payment webhook, where the alternative is a
+retry that would have worked.
+
+**Three: the silence.** Before the observability module there were zero
+`console` calls anywhere in `lib/wallet`, `lib/payments`, `lib/bookings` or the
+webhook route, while 36 lived elsewhere in the application. Every other part of
+the platform was noisier than the part handling money. There was no line to
+grep for, no line to alert on, and nothing for the owner to paste into a support
+conversation.
+
+**Four, and this is the one worth naming.** The read path caught its own error
+and returned a confident zero. `getWalletForViewer()` wrapped the statement read
+in a try/catch and, on failure, returned `{ balanceMinor: 0, entries: [] }`.
+That is not a degraded read. That is a **different claim**. "I could not read
+your balance" and "your balance is zero" are opposite statements, and the code
+turned the first into the second, in the largest typeface on the platform, next
+to a naira sign.
+
+**The lesson, stated so it can be quoted.**
+
+> A money path that cannot fail loudly will fail silently. And a balance is a
+> claim about somebody else's money, so when we cannot make that claim we must
+> not fake it. An unknown is not a zero.
+
+**What has actually been fixed, verified in the tree today.**
+
+- `apps/web/src/lib/payments/observability.ts` exists. It is a good module: a
+  closed vocabulary of seven surfaces and seven outcomes, a one-line greppable
+  shape, an explicit list of what may never be logged, amounts in integer kobo
+  because "the ledger disagrees with the processor by 250000" is the sentence
+  reconciliation exists to produce, and a `logMoney` that can never throw.
+- `getWalletForViewer()` now logs on the catch branch and returns
+  `readFailed: true` alongside the zero.
+- The seeded wallet is gone from `lib/wallet/repository.ts` rather than merely
+  unused, with the reasoning written at `:24-39`. A signed-out visitor was being
+  shown a balance of 258,450.75 naira and a full day-grouped statement including
+  a GTBank withdrawal to an account ending 1294. That is deleted, not disabled.
+
+**What has NOT been fixed, and each of these is the incident's actual mechanism.**
+
+1. **The webhook is still silent.** `logMoney` is called **exactly once in the
+   entire codebase**, at `lib/wallet/repository.ts:146`. Grep it. There is not
+   one call in `app/api/paystack/webhook/route.ts`, not one in
+   `lib/wallet/actions.ts`, not one in `lib/wallet/ledger.ts`, not one in
+   `lib/payments/paystack.ts`, not one in `lib/bookings/checkout.ts`, not one in
+   `lib/bookings/settlement.ts`. The module that exists to make failure three
+   impossible is wired into the read path only. The write path, which is where
+   the money was lost, says nothing.
+2. **The webhook still answers 200 on the unconfigured branch.** `:241-243` is
+   unchanged. A missing service key is still an irrecoverable lost funding with
+   a green delivery log.
+3. **The bare catch is still bare.** `:276-279` swallows every throw from
+   `recordFunding`, `settleBookingCharge`, `markChargeFailed` and
+   `settleWithdrawal` with an empty block and a comment. A write that threw
+   half-way through settling a booking produces no line anywhere.
+4. **`readFailed` is produced and never consumed.** It is set in
+   `repository.ts`, typed in `lib/wallet/types.ts:68`, and read by nothing.
+   `app/(app)/wallet/page.tsx:47` calls `getWalletForViewer()`, branches on
+   `wallet.live`, and passes `wallet.balanceMinor` straight into `<BalanceCard>`.
+   On a read failure the page still draws a confident zero. The comment at
+   `repository.ts:123` says the screen "can say the balance could not be read
+   instead of printing a zero that looks like an answer". No screen does. The
+   exact defect the case study is about is still live in the user interface.
+
+**Do, in this order, and treat it as one piece of work.**
+
+1. Read `wallet.readFailed` on `app/(app)/wallet/page.tsx` and render a distinct
+   state: no figure, no sparkline, no in and out tiles, a plain sentence saying
+   the balance could not be read and that no money has moved, and a retry. This
+   is the smallest change on the list and it closes failure four. Do it first.
+2. Call `logMoney` on every branch of the webhook that returns, including the
+   success path with `outcome: "posted"`, and inside the bare catch with
+   `outcome: "failed"` and `failureReason(error)`. Seven call sites.
+3. Split `acknowledged()` in two. Keep 200 for anything that is the sender's
+   fault or genuinely not our business: an unparseable body, a bad signature, an
+   event we do not handle, a reference shape we do not issue. Return **500** for
+   anything that is our fault and that a retry would fix: no admin client, no
+   Paystack configuration, an exception out of a settlement call. Paystack
+   retries a 500 with backoff, which is precisely the behaviour that would have
+   saved the lost funding.
+4. Add `logMoney` to `fundWallet`, `withdraw`, `transferToUser`, `payWithWallet`
+   and the redirect verify path, on both the taken and the refused branch.
+5. Add a boot-time line, once per process, naming every server-only key that is
+   absent. Not a throw: this platform is designed to boot with an empty
+   environment. A line, so the absence is visible in a deployment log rather
+   than only in a probe.
+6. Add a spec that fails the build if `getAdminClient()` returns null anywhere
+   without an adjacent `logMoney` call. The habit is what failed, not the code.
+
+**The generalisation, which is the reason this section exists.** Three separate
+mechanisms all had to agree to hide this: a silent configuration fallback, an
+acknowledgement that lied to the only system that would have retried, and a read
+that converted an error into a number. Any one of them alone would have been
+survivable. Every future money surface has to be reviewed against all three
+questions: what happens when the environment is incomplete, what do we tell the
+system upstream of us, and what do we tell the user when we do not know.
 
 ---
 
 ## 1. Product scope and terminology
 
-### S-1. The repository, the npm scope and the package description still say NaijaFinds. **P1**
+### S-1. The npm scope, the package description and the repository still say NaijaFinds. **OPEN. P1**
 
-**Wrong today.** Root `package.json` line 4 reads `"description": "NaijaFinds.
-Nigeria-first discovery, stay, food and experience platform."` The workspace
-name is `naijafinds`. The shared packages are `@naijafinds/i18n` and
-`@naijafinds/design-tokens`, imported in hundreds of files. The GitHub
-repository is `read-it-well`, which matches nothing at all.
+Superseded in scope by section 20, which is now the full sequence. The counts
+there were re-measured today and are larger than previously recorded.
 
-**Do.** Change the root `description` and `name` to RentMe now: those two strings
-are read by nobody and cost nothing. Leave the `@naijafinds/*` package
-identifiers alone, deliberately, and record that decision here so it stops being
-re-raised: renaming them is a find and replace across every import in
-`apps/web/src` for zero user-visible gain, and it is the kind of churn that
-hides a real change in a diff. Rename the GitHub repository to `rentme`.
+### S-2. Third-party inventory is gone from the code and from the database. **DONE. Was P1**
 
-**Why.** A description field is what a package manager, a search and a new
-engineer read first, and it currently describes the pre-pivot product. The
-repository name surprises everyone who clones it.
+**Verified live.** `to_regclass('public.places_cache')` and
+`to_regclass('public.partner_stay_intents')` both return null. `feature_flags`
+holds exactly eight rows and neither `hybrid_hotels` nor `hybrid_restaurants` is
+among them: `agent_listings, assistant, bookings, events, messaging, social,
+support, wallet`. The 243 rows of cached Google Places payloads went with the
+table. Migration `20260809090000_nothing_here_came_from_somewhere_else`, applied
+as version `20260809044320`, and commit `0ec6656`. 6,043 lines of provider code
+were deleted in the same sweep.
 
-### S-2. Third-party inventory is gone from the code and still present in the database and the environment. **P1**
+**Residual, and it is small.** Confirm `LITEAPI_KEY`,
+`LITEAPI_WHITELABEL_DOMAIN`, `GOOGLE_PLACES_API_KEY` and
+`GOOGLE_ROUTES_API_KEY` are removed from the Vercel project as well as from
+`.env.example`, and that `docs/ENVIRONMENT.md` section 3 no longer documents
+them as live features. A key left in an environment is a key that can still be
+billed and can still leak.
 
-**Wrong today.** `apps/web/src/lib/inventory/` no longer exists and
-`lib/listings/types.ts:29-42` records the deletion properly. But
-`public.places_cache` still holds **243 rows** of Google Places data, the
-`hybrid_hotels` and `hybrid_restaurants` rows are still in
-`public.feature_flags`, `public.partner_stay_intents` still exists (0 rows), and
-`docs/ENVIRONMENT.md` still documents `LITEAPI_KEY`,
-`LITEAPI_WHITELABEL_DOMAIN`, `GOOGLE_PLACES_API_KEY` and `GOOGLE_ROUTES_API_KEY`
-as live features.
+### S-3. Restaurants and hotels are in the taxonomy and have no supply story. **OPEN. P2**
 
-**Do.** One migration: truncate and drop `places_cache` and
-`partner_stay_intents`, delete the two hybrid flags. Remove the four keys from
-Vercel and from `apps/web/.env.example`. Correct `docs/ENVIRONMENT.md` section 3.
-Keep `NEXT_PUBLIC_MAPTILER_KEY`, which is a different thing and is a licence
-exposure, not a feature: see M-1.
+**Unchanged and still a decision, not a build.** `property_type` still carries
+all ten values including `restaurant` and `hotel`, verified live. The restaurant
+reservation loop still exists end to end and still holds zero rows. Nothing in
+the property migrations touched either.
 
-**Why.** Cached third-party venue data sitting in a marketplace's own database is
-a licensing question nobody has asked, and a feature flag that switches on a code
-path that no longer exists is a trap for the next person who reads the switches
-board.
+**Do.** Decide, and write it in `docs/PRODUCT.md`, whether RentMe recruits
+restaurants and hotels in year one or whether these kinds stay in the schema and
+off the marketing. This is now more pressing than it was, because `listing_intent`
+has only two values, `rent` and `sale`, and a hotel is neither. See P-7.
 
-### S-3. Restaurants and hotels are in the taxonomy and have no supply story. **P2**
+### S-4. The lexicon is settled and only partly enforced. **PARTLY DONE. P2**
 
-**Wrong today.** `property_type` carries `restaurant` and `hotel`, and both are
-first-party listable. A restaurant reservation loop exists end to end:
-`public.reservations`, a request from the listing page, `reservations_notify`,
-accept or decline in the Tables section of `/agent/bookings`. There is no money
-in it, by design. `public.reservations` holds 0 rows.
+**What exists.** `docs/PRODUCT.md` section 6 is the vocabulary. Four specs
+already enforce the harder half of it: `agent-identity.spec.mjs:48`,
+`checkout.spec.mjs:175`, `email-render.spec.mjs:266` and `error-copy.spec.mjs:273`
+all reject `demo`, `sample`, `preview` and `not live` in copy, and
+`around-feed.spec.mjs:101` adds `coming soon` and `lorem`.
 
-**Do.** Nothing to the code. Decide, and write down, whether RentMe recruits
-restaurants and hotels at all in the first year or whether these kinds stay in
-the schema and off the marketing. A category on the front door with no supply
-behind it is worse than no category.
+**What does not.** Nothing greps for the *synonym* half: host, landlord,
+compound, hub, gist, ban. Those are the words that drift back, because they are
+not obviously wrong to somebody who has not read the table.
 
-**Why.** The engineering is done and the operations question is unanswered. This
-is the cheapest thing on this list to get wrong, because it costs only a decision.
-
-### S-4. The lexicon is settled and undocumented outside one table. **P2**
-
-**Do.** `docs/PRODUCT.md` section 6 is now the vocabulary. Add a spec that greps
-UI copy and the four locale files for the banned synonyms (host, landlord,
-compound, hub, gist, ban) and fails on a hit. Ten lines of Node, and it is the
-only thing that will keep the vocabulary from drifting back.
+**Do.** One spec that reads the four locale files and every string literal in
+`components/` and `app/`, and fails on a banned synonym with the file and line.
+Ten lines of Node. Allow-list the legitimate uses: `ban` inside `banner`, and
+`compound` where it means a Nigerian compound in property copy rather than the
+social layer.
 
 ---
 
 ## 2. Design system and theming
 
-### D-1. The colour half of the token system now has enforcement. The type and geometry halves do not. **P1**
+### D-1. Colour enforcement landed. Type and geometry are still unenforced. **PARTLY DONE. P1**
 
-**Landed while this file was being written, and it is the right shape.**
-`apps/web/eslint-rules/no-raw-colour.mjs` errors on four things: a raw hex, a raw
-`rgb`/`hsl` function, a Tailwind palette class including `bg-black/45` and
-`text-white/70`, and any layer-1 token reference. It is wired in
-`eslint.config.mjs:141` as an error and `:146` as a warning for the directories
-still migrating, and `apps/web/scripts/check-css-tokens.mjs` covers the
-stylesheets the AST rule cannot see. It deliberately ignores comments, because
-half the value of this codebase is in comments quoting the literal they replaced.
+**Done, and confirmed.** `apps/web/eslint-rules/no-raw-colour.mjs` errors on raw
+hex, raw `rgb`/`hsl`, Tailwind palette classes including `bg-black/45` and
+`text-white/70`, and any layer-1 token reference. It is wired as an error in
+`eslint.config.mjs` and `apps/web/scripts/check-css-tokens.mjs` covers what the
+AST rule cannot see. Layer-1 token leakage in components and stylesheets is
+reported as zero and the build fails on a raw colour. It deliberately ignores
+comments, which is right: half the value of this codebase is comments quoting
+the literal they replaced.
 
-**Still unenforced.** There is no `tailwind.config` and nothing checks the type
-scale or control geometry. The last audit measured 768 arbitrary `text-[…rem]`
-literals across 35 distinct values against 11 scale tokens referenced 6 times in
-total, and 12 button implementations across 7 heights.
+**Still open.** There is no `tailwind.config`, and nothing checks the type scale
+or control geometry. The previously quoted figures (768 arbitrary `text-[…rem]`
+literals across 35 values, 12 button implementations across 7 heights) were
+measured against a 3,167 line `globals.css` that is now 71 lines and 19 ordered
+partials under `apps/web/src/app/css/`, with a 12 component `components/ui/`
+primitive layer underneath. **Re-measure before quoting any of them.** They are
+the argument for enforcement, not an inventory.
 
-**Do.** Extend the same rule to reject arbitrary `text-[…]`, `h-[…]` and
-`shadow-[…]` values outside a small allow-list, warning first. The pattern is
-proven now; this is the second application of it.
+**Do.** Extend the proven rule to reject arbitrary `text-[…]`, `h-[…]`,
+`rounded-[…]` and `shadow-[…]` outside a short allow-list. Ship it as a warning,
+count, publish the count here, then set a date to make it an error. Do not ship
+a config that fails on three thousand pre-existing violations; it gets disabled
+within a week and then the rule is worse than nothing because its absence looks
+like compliance.
 
-**Caveat, and it matters.** Those numbers were measured against a 3,167 line
-`globals.css`. That file is now **71 lines** and 19 ordered partials under
-`apps/web/src/app/css/`, and a `components/ui/` primitive layer of 12 components
-now exists (`Button`, `Chip`, `Field`, `Segmented`, `Sheet`, `Skeleton`,
-`StatusPill`, `Switch`, `Table`, `Progress`, `Amount`, `ActionBar`). **Re-measure
-before quoting any of those figures.** They are the reason to add enforcement,
-not a current inventory.
+### D-2. The retired reference brief is still in the code. **PARTLY DONE. P1, down from P0**
 
-**Do.** Add `stylelint` with two rules only: no raw colour outside
-`packages/design-tokens/src/tokens.css`, and no `box-shadow` literal outside the
-token file. Add the two as warnings, count the violations, then set a date to
-turn them into errors. Do not ship a config that fails on three thousand
-pre-existing violations; it gets disabled within a week.
+**One of the four is resolved.** `BrandIcon`'s `tile` prop now defaults to
+`false` (`apps/web/src/design-system/icons/BrandIcon.tsx:103`), which removed the
+tinted tile from 142 of 149 call sites. The comment at `:18-32` records that a
+tile is now something a surface asks for and the answer is usually no, and it
+handles the consequence properly: an untiled object gets a single flat
+`--nf-icon-ground` plate rather than becoming invisible.
 
-**Why.** The token file is described in ADR-002 as the control surface for the
-whole platform. A control surface with no enforcement is documentation.
+**Still shipping from the retired brief.** `apps/web/src/app/css/symbols.css` is
+a whole partial of symbol effects whose own header cites "the reference set's
+headline feature". `.nf-dock-island` in `chrome.css` is the floating pill tab bar
+and `MobileTabBar.tsx` still expands the active tab into a labelled capsule on a
+spring.
 
-### D-2. The reference brief that produced the current visual overload is archived, and the code still carries what it asked for. **P0**
+**Do.** Decide per item, on merit rather than provenance. Recommendation
+unchanged: keep the island dock and the labelled capsule, both are good mobile
+patterns and both are well built. Audit `symbols.css` and cut every effect that
+fires on mount rather than on a state change. An icon that animates when a page
+loads is decoration; an icon that animates when a notification arrives is
+information. Do not reintroduce tinted tiles or photo chips.
 
-**Wrong today.** `docs/archive/ui-audit/00-reference-brief.md` asked for tinted icon
-tiles, symbol effects on state change, a floating pill island tab bar, and
-imagery inside category chips. It has been moved to `docs/archive/ui-audit/` and
-stamped superseded, but the code built exactly what it asked for and that is
-still shipping:
+### D-3. Light mode is a real theme and nothing proves it stays one. **OPEN. P1**
 
-- `apps/web/src/app/css/symbols.css` is a whole partial of symbol effects, whose
-  own header cites "the reference set's headline feature".
-- `.nf-dock-island` in `apps/web/src/app/css/chrome.css:194` is the floating pill
-  tab bar, and `components/app/MobileTabBar.tsx:17-19` documents the active tab
-  expanding into a labelled capsule on a spring, which is reference brief section
-  2 word for word.
-
-**Do.** Decide, per item, whether each survives on its own merits rather than
-because a brief asked for it. My recommendation: **keep** the island dock, it is
-a genuinely good mobile pattern and it is well built; **keep** the labelled
-capsule; **audit** the symbol effects and cut every one that fires on mount
-rather than on a real state change, because an icon that animates when a page
-loads is decoration and an icon that animates when a notification arrives is
-information. Do not add tinted icon tiles or photo chips.
-
-**Why.** The brief is retired, but a retired brief that is still in the code is
-still the design. Somebody has to say which parts stay.
-
-### D-3. Light mode is a real theme now, and nothing proves it stays one. **P1**
-
-**Wrong today.** `apps/web/src/app/css/light.css` is a designed paper twin and
-`packages/design-tokens/src/tokens.css:570` opens a full
-`:root[data-theme="light"]` block. Both are real. But the last audit measured
-light mode failing WCAG AA on the single most-used text token in the product
-(296 call sites), and there is no contrast spec in `apps/web/tests/`.
+Unchanged. `apps/web/src/app/css/light.css` is a designed paper twin and
+`packages/design-tokens/src/tokens.css` opens a full `:root[data-theme="light"]`
+block. There is still no contrast spec in `apps/web/tests/`.
 
 **Do.** One browser spec: walk every route at 390px in both themes, compute the
 real composited contrast of every text node against its real painted background,
-and fail below 4.5:1 for body text and 3:1 for large text. Walk the background up
-past transparent ancestors; a previous probe scored against `rgba(0,0,0,0)`
-because its walk stopped at `<body>`.
+fail below 4.5:1 for body text and 3:1 for large text. **Walk the background up
+past transparent ancestors.** A previous probe scored against `rgba(0,0,0,0)`
+because its walk stopped at `<body>`, which is why the last measurement is not
+trustworthy in either direction.
 
-**Why.** Two themes is two products. Without a spec, one of them rots and nobody
-notices until a screenshot.
+### D-4. Two sheet implementations, one bug fixed and the duplication left. **OPEN. P2**
 
-### D-4. Two sheet implementations, one bug fixed and the duplication left. **P2**
+Unchanged. `components/ui/Sheet.tsx` is the primitive with a drag handle, detents
+and a `[data-open]` transform. `components/app/account/rows.tsx` carries an older
+simpler one that all eight surfaces across `/profile` and `/settings` use. The
+shared `.nf-sheet` class name made the older one unreachable under reduced
+motion; renaming it to `.nf-rows-sheet` fixed the bug and not the duplication.
 
-**Wrong today.** `components/ui/Sheet.tsx` is the primitive, with a drag handle,
-detents and a `[data-open]` transform. `components/app/account/rows.tsx` carries
-an older simpler one that all eight surfaces across `/profile` and `/settings`
-use. They shared the class name `.nf-sheet`, which made the older one unreachable
-under reduced motion; the older family was renamed `.nf-rows-sheet` and
-`app/settings-rows.css` explains why at length. **That fixed the bug and not the
-duplication.**
+**Do.** Migrate the eight call sites to the primitive and delete the older
+family. Real work, worth doing once. Note that the rename means the two can now
+coexist indefinitely without anybody noticing, which makes this less urgent and
+more likely to be permanent.
 
-**Do.** One sheet. Migrate the eight call sites to the primitive and delete the
-older family. It is real work and it is worth doing once.
+### D-5. The `.nf-icon-chip` wrapper documented in the icon system does not exist. **DONE. Was P2**
 
-### D-5. The `.nf-icon-chip` wrapper documented in the icon system does not exist. **P2**
+`docs/ICON_SYSTEM.md` has been corrected. Recorded so nobody adds the class back
+on the strength of the old text.
 
-**Wrong today.** `docs/ICON_SYSTEM.md` tells the reader to "wrap in
-`.nf-icon-chip` when the object needs its own tile". A grep across every CSS file
-in `apps/web/src` returns zero definitions and zero uses. The document has been
-corrected; this entry records that the guidance was wrong so nobody adds the
-class back on the strength of the old text.
+### D-6. There is no visual regression guard on any of the above. **NEW. OPEN. P2**
+
+**Wrong today.** `scripts/verify-shots.mjs` renders a route at 390x844 in dark
+and light and a human looks at it. That is a good tool and it is not a guard:
+nothing compares today's render to yesterday's, so a change that quietly moves
+every heading down four pixels across the platform passes every spec.
+
+**Do.** Not full pixel diffing, which is a maintenance tax on a design still in
+motion. Instead, a structural snapshot: for eight representative routes in both
+themes, record the computed font-size, line-height, colour token and border
+radius of every element carrying a `nf-` class, and diff that. It catches the
+class of change that matters (a token silently resolving differently, a
+primitive losing its geometry) and ignores the class that does not (content
+moving).
 
 ---
 
 ## 3. Navigation and information architecture
 
-### N-1. Signed-out visitors are locked out of the entire product, which is the opposite of the stated rule. **P0**
+### N-1. Signed-out visitors can now browse. **DONE. Was P0**
 
-**Wrong today.** The owner's rule is that signed-out visitors get view only, and
-any action needing an account raises sign up or sign in.
-`apps/web/src/middleware.ts:37-67` does the opposite: `PRODUCT_SEGMENTS` holds 22
-first path segments including `search`, `listing`, `around`, `rent`, `post`, `u`
-and `home`, and `:141-155` redirects an anonymous visitor to `/sign-in` before
-any page runs. A stranger cannot read a single listing, a single place or a
-single public profile.
+**Verified in the tree.** `apps/web/src/middleware.ts` `PRODUCT_SEGMENTS` no
+longer contains `search`, `listing`, `rent`, `around`, `u` or `post`. What
+remains behind the wall is fifteen segments: `assistant`, `bookings`,
+`checkout`, `home`, `legal`, `messages`, `notifications`, `profile`, `saved`,
+`settings`, `stories`, `wallet`, `admin`, `agent`, `welcome`, plus three exact
+paths, `/agents/apply`, `/agents/status` and `/styleguide`. Commit `545a1b6`. A
+client gate, `components/auth/AuthGate.tsx`, draws the second half of the line
+for individual controls on a page a stranger may read.
 
-**Do.** Split the set in three.
-- **Public read:** `search`, `listing`, `rent`, `around`, `post`, `u`, `stories`,
-  `legal`. These render read-only and every action control raises the auth sheet.
-- **Signed in:** `bookings`, `checkout`, `messages`, `notifications`, `profile`,
-  `saved`, `settings`, `wallet`, `welcome`, `assistant`, `home`.
-- **Role gated, unchanged:** `admin`, `agent`.
+**Two deliberate deviations from the original recommendation, and both are
+better than what was recommended.** `stories` was recommended as public and is
+gated, because a story view is a write against somebody's post and it counts
+viewers, so there is nothing to read there anonymously. `legal` was recommended
+as public and is gated, because the canonical documents at `/privacy` and
+`/terms` are open and `/legal/*` is only the in-product copy of the same text.
+Both reasons are written in the file. Recorded here so the recommendation is not
+re-applied against the better answer.
 
-Then audit every action control on the eight public routes for a signed-out
-branch. `resolveSession()` already returns `signed-out` as a first-class state,
-so the pattern exists; the work is applying it, not inventing it.
+**One thing to check that nobody has.** The rule is now drawn in two places and
+they have to agree. There is no spec asserting that. See T-9.
 
-**Why.** This is the single largest growth defect in the product. Every property
-marketplace in the world is discovered by a stranger following a WhatsApp link to
-one listing. Today that stranger hits a sign-in wall. It also silently defeats
-every SEO recommendation below, because a crawler is an anonymous visitor.
+### N-2. Nothing tells a crawler anything. **OPEN, and now unblocked. P1**
 
-### N-2. Nothing tells a crawler anything: no `robots.ts`, no `sitemap.ts`, no JSON-LD. **P1**
+**Verified today.** No `apps/web/src/app/robots.ts`. No
+`apps/web/src/app/sitemap.ts`. No `application/ld+json` anywhere in
+`apps/web/src`.
 
-**Wrong today.** `find apps/web/src/app -name "robots.ts" -o -name "sitemap.ts"`
-returns nothing. A grep for `application/ld+json` across `apps/web/src` returns
-nothing. Individual admin pages set `robots: { index: false }` in their
-metadata, which is correct and is not a substitute.
+This was blocked on N-1, which is now done, so it is next. A crawler is an
+anonymous visitor and until this week there was nothing for one to read. Now
+there is, and nothing tells it so.
 
-**Do.** In this order, after N-1, because none of it works while the product is
-behind a session. `app/robots.ts` disallowing `/admin`, `/agent`, `/checkout`,
-`/settings`, `/wallet`, `/messages` explicitly. `app/sitemap.ts` enumerating
-published listings, places and the site pages. JSON-LD `RealEstateListing` and
-`Product` on `/listing/[id]`, `Organization` on the landing page.
+**Do, in this order.**
+1. `app/robots.ts`, disallowing `/admin`, `/agent`, `/checkout`, `/settings`,
+   `/wallet`, `/messages`, `/welcome` and `/styleguide` explicitly. Belt and
+   braces: the console currently relies entirely on per-page `robots: { index:
+   false }` metadata, and one page added without it is a console in a search
+   index.
+2. `app/sitemap.ts` enumerating published listings, area pages and site pages.
+   With zero published listings this generates almost nothing today, which is
+   fine: the machinery must exist before the catalogue fills, not after.
+3. JSON-LD on `/listing/[id]`. Use `RealEstateListing` for a rental and
+   `Product` with an `Offer` for a sale, because the two intents now genuinely
+   differ in the schema and Google treats them differently. `Organization` on
+   the landing page. Do **not** emit `aggregateRating` until real reviews exist;
+   a structured-data rating with no reviews behind it is a manual action.
+4. Open Graph images per listing. A property link shared on WhatsApp with no
+   preview card converts at a fraction of one that has a photograph, a price and
+   an area, and WhatsApp is how Nigerian property actually travels.
 
-**Why.** Belt and braces on the console: `/admin` currently relies entirely on
-per-page metadata, and one page added without it is a console in a search index.
-And a property page with no structured data is invisible to every rich result
-that would carry its price and location.
+### N-3. There is no indexable page for the query the product most wants to rank for. **OPEN. P1**
 
-### N-3. There is no indexable page for the query the product most wants to rank for. **P1**
-
-**Wrong today.** `/search` is the only discovery surface and it is a query-string
-screen. There is no `/city/[slug]`, no `/area/[slug]` and no `/season/[slug]`.
-`public.local_governments` holds all 774 and `public.states` holds 37, so the
-URL space and its content already exist in the database.
+Unchanged and now unblocked by N-1. `/search` is still the only discovery surface
+and it is a query-string screen. `public.local_governments` holds 774 rows and
+`public.states` holds 37, verified live, so the URL space and its content exist
+in the database already.
 
 **Do.** `/city/[slug]` first, generated from `states` and `local_governments`,
 each carrying published listings for that place plus the place's own Around feed.
-Then `/season/[slug]`, starting with Detty December, because the search intent
-starts in September and the platform currently has no page a search engine can
-rank for the largest demand spike of the year.
+Then `/area/[slug]` beneath it. Then `/season/[slug]`, starting with Detty
+December, because that search intent begins in September and the platform has no
+page a search engine can rank for the largest demand spike of the Nigerian year.
 
-**Why.** "shortlet in Lekki" is the query. Nothing on this platform answers it in
-a way a crawler can read.
+**Now that the schema can express intent, split the templates.** `/city/lekki`
+should not be one page. `/rent/lekki`, `/buy/lekki` and `/shortlet/lekki` are
+three different queries with three different intents and three different sets of
+competitors, and `listing_intent` plus `property_type` now make all three a
+trivial filter. One page trying to rank for all three ranks for none.
 
-### N-4. Google and Apple sign in are still in the codebase after the decision to remove them. **P0**
+### N-4. Google and Apple sign in are still in the codebase. **OPEN. P0**
 
-**Wrong today.** The product decision is email and password only. The code still
-carries `startGoogleOAuth` and `startAppleOAuth`
-(`apps/web/src/lib/auth/actions.ts:660` and `:664`), `signInWithOAuth` at `:681`,
-a provider allow-list in `lib/auth/providers.ts:33`, rendered buttons at
-`components/auth/AuthChoices.tsx:102`, and a live migration
-`20260807125555_a_google_account_arrives_with_its_name_and_its_face` that reads
-Google identity metadata on signup. `docs/DEPLOY.md` sections 4.2 and 4.3 still
-instruct the owner to configure both.
+**Re-verified today, unchanged.** `startGoogleOAuth` at
+`apps/web/src/lib/auth/actions.ts:660` and `startAppleOAuth` at `:664` both still
+exist. `components/auth/AuthChoices.tsx` still references them. The product
+decision is email and password only.
 
 **Do.** Delete both server actions, the provider module, the buttons and the
-`NEXT_PUBLIC_AUTH_PROVIDERS` variable. Leave the signup trigger's metadata
+`NEXT_PUBLIC_AUTH_PROVIDERS` variable. Leave the signup trigger's Google metadata
 reading alone: it is harmless and removing it is a migration for no gain. Correct
-`docs/DEPLOY.md` 4.2 and 4.3 to say the providers are deliberately not offered.
+`docs/DEPLOY.md` sections 4.2 and 4.3.
 
-**Why.** The buttons render disabled today because no provider is listed, which
-means the product is showing two dead controls on its front door. Worse, the
-moment somebody sets that variable they are live, and `docs/MOBILE.md` section 6
-records that the OAuth return journey on native is **not closed** and would leave
-the app signed out. Also relevant: Apple's guideline 4.8 requires Sign in with
-Apple only if another third-party sign-in is offered, so removing Google removes
-the Apple obligation with it.
+**Why this is still P0 and has got slightly worse.** The buttons render disabled
+today because no provider is listed, so the front door shows two dead controls.
+The moment anybody sets that variable they are live, and the OAuth return journey
+on native is not closed, so a native user would be left signed out. And the
+`apple-app-site-association` file now explicitly excludes `/auth/*` with a comment
+explaining that the PKCE verifier and cookies live in the system browser, which
+is correct handling of a feature the product has decided not to have. Deleting
+the feature deletes the exclusion, the Apple guideline 4.8 obligation and the
+native return problem in one go.
 
-### N-5. The consumer rail is grouped and ADR-007 still describes a flat twelve. **P2**
+### N-5. ADR-007 describes a flat twelve and the navigation is a grouped tree. **OPEN. P2**
 
-**Wrong today.** ADR-007 freezes "twelve destinations" as a flat list.
-`components/app/nav-model.ts` builds a grouped tree: Home, Rent, Explore with
-five `?type=` children, Around with three, then an Account section, then
-conditional Agent and Console workspaces, then Legal. The mobile dock is six
-destinations (`components/app/MobileTabBar.tsx:9`). All three are defensible and
-none matches the ADR.
+Unchanged. `components/app/nav-model.ts` builds a grouped tree; the mobile dock is
+six destinations. All three shapes are defensible and none matches the ADR.
 
 **Do.** Amend ADR-007 to record the grouped tree as the decision, with the reason
-already written in `nav-model.ts:8-16`: five of the twelve were `?type=` variants
-of one screen sitting at the same level as Wallet.
+already written in `nav-model.ts`: five of the twelve were `?type=` variants of
+one screen sitting at the same level as Wallet. A frozen-navigation rule that the
+navigation does not follow constrains nobody.
 
-**Why.** A frozen-navigation rule that the navigation does not follow stops being
-a constraint on anybody.
+### N-6. There is still no Buy or Sell anywhere in the navigation. **OPEN, and now the blocker has moved. P0**
 
-### N-6. There is no Buy or Sell anywhere in the navigation. **P0**
+**This has changed category.** It used to be a data model problem, and the data
+model is now fixed: `listings.listing_intent` exists as an enum of `rent` and
+`sale`, and `sale_price_minor`, `tenure`, `sale_status`, `year_built`,
+`size_sqm` and `price_negotiable` are all live columns. Verified.
 
-Covered as a data model problem in P-1. Recorded here too because it is the front
-door: the product is named for renting and is meant to sell, and no rail, dock or
-category chip mentions sale.
+So the only remaining reason there is no Buy is that nobody has built the front
+end. Grep `nav-model.ts` for `/buy` or `/sell`: nothing.
+
+**Do.**
+1. A top-level Buy destination in the rail and the dock, and a Sell entry point
+   in the agent workspace.
+2. `/search` must read `listing_intent` as a first-class filter, not a
+   `property_type` proxy. A three-bedroom flat can be for rent or for sale and
+   the type is the same in both cases.
+3. The sale detail page is the rental page with a different noun and three
+   changes: no Reserve, no availability calendar, and a title and tenure panel
+   that is the most important block on the screen. See P-8.
+4. Price display has to switch vocabulary. A rental says "per year". A sale says
+   a price and, if `price_negotiable`, says so, because in Nigerian property
+   sale a listed price is an opening position and pretending otherwise makes the
+   platform look foreign.
 
 ---
 
 ## 4. Property discovery and the map
 
-### M-1. The map is Leaflet on CARTO tiles, which is licensed for non-commercial use only. **P0**
+The map is much further along than any previous document records, and the new
+PostGIS work has not been connected to it. Both facts are below.
 
-**Wrong today.** `NEXT_PUBLIC_MAPTILER_KEY` is unset, so the map draws on CARTO's
-public basemaps. Those are non-commercial use only. A marketplace taking bookings
-is a commercial use.
+### M-1. The map draws on CARTO tiles, which are non-commercial only. **OPEN. P0**
 
-**Do.** Get a MapTiler key at `cloud.maptiler.com/account/keys` and set it. The
-provider swap, the zoom ceiling and the attribution move together in code
-already, so this is one environment variable.
+**Unchanged and still the only item on this list that arrives as a letter rather
+than a bug report.** `apps/web/src/lib/maps/tiles.ts` is an unusually good
+module: it treats this as a licensing problem before a rendering one, carries the
+attribution *with* the tile URL so a provider swap cannot silently keep the wrong
+credit, and exposes a `nonCommercial` boolean so a pre-launch check can read one
+value instead of parsing a URL. It defaults to CARTO and moves to MapTiler the
+moment `NEXT_PUBLIC_MAPTILER_KEY` is set.
 
-**Why.** This is the only item on the whole list that can produce a letter from a
-lawyer rather than a bug report, and it costs one signup.
+**Do.** Owner action, one signup at `cloud.maptiler.com/account/keys`, one
+environment variable. Then add the `nonCommercial` boolean to a launch checklist
+spec so the build refuses to be called production-ready while it is true.
 
-### M-2. Leaflet's stylesheet ships on every page. Deliberately. Do not measure it again. **P2**
+### M-2. Leaflet's stylesheet ships on every page. Deliberately. **WITHDRAWN as work. P2**
 
-**Measured, not assumed.** The map's JavaScript is properly lazy: exactly one
-chunk on the map view and none anywhere else. But `import
-"leaflet/dist/leaflet.css"` at `components/app/search/MapCanvas.tsx:6` is a static
-import, so two stylesheets travel with every page including the list view that
-never draws a map. About 10KB.
+Measured twice by two people. The map's JavaScript is properly lazy; the
+`import "leaflet/dist/leaflet.css"` in `MapCanvas.tsx` is static and costs about
+10KB everywhere. Both clean fixes cost more than they save: a dynamic import
+renders the map unstyled for a frame, and hand-copying the rules creates a copy
+that rots. **Do nothing.** Recorded so it is not measured a third time.
 
-**Do nothing.** Both clean fixes cost more than they save: moving the import into
-the dynamic component renders the map unstyled for a frame, and hand-copying the
-rules creates a copy that rots the next time Leaflet changes. This is recorded
-because it has now been measured twice by two different people.
+### M-3. Listings have no enforced coordinates, so the map places by area centroid. **OPEN, and now more urgent. P1**
 
-### M-3. Listings have no enforced coordinates, so the map places by area centroid. **P1**
+**Verified.** `listings.latitude` and `.longitude` are still nullable. The new
+`location` geography column is maintained by trigger *from those two columns*, so
+a listing with no pin has no geography either, and `listings_in_bounds` cannot
+return it at all. `RealMap.tsx` degrades to `localityFor`, the real centroid of
+the area, and fans coincident pins out by about six hundred metres so a pair in
+Victoria Island stays readable. That degradation is well built and it is not a
+substitute.
 
-**Wrong today.** `public.listings.latitude` and `.longitude` are nullable and the
-eight step wizard does not force a pin. `RealMap` degrades to the area centroid,
-which is the right degradation and is not a substitute.
+**Why this is now urgent rather than merely important.** Before PostGIS, a
+missing pin meant an approximate marker. Now it means **the listing is invisible
+to every viewport query**. The degradation and the new query path disagree about
+whether the listing exists.
 
-**Do.** Make the pin a required step in the wizard, with the area centroid as the
-draggable starting position so it is one gesture rather than a search. Backfill
-is not needed: there are zero listings.
+**Do, before the catalogue fills, and this is cheap only while `listings` holds
+zero rows.**
+1. Make the pin a required step in the agent wizard, with the area centroid as
+   the draggable starting position so it is one gesture rather than a search.
+2. Add a check constraint: a listing may not reach `PUBLISHED` without both
+   coordinates. Enforce it in the database, not the wizard, because the wizard
+   is one of several writers.
+3. Decide the privacy posture now. A rental's exact address is a safety question
+   before an inspection is agreed. The usual answer is a jittered circle of
+   about 200m for anonymous viewers and the true pin once a conversation exists,
+   and that decision has to be made before the first agent drops a pin, because
+   it changes what gets stored.
 
-**Why.** Do this before the catalogue fills. An agent will not revisit sixty
-listings to drop a pin, and a property marketplace whose map is approximate is a
-property marketplace nobody trusts the map on.
+### M-4. PostGIS is installed and nothing uses it. **PARTLY DONE, and this is the gap. P1, up from P2**
 
-### M-4. PostGIS is available and not installed, and nothing needs it yet. **P2**
+**Verified live.** `postgis` 3.3.7 is installed. `public.listings.location` is a
+`geography` column. `public.listings_in_bounds()` exists. There is a partial GiST
+index; `listings` carries 17 indexes in total. The function is deliberately not
+`SECURITY DEFINER`, so RLS decides visibility rather than a second implementation
+of the publication rule, which is the right call and worth keeping.
 
-**Verified live.** `postgis` 3.3.7 is available in
-`pg_available_extensions` with `installed_version` null. Distance work today is
-haversine in application code.
+**And nothing calls it.** Grep `listings_in_bounds` across `apps/web/src`: the
+only hit is the generated `database.types.ts`. Grep for `.location` as a listing
+field: nothing. `RealMap.tsx` is a server component that reads the **entire
+catalogue** through `getListingRepository()`, converts every row to a pin, and
+ships all of them to the client, where `MapCanvas` clusters them in pixel space.
 
-**Do nothing yet.** Revisit when a real "within 5km of here" filter is asked for.
-Recorded so nobody installs it speculatively and nobody reasons around its
-absence twice.
+That works perfectly at zero listings and at a hundred. It falls over somewhere
+around a few thousand, and it falls over in the worst way: not with an error, but
+with a slow page and a large payload on a metered Nigerian data bundle.
 
-### M-5. Discovery items that need inventory before they can be built or checked. **P2**
+**Do.** This is the single largest piece of discovery work outstanding, and M-5
+through M-11 below break it down.
 
-Carried forward with their evidence intact so they are not rediscovered. None can
-be verified with an empty catalogue: total price first with a per-night toggle;
-the price breakdown staying expandable at every step of the booking wizard;
-search scroll position surviving a return from a listing; a "search this area"
-chip on map pan; map and list hover synchronised; long-press quick actions on a
-card; alt text required at photo upload. **There is no caution deposit anywhere
-in the schema. Do not invent one.**
+### M-5. Viewport loading: the map should ask for what is on screen. **NEW. OPEN. P1**
+
+**Wrong today.** The map receives the whole catalogue on the server and never
+asks for anything again. Panning to Abuja re-uses the pins that were shipped for
+Lagos, which is correct only because both fit in one payload.
+
+**Do.**
+1. A route handler or server action that takes a bounding box, the current
+   filters and a limit, and calls `listings_in_bounds`. Return the minimum a pin
+   needs: id, lat, lng, price minor, intent, type, one photograph path. Not the
+   description, not the fee breakdown, not the amenities.
+2. **Cap the result and say so.** Return a `truncated` flag with a total count
+   when the box holds more than the cap, and draw a real control: "1,240 places
+   here, showing 300. Zoom in or refine." Silently truncating a map is how a
+   user concludes the platform has no stock in their area.
+3. Keep the server-rendered first paint. The initial view should still arrive
+   with its pins in the HTML, because the first frame is what a crawler and a
+   slow connection see. Viewport loading is for what happens after the first
+   gesture, not instead of it.
+4. Abort the in-flight request on the next gesture. A user panning across Lagos
+   generates a queue of stale responses and the last one to arrive wins, which
+   is not the same as the last one requested.
+
+### M-6. Debouncing, and the specific numbers. **NEW. OPEN. P1**
+
+**What exists.** `MapCanvas.tsx` already listens on `moveend` rather than per
+frame, and writes the viewport to the address bar so a shared URL is what is on
+screen. That is the right event and the right instinct.
+
+**What is missing** is any delay between `moveend` and a network request,
+because there is no network request yet.
+
+**Do, with these defaults, and tune them against real Nigerian latency rather
+than a local machine.**
+- **Pan and zoom to fetch: 400ms of quiet after `moveend`.** Not 150ms, which is
+  a desktop reflex and generates three requests during one thumb flick on a
+  phone. Not a second, which feels broken.
+- **Do not fetch at all** if the new bounding box is contained within the box
+  already fetched and the zoom has not crossed a tier boundary. This alone
+  removes most requests, because the common gesture is a small pan inside an
+  area already loaded.
+- **Fetch on zoom out immediately**, without waiting for quiet, because zooming
+  out always reveals area that was never loaded and the delay is visible as a
+  hole.
+- **Keep the URL write on `moveend` with no delay.** It costs nothing and it is
+  what makes the back button and a shared link behave.
+
+### M-7. Clustering by zoom tier, not by pixel grid alone. **NEW. PARTLY DONE. P1**
+
+**What exists and is good.** `clusterByGrid` in `MapCanvas.tsx` groups pins into
+cells roughly two pin widths across, and clicking a cluster calls `flyToBounds`
+on its members. Pixel-space clustering is the right technique because it is
+resolution-aware by construction: a cluster is whatever would visually collide.
+
+**What is missing** is that the cluster means different things at different
+zooms and currently looks the same at all of them.
+
+**Do. Four tiers, and give each one its own mark.**
+
+| Zoom | What the map is showing | The mark |
+|---|---|---|
+| 5 to 8 | Nigeria, states | State name, a count, a floor price. No pins |
+| 9 to 11 | A state, its local governments | LGA name, count, floor price |
+| 12 to 14 | A city, its areas | Area name, count, floor price. Pixel clustering starts here |
+| 15+ | A street | Individual price pins |
+
+The floor price on a cluster is the thing that makes a map browsable in this
+market. "Lekki, 340 places, from 1.2m a year" is a decision. "340" is not.
+
+**Compute the tiers in Postgres, not the browser.** At zoom 5 the browser should
+receive 37 rows, one per state, not 40,000 listings to count. That is a second
+RPC alongside `listings_in_bounds`: given a box and a tier, return grouped counts
+and minimum prices keyed by state code or LGA code. The columns to group on
+(`state_code`, `city`, `area`) already exist on `listings`.
+
+### M-8. Marker design. **NEW. OPEN. P1**
+
+**Wrong today.** Pins carry a formatted price and a category noun for listings
+with no amount. Nothing distinguishes a rental from a sale, and after the schema
+change that distinction is the primary axis of the product.
+
+**Do.**
+1. **A price pin, not a teardrop.** A rounded rectangle carrying the price is
+   the pattern this audience already reads, and it is legible where a pin is
+   ambiguous. The point of the shape must sit on the coordinate.
+2. **Intent is the shape, not the colour.** Rent and sale need to be
+   distinguishable by somebody who cannot see the difference between two blues,
+   and the brand is one blue family with no second hue available. Use the label:
+   "1.2m/yr" against "45m". The period suffix is the signal and it is free.
+3. **Three states, all needed.** Default, hovered or focused (paired with the
+   list card, see M-9), and visited. Visited matters more on a map than
+   elsewhere because the whole gesture is repeated scanning.
+4. **The selected pin rises and the others recede.** Not by colour change, by
+   z-order and a slight scale, because the map has to stay readable underneath.
+5. **A cluster is a different object, not a bigger pin.** A circle with a count
+   and a floor price. If it looks like a pin, people click it expecting a
+   listing and get a zoom, which reads as a misfire.
+6. **Nothing on a marker may imply verification.** No tick, no shield, no badge.
+   See section 11.
+7. **Test at 390px with a thumb.** A 44px minimum touch target is not negotiable
+   and price labels overlap far sooner than the pixel-grid cell size suggests,
+   because the cell was sized for pins and a price label is three times wider.
+
+### M-9. Map and list split on desktop, map with a bottom sheet on mobile. **NEW. OPEN. P1**
+
+**Wrong today.** `components/app/filters/ViewToggle.tsx` is 49 lines and toggles
+between list and map. They are alternatives. On a desktop screen that wastes
+half the window and forces the user to hold the map in their head while reading
+the list.
+
+**Do. Desktop, at 1024px and above.**
+- Persistent split: list on the left at a fixed comfortable width, map filling
+  the rest and sticky. Not 50/50; the list is where the reading happens.
+- **Hover on a card highlights its pin, hover on a pin highlights its card and
+  scrolls it into view.** This is the single feature that makes a split view
+  worth building, and it is the one most often left out.
+- Clicking a pin opens a compact card anchored to it, not a navigation. The
+  navigation is the second click.
+- The list is the viewport's contents, ordered. When the map moves, the list
+  changes. If the two ever disagree the feature is worse than either half alone,
+  which is why M-5 must return one result set that feeds both. Today `RealMap`
+  reads the catalogue itself, separately from the page that renders the results
+  header, and its own comment flags that as a known hazard.
+
+**Mobile, below 1024px.**
+- Map full bleed, with a bottom sheet over it at three detents: a peek showing
+  the result count and a single card, a half sheet showing a scrollable list,
+  and full. `components/ui/Sheet.tsx` already implements detents and a drag
+  handle, so this is an application of an existing primitive.
+- Dragging the sheet down must not also pan the map. This is the bug every
+  implementation of this pattern ships first.
+- The sheet must clear the home indicator and the island dock. See MOB-8.
+- Keep the toggle as well. Some people want a list and no map, and on a metered
+  connection a list is a fraction of the bytes.
+
+### M-10. Search this area. **NEW. OPEN. P1**
+
+**Wrong today.** Panning silently keeps the previous result set. There is no
+control and no indication that what is on screen and what is in the list have
+diverged.
+
+**Do.**
+1. A "Search this area" chip that appears over the map only when the viewport
+   has moved meaningfully from the last search: more than about a third of the
+   box width, or a zoom tier change. Not on every twitch.
+2. Plus a "Search as I move" toggle, remembered per user. Both behaviours have
+   real constituencies and the fight over which is default is not worth having.
+   The chip is the correct default because an automatic re-search on a metered
+   connection spends somebody's data without asking.
+3. When the chip is showing, the list must say so: "Showing 24 places from your
+   last search." Divergence that is not stated is the actual defect; the chip is
+   only the remedy.
+4. Both the box and the toggle state belong in the URL, which `writeViewport`
+   already does for the box.
+
+### M-11. Discovery items that still need inventory before they can be checked. **PARTLY DONE. P2**
+
+Carried forward with their evidence so they are not rediscovered. None can be
+verified against an empty catalogue: total price first with a per-period toggle;
+the price breakdown staying expandable at every step; search scroll position
+surviving a return from a listing; long-press quick actions on a card; alt text
+required at photo upload.
+
+**Two corrections to the previous version of this entry.** "A search this area
+chip on map pan" and "map and list hover synchronised" have been promoted out of
+this list into M-10 and M-9, because they do not need inventory to build, only to
+admire. And **there is now a caution deposit in the schema**:
+`listings.caution_deposit_minor`. The previous instruction not to invent one is
+withdrawn, because the owner has since specified the full Nigerian rental fee
+breakdown. See P-2.
 
 ---
 
 ## 5. Property data model
 
-### P-1. There is no sale. The product is named for renting and is meant to sell, and `listings` cannot express a sale at all. **P0**
+`public.listings` now carries **60 columns**, counted live. That is the largest
+single change since the last pass and most of this section is now a record of
+what landed rather than a request.
 
-**Wrong today.** Read the columns of `public.listings`. Every price column is
-`price_per_night_minor`, `cleaning_fee_minor`, `service_fee_minor`.
-`price_period` is an enum of exactly two values, `night` and `year`. There is no
-`sale_price_minor`, no `listing_intent`, no `tenure`, no `title_document`, no
-`sold_at`. The word "sale" does not appear in the listings schema.
+### P-1. The listing can express a sale. **DONE. Was P0**
 
-**Do.** One migration, before the catalogue fills, and design it once:
+**Verified live, column by column.** Migrations `20260809100000` through
+`20260809101500` in the tree, applied as versions `20260809044441` through
+`20260809044629`, commit `5e5aa79`.
 
-1. `listing_intent` enum: `RENT`, `SALE`, `STAY`. Not nullable, defaulted from
-   `property_type` for the rows that will exist.
-2. `sale_price_minor bigint`, null unless intent is `SALE`, with a check
-   constraint tying the two together so a sale listing cannot exist without a
-   price and a rental cannot carry one.
-3. `tenure` enum for Nigerian reality: `FREEHOLD`, `LEASEHOLD`, `C_OF_O`,
-   `GOVERNORS_CONSENT`, `EXCISION`, `GAZETTE`, `FAMILY_LAND`. This is the single
-   most important trust field in Nigerian property sale and it has no equivalent
-   in the stay model.
-4. `title_document_status` and a private bucket for the documents, reviewed the
-   same way agent identity documents already are.
-5. A `SALE` listing gets no Reserve button and no availability calendar. It gets
-   enquire, inspect, then a transaction. That is the rental path with a different
-   noun, so most of the flow already exists.
+| Landed | Shape |
+|---|---|
+| `listing_intent` | enum `rent`, `sale` |
+| `sale_price_minor` | bigint |
+| `price_negotiable` | boolean |
+| `tenure` | enum, six Nigerian titles |
+| `sale_status` | enum `available`, `under_offer`, `sold` |
+| `year_built`, `size_sqm`, `toilets`, `parking_spaces`, `floor`, `total_floors` | the facts a listing states |
+| `condition` | enum `newly_built`, `renovated`, `old`, `off_plan` |
+| `furnished` | enum `unfurnished`, `semi_furnished`, `fully_furnished` |
+| `address_verified_at`, `physically_inspected_at`, `verified_by` | verification as timestamps, not flags |
 
-**Why.** This is the largest single gap between what RentMe says it is and what
-the database can hold. It is also the cheapest it will ever be to fix: zero
-listings, zero bookings. Every day the catalogue is empty is a day this migration
-costs nothing, and the day after the first hundred listings land it costs a
-backfill and a data migration on live rows.
+**Three deviations from what was recommended, and all three are defensible. Read
+them before assuming the recommendation was followed.**
 
-### P-2. `ListingKind` in TypeScript and `property_type` in Postgres disagree. **P1**
+1. **`listing_intent` has two values, not three.** It is `rent` and `sale`. The
+   recommended `STAY` is absent. Nightly lodging is therefore expressed as
+   `listing_intent = 'rent'` with a `rate_minor` and a `rate_period` of `night`,
+   which works but means the enum no longer answers "what is this listing" on
+   its own. See P-7, which is now the open question.
+2. **The tenure vocabulary is six values, not seven.**
+   `certificate_of_occupancy`, `governors_consent`, `deed_of_assignment`,
+   `gazette`, `freehold`, `leasehold`. The recommended `excision` and
+   `family_land` are absent and `deed_of_assignment` was added instead. Excision
+   in particular is a real and common Lagos state answer and its absence will
+   force agents to pick something inaccurate. **Recommend adding `excision` and
+   `family_land`.** Adding a value to an enum is a one-line migration today and
+   a data-quality problem forever once agents have started choosing the nearest
+   wrong answer.
+3. **Enum labels are lowercase snake_case**, where the recommendation wrote them
+   uppercase. This is the right choice, because every other enum on this
+   database that was designed rather than inherited is lowercase, but note that
+   `listing_status`, `booking_status` and the wallet enums are UPPERCASE. The
+   database now has two conventions. Pick one for everything added from here and
+   write it in `docs/PRODUCT.md`; do not migrate the existing ones.
 
-**Wrong today.** `apps/web/src/lib/listings/types.ts:3-25` declares eleven kinds
-including `experience`. `public.property_type` holds ten and does not include it.
-The nav offers `/search?type=experience`
-(`components/app/nav-model.ts:78`), which can never match a row.
+**Still not built:** `title_document_status` and the private bucket for title
+documents. `tenure` records what the seller *claims*; nothing records whether
+anybody looked. That is the difference between a dropdown and a trust signal.
+See KYC-6.
 
-**Do.** Decide whether experiences are a kind. If yes, add the enum value and the
-wizard step. If no, delete it from `ListingKind`, from the nav and from the four
-locale files. My recommendation is no: it is the last surviving limb of the
-NaijaFinds discovery product and nothing else in the schema serves it.
+### P-2. The rental fee breakdown landed, and it needs a UI contract. **DONE in schema, NEW work in UI. P1**
 
-**Why.** A category in the navigation that cannot return a row is a dead end the
-type system cannot catch, because the two enums are declared in two languages.
+**Verified live.** `rent_amount_minor`, `rent_period` (`month`, `quarter`,
+`year`), `rent_negotiable`, `caution_deposit_minor`, `service_charge_minor`,
+`service_charge_period`, `agency_fee_minor`, `legal_fee_minor`,
+`agreement_fee_minor`, `total_move_in_cost_minor`, `minimum_tenancy_months`,
+`available_from`. Migration `20260809100500`, applied as `20260809044514`.
 
-### P-3. Generate the database types in CI, so the two enums can never disagree again. **P1**
+This is the single most user-valuable thing in the whole property migration set,
+because the gap between advertised rent and the money actually required on day
+one is the number one complaint about Nigerian property listings, and this
+platform can now state it.
+
+**Do, and this is a product rule rather than a suggestion.**
+1. **The card shows `total_move_in_cost_minor`, with the rent as the secondary
+   line.** Not the other way round. Every competitor leads with the rent and
+   buries the fees, and leading with the truth is the differentiator that costs
+   nothing to build.
+2. **The breakdown is always expandable and never collapsed away.** Rent,
+   caution deposit, agency fee, legal fee, agreement fee, service charge, each
+   with its own line, each labelled, and the sum stated. A fee that appears only
+   in a total is a fee somebody will feel ambushed by.
+3. **A zero and a null are different and must render differently.** "Agency fee:
+   none" is a selling point. A missing agency fee is unknown and must say so.
+   The columns are nullable, so both states exist.
+4. **`total_move_in_cost_minor` is stored, so it can disagree with its parts.**
+   Either compute it in a generated column or a trigger, or add a check
+   constraint, or accept that it will drift and render the computed sum instead.
+   Do not render a stored total beside parts that do not add up to it. The
+   ledger already learned this lesson: `gross_minor = platform_fee_minor +
+   agent_share_minor + processor_fee_minor` is a check constraint, not a
+   convention.
+5. **Say what the fees are for.** Most renters do not know the difference between
+   a legal fee and an agreement fee. One sentence each, in a tooltip or the
+   expanded row, written once in the locale files.
+
+### P-3. `price_per_night_minor` is now `rate_minor`. **DONE. Was part of P-1**
+
+**Verified live.** The column is `rate_minor bigint` and `price_period` is gone,
+replaced by `rate_period` with values `night` and `guest`. The hotel columns
+`max_guests`, `beds`, `min_stay_nights`, `instant_book`, `cleaning_fee_minor`
+and `service_fee_minor` are absent from the live table. Migration
+`20260809102000`, applied as `20260809044725`.
+
+The reason this mattered is worth keeping: the column had been holding annual
+rent since the rental pricing migration reinterpreted it, and a column named
+`price_per_night_minor` holding a yearly figure is one plausible multiplication
+away from charging a tenant 365 times. `apps/web/src/lib/listings/pricing.ts`
+now reads `rate_minor` and `rate_period` and documents the rename at `:90`.
+
+### P-4. `ListingKind` and `property_type` still disagree. **OPEN. P1**
+
+**Re-verified today, unchanged.** `apps/web/src/lib/listings/types.ts:31` still
+declares `experience`. `public.property_type` still holds exactly ten values and
+`experience` is not one of them. The property migrations did not touch either.
+
+**Do.** Delete `experience` from `ListingKind`, from the nav, and from the four
+locale files. It is the last surviving limb of the NaijaFinds discovery product
+and nothing in the schema serves it. A category in the navigation that cannot
+return a row is a dead end the type system cannot catch, because the two enums
+are declared in two languages.
+
+### P-5. Generate the database types in CI. **OPEN, and now overdue. P1**
+
+Types were regenerated by hand at commit `5e5aa79` and the build went red with
+52 errors across five lib files, which is exactly the right outcome: the schema
+became correct and the application caught up. That is the argument for the check,
+not against it.
 
 **Do.** `supabase gen types typescript` into
-`apps/web/src/lib/supabase/database.types.ts` as a CI check that fails on drift,
-and derive `ListingKind` from `Database["public"]["Enums"]["property_type"]`
-rather than declaring it by hand.
+`apps/web/src/lib/supabase/database.types.ts` as a CI step that fails on any
+diff, and derive `ListingKind` from
+`Database["public"]["Enums"]["property_type"]` rather than declaring it by hand.
+That closes P-4 as a class rather than an instance, and it is the only thing
+that will keep the two enums together through the next schema change.
 
-**Why.** P-2 exists only because a hand-written union and a database enum are two
-sources of truth. This closes the class, not the instance. The social audit
-already recorded one build going red from exactly this drift.
+### P-6. `public.saved_searches` still has no writer and no screen. **OPEN. P2**
 
-### P-4. `public.saved_searches` has no writer and no screen. **P2**
+Unchanged: the table exists, holds zero rows, and the only reference in
+`apps/web/src` is the generated types.
 
-**Wrong today.** The table exists
-(`supabase/migrations/20260728152458_engagement.sql:59`), holds 0 rows, and a grep
-for `saved_searches` across `apps/web/src` returns one hit, in the generated
-types. No "save this search" control exists anywhere.
+**And it is now worth building rather than dropping.** A saved search on an empty
+marketplace is the single best supply-side signal available: it tells the owner
+exactly which area and price band demand exists in before any listing does. Build
+the control on `/search`, the row, the list on `/saved`, and an email when a
+matching listing publishes. That last part turns the empty catalogue problem in
+section 11 from a liability into a mailing list.
 
-**Do.** Either build it, which is a control on `/search`, a row, a list on
-`/saved` and eventually an alert, or drop the table. Schema ahead of the product
-is harmless; schema that stays ahead for a year is a signal nobody is reading the
-schema.
+### P-7. `listing_intent` has no value for a nightly stay, and three markets share two labels. **NEW. OPEN. P1**
 
-### P-5. Nothing records a listing's status history, so historical occupancy is unanswerable. **P2**
+**Wrong today, verified live.** `listing_intent` is `('rent', 'sale')`. The
+product offers four markets: annual tenancy, sale, nightly stay and a restaurant
+table. Two of the four have no intent value, so a shortlet is `rent` and a
+restaurant is `rent`, and the column that exists to answer "what is this listing
+for" cannot.
 
-**Wrong today.** `listings` carries one `published_at` and one current `status`.
-`/agent/analytics` therefore shows forward occupancy over the next 30 nights and
-says on the screen that it cannot show historical occupancy, which is the honest
-answer. A listing paused last March would silently rewrite last March's occupancy
-on every page load.
+The information is recoverable today by combining `property_type` and
+`rate_period`, which is exactly the derived-truth arrangement `listing_intent`
+was added to replace.
 
-**Do.** A `listing_status_events` append-only table, written by the same trigger
-that already moves the status. Cheap now, impossible to backfill later.
+**Do. Decide, then do one of these two, and record which in `docs/PRODUCT.md`.**
 
-### P-6. Nothing counts a view of a listing. **P1**
+- **Option A, add the values:** `stay` and `table`. One migration, zero rows to
+  migrate, and every filter, URL and analytics query afterwards reads one
+  column. Recommended.
+- **Option B, formalise the derivation:** a generated column or a view exposing
+  `market`, computed from `property_type` and `rate_period`, so there is still
+  exactly one place the answer lives. Acceptable.
 
-**Wrong today.** `public.post_views` exists and keys on `posts.id`, so it belongs
-to the social feed and cannot be joined to a listing. There is no view count on
-any listing, and therefore no view-to-booking conversion, which is the single
-figure a host most wants.
+What must not happen is the current state, where each of the front end, the
+search filter and the analytics query re-derives it independently and they drift.
 
-**Do.** `public.events`, which already exists and holds 0 rows, is the right
-place. It was built to the audit spec for exactly this. Write a `listing_viewed`
-event from server code only, with the bot filter and the retention policy decided
-up front rather than added later, and reuse `private.view_bucket`, the salted
-daily bucketing that already stops a client from inflating a count.
+### P-8. A sale listing must be a different page, and nothing decides what it says. **NEW. OPEN. P0**
+
+The schema can hold a sale. No screen renders one. Before anybody builds it,
+these decisions have to be made, because they are product decisions wearing
+engineering clothes.
+
+1. **No Reserve, no calendar, no instant anything.** A sale is an enquiry, an
+   inspection, a negotiation and a transaction that happens substantially off
+   platform. The page must not imply otherwise.
+2. **Title and tenure is the hero block**, above the photographs on mobile if
+   necessary. In Nigerian property sale, title is the transaction. `tenure`,
+   `sale_status`, `year_built`, `size_sqm` and `condition` belong together in
+   one panel with a plain-language explanation of what each title type means.
+3. **State what the platform has and has not checked.** `address_verified_at`,
+   `physically_inspected_at` and `verified_by` now exist as timestamps. Render
+   the timestamps, not a badge: "Address checked 14 July" is a fact and a tick
+   is a promise. Where a timestamp is null, say nothing rather than saying
+   unverified, which reads as an accusation against the agent.
+4. **`price_negotiable` changes the call to action.** "Make an offer" against
+   "Enquire" is the whole difference in how a buyer approaches the page.
+5. **`sale_status = 'under_offer'` and `'sold'` must be visible and must not be
+   deletions.** A sold listing that vanishes destroys the only public evidence
+   the platform has that transactions happen here. Keep it, mark it, exclude it
+   from search by default, and let a sold price be the comparable that makes the
+   next seller list.
+6. **Write the legal boundary into the copy before a lawyer does.** The platform
+   introduces buyer and seller. It does not act as an estate agent, does not
+   verify title, and does not hold the purchase price unless and until escrow
+   exists. Say so on the page, once, in plain words.
+
+### P-9. Nothing records a listing's status history. **OPEN. P2**
+
+Unchanged. `listings` carries one `published_at` and one current `status`.
+`/agent/analytics` shows forward occupancy and states on screen that it cannot
+show historical occupancy, which is the honest answer. A listing paused last
+March silently rewrites last March's occupancy on every page load.
+
+**Do.** A `listing_status_events` append-only table written by the trigger that
+already moves the status. Cheap now, impossible to backfill later. And note this
+is now also the only way to answer "how long does a property take to let", which
+is the metric the owner will want first.
+
+### P-10. Nothing counts a view of a listing. **OPEN. P1**
+
+Unchanged. `public.post_views` keys on `posts.id` and belongs to the social feed.
+There is no view count on any listing, so no view-to-enquiry conversion, which is
+the single figure an agent most wants and the single figure that justifies a
+commission when one is eventually charged. See FEE-4.
+
+**Do.** `public.events` already exists, holds zero rows, and was built for this.
+Write a `listing_viewed` event from server code only. Reuse `private.view_bucket`,
+the salted daily bucketing that already stops a client inflating a count. Decide
+the bot filter and the retention window up front rather than adding them after
+the numbers are already wrong.
+
+### P-11. `public.listing_videos` exists and nothing writes to it. **NEW. OPEN. P1**
+
+**Verified live.** The table exists, holds zero rows, and is modelled on
+`listing_photos` with its grants stated explicitly. Grep `listing_videos` across
+`apps/web/src`: no hits outside the generated types. There is no upload control,
+no player, no thumbnail, and no size limit. See section 12.
 
 ---
 
 ## 6. Wallet and payments
 
-### W-1. A missing `SUPABASE_SERVICE_ROLE_KEY` silently kills every money path and answers HTTP 200. **P0**
+Read section 0 first. CASE-1 supersedes the parts of W-1 that were about
+diagnosis; what remains here is the work.
 
-**Wrong today, and this is the most probable cause of the reported wallet
-failure.** `apps/web/src/lib/wallet/ledger.ts:25-36`: `getAdminClient()` returns
-`null` whenever the service key is absent or empty, and swallows the throw.
-Everything downstream treats null as "not configured" and gives up quietly:
+### W-1. The webhook still answers 200 on a misconfiguration, and the money path is still unlogged. **PARTLY DONE. P0**
 
-- `apps/web/src/app/api/paystack/webhook/route.ts:242-243`: `const admin =
-  getAdminClient(); if (!admin) return acknowledged(false);` and
-  `acknowledged()` at `:69-71` returns `NextResponse.json({received}, {status:
-  200})`. Paystack is told the delivery succeeded, never retries, and nothing is
-  logged. **A funding that was paid for is lost permanently.**
-- The redirect verify path and every wallet action take the same branch:
-  `lib/wallet/actions.ts:222`, `:338`, `:448`, and
-  `lib/bookings/checkout.ts:258`, `:374`, `:503`, `:600`.
+Folded into CASE-1, which carries the full evidence and the ordered fix. The
+short version: the observability module was built and wired into one branch out
+of roughly twenty. The webhook, every wallet action, the ledger and the booking
+settlement path all still say nothing.
 
-So both settlement paths, the webhook and the redirect, fail identically and
-silently, which is exactly the symptom: money leaves the card and the wallet does
-not move.
+### W-2. Nothing is rate limited on the money surfaces. **OPEN. P0**
 
-**Do, in this order.**
-1. Set `SUPABASE_SERVICE_ROLE_KEY` in the Vercel Production environment. The
-   owner owns this. Verify with the smoke test below rather than by assertion.
-2. **Make the webhook fail loudly.** A missing service key must return `500`, not
-   `200`, so Paystack retries and the delivery is not lost. The existing comment
-   at `:34` says "Every path answers 200 quickly so Paystack never retries into a
-   crash", which is right for a malformed payload and wrong for a misconfigured
-   server: one is the sender's problem and one is ours.
-3. **Log it.** One `[wallet] service role key absent` line, once per minute, on
-   every path that takes the null branch. The `[inventory]` throttled logger that
-   was written for the partner providers is the pattern.
-4. **A startup assertion.** A boot-time check that names every server-only key
-   that is absent, printed once in the deployment log. Not a throw: the platform
-   must boot with an empty environment by design. A line, so the absence is
-   visible without a probe.
-
-**Why.** Fail-open is correct for a rate limiter and catastrophic for a payment
-webhook. The current shape converts a missing environment variable into
-irrecoverable lost money with no signal anywhere.
-
-### W-2. Nothing is rate limited on the money surfaces. **P0**
-
-**Wrong today.** `private.consume_rate_limit` is durable, Postgres-backed and
-applied. `consume` (`lib/security/rate-limit.ts:151`) is called from two API
+**Re-verified.** `private.consume_rate_limit` is durable and Postgres-backed and
+applied. `consume` in `lib/security/rate-limit.ts` is still called from two API
 routes only, `api/assistant` and `api/support`. Reserve, cancel, fund, withdraw
 and transfer count nothing.
 
 **Mitigating, and it is why this is not worse:** wallet writes are idempotent at
-the database level on the unique `reference` column
-(`supabase/migrations/20260728202225_wallet.sql:57`, honoured at
-`lib/wallet/ledger.ts:91`), and `withdraw` prices the spendable balance inside a
-row lock.
+the database level on the unique `reference` column, honoured in
+`lib/wallet/ledger.ts`, and `withdraw` prices the spendable balance inside a row
+lock.
 
-**Do.** Apply the existing limiter to `reserve`, `fundWallet`, `withdraw`,
-`transferToUser` and `payWithWallet`. Per user, per action, per hour. It is one
-call each, the machinery is built, and the reason it is not done is that nobody
-went back.
+**Do.** One `consume` call each on `reserve`, `fundWallet`, `withdraw`,
+`transferToUser` and `payWithWallet`. Per user, per action, per hour. The
+machinery is built; the reason this is not done is that nobody went back. Pair
+each refusal with a `logMoney` line carrying `outcome: "rejected"`, so the limiter
+is also an intrusion signal rather than only a brake.
 
-**Why.** Reserve holds real inventory. An unthrottled reserve is a way to lock
-every calendar on the platform from one account.
+**Why.** Reserve holds real inventory. An unthrottled reserve locks every
+calendar on the platform from one account.
 
-### W-3. A complete second wallet deck is dead, taking three server actions with it. **P1**
+### W-3. A complete second wallet deck is dead, taking four exports with it. **OPEN. P1**
 
-**Verified today.** `components/app/wallet/WalletActions.tsx` is 306 lines with
-**zero import references**, and it is the only caller of `requestDeposit`
-(`lib/wallet/actions.ts:591`), `requestWithdrawal` (`:605`) and `requestTransfer`
-(`:649`). `getStatement` (`:543`) is also imported by nothing. The live page
-renders `./WalletDeck`, which uses `fundWallet`, `withdraw` and `transferToUser`.
+Unchanged. `components/app/wallet/WalletActions.tsx` is 306 lines with zero
+import references and is the only caller of `requestDeposit`, `requestWithdrawal`
+and `requestTransfer` in `lib/wallet/actions.ts`. `getStatement` is imported by
+nothing. The live page renders `WalletDeck`, which uses `fundWallet`, `withdraw`
+and `transferToUser`.
 
-**Do.** Delete the component and the four unreachable exports, or wire them.
-Whoever owns them decides; the evidence does not need re-deriving.
+**Do.** Delete the component and the four unreachable exports. Two implementations
+of the money surface is how a security fix lands on the wrong one, and CASE-1 is
+about to add logging to one of them.
 
-**Why.** Two implementations of the money surface is how a security fix lands on
-the wrong one.
+### W-4. The P2P transfer form is an email-address oracle. **OPEN. P1**
 
-### W-4. The P2P transfer form is an email-address oracle. **P1**
+Unchanged. The form answers differently for an address that has a RentMe wallet
+and one that does not, so a script can walk a list and learn who banks here.
 
-**Wrong today.** The transfer form answers differently for an address that has a
-RentMe wallet and one that does not, so a script can walk a list one response at
-a time and learn who banks here.
+**Do.** One response for both: "If that address has a RentMe wallet, the transfer
+is on its way." Confirm or refund asynchronously. Pair with W-2, because a
+uniform message with unlimited attempts is still a timing oracle. The platform
+already got this right on password reset, deliberately.
 
-**Do.** One response for both cases: "If that address has a RentMe wallet, the
-transfer is on its way." Then confirm or refund asynchronously. Pair it with the
-rate limit from W-2, because a uniform message with unlimited attempts is still
-a timing oracle.
+### W-5. There is no transaction PIN. **OPEN. P1**
 
-**Why.** The platform already got this right on password reset, deliberately. The
-transfer form is the same question with money attached.
+Unchanged. A signed-in session alone authorises a debit.
 
-### W-5. There is no transaction PIN. **P1**
-
-**Wrong today.** A signed-in session alone authorises a debit.
-
-**Do.** A four to six digit PIN, set on first wallet-moving action, required for
-withdraw and transfer and not for paying a booking the person is already looking
-at. Hash it with the same care as a password. Add a rate limit and a lockout.
+**Do.** Four to six digits, set on the first wallet-moving action, required for
+withdraw and transfer and **not** for paying a booking the person is already
+looking at. Hash it with the same care as a password, rate limit it, lock out
+after a small number of attempts, and provide a reset that goes through email
+plus a cooling-off period rather than through support.
 
 **Why.** Nigerian phones are shared and borrowed far more than the implicit
-Western threat model assumes, and every Nigerian banking app the audience already
-uses asks for this. Its absence reads as unsafe even before it is exploited.
+Western threat model assumes, and every Nigerian banking app this audience
+already uses asks for this. Its absence reads as unsafe before it is exploited.
 
-### W-6. There is no reconciliation and no drift alert. **P1**
+### W-6. There is no reconciliation and no drift alert. **OPEN. P1**
 
-**Wrong today.** The ledger balances by construction: `gross = platform + agent +
-processor` with platform always zero. Nothing checks that it still does.
+Unchanged, and `pg_cron` is installed with six active jobs, so the runway exists
+and has existed for some time.
 
-**Do.** `pg_cron` is installed and running six jobs (see T-3), so the runway
-exists. Add a nightly job that recomputes every wallet balance from
-`wallet_entries`, compares it to the derived view, and writes a `risk_alerts` row
-on any non-zero drift. Add a second that checks for `PENDING` withdrawal holds
-older than 24 hours and asks Paystack for each one's status individually, because
-a nightly total cannot tell one stuck transfer from a quiet day.
+**Do.**
+1. A nightly job recomputing every wallet balance from `wallet_entries`,
+   comparing against the derived view, writing a `risk_alerts` row on any
+   non-zero drift. The check constraint `gross_minor = platform_fee_minor +
+   agent_share_minor + processor_fee_minor` guarantees the ledger balances by
+   construction; nothing guarantees the derived view still agrees with it.
+2. A second job listing `PENDING` withdrawal holds older than 24 hours and
+   asking Paystack for each one's status individually. A nightly total cannot
+   tell one stuck transfer from a quiet day.
+3. A third, and this is the one CASE-1 argues for: a job that counts Paystack
+   `charge.success` events for the day against `wallet_entries` deposits for the
+   day and alerts on a mismatch. That job, alone, would have caught the incident
+   on day one.
 
-**Why.** The first time the ledger is wrong, it will be wrong quietly. A
-marketplace finds out from a user.
+**Why.** The first time the ledger is wrong it will be wrong quietly, and a
+marketplace with no reconciliation finds out from a user.
 
-### W-7. Refunds go to the wallet first and there is no bank fallback. **P2**
+### W-7. Refunds go to the wallet first and there is no bank fallback. **OPEN. P2**
 
-**Wrong today.** Support-initiated refunds credit the wallet, which is correct as
-the fast path and is documented honestly on `/safety`. There is no path to return
-money to the original card or bank account.
+Unchanged, correct as the fast path, documented honestly on `/safety`. Build the
+bank return after W-6, through the payout account machinery that already exists
+for agents. Wallet first, always, then bank on request.
 
-**Do.** After W-6. Wallet first, always, then a bank refund on request through
-the payout account machinery that already exists for agents.
+### W-8. `bestEffortEmail` and the bare webhook catch are the same anti-pattern in two places. **NEW. OPEN. P1**
+
+**The pattern.** Both wrap something that may fail, both swallow the failure so
+the committed write is not rolled back, and both then forget. Swallowing is
+correct in both cases. Forgetting is not, and it is the same mistake twice, which
+means it is a habit rather than an oversight.
+
+**Do.** One shared helper: `swallow(reason, fn)`, which runs the function,
+catches, logs one structured line naming the reason and the surface, and
+returns. Then use it in both places and in the four other spots where a bare
+`catch {}` exists in a write path. A grep for `catch {` with an empty body is the
+inventory. This is a fifteen line module that closes the class the incident
+belongs to.
 
 ---
 
 ## 7. Escrow
 
-### E-1. Escrow is zero percent implemented, and it is also zero percent marketed. **P0 to build, P0 to keep not marketing.**
+### E-1. Escrow is zero percent built and zero percent promised. Keep the second half true. **OPEN. P0 to build, P0 to keep not marketing**
 
-**Verified today, and this corrects a claim that has been repeated.** A grep for
-`escrow` across every `.ts`, `.tsx` and `.sql` file in `apps/`, `packages/` and
-`supabase/` returns **exactly three hits, all of them code comments, none of them
-user-facing**:
+**Re-verified today.** Grep `escrow` across `apps/`, `packages/` and `supabase/`:
+every hit is a code comment or the string `"escrow"` as an unused member of the
+`MoneySurface` union in `lib/payments/observability.ts:35`. There is no
+`escrow_holds` table, no `HELD` state on `wallet_entries` beyond the withdrawal
+hold, no release condition, no release actor, no dispute path and no timeout.
+Grep the four locale files: zero. **The product does not promise escrow
+anywhere**, and `app/(site)/safety/page.tsx:27` says in a comment that the page
+makes "no promise of an escrow that is not built", and keeps that promise.
 
-- `apps/web/src/app/(site)/safety/page.tsx:27`, which says the page carries "no
-  promise of an escrow that is not built".
-- `apps/web/src/lib/listings/repository.ts:30` and `lib/listings/types.ts:33`,
-  both arguing that first-party-only inventory is what makes escrow possible.
+That refusal is the most honest thing in this codebase. It must survive the
+marketing pass. See E-6 for the specific sentences that must never ship.
 
-A grep across the four locale files returns zero. **The product does not promise
-escrow anywhere.** The safety page deliberately refuses to, and that refusal is
-the single most honest thing in the codebase. It must not be undone by a
-marketing pass.
+### E-2. Add `COMPLETED` to `booking_status` before anything else. **OPEN. P0, and it is the gate**
 
-**What does not exist.** No `escrow_holds` table. No `HELD` state on
-`wallet_entries` beyond the withdrawal hold. No release condition, no release
-actor, no dispute path, no timeout. `wallet_entry_kind` is `deposit, withdrawal,
-payment, refund, transfer_in, transfer_out` and none of them is a hold.
+**Verified.** `booking_status` is `PENDING`, `CONFIRMED`, `CANCELLED`. There is
+no `COMPLETED`. So the platform cannot record that a stay happened, and "release
+the money once the thing happened" cannot be expressed at all.
 
-**Do, and design it once.** Escrow is a ledger shape, not a feature flag.
+**Do this first.** It is a one-line enum addition plus a scheduled transition,
+and `private.announce_completed_stays` already runs nightly and already reasons
+about completed stays, so the moment exists in code and not in the schema.
+Nothing else in escrow can be specified until this lands. It also unblocks two
+badges and the review prompt.
 
-1. **Model it as ledger holds, not balance edits.** Authorise, capture, release.
-   A held amount is an entry with a `HELD` status against a named counterparty
-   and a release condition, and the derived balance already subtracts pending
-   debits, so the arithmetic hook exists.
-2. **Name the release condition per market.** A stay releases 24 hours after
-   check-in. A rental releases on a recorded inspection confirmation plus tenancy
-   start. A sale releases on a title document check that a human performs. These
-   are three different products and only the first is close to buildable today,
-   because `booking_status` is `PENDING, CONFIRMED, CANCELLED` with **no
-   COMPLETED**, so "they stayed" is not a moment the schema records at all.
-3. **Add `COMPLETED` to `booking_status` first.** Nothing else in escrow can be
-   specified until the platform can say a stay happened. This also unblocks two
-   badges and the review prompt.
-4. **A dispute is a support ticket with money attached.** `support_tickets`,
-   `/admin/support` and the audit log all exist. Do not build a second queue.
-5. **Decide who holds the money.** Today the platform charges no fees and never
-   holds a balance it did not receive. Escrow means holding somebody else's money
-   for days. That is a regulatory posture, not an engineering decision, and it
-   needs an answer before a line of it is written.
+### E-3. The state machine. **NEW. OPEN. P0**
 
-**Why.** Escrow is the reason a Nigerian would send rent to a platform instead of
-to a stranger's account. It is also the promise most likely to be made in
-marketing before it is built. The correct order is: `COMPLETED` status, then
-ledger holds, then release conditions, then the copy. Never the copy first.
+Model escrow as **ledger holds, not balance edits**. A held amount is an entry
+with a `HELD` status against a named counterparty and a named release condition.
+The derived balance already subtracts pending debits, so the arithmetic hook
+exists.
+
+**Seven states. No more, and each transition has exactly one actor.**
+
+| State | Means | Who moves it | Moves to |
+|---|---|---|---|
+| `INITIATED` | An agreement exists, no money yet | Payer | `FUNDED`, `CANCELLED` |
+| `FUNDED` | Money received and held. Not the agent's | Processor webhook | `RELEASE_PENDING`, `DISPUTED`, `REFUNDED` |
+| `RELEASE_PENDING` | The release condition is met, the clock is running | System | `RELEASED`, `DISPUTED` |
+| `RELEASED` | Money credited to the agent's wallet | System | terminal |
+| `DISPUTED` | Either party objected. Frozen | Either party | `RELEASED`, `REFUNDED`, `SPLIT` |
+| `REFUNDED` | Money returned to the payer | Admin, or automatic timeout | terminal |
+| `SPLIT` | Partial release, both sides credited | Admin only | terminal |
+
+**Rules that must be enforced in the database, not the application.**
+- Every transition writes an append-only row with actor, timestamp and reason.
+  Never update a status in place without one. `audit_log` already exists.
+- `FUNDED` to `RELEASED` may never be a single step. There is always a
+  `RELEASE_PENDING` window a payer can object inside. An escrow with no objection
+  window is a payment with extra words.
+- No transition may be triggered by the party who benefits from it. The agent
+  cannot release to themselves; the buyer cannot refund themselves.
+- **A timeout must exist on every non-terminal state**, and each must resolve
+  somewhere rather than sitting forever. `pg_cron` runs the sweep. An escrow that
+  can be abandoned is a way to freeze somebody's money by ignoring them.
+
+**The release condition differs per market and only one of the three is close to
+buildable.**
+- **Stay:** release 24 hours after check-in. Needs E-2 and nothing else.
+- **Rental:** release on a recorded inspection confirmation plus tenancy start.
+  Needs an inspection record, which does not exist.
+- **Sale:** release on a title check a human performs. Needs KYC-6 and a legal
+  opinion. Do not attempt this third.
+
+### E-4. The dispute flow. **NEW. OPEN. P1**
+
+**Do not build a second queue.** `support_tickets`, `/admin/support` and
+`audit_log` all exist. A dispute is a support ticket with money attached and a
+frozen ledger hold, and the queue it lands in is the one already staffed.
+
+**The flow, and the timings are the product.**
+1. Either party raises a dispute from the transaction, before `RELEASED`. One
+   button, a required reason from a closed list, free text, and evidence
+   uploads. Raising it moves the hold to `DISPUTED` immediately and the release
+   clock stops.
+2. The other party is notified and has **72 hours** to respond. Silence is not
+   an admission and must not auto-resolve against them; it moves the case to
+   admin with that fact recorded.
+3. Admin sees both sides, the full ledger history, the message thread and the
+   listing, on one screen. Every action they take writes an `audit_log` row with
+   a mandatory reason. The existing admin actions already work this way.
+4. Outcomes are exactly three: release in full, refund in full, or split with an
+   explicit amount. A split needs two admin approvals or a value ceiling below
+   which one suffices.
+5. Both parties get the outcome and the reason in writing, by email and in
+   product. A dispute resolved without a stated reason produces the next
+   dispute.
+6. **Target 5 working days, publish it, and measure it.** An escrow whose
+   resolution time is unstated is an escrow nobody trusts, and an unmeasured
+   target is a target nobody meets.
+
+**Frozen means frozen.** While a hold is `DISPUTED`, neither party may withdraw
+the amount, the agent's payout run must skip it, and the listing should not be
+silently deleted out from under the evidence.
+
+### E-5. What the escrow UI must explain. **NEW. OPEN. P1**
+
+The interface has one job: at every moment, both parties know **where the money
+is, who can move it, and what happens next**. Everything else is decoration.
+
+**On every screen carrying a hold, three lines, always visible.**
+1. Where it is: "Your 1,200,000 naira is held by RentMe."
+2. Who can move it: "It goes to the agent when you confirm you have moved in, or
+   automatically 7 days after your tenancy starts."
+3. What happens if something goes wrong: "You can raise a dispute any time
+   before then."
+
+**Also required.**
+- A visible countdown on `RELEASE_PENDING`. A number of days, not a phrase.
+- The dispute control present and reachable in one tap at every stage before
+  release. A dispute button hidden behind a help centre is a dispute button that
+  does not exist.
+- The full timeline of transitions, with timestamps and actors, visible to both
+  parties. This is the single largest source of trust and it is nearly free once
+  E-3's append-only log exists.
+- Fees shown before funding, itemised, including whatever the processor takes.
+  See section 8.
+- The agent's side must show the hold as **pending, not available**, from the
+  first moment. An agent who sees money in their balance and then cannot
+  withdraw it will file a support ticket, and they will be right to.
+
+### E-6. What the escrow UI must never say. **NEW. P0**
+
+These are copy rules and they should be enforced by a spec the way the
+demo-and-sample ban is, because marketing copy is written under pressure by
+people who did not read this file.
+
+- **Never "guaranteed", "protected", "insured" or "safe" without a qualifier.**
+  RentMe holds money in an ordinary account. It is not a bank, it is not
+  insured, and there is no deposit protection scheme behind it. Say what is
+  actually true: "held by RentMe until you confirm".
+- **Never imply escrow covers property quality, title validity or the agent's
+  honesty.** It covers one thing: the money does not move until a condition is
+  met. A buyer who believes escrow means the platform checked the title has been
+  misled, and that is the most expensive misunderstanding available here.
+- **Never state a release time the system does not enforce.** If the copy says 7
+  days, a cron job must exist.
+- **Never show a hold as a balance.** Not on the agent's wallet card, not in a
+  total, not in an email subject line.
+- **Never promise a dispute outcome or a timescale that is not measured.**
+- **Never use the word escrow before the feature exists**, including in a
+  roadmap teaser on a public page. Today's `/safety` page is the standard.
+
+### E-7. Who holds the money is a regulatory question, not an engineering one. **OPEN. P0 decision**
+
+**This gates everything above and nobody has answered it.** Today the platform
+charges no fees and never holds a balance it did not receive on behalf of a
+booking in flight. Escrow means holding somebody else's money for days or weeks.
+In Nigeria that touches CBN payment service provider licensing and the question
+of whose account the funds sit in.
+
+**Do, before a line of E-3 is written.** Get an answer on: whether the funds sit
+in a designated client account separate from operating funds, whether the
+platform needs a licence or can operate under Paystack's, who is liable if the
+platform becomes insolvent while holding a hold, and what the tax treatment of a
+held amount is. The engineering above is perhaps three weeks. This answer has a
+lead time measured in months and it should start now, in parallel, exactly the
+way NDPC registration should have.
 
 ---
 
-## 8. Verification and trust
+## 8. Commission and listing fees
 
-### V-1. An agent can see the verification ladder and cannot climb it. **P1**
+The owner has decided: **build the full engine, set every rate to zero today,
+turn on a real rate later once there is a user base.** That decision is right and
+it is also the most dangerous kind of feature to build, because a fee engine that
+is switched off looks finished and is not tested, and the day it is switched on
+it is tested in production against real money.
 
-**Wrong today.** `/agent/verification` is real: an agent sees all four rungs,
-which they passed, which failed, the reviewer's note in full, and what the next
-rung asks for. `agents.verification_tier` is the count of rungs passed with no
-gap below, computed by `private.agent_tier`.
+Everything in this section exists to make the eventual switch-on boring.
 
-There is no way to send anything. No upload control, because nothing behind the
-page accepts a document: the evidence for every rung arrived with the
-application. An agent who wants to move up is pointed at support.
+### FEE-1. The ledger already models a platform fee and it is always zero. **DONE, and it is the right foundation. P1 to build on**
 
-**Do.** Reuse the machinery that already works. `ApplyWizard.tsx:172` uploads
-straight from the browser into the private `agent-documents` bucket, and
-`lib/admin/queries.ts:365-381` mints a ten-minute signed URL per document for the
-reviewer. A re-submission control on `/agent/verification` is those two things
-pointed at an existing agent rather than an applicant.
+**Verified.** `ledger_entries` carries `gross_minor`, `platform_fee_minor`,
+`agent_share_minor` and `processor_fee_minor` with a check constraint that they
+balance exactly:
+`gross_minor = platform_fee_minor + agent_share_minor + processor_fee_minor`.
+`lib/bookings/settlement.ts:32` records that `platform_fee_minor` is zero and
+`processor_fee_minor` is whatever the processor reports.
 
-**Why.** The ladder decides how much of the platform an agent may use. A ladder
-with no rungs to reach for is a scoreboard.
+This is exactly the right shape and it means the hard half is done. A fee is not
+a subtraction applied somewhere; it is a named component of a sum that must
+balance. Do not replace this with a percentage multiplied at render time.
 
-### V-2. There is no identity verification standard for payouts. **P1**
+### FEE-2. Rates need a table, and the table needs effective dates. **NEW. OPEN. P1**
 
-**Wrong today.** `payout_accounts` resolves the account name against the bank,
-which is the right check and is not identity verification. Nothing verifies NIN
-or BVN.
+**Wrong today.** The zero is a constant in application code. A constant cannot
+be changed without a deploy, cannot differ by market, and above all **cannot
+record what the rate was on the day a transaction happened**, which is the
+requirement that decides the whole design.
 
-**Do.** NIN verification during agent onboarding, env-guarded so it degrades into
-an honest unconfigured state until keys land, exactly as every other integration
-here does.
+**Do. One table, and design it once.**
 
-**Why.** Paying out to unverified identities is how marketplaces become money
-laundering vectors, and it is the question a Nigerian regulator asks first.
+```
+public.fee_schedules
+  id
+  scope            enum: booking_commission, sale_commission,
+                         listing_fee, featured_listing, withdrawal
+  applies_to       enum: rent, sale, stay, table, all
+  basis            enum: percentage_bps, flat_minor
+  value            integer          -- basis points, or kobo
+  minimum_minor    bigint null      -- floor, in kobo
+  maximum_minor    bigint null      -- cap, in kobo. Use it
+  payer            enum: agent, member, split
+  effective_from   timestamptz not null
+  effective_to     timestamptz null -- null means current
+  created_by       uuid not null
+  reason           text not null
+```
 
-### V-3. Badges are built, awarded nightly, and every document said they were not. **P2**
+**The rules that make it safe.**
+1. **Rows are never updated and never deleted.** A rate change closes the old row
+   by setting `effective_to` and inserts a new one. This is an append-only table
+   in spirit and should be one by trigger, the same way `audit_log` is.
+2. **Every transaction stores the `fee_schedule_id` it was priced under**, on
+   `ledger_entries`. Not the percentage, the identifier. When somebody asks in
+   eighteen months why a transaction was charged what it was, the answer is a
+   join, not an archaeology exercise.
+3. **Percentages in basis points, integers only.** 250 is 2.5 per cent. Never a
+   float, for the same reason money is never a float. Round once, at the end,
+   and write down whether it rounds up or down. Round in the payer's favour;
+   the aggregate cost is trivial and the alternative is a complaint that is
+   always correct.
+4. **Today, insert one row per scope with `value = 0` and `effective_from` set to
+   now.** Not an empty table. A missing row and a zero row must be
+   distinguishable, and the code path that reads the schedule, computes zero and
+   writes a balanced ledger entry has to be exercised from day one. **A fee
+   engine that has never run is not an engine, it is a plan.**
+5. **The lookup is by transaction timestamp, never by "current".** Write it that
+   way now. A refund processed next March against a booking made this December
+   must reverse December's fee, and code that reads the current rate gets that
+   wrong silently.
+6. **Cap everything.** A percentage commission with no `maximum_minor` on a 400
+   million naira property sale produces a number that will end a business
+   relationship. Set a cap even while the rate is zero, so the column is
+   populated and the logic is exercised.
 
-**Verified live.** `public.badges` holds 15 rows: seven AGENT, eight MEMBER, one
-of them `manual_only`. `public.user_badges` holds 1. `private.sweep_badges` is
-scheduled as `rentme-nightly-badges` at 02:20 UTC and is active.
+### FEE-3. Disclosure, so that nobody feels ambushed. **NEW. OPEN. P0 when the rate becomes non-zero**
 
-**Do.** Two things only. Build the earned moment: a badge that appears silently
-is a badge nobody values, and a designed reveal plus a notification row is the
-cheapest retention mechanic available. And enforce the anti-gaming rules already
-argued: Helpful counts only from accounts with a completed stay or a verified
-phone, and one Helpful per pair per week counts towards a badge.
+This is the part that matters. The engine is a week; the trust is permanent.
 
-### V-4. `private.probe_as` still exists on the live database. **P1**
+**The rules, and they should be in `docs/PRODUCT.md` as product policy rather
+than only here.**
 
-**Verified live.** The function is present in the `private` schema. It sets
-`request.jwt.claims` so a probe can run as a real signed-in person under RLS,
-which is the only way to test a policy, because a probe through the service role
-bypasses RLS entirely. It is revoked from `public`, `anon` and `authenticated`,
-so only the service role can reach it, and no application code calls it.
+1. **A fee is shown before the action that incurs it, on the same screen, in the
+   same visual weight as the amount.** Not on a linked page, not in a tooltip,
+   not after a confirmation.
+2. **Show the fee, the rate and the base.** "Service fee 2.5%, 30,000 naira, on
+   1,200,000 naira." A bare amount is not disclosure, because the reader cannot
+   check it.
+3. **Never bundle the platform's fee with the processor's.** The ledger already
+   keeps them separate. The UI must too, and each must be labelled with who
+   receives it. This is currently a strength: today the platform can say every
+   fee shown belongs to somebody else, and that is a claim worth protecting.
+4. **Existing users get 30 days' notice, in an email and in product, before any
+   rate rises above zero.** Both, not one. Write the notice as an email template
+   now, while the rate is zero and nobody is under pressure.
+5. **Listings and bookings created before a rate change keep the old rate to
+   completion.** This is the entire reason for `effective_from` and
+   `fee_schedule_id`. An agent who listed under zero commission must complete
+   that let under zero commission, and if that is not true, say so before they
+   list, not after.
+6. **A public, permanent, versioned fees page**, reachable from the footer and
+   from every screen that shows a fee. Dated, with the previous versions
+   readable. A fees page that silently changes is worse than no fees page.
+7. **The agent workspace shows the rate they are on, today**, on the earnings
+   screen, with its effective date. Not buried in terms.
+8. **When the rate is zero, say zero. Do not hide the row.** "Platform fee: 0
+   naira" every time, from today, is the single cheapest trust-building move
+   available, and it means the line item is familiar long before it has a number
+   in it. A fee line that appears for the first time on the day it becomes
+   non-zero reads as a new charge sneaked in.
+9. **Never charge a member a fee to look, to save, to message or to enquire.**
+   Fees attach to transactions and to supply-side services. This should be
+   written down as a rule so it is a decision rather than a drift.
 
-**Do.** Delete it before the platform carries real people's data. Keep a copy of
-the definition in a comment in the migration that drops it, so a future
-policy-testing session can recreate it deliberately in a branch rather than
-inventing it again.
+### FEE-4. What is actually chargeable, and in what order. **NEW. OPEN. P2 decision**
 
-**Why.** A function that can impersonate any user is the correct testing tool and
-the wrong thing to leave on a production database holding somebody's rent.
+Recorded so the engine is built against a real intent rather than an abstraction.
 
-### V-5. Leaked password protection is off. **P1**
+| Candidate | Charge to | Why it works, or does not |
+|---|---|---|
+| Commission on a completed let | Agent | Aligned: the platform is paid when the agent is. Needs E-2 and escrow to be collectible |
+| Commission on a sale | Agent | Large amounts, long cycles, and mostly completed off platform. Hard to enforce without escrow. Cap it |
+| Listing fee per listing | Agent | Simple, collectible today, and it suppresses supply on a platform whose problem is having none. **Not first** |
+| Featured or boosted placement | Agent | Collectible today, does not suppress supply, does not touch a transaction. **This is the right first revenue** |
+| Verification or inspection service | Agent | A real service with a real cost. Charge for the inspection, never for the badge. See DEMO-4 |
+| Withdrawal fee | Agent | Passes through a processor cost. Only ever at cost, never marked up, and labelled as the processor's |
+| Anything charged to a renter or buyer | Member | Recommend never. The market expects agency fees from the agent side and a platform fee on the demand side is the most visible possible reason to take the deal off platform |
 
-**Verified in the last database audit, and it is a dashboard toggle, not code.**
-Supabase Auth can check a new password against HaveIBeenPwned and refuse one that
-appears in a known breach. It is disabled.
+**The sequencing recommendation.** Featured placement first, because it can be
+switched on without any transaction plumbing and it does not deter listings.
+Commission on a completed let second, once escrow exists, because escrow is what
+makes commission collectible rather than invoiceable. Everything else after.
 
-**Do.** Owner action, Supabase dashboard, Authentication, Policies. Enable it
-before the platform carries real accounts.
+### FEE-5. The fee engine needs tests that run while every rate is zero. **NEW. OPEN. P1**
 
-**Why.** Credential stuffing against a property marketplace with a naira wallet
-behind it is exactly what this prevents, and the reset flow is already written to
-be an unhelpful oracle, so the account-existence half is closed already.
+**The trap.** A zero-rate engine passes every test trivially. Zero times anything
+is zero, and a rounding bug, an off-by-one in basis points and a missing cap are
+all invisible.
 
-### V-6. `message_flags`, `risk_alerts` and `reports` record a status and not a reviewer. **P2**
-
-**Do.** A `reviewed_by` and `reviewed_at` on each, written by the admin action
-that closes the row. `audit_log` already carries the actor for privileged
-actions; this puts it on the queue row itself so the queue can be read without a
-join.
+**Do.** Unit tests that construct fee schedules with real non-zero rates and
+assert the arithmetic, entirely in test fixtures, never against the live table.
+Cover: basis point rounding at both ends, the cap, the floor, a refund reversing
+the original schedule rather than the current one, a schedule change mid-booking,
+and the ledger constraint holding for every case. Then one property test
+asserting that for any gross and any schedule, the three components sum exactly
+to the gross. That last one is worth more than the other six.
 
 ---
 
-## 9. Social layer
+## 9. KYC and identity
 
-### O-1. The social layer is built, and three documents told the next agent to build it. **P0, and now done**
+**The scope rule, and it is a product decision that must be defended against
+drift: verification is for sellers and agents. Never for buyers and never for
+renters.** A person looking for somewhere to live does not upload their passport
+to browse, to save, to message or to pay. The asymmetry is deliberate: the party
+being trusted with a property and with money is the party who proves who they
+are. Anything that starts asking a renter for documents has misunderstood the
+product, and it will also destroy the conversion rate.
 
-**Verified live.** `areas` 7, `posts` 18, `badges` 15, plus `area_members`,
-`area_moderator_applications`, `social_profiles`, `follows`, `post_media`,
-`post_reactions`, `post_reposts`, `post_views`, `blocks`, `mutes`, `stories` and
-its four companion tables, `events`, `event_attendees`. Routes: `/around`,
-`/around/[slug]`, `/around/new`, `/around/manage`, `/around/settings`, `/u`,
-`/u/[handle]` and its follower views, `/post/[id]`, `/stories/[id]`,
-`/stories/new`, plus `/admin/social`, `/admin/moderation`, `/admin/standing`.
+### KYC-1. The screens are built and refuse honestly. The storage is not. **PARTLY DONE. P1**
 
-`docs/archive/SOCIAL_TODO.md` and `docs/archive/SOCIAL_BUILD.md` carried 45 and 112 unticked
-checkboxes against work that is finished, and `docs/archive/NEXT_SESSION_PROMPT.md` told
-a fresh session the social layer was "your main build". All three are archived.
-`docs/SOCIAL_DESIGN.md` survives as the design record.
+**Verified in the tree today.** `apps/web/src/components/verification/` holds
+`KycFlow.tsx` (six screens at most, one task each, a segmented progress bar whose
+length changes with the business branch), `DocumentUploader.tsx`, `KycStatus.tsx`,
+`kyc.ts` and `kyc.test.ts`. `app/(app)/verification/page.tsx` renders it.
 
-### O-2. All 18 posts are `author_kind = 'SYSTEM'`. The cold start is answered and untested. **P1**
+The seam is `app/(app)/verification/actions.ts`, and it is a **stub that returns
+`{ ok: false }` with an honest message**, because the table and the bucket do not
+exist. Read the comment at `:5-35`: it names both tempting ways to ship the half
+and explains why each is worse than refusing. `KycFlow` prints the refusal on the
+review step, keeps every answer, and does **not** show the submitted screen,
+because that screen promises a human is going to look at your passport.
 
-**Verified live.** Every post is the platform's own. `private.post_daily_note`
+That is exactly right and it is the same discipline as CASE-1. Do not "finish"
+this by returning true.
+
+**Do.** Build the storage. The work is bounded and specified below.
+
+### KYC-2. Document types, for Nigeria specifically. **NEW. OPEN. P1**
+
+**Accept these, and no more, because every extra type is a reviewer training
+cost and a fraud surface.**
+
+| Type | Identifies | Notes |
+|---|---|---|
+| NIN slip or NIN card | Individual | The national baseline. Effectively universal now |
+| International passport | Individual | Data page only |
+| Driver's licence | Individual | Both sides |
+| Permanent Voter's Card | Individual | Both sides. Widely held, no address |
+| BVN | Bank identity | A number, verified against an API, never an uploaded image |
+| CAC certificate | Business | For an incorporated agency |
+| CAC status report | Business | Names the directors. Ask for it when the certificate alone is presented |
+| Proof of address | Either | Utility bill or bank statement, under 3 months old. Weak evidence in Nigeria; treat as supporting, never sole |
+
+**Rules.**
+- **One primary photo ID, always.** Everything else is supporting.
+- **A selfie against the document**, live rather than uploaded, if the flow can
+  do it. This is the single highest-value check and the one most often skipped.
+  If it cannot be live, do not pretend: an uploaded selfie is a weaker check and
+  should be recorded as one.
+- **BVN and NIN are verified against an API, not read off an image.** A number
+  typed in and checked is strong. A photograph of a slip is a photograph.
+  Env-guard the integration and degrade into an honest unconfigured state, the
+  way every other integration here does.
+- **A business account also verifies a natural person.** A CAC certificate does
+  not have a face. At least one director must complete individual verification.
+- **Never store a document a decision does not need.** Every extra document is a
+  breach waiting for a reason.
+
+### KYC-3. Storage, and this is where a mistake is unrecoverable. **NEW. OPEN. P0 when built**
+
+`agent-documents` already exists as a private bucket and `ApplyWizard.tsx`
+already uploads straight from the browser into it, with `lib/admin/queries.ts`
+minting a ten-minute signed URL per document for the reviewer. That pattern
+works and should be reused rather than reinvented.
+
+**Requirements, all of them.**
+1. **Private bucket, RLS such that the owner can write and only the owner and a
+   reviewer can read.** Never public, never a permanent URL.
+2. **Short-lived signed URLs only.** Ten minutes is right. Never embed a
+   document URL in an email, a notification or a log line.
+3. **Path scoped to the caller's own user id**, enforced by policy, so a crafted
+   path cannot write into somebody else's folder.
+4. **Size and type limits enforced server side.** See section 12. Today there
+   are none anywhere, which means an identity bucket accepts an arbitrarily
+   large arbitrary file.
+5. **A retention policy decided before the first upload.** Recommendation:
+   delete the image once the check is decided and keep only the decision, the
+   document type, the last four characters of the number, the reviewer and the
+   timestamp. If a regulator requires the image retained, keep it for the
+   statutory period and then delete it on a schedule, not on request. Storing
+   Nigerian identity documents indefinitely with no policy is the single largest
+   privacy liability this platform can create for itself, and it is created by
+   default.
+6. **Every read of a document writes an `audit_log` row naming the reviewer.**
+   Not the upload, the read. Who looked at somebody's passport is the question
+   that gets asked after an incident.
+
+### KYC-4. The review workflow. **NEW. OPEN. P1**
+
+**Do not build a second queue.** `/admin` already has queues, `audit_log` already
+records privileged actions with mandatory reasons, and `agent_verification_checks`
+already models rungs with reviewer notes that the agent can read in full on
+`/agent/verification`.
+
+**The workflow.**
+1. **States: `submitted`, `in_review`, `more_info_required`, `approved`,
+   `rejected`, `expired`.** These deliberately mirror `listing_status`, which
+   already has `MORE_INFO_REQUIRED`, because a reviewer who has learned one
+   queue has learned both.
+2. **`more_info_required` is the most important state and the one usually
+   missing.** Most rejections are a blurred photograph or a cropped edge. A
+   reviewer who can only approve or reject will reject, and a rejection for a
+   blurry photo reads as an accusation. This state must be one click, must carry
+   a required note, and must return the applicant to the exact step with their
+   other answers intact.
+3. **Two reviewers for a rejection, one for an approval.** The asymmetry is
+   deliberate: an approval that was wrong is caught later by behaviour, a
+   rejection that was wrong is usually never caught because the person leaves.
+4. **A service-level target, published internally and measured: 48 hours.** An
+   applicant who has uploaded a passport and heard nothing for a week assumes
+   the platform is dead. Show them the target and the elapsed time.
+5. **The reviewer sees the document, the extracted claim and the applicant's
+   typed answer side by side**, and confirms they match. The mismatch between a
+   typed name and the name on the document is the most common real signal.
+6. **A reviewer may never review their own submission**, enforced in the
+   database. Obvious, and it is the kind of obvious that is missing until an
+   incident.
+
+### KYC-5. Rejection reasons, re-verification and expiry. **NEW. OPEN. P1**
+
+**Rejection reasons must be a closed list**, because free text is inconsistent
+across reviewers, cannot be counted, and cannot be translated into the four
+locales.
+
+| Reason | Applicant sees | Can retry |
+|---|---|---|
+| `illegible` | The photograph is not clear enough to read | Immediately |
+| `cropped` | Part of the document is cut off | Immediately |
+| `expired_document` | This document has expired | Immediately, with a current one |
+| `name_mismatch` | The name does not match the one on your account | Immediately, after correcting |
+| `unsupported_type` | We cannot accept this kind of document | Immediately |
+| `suspected_alteration` | We could not verify this document | Not self-serve. Support only |
+| `duplicate_identity` | This identity is already verified on another account | Not self-serve. Support only |
+| `sanctions_or_watchlist` | We are unable to proceed | Never. No detail, no appeal path in product |
+
+**Rules.**
+- The first five are self-serve and must say exactly what to fix. A rejection
+  that does not say what to fix produces a support ticket and usually a churned
+  agent.
+- The last three must **not** explain themselves in detail, for the reason every
+  financial institution gives no detail: an explanation is a tuning signal for
+  whoever is trying again.
+- **Rate limit retries.** Three attempts, then a cooling-off period, then
+  support. Unlimited retries against a closed reason list is a way to learn the
+  reviewer's threshold.
+- **Never show the internal reason code to the applicant.** Store the code, show
+  the sentence, and keep them in one table so they cannot drift apart.
+
+**Re-verification and expiry.**
+- **Expiry follows the document, not the calendar.** Store the document's own
+  expiry date and expire the check the day it does, with a reminder 30 days
+  before. A passport that expired in 2024 verified nobody in 2026.
+- **NIN and BVN do not expire** and their verification should not either. Re-run
+  them only on a trigger.
+- **Triggers that force re-verification**, and these are the ones worth
+  enumerating: a change of legal name, a change of payout bank account, a
+  dispute upheld against the agent, an admin stop and subsequent reinstatement,
+  and 24 months elapsed with no completed transaction.
+- **An expired check must degrade, not delete.** The agent keeps their listings
+  and their standing and loses the ability to receive a payout or publish a new
+  listing until they refresh. Deleting standing on an expiry is how a platform
+  loses its best suppliers to an administrative deadline.
+- **Tell them before, not after.** 30 days, 7 days, on the day. The notification
+  writer already exists.
+
+### KYC-6. Title documents are a different check and must not be conflated. **NEW. OPEN. P1**
+
+`tenure` on a listing records what the seller **claims**. Nothing records whether
+anybody looked at a document, and a buyer will read a populated tenure field as
+though somebody did.
+
+**Do.**
+1. `title_document_status` on `listings`: `not_provided`, `provided`,
+   `under_review`, `verified`, `rejected`. Default `not_provided`.
+2. A private bucket for title documents, reviewed exactly the way identity
+   documents are, by the same queue, with the same audit trail.
+3. **The listing page renders the status, not the claim, wherever the claim
+   would be read as verified.** "Certificate of Occupancy, stated by the agent,
+   not yet checked by RentMe" is longer, and it is the sentence that keeps the
+   platform out of court.
+4. **A title check is not the same as a verified badge and must not grant one.**
+   See DEMO-4 and V-6.
+5. Budget legal input. A Nigerian property sale involves a deed, a survey and a
+   governor's consent, and the platform's role in that chain is a legal question
+   before it is a schema.
+
+---
+
+## 10. Verification and trust
+
+### V-1. An agent can see the verification ladder and cannot climb it. **OPEN. P1**
+
+Unchanged. `/agent/verification` shows all four rungs, which passed, which
+failed, the reviewer's note in full, and what the next rung asks for.
+`agents.verification_tier` is the count of rungs passed with no gap below,
+computed by `private.agent_tier`. There is no way to send anything.
+
+**Do.** The KYC work in section 9 is this, and the two should be built as one
+thing rather than two. `ApplyWizard.tsx` already uploads into the private bucket
+and `lib/admin/queries.ts` already mints signed URLs for the reviewer; a
+re-submission control on `/agent/verification` is those two pointed at an
+existing agent rather than an applicant.
+
+### V-2. There is no identity verification standard for payouts. **OPEN, and now specified. P1**
+
+Superseded in detail by section 9. `payout_accounts` resolves the account name
+against the bank, which is the right check and is not identity verification.
+Nothing verifies NIN or BVN.
+
+**The rule to add:** a payout may not be made to an account whose verified name
+does not match the verified identity on the agent record. That single constraint
+is most of what an anti-money-laundering posture is in practice, and it is
+cheaper than any policy document.
+
+### V-3. Badges are built and awarded nightly. **DONE. Was P2**
+
+**Verified live.** `public.badges` holds 15 rows, seven AGENT and eight MEMBER,
+one `manual_only`. `private.sweep_badges` is scheduled as `rentme-nightly-badges`
+at 02:20 UTC and is active.
+
+**Two things remain and both are product rather than plumbing.** Build the earned
+moment: a badge that appears silently is a badge nobody values, and a designed
+reveal plus a notification row is the cheapest retention mechanic available. And
+enforce the anti-gaming rules already argued: Helpful counts only from accounts
+with a completed stay or a verified phone, and one Helpful per pair per week
+counts towards a badge.
+
+### V-4. `private.probe_as` is dropped. **DONE. Was P1**
+
+**Verified live.** `to_regproc('private.probe_as')` returns null. Migration
+`20260809091000_the_impersonation_helper_goes_before_real_people_arrive`, applied
+as version `20260809044358`. The definition was preserved in the migration so a
+future policy-testing session can recreate it deliberately in a branch rather
+than inventing it again, which is the right disposal.
+
+### V-5. Leaked password protection is still off. **OPEN. P1**
+
+**Re-verified live today** in the security advisors:
+`auth_leaked_password_protection`, WARN, "Leaked password protection is currently
+disabled."
+
+**Do.** Owner action, Supabase dashboard, Authentication, Policies. One toggle.
+It is the only real finding in the advisor set and it has now been reported
+twice.
+
+### V-6. The four trust signals are separate and the UI will conflate them. **NEW. OPEN. P1**
+
+There are now **four** distinct things a listing page can say and they mean
+entirely different things:
+
+1. **`listings.verified` / admin approval.** An admin looked at the listing and
+   approved it for publication. This is a content check.
+2. **`address_verified_at`.** Somebody confirmed the address exists and matches.
+3. **`physically_inspected_at`.** Somebody from RentMe went there.
+4. **`agents.verification_tier`.** How far the agent has climbed the identity
+   ladder. About the person, not the property.
+
+Plus, once KYC-6 lands, `title_document_status`, which is a fifth.
+
+**Wrong today in prospect.** All of these will collapse into one tick unless
+somebody decides they must not. That is how the previous seed catalogue ended up
+with 22 fabricated verified marks: one badge with no defined meaning absorbs
+everything near it.
+
+**Do.**
+1. **One tick, one meaning, and write the meaning next to it.** Recommendation:
+   the tick means admin-approved listing from a verified agent, both, and
+   nothing else.
+2. **Render timestamps as dates, not as ticks.** "Inspected 12 July 2026" is a
+   fact a reader can weigh. A tick is a promise the platform has to keep.
+3. **Never render a null as a negative.** Absence of an inspection is not
+   evidence against a listing and must not look like one.
+4. **A spec that fails the build if a verified mark renders on a listing whose
+   `verified_by` is null.** Mechanical, cheap, and it is the exact defect that
+   has already shipped here once.
+
+### V-7. `message_flags`, `risk_alerts` and `reports` record a status and not a reviewer. **OPEN. P2**
+
+Unchanged. A queue that records what happened but not who decided cannot be
+audited and cannot be load-balanced. Add `reviewed_by` and `reviewed_at` to all
+three, and write them from the existing admin actions.
+
+---
+
+## 11. The demo property ecosystem
+
+**The problem, stated exactly.** `listings` holds **zero rows**, verified live.
+`agents` holds zero. `bookings` holds zero. So `/search` is empty, the map has no
+pins, `/rent` has nothing to show, every city page would be blank, and the four
+specs that exercise the catalogue skip out loud. The supply chain has not
+started: one person has an account, holding the two bootstrap roles.
+
+**The history that constrains the answer.** This repository previously shipped a
+seed catalogue of twenty-three invented places, **twenty-two of which carried
+`verified: true`** with fabricated ratings on addresses that do not exist. That
+is why `demo`, `sample`, `preview` and `not live` are banned strings in UI copy,
+enforced today by five specs. It is also why `lib/wallet/repository.ts` deleted
+its seeded ledger rather than merely unimporting it.
+
+So the constraint is not "no demo content". It is: **nothing invented may ever
+carry a trust signal, and nothing invented may ever be indistinguishable from
+something real.** Those two rules are compatible with a platform that feels
+alive. What follows is how.
+
+### DEMO-1. Get real listings before you get fake ones. **NEW. P0, and it is the actual answer**
+
+Every recommendation below this one is a mitigation. This is the fix.
+
+**Do.** Ten to twenty real properties from real agents, listed properly, before
+launch. Recruit them by hand: this is founder work, not engineering work, and it
+is the only thing that solves the problem rather than dressing it. Concentrate
+them geographically, all in Lekki and Yaba rather than spread across six states,
+because twenty listings in one area looks like a market and twenty listings
+across Nigeria looks like an empty one.
+
+**Why this is in an engineering document.** Because every engineering answer
+below costs a week and creates a liability, and this costs a fortnight of phone
+calls and creates an asset. If it is happening, most of the rest of this section
+is unnecessary. Say which, and put the answer in `docs/PRODUCT.md`.
+
+### DEMO-2. If demo listings are built anyway, these are the non-negotiables. **NEW. OPEN. P0**
+
+1. **A database-level flag, not a convention.** `listings.is_demonstration
+   boolean not null default false`. Not a naming convention on the title, not a
+   special agent account, not a magic id range. A column, so it can be filtered
+   in SQL, asserted in a spec and dropped in one statement.
+2. **A check constraint making the contradiction impossible:** a row with
+   `is_demonstration = true` may not have `verified_by`, `address_verified_at`
+   or `physically_inspected_at` set. Enforced in the database. Not in the
+   application, because the application is where the last mistake happened.
+3. **Never a real address.** Use the area centroid and say the location is
+   approximate. A fabricated listing on a real house is somebody's actual home
+   with strangers being told they can rent it, and that is a different category
+   of problem from a marketing embarrassment.
+4. **Never a real photograph of a real Nigerian property** unless it is licensed
+   and the licence is recorded. Stock or commissioned only.
+5. **Never a fabricated rating, review, view count or save count.** Not one. The
+   entire reason for the ban.
+6. **Never a real-looking phone number, agent name, or CAC number.**
+7. **Not messageable, not bookable, not reservable.** Every action control on a
+   demonstration listing raises an explanation, not a flow.
+8. **One statement, plainly worded, on the card and on the page.** Not "sample",
+   which is banned and which is also weasel wording. Say what is true: **"This
+   is an example listing. No such property is available. RentMe has not verified
+   anything on this page."** Long, unmissable, and honest.
+9. **Excluded from every sitemap, every JSON-LD block, every Open Graph card and
+   every email.** A demonstration listing indexed by Google is a fabricated
+   property advertisement with the platform's name on it.
+10. **A deletion date, decided and recorded on the row.** Not "when we get real
+    listings". A date. And a spec that fails the build after it passes.
+
+### DEMO-3. The honest ways to make an empty platform feel alive. **NEW. OPEN. P1**
+
+These are better than fake listings, cost less, and carry no liability. Do these
+first and possibly instead.
+
+1. **The place layer is already real and already populated.** 774 local
+   governments, 37 states, 7 areas, 18 posts. `/around/[slug]` for Lekki with
+   real geography, real posts and real local content is a live page with nothing
+   invented on it. That is a genuine product surface on day one and it is
+   already built.
+2. **Say the truth well.** An empty search that says "No listings in Lekki yet.
+   We are onboarding agents now, and you will be the first to know" with an email
+   capture is honest, useful, and builds the demand-side list that DEMO-1 needs
+   to recruit against. `saved_searches` (P-6) is the table this writes to. This
+   is the highest-value item in this section.
+3. **Show demand, not supply.** "142 people searched for two-bedroom flats in
+   Yaba this week" is real from day one if P-10's event logging exists, it needs
+   no listings, and it is a better recruitment pitch to an agent than any
+   catalogue.
+4. **Lead with the agent side.** A marketplace with no supply should put its
+   front door on supply. `/agents` already exists as the pitch and is public.
+   Make it the primary call to action until the catalogue fills.
+5. **Content that is not inventory.** Guides to Lagos areas, an explanation of
+   what a Certificate of Occupancy is against a Governor's Consent, the real
+   cost of moving into a Lekki two-bedroom. All true, all rankable, all built
+   from `local_governments` and the `tenure` vocabulary that now exists, and all
+   of it answers the search intent that eventually converts.
+6. **The empty state is a designed screen, not a shrug.** `1d874bb` already did
+   this once for the agent shelf: an empty shelf that says why, to the one person
+   who can fix it. Apply the same treatment everywhere.
+
+### DEMO-4. Never sell the badge. **NEW. P0 policy**
+
+Recorded here because it is where the pressure will come from once section 8
+turns a rate on. The verified mark may be earned and may never be purchased. A
+paid inspection is a service with a real cost and may be charged for; the badge
+that results must depend on the inspection's outcome and not on the payment. The
+moment a badge can be bought, every badge on the platform is worth nothing,
+including the ones that were earned.
+
+---
+
+## 12. Media, photographs and video
+
+### MED-1. There is no size limit anywhere, on anything, at any layer. **NEW. OPEN. P0**
+
+**Verified live and in the tree, and this is worse than expected.**
+
+- Every one of the six storage buckets has `file_size_limit` **null** and
+  `allowed_mime_types` **null**: `agent-documents`, `avatars`, `listing-photos`,
+  `message-attachments`, `social-covers`, `social-media`. Queried directly from
+  `storage.buckets`.
+- A grep across `apps/web/src` and `supabase/` for `50 * 1024`, `52428800`,
+  `MAX_*_SIZE`, `maxSize`, `fileSizeLimit` or `file_size_limit` returns **no
+  hits at all**.
+- Eleven client-side `.upload()` call sites exist, in `ProfilePhotos`,
+  `StoryComposer`, `Composer`, `ApplyWizard`, `ListingWizard`, `AccountProfile`,
+  `AccountHero` and `ThreadView`. Several re-encode to JPEG first, which
+  incidentally bounds the size, and several pass `file` straight through.
+- `ApplyWizard.tsx` and `ThreadView.tsx` both upload the raw `File` with
+  `contentType: file.type`, which means an identity document bucket and a
+  message attachment bucket accept an arbitrary file of arbitrary size and
+  arbitrary declared type.
+
+The only thing standing between the platform and a filled bucket is the
+project-wide Supabase upload ceiling, which is a platform default rather than a
+decision anybody here made.
+
+**Do, and the order matters because only the first is enforcement.**
+
+1. **Set `file_size_limit` and `allowed_mime_types` on every bucket, in a
+   migration.** This is the only limit that cannot be bypassed, because it is
+   enforced by the storage service and not by code the client runs. Everything
+   else is a courtesy.
+
+   | Bucket | Limit | Types |
+   |---|---|---|
+   | `listing-photos` | 10 MB | `image/jpeg`, `image/png`, `image/webp` |
+   | `listing-videos` (to create) | **50 MB** | `video/mp4`, `video/quicktime` |
+   | `avatars` | 5 MB | `image/jpeg`, `image/png`, `image/webp` |
+   | `social-covers` | 8 MB | `image/jpeg`, `image/png`, `image/webp` |
+   | `social-media` | 10 MB | images. Video only if the product decides |
+   | `message-attachments` | 10 MB | images and `application/pdf` |
+   | `agent-documents` | 10 MB | images and `application/pdf` |
+
+2. **Check the size and the type in the client before the upload**, so a person
+   on a metered connection is told at selection rather than after spending
+   80 MB of their bundle discovering the answer. This is a courtesy and it is
+   also the difference between a usable product and a frustrating one in this
+   market. It is not the enforcement.
+
+3. **Never trust the declared MIME type.** `file.type` is whatever the client
+   says. Sniff the magic bytes server side, or accept that `allowed_mime_types`
+   on the bucket is checking a claim rather than a file. For `agent-documents`
+   in particular, where the content is an identity document, sniff.
+
+4. **State the limit in the interface before the picker opens.** "Up to 50 MB,
+   MP4 or MOV, about 60 seconds" prevents most rejections.
+
+5. **Write one shared module** with the limits as constants, imported by both
+   the client check and the migration's documentation, so the two cannot drift.
+
+### MED-2. Video upload is not built at all. **NEW. OPEN. P1**
+
+**Verified.** `public.listing_videos` exists with zero rows and zero references
+in application code. There is no bucket for it, no upload control, no player, no
+poster frame, no duration limit and no transcoding.
+
+**Do, and keep it deliberately small.**
+1. Create the `listing-videos` bucket with the 50 MB limit above.
+2. **One video per listing, 60 seconds, and say both up front.** A walkthrough is
+   the highest-value media a Nigerian property listing can carry and a six minute
+   unedited pan is worse than nothing.
+3. **A poster frame is mandatory**, and it must not be generated by autoplaying
+   the video. Extract a frame client side at upload, or let the agent choose
+   one, and store its path on the row.
+4. **Never autoplay with sound. Prefer never autoplay at all** on a listing card.
+   Autoplaying video on a card in a scrolling list on a metered Nigerian data
+   bundle is the most expensive default available.
+5. **Respect `Save-Data`.** `save-data.spec.mjs` already proves the pattern for
+   imagery: the artwork is never requested rather than hidden. Video must follow
+   the same rule, showing the poster and a play control only.
+6. **Do not build transcoding.** Accept MP4 and MOV, reject everything else, and
+   revisit when there is a real distribution of what agents actually upload. A
+   transcoding pipeline built before any video exists is a pipeline built against
+   a guess.
+7. **Video is content and goes through the same moderation gate as a listing.**
+   A published video that nobody watched before publication is a category of risk
+   the photograph review does not cover, because a video can contain far more.
+
+### MED-3. Image handling has real gaps beyond the size limit. **NEW. OPEN. P2**
+
+1. **Alt text is not required at upload.** It should be, on `listing-photos` at
+   minimum. It is an accessibility requirement, it is a search signal, and it is
+   free at the moment of upload and expensive afterwards.
+2. **EXIF is not stripped, and it carries GPS.** A photograph taken at a property
+   embeds its coordinates. Several call sites re-encode through a canvas, which
+   strips EXIF as a side effect; several do not. Strip it deliberately and
+   everywhere, and note that this interacts with M-3's privacy decision: the
+   platform may be publishing an exact location it deliberately chose to jitter
+   on the map.
+3. **No orphan sweep.** O-4 records this for `social-media`. It applies equally
+   to `listing-photos` once a listing can be deleted, and to `agent-documents`
+   under KYC-3's retention policy.
+4. **No image dimension cap.** A 12,000 pixel wide JPEG under 10 MB passes every
+   check above and will exhaust memory in whatever resizes it. Cap the longest
+   edge at upload.
+
+---
+
+## 13. Social layer
+
+### O-1. The social layer is built, and three documents told the next agent to build it. **DONE**
+
+All three are archived. `docs/SOCIAL_DESIGN.md` survives as the design record.
+
+### O-2. All 18 posts are `author_kind = 'SYSTEM'`. **OPEN. P1**
+
+**Re-verified live: still 18 posts, still all SYSTEM.** `private.post_daily_note`
 runs at 06:00 UTC daily and `private.announce_completed_stays` at 05:20 UTC.
 
-**Do.** Nothing to the code. Watch the first real post. The SYSTEM author kind is
-a good answer to an empty room and it becomes noise the moment there are people
-in it. Decide in advance at what member count the daily note stops, and put that
-number in `bot_settings` rather than in a deploy.
+**Do.** Nothing to the code. Decide in advance at what member count the daily
+note stops, and put that number in `bot_settings` rather than in a deploy. The
+SYSTEM author kind is a good answer to an empty room and becomes noise the moment
+there are people in it.
 
-### O-3. Three counts are formatted with a hardcoded `en-NG`, and one of the three moved. **P2**
+### O-3. Two hardcoded `en-NG` number formats remain, and the measurement says leave them. **OPEN by choice. P2**
 
-**Re-measured today.** `PostCard` has been fixed and now calls `formatNumber(n,
-locale)`. Two hardcoded calls remain, both in
-`apps/web/src/components/social/PlacePicker.tsx:322` and `:341`, plus one at
-`apps/web/src/app/(site)/docs/chapters.tsx:1361` which is a documentation page,
-not a social component.
-
-**The measurement that says leave them.** Across every locale the platform ships:
-
-```
-en  842   1,234   12,500   1,234,567
-yo  842   1,234   12,500   1,234,567
-ha  842   1,234   12,500   1,234,567
-ig  842   1,234   12,500   1,234,567
-```
-
-All four are identical, because all four use Latin digits and comma grouping, so
-the hardcoded tag produces the same string as the correct call for every reader
-the product has. `PlacePicker` is a client component and there is no locale
-context, only `<html lang>`, so fixing it means inventing a context or threading
-a prop for a change nobody can see.
+`PostCard` was fixed. Two calls remain in
+`components/social/PlacePicker.tsx` plus one in a documentation page. Across all
+four shipped locales the formatted output is byte-identical, because all four use
+Latin digits and comma grouping, so the hardcoded tag produces the correct string
+for every reader the product has. `PlacePicker` is a client component with no
+locale context.
 
 **Do it the moment either of two things happens:** a locale is added that groups
-or digits differently, or a locale context appears for another reason. **Not** as
-its own piece of work. Note that the same defect on *money* was real and was
-fixed: `ha-NG` writes `₦ 5,000` with a space, so currency did differ where
-integers do not.
+or digits differently, or a locale context appears for another reason. Not as its
+own work. The same defect on **money** was real and was fixed, because `ha-NG`
+writes `₦ 5,000` with a space.
 
-### O-4. Media for a removed post stays in storage. **P2**
+### O-4. Media for a removed post stays in storage. **OPEN. P2**
 
-**Wrong today.** `posts_drop_media_on_remove` deletes the `post_media` rows as a
-post reaches REMOVED, and after `a_picture_on_a_post_has_one_shape` an object no
-row names cannot be signed for anybody, including the uploader. The bytes stay in
-the `social-media` bucket.
+Unchanged, and now part of the wider media picture in MED-3. Nothing is readable
+in the meantime, so this is storage cost rather than exposure. A sweep through
+the storage API deleting every `social-media` object no `post_media` row and no
+`stories.image_path` mentions. Deleting the `storage.objects` row from SQL would
+leave the bytes untracked, which is worse.
 
-**Do.** A sweep through the storage API that deletes every `social-media` object
-whose name no `post_media` row and no `stories.image_path` mentions. Deleting the
-`storage.objects` row from SQL would leave the bytes untracked, which is worse.
+### O-5. Nothing connects the social layer back to the catalogue. **OPEN, and now more valuable. P1**
 
-**Why.** Nothing is readable in the meantime, so this is storage cost, not
-exposure. It is on this list so it stays a cost.
+Unchanged in code, and its value has gone up, because section 11 establishes that
+the place layer is the only populated surface the platform has. The social layer
+is currently the product.
 
-### O-5. Nothing connects the social layer back to booking. **P1**
-
-**Wrong today.** A published listing announces itself in its area
-(`a_published_listing_speaks_in_its_area`) and a completed stay speaks in its
-place. That is the platform talking. Nothing goes the other way: a member reading
-a place cannot filter the catalogue to it, and a stay does not become the next
-person's search.
-
-**Do.** One control, on `/around/[slug]`: "See places to stay in Yaba", linking
-to `/search` scoped to that local government. Then the reverse, a place card on a
-listing page showing the area's live posts. Both are a query, not a schema.
-
-**Why.** This is where the money is and it is the thinnest part of the design.
+**Do.** One control on `/around/[slug]`: "See places to rent in Yaba", linking to
+`/search` scoped to that local government, and honest when the answer is none.
+Then the reverse: a place card on a listing page showing the area's live posts.
+Both are a query, not a schema.
 
 ---
 
-## 10. AI assistant
+## 14. AI assistant
 
-### AI-1. The assistant persists threads it never reads back. **P1**
+### AI-1. The assistant persists threads it never reads back. **OPEN. P1**
 
-**Wrong today.** `apps/web/src/app/api/assistant/route.ts:395-431` writes
-`ai_conversations` and `ai_messages`. `components/app/assistant/threads.ts` reads
-only `localStorage` under `nf_ai_threads`. Nothing selects those tables.
+Unchanged. `app/api/assistant/route.ts` writes `ai_conversations` and
+`ai_messages`. `components/app/assistant/threads.ts` reads only `localStorage`
+under `nf_ai_threads`. Nothing selects those tables, so history vanishes on a new
+device though the rows exist.
 
-**Do.** Read the persisted rows on load, and reconcile an anonymous thread into
-the signed-in account on sign in.
+**Do.** Read the persisted rows on load and reconcile an anonymous thread into
+the signed-in account on sign in. Note that N-1 makes this more visible: a
+signed-out visitor can now browse, so an anonymous thread is now a common case
+rather than an edge one.
 
-**Why.** History vanishes on a new device or after clearing storage, though the
-rows exist. The assistant visibly forgets something it demonstrably knows.
+### AI-2. The assistant's tools have no caller context. **OPEN. P2**
 
-### AI-2. The assistant's tools have no caller context. **P2**
-
-**Wrong today.** The grounded tool is `search_listings`. The assistant cannot see
-the caller's own trip, balance or unread threads.
+Unchanged. The only grounded tool is `search_listings`.
 
 **Do.** Add tools bound to the caller's own RLS client server side, with **no
 identity argument at all**. A tool that takes a user id is a tool that can be
-asked about somebody else. This is the same shape the database audit named as the
-dangerous pattern in SECURITY DEFINER functions, and the same discipline applies.
+asked about somebody else. This is the same shape the database audit named as
+dangerous in SECURITY DEFINER functions and the same discipline applies. See
+SEC-3.
 
-**Why.** A search box with a personality is copyable in a week. An assistant that
-knows your stay is not.
+### AI-3. The cost ceiling exists and is not alerted on. **OPEN. P2**
 
-### AI-3. The cost ceiling exists and is not alerted on. **P2**
+A per-month ceiling lives in `bot_settings` and is read against
+`bot_invocations`. Hitting it is silent. Notify admin at 80 per cent: the ceiling
+protects the bill and nobody learns the product got popular.
 
-**Wrong today.** A per-month cost ceiling lives in `bot_settings` and is read
-against `bot_invocations`. Hitting it is silent.
+### AI-4. The assistant must not answer questions about escrow, fees or verification from its own model. **NEW. OPEN. P1**
 
-**Do.** A notification to admin at 80 per cent. The ceiling protects the bill and
-nobody learns the product got popular.
+**Why this is here.** Sections 7, 8 and 9 are precisely the topics where a
+generative answer will invent a policy the platform does not have, and where an
+invented answer is a representation about somebody's money. The assistant already
+has grounded tools, so the pattern exists.
+
+**Do.** A refusal list. On escrow, fees, commission, verification requirements
+and refund policy, the assistant quotes the canonical page or hands off to
+support, and never composes. Add it to the same spec family that already bans
+`demo` and `sample` in copy.
 
 ---
 
-## 11. Emails
+## 15. Emails
 
-### EM-1. Nine transactional messages exist and nothing proves one was delivered. **P1**
+### EM-1. The email system is rebuilt as a block composer. **DONE, and it is good. Was P1**
 
-**Verified today.** `apps/web/src/lib/email/messages.ts` exports nine builders:
-`bookingRequested`, `bookingRequestedHost`, `bookingConfirmed`,
-`stayArrivalDetails`, `bookingCancelled`, `bookingRefunded`, `walletFunded`,
-`withdrawalFailed`, `supportTicketFiled`. Live sends run from reserve, cancel,
-arrival, the admin booking actions, wallet withdrawal and support filing, all
-wrapped in `bestEffortEmail` so a mail failure never rolls back a committed
+**Verified in the tree.** `apps/web/src/lib/email/render.ts` renders one list of
+blocks twice, as HTML and as plain text, so the two cannot drift. The reasoning
+is worth keeping: a separately maintained text alternative is wrong within a
+month, and a wrong one is worse than none because it is what a screen reader
+reads, what a text-only client shows, and what a spam filter compares against the
+HTML. A message with no `text/plain` part scores worse with every major spam
+filter, which on a platform whose emails carry a verification code and a wallet
+receipt is not cosmetic.
+
+The light and dark handling is also correct and unusually careful: inline styles
+carry the light palette because inline is the only thing every client honours, a
+`<style>` block carries a `prefers-color-scheme: dark` override with
+`!important` because a stylesheet rule cannot otherwise beat an inline
+attribute, clients that strip `<style>` get a complete light email rather than a
+degraded one, and `color-scheme: light dark` stops Apple Mail inverting a
+hand-built dark palette back into a light one nobody designed.
+
+### EM-2. Nothing proves a transactional message was delivered. **OPEN. P1**
+
+`lib/email/messages.ts` exports nine builders and live sends run from reserve,
+cancel, arrival, the admin booking actions, wallet withdrawal and support filing,
+all wrapped in `bestEffortEmail` so a mail failure never rolls back a committed
 write. That wrapper is correct and it means a delivery failure is invisible.
 
-**Do.** A server-side sink for the failures the platform deliberately swallows.
-One table or one structured log line per swallowed failure, with the message
-kind and the reason. `bestEffortEmail` is right to swallow and wrong to forget.
+**Do.** Folded into W-8: one shared `swallow()` helper that logs what it
+swallows. `bestEffortEmail` is right to swallow and wrong to forget. Then a
+weekly count of swallowed failures by message kind, which is the thing that
+surfaces a silent regression.
 
-**Why.** A silent regression in email delivery is invisible for as long as nobody
-notices by hand, and the first thing a guest does when no confirmation arrives is
-file a support ticket.
+### EM-3. The five auth templates must be pasted in by hand. **OPEN. P2**
 
-### EM-2. The five auth email templates are generated and must be pasted in by hand. **P2**
-
-**Verified.** `supabase/templates/` holds five branded templates, generated by
-`scripts/build-auth-emails.mjs` and never hand-edited. They are applied through
-the dashboard or the Management API.
+`supabase/templates/` holds five branded templates generated by
+`scripts/build-auth-emails.mjs`. They are applied through the dashboard.
 
 **Do.** Script the Management API path so the repository is the source of truth
 and the dashboard is a deploy target. Today a regeneration silently does not
-reach production.
+reach production, which is the same class of drift as section 22.
 
-### EM-3. `EMAIL_FROM` must be a verified sender or delivery is rejected outright. **P1**
+### EM-4. `EMAIL_FROM` must be a verified sender. **OPEN. P1**
 
-**Do.** Owner action: verify the sending domain on Resend before launch. It
-defaults to `RentMe <hello@rentme.ng>`, which will bounce until the domain is
-verified.
-
----
-
-## 12. Legal and privacy
-
-### LG-1. The landing page claims NDPA compliance as a fact. **P0**
-
-**Wrong today.** `apps/web/src/app/page.tsx:416` answers "Is my data safe under
-NDPA?" with "Yes. RentMe is built to comply with the Nigeria Data Protection
-Act." Nothing in the repository can establish that. The Nigeria Data Protection
-Act 2023 requires, among other things, registration with the NDPC as a data
-controller of major importance and a designated Data Protection Officer.
-Registration has lead time measured in weeks. There is no evidence either has
-happened.
-
-**Do.** Two things, and they are separate. Change the copy today to describe what
-the platform actually does, which is real and worth saying: data encrypted in
-transit and at rest, never sold, a copy or a deletion on request, the rights the
-Act gives you. Delete the compliance claim. Separately, start the NDPC
-registration and appoint the officer, because that lead time is the reason to
-start now rather than at launch.
-
-**Why.** A compliance claim is a legal representation. Claiming compliance you
-cannot evidence is worse than saying nothing, and it is the one sentence on the
-landing page a regulator would read first.
-
-### LG-2. The privacy policy is good and names no controller and no officer. **P1**
-
-**Wrong today.** `apps/web/src/app/(site)/privacy/page.tsx` is real, written in
-plain language, cites the NDPA correctly, and is shared with the in-product copy
-at `/legal/privacy` so the back button behaves. It does not name the legal entity
-acting as data controller, the registered address, the Data Protection Officer or
-a contact route for a rights request other than a support ticket.
-
-**Do.** Add all four the moment the entity is registered. They are the parts a
-rights request needs.
-
-### LG-3. There is no cookie or storage consent, and there may be nothing to consent to. **P2**
-
-**Verified today.** A grep for cookie consent across `apps/web/src` returns
-nothing. There is also **no analytics vendor and no crash reporting in this
-codebase at all**, which is unusual and is a genuine asset. Storage is: an auth
-cookie, a theme choice (`nf_theme`), a locale cookie, a saved-item cache and
-search memory. Every one is strictly necessary or a user preference.
-
-**Do.** Confirm with counsel that no consent banner is required for that set,
-then write the conclusion down here so it is not re-litigated. If crash reporting
-is ever added, the consent question is reopened, and that is a real privacy cost
-to weigh deliberately rather than discover during a store review.
-
-### LG-4. Rental and sale agreements are not modelled and will need legal input. **P2**
-
-**Do.** Not now. Recorded so the sale work in P-1 budgets for it: a sale of
-Nigerian property involves a deed, a survey and a governor's consent, and the
-platform's role in that chain is a legal question before it is a schema.
+Owner action: verify the sending domain on Resend before launch. It defaults to
+`RentMe <hello@rentme.ng>`, which will bounce until the domain is verified. Add
+SPF, DKIM and DMARC while you are there; a property marketplace sending wallet
+receipts from an unauthenticated domain lands in spam and the receipts are the
+messages that must not.
 
 ---
 
-## 13. Security
+## 16. Legal and privacy
 
-### SEC-1. The Content Security Policy is built, served and not enforced. **P1**
+### LG-1. The landing page claims NDPA compliance as a fact. **OPEN. P0**
 
-**Verified today.** `lib/security/csp.ts` builds it, `middleware.ts:95-99` serves
-it on all three exits with a per-request nonce, and the root layout nonces its two
-before-paint scripts. `cspHeaderName()` at `csp.ts:40-42` returns
-`Content-Security-Policy-Report-Only` unless `CSP_ENFORCE === "true"`. It is
-unset.
+**Re-verified today, unchanged.** `apps/web/src/app/page.tsx` answers "Is my data
+safe under NDPA?" with "Yes. RentMe is built to comply with the Nigeria Data
+Protection Act." Nothing in this repository can establish that. The Act requires
+registration with the NDPC as a data controller of major importance and a
+designated Data Protection Officer, and registration has a lead time measured in
+weeks.
 
-**Do.** Watch `/api/csp-report` and the `[csp]` lines in the deployment log
-across real traffic. When they stop, set `CSP_ENFORCE=true`. Note the warning
-already written at `csp.ts:220-221`: something in the deposit path is expected to
-break the day it is enforced, so enforce it on a day somebody is watching.
+**Do, two separate things.** Change the copy today to describe what the platform
+actually does, which is real and worth saying: data encrypted in transit and at
+rest, never sold, a copy or a deletion on request, the rights the Act gives you.
+Delete the compliance claim. Separately, start the NDPC registration and appoint
+the officer.
 
-**Why.** A wrong policy does not degrade, it white-screens. Report-only is the
-correct starting state and it is not the finishing state.
+**And it has got more urgent**, because section 9 is about to start collecting
+Nigerian identity documents, which is exactly the processing that makes the
+registration obligation unambiguous rather than arguable.
 
-### SEC-2. Two high severity advisories remain, both lint-time only. **P2**
+### LG-2. The privacy policy names no controller and no officer. **OPEN. P1**
 
-**Last counted 2026-08-07 and this number has moved by seven in both directions
-without anybody noticing. Re-run `npm audit` before quoting it.** Root
-`overrides` pin `sharp` to `^0.35.3` and `postcss` to `^8.5.23`, closing six.
-What remains: `brace-expansion`, and `js-yaml` 4.3.0 reached through `eslint >
-@eslint/eslintrc`, a quadratic CPU consumption resolving `!!omap` on input that
-is only ever an ESLint config file we wrote. Neither reaches the shipped bundle
-or the request path.
+Unchanged. The policy itself is good, plain, cites the Act correctly and is
+shared with the in-product copy so the back button behaves. It does not name the
+legal entity acting as controller, the registered address, the Data Protection
+Officer, or a rights-request route other than a support ticket. Add all four the
+moment the entity is registered; they are the parts a rights request needs.
 
-### SEC-3. Ten database advisories are correct by design and one is not. **P1**
+**And add a retention schedule**, because KYC-3 creates one and a privacy policy
+that does not state how long identity documents are kept is incomplete in the
+one way that matters.
 
-**Do not "fix" these.** Each breaks something:
-- Revoking anon EXECUTE on `platform_stats` turns the landing page's numbers band
-  into an error for every signed-out visitor.
-- Revoking anon EXECUTE on `agent_trust` empties the trust panel on every agent
-  profile read by somebody not signed in, which is most readers. It authorises
-  nothing: it carries `where exists (select 1 from me)`, so a non-agent yields no
-  row.
-- Adding an RLS policy to `rate_limits`, `idempotency_records` or `places_cache`
-  hands a signed-in user reach into the machinery that stops a payment being
-  taken twice. The **absence** of a policy is the control: RLS on with zero
-  policies denies every row to every role but the service role.
-- Consolidating the 239 multiple-permissive-policy warnings rewrites the
-  platform's access rules for an unmeasured gain on a database holding zero rows.
-- Dropping the 34 unused indexes deletes exactly the indexes the platform will
-  need, on the evidence that an empty database has not queried them.
+### LG-3. There is no cookie or storage consent, and there may be nothing to consent to. **OPEN. P2**
 
-The one that is real is leaked password protection, V-5.
+Unchanged and still a genuine asset: there is **no analytics vendor and no crash
+reporting in this codebase at all**. Storage is an auth cookie, a theme choice,
+a locale cookie, a saved-item cache and search memory. Every one is strictly
+necessary or a user preference.
+
+**Do.** Confirm with counsel that no banner is required for that set, then write
+the conclusion here so it is not re-litigated. If crash reporting is ever added
+the question reopens, and that is a real privacy cost to weigh deliberately
+rather than discover during a store review. Note that P-10's `listing_viewed`
+event is the first thing that could change this answer, so decide it as part of
+that work.
+
+### LG-4. Rental and sale agreements are not modelled and will need legal input. **OPEN. P2**
+
+Now attached to real work rather than hypothetical: P-8 and KYC-6 both touch it.
+A Nigerian property sale involves a deed, a survey and a governor's consent, and
+the platform's role in that chain is a legal question before it is a schema.
+
+### LG-5. Escrow and fees each need their own legal answer, and they are different. **NEW. OPEN. P0**
+
+Recorded so they are not treated as one item. E-7 is a payments and licensing
+question about holding third-party money. Section 8 is a consumer disclosure and
+contract question about changing a price on people who have already listed. They
+go to different advisers and both have lead times.
+
+---
+
+## 17. Security
+
+### SEC-1. The Content Security Policy is built, served and not enforced. **OPEN. P1**
+
+Unchanged. `lib/security/csp.ts` builds it, `middleware.ts` serves it on all three
+exits with a per-request nonce, and the root layout nonces its two before-paint
+scripts. `cspHeaderName()` returns `Content-Security-Policy-Report-Only` unless
+`CSP_ENFORCE === "true"`, which is unset.
+
+**Do.** Watch `/api/csp-report` and the `[csp]` lines across real traffic. When
+they stop, set `CSP_ENFORCE=true`, on a day somebody is watching, because the
+warning already written in `csp.ts` says something in the deposit path is
+expected to break the day it is enforced. A wrong policy does not degrade, it
+white-screens.
+
+### SEC-2. Two high severity npm advisories, both lint-time only. **OPEN. P2**
+
+**This number has moved by seven in both directions without anybody noticing.
+Re-run `npm audit` before quoting it.** Root `overrides` pin `sharp` and
+`postcss`, closing six. What remains reaches only ESLint's own config parsing and
+does not touch the shipped bundle or the request path.
+
+### SEC-3. The database advisors, re-read today. **PARTLY DONE. P2**
+
+**Re-run live today. Nine findings, and the set has changed in the right
+direction.**
+
+| Finding | Level | Verdict |
+|---|---|---|
+| `idempotency_records` RLS on, no policy | INFO | **Correct by design.** The absence of a policy is the control |
+| `rate_limits` RLS on, no policy | INFO | **Correct by design.** Same |
+| `platform_stats` executable by anon and authenticated | WARN | **Correct by design.** Revoking it turns the landing page numbers band into an error for every signed-out visitor, and N-1 has just made signed-out visitors the common case |
+| `agent_trust` executable by anon and authenticated | WARN | **Correct by design.** It carries `where exists (select 1 from me)`, so a non-agent yields no row |
+| `current_agent_id` executable by authenticated | WARN | **Correct, and narrowed.** It was executable by anon and PUBLIC; migration `20260809090500` revoked both. This remaining entry is the intended state |
+| `enter_place` executable by authenticated | WARN | **Correct by design.** A signed-in person joining a place is the feature |
+| Leaked password protection disabled | WARN | **Real.** See V-5 |
+
+**`places_cache` has dropped off this list**, which independently confirms S-2.
 
 **The pattern worth naming, because it is the rule for every future SECURITY
-DEFINER function:** three of the four callable ones take no argument at all, or
-take one that identifies public data. The dangerous shape is a definer function
-that takes an identifier and then acts with the definer's authority on behalf of
-whoever was named. This project has shipped that bug once, in `grant_staff_role`,
-which authorised off its own argument and was granted to `authenticated`, so any
+DEFINER function:** the callable ones take no argument, or take one that
+identifies public data. The dangerous shape is a definer function that takes an
+identifier and then acts with the definer's authority on behalf of whoever was
+named. This project shipped that bug once, in `grant_staff_role`, which
+authorised off its own argument and was granted to `authenticated`, so any
 signed-in user could pass a super admin's uuid and become one. It was revoked to
-`service_role` with a second check inside the function. Do not write that shape
-again.
+`service_role` with a second check inside. **Do not write that shape again**, and
+in particular do not write it for escrow release or fee application, where it
+would be a way to move somebody else's money.
 
-### SEC-4. The middleware matcher used to have a hole and the lesson generalises. **P2**
+### SEC-4. The middleware matcher hole is fixed and the lesson generalises. **DONE. P2 residual**
 
-**Fixed, recorded so the class stays closed.** The matcher excluded any path
-ending in an asset extension, not paths under an asset directory. Every dynamic
-route accepts such a suffix inside its own parameter, so `/checkout/abc.png`,
-`/listing/abc.png`, `/messages/abc.svg` and `/u/somebody.png` all returned 200
-with full HTML, no CSP, no nonce, no session refresh and no signed-out gate. It
-is now anchored on directories (`middleware.ts:186`).
+The matcher excluded any path *ending* in an asset extension rather than paths
+under an asset directory, so `/checkout/abc.png`, `/listing/abc.png` and
+`/u/somebody.png` all returned 200 with full HTML, no CSP, no nonce and no
+session refresh. It is now anchored on directories.
 
-**Do.** A spec that asserts the CSP header and the nonce are present on a
-representative dynamic route with a `.png` suffix. The fix is right; nothing
+**Residual.** A spec asserting the CSP header and the nonce are present on a
+representative dynamic route with a `.png` suffix. The fix is right and nothing
 holds it.
 
-### SEC-5. There is no session or device management. **P1**
+### SEC-5. There is no session or device management. **OPEN. P1**
 
-**Wrong today.** A person cannot see where they are signed in and cannot sign a
-device out.
+Unchanged. A person cannot see where they are signed in and cannot sign a device
+out. A wallet-bearing account on a lost phone must be recoverable by its owner,
+not by a support ticket. Build the device list on `/settings`, a
+sign-out-everywhere action, and a new-device notification; the notification
+writer already exists.
 
-**Do.** A device list on `/settings`, a sign-out-everywhere action, and a
-new-device notification. The notification writer already exists.
+### SEC-6. The public browse surface is new and has not been threat-modelled. **NEW. OPEN. P1**
 
-**Why.** A wallet-bearing account on a lost phone must be recoverable by its
-owner, not by a support ticket.
+N-1 opened six route families to anonymous traffic in one commit. That is the
+right change and it changes the threat model, and nobody has gone back over it.
+
+**Do, and each is a specific question rather than a general worry.**
+1. **What can an anonymous request enumerate?** `/u/[handle]` and `/listing/[id]`
+   are now scrapeable. Confirm the RLS policies on `profiles` and `listings`
+   expose only what a public profile and a published listing should, and confirm
+   that a `DRAFT` or `SUSPENDED` listing 404s rather than 403s, because the
+   difference is an oracle.
+2. **Rate limit the public surfaces.** They were behind a session, so they were
+   implicitly limited by having to have an account. They are not any more.
+   `/search` in particular now runs unauthenticated database queries for anybody
+   with a loop.
+3. **The map viewport RPC in M-5 will be a public endpoint** taking a
+   caller-supplied bounding box. A box covering all of Nigeria at a high limit is
+   a catalogue export. Cap the box area, cap the result count, and rate limit it.
+4. **Re-run the CSP watch.** The report-only policy was tuned against
+   authenticated traffic and the anonymous paths were unreachable.
 
 ---
 
-## 14. Performance
+## 18. Performance
 
-### PERF-1. Home was 3.6MB of imagery and is 28KB under Save-Data. **P2, and it is done**
+### PERF-1. Home was 3.6MB of imagery and is 28KB under Save-Data. **DONE. Model for the rest**
 
-**Measured, and worth keeping because it is the model for the rest.** `/home` was
-3,676KB at 390px with an empty catalogue, 3,520KB of it imagery, almost all of
-that two raw background PNGs. Under the `Save-Data` header or a 2g connection it
-is 28KB: the artwork is **never requested** rather than hidden, and the Ken Burns
-pan, the blooms, the grain and the aurora go with it. Every colour, control and
-heading stays. Proved by `apps/web/tests/save-data.spec.mjs`.
+`/home` was 3,676KB at 390px with an empty catalogue, 3,520KB of it imagery. Under
+`Save-Data` or 2g it is 28KB: the artwork is **never requested** rather than
+hidden, and the Ken Burns pan, blooms, grain and aurora go with it. Every colour,
+control and heading stays. Proved by `apps/web/tests/save-data.spec.mjs`.
 
 **Do.** Apply the same treatment to the remaining heavy routes, and add a
 user-facing data-saver toggle so somebody on a metered bundle can choose it
-rather than waiting for a header they do not control.
+rather than waiting for a header they do not control. 3.5MB is a real amount of a
+Nigerian data bundle and this is the highest-value performance work in the
+product.
 
-**Why.** 3.5MB is a real amount of a Nigerian data bundle. This is the highest
-value performance work in the product and the pattern is already built.
+**And apply it to video first**, per MED-2. Video is the next thing that could
+undo this entire result in one commit.
 
-### PERF-2. Fonts are self-hosted, preloaded and correct, after being wrong in an invisible way. **P2, done**
+### PERF-2. Fonts are self-hosted, preloaded and correct. **DONE**
 
-**Measured.** Both faces were already self-hosted through `next/font` and **not
-one preload link ever reached a browser**. Nineteen files existed, ten were
-fetched on every load, four of those were never painted. Seven files now, checked
-in, preloaded per locale, immutable for a year. The declared subset list was also
-wrong: the Yoruba and Igbo dotted vowels live in `vietnamese`, which was never
-asked for. Guarded by `apps/web/tests/fonts.spec.mjs`.
+Both faces were already self-hosted through `next/font` and not one preload link
+ever reached a browser. Nineteen files existed, ten were fetched on every load,
+four were never painted. Seven now, checked in, preloaded per locale, immutable
+for a year. The declared subset list was also wrong: the Yoruba and Igbo dotted
+vowels live in `vietnamese`, which was never asked for. Guarded by
+`apps/web/tests/fonts.spec.mjs`.
 
-### PERF-3. Images all have reserved boxes, measured rather than assumed. **P2, done**
+### PERF-3. Images all have reserved boxes. **DONE**
 
-A sweep of 43 routes at 390 and 1280 found **zero** images without a reserved
-box. The guard lives in `polish-overlays-copy-status.spec.mjs` and covers all 43
-routes; it used to cover 22, which proved half the platform.
+A sweep of 43 routes at 390 and 1280 found zero images without a reserved box.
+The guard covers all 43 routes; it used to cover 22, which proved half the
+platform.
 
-### PERF-4. `apps/web/tsconfig.json` carries ten dead `include` entries. **P2**
+### PERF-4. `apps/web/tsconfig.json` carries ten dead `include` entries. **OPEN. P2**
 
 Parallel builds added `".next-a1/types/**"` and friends, but `exclude` holds
-`".next-*"` and exclude filters include, so every one of those entries does
-nothing. Only the default `.next/types` is live, because it has no dash. Harmless;
-tidy it next time somebody is in that file.
+`".next-*"` and exclude filters include, so every one does nothing. Only the
+default `.next/types` is live, because it has no dash. Harmless; tidy it next
+time somebody is in that file.
 
-### PERF-5. Nine orphan modules, 1,276 lines, verified unimported. **P2**
+### PERF-5. Orphan modules. **PARTLY DONE. P2. Re-verify before deleting**
 
-**Re-verified today with exact module-path greps, not bare identifiers.** Each
-has zero import references:
+The previous list of nine (1,276 lines) was measured before the current wave of
+work, and commit `5e5aa79` touched several of the files on it, including
+`StatCard.tsx` and `MessageThread.tsx`. **Re-run the module-path greps before
+deleting anything.** `WalletActions.tsx` is separately confirmed still orphaned
+under W-3 and is the one safe deletion.
 
-| File | Lines |
-|---|---|
-| `components/app/messages/MessageThread.tsx` | 320 |
-| `components/app/wallet/WalletActions.tsx` | 306 |
-| `components/app/account/ProfileIdentityCard.tsx` | 201 |
-| `lib/social/comments-queries.ts` | 149 |
-| `components/agent/StatCard.tsx` | 100 |
-| `components/agent/charts/DonutChart.tsx` | 78 |
-| `components/agent/charts/AreaSparkline.tsx` | 67 |
-| `lib/assistant/protocol.ts` | 34 |
-| `lib/mode.ts` | 21 |
+Two that were on an earlier list are no longer orphans and must not be deleted:
+`components/app/MomentScreen.tsx` and `lib/platform-stats.ts`.
 
-Two that were on the previous orphan list are no longer orphans and should not be
-deleted: `components/app/MomentScreen.tsx` now has 9 importers, and
-`lib/platform-stats.ts` has 1.
+### PERF-6. Nothing measures anything in production. **NEW. OPEN. P2**
 
-**Do.** Delete them, or wire them. The evidence does not need re-deriving. They
-were left in place before because a parallel session was working in the tree.
+There is no analytics and no crash reporting, which LG-3 correctly calls an
+asset. It is also the reason no statement in this section can be made about real
+users on real Nigerian networks; every figure here came from a local probe.
+
+**Do.** Not a vendor. Web Vitals reported to an internal route and stored in
+`public.events`, which already exists. It keeps the privacy posture intact,
+keeps the consent question closed, and answers the only question that matters:
+what the product costs on a real phone on a real network.
 
 ---
 
-## 15. Mobile and store readiness
+## 19. Mobile and store readiness
 
-### MOB-1. Capacitor is installed, both native projects generate, and no native build has ever run. **P1**
+### MOB-1. Capacitor is installed, both native projects generate, no native build has ever run. **OPEN. P1**
 
-**Verified in the repository.** `apps/web/capacitor.config.ts`, `android/`,
-`ios/`, `native-shell/`, `src/lib/native/`, `public/.well-known/`. What was
-actually proven: both projects generate, `cap sync` succeeds with 5 plugins each,
-every Gradle file parses as valid Groovy, Gradle 8.14.3 runs on JDK 21, the
-manifest and plist and entitlements are well formed, icons survive Android's real
-66-of-108 launcher mask, and both association files serve 200 with the right
-content type.
+**Verified in the repository.** `apps/web/capacitor.config.ts` with
+`appId: "ng.rentme.app"` and `appName: "RentMe"`, `android/`, `ios/`,
+`native-shell/`, `src/lib/native/`, `public/.well-known/`. The config file is
+unusually well reasoned and should be read before anything is changed in it: it
+explains why `webDir` holds an offline shell rather than a static export (40
+files declare server actions, `output: 'export'` refuses them, middleware is the
+session lock and static export runs none), and why `server.url` comes from
+`CAPACITOR_SERVER_URL` rather than `NEXT_PUBLIC_SITE_URL`.
+
+**Proven:** both projects generate, `cap sync` succeeds with five plugins each,
+every Gradle file parses, Gradle 8.14.3 runs on JDK 21, the manifest, plist and
+entitlements are well formed, icons survive Android's real 66-of-108 launcher
+mask, and both association files serve 200 with the right content type.
 
 **Not proven, each needing a real toolchain:** that the Android project compiles,
 that R8 with `minifyEnabled true` produces a working bundle, that the hand-edited
 `project.pbxproj` opens in Xcode, and that the location permission behaves as
-reasoned. The sandbox proxy denies `dl.google.com`, so no Android SDK, and there
-is no macOS.
+reasoned. No Android SDK and no macOS in this environment.
 
-**Do.** Connect Codemagic or another CI with a real toolchain and run one build
-of each before anything else in this section is trusted.
+**Do.** Connect Codemagic or equivalent and run one build of each before anything
+else in this section is trusted.
 
-### MOB-2. Apple guideline 4.2 is an argument, not a guarantee. **P1**
+### MOB-2. Apple guideline 4.2 is an argument, not a guarantee. **OPEN. P1**
 
-**Wrong to assume.** Path A, a Capacitor shell pointed at the production origin,
-is the textbook case App Review rejects as a thin web wrapper. The native
-capabilities in `src/lib/native/` are the argument against it: hardware back, a
-status bar bound to the theme, keyboard insets, splash control, and the
-system-browser handoff.
+Path A, a Capacitor shell pointed at the production origin, is the textbook case
+App Review rejects as a thin web wrapper. The native capabilities in
+`src/lib/native/` are the argument against it: hardware back, a status bar bound
+to the theme, keyboard insets, splash control, and the system-browser handoff.
+The config file says so itself.
 
-**Do.** Ship the PWA now, since it is finished. Take Path A to Google Play, which
-is far more tolerant. Build Path C, Expo sharing `packages/design-tokens` and
-`packages/i18n`, for iOS. That is what the roadmap budgeted before the Capacitor
-instruction arrived and it remains the right answer for the App Store.
+**Do.** Ship the PWA now. Take Path A to Google Play, which is far more tolerant.
+Build Path C, Expo sharing `packages/design-tokens` and `packages/i18n`, for iOS
+if 4.2 bites.
 
-### MOB-3. Two association values are missing and both fail loudly on purpose. **P1**
+### MOB-3. Both association files exist. Two values in them are placeholders. **CORRECTED. OPEN. P1**
 
-**Owner action, neither obtainable from the repository.**
-`public/.well-known/assetlinks.json` needs **two** SHA-256 fingerprints: the Play
-app signing certificate, which is the one that matters on a shipped install
-because Play strips our signature and re-signs, and the upload key, which is what
-makes App Links verify on hand-installed test builds. Leaving either out costs a
-day. `public/.well-known/apple-app-site-association` needs the ten-character
-Apple Team ID, as `<TeamID>.ng.rentme.app`.
+**This entry corrects a claim that has been repeated, including in the brief for
+this pass.** `public/.well-known/assetlinks.json` and
+`public/.well-known/apple-app-site-association` **both exist and both have real,
+carefully reasoned content**. They are not missing.
 
-### MOB-4. Push notifications are not wired, and that is the right order. **P2**
+What is missing is two values inside them, and neither is obtainable from this
+repository:
+
+- `assetlinks.json` carries two literal
+  `PLACEHOLDER_REPLACE_WITH_...` strings where the SHA-256 fingerprints go. It
+  needs **both**: the Play app signing certificate, which is the one that matters
+  on a shipped install because Play strips our signature and re-signs, and the
+  upload key, which is what makes App Links verify on hand-installed test builds.
+  Leaving either out costs a day of confusion.
+- `apple-app-site-association` carries
+  `PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID.ng.rentme.app` and needs the
+  ten-character Team ID.
+
+**And a second correction, which matters more.** It has been said that the
+missing association files break the payment return leg in the in-app browser.
+**The opposite is true.** The AASA file deliberately and explicitly **excludes**
+`/checkout/*`, `/wallet*`, `/auth/*` and `/api/*` from Universal Links, with a
+comment on each explaining why: the Paystack return "has to complete in the
+browser session that started it", and pulling the OAuth callback into the app
+would hand it a code it cannot redeem because the PKCE verifier and cookies live
+in the system browser. Those exclusions are correct and are exactly what protects
+the payment return leg. They are ordered first in the file, which is also
+correct, because AASA component matching is order-sensitive.
+
+**Do.** Supply the three values. Do not "fix" the exclusions. And add a spec that
+fails the build if either file still contains the string `PLACEHOLDER`, so this
+cannot ship.
+
+### MOB-4. Push notifications are not wired, and that is the right order. **OPEN. P2**
 
 The notification layer exists as database rows with triggers, which is the hard
 half. Delivery to a device is separate work and it spends the one permission
 prompt a person will ever grant, so it should ship with something worth saying.
+Escrow state changes (section 7) are the first thing genuinely worth a push.
 
-### MOB-5. `@capacitor/assets` writes two files that must be deleted after every run. **P1**
+### MOB-5. `@capacitor/assets` writes two files that must be deleted after every run. **OPEN. P1**
 
 `apps/web/icons/` and `apps/web/public/manifest.webmanifest`. The second is the
 dangerous one: this app serves its manifest from the typed route
@@ -1170,202 +2348,217 @@ relative `../icons/` paths and declaring `.webp` files as `image/png`.
 **Do.** Put the deletion in the npm script rather than in a document nobody
 re-reads.
 
-### MOB-6. A 1024px master of the house-and-R mark would remove the one enlargement in the pipeline. **P2**
+### MOB-6. A 1024px master of the house-and-R mark would remove the one enlargement. **OPEN. P2**
 
 The only master is a 910x857 lockup whose mark is 511x598, so the App Store icon
 enlarges it about 1.5x. Every other asset in the pipeline is a reduction. Owner
 action: supply a vector or 1024px master.
 
----
+### MOB-7. Permissions and usage strings. **NEW. OPEN. P1**
 
-## 16. Testing and enforcement
+Both stores reject on this and both reject late, after a build has been uploaded
+and reviewed.
 
-### T-1. 83 browser specs and 8 vitest files, and no CI runs any of them. **P0**
+**Do.**
+1. **Declare only what is used.** Today that is camera and photo library, for
+   uploads. Location if and when the map asks for it. Nothing else. Every
+   declared permission that is never exercised is a rejection reason on iOS and
+   a data-safety inconsistency on Android.
+2. **Write real `NS*UsageDescription` strings**, in the plist, in the user's
+   words, naming the benefit. "RentMe uses your camera to let you photograph a
+   property you are listing" passes. "Camera access required" does not, and it
+   is the single most common iOS rejection.
+3. `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`,
+   `NSPhotoLibraryAddUsageDescription` if anything saves, and
+   `NSLocationWhenInUseUsageDescription` only if location ships. **Never**
+   `NSLocationAlwaysAndWhenInUseUsageDescription`; this product has no reason
+   for background location and asking for it invites a rejection and a
+   data-safety declaration nobody wants to write.
+4. **Android 13+ needs `READ_MEDIA_IMAGES` and `READ_MEDIA_VIDEO`**, not the old
+   `READ_EXTERNAL_STORAGE`. If MED-2 ships video, the second is required.
+   `POST_NOTIFICATIONS` only when MOB-4 does.
+5. **Ask in context, never on launch.** A permission prompt on first open is
+   refused by most people and cannot be asked again.
 
-**Verified today.** `apps/web/tests/*.spec.mjs` is 83 files. `apps/web/src`
-carries 8 `*.test.ts` files. There is no `.github/workflows` directory. Vercel
-deploys from `main`. So nothing mechanical stands between a red spec and
-production.
+### MOB-8. Safe areas. **NEW. OPEN. P1**
 
-**Do.** One GitHub Actions workflow: `npm run typecheck`, `npm run lint`, `cd
-apps/web && npx vitest run`, `npm run build`, then serve the build and run the
-directory of node specs. Add the em dash scan and the attribution scan as steps.
+**Do, and audit each rather than assuming.**
+1. `viewport-fit=cover` plus `env(safe-area-inset-*)` on every fixed element.
+   The island dock and the sticky listing bar are the two that will be wrong.
+2. **The bottom sheet in M-9 must clear the home indicator**, and its full detent
+   must clear the status bar and the notch.
+3. Android gesture navigation needs the same treatment and is usually forgotten
+   because it is tested on a device with buttons.
+4. **The keyboard.** `capacitor.config.ts` sets `resize: "native"`, which shrinks
+   the web view so a submit button stays reachable, and the comment records that
+   the "body" alternative leaves controls behind the keyboard. Verify it on a
+   real device against the sheets and the wizard, which are the two places this
+   bug has already been fixed once on the web.
+5. Landscape and tablet. Not a target, and it must not be broken; a reviewer will
+   rotate the device.
 
-**Why.** Every verification ritual in this repository is a human running commands
-from memory, and three separate documents record a session that reported green
-when it was not.
+### MOB-9. Store metadata and data safety declarations. **NEW. OPEN. P1**
 
-### T-2. The node specs are run by hand and the invocation is a known trap. **P1**
+These are the items that hold a submission for a week each and none of them is
+engineering.
 
-**Two traps, both of which have cost full sweeps.**
-- **Vitest must be run from `apps/web`.** From the repo root it resolves a
-  different config, fails to resolve `server-only`, and reports a wall of
-  failures unrelated to the change.
-- **`next start` on a held port does not fail loudly.** The old server keeps
-  serving and the new process exits, so the sweep silently measures the
-  **previous** build. It presents as dozens of unrelated specs failing at once.
-  Before trusting a sweep, confirm exactly one `next-server` process and that
-  `.next-*/BUILD_ID` matches the build just made. Killing `next-server` alone is
-  not enough because `npm exec` respawns it: kill the `npm exec`, the `sh -c` and
-  the `next-server` together. `pkill -f "next start"` matches nothing; the
-  process is `next-server`.
+**Both stores.** Name, subtitle, description, keywords, support URL, marketing
+URL, privacy policy URL (which must resolve and must be the public
+`/privacy`, not `/legal/privacy`), category (Lifestyle or House and Home),
+content rating, and screenshots at every required size in both themes.
 
-**Do.** Wrap both in a script that asserts the port is free and the BUILD_ID
-matches, then run the directory. The trap is not knowledge, it is a missing
-script.
+**Screenshots are the constraint nobody plans for.** They must show real screens.
+With zero listings, every discovery screenshot is empty or invented, and an
+invented screenshot showing fabricated verified properties is the exact thing
+section 11 exists to prevent. **This is a hard dependency on DEMO-1.** Say so in
+the schedule.
 
-### T-3. `pg_cron` is installed and running six jobs, and every document said it was not. **P0 correction**
+**Apple specifically.** App Privacy answers must match what the app does: contact
+info, identifiers, financial info and user content are all collected here and all
+have to be declared, linked to identity, with the purpose stated. A wrong answer
+found later is a removal, not a rejection. Export compliance: the app uses HTTPS
+only, which is the standard exemption, and the answer still has to be given.
+Demo account credentials for review, and the account must be able to see a
+populated product. Age rating.
 
-**Verified live on 2026-08-09.** `pg_cron` 1.6.4 is **installed**. `cron.job`
-holds six active jobs:
+**Google specifically.** The Data Safety form is separate from the privacy policy
+and must agree with it. Declare collection of personal info, financial info,
+photos, messages and location if it ships; declare encryption in transit;
+declare the deletion route, and **the deletion route must actually exist and be
+reachable without contacting support**, which is now a Play requirement and is
+worth checking against what `/settings` offers today. Target API level, and a
+financial-features declaration because the app carries a wallet.
 
-| Job | Schedule (UTC) | Runs |
-|---|---|---|
-| `rentme-nightly-badges` | `20 2 * * *` | `private.sweep_badges()` |
-| `rentme_release_stale_holds` | `*/15 * * * *` | `private.release_stale_booking_holds()` |
-| `rentme_purge_rate_limits` | `30 * * * *` | `private.purge_rate_limits()` |
-| `rentme_purge_idempotency` | `10 2 * * *` | `private.purge_idempotency_records()` |
-| `rentme_announce_completed_stays` | `20 5 * * *` | `private.announce_completed_stays()` |
-| `rentme-daily-note` | `0 6 * * *` | `private.post_daily_note()` |
+**Both, and it is the one that surprises people.** An app that handles payments
+must be clear about who is taking the money. Paystack is the processor and the
+listing description should say so.
 
-`supabase/migrations/20260804184423_the_scheduler_exists_now.sql` did it, and
-explains why it is `pg_cron` rather than a Vercel cron: the Hobby plan allows one
-invocation per day, and releasing a stale booking hold once a day means a real
-bed nobody could book for a whole day.
+### MOB-10. Signing. **NEW. OPEN. P1**
 
-**Do.** Nothing to enable. Everything gated on "waiting for `pg_cron`" is
-unblocked and should be re-read: the reconciliation job in W-6, the notification
-retention job, and the badge criteria that need a scheduler. Note that **all
-times are UTC**, which this project has been caught by once: the server runs UTC
-and Lagos is UTC+1, so a job written for a Lagos hour must be shifted.
+**Android.** Enrol in Play App Signing. Generate an upload key, store it and its
+password in a manager rather than in the repository, and record the SHA-256 of
+both it and the Play signing certificate in `assetlinks.json` per MOB-3. **Losing
+the upload key is recoverable; losing an unmanaged app signing key means never
+updating the app again.** Confirm `.gitignore` excludes `*.keystore`, `*.jks` and
+`key.properties` before the first key exists rather than after.
 
-**Also do.** Add monitoring. Six unattended jobs writing to a live database with
-no alert on failure is a silent dependency. `cron.job_run_details` carries the
-outcome; a nightly check of it into `risk_alerts` is ten lines.
+**iOS.** An Apple Developer Program membership, a distribution certificate, an
+App Store provisioning profile for `ng.rentme.app`, and the Team ID for MOB-3.
+Use App Store Connect API keys for CI rather than a personal Apple ID, so a
+person leaving does not break the pipeline.
 
-### T-4. The migration mirror has drifted in exactly eight pairs, all cosmetic. **P1**
-
-**Diffed today, filename by filename.** 120 versions applied server side, 120
-files committed, and the two lists disagree on eight entries each way. Every one
-is the same migration under two prefixes, six of them a hand-rounded timestamp
-against the real one:
-
-| Committed file | Applied version |
-|---|---|
-| `20260805161946_one_honest_question_at_the_door` | `20260805162027_one_honest_question_at_the_door` |
-| `20260805170000_a_second_admin_and_a_way_to_remove_one` | `20260805153920_a_second_admin_and_a_way_to_remove_one` |
-| `20260805183000_the_answers_most_people_here_give` | `20260805164713_occupations_common_rank` |
-| `20260806120000_making_somebody_staff_is_not_a_thing_a_signed_in_user_can_do` | `20260806112848_...` |
-| `20260807110000_saying_that_address_is_already_signed_up` | `20260807104931_signup_method_for_email` |
-| `20260807140000_everybody_arrives_with_a_name_on_them` | `20260807125439_...` |
-| `20260807141000_a_google_account_arrives_with_its_name_and_its_face` | `20260807125555_...` |
-| `20260807150000_rentme_says_one_useful_thing_a_day` | `20260807131002_...` |
-
-The two whose names differ were read and matched by content: the file
-`the_answers_most_people_here_give` adds `occupations.common_rank`, and
-`saying_that_address_is_already_signed_up` defines
-`public.signup_method_for_email`.
-
-**The one that was genuinely missing is closed.**
-`20260807101114_the_last_foreign_key_without_a_covering_index` was recorded server
-side with no file; the file is now committed and present on both sides.
-
-**Do.** Rename the eight files to their applied version strings. Then add a CI
-check that diffs `supabase/migrations/*.sql` filenames against
-`list_migrations` and fails on any difference. Five minutes of renaming buys a
-mechanical guarantee that the repository never lies about the database.
-
-**Why.** The rule exists so a filename diff answers the question. Right now that
-diff reports eight problems where there is really one habit, which is how the one
-real problem hid for a week.
-
-### T-5. Four specs fail and none is caused by application code. **P2**
-
-Each was checked rather than assumed. Re-verify before acting.
-
-| Spec | State |
-|---|---|
-| `gate` | **Aborts by design** and says so: without `NEXT_PUBLIC_SUPABASE_URL` and the anon key the guard is a pass-through, so it refuses to pretend it proved anything |
-| `intent-tune` | `src/lib/interests/schema.ts` and the spec are byte for byte identical to `origin/main`. Red on main |
-| `interests-settings` | `welcome/page.tsx` carries no `InterestChoices` mount on this branch or on `origin/main`. Red on main |
-| `session-memory` | One check. `ListingsWorkspace.tsx` is byte for byte identical to `origin/main`. Red on main |
-| `truncation` | Passes alone. Chromium runs out of room after seventy consecutive launches in this sandbox. Run the suite in batches |
-
-### T-6. Four specs skip loudly when the catalogue is empty. Do not make them pass. **P1**
-
-**If you make them pass by putting invented listings back, you have undone the
-point.** The seed catalogue of twenty-three places was deleted because
-twenty-two carried `verified: true` with fabricated ratings on addresses that do
-not exist. A spec that skips out loud with an empty catalogue is the correct
-behaviour and it must survive every future sweep.
-
-### T-7. Em dashes are now confined to the archive. **P1, done**
-
-**Measured today.** Every remaining em dash in this repository is inside
-`docs/ui-audit/`, which is now `docs/archive/ui-audit/`. Ten files. They are
-historical audit records from one session, and a mechanical replacement would
-produce ungrammatical prose in documents nobody will reread.
-
-**Do.** Add the scan to CI (T-1) with `docs/archive/` excluded, and note that
-three test specs legitimately **contain** the character because they are the
-guards that search for it. A sweep must not "fix" those.
-
-### T-8. Verification ritual, as it actually is. **P0 to follow**
-
-```bash
-npm run typecheck                              # all workspaces, must be 0
-cd apps/web && npx eslint .                    # from apps/web
-cd apps/web && npx vitest run                  # from apps/web, never the root
-npm run build                                  # typecheck passing is NOT enough
-# then, with the build served on 3210 from apps/web:
-cd apps/web && for s in tests/*.spec.mjs; do node "$s" || echo "FAILED $s"; done
-node scripts/verify-shots.mjs /route           # 390x844 dark
-node scripts/verify-shots.mjs --light /route   # the paper twin, and LOOK at it
-```
-
-Playwright uses `playwright-core` with
-`executablePath: "/opt/pw-browsers/chromium"`. Do not run `playwright install`.
-
-**A passing typecheck does not mean a passing build.** A client component
-importing a value from a server-only module typechecks fine and fails the build.
-Put shared constants in a client-safe `*-schema.ts`.
+**Both.** `scripts/sync-native-versions.mjs` already exists; confirm it drives
+version and build numbers from one source. Two stores disagreeing about the
+version is a support conversation nobody can win.
 
 ---
 
-## 17. What is not known
+## 20. The rename
 
-Stated plainly, because a recommendation resting on a guess is worse than no
-recommendation.
+The platform is called RentMe. The code is substantially called NaijaFinds. This
+is now a section rather than an entry because it touches five different systems
+and the order matters more than the work does.
 
-1. **Whether `SUPABASE_SERVICE_ROLE_KEY` and `PAYSTACK_SECRET_KEY` are set in
-   the live Vercel environment.** Neither can be read from here. W-1 is the most
-   probable cause of the wallet failure and it is a hypothesis with strong
-   circumstantial evidence, not a confirmed diagnosis. The confirming test is one
-   line: hit `/api/paystack/webhook` with a signed test payload in production and
-   see whether a `wallet_entries` row appears.
-2. **Whether the deployment at `ninjafinds.vercel.app` is serving this branch.**
-   Not verified. The Vercel project is `read-it-well-web`; nothing here confirms
-   which git ref it builds.
-3. **Whether any of the native builds compile.** MOB-1 lists exactly what was and
-   was not proven. No Android SDK and no macOS in this environment.
-4. **Whether the light theme passes WCAG AA today.** The last measurement found a
-   failure on the most-used text token and predates the token work. D-3 is the
-   spec that would answer it. Nobody has run one.
-5. **The real drift figures behind D-1.** They were measured against a 3,167 line
-   stylesheet that is now 71 lines and 19 partials. Re-measure before quoting.
-6. **Whether the four locale files read naturally.** Yorùbá, Hausa and Igbo are
-   complete, use correct diacritics and hooked letters, and were not written by
-   native speakers. Two specific terms are flagged as possibly unidiomatic: the
-   Igbo section title `Ọnụọgụgụ` for Analytics and the Yoruba `Ìdíwọ̀n` for a
-   guest rating. Marketing copy in particular should be rewritten from intent
-   rather than corrected word by word.
-7. **What "district should feed instantly" meant.** An owner instruction that cut
-   off mid-sentence. It concerns the social layer. Ask rather than guess.
-8. **Whether NaijaFinds Pro is in scope.** The only genuine survivor of the old
-   blocked-decisions table. Still open with the owner.
-9. **Whether hosts should ever see an aggregate save count.**
-   `saved_items` is owner-only by policy, so a host's client cannot read it, and
-   the analytics read deliberately does not bypass that with the service role.
-   Separately the number would be wrong anyway: a signed-out visitor's saves live
-   in `localStorage` and a cookie and never become rows. This is a privacy
-   posture decision, not an implementation detail.
+### RN-1. The measurements, taken today. **NEW**
+
+Counted across `*.ts`, `*.tsx`, `*.json`, `*.css`, `*.md`, `*.js`, `*.mjs` and
+`*.sql`, excluding `node_modules` and `.git`:
+
+| Thing | Count |
+|---|---|
+| Files containing `NaijaFinds` or `naijafinds` | **211** |
+| Files containing `RentMe` or `rentme` | **244** |
+| Distinct `.nf-*` selectors in CSS | **239** |
+| Distinct `--nf-*` custom properties in CSS | **208** |
+| Distinct `nf-*` identifiers in `.ts` and `.tsx` | **338** |
+| npm scope | `@naijafinds/i18n`, `@naijafinds/design-tokens` |
+| Workspace name | `naijafinds` |
+| Root `package.json` description | "NaijaFinds. Nigeria-first discovery, stay, food and experience platform." |
+| GitHub repository | `read-it-well` |
+| Capacitor `appId` | `ng.rentme.app` (already correct) |
+| Live Vercel domain | `ninjafinds.vercel.app` |
+
+Note the counts are larger than previously recorded, in every category. Nobody
+was wrong; the earlier figures used a narrower file set. Quote these and say how
+they were measured.
+
+**And note the domain.** `ninjafinds.vercel.app` is not `naijafinds` and not
+`rentme`. It is a **third** spelling, and it is a typo of the old name. It is
+also, today, the production address.
+
+### RN-2. The safe sequence. **NEW. OPEN. P1**
+
+The governing rule: **do the changes that are visible to users first, the changes
+that are invisible last, and never do an invisible one at the same time as a
+visible one.** A find-and-replace across every import in the tree is churn that
+hides a real change in a diff, and the review that misses a real change is the
+cost of doing this badly.
+
+**Stage 1, today, minutes, zero risk.** Strings nobody imports.
+- Root `package.json` `name` and `description`.
+- `apps/web/package.json` description.
+- Any remaining `NaijaFinds` in user-visible copy and in the four locale files.
+  **Grep the locale files specifically**, because a brand name inside a
+  translated string is the one place a rename is both user-visible and easy to
+  miss.
+- Verify with a spec: no rendered page contains the string `NaijaFinds`. Add it
+  to CI. This is the only part of the rename that has a correctness criterion,
+  so it is the only part that should be enforced mechanically.
+
+**Stage 2, before launch, and it is owner work.** The domain.
+- Acquire and configure `rentme.ng`, which is already the assumed domain in
+  `EMAIL_FROM` and in the AASA comments.
+- Point Vercel at it, keep `ninjafinds.vercel.app` as a redirect rather than
+  deleting it, because links exist.
+- **This must happen before MOB-3**, because `CAPACITOR_SERVER_URL`, the
+  association files and the Universal Links domain all have to name the final
+  origin. A native binary shipped against the wrong origin is a resubmission.
+- **And before N-2**, because a sitemap and canonical URLs on a domain you are
+  about to leave is negative work.
+
+**Stage 3, when the tree is quiet, and only then.** The npm scope.
+- `@naijafinds/i18n` to `@rentme/i18n`, `@naijafinds/design-tokens` to
+  `@rentme/design-tokens`, workspace name to `rentme`.
+- This is mechanical: two `package.json` names, the workspace globs, and a
+  find-and-replace across imports. It is also the change most likely to collide
+  with three parallel work streams, which is the entire reason it goes last.
+- **Do it in one commit that changes nothing else.** A rename commit that also
+  fixes a bug is unreviewable.
+- Verification is `npm run typecheck` plus `npm run build`. If both pass, the
+  rename is complete, because these are compile-time identifiers.
+
+**Stage 4, optional, and the recommendation is do not.** The `nf-` prefix.
+- 239 CSS selectors, 208 custom properties, 338 identifiers in TypeScript, and
+  a lint rule and two scripts that match on the prefix.
+- **Recommendation: leave it.** The user-visible gain is zero. The risk is a
+  missed rename in a template string or a dynamically composed class name, which
+  typechecks, builds, passes lint, and renders an unstyled element on one route
+  nobody opens until a customer does. `nf` can simply stand for nothing, the way
+  most CSS prefixes eventually do.
+- **Record this as a decision here**, so it stops being re-raised every time
+  somebody greps the stylesheet. If it is ever done, it is a single commit that
+  changes nothing else, verified by a full visual sweep of all 43 routes in both
+  themes, not by a passing build.
+
+**Stage 5.** Rename the GitHub repository from `read-it-well` to `rentme`.
+GitHub redirects the old URL, so this is safe. It matches nothing today and
+surprises everybody who clones it.
+
+### RN-3. The one thing the rename must not touch. **NEW. P1**
+
+Database identifiers. The `nf_` prefixed cookies (`nf_theme`), the
+`rentme-*` cron job names, the migration filenames and the `rm-fund-`,
+`rm-wd-`, `rm-book-` payment reference prefixes are all either already correct or
+load-bearing in a way a rename would break. In particular, **the payment
+reference prefixes are a contract with Paystack's historical data** and the
+webhook routes on them. Never change them. Add a comment in
+`lib/payments/references.ts` saying so, because it is exactly the kind of
+`nf`-adjacent string a thorough rename would sweep up.
+
+---
+
+<!-- SENTINEL-1 -->
+
+
+
+

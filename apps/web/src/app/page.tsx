@@ -41,12 +41,25 @@ export default async function LandingPage() {
     { icon: "calendar-check", ...t.landing.features.booking },
   ];
 
+  /*
+   * The five things somebody can do here, in the order they are wanted.
+   *
+   * This row used to lead with Hotels and end with Experiences, illustrated by
+   * a suitcase, on a platform whose name is about renting. It also went
+   * through gatedHref, which sent a signed-out visitor to sign in before they
+   * could look at anything. Browsing is open now, so these are plain links and
+   * the wall comes later, when somebody tries to save, message or pay.
+   *
+   * Every icon depicts the thing it stands for. The suitcase and the gift box
+   * that used to label Experiences and Restaurants are gone: an object that
+   * does not mean what it sits under teaches a reader to stop reading objects.
+   */
   const categories: { icon: BrandIconName; label: string; href: string }[] = [
-    { icon: "hotel-star", label: t.nav.hotels, href: gatedHref("/search?type=hotel") },
-    { icon: "homes-sparkle", label: t.nav.apartments, href: gatedHref("/search?type=property") },
-    { icon: "house-sparkle", label: t.nav.homes, href: gatedHref("/search?type=home") },
-    { icon: "keys-home", label: t.nav.rent, href: gatedHref("/rent") },
-    { icon: "luggage-check", label: t.nav.experiences, href: gatedHref("/search?type=experience") },
+    { icon: "keys-home", label: t.nav.rent, href: "/search?intent=rent" },
+    { icon: "home-check", label: t.nav.buy, href: "/search?intent=sale" },
+    { icon: "hotel-star", label: t.nav.shortlets, href: "/search?type=shortlet" },
+    { icon: "map-spot", label: t.nav.land, href: "/search?type=land" },
+    { icon: "keys-tag", label: t.nav.commercial, href: "/search?type=office" },
   ];
 
   const visionPoints: { icon: BrandIconName; title: string; body: string }[] = [
@@ -76,38 +89,24 @@ export default async function LandingPage() {
           <div className="nf-aurora" aria-hidden="true" />
           <div className="nf-grid-veil" aria-hidden="true" />
 
-          {/* Floating category objects drifting in the hero air. Decorative. */}
-          <div className="nf-icon-field" aria-hidden="true">
-            <span className="left-[4%] top-[64%] h-13 w-13 sm:h-13 sm:w-13">
-              <BrandIcon name="wallet-secure" fill />
-            </span>
-            <span className="left-[46%] top-[8%] hidden h-14 w-14 sm:block">
-              <BrandIcon name="pin-map" fill />
-            </span>
-            <span className="right-[6%] top-[56%] h-13 w-13 sm:h-13 sm:w-13 lg:right-[40%] lg:top-[74%]">
-              <BrandIcon name="keys-home" fill />
-            </span>
-          </div>
-
           {/*
-           * The villa is the hero's atmosphere, not a picture in a frame: a
-           * large masked still dissolving into the canvas behind the text, so
-           * the scene and the platform read as one surface. Its edges never
-           * print; the mask fades it out in every direction.
+           * THE HERO CARRIES NO PICTURE, AND THAT IS THE DECISION.
+           *
+           * It used to carry two. A 2.3MB villa render bled across the whole
+           * width behind the headline, and three brand objects drifted around
+           * it at absolute positions. Between them they did three things
+           * wrong. They put the most expensive asset on the platform in front
+           * of the one thing a visitor is here to do, which is search. They
+           * were decoration, so they said nothing, and a reader learns very
+           * quickly that objects on this platform mean nothing. And a render
+           * of a house nobody can rent is the oldest lie in property
+           * marketing.
+           *
+           * What replaces them is directly below the search bar: the same
+           * object family, at a size you can actually read, standing for the
+           * five things somebody can do here, each one a link. The art now
+           * carries the navigation instead of competing with it.
            */}
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
-            <div className="nf-float-slow absolute right-[-18%] top-[-2%] w-[95%] max-w-[560px] sm:right-[-8%] sm:w-[70%] lg:right-[-4%] lg:top-[-12%] lg:w-[58%] lg:max-w-[900px]">
-              <Image
-                src="/brand/rentme-villa.png"
-                alt=""
-                width={1536}
-                height={1024}
-                priority
-                sizes="(max-width: 640px) 95vw, (max-width: 1024px) 70vw, 58vw"
-                className="nf-hero-scene h-auto w-full"
-              />
-            </div>
-          </div>
 
           <div className="nf-shell relative z-10">
             <div className="max-w-2xl">
@@ -170,31 +169,42 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          {/* --------------------------------------------------- feature row */}
-          <div className="nf-shell relative z-10 mt-10">
-            <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-              {/* Two columns on a phone leave no room for an object beside
-                  text, so the object sits above it and the card breathes. */}
-              {features.map((f) => (
-                <li
-                  key={f.title}
-                  className="nf-card nf-card--interactive flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-5"
-                >
-                  <span className="h-14 w-14 shrink-0 sm:h-14 sm:w-14">
-                    <BrandIcon name={f.icon} fill />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[0.875rem] font-semibold leading-snug text-[var(--nf-content-primary)] sm:text-[0.9375rem]">
-                      {f.title}
+          {/* ---------------------------------------------------- object row */}
+          {/*
+           * Five things you can do, drawn as five objects.
+           *
+           * NO CONTAINER. No card, no tile, no chip, no ring, no plate. The
+           * object sits on the page with its label under it and nothing is
+           * drawn around it, which is the single change that makes a row of
+           * icons read as a considered set rather than a toolbar. A box around
+           * an object adds a second edge competing with the edge the object
+           * already has, and five of them turn a row into a grid of boxes.
+           *
+           * The objects are large on purpose, 88px climbing to 112px. At the
+           * 56px they were drawn at inside cards, these renders lose the
+           * modelling that makes them worth having, and a small object inside
+           * a large box is the shape that reads as clutter.
+           */}
+          <nav aria-label="Browse by category" className="nf-shell relative z-10 mt-12 sm:mt-14">
+            <ul className="grid grid-cols-3 gap-x-2 gap-y-8 sm:grid-cols-5 sm:gap-x-4">
+              {categories.map((c) => (
+                <li key={c.label}>
+                  <Link
+                    href={c.href}
+                    prefetch
+                    className="nf-object-link group flex flex-col items-center gap-3 text-center"
+                  >
+                    <span className="h-[5.5rem] w-[5.5rem] shrink-0 transition-transform duration-[var(--nf-motion-slow)] group-hover:-translate-y-1 motion-reduce:transform-none sm:h-24 sm:w-24 lg:h-28 lg:w-28">
+                      <BrandIcon name={c.icon} fill />
                     </span>
-                    <span className="mt-0.5 block text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)] sm:text-[0.8125rem]">
-                      {f.body}
+                    <span className="text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)] sm:text-[1rem]">
+                      {c.label}
                     </span>
-                  </span>
+                  </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
         </section>
 
         {/* ------------------------------------------------ the story rail */}

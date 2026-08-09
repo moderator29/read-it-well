@@ -183,7 +183,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
           <UiIcon
             name="heart"
             size={16}
-            className="shrink-0 text-[var(--nf-electric-300)]"
+            className="shrink-0 text-[var(--nf-brand-secondary)]"
           />
           <span>
             <span className="font-semibold text-[var(--nf-content-primary)]">
@@ -208,7 +208,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
                     aria-pressed="true"
                     aria-label="Remove from saved"
                     data-testid="saved-heart"
-                    className="nf-glass absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full text-[var(--nf-electric-300)] transition-transform active:scale-90 disabled:opacity-60"
+                    className="nf-glass absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full text-[var(--nf-brand-secondary)] transition-transform active:scale-90 disabled:opacity-60"
                   >
                     <UiIcon name="heart" size={20} className="[&_path]:fill-current" />
                   </button>

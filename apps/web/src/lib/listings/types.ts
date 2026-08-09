@@ -1,5 +1,26 @@
 /** Domain types for discovery results. Shared by every data source. */
 
+import type {
+  BuildCondition,
+  Furnishing,
+  LandTenure,
+  ListingIntent,
+  PricePeriod,
+  RentPeriod,
+  SaleStatus,
+} from "./pricing";
+
+export type {
+  BuildCondition,
+  Furnishing,
+  LandTenure,
+  ListingIntent,
+  PricePeriod,
+  RatePeriod,
+  RentPeriod,
+  SaleStatus,
+} from "./pricing";
+
 export type ListingKind =
   | "hotel"
   | "apartment"
@@ -81,10 +102,74 @@ export type Listing = {
   serviceMinor?: number;
   currency: "NGN";
   /**
-   * What the price covers. "night" for stays (default), "year" for rentals.
-   * Restaurants and experiences stay per head regardless of this field.
+   * What the price covers.
+   *
+   * Widened from the original "night" | "year" pair because the database now
+   * states the cycle rather than inferring it from the category: a rent can be
+   * monthly, quarterly or yearly, and a rate can be per night or per head. Every
+   * existing reader compares against "year" or falls through to nightly, which
+   * stays correct under the wider union.
+   *
+   * Absent on a listing for sale, where `salePriceMinor` is the figure and there
+   * is no period at all.
    */
-  pricePeriod?: "night" | "year";
+  pricePeriod?: PricePeriod;
+  /**
+   * To let, or for sale. The discriminator the whole product turns on.
+   *
+   * Optional so the seed catalogue, which predates the distinction, still
+   * type-checks; absent reads as "rent", which is what every seed row is.
+   */
+  intent?: ListingIntent;
+  /** Asking price in kobo. Present only when `intent` is "sale". */
+  salePriceMinor?: number;
+  /** The lister will discuss the figure. Rendered as a chip, never as a discount. */
+  negotiable?: boolean;
+  /**
+   * What it actually costs to move in, in kobo, as the lister stated it.
+   *
+   * THE NUMBER PEOPLE SHOP ON in the Nigerian rent market, where a 4.5m yearly
+   * rent routinely means 7m at the door once caution, agency, legal and
+   * agreement fees are counted. Absent when the lister named no parts and no
+   * total, which the UI renders as unstated rather than as zero.
+   */
+  moveInCostMinor?: number;
+  /** True when `moveInCostMinor` is the lister's own total rather than a sum of parts. */
+  moveInCostStated?: boolean;
+  cautionDepositMinor?: number;
+  serviceChargeMinor?: number;
+  serviceChargePeriod?: RentPeriod;
+  agencyFeeMinor?: number;
+  legalFeeMinor?: number;
+  agreementFeeMinor?: number;
+  /** Shortest tenancy the lister accepts, in months. */
+  minimumTenancyMonths?: number;
+  /** ISO date the property can be occupied from. */
+  availableFrom?: string;
+  furnished?: Furnishing;
+  /** The title a buyer would be taking. Present on sale listings that state one. */
+  tenure?: LandTenure;
+  saleStatus?: SaleStatus;
+  yearBuilt?: number;
+  condition?: BuildCondition;
+  /** Floor area in square metres. A decimal, and the only non-integer here. */
+  sizeSqm?: number;
+  toilets?: number;
+  parkingSpaces?: number;
+  floor?: number;
+  totalFloors?: number;
+  /**
+   * Walkthrough video URLs, best first. Empty rather than absent when the
+   * listing has none, so a reader never has to test for undefined.
+   */
+  videos?: { url: string; posterUrl: string | null; durationSeconds: number | null }[];
+  /**
+   * When somebody from RentMe stood in the property. Not the same claim as
+   * `verified`, which only says the lister was admitted.
+   */
+  inspectedAt?: string;
+  /** When the stated address was checked against the pin. */
+  addressVerifiedAt?: string;
   /**
    * Where the listing comes from. There is one answer and it is "rentme":
    * inventory listed on this platform by a person on this platform.
@@ -153,6 +238,12 @@ export type ListingSearchFilter = {
   q?: string;
   /** Restrict results to a single category. */
   kind?: ListingKind;
+  /**
+   * To let, or for sale. Absent means both, which is the honest default for a
+   * marketplace that does all three of renting, buying and selling: somebody
+   * who has not said which market they are in should see the whole catalogue.
+   */
+  intent?: ListingIntent;
   /**
    * Budget floor and ceiling in MINOR UNITS (kobo), matched against
    * `priceMinor` in its own period: per night for stays, per year for rentals,

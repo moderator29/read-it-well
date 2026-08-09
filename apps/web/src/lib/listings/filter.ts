@@ -1,3 +1,4 @@
+import type { ListingIntent } from "./pricing";
 import type { Listing, ListingKind, ListingSearchFilter } from "./types";
 
 /**
@@ -28,6 +29,11 @@ export function haystack(l: Listing): string {
  */
 export type ListingFacts = {
   priceMinor: number;
+  /**
+   * To let, or for sale. Absent reads as "rent", which is what the seed
+   * catalogue is and what every row that predates the distinction was.
+   */
+  intent?: ListingIntent;
   bedrooms: number;
   bathrooms: number;
   /** The host's declared capacity, where the source carries one. */
@@ -51,6 +57,7 @@ export type ListingFacts = {
 export function factsOf(l: Listing): ListingFacts {
   return {
     priceMinor: l.priceMinor,
+    ...(l.intent !== undefined ? { intent: l.intent } : {}),
     bedrooms: l.bedrooms,
     bathrooms: l.bathrooms,
     ...(l.maxGuests !== undefined ? { maxGuests: l.maxGuests } : {}),
@@ -116,6 +123,11 @@ export function isVerifiedFirstParty(facts: ListingFacts): boolean {
  * skipped when it was not asked for, so an empty filter matches everything.
  */
 export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = {}): boolean {
+  // Rent and sale are two markets, and a 180m asking price landing in a rent
+  // search is the single most confusing thing this catalogue could do. Absent
+  // reads as "rent" because that is what every row without the column is.
+  if (filter.intent && (facts.intent ?? "rent") !== filter.intent) return false;
+
   const wantsBudget = filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
   if (wantsBudget) {
     // A price of zero is "we were not given an amount", not "free".

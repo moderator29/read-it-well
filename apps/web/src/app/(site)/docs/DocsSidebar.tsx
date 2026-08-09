@@ -129,7 +129,7 @@ function ChapterLink({
       aria-current={active ? "page" : undefined}
       className={`nf-tap flex min-h-11 items-center gap-2.5 rounded-[var(--nf-radius-sm)] border-l-2 py-2 pr-2.5 pl-2.5 text-[0.8125rem] leading-snug transition-colors ${
         active
-          ? "border-l-[var(--nf-electric-300)] bg-[var(--nf-brand-primary-soft)] font-semibold text-[var(--nf-content-primary)]"
+          ? "border-l-[var(--nf-brand-secondary)] bg-[var(--nf-brand-primary-soft)] font-semibold text-[var(--nf-content-primary)]"
           : "border-l-transparent text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill-thin)] hover:text-[var(--nf-content-primary)]"
       }`}
     >
@@ -137,7 +137,7 @@ function ChapterLink({
         <span
           aria-hidden="true"
           className={`nf-numeric w-4 shrink-0 text-right text-[0.6875rem] ${
-            active ? "text-[var(--nf-electric-300)]" : "text-[var(--nf-content-muted)]"
+            active ? "text-[var(--nf-brand-secondary)]" : "text-[var(--nf-content-muted)]"
           }`}
         >
           {number}

@@ -70,7 +70,7 @@ export function OnThisPage({ sections }: { sections: { id: string; heading: stri
               <a
                 href={`#${section.id}`}
                 onClick={() => setOpen(false)}
-                className="nf-tap -ml-px flex min-h-11 items-center border-l-2 border-transparent py-2 pl-3 text-[0.8125rem] leading-snug text-[var(--nf-content-secondary)] transition-colors hover:border-l-[var(--nf-electric-300)] hover:text-[var(--nf-content-primary)]"
+                className="nf-tap -ml-px flex min-h-11 items-center border-l-2 border-transparent py-2 pl-3 text-[0.8125rem] leading-snug text-[var(--nf-content-secondary)] transition-colors hover:border-l-[var(--nf-brand-secondary)] hover:text-[var(--nf-content-primary)]"
               >
                 {section.heading}
               </a>
