@@ -77,7 +77,7 @@ function FigureRow({
 }) {
   return (
     <Row className="p-0">
-      <Link href={href} className="nf-row nf-row--tap w-full px-1">
+      <Link href={href} className="nf-row nf-row--tap w-full px-3xs">
         <UiIcon name={icon} size={ICON.row} className="shrink-0 text-[var(--nf-content-secondary)]" />
         <span className={`min-w-0 flex-1 ${TYPE.rowTitle}`}>{label}</span>
         <span className="nf-numeric nf-h4 shrink-0 tabular-nums">{value}</span>
@@ -115,10 +115,10 @@ export function RealDashboard({
 
   return (
     <>
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-block flex flex-wrap items-end justify-between gap-md">
         <div>
           <h1 className="nf-h1">{a.title}</h1>
-          <p className={`mt-1 ${TYPE.bodyLg}`}>{fill(d.standing, { name: displayName })}</p>
+          <p className={`mt-row ${TYPE.bodyLg}`}>{fill(d.standing, { name: displayName })}</p>
         </div>
         <ButtonLink href="/agent/list" variant="primary">
           <BrandIcon name="homes-sparkle" size={24} />
@@ -261,7 +261,7 @@ export function RealDashboard({
                       locale={locale}
                       className="nf-body-sm block font-bold"
                     />
-                    <StatusPill tone={toneForStatus(booking.status)} className="mt-0.5">
+                    <StatusPill tone={toneForStatus(booking.status)} className="mt-inline-tight">
                       {booking.status === "CONFIRMED" ? a.confirmed : a.pending}
                     </StatusPill>
                   </span>
@@ -276,7 +276,7 @@ export function RealDashboard({
           <RowList boxed>
             {quickActions.map((action) => (
               <Row key={action.href} className="p-0">
-                <Link href={action.href} className="nf-row nf-row--tap w-full px-1">
+                <Link href={action.href} className="nf-row nf-row--tap w-full px-3xs">
                   <span className="nf-role-mark shrink-0" aria-hidden="true">
                     <UiIcon name={action.icon} size={ICON.row} />
                   </span>

@@ -34,7 +34,7 @@ export function ListingPitch({ copy, signedIn }: { copy: PitchCopy; signedIn: bo
   ];
 
   return (
-    <div className="mx-auto max-w-lg py-6 text-center sm:py-10">
+    <div className="mx-auto max-w-lg py-section-tight text-center">
       {/* `--nf-content-on-brand` rather than `#fff`. The mark sits on the agent
           gradient in both themes and the token is what follows the theme; the
           literal was a dark-only assumption that happened to look right. */}
@@ -48,26 +48,26 @@ export function ListingPitch({ copy, signedIn }: { copy: PitchCopy; signedIn: bo
         <UiIcon name="key" size={32} />
       </span>
 
-      <h1 className="nf-h2 mt-5">{copy.title}</h1>
-      <p className={`mx-auto mt-3 max-w-[44ch] ${TYPE.bodyLg}`}>
+      <h1 className="nf-h2 mt-heading">{copy.title}</h1>
+      <p className={`mx-auto mt-row max-w-[44ch] ${TYPE.bodyLg}`}>
         {signedIn ? copy.bodySignedIn : copy.bodySignedOut}
       </p>
 
-      <RowList boxed className="mt-7 text-left">
+      <RowList boxed className="mt-block text-left">
         {points.map((point) => (
           <Row key={point.title} className="items-start">
-            <span className="nf-role-mark mt-0.5" aria-hidden="true">
+            <span className="nf-role-mark mt-inline-tight" aria-hidden="true">
               <UiIcon name={point.icon} size={ICON.row} />
             </span>
             <span className="min-w-0">
               <span className={`block ${TYPE.rowTitle}`}>{point.title}</span>
-              <span className={`mt-0.5 block ${TYPE.rowMeta}`}>{point.body}</span>
+              <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{point.body}</span>
             </span>
           </Row>
         ))}
       </RowList>
 
-      <div className="mt-7 flex flex-col gap-4">
+      <div className="mt-block flex flex-col gap-md">
         <ButtonLink href="/profile/setup/owner" variant="primary">
           {copy.apply}
         </ButtonLink>

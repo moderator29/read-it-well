@@ -449,6 +449,69 @@
   }
 
   /*
+   * ------------------------------------------------------------ THE OPTION
+   *
+   * A choice in a grid of choices: a property type, a listing intent, a
+   * tenure. One of a set, exactly one selected, and it lives INSIDE the
+   * surface the form is already drawn on.
+   *
+   * IT EXISTS BECAUSE THESE WERE `.nf-card`, INSIDE AN `.nf-card`.
+   *
+   * The listing wizard draws each step on one glass surface and then filled
+   * that surface with eight more glass surfaces to pick a property type, and
+   * two more under it to pick an intent. That is the one rule the surface
+   * language has no exceptions to - a raised surface may not contain another
+   * raised surface - and the effect is precisely the "jam-packed" reading:
+   * eleven blurred, rimmed, corner-lit rectangles nested one inside the other
+   * on the screen where somebody is trying to concentrate on typing an
+   * address.
+   *
+   * A card is a discrete OBJECT you could pick up and move somewhere else. An
+   * option is not an object; it is one answer to a question that is already
+   * inside a container. So it takes the INSET treatment: a hairline, the inset
+   * fill, and no shadow, no blur and no rim.
+   *
+   * THE SELECTED STATE IS A STATE, NOT A STYLE PROP. It was two inline `style`
+   * objects, typed out twice in the same file, each setting `borderColor` and
+   * a `boxShadow` ring in the agent accent. Two copies of one decision drift by
+   * definition. It is `[aria-pressed="true"]` here, so the ARIA the control
+   * already had to carry is the same thing that paints it, and a third grid of
+   * options cannot invent a third selected look.
+   */
+  .nf-option {
+    display: block;
+    width: 100%;
+    text-align: start;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+    padding: var(--nf-pad-card-sm);
+    cursor: pointer;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  @media (hover: hover) {
+    .nf-option:hover {
+      border-color: var(--nf-border-strong);
+    }
+  }
+
+  .nf-option[aria-pressed="true"] {
+    border-color: var(--nf-mode-agent);
+    /* A wash rather than a second ring. The ring the inline styles drew was a
+       1px box-shadow sitting directly on top of a 1px border, which is two
+       lines a pixel apart pretending to be one thicker one. */
+    background: color-mix(in oklab, var(--nf-mode-agent) 12%, transparent);
+  }
+
+  .nf-option:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+
+  /*
    * ------------------------------------------------------- THE FLAT OBJECT
    *
    * A category on the marketing site: a drawn glyph with a label under it and

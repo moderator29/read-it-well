@@ -344,11 +344,11 @@ function Field({
       <span className="nf-label">{label}</span>
       {children}
       {error ? (
-        <span className="mt-1.5 block text-[0.75rem] font-medium text-[var(--nf-state-error)]">
+        <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
           {error}
         </span>
       ) : hint ? (
-        <span className="mt-1.5 block text-[0.75rem] text-[var(--nf-content-muted)]">{hint}</span>
+        <span className="nf-body-sm mt-inline-tight block text-[var(--nf-content-muted)]">{hint}</span>
       ) : null}
     </label>
   );
@@ -375,7 +375,7 @@ function Counter({
   return (
     <div className="flex items-center justify-between gap-3 border-b border-[var(--nf-border-subtle)] py-3 last:border-b-0">
       <span className="text-[0.9375rem] font-medium text-[var(--nf-content-primary)]">{label}</span>
-      <span className="flex items-center gap-4">
+      <span className="flex items-center gap-md">
         <button
           type="button"
           className="nf-icon-btn"
@@ -1029,14 +1029,14 @@ export function ListingWizard({
         Overlaying instead of inflating means the target is 44pt while the bar
         stays 6px, so nothing about the picture changes.
       */}
-      <div className="relative py-[1.1875rem]">
+      <div className="relative py-lg">
         <SegmentedProgress
           steps={STEP_KEYS.length}
           current={step + 1}
           label={fill(copy.wizard.stepCounter, { current: step + 1, total: STEP_KEYS.length })}
         />
         <ol
-          className="absolute inset-0 flex items-stretch gap-1.5"
+          className="absolute inset-0 flex items-stretch gap-inline-tight"
           aria-label={copy.wizard.stepsLabel}
         >
           {stepNames.map((name, index) => (
@@ -1056,7 +1056,7 @@ export function ListingWizard({
       {/* The step name is the page's heading: a seven step form needs a real
           document outline, and a screen reader announcing the step is how
           someone knows where they are. aria-live tells them it changed. */}
-      <div className="mt-3 flex items-baseline justify-between gap-4">
+      <div className="mt-heading flex items-baseline justify-between gap-md">
         <h1 className="nf-h3" aria-live="polite">
           {stepNames[step]}
         </h1>
@@ -1066,14 +1066,14 @@ export function ListingWizard({
       </div>
 
       {!canPersist && (
-        <p className="nf-card mt-4 p-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-card nf-body-sm mt-group p-card leading-relaxed text-[var(--nf-content-secondary)]">
           {copy.wizard.unconfiguredNotice}
         </p>
       )}
 
       {notice && (
         <p
-          className="mt-4 rounded-[var(--nf-radius-md)] p-3 text-[0.8125rem] font-medium"
+          className="nf-body-sm mt-group rounded-[var(--nf-radius-md)] p-row font-medium"
           style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
           role="status"
         >
@@ -1081,10 +1081,10 @@ export function ListingWizard({
         </p>
       )}
 
-      <div className="nf-card mt-4 p-4 sm:p-6">
+      <div className="nf-card mt-group p-card sm:p-cell">
         {/* ---------------------------------------------------- 1 basic info */}
         {step === 0 && (
-          <div className="space-y-5">
+          <div className="space-y-lg">
             {/*
               The two fields that can actually fail validation use the shared
               TextField/TextArea. The local `Field` above them only draws a
@@ -1106,7 +1106,7 @@ export function ListingWizard({
 
             <div>
               <span className="nf-label">{copy.basics.propertyTypeLabel}</span>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-inline">
                 {TYPE_ORDER.map((type) => {
                   const active = values.propertyType === type;
                   const card = copy.propertyTypes[type];
@@ -1116,15 +1116,17 @@ export function ListingWizard({
                       type="button"
                       onClick={() => set("propertyType", type)}
                       aria-pressed={active}
-                      className="nf-card nf-card--interactive p-3 text-left"
-                      style={
-                        active
-                          ? { borderColor: "var(--nf-mode-agent)", boxShadow: "0 0 0 1px var(--nf-mode-agent)" }
-                          : undefined
-                      }
+                      /* `nf-option`, not `nf-card`. This grid sits INSIDE the
+                         step's own glass surface, and eight cards inside a card
+                         is the one nesting rule the surface language has no
+                         exceptions to. The selected look moved out of an inline
+                         style object and onto `[aria-pressed="true"]`, so the
+                         ARIA this control already carried is what paints it and
+                         the two grids on this screen cannot drift apart. */
+                      className="nf-option"
                     >
-                      <span className="block text-[0.875rem] font-semibold">{card.label}</span>
-                      <span className="mt-0.5 block text-[0.6875rem] leading-snug text-[var(--nf-content-muted)]">
+                      <span className="nf-body block font-semibold">{card.label}</span>
+                      <span className="nf-body-sm mt-inline-tight block leading-snug text-[var(--nf-content-muted)]">
                         {card.blurb}
                       </span>
                     </button>
@@ -1132,7 +1134,7 @@ export function ListingWizard({
                 })}
               </div>
               {rental && (
-                <p className="mt-2 text-[0.75rem] text-[var(--nf-content-secondary)]">
+                <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">
                   {copy.basics.rentalNote}
                 </p>
               )}
@@ -1161,7 +1163,7 @@ export function ListingWizard({
               floor and size took their place, which is what a person reading a
               listing here actually asks after the rent.
             */}
-            <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-3">
+            <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-row">
               <Counter
                 label={copy.basics.counters.bedrooms}
                 fewerLabel={counterAria("fewer", copy.basics.counters.bedrooms)}
@@ -1182,7 +1184,7 @@ export function ListingWizard({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-row">
               <Field label="Toilets" error={fieldErrors.toilets}>
                 <input
                   className="nf-field"
@@ -1243,7 +1245,7 @@ export function ListingWizard({
 
         {/* -------------------------------------------------------- 2 photos */}
         {step === 1 && (
-          <div className="space-y-4">
+          <div className="space-y-group">
             <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
               {fill(copy.photos.intro, { min: MIN_PHOTOS, max: MAX_PHOTOS })}{" "}
               {fill(copy.photos.tooNarrow, { width: MIN_PHOTO_WIDTH })}
@@ -1269,7 +1271,7 @@ export function ListingWizard({
 
             {photoNotice && (
               <p
-                className="rounded-[var(--nf-radius-md)] p-3 text-[0.8125rem] font-medium"
+                className="nf-body-sm rounded-[var(--nf-radius-md)] p-row font-medium"
                 style={{
                   background: "var(--nf-state-warning-surface)",
                   color: "var(--nf-state-warning)",
@@ -1289,7 +1291,7 @@ export function ListingWizard({
                 {copy.photos.empty}
               </div>
             ) : (
-              <ul className="grid grid-cols-2 gap-4">
+              <ul className="grid grid-cols-2 gap-md">
                 {photos.map((photo, index) => (
                   <li key={photo.id} className="overflow-hidden rounded-[var(--nf-radius-md)]">
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
@@ -1303,7 +1305,7 @@ export function ListingWizard({
                         </span>
                       )}
                     </div>
-                    <div className="mt-1.5 flex items-center justify-between gap-2">
+                    <div className="mt-inline-tight flex items-center justify-between gap-inline">
                       <button
                         type="button"
                         className="text-[0.75rem] font-semibold text-[var(--nf-electric-300)] disabled:opacity-40"
@@ -1329,7 +1331,7 @@ export function ListingWizard({
 
         {/* ------------------------------------------------------ 3 location */}
         {step === 2 && (
-          <div className="space-y-5">
+          <div className="space-y-lg">
             <Field label={copy.location.stateLabel} error={fieldErrors.stateCode}>
               <select
                 className="nf-field"
@@ -1386,15 +1388,15 @@ export function ListingWizard({
         {/* ----------------------------------------------------- 4 amenities */}
         {step === 3 && (
           <div>
-            <p className="mb-4 text-[0.8125rem] text-[var(--nf-content-secondary)]">
+            <p className="nf-body-sm mb-group text-[var(--nf-content-secondary)]">
               {copy.amenities.intro}
             </p>
             {fieldErrors.amenities && (
-              <p className="mb-3 text-[0.75rem] font-medium text-[var(--nf-state-error)]">
+              <p className="nf-body-sm mb-row font-medium text-[var(--nf-state-error)]">
                 {fieldErrors.amenities}
               </p>
             )}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-inline">
               {amenities.map((amenity) => {
                 const active = chosenAmenities.includes(amenity.code);
                 return (
@@ -1422,7 +1424,7 @@ export function ListingWizard({
 
         {/* --------------------------------------------- 5 light and water */}
         {step === 4 && (
-          <div className="space-y-6">
+          <div className="space-y-heading">
             <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
               Is there light, is there water, and will they let a guest through
               the gate. These are the first three questions every guest here asks,
@@ -1430,9 +1432,9 @@ export function ListingWizard({
               not.
             </p>
 
-            <fieldset className="space-y-3">
-              <legend className="nf-label mb-1">Grid supply</legend>
-              <div className="flex flex-wrap gap-2">
+            <fieldset className="space-y-row">
+              <legend className="nf-label mb-inline-tight">Grid supply</legend>
+              <div className="flex flex-wrap gap-inline">
                 {POWER_GRID_CHOICES.map((choice) => (
                   <button
                     key={choice.value}
@@ -1457,9 +1459,9 @@ export function ListingWizard({
               </p>
             </fieldset>
 
-            <fieldset className="space-y-3">
-              <legend className="nf-label mb-1">Backup</legend>
-              <div className="flex flex-wrap gap-2">
+            <fieldset className="space-y-row">
+              <legend className="nf-label mb-inline-tight">Backup</legend>
+              <div className="flex flex-wrap gap-inline">
                 {POWER_BACKUP_CHOICES.map((choice) => (
                   <button
                     key={choice.value}
@@ -1502,9 +1504,9 @@ export function ListingWizard({
               </Field>
             )}
 
-            <fieldset className="space-y-3">
-              <legend className="nf-label mb-1">Water</legend>
-              <div className="flex flex-wrap gap-2">
+            <fieldset className="space-y-row">
+              <legend className="nf-label mb-inline-tight">Water</legend>
+              <div className="flex flex-wrap gap-inline">
                 {WATER_SUPPLY_CHOICES.map((choice) => (
                   <button
                     key={choice.value}
@@ -1534,7 +1536,7 @@ export function ListingWizard({
                 <span className="block text-[0.9375rem] font-medium text-[var(--nf-content-primary)]">
                   Prepaid meter
                 </span>
-                <span className="mt-0.5 block text-[0.75rem] text-[var(--nf-content-muted)]">
+                <span className="nf-body-sm mt-inline-tight block text-[var(--nf-content-muted)]">
                   Say so, because it decides whether a guest can be asked to buy units.
                 </span>
               </span>
@@ -1547,18 +1549,18 @@ export function ListingWizard({
             </label>
 
             {/* ------------------------------------------------ the gate */}
-            <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-4">
+            <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card">
               <p className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 Getting through the gate
               </p>
-              <p className="mt-1.5 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+              <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
                 Nobody can read any of this from your public page. It is released
                 only to a guest whose booking is confirmed, and to nobody else,
                 ever. The page will say the estate has a gate and that the
                 details arrive on confirmation.
               </p>
 
-              <div className="mt-4 space-y-4">
+              <div className="mt-group space-y-group">
                 <Field label="Estate or compound name" error={fieldErrors.estateName}>
                   <input
                     className="nf-field"
@@ -1607,7 +1609,7 @@ export function ListingWizard({
 
         {/* ------------------------------------------------------- 5 pricing */}
         {step === 5 && (
-          <div className="space-y-5">
+          <div className="space-y-lg">
             {/*
               The first question, and everything below it follows.
 
@@ -1619,8 +1621,8 @@ export function ListingWizard({
               tell half the listers they are in the wrong place.
             */}
             <fieldset>
-              <legend className="nf-label mb-2">What are you listing it for?</legend>
-              <div className="grid grid-cols-2 gap-2">
+              <legend className="nf-label mb-inline">What are you listing it for?</legend>
+              <div className="grid grid-cols-2 gap-inline">
                 {LISTING_INTENT_CHOICES.map((choice) => {
                   const active = values.intent === choice.value;
                   return (
@@ -1629,18 +1631,10 @@ export function ListingWizard({
                       type="button"
                       onClick={() => set("intent", choice.value)}
                       aria-pressed={active}
-                      className="nf-card nf-card--interactive p-3 text-left"
-                      style={
-                        active
-                          ? {
-                              borderColor: "var(--nf-mode-agent)",
-                              boxShadow: "0 0 0 1px var(--nf-mode-agent)",
-                            }
-                          : undefined
-                      }
+                      className="nf-option"
                     >
-                      <span className="block text-[0.875rem] font-semibold">{choice.label}</span>
-                      <span className="mt-0.5 block text-[0.6875rem] leading-snug text-[var(--nf-content-muted)]">
+                      <span className="nf-body block font-semibold">{choice.label}</span>
+                      <span className="nf-body-sm mt-inline-tight block leading-snug text-[var(--nf-content-muted)]">
                         {choice.blurb}
                       </span>
                     </button>
@@ -1685,8 +1679,8 @@ export function ListingWizard({
                   there has ever been.
                 */}
                 <fieldset>
-                  <legend className="nf-label mb-2">What title comes with it?</legend>
-                  <div className="flex flex-wrap gap-2">
+                  <legend className="nf-label mb-inline">What title comes with it?</legend>
+                  <div className="flex flex-wrap gap-inline">
                     {TENURE_CHOICES.map((choice) => (
                       <button
                         key={choice.value}
@@ -1703,20 +1697,20 @@ export function ListingWizard({
                       </button>
                     ))}
                   </div>
-                  <p className="mt-2 text-[0.75rem] text-[var(--nf-content-muted)]">
+                  <p className="nf-body-sm mt-inline text-[var(--nf-content-muted)]">
                     {TENURE_CHOICES.find((c) => c.value === values.tenure)?.blurb ??
                       "A buyer will ask before anything else. Answering here saves both of you a journey."}
                   </p>
                   {fieldErrors.tenure && (
-                    <p className="mt-1.5 text-[0.75rem] font-medium text-[var(--nf-state-error)]">
+                    <p className="nf-body-sm mt-inline-tight font-medium text-[var(--nf-state-error)]">
                       {fieldErrors.tenure}
                     </p>
                   )}
                 </fieldset>
 
                 <fieldset>
-                  <legend className="nf-label mb-2">Where the sale stands</legend>
-                  <div className="flex flex-wrap gap-2">
+                  <legend className="nf-label mb-inline">Where the sale stands</legend>
+                  <div className="flex flex-wrap gap-inline">
                     {SALE_STATUS_CHOICES.map((choice) => (
                       <button
                         key={choice.value}
@@ -1734,7 +1728,7 @@ export function ListingWizard({
                   </div>
                 </fieldset>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-row">
                   <Field label="Year built" error={fieldErrors.yearBuilt}>
                     <input
                       className="nf-field"
@@ -1784,8 +1778,8 @@ export function ListingWizard({
                 </Field>
 
                 <fieldset>
-                  <legend className="nf-label mb-2">How often is it paid?</legend>
-                  <div className="flex flex-wrap gap-2">
+                  <legend className="nf-label mb-inline">How often is it paid?</legend>
+                  <div className="flex flex-wrap gap-inline">
                     {RENT_PERIOD_CHOICES.map((choice) => (
                       <button
                         key={choice.value}
@@ -1823,11 +1817,11 @@ export function ListingWizard({
                   unstated rather than as zero: "no agency fee" is a selling
                   point and "we did not say" is not the same promise.
                 */}
-                <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-4">
+                <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card">
                   <p className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                     What it costs to move in
                   </p>
-                  <p className="mt-1.5 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+                  <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
                     Fill in whatever you charge. Anything you leave blank is
                     shown as not stated, never as zero.
                   </p>
@@ -1930,7 +1924,7 @@ export function ListingWizard({
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-row">
                   <Field
                     label="Shortest tenancy, in months"
                     error={fieldErrors.minimumTenancyMonths}
@@ -2024,7 +2018,7 @@ export function ListingWizard({
         {/* ---------------------------------------------------- 6 guest view */}
         {step === 6 && (
           <div>
-            <p className="mb-4 text-[0.8125rem] text-[var(--nf-content-secondary)]">
+            <p className="nf-body-sm mb-group text-[var(--nf-content-secondary)]">
               {copy.guestView.intro}
             </p>
             <article className="nf-card overflow-hidden">
@@ -2101,7 +2095,7 @@ export function ListingWizard({
                   </span>
                 </p>
                 {chosenAmenities.length > 0 && (
-                  <p className="mt-2 text-[0.75rem] text-[var(--nf-content-secondary)]">
+                  <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">
                     {chosenAmenities
                       .map(
                         (code) =>
@@ -2189,7 +2183,7 @@ export function ListingWizard({
             >
               {copy.submit.action}
             </Button>
-            <p className="mt-3 text-center text-[0.75rem] text-[var(--nf-content-muted)]">
+            <p className="nf-body-sm mt-row text-center text-[var(--nf-content-muted)]">
               {copy.submit.note}
             </p>
           </div>
@@ -2197,7 +2191,7 @@ export function ListingWizard({
       </div>
 
       {savedAt && (
-        <p className="mt-3 text-center text-[0.75rem] text-[var(--nf-content-muted)]">
+        <p className="nf-body-sm mt-row text-center text-[var(--nf-content-muted)]">
           {fill(copy.wizard.savedAt, { time: savedAt })}
         </p>
       )}
