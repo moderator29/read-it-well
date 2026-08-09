@@ -166,6 +166,7 @@ export default async function WalletPage({
         <BalanceCard
           balanceMinor={wallet.balanceMinor}
           entries={wallet.entries}
+          breakdown={wallet.breakdown}
           locale={locale}
           usdRate={usdRate}
         />

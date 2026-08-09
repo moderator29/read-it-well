@@ -150,11 +150,24 @@ export function CalendarEditor({
                             : "open"
                     }`}
                     className={[
-                      "flex h-11 items-center justify-center rounded-[var(--nf-radius-sm)] text-[0.8125rem] font-medium transition-colors",
+                      "nf-body-sm flex h-11 items-center justify-center rounded-[var(--nf-radius-sm)] font-medium transition-colors",
                       mode === "past" && "cursor-default text-[var(--nf-content-muted)] opacity-35",
+                      /*
+                       * `--nf-content-on-brand`, not `text-white`.
+                       *
+                       * These two cells are the only filled swatches on the
+                       * calendar and both were painted with a raw white. In
+                       * the dark theme that is right by accident; in the true
+                       * light theme the token is what guarantees a readable
+                       * figure on a saturated fill, and a literal is a
+                       * dark-only assumption that nothing tells you about
+                       * until somebody opens the calendar in daylight and
+                       * cannot read which days are booked.
+                       */
                       mode === "booked" &&
-                        "cursor-default bg-[var(--nf-state-success)] text-white opacity-90",
-                      mode === "blocked" && "bg-[var(--nf-brand-primary)] text-white",
+                        "cursor-default bg-[var(--nf-state-success)] text-[var(--nf-content-on-brand)] opacity-90",
+                      mode === "blocked" &&
+                        "bg-[var(--nf-brand-primary)] text-[var(--nf-content-on-brand)]",
                       mode === "free" &&
                         "bg-[var(--nf-surface-raised)] text-[var(--nf-content-primary)] hover:opacity-80",
                       inRange && "ring-2 ring-[var(--nf-electric-300)]",

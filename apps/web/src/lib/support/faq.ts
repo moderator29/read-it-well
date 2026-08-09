@@ -88,7 +88,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "agents",
     keywords: ["agent", "list my", "list a propert", "become", "host", "shortlet", "rent out", "landlady"],
     answer:
-      "To list property, open Become an agent from your profile and complete the application: your details, business area and a valid ID. Applications and verification documents are answered within 3 days. Once approved you can publish listings, manage availability and receive bookings.",
+      "To list property, open your profile and switch profile at the top of the screen, then pick Listing or selling if the property is your own, or Agent or realtor if you do this for other people. Whichever you pick explains what it is and starts the setup: your details, business area and a valid ID. Applications and verification documents are answered within 3 days. Once approved you can publish listings, manage availability and receive bookings.",
   },
   {
     id: "languages",

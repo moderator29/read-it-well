@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { MODE_COOKIE } from "@/lib/mode.constants";
+import { ICON, Row, RowList, TYPE } from "@/components/app/Screen";
 import {
   ROLE_COPY,
   ROLE_ORDER,
@@ -18,32 +19,53 @@ import {
 /**
  * Switching what you are here to do.
  *
- * This replaces `ModeSwitcher`, which offered TWO options ("Personal" and
- * "Agent") drawn as two bordered cards stacked inside a third bordered
- * container, in a dropdown pinned to the top right corner. Three problems with
- * that, in rising order of seriousness:
+ * THIS SHEET IS THE PATTERN FOR THE WHOLE PRODUCT, and it is also now the ONLY
+ * way onto the selling side of the platform. Both of those are deliberate.
  *
- *  1. **Nested cards.** A card inside a card inside a popover is three edges
- *     saying the same thing. The reference apps that do this well use ROWS with
- *     a hairline between them: the rows are siblings, the divider says so, and
- *     nothing needs a border of its own. That is what this draws.
+ * ---------------------------------------------------------------------------
+ * IT REPLACED A SEPARATE PRODUCT CALLED "BECOME AN AGENT"
+ * ---------------------------------------------------------------------------
  *
- *  2. **Two options for three roles.** "Agent" was doing duty for both a
- *     landlord listing their own flat and a realtor running a book of
- *     properties. Those two people want different things from the first screen
- *     and are asked for different documents, so they are two rows here.
+ * There used to be a `/agents` marketing page with a hero, three benefit
+ * cards, six numbered step cards, an earnings tease, four FAQ cards and two
+ * calls to action, reached from a rail row, two profile rows, a search empty
+ * state, the home screen, the footer and four site pages. It sold a person on
+ * a CONVERSION: you are a renter, become an agent, here is the pitch.
  *
- *  3. **Picking one you do not have was a dead end.** The old switcher wrote
- *     the cookie and pushed you at `/agent/dashboard` regardless, so an account
- *     with no agents row landed on a refusal screen with no way forward. That
- *     is the failure this sheet is shaped to prevent: choosing a role you have
- *     not set up NEVER navigates. It opens an explanation of what the role is,
- *     what setting it up involves, one primary action to start, and a quiet way
- *     back to the list.
+ * That framing was wrong about the product. Nobody becomes an agent. Somebody
+ * renting a flat in Yaba puts the family plot in Enugu up for sale and is now
+ * doing both, on one account, with one inbox and one wallet. The thing they
+ * need is not a conversion funnel, it is a SWITCH - and the moment they use it
+ * is exactly the moment to explain what the profile is and start setting it
+ * up, because that is when they have said what they want.
+ *
+ * So: pick a profile you do not have, and the sheet turns into an explanation
+ * of what it is, what it will ask you for, itemised, and one control that
+ * starts it. There is no pitch page left to send anyone to and nothing about
+ * this is a refusal.
+ *
+ * ---------------------------------------------------------------------------
+ * THE SHAPE, WHICH THE REST OF THE PRODUCT COPIES
+ * ---------------------------------------------------------------------------
+ *
+ * Rows in ONE surface with inset hairlines. An icon in a tinted circle, a
+ * label, a one-line description, a tick on the current one. No card per row:
+ * three roles drawn as three cards is three borders, three radii and three
+ * shadows for one list of three things.
  *
  * VERIFICATION IS NOT MENTIONED FOR A RENTER anywhere in this file. See
  * `roles.ts` for why that is a rule rather than an omission.
  */
+
+/**
+ * The query parameter that opens this sheet from somewhere else.
+ *
+ * `/profile?switch=owner` lands on the Seller explanation with the sheet
+ * already up. It is what `/agents` redirects to, so every link the old pitch
+ * page had - the footer, the landing band, the help centre, four site pages,
+ * anything anybody has shared - arrives at the replacement rather than a 404.
+ */
+export const SWITCH_PARAM = "switch";
 
 export function RoleSwitcher({
   roles,
@@ -58,8 +80,30 @@ export function RoleSwitcher({
   className?: string;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [explaining, setExplaining] = useState<RoleId | null>(null);
+  const params = useSearchParams();
+
+  /*
+   * Arriving with the sheet already asked for.
+   *
+   * `?switch=owner` opens on the Seller explanation. It is what `/agents`
+   * redirects to, so every link the old pitch page had - the footer, the
+   * landing band, the help centre, four site pages, anything anybody has
+   * shared - arrives at the replacement rather than at a 404.
+   *
+   * Read in a LAZY INITIALISER rather than in an effect. An effect that calls
+   * `setState` in its body renders the closed sheet first and then reopens it,
+   * which is a visible flash on the one screen this parameter exists to reach
+   * smoothly, and the lint rule that flags it is right. The parameter can only
+   * arrive on a fresh mount, because the only thing that sets it is a redirect
+   * from another route, so there is nothing an effect would catch that this
+   * misses.
+   */
+  const asked = params.get(SWITCH_PARAM);
+  const askedRole: RoleId | null =
+    asked === "owner" || asked === "professional" ? asked : null;
+
+  const [open, setOpen] = useState(askedRole !== null);
+  const [explaining, setExplaining] = useState<RoleId | null>(askedRole);
   const [pending, startTransition] = useTransition();
 
   const currentCopy = ROLE_COPY[current];
@@ -105,12 +149,8 @@ export function RoleSwitcher({
           <UiIcon name={currentCopy.icon} size="md" />
         </span>
         <span className="min-w-0 flex-1 text-left">
-          <span className="block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-            {currentCopy.label}
-          </span>
-          <span className="block truncate text-[0.8125rem] text-[var(--nf-content-muted)]">
-            {SWITCH_HINT}
-          </span>
+          <span className={`block ${TYPE.rowTitle}`}>{currentCopy.label}</span>
+          <span className={`block truncate ${TYPE.rowMeta}`}>{SWITCH_HINT}</span>
         </span>
         <UiIcon name="chevron-right" size="sm" className="text-[var(--nf-content-muted)]" />
       </button>
@@ -145,21 +185,23 @@ export function RoleSwitcher({
         detents={[0.6, 0.92]}
       >
         {explaining ? (
-          <RoleSetup role={explaining} onBack={() => setExplaining(null)} />
+          <RoleSetup
+            role={explaining}
+            state={byId(explaining)}
+            onBack={() => setExplaining(null)}
+          />
         ) : (
           <>
-            <p className="px-1 pb-3 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              {SHEET_SUB}
-            </p>
+            <p className={`px-1 pb-3 ${TYPE.body}`}>{SHEET_SUB}</p>
 
             {/*
-              ROWS WITH DIVIDERS, NOT NESTED CARDS.
+              ROWS IN ONE SURFACE, NOT NESTED CARDS.
 
-              `divide-y` puts one hairline between siblings and none around the
-              outside, which is the whole visual argument: these are items in a
-              list, not three separate objects that happen to be stacked.
+              Unboxed, because the sheet is already the surface: a boxed list
+              inside a sheet panel is the nested container this whole pass
+              exists to remove.
             */}
-            <ul className="divide-y divide-[var(--nf-divider)]">
+            <RowList inset className="[--nf-row-divider-lead:3.25rem]">
               {ROLE_ORDER.map((id) => {
                 const role = byId(id);
                 if (!role) return null;
@@ -167,13 +209,13 @@ export function RoleSwitcher({
                 const isCurrent = id === current;
 
                 return (
-                  <li key={id}>
+                  <Row key={id} className="p-0">
                     <button
                       type="button"
                       disabled={pending}
                       onClick={() => choose(role)}
                       aria-current={isCurrent ? "true" : undefined}
-                      className="flex w-full items-center gap-3.5 px-1 py-3.5 text-left transition-colors hover:bg-[var(--nf-interactive-hover)] disabled:opacity-60"
+                      className="nf-row nf-row--tap w-full px-1 text-left disabled:opacity-60"
                     >
                       {/* The icon in a tinted circle. One tint for every role,
                           because a colour per role would be four meanings for
@@ -183,28 +225,27 @@ export function RoleSwitcher({
                       </span>
 
                       <span className="min-w-0 flex-1">
-                        <span className="flex items-center gap-2">
-                          <span className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-                            {copy.label}
-                          </span>
+                        <span className="flex flex-wrap items-center gap-x-2">
+                          <span className={TYPE.rowTitle}>{copy.label}</span>
                           {/* Only ever the truth about this account. A role
                               that has not been set up says so here rather than
                               looking identical to one that has and then dead
                               ending on the tap. */}
                           {!role.setUp && (
-                            <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[var(--nf-content-muted)]">
+                            <span className={`${TYPE.caption} font-semibold uppercase tracking-wide`}>
                               {NOT_SET_UP}
                             </span>
                           )}
                           {role.setUp && requiresVerification(id) && !role.verified && (
-                            <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[var(--nf-status-pending)]">
+                            <span
+                              className={`${TYPE.caption} font-semibold uppercase tracking-wide`}
+                              style={{ color: "var(--nf-status-pending)" }}
+                            >
                               {UNVERIFIED}
                             </span>
                           )}
                         </span>
-                        <span className="mt-0.5 block text-[0.8125rem] leading-snug text-[var(--nf-content-muted)]">
-                          {copy.description}
-                        </span>
+                        <span className={`mt-0.5 block ${TYPE.rowMeta}`}>{copy.description}</span>
                       </span>
 
                       {/* The tick, on the current one only. */}
@@ -224,10 +265,10 @@ export function RoleSwitcher({
                         />
                       )}
                     </button>
-                  </li>
+                  </Row>
                 );
               })}
-            </ul>
+            </RowList>
           </>
         )}
       </Sheet>
@@ -236,16 +277,35 @@ export function RoleSwitcher({
 }
 
 /**
- * The screen behind a role you have not got.
+ * The screen behind a role you have not got, which is where the old pitch page
+ * went.
  *
- * Three paragraphs and two controls, and the shape of it is the argument: what
- * this role IS, what setting it up actually involves in real hours and real
- * documents, then one primary action and one quiet way back. Nothing here is a
- * refusal, and nothing here is a wall - the person picked this on purpose and
- * the only useful answer is to tell them how to get it.
+ * What this role IS, then what it will ask you for as a CHECKLIST rather than
+ * a paragraph, then one control that starts it. The checklist is the part that
+ * earns its place: "a short application, then a government issued ID and proof
+ * that the property is yours" is a sentence somebody skims, and the same facts
+ * as four rows with glyphs is a list somebody can look at their desk and check
+ * against, which is the actual decision being made here - do I have this
+ * stuff, now, or do I come back later.
+ *
+ * A PROFILE THAT IS SET UP AND WAITING SAYS SO. `state.setUp` with
+ * `verified` false is a real, common state - the application is filed and the
+ * review has not come back - and this used to be unreachable from here at all,
+ * because a set-up role never opened the explanation. It does now, from the
+ * verification prompt and from a direct `?switch=` link, and it must not
+ * invite somebody to file a second application. It offers the status instead.
  */
-function RoleSetup({ role, onBack }: { role: RoleId; onBack: () => void }) {
+function RoleSetup({
+  role,
+  state,
+  onBack,
+}: {
+  role: RoleId;
+  state: RoleState | undefined;
+  onBack: () => void;
+}) {
   const copy = ROLE_COPY[role].setup;
+  const waiting = state?.setUp === true && state.verified === false;
 
   return (
     <div className="px-1 pb-2">
@@ -253,24 +313,45 @@ function RoleSetup({ role, onBack }: { role: RoleId; onBack: () => void }) {
         <UiIcon name={ROLE_COPY[role].icon} size="lg" />
       </span>
 
-      <p className="mt-4 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-        {copy.what}
-      </p>
+      <p className={`mt-4 ${TYPE.bodyLg}`}>{copy.what}</p>
 
-      <p className="mt-3 text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
-        <span className="font-semibold text-[var(--nf-content-secondary)]">{INVOLVES_LABEL} </span>
-        {copy.involves}
-      </p>
+      {waiting ? (
+        <p className={`mt-4 ${TYPE.body}`}>{WAITING_NOTE}</p>
+      ) : (
+        <>
+          <p className={`mt-4 ${TYPE.label}`}>{INVOLVES_LABEL}</p>
 
-      {requiresVerification(role) && (
-        <p className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-          {VERIFY_NOTE}
-        </p>
+          {copy.needs && (
+            <RowList inset={false} className="mt-1">
+              {copy.needs.map((need) => (
+                <Row key={need.label}>
+                  <UiIcon
+                    name={need.icon}
+                    size={ICON.row}
+                    className="shrink-0 text-[var(--nf-content-muted)]"
+                  />
+                  <span className={TYPE.body}>{need.label}</span>
+                </Row>
+              ))}
+            </RowList>
+          )}
+
+          <p className={`mt-3 ${TYPE.rowMeta}`}>{copy.involves}</p>
+        </>
+      )}
+
+      {requiresVerification(role) && !waiting && (
+        <p className={`mt-3 ${TYPE.rowMeta}`}>{VERIFY_NOTE}</p>
       )}
 
       <div className="mt-6 flex flex-col gap-2">
-        <ButtonLink href={copy.actionHref} variant="primary" size="lg" full>
-          {copy.action}
+        <ButtonLink
+          href={waiting ? "/profile/application" : copy.actionHref}
+          variant="primary"
+          size="lg"
+          full
+        >
+          {waiting ? CHECK_STATUS : copy.action}
         </ButtonLink>
         {/* The quiet way back. A sheet with only a forward control is a trap
             for anybody who opened this out of curiosity. */}
@@ -292,7 +373,10 @@ const SWITCH_HINT = "Switch what you are here to do";
 const NOT_SET_UP = "Not set up";
 const UNVERIFIED = "Unverified";
 const CURRENT_LABEL = "Current";
-const INVOLVES_LABEL = "What it takes:";
+const INVOLVES_LABEL = "What to have ready";
+const CHECK_STATUS = "See where it stands";
+const WAITING_NOTE =
+  "This profile is set up and waiting on our review. You can fill in listings now; publishing opens once the review comes back.";
 const VERIFY_NOTE =
   "We verify sellers and agents because somebody is going to send them money for a place they have not stood in yet. Renting or buying never asks you to verify.";
 const BACK = "Not now";

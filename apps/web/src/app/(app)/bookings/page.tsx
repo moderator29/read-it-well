@@ -11,6 +11,9 @@ import { BookingsTabs } from "@/components/app/bookings/BookingsTabs";
 import { MyBookings } from "./MyBookings";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
+import { readInspectionsForRequester } from "@/lib/inspections/queries";
+import { InspectionRows } from "@/components/app/inspections/InspectionRows";
+import { Row, RowList, Section, TYPE } from "@/components/app/Screen";
 
 export const metadata: Metadata = { title: "Bookings" };
 
@@ -79,6 +82,23 @@ export default async function BookingsPage({
   const groups = unavailable ? null : loaded;
   const seeded = loaded === null ? buildBookings(await getBookedStays(), locale) : null;
 
+  /*
+   * THE VIEWINGS THIS PERSON HAS ASKED FOR.
+   *
+   * A booking is a stay that is paid for; an inspection is the step before
+   * anybody pays for anything, and in the rental market it is the ONLY step
+   * most people ever take. Somebody who has asked three agents to show them a
+   * flat has three live things on this platform and, until now, no screen
+   * showing any of them: the requests existed as sentences in three separate
+   * chat threads.
+   *
+   * It sits ABOVE the trips because it is the live half of this screen. A
+   * request waiting on an agent is something happening now; a stay in
+   * September is a record. The section does not render at all when there is
+   * nothing in it, so a person who only books hotels never sees it.
+   */
+  const inspections = await readInspectionsForRequester();
+
   const steps: { icon: BrandIconName; title: string; body: string }[] = [
     { icon: "calendar-check", title: "Choose your dates", body: "Pick check-in and check-out on a live calendar." },
     { icon: "shield-lock", title: "Confirm and pay", body: "Secure payment in naira. You are never charged early." },
@@ -92,14 +112,27 @@ export default async function BookingsPage({
       <PageHeader title={t.nav.bookings} />
       </div>
 
+      {inspections.inspections.length > 0 && (
+        <Reveal className="mb-8">
+          <Section
+            title="Your inspections"
+            description="Whoever listed the property sees the same state you do."
+          >
+            <InspectionRows
+              inspections={inspections.inspections}
+              side="requester"
+              locale={locale}
+            />
+          </Section>
+        </Reveal>
+      )}
+
       <Reveal>
         <div className="nf-card p-4 sm:p-5">
           {unavailable ? (
             <div className="py-6 text-center" data-testid="bookings-unavailable">
-              <p className="font-semibold text-[var(--nf-content-primary)]">
-                We could not load your trips
-              </p>
-              <p className="mx-auto mt-2 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className={TYPE.rowTitle}>We could not load your trips</p>
+              <p className={`mx-auto mt-2 max-w-sm ${TYPE.body}`}>
                 Something on our side did not answer just now. Nothing has changed about
                 your bookings. Reload the page and they should come straight back.
               </p>
@@ -117,22 +150,24 @@ export default async function BookingsPage({
       </Reveal>
 
       <Reveal delay={100}>
-        <h2 className="nf-overline mb-3 mt-8">How booking works</h2>
-        <ul className="grid gap-3 sm:grid-cols-3">
+        {/* THREE CARDS BECAME THREE ROWS. Three steps of one process drawn as
+            three bordered boxes is three objects where there is one sequence;
+            one surface with hairlines between says "these belong together and
+            they are in this order", which is the thing the reader needs. */}
+        <h2 className="nf-group-label mt-8">How booking works</h2>
+        <RowList boxed>
           {steps.map((s) => (
-            <li key={s.title} className="nf-card flex items-start gap-4 p-4 sm:flex-col">
-              <span className="h-14 w-14 shrink-0">
+            <Row key={s.title} className="items-start">
+              <span className="h-11 w-11 shrink-0">
                 <BrandIcon name={s.icon} fill />
               </span>
-              <span className="leading-tight">
-                <span className="block text-[0.875rem] font-semibold">{s.title}</span>
-                <span className="mt-1 block text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
-                  {s.body}
-                </span>
+              <span className="min-w-0 leading-tight">
+                <span className={`block ${TYPE.rowTitle}`}>{s.title}</span>
+                <span className={`mt-0.5 block ${TYPE.rowMeta}`}>{s.body}</span>
               </span>
-            </li>
+            </Row>
           ))}
-        </ul>
+        </RowList>
       </Reveal>
     </div>
   );

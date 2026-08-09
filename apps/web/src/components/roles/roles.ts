@@ -68,6 +68,15 @@ export type RoleCopy = {
     /** The one primary action. */
     action: string;
     actionHref: string;
+    /**
+     * What the setup actually asks for, itemised.
+     *
+     * A paragraph saying "a short application, then a government issued ID"
+     * is read once and forgotten; the same facts as a checklist can be
+     * CHECKED, which is what somebody deciding whether to start actually
+     * wants to do. Absent on `renter`, because there is nothing to bring.
+     */
+    needs?: { icon: UiIconName; label: string }[];
   };
 };
 
@@ -94,8 +103,14 @@ export const ROLE_COPY: Record<RoleId, RoleCopy> = {
       title: "List or sell your own property",
       what: "For a landlord or an owner putting their own place up: one property or a handful, rented out or sold, with the enquiries coming to you rather than through an agent.",
       involves: "A short application, then a government issued ID and proof that the property is yours. Most people finish the form in about ten minutes; a decision usually comes back within two working days.",
-      action: "Start the application",
-      actionHref: "/agents/apply",
+      action: "Set up this profile",
+      actionHref: "/profile/setup/owner",
+      needs: [
+        { icon: "user", label: "Your name and phone number" },
+        { icon: "verified", label: "A government issued ID, or your NIN" },
+        { icon: "key", label: "Proof the property is yours" },
+        { icon: "wallet", label: "A Nigerian bank account for payouts" },
+      ],
     },
   },
   professional: {
@@ -107,11 +122,29 @@ export const ROLE_COPY: Record<RoleId, RoleCopy> = {
       title: "Work as an agent or realtor",
       what: "For somebody doing this as a business: listing on behalf of owners, managing enquiries and inspections across a book of properties, and getting paid through the platform.",
       involves: "The same application plus your business details, a government issued ID and proof of address. We check every business by hand before any listing goes live.",
-      action: "Start the application",
-      actionHref: "/agents/apply",
+      action: "Set up this profile",
+      actionHref: "/profile/setup/professional",
+      needs: [
+        { icon: "user", label: "Your name and phone number" },
+        { icon: "verified", label: "A government issued ID, or your NIN" },
+        { icon: "building-apartment", label: "Your business name and RC number" },
+        { icon: "location", label: "A business address we can check" },
+        { icon: "wallet", label: "A Nigerian bank account for payouts" },
+      ],
     },
   },
 };
+
+/**
+ * The two role ids that have a setup flow, as the URL segment carries them.
+ *
+ * `renter` is deliberately not one: there is no application to be a renter,
+ * which is the rule the whole file is built around.
+ */
+export const SETUP_ROLES: readonly Exclude<RoleId, "renter">[] = [
+  "owner",
+  "professional",
+] as const;
 
 /** True for the two roles that take other people's money. Never for a renter. */
 export function requiresVerification(role: RoleId): boolean {

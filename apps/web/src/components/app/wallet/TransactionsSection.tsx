@@ -9,6 +9,7 @@ import type { WalletEntry, WalletEntryKind } from "@/lib/wallet/types";
 import { Amount } from "@/components/ui/Amount";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+import { TYPE } from "@/components/app/Screen";
 
 /**
  * Wallet transaction history.
@@ -160,8 +161,8 @@ export function TransactionsSection({
           <span className="h-12 w-12">
             <BrandIcon name="wallet-secure" fill />
           </span>
-          <p className="mt-3 text-[0.9375rem] font-semibold">No transactions yet</p>
-          <p className="mt-1 max-w-[34ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className={`mt-3 ${TYPE.rowTitle}`}>No transactions yet</p>
+          <p className={`mt-1 max-w-[34ch] ${TYPE.rowMeta}`}>
             {filter === "all"
               ? "Every deposit, payment, transfer and withdrawal will appear here the moment it happens."
               : "Nothing in this category yet. Movements will appear here the moment they happen."}
@@ -202,12 +203,30 @@ function EntryRow({
         {/* "Booking payment, Victoria Island suite" was rendering as
             "Booking payment, Vic". The note is the only thing on the row that
             says what the money was for, so it wraps. */}
-        <span className="block text-[0.875rem] font-semibold">
-          {entry.note ?? KIND_LABEL[entry.kind]}
-        </span>
+        <span className={`block ${TYPE.rowTitle}`}>{entry.note ?? KIND_LABEL[entry.kind]}</span>
+
+        {/*
+          THE PROPERTY, WHICH THIS LEDGER NEVER NAMED.
+
+          Both reference platforms put the property on every money row that has
+          one, and it is the difference between a receipt somebody has to
+          remember and one they can check: "Held in escrow, ₦1,200,000" against
+          "Held in escrow, ₦1,200,000, 3 bedroom flat at Admiralty Way".
+
+          Nothing is invented. It is resolved in the repository from the
+          reference the escrow leg was keyed on, so a row only carries a title
+          when a real listing is genuinely behind it, and a listing that has
+          since come down leaves the row exactly as it was.
+        */}
+        {entry.property && (
+          <span className={`mt-0.5 block ${TYPE.rowMeta} [overflow-wrap:anywhere]`}>
+            {entry.property}
+          </span>
+        )}
+
         {/* The reference is how a person reconciles this row against their bank
             statement, so it wraps rather than ending at "WD-GTB-00". */}
-        <span className="mt-0.5 block text-[0.72rem] text-[var(--nf-content-muted)] [overflow-wrap:anywhere]">
+        <span className={`mt-0.5 block ${TYPE.caption} [overflow-wrap:anywhere]`}>
           {KIND_LABEL[entry.kind]} · {entry.reference}
         </span>
       </span>
@@ -226,7 +245,7 @@ function EntryRow({
       */}
       <span className="nf-numeric shrink-0 text-right leading-tight">
         <span
-          className={`block text-[0.875rem] font-semibold ${credit ? "text-[var(--nf-state-success)]" : "text-[var(--nf-state-error)]"}`}
+          className={`block nf-body-sm font-semibold ${credit ? "text-[var(--nf-state-success)]" : "text-[var(--nf-state-error)]"}`}
         >
           {credit ? "+" : "-"}
           <Amount

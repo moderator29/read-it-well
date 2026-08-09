@@ -36,7 +36,6 @@ import {
   isTenancy,
   LISTING_INTENT_CHOICES,
   MAX_FLOORS,
-  MAX_TENANCY_MONTHS,
   parseNairaToKobo,
   POWER_BACKUP_CHOICES,
   POWER_GRID_CHOICES,
@@ -2053,8 +2052,23 @@ export function ListingWizard({
                     {copy.guestView.rentBadge}
                   </span>
                 ) : null}
-                <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">
-                  <UiIcon name="location" size={12} className="shrink-0 text-white/70" />
+                {/*
+                  ON MEDIA, WHICH IS ITS OWN TOKEN FAMILY.
+
+                  This line sits on the listing's own photograph, so it is not
+                  a dark-theme colour and it is not a light-theme colour: it is
+                  ink on somebody's picture, in both themes, and
+                  `--nf-content-on-media` is the token that says so. The
+                  `text-white/90` and `text-white/70` it replaces happened to
+                  look right and could never follow a theme, which is exactly
+                  the distinction the on-media family exists to hold.
+                */}
+                <p className="nf-body-sm absolute bottom-3 left-3 right-3 flex items-center gap-1.5 font-medium text-[var(--nf-content-on-media)]">
+                  <UiIcon
+                    name="location"
+                    size={12}
+                    className="shrink-0 text-[var(--nf-content-on-media-muted)]"
+                  />
                   <span className="truncate">
                     {[values.area, values.city, stateName].filter(Boolean).join(", ") ||
                       copy.guestView.locationPlaceholder}

@@ -1,0 +1,16 @@
+import { chromium } from "playwright-core";
+const dir = "/tmp/claude-0/-home-user-read-it-well/9aa8c30d-e76a-54aa-a47f-086f8450029c/scratchpad/";
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: ["--no-sandbox"] });
+for (const theme of ["dark", "light"]) {
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const p = await ctx.newPage();
+  await p.goto("http://localhost:3122/", { waitUntil: "load", timeout: 60000 });
+  await p.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
+  await p.waitForTimeout(700);
+  await p.getByRole("button", { name: /menu/i }).first().click();
+  await p.waitForTimeout(900);
+  await p.screenshot({ path: `${dir}menu-${theme}.png` });
+  await ctx.close();
+}
+await b.close();
+console.log("ok");

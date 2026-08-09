@@ -4,6 +4,7 @@ import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { resolveSession } from "../actions/session";
+import { memo } from "../cache/memo";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { MEDIA_BUCKET } from "../social/posts-media";
@@ -212,7 +213,7 @@ export const getHomeOverview = cache(async function getHomeOverview(): Promise<H
   const lgaCode = profile?.lga_code ?? "";
 
   const [named, places] = await Promise.all([
-    readPlaceNames(supabase, stateCode, lgaCode),
+    readPlaceNames(stateCode, lgaCode),
     readOpenPlaces(supabase, stateCode),
   ]);
 
@@ -256,25 +257,63 @@ function firstWord(value: string): string {
   return trimmed.split(/\s+/)[0] ?? "";
 }
 
+/**
+ * The two reference tables that turn a profile's codes into names.
+ *
+ * `public.states` holds 37 rows and `public.local_governments` holds 774, and
+ * neither changes without a migration. This used to be two `maybeSingle()`
+ * queries per signed-in home render, forever, to answer a question whose entire
+ * answer set is 811 short strings and fits in a map.
+ *
+ * Both are held for an hour through `lib/cache/memo`, which means a failed
+ * refresh keeps the last good map rather than blanking the greeting, and
+ * concurrent renders at the moment the TTL expires share one query. The loaders
+ * build their own client for the reason `lib/listings/supabase-repository.ts`
+ * gives: a cache that outlives a request must not close over a cookie-bound,
+ * request-scoped client.
+ *
+ * The tables are readable by anyone, so nothing user-specific is being cached
+ * here. The pairing of a code to a person stays where it belongs, on the
+ * profile read.
+ */
+const PLACE_NAME_TTL_MS = 3_600_000;
+
+const stateNames = memo<Map<string, string>>({
+  ttlMs: PLACE_NAME_TTL_MS,
+  empty: new Map(),
+  load: async () => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.from("states").select("code, name");
+    if (error || !data) throw new Error("states unavailable");
+    return new Map(data.map((row) => [row.code, row.name]));
+  },
+});
+
+const lgaNames = memo<Map<string, string>>({
+  ttlMs: PLACE_NAME_TTL_MS,
+  empty: new Map(),
+  load: async () => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.from("local_governments").select("code, name");
+    if (error || !data) throw new Error("local governments unavailable");
+    return new Map(data.map((row) => [row.code, row.name]));
+  },
+});
+
 /** Turn the two codes on a profile into the two names a person recognises. */
 async function readPlaceNames(
-  supabase: Db,
   stateCode: string,
   lgaCode: string,
 ): Promise<{ stateName: string; lgaName: string }> {
   if (!stateCode && !lgaCode) return { stateName: "", lgaName: "" };
   try {
-    const [stateRow, lgaRow] = await Promise.all([
-      stateCode
-        ? supabase.from("states").select("name").eq("code", stateCode).maybeSingle()
-        : Promise.resolve({ data: null }),
-      lgaCode
-        ? supabase.from("local_governments").select("name").eq("code", lgaCode).maybeSingle()
-        : Promise.resolve({ data: null }),
+    const [states, lgas] = await Promise.all([
+      stateCode ? stateNames.get() : Promise.resolve(new Map<string, string>()),
+      lgaCode ? lgaNames.get() : Promise.resolve(new Map<string, string>()),
     ]);
     return {
-      stateName: stateRow.data?.name ?? "",
-      lgaName: lgaRow.data?.name ?? "",
+      stateName: states.get(stateCode) ?? "",
+      lgaName: lgas.get(lgaCode) ?? "",
     };
   } catch {
     return { stateName: "", lgaName: "" };

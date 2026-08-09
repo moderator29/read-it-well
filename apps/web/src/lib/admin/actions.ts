@@ -333,7 +333,11 @@ export async function reviewAgentApplication(input: {
       kind: "agent",
       title: notice.title,
       body: notice.body,
-      href: "/agents/status",
+      /* The application lives under the profile now: it is a fact about your
+         own account, not a page in the public marketing site. `/agents/status`
+         still redirects, but a notification written today should carry the
+         real address rather than lean on a compatibility hop. */
+      href: "/profile/application",
     });
 
     const detail: AuditDetail = {

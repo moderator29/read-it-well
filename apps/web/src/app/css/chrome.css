@@ -179,8 +179,8 @@
     background: var(--nf-glass-fill-strong);
     border: 1px solid var(--nf-glass-border);
     border-radius: var(--nf-radius-pill);
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim-strong),
       inset 0 -1px 0 var(--nf-glass-floor),
@@ -204,8 +204,8 @@
     color: var(--nf-content-primary);
     background: var(--nf-glass-fill-strong);
     border: 1px solid var(--nf-glass-border);
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim-strong),
       inset 0 -1px 0 var(--nf-glass-floor),
@@ -382,8 +382,8 @@
     border-radius: var(--nf-radius-pill);
     background: var(--nf-glass-fill-strong);
     border: 1px solid var(--nf-border-subtle);
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
     box-shadow:
       0 12px 32px -10px rgb(0 0 0 / 0.55),
       inset 0 1px 0 rgb(255 255 255 / 0.06);
@@ -434,5 +434,54 @@
   :root[data-theme="light"] .nf-dock__btn[aria-current="page"] {
     color: var(--nf-brand-secondary);
     background: rgb(255 255 255 / 0.14);
+  }
+
+  /*
+   * ------------------------------------------------------- THE SITE BAR
+   *
+   * The marketing header, which is a different job from every other glass
+   * surface on the platform and had been wearing the generic one.
+   *
+   * `.nf-glass` is 7.5% white over a 26px blur. That is exactly right for a
+   * card or a sheet, which sits ON a page with its own margins around it. A
+   * sticky bar is different: the entire page passes UNDERNEATH it, and at 7.5%
+   * the body copy of whatever section is scrolling by stays legible through
+   * the bar, crossing the wordmark and the nav labels. A stranger's first
+   * impression of the company is then a row of navigation with somebody else's
+   * sentences printed through it.
+   *
+   * So the bar gets its own material: the canvas colour at most of its own
+   * opacity, over the strong blur, with a hairline at the bottom edge. Still
+   * translucent, still glass, still picks up the aurora moving behind it - but
+   * nothing reads through it any more.
+   *
+   * The hairline is on the bar rather than on a wrapper because a sticky
+   * element with a transparent bottom border has no edge, and a bar with no
+   * edge floating over content is the thing that makes a page feel like it is
+   * missing a layer.
+   */
+  .nf-site-bar {
+    background: color-mix(in oklab, var(--nf-surface-canvas) 93%, transparent);
+    border-bottom: 1px solid var(--nf-border-subtle);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+  }
+
+  /* Daylight wants more of the paper and less of the blur: a light bar that is
+     too transparent reads as grubby rather than as glass, because dark text
+     passing under it dirties the whole strip. */
+  :root[data-theme="light"] .nf-site-bar {
+    background: color-mix(in oklab, var(--nf-surface-primary) 94%, transparent);
+  }
+
+  /* No backdrop-filter, no translucency. A washed strip with content showing
+     through is worse than a solid bar. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nf-site-bar {
+      background: var(--nf-surface-canvas);
+    }
+    :root[data-theme="light"] .nf-site-bar {
+      background: var(--nf-surface-primary);
+    }
   }
 }

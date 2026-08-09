@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { HowItWorks } from "@/components/site/landing/HowItWorks";
 import { AgentsBand } from "@/components/site/landing/AgentsBand";
 import { WhyRentMe } from "@/components/site/landing/WhyRentMe";
@@ -34,16 +34,26 @@ export default async function LandingPage() {
    * could look at anything. Browsing is open now, so these are plain links and
    * the wall comes later, when somebody tries to save, message or pay.
    *
-   * Every icon depicts the thing it stands for. The suitcase and the gift box
-   * that used to label Experiences and Restaurants are gone: an object that
-   * does not mean what it sits under teaches a reader to stop reading objects.
+   * THE OBJECTS CAME OFF THIS ROW AND STAYED ON THE PRODUCT'S.
+   *
+   * The five drawn here were the signature 3D family: blue and white, lit,
+   * modelled, warm. They are the best artwork on the platform and they are the
+   * wrong instrument at the top of a marketing page. That page is read by
+   * somebody deciding whether this is a real company before they will send a
+   * year's rent through it, and a row of rendered toys is the grammar of an app
+   * store listing rather than of a business. The identical five links inside
+   * the product, on `/home`, keep the objects, because by then the question has
+   * changed from "is this real" to "is this mine".
+   *
+   * So: the stroked vector set, one weight, currentColor, no plate behind any
+   * of them. Every glyph still depicts the thing it stands for.
    */
-  const categories: { icon: BrandIconName; label: string; href: string }[] = [
-    { icon: "keys-home", label: t.nav.rent, href: "/search?intent=rent" },
-    { icon: "home-check", label: t.nav.buy, href: "/search?intent=sale" },
-    { icon: "hotel-star", label: t.nav.shortlets, href: "/search?type=shortlet" },
-    { icon: "map-spot", label: t.nav.land, href: "/search?type=land" },
-    { icon: "keys-tag", label: t.nav.commercial, href: "/search?type=office" },
+  const categories: { icon: UiIconName; label: string; href: string }[] = [
+    { icon: "key", label: t.nav.rent, href: "/search?intent=rent" },
+    { icon: "house", label: t.nav.buy, href: "/search?intent=sale" },
+    { icon: "building-hotel", label: t.nav.shortlets, href: "/search?type=shortlet" },
+    { icon: "map", label: t.nav.land, href: "/search?type=land" },
+    { icon: "building-apartment", label: t.nav.commercial, href: "/search?type=office" },
   ];
 
 
@@ -55,7 +65,7 @@ export default async function LandingPage() {
 
       <main id="main">
         {/* ----------------------------------------------------------- hero */}
-        <section className="relative overflow-hidden pb-12 pt-6 sm:pt-10 md:pt-14">
+        <section className="relative overflow-hidden pb-12 pt-10 sm:pb-16 sm:pt-16 md:pt-20">
           <div className="nf-aurora" aria-hidden="true" />
           <div className="nf-grid-veil" aria-hidden="true" />
 
@@ -88,7 +98,7 @@ export default async function LandingPage() {
                 </span>
               </h1>
 
-              <p className="nf-rise nf-rise-4 mt-4 max-w-[42ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)] sm:mt-5">
+              <p className="nf-lede nf-rise nf-rise-4 mt-5 max-w-[44ch] sm:mt-6">
                 {t.landing.hero.subtitle}
               </p>
 
@@ -111,62 +121,103 @@ export default async function LandingPage() {
                 The real search bar lives one tap away, at the top of the
                 product home, where a result set is what happens next.
               */}
-              <div className="nf-rise nf-rise-4 mt-8 flex flex-wrap items-center gap-3">
+              {/*
+                ONE PRIMARY, ONE QUIET SECONDARY.
+
+                These were two filled buttons side by side, "Browse properties"
+                and "Create account", both at size lg. Two primaries is no
+                primary: the reader has to work out which one the page meant,
+                and a page that cannot say what it wants somebody to do next is
+                the definition of a page that has not been designed.
+
+                Browsing wins the button because it is the thing a stranger can
+                actually do right now, and it is free. The account is the
+                consequence of liking what they found, and it gets asked for
+                properly once, at the foot of the page, where it is a filled
+                button and browsing is the quiet link. Same pair, inverted, in
+                the two places where each is the honest next step.
+              */}
+              <div className="nf-rise nf-rise-4 mt-9 flex flex-wrap items-center gap-x-7 gap-y-4 sm:mt-10">
                 <ButtonLink href="/search" variant="primary" size="lg">
                   Browse properties
                 </ButtonLink>
-                <ButtonLink href="/sign-up" variant="secondary" size="lg">
+                <Link href="/sign-up" prefetch className="nf-link-quiet nf-body relative z-10">
                   {t.landing.cta.action}
-                </ButtonLink>
+                  <UiIcon name="arrow-right" size={16} />
+                </Link>
               </div>
 
-              <ul className="nf-rise nf-rise-5 mt-4 flex flex-wrap gap-2">
-                {CITIES.map((city) => (
-                  <li key={city}>
-                    <Link
-                      href={gatedHref(`/search?q=${encodeURIComponent(city)}`)}
-                      prefetch
-                      className="nf-chip relative z-10"
-                    >
-                      {city}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              {/*
+                The cities, as a line of text rather than five glowing pills.
+
+                `nf-chip` is a filter control: 44px tall, a brand rim and a blue
+                bloom around each one. Five of those directly under the primary
+                button put five more lit objects in the loudest part of the page
+                and left the eye with no idea which thing to press. As a quiet
+                row of links with a label in front of them, they read as what
+                they are, which is a shortcut for somebody who already knows
+                where they want to live.
+              */}
+              <div className="nf-rise nf-rise-5 mt-8 flex flex-wrap items-baseline gap-x-5 gap-y-2">
+                <span className="nf-caption">Popular right now</span>
+                <ul className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
+                  {CITIES.map((city) => (
+                    <li key={city}>
+                      <Link
+                        href={gatedHref(`/search?q=${encodeURIComponent(city)}`)}
+                        prefetch
+                        className="nf-link-quiet nf-tap nf-body-sm relative z-10"
+                      >
+                        {city}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
 
-          {/* ---------------------------------------------------- object row */}
+          {/* -------------------------------------------------- category row */}
           {/*
-           * Five things you can do, drawn as five objects.
+           * Five things you can do, drawn as five glyphs.
            *
-           * NO CONTAINER. No card, no tile, no chip, no ring, no plate. The
-           * object sits on the page with its label under it and nothing is
-           * drawn around it, which is the single change that makes a row of
-           * icons read as a considered set rather than a toolbar. A box around
-           * an object adds a second edge competing with the edge the object
-           * already has, and five of them turn a row into a grid of boxes.
+           * NO CONTAINER, and that part is unchanged and non-negotiable. No
+           * card, no tile, no chip, no ring, no plate. A box around a glyph
+           * adds a second edge competing with the edge the glyph already has,
+           * and five of them turn a considered row into a toolbar.
            *
-           * The objects are large on purpose, 88px climbing to 112px. At the
-           * 56px they were drawn at inside cards, these renders lose the
-           * modelling that makes them worth having, and a small object inside
-           * a large box is the shape that reads as clutter.
+           * WHAT CHANGED IS THE INSTRUMENT. These were 88px 3D renders from the
+           * signature family; see the note on `categories` above for why that
+           * family belongs one screen further in. A stroked glyph carries the
+           * row on drawing rather than on rendering, so it wants a different
+           * size: 40px, the top of the icon scale, at a constant 1.5px stroke.
+           * Bigger than that and a 1.5px line inside a 64px box reads as a wire
+           * frame rather than as an icon.
+           *
+           * A hairline rule above the row, inset to the shell, separates the
+           * navigation from the pitch without a container doing it. It is the
+           * only line on the hero.
            */}
-          <nav aria-label="Browse by category" className="nf-shell relative z-10 mt-12 sm:mt-14">
-            <ul className="grid grid-cols-3 gap-x-2 gap-y-8 sm:grid-cols-5 sm:gap-x-4">
-              {categories.map((c) => (
-                <li key={c.label}>
-                  <Link
-                    href={c.href}
-                    prefetch
-                    className="nf-object-link group flex flex-col items-center gap-3 text-center"
-                  >
-                    <span className="h-[5.5rem] w-[5.5rem] shrink-0 transition-transform duration-[var(--nf-duration-base)] group-hover:-translate-y-1 motion-reduce:transform-none sm:h-24 sm:w-24 lg:h-28 lg:w-28">
-                      <BrandIcon name={c.icon} fill />
+          <nav
+            aria-label="Browse by category"
+            className="nf-shell relative z-10 mt-12 sm:mt-14"
+          >
+            <div
+              aria-hidden="true"
+              className="mb-8 h-px w-full bg-[var(--nf-divider)] sm:mb-10"
+            />
+            <ul className="grid grid-cols-3 gap-x-3 gap-y-6 sm:grid-cols-5 sm:gap-x-5">
+              {categories.map((c, i) => (
+                <li
+                  key={c.label}
+                  className="nf-rise-seq"
+                  style={{ "--nf-rise-i": i + 4 } as React.CSSProperties}
+                >
+                  <Link href={c.href} prefetch className="nf-cat">
+                    <span className="nf-cat__glyph h-10 w-10">
+                      <UiIcon name={c.icon} size={40} />
                     </span>
-                    <span className="text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)] sm:text-[1rem]">
-                      {c.label}
-                    </span>
+                    <span className="nf-cat__label">{c.label}</span>
                   </Link>
                 </li>
               ))}
@@ -234,22 +285,15 @@ export default async function LandingPage() {
         <WhyRentMe t={t} />
 
         {/* 4. What it actually looks like. A visitor could previously reach
-              the sign-up button without ever seeing a screen of the thing
-              they were signing up to. */}
-        <section className="nf-shell grid items-center gap-10 py-14 sm:py-20 lg:grid-cols-2">
-          <Reveal>
-            <p className="nf-overline">The app</p>
-            <h2 className="nf-h2 mt-2 max-w-[16ch]">Everything in one place, on your phone</h2>
-            <p className="mt-3 max-w-[48ch] text-[1rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              Search, inspect, message and pay from the same screen. No calls,
-              no agent runaround, no transfer to an account you were sent in a
-              chat.
-            </p>
-          </Reveal>
-          <Reveal delay={100}>
-            <ProductFrame t={t} locale={locale} />
-          </Reveal>
-        </section>
+              the sign-up button without ever seeing a screen of the thing they
+              were signing up to.
+
+              The heading and the copy used to live here, with the frame dropped
+              into the second column. They moved INTO ProductFrame, because it
+              is the only thing that knows whether there is a product to show:
+              with an empty catalogue the frame returned null and this page went
+              on drawing a heading beside half a screen of nothing. */}
+        <ProductFrame t={t} locale={locale} />
 
         {/* 5. The other half of a marketplace. Somebody has to have the
               property. */}
@@ -261,27 +305,29 @@ export default async function LandingPage() {
         <VoicesBand locale={locale} />
 
         {/* 7. One way in. */}
-        <section className="nf-shell py-16 sm:py-20">
+        <section className="nf-shell py-16 sm:py-24">
           <Reveal>
-            <div className="nf-card nf-card--live relative overflow-hidden p-8 text-center sm:p-12 md:p-16">
+            <div className="nf-card nf-card--live relative overflow-hidden p-10 text-center sm:p-14 md:p-20">
               <div className="nf-aurora opacity-60" aria-hidden="true" />
               <div className="relative z-10">
                 <h2 className="nf-h1 mx-auto max-w-[20ch]">{t.landing.cta.title}</h2>
-                <p className="mx-auto mt-4 max-w-[52ch] text-[1rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="nf-lede mx-auto mt-5 max-w-[50ch]">
                   {t.landing.cta.subtitle}
                 </p>
-                <div className="mt-8 flex flex-wrap justify-center gap-4">
+                {/* The pair from the hero, inverted. Here the account IS the
+                    next step, so it takes the button, and browsing becomes the
+                    quiet way out for somebody not ready. This used to be two
+                    filled buttons, which asked the reader to choose between two
+                    equally weighted invitations at the exact moment the page
+                    was meant to be making one. */}
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
                   <ButtonLink href="/sign-up" variant="primary" size="lg">
                     {t.landing.cta.action}
                   </ButtonLink>
-                  {/* Back to browsing, which is now a real offer. This pointed
-                      at /docs because the product used to be behind a session
-                      and "browse without an account" was refused by the very
-                      next click. Browsing is open, so the honest invitation is
-                      the one we could not make before. */}
-                  <ButtonLink href="/search" variant="secondary" size="lg">
+                  <Link href="/search" prefetch className="nf-link-quiet nf-body">
                     Browse properties
-                  </ButtonLink>
+                    <UiIcon name="arrow-right" size={16} />
+                  </Link>
                 </div>
               </div>
             </div>

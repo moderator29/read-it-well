@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { memo } from "../cache/memo";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
@@ -14,7 +15,13 @@ import {
   type RentPeriod,
   type SaleStatus,
 } from "./pricing";
-import type { Listing, ListingKind, ListingRepository, ListingSearchFilter } from "./types";
+import type {
+  Listing,
+  ListingKind,
+  ListingRepository,
+  ListingSearchFilter,
+  ListingSearchOptions,
+} from "./types";
 
 /**
  * The platform catalogue, read from Postgres.
@@ -59,21 +66,159 @@ export const VIDEO_BUCKET = "listing-videos";
 /** How long a walkthrough URL stays good. Long enough to watch it twice. */
 const VIDEO_URL_SECONDS = 3600;
 
-/** How many published listings one catalogue read pulls. */
+/** How many published listings one catalogue read pulls, at most. */
 const CATALOGUE_LIMIT = 200;
+
+/**
+ * How much wider than its output `recommended` reads.
+ *
+ * `diversePick` alternates between property kinds, so a pool the size of the
+ * ask returns whatever order the catalogue was already in. Ten times the ask is
+ * wider than the six kinds the mapping produces and is a fifth of what reading
+ * the whole catalogue page cost.
+ */
+const RECOMMENDED_POOL_FACTOR = 10;
+
+/**
+ * The row ceiling for one catalogue read.
+ *
+ * A caller may ask for fewer than the catalogue limit and never for more: the
+ * limit is the protection against a single read pulling an unbounded page, and
+ * an option must not be able to raise it. A nonsense request (zero, negative,
+ * fractional, NaN) falls back to the ceiling rather than to nothing, because
+ * the failure mode of a bad number should be an ordinary page, not an empty
+ * discovery surface.
+ */
+function rowCap(requested: number | undefined): number {
+  if (requested === undefined || !Number.isFinite(requested)) return CATALOGUE_LIMIT;
+  const whole = Math.floor(requested);
+  if (whole < 1) return CATALOGUE_LIMIT;
+  return Math.min(whole, CATALOGUE_LIMIT);
+}
 
 /** Reference tables barely change, so they are cached for the process. */
 const REFERENCE_TTL_MS = 600_000;
 
-type Cached<T> = { value: T; expires: number };
-
-let statesCache: Cached<Map<string, string>> | null = null;
-let amenitiesCache: Cached<Map<string, string>> | null = null;
-
 type Client = SupabaseClient<Database>;
 
-/** The columns and joins one listing card and one detail page need. */
+/**
+ * `states` code to name, and `amenities` id to code.
+ *
+ * Both tables are static reference data (37 and 15 rows live today) and both
+ * are readable by anyone, so the memo holds one copy per instance rather than
+ * one per request. They went through `lib/cache/memo` when that helper landed:
+ * the behaviour is the same as the hand-rolled caches they replaced, except a
+ * failed refresh now keeps the last good map instead of replacing it with an
+ * empty one, and three requests arriving as the TTL expires make one query
+ * between them rather than three.
+ *
+ * The loader builds its own client rather than borrowing the caller's. A cache
+ * shared across requests must not close over a request-scoped, cookie-bound
+ * client: the first caller's client would outlive their request and every later
+ * reader would be refreshing reference data through a session that has gone.
+ */
+const statesMemo = memo<Map<string, string>>({
+  ttlMs: REFERENCE_TTL_MS,
+  empty: new Map(),
+  load: async () => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.from("states").select("code, name");
+    if (error || !data) throw new Error("states unavailable");
+    return new Map(data.map((row) => [row.code, row.name]));
+  },
+});
+
+const amenitiesMemo = memo<Map<string, string>>({
+  ttlMs: REFERENCE_TTL_MS,
+  empty: new Map(),
+  load: async () => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.from("amenities").select("id, code");
+    if (error || !data) throw new Error("amenities unavailable");
+    return new Map(data.map((row) => [row.id, row.code]));
+  },
+});
+
+/**
+ * The columns and joins a listing card and a listing detail page need.
+ *
+ * THE WALKTHROUGH JOIN IS NOT IN HERE, and the reason is a round trip rather
+ * than a few bytes. `listing_videos` holds a private storage path, so every
+ * path that comes back has to be signed, and signing is an HTTP call to
+ * Supabase Storage for the whole page. A catalogue read was therefore paying a
+ * storage round trip on top of its database query to produce signed URLs that
+ * nothing renders: `Listing.videos` is declared on the domain type, populated
+ * here, and consumed by no component in the product.
+ *
+ * Nothing is deleted, because MED-2 and P-11 both want walkthroughs. They moved
+ * to the one read that will render them, `byId`, which is the listing detail
+ * page. A list surface has no player on it and never will.
+ */
 const LISTING_SELECT = `
+  id,
+  title,
+  property_type,
+  listing_intent,
+  rent_amount_minor,
+  rent_period,
+  rent_negotiable,
+  rate_minor,
+  rate_period,
+  sale_price_minor,
+  price_negotiable,
+  caution_deposit_minor,
+  service_charge_minor,
+  service_charge_period,
+  agency_fee_minor,
+  legal_fee_minor,
+  agreement_fee_minor,
+  total_move_in_cost_minor,
+  minimum_tenancy_months,
+  available_from,
+  furnished,
+  tenure,
+  sale_status,
+  year_built,
+  condition,
+  size_sqm,
+  toilets,
+  parking_spaces,
+  floor,
+  total_floors,
+  bedrooms,
+  bathrooms,
+  featured,
+  area,
+  city,
+  state_code,
+  latitude,
+  longitude,
+  published_at,
+  created_at,
+  address_verified_at,
+  physically_inspected_at,
+  power_grid,
+  power_backup,
+  power_backup_hours,
+  water_supply,
+  prepaid_meter,
+  has_estate_access,
+  listing_photos ( storage_path, position ),
+  listing_amenities ( amenity_id )
+`;
+
+/**
+ * The detail read: everything above, plus the walkthroughs.
+ *
+ * Written out rather than composed from `LISTING_SELECT`. The Supabase client
+ * parses the select string AT THE TYPE LEVEL to work out the row shape it
+ * returns, and it parses a literal type, so a composed or conditional select
+ * degrades to `string` and takes the row typing down with it. Two literals cost
+ * a duplicated column list; one composed one costs the type safety on every
+ * column in it. `selects.test.ts` holds them to each other so the
+ * duplication cannot drift.
+ */
+const LISTING_DETAIL_SELECT = `
   id,
   title,
   property_type,
@@ -126,6 +271,12 @@ const LISTING_SELECT = `
   listing_videos ( storage_path, poster_path, duration_seconds, position ),
   listing_amenities ( amenity_id )
 `;
+
+/** Exported for the spec that holds the two selects to each other. */
+export const LISTING_SELECTS = {
+  card: LISTING_SELECT,
+  detail: LISTING_DETAIL_SELECT,
+} as const;
 
 type ListingRow = {
   id: string;
@@ -208,22 +359,19 @@ const KIND_BY_PROPERTY_TYPE: Record<string, ListingKind> = {
    *
    * Priced per head rather than per night, which needs no column: the domain
    * type already states that restaurants and experiences ignore `pricePeriod`,
-   * and `YEARLY_KINDS` does not contain this kind, so the mapping below leaves
-   * it at "night" and every reader treats it as a head price.
+   * so the mapping below leaves it at "night" and every reader treats it as a
+   * head price.
+   *
+   * There used to be a `YEARLY_KINDS` set here deciding which kinds were priced
+   * by the year. It was dead: `headlinePrice` in ./pricing took over the period
+   * decision so that a card and a map pin cannot disagree, and the set was left
+   * behind still being cited by this comment. Removed.
    */
   restaurant: "restaurant",
 };
 
-/** Kinds priced by the year rather than by the night. */
-const YEARLY_KINDS: ReadonlySet<ListingKind> = new Set<ListingKind>([
-  "rental",
-  "shop",
-  "office",
-  "land",
-]);
-
 /** Discovery kinds that live in the listings table at all. */
-function propertyTypeFor(kind: ListingKind): string | null {
+export function propertyTypeFor(kind: ListingKind): string | null {
   return kind in KIND_BY_PROPERTY_TYPE ? kind : null;
 }
 
@@ -291,24 +439,44 @@ function hueFor(id: string): number {
   return h;
 }
 
-async function getStateNames(supabase: Client): Promise<Map<string, string>> {
-  const now = Date.now();
-  if (statesCache && statesCache.expires > now) return statesCache.value;
-  const map = new Map<string, string>();
-  const { data, error } = await supabase.from("states").select("code, name");
-  if (!error && data) for (const row of data) map.set(row.code, row.name);
-  statesCache = { value: map, expires: now + REFERENCE_TTL_MS };
-  return map;
+async function getStateNames(): Promise<Map<string, string>> {
+  return statesMemo.get();
 }
 
-async function getAmenityCodes(supabase: Client): Promise<Map<string, string>> {
-  const now = Date.now();
-  if (amenitiesCache && amenitiesCache.expires > now) return amenitiesCache.value;
-  const map = new Map<string, string>();
-  const { data, error } = await supabase.from("amenities").select("id, code");
-  if (!error && data) for (const row of data) map.set(row.id, row.code);
-  amenitiesCache = { value: map, expires: now + REFERENCE_TTL_MS };
-  return map;
+async function getAmenityCodes(): Promise<Map<string, string>> {
+  return amenitiesMemo.get();
+}
+
+/**
+ * The row ceiling on the two secondary reads, and the reason it is dangerous.
+ *
+ * `listing_amenities` and `reviews` are both read in bulk for one page and both
+ * were capped at 5,000 rows with no signal. A cap with no signal on a query
+ * whose result is then AGGREGATED is not a performance limit, it is a silent
+ * wrong answer: past the ceiling, a listing that genuinely carries every
+ * requested amenity is dropped from the results, and a rating is averaged over
+ * a truncated sample and presented as the listing's rating.
+ *
+ * The right fix is SQL, and it is BE-4 and BE-5: a `group by ... having count`
+ * for the amenity set, and either an aggregate RPC or trigger-maintained
+ * `rating_avg` and `review_count` columns for the reviews. Neither is a change
+ * this layer can make, because both are migrations.
+ *
+ * What this layer CAN do is stop the failure being silent. `warnIfTruncated`
+ * makes a hit ceiling a greppable line in the deployment log, so the first
+ * signal is a warning rather than a support conversation about a listing that
+ * does not appear in a search it satisfies. This is the whole lesson of CASE-1
+ * applied one directory over: the bug was not that something failed, it was
+ * that nothing said so.
+ */
+const JOIN_ROW_LIMIT = 5_000;
+
+function warnIfTruncated(rows: number, what: string, scope: number): void {
+  if (rows < JOIN_ROW_LIMIT) return;
+  console.warn(
+    `[catalogue] ${what} read hit the ${JOIN_ROW_LIMIT} row ceiling for ${scope} listings. ` +
+      "Results past it are missing and the answer is incomplete. See RECOMMENDATIONS BE-4 and BE-5.",
+  );
 }
 
 /**
@@ -329,7 +497,7 @@ async function listingIdsWithAllAmenities(
   codes: string[],
 ): Promise<string[]> {
   try {
-    const codeById = await getAmenityCodes(supabase);
+    const codeById = await getAmenityCodes();
     const idByCode = new Map<string, string>();
     for (const [id, code] of codeById) idByCode.set(code, id);
 
@@ -345,8 +513,9 @@ async function listingIdsWithAllAmenities(
       .from("listing_amenities")
       .select("listing_id, amenity_id")
       .in("amenity_id", wanted)
-      .limit(5000);
+      .limit(JOIN_ROW_LIMIT);
     if (error || !data) return [];
+    warnIfTruncated(data.length, "listing_amenities", wanted.length);
 
     const found = new Map<string, Set<string>>();
     for (const row of data) {
@@ -375,8 +544,9 @@ async function getReviewStats(
     .from("reviews")
     .select("listing_id, rating")
     .in("listing_id", listingIds)
-    .limit(5000);
+    .limit(JOIN_ROW_LIMIT);
   if (error || !data) return stats;
+  warnIfTruncated(data.length, "reviews", listingIds.length);
 
   const totals = new Map<string, { sum: number; count: number }>();
   for (const row of data) {
@@ -429,8 +599,6 @@ function mapRow(
 
   const headline = headlinePrice(row);
   const moveIn = moveInTotal(row);
-  const optionalNumber = (value: number | null) =>
-    value === null || value === undefined ? {} : { value };
 
   return {
     id: row.id,
@@ -541,8 +709,8 @@ function mapRow(
 async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]> {
   if (rows.length === 0) return [];
   const [stateNames, amenityCodes, stats, signedVideos] = await Promise.all([
-    getStateNames(supabase),
-    getAmenityCodes(supabase),
+    getStateNames(),
+    getAmenityCodes(),
     getReviewStats(
       supabase,
       rows.map((r) => r.id),
@@ -568,6 +736,7 @@ export async function loadListingsByIds(
   try {
     const { data, error } = await supabase
       .from("listings")
+      // The shortlist renders cards, so no walkthroughs and no signing call.
       .select(LISTING_SELECT)
       .eq("status", "PUBLISHED")
       .in("id", ids);
@@ -604,7 +773,10 @@ export class SupabaseListingRepository implements ListingRepository {
    * The matcher runs over the results either way, so SQL is an optimisation
    * and never the authority: the two halves cannot disagree.
    */
-  async search(filter: ListingSearchFilter = {}): Promise<Listing[]> {
+  async search(
+    filter: ListingSearchFilter = {},
+    opts: ListingSearchOptions = {},
+  ): Promise<Listing[]> {
     if (filter.kind && propertyTypeFor(filter.kind) === null) return [];
     try {
       const supabase = await createClient();
@@ -713,7 +885,7 @@ export class SupabaseListingRepository implements ListingRepository {
         .order("featured", { ascending: false })
         .order("published_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false })
-        .limit(CATALOGUE_LIMIT);
+        .limit(rowCap(opts.limit));
       if (error || !data) return [];
 
       const listings = await mapRows(supabase, data as ListingRow[]);
@@ -723,8 +895,24 @@ export class SupabaseListingRepository implements ListingRepository {
     }
   }
 
+  /**
+   * A short, varied rail. Six listings, and it used to read two hundred to find
+   * them.
+   *
+   * `diversePick` alternates between property kinds, so it needs a pool wider
+   * than its output or it simply returns the newest six. It does not need the
+   * whole catalogue page. `RECOMMENDED_POOL_FACTOR` is the width of that pool
+   * relative to the ask, and ten is comfortably more than the six kinds the
+   * mapping can produce.
+   *
+   * The cap is an option rather than a filter for the reason `types.ts` gives:
+   * it changes what the read costs and must never change which listings match.
+   * That holds here because the rail promises "some good ones" rather than
+   * "all of them", which is exactly the case the option is safe in.
+   */
   async recommended(limit = 6): Promise<Listing[]> {
-    return diversePick(await this.search({}), limit);
+    const pool = await this.search({}, { limit: limit * RECOMMENDED_POOL_FACTOR });
+    return diversePick(pool, limit);
   }
 
   async byId(id: string): Promise<Listing | null> {
@@ -732,7 +920,8 @@ export class SupabaseListingRepository implements ListingRepository {
       const supabase = await createClient();
       const { data, error } = await supabase
         .from("listings")
-        .select(LISTING_SELECT)
+        // The one surface a walkthrough belongs on, so it pays for the signing.
+        .select(LISTING_DETAIL_SELECT)
         .eq("status", "PUBLISHED")
         .eq("id", id)
         .maybeSingle();

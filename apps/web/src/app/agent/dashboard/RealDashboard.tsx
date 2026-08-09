@@ -1,56 +1,56 @@
 import Link from "next/link";
 import { formatDate, type Dictionary, type Locale } from "@naijafinds/i18n";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { AgentNumbers, ListingStatus } from "@/lib/agent/listings-queries";
 import { fill } from "../_copy";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount, Figure } from "@/components/ui/Amount";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+import { ICON, Row, RowList, Section, Stack, TYPE } from "@/components/app/Screen";
+import { InspectionRows } from "@/components/app/inspections/InspectionRows";
+import type { InspectionList } from "@/lib/inspections/queries";
+import { isOpen } from "@/lib/inspections/types";
 
 /**
  * The signed-in agent's real dashboard.
  *
- * Same furniture as the workspace elsewhere (glass tiles, the agent gradient,
- * the quick action deck), reading live counts instead of seeded ones. There is
- * deliberately no month-over-month delta on these tiles: the platform has no
- * history to compare against yet, and an invented trend arrow would be a lie
- * dressed as a number.
+ * Live counts, never seeded ones. There is deliberately no month-over-month
+ * delta on the figures: the platform has no history to compare against yet,
+ * and an invented trend arrow would be a lie dressed as a number.
+ *
+ * ---------------------------------------------------------------------------
+ * ELEVEN SURFACES BECAME FOUR
+ * ---------------------------------------------------------------------------
+ *
+ * This screen was five stat cards, two panels each carrying its own heading
+ * INSIDE its own border, and four square quick-action cards: eleven bordered,
+ * rounded, shadowed rectangles down one column on a phone, for what is really
+ * four groups of related things. The rule is one surface per GROUP, not one
+ * per item, and it is most of why the reference platforms' screens read as
+ * calm while carrying the same amount.
+ *
+ * So the five figures are one surface of rows. The listing breakdown is one
+ * surface of rows with its heading OUTSIDE it. The stays are rows. The quick
+ * actions are rows. Nothing is nested and no heading sits inside a card.
+ *
+ * ---------------------------------------------------------------------------
+ * INSPECTIONS COME FIRST, AND THAT IS THE PRODUCT ARGUMENT
+ * ---------------------------------------------------------------------------
+ *
+ * In this market a viewing is the deal. An annual tenancy is agreed after
+ * somebody has stood in the flat; a sale is agreed after somebody has walked
+ * the land. Until now the platform could not represent that step at all - it
+ * lived as sentences inside a chat thread, which meant an agent with nine
+ * properties tracked their most valuable queue by scrolling, and a request
+ * that went unanswered for three days looked exactly like one that never
+ * arrived.
+ *
+ * It is therefore the FIRST thing on this screen, above the numbers, and it
+ * only appears when there is something waiting. A section that renders an
+ * empty state above the figures every day would train an agent to scroll past
+ * the one place that costs them money.
  */
-
-function Tile({
-  icon,
-  label,
-  value,
-  href,
-  className,
-}: {
-  icon: BrandIconName;
-  label: string;
-  /** A rendered figure, so counts and money both arrive tabular and two-tone. */
-  value: React.ReactNode;
-  href: string;
-  className?: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className={["nf-card nf-card--interactive flex items-start gap-3 p-3.5 sm:gap-4 sm:p-4", className ?? ""].join(" ")}
-    >
-      <span className="h-14 w-14 shrink-0 sm:h-[42px] sm:w-[42px]">
-        <BrandIcon name={icon} fill />
-      </span>
-      <span className="min-w-0">
-        <span className="block truncate text-[0.75rem] font-medium text-[var(--nf-content-muted)]">
-          {label}
-        </span>
-        <span className="nf-numeric mt-0.5 block text-[1.25rem] font-bold leading-none tracking-tight sm:text-[1.375rem]">
-          {value}
-        </span>
-      </span>
-    </Link>
-  );
-}
 
 const STATUS_ORDER: ListingStatus[] = [
   "PUBLISHED",
@@ -63,36 +63,62 @@ const STATUS_ORDER: ListingStatus[] = [
   "SUSPENDED",
 ];
 
+/** One figure, as a row rather than as a card. */
+function FigureRow({
+  icon,
+  label,
+  value,
+  href,
+}: {
+  icon: UiIconName;
+  label: string;
+  value: React.ReactNode;
+  href: string;
+}) {
+  return (
+    <Row className="p-0">
+      <Link href={href} className="nf-row nf-row--tap w-full px-1">
+        <UiIcon name={icon} size={ICON.row} className="shrink-0 text-[var(--nf-content-secondary)]" />
+        <span className={`min-w-0 flex-1 ${TYPE.rowTitle}`}>{label}</span>
+        <span className="nf-numeric nf-h4 shrink-0 tabular-nums">{value}</span>
+        <UiIcon name="chevron-right" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
+      </Link>
+    </Row>
+  );
+}
+
 export function RealDashboard({
   t,
   locale,
   displayName,
   numbers,
+  inspections,
 }: {
   t: Dictionary;
   locale: Locale;
   displayName: string;
   numbers: AgentNumbers;
+  /** What this person has been asked to show. See the header. */
+  inspections: InspectionList;
 }) {
   const a = t.agent.dashboard;
   const d = t.agentListings.dashboard;
-  const quickActions: { icon: BrandIconName; label: string; href: string }[] = [
-    { icon: "homes-sparkle", label: a.addListing, href: "/agent/list" },
-    { icon: "calendar-check", label: a.viewBookings, href: "/agent/bookings" },
-    { icon: "shield-check", label: a.manageListings, href: "/agent/listings" },
-    { icon: "wallet-secure", label: a.earningsReport, href: "/agent/earnings" },
+  const quickActions: { icon: UiIconName; label: string; href: string }[] = [
+    { icon: "plus", label: a.addListing, href: "/agent/list" },
+    { icon: "calendar-booking", label: a.viewBookings, href: "/agent/bookings" },
+    { icon: "house", label: a.manageListings, href: "/agent/listings" },
+    { icon: "wallet", label: a.earningsReport, href: "/agent/earnings" },
   ];
 
   const withCounts = STATUS_ORDER.filter((status) => numbers.byStatus[status] > 0);
+  const openInspections = inspections.inspections.filter((one) => isOpen(one.state));
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="nf-h1">{a.title}</h1>
-          <p className="mt-1 text-[var(--nf-content-secondary)]">
-            {fill(d.standing, { name: displayName })}
-          </p>
+          <p className={`mt-1 ${TYPE.bodyLg}`}>{fill(d.standing, { name: displayName })}</p>
         </div>
         <ButtonLink href="/agent/list" variant="primary">
           <BrandIcon name="homes-sparkle" size={24} />
@@ -100,115 +126,123 @@ export function RealDashboard({
         </ButtonLink>
       </div>
 
-      <div className="nf-panel-sunken grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        <Tile
-          icon="homes-sparkle"
-          label={d.liveListings}
-          value={<Figure value={numbers.liveListings} locale={locale} />}
-          href="/agent/listings"
-        />
-        <Tile
-          icon="shield-check"
-          label={d.withReview}
-          value={<Figure value={numbers.inReview} locale={locale} />}
-          href="/agent/listings"
-        />
-        <Tile
-          icon="house-sparkle"
-          label={d.drafts}
-          value={<Figure value={numbers.drafts} locale={locale} />}
-          href="/agent/listings"
-        />
-        <Tile
-          icon="calendar-check"
-          label={d.upcomingStays}
-          value={<Figure value={numbers.upcomingBookingCount} locale={locale} />}
-          href="/agent/bookings"
-        />
-        <Tile
-          icon="chat"
-          label={d.unreadMessages}
-          value={<Figure value={numbers.unreadMessages} locale={locale} />}
-          href="/agent/messages"
-          className="col-span-2 sm:col-span-1"
-        />
-      </div>
+      <Stack>
+        {/* ------------------------------------------------- inspections */}
+        {openInspections.length > 0 && (
+          <Section
+            title="Inspections waiting on you"
+            description="Somebody wanting to see a property is the closest thing to a deal this platform has. They see the same state you do."
+            action={
+              <Link
+                href="/agent/inspections"
+                className={`${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] hover:underline`}
+              >
+                {t.common.viewAll}
+              </Link>
+            }
+          >
+            <InspectionRows
+              inspections={openInspections.slice(0, 4)}
+              side="lister"
+              locale={locale}
+            />
+          </Section>
+        )}
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_1.4fr]">
-        <section className="nf-card p-4 sm:p-5">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <h2 className="nf-h3">{t.agent.nav.myListings}</h2>
-              {numbers.totalListings > 0 && (
-                <span className="nf-count-badge">
-                  <Figure value={numbers.totalListings} locale={locale} />
-                </span>
-              )}
-            </span>
+        {/* ------------------------------------------------------ figures */}
+        <Section title="Your numbers">
+          <RowList boxed inset={false}>
+            <FigureRow
+              icon="house"
+              label={d.liveListings}
+              value={<Figure value={numbers.liveListings} locale={locale} />}
+              href="/agent/listings"
+            />
+            <FigureRow
+              icon="verified"
+              label={d.withReview}
+              value={<Figure value={numbers.inReview} locale={locale} />}
+              href="/agent/listings"
+            />
+            <FigureRow
+              icon="document"
+              label={d.drafts}
+              value={<Figure value={numbers.drafts} locale={locale} />}
+              href="/agent/listings"
+            />
+            <FigureRow
+              icon="calendar-booking"
+              label={d.upcomingStays}
+              value={<Figure value={numbers.upcomingBookingCount} locale={locale} />}
+              href="/agent/bookings"
+            />
+            <FigureRow
+              icon="chat-bubble"
+              label={d.unreadMessages}
+              value={<Figure value={numbers.unreadMessages} locale={locale} />}
+              href="/agent/messages"
+            />
+          </RowList>
+        </Section>
+
+        {/* --------------------------------------------------- properties */}
+        <Section
+          title={t.agent.nav.myListings}
+          action={
             <Link
               href="/agent/listings"
-              className="text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] hover:underline"
+              className={`${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] hover:underline`}
             >
               {t.common.viewAll}
             </Link>
-          </div>
-
+          }
+        >
           {numbers.totalListings === 0 ? (
-            <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              {d.noListings}
-            </p>
+            <p className={TYPE.body}>{d.noListings}</p>
           ) : (
-            <ul className="space-y-2.5">
+            <RowList boxed inset={false}>
               {withCounts.map((status) => (
-                <li key={status} className="flex items-center justify-between gap-4">
-                  <span className="text-[0.875rem] text-[var(--nf-content-secondary)]">
+                <Row key={status}>
+                  <span className={`min-w-0 flex-1 ${TYPE.rowTitle}`}>
                     {t.agentListings.workspace.status[status]}
                   </span>
                   <Figure
                     value={numbers.byStatus[status] ?? 0}
                     locale={locale}
-                    className="text-[0.9375rem] font-bold"
+                    className="nf-body font-bold"
                   />
-                </li>
+                </Row>
               ))}
-            </ul>
+            </RowList>
           )}
+        </Section>
 
-          <ButtonLink href="/agent/list" variant="secondary" full className="mt-4">
-            {a.addListing}
-          </ButtonLink>
-        </section>
-
-        <section className="nf-card p-4 sm:p-5">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="nf-h3">{d.upcomingStays}</h2>
+        {/* -------------------------------------------------------- stays */}
+        <Section
+          title={d.upcomingStays}
+          action={
             <Link
               href="/agent/bookings"
-              className="text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] hover:underline"
+              className={`${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] hover:underline`}
             >
               {t.common.viewAll}
             </Link>
-          </div>
-
+          }
+        >
           {numbers.upcomingBookings.length === 0 ? (
-            <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              {d.noStays}
-            </p>
+            <p className={TYPE.body}>{d.noStays}</p>
           ) : (
-            <ul className="space-y-3">
+            <RowList boxed>
               {numbers.upcomingBookings.map((booking) => (
-                <li key={booking.id} className="flex items-center gap-4">
-                  <span
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)]"
-                    style={{ background: "var(--nf-surface-raised)" }}
-                  >
-                    <UiIcon name="calendar-booking" size={20} />
+                <Row key={booking.id}>
+                  <span className="nf-role-mark shrink-0" aria-hidden="true">
+                    <UiIcon name="calendar-booking" size={ICON.row} />
                   </span>
                   <span className="min-w-0 flex-1 leading-tight">
-                    <span className="block truncate text-[0.8125rem] font-semibold">
+                    <span className={`block truncate ${TYPE.rowTitle}`}>
                       {booking.listingTitle}
                     </span>
-                    <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">
+                    <span className={`block ${TYPE.rowMeta}`}>
                       {fill(d.stayDates, {
                         from: formatDate(new Date(`${booking.checkIn}T00:00:00Z`), locale, {
                           day: "numeric",
@@ -225,37 +259,39 @@ export function RealDashboard({
                     <Amount
                       minorUnits={booking.totalMinor}
                       locale={locale}
-                      className="block text-[0.8125rem] font-bold"
+                      className="nf-body-sm block font-bold"
                     />
                     <StatusPill tone={toneForStatus(booking.status)} className="mt-0.5">
                       {booking.status === "CONFIRMED" ? a.confirmed : a.pending}
                     </StatusPill>
                   </span>
-                </li>
+                </Row>
               ))}
-            </ul>
+            </RowList>
           )}
-        </section>
-      </div>
+        </Section>
 
-      <section className="mt-4">
-        <h2 className="nf-h3 mb-3">{a.quickActions}</h2>
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {quickActions.map((action) => (
-            <li key={action.href}>
-              <Link
-                href={action.href}
-                className="nf-card nf-card--interactive flex flex-col items-center gap-2 p-4 text-center sm:p-5"
-              >
-                <span className="h-13 w-13 sm:h-16 sm:w-16">
-                  <BrandIcon name={action.icon} fill />
-                </span>
-                <span className="text-[0.8125rem] font-semibold">{action.label}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+        {/* ------------------------------------------------------ actions */}
+        <Section title={a.quickActions}>
+          <RowList boxed>
+            {quickActions.map((action) => (
+              <Row key={action.href} className="p-0">
+                <Link href={action.href} className="nf-row nf-row--tap w-full px-1">
+                  <span className="nf-role-mark shrink-0" aria-hidden="true">
+                    <UiIcon name={action.icon} size={ICON.row} />
+                  </span>
+                  <span className={`min-w-0 flex-1 ${TYPE.rowTitle}`}>{action.label}</span>
+                  <UiIcon
+                    name="chevron-right"
+                    size={16}
+                    className="shrink-0 text-[var(--nf-content-muted)]"
+                  />
+                </Link>
+              </Row>
+            ))}
+          </RowList>
+        </Section>
+      </Stack>
     </>
   );
 }

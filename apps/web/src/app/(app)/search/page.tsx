@@ -589,7 +589,15 @@ export default async function SearchPage({
                     {/* A real next action, not a lap of the same empty
                         shelves: the person reading this may be the one with
                         a place to let. */}
-                    <ButtonLink href="/agents" variant="primary" data-testid="empty-list-place">
+                    {/* Straight into the switch-profile sheet, on the Seller
+                        explanation. There is no "Become an agent" page left to
+                        send anybody to: listing is a PROFILE you switch into,
+                        and the sheet both explains it and starts the setup. */}
+                    <ButtonLink
+                      href="/profile?switch=owner"
+                      variant="primary"
+                      data-testid="empty-list-place"
+                    >
                       List your place
                     </ButtonLink>
                     <ButtonLink href="/docs" variant="secondary">

@@ -10,6 +10,7 @@ import {
   readAgentNumbers,
 } from "@/lib/agent/listings-queries";
 import { RealDashboard } from "./RealDashboard";
+import { readInspectionsForLister } from "@/lib/inspections/queries";
 import { ButtonLink } from "@/components/ui/Button";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -47,7 +48,13 @@ export default async function AgentDashboardPage() {
 
   const context = await getAgentContext();
   if (context.state === "agent") {
-    const numbers = await readAgentNumbers(context.supabase, context.agent.id, context.user.id);
+    /* Two independent reads, so they cost one round trip rather than two.
+       On the connections this product is built for that is the difference
+       between a dashboard and a wait. */
+    const [numbers, inspections] = await Promise.all([
+      readAgentNumbers(context.supabase, context.agent.id, context.user.id),
+      readInspectionsForLister(),
+    ]);
     return (
       <AgentShell
         t={t}
@@ -60,6 +67,7 @@ export default async function AgentDashboardPage() {
           locale={locale}
           displayName={context.agent.displayName}
           numbers={numbers}
+          inspections={inspections}
         />
       </AgentShell>
     );
@@ -80,7 +88,15 @@ export default async function AgentDashboardPage() {
         }
       : context.state === "signed-out"
         ? { title: a.signedOutTitle, body: a.signedOutBody, href: "/sign-in", cta: t.common.signIn }
-        : { title: a.notAgentTitle, body: a.notAgentBody, href: "/agents/apply", cta: a.applyCta };
+        : {
+            title: a.notAgentTitle,
+            body: a.notAgentBody,
+            /* Setting up the Seller profile, which is where the agent
+               application went when "Become an agent" stopped being a
+               destination. See next.config.ts and roles.ts. */
+            href: "/profile/setup/owner",
+            cta: a.applyCta,
+          };
 
   return (
     <AgentShell t={t} locale={locale} active="/agent/dashboard" profile={null}>

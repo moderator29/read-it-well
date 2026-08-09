@@ -37,9 +37,9 @@ import type { ActionResult } from "@/lib/actions/envelope";
  *
  * The rows replaced a grid of seven square tiles. The tiles looked tidy in a
  * mockup and read badly on a phone: seven equal boxes give equal weight to
- * "Trips" and "Become an agent", so the eye has to read all seven every time to
- * find one. A list has an order, and each row can carry its own count on the
- * right, which is the thing somebody actually came to check.
+ * "Trips" and "Settings", so the eye has to read all seven every time to find
+ * one. A list has an order, and each row can carry its own count on the right,
+ * which is the thing somebody actually came to check.
  *
  * Your name and phone open in a sheet rather than expanding the page. An
  * inline form pushed everything below it down by a screen and a half, so the
@@ -54,7 +54,6 @@ export type AccountRowsCopy = {
   wallet: string;
   messages: string;
   settings: string;
-  becomeAgent: string;
 };
 
 type Tab = "account" | "posts";
@@ -215,12 +214,18 @@ export function AccountBody({
               label={copy.settings}
               sub="Appearance, notifications, privacy and data"
             />
-            <RowLink
-              href="/agents"
-              icon="building-apartment"
-              label={copy.becomeAgent}
-              sub="List your property on RentMe"
-            />
+            {/*
+              THE "BECOME AN AGENT" ROW IS GONE, and nothing replaced it here
+              on purpose.
+
+              It pointed at `/agents`, a marketing page that no longer exists,
+              and it was the SECOND door to it on this one screen: the switch-
+              profile control sits at the very top of the profile and already
+              offers Listing or selling and Agent or realtor, with an
+              explanation and the setup behind each. A row at the bottom of
+              More saying the same thing in different words is the "twenty
+              pages by twenty people" problem in miniature.
+            */}
             <RowLink href="/help" icon="ticket" label="Help" sub="Get an answer from a person" />
           </SettingsGroup>
         </div>

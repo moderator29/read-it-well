@@ -133,29 +133,29 @@ export default async function HomePage() {
 
       {/* ---------------------------------------------------- the greeting */}
       <section className="nf-rise">
-        <p className="text-[0.875rem] font-medium text-[var(--nf-content-secondary)]">
-          {greeting}
-        </p>
+        <p className="nf-body-sm font-medium text-[var(--nf-content-secondary)]">{greeting}</p>
         {name ? (
-          <h1 className="mt-0.5 flex items-center gap-2.5">
-            <span className="nf-h1 max-sm:text-[1.875rem]">{name}</span>
+          <h1 className="nf-rise nf-rise-2 mt-1 flex items-center gap-2.5">
+            <span className="nf-h1">{name}</span>
             <span className="inline-block shrink-0 translate-y-[2px]">
               <LogoMark size={26} title="RentMe" />
             </span>
           </h1>
         ) : (
-          <h1 className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
-            <span className="nf-h1 max-sm:text-[1.75rem]">Welcome to RentMe</span>
-            <span className="inline-block shrink-0 translate-y-[2px]">
-              <LogoMark size={26} title="RentMe" />
-            </span>
+          /* NO MARK ON THIS BRANCH. The signed-in greeting earns one, because
+             it reads "Chidi" and the mark is what says whose product that name
+             is in. This branch already ends in the word RentMe, with the
+             wordmark in the rail two centimetres to its left, so the mark made
+             three brand statements inside one screen width. */
+          <h1 className="nf-rise nf-rise-2 mt-1">
+            <span className="nf-h1">Welcome to RentMe</span>
           </h1>
         )}
         {!overview.signedIn && (
-          <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="nf-body mt-2 text-[var(--nf-content-secondary)]">
             <Link
               href="/sign-in"
-              className="font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              className="nf-link-quiet text-[var(--nf-content-link)]"
             >
               Sign in
             </Link>{" "}
@@ -190,7 +190,7 @@ export default async function HomePage() {
         before they signed up should find the same thing in the same shape
         afterwards.
       */}
-      <div className="mt-6 flex items-start gap-2 sm:items-center">
+      <div className="nf-rise nf-rise-3 mt-7 flex items-start gap-2 sm:items-center">
         <form
           action="/search"
           method="get"
@@ -200,15 +200,22 @@ export default async function HomePage() {
           <label htmlFor="home-q" className="sr-only">
             {t.landing.hero.searchLabel}
           </label>
-          <div className="flex min-w-0 flex-1 items-center gap-3 px-3">
-            <UiIcon name="search" size={20} className="text-[var(--nf-content-muted)]" />
+          {/* The glyph warms to the content colour once the field has focus,
+              so the control acknowledges the cursor before a single character
+              is typed. One property, one token duration. */}
+          <div className="group flex min-w-0 flex-1 items-center gap-3 px-3">
+            <UiIcon
+              name="search"
+              size={20}
+              className="shrink-0 text-[var(--nf-content-muted)] transition-colors duration-[var(--nf-duration-fast)] group-focus-within:text-[var(--nf-content-primary)]"
+            />
             <input
               id="home-q"
               name="q"
               type="search"
               autoComplete="off"
               placeholder={t.landing.hero.searchPlaceholder}
-              className="w-full bg-transparent py-3 text-[1rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
+              className="nf-body w-full bg-transparent py-3 text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
             />
           </div>
           <Button type="submit" variant="primary" size="lg">
@@ -225,10 +232,16 @@ export default async function HomePage() {
         which put two blocks of atmosphere between a person and the five
         shortcuts they most likely wanted.
       */}
-      <Reveal as="section" className="mt-9 sm:mt-11">
+      <Reveal as="section" className="mt-10 sm:mt-12">
         {/* Was "Find a place to stay". Nobody stays in a property they are
-            renting for a year, and nobody buys one to stay in it. */}
-        <h2 className="nf-h3 mb-4">Browse by type</h2>
+            renting for a year, and nobody buys one to stay in it.
+
+            Set as a group label rather than as an h3. A row of five shortcuts
+            is not a chapter of the page; it is a labelled group, and an h3 over
+            it competes with "Recommended for you" directly below, which is a
+            real section with real content under it. It stays an h2 so the
+            document outline is unchanged; only its drawing is quieter. */}
+        <h2 className="nf-group-label">Browse by type</h2>
         {/*
           NO BOXES. The objects sit on the page.
 
@@ -242,20 +255,32 @@ export default async function HomePage() {
           What replaces the box is SIZE and AIR. The object is 76px on a phone
           and 88px from `sm`, the label is 15px, and the gaps are wider than the
           cards were. Nothing is drawn around any of it.
+
+          THE BREATHING IS GONE. Each object carried `nf-story-art`, a twelve
+          second loop that drifted it 6px up and scaled it 1.5% forever. Five of
+          them, out of phase with each other, permanently moving at the top of
+          the first screen anybody sees. A still render does not look dead; a
+          row of five things quietly pulsing looks like a page that has not
+          finished loading. The motion these needed was the motion they did not
+          have, which is a response to being touched.
         */}
         <ul className="nf-scroll-x -mx-5 flex snap-x snap-mandatory gap-6 px-5 pb-1 scroll-pl-5 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-7 sm:px-0 sm:pb-0 lg:grid-cols-5">
-          {categories.map((c) => (
-            <li key={c.href} className="w-[6rem] shrink-0 snap-start sm:w-auto">
-              <Link
-                href={c.href}
-                className="nf-tap flex h-full flex-col items-center gap-3 text-center"
-              >
-                <span className="nf-story-art block h-19 w-19 sm:h-22 sm:w-22">
+          {categories.map((c, i) => (
+            <li
+              key={c.href}
+              className="nf-rise-seq w-[6rem] shrink-0 snap-start sm:w-auto"
+              style={{ "--nf-rise-i": i } as React.CSSProperties}
+            >
+              {/* `nf-cat` carries the hover lift, the accent on the object and
+                  the press collapse. It was three of those states missing: the
+                  object did not move on hover, it did not move on press, and on
+                  a phone - where this row is a swipe rail and there is no hover
+                  at all - a tap gave back nothing whatsoever. */}
+              <Link href={c.href} className="nf-cat nf-tap h-full">
+                <span className="nf-cat__glyph h-19 w-19 sm:h-22 sm:w-22">
                   <BrandIcon name={c.icon} fill />
                 </span>
-                <span className="text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
-                  {c.label}
-                </span>
+                <span className="nf-cat__label">{c.label}</span>
               </Link>
             </li>
           ))}
@@ -263,31 +288,42 @@ export default async function HomePage() {
       </Reveal>
 
       {/* -------------------------------------------------- recommended */}
-      <Reveal as="section" className="mt-12 sm:mt-14">
-        <div className="mb-5 flex items-end justify-between gap-4">
+      <Reveal as="section" className="mt-14 sm:mt-16">
+        <div className="mb-6 flex items-end justify-between gap-4">
           <h2 className="nf-h2">{t.home.recommended}</h2>
           <Link
             href="/search"
-            className="nf-tap shrink-0 text-[0.875rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="nf-link-quiet nf-tap nf-body-sm shrink-0 text-[var(--nf-content-link)]"
           >
             {t.common.viewAll}
+            <UiIcon name="arrow-right" size={16} />
           </Link>
         </div>
 
         {listings.length === 0 ? (
-          <div className="nf-card p-10 text-center">
+          <div className="nf-card p-12 text-center">
             <span className="mx-auto block h-16 w-16">
               <BrandIcon name="home-search" fill />
             </span>
-            <p className="mt-4 font-semibold">Nothing to show here yet</p>
-            <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
+            <p className="nf-body mt-5 font-semibold text-[var(--nf-content-primary)]">
+              Nothing to show here yet
+            </p>
+            <p className="nf-body-sm mx-auto mt-1.5 max-w-[40ch] text-[var(--nf-content-muted)]">
               Once listings are approved they will appear in this space.
             </p>
           </div>
         ) : (
+          /* The grid assembles on the shared card stagger rather than landing
+             as one block. `--card-i` is what `nf-card-in` reads, and it is
+             capped by the same rule the search grid uses so a long list does
+             not keep animating after the eye has arrived. */
           <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {listings.map((l) => (
-              <li key={l.id}>
+            {listings.map((l, i) => (
+              <li
+                key={l.id}
+                className="nf-card-in"
+                style={{ "--card-i": Math.min(i, 5) } as React.CSSProperties}
+              >
                 <ListingCard listing={l} locale={locale} t={t} />
               </li>
             ))}
@@ -343,7 +379,7 @@ export default async function HomePage() {
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="nf-h3">{t.home.agentCard.title}</h2>
-            <p className="mt-1.5 max-w-[58ch] text-[0.9375rem] text-[var(--nf-content-secondary)]">
+            <p className="nf-body-sm mt-2 max-w-[58ch] text-[var(--nf-content-secondary)]">
               {t.home.agentCard.body}
             </p>
           </div>

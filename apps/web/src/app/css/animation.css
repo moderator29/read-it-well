@@ -51,6 +51,50 @@
   .nf-rise-4 { animation-delay: 420ms; }
   .nf-rise-5 { animation-delay: 560ms; }
 
+  /*
+   * The same stagger for a LIST, whose length nobody knows at authoring time.
+   *
+   * The five hand-named steps above cover a hero because a hero has a fixed
+   * number of lines. A mapped row of categories does not, and the alternative
+   * was either capping the stagger at five or writing nf-rise-6 upwards
+   * forever. The index comes from the caller as --nf-rise-i.
+   *
+   * The step is 60ms rather than the 140ms the hero uses. A hero's lines are
+   * read one after another and want to land that way; a row of peers is read as
+   * a group, and 140ms across five of them is most of a second of the reader
+   * waiting for a row to finish arriving. 60ms reads as a single sweep.
+   *
+   * Capped at eight steps. Past that the last item is arriving long after the
+   * eye has finished with the row, which is the point at which a stagger stops
+   * being choreography and becomes lag.
+   */
+  .nf-rise-seq {
+    animation: nf-rise var(--nf-duration-slow) var(--nf-ease-entrance) both;
+    animation-delay: calc(min(var(--nf-rise-i, 0), 8) * 60ms);
+  }
+
+  /*
+   * REDUCED MOTION HAS TO KILL THE DELAY, NOT JUST THE DURATION.
+   *
+   * Every --nf-duration-* token collapses to 1ms under this query, which is
+   * why almost nothing in this file needs a rule here. A DELAY is not a
+   * duration and does not collapse, and `both` fill mode holds the element at
+   * the keyframe's opening frame - opacity zero - for the whole of it. So a
+   * reader who has asked for less motion was watching the hero's last line
+   * appear out of nothing 560ms after the rest of the page, which is a worse
+   * experience than the animation they opted out of.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-rise,
+    .nf-rise-2,
+    .nf-rise-3,
+    .nf-rise-4,
+    .nf-rise-5,
+    .nf-rise-seq {
+      animation-delay: 0s;
+    }
+  }
+
   .nf-float {
     animation: nf-float 7s var(--nf-ease-standard) infinite;
   }

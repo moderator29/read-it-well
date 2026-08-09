@@ -2,7 +2,12 @@ import "server-only";
 import { isSupabaseConfigured } from "../supabase/env";
 import { diversePick } from "./filter";
 import { SupabaseListingRepository } from "./supabase-repository";
-import type { Listing, ListingRepository, ListingSearchFilter } from "./types";
+import type {
+  Listing,
+  ListingRepository,
+  ListingSearchFilter,
+  ListingSearchOptions,
+} from "./types";
 
 /**
  * Listing data access.
@@ -94,8 +99,11 @@ class PlatformListingRepository implements ListingRepository {
     }
   }
 
-  async search(filter: ListingSearchFilter = {}): Promise<Listing[]> {
-    return this.fromDb(() => this.db.search(filter), [] as Listing[]);
+  async search(
+    filter: ListingSearchFilter = {},
+    opts: ListingSearchOptions = {},
+  ): Promise<Listing[]> {
+    return this.fromDb(() => this.db.search(filter, opts), [] as Listing[]);
   }
 
   async recommended(limit = 6): Promise<Listing[]> {

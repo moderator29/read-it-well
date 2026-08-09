@@ -26,8 +26,8 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
   if (listings.length === 0) return null;
 
   return (
-    <section className="nf-shell py-10 sm:py-14">
-      <Reveal className="mb-6 max-w-[52ch] sm:mb-8">
+    <section className="nf-shell py-12 sm:py-16">
+      <Reveal className="mb-8 max-w-[52ch] sm:mb-10">
         <span className="nf-overline mb-3 inline-flex items-center gap-2">
           <UiIcon name="sparkle" size={16} />
           Hand picked
@@ -35,7 +35,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
         <h2 className="nf-h1 mt-3">
           <Words text="Featured this week" accentFrom={1} />
         </h2>
-        <p className="mt-3 text-[var(--nf-content-secondary)]">
+        <p className="nf-lede mt-4">
           The highest rated places on the platform right now. Swipe through, or
           step card by card.
         </p>
@@ -75,7 +75,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                       style={{ backgroundImage: "var(--nf-scrim-media)" }}
                       aria-hidden="true"
                     />
-                    <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-on-media)]">
+                    <p className="nf-caption absolute bottom-3 left-3 right-3 flex items-center gap-1.5 font-medium text-[var(--nf-content-on-media)]">
                       <UiIcon
                         name="location"
                         size={12}
@@ -90,10 +90,10 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                       {/* Wraps. "Eko Pearl Waterfront Apartment" needed 231px
                           into a 174px column, so every long name in the rail
                           was arriving cut. */}
-                      <h3 className="min-w-0 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+                      <h3 className="nf-body-sm min-w-0 font-semibold text-[var(--nf-content-primary)]">
                         {l.title}
                       </h3>
-                      <span className="nf-numeric flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold">
+                      <span className="nf-numeric nf-caption flex shrink-0 items-center gap-1 font-semibold text-[var(--nf-content-primary)]">
                         <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
                         {formatRating(l.rating, locale)}
                       </span>
@@ -105,7 +105,11 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                         currency={l.currency}
                         glance
                         suffix={`/ ${perHead ? "guest" : "night"}`}
-                        className="text-[1.0625rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+                        /* nf-lede rather than text-[1.0625rem], which was the
+                           same 17px written as a literal. The class carries a
+                           colour and a leading of its own; both are overridden
+                           here by utilities, which outrank @layer components. */
+                        className="nf-lede font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
                         secondaryClassName="text-[0.7em] font-semibold opacity-60"
                       />
                     </p>

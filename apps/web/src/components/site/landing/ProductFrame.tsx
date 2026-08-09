@@ -2,6 +2,7 @@ import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { getListingRepository } from "@/lib/listings/repository";
 import { ListingCard } from "@/components/app/ListingCard";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Reveal } from "@/components/site/Reveal";
 
 /**
  * The product, shown as itself.
@@ -24,11 +25,49 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  *
  * If the repository has nothing to show, the whole frame is omitted rather than
  * filled with invented inventory - the same rule the voices band follows.
+ *
+ * THE SECTION AROUND IT MOVED IN HERE, and that is why this component now
+ * renders a <section> rather than a device. The heading, the paragraph and the
+ * two-column grid lived in app/page.tsx and the frame was dropped into the
+ * right-hand column. So when the catalogue was empty - which is its state right
+ * now - the frame returned null and the page still drew the section: a heading
+ * saying "Everything in one place, on your phone" and a paragraph about
+ * searching and paying, beside half a screen of nothing.
+ *
+ * A component that knows whether it has anything to show is the only thing that
+ * can decide whether its section exists. Now it owns both, and an empty
+ * catalogue removes the whole band instead of leaving its frame behind.
  */
 export async function ProductFrame({ t, locale }: { t: Dictionary; locale: Locale }) {
   const listings = await getListingRepository().recommended(2);
   if (listings.length === 0) return null;
 
+  return (
+    <section className="nf-shell grid items-center gap-12 py-12 sm:py-16 lg:grid-cols-2">
+      <Reveal>
+        <p className="nf-overline">The app</p>
+        <h2 className="nf-h2 mt-3 max-w-[16ch]">Everything in one place, on your phone</h2>
+        <p className="nf-lede mt-4 max-w-[46ch]">
+          Search, inspect, message and pay from the same screen. No calls, no
+          agent runaround, no transfer to an account you were sent in a chat.
+        </p>
+      </Reveal>
+      <Reveal delay={100}>
+        <Device t={t} locale={locale} listings={listings} />
+      </Reveal>
+    </section>
+  );
+}
+
+function Device({
+  t,
+  locale,
+  listings,
+}: {
+  t: Dictionary;
+  locale: Locale;
+  listings: Awaited<ReturnType<ReturnType<typeof getListingRepository>["recommended"]>>;
+}) {
   return (
     <div
       /*
@@ -58,9 +97,7 @@ export async function ProductFrame({ t, locale }: { t: Dictionary; locale: Local
                 own uses, so the frame opens on the screen a visitor lands on. */}
             <div className="nf-card flex items-center gap-2 px-3 py-2.5">
               <UiIcon name="search" size={16} className="shrink-0 opacity-60" />
-              <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-                {t.nav.explore}
-              </span>
+              <span className="nf-caption">{t.nav.explore}</span>
             </div>
 
             {/* The real card, real data, same component as the search grid. */}

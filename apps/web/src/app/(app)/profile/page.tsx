@@ -12,9 +12,24 @@ import { getAgentContext } from "@/lib/agent/listings-queries";
 import { getMode } from "@/lib/mode";
 import { RoleSwitcher } from "@/components/roles/RoleSwitcher";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
-import { roleStateFrom, type AgentFacts } from "@/components/roles/roles";
+import { roleStateFrom, type AgentFacts, type RoleState } from "@/components/roles/roles";
 
 export const metadata: Metadata = { title: "Profile" };
+
+/**
+ * What the three roles look like when there is no account behind them.
+ *
+ * Not `roleStateFrom(null, "personal")`, even though that returns the same
+ * shape, because that function's job is to read an account and there is no
+ * account here. Stating the three explicitly keeps the signed-out branch
+ * honest about the fact that it is describing the product rather than a
+ * person.
+ */
+const SIGNED_OUT_ROLES: RoleState[] = [
+  { id: "renter", setUp: false, verified: false },
+  { id: "owner", setUp: false, verified: false },
+  { id: "professional", setUp: false, verified: false },
+];
 
 /**
  * Profile: your account, wearing your own identity.
@@ -86,7 +101,6 @@ export default async function ProfilePage() {
     wallet: t.nav.wallet,
     messages: t.nav.messages,
     settings: t.nav.settings,
-    becomeAgent: t.landing.footer.becomeAgent,
   };
 
   if (account.state !== "signed-in") {
@@ -115,13 +129,23 @@ export default async function ProfilePage() {
             <RowLink href="/saved" icon="heart" label={t.nav.saved} />
           </SettingsGroup>
 
+          {/*
+            SWITCHING PROFILE IS OFFERED SIGNED OUT TOO, and it is the same
+            control the signed-in screen carries rather than a second one.
+
+            `RoleSwitcher` wraps its own trigger in `AuthGate`, so tapping it
+            here opens the sign-in door with `?do=switch-profile` and the
+            screen to come back to. That is a better answer than the row this
+            replaces, which pointed a signed-out visitor at a marketing page
+            and then asked them to sign in at the end of it anyway.
+
+            Every role reads as not set up, which is the truth about an
+            account that does not exist yet.
+          */}
+          <RoleSwitcher roles={SIGNED_OUT_ROLES} current="renter" variant="row" />
+
           <SettingsGroup label="More">
             <RowLink href="/settings" icon="sliders" label={t.nav.settings} />
-            <RowLink
-              href="/agents"
-              icon="building-apartment"
-              label={t.landing.footer.becomeAgent}
-            />
             <RowLink href="/help" icon="ticket" label="Help" />
           </SettingsGroup>
         </div>

@@ -1400,6 +1400,69 @@ export type Database = {
           }
         ];
       };
+      inspection_requests: {
+        Row: {
+          conversation_id: string | null;
+          created_at: string;
+          id: string;
+          lister_id: string;
+          lister_note: string | null;
+          listing_id: string;
+          note: string | null;
+          requested_at: string;
+          requester_id: string;
+          responded_at: string | null;
+          slot_at: string | null;
+          state: Database["public"]["Enums"]["inspection_state"];
+          updated_at: string;
+        };
+        Insert: {
+          conversation_id?: string | null;
+          created_at?: string;
+          id?: string;
+          lister_id: string;
+          lister_note?: string | null;
+          listing_id: string;
+          note?: string | null;
+          requested_at: string;
+          requester_id: string;
+          responded_at?: string | null;
+          slot_at?: string | null;
+          state?: Database["public"]["Enums"]["inspection_state"];
+          updated_at?: string;
+        };
+        Update: {
+          conversation_id?: string | null;
+          created_at?: string;
+          id?: string;
+          lister_id?: string;
+          lister_note?: string | null;
+          listing_id?: string;
+          note?: string | null;
+          requested_at?: string;
+          requester_id?: string;
+          responded_at?: string | null;
+          slot_at?: string | null;
+          state?: Database["public"]["Enums"]["inspection_state"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "inspection_requests_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "conversations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspection_requests_listing_id_fkey";
+            columns: ["listing_id"];
+            isOneToOne: false;
+            referencedRelation: "listings";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       ledger_entries: {
         Row: {
           agent_share_minor: number;
@@ -3576,6 +3639,13 @@ export type Database = {
         | "south_east"
         | "south_south"
         | "south_west";
+      inspection_state:
+        | "REQUESTED"
+        | "CONFIRMED"
+        | "PROPOSED"
+        | "DECLINED"
+        | "COMPLETED"
+        | "WITHDRAWN";
       land_tenure:
         | "certificate_of_occupancy"
         | "governors_consent"
@@ -3849,6 +3919,14 @@ export const Constants = {
         "south_east",
         "south_south",
         "south_west",
+      ],
+      inspection_state: [
+        "REQUESTED",
+        "CONFIRMED",
+        "PROPOSED",
+        "DECLINED",
+        "COMPLETED",
+        "WITHDRAWN",
       ],
       land_tenure: [
         "certificate_of_occupancy",

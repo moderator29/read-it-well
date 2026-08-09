@@ -278,4 +278,227 @@
     font-weight: 600;
     color: var(--nf-content-muted);
   }
+
+  /*
+   * ----------------------------------------------------------------- CELLS
+   *
+   * The other half of "one surface per group": a group whose parts sit BESIDE
+   * each other rather than under each other.
+   *
+   * `.nf-rows` covers a settings list, where every part is a line. It does not
+   * cover three steps or four promises, which are peers of equal weight that
+   * want to be read across. Drawn as three or four separate cards, those are
+   * three or four borders, three or four shadows and three or four corner
+   * blooms for one idea with parts, which is the exact thing the row list was
+   * built to stop. Drawn as one surface with a hairline between the cells, the
+   * eye reads the group first and the parts second, which is the order they
+   * are meant to be read in.
+   *
+   * The rule turns with the layout. Stacked on a phone it is horizontal; once
+   * the cells sit side by side it is vertical. Both are inset from the
+   * surface's own edges by --nf-cell-inset, for the same reason a row divider
+   * is: a hairline that runs into the container's corner radius puts two lines
+   * a few pixels apart and the surface stops reading as one object.
+   *
+   * The rules are pseudo-elements rather than borders because a border changes
+   * the cell's box and would knock the columns out of alignment by a pixel at
+   * exactly the widths where it matters.
+   */
+  .nf-cells {
+    --nf-cell-inset: 1.5rem;
+    display: grid;
+  }
+
+  .nf-cells > * {
+    position: relative;
+  }
+
+  .nf-cells > *::before,
+  .nf-cells > *::after {
+    content: "";
+    position: absolute;
+    display: none;
+    background: var(--nf-divider);
+    pointer-events: none;
+  }
+
+  /* ::before is the rule ABOVE a cell. ::after is the rule BEFORE it inline. */
+  .nf-cells > *::before {
+    inset-inline: var(--nf-cell-inset);
+    inset-block-start: 0;
+    height: 1px;
+  }
+
+  .nf-cells > *::after {
+    inset-block: var(--nf-cell-inset);
+    inset-inline-start: 0;
+    width: 1px;
+  }
+
+  /* Three peers: a column on a phone, a row from md. */
+  .nf-cells--trio > * + *::before {
+    display: block;
+  }
+  @media (min-width: 768px) {
+    .nf-cells--trio {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .nf-cells--trio > * + *::before {
+      display: none;
+    }
+    .nf-cells--trio > * + *::after {
+      display: block;
+    }
+  }
+
+  /* Four peers: two up on a phone, four across from lg. */
+  .nf-cells--quad {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .nf-cells--quad > :nth-child(n + 3)::before {
+    display: block;
+  }
+  .nf-cells--quad > :nth-child(2n)::after {
+    display: block;
+  }
+  @media (min-width: 1024px) {
+    .nf-cells--quad {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .nf-cells--quad > :nth-child(n + 3)::before {
+      display: none;
+    }
+    .nf-cells--quad > :nth-child(n + 2)::after {
+      display: block;
+    }
+  }
+
+  /*
+   * ------------------------------------------------------- THE FLAT OBJECT
+   *
+   * A category on the marketing site: a drawn glyph with a label under it and
+   * NOTHING around either.
+   *
+   * This row used to be five 3D brand objects, which is the wrong instrument on
+   * this page and right on the one after it. The signature family is warm,
+   * lit, blue-and-white and unmistakably ours, and inside the product that is
+   * exactly what a person should meet. A landing page is read by somebody who
+   * has not decided whether this is a real company yet, and five rendered toys
+   * across the top is the visual grammar of a consumer app store listing rather
+   * than of a business somebody is about to send rent through. The stroked
+   * vector set says the same five things in the register the page needs.
+   *
+   * Still no container. A box around a glyph adds a second edge competing with
+   * the edge the glyph already has, and five of them turn a considered row into
+   * a toolbar. What carries the row instead is SIZE, AIR and one accent on
+   * hover.
+   */
+  .nf-cat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: center;
+    padding-block: 0.5rem;
+    border-radius: var(--nf-radius-md);
+    color: var(--nf-content-primary);
+  }
+
+  .nf-cat__glyph {
+    display: grid;
+    place-items: center;
+    color: var(--nf-content-primary);
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-spring),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  .nf-cat__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.3;
+    color: inherit;
+  }
+
+  /* The label does not change colour on hover. It is already at the primary
+     content colour because it is a destination somebody has to read, and a
+     label that brightens on hover means the resting state was dimmed for the
+     sake of the hover, which is paying for a flourish with legibility. Only the
+     glyph moves. */
+  @media (hover: hover) {
+    .nf-cat:hover .nf-cat__glyph {
+      transform: translateY(-4px);
+      color: var(--nf-brand-accent);
+    }
+  }
+
+  /* Press: the lift collapses THROUGH the resting position rather than back to
+     it, so a tap reads as the object being pushed rather than as the hover
+     simply ending. */
+  .nf-cat:active .nf-cat__glyph {
+    transform: translateY(0) scale(0.92);
+    transition-duration: var(--nf-duration-instant);
+  }
+
+  .nf-cat:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+
+  /*
+   * --------------------------------------------------------- PRESS AND LIFT
+   *
+   * The two halves of "this thing answered me", available to anything that is
+   * not already a button or a card.
+   *
+   * A surface that lifts on hover and does not move on press is only half a
+   * control: the pointer says "you can" and the click says nothing back. On a
+   * phone, where there is no hover at all, press is the ONLY feedback there is,
+   * and most of this platform had none.
+   */
+  .nf-press {
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-press:active {
+    transform: scale(0.97);
+    transition-duration: var(--nf-duration-instant);
+  }
+
+  /*
+   * The quiet secondary: a text link that draws its own underline on hover.
+   *
+   * The reference platforms put ONE filled button on a screen and everything
+   * else is a line of text. Two filled buttons side by side is two primaries,
+   * and a reader has to decide which one the page meant. The rule grows from
+   * the leading edge rather than fading in, which is a smaller and more
+   * deliberate movement than a colour change.
+   */
+  .nf-link-quiet {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-link-quiet::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-end: -0.15rem;
+    height: 1px;
+    width: 100%;
+    background: currentcolor;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-link-quiet:hover {
+    color: var(--nf-content-primary);
+  }
+  .nf-link-quiet:hover::after,
+  .nf-link-quiet:focus-visible::after {
+    transform: scaleX(1);
+  }
 }

@@ -147,13 +147,31 @@ function slotsFrom(stored: StoredDocument[] | undefined): Record<string, Documen
   return out;
 }
 
-export function ApplyWizard({ t }: { t: Dictionary }) {
+/**
+ * The role the person switched into, mapped to the column the database keeps.
+ *
+ * There is no third kind of agent row: `individual` is somebody listing their
+ * own property and `business` is somebody doing it professionally, which is
+ * exactly the two profiles the switch-profile sheet offers. So once the sheet
+ * has been used the type is ALREADY ANSWERED, and asking again on step one is
+ * asking somebody to repeat the decision that got them here.
+ */
+const TYPE_OF_ROLE: Record<SetupRole, AgentType> = {
+  owner: "individual",
+  professional: "business",
+};
+
+export type SetupRole = "owner" | "professional";
+
+export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
   const a = t.agent.apply;
   const stepTitles = [a.steps.personal, a.steps.identity, a.steps.business, a.steps.documents, a.steps.payout, a.steps.review];
 
   const [step, setStep] = useState(0);
   const [agreed, setAgreed] = useState(false);
-  const [agentType, setAgentType] = useState<AgentType>("individual");
+  const [agentType, setAgentType] = useState<AgentType>(
+    role ? TYPE_OF_ROLE[role] : "individual",
+  );
   const [values, setValues] = useState<Values>({});
   const [docs, setDocs] = useState<Record<string, DocumentSlot>>({});
   const [state, formAction, pending] = useActionState(submitAgentApplication, EMPTY);
@@ -202,7 +220,10 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
       if (raw) {
         const d = JSON.parse(raw) as StoredDraft;
         if (d.values) setValues(d.values);
-        if (d.agentType) setAgentType(d.agentType);
+        /* A draft never overrides the profile that was just switched into. The
+           person chose Seller or Realtor a screen ago; a week-old draft saying
+           the other one would silently file the wrong kind of application. */
+        if (d.agentType && !role) setAgentType(d.agentType);
         if (typeof d.batchId === "string" && d.batchId.length > 0) batchId.current = d.batchId;
         const slots = slotsFrom(d.documents);
         if (Object.keys(slots).length > 0) setDocs(slots);
@@ -211,7 +232,10 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
       /* ignore malformed draft */
     }
     restored.current = true;
-  }, []);
+    /* `role` is a route parameter and cannot change while this is mounted, so
+       the restore still runs exactly once. It is listed because the effect
+       reads it. */
+  }, [role]);
 
   // Autosave after the first restore so we never overwrite the draft with empty.
   useEffect(() => {
@@ -420,29 +444,45 @@ export function ApplyWizard({ t }: { t: Dictionary }) {
           <Legend title={a.steps.personal} />
           <div>
             <span className="nf-label">{a.agentType}</span>
-            <div className="grid grid-cols-2 gap-4">
-              {(["individual", "business"] as AgentType[]).map((tp) => (
-                <button
-                  type="button"
-                  key={tp}
-                  onClick={() => setAgentType(tp)}
-                  aria-pressed={agentType === tp}
-                  className={[
-                    "rounded-[var(--nf-radius-lg)] border p-3 text-left transition-colors",
-                    agentType === tp
-                      ? "border-[var(--nf-border-brand)] bg-[color-mix(in_oklab,var(--nf-mode-agent)_14%,transparent)]"
-                      : "border-[var(--nf-border-subtle)] hover:border-[var(--nf-border-default)]",
-                  ].join(" ")}
-                >
-                  <span className="block text-[0.875rem] font-semibold">
-                    {tp === "individual" ? a.individual : a.business}
-                  </span>
-                  <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">
-                    {tp === "individual" ? a.individualDesc : a.businessDesc}
-                  </span>
-                </button>
-              ))}
-            </div>
+            {role ? (
+              /*
+                ALREADY ANSWERED, SO STATED RATHER THAN ASKED.
+                Arriving from the switch-profile sheet means the profile is
+                chosen. Redrawing the two tiles here would invite somebody to
+                contradict the choice that opened this form, and then the
+                sheet's explanation and the wizard's answer disagree.
+              */
+              <p className="nf-body-sm text-[var(--nf-content-secondary)]">
+                <span className="font-semibold text-[var(--nf-content-primary)]">
+                  {agentType === "individual" ? a.individual : a.business}.{" "}
+                </span>
+                {agentType === "individual" ? a.individualDesc : a.businessDesc}
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {(["individual", "business"] as AgentType[]).map((tp) => (
+                  <button
+                    type="button"
+                    key={tp}
+                    onClick={() => setAgentType(tp)}
+                    aria-pressed={agentType === tp}
+                    className={[
+                      "rounded-[var(--nf-radius-lg)] border p-3 text-left transition-colors",
+                      agentType === tp
+                        ? "border-[var(--nf-border-brand)] bg-[color-mix(in_oklab,var(--nf-mode-agent)_14%,transparent)]"
+                        : "border-[var(--nf-border-subtle)] hover:border-[var(--nf-border-default)]",
+                    ].join(" ")}
+                  >
+                    <span className="nf-body-sm block font-semibold">
+                      {tp === "individual" ? a.individual : a.business}
+                    </span>
+                    <span className="nf-caption block">
+                      {tp === "individual" ? a.individualDesc : a.businessDesc}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
             <input type="hidden" name="agentType" value={agentType} />
           </div>
           <div className="grid gap-5 sm:grid-cols-2">

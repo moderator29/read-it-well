@@ -31,10 +31,10 @@ export async function VoicesBand({ locale }: { locale: Locale }) {
   if (reviews.length === 0) return null;
 
   return (
-    <section aria-labelledby="nf-voices-title" className="nf-shell py-14 sm:py-20">
+    <section aria-labelledby="nf-voices-title" className="nf-shell py-12 sm:py-16">
       <Reveal>
         <p className="nf-overline">In their words</p>
-        <h2 id="nf-voices-title" className="nf-h2 mt-2 max-w-[18ch]">
+        <h2 id="nf-voices-title" className="nf-h2 mt-3 max-w-[18ch]">
           What guests said after they stayed
         </h2>
       </Reveal>
@@ -45,11 +45,11 @@ export async function VoicesBand({ locale }: { locale: Locale }) {
         wildly in length, and columns absorb that where a row of equal-height
         cards would pad the short ones into awkward boxes.
       */}
-      <ul className="mt-8 gap-4 sm:columns-2 lg:columns-3 [&>li]:mb-4 [&>li]:break-inside-avoid">
+      <ul className="mt-10 gap-4 sm:columns-2 lg:columns-3 [&>li]:mb-4 [&>li]:break-inside-avoid">
         {reviews.map((review, i) => (
           <li key={review.id}>
             <Reveal delay={Math.min(i * 60, 240)}>
-              <figure className="nf-card p-5">
+              <figure className="nf-card p-6">
                 <div
                   className="flex items-center gap-1"
                   role="img"
@@ -70,7 +70,7 @@ export async function VoicesBand({ locale }: { locale: Locale }) {
                   ))}
                 </div>
 
-                <blockquote className="mt-3 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <blockquote className="nf-body-sm mt-4 text-[var(--nf-content-secondary)]">
                   {review.body}
                 </blockquote>
 
@@ -83,16 +83,16 @@ export async function VoicesBand({ locale }: { locale: Locale }) {
                   */}
                   <span
                     aria-hidden="true"
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.8125rem] font-bold text-[var(--nf-content-on-brand)]"
+                    className="nf-caption grid h-9 w-9 shrink-0 place-items-center rounded-full font-bold text-[var(--nf-content-on-brand)]"
                     style={{ background: "var(--nf-gradient-brand)" }}
                   >
                     {review.author.slice(0, 1).toUpperCase()}
                   </span>
                   <span className="min-w-0 leading-tight">
-                    <span className="block truncate text-[0.875rem] font-semibold">
+                    <span className="nf-body-sm block truncate font-semibold text-[var(--nf-content-primary)]">
                       {review.author}
                     </span>
-                    <span className="nf-numeric block text-[0.75rem] text-[var(--nf-content-muted)]">
+                    <span className="nf-numeric nf-caption block">
                       {review.when}
                     </span>
                   </span>

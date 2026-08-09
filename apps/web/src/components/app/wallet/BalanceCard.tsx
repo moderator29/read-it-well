@@ -5,9 +5,10 @@ import { formatNumber, type Locale } from "@naijafinds/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Odometer } from "@/components/site/Odometer";
-import type { WalletEntry } from "@/lib/wallet/types";
+import type { BalanceBreakdown, WalletEntry } from "@/lib/wallet/types";
 import { formatKoboExact } from "./money";
 import { Amount } from "@/components/ui/Amount";
+import { BalanceBreakdownSheet } from "./BalanceBreakdownSheet";
 
 /**
  * Wallet balance hero.
@@ -79,11 +80,22 @@ function sparklinePoints(entries: WalletEntry[]): string | null {
 export function BalanceCard({
   balanceMinor,
   entries,
+  breakdown,
   locale,
   usdRate,
 }: {
   balanceMinor: number;
   entries: WalletEntry[];
+  /**
+   * What the headline figure is made of.
+   *
+   * The card still states ONE number. This only drives the control that opens
+   * the breakdown, and the label on that control, which reads "Money in
+   * escrow" when there is some and "Breakdown" when there is not - so somebody
+   * whose balance just dropped by a deposit can see where it went without
+   * having to guess that a generic control would tell them.
+   */
+  breakdown: BalanceBreakdown;
   locale: Locale;
   /**
    * Naira per one US dollar. Optional on purpose.
@@ -143,7 +155,7 @@ export function BalanceCard({
       <div className="relative flex items-start justify-between gap-4">
         <p
           id="nf-wallet-balance-label"
-          className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[var(--nf-content-muted)]"
+          className="nf-caption font-semibold uppercase tracking-[0.12em]"
         >
           Available balance
         </p>
@@ -219,7 +231,7 @@ export function BalanceCard({
           </>
         )}
       </p>
-      <p className="relative mt-2 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="nf-caption relative mt-2">
         {inUsd && usdRate
           ? /* `toLocaleString()` with no argument reads the BROWSER's locale,
                not the app's, so this line grouped the rate "1.600" on a German
@@ -228,6 +240,19 @@ export function BalanceCard({
             `Converted at \u20A6${formatNumber(usdRate, locale)} to $1. Your wallet is held in naira.`
           : "Naira wallet. Every movement is recorded to the kobo."}
       </p>
+
+      {/*
+        WHERE THE REST OF THE MONEY IS.
+
+        One control, under the figure, not a second and third figure beside it.
+        An escrow hold is a debit, so the headline drops when somebody pays a
+        deposit into escrow and this card had no way to say where it went. See
+        BalanceBreakdownSheet for why the breakdown is behind a tap rather than
+        on the face of the card.
+      */}
+      <div className="relative mt-3">
+        <BalanceBreakdownSheet breakdown={breakdown} locale={locale} hidden={hidden} />
+      </div>
 
       {/*
         Flow tiles. `bg-white/[0.04]` and `border-white/10` were raw literals
@@ -242,10 +267,10 @@ export function BalanceCard({
       */}
       <div className="relative mt-4 grid grid-cols-2 gap-2">
         <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] px-3 py-2">
-          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
+          <p className="nf-caption font-semibold uppercase tracking-[0.1em]">
             In, last 30 days
           </p>
-          <p className="nf-numeric mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-success)]">
+          <p className="nf-numeric nf-body-sm mt-0.5 font-semibold text-[var(--nf-state-success)]">
             {hidden ? (
               "••••"
             ) : (
@@ -256,10 +281,10 @@ export function BalanceCard({
           </p>
         </div>
         <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] px-3 py-2">
-          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
+          <p className="nf-caption font-semibold uppercase tracking-[0.1em]">
             Out, last 30 days
           </p>
-          <p className="nf-numeric mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-error)]">
+          <p className="nf-numeric nf-body-sm mt-0.5 font-semibold text-[var(--nf-state-error)]">
             {hidden ? (
               "••••"
             ) : (

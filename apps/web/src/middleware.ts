@@ -83,11 +83,11 @@ const PRODUCT_SEGMENTS = new Set([
 /**
  * Product that does not own its own first segment.
  *
- * `/agents` is the pitch and stays open, because somebody has to be able to
- * read what listing on RentMe means before they have an account. Everything
- * under it that DOES something is inside: an application is attached to a
- * person, and a status screen is a person's own application. Both used to
- * render to anybody who typed the address.
+ * The two agent addresses that used to be listed here are gone with the
+ * `/agents` tree: setting a profile up is `/profile/setup/[role]` and an
+ * application's state is `/profile/application`, both of which live under
+ * `profile`, which is already a protected first segment. So the rule that
+ * guarded them still applies and no longer needs naming twice.
  *
  * `/styleguide` is the design reference. It carries noindex and it is ours,
  * not a page a visitor has any business reading.
@@ -95,7 +95,7 @@ const PRODUCT_SEGMENTS = new Set([
  * Matched on the exact path, and on the path with a trailing slash, because
  * `/styleguide/` is the same page to a browser and a different string here.
  */
-const PRODUCT_PATHS = new Set(["/agents/apply", "/agents/status", "/styleguide"]);
+const PRODUCT_PATHS = new Set(["/styleguide"]);
 
 /**
  * Stamp the policy on a response, whichever response it turned out to be.

@@ -9,7 +9,14 @@ no longer exists. That is exactly how its predecessor died.
 Every claim below was checked on **2026-08-09** against the code in the working
 tree, the migration files, or the live Supabase project `uccixoonmbhrnyczyigt`.
 Nothing here is remembered. Where something could not be verified from inside
-this environment it is in section 23 rather than softened into a claim.
+this environment it is in section 26 rather than softened into a claim.
+
+**Sections 23, 24 and 25 were added later the same day**, covering the three
+areas the file was thinnest on: how the product should look and feel, the motion
+language, and backend speed. They follow the same rule as everything above them.
+Every measurement in them was taken on the day they were written, and several of
+their entries were built in the same sitting and are marked DONE with what did
+it, so that a future pass does not rebuild them.
 
 Read `docs/PRODUCT.md` first. It says what the product is. This file says what is
 wrong with it and what to do next.
@@ -59,7 +66,10 @@ improvement that can wait.
 [The rename](#20-the-rename) ·
 [Testing](#21-testing-and-enforcement) ·
 [Migrations](#22-the-migration-mirror) ·
-[Unknowns](#23-what-is-not-known)
+[Look and vibe](#23-look-inspiration-vibe-and-style) ·
+[Motion](#24-motion) ·
+[Backend speed](#25-backend-speed-strength-and-sharpness) ·
+[Unknowns](#26-what-is-not-known)
 
 ---
 
@@ -560,21 +570,35 @@ with a slow page and a large payload on a metered Nigerian data bundle.
 **Do.** This is the single largest piece of discovery work outstanding, and M-5
 through M-11 below break it down.
 
-### M-5. Viewport loading: the map should ask for what is on screen. **NEW. OPEN. P1**
+**UPDATE, 2026-08-09. The "nothing calls it" half is fixed.** A capped,
+rate-limited caller and a route handler now exist and are specced:
+`lib/listings/bounds.ts` and `app/api/map/listings/route.ts`. **See BE-8 in
+section 25 for what was built and why, before writing any of this.** What
+remains is the client: `RealMap.tsx` and `MapCanvas.tsx` still receive the whole
+catalogue server-side and still never ask again. That is M-5 point 3 onwards and
+M-6, and it is now a client task against an endpoint that exists.
+
+### M-5. Viewport loading: the map should ask for what is on screen. **NEW. PARTLY DONE 2026-08-09. P1 for the client half**
 
 **Wrong today.** The map receives the whole catalogue on the server and never
 asks for anything again. Panning to Abuja re-uses the pins that were shipped for
 Lagos, which is correct only because both fit in one payload.
 
 **Do.**
-1. A route handler or server action that takes a bounding box, the current
-   filters and a limit, and calls `listings_in_bounds`. Return the minimum a pin
-   needs: id, lat, lng, price minor, intent, type, one photograph path. Not the
-   description, not the fee breakdown, not the amenities.
-2. **Cap the result and say so.** Return a `truncated` flag with a total count
-   when the box holds more than the cap, and draw a real control: "1,240 places
-   here, showing 300. Zoom in or refine." Silently truncating a map is how a
-   user concludes the platform has no stock in their area.
+1. ~~A route handler that takes a bounding box, the current filters and a limit,
+   and calls `listings_in_bounds`, returning the minimum a pin needs.~~
+   **DONE 2026-08-09.** `GET /api/map/listings?west=&south=&east=&north=` with
+   optional `intent`, `kind`, `bedrooms`, `minPrice`, `maxPrice`, `limit`. It
+   returns twelve narrow fields per pin and no description, no fee breakdown and
+   no amenities. Box and rate caps, three distinguishable refusals, 22 specs.
+   **Full detail in BE-8.**
+2. ~~**Cap the result and say so.**~~ **DONE for the server half.** The response
+   carries `capped: true` when the answer hit the 300-pin ceiling. The CONTROL
+   is still owed: "1,240 places here, showing 300. Zoom in or refine." Note the
+   count in that copy is not available yet, because the RPC returns rows rather
+   than a total; either add a count to the function or word the control without
+   one. Silently truncating a map is how a user concludes the platform has no
+   stock in their area.
 3. Keep the server-rendered first paint. The initial view should still arrive
    with its pins in the HTML, because the first frame is what a crawler and a
    slow connection see. Viewport loading is for what happens after the first
@@ -2282,10 +2306,24 @@ There is no analytics and no crash reporting, which LG-3 correctly calls an
 asset. It is also the reason no statement in this section can be made about real
 users on real Nigerian networks; every figure here came from a local probe.
 
-**Do.** Not a vendor. Web Vitals reported to an internal route and stored in
-`public.events`, which already exists. It keeps the privacy posture intact,
-keeps the consent question closed, and answers the only question that matters:
-what the product costs on a real phone on a real network.
+**Do.** Not a vendor. Web Vitals reported to an internal route, which keeps the
+privacy posture intact, keeps the consent question closed, and answers the only
+question that matters: what the product costs on a real phone on a real network.
+
+**CORRECTION, 2026-08-09.** This entry used to say the measurements should be
+stored in `public.events`, "which already exists". **It exists and it is not
+that table.** Checked live: `public.events` carries `area_id`, `host_id`,
+`post_id`, `title`, `blurb`, `starts_at`, `ends_at`, `venue_label`,
+`venue_kind`, `capacity`, `attending_count` and an `event_status`. It is the
+SOCIAL events table, a thing people attend in a place, and its four indexes are
+all built for that. Writing Web Vitals into it would put telemetry rows into the
+feed's own table and behind its RLS.
+
+So a table is still needed, and BE-14 asks for the server-side half of the same
+question. **The cheapest honest first step needs no table at all**: one log line
+per report with a stable grep prefix, exactly as `/api/csp-report` already does
+with `[csp]`. That answers the question from the deployment log and defers the
+schema decision until somebody knows what they want to query.
 
 ---
 
@@ -2813,7 +2851,1170 @@ order that actually ran: `044737_a_person_says_what_they_came_here_to_do` before
 
 ---
 
-## 23. What is not known
+## 23. Look, inspiration, vibe and style
+
+This section is about how the product should *feel*, and it is written the way
+the rest of this file is written: against what is in the tree today, with the
+measurement beside the opinion. "Premium", "clean" and "modern" are not
+recommendations. They are what somebody says when they have not decided
+anything. Everything below decides something.
+
+**The reference the product is chasing, stated once so it stops being implied.**
+RentMe is a money surface wearing the clothes of a browsing product. A person
+arrives to look at flats and leaves having moved six months of rent through an
+escrow they had never heard of that morning. Both halves have to be true at
+once: the browse has to feel like an evening on a sofa, and the money has to
+feel like a bank. Almost every specific decision below falls out of that one
+tension, and where the two disagree, **the money wins**. A playful animation on
+a balance is a bug. A stern, grey listing card is also a bug.
+
+**What is already good, so it does not get rebuilt.** The token layer is real:
+seven radii, five durations, four easings, a full colour system with a light
+theme, and since the last pass a type scale with named classes for every tier
+(`nf-display`, `nf-h1` through `nf-h4`, `nf-lede`, `nf-body`, `nf-body-sm`,
+`nf-caption`, `nf-overline`). `globals.css` is 71 lines importing 19 ordered
+partials totalling 5,529. `nf-rows`, `nf-rows--inset`, `nf-group` and
+`nf-group-label` exist and give grouped surfaces one vocabulary. None of that is
+in question. The gaps below are the things around it.
+
+### VIBE-1. There is no spacing scale. Thirty-three step values are doing the work of six. **NEW. OPEN. P1**
+
+**Measured today.** `packages/design-tokens/src/tokens.css` defines radius
+tokens, duration tokens, easing tokens, type tokens, colour tokens, gradient
+tokens and shadow tokens. It defines **no spacing token**. Grep for `--nf-space`
+and the file has none.
+
+That is not a small omission, because spacing is the single most-used decision
+in the product. Counting padding, margin, gap and space utilities across the
+`.tsx` files gives **33 distinct step values**, and their distribution shows
+what actually happened:
+
+| Step | Uses | Step | Uses |
+|---|---|---|---|
+| 4 | 797 | 8 | 139 |
+| 3 | 732 | 0.5 | 135 |
+| 2 | 594 | 3.5 | 113 |
+| 5 | 429 | 10 | 75 |
+| 1.5 | 280 | 12 | 53 |
+| 1 | 278 | 7 | 51 |
+| 6 | 227 | 14 | 39 |
+| 2.5 | 192 | 16 | 25 |
+
+plus 9, 11, 20, 24, 28, 4.5, and **eight arbitrary bracket escapes**:
+`[0.4rem]`, `[3px]`, `[2px]`, `[2.5px]`, `[4.5rem]`, `[2.375rem]`, `[1.9rem]`.
+
+Read the table rather than the total. The top six steps carry 3,059 of the uses.
+Everything below `6` is a long tail of one-off adjustments, and 1.5, 2.5 and 3.5
+between them account for 585 decisions that were each made by eye, in isolation,
+by whoever was in the file. That is the mechanism by which a product stops
+feeling designed: not one bad choice, but six hundred small ones that nobody
+could compare because they were never named.
+
+**Do.**
+1. **Name six steps and no more**, in `tokens.css`, as a rhythm rather than a
+   ladder: `--nf-space-hair: 4px`, `--nf-space-tight: 8px`,
+   `--nf-space-snug: 12px`, `--nf-space-base: 16px`, `--nf-space-loose: 24px`,
+   `--nf-space-section: 40px`. Those are the six the product already uses most;
+   this is a naming exercise, not a redesign.
+2. **Bind them into Tailwind** through the `@theme` block so `p-base` and
+   `gap-snug` exist as classes. A token nobody can type at a call site is a
+   token nobody uses, which is exactly how the type scale sat unused before the
+   body tiers landed.
+3. **The half steps are the bug, not the feature.** 1.5, 2.5 and 3.5 exist
+   because 4 felt too big and 4 was the only nearby name. With `hair` and
+   `tight` both nameable, most of them collapse. Do the collapse in one pass per
+   surface, not globally: a find-and-replace across 585 sites will move
+   something that was deliberately nudged.
+4. **The eight bracket escapes are each a decision that lost an argument with
+   the scale.** Three of them are sub-pixel border compensation (`[2px]`,
+   `[2.5px]`, `[3px]`) and belong in a border token, not a spacing one.
+
+**Owner note.** This is the highest-leverage design entry in the file. Colour is
+enforced, type is enforced, geometry has radii. Spacing is the last unowned axis
+and it is the one a person actually perceives as "this app is put together" or
+"this app is not".
+
+### VIBE-2. When a container earns its existence. **NEW. OPEN. P1**
+
+The platform has a rich set of surfaces: `nf-card`, the glass family in
+`glass.css` (608 lines), `nf-rows`, `nf-rows--inset`, `nf-group`. Rich enough
+that the real risk is no longer "there is nothing to reach for", it is nesting:
+a card inside a glass panel inside a group inside a section, each contributing a
+border and a radius, so the screen reads as a stack of trays rather than as
+content.
+
+**The rule, and it should go in the design documentation as a rule.** A
+container earns a border, a background or a radius only when it answers **yes**
+to one of these:
+
+1. **It is a different kind of thing from what surrounds it.** A price panel
+   inside a description is a different kind of thing. A second paragraph is not.
+2. **It is independently actionable.** Tapping it does something the page around
+   it does not do.
+3. **It is scrollable or overflowing** and the edge tells you so.
+4. **It is a promise about money or safety.** Escrow state, a fee breakdown, a
+   verification badge. These get a surface even when the content is one line,
+   because the surface *is* part of the claim.
+
+If none of those are true, the answer is **space**, not a box. This is why VIBE-1
+comes first: without a spacing scale, a designer reaching for separation has
+only boxes to reach for.
+
+**And the corollary, which is the part that gets violated.** **Two containers
+may not share an edge.** If a card's border and a group's border are within
+2px of each other, one of them is decoration. Delete it. `nf-rows--inset` was
+built for exactly this case, where the outer card owns the edge and the rows
+inside are separated by hairlines that stop short of it.
+
+### VIBE-3. Surface hierarchy: four levels, and the product should never use a fifth. **NEW. OPEN. P1**
+
+Elevation on this platform is currently expressed through several overlapping
+mechanisms: `--nf-surface-*` colour tokens, the shadow tokens, the glass blur
+family, and `nf-card`. That is four ways to say "this is above that", which
+means a reader of any given screen cannot tell what level anything is on.
+
+**Do. Declare four levels, name them, and make each one exactly one mechanism.**
+
+| Level | What lives there | Mechanism |
+|---|---|---|
+| **0. Canvas** | The page itself, the ambient artwork | `--nf-surface-canvas`. No border, no shadow, ever |
+| **1. Content** | Cards, rows, groups, panels. The great majority of the product | A raised surface token plus a 1px hairline. **No shadow** |
+| **2. Floating** | Sheets, drawers, popovers, the map dock, toasts | The ambient two-layer shadow plus glass. Never used inline |
+| **3. Modal** | Dialogs that block, and only those | Level 2 plus a scrim |
+
+The load-bearing line is **level 1 has no shadow**. A shadow means "this is
+detached from the page and will move". A card in a list is not detached and
+will not move, and giving it a shadow spends the one signal that tells a person
+a sheet is about to be dismissible. Right now the platform's most common surface
+and its most transient surface are both drawn with depth, so depth means nothing.
+
+### VIBE-4. How a screen should open. **NEW. OPEN. P1**
+
+There are **68 `loading.tsx` files** in `src/app` and **43 files** importing a
+skeleton component, which means the boundary work is genuinely done. What is not
+decided is what a person sees in the beat between tap and content, and it should
+be the same everywhere:
+
+**The four-beat open, in order.**
+
+1. **Frame first, instantly.** Header, back affordance, title and chrome render
+   from the route itself with no await. A person must know *where they are*
+   before they know *what is there*. This is already how the admin console
+   behaves and it is the model.
+2. **Shape second.** The skeleton, and the skeleton must be the real geometry.
+   `SkeletonCard` in `components/ui/Skeleton.tsx` already does this correctly
+   and says why in its own comment: the 4:3 media, the `p-4` body, the 15px
+   title line. An approximate skeleton is worse than no skeleton, because the
+   layout shift lands at the exact moment the reader has started reading.
+3. **Content third**, replacing shape in place, with no fade. See MOT-4: a
+   skeleton that cross-fades into content draws attention to the swap.
+4. **Ambience last, or never.** Artwork, blooms, grain and the Ken Burns pan
+   come after content, and under Save-Data they never come at all. PERF-1 proved
+   this is worth 3.5MB on `/home`.
+
+**Never open a screen with a spinner.** A spinner says "something is happening
+and I cannot tell you what". A skeleton says "a list of six cards is arriving".
+The second is the truth and it is also faster to perceive.
+
+**And the one exception worth naming:** a screen whose *whole purpose* is one
+number, such as a wallet balance, should not skeleton the number. Show the last
+known figure with the state marked as settling, or show nothing. A grey bar
+where a balance goes reads as a zero balance for the half second it is up, and
+that is the exact failure CASE-1 is about.
+
+### VIBE-5. The empty state is the product right now, and it is being designed as an accident. **NEW. OPEN. P0**
+
+**The platform has zero listings.** Every discovery surface therefore renders its
+empty state, which means for every visitor today, the empty state **is** the
+product. It should be the most carefully designed screen in the codebase and it
+is not designed at all in most places.
+
+**Three kinds of empty, and they must not look alike.**
+
+| Kind | Truth | What the screen must do |
+|---|---|---|
+| **Nothing yet** | The catalogue is empty because the platform is new | Say so plainly, offer the one action that helps (list a property), and show the places that DO have life: `areas` has 7 rows, `posts` has 19 |
+| **Nothing here** | The filter is too narrow | Name the narrowing predicate and offer to widen it. "No two-bedroom flats under N800,000 in Lekki" plus a control that drops the price bound |
+| **Nothing found** | A free-text query matched nothing | Show what was searched, and offer the nearest thing, not a blank |
+
+Today a reader cannot distinguish "the platform is empty" from "your filter is
+wrong", and those call for opposite actions. DEMO-3 covers the honest ways to
+make an empty platform feel alive; this entry is the narrower design point that
+**an empty state is a layout with a hierarchy, not a centred sentence**.
+
+### VIBE-6. `--nf-text-hero` is declared and used nowhere. **NEW. OPEN. P2**
+
+`tokens.css:605` declares `--nf-text-hero: clamp(1.7rem, 1.05rem + 2.9vw, 3.5rem)`
+and no file in `apps/web/src` or `packages/` references it. Eleven type tokens,
+ten in use, one orphan sitting between `display` and `h1`.
+
+Either it is the landing headline size and wants an `.nf-hero` class beside
+`.nf-display`, or `--nf-text-display` already covers that role and this is dead.
+Decide and act; a scale with a token nobody can name is exactly the condition
+that produced the 47-arbitrary-sizes measurement in the last pass.
+
+### VIBE-7. Density is a per-surface decision and the product has not made it. **NEW. OPEN. P2**
+
+Three densities are needed and only one exists:
+
+- **Browse density.** Listing cards, the feed, the map list. Generous. A photo
+  is the content and it wants air. Row height driven by media.
+- **Work density.** Agent listings, admin queues, bookings. Compact. The content
+  is rows of facts and a person is scanning, not admiring. Half the vertical
+  padding of browse, and a hairline between rows rather than a gap.
+- **Money density.** Wallet, checkout, escrow, fee breakdown. Widest of the
+  three, and the only one that gets extra leading. A person reading an amount
+  reads it twice, and crowding is what makes a figure feel slippery.
+
+Today all three are drawn at roughly browse density, which makes the admin
+console feel slow to scan and makes the wallet feel casual. `nf-rows` and
+`nf-rows--inset` are the right mechanism; they need a density modifier rather
+than a second component.
+
+### VIBE-8. Photography is the product and there is none. **NEW. OPEN. P1**
+
+A property marketplace is a photography product. Everything else on the screen
+is chrome around a picture of a room. With zero listings there are zero real
+photographs, so every card renders `hueFor()`'s deterministic gradient tile.
+
+**The consequence nobody has priced.** The gradient fallback is currently the
+platform's dominant visual, and it was designed as an edge case. It should be
+designed as a first-class surface: a fallback tile that carries the property
+type as a symbol and the locality as text reads as "a listing with no photograph
+yet". A bare gradient reads as a broken image.
+
+**Do.** Give the fallback tile a symbol from the icon system and the area name,
+and hold the 4:3 box exactly. And write the photography standard now, before
+supply arrives: minimum resolution, aspect, the first photo being the exterior
+or the main room, and no watermark. MED-1 covers the size ceiling; this is the
+quality floor, and it is much easier to enforce from the first listing than from
+the thousandth.
+
+### VIBE-9. Nigerian, without costume. **NEW. OPEN. P2**
+
+The product is Nigerian and its visual identity should be, and the failure mode
+is obvious enough to name: green-white-green, adire prints, and a headline in a
+display face doing an impression of a market sign. That is costume, it patronises
+the user, and every serious Nigerian product avoids it.
+
+**The identity lives in the specifics, not the decoration.** It is already
+half-built and should be leaned into:
+
+- **Money.** The naira sign at the front of a big integer with proper grouping,
+  and the platform's insistence on integer kobo end to end. Nothing says "this
+  was built here" like a price that is formatted the way a Nigerian reads it.
+- **Place.** State and LGA, which the database carries as 37 and 774 real rows,
+  and which `readPlaceNames` already resolves to names a person recognises.
+- **The facts that matter here and nowhere else.** Power band, generator hours,
+  water supply, prepaid meter, estate access. These are already columns on
+  `listings` with partial indexes behind them. They are the most Nigerian thing
+  in the product and they belong on the card, not buried in a detail accordion.
+- **The clock.** `lagosHour()` decides the greeting in Africa/Lagos rather than
+  in UTC. Small, invisible, and exactly right.
+
+**Do.** Put power and water on the listing card. That single change says more
+about who this product is for than any amount of pattern work.
+
+### VIBE-10. The signed-out face and the signed-in face are different products and should look it. **NEW. OPEN. P2**
+
+Signed-out visitors can browse now (N-1), which means the platform has a public
+face for the first time. A public face is a marketing surface: it may be
+atmospheric, it may use the display type, it may carry artwork.
+
+The signed-in app is a tool. It should be quieter, denser and faster, and the
+transition between them at sign-in should be legible: the person should feel
+they have walked through a door, not that the same page reloaded with a
+different menu.
+
+Today the two share almost everything. The recent work giving the signed-in
+screens one vocabulary is the right half of this; the missing half is letting
+the public face keep the drama the app gives up.
+
+### VIBE-11. One motion vocabulary per meaning, and the product already violates it in three places. **NEW. OPEN. P2**
+
+Covered in full in section 24, listed here because it is a look-and-feel
+symptom before it is a motion bug: `nf-confirm-pop`, `nf-confirm-dim`,
+`nf-confirm-sweep`, `nf-status-assemble` and `nf-map-pin-bloom` are five
+different ways of saying "something just landed". A person cannot learn five.
+See MOT-6.
+
+### VIBE-12. Write the vibe down where an agent will read it. **NEW. OPEN. P1**
+
+`docs/SOCIAL_DESIGN.md` is 852 lines and covers the social layer only.
+`docs/ICON_SYSTEM.md` is 110 lines. There is no document that says how the
+*product* should feel, so every agent that touches a screen re-derives it from
+the screens next door, and drift is the guaranteed result.
+
+**Do.** One document, `docs/LOOK.md`, carrying: the four surface levels
+(VIBE-3), the container rule (VIBE-2), the six spacing steps (VIBE-1), the three
+densities (VIBE-7), the four-beat open (VIBE-4), and the motion language
+(section 24). Not a style guide with swatches. A set of decisions with reasons,
+in the voice of this file, so that the next agent inherits the argument rather
+than the output.
+
+---
+
+## 24. Motion
+
+There is a great deal of motion in this codebase already: **59 distinct
+`@keyframes`** and **95 `animation:` declarations** across the CSS partials,
+with `motion.css` at 637 lines and `animation.css` at 277. There are also
+**reduced-motion blocks in 16 files** and a global token collapse. What there is
+not is a *language*: a small set of movements, each with one meaning, that a
+person learns once in the first minute and then reads for free everywhere else.
+
+The difference matters. A product with fifty animations and no language feels
+busy. A product with six movements and a language feels alive. The entries below
+turn the first into the second without deleting the good work.
+
+**The tokens, since every timing below refers to them.**
+
+| Token | Value | What it is for |
+|---|---|---|
+| `--nf-duration-instant` | 90ms | Press feedback. Nothing else |
+| `--nf-duration-fast` | 160ms | Hover, focus, small state flips |
+| `--nf-duration-base` | 240ms | The default. Entrances, exits, most transitions |
+| `--nf-duration-slow` | 380ms | Sheets, drawers, anything crossing a screen |
+| `--nf-duration-deliberate` | 620ms | Confirmations. Motion the user is meant to notice |
+
+| Easing | Curve | What it is for |
+|---|---|---|
+| `--nf-ease-standard` | `cubic-bezier(0.22, 0.61, 0.36, 1)` | Anything already on screen changing |
+| `--nf-ease-entrance` | `cubic-bezier(0.16, 1, 0.3, 1)` | Things arriving. Fast out of the gate, long settle |
+| `--nf-ease-exit` | `cubic-bezier(0.4, 0, 1, 1)` | Things leaving. Accelerate away, never settle |
+| `--nf-ease-spring` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Overshoot. Reserved. See MOT-7 |
+
+### MOT-1. The motion language: six movements, and the product should not have a seventh. **NEW. OPEN. P1**
+
+Every animation in the product should be one of these six, and a reader should
+be able to name which one they just saw.
+
+| # | Movement | Means | Timing |
+|---|---|---|---|
+| 1 | **Rise** | This is new content arriving in place | `base`, `entrance`, from `translateY(8px)` and `opacity: 0` |
+| 2 | **Enter** | This is a surface coming in from an edge | `slow`, `entrance`, from the edge it will return to |
+| 3 | **Leave** | This is going away and will not be back | `fast`, `exit`, to `opacity: 0` and 2px of travel. **Always faster than its entrance** |
+| 4 | **Press** | I registered your touch | `instant`, `standard`, `scale(0.97)` |
+| 5 | **Settle** | A value changed and here is the new one | `fast`, `standard`, cross-fade in place, no travel |
+| 6 | **Confirm** | Something irreversible succeeded | `deliberate`, `entrance`, once, with a colour shift. See MOT-6 |
+
+**The asymmetry in 2 and 3 is the load-bearing part and it is the thing most
+products get wrong.** An exit that takes as long as its entrance feels like the
+interface is arguing with you. Leaving should always be quicker than arriving:
+the user has already decided, and the animation is now in their way. As a rule,
+**exit at half the entrance duration and one easing tier faster**.
+
+**Do.** Audit the 95 `animation:` declarations against this table. Most will map
+cleanly. The ones that do not are either ambience (MOT-3, exempt) or the
+duplicated confirmations in MOT-6.
+
+### MOT-2. What must never move. **NEW. OPEN. P0**
+
+This is the shortest entry in the section and the most important, because
+everything above is taste and this is not.
+
+**Nothing that states an amount of money may animate its value.** Not the wallet
+balance, not an escrow figure, not a fee breakdown, not a move-in total, not a
+checkout amount. A number that counts up is a number the user cannot read, and a
+number the user cannot read on a money screen is the same category of failure as
+CASE-1: the interface knows something the person does not.
+
+`motion.css` currently carries `nf-balance-pulse-up` and `nf-balance-pulse-down`
+at 1.1s, and an odometer. **A pulse on the container is acceptable; a roll on the
+digits is not.** The distinction: the surface may acknowledge that a figure
+changed, the figure itself must be legible from the first frame to the last.
+
+**Also never:**
+
+- **A destructive confirmation must not animate in.** A dialog asking whether to
+  delete an account or release escrow appears at full opacity, immediately. A
+  fade-in on a destructive dialog is how a person taps through it while it is
+  still 40% transparent.
+- **An error message must not slide.** It appears where it will stay. Motion on
+  an error moves the thing the person is trying to read.
+- **Nothing may move under a finger already on the screen.** Any entrance that
+  reflows a list a user is mid-scroll in is a bug regardless of how good it
+  looks.
+- **A skeleton must not animate out.** See MOT-4.
+
+### MOT-3. Ambience is a separate budget and it has different rules. **NEW. OPEN. P2**
+
+The long loops are correctly built and should not be confused with interface
+motion: `nf-float` at 7s, `nf-float-slow` at 11s, and the landing ambience out to
+20s and 21s. These are atmosphere. They may be slow, they may loop forever, they
+may ignore the duration tokens entirely, because a 240ms token has nothing to say
+about a 20-second drift.
+
+**The three rules ambience must follow.**
+
+1. **It never runs above content a person is reading.** Behind, beside, never
+   over.
+2. **It stops entirely under Save-Data and under reduced motion.** PERF-1 already
+   proves the Save-Data half: the artwork is never requested rather than hidden.
+3. **It never runs on a money screen.** The wallet does not get an aurora.
+
+### MOT-4. Skeleton to content is a replacement, not a transition. **NEW. OPEN. P1**
+
+When real content arrives, the skeleton is **removed** and the content is
+**there**. No cross-fade, no scale, no stagger.
+
+The reasoning is the same as VIBE-4's: the skeleton has already told the person
+the shape of what is coming, so the arrival is not news. Animating it makes the
+swap the event, and the swap is the least interesting thing that just happened.
+A 200ms cross-fade also means 200ms during which the text is at partial opacity
+and unreadable, which is a real cost paid for a decoration.
+
+**The exception, and it is narrow:** the *first* screen of a session, where the
+skeleton is also the person's first sight of the app, may Rise. Every subsequent
+one replaces.
+
+### MOT-5. Optimistic updates need a visual grammar and have none. **NEW. OPEN. P1**
+
+The platform does optimistic work in several places (saves, likes, follows,
+message sends) and there is no shared way to show the three states an optimistic
+action passes through. Without one, every surface invents its own, and the
+failure case is the one that gets skipped.
+
+**The grammar, three states, one vocabulary.**
+
+| State | What the user sees | Motion |
+|---|---|---|
+| **Pending** | The new value, at full opacity, with the control non-interactive | Press (`instant`). Nothing else. **No spinner** |
+| **Confirmed** | Nothing changes | **Nothing.** The optimistic value was right, so there is no event |
+| **Rejected** | The old value returns, with a message saying why | Settle (`fast`) back, then the message appears without motion |
+
+**"Confirmed means nothing happens" is the whole point.** If success produces a
+flash or a tick, the interface has told the user their action was in doubt, and
+the next time they tap they will wait for the tick. The optimistic update's
+entire value is that the person moves on; a success animation takes it back.
+
+**And the rejection must be honest.** A save that silently reverts is worse than
+a save that never appeared to work. Reverting without a message is the pattern
+that produced CASE-1's shape: the interface showing a state the backend did not
+agree with, and never saying so.
+
+### MOT-6. Five confirmations, one meaning. **NEW. OPEN. P2**
+
+Verified in the partials today:
+
+| Class | File | Timing |
+|---|---|---|
+| `nf-confirm-pop` | `motion.css` | `--nf-duration-deliberate`, entrance |
+| `nf-confirm-dim` | `glass.css:561` | literal `900ms`, standard |
+| `nf-confirm-sweep` | `glass.css:587` | literal `650ms` with a `260ms` delay |
+| `nf-status-assemble` | `motion.css:181` | literal `600ms`, spring |
+| `nf-map-pin-bloom` | `map.css:111` | literal `1.5s` with a `500ms` delay |
+
+Five movements for one meaning, at five durations, three of which are within
+100ms of `--nf-duration-deliberate` and none of which use it.
+
+`nf-confirm-pop` is the right one and `motion.css` says so in its own comment
+where the verified header reuses it "rather than inventing a second 'something
+just landed' motion". The comment is correct and the codebase did it anyway,
+four more times.
+
+**Do.** Keep `nf-confirm-pop`. Keep the map bloom, which is a genuinely different
+event (a pin landing on a map is not a state change on a row). Fold the other
+three into `nf-confirm-pop` with a colour modifier, and put the timings on
+tokens.
+
+### MOT-7. Spring is a special effect and it is being used as a default. **NEW. OPEN. P2**
+
+`--nf-ease-spring` is `cubic-bezier(0.34, 1.56, 0.64, 1)`, which overshoots by
+56%. That is a large overshoot and it is exactly right for the two places it
+earns: a message bubble arriving (`nf-msg-in-right`, `nf-msg-in-left`) and a map
+pin dropping.
+
+It is currently also on `nf-status-assemble`. A status assembling is not a
+physical object with momentum, and giving it one makes a state change feel like
+a toy.
+
+**The rule.** Spring is for things that behave like objects: something that
+arrives from off-screen, drops, or is thrown. Everything that is a *change in
+value* uses `standard`. Under reduced motion `--nf-ease-spring` already collapses
+to `linear`, which is correct and is the tell: if an animation is meaningless
+without its overshoot, it should not have had one.
+
+### MOT-8. Ten literal durations escape the reduced-motion safety net. **NEW. OPEN. P1**
+
+`tokens.css:942` collapses all five duration tokens to `1ms` under
+`prefers-reduced-motion: reduce`, with a comment explaining the design: durations
+collapse rather than animations being deleted, so components keep one code path.
+That is a genuinely good mechanism and it is the platform's primary reduced-motion
+guarantee.
+
+**Every literal duration in the partials bypasses it.** Verified today:
+
+| File and line | Declaration |
+|---|---|
+| `buttons.css:211` | `transition: transform 650ms var(--nf-ease-standard)` |
+| `buttons.css:228` | `transition: transform 480ms var(--nf-ease-standard)` |
+| `glass.css:314` | `transition: transform 900ms var(--nf-ease-standard)` |
+| `glass.css:561` | `animation: nf-confirm-dim 900ms ...` |
+| `glass.css:587` | `animation: nf-confirm-sweep 650ms ... 260ms both` |
+| `map.css:65` | `animation: nf-map-pin-drop 640ms var(--nf-ease-spring)` |
+| `map.css:74` | `animation: nf-map-cluster-drop 640ms var(--nf-ease-spring)` |
+| `motion.css:126` | `transition: opacity 260ms var(--nf-ease-standard)` |
+| `motion.css:181` | `animation: nf-status-assemble 600ms var(--nf-ease-spring)` |
+| `motion.css:284` | `transition: transform 1.15s var(--nf-ease-entrance)` |
+| `motion.css:324`, `:333` | `animation: nf-balance-pulse-* 1.1s` |
+| `motion.css:366`, `:369` | `animation: nf-tx-slide-* 420ms` |
+
+Each of these reaches for the easing token and then hardcodes the duration
+beside it, which is the most revealing shape possible: the author knew the token
+layer existed and there was no duration that fit. Note the values. 480, 600, 640,
+650: four attempts to express something between `slow` (380ms) and `deliberate`
+(620ms).
+
+**Do.** Two things, in this order.
+1. **Add `--nf-duration-settle: 500ms`** to the scale. It is the missing step and
+   ten declarations are evidence for it.
+2. **Replace every literal with a token.** Some will round. Rounding a 480ms to
+   500ms is invisible; leaving a person with vestibular sensitivity a 900ms
+   transform is not.
+
+Note that several of these sit in files that DO carry a `prefers-reduced-motion`
+block, which means their author thought about it, guarded the wrong thing, and
+left the transform running. A per-file guard is not a substitute for the token.
+
+### MOT-9. Hover is a desktop idea and this is a phone product. **NEW. OPEN. P2**
+
+Every hover state in the product is dead weight on the majority of sessions, and
+worse, on a touch device a `:hover` rule frequently *sticks* after a tap until
+something else is touched, so a card stays lit after the user has navigated away
+and come back.
+
+**Do.**
+1. **Wrap every hover in `@media (hover: hover) and (pointer: fine)`.** Not
+   `min-width`. A tablet with a keyboard is fine, a large phone is not.
+2. **Every hover must have a press equivalent**, because the touch user gets no
+   hover at all and must still be told the thing is interactive. Press
+   (`instant`, `scale(0.97)`) is that equivalent and it should be on every
+   interactive surface, not just buttons.
+3. **Focus-visible is not optional and is not the same as hover.** It is the only
+   affordance a keyboard user has, and it should be a ring, at
+   `--nf-duration-fast`, never a colour change alone.
+
+### MOT-10. Realtime arrivals must respect the reader's position. **NEW. OPEN. P1**
+
+`useThreadRealtime` and the notification subscription insert rows into a live
+list from a socket. The message-arrival motion is good (`nf-msg-in-right` and
+`nf-msg-in-left` spring in from the side their sender occupies, which is a
+genuinely well-reasoned piece of work). The missing rule is about *where*, not
+*how*.
+
+**Do.**
+1. **If the reader is at the bottom of the thread, the new message enters and
+   the view follows.** This is the normal case and it is already right.
+2. **If the reader has scrolled up, nothing moves.** The message enters below the
+   fold and a pill appears saying one new message. Auto-scrolling a person who
+   is reading history is the single most disliked behaviour in any chat product.
+3. **A message that arrives while the tab is hidden does not animate.** It is
+   simply present when the person returns. Animating a backlog of eleven
+   messages on focus is a slot machine.
+4. **The same three rules apply to the notification list** and to the social
+   feed, and they should be one shared hook rather than three implementations.
+
+### MOT-11. View transitions are wired and used for one thing. **NEW. OPEN. P2**
+
+`base.css:26` sets up the View Transitions API for the photo camera move: a
+listing card and the gallery it opens into tag matching elements with the same
+`view-transition-name`, and the browser morphs one into the other. The
+reduced-motion guard is correct and the no-JS fallback is a genuine no-op.
+
+This is the best piece of motion in the product and it is used once.
+
+**Do.** Extend it to the two other places where a small thing becomes a big
+thing: an avatar becoming a profile header, and a map pin becoming its bottom
+sheet. Both are the same gesture and both currently cut. Do not extend it further
+than that: a view transition on an ordinary navigation is a page that feels
+slow.
+
+### MOT-12. Nothing tests any of this. **NEW. OPEN. P2**
+
+Section 21 counts 83 browser specs and none of them asserts a motion property.
+Three are worth writing and each is cheap:
+
+1. **The reduced-motion sweep.** Load the app with `prefers-reduced-motion:
+   reduce` forced, walk the route list already used by the image spec, and fail
+   on any computed `animation-duration` or `transition-duration` above 50ms. This
+   spec would have caught all ten literals in MOT-8 the day they landed.
+2. **The token sweep.** Grep the partials for `animation:` and `transition:`
+   declarations carrying a literal duration, allowlist the ambience loops by
+   name, fail on the rest. A lint rule, not a browser spec, and it is ten lines.
+3. **The money-does-not-move spec.** Assert that no element carrying a currency
+   figure has a non-`none` computed `animation-name`. MOT-2 is a P0 rule and P0
+   rules should not rely on review.
+
+---
+
+## 25. Backend speed, strength and sharpness
+
+Everything in this section was measured today against the live project
+`uccixoonmbhrnyczyigt` or read out of the tree. **The platform has almost no
+data**, so nothing here is a report of an observed slow query. It is a report of
+shapes that are fast at zero rows and are known to be slow at real ones, which
+is the only kind of performance work worth doing before launch: the shapes are
+cheap to fix now and expensive to fix under load.
+
+**Live row counts today, for scale.** `local_governments` 774, `occupations`
+749, `states` 37, `posts` 19, `amenities` 15, `areas` 7, `profiles` 1, and
+**`listings` does not appear in `pg_stat_user_tables` with a single live row**.
+Every figure below about the catalogue is therefore about a table that is empty.
+
+### BE-1. `resolveSession` is not memoised, so one page render makes several identical auth round trips. **NEW. DONE 2026-08-09**
+
+`lib/actions/session.ts` exports `resolveSession`, which calls
+`supabase.auth.getUser()`. That is not a local token decode: it is an HTTPS
+request to GoTrue at `/auth/v1/user` that validates the access token server-side.
+There are **110 `await resolveSession()` call sites across 62 files**.
+
+The cost is not hypothetical. On `/home`, `app/(app)/layout.tsx` awaits
+`getShellIdentity()`, which resolves a session, and the page awaits
+`getHomeOverview()`, which resolves another. Both of those functions are
+individually wrapped in React `cache()`, which is exactly the right instinct
+applied one level too high: the memo is on the caller, so each caller still pays
+its own `getUser`. Two round trips to Abidjan or Frankfurt before anything
+renders, for one identical answer.
+
+**Do.** Wrap `resolveSession` in React `cache()`. The memo is request-scoped, so
+it is correct in server components, route handlers and server actions alike, and
+it cannot leak between users.
+
+**And the safety argument, because memoising an auth check deserves one.** The
+only way a per-request memo can be wrong is if the session changes mid-request.
+Three call sites change it: `signInWithPassword`, `verifyOtp` and
+`exchangeCodeForSession` in `lib/auth/actions.ts`, none of which calls
+`resolveSession` afterwards, and `signOut` and `deleteAccount` in
+`lib/profile/actions.ts`, both of which call `resolveSession` **before** signing
+out and return immediately after. Checked, one by one. There is no path where a
+second resolution in the same request should see a different answer.
+
+**DONE, 2026-08-09.** `resolveSession` in `lib/actions/session.ts` is wrapped in
+React `cache()`, with the safety argument above written into the file so the
+next reader inherits it rather than re-deriving it. `lib/actions/session.test.ts`
+holds five specs: the three outcomes, the memo (three concurrent callers plus a
+fourth make exactly one `auth.getUser()` call and get an identical object), and
+the leak guard (two scopes ask twice and the second is not served the first's
+answer).
+
+**And a trap was found while proving it, which is the more valuable half.**
+Vitest was resolving `react` to the CLIENT build, whose `cache` is a bare
+passthrough that calls the function every time, while the app resolves the
+`react-server` build, whose `cache` memoises. So a `cache`-wrapped server module
+behaved one way in the app and the opposite way under test, with every test
+still green. `vitest.config.ts` now aliases `react` at
+`react/react.react-server.js`, exactly as it already aliased `server-only` and
+for exactly the same stated reason. The whole suite passes under the alias: 22
+files, 493 tests. **Everything else in this codebase wrapped in `cache` was
+untested by accident until this change**, and `getHomeOverview` and
+`getShellIdentity` are both in that set.
+
+### BE-2. The catalogue's default ordering has no index behind it. **NEW. OPEN. P1**
+
+`SupabaseListingRepository.search()` ends every query with:
+
+```
+.order("featured", { ascending: false })
+.order("published_at", { ascending: false, nullsFirst: false })
+.order("created_at", { ascending: false })
+.limit(200)
+```
+
+That ordering, on `status = 'PUBLISHED'`, is the single most-run query the
+product will have. The live index list on `public.listings` carries eighteen
+indexes, including well-judged partial ones for price, size, tenure, power and
+water. **None of them covers `(featured, published_at, created_at)`**, and
+`listings_status_idx` is a plain btree on `status` alone, which for a table where
+most rows will be `PUBLISHED` is not selective enough to help.
+
+The consequence at scale is a sort of the entire published catalogue on every
+search, including every search that also carries a filter, because the filter
+narrows the scan and the sort still has to run over what survives.
+
+**Do.** One partial index, matching the query exactly:
+
+```sql
+create index listings_catalogue_order_idx
+  on public.listings (featured desc, published_at desc nulls last, created_at desc)
+  where status = 'PUBLISHED';
+```
+
+Owner note: this is a migration, so it belongs to whoever owns `supabase/**`.
+It is one statement and it is the highest-value index the schema is missing.
+
+### BE-3. There is no full-text index, and free text is filtered in the application. **NEW. OPEN. P1**
+
+`search()` says so plainly in its own comment: free text runs "in memory (the
+shared haystack, until a Postgres full text index exists)". Verified: the
+installed extensions are `btree_gist`, `pg_cron`, `pg_stat_statements`,
+`pgcrypto`, `plpgsql`, `postgis`, `supabase_vault` and `uuid-ossp`. **There is no
+`pg_trgm` and no tsvector column anywhere.**
+
+The shape this produces is the expensive one: pull 200 rows over the wire, then
+discard most of them in Node because the words did not match. At 200 rows that is
+a wasted payload. At a catalogue of 50,000 it is wrong in a way that cannot be
+patched, because the 200-row ceiling means free text only ever searches the
+newest 200 listings and silently returns nothing for a property that exists.
+
+**That last point is the real severity.** This is not only a performance entry.
+Today, with an empty catalogue, free text appears to work. The first time the
+catalogue exceeds 200 published rows, search starts lying.
+
+**Do.**
+1. A generated `tsvector` column over title, area, city and description, with a
+   GIN index, and `websearch_to_tsquery` in the query. Nigerian place names and
+   property vocabulary are not in any dictionary, so use `simple` rather than
+   `english`, and add `pg_trgm` for the misspellings that matter (`Lekki`,
+   `Ikoyi`, `Yaba`).
+2. **Until that lands, cap the damage honestly.** When a free-text term is
+   present and the result set hits the 200-row ceiling, the surface must say the
+   results are partial rather than presenting them as the whole answer.
+
+### BE-4. The amenity filter reads up to 5,000 join rows and intersects them in Node. **NEW. OPEN. P2**
+
+`listingIdsWithAllAmenities` selects `listing_id, amenity_id` from
+`listing_amenities` with `.in("amenity_id", wanted).limit(5000)`, builds a
+`Map<string, Set<string>>` in memory, and keeps the ids whose set size equals the
+requested count.
+
+The logic is right and it is pushed down as far as PostgREST allows. The problem
+is the 5,000 ceiling: a popular amenity across a real catalogue exceeds it, the
+query silently truncates, and listings that genuinely carry the whole set are
+dropped from the results. Same failure class as BE-3, a correctness bug wearing a
+performance bug's clothes.
+
+**Do.** A `listings_with_amenities(p_codes text[])` SQL function doing the
+`group by listing_id having count(*) = cardinality(p_codes)` in Postgres, which
+is one index scan on `listing_amenities_amenity_idx` and no ceiling. Delete the
+5,000.
+
+**HALF DONE, 2026-08-09: the truncation is no longer silent.** The SQL fix is a
+migration and is not this pass's to make. What was in this pass's reach was the
+silence, and that was the dangerous half: a cap with no signal on a query whose
+result is then aggregated is not a performance limit, it is a wrong answer that
+nobody is told about. The ceiling is now the named constant `JOIN_ROW_LIMIT` and
+`warnIfTruncated` writes one greppable `[catalogue]` line naming the read, the
+ceiling and the listing count when it is hit, pointing at this entry. **The
+lesson is CASE-1's, one directory over: the bug was never that something failed,
+it was that nothing said so.** The correctness fix above is still owed.
+
+### BE-5. Review statistics are computed in Node from raw rows. **NEW. OPEN. P2**
+
+`getReviewStats` selects `listing_id, rating` for every review on the page's
+listings, `.limit(5000)`, and averages in JavaScript. Same ceiling, same shape.
+A listing with 5,000 reviews is a good problem; silently averaging a truncated
+sample of it is not.
+
+**Do.** Either a small aggregate RPC, or, better, `rating_avg` and `review_count`
+as maintained columns on `listings` updated by the trigger that already fires on
+review insert. The catalogue query then carries the rating for free and one round
+trip disappears from every page. P-9 and P-10 are already asking for
+trigger-maintained columns elsewhere; this is the same pattern.
+
+**HALF DONE, 2026-08-09, the same half as BE-4.** `getReviewStats` now shares
+`JOIN_ROW_LIMIT` and warns through `warnIfTruncated` when it hits it, so a
+rating averaged over a truncated sample announces itself instead of being
+published as the listing's rating. The maintained columns are still the answer.
+
+### BE-6. Every catalogue read pulls the whole listing, including the parts nothing renders. **NEW. PARTLY DONE 2026-08-09. P2 residual**
+
+`LISTING_SELECT` is one 60-column select with three embedded joins
+(`listing_photos`, `listing_videos`, `listing_amenities`) and it is used by
+`search()`, `byId()` and `loadListingsByIds()` alike. A search results page
+therefore pulls, for up to 200 listings, every fee column, every utility column,
+`year_built`, `total_floors`, `minimum_tenancy_months`, and the walkthrough video
+rows.
+
+**And the videos are the sharp end.** `mapRows` calls `signVideos`, which is a
+Supabase Storage `createSignedUrls` call, a separate HTTP round trip, on every
+catalogue read that returns any video path. Nothing in the product renders
+`Listing.videos`: grep the `.tsx` files and there is not one reference. The
+field is declared on the type at `lib/listings/types.ts:165`, populated by the
+repository, and consumed by nobody. So the search page pays a storage round trip
+and signs URLs that are then discarded.
+
+**Do.** Make the walkthrough join and its signing round trip **opt-in**, off for
+the catalogue path and on for the one page that will render a walkthrough when
+MED-2 lands. Do not delete `listing_videos` from the repository: P-11 and MED-2
+both want it, and a select that has to be rebuilt is worse than a flag that has
+to be flipped.
+
+The wider column narrowing is worth doing too, and is worth doing second: a card
+does not need `year_built`, `total_floors` or `minimum_tenancy_months`, but
+`matchesFilter` and `headlinePrice` read across most of the money columns, so
+narrowing them needs care and a test rather than a confident deletion.
+
+**DONE for the videos, 2026-08-09.** There are two selects now.
+`LISTING_SELECT` carries `listing_photos` and `listing_amenities` and is used by
+`search()` and `loadListingsByIds()`. `LISTING_DETAIL_SELECT` adds
+`listing_videos` and is used only by `byId()`, which is the one read whose page
+will render a walkthrough when MED-2 lands. Nothing was deleted.
+
+`mapRows` needed no change, which is worth recording: `signVideos` already
+returns early on an empty path list, so a row set with no video join makes no
+storage call at all. The round trip disappears from the catalogue path as a
+consequence of the select, not as a second branch.
+
+**One thing was learned the hard way and is written into the file so nobody
+undoes it.** The obvious implementation, composing the detail select from the
+card select or choosing between them in a `selectFor(withVideos)` helper, does
+not work and fails in a way that looks like an unrelated cast error. The
+Supabase client parses the select string **at the type level** to derive the row
+shape, so it needs a literal; a composed or conditional select degrades to
+`string` and every `as ListingRow[]` downstream becomes
+`Conversion of type 'GenericStringError[]'`. So the column list is written
+twice, on purpose, and `lib/listings/selects.test.ts` holds the two to each
+other: they must differ by exactly the `listing_videos` join, in the same order,
+with no duplicates and nothing on the card read that is missing from the detail
+read. Five specs.
+
+**Residual, P2.** The wider column narrowing described above. A card still pulls
+`year_built`, `total_floors` and `minimum_tenancy_months`. That is bytes rather
+than a round trip, and it needs the matcher's column dependencies mapped first.
+
+### BE-7. `recommended()` reads two hundred listings to show six. **NEW. DONE 2026-08-09**
+
+`recommended(limit = 6)` is `diversePick(await this.search({}), limit)`. The
+`search({})` call has no filter, so it pulls the full `CATALOGUE_LIMIT` of 200
+rows with every join, maps all 200 into domain objects, and then `diversePick`
+sorts them and takes six.
+
+`diversePick` needs a pool wide enough to alternate between property kinds, so it
+cannot take exactly six. It does not need 200.
+
+**Do.** Let the filter carry a limit, and have `recommended` ask for a pool a
+few times its output rather than the whole catalogue page. Six kinds exist, so a
+pool of roughly ten times the requested count is more than enough for
+`diversePick` to alternate, and it is a fifth of the current read.
+
+**DONE, 2026-08-09.** The limit is an OPTION, not a filter, and the distinction
+is now written into `ListingSearchOptions` in `lib/listings/types.ts`: a filter
+is a promise to the reader about which listings they are looking at and belongs
+in the URL, an option is a decision about what the answer costs and must never
+change which listings match. The type had been reduced to one vestigial field
+(`partners`, kept alive only so two call sites would compile) and is load-bearing
+again.
+
+`recommended(limit)` now reads `limit * RECOMMENDED_POOL_FACTOR` rows, factor 10,
+so the default rail reads 60 instead of 200. `rowCap()` clamps: an option may
+lower the ceiling and never raise it, and a nonsense number (zero, negative,
+fractional, `NaN`) falls back to the full catalogue limit rather than to nothing,
+because a bad number should produce an ordinary page and not an empty discovery
+surface.
+
+**The one caveat is in the type's own comment and matters.** This is not
+pagination and must not be presented as it. The in-memory matcher runs after the
+read, so a smaller ceiling can return fewer matches rather than the same matches
+in a smaller page. It is safe exactly where the caller wants "some good ones"
+rather than "all of them", which is what a recommendation rail is. BE-3 is the
+entry about the ceiling that is NOT safe.
+
+### BE-8. `listings_in_bounds` exists, is granted to `anon`, and nothing calls it. **NEW. DONE 2026-08-09. Unblocks M-5 and M-10**
+
+Verified live. The function exists with this signature:
+
+```
+listings_in_bounds(p_west, p_south, p_east, p_north,
+                   p_intent, p_property_type,
+                   p_min_price_minor, p_max_price_minor,
+                   p_bedrooms, p_limit default 500)
+```
+
+It is `LANGUAGE sql STABLE`, `SET search_path TO ''`, **not** `SECURITY DEFINER`
+(so RLS applies, which is correct), it filters on
+`status = 'PUBLISHED' and location is not null`, uses the `&&` operator against
+`st_makeenvelope(..., 4326)` so it lands on `listings_location_gist`, and clamps
+its own limit with `least(greatest(coalesce(p_limit, 500), 1), 1000)`. It returns
+twelve narrow columns rather than a listing: id, title, type, intent, city, area,
+state, lat, lng, bedrooms, bathrooms and a single resolved `price_minor`.
+
+This is a well-built function. It is granted to `anon`, `authenticated`,
+`postgres` and `service_role`. **And there is no `.rpc("listings_in_bounds")`
+anywhere in `apps/web`.** M-4 said PostGIS was installed and nothing used it;
+this is the specific unused thing, and it is the whole server half of M-5.
+
+**Two gaps before it is exposed, both of which are SEC-6 point 3.**
+
+1. **The bounding box has no area cap.** A caller can pass a box covering
+   Nigeria and get 1,000 rows with coordinates. That is a catalogue export with
+   pin locations, in one request, unauthenticated. The `p_limit` clamp bounds the
+   row count and does nothing about the box.
+2. **Nothing rate limits it.** The public browse surfaces have been open since
+   N-1 and this would be the cheapest of them to loop.
+
+**Do.** Build the caller in `lib/listings/`, not in a component, and give it the
+two caps the SQL cannot give itself:
+
+1. **Reject a box wider than a city.** A viewport query is a viewport query. A
+   span of more than roughly 1.5 degrees in either axis is not a person looking
+   at a map, and refusing it costs nothing legitimate.
+2. **Rate limit it as a public bucket**, keyed on IP for anonymous callers,
+   through the existing `consume` in `lib/security/rate-limit.ts`.
+3. **Normalise the box before it reaches SQL**: swap inverted corners, clamp to
+   Nigeria's extent, and refuse non-finite numbers rather than passing `NaN`
+   into `st_makeenvelope`.
+4. **Expose it as a route handler** so the map can move the viewport without a
+   full server render, which is what M-5 and M-10 both need.
+
+**DONE, 2026-08-09.** Two files, and the split between them is the design.
+
+**`lib/listings/bounds.ts` bounds ONE REQUEST.** `readBounds` is a pure function
+and is the entire security surface, so it is provable without a database or a
+request. It refuses a corner that is missing, non-numeric or infinite rather
+than handing a `NaN` to `st_makeenvelope`; refuses a coordinate that is not on
+earth; repairs an inverted rectangle, because a dragged selection is a reader
+and not an attacker, and an unrepaired one silently matches nothing which looks
+like an answer; refuses either span above `MAX_SPAN_DEGREES` (1.5 degrees, about
+165km, where greater Lagos fits inside 0.6); and clamps what survives to
+Nigeria's extent. `pinCap` holds the row count at 300 and, like `rowCap` in
+BE-7, lets a caller lower the ceiling and never raise it.
+
+**One ordering detail is load-bearing and has its own spec.** The span is judged
+on what the caller ASKED for, before the clamp to Nigeria. Clamping first would
+turn "give me the whole country" into a legal request for the whole country,
+which is the exact request being refused.
+
+**`app/api/map/listings/route.ts` bounds MANY REQUESTS.** The per-request caps
+are worth little alone: a caller who cannot have the country in one request can
+tile it in four hundred. It consumes the existing Postgres-backed limiter in a
+`map_bounds` bucket, keyed by IP since there is no account to key by, at 240
+reads per five minutes. That is deliberately generous, because a person panning
+with a debounce (M-6) issues a burst of a dozen in ten seconds and that is
+ordinary use: the budget is priced to make scripted enumeration slow, not to
+discipline a fast scroller. The limiter is consulted before any other work, and
+a spec asserts the RPC is never reached on a refusal, because a limiter that
+runs after the query has limited nothing.
+
+**Three refusals get three statuses**, not one 400, because the map's response
+to each differs: malformed is 400, too-wide is 422 with "zoom in", out-of-range
+is 422 with "outside Nigeria". Collapsing them would leave the surface unable to
+tell "zoom in" from "you have panned off the country", and the latter rendered
+as an empty result reads as "no listings here".
+
+The response also carries `capped: true` when the answer hit `MAX_PINS`, so the
+surface can say it is showing the first 300 in this view. **A map that silently
+truncates tells a reader a neighbourhood is empty when it is full**, and that is
+the one lie a map can tell that a person cannot detect.
+
+Cached with `s-maxage=30, stale-while-revalidate=60`: a published catalogue is
+identical for every anonymous caller and a pan crosses ground it has already
+covered constantly, and thirty seconds of staleness on a property that has been
+listed for weeks is not a difference anybody can perceive.
+
+**22 specs across `lib/listings/bounds.test.ts` (14) and
+`app/api/map/listings/route.test.ts` (8).**
+
+**What is still owed, and it is the client half.** Nothing calls this endpoint
+yet. The map component lives in `components/app/search/MapDock.tsx`, which this
+pass does not own. M-5, M-6 and M-10 are the client work, and they now have a
+server to talk to: `GET /api/map/listings?west=&south=&east=&north=` with
+optional `intent`, `kind`, `bedrooms`, `minPrice`, `maxPrice` and `limit`.
+
+### BE-9. Three in-process caches, three implementations, no shared behaviour. **NEW. DONE 2026-08-09**
+
+The codebase independently reinvented the same TTL cache three times:
+
+| Where | What | TTL |
+|---|---|---|
+| `lib/platform-stats.ts` | The landing page counts | 300,000ms |
+| `lib/listings/supabase-repository.ts` | `states` code to name | 600,000ms |
+| `lib/listings/supabase-repository.ts` | `amenities` id to code | 600,000ms |
+
+Each is a module-level `let cache = { value, expires }`. They work. They also
+each independently decided what to do when the read fails, and two of them cache
+the failure: `platform_stats` stores `null` for five minutes after one bad read,
+so a single blip costs the landing page its numbers for five minutes even though
+the database recovered in two seconds.
+
+**And a fourth place needs one and does not have it.** `readPlaceNames` in
+`lib/app/home-queries.ts` reads `public.states` and `public.local_governments` on
+every signed-in home render, to turn two codes into two names. Those tables hold
+37 and 774 rows and change roughly never. Two round trips per render, forever,
+for static reference data.
+
+**Do.** One helper, `lib/cache/memo.ts`, with three behaviours the ad hoc copies
+do not share:
+
+1. **A fresh value is served from memory** until its TTL expires. Same as today.
+2. **A failed refresh keeps the last good value** rather than replacing it with
+   the failure. This is the `platform_stats` bug and it is the reason to share
+   the code at all.
+3. **Concurrent refreshes collapse into one.** Three requests arriving at the
+   moment a TTL expires currently make three identical database calls. The
+   in-flight promise should be shared.
+
+Then adopt it in all four places. Note what this is and is not: it is a
+**per-instance** cache, so on serverless each warm instance holds its own copy
+and a deploy clears them all. That is fine for reference data and marketing
+counts, and it is exactly what `lib/security/rate-limit.ts` correctly refused to
+rely on for a limit.
+
+**DONE, 2026-08-09.** `lib/cache/memo.ts` is new and carries all three
+behaviours, plus an `isFailure` predicate for loaders that report failure
+in-band rather than by throwing. Its header states what it is NOT for, in the
+words of the rate limiter's own story, so that nobody reaches for it to cache a
+balance or a permission. `lib/cache/memo.test.ts` holds seven specs, including
+the two that are the reason the helper exists: a refresh that throws keeps the
+last good value and is not itself cached, and three concurrent `get` calls make
+one load.
+
+**All four sites now use it.**
+
+| Site | What changed |
+|---|---|
+| `lib/platform-stats.ts` | The five-minute `null` bug is gone. `null` is declared a failure, so a blip no longer costs the landing page its numbers after the database recovers |
+| `lib/listings/supabase-repository.ts` | `states` and `amenities` memos replace two hand-rolled caches |
+| `lib/app/home-queries.ts` | `readPlaceNames` no longer queries `states` and `local_governments` per signed-in home render. Two round trips per render become two per hour per instance |
+
+**One thing worth carrying forward, because it is a trap rather than a
+preference.** Every loader builds its own Supabase client rather than borrowing
+the caller's. A cache that outlives a request must not close over a
+request-scoped, cookie-bound client: the first caller's client would outlive
+their request and every later refresh would run through a session that has gone.
+Both files say so at the memo.
+
+**And two pre-existing lint failures in `supabase-repository.ts` were cleared
+while in the file**, since the house rule is that a touched file lints clean:
+`YEARLY_KINDS` and `optionalNumber` were both dead. `YEARLY_KINDS` died when
+`headlinePrice` in `./pricing` took over the period decision, and a comment was
+still citing it. This is PERF-5's category, found by lint rather than by grep.
+
+### BE-10. Nothing on the public surfaces is cacheable, because everything reads cookies. **NEW. OPEN. P1**
+
+Every server read in the product goes through `lib/supabase/server.ts`, which
+calls `cookies()`. In Next 15 that marks the route dynamic, so `/search`,
+`/listing/[id]` and `/u/[handle]` are rendered from scratch for every request
+including every anonymous one. N-1 made anonymous the common case.
+
+A published listing detail page is the same bytes for every signed-out visitor
+on earth. Today it is a full render plus a database round trip per request, and
+it is the page the product most wants a crawler to index (N-2, N-3).
+
+**Do.** Split the anonymous read path from the session read path.
+
+1. **An anon-only client that does not touch cookies.** The anon key plus RLS is
+   already the security boundary for a published listing; the cookie adds
+   nothing to that read.
+2. **Then the public routes can be statically generated with a revalidate
+   window**, and the personal parts (saved state, the message button) hydrate
+   client-side. A published listing changing within 60 seconds of an edit is
+   fine; a listing page that cannot be cached at all is not.
+3. **This is the prerequisite for N-2 and N-3.** A crawler on a cold serverless
+   function is the slowest possible first impression, and crawl budget is spent
+   in milliseconds.
+
+### BE-11. The webhook and the reconciler are the only routes that must never be slow, and neither is measured. **NEW. OPEN. P1**
+
+`app/api/paystack/webhook/route.ts` is 581 lines. Paystack retries on timeout,
+and CASE-1 is the record of what happens when the money path fails quietly.
+`app/api/paystack/reconcile/route.ts` is 158.
+
+**Correcting the premise before making the point, because the premise has
+moved.** It is not true that the money path is unlogged. `lib/payments/observability.ts`
+exists, it is 141 lines, and it is good: a closed `MoneyOutcome` vocabulary of
+seven values so an alert rule has a fixed vocabulary rather than drifting free
+text, a `[money]` prefix, an explicit list of what may never be logged, level
+selection by outcome, a `logMoney` that cannot throw, and a reasoned
+`eslint-disable` explaining why "posted" must be `console.info` rather than a
+warning (every successful payment would otherwise page somebody and the channel
+would be unreadable within a day). W-1's "unlogged" claim is stale.
+
+**What is genuinely missing is a duration.** `MoneyLogFields` carries surface,
+outcome, reason, reference, amount, user, wallet and event, and no time. So
+every webhook says what it decided and none says how long it took. Paystack
+retries on timeout, and the first signal that the webhook has become slow will
+be its retry queue rather than ours.
+
+**Do.** Add `durationMs?: number` to `MoneyLogFields`, render it as `ms=` in
+`line()`, and start a clock at the top of the webhook and reconcile handlers.
+That is a change of about six lines and it needs no vendor.
+
+**OWNER NOTE, and this is why the entry is still open.**
+`lib/payments/observability.ts` is outside this pass's build surface, which
+covers `lib/**` except `lib/wallet` and `lib/payments`. The route handlers in
+`app/api/paystack/` are in scope but the field they would populate is not, and
+adding a duration by smuggling it into the `reason` string would corrupt exactly
+the closed vocabulary that makes the module alertable. **Handed to whoever owns
+`lib/payments`.** It is the smallest high-value change available in that
+directory.
+
+### BE-12. The CSP report endpoint keeps an unbounded, caller-keyed map. **NEW. DONE 2026-08-09**
+
+W-2 covers the money surfaces. The narrower finding here is
+`app/api/csp-report/route.ts`, which is unauthenticated by necessity, and which
+kept a module-level `Map` keyed on
+`${violation.directive}|${violation.blocked}`, where `blocked` is a URL supplied
+by the reporting browser.
+
+The route's own header lists four mitigations and is careful and correct about
+each of them, but the throttle map itself had **no ceiling and no pruning**.
+Entries were only ever added. A caller posting reports with a unique blocked URL
+each time grows that map without limit, in a long-lived serverless instance, on
+an endpoint the file itself describes as "a free write surface for anybody who
+finds it".
+
+**Do.** Cap and prune it, exactly the way `lib/security/rate-limit.ts` already
+caps and prunes `deniedUntil`: drop expired entries first, then the oldest
+insertions if it is still oversized. That file solved this problem correctly and
+wrote down why; the throttle map should borrow the answer rather than a fourth
+independent one. The rate limit on the money routes is W-2 and stays there.
+
+**DONE, 2026-08-09.** `app/api/csp-report/route.ts` now carries
+`MAX_QUIET_KEYS = 500` and a `pruneQuietMap` that drops expired entries first and
+then evicts oldest-insertion-first, which is what `Map`'s insertion ordering
+makes an eviction policy rather than an arbitrary cull. The comment names
+`pruneDenyCache` in `lib/security/rate-limit.ts` as the answer it is borrowing,
+so the two cannot drift apart silently.
+
+`app/api/csp-report/route.test.ts` is new and proves it without reaching into
+the module's private map, because a test that asserts on a private field
+re-breaks the moment the policy changes. It floods the endpoint with 900 unique
+blocked URLs and then re-posts the first one, asserting it logs a second time,
+which is only possible if the entry was evicted. The other four specs hold the
+204-on-everything contract, the throttle itself, distinct pairs logging
+separately, and an oversized body being dropped unread.
+
+### BE-13. Realtime subscribes per conversation and nothing bounds the channel count. **NEW. OPEN. P2**
+
+`useThreadRealtime` opens a channel named `thread-${conversationId}` with a
+`postgres_changes` filter, and the notification hook opens another. RLS applies
+to the change feed, which is the important part and is correct.
+
+Two things are not bounded. A client that navigates between many threads relies
+entirely on the effect cleanup to close channels, and Supabase Realtime bills and
+limits on concurrent connections. And `postgres_changes` filters are evaluated
+per subscriber in the Realtime server, so the cost of a busy thread scales with
+the number of watchers rather than with the number of messages.
+
+**Do.** Neither is urgent at current scale and both are cheap to get right now.
+One shared channel per user for notifications rather than one per surface, and a
+single Realtime client instance rather than one per hook. Revisit
+`postgres_changes` versus broadcast-from-trigger when a thread has more than a
+handful of participants; the typing indicator already uses broadcast and is the
+model.
+
+### BE-14. Cold start is the real latency and nothing measures it. **NEW. OPEN. P2**
+
+Every observation in this section is about query shape. On a serverless
+deployment with low traffic, which is exactly what this platform has, the
+dominant latency for most requests is the cold start plus the TLS handshake to
+Supabase, and neither appears in any query plan.
+
+PERF-6 asks for Web Vitals and is right. The narrower ask here is server-side:
+one log line per request with the route, the total server duration, and whether
+the instance was cold. It costs nothing, it is greppable, and it is the only way
+to know whether BE-1 through BE-10 moved anything.
+
+**And the honest caveat this section closes on:** with an empty catalogue,
+BE-2 through BE-7 cannot be demonstrated to be slow, only argued to be. The
+argument is that each of them has a ceiling (200 rows, 5,000 rows) that produces
+a *wrong answer* rather than a slow one once real supply arrives, and that is why
+they are here rather than in a future performance pass.
+
+---
+
+## 26. What is not known
 
 Stated plainly, because a recommendation resting on a guess is worse than no
 recommendation.

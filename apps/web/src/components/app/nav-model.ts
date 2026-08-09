@@ -23,7 +23,7 @@ import type { UiIconName } from "@/design-system/icons/UiIcon";
  *                                                                       25
  *
  * Counted after: ELEVEN for a renter and TWELVE for an agent who is also staff
- * (the same eleven, minus the Become an agent row they no longer need, plus one
+ * (the same eleven, minus the Become an agent row nobody needs now, plus one
  * row each for the two workspaces). Every one of them is a place that does
  * something the others do not.
  *
@@ -201,14 +201,18 @@ export function buildNav({
    * gone.
    */
   /*
-   * BECOME AN AGENT WENT TOO, AND IT WAS THE THIRD DOOR.
+   * BECOME AN AGENT WENT, AND THEN THE WHOLE IDEA OF IT WENT.
    *
-   * `/agents` is already reached from the profile screen twice: once as a row
-   * in `profile/page.tsx` and once in `AccountBody`. Becoming a seller is a
-   * ONE-TIME CONVERSION, not a place somebody navigates back to, and the
-   * profile is exactly where a person goes to change who they are on the
-   * platform. A permanent rail row for an action you take once is the clearest
-   * possible case of something that belongs inside a screen.
+   * The row was cut first, as the third door to a page the profile already
+   * linked twice: a permanent rail row for an action you take once is the
+   * clearest possible case of something that belongs inside a screen.
+   *
+   * The page itself has since gone too, and with it the framing. There is no
+   * conversion from renter to agent. There is one account carrying three
+   * profiles, and the switch-profile sheet on `/profile` both switches between
+   * them and sets up whichever one is not there yet. Nothing in this file
+   * points at it, because switching profile is not navigation: it changes what
+   * the rest of this list means.
    */
   const tail: NavNode[] = [];
   if (signedIn) {

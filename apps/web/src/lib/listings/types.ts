@@ -299,19 +299,40 @@ export type ListingSearchFilter = {
 /**
  * How a search should be answered, as opposed to what it asks for.
  *
- * There is nothing to decide any more. This carried one option, `partners`,
- * which told the repository whether to spend a billed third-party request on
- * top of the database query. Third-party inventory is gone, so every search is
- * one Postgres query and the option cannot change anything.
+ * The distinction is worth keeping: a FILTER is a promise to the reader about
+ * which listings they are looking at, and an OPTION is a decision about what it
+ * costs to answer them. A filter changes the result set and belongs in the URL.
+ * An option changes the query plan and must never change which listings match.
  *
- * The shape is kept, and `partners` with it, only because callers outside this
- * layer still pass it and removing the field would break their build rather
- * than their behaviour. It is read by nobody. Delete the call sites, then
- * delete this.
+ * This type nearly died. It carried one field, `partners`, which told the
+ * repository whether to spend a billed third-party request on top of the
+ * database query, and when third-party inventory was deleted it became a shape
+ * kept alive purely so existing call sites would still compile.
+ *
+ * It is load-bearing again, for the two decisions the catalogue read actually
+ * has to make about its own cost.
  */
 export type ListingSearchOptions = {
-  /** Ignored. Retained so existing call sites still compile. */
+  /**
+   * Ignored. Retained so existing call sites still compile, and there are two
+   * left: `app/(app)/search/page.tsx` and `app/(app)/bookings/page.tsx`. Delete
+   * those, then delete this.
+   */
   partners?: boolean;
+  /**
+   * How many rows the catalogue read may pull, before the in-memory matcher
+   * runs over them.
+   *
+   * Defaults to the repository's own catalogue limit. Lower it when the caller
+   * needs a handful rather than a page: `recommended()` wants six listings and
+   * was reading two hundred to find them.
+   *
+   * THIS IS NOT PAGINATION AND MUST NOT BE PRESENTED AS IT. The matcher runs
+   * after the read, so a smaller limit can return fewer matches rather than the
+   * same matches in a smaller page. It is a ceiling on cost, safe only where
+   * the caller genuinely wants "some good ones" rather than "all of them".
+   */
+  limit?: number;
 };
 
 export interface ListingRepository {
