@@ -77,6 +77,24 @@ export const EXAMPLE_STATEMENT =
   "This is an example listing. No such property is available. RentMe has not verified anything on this page.";
 
 /**
+ * The same fact, at the length a person will actually read.
+ *
+ * `EXAMPLE_STATEMENT` above is written for a crawler and for an Open Graph
+ * card, where there is no layout to respect and the full sentence is right. On
+ * screen it was rendered as a warning band across the top of every listing, and
+ * the owner's judgement was that it read as an error message rather than as a
+ * catalogue that is not open yet. He is right: a reader meets four properties
+ * in a grid and four paragraphs of apology, which makes the product look
+ * broken rather than honest.
+ *
+ * Two words carry the same fact. The rest of the honesty is structural and
+ * unchanged: no verified mark, no rating, an institutional lister with no
+ * phone number, every action explaining itself, and nothing machine readable
+ * escaping the platform at all.
+ */
+export const EXAMPLE_LABEL = "Example listing";
+
+/**
  * Naira, as a schema.org decimal, from integer kobo.
  *
  * Money is integer kobo everywhere in this codebase and `price` in structured
