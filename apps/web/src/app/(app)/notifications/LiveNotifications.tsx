@@ -149,16 +149,17 @@ export function LiveNotifications({
       <div className={SECTION_GAP}>
         {sections.map((section) => (
           <section key={section.label} aria-label={section.label}>
-            <div className="mb-1 flex items-baseline justify-between gap-3">
+            <div className="mb-heading flex items-baseline justify-between gap-row">
               <h2 className={TYPE.sectionTitle}>{section.label}</h2>
               <span className={`nf-numeric ${TYPE.caption}`}>{section.items.length}</span>
             </div>
             <ul className="divide-y divide-[var(--nf-border-subtle)]">
               {section.items.map((n) => {
-                /* py-4 on a 1rem title gives a row past 60px, comfortably over
-                   the 44px minimum. The old py-3.5 on 0.9rem text did not. */
+                /* `py-group` on a 1rem title gives a row past 60px, comfortably
+                   over the 44px minimum. The old py-3.5 on 0.9rem text did
+                   not, and 3.5 is not a step on any scale. */
                 const rowClass =
-                  "flex w-full items-center gap-4 py-4 text-left transition-colors hover:bg-[var(--nf-glass-fill)]";
+                  "flex w-full items-center gap-md py-group text-left transition-colors hover:bg-[var(--nf-glass-fill)]";
                 const inner = (
                   <>
                     {/*
@@ -182,7 +183,7 @@ export function LiveNotifications({
 
                     <span className="min-w-0 flex-1 leading-tight">
                       <span
-                        className={`block text-[1rem] leading-snug ${
+                        className={`nf-body block leading-snug ${
                           n.read
                             ? "font-medium text-[var(--nf-content-secondary)]"
                             : "font-semibold text-[var(--nf-content-primary)]"
@@ -191,11 +192,11 @@ export function LiveNotifications({
                         {n.title}
                       </span>
                       {n.body && (
-                        <span className={`mt-1 block ${TYPE.rowMeta}`}>{n.body}</span>
+                        <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{n.body}</span>
                       )}
                     </span>
 
-                    <span className="flex shrink-0 flex-col items-end gap-2">
+                    <span className="flex shrink-0 flex-col items-end gap-inline">
                       <span className={`nf-numeric ${TYPE.caption}`}>
                         {lagosTimeLabel(n.createdAt)}
                       </span>

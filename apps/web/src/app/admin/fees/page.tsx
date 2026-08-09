@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { formatMoney, getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getFeeConsole, type FeeRateView } from "@/lib/admin/money-queries";
+import { getRevenueSummary, REVENUE_WINDOW_DAYS } from "@/lib/admin/revenue-queries";
+import type { RevenueSummary } from "@/lib/admin/revenue-queries";
 import { adminUi, type AdminUi } from "../_components/ui";
 import { FeeRateForm } from "../_components/MoneyDecisions";
 
@@ -12,8 +14,13 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+const SOURCE_LABEL: Record<string, string> = {
+  escrow_commission: "Commission on released escrow",
+  listing_fee: "Listing fee",
+};
+
 /**
- * What the platform charges, and the controls to change it.
+ * What the platform charges, what it has earned, and the controls to change it.
  *
  * Everything is zero today, by the owner's decision: the engine is built and
  * switched off until there is a user base, so that nobody already earning here
@@ -29,13 +36,24 @@ export const dynamic = "force-dynamic";
  * story of what has ever been charged and nothing in it can be quietly revised.
  * That is also why a rate cannot start in the past: back-dating one would make
  * a fee already charged unexplainable by the table.
+ *
+ * THE EARNED SECTION IS THE OTHER HALF OF THE SAME QUESTION, and it is new.
+ * A rate table says what the platform intends to charge. It cannot say whether
+ * a single naira ever arrived, and until `public.platform_revenue` existed the
+ * answer was that commission was withheld from payees and credited to nobody.
+ * Showing the rate and the receipts on one screen is what makes the difference
+ * visible: a rate above zero with nothing earned beside it is now a question an
+ * operator can see rather than one nobody could ask.
  */
 export default async function AdminFeesPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const ui = adminUi(t, locale);
 
-  const read = await getFeeConsole();
+  const [read, revenue] = await Promise.all([
+    getFeeConsole(),
+    getRevenueSummary(REVENUE_WINDOW_DAYS),
+  ]);
 
   if (read.state !== "ok") {
     return (
@@ -70,6 +88,8 @@ export default async function AdminFeesPage() {
         ui={ui}
         locale={locale}
       />
+
+      <Earned summary={revenue.state === "ok" ? revenue.data : null} ui={ui} locale={locale} />
     </div>
   );
 }
@@ -80,6 +100,99 @@ function describe(rate: FeeRateView, locale: Awaited<ReturnType<typeof getLocale
   if (rate.flatMinor > 0) parts.push(`${formatMoney(rate.flatMinor, locale)} flat`);
   // The whole point of this page. A zero rate is an answer, not an absence.
   return parts.length === 0 ? "No fee" : parts.join(" plus ");
+}
+
+/**
+ * What has actually landed in `public.platform_revenue`.
+ *
+ * Read through `public.admin_revenue_summary`, because the table denies every
+ * browser-reachable role outright. An unavailable read renders as a refusal
+ * rather than as zero: "you cannot see this" and "the platform has earned
+ * nothing" are very different sentences and must never be printed the same way.
+ */
+function Earned({
+  summary,
+  ui,
+  locale,
+}: {
+  summary: RevenueSummary | null;
+  ui: AdminUi;
+  locale: Awaited<ReturnType<typeof getLocale>>;
+}) {
+  if (!summary) {
+    return (
+      <ui.Section title="What the platform has earned">
+        <ui.QueueUnavailable />
+      </ui.Section>
+    );
+  }
+
+  return (
+    <ui.Section
+      title="What the platform has earned"
+      hint={`Booked to the revenue ledger, which is written in the same transaction that credits the payee. Totals cover the last ${summary.windowDays} days.`}
+    >
+      <ui.StatRow>
+        <ui.Stat
+          label={`Last ${summary.windowDays} days`}
+          value={formatMoney(summary.windowTotalMinor, locale)}
+          hint={summary.windowTotalMinor === 0 ? "Every rate is zero today" : undefined}
+        />
+        <ui.Stat
+          label="All time"
+          value={formatMoney(summary.allTimeMinor, locale)}
+          hint="Since the revenue ledger existed"
+        />
+      </ui.StatRow>
+
+      <div className="nf-card">
+        <ul className="nf-rows nf-group">
+          {summary.bySource.map((line) => (
+            <li key={line.source} className="nf-row">
+              <span className="min-w-0 flex-1">
+                <span className="nf-body block font-semibold text-content">
+                  {SOURCE_LABEL[line.source] ?? line.source}
+                </span>
+                <span className="nf-caption block">
+                  {line.entries === 0
+                    ? "Nothing booked in this window"
+                    : `${line.entries === 1 ? "1 entry" : `${line.entries} entries`}`}
+                </span>
+              </span>
+              <span className="nf-numeric nf-body shrink-0 font-bold">
+                {formatMoney(line.amountMinor, locale)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {summary.recent.length > 0 && (
+        <div className="mt-block">
+          <h3 className="nf-overline">The most recent entries</h3>
+          <div className="nf-card mt-heading">
+            <ul className="nf-rows nf-group">
+              {summary.recent.map((entry) => (
+                <li key={entry.id} className="nf-row">
+                  <span className="min-w-0 flex-1">
+                    <span className="nf-body block font-semibold text-content">
+                      {SOURCE_LABEL[entry.source] ?? entry.source}
+                    </span>
+                    <span className="nf-caption block truncate">
+                      {entry.reference} · {ui.when(entry.createdAt)}
+                    </span>
+                  </span>
+                  <span className="nf-numeric nf-body shrink-0 font-bold">
+                    {formatMoney(entry.amountMinor, locale)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </ui.Section>
+  );
 }
 
 function FeeSection({
@@ -100,43 +213,35 @@ function FeeSection({
   const live = rates.find((r) => r.inForce);
 
   return (
-    <section className="nf-card mb-5 p-4 sm:p-5">
-      <h2 className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">{title}</h2>
-      <p className="mt-1 max-w-[62ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-        {blurb}
-      </p>
+    <section className="nf-card nf-section--tight p-card">
+      <h2 className="nf-h4">{title}</h2>
+      <p className="nf-body-sm mt-row max-w-[68ch] text-content-2">{blurb}</p>
 
-      <p className="nf-numeric mt-3 text-[1.5rem] font-bold text-[var(--nf-content-primary)]">
+      <p className="nf-numeric nf-h2 mt-group text-content">
         {live ? describe(live, locale) : "No rate on record"}
       </p>
-      <p className="text-[0.75rem] text-[var(--nf-content-muted)]">
+      <p className="nf-caption mt-inline-tight">
         {live
           ? `In force since ${ui.when(live.effectiveFrom)}`
           : "Nothing is being charged, because no rate exists at all. That is a bug rather than a decision."}
       </p>
 
-      <h3 className="mt-4 text-[0.8125rem] font-semibold uppercase tracking-wide text-[var(--nf-content-muted)]">
-        Every rate there has ever been
-      </h3>
-      <ul className="mt-1">
+      <h3 className="nf-overline mt-block">Every rate there has ever been</h3>
+      <ul className="mt-heading">
         {rates.map((rate) => (
           <li
             key={rate.id}
-            className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-[var(--nf-border-subtle)] py-2.5"
+            className="flex flex-wrap items-baseline justify-between gap-x-group gap-y-inline-tight border-t border-[var(--nf-border-subtle)] py-row"
           >
             <span className="min-w-0">
-              <span className="text-[0.875rem] font-medium text-[var(--nf-content-primary)]">
-                {describe(rate, locale)}
-              </span>
-              {rate.inForce && <span className="nf-badge nf-badge--brand ml-2">In force</span>}
-              {rate.scheduled && <span className="nf-badge ml-2">Starts later</span>}
+              <span className="nf-body font-medium text-content">{describe(rate, locale)}</span>
+              {rate.inForce && <span className="nf-badge nf-badge--brand ml-inline">In force</span>}
+              {rate.scheduled && <span className="nf-badge ml-inline">Starts later</span>}
               {rate.note && (
-                <span className="mt-0.5 block max-w-[62ch] text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
-                  {rate.note}
-                </span>
+                <span className="nf-caption mt-inline-tight block max-w-[68ch]">{rate.note}</span>
               )}
             </span>
-            <span className="shrink-0 text-right text-[0.75rem] text-[var(--nf-content-muted)]">
+            <span className="nf-caption shrink-0 text-right">
               <span className="block">{ui.when(rate.effectiveFrom)}</span>
               {rate.setByName && <span className="block">{rate.setByName}</span>}
             </span>

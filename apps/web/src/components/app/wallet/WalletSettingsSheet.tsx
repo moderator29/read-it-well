@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Sheet } from "@/components/ui/Sheet";
+import { Row, RowList } from "@/components/app/Screen";
 
 /**
  * Wallet settings.
@@ -63,23 +64,32 @@ export function WalletSettingsSheet() {
           >
             How your money is protected
           </h3>
-          <ul className="mt-3 space-y-2">
+          {/*
+            THREE PROMISES ARE ONE OBJECT WITH THREE PARTS, NOT THREE CARDS.
+
+            Each protection had its own `nf-card`: three borders, three blurs,
+            three radii and three corner blooms stacked down a sheet, for one
+            idea. `RowList boxed` is the platform's answer and it is already
+            what the breakdown sheet next door uses - one surface, hairlines
+            between the parts, the heading outside it. The type comes up with
+            the change: the titles were 15px, which is a size the scale does not
+            hold, and the bodies 13px.
+          */}
+          <RowList boxed className="mt-heading">
             {PROTECTIONS.map((p) => (
-              <li key={p.title} className="nf-card flex items-start gap-3 p-3.5">
-                <span className="h-11 w-11 shrink-0">
+              <Row key={p.title} className="items-start gap-row">
+                <span className="block h-11 w-11 shrink-0">
                   <BrandIcon name={p.icon} fill />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-[0.9375rem] font-semibold leading-snug">
-                    {p.title}
-                  </span>
-                  <span className="mt-1 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+                  <span className="nf-body block font-semibold leading-snug">{p.title}</span>
+                  <span className="nf-body-sm mt-inline-tight block leading-relaxed text-[var(--nf-content-muted)]">
                     {p.body}
                   </span>
                 </span>
-              </li>
+              </Row>
             ))}
-          </ul>
+          </RowList>
         </section>
 
         {/*
@@ -87,7 +97,7 @@ export function WalletSettingsSheet() {
           rows for a PIN screen and a payout account that do not exist. A
           settings sheet full of dead switches is worse than a short one.
         */}
-        <p className="mt-5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="nf-body-sm mt-block leading-relaxed text-[var(--nf-content-muted)]">
           Transaction PIN, two-factor authentication and payout accounts will
           appear here as they ship.
         </p>

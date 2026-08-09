@@ -61,32 +61,32 @@ export function FundingVerifier({ reference, locale }: { reference: string; loca
     <div
       role="status"
       aria-live="polite"
-      className="nf-card mb-4 flex items-start justify-between gap-4 p-4"
+      className="nf-card mb-group flex items-start justify-between gap-md p-card"
     >
       <div className="min-w-0 flex-1">
         {state.phase === "verifying" && (
           <>
-            <p className="text-[0.9375rem] font-semibold">Confirming your payment</p>
-            <p className="mt-0.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="nf-body font-semibold">Confirming your payment</p>
+            <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
               Checking with the payment service. This takes a moment.
             </p>
           </>
         )}
         {state.phase === "credited" && (
           <>
-            <p className="text-[0.9375rem] font-semibold text-[var(--nf-state-success)]">
+            <p className="nf-body font-semibold text-[var(--nf-state-success)]">
               +<Amount minorUnits={state.amountMinor} locale={locale} showFraction /> added to
               your wallet
             </p>
-            <p className="mt-0.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
               The deposit is in your history below, recorded to the kobo.
             </p>
           </>
         )}
         {state.phase === "failed" && (
           <>
-            <p className="text-[0.9375rem] font-semibold">Payment check</p>
-            <p className="mt-0.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="nf-body font-semibold">Payment check</p>
+            <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
               {state.message}
             </p>
           </>

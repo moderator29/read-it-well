@@ -101,10 +101,10 @@ export function BalanceBreakdownSheet({
         {breakdown.readFailed ? (
           /* The balance screen's own rule, applied to the part of it this
              sheet owns: an unreadable figure is never drawn as a zero. */
-          <p className={`px-1 py-4 ${TYPE.body}`}>{READ_FAILED}</p>
+          <p className={`px-3xs py-group ${TYPE.body}`}>{READ_FAILED}</p>
         ) : (
           <>
-            <p className={`px-1 pb-3 ${TYPE.body}`}>{SHEET_SUB}</p>
+            <p className={`px-3xs pb-row ${TYPE.body}`}>{SHEET_SUB}</p>
 
             {/* THE THREE PARTS. One surface, hairlines between, no card per
                 figure. `inset={false}` because these rows lead with a label
@@ -148,7 +148,7 @@ export function BalanceBreakdownSheet({
               hidden={hidden}
             />
 
-            {!anyHeld && <p className={`mt-5 px-1 ${TYPE.rowMeta}`}>{NOTHING_HELD}</p>}
+            {!anyHeld && <p className={`mt-block px-3xs ${TYPE.rowMeta}`}>{NOTHING_HELD}</p>}
           </>
         )}
       </Sheet>
@@ -174,10 +174,10 @@ function Part({
   emphasis?: boolean;
 }) {
   return (
-    <Row className="items-start justify-between gap-4">
+    <Row className="items-start justify-between gap-md">
       <span className="min-w-0">
         <span className={`block ${TYPE.rowTitle}`}>{label}</span>
-        <span className={`mt-0.5 block ${TYPE.rowMeta}`}>{note}</span>
+        <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{note}</span>
       </span>
       <span
         className={`nf-numeric shrink-0 font-semibold ${
@@ -205,7 +205,7 @@ function Holds({
   if (lines.length === 0) return null;
 
   return (
-    <section className="mt-6">
+    <section className="mt-heading">
       {/* The label sits OUTSIDE the surface, which is the composition the whole
           product is moving to: the surface holds content and never a heading. */}
       <h3 className="nf-group-label">{title}</h3>
@@ -222,7 +222,7 @@ function Holds({
                 <span className={`block ${TYPE.rowTitle}`}>
                   {line.listingTitle ?? PURPOSE_LABEL[line.purpose]}
                 </span>
-                <span className={`mt-0.5 block ${TYPE.rowMeta}`}>
+                <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>
                   {line.listingTitle ? PURPOSE_LABEL[line.purpose] : UNNAMED_PROPERTY}
                 </span>
               </span>
@@ -230,7 +230,7 @@ function Holds({
                 <span className="nf-numeric block nf-body-sm font-semibold">
                   {hidden ? "••••" : <Amount minorUnits={line.amountMinor} locale={locale} showFraction />}
                 </span>
-                <StatusPill tone={STATE_TONE[line.state]} className="mt-1">
+                <StatusPill tone={STATE_TONE[line.state]} className="mt-inline-tight">
                   {STATE_LABEL[line.state]}
                 </StatusPill>
               </span>
@@ -241,7 +241,7 @@ function Holds({
              listing that has come down is not a dead link, it is a plain row. */
           return line.listingId ? (
             <Row key={line.id} className="p-0">
-              <Link href={`/listing/${line.listingId}`} className="nf-row nf-row--tap w-full px-1">
+              <Link href={`/listing/${line.listingId}`} className="nf-row nf-row--tap w-full px-3xs">
                 {body}
               </Link>
             </Row>

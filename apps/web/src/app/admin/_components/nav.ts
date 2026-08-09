@@ -30,7 +30,7 @@ export type AdminDestination = {
 };
 
 /** Destinations whose labels are not in the dictionary yet. See `label` above. */
-type MoneyNavKey = "money" | "escrow" | "kyc" | "fees";
+type MoneyNavKey = "money" | "escrow" | "kyc" | "fees" | "payments" | "examples";
 
 export const ADMIN_NAV: AdminDestination[] = [
   { key: "overview", href: "/admin", icon: "grid" },
@@ -78,8 +78,26 @@ export const ADMIN_NAV: AdminDestination[] = [
    */
   { key: "money", href: "/admin/money", icon: "wallet", label: "Money" },
   { key: "escrow", href: "/admin/escrow", icon: "shield-stop", label: "Escrow" },
+  /*
+   * Payments sits directly under escrow, and it is the one entry in this block
+   * that CAN carry work waiting.
+   *
+   * The note above says a wallet list and a rate table are not a queue, and
+   * that is still true of Money and Fees. Payments is different in kind: an
+   * overdrawn wallet and a withdrawal frozen past its window are both somebody
+   * short of their own money right now, which is the same shape as a dispute
+   * and belongs beside it rather than below the reference data.
+   */
+  { key: "payments", href: "/admin/payments", icon: "wallet", label: "Payments" },
   { key: "kyc", href: "/admin/kyc", icon: "verified", label: "Verification" },
   { key: "fees", href: "/admin/fees", icon: "document", label: "Fees" },
+  /*
+   * Examples sits with the settings rather than the queues. The seeded stock is
+   * a property of the platform's own configuration, like the occupations list
+   * and the switches, and the badge it carries counts rows that are past the
+   * date somebody recorded for them rather than people waiting on an answer.
+   */
+  { key: "examples", href: "/admin/examples", icon: "building-apartment", label: "Examples" },
   { key: "reference", href: "/admin/reference", icon: "grid" },
   { key: "switches", href: "/admin/switches", icon: "key" },
 ];
