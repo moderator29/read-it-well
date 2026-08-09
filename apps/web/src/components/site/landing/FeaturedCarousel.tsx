@@ -58,7 +58,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                 >
                   <div className="relative aspect-[4/3] w-full overflow-hidden">
                     <div className="absolute inset-0 transition-transform duration-[var(--nf-duration-slow)] ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100">
-                      <MediaFrame hue={l.hue} />
+                      <MediaFrame hue={l.hue} kind={l.kind} />
                       {photo && (
                         <Image
                           src={photo}

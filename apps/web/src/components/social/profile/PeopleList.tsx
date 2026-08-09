@@ -104,7 +104,7 @@ export function PeopleList({
     return (
       <div className="nf-card nf-social-card mt-5 p-6 text-center sm:p-8">
         <div className="mx-auto w-fit">
-          <BrandIcon name="user-check" size={56} />
+          <BrandIcon name="user-check" size={44} />
         </div>
         <h2 className="nf-h3 mt-3.5 text-[1.05rem]">Nobody here you can see</h2>
         <p className="mx-auto mt-2 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -125,7 +125,7 @@ export function PeopleList({
     return (
       <div className="nf-card nf-social-card mt-5 p-6 text-center sm:p-8">
         <div className="mx-auto w-fit">
-          <BrandIcon name="user-check" size={56} />
+          <BrandIcon name="user-check" size={44} />
         </div>
         <h2 className="nf-h3 mt-3.5 text-[1.05rem]">
           {isOwner ? copy.mineTitle : copy.theirsTitle.replace("{handle}", handle)}

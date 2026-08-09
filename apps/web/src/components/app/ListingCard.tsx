@@ -230,7 +230,7 @@ export function ListingCard({
           style={{ viewTransitionName: `listing-photo-${listing.id}` }}
         >
           <div className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100">
-            <MediaFrame hue={listing.hue} index={index ?? 0} />
+            <MediaFrame hue={listing.hue} index={index ?? 0} kind={listing.kind} />
             {photo && (
               <Image
                 src={photo}

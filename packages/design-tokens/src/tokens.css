@@ -241,6 +241,24 @@
   --nf-media-silhouette: rgb(0 0 0 / 0.42);
   --nf-media-moon: rgb(255 255 255 / 0.16);
 
+  /* The drawn property, for a listing with no photograph yet.
+   *
+   * Five values, because a building needs a face, a side the light does not
+   * reach, a roof, glass, and the ground it stands on. They are neutrals lifted
+   * off the surface family rather than brand colours, for the same reason the
+   * ground above is not brand blue: an illustration standing in for a missing
+   * photograph must read as a placeholder that happens to be well drawn, never
+   * as a feature somebody chose.
+   *
+   * The one exception is `--nf-media-glass`, which carries a little warmth: a
+   * lit window is the single detail that tells the eye this is a building
+   * somebody lives in rather than a shape. */
+  --nf-media-wall: rgb(255 255 255 / 0.13);
+  --nf-media-wall-shade: rgb(0 0 0 / 0.28);
+  --nf-media-roof: rgb(255 255 255 / 0.2);
+  --nf-media-glass: rgb(255 236 190 / 0.5);
+  --nf-media-land: rgb(255 255 255 / 0.07);
+
   /* Brand object ground
    *
    * The commissioned icon artwork is opaque RGB rendered on white, and the
@@ -887,6 +905,17 @@
   --nf-media-ground-to: #C7CEDB;
   --nf-media-silhouette: rgb(18 21 26 / 0.20);
   --nf-media-moon: rgb(255 255 255 / 0.55);
+
+  /* The same five parts of the drawn property, in daylight. The wall is now
+     LIGHTER than the sky rather than a translucent white over it, because a
+     white wash over a pale sky is invisible; the shade and the roof carry the
+     modelling instead. The window stops glowing, because a lit window at noon
+     reads as a mistake. */
+  --nf-media-wall: rgb(255 255 255 / 0.72);
+  --nf-media-wall-shade: rgb(18 21 26 / 0.14);
+  --nf-media-roof: rgb(18 21 26 / 0.24);
+  --nf-media-glass: rgb(96 116 150 / 0.42);
+  --nf-media-land: rgb(18 21 26 / 0.07);
 
   /* Multiply is the identity against white, so a brand object needs no plate
      at all on paper: it simply sits on the page. */

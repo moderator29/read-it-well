@@ -7,6 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { canGoBackInApp } from "@/lib/ui/history";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 import { ListingActions } from "./ListingActions";
+import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
 import { usePhotoViewer } from "./PhotoViewer";
 
@@ -37,6 +38,7 @@ export function ListingGallery({
   listingId,
   title,
   hue,
+  kind,
   photos,
   initialSaved = false,
   backFallback = "/home",
@@ -44,6 +46,12 @@ export function ListingGallery({
   listingId: string;
   title: string;
   hue: number;
+  /**
+   * Which market this is, so the frame drawn behind a missing photograph is a
+   * drawing of THIS kind of place rather than the same city skyline every
+   * listing used to get. See `MediaFrame`.
+   */
+  kind: ListingKind;
   /** Photo URLs, best first. May be empty. */
   photos: string[];
   initialSaved?: boolean;
@@ -121,7 +129,7 @@ export function ListingGallery({
              */
             style={i === 0 ? { viewTransitionName: `listing-photo-${listingId}` } : undefined}
           >
-            <PhotoFrame hue={hue} index={i} />
+            <PhotoFrame hue={hue} index={i} kind={kind} />
             {photo && !broken[i] && (
               <Image
                 src={photo}

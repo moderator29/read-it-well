@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Sheet } from "@/components/ui/Sheet";
+import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
 import { usePhotoViewer } from "./PhotoViewer";
 
@@ -31,11 +32,18 @@ const PREVIEW = 6;
 export function ListingPhotoGrid({
   photos,
   hue,
+  kind,
   /** Only used for the sheet's accessible name. */
   title,
 }: {
   photos: string[];
   hue: number;
+  /**
+   * Which market this is, so the frame drawn behind a missing photograph is a
+   * drawing of THIS kind of place rather than the same city skyline every
+   * listing used to get. See `MediaFrame`.
+   */
+  kind: ListingKind;
   title: string;
 }) {
   const viewer = usePhotoViewer();
@@ -83,7 +91,7 @@ export function ListingPhotoGrid({
                 }
                 className="relative block aspect-square w-full overflow-hidden rounded-[var(--nf-radius-md)] transition-transform active:scale-[0.97] motion-reduce:transition-none"
               >
-                <Tile photo={photo} hue={hue} index={i} sizes="(max-width: 640px) 33vw, 220px" />
+                <Tile photo={photo} hue={hue} kind={kind} index={i} sizes="(max-width: 640px) 33vw, 220px" />
                 {last && (
                   <span className="nf-numeric absolute inset-0 grid place-items-center bg-[var(--nf-overlay-media-strong)] text-[1.0625rem] font-bold text-[var(--nf-content-on-media)] backdrop-blur-[2px]">
                     +{remainder}
@@ -105,7 +113,7 @@ export function ListingPhotoGrid({
                 aria-label={`View photo ${i + 1} of ${photos.length} full screen`}
                 className="relative block aspect-[4/3] w-full overflow-hidden rounded-[var(--nf-radius-md)] transition-transform active:scale-[0.97] motion-reduce:transition-none"
               >
-                <Tile photo={photo} hue={hue} index={i} sizes="(max-width: 640px) 50vw, 220px" />
+                <Tile photo={photo} hue={hue} kind={kind} index={i} sizes="(max-width: 640px) 50vw, 220px" />
               </button>
             </li>
           ))}
@@ -119,18 +127,20 @@ export function ListingPhotoGrid({
 function Tile({
   photo,
   hue,
+  kind,
   index,
   sizes,
 }: {
   photo: string;
   hue: number;
+  kind: ListingKind;
   index: number;
   sizes: string;
 }) {
   const [broken, setBroken] = useState(false);
   return (
     <>
-      <PhotoFrame hue={hue} index={index} />
+      <PhotoFrame hue={hue} index={index} kind={kind} />
       {!broken && (
         <Image
           src={photo}

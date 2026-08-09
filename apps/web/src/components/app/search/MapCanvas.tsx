@@ -788,7 +788,7 @@ export function MapCanvas({
             style={{ boxShadow: CARD_LIFT }}
             className="pointer-events-auto mx-auto mt-6 w-[min(20rem,86%)] rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] p-5 text-center"
           >
-            <BrandIcon name="map-spot" size={56} className="mx-auto" />
+            <BrandIcon name="map-spot" size={44} className="mx-auto" />
             <p className="mt-3 font-semibold text-[var(--nf-content-primary)]">
               No places here
             </p>

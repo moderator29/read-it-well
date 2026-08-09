@@ -273,11 +273,19 @@ export function EmptyState({
       data-testid={testId}
       className={`flex flex-col items-center px-lg py-section text-center ${className ?? ""}`}
     >
-      <span className="block h-28 w-28">
+      {/* 80px, and it was 112.
+          An empty state is a sentence with a picture beside it, not a poster.
+          At 112 the object was the tallest thing on the screen and the words
+          explaining what happened sat below the fold on a phone; the owner's
+          note was that the icons across the platform are too big and the
+          containers longer than they need to be, and this is the single
+          largest instance of it. The body drops a step with it, from the lede
+          size to ordinary copy, for the same reason. */}
+      <span className="block h-20 w-20">
         <BrandIcon name={icon} fill />
       </span>
-      <p className={`mt-heading ${TYPE.sectionTitle}`}>{title}</p>
-      <p className={`mt-row max-w-[42ch] ${TYPE.bodyLg}`}>{body}</p>
+      <p className={`mt-block ${TYPE.sectionTitle}`}>{title}</p>
+      <p className={`mt-inline max-w-[42ch] ${TYPE.body}`}>{body}</p>
       {action && <div className="mt-block">{action}</div>}
       {secondary && <div className="mt-group">{secondary}</div>}
     </div>

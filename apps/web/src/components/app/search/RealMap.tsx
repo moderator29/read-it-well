@@ -95,6 +95,7 @@ export async function RealMap({
       area: listing.area,
       city: listing.city,
       kindLabel: KIND_LABEL[listing.kind],
+      kind: listing.kind,
       priceMinor: listing.priceMinor,
       currency: listing.currency,
       period: periodFor(listing),

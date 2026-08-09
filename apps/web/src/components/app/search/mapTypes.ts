@@ -1,3 +1,5 @@
+import type { ListingKind } from "@/lib/listings/types";
+
 /**
  * The shape the map speaks.
  *
@@ -14,6 +16,11 @@ export type MapListing = {
   city: string;
   /** Category noun for a listing that carries no amount, e.g. "Restaurant". */
   kindLabel: string;
+  /** The market itself, so the dock thumbnail draws this kind of place when
+      the listing has no photograph. `kindLabel` cannot serve: it is a
+      translated display string, and matching on it would break the drawing the
+      first time somebody read the map in another language. */
+  kind: ListingKind;
   /** Rate in MINOR UNITS (kobo). Zero means the source published no amount. */
   priceMinor: number;
   currency: string;

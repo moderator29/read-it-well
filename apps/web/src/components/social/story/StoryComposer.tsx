@@ -68,7 +68,7 @@ export function StoryComposer({
     return (
       <div className="nf-card nf-social-card p-7 text-center">
         <div className="mx-auto w-fit">
-          <BrandIcon name="camera" size={56} />
+          <BrandIcon name="camera" size={44} />
         </div>
         <h2 className="nf-h3 mt-4 text-[1.05rem]">Sign in to write a story</h2>
         <p className="mx-auto mt-2.5 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -86,7 +86,7 @@ export function StoryComposer({
     return (
       <div className="nf-card nf-social-card p-7 text-center">
         <div className="mx-auto w-fit">
-          <BrandIcon name="pin-map" size={56} />
+          <BrandIcon name="pin-map" size={44} />
         </div>
         <h2 className="nf-h3 mt-4 text-[1.05rem]">A story belongs to a place</h2>
         <p className="mx-auto mt-2.5 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -106,7 +106,7 @@ export function StoryComposer({
     return (
       <div className="nf-card nf-social-card p-7 text-center">
         <div className="mx-auto w-fit">
-          <BrandIcon name="doc-shield" size={56} />
+          <BrandIcon name="doc-shield" size={44} />
         </div>
         <h2 className="nf-h3 mt-4 text-[1.05rem]">It is with us</h2>
         <p className="mx-auto mt-2.5 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">

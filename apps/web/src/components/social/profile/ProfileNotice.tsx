@@ -27,7 +27,7 @@ export function ProfileNotice({
   return (
     <section className="nf-card p-6 text-center sm:p-8">
       <div className="mx-auto w-fit">
-        <BrandIcon name={icon} size={64} />
+        <BrandIcon name={icon} size={48} />
       </div>
       <h2 className="nf-h3 mt-4">{title}</h2>
       <p className="mx-auto mt-2 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
