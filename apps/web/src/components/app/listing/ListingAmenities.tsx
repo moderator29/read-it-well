@@ -1,4 +1,5 @@
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { ICON, TYPE } from "@/components/app/Screen";
 
 /**
  * The spec row.
@@ -87,9 +88,9 @@ export function ListingAmenities({
 
   if (marks.length === 0) {
     return (
-      <p className="text-[0.875rem] text-[var(--nf-content-muted)]">
-        The agent has not listed what this place offers yet. Ask in your Inbox
-        before you book.
+      <p className={TYPE.body}>
+        The agent has not listed what this place offers yet. Ask them before you
+        commit.
       </p>
     );
   }
@@ -97,7 +98,7 @@ export function ListingAmenities({
   return (
     <ul
       data-testid="amenity-row"
-      className="flex flex-wrap items-center gap-y-2 text-[0.875rem]"
+      className="flex flex-wrap items-center gap-y-2.5 text-[1rem]"
     >
       {marks.map((mark, i) => (
         <li
@@ -112,14 +113,14 @@ export function ListingAmenities({
               of marks; a divider of its own would be a list item that is not
               a fact about the property. */}
           {i > 0 && (
-            <span aria-hidden="true" className="px-2 text-[var(--nf-content-muted)]">
+            <span aria-hidden="true" className="px-2.5 text-[var(--nf-content-muted)]">
               ·
             </span>
           )}
           <UiIcon
             name={mark.icon}
-            size={16}
-            className="mr-1.5 shrink-0 text-[var(--nf-content-muted)]"
+            size={ICON.inline}
+            className="mr-2 shrink-0 text-[var(--nf-content-muted)]"
           />
           <span className="whitespace-nowrap">{mark.label}</span>
         </li>

@@ -12,10 +12,10 @@ import {
 } from "react";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { toggleSave } from "@/lib/saved/actions";
 import { addLocalSave, readLocalSaves, removeLocalSave, writeLocalSaves } from "@/lib/saved/local";
 import { ButtonLink } from "@/components/ui/Button";
+import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
 
 /**
  * The shortlist, made interactive.
@@ -157,21 +157,24 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
   if (items.length === 0 && rendered.length === 0) {
     return (
       <Reveal>
-        <div className="nf-card p-10 text-center">
-          <span className="nf-story-art mx-auto block h-20 w-20">
-            <BrandIcon name="heart-home" fill />
-          </span>
-          <p className="mt-4 font-semibold">
-            {hydrating ? "Bringing your saves together" : "Nothing saved yet"}
-          </p>
-          <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
-            Tap the heart on any place and it waits for you here, ready to
-            compare or book.
-          </p>
-          <ButtonLink href="/search" variant="primary" className="mt-6">
-            Explore stays
-          </ButtonLink>
-        </div>
+        {/* The one platform empty state. Was a `.nf-card` padded to 10 with an
+            80px object: a bordered box drawn around a message whose entire job
+            is to say the box is empty. */}
+        <EmptyState
+          icon="heart-home"
+          title={hydrating ? "Bringing your saves together" : "Nothing saved yet"}
+          body={
+            hydrating
+              ? "Places you hearted on this device are being matched to your account. This takes a moment."
+              : "Tap the heart on any place and it waits for you here, ready to compare side by side."
+          }
+          action={
+            <ButtonLink href="/search" variant="primary">
+              Find a place
+            </ButtonLink>
+          }
+          data-testid="saved-empty"
+        />
       </Reveal>
     );
   }
@@ -179,17 +182,17 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
   return (
     <>
       <Reveal>
-        <p className="mb-4 flex items-center gap-2 text-[0.875rem] text-[var(--nf-content-secondary)]">
+        <p className={`mb-5 flex items-center gap-2.5 ${TYPE.bodyLg}`}>
           <UiIcon
             name="heart"
-            size={16}
+            size={ICON.inline}
             className="shrink-0 text-[var(--nf-brand-secondary)]"
           />
           <span>
             <span className="font-semibold text-[var(--nf-content-primary)]">
               {visible} {visible === 1 ? "place" : "places"} saved
             </span>{" "}
-            &middot; ready to compare or book
+            &middot; ready to compare
           </span>
         </p>
       </Reveal>

@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import { markInboxRead } from "@/lib/messages/actions";
 import { useInboxTyping } from "@/lib/messages/useRealtime";
 import { PageHeader } from "@/components/app/PageHeader";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 import { Segmented } from "@/components/ui/Segmented";
 import { TextField } from "@/components/ui/Field";
+import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
 
 /**
  * The Inbox.
@@ -57,7 +57,7 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
       <Link
         href={`/messages/${row.id}`}
         data-testid="inbox-row"
-        className="flex w-full items-center gap-3 px-4 py-3.5 transition-colors hover:bg-[var(--nf-glass-fill)]"
+        className="flex w-full items-center gap-3.5 py-4 transition-colors hover:bg-[var(--nf-glass-fill)]"
       >
         {/* ------------------------------------------------------ avatar
 
@@ -76,19 +76,17 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
         {/* -------------------------------------------------------- body */}
         <span className="min-w-0 flex-1 leading-tight">
           <span className="flex items-center gap-1.5">
-            <span className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-              {row.counterpartName}
-            </span>
+            <span className={`truncate ${TYPE.rowTitle}`}>{row.counterpartName}</span>
             {/* The tick that used to be here is on the avatar. One mark per
                 person per row: two is how a badge stops being read. */}
           </span>
+          {/* The property this thread is about. It is the reason the
+              conversation exists, so it is legible rather than micro-print. */}
           {row.listingTitle && (
-            <span className="mt-0.5 block truncate text-[0.75rem] text-[var(--nf-content-muted)]">
-              {row.listingTitle}
-            </span>
+            <span className={`mt-1 block truncate ${TYPE.rowMeta}`}>{row.listingTitle}</span>
           )}
           <span
-            className={`mt-1 block truncate text-[0.8125rem] leading-relaxed ${
+            className={`mt-1 block truncate text-[0.9375rem] leading-relaxed ${
               typing
                 ? "font-semibold text-[var(--nf-brand-secondary)]"
                 : row.unread > 0
@@ -102,9 +100,7 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
 
         {/* --------------------------------------------- time and marker */}
         <span className="flex shrink-0 flex-col items-end gap-2 self-stretch pt-0.5">
-          <span className="nf-numeric text-[0.7rem] text-[var(--nf-content-muted)]">
-            {row.whenLabel}
-          </span>
+          <span className={`nf-numeric ${TYPE.caption}`}>{row.whenLabel}</span>
           {row.unread > 0 ? (
             <span
               aria-label={`${row.unread} unread`}
@@ -140,31 +136,26 @@ export function InboxEmpty({
   secondary?: { href: string; label: string };
 }) {
   return (
-    <div className="nf-card p-8 text-center" data-testid="inbox-empty">
-      <span className="nf-story-art mx-auto block h-16 w-16">
-        <BrandIcon name="chat-duo" fill />
-      </span>
-      <p className="mt-3.5 text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-        {title}
-      </p>
-      <p className="mx-auto mt-1.5 max-w-[38ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-        {body}
-      </p>
-      {(action || secondary) && (
-        <div className="mt-4 flex flex-col items-stretch justify-center gap-2 sm:flex-row">
-          {action && (
-            <Link href={action.href} className="nf-btn nf-btn--primary inline-flex justify-center">
-              {action.label}
-            </Link>
-          )}
-          {secondary && (
-            <Link href={secondary.href} className="nf-btn nf-btn--ghost inline-flex justify-center">
-              {secondary.label}
-            </Link>
-          )}
-        </div>
-      )}
-    </div>
+    <EmptyState
+      icon="chat-duo"
+      title={title}
+      body={body}
+      data-testid="inbox-empty"
+      action={
+        action && (
+          <Link href={action.href} className="nf-btn nf-btn--primary nf-btn--md">
+            {action.label}
+          </Link>
+        )
+      }
+      secondary={
+        secondary && (
+          <Link href={secondary.href} className="nf-btn nf-btn--ghost nf-btn--md">
+            {secondary.label}
+          </Link>
+        )
+      }
+    />
   );
 }
 
@@ -229,16 +220,29 @@ export function Inbox({
       {/* ------------------------------------------------------- heading */}
       {/* The back control belongs to the page, per the platform's header
           contract, and the compose button rides the same row on the right. */}
+      {/*
+        THE COMPOSE CONTROL WENT NOWHERE. It linked to `/messages/new`, and that
+        route's first line is `if (!listing) redirect("/messages")` - so the
+        button bounced straight back to the screen it was pressed on. A control
+        that does nothing is worse than no control, and this one advertised a
+        capability the product does not have.
+
+        It is not removed, it is pointed at the truth. Every conversation on
+        RentMe starts from a property, because the thread is with the agent
+        FOR that property; there is no freeform compose and there should not
+        be one. So the control now goes where a person would actually start a
+        new conversation, and its label says so.
+      */}
       <PageHeader
         title="Inbox"
         actions={
           <Link
-            href="/messages/new"
-            aria-label="Start a new conversation"
+            href="/search"
+            aria-label="Find a place to message an agent about"
             data-testid="inbox-compose"
-            className="nf-icon-btn h-10 w-10"
+            className="nf-icon-btn h-11 w-11"
           >
-            <UiIcon name="chat-bubble" size={20} />
+            <UiIcon name="search" size={ICON.row} />
           </Link>
         }
       />
@@ -333,7 +337,9 @@ export function Inbox({
         className="mt-3.5"
       >
         {shown.length > 0 ? (
-          <ul className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
+          /* Hairline rows on the ground, not a card wrapping a divided list.
+             One line between two conversations, nothing around either. */
+          <ul className="divide-y divide-[var(--nf-border-subtle)]">
             {shown.map((row) => (
               <Row key={row.id} row={row} typing={typing.has(row.id)} />
             ))}
@@ -351,8 +357,8 @@ export function Inbox({
         ) : rows.length === 0 ? (
           <Empty
             title="No conversations yet"
-            body="Message a host from any listing and the thread appears here."
-            action={{ href: "/search", label: "Explore places" }}
+            body="Open any property and tap Message agent. The thread appears here, with the property attached, so nobody has to ask which one you mean."
+            action={{ href: "/search", label: "Find a place" }}
           />
         ) : (
           <Empty

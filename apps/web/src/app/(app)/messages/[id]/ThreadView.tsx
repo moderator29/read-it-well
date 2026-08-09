@@ -366,7 +366,12 @@ export function ThreadView({
     <div className="mx-auto flex h-full min-h-0 w-full max-w-3xl flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
       <PageHeader
         title={counterpartName}
+        /* The property this thread is about, and now a way back to it. The
+           subtitle already carried the title so nobody has to open with "which
+           property"; it was inert, so the only route to the property itself was
+           the info button in the corner. */
         subtitle={listing?.title ?? "Direct message"}
+        subtitleHref={listing ? `/listing/${listing.id}` : undefined}
         fallback="/messages"
         tone={inspected ? "verified" : "default"}
         /*

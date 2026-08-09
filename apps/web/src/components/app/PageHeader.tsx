@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { canGoBackInApp } from "@/lib/ui/history";
@@ -22,6 +23,7 @@ import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 export function PageHeader({
   title,
   subtitle,
+  subtitleHref,
   fallback = "/home",
   backLabel,
   actions,
@@ -30,6 +32,17 @@ export function PageHeader({
 }: {
   title: string;
   subtitle?: string;
+  /**
+   * Makes the subtitle a link.
+   *
+   * Added for the message thread, where the subtitle is the PROPERTY the
+   * conversation is about. It was already the right piece of context to put
+   * there, and it was inert: the only route back to the property was an info
+   * button in the corner that opens a sheet. Somebody halfway through
+   * negotiating a flat should be one tap from the flat, so when a caller knows
+   * where the subtitle points, it points there.
+   */
+  subtitleHref?: string;
   fallback?: string;
   /**
    * Accessible name for the back control. Optional: a caller holding a real
@@ -86,11 +99,20 @@ export function PageHeader({
             owner has already caught this once. Two lines is the ceiling: past
             that the words are wrong, not the box. */}
         <h1 className="nf-h2 [overflow-wrap:anywhere] line-clamp-2">{title}</h1>
-        {subtitle && (
-          <p className="mt-0.5 text-[0.8125rem] leading-snug text-[var(--nf-content-muted)] [overflow-wrap:anywhere] line-clamp-2">
-            {subtitle}
-          </p>
-        )}
+        {subtitle &&
+          (subtitleHref ? (
+            <Link
+              href={subtitleHref}
+              className="mt-0.5 flex items-center gap-1 text-[0.875rem] font-medium leading-snug text-[var(--nf-content-link)] underline-offset-4 [overflow-wrap:anywhere] line-clamp-2 hover:underline"
+            >
+              <span className="min-w-0 truncate">{subtitle}</span>
+              <UiIcon name="chevron-right" size={16} className="shrink-0" />
+            </Link>
+          ) : (
+            <p className="mt-0.5 text-[0.875rem] leading-snug text-[var(--nf-content-muted)] [overflow-wrap:anywhere] line-clamp-2">
+              {subtitle}
+            </p>
+          ))}
       </div>
       {actions}
     </div>

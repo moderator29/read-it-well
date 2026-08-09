@@ -1,0 +1,421 @@
+import type { ReactNode } from "react";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+
+/**
+ * THE SCREEN LANGUAGE.
+ *
+ * One vocabulary for every screen a signed-in person uses. Not a utility bag:
+ * a set of decisions taken once, here, so that twenty screens read as one
+ * product instead of twenty.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY IT EXISTS
+ * ---------------------------------------------------------------------------
+ *
+ * An audit of the signed-in screens found the same four jobs solved four ways
+ * each. Three distinct empty states, at three object sizes (64, 80, 96), two of
+ * them wrapped in a card so that a message whose entire job is to say "there is
+ * nothing here" arrived inside a bordered box. Four section-heading treatments.
+ * Section gaps from 1.25rem to 2rem with no rule behind which was which. Body
+ * copy at 0.875rem and labels at 0.75rem across the whole product.
+ *
+ * Nothing was wrong on its own screen. Together they were the thing the owner
+ * kept describing: choked, jam-packed, twenty pages by twenty people.
+ *
+ * ---------------------------------------------------------------------------
+ * THE SURFACE LANGUAGE. Four surfaces, and only four.
+ * ---------------------------------------------------------------------------
+ *
+ * The instruction was not "fewer boxes". It was a better container language:
+ * decide what a surface MEANS, then apply it identically everywhere.
+ *
+ *   GROUND    The page. The default, and the right answer most of the time.
+ *             Sections of a screen live here. They are grouped by a heading,
+ *             by space and by alignment, never by a border. `Section`.
+ *
+ *   RAISED    `.nf-card`. Reserved for a discrete OBJECT: a thing you could
+ *             pick up and move somewhere else and it would still make sense.
+ *             A listing card in a grid. A booking panel. A preview floating
+ *             over a map. A section of a page is not an object, so a section
+ *             is not raised.
+ *
+ *   INSET     A run of like things, separated by hairlines. `RowList`. This is
+ *             the replacement for a stack of cards: eight cards are eight
+ *             borders, eight radii and eight shadows; eight rows are seven
+ *             lines. The reference platform uses this everywhere and so do we.
+ *
+ *   OVERLAY   `Sheet`, `ActionBar`. Temporary depth, above everything, for
+ *             what is secondary in the layout but not secondary in importance.
+ *
+ * THE ONE HARD RULE: A RAISED SURFACE MAY NOT CONTAIN ANOTHER RAISED SURFACE.
+ * Maximum nesting depth is one. If something inside a card wants a card, it
+ * wants a `RowList` or a `Section`, or it wants to be behind a `Disclosure`.
+ *
+ * ---------------------------------------------------------------------------
+ * NOTHING IS DELETED
+ * ---------------------------------------------------------------------------
+ *
+ * Every capability stays reachable. When a screen is overloaded the answer is
+ * hierarchy, grouping and progressive disclosure, never removal. That is what
+ * `Disclosure` is for: it moves a secondary block one tap away into a sheet and
+ * keeps it in the product. Losing function to gain calm would be a failure.
+ *
+ * ---------------------------------------------------------------------------
+ * LINES
+ * ---------------------------------------------------------------------------
+ *
+ * A line is drawn where two things genuinely need separating, and nowhere else.
+ * Between rows of a list: yes. Above a section that begins a new subject: yes.
+ * Around a group that a heading already groups: no.
+ *
+ * ---------------------------------------------------------------------------
+ * COLOUR
+ * ---------------------------------------------------------------------------
+ *
+ * Layer-2 semantic tokens only (ADR-002), so every surface here follows the
+ * theme. Dark is the default and must feel calm; light is a true light theme,
+ * not an inversion. Nothing in this file names a colour.
+ */
+
+/* ========================================================================== */
+/* THE TYPE SCALE                                                             */
+/* ========================================================================== */
+
+/**
+ * Five steps, and the hierarchy is carried by TYPE rather than by borders.
+ *
+ * That last clause is the point of the whole scale. If the steps between
+ * display, heading, body, supporting and micro are clear enough, a reader knows
+ * what is important without a box being drawn round it, and every border the
+ * page then omits is a border it never needed.
+ *
+ * Every value is a step UP from what it replaced; the previous value is
+ * recorded on each line, because "bigger" was asked for three times and the
+ * diff is the evidence. Screens pick a ROLE, never a rem value, which is how
+ * the platform ends up with one scale instead of the thirty-five arbitrary
+ * literals the lint config counted.
+ */
+export const TYPE = {
+  /**
+   * A screen's own answer: the price on a property, and nothing else.
+   *
+   * THE ONE ARBITRARY SIZE IN THIS FILE, and it is deliberate. `nf-display`
+   * climbs to 4.6rem, which is a landing-page size and would set a rent above
+   * the title it belongs to. This sits between `nf-h1` and `nf-display` with
+   * the tight tracking a large figure needs. Every other role below is a
+   * platform class, so this is one value rather than the forty-seven the type
+   * audit counted.
+   */
+  display:
+    "text-[2.5rem] font-extrabold leading-[0.95] tracking-[-0.035em] text-[var(--nf-content-primary)] sm:text-[3.25rem]",
+  /** Section headings. `nf-h3`, which is 1.1875rem on a phone and 1.4375 up. */
+  sectionTitle: "nf-h3 text-[var(--nf-content-primary)]",
+  /** The lead sentence of a block, and every empty-state body. 1.0625rem. */
+  bodyLg: "nf-lede",
+  /** Ordinary copy inside rows and panels. 1rem, up from 0.875. */
+  body: "nf-body text-[var(--nf-content-secondary)]",
+  /** A row's own title: the thing being named. */
+  rowTitle: "nf-body font-semibold text-[var(--nf-content-primary)]",
+  /** The supporting line under a row title. */
+  rowMeta: "nf-body-sm text-[var(--nf-content-muted)]",
+  /** Fact labels. Was 0.75rem, and usually shouted in uppercase as well. */
+  label: "nf-body-sm font-medium text-[var(--nf-content-muted)]",
+  /** Micro: timestamps and counters, where small is genuinely correct. */
+  caption: "nf-caption",
+} as const;
+
+/**
+ * Icon sizes, on the 4px grid, floor of 20.
+ *
+ * A 16px glyph beside 1rem text reads as an apology for being there, and 16 was
+ * the platform's most common inline size before this. Icons are never given a
+ * container: no tile, no chip, no plate, no ring. The glyph sits on the surface
+ * with its label beside or beneath it.
+ */
+export const ICON = {
+  /** Inline with a line of text. Was 16. */
+  inline: 20,
+  /** Leading a row in a list. Was 16 to 20. */
+  row: 24,
+  /** Beside a section heading, or the mark on a fact. Was 16 to 20. */
+  section: 28,
+} as const;
+
+/**
+ * The gap between sections, as one class, applied by `Stack`.
+ *
+ * Chosen per screen is how the 1.25 / 1.5 / 1.75 / 2rem spread happened, so it
+ * is not chosen per screen any more.
+ */
+export const SECTION_GAP = "space-y-9 sm:space-y-11";
+
+/* ========================================================================== */
+/* SECTION: the GROUND surface                                                */
+/* ========================================================================== */
+
+/**
+ * A section of a screen. Deliberately not a card.
+ *
+ * The heading, the space around it and the alignment of what is inside are what
+ * group the content. A border around the group as well is the second container
+ * the owner keeps pointing at, and it is the single most repeated piece of
+ * noise in the product.
+ *
+ * `divided` draws ONE hairline above, for where a run of sections needs the eye
+ * helped along. Space first, line only when space is not enough.
+ */
+export function Section({
+  title,
+  description,
+  action,
+  divided,
+  children,
+  className,
+  headingLevel: Heading = "h2",
+  id,
+}: {
+  /** Omit for a lead block that is content only. */
+  title?: string;
+  description?: string;
+  /** The quiet action for this section. At most one. */
+  action?: ReactNode;
+  divided?: boolean;
+  children: ReactNode;
+  className?: string;
+  headingLevel?: "h2" | "h3";
+  id?: string;
+}) {
+  return (
+    <section
+      id={id}
+      className={`${divided ? "nf-hairline pt-9 sm:pt-11" : ""} ${className ?? ""}`}
+    >
+      {(title || action) && (
+        <div className="mb-4 flex items-baseline justify-between gap-4">
+          <div className="min-w-0">
+            {title && <Heading className={TYPE.sectionTitle}>{title}</Heading>}
+            {description && <p className={`mt-1.5 ${TYPE.body}`}>{description}</p>}
+          </div>
+          {action && <div className="shrink-0">{action}</div>}
+        </div>
+      )}
+      {children}
+    </section>
+  );
+}
+
+/** A screen's sections, on the one platform rhythm. */
+export function Stack({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={`${SECTION_GAP} ${className ?? ""}`}>{children}</div>;
+}
+
+/* ========================================================================== */
+/* EMPTY STATE                                                                */
+/* ========================================================================== */
+
+/**
+ * The empty state. One shape, every screen.
+ *
+ * The platform has no listings yet, so a real person meets this composition
+ * more often than any other in the product. It is therefore a first-class
+ * screen, not a fallback.
+ *
+ * Three rules, and they are the owner's:
+ *
+ *   1. NO CONTAINER. The object and the words sit on the ground. Two of the
+ *      three shapes this replaces wrapped themselves in an `.nf-card`, putting
+ *      a bordered box around a message whose whole job is to say the box is
+ *      empty.
+ *   2. IT MUST BE TRUE. No invented counts, no fabricated testimonials, no
+ *      promise of content that does not exist. The body describes the state the
+ *      reader is actually in.
+ *   3. ONE ACTION, at full strength, and a quiet text link at most beside it.
+ *
+ * The object is 112px, up from the 64/80/96 spread. It is the subject of the
+ * surface, which `BrandIcon`'s own documentation names as the one case that
+ * earns a tile, and it still does not take one: a plinth under an object that
+ * is already alone on an empty page is decoration.
+ */
+export function EmptyState({
+  icon,
+  title,
+  body,
+  action,
+  secondary,
+  className,
+  "data-testid": testId,
+}: {
+  icon: BrandIconName;
+  title: string;
+  /** One or two sentences, true of the state the reader is actually in. */
+  body: string;
+  /** The single next thing to do. Omit where there honestly is not one. */
+  action?: ReactNode;
+  /** A quiet text link. Never a second button competing with the first. */
+  secondary?: ReactNode;
+  className?: string;
+  "data-testid"?: string;
+}) {
+  return (
+    <div
+      data-testid={testId}
+      className={`flex flex-col items-center px-6 py-14 text-center sm:py-20 ${className ?? ""}`}
+    >
+      <span className="block h-28 w-28">
+        <BrandIcon name={icon} fill />
+      </span>
+      <p className={`mt-6 ${TYPE.sectionTitle}`}>{title}</p>
+      <p className={`mt-2.5 max-w-[42ch] ${TYPE.bodyLg}`}>{body}</p>
+      {action && <div className="mt-7">{action}</div>}
+      {secondary && <div className="mt-4">{secondary}</div>}
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* ROW LIST: the INSET surface                                                */
+/* ========================================================================== */
+
+/**
+ * A run of like things, separated by hairlines.
+ *
+ * The replacement for a stack of cards, and the pattern the reference platform
+ * uses throughout. `boxed` puts ONE surface around the whole list, for where
+ * the list needs to read as a single object against the page: one container for
+ * n rows rather than n containers for n rows.
+ */
+export function RowList({
+  children,
+  boxed,
+  className,
+  "data-testid": testId,
+}: {
+  children: ReactNode;
+  /** Put ONE surface around the whole list. See `Surface` for the geometry. */
+  boxed?: boolean;
+  className?: string;
+  "data-testid"?: string;
+}) {
+  return (
+    <ul
+      data-testid={testId}
+      className={`nf-rows ${boxed ? "nf-card overflow-hidden px-5 sm:px-7" : ""} ${
+        className ?? ""
+      }`}
+    >
+      {children}
+    </ul>
+  );
+}
+
+/**
+ * One row of a `RowList`.
+ *
+ * `nf-row` carries the geometry: 56px minimum, which is the comfortable end of
+ * the accessible range rather than the 44px floor, because this product is used
+ * one-handed on a phone. Several of the `py-3.5` rows this replaces were under
+ * the floor entirely.
+ */
+export function Row({
+  children,
+  className,
+  tappable,
+}: {
+  children: ReactNode;
+  className?: string;
+  /** The whole row is the target, not the label inside it. */
+  tappable?: boolean;
+}) {
+  return (
+    <li className={`nf-row ${tappable ? "nf-row--tap" : ""} ${className ?? ""}`}>{children}</li>
+  );
+}
+
+/* ========================================================================== */
+/* SURFACE: the RAISED surface, and the only place its geometry is decided    */
+/* ========================================================================== */
+
+/**
+ * One large, calm, generous surface.
+ *
+ * THE DIRECTION IS FEWER AND BIGGER, NOT SMALLER. Four little boxes in a row is
+ * the thing that reads cheap; one roomy surface holding the same four things,
+ * separated by dividers and air, is what the reference platform does and what
+ * reads expensive. So this exists to stop the next person reaching for
+ * `nf-card p-4`: padding, radius and internal rhythm are decided here once.
+ *
+ * `p-6 sm:p-8` against the `p-4`/`p-5` that was everywhere, and the large
+ * radius rung rather than the medium one. If a surface feels tight, it is
+ * because it is holding too much, not because the padding is wrong.
+ *
+ * Still subject to the one hard rule: a raised surface may not contain another
+ * raised surface.
+ */
+export function Surface({
+  children,
+  className,
+  "data-testid": testId,
+}: {
+  children: ReactNode;
+  className?: string;
+  "data-testid"?: string;
+}) {
+  return (
+    <div
+      data-testid={testId}
+      className={`nf-card rounded-[var(--nf-radius-xl)] p-6 sm:p-8 ${className ?? ""}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* FACTS                                                                      */
+/* ========================================================================== */
+
+export type Fact = {
+  /** What the number or word is. Sentence case, never shouted in caps. */
+  label: string;
+  /** The answer. A node so a value can carry an inline mark. */
+  value: ReactNode;
+  /** One clarifying line under the value, where the value needs one. */
+  note?: string;
+  icon?: UiIconName;
+};
+
+/**
+ * The key facts of a thing, on a grid.
+ *
+ * Label above value, aligned in columns. No chip, no tile, no bordered cell:
+ * the grid does the grouping, which is the whole argument for alignment over
+ * containers. Two columns on a phone so nothing is squeezed, three from `sm`.
+ *
+ * A fact with no answer is not rendered at all. Nothing here prints a zero or a
+ * dash in place of something nobody stated, because "not stated" and "none" are
+ * different facts and only one of them is news. Callers build the array by
+ * filtering, so the grid never has to decide what an absence means.
+ */
+export function FactGrid({ facts, className }: { facts: Fact[]; className?: string }) {
+  if (facts.length === 0) return null;
+  return (
+    <dl
+      className={`grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3 ${className ?? ""}`}
+      data-testid="fact-grid"
+    >
+      {facts.map((fact) => (
+        <div key={fact.label} className="min-w-0">
+          <dt className={`flex items-center gap-2 ${TYPE.label}`}>
+            {fact.icon && <UiIcon name={fact.icon} size={ICON.inline} className="shrink-0" />}
+            {fact.label}
+          </dt>
+          <dd className="mt-1.5 text-[1.0625rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+            {fact.value}
+          </dd>
+          {fact.note && <p className={`mt-1 ${TYPE.caption} leading-snug`}>{fact.note}</p>}
+        </div>
+      ))}
+    </dl>
+  );
+}

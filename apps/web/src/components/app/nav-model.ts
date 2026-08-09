@@ -140,8 +140,19 @@ export function buildNav({
         },
         { href: "/saved", label: t.nav.saved, icon: "heart" },
         { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
-        /* The assistant's one and only placement. See the header note. */
-        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+        /*
+         * THE ASSISTANT ROW WENT, AND THE ASSISTANT DID NOT.
+         *
+         * `/assistant` is already a door on `/home`, where `AiAssistantBanner`
+         * links straight into it, and a persistent rail row is a second door to
+         * one place. The rule the owner applied to the profile avatar in the
+         * header applies here for the same reason: two doors to one room make
+         * the navigation longer without making anything more reachable.
+         *
+         * The assistant is a TOOL you reach for from inside what you are
+         * doing, not a destination you navigate to on purpose, which is the
+         * test for whether something belongs in a persistent rail at all.
+         */
       ],
     });
   }
@@ -189,10 +200,17 @@ export function buildNav({
    * and Privacy are rows on it too, which is why the Legal section here is
    * gone.
    */
+  /*
+   * BECOME AN AGENT WENT TOO, AND IT WAS THE THIRD DOOR.
+   *
+   * `/agents` is already reached from the profile screen twice: once as a row
+   * in `profile/page.tsx` and once in `AccountBody`. Becoming a seller is a
+   * ONE-TIME CONVERSION, not a place somebody navigates back to, and the
+   * profile is exactly where a person goes to change who they are on the
+   * platform. A permanent rail row for an action you take once is the clearest
+   * possible case of something that belongs inside a screen.
+   */
   const tail: NavNode[] = [];
-  if (signedIn && !isAgent) {
-    tail.push({ href: "/agents", label: t.landing.footer.becomeAgent, icon: "key" });
-  }
   if (signedIn) {
     tail.push({ href: "/settings", label: t.nav.settings, icon: "settings-gear" });
   }
