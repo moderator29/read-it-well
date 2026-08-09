@@ -28,7 +28,7 @@ function Refusal({ message }: { message: string | null }) {
   return (
     <p
       role="alert"
-      className="mt-2 text-[0.75rem] font-medium leading-relaxed text-[var(--nf-state-error)]"
+      className="nf-body-sm mt-row font-medium text-[var(--nf-state-error)]"
     >
       {message}
     </p>
@@ -37,10 +37,20 @@ function Refusal({ message }: { message: string | null }) {
 
 /* ------------------------------------------------------------ escrow ruling */
 
-export function EscrowRuling({ escrowId, amountMinor, locale }: {
+export function EscrowRuling({
+  escrowId,
+  amountMinor,
+  locale,
+  payerName,
+  payeeName,
+}: {
   escrowId: string;
   amountMinor: number;
   locale: Locale;
+  /** Who paid in. Named in the confirmation, because a refund goes to them. */
+  payerName: string | null;
+  /** Who is waiting to be paid. Named for the same reason. */
+  payeeName: string | null;
 }) {
   const router = useRouter();
   const [note, setNote] = useState("");
@@ -48,24 +58,30 @@ export function EscrowRuling({ escrowId, amountMinor, locale }: {
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
-  function run(chosen: "release" | "refund") {
-    setDirection(chosen);
+  function run() {
+    if (!direction) return;
     setError(null);
     start(async () => {
-      const result = await resolveEscrow({ escrowId, direction: chosen, note });
+      const result = await resolveEscrow({ escrowId, direction, note });
       if (!result.ok) {
         setError(result.fieldErrors?.["note"] ?? result.error);
         return;
       }
       setNote("");
+      setDirection(null);
       router.refresh();
     });
   }
 
   const money = formatMoney(amountMinor, locale);
+  const payer = payerName ?? "the payer";
+  const payee = payeeName ?? "the payee";
+  /* Who actually receives the money under the chosen direction. Release pays
+     the payee; refund returns it to the payer. */
+  const recipient = direction === "release" ? payee : payer;
 
   return (
-    <div className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3">
+    <div className="mt-row rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-card-sm">
       <label className="block">
         <span className="nf-label">Your ruling</span>
         <textarea
@@ -76,29 +92,68 @@ export function EscrowRuling({ escrowId, amountMinor, locale }: {
           placeholder="What you decided and why. Both people are sent this, word for word."
         />
       </label>
-      <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-[var(--nf-content-muted)]">
-        {money} moves the moment you choose. This cannot be undone, and the
-        state machine will not let it be reversed afterwards.
-      </p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Button
-          type="button"
-          size="sm"
-          disabled={pending}
-          onClick={() => run("release")}
-        >
-          {pending && direction === "release" ? "Releasing" : `Release ${money} to the payee`}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          disabled={pending}
-          onClick={() => run("refund")}
-        >
-          {pending && direction === "refund" ? "Refunding" : `Refund ${money} to the payer`}
-        </Button>
-      </div>
+
+      {/*
+        THE SECOND STEP, AND WHY IT IS NOT CEREMONY.
+        Choosing a direction used to move the money on that same click. The
+        amount was in the button label, which is half of the rule; the person
+        receiving it was not, and "Release to the payee" reads identically
+        whoever the payee happens to be. Naming them, next to the amount, in a
+        sentence that has to be read before a second deliberate press, is the
+        difference between confirming a decision and confirming a button.
+      */}
+      {!direction ? (
+        <>
+          <p className="nf-caption mt-row">
+            Choose a direction. You will see exactly what moves, and to whom,
+            before anything happens.
+          </p>
+          <div className="mt-row flex flex-wrap gap-inline">
+            <Button type="button" size="sm" onClick={() => setDirection("release")}>
+              Release to {payee}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => setDirection("refund")}
+            >
+              Refund to {payer}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="mt-row rounded-[var(--nf-radius-md)] border border-[var(--nf-state-warning)] p-card-sm">
+          <p className="nf-body font-semibold text-content">
+            {money} goes to {recipient}.
+          </p>
+          <p className="nf-body-sm mt-row text-content-2">
+            {direction === "release"
+              ? `${payer} does not get this money back.`
+              : `${payee} does not receive this money.`}{" "}
+            Both people are sent your ruling word for word. This cannot be
+            undone: the state machine will not let a resolved escrow be
+            reopened.
+          </p>
+          <div className="mt-group flex flex-wrap gap-inline">
+            <Button type="button" size="sm" variant="danger" loading={pending} onClick={run}>
+              {direction === "release" ? "Release" : "Refund"} {money} to {recipient}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={pending}
+              onClick={() => {
+                setDirection(null);
+                setError(null);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
       <Refusal message={error} />
     </div>
   );
@@ -130,7 +185,7 @@ export function DocumentDecision({ documentId }: { documentId: string }) {
   }
 
   return (
-    <div className="mt-2">
+    <div className="mt-row">
       {showReason && (
         <label className="block">
           <span className="nf-label">What is wrong with it</span>
@@ -141,13 +196,13 @@ export function DocumentDecision({ documentId }: { documentId: string }) {
             onChange={(e) => setReason(e.target.value)}
             placeholder="The name is covered by a thumb. Photograph it again with all four corners visible."
           />
-          <span className="mt-1 block text-[0.6875rem] text-[var(--nf-content-muted)]">
+          <span className="nf-caption mt-inline-tight block">
             This is sent to them word for word, so it has to be something they
             can act on.
           </span>
         </label>
       )}
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className="mt-row flex flex-wrap gap-inline">
         <Button type="button" size="sm" disabled={pending} onClick={() => decide(true)}>
           Approve
         </Button>
@@ -262,17 +317,17 @@ export function FeeRateForm({
   }
 
   return (
-    <div className="mt-4 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-4">
-      <p className="text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+    <div className="mt-group rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-card">
+      <p className="nf-body font-semibold text-content">
         Change the rate
       </p>
-      <p className="mt-1 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="nf-caption mt-inline-tight">
         This adds a new rate rather than editing the old one, so everything
         already charged stays explainable by the rate that was in force when it
         was charged. A rate cannot start in the past.
       </p>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+      <div className="mt-group grid gap-row sm:grid-cols-2">
         <label className="block">
           <span className="nf-label">Percentage</span>
           <input
@@ -295,7 +350,7 @@ export function FeeRateForm({
         </label>
       </div>
 
-      <label className="mt-3 block">
+      <label className="mt-group block">
         <span className="nf-label">Starts</span>
         <input
           className="nf-field"
@@ -303,13 +358,13 @@ export function FeeRateForm({
           value={startsAt}
           onChange={(e) => setStartsAt(e.target.value)}
         />
-        <span className="mt-1 block text-[0.6875rem] text-[var(--nf-content-muted)]">
+        <span className="nf-caption mt-inline-tight block">
           Leave blank to start now. Announce a rate change before it bites by
           dating it a month out.
         </span>
       </label>
 
-      <label className="mt-3 block">
+      <label className="mt-group block">
         <span className="nf-label">Why</span>
         <textarea
           className="nf-field min-h-[64px] resize-y"
@@ -320,14 +375,14 @@ export function FeeRateForm({
         />
       </label>
 
-      <div className="mt-3">
+      <div className="mt-group">
         <Button type="button" size="sm" disabled={pending} onClick={submit}>
           {pending ? "Recording" : "Record this rate"}
         </Button>
       </div>
       <Refusal message={error} />
       {done && (
-        <p className="mt-2 text-[0.75rem] font-medium text-[var(--nf-state-success)]">
+        <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-success)]">
           Recorded, with your name on it.
         </p>
       )}

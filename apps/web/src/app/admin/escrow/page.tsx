@@ -91,40 +91,35 @@ export default async function AdminEscrowPage() {
         count={disputes.length}
       />
 
-      <section className="mb-5 grid gap-3 sm:grid-cols-3">
-        <div className="nf-card p-4">
-          <p className="text-[0.75rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
-            Held right now
-          </p>
-          <p className="nf-numeric mt-1 text-[1.25rem] font-bold">
-            {formatMoney(totals.heldMinor, locale)}
-          </p>
-        </div>
-        <div className="nf-card p-4">
-          <p className="text-[0.75rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
-            Open
-          </p>
-          <p className="nf-numeric mt-1 text-[1.25rem] font-bold">{totals.openCount}</p>
-        </div>
-        <div className="nf-card p-4">
-          <p className="text-[0.75rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
-            In dispute
-          </p>
-          <p className="nf-numeric mt-1 text-[1.25rem] font-bold">{totals.disputeCount}</p>
-        </div>
-      </section>
+      <ui.StatRow>
+        <ui.Stat
+          label="Held right now"
+          value={formatMoney(totals.heldMinor, locale)}
+          hint="Money the platform is between two people on"
+          tone={totals.heldMinor === 0 ? "neutral" : "warning"}
+        />
+        <ui.Stat label="Open" value={String(totals.openCount)} hint="Still running" />
+        <ui.Stat
+          label="In dispute"
+          value={String(totals.disputeCount)}
+          hint={
+            totals.disputeCount === 0 ? "Nobody is waiting on a ruling" : "Waiting on a person"
+          }
+          tone={totals.disputeCount === 0 ? "success" : "danger"}
+        />
+      </ui.StatRow>
 
-      <section className="mb-6">
-        <h2 className="mb-2 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
-          Disputes
-        </h2>
+      <ui.Section
+        title="Disputes"
+        hint="Two people who disagree about money the platform is holding. Until somebody rules, neither of them can have it."
+      >
         {disputes.length === 0 ? (
           <ui.QueueEmpty
             title="Nothing is in dispute"
             body="Every escrow either settled on its own or is still running. Nobody is waiting on a ruling."
           />
         ) : (
-          <ul className="space-y-3">
+          <ul className="nf-stack nf-stack--row">
             {disputes.map((escrow) => (
               <li key={escrow.id}>
                 <EscrowCard escrow={escrow} ui={ui} locale={locale} rulable />
@@ -132,18 +127,15 @@ export default async function AdminEscrowPage() {
             ))}
           </ul>
         )}
-      </section>
+      </ui.Section>
 
-      <section className="mb-6">
-        <h2 className="mb-2 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
-          Open holds
-        </h2>
+      <ui.Section title="Open holds">
         {open.length === 0 ? (
-          <p className="text-[0.875rem] text-[var(--nf-content-muted)]">
+          <p className="nf-body text-content-2">
             The platform is not holding anybody&apos;s money.
           </p>
         ) : (
-          <ul className="space-y-3">
+          <ul className="nf-stack nf-stack--row">
             {open.map((escrow) => (
               <li key={escrow.id}>
                 <EscrowCard escrow={escrow} ui={ui} locale={locale} />
@@ -151,21 +143,18 @@ export default async function AdminEscrowPage() {
             ))}
           </ul>
         )}
-      </section>
+      </ui.Section>
 
       {settled.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
-            Recently settled
-          </h2>
-          <ul className="space-y-3">
+        <ui.Section title="Recently settled">
+          <ul className="nf-stack nf-stack--row">
             {settled.map((escrow) => (
               <li key={escrow.id}>
                 <EscrowCard escrow={escrow} ui={ui} locale={locale} />
               </li>
             ))}
           </ul>
-        </section>
+        </ui.Section>
       )}
     </div>
   );
@@ -183,24 +172,20 @@ function EscrowCard({
   rulable?: boolean;
 }) {
   return (
-    <article className="nf-card p-4">
-      <div className="flex flex-wrap items-center gap-3">
+    <article className="nf-card p-card">
+      <div className="flex flex-wrap items-center gap-inline">
         <ui.StatusChip
           label={STATE_LABEL[escrow.state] ?? escrow.state}
           tone={STATE_TONE[escrow.state] ?? "neutral"}
         />
-        <span className="nf-numeric text-[1rem] font-bold">
-          {formatMoney(escrow.amountMinor, locale)}
-        </span>
-        <span className="text-[0.8125rem] text-[var(--nf-content-secondary)]">
+        <span className="nf-numeric nf-h4">{formatMoney(escrow.amountMinor, locale)}</span>
+        <span className="nf-body-sm text-content-2">
           {PURPOSE_LABEL[escrow.purpose] ?? escrow.purpose}
         </span>
-        <span className="ml-auto text-[0.75rem] text-[var(--nf-content-muted)]">
-          {ui.when(escrow.createdAt)}
-        </span>
+        <span className="nf-caption ml-auto">{ui.when(escrow.createdAt)}</span>
       </div>
 
-      <dl className="mt-2">
+      <dl className="mt-row">
         <ui.DetailRow label="Payer" value={escrow.payerName} />
         <ui.DetailRow label="Payee" value={escrow.payeeName} />
         {escrow.listingTitle && <ui.DetailRow label="Property" value={escrow.listingTitle} />}
@@ -241,7 +226,13 @@ function EscrowCard({
       </dl>
 
       {rulable && (
-        <EscrowRuling escrowId={escrow.id} amountMinor={escrow.amountMinor} locale={locale} />
+        <EscrowRuling
+          escrowId={escrow.id}
+          amountMinor={escrow.amountMinor}
+          locale={locale}
+          payerName={escrow.payerName}
+          payeeName={escrow.payeeName}
+        />
       )}
     </article>
   );

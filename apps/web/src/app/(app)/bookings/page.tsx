@@ -1,63 +1,59 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
-import { getListingRepository } from "@/lib/listings/repository";
-import type { Listing } from "@/lib/listings/types";
-import { buildBookings } from "@/lib/demo/bookings";
 import { getMyBookings } from "@/lib/bookings/queries";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
-import { BookingsTabs } from "@/components/app/bookings/BookingsTabs";
 import { MyBookings } from "./MyBookings";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
 import { readInspectionsForRequester } from "@/lib/inspections/queries";
 import { InspectionRows } from "@/components/app/inspections/InspectionRows";
-import { Row, RowList, Section, TYPE } from "@/components/app/Screen";
+import { EmptyState, Row, RowList, Section, TYPE } from "@/components/app/Screen";
 
 export const metadata: Metadata = { title: "Bookings" };
 
 /**
- * The stays this account has booked: two upcoming weekends and one completed
- * trip, resolved from the live catalogue so every card carries real
- * photography, locality and pricing. Falls back to the first stays in the
- * catalogue if any id ever leaves the seed.
- */
-const BOOKED_IDS = ["seed-2", "seed-16", "seed-7"];
-
-async function getBookedStays(): Promise<Listing[]> {
-  const repo = getListingRepository();
-  const picked = await Promise.all(BOOKED_IDS.map((id) => repo.byId(id)));
-  const stays = picked.filter((l): l is Listing => l !== null);
-  if (stays.length >= BOOKED_IDS.length) return stays;
-  /*
-   * Our own inventory only, and this one is a correctness fix as much as a
-   * cost one.
-   *
-   * Partner stock cannot be booked on this platform at all: there is no
-   * checkout for inventory we do not own, which is why a partner card carries
-   * a price and no Reserve button (docs/HYBRID_INVENTORY.md section 7). So a
-   * partner hotel appearing in a list of stays is wrong twice over, and the
-   * unfiltered search that fetched it was also spending two billed Places
-   * requests on every visit to this page.
-   */
-  const pool = (await repo.search({}, { partners: false })).filter(
-    (l) =>
-      l.kind !== "restaurant" &&
-      l.kind !== "experience" &&
-      !stays.some((s) => s.id === l.id),
-  );
-  return [...stays, ...pool].slice(0, BOOKED_IDS.length);
-}
-
-/**
  * Bookings.
  *
- * The trips hub: status tabs over the booking list, then a short strip
- * explaining how booking works so a first-time guest knows what to expect
- * before they commit. When Supabase is configured and a user is signed in,
- * the list is their real bookings read under RLS, with cancellation wired to
- * the state machine; otherwise the seeded trips keep the surface alive.
+ * The trips hub: the account's real stays, grouped by status with cancellation
+ * wired to the state machine, then a short strip explaining how booking works
+ * so a first-time guest knows what to expect before they commit.
+ *
+ * ---------------------------------------------------------------------------
+ * THE THIRD STATE WAS DEAD CODE THAT MANUFACTURED MONEY, AND IT IS GONE.
+ *
+ * This page had a fourth branch that assembled three stays out of catalogue
+ * listings - `seed-2`, `seed-16`, `seed-7` - and handed each one a
+ * `status: "confirmed"`, a nights count, a guest count and a naira total in
+ * kobo. Real photography, a real Lagos locality and an invented booking on top
+ * of them, which is the most believable false statement this product was
+ * capable of making: a confirmed reservation is a claim that money has changed
+ * hands.
+ *
+ * It was also unreachable. `getMyBookings` returns null in exactly one case,
+ * which is a viewer who is not signed in, and `bookings` is in
+ * `PRODUCT_SEGMENTS` in `middleware.ts`, so a signed-out visitor is sent to
+ * `/sign-in` before this file runs. The branch's own comment said it "draws the
+ * example stays that explain what this screen is for", which described a real
+ * state once and stopped being true when the middleware rule landed. The one
+ * remaining way to reach it is an environment where auth is not configured,
+ * which is precisely the situation where inventing confirmed bookings with
+ * totals is least defensible.
+ *
+ * It is answered honestly now: no session, no trips, so the screen says so and
+ * offers the door rather than a specimen. That is the same answer the wallet
+ * gives a signed-out reader about a balance, and for the same reason.
+ *
+ * `buildBookings`, `BOOKED_IDS`, `getBookedStays` and the catalogue read behind
+ * them are gone with it, and so is the second billed search this page ran on
+ * every visit to fill a list nobody could see.
+ *
+ * THE `unavailable` BRANCH IS UNTOUCHED AND MUST STAY THAT WAY. A read that
+ * failed draws neither real trips nor examples, because both would be a lie:
+ * "you have none" about an account that may have several, or a set of stays
+ * that are not theirs.
  */
 export default async function BookingsPage({
   searchParams,
@@ -72,15 +68,13 @@ export default async function BookingsPage({
 
   const loaded = await getMyBookings(locale);
   /*
-   * Three states, not two. Signed out draws the example stays that explain what
-   * this screen is for; signed in draws real trips; and a read that FAILED
-   * draws neither, because both of the others would be a lie: "you have none"
-   * about an account that may have several, or a set of stays that are not
-   * theirs.
+   * Three states, and each one says a different true thing. Signed in draws
+   * real trips. No session draws the door. A read that FAILED draws neither,
+   * because both of the others would be a lie: "you have none" about an account
+   * that may have several, or a set of stays that are not theirs.
    */
   const unavailable = loaded === "unavailable";
   const groups = unavailable ? null : loaded;
-  const seeded = loaded === null ? buildBookings(await getBookedStays(), locale) : null;
 
   /*
    * THE VIEWINGS THIS PERSON HAS ASKED FOR.
@@ -113,7 +107,7 @@ export default async function BookingsPage({
       </div>
 
       {inspections.inspections.length > 0 && (
-        <Reveal className="mb-8">
+        <Reveal className="mb-block">
           <Section
             title="Your inspections"
             description="Whoever listed the property sees the same state you do."
@@ -127,26 +121,53 @@ export default async function BookingsPage({
         </Reveal>
       )}
 
+      {/*
+        THE OUTER CARD IS GONE, AND IT WAS BREAKING THE ONE HARD RULE.
+
+        Everything below was wrapped in an `nf-card p-4 sm:p-5`, and every stay
+        `MyBookings` renders inside it is itself an `nf-card`. A raised surface
+        holding raised surfaces is the single rule the surface language has no
+        exceptions to, and the effect on screen was exactly what the rule
+        predicts: a bordered, blurred box with three more bordered, blurred
+        boxes inside it, so the eye had to work out which edge meant what. The
+        stays are the objects. The page is the ground they sit on.
+      */}
       <Reveal>
-        <div className="nf-card p-4 sm:p-5">
-          {unavailable ? (
-            <div className="py-6 text-center" data-testid="bookings-unavailable">
-              <p className={TYPE.rowTitle}>We could not load your trips</p>
-              <p className={`mx-auto mt-2 max-w-sm ${TYPE.body}`}>
-                Something on our side did not answer just now. Nothing has changed about
-                your bookings. Reload the page and they should come straight back.
-              </p>
-            </div>
-          ) : groups ? (
-            <MyBookings groups={groups} locale={locale} justBookedId={justBooked} />
-          ) : (
-            <BookingsTabs
-              upcoming={seeded?.upcoming ?? []}
-              past={seeded?.past ?? []}
-              locale={locale}
-            />
-          )}
-        </div>
+        {unavailable ? (
+          <div className="py-heading text-center" data-testid="bookings-unavailable">
+            <p className={TYPE.rowTitle}>We could not load your trips</p>
+            <p className={`mx-auto mt-row max-w-sm ${TYPE.body}`}>
+              Something on our side did not answer just now. Nothing has changed about
+              your bookings. Reload the page and they should come straight back.
+            </p>
+          </div>
+        ) : groups ? (
+          <MyBookings groups={groups} locale={locale} justBookedId={justBooked} />
+        ) : (
+          /*
+            NO SESSION. Reachable only where auth is not configured, because the
+            middleware sends a signed-out visitor to /sign-in before this file
+            runs. It used to be three invented confirmed bookings with naira
+            totals; it is the door now, which is the only honest thing a trips
+            hub can say to somebody it cannot identify.
+          */
+          <EmptyState
+            icon="calendar-check"
+            title="Your trips are behind your sign in"
+            body="Every stay you book is tied to your account, so we only ever show you your own. Sign in and anything booked with this account appears here."
+            action={
+              <ButtonLink href="/sign-in" variant="primary">
+                Sign in
+              </ButtonLink>
+            }
+            secondary={
+              <ButtonLink href="/search" variant="ghost">
+                Explore places
+              </ButtonLink>
+            }
+            data-testid="bookings-signed-out"
+          />
+        )}
       </Reveal>
 
       <Reveal delay={100}>
@@ -154,16 +175,16 @@ export default async function BookingsPage({
             three bordered boxes is three objects where there is one sequence;
             one surface with hairlines between says "these belong together and
             they are in this order", which is the thing the reader needs. */}
-        <h2 className="nf-group-label mt-8">How booking works</h2>
+        <h2 className="nf-group-label mt-block">How booking works</h2>
         <RowList boxed>
           {steps.map((s) => (
             <Row key={s.title} className="items-start">
-              <span className="h-11 w-11 shrink-0">
+              <span className="block h-11 w-11 shrink-0">
                 <BrandIcon name={s.icon} fill />
               </span>
               <span className="min-w-0 leading-tight">
                 <span className={`block ${TYPE.rowTitle}`}>{s.title}</span>
-                <span className={`mt-0.5 block ${TYPE.rowMeta}`}>{s.body}</span>
+                <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{s.body}</span>
               </span>
             </Row>
           ))}
