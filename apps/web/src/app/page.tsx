@@ -166,7 +166,7 @@ export default async function LandingPage() {
                     prefetch
                     className="nf-object-link group flex flex-col items-center gap-3 text-center"
                   >
-                    <span className="h-[5.5rem] w-[5.5rem] shrink-0 transition-transform duration-[var(--nf-motion-slow)] group-hover:-translate-y-1 motion-reduce:transform-none sm:h-24 sm:w-24 lg:h-28 lg:w-28">
+                    <span className="h-[5.5rem] w-[5.5rem] shrink-0 transition-transform duration-[var(--nf-duration-base)] group-hover:-translate-y-1 motion-reduce:transform-none sm:h-24 sm:w-24 lg:h-28 lg:w-28">
                       <BrandIcon name={c.icon} fill />
                     </span>
                     <span className="text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)] sm:text-[1rem]">

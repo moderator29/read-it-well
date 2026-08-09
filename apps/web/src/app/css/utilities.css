@@ -89,4 +89,80 @@
   .nf-scroll-x::-webkit-scrollbar {
     display: none;
   }
+
+  /*
+   * ------------------------------------------------------------ ROW LISTS
+   *
+   * The pattern that replaces a stack of cards, and the single biggest lever
+   * on the "too many containers" complaint.
+   *
+   * A list of five settings, five wallet actions or five profile rows drawn as
+   * five cards is five borders, five shadows and five rounded rectangles for
+   * information that is one thing with five parts. Drawn as one surface with
+   * hairline dividers it is one border, no shadows, and the eye reads it as a
+   * group instead of as five competing objects. It is what both reference
+   * platforms use for essentially every list they have, and it is why their
+   * screens look calm while carrying the same number of options as ours.
+   *
+   * WHY --nf-divider AND NOT --nf-border-subtle. They were the same call site
+   * for a long time: border-subtle appears 138 times doing both jobs, while
+   * the divider token existed and was used three times. They are not the same
+   * job. A BORDER bounds a surface and has to hold its edge against whatever
+   * is behind it. A DIVIDER separates peers INSIDE a surface and should be the
+   * quietest line that still reads as a line, because it is dividing things
+   * that already belong together. Making them one value means either the
+   * container edge is too faint or every row separator is too loud, and this
+   * codebase had chosen the second.
+   *
+   * The first and last dividers are deliberately absent: a line immediately
+   * inside the container's own edge is two lines a couple of pixels apart.
+   */
+  .nf-rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nf-rows > * + * {
+    border-top: 1px solid var(--nf-divider);
+  }
+
+  /*
+   * One row. Generous by default, because these are touch targets before they
+   * are text: 56px minimum is the comfortable end of the accessible range
+   * rather than the 44px floor, and this product is used one-handed on a
+   * phone.
+   */
+  .nf-row {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    min-height: 3.5rem;
+    padding-block: 0.875rem;
+  }
+
+  /*
+   * A row that goes somewhere. The whole row is the target, not the label
+   * inside it, which is the difference between a list that feels considered
+   * and one that makes you aim.
+   */
+  .nf-row--tap {
+    cursor: pointer;
+    border-radius: var(--nf-radius-sm);
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  @media (hover: hover) {
+    .nf-row--tap:hover {
+      background-color: var(--nf-interactive-hover);
+    }
+  }
+
+  .nf-row--tap:active {
+    background-color: var(--nf-interactive-active);
+  }
+
+  /* No reduced-motion block here on purpose: every --nf-duration-* token
+     already collapses to 1ms under prefers-reduced-motion in tokens.css, so
+     this transition resolves immediately without a second rule claiming
+     responsibility for it. */
 }

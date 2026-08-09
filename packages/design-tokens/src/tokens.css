@@ -573,18 +573,45 @@
    * Type scale. The clamp lower bounds are tuned for a phone first: a heading
    * must feel calm on a 390px screen, not shout, so the mobile floor sits well
    * below the desktop ceiling and grows with the viewport.
+   *
+   * THE BODY END OF THIS SCALE WAS TOO SMALL, AND TWO OF ITS STEPS WERE THE
+   * SAME NUMBER.
+   *
+   * It read: body-lg 15.5px, body 14px, body-sm 14px. So the default reading
+   * size on a consumer product people use one-handed on a phone in daylight
+   * was 14px, "large" body was a step of one and a half pixels above it, and
+   * body-sm was not small at all, it was body under a second name. Three
+   * tokens describing two sizes, one of which was too small to be the default.
+   *
+   * A component author reaching for body-sm believed they were making
+   * something quieter and changed nothing, so the quiet tier got expressed in
+   * colour instead, which is why muted grey ended up doing the work that size
+   * should have been doing.
+   *
+   * The scale now steps properly and starts where a phone wants it:
+   *
+   *   body-lg  17px   a lede, or the first paragraph of a section
+   *   body     16px   THE DEFAULT. What running text is, everywhere.
+   *   body-sm  14.5px genuinely smaller: metadata, secondary rows
+   *   caption  13px   the quietest readable tier
+   *   overline 11.5px labels above a section, uppercase and tracked
+   *
+   * h4 goes to 1.25rem so there is a real step between it and body-lg rather
+   * than the 1.5px that separated them, and h3's floor rises with it so the
+   * heading tiers stay distinguishable on a narrow screen, which is the only
+   * place they were ever at risk of collapsing into each other.
    */
   --nf-text-display: clamp(1.95rem, 1.1rem + 4vw, 4.6rem);
   --nf-text-hero: clamp(1.7rem, 1.05rem + 2.9vw, 3.5rem);
-  --nf-text-h1: clamp(1.45rem, 1.1rem + 1.7vw, 2.5rem);
-  --nf-text-h2: clamp(1.22rem, 1.05rem + 0.9vw, 1.8rem);
-  --nf-text-h3: clamp(1.15rem, 1.05rem + 0.5vw, 1.375rem);
-  --nf-text-h4: 1.125rem;
-  --nf-text-body-lg: 0.9688rem;
-  --nf-text-body: 0.875rem;
-  --nf-text-body-sm: 0.875rem;
+  --nf-text-h1: clamp(1.5rem, 1.1rem + 1.8vw, 2.5rem);
+  --nf-text-h2: clamp(1.3rem, 1.05rem + 1vw, 1.85rem);
+  --nf-text-h3: clamp(1.1875rem, 1.05rem + 0.6vw, 1.4375rem);
+  --nf-text-h4: 1.25rem;
+  --nf-text-body-lg: 1.0625rem;
+  --nf-text-body: 1rem;
+  --nf-text-body-sm: 0.90625rem;
   --nf-text-caption: 0.8125rem;
-  --nf-text-overline: 0.6875rem;
+  --nf-text-overline: 0.71875rem;
 
   --nf-tracking-display: -0.035em;
   --nf-tracking-tight: -0.02em;
