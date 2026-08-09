@@ -2504,18 +2504,70 @@ go to different advisers and both have lead times.
 
 ## 17. Security
 
-### SEC-1. The Content Security Policy is built, served and not enforced. **OPEN. P1**
+### SEC-1. The Content Security Policy enforces. **DONE. Was P1**
 
-Unchanged. `lib/security/csp.ts` builds it, `middleware.ts` serves it on all three
-exits with a per-request nonce, and the root layout nonces its two before-paint
-scripts. `cspHeaderName()` returns `Content-Security-Policy-Report-Only` unless
-`CSP_ENFORCE === "true"`, which is unset.
+The switch read `CSP_ENFORCE === "true"` and nobody ever set it, so the platform
+served a policy that looked strict in every header dump and had never blocked a
+single thing. **The default is inverted:** unset enforces, and only the literal
+`false` steps back to reporting. Every accident case, a typo, `"TRUE"`, a new
+environment nobody configured, now fails towards the protection.
 
-**Do.** Watch `/api/csp-report` and the `[csp]` lines across real traffic. When
-they stop, set `CSP_ENFORCE=true`, on a day somebody is watching, because the
-warning already written in `csp.ts` says something in the deposit path is
-expected to break the day it is enforced. A wrong policy does not degrade, it
-white-screens.
+**The enumeration came first, in a browser, against a production build.**
+Eighteen routes signed out, including the six route families N-1 opened, which
+the report-only policy had never been tuned against because until that commit
+they redirected before a browser ever loaded them.
+
+- Every inline script the app writes carries the nonce, including the JSON-LD
+  block on `/listing/[id]`, which is built from a listing's own title, which is
+  attacker-supplied text on a marketplace anybody can list on.
+- **Zero `<style>` elements on any of seventeen routes.** So `style-src-elem
+  'self'` was added and takes back the half of the inline style allowance
+  nothing needs. `style-src` keeps `'unsafe-inline'` as the fallback for
+  browsers with no `style-src-elem`, where the choice is that allowance or an
+  unstyled product; a browser that understands the element directive stops
+  honouring it for `<style>` blocks and keeps honouring it for the `style=`
+  attributes React writes.
+- `media-src` was added. Without it, `media-src` falls back to `default-src
+  'self'` and the walkthrough player, whose rows are already joined into the
+  detail read and point at Supabase storage, would have shown a black box with
+  no server-side trace on the day somebody rendered the `<video>`.
+- **One real violation, found by looking rather than by reasoning.** `/around`
+  and `/settings` each raised `script-src blocked eval`. It is Zod deciding
+  whether it may compile a validator by calling `new Function("")` in a
+  try/catch. Zod catches it and uses the interpreted path, so nothing was
+  broken, and the browser reports it anyway on every load of the busiest
+  routes, into the same log a real violation has to be found in. Switched off
+  at source in `src/instrumentation-client.ts`, which Next runs before any
+  route chunk evaluates. **Not** paid for with `'unsafe-eval'`, and
+  `security.test.ts` now asserts that directive stays absent, because that was
+  the tempting fix and it would have undone the whole policy.
+
+**Verified under enforcement, not assumed:** Leaflet's chunk imports under
+`strict-dynamic` and CARTO tiles load under `img-src`, proved by a constructed
+`.leaflet-container` and fifteen real tile requests. The two checks that used
+to report this as broken were a spec fault: the map toggle sits outside a 390px
+viewport, Playwright refused the click, and the catch swallowed it.
+
+**Two things named and not changed.** `form-action` still names only Paystack.
+The Google and Apple rows that posted to a server action ending in a redirect
+to Supabase authorize are gone from `AuthChoices`, so no provider origin belongs
+there; if they come back, the Supabase origin has to come back with them or
+Chrome kills the sign-in at the redirect, because it applies `form-action` to
+the whole chain. And the Capacitor shell is **unverified**: it loads the live
+origin in a WebView, so the page's own policy applies inside it, and this
+sandbox cannot run it. `CAPACITOR_SERVER_URL` is unset and `docs/MOBILE.md`
+already says the shell is not shippable, so this is a check to make before it
+is, not a regression.
+
+### SEC-1b. The report-only period bought nothing, and that is the lesson. **NEW**
+
+Worth writing down because it will be proposed again. The policy shipped
+report-only "until the reports are quiet", the reports were never read, and the
+one violation waiting in them sat there for months. The enumeration that
+actually made enforcement safe took an afternoon with a browser and a
+production build, and none of it needed production traffic. **A report-only
+period is only a plan if somebody is named to read the reports and a date is
+set to flip.** Otherwise it is a control that is off.
 
 ### SEC-2. Two high severity npm advisories, both lint-time only. **OPEN. P2**
 
@@ -2590,38 +2642,136 @@ under an asset directory, so `/checkout/abc.png`, `/listing/abc.png` and
 `/u/somebody.png` all returned 200 with full HTML, no CSP, no nonce and no
 session refresh. It is now anchored on directories.
 
-**Residual.** A spec asserting the CSP header and the nonce are present on a
-representative dynamic route with a `.png` suffix. The fix is right and nothing
-holds it.
+**Residual closed.** `tests/csp.spec.mjs` now walks `/listing/abc.png`,
+`/u/somebody.svg` and `/checkout/abc.jpg` and asserts the policy, the enforcing
+header name and a per-request nonce on each.
 
-### SEC-5. There is no session or device management. **OPEN. P1**
+### SEC-5. A person can see where they are signed in and end it. **DONE. Was P1**
 
-Unchanged. A person cannot see where they are signed in and cannot sign a device
-out. A wallet-bearing account on a lost phone must be recoverable by its owner,
-not by a support ticket. Build the device list on `/settings`, a
-sign-out-everywhere action, and a new-device notification; the notification
-writer already exists.
+`/settings/devices`, reached from a row under Security on `/settings` that
+carries the count, because "Devices and sessions" with a chevron is a label
+somebody scrolls past and "3 signed in" is a fact that stops somebody who owns
+one phone.
 
-### SEC-6. The public browse surface is new and has not been threat-modelled. **NEW. OPEN. P1**
+**Read from the provider, not from a store we invented.** Supabase keeps
+`auth.sessions`, one row per device, and exposes no client API that lists it:
+`signOut({ scope })` can end 'others' or 'global' and cannot enumerate, and the
+admin API has no list-sessions endpoint. So three SECURITY DEFINER functions,
+`my_sessions()`, `end_session(uuid)` and `end_other_sessions()`, all authorising
+off `auth.uid()`. `end_session`'s argument can only narrow: the ownership check
+is inside the delete, so naming somebody else's session deletes nothing and is
+reported as `not_found`, the same answer a nonexistent one gets, so it cannot be
+used to test whether a session id is live.
 
-N-1 opened six route families to anonymous traffic in one commit. That is the
-right change and it changes the threat model, and nobody has gone back over it.
+**Location is not shown, and its absence is the answer rather than a gap.**
+`auth.sessions.ip` records whoever last refreshed the token. The refresh runs in
+our own middleware, so the address on the row is a data centre's. A city drawn
+from it would be a confident lie in the one place somebody is making a security
+decision, so `my_sessions()` does not return the column at all.
 
-**Do, and each is a specific question rather than a general worry.**
-1. **What can an anonymous request enumerate?** `/u/[handle]` and `/listing/[id]`
-   are now scrapeable. Confirm the RLS policies on `profiles` and `listings`
-   expose only what a public profile and a published listing should, and confirm
-   that a `DRAFT` or `SUSPENDED` listing 404s rather than 403s, because the
-   difference is an oracle.
-2. **Rate limit the public surfaces.** They were behind a session, so they were
-   implicitly limited by having to have an account. They are not any more.
-   `/search` in particular now runs unauthenticated database queries for anybody
-   with a loop.
-3. **The map viewport RPC in M-5 will be a public endpoint** taking a
-   caller-supplied bounding box. A box covering all of Nigeria at a high limit is
-   a catalogue export. Cap the box area, cap the result count, and rate limit it.
-4. **Re-run the CSP watch.** The report-only policy was tuned against
-   authenticated traffic and the anonymous paths were unreachable.
+**`user_agent` had the same problem and it was fixable.** Every row read `Vercel
+Edge Functions`, our own runtime's fetch agent, for the same reason. The
+middleware now forwards the visitor's own `User-Agent` to the Supabase auth
+client, capped at 512 bytes, so the column records the real browser going
+forward. The header is attacker controlled and is **never rendered**:
+`lib/security/device.ts` maps it onto a fixed list of browser and platform names
+and returns nothing else, so the worst a crafted header achieves is a row
+reading "Unrecognised device". Rows written before the change say the device was
+not recorded, and say why.
+
+**The copy is honest about what a sign-out does not do.** Deleting the session
+cascades to its refresh tokens, verified from `pg_constraint`, so the device can
+never mint another access token. The token it is already holding is a signed JWT
+that PostgREST verifies rather than looks up, so it works until it expires. The
+screen says so and says that changing the password is the step that ends every
+key at once, because somebody told they are safe will not take that step.
+
+**The residual, and it is small.** `SecurityCard` still draws its old "Sign out
+everywhere" button, which sets a note explaining that it will work one day. It
+lives in `components/app/`, which another stream owns. It should be deleted or
+pointed at `/settings/devices`. The new-device notification named in the
+original entry is still not written.
+
+### SEC-6. The public browse surface, threat-modelled. **PARTLY DONE. P1**
+
+Answered against the live database as role `anon`, not by reading policies.
+
+**1. What an anonymous caller can read, and it is now less than it was.**
+Rows returned to `set local role anon`: 42 listings, 2 social profiles, 19
+posts, 8 feature flags, 2 fee rates. Zero from `agents`, `profiles`, `reviews`,
+`bookings`, `agent_applications`, `wallets`, `messages`, `user_roles`,
+`audit_log`, `listing_photos`. So no phone number, no email address and no
+lister's legal name is reachable: `profiles`, which holds `phone`, `first_name`
+and `surname`, has only `profiles_select_own` and `profiles_select_admin` and
+returns nothing to anon.
+
+**The real finding was columns, not rows.** `listings_select_published` is
+`status = 'PUBLISHED'` for role public, which is the correct ROW rule and the
+whole of it. RLS has no column half, and the grant was table-wide SELECT to
+`anon`, so a signed-out caller with the publishable key got **every column of
+every published listing**, including eight the application itself never asks
+for: `review_notes` (the moderator's private prose about somebody's listing),
+`reviewer_id` and `verified_by` (which staff account handled it),
+`address` and `landmark` (the exact door, on a product that has only ever shown
+area and city), and the three `listing_fee_*` columns (what we charged that
+lister). Closed in
+`20260809100105_a_published_listing_is_public_its_moderation_file_is_not` by
+dropping the table grant and granting the other columns back by name. **The
+policy was not touched**, because the row rule is right and narrowing it would
+break the browsing the owner asked for. Browse verified still working as anon
+afterwards: 42 catalogue rows, 42 map pins, 42 sitemap rows, 238 amenity rows,
+free-text search returning 4.
+
+**The DRAFT/SUSPENDED oracle: there is none.** Proved by inserting one of each
+inside a rolled-back transaction and reading back as `anon`. A DRAFT, a
+SUSPENDED and a nonexistent id all return zero rows, and their photos and
+reviews return zero too, so `byId` returns null and the page 404s identically in
+all three cases.
+
+**2. Rate limiting the public surfaces. STILL OPEN.** `/api/map/listings` is
+limited by IP and `/api/assistant` and `/api/support` are limited. `/search` is
+a server-rendered page, is not limited by anything, and runs unauthenticated
+database queries for anybody with a loop. That is the remaining hole in this
+item.
+
+**3. The map viewport RPC. DONE, by the M-5 stream.** `readBounds` refuses a box
+wider than `MAX_SPAN_DEGREES = 1.5` or outside Nigeria, `listings_in_bounds`
+caps at `least(greatest(limit, 1), 1000)`, and the route consumes an IP rate
+limit. The catalogue-export shape this item warned about is closed.
+
+**4. The CSP watch on the anonymous paths. DONE.** See SEC-1: the walk now
+covers the six route families N-1 opened and the policy enforces.
+
+### SEC-7. Two column exposures that need a design decision, not a grant. **NEW. OPEN. P2**
+
+Written up rather than changed, because both fixes move somebody else's code and
+guessing at them would break a working surface.
+
+**`authenticated` still reads what `anon` no longer can.** The column split in
+SEC-6 was applied to `anon` only. `review_notes` and `address` on any PUBLISHED
+listing are still readable by every signed-in account, because the lister's own
+console and the admin console read them and both run as `authenticated`, the
+same role a stranger gets by signing up. A grant cannot express "the owner but
+not everybody", so closing it means moving those two reads behind a definer
+function that checks ownership. **Signing up is free, so this is the same
+disclosure with one extra step in front of it.** It is P2 rather than P1 only
+because the step is a real one and the data is a moderation note rather than a
+credential.
+
+**`social_profiles.display_label` can be somebody's legal name.**
+`private.project_social_identity` derives it as `display_name`, falling back to
+`first_name || ' ' || surname`, falling back to `nickname`, and the column is
+readable by anon. So a person who filled in their real first name and surname at
+sign-up and never set a display name has their full name published to anonymous
+callers. **Not obviously wrong:** a social profile is opt-in, the row only
+exists once somebody claims a handle, and a profile with no name to show is not
+a profile. The decision is whether the fallback should stop at `nickname` and
+leave the label blank, and that is a product call about what a claimed handle
+promises, not a security fix.
+
+**Also noted, not a finding.** `feature_flags` and `fee_rates` are readable by
+anon with `qual: true`. Both are deliberate, the client needs them, and neither
+holds anything about a person. Flag names do leak what is being built.
 
 ---
 

@@ -81,7 +81,15 @@
     ".next-merge/types/**/*.ts",
     ".next-merge/dev/types/**/*.ts",
     ".next-fin/types/**/*.ts",
-    ".next-fin/dev/types/**/*.ts"
+    ".next-fin/dev/types/**/*.ts",
+    ".next-final/types/**/*.ts",
+    ".next-final/dev/types/**/*.ts",
+    ".next-qa2/types/**/*.ts",
+    ".next-qa2/dev/types/**/*.ts",
+    ".next-verify/types/**/*.ts",
+    ".next-verify/dev/types/**/*.ts",
+    ".next-qa3/types/**/*.ts",
+    ".next-qa3/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

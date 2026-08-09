@@ -292,6 +292,7 @@ const WALK = [
   "/wallet",
   "/assistant",
   "/settings",
+  "/settings/devices",
   // The marketing and reference site.
   "/styleguide",
   "/docs",
