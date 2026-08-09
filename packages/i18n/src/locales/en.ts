@@ -263,14 +263,14 @@ export const en = {
     vision: {
       overline: "Our vision",
       title: "Nigeria at your fingertips. Africa next.",
-      body: "RentMe is building the trusted home for discovery, stays, food and experiences across Nigeria, and then the continent. One account, one wallet, one assistant, made for how Africa actually moves.",
+      body: "RentMe is the trusted place to rent, buy and let property in Nigeria, and then across the continent. One account, one wallet, one assistant, made for how Africa actually moves.",
       missionOverline: "Our mission",
       missionTitle: "Make finding and booking anything effortless and safe.",
-      missionBody: "Verified places, honest prices in naira, real reviews, and an assistant that understands what you want. From Lagos to every corner of the country.",
+      missionBody: "Honest prices in naira with the move-in total spelled out, agents checked by hand, real reviews from real tenancies, and an assistant that understands what you want.",
       points: {
-        verified: { title: "Verified first", body: "Every listing and agent is checked before it goes live." },
+        verified: { title: "Checked by a person", body: "The verified tick goes on a listing once we have checked the agent behind it, by hand." },
         naira: { title: "Priced in naira", body: "Clear totals, no surprises, no hidden charges." },
-        everywhere: { title: "All 36 states", body: "Nationwide from day one, not just the big cities." },
+        everywhere: { title: "Built for all 36 states", body: "Every state and local government is in the system, and we open cities as agents arrive in them." },
         assistant: { title: "AI that helps", body: "Ask in plain words and get real places back." },
       },
     },
@@ -290,10 +290,21 @@ export const en = {
       secure: { title: "Secure & Trusted", body: "Your safety is our priority" },
       ai: { title: "AI Powered", body: "Smarter experiences" },
       africa: { title: "Made for Africa", body: "Built with love ❤️" },
-      stores: { title: "Available on", body: "App Store & Play Store" },
-      /* `stores` is gone. It read "Available on / App Store & Play Store" and
-         rendered Apple's and Google's real badge artwork beside it, on the
-         landing page and in the footer. RentMe is on neither store. */
+      stores: { title: "Coming to", body: "App Store and Play Store" },
+      /* `stores` CAME BACK, at the owner's instruction, and it says something
+         different from what it said the first time.
+         
+         It was removed because it read "Available on / App Store & Play Store"
+         beside Apple's and Google's real badge artwork, on a platform that is
+         on neither store. That was the right call about the CLAIM, and it took
+         a wanted row off the page to fix it.
+         
+         The row is back and the claim is true: "Coming to", which is a
+         statement about intention, is one the owner is entitled to make and one
+         a visitor cannot be misled by. The marks beside it are our own drawings
+         of the two shapes rather than the licensed lockups, for the reasons in
+         TrustIcon, and neither is a link, because there is nothing yet to link
+         to. When there is, the copy and the artwork change together. */
     },
     categories: {
       title: "Everything, in one place",

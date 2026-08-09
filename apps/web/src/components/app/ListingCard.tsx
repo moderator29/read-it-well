@@ -8,6 +8,7 @@ import { type Dictionary, type Locale } from "@naijafinds/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
+import { PERIOD_SUFFIX_SHORT } from "@/lib/listings/pricing";
 import { IntentTune } from "@/components/app/IntentTune";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { isPropertyType, type PropertyType } from "@/lib/interests/schema";
@@ -175,12 +176,20 @@ export function ListingCard({
   // A price is shown only when there is a real one. A guessed naira figure is
   // worse than none.
   const hasPrice = listing.priceMinor > 0;
-  const perHead = listing.kind === "restaurant" || listing.kind === "experience";
-  const period = perHead
-    ? t.common.guest
-    : listing.pricePeriod === "year"
-      ? t.common.year
-      : t.common.night;
+  /*
+   * WHAT THE PRICE BUYS, FROM THE RECORD RATHER THAN FROM THE MARKET.
+   *
+   * This tested for `pricePeriod === "year"` and called everything else a
+   * night, which is right for exactly two of the five periods the schema can
+   * hold. A shortlet let by the MONTH printed its monthly rate as a nightly
+   * one, and so did a quarterly tenancy: the same defect the landing rail had,
+   * where a year's rent was captioned "per night" on the front page.
+   *
+   * `PERIOD_SUFFIX_SHORT` is the platform's one map from period to words, so
+   * the card, the rail and the detail page cannot disagree about what a figure
+   * means. A listing for sale carries no period and gets no suffix.
+   */
+  const period = listing.pricePeriod ? PERIOD_SUFFIX_SHORT[listing.pricePeriod] : "";
 
   const facts = cardFacts(listing, t);
   const power = cardUtility(listing);
@@ -317,7 +326,7 @@ export function ListingCard({
                 locale={locale}
                 currency={listing.currency}
                 glance
-                suffix={`/ ${period}`}
+                suffix={period}
                 className="text-[1.25rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
                 secondaryClassName="text-[0.6em] font-semibold text-[var(--nf-content-muted)]"
               />

@@ -112,6 +112,35 @@ export function CoverageMap() {
   );
 }
 
+/**
+ * The assistant, shown doing the thing it actually does.
+ *
+ * ---------------------------------------------------------------------------
+ * WHAT WAS HERE CONTRADICTED THE PRODUCT, IN EVERY LINE.
+ *
+ * "Your smart travel buddy" on a platform for renting and buying property.
+ * Three sample prompts, of which one was "Weekend hotel in Abuja with a pool"
+ * and one was "Best suya spots in Ibadan" - a restaurant search, on a platform
+ * that stopped serving restaurants. "Places you can actually book", when the
+ * market this is built for is a year's tenancy nobody books in one tap.
+ *
+ * A person reading a landing page believes the examples more than the prose,
+ * because an example is a demonstration rather than a claim. Three examples of
+ * things we do not do is worse than no examples at all.
+ *
+ * ---------------------------------------------------------------------------
+ * SO IT SHOWS AN EXCHANGE INSTEAD OF ADVERTISING ONE.
+ *
+ * A short conversation, as it would actually run: somebody types a real
+ * request in the vocabulary this platform uses, and the reply is what the
+ * assistant genuinely returns - properties from the catalogue with the two
+ * facts that decide a Nigerian tenancy, the move-in total and the light.
+ *
+ * IT IS MARKED UP AS WHAT IT IS. Not a live thread and not presented as one:
+ * a figure with a caption saying this is an example of the assistant
+ * answering. Drawing a fake conversation and letting it read as a real
+ * transcript is the same class of thing as an unlabelled example listing.
+ */
 export function AssistantShowcase() {
   return (
     <section className="nf-shell pt-16 sm:pt-20" aria-labelledby="nf-assistant-title">
@@ -120,7 +149,7 @@ export function AssistantShowcase() {
           <div className="relative order-last min-h-[240px] sm:min-h-[340px] lg:order-first lg:min-h-0">
             <Image
               src="/brand/rentme-assistant.png"
-              alt="The RentMe AI assistant on a holographic stage"
+              alt="The RentMe assistant"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover"
@@ -134,31 +163,32 @@ export function AssistantShowcase() {
           <div className="flex flex-col items-start justify-center p-6 sm:p-10 lg:p-12">
             <span className="nf-overline">RentMe AI</span>
             <h2 id="nf-assistant-title" className="nf-h1 mt-2">
-              Ask in plain words. <span className="nf-gradient-text">Get real places.</span>
+              Ask in plain words. <span className="nf-gradient-text">Get real property.</span>
             </h2>
-            <p className="mt-3 max-w-[46ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)]">
-              Your smart travel buddy reads the whole catalogue: budgets, areas, amenities and
-              vibes, then hands you places you can actually book.
+            <p className="mt-row max-w-[46ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)]">
+              It reads the whole catalogue: the rent, the move-in total, the
+              bedrooms, the area, and whether there is light. Then it answers
+              with properties that are actually listed.
             </p>
 
-            <ul className="mt-6 flex flex-wrap gap-2">
-              {[
-                "2 bedroom in Lekki under 300k",
-                "Weekend hotel in Abuja with a pool",
-                "Best suya spots in Ibadan",
-              ].map((prompt) => (
-                <li key={prompt}>
-                  <Link
-                    href={gatedHref(`/assistant?q=${encodeURIComponent(prompt)}`)}
-                    className="nf-chip text-[0.8125rem]"
-                  >
-                    {prompt}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <figure className="mt-block w-full max-w-[34rem]">
+              <div className="flex flex-col gap-inline">
+                <p className="self-end max-w-[26ch] rounded-[var(--nf-radius-lg)] rounded-br-[var(--nf-radius-xs)] bg-[var(--nf-brand-primary)] px-sm py-inline text-[0.875rem] leading-snug text-[var(--nf-content-on-brand)]">
+                  2 bedroom in Yaba, under 2 million a year
+                </p>
+                <p className="self-start max-w-[32ch] rounded-[var(--nf-radius-lg)] rounded-bl-[var(--nf-radius-xs)] border border-[var(--nf-border-subtle)] bg-[var(--nf-glass-fill-thin)] px-sm py-inline text-[0.875rem] leading-snug text-[var(--nf-content-secondary)]">
+                  Four in Yaba inside that. The closest is 1.2m a year, move in
+                  1.8m with caution and agency, one bedroom short of what you
+                  asked. Want me to widen to Akoka?
+                </p>
+              </div>
+              <figcaption className="nf-caption mt-inline text-[var(--nf-content-muted)]">
+                An example of how the assistant answers. Ask it yourself for real
+                results.
+              </figcaption>
+            </figure>
 
-            <ButtonLink href={gatedHref("/assistant")} variant="primary" size="lg" className="mt-8">
+            <ButtonLink href={gatedHref("/assistant")} variant="primary" size="lg" className="mt-heading">
               Meet the assistant
             </ButtonLink>
           </div>

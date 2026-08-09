@@ -6,25 +6,18 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Button, ButtonLink } from "@/components/ui/Button";
-import { FilterLink } from "@/components/app/filters/FilterLink";
+import { ButtonLink } from "@/components/ui/Button";
 import { TrustIcon, type TrustIconName } from "@/design-system/icons/TrustIcon";
 import { HowItWorks } from "@/components/site/landing/HowItWorks";
 import { PopularDestinations } from "@/components/site/landing/PopularDestinations";
 import { AgentsBand } from "@/components/site/landing/AgentsBand";
 import { WhyRentMe } from "@/components/site/landing/WhyRentMe";
 import { VoicesBand } from "@/components/site/landing/VoicesBand";
-import { ProductFrame } from "@/components/site/landing/ProductFrame";
 import { FeaturedCarousel } from "@/components/site/landing/FeaturedCarousel";
 import { MoodRow } from "@/components/site/landing/MoodRow";
 import { NumbersBand } from "@/components/site/landing/NumbersBand";
 import { PlatformConsole } from "@/components/site/landing/PlatformConsole";
-import {
-  VillaShowcase,
-  CoverageMap,
-  AssistantShowcase,
-} from "@/components/site/landing/SignatureShowcase";
+import { CoverageMap, AssistantShowcase } from "@/components/site/landing/SignatureShowcase";
 import { StoryRail } from "@/components/site/landing/StoryRail";
 import { gatedHref } from "@/lib/site/gated-href";
 
@@ -138,35 +131,26 @@ export default async function LandingPage() {
                 {t.landing.hero.subtitle}
               </p>
 
-              {/* Real form. GET to the search route. */}
-              <div className="nf-rise nf-rise-4 mt-7 flex items-start gap-2 sm:items-center">
-              <form
-                action="/search"
-                method="get"
-                role="search"
-                className="nf-card nf-card--live nf-focus-well flex min-w-0 flex-1 flex-col gap-2 p-2 sm:flex-row sm:items-center"
-              >
-                <label htmlFor="hero-q" className="sr-only">
+              {/*
+                THE SEARCH BAR AND ITS FILTER CONTROL ARE GONE FROM HERE.
+
+                A landing page is read by somebody deciding whether this is a
+                real company they would send rent through. It is not the
+                catalogue, and putting the catalogue's own controls at the top
+                of it made the first thing a stranger met a text box and a
+                filter drawer for a shelf they had not seen yet. The filter
+                control was the worse half: it opened a drawer of bedrooms,
+                budgets and amenities over a page with no results behind it.
+
+                Explore owns search, with the whole catalogue under it, the
+                market rail, the sort and the filters. This offers the two
+                things that belong on a front door instead: one button in, and
+                the cities we actually cover, each of which is a real search.
+              */}
+              <div className="nf-rise nf-rise-4 mt-7 flex flex-wrap items-center gap-3">
+                <ButtonLink href={gatedHref("/search")} variant="primary" size="lg" className="nf-breathe">
                   {t.landing.hero.searchLabel}
-                </label>
-                <div className="flex min-w-0 flex-1 items-center gap-3 px-3">
-                  <UiIcon name="search" size={20} className="text-[var(--nf-content-muted)]" />
-                  <input
-                    id="hero-q"
-                    name="q"
-                    type="search"
-                    autoComplete="off"
-                    placeholder={t.landing.hero.searchPlaceholder}
-                    className="w-full bg-transparent py-3 text-[var(--nf-text-body-lg)] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
-                  />
-                </div>
-                <Button type="submit" variant="primary" size="lg" className="nf-breathe">
-                  {t.common.search}
-                </Button>
-              </form>
-              {/* Filters live beside the bar here too, so the control is in the
-                  same place on every search surface. */}
-              <FilterLink label={t.common.search} />
+                </ButtonLink>
               </div>
 
               <ul className="nf-rise nf-rise-5 mt-4 flex flex-wrap gap-2">
@@ -225,27 +209,33 @@ export default async function LandingPage() {
           reach the sign-up button without ever seeing what they were signing
           up to.
         */}
-        <section className="nf-shell grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-2">
-          <Reveal>
-            <p className="nf-overline">The app</p>
-            <h2 className="nf-h2 mt-2 max-w-[16ch]">Everything in one place, on your phone</h2>
-            <p className="mt-3 max-w-[48ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-muted)]">
-              Search, book, pay and message from the same screen. No calls, no
-              agent runaround, no bank transfer to a stranger.
-            </p>
-          </Reveal>
-          <Reveal delay={100}>
-            <ProductFrame t={t} locale={locale} />
-          </Reveal>
-        </section>
+        {/*
+          THE PHONE MOCKUP IS GONE, AND SO IS THE SECTION AROUND IT.
 
+          It drew a phone frame with a search field and two listing cards inside
+          it: a picture of the product, on the page whose next tap IS the
+          product. The cards inside it were real listings rendered small enough
+          that the price and the place were unreadable, and one of them carried
+          the example-listing notice, so the front door of the platform was
+          showing a screenshot of a property that does not exist.
+
+          A landing page earns a tap by saying what the platform does and by
+          being obviously well made. Showing a small unusable copy of the app
+          two scrolls above the button that opens the real one is neither.
+          `FeaturedCarousel` below already shows real properties at a size
+          somebody can read.
+        */}
         <HowItWorks t={t} />
 
         {/* --------------------------------------------- featured this week */}
         <FeaturedCarousel locale={locale} />
 
-        {/* ------------------------------------------------ signature villa */}
-        <VillaShowcase />
+        {/*
+          The signature villa showcase is gone, at the owner's instruction: the
+          villa still opens the page as the hero's atmosphere, and a second
+          full-width panel of the same house halfway down was the same picture
+          twice with nothing new to say.
+        */}
 
         {/* -------------------------------------------------------- facts band */}
         <section className="nf-shell pt-4">
