@@ -9,11 +9,6 @@ import type { Listing, ListingKind, ListingSearchFilter } from "./types";
  * functions, so there is exactly one definition of "matches this search" and
  * one definition of "a good recommendation rail" in the codebase.
  *
- * Partner stock is held to the same rule: the partner decorator in
- * `repository.ts` runs every provider result through `matchesFilter` before it
- * is appended, so a hotel feed cannot ignore a price ceiling, an amenity or a
- * verified-only request just because it arrived from somewhere else.
- *
  * This module is deliberately free of server-only imports. The filter drawer
  * imports `matchesFacts` in the browser to count how many places a pending set
  * of filters would leave, and that count must be produced by the same code the
@@ -40,7 +35,7 @@ export type ListingFacts = {
   amenities: string[];
   instantBook: boolean;
   verified: boolean;
-  source?: "rentme" | "partner";
+  source?: "rentme";
   /**
    * Light and water, where the host has answered.
    *
@@ -103,9 +98,15 @@ export function sleeps(facts: ListingFacts): number | null {
   return facts.bedrooms > 0 ? facts.bedrooms * 2 : null;
 }
 
-/** Only first-party inventory that passed admission carries verification. */
+/**
+ * Only inventory that passed admission carries verification.
+ *
+ * This used to also have to exclude third-party stock, which could never be
+ * verified because there was nobody behind it to verify. There is no
+ * third-party stock any more, so the flag on the row is the whole answer.
+ */
 export function isVerifiedFirstParty(facts: ListingFacts): boolean {
-  return facts.verified && facts.source !== "partner";
+  return facts.verified;
 }
 
 /**
