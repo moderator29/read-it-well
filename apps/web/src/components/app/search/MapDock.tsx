@@ -153,7 +153,11 @@ export function MapDock({
             )}
           </div>
 
-          <div className="min-w-0 flex-1 pr-[4.5rem]">
+          {/* Clearance for the two absolute controls in the corner, derived rather
+              than typed: two 44px targets, the gap between them, and the gap they
+              sit in from the edge. It was pr-[4.5rem], measured against 32px
+              buttons that are now 44. */}
+          <div className="min-w-0 flex-1 pr-[calc(5.5rem+var(--nf-gap-inline-tight)+var(--nf-gap-inline))]">
             <h3 className="nf-body truncate font-semibold leading-snug text-[var(--nf-content-primary)]">
               {listing.title}
             </h3>
@@ -201,7 +205,7 @@ export function MapDock({
         </Link>
 
         {/* Controls sit outside the link so no anchor is ever nested in one. */}
-        <div className="absolute right-2 top-2.5 flex items-center gap-1">
+        <div className="absolute right-2 top-2 flex items-center gap-inline-tight">
           <button
             type="button"
             onClick={onSave}
@@ -209,11 +213,11 @@ export function MapDock({
             aria-pressed={saved}
             aria-label={saved ? `Remove ${listing.title} from saved` : `Save ${listing.title}`}
             data-testid="map-dock-save"
-            className="nf-icon-btn h-8 w-8"
+            className="nf-icon-btn h-11 w-11"
           >
             <UiIcon
               name="heart"
-              size={16}
+              size={20}
               className={saved ? "text-[var(--nf-brand-primary)]" : undefined}
             />
           </button>
@@ -222,16 +226,16 @@ export function MapDock({
             onClick={onDismiss}
             aria-label="Dismiss this card"
             data-testid="map-dock-close"
-            className="nf-icon-btn h-8 w-8"
+            className="nf-icon-btn h-11 w-11"
           >
-            <UiIcon name="chevron-down" size={16} />
+            <UiIcon name="chevron-down" size={20} />
           </button>
         </div>
 
         {saveMessage && (
           <p
             role="status"
-            className="border-t border-[var(--nf-border-subtle)] px-3 py-2 text-[0.75rem] text-[var(--nf-state-error)]"
+            className="nf-body-sm border-t border-[var(--nf-border-subtle)] px-row py-inline text-[var(--nf-state-error)]"
           >
             {saveMessage}
           </p>
