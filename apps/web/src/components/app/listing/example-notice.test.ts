@@ -76,9 +76,41 @@ describe("the example listing disclosure", () => {
     expect(NOTICE).not.toMatch(/\brgb\(|\bhsl\(/);
   });
 
-  it.each(CARD_RENDERERS)("is mounted by %s, gated on isDemo", (path) => {
+  /*
+   * EVERY CARD SURFACE SAYS SOMETHING, AND THEY NO LONGER ALL SAY THE SAME
+   * THING.
+   *
+   * This asserted `isDemo && <ExampleNotice` on both renderers, which is what
+   * caught `MapDock` originally and is worth keeping in spirit. It became too
+   * literal when the grid went two-across: the full three-sentence band is four
+   * or five wrapped lines in a 170px tile, so it pushed the price and the title
+   * off the visible card and the correction cost more room than the thing being
+   * corrected. `ListingCard` carries a one-word mark in the corner where the
+   * verified tick would go, and the full sentence stayed on the detail page,
+   * which is the screen where somebody forms a belief detailed enough to act
+   * on.
+   *
+   * So the rule the test enforces is the one that actually matters: A CARD
+   * RENDERER MAY NOT BE SILENT ABOUT AN EXAMPLE LISTING. It has to read
+   * `isDemo` and it has to render something visible because of it. What that
+   * something is, is a design decision; that there is one, is not.
+   */
+  it.each(CARD_RENDERERS)("says something about an example listing in %s", (path) => {
     const source = read(path);
-    expect(source).toContain("ExampleNotice");
-    expect(source).toMatch(/isDemo\s*&&\s*<ExampleNotice/);
+    expect(source).toContain("isDemo");
+    /* Either the full notice, or the corner mark. Not neither. */
+    expect(source).toMatch(/isDemo\s*&&\s*(<ExampleNotice|\()/);
+    expect(source).toMatch(/ExampleNotice|nf-badge--example/);
+  });
+
+  /*
+   * The detail page keeps the whole sentence. This is the surface the card's
+   * one-word mark is delegating to, so if it ever loses the notice the
+   * disclosure has nowhere left to be said in full.
+   */
+  it("states the full sentence on the listing detail page", () => {
+    const page = read("app/(app)/listing/[id]/page.tsx");
+    expect(page).toContain("ExampleNotice");
+    expect(page).toMatch(/isDemo\s*&&\s*<ExampleNotice/);
   });
 });

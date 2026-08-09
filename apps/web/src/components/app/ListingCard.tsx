@@ -13,7 +13,6 @@ import { IntentTune } from "@/components/app/IntentTune";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { isPropertyType, type PropertyType } from "@/lib/interests/schema";
 import { isDataSaver } from "@/lib/ui/data-saver";
-import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 import { cardFacts, cardUtility } from "./listing-card-model";
 
 /**
@@ -276,6 +275,15 @@ export function ListingCard({
             </span>
           )}
 
+          {/* The example mark, in the same corner, and they can never both
+              appear: a demo listing is never verified. See the note in the
+              card body for why one word replaced three sentences here. */}
+          {listing.isDemo && (
+            <span className="nf-badge nf-badge--example absolute left-3 top-3">
+              Example
+            </span>
+          )}
+
           {/* ----------------------------------------------------- PRIMARY 3
               Where it is, on the photograph where the eye already is. */}
           <p className="nf-body-sm absolute bottom-3 left-3 right-3 flex items-center gap-inline-tight font-medium text-[var(--nf-content-on-media)]">
@@ -292,24 +300,31 @@ export function ListingCard({
           {/*
             ------------------------------------------------------ DISCLOSURE
 
-            ABOVE THE PRICE, BECAUSE THE PRICE IS THE LIE.
+            ONE WORD, NOT A PARAGRAPH, AND IT MOVED ONTO THE PHOTOGRAPH.
 
-            An example listing carries a real Lagos area and a real naira
-            figure, and until now a reader had no way at all to tell it apart
-            from the flat next to it in the grid. The sentence that says so
-            existed only in Open Graph metadata, which is written for crawlers.
+            This was the full `ExampleNotice`: a bordered band carrying three
+            sentences, in the body of the card, above the price. It was argued
+            for on the grounds that a disclosure nobody can read is decoration,
+            and that argument was right about a FULL-WIDTH card in a single
+            column. In a two-across grid the same band is four or five wrapped
+            lines that push the price and the title off the visible tile, so
+            the correction now costs more room than the thing being corrected.
 
-            It goes FIRST in the body, before the price and before the title,
-            because those are the two things somebody believes about a card, and
-            a correction that arrives after the belief has formed is a footnote.
-            Deliberately not a badge on the photograph: a pill in that corner is
-            where every platform draws Featured and Superhost, and dressing a
-            warning as an endorsement is worse than saying nothing.
+            A chip on the photograph, reading "Example", where the verified tick
+            goes on a real listing. The earlier note here objected to exactly
+            that, on the grounds that a pill in that corner is the grammar of
+            Featured and Superhost and dressing a warning as an endorsement is
+            worse than saying nothing. That holds for a pill that LOOKS like an
+            endorsement; this one is drawn in the warning tone rather than the
+            brand one, it sits where a tick would sit and instead of a tick it
+            says Example, and the two can never appear together because a demo
+            listing is never verified.
 
-            See `ExampleNotice` for the rest of the reasoning. It renders the
-            one shared string, so this card and the detail page cannot drift.
+            THE FULL SENTENCE IS NOT LOST. It is still on the detail page, in
+            the hero above the price, which is the screen where somebody forms a
+            belief detailed enough to act on. A card's job is to be honest
+            enough that nobody opens it by mistake.
           */}
-          {listing.isDemo && <ExampleNotice className="mb-row" />}
 
           {/* ------------------------------------------------------- PRIMARY 2
               The price, on its own row, above the title.

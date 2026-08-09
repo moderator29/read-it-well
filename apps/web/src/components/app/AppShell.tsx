@@ -256,7 +256,15 @@ export function AppShell({
               aria-label={t.a11y.openMenu}
               aria-expanded={drawer}
               onClick={() => setDrawer(true)}
-              className="nf-icon-btn h-12 w-12 lg:hidden"
+              /*
+                NO CIRCLE. `nf-icon-btn` draws a filled round chip behind the
+                glyph, so the first thing on the phone header was a button that
+                looked like an avatar sitting next to the wordmark. The three
+                lines are already the most recognised control in software and
+                need nothing drawn around them to be found; what they need is a
+                tap target, which is what the 48px box still is.
+              */
+              className="nf-tap -ms-2xs grid h-12 w-12 place-items-center rounded-[var(--nf-radius-md)] text-[var(--nf-content-primary)] lg:hidden"
             >
               {/*
                 THE PLAIN THREE LINE MENU, by request.

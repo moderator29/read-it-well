@@ -57,14 +57,19 @@ export function CityRow({
         </p>
       </div>
 
-      <Link
-        href="/search"
-        aria-label="Search"
-        className="grid h-13 w-13 shrink-0 place-items-center rounded-full border border-[color-mix(in_oklab,var(--nf-brand-primary)_55%,transparent)] text-[var(--nf-content-on-brand)] shadow-[var(--nf-glow-accent)] transition-transform active:translate-y-px"
-        style={{ background: "var(--nf-gradient-cta)" }}
-      >
-        <UiIcon name="search" size={20} />
-      </Link>
+      {/*
+        THE SECOND SEARCH CONTROL IS GONE.
+
+        A filled brand circle here, beside the person's own city, three rows
+        above the full search field this screen already carries, and one tab
+        away from Explore, whose entire purpose is searching. Three doors to one
+        room on one screen, and this was the one with the loudest paint on it:
+        a glowing gradient disc pulling the eye away from the name of the place
+        the row exists to state.
+
+        The row is what it says it is now: where you are, and what is happening
+        around you.
+      */}
     </div>
   );
 }
