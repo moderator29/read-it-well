@@ -36,25 +36,33 @@ export function QueueSkeleton({
 }) {
   return (
     <LoadingShell label={label} className={`w-full ${width}`}>
-      <header className="mb-5">
-        <Skeleton width="13rem" height="1.75rem" radius="sm" />
-        <Skeleton className="mt-2" width="100%" height="0.875rem" radius="sm" />
-        <Skeleton className="mt-1.5" width="70%" height="0.875rem" radius="sm" />
+      {/* The heights below track the real header: `nf-h1` for the title and
+          `nf-lede` for the two lines under it, so nothing shifts when the data
+          lands and the type scale stays the single source for both. */}
+      <header className="mb-heading">
+        <Skeleton width="13rem" height="var(--nf-text-h1)" radius="sm" />
+        <Skeleton className="mt-row" width="100%" height="var(--nf-text-body-lg)" radius="sm" />
+        <Skeleton
+          className="mt-inline-tight"
+          width="70%"
+          height="var(--nf-text-body-lg)"
+          radius="sm"
+        />
       </header>
 
       <ul className="nf-queue-list">
         {Array.from({ length: rows }, (_, i) => (
-          <li key={i} className="nf-card p-4 sm:p-5">
+          <li key={i} className="nf-card p-card">
             {/* The status pill and timestamp row every queue card opens with. */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-inline">
               <Skeleton width="5rem" height="1.25rem" radius="pill" />
-              <Skeleton width="7rem" height="0.75rem" radius="sm" />
+              <Skeleton width="7rem" height="var(--nf-text-caption)" radius="sm" />
             </div>
-            <Skeleton className="mt-2.5" width="60%" height="1.0625rem" radius="sm" />
-            <Skeleton className="mt-2" width="85%" height="0.8125rem" radius="sm" />
+            <Skeleton className="mt-row" width="60%" height="var(--nf-text-h4)" radius="sm" />
+            <Skeleton className="mt-row" width="85%" height="var(--nf-text-body)" radius="sm" />
             {/* The decision row. Two buttons at the real 40px, so the card's
                 height matches and the list below it does not move. */}
-            <div className="mt-4 flex gap-2">
+            <div className="mt-group flex gap-inline">
               <Skeleton width="6.5rem" height="2.5rem" radius="pill" />
               <Skeleton width="6.5rem" height="2.5rem" radius="pill" />
             </div>

@@ -18,6 +18,26 @@ import { fill, type AdminCommon } from "./copy";
  * given" through twenty `DetailRow` call sites would sooner or later miss one.
  * One call at the top of a page binds the locale and the dictionary to all of
  * them at once, which is what keeps a queue from ending up half translated.
+ *
+ * ----------------------------------------------------------------------------
+ * WHY THIS FILE MOVED TO THE SPACING AND TYPE SCALES FIRST.
+ *
+ * Every screen in the console draws its heading, its empty state, its detail
+ * rows and its metric tiles from here. Twenty pages were carrying `mb-5`,
+ * `p-4`, `gap-3` and `text-[0.875rem]` because those were the values this file
+ * handed them, so the console's rhythm was set in one place and it was set
+ * against no scale at all. Moving this file moves all twenty at once, and every
+ * page that stops hand-rolling a tile stops inventing a fifth padding value for
+ * it.
+ *
+ * The type went UP a tier across the board. `text-[0.875rem]` on a detail value
+ * and `text-[0.75rem]` on its label is a reading size chosen for a dense table,
+ * and this console is not a dense table: it is where somebody decides whose
+ * money moves, at eleven at night, and the old sizes made that decision harder
+ * to read than the marketing pages that carry no consequence at all. Detail
+ * values are `nf-body` now, labels are `nf-overline`, and the icons that go
+ * with them grew to match.
+ * ----------------------------------------------------------------------------
  */
 
 /**
@@ -41,6 +61,21 @@ const SUCCESS_WASH: CSSProperties = {
 const WARNING_WASH: CSSProperties = {
   background: "var(--nf-state-warning-surface)",
   color: "var(--nf-state-warning)",
+};
+
+const DANGER_WASH: CSSProperties = {
+  background: "var(--nf-state-error-surface)",
+  color: "var(--nf-state-error)",
+};
+
+/** What a metric tile is telling you. Not a status; a temperature. */
+export type StatTone = "neutral" | "warning" | "danger" | "success";
+
+const STAT_VALUE_COLOUR: Record<StatTone, string> = {
+  neutral: "var(--nf-content-primary)",
+  warning: "var(--nf-state-warning)",
+  danger: "var(--nf-state-error)",
+  success: "var(--nf-state-success)",
 };
 
 export type AdminUi = ReturnType<typeof adminUi>;
@@ -123,36 +158,103 @@ export function adminUi(t: Dictionary, locale: Locale) {
     count?: number;
   }) {
     return (
-      <header className="mb-5">
-        <div className="flex flex-wrap items-center gap-4">
-          <h1 className="nf-h1 text-[1.5rem] sm:text-[1.75rem]">{title}</h1>
+      <header className="mb-heading">
+        <div className="flex flex-wrap items-center gap-inline">
+          <h1 className="nf-h1">{title}</h1>
           {typeof count === "number" && count > 0 && (
             <span className="nf-badge nf-badge--brand nf-numeric">
               {fill(c.waiting, { count })}
             </span>
           )}
         </div>
-        <p className="mt-1.5 max-w-[62ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-          {lede}
-        </p>
+        <p className="nf-lede mt-row max-w-[68ch]">{lede}</p>
       </header>
+    );
+  }
+
+  /**
+   * A section of a page, with its heading and the air under it.
+   *
+   * Every console page was writing `<h2 className="mb-2 text-[1rem] ...">` by
+   * hand and then a list under it, which is how one page ended up with 8px of
+   * air under a heading and the next with 12px. One interval, named for the
+   * relationship it expresses, decided once.
+   */
+  function Section({
+    title,
+    hint,
+    action,
+    children,
+  }: {
+    title: string;
+    hint?: string;
+    action?: ReactNode;
+    children: ReactNode;
+  }) {
+    return (
+      <section className="nf-section--tight">
+        <div className="flex flex-wrap items-baseline justify-between gap-inline">
+          <h2 className="nf-h4">{title}</h2>
+          {action}
+        </div>
+        {hint && <p className="nf-body-sm mt-inline-tight max-w-[68ch] text-content-2">{hint}</p>}
+        <div className="mt-heading">{children}</div>
+      </section>
+    );
+  }
+
+  /**
+   * One number, named, with a temperature.
+   *
+   * The escrow, money and payments screens each hand-rolled this tile with
+   * their own padding and their own type sizes. A number an operator is meant
+   * to scan is the one thing on these pages that should be big, so the value
+   * is `nf-h3` rather than the 1.25rem the hand-rolled versions used.
+   */
+  function Stat({
+    label,
+    value,
+    hint,
+    tone = "neutral",
+  }: {
+    label: string;
+    value: string;
+    hint?: string;
+    tone?: StatTone;
+  }) {
+    return (
+      <div className="nf-card p-card">
+        <p className="nf-overline">{label}</p>
+        <p
+          className="nf-numeric nf-h3 mt-inline-tight"
+          style={{ color: STAT_VALUE_COLOUR[tone] }}
+        >
+          {value}
+        </p>
+        {hint && <p className="nf-caption mt-inline-tight">{hint}</p>}
+      </div>
+    );
+  }
+
+  /** A row of metric tiles, which is how every money screen opens. */
+  function StatRow({ children }: { children: ReactNode }) {
+    return (
+      <div className="mb-block grid gap-row sm:grid-cols-2 lg:grid-cols-3">{children}</div>
     );
   }
 
   /** A clear queue is good news and should read like it. */
   function QueueEmpty({ title, body }: { title: string; body: string }) {
     return (
-      <div className="nf-card p-6 text-center sm:p-8">
+      <div className="nf-card p-card-lg text-center">
         <span
-          className="mx-auto grid h-12 w-12 place-items-center rounded-full"
+          className="mx-auto grid h-14 w-14 place-items-center rounded-full"
           style={SUCCESS_WASH}
         >
-          <UiIcon name="verified" size={24} />
+          <UiIcon name="verified" size={28} />
         </span>
-        <p className="mt-3 text-[1rem] font-semibold text-[var(--nf-content-primary)]">{title}</p>
-        <p className="mx-auto mt-1.5 max-w-[44ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-          {body}
-        </p>
+        <p className="nf-h4 mt-group">{title}</p>
+        <p className="nf-body mx-auto mt-row max-w-[48ch] text-content-2">{body}</p>
       </div>
     );
   }
@@ -163,19 +265,37 @@ export function adminUi(t: Dictionary, locale: Locale) {
    */
   function QueueUnavailable() {
     return (
-      <div className="nf-card p-6 text-center sm:p-8">
+      <div className="nf-card p-card-lg text-center">
         <span
-          className="mx-auto grid h-12 w-12 place-items-center rounded-full"
+          className="mx-auto grid h-14 w-14 place-items-center rounded-full"
           style={WARNING_WASH}
         >
-          <UiIcon name="bell" size={24} />
+          <UiIcon name="bell" size={28} />
         </span>
-        <p className="mt-3 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
-          {c.unavailableTitle}
-        </p>
-        <p className="mx-auto mt-1.5 max-w-[46ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-          {c.unavailableBody}
-        </p>
+        <p className="nf-h4 mt-group">{c.unavailableTitle}</p>
+        <p className="nf-body mx-auto mt-row max-w-[48ch] text-content-2">{c.unavailableBody}</p>
+      </div>
+    );
+  }
+
+  /**
+   * A panel that says something is wrong, rather than that nothing is there.
+   *
+   * `QueueEmpty` is good news and `QueueUnavailable` is a read failure. Neither
+   * fits "the ledger is short by 4,000 naira", which is a finding: real,
+   * readable, and the reason somebody is on this screen.
+   */
+  function QueueAlarm({ title, body }: { title: string; body: string }) {
+    return (
+      <div className="nf-card p-card-lg text-center">
+        <span
+          className="mx-auto grid h-14 w-14 place-items-center rounded-full"
+          style={DANGER_WASH}
+        >
+          <UiIcon name="shield-stop" size={28} />
+        </span>
+        <p className="nf-h4 mt-group">{title}</p>
+        <p className="nf-body mx-auto mt-row max-w-[48ch] text-content-2">{body}</p>
       </div>
     );
   }
@@ -183,13 +303,11 @@ export function adminUi(t: Dictionary, locale: Locale) {
   /** Label and value, stacked on a phone, paired on wider screens. */
   function DetailRow({ label, value }: { label: string; value: ReactNode }) {
     return (
-      <div className="flex flex-col gap-0.5 border-t border-[var(--nf-border-subtle)] py-2 sm:flex-row sm:gap-4 sm:py-2.5">
-        <dt className="shrink-0 text-[0.75rem] uppercase tracking-wide text-[var(--nf-content-muted)] sm:w-44">
-          {label}
-        </dt>
-        <dd className="min-w-0 break-words text-[0.875rem] text-[var(--nf-content-primary)]">
+      <div className="flex flex-col gap-inline-tight border-t border-[var(--nf-border-subtle)] py-row sm:flex-row sm:gap-group">
+        <dt className="nf-overline shrink-0 sm:w-48">{label}</dt>
+        <dd className="nf-body min-w-0 break-words text-content">
           {value === null || value === "" ? (
-            <span className="text-[var(--nf-content-muted)]">{c.notGiven}</span>
+            <span className="text-muted">{c.notGiven}</span>
           ) : (
             value
           )}
@@ -200,11 +318,9 @@ export function adminUi(t: Dictionary, locale: Locale) {
 
   function DetailSection({ title, children }: { title: string; children: ReactNode }) {
     return (
-      <section className="mt-4 first:mt-0">
-        <h3 className="text-[0.75rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
-          {title}
-        </h3>
-        <dl className="mt-1">{children}</dl>
+      <section className="mt-group first:mt-0">
+        <h3 className="nf-overline">{title}</h3>
+        <dl className="mt-inline">{children}</dl>
       </section>
     );
   }
@@ -212,21 +328,17 @@ export function adminUi(t: Dictionary, locale: Locale) {
   /** One line of the admission checklist: a tick, a cross, and the evidence. */
   function CheckRow({ label, pass, detail }: { label: string; pass: boolean; detail: string }) {
     return (
-      <li className="flex items-start gap-2.5 border-t border-[var(--nf-border-subtle)] py-2">
+      <li className="flex items-start gap-inline border-t border-[var(--nf-border-subtle)] py-row">
         <span
           aria-hidden="true"
-          className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full"
+          className="grid h-6 w-6 shrink-0 place-items-center rounded-full"
           style={pass ? SUCCESS_WASH : WARNING_WASH}
         >
-          <UiIcon name={pass ? "verified" : "bell"} size={12} />
+          <UiIcon name={pass ? "verified" : "bell"} size={14} />
         </span>
         <span className="min-w-0 flex-1 leading-tight">
-          <span className="block text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
-            {label}
-          </span>
-          <span className="block truncate text-[0.75rem] text-[var(--nf-content-muted)]">
-            {detail}
-          </span>
+          <span className="nf-body-sm block font-semibold text-content">{label}</span>
+          <span className="nf-caption block truncate">{detail}</span>
         </span>
         <span className="sr-only">{pass ? c.passes : c.needsAttention}</span>
       </li>
@@ -239,8 +351,12 @@ export function adminUi(t: Dictionary, locale: Locale) {
     statusLabel,
     StatusChip,
     QueueHeader,
+    Section,
+    Stat,
+    StatRow,
     QueueEmpty,
     QueueUnavailable,
+    QueueAlarm,
     DetailRow,
     DetailSection,
     CheckRow,

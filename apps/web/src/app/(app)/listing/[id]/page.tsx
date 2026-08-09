@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { NONCE_HEADER } from "@/lib/security/csp";
 import { getDictionary, type Dictionary, type Locale, formatRating } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
+import {
+  listingMetadata,
+  listingStructuredData,
+  structuredDataJson,
+} from "@/lib/listings/syndication";
+import { siteUrl } from "@/lib/site";
 import { factsOf, sleeps } from "@/lib/listings/filter";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import {
@@ -167,6 +175,20 @@ function dateLabel(iso: string, locale: Locale): string {
   }).format(parsed);
 }
 
+/**
+ * THE ROBOTS DIRECTIVE AND THE SOCIAL CARD ARE NOT DECIDED HERE.
+ *
+ * They are decided in `lib/listings/syndication.ts`, the one gate the sitemap,
+ * the structured data below and any email that carries a listing all read
+ * through. Four copies of "is this row real?" drift into four different
+ * answers, and the consequence of the drift is a fabricated property
+ * advertisement in Google's index. See that file for the whole argument.
+ *
+ * This used to return `index: false` for EVERY listing, which was the right
+ * blunt instrument while the entire catalogue was invented and is the wrong
+ * one now that only some of it is. A property marketplace whose inventory
+ * cannot be found is most of the way to not being a marketplace.
+ */
 export async function generateMetadata({
   params,
 }: {
@@ -174,10 +196,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const listing = await getListingRepository().byId(id);
-  return {
-    title: listing?.title ?? "Listing",
-    robots: { index: false, follow: false },
-  };
+  return listingMetadata(listing, siteUrl());
 }
 
 /**
@@ -523,9 +542,34 @@ export default async function ListingDetailPage({
   if (listing.addressVerifiedAt) marks.push({ icon: "location", label: "Address checked" });
   if (listing.negotiable) marks.push({ icon: "chat-bubble", label: "Price negotiable" });
 
+  /*
+   * Structured data, or nothing at all.
+   *
+   * `listingStructuredData` returns null for an example listing, and null here
+   * means no script element is rendered rather than an empty one. That is the
+   * whole rule and it is deliberately not softened: a node with the price
+   * stripped, or with a caveat property bolted on, is still a machine-readable
+   * claim that a property exists at a place, and nothing that consumes
+   * structured data is obliged to read a caveat it was not expecting.
+   *
+   * The nonce is the same one `layout.tsx` reads. `script-src` carries
+   * `strict-dynamic` beside the nonce, so an inline block without one is a
+   * report at best and a blocked element at worst.
+   */
+  const structuredData = listingStructuredData(listing, siteUrl());
+  const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
+
   const body = (
     <PhotoViewerProvider title={listing.title} photos={listing.photos} hue={listing.hue}>
       <div className="mx-auto max-w-5xl">
+        {structuredData && (
+          <script
+            type="application/ld+json"
+            nonce={nonce}
+            dangerouslySetInnerHTML={{ __html: structuredDataJson(structuredData) }}
+          />
+        )}
+
         {/* Nothing rendered. Puts this place in the recently-viewed memory the
             search page offers back, whichever way it was reached. */}
         <RecordVisit

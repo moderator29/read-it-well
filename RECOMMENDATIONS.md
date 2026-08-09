@@ -1767,7 +1767,7 @@ below costs a week and creates a liability, and this costs a fortnight of phone
 calls and creates an asset. If it is happening, most of the rest of this section
 is unnecessary. Say which, and put the answer in `docs/PRODUCT.md`.
 
-### DEMO-2. If demo listings are built anyway, these are the non-negotiables. **NEW. MOSTLY DONE 2026-08-09. P1 residual, all of it in the UI**
+### DEMO-2. If demo listings are built anyway, these are the non-negotiables. **NEW. NINE OF TEN DONE 2026-08-09. P1 residual, item 8 only**
 
 1. **A database-level flag, not a convention.** `listings.is_demonstration
    boolean not null default false`. Not a naming convention on the title, not a
@@ -1849,17 +1849,65 @@ rather than a person, with no phone number and no CAC number, on an account at
 the RFC 2606 reserved `.invalid` TLD with no usable password hash and
 `banned_until` in 2099, so it cannot be signed into.
 
-**RESIDUAL, and all of it is in surfaces this pass does not own.**
+**Item 9, nothing leaves the platform. DONE 2026-08-09.**
 
-- **Items 8 and 9 are entirely unbuilt.** No surface renders the statement yet,
-  and nothing excludes these rows from the sitemap, JSON-LD, Open Graph or
-  email. **Item 9 is the urgent one**: an example listing indexed by Google is a
-  fabricated property advertisement carrying our name. The flag is on the domain
-  type as `Listing.isDemo` and on map pins as `MapPin.isDemo`.
-- **Item 10, the deletion date, is not built.** `excludeDemo` on
-  `ListingSearchFilter` is the retirement switch and is pushed down to SQL, so
-  retiring them is a flag rather than a migration. A date on the row and a spec
-  that fails after it passes is still owed.
+The four surfaces read through **one gate**,
+`apps/web/src/lib/listings/syndication.ts`, and none of them decides anything
+itself. Four copies of "is this row real?" drift into four different answers,
+and the fifth surface is always the one nobody remembered. The gate is one
+predicate, `maySyndicate`, and everything below is a consequence of it.
+
+| Surface | What an example listing gets | Held by |
+|---|---|---|
+| Sitemap | Absent. `app/sitemap.ts` and `app/robots.ts` did not exist at all; both do now. Refused in SQL on `listings_demo_idx`, then refused again by the gate inside `buildSitemap` | `app/sitemap.test.ts`, including a database that hands an example row back anyway |
+| JSON-LD | **No node.** `listingStructuredData` returns null and the page renders no script element rather than an empty one | `syndication.test.ts`, asserting the serialised output holds no Product, Offer, Residence or AggregateRating |
+| Open Graph and Twitter | `robots: index false, follow false`, no canonical, and a card naming no property, no place and no price. `og:type` is website, never product | `syndication.test.ts` plus a spec holding the page to delegating |
+| Email | `lib/email/listings.ts` is the one door, and it refuses twice: pushed down to SQL, then re-checked in code | `lib/email/listings.test.ts`, plus a guard that no module under `lib/email` reaches the repository by any other route |
+
+**Two things worth knowing.** The listing detail page previously returned
+`index: false` for EVERY listing, so the whole catalogue was invisible to
+search; that was the right blunt instrument while all of it was invented and
+the wrong one now. Real listings are indexable and carry a priced `Offer`, and
+that is what makes the exclusion of the example rows meaningful rather than
+theoretical. And **email was already covered transitively**: every live send
+site hangs off a booking, an escrow movement, a wallet row or a support ticket,
+and the database refuses a booking against an example listing. That is a fact
+about what has been built, not a rule, which is why the door and the guard exist
+before the first digest does.
+
+**The page still renders for a person.** Example listings are meant to be
+browsable in-product. The rule is about machines, and that distinction is the
+whole design.
+
+**Item 10, the deletion date. DONE 2026-08-09. The date is 2026-11-07.**
+
+`listings.demo_retire_after date`, on the listing rather than on the example
+lister: retirement will happen in waves (Lagos filling first is the likely
+case), the date has to survive the lister account being deleted, and the rule
+belongs beside the `is_demo` flag it qualifies. A trigger supplies the default
+conditionally, because a column DEFAULT would stamp an expiry onto real
+inventory, and a CHECK holds the two columns to each other in both directions.
+Migration `20260809084449`.
+
+Nothing in the read path compares the clock to that date. A catalogue that
+empties itself overnight would blank discovery, the map and every city page at
+once with the cause invisible from any screen. The alarm is a spec,
+`lib/listings/retirement.test.ts`, which fails the build once the date has
+passed and the tree still ships the collection with no migration removing it.
+Verified by moving the date into the past and watching it go red.
+
+**RESIDUAL.**
+
+- **Item 8 is still unbuilt.** No surface renders the statement. The agreed
+  wording is "This is an example listing. No such property is available. RentMe
+  has not verified anything on this page." and it is exported as
+  `EXAMPLE_STATEMENT` from `lib/listings/syndication.ts`, so the card and the
+  page have one string to reach for rather than two spellings of it. This is
+  the last item in DEMO-2 that a person can see.
+- **`lib/demo/bookings.ts` is a separate thing wearing the same word.** It
+  assembles trip cards for the bookings hub from catalogue listings. It is not
+  covered by any of the above, has nothing to do with `listings.is_demo`, and
+  needs its own read.
 
 ### DEMO-3. The honest ways to make an empty platform feel alive. **NEW. OPEN. P1**
 

@@ -140,7 +140,7 @@ export function BalanceCard({
     <section
       aria-labelledby="nf-wallet-balance-label"
       data-pulse={pulse ?? undefined}
-      className="nf-card nf-balance-pulse relative overflow-hidden rounded-[var(--nf-radius-2xl)] p-5 sm:p-6"
+      className="nf-card nf-balance-pulse relative overflow-hidden rounded-[var(--nf-radius-2xl)] p-card sm:p-cell"
     >
       {/* The one surviving decorative layer: the platform's surface wash, which
           lifts the top of the card off the bottom of it. It is a token, so it
@@ -152,21 +152,35 @@ export function BalanceCard({
         style={{ background: "var(--nf-gradient-surface)" }}
       />
 
-      <div className="relative flex items-start justify-between gap-4">
+      <div className="relative flex items-start justify-between gap-md">
         <p
           id="nf-wallet-balance-label"
-          className="nf-caption font-semibold uppercase tracking-[0.12em]"
+          className="nf-body-sm font-semibold text-[var(--nf-content-muted)]"
         >
           Available balance
         </p>
-        <div className="flex items-center gap-2">
+        {/*
+          TWO CONTROLS IN THIS CORNER, AND IT WAS TWO CONTROLS AND A PICTURE.
+
+          A 44px wallet object sat at the end of this row, at the same size and
+          on the same baseline as the eye button and the currency toggle beside
+          it. Three things of one size in a line read as three controls, so the
+          decoration was being scanned as a button that does not respond, in the
+          top right corner of the screen where somebody's money is stated.
+
+          The object is not needed to say what the card is. The label says
+          "Available balance", the figure carries a naira sign and is the
+          largest numeral on the platform, and the page title two rows up says
+          Wallet. Nothing about the identity of this surface was resting on it.
+        */}
+        <div className="flex items-center gap-inline">
           {usdRate ? (
             <button
               type="button"
               onClick={() => setInUsd((v) => !v)}
               aria-pressed={inUsd}
               aria-label={inUsd ? "Show balance in naira" : "Show balance in US dollars"}
-              className="nf-chip min-h-11 px-3 font-bold"
+              className="nf-chip min-h-11 px-row font-bold"
             >
               {inUsd ? "$" : "\u20A6"}
             </button>
@@ -180,9 +194,6 @@ export function BalanceCard({
           >
             <EyeGlyph off={hidden} />
           </button>
-          <span className="h-11 w-11 shrink-0">
-            <BrandIcon name="wallet-secure" fill />
-          </span>
         </div>
       </div>
 
@@ -255,22 +266,29 @@ export function BalanceCard({
       </div>
 
       {/*
-        Flow tiles. `bg-white/[0.04]` and `border-white/10` were raw literals
-        that inverted badly on paper - a white wash over a white card. They now
-        take the inset surface and the elevation ladder's hairline, so both
-        themes are handled by tokens.
+        THE TWO FLOWS LOST THEIR BOXES.
+
+        They were two rounded, bordered, inset-filled tiles side by side INSIDE
+        the glass card, which is two more containers drawn around one idea with
+        two parts, on the one surface on the platform that should be the calmest
+        thing a person sees. The reference does not box these; nor does any
+        bank. What separates two facts read across is a hairline and alignment,
+        which is what `nf-cells` exists for and what it does here: one rule
+        between them, inset from the surface's own edges, and nothing else.
+
+        The labels come up with it. They were `nf-caption` uppercase and tracked
+        out, which is 13px shouting; a fact's label is a label, so it takes
+        body-sm in sentence case and the figure above it does the work.
 
         Money out is painted in the error ink rather than neutral. A ledger
         where credits are green and debits are the same colour as the label is
         the exact tell the reference wallets avoid: the eye should be able to
         find money leaving without reading a sign.
       */}
-      <div className="relative mt-4 grid grid-cols-2 gap-2">
-        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] px-3 py-2">
-          <p className="nf-caption font-semibold uppercase tracking-[0.1em]">
-            In, last 30 days
-          </p>
-          <p className="nf-numeric nf-body-sm mt-0.5 font-semibold text-[var(--nf-state-success)]">
+      <div className="nf-cells nf-cells--pair relative mt-block grid-cols-2">
+        <div className="pr-lg">
+          <p className="nf-body-sm text-[var(--nf-content-muted)]">In, last 30 days</p>
+          <p className="nf-numeric mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-state-success)]">
             {hidden ? (
               "••••"
             ) : (
@@ -280,11 +298,9 @@ export function BalanceCard({
             )}
           </p>
         </div>
-        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] px-3 py-2">
-          <p className="nf-caption font-semibold uppercase tracking-[0.1em]">
-            Out, last 30 days
-          </p>
-          <p className="nf-numeric nf-body-sm mt-0.5 font-semibold text-[var(--nf-state-error)]">
+        <div className="pl-lg">
+          <p className="nf-body-sm text-[var(--nf-content-muted)]">Out, last 30 days</p>
+          <p className="nf-numeric mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-state-error)]">
             {hidden ? (
               "••••"
             ) : (
