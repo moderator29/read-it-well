@@ -106,6 +106,60 @@ export default async function WalletPage({
             </div>
           </div>
         </Reveal>
+      ) : wallet.readFailed ? (
+        /*
+         * THE LEDGER COULD NOT BE READ, AND THIS PAGE SAYS SO.
+         *
+         * This branch is the whole lesson of the funding incident, and for a
+         * while it was the part still missing. The reader was taught to report
+         * a failure instead of swallowing it, and then the screen carried on
+         * printing whatever came back, which on a failure is zero.
+         *
+         * A zero balance and an unreadable balance look identical and mean
+         * opposite things. One says you have no money. The other says we do
+         * not currently know, which is the only honest thing to say and the
+         * one thing a person can act on: they can stop, and they can ask.
+         *
+         * So no figure is drawn here at all. Not a zero, not a dash, not a
+         * skeleton that will settle into a number. A balance is a claim about
+         * somebody's money, and when we cannot make that claim we do not get
+         * to make a quieter version of it.
+         *
+         * The history is withheld for the same reason: an empty list under a
+         * missing balance reads as "no transactions", which is a second false
+         * statement dressed as an absence.
+         */
+        <Reveal>
+          <div className="nf-card p-6 text-center sm:p-8">
+            <span className="nf-story-art mx-auto block h-16 w-16">
+              <BrandIcon name="wallet-secure" fill />
+            </span>
+            <h2 className="nf-h3 mt-4">Your balance could not be loaded</h2>
+            <p className="mx-auto mt-2 max-w-[48ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              Something on our side stopped part way through, so we are not
+              showing a figure rather than showing you one we cannot stand
+              behind. Your money is untouched and no payment has been affected.
+              Try again in a moment.
+            </p>
+            <p className="mx-auto mt-3 max-w-[48ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+              If it keeps happening, tell support and we will trace it. Every
+              movement in and out of your wallet is recorded permanently, so
+              nothing is lost while this is unreadable.
+            </p>
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              <ButtonLink href="/wallet" variant="primary">
+                Try again
+              </ButtonLink>
+              {/* /settings, not an invented /settings/support: the support
+                  chat is rendered there, and a dead link on the screen that
+                  tells somebody to ask for help is the worst place to put
+                  one. */}
+              <ButtonLink href="/settings" variant="secondary">
+                Contact support
+              </ButtonLink>
+            </div>
+          </div>
+        </Reveal>
       ) : (
         <>
       <Reveal>
