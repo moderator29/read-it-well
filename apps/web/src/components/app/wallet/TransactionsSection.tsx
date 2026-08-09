@@ -39,6 +39,9 @@ const KIND_ICON: Record<WalletEntryKind, BrandIconName> = {
   refund: "shield-check",
   transfer_in: "user-check",
   transfer_out: "user-check",
+  escrow_hold: "shield-lock",
+  escrow_release: "shield-check",
+  escrow_refund: "shield-check",
 };
 
 const KIND_LABEL: Record<WalletEntryKind, string> = {
@@ -48,6 +51,13 @@ const KIND_LABEL: Record<WalletEntryKind, string> = {
   refund: "Refund",
   transfer_in: "Transfer received",
   transfer_out: "Transfer sent",
+  /* Escrow money is wallet money and it shows in this one statement, so it
+     needs words a payer recognises rather than the enum's own vocabulary.
+     "Held in escrow" says where the money is; the other two say where it
+     went. */
+  escrow_hold: "Held in escrow",
+  escrow_release: "Escrow released",
+  escrow_refund: "Escrow refunded",
 };
 
 function matches(entry: WalletEntry, filter: Filter): boolean {

@@ -41,15 +41,23 @@ import type { Listing, ListingKind, ListingRepository, ListingSearchFilter } fro
 
 const PHOTO_BUCKET = "listing-photos";
 /**
- * Walkthrough videos. Public, exactly like listing-photos.
+ * Walkthrough videos. PRIVATE, unlike listing-photos, and read through a
+ * short-lived signed URL.
  *
- * A walkthrough of a PUBLISHED listing is public information by definition, it
- * is the evidence the listing is real, and a signed URL that expires would
- * break the one thing a video has to do: play when somebody presses play. The
- * bucket carries a 50MB ceiling and a MIME allowlist in Postgres, so the size
- * and type rules hold even against a caller that skips the server action.
+ * A walkthrough is the strongest evidence a listing is real that a lister can
+ * supply without an inspection, which is exactly what makes it the most
+ * valuable thing on this platform to steal: a continuous walk through a real
+ * Lagos flat, lifted from a public CDN, is what turns a fake listing on
+ * somebody else's site into a convincing one. A photograph is trivially stolen
+ * anyway and the bucket for those stays public; the video is not handed out.
+ *
+ * The bucket also carries a 50MB ceiling and a MIME allowlist in Postgres, so
+ * the size and type rules hold against a caller that skips the server action.
  */
 export const VIDEO_BUCKET = "listing-videos";
+
+/** How long a walkthrough URL stays good. Long enough to watch it twice. */
+const VIDEO_URL_SECONDS = 3600;
 
 /** How many published listings one catalogue read pulls. */
 const CATALOGUE_LIMIT = 200;
@@ -227,12 +235,33 @@ function photoUrl(storagePath: string): string {
   return `${base}/storage/v1/object/public/${PHOTO_BUCKET}/${path}`;
 }
 
-/** Public object URL for a stored walkthrough video. */
-function videoUrl(storagePath: string): string {
-  if (/^https?:\/\//i.test(storagePath)) return storagePath;
-  const path = storagePath.replace(/^\/+/, "").replace(new RegExp(`^${VIDEO_BUCKET}/`), "");
-  const base = SUPABASE_URL.replace(/\/+$/, "");
-  return `${base}/storage/v1/object/public/${VIDEO_BUCKET}/${path}`;
+/**
+ * Signed URLs for every walkthrough on a page, in one call.
+ *
+ * One request for the whole page rather than one per video, because a catalogue
+ * of twenty listings with a video each would otherwise be twenty round trips
+ * before anything renders. A path that fails to sign is dropped rather than
+ * rendered as a broken player.
+ */
+async function signVideos(
+  supabase: Client,
+  paths: string[],
+): Promise<Map<string, string>> {
+  const signed = new Map<string, string>();
+  if (paths.length === 0) return signed;
+  try {
+    const { data, error } = await supabase.storage
+      .from(VIDEO_BUCKET)
+      .createSignedUrls(paths, VIDEO_URL_SECONDS);
+    if (error || !data) return signed;
+    for (const entry of data) {
+      if (entry.path && entry.signedUrl) signed.set(entry.path, entry.signedUrl);
+    }
+  } catch {
+    /* An unreachable storage service is a page without videos, not a page
+       without listings. */
+  }
+  return signed;
 }
 
 function slugPart(value: string): string {
@@ -370,6 +399,7 @@ function mapRow(
   stateNames: Map<string, string>,
   amenityCodes: Map<string, string>,
   stats: Map<string, { rating: number; count: number }>,
+  signedVideos: Map<string, string>,
 ): Listing {
   const kind = KIND_BY_PROPERTY_TYPE[row.property_type] ?? "home";
   const stat = stats.get(row.id);
@@ -382,11 +412,20 @@ function mapRow(
     .sort();
   const videos = [...(row.listing_videos ?? [])]
     .sort((a, b) => a.position - b.position)
-    .map((v) => ({
-      url: videoUrl(v.storage_path),
-      posterUrl: v.poster_path ? photoUrl(v.poster_path) : null,
-      durationSeconds: v.duration_seconds,
-    }));
+    .map((v) => {
+      const url = signedVideos.get(v.storage_path);
+      return url === undefined
+        ? null
+        : {
+            url,
+            /* The poster still lives in the PUBLIC photo bucket, so it needs no
+               signature and keeps working after the video URL expires. A card
+               that shows a frame and asks you to tap is the right shape here. */
+            posterUrl: v.poster_path ? photoUrl(v.poster_path) : null,
+            durationSeconds: v.duration_seconds,
+          };
+    })
+    .filter((v): v is NonNullable<typeof v> => v !== null);
 
   const headline = headlinePrice(row);
   const moveIn = moveInTotal(row);
@@ -501,15 +540,19 @@ function mapRow(
 /** Map raw rows into listings, resolving references and review stats in bulk. */
 async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]> {
   if (rows.length === 0) return [];
-  const [stateNames, amenityCodes, stats] = await Promise.all([
+  const [stateNames, amenityCodes, stats, signedVideos] = await Promise.all([
     getStateNames(supabase),
     getAmenityCodes(supabase),
     getReviewStats(
       supabase,
       rows.map((r) => r.id),
     ),
+    signVideos(
+      supabase,
+      rows.flatMap((r) => (r.listing_videos ?? []).map((v) => v.storage_path)),
+    ),
   ]);
-  return rows.map((row) => mapRow(row, stateNames, amenityCodes, stats));
+  return rows.map((row) => mapRow(row, stateNames, amenityCodes, stats, signedVideos));
 }
 
 /**

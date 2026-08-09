@@ -10,27 +10,19 @@
 /**
  * The kinds of movement a ledger row can be.
  *
- * ESCROW IS NOT IN THIS UNION YET, AND THAT IS A HANDOFF, NOT AN OVERSIGHT.
- * `public.wallet_entry_kind` gained `escrow_hold`, `escrow_release` and
- * `escrow_refund` in the migration that opens escrow, because escrow money is
- * wallet money and belongs in the one ledger with everything else rather than
- * in a second table of balances. A hold is a debit that has left the payer's
- * spendable balance and not yet reached anybody; a release is the credit
- * landing on the other side; a refund is the credit going back.
+ * The three escrow kinds are here for the same reason they are in
+ * `public.wallet_entry_kind` rather than in a table of their own: escrow money
+ * is wallet money and it appears in the one statement with everything else.
+ * A hold is a debit that has left the payer's spendable balance and not yet
+ * reached anybody; a release is the credit landing on the other side; a refund
+ * is the credit going back. There is no second ledger, so there is no second
+ * balance to reconcile against this one.
  *
- * Widening this union is a one-line change that immediately fails the build in
- * `components/app/wallet/TransactionsSection.tsx`, which keys an icon and a
- * label off `Record<WalletEntryKind, ...>` and would be missing three entries.
- * That is the type system doing its job: an escrow row must not reach the
- * statement before the statement knows how to draw it. So the order is
- *
- *   1. Agent B regenerates supabase/database.types.ts against the live enum.
- *   2. Agent A adds the three icon and label entries to TransactionsSection.
- *   3. The three values are added here, and the build stays green throughout.
- *
- * Nothing is blocked in the meantime: lib/wallet/escrow.ts moves escrow money
- * through the database functions today, and those rows land in wallet_entries
- * and in the derived balance whether or not this union has caught up.
+ * This union has to stay a superset of the database enum, because
+ * readStatement maps a row straight onto it. When a kind is added to the enum
+ * it is added here and the statement screen has to learn to draw it, which the
+ * exhaustive `Record<WalletEntryKind, ...>` maps in TransactionsSection make a
+ * compile error rather than a blank row.
  */
 export type WalletEntryKind =
   | "deposit"
@@ -38,7 +30,10 @@ export type WalletEntryKind =
   | "payment"
   | "refund"
   | "transfer_in"
-  | "transfer_out";
+  | "transfer_out"
+  | "escrow_hold"
+  | "escrow_release"
+  | "escrow_refund";
 
 export type WalletEntryDirection = "credit" | "debit";
 

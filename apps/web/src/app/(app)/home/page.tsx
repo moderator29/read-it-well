@@ -7,10 +7,12 @@ import { DAYPART_GREETING, getHomeOverview } from "@/lib/app/home-queries";
 import { getListingRepository } from "@/lib/listings/repository";
 import { ListingCard } from "@/components/app/ListingCard";
 import { AiAssistantBanner } from "@/components/app/AiAssistantBanner";
-import { CityHero } from "@/components/app/home/CityHero";
 import { CityRow } from "@/components/app/home/CityRow";
 import { TrendingStrip } from "@/components/app/home/TrendingStrip";
 import { Reveal } from "@/components/site/Reveal";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
+import { FilterLink } from "@/components/app/filters/FilterLink";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { getAgentContext } from "@/lib/agent/listings-queries";
@@ -68,12 +70,24 @@ export default async function HomePage() {
   const repo = getListingRepository();
   const listings = await repo.recommended(6);
 
+  /*
+   * The same five as the landing page, in the same order, with the same
+   * objects.
+   *
+   * They were different, and the difference was not a decision. This row led
+   * with Hotels, labelled Restaurants with a GIFT BOX, labelled Experiences
+   * with a suitcase, and pointed at ?type= for things that are now an intent
+   * rather than a type. So the shortcuts a stranger saw before signing up and
+   * the shortcuts they saw afterwards were five different links wearing two
+   * different sets of pictures, and two of those pictures did not depict the
+   * thing they sat under.
+   */
   const categories: { icon: BrandIconName; label: string; href: string }[] = [
-    { icon: "hotel-star", label: t.nav.hotels, href: "/search?type=hotel" },
-    { icon: "homes-sparkle", label: t.nav.apartments, href: "/search?type=apartment" },
-    { icon: "house-sparkle", label: t.nav.homes, href: "/search?type=home" },
-    { icon: "gift", label: t.nav.restaurants, href: "/search?type=restaurant" },
-    { icon: "luggage-check", label: t.nav.experiences, href: "/search?type=experience" },
+    { icon: "keys-home", label: t.nav.rent, href: "/search?intent=rent" },
+    { icon: "home-check", label: t.nav.buy, href: "/search?intent=sale" },
+    { icon: "hotel-star", label: t.nav.shortlets, href: "/search?type=shortlet" },
+    { icon: "map-spot", label: t.nav.land, href: "/search?type=land" },
+    { icon: "keys-tag", label: t.nav.commercial, href: "/search?type=office" },
   ];
 
   const greeting = DAYPART_GREETING[overview.daypart];
@@ -157,27 +171,64 @@ export default async function HomePage() {
         />
       </section>
 
-      {/* --------------------------------------------------------- the city */}
-      <div className="mt-5">
-        <CityHero
-          cityLabel={overview.place.label}
-          contextLabel={overview.place.isOwn ? "Your city" : "Open on RentMe"}
-          areas={overview.areas}
-        />
+      {/*
+        ------------------------------------------------------------- search
+
+        THE ONE THING SOMEBODY OPENS RENTME TO DO, AND IT WAS NOT ON THIS
+        SCREEN.
+
+        The in-product home had no search field anywhere. It opened with a
+        greeting, then a photograph of the reader's city, then a strip of what
+        people were reading, and the first way to look for a property was a
+        category object most of the way down. Meanwhile the signed-out landing
+        page put a search bar directly under its headline. So the page that
+        greets a stranger let them search, and the page that greets somebody
+        who has already signed in did not.
+
+        It is the same control as the landing hero on purpose, down to the 48px
+        field and the filter button beside it, because a person who searched
+        before they signed up should find the same thing in the same shape
+        afterwards.
+      */}
+      <div className="mt-6 flex items-start gap-2 sm:items-center">
+        <form
+          action="/search"
+          method="get"
+          role="search"
+          className="nf-card nf-card--live nf-focus-well flex min-w-0 flex-1 flex-col gap-2 p-2 sm:flex-row sm:items-center"
+        >
+          <label htmlFor="home-q" className="sr-only">
+            {t.landing.hero.searchLabel}
+          </label>
+          <div className="flex min-w-0 flex-1 items-center gap-3 px-3">
+            <UiIcon name="search" size={20} className="text-[var(--nf-content-muted)]" />
+            <input
+              id="home-q"
+              name="q"
+              type="search"
+              autoComplete="off"
+              placeholder={t.landing.hero.searchPlaceholder}
+              className="w-full bg-transparent py-3 text-[1rem] text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
+            />
+          </div>
+          <Button type="submit" variant="primary" size="lg">
+            {t.common.search}
+          </Button>
+        </form>
+        <FilterLink label={t.common.search} />
       </div>
 
-      {/* ----------------------------------------------------- what is live */}
-      <Reveal className="mt-10 sm:mt-12">
-        <TrendingStrip
-          items={overview.trending}
-          cityLabel={overview.place.label}
-          hasPlaces={overview.areas.length > 0}
-        />
-      </Reveal>
-
       {/* -------------------------------------------------------- categories */}
-      <Reveal as="section" className="mt-10 sm:mt-12">
-        <h2 className="nf-h3 mb-3">Find a place to stay</h2>
+      {/*
+        Straight after search, because these ARE search: five prefilled
+        queries. They used to sit below a city photograph and a trending strip,
+        which put two blocks of atmosphere between a person and the five
+        shortcuts they most likely wanted.
+      */}
+      <Reveal as="section" className="mt-9 sm:mt-11">
+        {/* Was "Find a place to stay". Nobody stays in a property they are
+            renting for a year, and nobody buys one to stay in it. */}
+        <h2 className="nf-h3 mb-4">Browse by type</h2>
         {/*
           NO BOXES. The objects sit on the page.
 
@@ -243,6 +294,36 @@ export default async function HomePage() {
           </ul>
         )}
       </Reveal>
+
+      {/*
+        --------------------------------------------- what is live near you
+
+        MOVED DOWN, AND ONE HALF OF IT DELETED.
+
+        This used to sit between the greeting and everything a person can act
+        on. A photograph of the reader's city, then a strip of what people were
+        reading in it, and only after both of those the first way to look for a
+        property. Two blocks of atmosphere in front of the purpose of the
+        screen.
+
+        The photograph is gone. CityHero drew a large city render with a lit
+        pin per open area, which is beautiful and tells somebody nothing they
+        can do anything with; the city is already named directly under the
+        greeting by CityRow, in one line, with the control that changes it.
+
+        The strip stayed, because unlike the render it is real content: what
+        people are actually posting where this reader lives. It reads far
+        better here, as something to browse once the properties have been
+        looked at, than as a toll gate in front of them.
+      */}
+      <Reveal as="section" className="mt-12 sm:mt-14">
+        <TrendingStrip
+          items={overview.trending}
+          cityLabel={overview.place.label}
+          hasPlaces={overview.areas.length > 0}
+        />
+      </Reveal>
+
 
       {/* ----------------------------------------------------------- ai card */}
       <Reveal className="mt-12 sm:mt-14" delay={60}>

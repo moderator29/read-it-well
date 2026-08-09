@@ -110,6 +110,17 @@ export function logMoney(fields: MoneyLogFields): void {
       console.warn(text);
       return;
     }
+    /*
+     * The project's no-console rule allows warn and error only, and it is right
+     * to: a stray console.log in a component is noise. This one line is the
+     * exception the rule did not anticipate. "posted" is the line that says
+     * money moved, and it has to be recorded at a level that is NOT an alert,
+     * or every successful payment pages somebody and the channel becomes
+     * unreadable within a day. Downgrading it to a warning would be worse than
+     * having no line at all, and deleting it would restore the silence this
+     * module exists to end.
+     */
+    // eslint-disable-next-line no-console
     console.info(text);
   } catch {
     // Deliberately empty. See above.

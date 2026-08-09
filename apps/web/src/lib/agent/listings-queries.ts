@@ -323,25 +323,52 @@ function sortedPhotos(row: ListingWithChildren): ListingPhoto[] {
     }));
 }
 
+/**
+ * Walkthroughs. Private, so the wizard reads them through a signed URL exactly
+ * as the public catalogue does. See lib/listings/supabase-repository for why
+ * this bucket is not public when listing-photos is.
+ */
 export const VIDEO_BUCKET = "listing-videos";
+const VIDEO_URL_SECONDS = 3600;
 
-/** Public URL for an object in the world-readable listing-videos bucket. */
-export function videoPublicUrl(storagePath: string): string {
-  const base = SUPABASE_URL.replace(/\/+$/, "");
-  return `${base}/storage/v1/object/public/${VIDEO_BUCKET}/${storagePath}`;
-}
+/**
+ * The rows, with a signed URL each. Async because signing is a request, and one
+ * request for all of a listing's videos rather than one each.
+ *
+ * A video whose URL will not sign comes back with an empty url rather than
+ * being dropped: this is the OWNER's own workspace, and silently hiding a file
+ * they uploaded would look exactly like losing it.
+ */
+async function sortedVideos(
+  supabase: SupabaseClient<Database>,
+  row: ListingWithChildren,
+): Promise<ListingVideo[]> {
+  const rows = [...(row.listing_videos ?? [])].sort((a, b) => a.position - b.position);
+  if (rows.length === 0) return [];
 
-function sortedVideos(row: ListingWithChildren): ListingVideo[] {
-  return [...(row.listing_videos ?? [])]
-    .sort((a, b) => a.position - b.position)
-    .map((v) => ({
-      id: v.id,
-      path: v.storage_path,
-      url: videoPublicUrl(v.storage_path),
-      posterUrl: v.poster_path ? photoPublicUrl(v.poster_path) : null,
-      durationSeconds: v.duration_seconds,
-      position: v.position,
-    }));
+  const signed = new Map<string, string>();
+  try {
+    const { data } = await supabase.storage
+      .from(VIDEO_BUCKET)
+      .createSignedUrls(
+        rows.map((v) => v.storage_path),
+        VIDEO_URL_SECONDS,
+      );
+    for (const entry of data ?? []) {
+      if (entry.path && entry.signedUrl) signed.set(entry.path, entry.signedUrl);
+    }
+  } catch {
+    /* Storage unreachable. The list still renders with what it knows. */
+  }
+
+  return rows.map((v) => ({
+    id: v.id,
+    path: v.storage_path,
+    url: signed.get(v.storage_path) ?? "",
+    posterUrl: v.poster_path ? photoPublicUrl(v.poster_path) : null,
+    durationSeconds: v.duration_seconds,
+    position: v.position,
+  }));
 }
 
 function amenityCodesOf(row: ListingWithChildren): string[] {
@@ -377,7 +404,10 @@ function numberInput(value: number | string | null | undefined): string {
   return value === null || value === undefined ? "" : String(value);
 }
 
-function toDraft(row: ListingWithChildren): WizardDraft {
+async function toDraft(
+  supabase: SupabaseClient<Database>,
+  row: ListingWithChildren,
+): Promise<WizardDraft> {
   return {
     id: row.id,
     status: row.status,
@@ -436,7 +466,7 @@ function toDraft(row: ListingWithChildren): WizardDraft {
     },
     amenityCodes: amenityCodesOf(row),
     photos: sortedPhotos(row),
-    videos: sortedVideos(row),
+    videos: await sortedVideos(supabase, row),
     reviewNotes: row.review_notes,
   };
 }
@@ -470,7 +500,7 @@ export async function readDraft(
     .maybeSingle();
 
   if (error || !data) return null;
-  return toDraft(data as unknown as ListingWithChildren);
+  return toDraft(supabase, data as unknown as ListingWithChildren);
 }
 
 /**
@@ -509,7 +539,7 @@ export async function readOpenDraft(
     .maybeSingle();
 
   if (error || !data) return null;
-  return toDraft(data as unknown as ListingWithChildren);
+  return toDraft(supabase, data as unknown as ListingWithChildren);
 }
 
 /* ------------------------------------------------------- reference data */

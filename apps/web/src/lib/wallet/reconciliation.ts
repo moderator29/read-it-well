@@ -5,7 +5,6 @@ import {
   PaystackError,
   isPaystackConfigured,
   listSuccessfulCharges,
-  metadataObject,
   verifyTransaction,
   verifyTransfer,
   type ChargeSummary,

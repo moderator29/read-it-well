@@ -76,7 +76,6 @@ function sentenceCase(value: string): string {
 }
 
 /** Destination quick picks. Each chip is a shareable link, not client state. */
-const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Ibadan", "Enugu", "Calabar"];
 
 /**
  * The tiebreaker: at EQUAL relevance, a verified place goes first.
@@ -353,57 +352,31 @@ export default async function SearchPage({
           <CategoryTiles query={query} t={t} />
         </div>
 
-        {/* City quick picks. Links, so a tap submits instantly and is shareable. */}
-        <nav aria-label="Popular destinations" className="nf-scroll-x -mx-5 mt-3 md:-mx-8">
-          <ul className="flex gap-2 px-5 md:justify-center md:px-8">
-            {CITIES.map((city) => {
-              const active = query.q?.trim().toLowerCase() === city.toLowerCase();
-              return (
-                <li key={city} className="shrink-0">
-                  <Link
-                    href={toSearchHref({ ...query, q: active ? undefined : city })}
-                    prefetch
-                    aria-current={active ? "true" : undefined}
-                    className={`nf-chip whitespace-nowrap transition-transform active:scale-[0.96] ${
-                      active ? "nf-chip--active" : ""
-                    }`}
-                  >
-                    <UiIcon name="location" size={12} className="shrink-0 opacity-70" />
-                    {city}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+        {/*
+          TWO ROWS ABOVE THE FIRST RESULT. IT WAS FIVE.
 
-        {/* Sort chips. Links, not buttons: the sort is real and shareable. */}
-        <nav aria-label="Sort results" className="nf-scroll-x -mx-5 mt-2.5 md:-mx-8">
-          <ul className="flex gap-2 px-5 md:justify-center md:px-8">
-            {SORTS.map((s) => {
-              const active = query.sort === s.key;
-              return (
-                <li key={s.key} className="shrink-0">
-                  <Link
-                    href={toSearchHref({ ...query, sort: s.key })}
-                    prefetch
-                    aria-current={active ? "true" : undefined}
-                    className={`nf-chip whitespace-nowrap transition-transform active:scale-[0.96] ${
-                      active
-                        ? "nf-chip--active font-bold text-[var(--nf-content-primary)]"
-                        : ""
-                    }`}
-                  >
-                    {active && (
-                      <UiIcon name="verified" size={12} className="shrink-0" />
-                    )}
-                    {s.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+          The sticky bar carried, in order: the search field with its filter
+          button, twelve category tiles, five city chips, and a rail of sort
+          chips. Below it came the results heading, a view toggle and an active
+          filter row. Six control surfaces stacked between somebody and the
+          first property, on a screen whose entire job is to show properties.
+          On a phone that is most of the viewport spent on controls.
+
+          The two that left did not lose their function, they went where they
+          belong:
+
+          CITY CHIPS were a location filter drawn as navigation. Five hardcoded
+          cities cannot serve a country with 774 local governments, and the
+          filter drawer already has a real location control that can. Somebody
+          wanting Lagos types Lagos, which is the field directly above, or opens
+          filters and picks it properly.
+
+          SORT is not a filter and it is not navigation. It orders a result set,
+          so it belongs beside the result count where the count it reorders is
+          visible, and that is where it now is. As a chip rail up here it was
+          four permanent options taking a row of a phone screen to answer a
+          question most people never ask.
+        */}
       </div>
 
       {/* Nothing rendered. Records the view and the hunt for the strip below. */}
@@ -429,7 +402,7 @@ export default async function SearchPage({
               ) : query.kind ? (
                 `Explore ${KIND_NOUN[query.kind].many}`
               ) : (
-                "Explore stays"
+                "Explore properties"
               )}
             </h1>
             {/*
@@ -478,7 +451,42 @@ export default async function SearchPage({
               </p>
             )}
           </div>
-          <ViewToggle query={query} />
+
+          {/*
+            Sort and view, together, beside the count they act on.
+
+            Sort was a rail of four chips in the sticky bar, permanently taking
+            a row of a phone screen to answer a question most people never ask.
+            Here it sits next to the number it reorders, which is the only place
+            it means anything, and it stays links rather than a control so an
+            ordering is still shareable and still survives a back button.
+
+            The active option is the one shown; the rest are one tap away and
+            marked with aria-current so a screen reader is told which ordering
+            it is reading.
+          */}
+          <div className="flex shrink-0 items-center gap-2">
+            <nav aria-label="Sort results" className="nf-scroll-x">
+              <ul className="flex items-center gap-1.5">
+                {SORTS.map((srt) => {
+                  const active = query.sort === srt.key;
+                  return (
+                    <li key={srt.key}>
+                      <Link
+                        href={toSearchHref({ ...query, sort: srt.key })}
+                        prefetch
+                        aria-current={active ? "true" : undefined}
+                        className={`nf-chip whitespace-nowrap ${active ? "nf-chip--active" : ""}`}
+                      >
+                        {srt.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+            <ViewToggle query={query} />
+          </div>
         </div>
 
         {/* Everything narrowing the results, each one removable in one tap. */}

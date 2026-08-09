@@ -31,6 +31,9 @@ const paystack = vi.hoisted(() => ({
  * stands in for. Naming the real shapes here is what lets a test set up the
  * case it is actually about.
  */
+type FundingOutcome = Awaited<ReturnType<typeof import("@/lib/wallet/ledger").recordFunding>>;
+type LedgerUser = Awaited<ReturnType<typeof import("@/lib/wallet/ledger").findUserByEmail>>;
+
 const ledger = vi.hoisted(() => ({
   getAdminClient: vi.fn(),
   recordFunding: vi.fn(async (): Promise<FundingOutcome> => "posted"),
