@@ -58,8 +58,16 @@ export const LIGHT = {
   text: "#0A0A1F",
   /** Body copy. 9.4:1 on white. */
   body: "#3B4166",
-  /** Small print and row labels. 4.8:1 on white, so it clears AA at 12px. */
-  muted: "#6B7194",
+  /**
+   * Small print and row labels.
+   *
+   * Measured on the DARKEST light surface it ever sits on, which is the canvas
+   * behind the card rather than the card itself: the footer lines live out
+   * there. The previous value cleared 4.76:1 on white and only 4.37:1 on the
+   * canvas, so the one place it was actually used was the one place it failed.
+   * This clears 4.5:1 on all three: canvas 4.7, card 5.1, panel 4.8.
+   */
+  muted: "#666C8E",
 } as const;
 
 /**
@@ -82,11 +90,26 @@ export const DARK = {
   muted: "#7C86C2",
 } as const;
 
-/** --nf-electric-400. The brand blue, identical in both schemes. */
+/**
+ * --nf-electric-400. The brand blue.
+ *
+ * Identical in both schemes as a FILL: it is the button, the cap rule and the
+ * footer dash, and white on it reads at 7:1 either way.
+ *
+ * As TEXT it is light-mode only. #0C39EF on the dark card measures 2.7:1, which
+ * fails even the relaxed large-text threshold, so the wordmark and any body
+ * link carry `class="rm-brand"` and the dark override swaps them to SKY. This
+ * is the one colour in the email system that is not simply itself in both
+ * schemes, and it is worth the extra class: a brand mark nobody can read is not
+ * a brand mark.
+ */
 export const GLOW = "#0C39EF";
 /** --nf-electric-600. The foot of the button gradient. */
 export const ELECTRIC = "#0010D0";
-/** --nf-electric-300. The luminous highlight in the header rule. */
+/**
+ * --nf-electric-300. The luminous highlight in the cap rule, and the brand blue
+ * as text in dark mode: 5.5:1 on the dark card, 5.2:1 on the dark panel.
+ */
 export const SKY = "#5C7CFF";
 
 /**

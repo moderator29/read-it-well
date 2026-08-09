@@ -12,6 +12,7 @@ import {
   MAX_WIDTH,
   PAD_X,
   SIGN_OFF,
+  SKY,
 } from "./theme";
 
 /**
@@ -406,6 +407,7 @@ const DARK_STYLE = `
         .rm-body   { color: ${DARK.body} !important; }
         .rm-muted  { color: ${DARK.muted} !important; }
         .rm-rule   { border-top-color: ${DARK.edge} !important; }
+        .rm-brand  { color: ${SKY} !important; }
       }`;
 
 /**
@@ -440,10 +442,9 @@ export function compose(options: ComposeOptions): Composed {
     </style>
   </head>
   <body class="rm-base" style="margin:0;padding:0;width:100%;background:${LIGHT.base};color:${LIGHT.body};font-family:${FONT_SANS};-webkit-font-smoothing:antialiased;">
-    <!-- The inbox preview line. The trailing spacer entities stop a client
-         pulling the first sentence of body copy in after it, which is what
-         makes the preview a line somebody wrote rather than a line that
-         happened. -->
+    <!-- The hidden inbox line. The trailing spacer entities stop a client
+         pulling the first sentence of body copy in after it, so what the
+         reader sees beside the subject is a line somebody wrote. -->
     <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;mso-hide:all;">${escapeHtml(options.preheader)}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</span>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="rm-base" style="width:100%;background:${LIGHT.base};">
       <tr>
@@ -466,7 +467,7 @@ export function compose(options: ComposeOptions): Composed {
                       <img src="${siteUrl()}/brand/rentme-logo.png" width="${LOGO_SIZE}" height="${LOGO_SIZE}" alt="" style="display:block;width:${LOGO_SIZE}px;height:${LOGO_SIZE}px;border:0;outline:none;text-decoration:none;" />
                     </td>
                     <td style="vertical-align:middle;">
-                      <span style="font-family:${FONT_SANS};font-size:23px;line-height:28px;font-weight:700;letter-spacing:-0.025em;color:${GLOW};">RentMe</span>
+                      <span class="rm-brand" style="font-family:${FONT_SANS};font-size:23px;line-height:28px;font-weight:700;letter-spacing:-0.025em;color:${GLOW};">RentMe</span>
                     </td>
                   </tr>
                 </table>

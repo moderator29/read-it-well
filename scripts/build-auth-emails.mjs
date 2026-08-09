@@ -2,41 +2,74 @@
 /**
  * Generate the RentMe Supabase auth email templates.
  *
- * Supabase sends one HTML template per auth action (confirm signup, magic link,
- * recovery, email change, invite). Left at their defaults they are plain and
- * unbranded. This script emits all five from one branded shell plus a set of
- * composable blocks, so the lockup, colour, glow and trust language stay
- * identical across every message and can be moved in one place when the brand
- * moves, rather than drifting as five hand-edited files.
+ * Supabase sends one HTML template per auth action: confirm signup, magic link,
+ * recovery, email change, invite. Left at their defaults they are plain and
+ * unbranded. This script emits all five from one shell plus a set of composable
+ * blocks, so the lockup, the colour and the language stay identical across
+ * every message and move in one place when the brand moves, rather than
+ * drifting as five hand-edited files.
  *
  * Output: supabase/templates/*.html. Apply them in the Supabase dashboard under
- * Authentication -> Email Templates, or via the Management API. See
- * supabase/README.md.
+ * Authentication -> Email Templates, or via the Management API. See EM-3 in
+ * RECOMMENDATIONS.md: today a regeneration does not reach production by itself.
  *
- * DESIGN INTENT
- * The web product renders a dark navy-black canvas with edge-lit glass cards and
- * an electric blue glow. Email HTML cannot do backdrop-filter, box shadows are
- * unreliable and large artwork PNGs are too heavy to send, so the glass system
- * is rebuilt out of email-safe parts instead: a luminous gradient cap, a 1px
- * gradient ring drawn as table padding, a masthead panel a shade lighter than
- * the card, hairline dividers that fade at both ends, and soft inner panels for
- * the code box and notes. Depth comes from layered table backgrounds, not from
- * images. The only remote image is the logo cutout.
+ * Run: node scripts/build-auth-emails.mjs
+ *
+ * WHY THESE FIVE MATTER MORE THAN THE OTHERS.
+ *
+ * They are the first email anybody ever gets from RentMe. A confirm-signup
+ * message arrives before the reader has any opinion of this product at all, so
+ * it is not a utility, it is the first impression. It is also the message a
+ * phishing kit will imitate, which is why the copy here never asks for
+ * anything, never threatens, and always says plainly what happens if the reader
+ * does nothing.
+ *
+ * ONE DESIGN, TWO GENERATORS.
+ *
+ * `apps/web/src/lib/email/render.ts` builds every transactional message. This
+ * script builds these five. They must look like the same product, so every
+ * value below is mirrored from `apps/web/src/lib/email/theme.ts`, which is the
+ * source of truth and explains why literal hex is correct in an email.
+ *
+ * The duplication is real and it is deliberate: this is a plain Node script
+ * that runs outside the Next build with no TypeScript loader, so it cannot
+ * import a `.ts` module. What makes it safe rather than merely tolerated is
+ * `apps/web/src/lib/email/shell.test.ts`, which reads theme.ts, this script and
+ * the five generated files, and fails when a colour here is not a colour there.
+ *
+ * LIGHT FIRST, AND THIS IS A REVERSAL. These templates used to be dark: a navy
+ * canvas with light text baked into the inline styles, matching the product's
+ * dark default. That is the wrong call for email and it was changed on purpose.
+ * A mail client is not a browser: some strip the `<style>` block, some apply
+ * their own inversion to a palette they did not design, and Outlook renders
+ * through Word. A dark email that half renders is black text on a black card,
+ * which is unreadable in exactly the message carrying somebody's sign-in link.
+ * So the inline layer, the one every client honours, is light, and dark is an
+ * enhancement applied only where the media query works.
  *
  * EMAIL CLIENT RULES OBSERVED HERE (do not undo these)
  * - Table layout only. No flex, no grid, no positioning.
  * - Every layout and colour declaration is inline on the element. The single
- *   <style> block carries a light-mode courtesy only, and nothing in it is
+ *   <style> block carries the dark-mode enhancement only, and nothing in it is
  *   required for the message to read correctly.
  * - System font stack only, no web fonts.
  * - background-color is always declared BEFORE background-image, because the
  *   Word rendering engine in Outlook drops background-image and keeps the
  *   colour. Every gradient therefore has a deliberate solid fallback.
- * - Gradient-clipped text (the wordmark) declares a solid colour first, since
- *   many clients ignore background-clip and would otherwise render nothing.
- * - Container is 560px, fluid to 320px, and reads on a 390px Android screen.
+ * - Container is 600px, fluid below that, and reads on a 360px Android screen.
  * - Every template keeps a plain-text fallback link, because clients strip
  *   buttons, and a hidden preheader so the inbox line is deliberate.
+ * - THE MESSAGE MUST READ COMPLETELY WITH EVERY IMAGE BLOCKED. There is one
+ *   image in the shell, the logo mark, it carries no words, and its alt is
+ *   empty because the wordmark beside it is live text.
+ *
+ * COPY RULES (the same ones binding on lib/email/messages.ts)
+ * - No em dash characters, anywhere.
+ * - No emoji.
+ * - British spelling, calm and plain.
+ * - No legal or financial promise. Nothing here says money is protected or
+ *   guaranteed, and nothing claims a listing has been checked.
+ * - Nothing advertises inventory this platform does not have.
  */
 
 import { mkdirSync, writeFileSync, statSync } from "node:fs";
@@ -47,194 +80,167 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = join(__dirname, "..", "supabase", "templates");
 
 /* ------------------------------------------------------------------------- *
- * Brand constants, sampled from the canonical background artwork and mirrored
- * from packages/design-tokens/src/tokens.css as literals, because email HTML
- * cannot read CSS custom properties. Deep navy-black canvas, dark neon blue,
- * electric blue glow. Never purple, violet, magenta, cyan or generic SaaS blue.
+ * The palette. Mirrored value for value from
+ * apps/web/src/lib/email/theme.ts, which resolves them from
+ * packages/design-tokens/src/tokens.css.
+ *
+ * These literals are correct. Do not "fix" them into CSS custom properties:
+ * Gmail strips :root declarations, Outlook never supported them, and a var()
+ * that resolves to nothing paints text the colour of its background.
  * ------------------------------------------------------------------------- */
-const BASE = "#010118"; // page canvas
-const CARD = "#030327"; // card body
-const PANEL = "#060640"; // masthead and inner panels
-const PANEL_DEEP = "#04042E"; // inner panel base, one step down from PANEL
-const EDGE = "#101A55"; // hairline and ring base
-const EDGE_LIT = "#2A3A96"; // lit side of the ring
-const GLOW = "#0C39EF"; // electric-400
-const NEON = "#0010E0"; // electric-500, the brand primary and every solid fallback
-const DEEP = "#000F98"; // electric-700, the foot of the CTA gradient
-// electric-600 (#0010D0) is part of the sampled palette but is not needed here:
-// the CTA gradient runs electric-400 to electric-500 to electric-700, verbatim
-// from --nf-gradient-cta. Add it only if that token changes.
-const SKY = "#5C7CFF"; // electric-300, the luminous highlight
-const TEXT = "#FFFFFF";
-const BODY = "#C6CDF2";
-const SUBTLE = "#A7B0E2";
-const MUTED = "#7C86C2";
+
+/* Light, and it is the layer every client honours. */
+const BASE = "#F4F5FB"; // the paper behind the card
+const CARD = "#FFFFFF"; // the card
+const EDGE = "#DEE1F0"; // hairlines and panel borders
+const PANEL = "#F7F8FD"; // inset panels: the code box, the note, the rows
+const TEXT = "#0A0A1F"; // headings
+const BODY = "#3B4166"; // body copy, 9.4:1 on white
+const MUTED = "#666C8E"; // small print, 4.7:1 on the canvas it sits on
+
+/* Dark, applied only through prefers-color-scheme. */
+const D_BASE = "#010118";
+const D_CARD = "#030327";
+const D_EDGE = "#101A55";
+const D_PANEL = "#060640";
+const D_TEXT = "#FFFFFF";
+const D_BODY = "#C6CDF2";
+const D_MUTED = "#7C86C2";
+
+/* The brand blue, identical in both schemes. */
+const GLOW = "#0C39EF"; // --nf-electric-400
+const ELECTRIC = "#0010D0"; // --nf-electric-600
+const SKY = "#5C7CFF"; // --nf-electric-300
 
 /* Signature gradients. Solid fallbacks are applied at every call site. */
-// The product CTA gradient, verbatim from --nf-gradient-cta.
-const GRADIENT_CTA = `linear-gradient(180deg,${GLOW} 0%,${NEON} 50%,${DEEP} 100%)`;
-// Glossy inner highlight stacked over the CTA gradient. Two background layers:
-// clients that support gradients get the sheen, Outlook gets solid NEON.
-const GRADIENT_CTA_LIT = `linear-gradient(180deg,rgba(255,255,255,0.26) 0%,rgba(255,255,255,0.06) 45%,rgba(255,255,255,0) 46%),${GRADIENT_CTA}`;
-// Wordmark and mark sit in one lockup, sharing the brand gradient.
-const GRADIENT_WORDMARK = `linear-gradient(135deg,${SKY} 0%,${GLOW} 55%,${NEON} 100%)`;
-// The luminous cap across the top of the card.
-const GRADIENT_CAP = `linear-gradient(90deg,${DEEP} 0%,${GLOW} 26%,${SKY} 50%,${GLOW} 74%,${DEEP} 100%)`;
-// The edge-lit ring, drawn as 1px of table padding around the card.
-const GRADIENT_RING = `linear-gradient(160deg,${EDGE_LIT} 0%,${EDGE} 42%,#0A0F38 100%)`;
-// Masthead glow, the email-safe stand-in for the ambient bloom behind the logo.
-const GLOW_MASTHEAD = `radial-gradient(120% 150% at 50% -30%,rgba(12,57,239,0.55) 0%,rgba(6,6,64,0) 72%)`;
-// Soft glow cushion under the CTA. No background-color, so Outlook renders an
-// empty spacer row rather than a stray blue band.
-const GLOW_CUSHION = `radial-gradient(60% 100% at 50% 0%,rgba(12,57,239,0.45) 0%,rgba(1,1,24,0) 78%)`;
-// Hairline that fades out at both ends, so dividers read as light rather than
-// as a drawn border. Falls back to the flat EDGE colour.
-const HAIRLINE = `linear-gradient(90deg,rgba(92,124,255,0) 0%,rgba(92,124,255,0.75) 50%,rgba(92,124,255,0) 100%)`;
-// Top highlight inside a panel, the email-safe version of the glass specular.
-const HAIRLINE_INNER = `linear-gradient(90deg,rgba(92,124,255,0) 0%,rgba(92,124,255,0.5) 38%,rgba(92,124,255,0.5) 62%,rgba(92,124,255,0) 100%)`;
+const GRADIENT = `linear-gradient(135deg,${GLOW} 0%,#0621E8 55%,${ELECTRIC} 100%)`;
+const GRADIENT_CAP = `linear-gradient(90deg,${ELECTRIC} 0%,${GLOW} 28%,${SKY} 50%,${GLOW} 72%,${ELECTRIC} 100%)`;
 
 const FONT_SANS =
   "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
-const FONT_MONO =
-  "'SFMono-Regular',ui-monospace,Menlo,Consolas,'Liberation Mono',monospace";
+const FONT_MONO = "'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace";
+
+const MAX_WIDTH = 600;
+const PAD_X = 40;
+const LOGO_SIZE = 40;
 
 const LOGO = "{{ .SiteURL }}/brand/rentme-logo.png";
-const STRAPLINE = "RentMe. Find it. Rent it. Love it.";
+const SIGN_OFF = "RentMe. Find it. Rent it. Love it.";
 
 /* ------------------------------------------------------------------------- *
- * Primitives
+ * Primitives. Each one is the auth-side twin of a block in render.ts, with the
+ * same measurements, so a reader who gets a confirm-signup on Monday and a
+ * booking receipt on Tuesday is looking at one product.
  * ------------------------------------------------------------------------- */
 
-/** Vertical rhythm. font-size:0 and matching line-height keep Outlook honest. */
+/** Vertical rhythm. font-size:0 and a matching line-height keep Outlook honest. */
 function gap(h) {
   return `<div style="height:${h}px;line-height:${h}px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>`;
 }
 
-/** Full-bleed fading hairline. Used between masthead, body and trust band. */
-function rule() {
-  return `<tr><td style="height:1px;line-height:1px;font-size:0;background-color:${EDGE};background-image:${HAIRLINE};mso-line-height-rule:exactly;">&nbsp;</td></tr>`;
-}
-
-/** Small uppercase label above the heading. Carries the purpose of the email. */
-function kicker(text) {
-  return `<p style="margin:0 0 12px;font-family:${FONT_SANS};font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${SKY};">${text}</p>`;
-}
-
-/** Display heading. Tight tracking, generous leading, white for contrast. */
+/**
+ * Display heading. Matches render.ts heading() exactly.
+ *
+ * font-family is repeated here rather than inherited from body, because several
+ * webmail clients rewrite the document and reset headings to a serif default,
+ * which is the most visible way an email looks broken.
+ */
 function heading(text) {
-  return `<h1 style="margin:0 0 14px;font-family:${FONT_SANS};font-size:28px;line-height:34px;font-weight:700;letter-spacing:-0.022em;color:${TEXT};">${text}</h1>`;
+  return `<h1 class="rm-title" style="margin:0 0 16px;font-family:${FONT_SANS};font-size:27px;line-height:1.22;font-weight:700;letter-spacing:-0.022em;color:${TEXT};">${text}</h1>`;
 }
 
-/** The calm opening paragraph, one step larger and lighter than body copy. */
+/** The opening paragraph. Matches render.ts paragraph(). */
 function lede(text) {
-  return `<p style="margin:0;font-family:${FONT_SANS};font-size:16px;line-height:26px;color:${BODY};">${text}</p>`;
+  return `<p class="rm-body" style="margin:0;font-family:${FONT_SANS};font-size:16px;line-height:1.65;color:${BODY};">${text}</p>`;
 }
 
-/** Supporting paragraph. */
+/** A supporting paragraph, one step down in weight of attention. */
 function para(text) {
-  return `<p style="margin:0;font-family:${FONT_SANS};font-size:14px;line-height:23px;color:${SUBTLE};">${text}</p>`;
+  return `<p class="rm-body" style="margin:0;font-family:${FONT_SANS};font-size:15px;line-height:1.6;color:${BODY};">${text}</p>`;
 }
 
 /**
- * Bulletproof CTA. Three nested tables, each one earning its place.
+ * The one primary action. Matches render.ts button() exactly.
  *
- * - Outer table is full width and centres the pill.
- * - Middle table has no width, so it shrinks to the pill. That keeps the glow
- *   cushion in the row beneath exactly as wide as the button instead of
- *   spanning the whole column, which is what makes the glow read as coming off
- *   the button.
- * - background-color is declared before background-image, so Outlook drops the
- *   sheen and gradient and keeps solid electric blue. The 1px lit border stands
- *   in for the ring the web button gets from a box shadow, which email cannot
- *   be trusted to render.
+ * background-color before background-image, so Outlook drops the gradient and
+ * keeps a solid brand-blue button with white text rather than white on nothing.
+ * Padding sits on the anchor so the whole pill is a tap target on a phone,
+ * which is where nearly all of these are opened, and mso-padding-alt repeats
+ * the geometry for the Word engine, which ignores padding on an inline-block.
  *
- * Padding sits on the anchor rather than on the cell so the entire pill is a
- * tap target on mobile, which is where nearly all of these links are opened.
- * mso-padding-alt repeats the same geometry for the Word engine. Legacy Outlook
- * desktop may draw a tighter pill: that degrades to a smaller solid blue button
- * with white text, which is acceptable, whereas moving the padding onto the
- * cell would shrink the tap target for every mobile reader. Do not swap them.
+ * #FFFFFF is literal rather than themed: it is the text ON brand blue in both
+ * schemes and must not flip with the colour scheme.
  */
 function cta(label, href) {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0;">
                       <tr>
-                        <td align="center" style="padding:0;">
-                          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-                            <tr>
-                              <td align="center" style="border-radius:16px;background-color:${NEON};background-image:${GRADIENT_CTA_LIT};border:1px solid ${GLOW};mso-padding-alt:18px 34px;">
-                                <a href="${href}" target="_blank" style="display:inline-block;padding:17px 34px;font-family:${FONT_SANS};font-size:17px;line-height:21px;font-weight:700;letter-spacing:-0.01em;color:${TEXT};text-decoration:none;border-radius:16px;">${label}</a>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td style="height:14px;line-height:14px;font-size:0;background-image:${GLOW_CUSHION};mso-line-height-rule:exactly;">&nbsp;</td>
-                            </tr>
-                          </table>
+                        <td align="center" style="border-radius:14px;background-color:${GLOW};background-image:${GRADIENT};mso-padding-alt:16px 34px;">
+                          <a href="${href}" target="_blank" style="display:inline-block;padding:16px 34px;font-family:${FONT_SANS};font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;">${label}</a>
                         </td>
                       </tr>
                     </table>`;
 }
 
 /**
- * One-time code panel, for the flows where Supabase exposes {{ .Token }}.
- * Two nested tables: the outer one is the panel with its ring, the inner one
- * carries a 1px specular highlight along the top so the panel reads as inset
- * glass rather than as a plain box.
+ * The one-time code, for the flows where Supabase exposes {{ .Token }}.
+ *
+ * Offered UNDER the button rather than beside it. It is the same action by
+ * another route, not a second action, and a reader who distrusts links in email
+ * is right to, so this platform gives them a way through that involves pressing
+ * nothing. Matches render.ts code(): letter-spacing puts a gap after the last
+ * glyph too, so text-indent puts the same amount back on the front and the
+ * string sits actually centred.
  */
 function codeBox(introText) {
-  return `<p style="margin:0 0 10px;font-family:${FONT_SANS};font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${MUTED};">${introText}</p>
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+  return `<p class="rm-muted" style="margin:0 0 10px;font-family:${FONT_SANS};font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${MUTED};">${introText}</p>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                       <tr>
-                        <td style="background-color:${PANEL_DEEP};background-image:linear-gradient(180deg,${PANEL} 0%,${PANEL_DEEP} 100%);border:1px solid ${EDGE};border-radius:16px;padding:0;">
-                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
-                            <tr><td style="height:1px;line-height:1px;font-size:0;background-color:${EDGE};background-image:${HAIRLINE_INNER};mso-line-height-rule:exactly;">&nbsp;</td></tr>
-                            <tr>
-                              <td align="center" style="padding:18px 16px 20px;font-family:${FONT_MONO};font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.26em;text-indent:0.26em;color:${TEXT};">{{ .Token }}</td>
-                            </tr>
-                          </table>
-                        </td>
+                        <td align="center" class="rm-panel rm-title" style="background:${PANEL};border:1px solid ${EDGE};border-radius:16px;padding:20px 16px;font-family:${FONT_MONO};font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.2em;text-indent:0.2em;color:${TEXT};">{{ .Token }}</td>
                       </tr>
                     </table>`;
 }
 
 /**
- * Soft inner panel for a titled note. Used for reassurance on recovery and for
- * the security warning on email change. The accent stays inside the sampled
- * palette: there is no red or amber alert colour in this brand, so weight and
- * a lit left edge carry the emphasis instead.
+ * A titled note in an inset panel. Used for the reassurance on recovery and the
+ * security warning on email change.
+ *
+ * The accent is a lit left edge in brand blue rather than a red or amber alert
+ * colour, because this brand has no alert hue and inventing one for an email is
+ * how a palette starts drifting. Weight and position carry the emphasis.
  */
 function notePanel({ title, text }) {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                       <tr>
-                        <td style="background-color:${PANEL_DEEP};background-image:linear-gradient(135deg,rgba(12,57,239,0.22) 0%,rgba(4,4,46,0) 70%);border:1px solid ${EDGE};border-left:3px solid ${GLOW};border-radius:14px;padding:16px 18px;">
-                          <p style="margin:0 0 6px;font-family:${FONT_SANS};font-size:13px;line-height:18px;font-weight:700;letter-spacing:-0.01em;color:${TEXT};">${title}</p>
-                          <p style="margin:0;font-family:${FONT_SANS};font-size:13px;line-height:21px;color:${SUBTLE};">${text}</p>
+                        <td class="rm-panel" style="background:${PANEL};border:1px solid ${EDGE};border-left:3px solid ${GLOW};border-radius:16px;padding:18px 20px;">
+                          <p class="rm-title" style="margin:0 0 6px;font-family:${FONT_SANS};font-size:14px;line-height:20px;font-weight:700;letter-spacing:-0.01em;color:${TEXT};">${title}</p>
+                          <p class="rm-body" style="margin:0;font-family:${FONT_SANS};font-size:14px;line-height:1.6;color:${BODY};">${text}</p>
                         </td>
                       </tr>
                     </table>`;
 }
 
 /**
- * Label and value rows inside one panel. Used on the email change template to
- * show the current address and the requested one, so the reader can audit the
- * change before confirming it.
+ * Label and value rows in one panel. Matches render.ts rows().
+ *
+ * Used on the email change template so the reader can audit both addresses
+ * before approving anything. word-break is on the value because an email
+ * address is one long unbreakable token and will otherwise widen the table
+ * past the viewport on a phone.
  */
 function detailPanel(rows) {
-  const body = rows
+  const cells = rows
     .map(
       ([label, value], i) => `<tr>
-                              <td style="padding:${i === 0 ? "16px 18px 14px" : "14px 18px 16px"};${i === 0 ? "" : `border-top:1px solid ${EDGE};`}">
-                                <p style="margin:0 0 4px;font-family:${FONT_SANS};font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${MUTED};">${label}</p>
-                                <p style="margin:0;font-family:${FONT_SANS};font-size:15px;line-height:22px;font-weight:600;color:${TEXT};word-break:break-all;">${value}</p>
-                              </td>
-                            </tr>`,
+                            <td width="40%" class="rm-muted rm-rule" style="width:40%;padding:13px 14px 13px 0;${i === 0 ? "" : `border-top:1px solid ${EDGE};`}font-family:${FONT_SANS};font-size:13px;line-height:1.5;vertical-align:top;color:${MUTED};">${label}</td>
+                            <td align="right" class="rm-title rm-rule" style="padding:13px 0;${i === 0 ? "" : `border-top:1px solid ${EDGE};`}font-family:${FONT_SANS};font-size:15px;line-height:1.5;font-weight:700;vertical-align:top;word-break:break-all;color:${TEXT};">${value}</td>
+                          </tr>`,
     )
-    .join("\n                            ");
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+    .join("\n                          ");
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                       <tr>
-                        <td style="background-color:${PANEL_DEEP};background-image:linear-gradient(180deg,${PANEL} 0%,${PANEL_DEEP} 100%);border:1px solid ${EDGE};border-radius:16px;padding:0;">
-                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
-                            <tr><td style="height:1px;line-height:1px;font-size:0;background-color:${EDGE};background-image:${HAIRLINE_INNER};mso-line-height-rule:exactly;">&nbsp;</td></tr>
-                            ${body}
+                        <td class="rm-panel" style="background:${PANEL};border:1px solid ${EDGE};border-radius:16px;padding:6px 22px;">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
+                          ${cells}
                           </table>
                         </td>
                       </tr>
@@ -242,195 +248,175 @@ function detailPanel(rows) {
 }
 
 /**
- * What you get next. Each row is a two-cell table: a small glowing dot and the
- * copy. Kept as text and CSS so nothing depends on remote images loading.
+ * A short list of what is true about this platform.
  *
- * The dot cell carries 6px more top padding than its text cell. Email HTML has
- * no way to centre a marker against the cap height of the first line, so the
- * offset is applied by hand. Adjust both numbers together if the type changes.
+ * Plain list markup rather than a table of dots and copy. The old version drew
+ * a 9px gradient square beside each line, which is decoration that costs a
+ * table, two cells and a hand-tuned vertical offset per row, and which a screen
+ * reader announces as nothing at all. A list is a list.
  */
-function valueList(items) {
-  const rows = items
-    .map(
-      (item, i) => `<tr>
-                          <td width="26" style="width:26px;vertical-align:top;padding:${i === 0 ? "6px" : "16px"} 0 0;">
-                            <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                              <td style="width:9px;height:9px;line-height:9px;font-size:0;background-color:${GLOW};background-image:${GRADIENT_WORDMARK};border-radius:5px;mso-line-height-rule:exactly;">&nbsp;</td>
-                            </tr></table>
-                          </td>
-                          <td style="vertical-align:top;padding:${i === 0 ? "0" : "10px"} 0 0;font-family:${FONT_SANS};font-size:14px;line-height:22px;color:${BODY};">
-                            <span style="color:${TEXT};font-weight:600;">${item.title}</span> ${item.text}
-                          </td>
-                        </tr>`,
-    )
+function pointList(items) {
+  const list = items
+    .map((item) => `<li style="margin:0 0 10px;">${item}</li>`)
     .join("\n                        ");
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
-                        ${rows}
-                    </table>`;
+  return `<ul class="rm-body" style="margin:0;padding:0 0 0 22px;font-family:${FONT_SANS};font-size:15px;line-height:1.6;color:${BODY};">
+                        ${list}
+                      </ul>`;
 }
 
 /** Small print with the raw link, for clients that strip the button. */
 function fallbackLink(href) {
-  return `<p style="margin:0;font-family:${FONT_SANS};font-size:12px;line-height:19px;color:${MUTED};">
+  return `<p class="rm-muted" style="margin:0;font-family:${FONT_SANS};font-size:13px;line-height:1.6;color:${MUTED};">
                       If the button does not work, copy this link into your browser:<br />
-                      <a href="${href}" target="_blank" style="color:${SKY};text-decoration:underline;word-break:break-all;">${href}</a>
+                      <a href="${href}" target="_blank" class="rm-brand" style="color:${GLOW};text-decoration:underline;word-break:break-all;">${href}</a>
                     </p>`;
 }
 
 /**
- * The platform promise band, on the templates where it belongs. It is the
- * reason a first-time renter trusts the product, so it sits on the welcome,
- * the invitation and the sign-in link. It is deliberately absent from a
- * password reset, where the only job is to get someone calmly back in.
+ * The band of plain facts, on the templates where it belongs.
+ *
+ * NOT a promise band. It used to be headed "How RentMe protects you" and to
+ * claim every listing carried a verified host, which is not true: verification
+ * is a ladder most listers have not climbed, and an email is the one surface
+ * with no corrective. What is here now is what this platform can actually
+ * stand behind, in the same words the transactional emails use.
+ *
+ * It is deliberately absent from a password reset, where the only job is to get
+ * somebody calmly back in.
  */
-function trustBand(lines) {
+function factBand(title, lines) {
   const items = lines
-    .map(
-      (line, i) => `<tr>
-                          <td width="18" style="width:18px;vertical-align:top;padding:${i === 0 ? "7px" : "13px"} 0 0;">
-                            <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                              <td style="width:6px;height:6px;line-height:6px;font-size:0;background-color:${SKY};border-radius:3px;mso-line-height-rule:exactly;">&nbsp;</td>
-                            </tr></table>
-                          </td>
-                          <td style="vertical-align:top;padding:${i === 0 ? "0" : "6px"} 0 0;font-family:${FONT_SANS};font-size:13px;line-height:20px;color:${BODY};">${line}</td>
-                        </tr>`,
-    )
-    .join("\n                        ");
-  return `<td style="background-color:${PANEL_DEEP};background-image:${GLOW_MASTHEAD};padding:22px 32px 24px;">
-                      <p style="margin:0 0 12px;font-family:${FONT_SANS};font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${SKY};">How RentMe protects you</p>
-                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
-                        ${items}
-                      </table>
+    .map((line) => `<li style="margin:0 0 8px;">${line}</li>`)
+    .join("\n                          ");
+  // The band closes the card, so it carries the card's side borders and its
+  // bottom radius. The card above it drops both, which is why the two are
+  // written as one decision in shell() rather than independently here.
+  return `<td class="rm-panel" style="background:${PANEL};border:1px solid ${EDGE};border-radius:0 0 20px 20px;padding:24px ${PAD_X}px 26px;">
+                      <p class="rm-muted" style="margin:0 0 12px;font-family:${FONT_SANS};font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${MUTED};">${title}</p>
+                      <ul class="rm-body" style="margin:0;padding:0 0 0 20px;font-family:${FONT_SANS};font-size:14px;line-height:1.6;color:${BODY};">
+                          ${items}
+                      </ul>
                     </td>`;
 }
 
 /**
- * The masthead. Not a logo line: a panel one shade lighter than the card, lit
- * from above by a radial glow, with the mark and the gradient wordmark locked
- * up as a single object and a purpose line beneath it. The wordmark declares a
- * solid GLOW colour before the gradient clip, so clients that ignore
- * background-clip still render readable text rather than nothing.
+ * The lockup and the purpose line.
+ *
+ * The mark is an image carrying no words and its alt is EMPTY on purpose: the
+ * wordmark beside it is live text. With images blocked a reader sees "RentMe"
+ * once, in brand blue, rather than "RentMe RentMe" or a broken image icon where
+ * the brand should be. The purpose line beneath says what this particular email
+ * is for, which is the one piece of hierarchy an auth message needs that a
+ * transactional one does not: the reader did not ask for this and has half a
+ * second to decide it is real.
  */
 function masthead(purpose) {
-  return `<td style="background-color:${PANEL};background-image:${GLOW_MASTHEAD};padding:30px 32px 26px;">
-                      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-                        <tr>
-                          <td style="vertical-align:middle;padding-right:11px;">
-                            <img src="${LOGO}" width="42" height="42" alt="RentMe" style="display:block;width:42px;height:42px;border:0;outline:none;text-decoration:none;" />
-                          </td>
-                          <td style="vertical-align:middle;">
-                            <span style="font-family:${FONT_SANS};font-size:25px;line-height:30px;font-weight:700;letter-spacing:-0.03em;color:${SKY};background-image:${GRADIENT_WORDMARK};-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">RentMe</span>
-                          </td>
-                        </tr>
-                      </table>
-                      <div style="height:14px;line-height:14px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
-                      <p style="margin:0;font-family:${FONT_SANS};font-size:12px;line-height:16px;font-weight:600;letter-spacing:0.13em;text-transform:uppercase;color:${MUTED};">${purpose}</p>
-                    </td>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="vertical-align:middle;padding-right:12px;">
+                      <img src="${LOGO}" width="${LOGO_SIZE}" height="${LOGO_SIZE}" alt="" style="display:block;width:${LOGO_SIZE}px;height:${LOGO_SIZE}px;border:0;outline:none;text-decoration:none;" />
+                    </td>
+                    <td style="vertical-align:middle;">
+                      <span class="rm-brand" style="font-family:${FONT_SANS};font-size:23px;line-height:28px;font-weight:700;letter-spacing:-0.025em;color:${GLOW};">RentMe</span>
+                    </td>
+                  </tr>
+                </table>
+                <div style="height:26px;line-height:26px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
+                <p class="rm-muted" style="margin:0 0 10px;font-family:${FONT_SANS};font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${MUTED};">${purpose}</p>`;
 }
+
+/**
+ * The dark override, identical to the one in render.ts down to the class names.
+ *
+ * Every declaration is !important because it has to beat an inline style
+ * attribute, and there is no other way round that in email. Classes rather than
+ * element selectors, so a client that supports the media query but has
+ * rewritten the markup still matches.
+ */
+const DARK_STYLE = `
+      :root { color-scheme: light dark; supported-color-schemes: light dark; }
+      @media (prefers-color-scheme: dark) {
+        .rm-base   { background: ${D_BASE} !important; }
+        .rm-card   { background: ${D_CARD} !important; border-color: ${D_EDGE} !important; }
+        .rm-panel  { background: ${D_PANEL} !important; border-color: ${D_EDGE} !important; }
+        .rm-title  { color: ${D_TEXT} !important; }
+        .rm-body   { color: ${D_BODY} !important; }
+        .rm-muted  { color: ${D_MUTED} !important; }
+        .rm-rule   { border-top-color: ${D_EDGE} !important; }
+        .rm-brand  { color: ${SKY} !important; }
+      }`;
 
 /* ------------------------------------------------------------------------- *
  * The shared shell
  * ------------------------------------------------------------------------- */
 
 /**
- * One shell for all five templates.
+ * One shell for all five templates, and the same shell the product's
+ * transactional email uses.
  *
  * @param preheader hidden inbox line
  * @param purpose   masthead purpose line, so each email announces its job
  * @param body      the middle: heading, lede, CTA, panels, fallback link
- * @param trust     optional array of promise lines for the trust band
- * @param footnote  the closing legal sentence, tuned per template
+ * @param facts     optional {title, lines} band of plain, checkable statements
+ * @param footnote  the closing sentence, tuned per template
  */
-function shell({ preheader, purpose, body, trust, footnote }) {
+function shell({ preheader, purpose, body, facts, footnote }) {
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Dark first. Declaring both schemes stops Apple Mail and Outlook.com
-         force-inverting the artwork colours, and lets the light-mode courtesy
-         below apply cleanly where it is supported. -->
-    <meta name="color-scheme" content="dark light" />
-    <meta name="supported-color-schemes" content="dark light" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
     <title>RentMe</title>
-    <style>
-      /* Enhancement only. Nothing here is required for layout or legibility:
-         every colour and dimension that matters is inline on the element.
-         In light mode the card stays dark on purpose, because the mark is a
-         cutout for dark surfaces and the brand is dark first. Only the paper
-         behind the card and the text sitting on that paper change, which keeps
-         the risk to two declarations. !important is needed because inline
-         styles otherwise win. */
-      @media (prefers-color-scheme: light) {
-        /* Paper white with no blue wash, per the brand canon for light mode.
-           body is repainted alongside .rm-canvas because the canvas table is
-           only as tall as its content: leaving body navy left a dark strip
-           below the footer wherever the message was shorter than the window,
-           which read as a rendering fault rather than a design. */
-        body { background-color: #F5F6F8 !important; }
-        .rm-canvas { background-color: #F5F6F8 !important; }
-        .rm-outer-text { color: #3B4477 !important; }
-      }
+    <style>${DARK_STYLE}
     </style>
   </head>
-  <body style="margin:0;padding:0;width:100%;background-color:${BASE};color:${BODY};font-family:${FONT_SANS};-webkit-font-smoothing:antialiased;">
-    <!-- Hidden preheader. The trailing entities stop clients pulling body copy
-         into the inbox line after it. -->
-    <div style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;color:${BASE};mso-hide:all;">${preheader}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</div>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="rm-canvas" style="width:100%;background-color:${BASE};">
+  <body class="rm-base" style="margin:0;padding:0;width:100%;background:${BASE};color:${BODY};font-family:${FONT_SANS};-webkit-font-smoothing:antialiased;">
+    <!-- The hidden inbox line. The trailing spacer entities stop a client
+         pulling the first sentence of body copy in after it, so what the
+         reader sees beside the subject is a line somebody wrote. -->
+    <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;mso-hide:all;">${preheader}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</span>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="rm-base" style="width:100%;background:${BASE};">
       <tr>
-        <td align="center" style="padding:32px 14px 40px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
+        <td align="center" style="padding:36px 16px 44px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:${MAX_WIDTH}px;width:100%;">
 
-            <!-- Luminous cap. The glow edge of the card, brightest at centre.
-                 background-color first: Outlook keeps the solid electric blue. -->
+            <!-- The glow edge: a luminous rule capping the card, brightest at
+                 its centre. background-color before background-image, so
+                 Outlook keeps a solid electric blue rather than nothing. -->
             <tr>
-              <td style="height:5px;line-height:5px;font-size:0;background-color:${GLOW};background-image:${GRADIENT_CAP};border-radius:22px 22px 0 0;mso-line-height-rule:exactly;">&nbsp;</td>
+              <td style="height:4px;line-height:4px;font-size:0;background-color:${GLOW};background-image:${GRADIENT_CAP};border-radius:20px 20px 0 0;mso-line-height-rule:exactly;">&nbsp;</td>
             </tr>
 
-            <!-- Edge-lit ring. 1px of padding on a gradient cell is the only
-                 email-safe way to draw the lit border the web card gets from a
-                 multi-background ring. -->
             <tr>
-              <td style="background-color:${EDGE};background-image:${GRADIENT_RING};padding:1px;border-radius:0 0 22px 22px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:${CARD};border-radius:0 0 21px 21px;">
-
-                  <tr>
-                    ${masthead(purpose)}
-                  </tr>
-                  ${rule()}
-
-                  <tr>
-                    <td style="background-color:${CARD};background-image:linear-gradient(180deg,#04042C 0%,${CARD} 38%,#020220 100%);padding:34px 32px 32px;">
-                      ${body}
-                    </td>
-                  </tr>
-${
-  trust
-    ? `                  ${rule()}
-                  <tr>
-                    ${trustBand(trust)}
-                  </tr>
-`
-    : ""
-}                </table>
+              <td class="rm-card" style="background:${CARD};border:1px solid ${EDGE};border-top:0;${facts ? "" : "border-radius:0 0 20px 20px;"}padding:${PAD_X}px ${PAD_X}px 36px;">
+                ${masthead(purpose)}
+                ${body}
               </td>
             </tr>
-
-            <!-- Outer footer. Sits on the canvas rather than in the card, so it
-                 reads as small print by position as well as by size. -->
+${
+  facts
+    ? `            <tr>
+              ${factBand(facts.title, facts.lines)}
+            </tr>
+`
+    : ""
+}
+            <!-- The footer sits on the canvas OUTSIDE the card, so it reads as
+                 small print by position as well as by size. -->
             <tr>
-              <td style="padding:24px 26px 0;">
-                <p class="rm-outer-text" style="margin:0 0 10px;font-family:${FONT_SANS};font-size:12px;line-height:19px;color:${MUTED};">${footnote}</p>
+              <td style="padding:26px ${PAD_X - 12}px 0;">
+                <p class="rm-muted" style="margin:0 0 12px;font-family:${FONT_SANS};font-size:13px;line-height:20px;color:${MUTED};">${footnote}</p>
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                   <tr>
-                    <td style="vertical-align:middle;padding-right:8px;">
+                    <td style="vertical-align:middle;padding-right:9px;">
                       <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                        <td style="width:16px;height:2px;line-height:2px;font-size:0;background-color:${GLOW};background-image:${GRADIENT_WORDMARK};border-radius:1px;mso-line-height-rule:exactly;">&nbsp;</td>
+                        <td style="width:18px;height:2px;line-height:2px;font-size:0;background-color:${GLOW};background-image:${GRADIENT};border-radius:1px;mso-line-height-rule:exactly;">&nbsp;</td>
                       </tr></table>
                     </td>
                     <td style="vertical-align:middle;">
-                      <p class="rm-outer-text" style="margin:0;font-family:${FONT_SANS};font-size:12px;line-height:18px;font-weight:600;letter-spacing:0.01em;color:${SUBTLE};">${STRAPLINE}</p>
+                      <p class="rm-muted" style="margin:0;font-family:${FONT_SANS};font-size:13px;line-height:20px;font-weight:600;color:${MUTED};">${SIGN_OFF}</p>
                     </td>
                   </tr>
                 </table>
@@ -447,122 +433,115 @@ ${
 }
 
 /* ------------------------------------------------------------------------- *
- * The five templates. Each one is written for its own moment, not as the same
- * shell with swapped words: the purpose line, kicker, heading, panels and
- * closing sentence all change with the job the email is doing.
+ * The five templates. Each is written for its own moment rather than being the
+ * same shell with swapped words: the purpose line, heading, panels and closing
+ * sentence all change with the job the email is doing.
  * ------------------------------------------------------------------------- */
 
-const TRUST_DISCOVERY = [
-  "Chats and payments stay inside RentMe, so there is no reason to move a conversation off the platform.",
-  "Pay only after you have inspected a place and you are happy with it.",
-  "Every listing carries a verified host and a real location before it is published.",
-];
+/**
+ * The facts band, and every line in it is checkable.
+ *
+ * These are the same three claims `lib/email/messages.ts` makes in the welcome,
+ * because they are the ones this platform can stand behind. There is no
+ * guarantee here, no promise about money and no claim that anything has been
+ * verified: verification on RentMe is a ladder, it is visible on a profile, and
+ * most listers have not climbed it.
+ */
+const FACTS_MARKETPLACE = {
+  title: "Worth knowing before you start",
+  lines: [
+    "Every listing was put up by a real person on RentMe. Nothing is imported from an outside feed, so there is always somebody to message.",
+    "The rent is rarely the whole number. Caution deposit, agency, legal, agreement and service charge are normal here, so plan around the total move-in cost.",
+    "Keep chats and payments inside RentMe, and pay only after you have inspected a place in person.",
+  ],
+};
 
 const templates = {
-  // Confirm signup: a welcome. Warm, forward looking, and it explains what the
-  // account unlocks rather than only asking for a click.
+  // Confirm signup: the first email anybody gets from RentMe. Its job is to
+  // confirm an address, and its second job is to be obviously real.
   "confirmation.html": {
-    preheader: "One tap and your RentMe account is ready to go.",
-    purpose: "Welcome to RentMe",
+    preheader: "Confirm this address and your RentMe account is ready.",
+    purpose: "Confirm your email",
     body:
-      kicker("Confirm your email") +
-      heading("Your account is one tap away") +
+      heading("Confirm your email address") +
       lede(
-        "Confirm this email address and your RentMe account is ready. From there you can discover verified stays, homes, restaurants and experiences right across Nigeria.",
+        "You are one step from a RentMe account. Confirm this address and you can search, message a lister and save the places you like.",
       ) +
       gap(28) +
       cta("Confirm my email", "{{ .ConfirmationURL }}") +
-      gap(14) +
+      gap(28) +
       codeBox("Or enter this code") +
       gap(28) +
-      valueList([
-        {
-          title: "Search with confidence.",
-          text: "Verified homes, stays and places, mapped to real neighbourhoods.",
-        },
-        {
-          title: "Talk to hosts directly.",
-          text: "Every conversation is kept inside RentMe and stays on the record.",
-        },
-        {
-          title: "Save what you love.",
-          text: "Build shortlists, follow prices and pick up exactly where you left off.",
-        },
-      ]) +
-      gap(26) +
       fallbackLink("{{ .ConfirmationURL }}"),
-    trust: TRUST_DISCOVERY,
+    facts: FACTS_MARKETPLACE,
     footnote:
-      "This confirmation was requested for {{ .Email }}. If it was not you, ignore this message and no account will be activated.",
+      "This confirmation was requested for {{ .Email }}. If it was not you, ignore this message. No account is activated and nothing further happens.",
   },
 
-  // Magic link: quick and frictionless. Short lede, the link first, everything
-  // else kept out of the way. The trust line is a single reminder, not a band
-  // of three, because the reader is mid sign-in.
+  // Magic link: quick and frictionless. The link first, everything else out of
+  // the way, and one security line rather than a band, because the reader is
+  // mid sign-in and wants to be finished.
   "magic-link.html": {
     preheader: "Your single-use RentMe sign-in link is ready.",
     purpose: "Sign in to RentMe",
     body:
-      kicker("One tap, no password") +
       heading("Here is your sign-in link") +
-      lede(
-        "No password needed. Tap below and you are straight back into RentMe.",
-      ) +
-      gap(26) +
+      lede("No password needed. Open this and you are back into RentMe.") +
+      gap(28) +
       cta("Sign in to RentMe", "{{ .ConfirmationURL }}") +
-      gap(14) +
+      gap(28) +
       codeBox("Or enter this code") +
-      gap(22) +
+      gap(24) +
       para(
-        "This link works once and expires shortly, so use it while it is fresh. It signs in the account for {{ .Email }} only.",
+        "This link works once and expires shortly, so use it while it is fresh. It signs in the account for {{ .Email }} and no other.",
       ) +
       gap(24) +
-      fallbackLink("{{ .ConfirmationURL }}"),
-    trust: [
-      "Chats and payments stay inside RentMe. Nobody from RentMe will ever ask you for this link or your password.",
-    ],
-    footnote:
-      "If you did not ask to sign in, ignore this message. The link expires on its own and nothing changes.",
-  },
-
-  // Recovery: calm and reassuring. No urgency, no alarm colour, and an explicit
-  // panel saying that doing nothing is safe. No trust band here: the only job
-  // is getting someone back in without worry.
-  "recovery.html": {
-    preheader: "A calm way back into your RentMe account.",
-    purpose: "Account security",
-    body:
-      kicker("Password reset") +
-      heading("Let us get you back in") +
-      lede(
-        "It happens. Choose a new password below and you will be back into your RentMe account in a moment.",
-      ) +
-      gap(28) +
-      cta("Choose a new password", "{{ .ConfirmationURL }}") +
-      gap(14) +
-      codeBox("Or enter this code") +
-      gap(26) +
       notePanel({
-        title: "Did not request this?",
-        text: "Then there is nothing to do. Your current password still works, this link expires by itself, and your account stays exactly as it is.",
+        title: "Nobody should ever ask you for this",
+        text: "RentMe will never ask you for this link, this code or your password. Not by phone, not by message, not by email. If somebody does, they are not us.",
       }) +
       gap(24) +
       fallbackLink("{{ .ConfirmationURL }}"),
     footnote:
-      "This reset was requested for {{ .Email }}. For your security the link can only be used once.",
+      "If you did not ask to sign in, ignore this message. The link expires on its own and nothing about your account changes.",
+  },
+
+  // Recovery: calm, no urgency, no alarm colour, and an explicit statement that
+  // doing nothing is safe. No facts band: the only job is getting somebody back
+  // in without worrying them.
+  "recovery.html": {
+    preheader: "A way back into your RentMe account.",
+    purpose: "Password reset",
+    body:
+      heading("Set a new password") +
+      lede(
+        "Somebody asked to reset the password on this account. If that was you, choose a new one and you are back in.",
+      ) +
+      gap(28) +
+      cta("Choose a new password", "{{ .ConfirmationURL }}") +
+      gap(28) +
+      codeBox("Or enter this code") +
+      gap(26) +
+      notePanel({
+        title: "If this was not you",
+        text: "There is nothing to do. Your current password still works, this link expires by itself, and your account stays exactly as it is.",
+      }) +
+      gap(24) +
+      fallbackLink("{{ .ConfirmationURL }}"),
+    footnote:
+      "This reset was requested for {{ .Email }}. The link can only be used once.",
   },
 
   // Email change: a security confirmation. The reader audits the change before
-  // approving it, so both addresses are shown in a panel, and the emphasis is
-  // on authorising rather than on welcoming.
+  // approving it, so both addresses are shown, and the emphasis is on
+  // authorising rather than on welcoming.
   "email-change.html": {
     preheader: "Approve the email address change on your RentMe account.",
     purpose: "Security confirmation",
     body:
-      kicker("Email address update") +
       heading("Confirm your new email address") +
       lede(
-        "A request was made to move your RentMe account to a new email address. Check the details below, then approve the change.",
+        "A request was made to move your RentMe account to a new address. Check both below, then approve the change.",
       ) +
       gap(26) +
       detailPanel([
@@ -571,59 +550,45 @@ const templates = {
       ]) +
       gap(26) +
       cta("Confirm the change", "{{ .ConfirmationURL }}") +
-      gap(14) +
+      gap(26) +
       notePanel({
         title: "If you did not request this",
-        text: "Do not tap the button. Your address stays as it is until the change is approved. Sign in and update your password, and contact RentMe support if anything still looks wrong.",
+        text: "Do not open the link. Your address stays as it is until the change is approved. Sign in, change your password, and contact RentMe support if anything still looks wrong.",
       }) +
       gap(24) +
       fallbackLink("{{ .ConfirmationURL }}"),
-    trust: [
-      "RentMe will never ask you to confirm an account change through a link sent by anyone other than us.",
-      "Your sign-in details and your conversations stay inside RentMe.",
-    ],
     footnote:
-      "This request was made on the account for {{ .Email }}. The change only takes effect once it is confirmed.",
+      "This request was made on the account for {{ .Email }}. The change only takes effect once it is confirmed from this message.",
   },
 
-  // Invite: an invitation, so it reads as an offer rather than an instruction.
-  // Someone already inside RentMe put this reader's name forward, and the copy
-  // is warm about it.
+  // Invite: an offer rather than an instruction. Somebody already inside
+  // RentMe put this reader's name forward, and the copy is warm about it
+  // without promising them anything.
   "invite.html": {
-    preheader: "Someone has invited you to join RentMe.",
+    preheader: "Somebody has invited you to join RentMe.",
     purpose: "Your invitation",
     body:
-      kicker("Welcome to RentMe") +
-      heading("A place on RentMe is waiting") +
+      heading("You have been invited to RentMe") +
       lede(
-        "You have been invited to join RentMe, where people across Nigeria find verified homes, stays, restaurants and experiences. Accept below and your account is set up in a moment.",
+        "RentMe is a Nigerian property marketplace for renting, buying and selling, and for short stays. Accept below and your account is set up in a moment.",
       ) +
-      gap(28) +
-      cta("Accept your invitation", "{{ .ConfirmationURL }}") +
-      gap(14) +
-      valueList([
-        {
-          title: "Set your own pace.",
-          text: "Choose a password, add a photo, and browse as much as you like first.",
-        },
-        {
-          title: "Everything in one place.",
-          text: "Listings, conversations and bookings all sit inside your account.",
-        },
-        {
-          title: "Nothing is shared without you.",
-          text: "Your details stay private until you choose to reach out to a host.",
-        },
-      ]) +
       gap(26) +
+      cta("Accept your invitation", "{{ .ConfirmationURL }}") +
+      gap(28) +
+      pointList([
+        "Browse as much as you like before you tell anybody anything about yourself.",
+        "Listings, conversations and bookings all sit in one account.",
+        "Your details stay private until you choose to message a lister.",
+      ]) +
+      gap(24) +
       para(
         "This invitation was sent to {{ .Email }}. It is personal to you, so please keep the link to yourself.",
       ) +
       gap(24) +
       fallbackLink("{{ .ConfirmationURL }}"),
-    trust: TRUST_DISCOVERY,
+    facts: FACTS_MARKETPLACE,
     footnote:
-      "If you were not expecting an invitation, you can ignore this message and no account will be created.",
+      "If you were not expecting an invitation, ignore this message. No account is created and nothing further happens.",
   },
 };
 
