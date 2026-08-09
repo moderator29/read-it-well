@@ -448,8 +448,17 @@ export type Fact = {
 export function FactGrid({ facts, className }: { facts: Fact[]; className?: string }) {
   if (facts.length === 0) return null;
   return (
+    /*
+       `gap-y-lg`, and it was `gap-y-xl`.
+
+       A fact here is a label and one short answer: about two lines of type. The
+       row gap was larger than the rows themselves, so "The details" on a
+       listing spread eight small facts down most of a phone screen and read as
+       eight separate things rather than as one block of specification. The
+       horizontal gap stays where it is, because columns need to be told apart
+       and rows in the same table do not. */
     <dl
-      className={`grid grid-cols-2 gap-x-lg gap-y-xl sm:grid-cols-3 ${className ?? ""}`}
+      className={`grid grid-cols-2 gap-x-lg gap-y-lg sm:grid-cols-3 ${className ?? ""}`}
       data-testid="fact-grid"
     >
       {facts.map((fact) => (
@@ -458,7 +467,12 @@ export function FactGrid({ facts, className }: { facts: Fact[]; className?: stri
             {fact.icon && <UiIcon name={fact.icon} size={ICON.inline} className="shrink-0" />}
             {fact.label}
           </dt>
-          <dd className="mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold leading-snug text-[var(--nf-content-primary)]">
+          {/* The answer sits one step down, at body rather than body-lg. A
+              specification grid is scanned, not read: at the lede size eight
+              answers competed with the section heading above them, which is the
+              "everything is too big" complaint in one element. Semibold at body
+              size still separates the answer from its label without shouting. */}
+          <dd className="mt-inline-tight nf-body font-semibold leading-snug text-[var(--nf-content-primary)]">
             {fact.value}
           </dd>
           {fact.note && <p className={`mt-inline-tight ${TYPE.caption} leading-snug`}>{fact.note}</p>}
