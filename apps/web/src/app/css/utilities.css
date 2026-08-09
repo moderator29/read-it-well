@@ -165,4 +165,78 @@
      already collapses to 1ms under prefers-reduced-motion in tokens.css, so
      this transition resolves immediately without a second rule claiming
      responsibility for it. */
+
+  /*
+   * ONE SURFACE PER GROUP, NOT ONE PER ITEM.
+   *
+   * This is the container philosophy the reference platform runs on, and it is
+   * a different idea from "use fewer boxes". Their settings screen puts account
+   * information, profile switching, payments and history inside a SINGLE
+   * rounded surface with hairline rules between them. Ours would have drawn
+   * four cards. They end up with two or three surfaces on a screen where we
+   * have eight or nine, and that ratio is most of why their screens feel calm
+   * while carrying the same number of options.
+   *
+   * Usage: an .nf-card wrapping .nf-rows--inset, with the section label OUTSIDE
+   * the card above it. The card holds content and never a heading, because a
+   * heading inside a surface costs a line of padding and makes the surface look
+   * busier than its contents are.
+   */
+
+  /*
+   * The inset divider, which is the detail that does the work.
+   *
+   * A rule between two rows must NOT run to the container's edges. It starts
+   * after the row's leading icon and stops before its trailing chevron. Run to
+   * the edge and a list reads as stacked strips that happen to be adjacent;
+   * inset, the same list reads as one object with parts. It is a few pixels and
+   * it changes what the eye groups.
+   *
+   * The lead is a variable so a caller can align it to whatever leading element
+   * the rows actually carry: an icon in a circle, a bare glyph, or nothing.
+   */
+  .nf-rows--inset {
+    --nf-row-divider-lead: 3.25rem;
+    --nf-row-divider-tail: 0rem;
+  }
+
+  .nf-rows--inset > * + * {
+    border-top: 0;
+    position: relative;
+  }
+
+  .nf-rows--inset > * + *::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: var(--nf-row-divider-lead);
+    inset-inline-end: var(--nf-row-divider-tail);
+    inset-block-start: 0;
+    height: 1px;
+    background: var(--nf-divider);
+    pointer-events: none;
+  }
+
+  /*
+   * A grouped surface's own padding. Block padding only: the rows supply their
+   * own inline padding so a row's hover and press states reach the full width
+   * of the surface rather than stopping short of it, which is what makes a
+   * whole row feel tappable instead of a region inside it.
+   */
+  .nf-group {
+    padding-block: 0.25rem;
+    padding-inline: 1.125rem;
+  }
+
+  /*
+   * The label above a grouped surface. Outside the container, quiet, and the
+   * only thing between one group and the next.
+   */
+  .nf-group-label {
+    display: block;
+    margin-block-end: 0.625rem;
+    padding-inline: 0.25rem;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
 }

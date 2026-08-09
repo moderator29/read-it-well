@@ -233,7 +233,24 @@
         transparent 68%)
         border-box;
     border: 1px solid transparent;
-    border-radius: var(--nf-radius-lg);
+    /*
+     * 22px, up from 18px.
+     *
+     * The material stays exactly as it is: the layered gradient, the corner
+     * bloom and the rim are the best surface on this platform and they are not
+     * being flattened. What changes is the PROPORTION.
+     *
+     * The reference platform's surfaces sit around 20 to 24px and read as
+     * roomy. At 18px, with our padding, a card reads as a box holding content
+     * rather than as a space content lives in, and the difference between
+     * those two readings is most of what "mature" means when somebody looks at
+     * a screen and cannot say why one feels expensive.
+     *
+     * A radius change is cheap to make and expensive to get wrong, so it is
+     * made once, here, on the shared material, rather than as a per-component
+     * override that drifts.
+     */
+    border-radius: var(--nf-radius-xl);
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
     /*
