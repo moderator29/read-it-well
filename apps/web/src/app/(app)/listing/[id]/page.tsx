@@ -701,11 +701,15 @@ export default async function ListingDetailPage({
                     )}
                   </div>
 
-                  <h1 className="mt-4 text-[1.625rem] font-bold leading-[1.15] tracking-[-0.02em] text-[var(--nf-content-primary)] sm:text-[2.25rem]">
+                  {/* 24px on a phone, 32 from `sm`, down from 26 and 36. The title is the
+                      second thing read after the photograph and the price is the
+                      thing being decided on: a headline set within a few points of
+                      the price competes with it. */}
+                  <h1 className="mt-row text-[1.5rem] font-bold leading-[1.15] tracking-[-0.02em] text-[var(--nf-content-primary)] sm:text-[2rem]">
                     {listing.title}
                   </h1>
 
-                  <p className={`mt-2.5 flex items-center gap-2 ${TYPE.bodyLg}`}>
+                  <p className={`mt-inline-tight flex items-center gap-inline ${TYPE.body}`}>
                     <UiIcon name="location" size={ICON.inline} className="shrink-0" />
                     <span className="min-w-0">{where}</span>
                   </p>
@@ -724,7 +728,7 @@ export default async function ListingDetailPage({
                       number, which is one of the two things the reference
                       platforms do badly and we do not copy. */}
                   {listing.priceMinor > 0 && (
-                    <p className="mt-5">
+                    <p className="mt-block">
                       <Amount
                         minorUnits={listing.priceMinor}
                         locale={locale}
@@ -738,7 +742,7 @@ export default async function ListingDetailPage({
 
                   {/* The trust marks: icon and word, no container. */}
                   {marks.length > 0 && (
-                    <ul className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+                    <ul className="mt-row flex flex-wrap items-center gap-x-lg gap-y-inline">
                       {marks.map((mark) => (
                         <li
                           key={mark.label}
