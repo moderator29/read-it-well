@@ -101,45 +101,63 @@
    * ::after overlay the chips use grows the touch region without moving a
    * pixel of the paint.
    */
+  /*
+   * FOR YOU, FOLLOWING, NEW.
+   *
+   * Three changes the owner asked for, and each fixes something real.
+   *
+   * GLASS, NOT TRANSPARENT. They were bare text until selected, so two of the
+   * three read as labels rather than as controls and only the active one
+   * looked pressable. Every tab now carries the platform's own glass, which is
+   * the material the rest of the product uses to say "this is a surface you
+   * can act on".
+   *
+   * BIGGER. 34px tall with caption text, which is below the 44px minimum this
+   * codebase holds everywhere else and set two steps under body. They are the
+   * primary way somebody changes what the feed is showing them, so they are
+   * now a full tap target at body-small.
+   *
+   * A BLUE STRIDE ON THE SELECTED ONE. The active tab was distinguished by a
+   * slightly lighter fill, which is nearly invisible on a dark screen. It now
+   * carries the brand border and a brand-tinted fill, so which feed you are
+   * reading is legible at a glance rather than by comparison.
+   */
   .nf-feedtab {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 34px;
-    padding: var(--nf-space-0) var(--nf-pad-chip-inline);
-    border-radius: var(--nf-radius-sm);
-    font-size: var(--nf-text-caption);
+    min-height: 2.75rem;
+    padding: var(--nf-space-0) var(--nf-gap-group);
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-body-sm);
     font-weight: 600;
     white-space: nowrap;
-    color: var(--nf-content-muted);
-    border: 1px solid transparent;
-    background: transparent;
+    color: var(--nf-content-secondary);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-glass);
+    backdrop-filter: blur(var(--nf-blur-sm));
+    -webkit-backdrop-filter: blur(var(--nf-blur-sm));
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
       background var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
-  .nf-feedtab::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    translate: 0 -50%;
-    min-height: 2.75rem;
-    height: 100%;
-  }
+  /* The pseudo-element that padded a 34px control up to a 44px target is gone
+     with the reason for it: the control is 44px now, so the tap area and the
+     thing you can see are the same rectangle. A hit area larger than its
+     control is a thing people press and think they missed. */
 
   .nf-feedtab:hover {
     color: var(--nf-content-primary);
-    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-strong);
   }
 
   .nf-feedtab[aria-current="page"] {
     color: var(--nf-content-primary);
-    background: var(--nf-surface-inset);
     border-color: var(--nf-border-brand);
+    background: color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-glass));
   }
 
   /* The rule under the live tab. Drawn on the element rather than on the row,
