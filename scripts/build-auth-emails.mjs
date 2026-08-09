@@ -77,7 +77,19 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const OUT_DIR = join(__dirname, "..", "supabase", "templates");
+
+/**
+ * Where the five files land. `supabase/templates` unless told otherwise.
+ *
+ * The override exists for one caller: `shell.test.ts` regenerates into a
+ * temporary directory and diffs the result against what is committed. These
+ * files are committed OUTPUT, and committed output rots in a specific way,
+ * somebody fixes a typo in the HTML, the next person runs the generator, and
+ * the fix vanishes with no diff to explain it. Comparing a fresh run against
+ * the committed copy is the only thing that catches that before it happens.
+ */
+const OUT_DIR =
+  process.env.RENTME_AUTH_EMAIL_OUT_DIR ?? join(__dirname, "..", "supabase", "templates");
 
 /* ------------------------------------------------------------------------- *
  * The palette. Mirrored value for value from

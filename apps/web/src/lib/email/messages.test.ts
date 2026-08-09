@@ -1,21 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import { EVERY_MESSAGE } from "./fixtures";
 import {
-  bookingRefunded,
   escrowFunded,
-  escrowReleased,
   inspectionScheduled,
-  listingApproved,
   listingRejected,
-  newEnquiry,
-  passwordReset,
-  supportTicketFiled,
   verificationCode,
-  verificationRungPassed,
   walletFunded,
   welcome,
   withdrawalOutcome,
-  type EmailMessage,
 } from "./messages";
 import { greetingName, hello, money } from "./render";
 
@@ -48,159 +41,16 @@ import { greetingName, hello, money } from "./render";
  */
 const flat = (text: string): string => text.replace(/\s+/g, " ").trim();
 
-/** One representative call per message in the catalogue. */
-const EVERY_MESSAGE: { name: string; message: EmailMessage }[] = [
-  { name: "welcome:renter", message: welcome({ name: "Ada", role: "renter" }) },
-  { name: "welcome:buyer", message: welcome({ name: "Ada", role: "buyer" }) },
-  { name: "welcome:landlord", message: welcome({ name: "Ada", role: "landlord" }) },
-  { name: "welcome:seller", message: welcome({ name: "Ada", role: "seller" }) },
-  { name: "welcome:agent", message: welcome({ name: "Ada", role: "agent" }) },
-  { name: "welcome:unstated", message: welcome({}) },
-  {
-    name: "verificationCode",
-    message: verificationCode({ name: "Ada", code: "482 913", expiresInMinutes: 10 }),
-  },
-  {
-    name: "passwordReset",
-    message: passwordReset({
-      name: "Ada",
-      resetUrl: "https://rentme.ng/auth/reset?token=abc",
-      expiresInMinutes: 30,
-    }),
-  },
-  {
-    name: "walletFunded",
-    message: walletFunded({ ownerName: "Ada", amountMinor: 500_000, balanceMinor: 1_250_000 }),
-  },
-  {
-    name: "withdrawalOutcome:paid",
-    message: withdrawalOutcome({
-      ownerName: "Ada",
-      outcome: "paid",
-      amountMinor: 250_000,
-      bankName: "GTBank",
-      accountLast4: "4417",
-      reference: "NF-WDL-9K2M",
-    }),
-  },
-  {
-    name: "withdrawalOutcome:failed",
-    message: withdrawalOutcome({ ownerName: "Ada", outcome: "failed", amountMinor: 250_000 }),
-  },
-  {
-    name: "withdrawalOutcome:reversed",
-    message: withdrawalOutcome({ ownerName: "Ada", outcome: "reversed", amountMinor: 250_000 }),
-  },
-  {
-    name: "escrowFunded",
-    message: escrowFunded({
-      payerName: "Ada",
-      listingTitle: "3 bedroom flat, Yaba",
-      amountMinor: 450_000_000,
-      reference: "NF-ESC-77QT",
-      releaseCondition: "you confirm you have the keys and the tenancy agreement is signed",
-    }),
-  },
-  {
-    name: "escrowReleased:payer",
-    message: escrowReleased({
-      audience: "payer",
-      name: "Ada",
-      listingTitle: "3 bedroom flat, Yaba",
-      amountMinor: 450_000_000,
-      reference: "NF-ESC-77QT",
-      releasedBecause: "you confirmed you had the keys",
-    }),
-  },
-  {
-    name: "escrowReleased:recipient",
-    message: escrowReleased({
-      audience: "recipient",
-      name: "Chidi",
-      listingTitle: "3 bedroom flat, Yaba",
-      amountMinor: 450_000_000,
-      reference: "NF-ESC-77QT",
-      releasedBecause: "the tenant confirmed they had the keys",
-    }),
-  },
-  {
-    name: "inspectionScheduled:viewer",
-    message: inspectionScheduled({
-      audience: "viewer",
-      name: "Ada",
-      listingTitle: "3 bedroom flat, Yaba",
-      address: "12 Herbert Macaulay Way, Yaba, Lagos",
-      date: "2026-08-15",
-      time: "11:30",
-      otherPartyName: "Chidi Okeke",
-      otherPartyPhone: "+2348012345678",
-    }),
-  },
-  {
-    name: "inspectionScheduled:lister",
-    message: inspectionScheduled({
-      audience: "lister",
-      name: "Chidi",
-      listingTitle: "3 bedroom flat, Yaba",
-      address: "12 Herbert Macaulay Way, Yaba, Lagos",
-      date: "2026-08-15",
-      time: "11:30",
-    }),
-  },
-  {
-    name: "listingApproved",
-    message: listingApproved({
-      listerName: "Chidi",
-      listingTitle: "3 bedroom flat, Yaba",
-      listingId: "0f1c9b2a-1111-2222-3333-444455556666",
-    }),
-  },
-  {
-    name: "listingRejected",
-    message: listingRejected({
-      listerName: "Chidi",
-      listingTitle: "3 bedroom flat, Yaba",
-      reason: "The photographs are of a different building from the one in the address.",
-    }),
-  },
-  {
-    name: "verificationRungPassed",
-    message: verificationRungPassed({ name: "Chidi", rung: "identity", nextRung: "address" }),
-  },
-  {
-    name: "verificationRungPassed:top",
-    message: verificationRungPassed({ name: "Chidi", rung: "inspection" }),
-  },
-  {
-    name: "newEnquiry",
-    message: newEnquiry({
-      listerName: "Chidi",
-      enquirerName: "Ada Obi",
-      listingTitle: "3 bedroom flat, Yaba",
-      preview: "Good afternoon. Is the service charge yearly, and does it cover the generator?",
-      conversationPath: "/messages/abc",
-    }),
-  },
-  {
-    name: "bookingRefunded",
-    message: bookingRefunded({
-      guestName: "Ada",
-      listingTitle: "Shortlet, Lekki Phase 1",
-      checkIn: "2026-09-01",
-      checkOut: "2026-09-04",
-      paidMinor: 30_000_000,
-      refundMinor: 15_000_000,
-      retainedMinor: 15_000_000,
-      reasonLine: "You cancelled inside 72 hours of check in, so half of what you paid comes back.",
-      reference: "NF-RFD-2Q7X",
-    }),
-  },
-  {
-    name: "supportTicketFiled",
-    message: supportTicketFiled({ name: "Ada", reference: "NF-SUP-4K2P", topic: "wallet" }),
-  },
-];
-
+/**
+ * One representative call per message in the catalogue.
+ *
+ * Imported rather than written here. `shell.test.ts` needs the same matrix to
+ * check the markup, and two lists enumerating the same catalogue drift within a
+ * month: somebody adds a message, adds it to one list, and the message that
+ * ships without a text alternative is the new one. fixtures.ts is the single
+ * list, and shell.test.ts fails when the catalogue exports something it has no
+ * entry for.
+ */
 describe("every message in the catalogue", () => {
   it.each(EVERY_MESSAGE)("$name carries a plain text alternative", ({ message }) => {
     expect(message.text.trim().length).toBeGreaterThan(0);
