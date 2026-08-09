@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * Light and dark switch.
@@ -40,28 +41,14 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
       className={`nf-icon-btn h-9 w-9 ${className ?? ""}`}
     >
-      {theme === "dark" ? (
-        /* Sun */
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="12" r="4.4" stroke="currentColor" strokeWidth="1.8" />
-          <path
-            d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        </svg>
-      ) : (
-        /* Moon */
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path
-            d="M20.2 13.6A8.4 8.4 0 0 1 10.4 3.8a8.4 8.4 0 1 0 9.8 9.8Z"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )}
+      {/*
+        Two hand-drawn SVGs used to live here, inline, each with its own
+        `strokeWidth="1.8"` and its own 16px hardcoded size - two more members
+        of the ad-hoc icon population the sweep exists to remove. They are on
+        the platform family now, at a named step, at the platform's own derived
+        stroke, and they inherit `currentColor` exactly as they did.
+      */}
+      <UiIcon name={theme === "dark" ? "sun" : "moon"} size="sm" />
     </button>
   );
 }

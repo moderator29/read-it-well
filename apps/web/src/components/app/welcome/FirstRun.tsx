@@ -43,26 +43,28 @@ export function FirstRun({
   const [read, setRead] = useState(!showCards);
 
   if (!read) {
+    /*
+     * NO WRAPPER, AND NO LOGO ABOVE IT.
+     *
+     * The slides are full bleed now - they cover the viewport - so the centred
+     * 32rem column and the wordmark that used to sit over them would be a frame
+     * around something with no edges, and a logo floating on top of a
+     * photograph. `WelcomeCards` owns the whole screen while it is up, which is
+     * what an onboarding carousel is.
+     */
     return (
-      <div className="relative z-10 flex w-full max-w-[32rem] flex-col items-center">
-        <div className="nf-rise flex flex-col items-center text-center">
-          <LogoMark size={40} title="RentMe" />
-        </div>
-        <div className="nf-rise mt-7 w-full" style={{ animationDelay: "90ms" }}>
-          <WelcomeCards
-            t={t}
-            onDone={() => {
-              /* Remembered before the question, not after it. Somebody who
-                 reads the cards and then closes the tab has still been told
-                 what this place is, and must not be told again. Fire and
-                 forget: nothing about entering the product waits on a note we
-                 are writing to ourselves. */
-              void markWelcomeSeen();
-              setRead(true);
-            }}
-          />
-        </div>
-      </div>
+      <WelcomeCards
+        t={t}
+        onDone={() => {
+          /* Remembered before the question, not after it. Somebody who reads
+             the slides and then closes the tab has still been told what this
+             place is, and must not be told again. Fire and forget: nothing
+             about entering the product waits on a note we are writing to
+             ourselves. */
+          void markWelcomeSeen();
+          setRead(true);
+        }}
+      />
     );
   }
 

@@ -7,23 +7,50 @@ import { usePathname, useSearchParams } from "next/navigation";
 import type { Dictionary, Locale } from "@naijafinds/i18n";
 import { AppRail } from "./AppRail";
 import { MobileTabBar, showsTabBar } from "./MobileTabBar";
-import { DesktopDock } from "./DesktopDock";
-import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
-import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ButtonLink } from "@/components/ui/Button";
+import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
 
 /**
  * Personal Mode shell.
  *
  * The single wrapper for every consumer page, so the navigation is identical
- * everywhere rather than living on the home route alone (Master Rule 17). On
- * `lg` and up the sticky `AppRail` sits beside the content; below `lg` the rail
- * is gone and the fixed `MobileTabBar` carries navigation, with the main column
- * padded so nothing hides behind it. The active destination is read from the
- * current path here, so the highlight stays correct as the user moves around
- * without each page having to pass it in.
+ * everywhere rather than living on the home route alone. On `lg` and up the
+ * sticky `AppRail` sits beside the content; below `lg` the rail is gone and the
+ * fixed `MobileTabBar` carries navigation, with the main column padded so
+ * nothing hides behind it. The active destination is read from the current path
+ * here, so the highlight stays correct as the user moves around without each
+ * page having to pass it in.
+ *
+ * ---------------------------------------------------------------------------
+ * THE HEADER LOST THREE CONTROLS AND THE SHELL LOST A WHOLE NAVIGATION SURFACE.
+ *
+ * The app bar carried six controls on every screen: the drawer toggle, the
+ * wordmark, a language switcher, a theme toggle, a permanently filled AI
+ * Assistant button, the notification bell and the avatar. Three of those had no
+ * business being there:
+ *
+ *  - **Language** is a choice somebody makes once, and it is a card on
+ *    `/settings`. A permanent control for a once-ever decision is a control
+ *    that is wrong 99.9% of the time it is on screen.
+ *  - **Theme** is the same argument, and it is a card on `/settings` too.
+ *  - **The assistant** was the loudest thing on the bar - filled primary, brand
+ *    gradient, on every route - and it was ALSO a tab on the phone dock and
+ *    ALSO a row in the rail. Three placements for one feature. It keeps the
+ *    one in the side navigation, which renders as the rail on desktop and the
+ *    drawer on a phone, so it has exactly one placement per viewport.
+ *
+ * **The desktop dock is gone entirely.** It was a floating pill fixed over the
+ * bottom of the content offering Notifications, Messages and Settings - all
+ * three of which are rows in the rail, three inches away, permanently visible
+ * on the same viewport the dock only appeared on. It was a second navigation
+ * competing with the first, and on the listing page it fought the sticky action
+ * bar for the bottom edge, which is why `pinsActionBar` existed. That special
+ * case is gone with it.
+ *
+ * WHAT THE HEADER CARRIES NOW: the drawer toggle and the wordmark on a phone,
+ * then either the bell and the avatar (signed in) or Sign up and Log in
+ * (signed out).
  */
 export function AppShell({
   t,
@@ -100,19 +127,12 @@ export function AppShell({
   const edgeToEdge = /^\/listing\/[^/]+$/.test(active);
 
   /*
-   * Routes that pin their own action bar to the bottom edge.
-   *
-   * The listing page now ends on an `<ActionBar>` - a full-width blurred
-   * footer at `bottom-0 z-50`, which is what every reference screen ends with.
-   * The desktop dock is a centred floating pill at `bottom-6 z-40`, so from
-   * `lg` up the two occupy the same strip and the dock floats over the bar.
-   *
-   * The bar wins: it carries the decision the screen exists to produce, and
-   * the dock is a quick-access shortcut that is reachable from the rail on the
-   * same viewport. Kept as a predicate beside `showsTabBar` so the two
-   * bottom-edge rules live together rather than drifting apart.
+   * `pinsActionBar` USED TO BE DECLARED HERE and is gone with the desktop
+   * dock. It existed for exactly one collision: the listing page ends on a
+   * full-width `<ActionBar>` at `bottom-0 z-50`, and the dock was a floating
+   * pill at `bottom-6 z-40`, so from `lg` up the two occupied the same strip
+   * and one floated over the other. No dock, no collision, no special case.
    */
-  const pinsActionBar = /^\/listing\/[^/]+$/.test(active);
 
   /* The drawer closes itself on navigation. Escape, the scroll lock, the focus
      trap and returning focus to the opener are all useOverlay's, because this
@@ -123,6 +143,16 @@ export function AppShell({
   useOverlay({ open: drawer, onClose: closeDrawer, panelRef: drawerPanel });
 
   return (
+    /*
+     * The gate, once, around the whole shell.
+     *
+     * Every gated control below - save, message, request inspection, pay, list,
+     * wallet, switch profile, follow, react, post - reads the session from this
+     * one provider rather than being handed a `signedIn` prop down through
+     * however many components sit between it and the layout. There is one
+     * definition of "may this person act", and it is here.
+     */
+    <AuthGateProvider signedIn={signedIn}>
     <div className="flex min-h-dvh">
       <AppRail
         t={t}
@@ -235,30 +265,21 @@ export function AppShell({
 
             <div className="flex-1" />
 
-            <div className="hidden sm:contents">
-              <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
-            </div>
-            <ThemeToggle />
+            {/*
+              SIGNED OUT: the two things that matter, top right.
 
-            {/* The primitive, not a hand-rolled `nf-btn` class list: the
-                variant, the size ramp, the loading slot and the haptic all
-                come from `ButtonLink`. Main's props are kept verbatim -
-                including `max-sm:hidden`, because on a phone the bell and the
-                avatar take this space and the assistant lives on the rail. */}
-            <ButtonLink
-              href="/assistant"
-              variant="primary"
-              size="sm"
-              aria-label={t.nav.aiAssistant}
-              className="max-sm:hidden"
-            >
-              <UiIcon name="sparkle" size={20} />
-              <span className="hidden sm:inline">{t.nav.aiAssistant}</span>
-            </ButtonLink>
+              Sign up is the filled primary because a visitor who has got this
+              far is the person the screen is for; Log in is the quiet outline
+              beside it because somebody returning is looking for it rather than
+              being sold it. Both carry the screen they are standing on, so
+              joining from a property page comes back to that property page.
+            */}
+            <SignedOutActions t={t} />
 
             {/* The bell and its marker. A dot, not a numeral: the exact count
                 lives on the rail and on /notifications, and at this size a
                 number is unreadable. Zero renders no marker at all. */}
+            {signedIn && (
             <Link
               href="/notifications"
               /* The count is INSIDE one dictionary sentence rather than
@@ -286,10 +307,12 @@ export function AppShell({
                 />
               )}
             </Link>
+            )}
 
+            {signedIn && (
             <Link
-              href={signedIn ? "/profile" : "/sign-in"}
-              aria-label={signedIn ? t.nav.profile : t.common.signIn}
+              href="/profile"
+              aria-label={t.nav.profile}
               className="nf-tap shrink-0 rounded-full p-[1.5px]"
               style={{ background: "var(--nf-gradient-brand)" }}
             >
@@ -317,6 +340,7 @@ export function AppShell({
                 )}
               </span>
             </Link>
+            )}
           </div>
         </header>
         )}
@@ -340,9 +364,14 @@ export function AppShell({
         affordance instead.
       */}
       {!immersive && showsTabBar(active) && (
-        <MobileTabBar t={t} active={active} unreadNotifications={unreadNotifications} />
+        <MobileTabBar
+          t={t}
+          active={active}
+          unreadNotifications={unreadNotifications}
+          signedIn={signedIn}
+        />
       )}
-      {!immersive && !pinsActionBar && <DesktopDock t={t} active={active} />}
     </div>
+    </AuthGateProvider>
   );
 }

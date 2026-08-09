@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import type { ProviderId, ProviderState } from "@/lib/auth/providers";
-import { MailMark } from "./ProviderMarks";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * How you want to get in. One row, and nothing else on the screen.
@@ -79,7 +79,10 @@ export function AuthChoices({
           className="nf-auth-row"
         >
           <span className="nf-auth-row__mark nf-auth-row__mark--email">
-            <MailMark size={16} />
+            {/* The last glyph in `ProviderMarks` was an envelope, so that file
+                is gone and this is the platform's. Deleting it took the final
+                third-party brand colours in the tree with it. */}
+            <UiIcon name="mail" size="xs" />
           </span>
           <span className="flex-1 text-left">{t.auth.continueWithEmail}</span>
         </Link>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import {
   attachImage,
@@ -21,7 +22,6 @@ import {
   type LiveMessageRow,
 } from "@/lib/messages/useRealtime";
 import { createClient } from "@/lib/supabase/client";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
 
@@ -52,6 +52,15 @@ export type ThreadViewProps = {
   conversationId: string;
   meId: string | null;
   counterpartName: string;
+  /**
+   * The counterpart's REAL verification state, from `agents.verified`.
+   *
+   * Required rather than optional and never defaulted at this boundary, for the
+   * same reason `VerifiedAvatar` requires it: the tick beside a stranger's name
+   * is the mark somebody weighs before agreeing to meet them at a property, and
+   * one that appears because a prop was forgotten is worse than none at all.
+   */
+  counterpartVerified: boolean;
   listing: SheetListing | null;
   inspected: boolean;
   messages: ThreadBubble[];
@@ -108,6 +117,7 @@ export function ThreadView({
   conversationId,
   meId,
   counterpartName,
+  counterpartVerified,
   listing,
   inspected: inspectedInitial,
   messages,
@@ -359,12 +369,23 @@ export function ThreadView({
         subtitle={listing?.title ?? "Direct message"}
         fallback="/messages"
         tone={inspected ? "verified" : "default"}
+        /*
+          The counterpart's avatar, carrying their verified mark.
+
+          This slot used to hold a shield that appeared when an INSPECTION had
+          been confirmed, which is a fact about the booking rather than about
+          the person, and it looked exactly like a verification badge. Somebody
+          reading a thread saw a shield beside a stranger's name and had no way
+          to tell that it meant "you visited this flat" rather than "we checked
+          who this is". The inspection still tints the header row through
+          `tone`; the mark on the avatar is now only ever about identity.
+        */
         leading={
-          inspected ? (
-            <span className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" aria-hidden="true">
-              <BrandIcon name="shield-check" state="verified" fill />
-            </span>
-          ) : undefined
+          <VerifiedAvatar
+            name={counterpartName}
+            verified={counterpartVerified}
+            size="sm"
+          />
         }
         actions={
           listing ? (
@@ -377,20 +398,7 @@ export function ThreadView({
               onClick={() => setSheetOpen(true)}
               className="nf-icon-btn h-9 w-9 sm:h-10 sm:w-10"
             >
-              <svg
-                width={18}
-                height={18}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.8}
-                strokeLinecap="round"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="8.6" />
-                <path d="M12 11.2v5" />
-                <circle cx="12" cy="7.9" r="0.5" fill="currentColor" stroke="none" />
-              </svg>
+<UiIcon name="info" size="sm" />
             </button>
           ) : undefined
         }
@@ -588,21 +596,7 @@ export function ThreadView({
           onClick={() => fileRef.current?.click()}
           className="nf-icon-btn h-11 w-11 shrink-0"
         >
-          <svg
-            width={18}
-            height={18}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <rect x="3.4" y="5" width="17.2" height="14" rx="2.6" />
-            <circle cx="9" cy="10" r="1.7" />
-            <path d="m5 17.6 4.6-4.4 3.2 3 3.4-3.4 3.4 3.6" />
-          </svg>
+<UiIcon name="picture" size="sm" />
         </button>
         <label htmlFor="thread-input" className="sr-only">
           Message {counterpartName}

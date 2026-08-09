@@ -8,6 +8,7 @@ import { useInboxTyping } from "@/lib/messages/useRealtime";
 import { PageHeader } from "@/components/app/PageHeader";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 import { Segmented } from "@/components/ui/Segmented";
 import { TextField } from "@/components/ui/Field";
 
@@ -50,11 +51,6 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "requests", label: "Requests" },
 ];
 
-function initialOf(name: string): string {
-  const trimmed = name.trim();
-  return trimmed.length > 0 ? trimmed.charAt(0).toUpperCase() : "?";
-}
-
 function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
   return (
     <li>
@@ -63,26 +59,19 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
         data-testid="inbox-row"
         className="flex w-full items-center gap-3 px-4 py-3.5 transition-colors hover:bg-[var(--nf-glass-fill)]"
       >
-        {/* ------------------------------------------------------ avatar */}
-        <span className="relative shrink-0">
-          <span
-            aria-hidden="true"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[1rem] font-bold text-[var(--nf-electric-300)]"
-          >
-            {initialOf(row.counterpartName)}
-          </span>
-          {/* The dot says what this person is, not whether they are online:
-              a green light nobody is maintaining is a lie, and "host" is the
-              fact that actually changes how you read the message. */}
-          <span
-            aria-hidden="true"
-            className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-[var(--nf-surface-primary)] ${
-              row.counterpartKind === "agent"
-                ? "bg-[var(--nf-brand-primary)]"
-                : "bg-[var(--nf-content-muted)]"
-            }`}
-          />
-        </span>
+        {/* ------------------------------------------------------ avatar
+
+            The verified mark rides the avatar now rather than sitting as a
+            12px tick beside the name. Two reasons. It is where every messaging
+            product puts it, so it is found without being looked for. And in a
+            list, the avatar is what the eye lands on: a mark on the name is
+            read after you have already decided whether to open the thread. */}
+        <VerifiedAvatar
+          name={row.counterpartName}
+          verified={row.counterpartVerified}
+          kind={row.counterpartKind}
+          size="md"
+        />
 
         {/* -------------------------------------------------------- body */}
         <span className="min-w-0 flex-1 leading-tight">
@@ -90,13 +79,8 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
             <span className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
               {row.counterpartName}
             </span>
-            {row.counterpartVerified && (
-              <UiIcon
-                name="verified"
-                size={12}
-                className="shrink-0 text-[var(--nf-state-success)]"
-              />
-            )}
+            {/* The tick that used to be here is on the avatar. One mark per
+                person per row: two is how a badge stops being read. */}
           </span>
           {row.listingTitle && (
             <span className="mt-0.5 block truncate text-[0.75rem] text-[var(--nf-content-muted)]">

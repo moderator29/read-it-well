@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useRequireAuth } from "@/components/auth/AuthGate";
 import { toggleFollow } from "@/lib/social/follows-actions";
 
 /**
@@ -64,6 +65,7 @@ export function FollowButton({
   labels?: FollowLabels;
 }) {
   const router = useRouter();
+  const { gateHref } = useRequireAuth();
   const [following, setFollowing] = useState(initialFollowing);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -72,9 +74,21 @@ export function FollowButton({
     ? "nf-btn nf-btn--primary h-9 shrink-0 px-4 text-[0.8rem]"
     : "nf-btn min-w-[6.5rem]";
 
+  /*
+   * SIGNED OUT IT IS STILL A LINK, and it now remembers what it was for.
+   *
+   * This pointed at a bare `/sign-in`, so a guest who tapped Follow on a
+   * profile signed in and landed on the home shelf, with no way back to the
+   * person they had been looking at short of searching for them again. The
+   * shared gate builds the href instead: `/sign-up?next=/u/ada?do=follow`.
+   *
+   * It stays an anchor rather than becoming an `<AuthGate>` wrapper because an
+   * anchor is the honest element here - it navigates, it can be opened in a new
+   * tab, and it needs no JavaScript to work.
+   */
   if (!signedIn) {
     return (
-      <Link href="/sign-in" className={compact ? shape : "nf-btn nf-btn--primary"}>
+      <Link href={gateHref("follow")} className={compact ? shape : "nf-btn nf-btn--primary"}>
         {labels.follow}
       </Link>
     );

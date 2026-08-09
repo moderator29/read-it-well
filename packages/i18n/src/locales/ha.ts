@@ -79,6 +79,13 @@ export const ha: Dictionary = {
     verified: "An tabbatar",
     skipToContent: "Tsallake zuwa abun ciki",
     notSet: "Ba a saita ba",
+    bed: "daki",
+    beds: "dakuna",
+    bath: "banɗaki",
+    baths: "banɗaki",
+    guest: "baƙo",
+    instantBook: "Nan take",
+    priceOnRequest: "Farashi bisa buƙata",
   },
 
   nav: {

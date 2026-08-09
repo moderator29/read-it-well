@@ -102,9 +102,7 @@ export function AgentMobileNav({
               aria-label={t.a11y.closeMenu}
               className="-mr-1 grid h-10 w-10 place-items-center rounded-[var(--nf-radius-md)] text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-                <path d="m6 6 12 12M18 6 6 18" />
-              </svg>
+              <UiIcon name="close" size="sm" />
             </button>
           </div>
 

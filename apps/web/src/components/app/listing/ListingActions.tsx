@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { AuthGate } from "@/components/auth/AuthGate";
 import { toggleSave } from "@/lib/saved/actions";
 import { addLocalSave, readLocalSaves, removeLocalSave } from "@/lib/saved/local";
 
@@ -157,21 +158,35 @@ export function ListingActions({
         >
           <UiIcon name="share" size={16} />
         </button>
-        <button
-          type="button"
-          onClick={toggle}
-          disabled={pending}
-          aria-pressed={saved}
-          aria-label={saved ? "Remove from saved" : "Save this listing"}
-          data-testid="listing-save"
-          className="grid h-11 w-11 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 disabled:opacity-70 motion-reduce:transition-none"
-        >
-          <UiIcon
-            name="heart"
-            size={16}
-            className={saved ? "text-[var(--nf-status-verified)] [&_path]:fill-current" : undefined}
-          />
-        </button>
+        {/*
+          Save gates. Share does not, and the difference is the whole rule:
+          sharing a link is a thing a guest may do to a page they are allowed to
+          read, and saving writes a row against an account.
+
+          Wrapped rather than checked inside `toggle`, because `toggle` already
+          flips the heart optimistically before the server answers, and a check
+          inside it would flip a heart we are about to navigate away from. The
+          gate intercepts in the capture phase, so for a guest the handler never
+          runs at all and they arrive at sign-up with `?do=save` on the URL they
+          came from.
+        */}
+        <AuthGate action="save">
+          <button
+            type="button"
+            onClick={toggle}
+            disabled={pending}
+            aria-pressed={saved}
+            aria-label={saved ? "Remove from saved" : "Save this listing"}
+            data-testid="listing-save"
+            className="grid h-11 w-11 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 disabled:opacity-70 motion-reduce:transition-none"
+          >
+            <UiIcon
+              name="heart"
+              size={16}
+              className={saved ? "text-[var(--nf-status-verified)] [&_path]:fill-current" : undefined}
+            />
+          </button>
+        </AuthGate>
       </div>
 
       {message && (

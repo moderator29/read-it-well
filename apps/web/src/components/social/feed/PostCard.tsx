@@ -3,6 +3,7 @@
 import { DEFAULT_LOCALE, formatNumber, type Locale } from "@naijafinds/i18n";
 import Link from "next/link";
 import Image from "next/image";
+import { AuthGate } from "@/components/auth/AuthGate";
 import { PostGlyph } from "./PostGlyph";
 import { PostBody } from "./PostBody";
 import { Tombstone } from "./Tombstone";
@@ -202,38 +203,57 @@ function ActionRow({
 }) {
   return (
     <div className="nf-post__actions">
-      <button
-        type="button"
-        className="nf-post__act"
-        aria-pressed={post.liked}
-        onClick={onLike}
-      >
-        <PostGlyph name="like" active={post.liked} />
-        <span className="nf-numeric">{compact(post.likeCount, locale)}</span>
-        <span className="sr-only">{post.liked ? "liked, undo" : "likes, like this"}</span>
-      </button>
+      {/*
+        THE WRITE ACTIONS GATE, THE READ ONES DO NOT.
 
-      <button type="button" className="nf-post__act" onClick={onReply}>
-        <PostGlyph name="reply" />
-        <span className="nf-numeric">{compact(post.replyCount, locale)}</span>
-        <span className="sr-only">
-          {post.replyCount === 1 ? "reply" : "replies"}, reply to this
-        </span>
-      </button>
+        Like, reply, repost and save all write a row against an account, so a
+        guest tapping one is sent to sign up carrying the feed URL and the verb
+        and comes back to this post. Share and the view count do not write
+        anything and are left alone: a guest may share a post they are allowed
+        to read, and gating that would only stop the platform being passed on.
 
-      <button
-        type="button"
-        className="nf-post__act"
-        aria-pressed={post.reposted}
-        onClick={onRepost}
-        data-active={post.reposted ? "" : undefined}
-      >
-        <PostGlyph name="repost" active={post.reposted} />
-        <span className="nf-numeric">{compact(post.repostCount, locale)}</span>
-        <span className="sr-only">
-          {post.reposted ? "reposted, undo" : "reposts, repost this"}
-        </span>
-      </button>
+        The controls stay at full strength rather than being hidden or dimmed. A
+        feed with its actions greyed out reads as broken; a feed whose actions
+        invite you to join reads as a product.
+      */}
+      <AuthGate action="react">
+        <button
+          type="button"
+          className="nf-post__act"
+          aria-pressed={post.liked}
+          onClick={onLike}
+        >
+          <PostGlyph name="like" active={post.liked} />
+          <span className="nf-numeric">{compact(post.likeCount, locale)}</span>
+          <span className="sr-only">{post.liked ? "liked, undo" : "likes, like this"}</span>
+        </button>
+      </AuthGate>
+
+      <AuthGate action="post">
+        <button type="button" className="nf-post__act" onClick={onReply}>
+          <PostGlyph name="reply" />
+          <span className="nf-numeric">{compact(post.replyCount, locale)}</span>
+          <span className="sr-only">
+            {post.replyCount === 1 ? "reply" : "replies"}, reply to this
+          </span>
+        </button>
+      </AuthGate>
+
+      <AuthGate action="react">
+        <button
+          type="button"
+          className="nf-post__act"
+          aria-pressed={post.reposted}
+          onClick={onRepost}
+          data-active={post.reposted ? "" : undefined}
+        >
+          <PostGlyph name="repost" active={post.reposted} />
+          <span className="nf-numeric">{compact(post.repostCount, locale)}</span>
+          <span className="sr-only">
+            {post.reposted ? "reposted, undo" : "reposts, repost this"}
+          </span>
+        </button>
+      </AuthGate>
 
       <button
         type="button"
@@ -253,15 +273,21 @@ function ActionRow({
         <span className="sr-only">views</span>
       </span>
 
-      <button
-        type="button"
-        className="nf-post__act ms-auto"
-        aria-pressed={post.saved}
-        onClick={onSave}
-        aria-label={post.saved ? "Saved, remove it" : "Save this"}
-      >
-        <PostGlyph name="bookmark" active={post.saved} />
-      </button>
+      {/* `ms-auto` stays on the BUTTON, not on the gate. The gate renders as
+          `display: contents` when it renders at all and disappears entirely for
+          a signed-in caller, so a margin put on it would be a margin that
+          silently stops applying the moment somebody has an account. */}
+      <AuthGate action="save">
+        <button
+          type="button"
+          className="nf-post__act ms-auto"
+          aria-pressed={post.saved}
+          onClick={onSave}
+          aria-label={post.saved ? "Saved, remove it" : "Save this"}
+        >
+          <PostGlyph name="bookmark" active={post.saved} />
+        </button>
+      </AuthGate>
     </div>
   );
 }

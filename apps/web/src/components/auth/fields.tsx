@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Dictionary } from "@naijafinds/i18n";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * The form furniture the auth screens share.
@@ -214,18 +215,7 @@ export function SelectField({
           aria-hidden="true"
           className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-[var(--nf-content-muted)]"
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="m6 9 6 6 6-6" />
-          </svg>
+          <UiIcon name="chevron-down" size="xs" />
         </span>
       </div>
       <FieldError id={errorId} error={error} />
@@ -371,23 +361,14 @@ export function StrengthMeter({ password, t }: { password: string; t: Dictionary
   );
 }
 
-/** Minimal stroke eye, with a slash when the password is shown. */
+/**
+ * The reveal control's mark.
+ *
+ * Two eyes were drawn inline on this platform, here at strokeWidth 1.7 and in
+ * `wallet/BalanceCard` at 2, for the same job. Both are the platform glyph now,
+ * at the platform's own derived stroke, and this is a two-line name choice
+ * rather than a drawing.
+ */
 function EyeGlyph({ off }: { off: boolean }) {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z" />
-      <circle cx="12" cy="12" r="2.9" />
-      {off && <path d="m4.5 4.5 15 15" />}
-    </svg>
-  );
+  return <UiIcon name={off ? "eye-off" : "eye"} size="sm" />;
 }

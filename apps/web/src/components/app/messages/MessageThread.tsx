@@ -136,20 +136,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
             onClick={() => setSheetOpen(true)}
             className="nf-icon-btn h-9 w-9 sm:h-10 sm:w-10"
           >
-            <svg
-              width={18}
-              height={18}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="8.6" />
-              <path d="M12 11.2v5" />
-              <circle cx="12" cy="7.9" r="0.5" fill="currentColor" stroke="none" />
-            </svg>
+            <UiIcon name="info" size="sm" />
           </button>
         }
       />
@@ -275,21 +262,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
           onClick={() => fileRef.current?.click()}
           className="nf-icon-btn h-11 w-11 shrink-0"
         >
-          <svg
-            width={18}
-            height={18}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <rect x="3.4" y="5" width="17.2" height="14" rx="2.6" />
-            <circle cx="9" cy="10" r="1.7" />
-            <path d="m5 17.6 4.6-4.4 3.2 3 3.4-3.4 3.4 3.6" />
-          </svg>
+          <UiIcon name="picture" size="sm" />
         </button>
         <label htmlFor="thread-input" className="sr-only">
           Message {thread.agentName}

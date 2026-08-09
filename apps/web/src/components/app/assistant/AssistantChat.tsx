@@ -18,7 +18,6 @@ import {
   type Language,
   type Tone,
 } from "./AssistantSidebar";
-import { CloseGlyph, HistoryGlyph } from "./glyphs";
 import {
   clearStoredThreads,
   deriveTitle,
@@ -440,7 +439,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
             onClick={openHistory}
             className="nf-icon-btn h-9 w-9 lg:hidden"
           >
-            <HistoryGlyph size={17} />
+            <UiIcon name="history" size={17} />
           </button>
         }
       />
@@ -636,7 +635,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
                 onClick={closeHistory}
                 className="nf-icon-btn h-9 w-9"
               >
-                <CloseGlyph size={16} />
+                <UiIcon name="close" size={16} />
               </button>
             </div>
             <div className="min-h-0 flex-1">{sidebar()}</div>

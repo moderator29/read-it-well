@@ -101,6 +101,23 @@ export const en = {
     /* Shared by every row that has no answer yet: "Not set" appearing three
        different ways down one screen reads as three different states. */
     notSet: "Not set",
+
+    /* -------------------------------------------------- the property card.
+       Seven words the card needs and the dictionary did not have, which is why
+       "guest", "Instant" and the bed and bath counts were English literals
+       inside a component on a four-language platform. Singular and plural are
+       separate entries rather than an appended "s": Yoruba, Hausa and Igbo do
+       not mark a plural noun that way, so the arithmetic version produced a
+       word that exists in no language here. */
+    bed: "bed",
+    beds: "beds",
+    bath: "bath",
+    baths: "baths",
+    guest: "guest",
+    instantBook: "Instant",
+    /* A listing with no real price. Never a guessed naira figure and never a
+       zero, both of which are worse than saying we do not know. */
+    priceOnRequest: "Price on request",
   },
 
   nav: {

@@ -80,6 +80,13 @@ export const ig: Dictionary = {
     verified: "Enyochala",
     skipToContent: "Wụga na ọdịnaya",
     notSet: "Edobeghị ya",
+    bed: "ime ụlọ",
+    beds: "ime ụlọ",
+    bath: "ụlọ ịsa ahụ",
+    baths: "ụlọ ịsa ahụ",
+    guest: "ọbịa",
+    instantBook: "Ozugbo",
+    priceOnRequest: "Ọnụahịa na arịrịọ",
   },
 
   nav: {

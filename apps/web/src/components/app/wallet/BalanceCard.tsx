@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatNumber, type Locale } from "@naijafinds/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Odometer } from "@/components/site/Odometer";
 import type { WalletEntry } from "@/lib/wallet/types";
 import { formatKoboExact } from "./money";
@@ -313,23 +314,13 @@ export function BalanceCard({
   );
 }
 
-/** Small stroke glyph for the visibility toggle; decorative, labelled by the button. */
+/**
+ * The visibility toggle's mark.
+ *
+ * This was the second of two inline eyes on the platform - a slightly different
+ * curve at strokeWidth 2 against the auth field's 1.7, doing the same job on
+ * another screen. Both are the platform glyph now.
+ */
 function EyeGlyph({ off }: { off: boolean }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" />
-      <circle cx="12" cy="12" r="2.6" />
-      {off && <path d="M4 4l16 16" />}
-    </svg>
-  );
+  return <UiIcon name={off ? "eye-off" : "eye"} size="xs" />;
 }

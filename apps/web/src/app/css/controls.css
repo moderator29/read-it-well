@@ -387,3 +387,80 @@
     flex-shrink: 0;
   }
 }
+
+/* ------------------------------------------------------------------ roles
+ *
+ * The role rows, the tinted mark on them, and the row-shaped trigger.
+ *
+ * ONE TINT FOR ALL THREE ROLES, deliberately. Colour-coding renter, seller and
+ * agent would mean inventing three hues in a palette that states in writing it
+ * is one blue family, and it would make the mark carry a meaning the label
+ * already carries better. What the circle is for is optical weight: a bare
+ * glyph beside 15px semibold type disappears, and a tinted disc gives the row
+ * an anchor to start from.
+ *
+ * `color-mix` against the brand rather than a fixed wash, so the tint tracks
+ * the theme instead of being a dark chip on a white page.
+ */
+@layer components {
+  .nf-role-mark {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-brand-primary);
+    background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+  }
+  .nf-role-mark--lg {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  /*
+   * A control shaped like a settings row: full width, hairline beneath, the
+   * chevron on the right doing the work a border would otherwise do.
+   */
+  .nf-row-button {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.875rem 0.25rem;
+    text-align: left;
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-row-button:hover {
+    background: var(--nf-interactive-hover);
+  }
+
+  /*
+   * The calm verification prompt. A ROW, not a modal and not a banner with a
+   * dismiss cross: it sits on the surface it belongs to, it never covers
+   * anything, and it does not go away until the thing it is asking for is
+   * done. The left edge is the only decoration, tinted with the pending
+   * status colour so it reads as "in progress" rather than as an error.
+   */
+  .nf-verify-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-border-subtle);
+    border-left: 3px solid var(--nf-status-pending);
+    background: var(--nf-surface-secondary);
+  }
+  .nf-verify-row__mark {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-status-pending);
+    background: var(--nf-status-pending-surface);
+  }
+}

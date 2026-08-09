@@ -2,6 +2,7 @@ import type { Dictionary } from "@naijafinds/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { AuthGate } from "@/components/auth/AuthGate";
 
 /**
  * Host panel.
@@ -62,9 +63,13 @@ export function ListingHostPanel({
         </div>
       </dl>
 
-      <ButtonLink href={messageHref} variant="secondary" full className="mt-4">
-        Message agent
-      </ButtonLink>
+      {/* Contacting the person who listed the place is an action, so it gates
+          and carries `?do=message` home with it. */}
+      <AuthGate action="message">
+        <ButtonLink href={messageHref} variant="secondary" full className="mt-4">
+          Message agent
+        </ButtonLink>
+      </AuthGate>
     </div>
   );
 }

@@ -78,6 +78,13 @@ export const yo: Dictionary = {
     verified: "Tí fọwọ́sí",
     skipToContent: "Fò sí àkóónú",
     notSet: "Kò tíì sí",
+    bed: "yàrá",
+    beds: "yàrá",
+    bath: "balùwẹ̀",
+    baths: "balùwẹ̀",
+    guest: "àlejò",
+    instantBook: "Lẹ́sẹ̀kẹsẹ̀",
+    priceOnRequest: "Iye lórí ìbéèrè",
   },
 
   nav: {
