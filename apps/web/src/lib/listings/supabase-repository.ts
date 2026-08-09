@@ -188,6 +188,7 @@ const LISTING_SELECT = `
   bedrooms,
   bathrooms,
   featured,
+  is_demo,
   area,
   city,
   state_code,
@@ -252,6 +253,7 @@ const LISTING_DETAIL_SELECT = `
   bedrooms,
   bathrooms,
   featured,
+  is_demo,
   area,
   city,
   state_code,
@@ -312,6 +314,7 @@ type ListingRow = {
   bedrooms: number;
   bathrooms: number;
   featured: boolean;
+  is_demo: boolean;
   power_grid: string | null;
   power_backup: string | null;
   power_backup_hours: number | null;
@@ -373,6 +376,83 @@ const KIND_BY_PROPERTY_TYPE: Record<string, ListingKind> = {
 /** Discovery kinds that live in the listings table at all. */
 export function propertyTypeFor(kind: ListingKind): string | null {
   return kind in KIND_BY_PROPERTY_TYPE ? kind : null;
+}
+
+/**
+ * How many words of a search term are pushed into SQL.
+ *
+ * Dropping the seventh word can only widen what SQL returns, and the matcher
+ * judges every row that comes back, so the cap costs recall nothing. It exists
+ * to bound the URL, because each word becomes its own `or` parameter.
+ */
+const MAX_QUERY_WORDS = 6;
+
+/**
+ * A search term, turned into PostgREST `or` groups: one group per word.
+ *
+ * WHY THIS EXISTS. Free text used to be matched only in memory, after the query
+ * had already taken the newest 200 published rows. That is not a slow search,
+ * it is a wrong one: the term never reached SQL, so it could only ever find
+ * something inside the 200 most recent listings, and the 201st was invisible to
+ * it. These groups make the term narrow the rows, so the cap lands on MATCHING
+ * listings instead of recent ones.
+ *
+ * THE RULE THIS OBEYS. `matchesFilter` stays the authority, exactly as it does
+ * for budget and for everything else here, and it asks whether the term is a
+ * substring of `title area city state kind`. So SQL may return rows the matcher
+ * will drop, and may never drop a row the matcher would have kept. Every choice
+ * below is made to keep that one-directional:
+ *
+ *   Words are ANDed, columns are ORed. If the whole term is a substring of that
+ *   joined haystack, then each word of the term is a substring of it too, and a
+ *   word has no space in it, so it must sit inside a single one of those fields
+ *   rather than straddle two. Requiring every word somewhere is therefore a
+ *   superset of requiring the phrase in one piece, and a far tighter one than
+ *   asking for any word anywhere.
+ *
+ *   Punctuation becomes a wildcard rather than being deleted. `%` matches the
+ *   character it replaced, so a pattern can only ever match more than the raw
+ *   word did. Deleting instead would turn `a,b` into `ab`, which stops matching
+ *   the row that says `a,b`, and that is the one direction not allowed here. It
+ *   also means a user typing `%` gets a literal-ish wildcard of our choosing
+ *   rather than a pattern of theirs that matches the entire catalogue.
+ *
+ *   State and kind are matched here in JavaScript, against the same reference
+ *   map the rows are decorated from, because the haystack holds a state's NAME
+ *   while the row holds its code. Somebody searching Ogun has to reach a
+ *   listing in Abeokuta, and no `ilike` over the listings table can do that.
+ *   When the reference map is empty the codes drop out of the predicate, and
+ *   the matcher is reading a haystack built from that same empty map, so the
+ *   two narrow together rather than disagreeing.
+ */
+export function freeTextGroups(term: string, stateNames: Map<string, string>): string[] {
+  const words = term.toLowerCase().split(/\s+/).filter(Boolean).slice(0, MAX_QUERY_WORDS);
+  const groups: string[] = [];
+
+  for (const word of words) {
+    const pattern = word.replace(/[^a-z0-9]/g, "%");
+    // A word of pure punctuation carries no signal, and `%%%` would match every
+    // row, which is the same as not having asked.
+    if (!/[a-z0-9]/.test(pattern)) continue;
+
+    const parts = [
+      `title.ilike.%${pattern}%`,
+      `city.ilike.%${pattern}%`,
+      `area.ilike.%${pattern}%`,
+    ];
+
+    const codes = [...stateNames.entries()]
+      .filter(([, name]) => name.toLowerCase().includes(word))
+      .map(([code]) => code);
+    if (codes.length > 0) parts.push(`state_code.in.(${codes.join(",")})`);
+
+    const types = Object.keys(KIND_BY_PROPERTY_TYPE).filter((type) => type.includes(word));
+    if (types.length > 0) parts.push(`property_type.in.(${types.join(",")})`);
+
+    groups.push(parts.join(","));
+  }
+
+  return groups;
 }
 
 /** Public object URL for a stored photo, or the value itself if already a URL. */
@@ -687,11 +767,37 @@ function mapRow(
       ...(row.prepaid_meter === null ? {} : { prepaidMeter: row.prepaid_meter }),
       hasEstateAccess: row.has_estate_access ?? false,
     },
-    rating: stat?.rating ?? 0,
-    reviewCount: stat?.count ?? 0,
-    // First-party inventory is admitted through agent approval, so a published
-    // listing is by definition a verified one.
-    verified: true,
+    /*
+     * A rating is a claim that people stayed there and rated it, so an example
+     * listing reports none.
+     *
+     * It would already be zero without this: `reviews.booking_id` is NOT NULL,
+     * a booking against an example listing is refused by trigger, so no review
+     * can exist to be averaged. The clamp is here anyway because "never a
+     * fabricated rating" is the single rule this whole catalogue exists to
+     * keep, and a rule that important should not rest on a foreign key
+     * somebody could later make nullable.
+     */
+    rating: row.is_demo ? 0 : (stat?.rating ?? 0),
+    reviewCount: row.is_demo ? 0 : (stat?.count ?? 0),
+    /*
+     * THE LINE THAT USED TO BE THE BUG.
+     *
+     * This was `verified: true`, unconditionally, reasoned as "first-party
+     * inventory is admitted through agent approval, so a published listing is
+     * by definition a verified one". That reasoning held exactly as long as
+     * every published row came from an approved agent who had listed a real
+     * property, and it is the mechanism by which this repository once shipped
+     * twenty-three invented places with twenty-two of them badged.
+     *
+     * The database now refuses to store a trust mark on an example row, but a
+     * constraint on columns nobody reads cannot help when the badge is DERIVED
+     * rather than stored. So it is derived from the flag instead: an example
+     * listing is never verified, and a real published listing still is, on the
+     * original and still-correct reasoning.
+     */
+    verified: !row.is_demo,
+    isDemo: row.is_demo,
     /* Instant book is gone from the schema. The whole product moved from
        "reserve a room tonight" to "rent or buy a property", and no property in
        either of those markets changes hands without a person on both sides.
@@ -758,17 +864,22 @@ export class SupabaseListingRepository implements ListingRepository {
    *
    * What runs where, and why:
    *
-   *   In SQL   category, price floor and ceiling, bedroom, bathroom and guest
-   *            minimums, instant book, and the amenity set through the
-   *            `listing_amenities` join. Every one of them is a column
+   *   In SQL   category, free text, price floor and ceiling, bedroom, bathroom
+   *            and guest minimums, instant book, and the amenity set through
+   *            the `listing_amenities` join. Every one of them is a column
    *            predicate, so a row that cannot match must never be read, let
    *            alone occupy one of the page's rows.
-   *   In memory  free text (the shared haystack, until a Postgres full text
-   *            index exists) and verified-only, which needs no predicate here:
-   *            RLS publishes admitted rows only and admission is what makes
-   *            them verified, so every row this query can return already
-   *            satisfies it. The shared matcher still enforces it so that the
-   *            browser count and the server answer cannot disagree.
+   *   In memory  verified-only, which needs no predicate here: RLS publishes
+   *            admitted rows only and admission is what makes them verified, so
+   *            every row this query can return already satisfies it. The shared
+   *            matcher still enforces it so that the browser count and the
+   *            server answer cannot disagree.
+   *
+   * Free text moved into SQL and the reason was correctness, not speed. Matched
+   * only in memory it ran AFTER the row cap, so it searched the newest 200
+   * listings rather than the catalogue, and a term that lived on the 201st row
+   * returned nothing at all. See `freeTextGroups` for how the term is pushed
+   * down without ever narrowing past what the matcher would have kept.
    *
    * The matcher runs over the results either way, so SQL is an optimisation
    * and never the authority: the two halves cannot disagree.
@@ -803,6 +914,23 @@ export class SupabaseListingRepository implements ListingRepository {
         }
       }
       if (amenityIds) query = query.in("id", amenityIds);
+
+      /*
+       * The search term, one `or` parameter per word.
+       *
+       * PostgREST ANDs repeated top-level parameters, and `.or()` appends
+       * rather than replaces, so six words become six groups that must all
+       * hold. `listings_title_trgm_idx` and its two neighbours are trigram
+       * indexes over these same columns, which is what keeps an unanchored
+       * `%term%` off a sequential scan.
+       */
+      const term = filter.q?.trim();
+      if (term) {
+        for (const group of freeTextGroups(term, await getStateNames())) {
+          query = query.or(group);
+        }
+      }
+
       if (filter.intent) {
         query = query.eq(
           "listing_intent",
@@ -880,6 +1008,18 @@ export class SupabaseListingRepository implements ListingRepository {
       if (filter.waterSupply && filter.waterSupply.length > 0) {
         query = query.in("water_supply", filter.waterSupply);
       }
+
+      /*
+       * Hiding the example listings is pushed down, unlike most of the flags
+       * above, because it is the one filter that will one day match a large
+       * fraction of the catalogue. Filtering it in memory would spend the
+       * page's whole row budget on rows that are then discarded, which is the
+       * exact shape that makes a ceiling silently return too few results.
+       *
+       * `listings_demo_idx` is partial on `is_demo = true`, so this predicate
+       * is answered from the small side of the table.
+       */
+      if (filter.excludeDemo) query = query.eq("is_demo", false);
 
       const { data, error } = await query
         .order("featured", { ascending: false })

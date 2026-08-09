@@ -202,6 +202,41 @@ export type Listing = {
   rating: number;
   reviewCount: number;
   verified: boolean;
+  /**
+   * THE FLAG EVERY SURFACE MUST BRANCH ON.
+   *
+   * True when this listing illustrates what the catalogue will hold and **no
+   * such property is available**. It maps one to one from `listings.is_demo`,
+   * which the database defaults to false, so anything that is not explicitly
+   * an example is real.
+   *
+   * What it obliges a surface to do:
+   *
+   *   1. **Say so, on the card and on the page.** Not in a tooltip, not in a
+   *      footnote. The agreed wording is "This is an example listing. No such
+   *      property is available. RentMe has not verified anything on this page."
+   *      The words "demo", "sample", "preview" and "not live" are banned in UI
+   *      copy and are enforced by `tests/agent-identity.spec.mjs`; "example"
+   *      is the sanctioned word.
+   *   2. **Render no action that implies a transaction.** Book, reserve, pay
+   *      and request an inspection must raise an explanation rather than a
+   *      flow. The database refuses all four anyway, so a control that appears
+   *      to work would produce an error the person cannot act on.
+   *   3. **Render no trust mark.** `verified` is already false on every one of
+   *      these (see below), so a component that reads `verified` is correct by
+   *      construction. A component that draws a badge from anything else must
+   *      check this flag.
+   *   4. **Stay out of anything that leaves the platform.** No sitemap, no
+   *      JSON-LD, no Open Graph card, no email. An example listing indexed by
+   *      Google is a fabricated property advertisement carrying our name.
+   *
+   * `verified` is ALWAYS false when this is true, and that is enforced in three
+   * independent places so it cannot drift: a CHECK constraint refusing the
+   * three stored trust columns, a trigger refusing a verified lister, and the
+   * mapper in `supabase-repository.ts` deriving `verified` from this flag
+   * rather than asserting it.
+   */
+  isDemo: boolean;
   instantBook: boolean;
   amenities: string[];
   /**
@@ -270,6 +305,18 @@ export type ListingSearchFilter = {
   instantBook?: boolean;
   /** Only listings whose owner has passed the verification ladder. */
   verifiedOnly?: boolean;
+  /**
+   * Hide the example listings.
+   *
+   * They exist because the catalogue is otherwise empty, and the day real
+   * supply arrives somebody will want them gone. That should be a flag rather
+   * than a migration, because the decision gets reversed while supply is thin
+   * in one city and healthy in another.
+   *
+   * There is no inverse. "Show me only the examples" would be a discovery
+   * surface whose entire content is properties that do not exist.
+   */
+  excludeDemo?: boolean;
   /**
    * Light and water: the two questions asked here before the price.
    *
