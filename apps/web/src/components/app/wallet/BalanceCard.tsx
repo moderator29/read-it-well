@@ -139,7 +139,16 @@ export function BalanceCard({
     <section
       aria-labelledby="nf-wallet-balance-label"
       data-pulse={pulse ?? undefined}
-      className="nf-card nf-balance-pulse relative overflow-hidden rounded-[var(--nf-radius-2xl)] p-card sm:p-cell"
+      /*
+        THE PANEL IS SHORTER, and every millimetre came off padding rather than
+        off content. It was `p-card` stepping to `p-cell`, which is the widest
+        pair on the scale, wrapped around a figure that is already the largest
+        numeral in the product: the balance sat in the middle of a tall box with
+        as much empty room above and below it as the number itself occupied.
+        A hero does not need a frame that size to be read as one; it is the
+        largest thing on the screen either way.
+      */
+      className="nf-card nf-balance-pulse relative overflow-hidden rounded-[var(--nf-radius-xl)] p-card-sm sm:p-card"
     >
       {/* The one surviving decorative layer: the platform's surface wash, which
           lifts the top of the card off the bottom of it. It is a token, so it
@@ -210,7 +219,7 @@ export function BalanceCard({
       */}
       <p className="nf-numeric relative mt-row leading-none text-[var(--nf-content-primary)]">
         {hidden ? (
-          <span className="text-[2.5rem] font-bold tracking-[-0.03em] sm:text-[3rem]">
+          <span className="text-[2rem] font-bold tracking-[-0.03em] sm:text-[2.35rem]">
             {inUsd ? "$" : "\u20A6"}
             {"\u2022\u2022\u2022\u2022\u2022\u2022"}
           </span>
@@ -226,16 +235,16 @@ export function BalanceCard({
             locale={locale}
             currency="USD"
             showFraction
-            className="text-[2.5rem] font-bold tracking-[-0.03em] sm:text-[3rem]"
+            className="text-[2rem] font-bold tracking-[-0.03em] sm:text-[2.35rem]"
             secondaryClassName="text-[0.62em] font-semibold text-[var(--nf-content-muted)]"
           />
         ) : (
           <>
-            <span className="text-[2.25rem] font-bold leading-none tracking-tight sm:text-[2.6rem]">
+            <span className="text-[2rem] font-bold leading-none tracking-tight sm:text-[2.35rem]">
               {"₦"}
               <Odometer value={wholeNaira} locale={locale} className="nf-odometer-figure" />
             </span>
-            <span className="text-[1.55rem] font-semibold text-[var(--nf-content-muted)] sm:text-[1.86rem]">
+            <span className="text-[1.38rem] font-semibold text-[var(--nf-content-muted)] sm:text-[1.68rem]">
               {kobo}
             </span>
           </>

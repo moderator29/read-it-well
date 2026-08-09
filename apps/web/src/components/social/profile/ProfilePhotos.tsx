@@ -7,6 +7,7 @@ import { setAvatar } from "@/lib/profile/actions";
 import { setSocialCover } from "@/lib/social/profiles-actions";
 import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-schema";
 import { createClient } from "@/lib/supabase/client";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { reencodeToJpeg } from "./reencode";
 
 /**
@@ -179,8 +180,13 @@ export function ProfilePhotos({
             type="button"
             onClick={() => coverInput.current?.click()}
             disabled={busy !== null}
-            className="nf-btn nf-btn--glass px-3 py-2 text-[0.75rem]"
+            className="nf-btn nf-btn--glass gap-inline-tight px-3 py-2 text-[0.75rem]"
           >
+            {/* The glyph, so the control is findable before it is read. A
+                bare word floating over a photograph is the one thing on this
+                header nobody scans for, and this is how somebody changes the
+                largest image on their own profile. */}
+            <UiIcon name="picture" size={14} />
             {busy === "cover" ? "Working" : cover ? "Change cover" : "Add a cover"}
           </button>
           {cover && (
@@ -210,6 +216,23 @@ export function ProfilePhotos({
           ) : (
             monogram
           )}
+          {/*
+            THE MARK THAT SAYS THIS IS A CONTROL.
+
+            The avatar has been a button the whole time and looked exactly like
+            an avatar, so the only way to discover that your own photo is
+            editable was to tap a picture on the off chance. Every product that
+            does this puts a small camera badge on the corner, and the reason it
+            is a convention is that it works: it is the one element on the
+            header that tells you the image is yours to change.
+
+            `pointer-events-none` because the parent is already the button; a
+            nested interactive element inside a button is a second control the
+            browser has to arbitrate.
+          */}
+          <span className="nf-social-avatar__edit" aria-hidden="true">
+            <UiIcon name="picture" size={12} />
+          </span>
         </button>
 
         <div className="min-w-0 flex-1 pb-1">

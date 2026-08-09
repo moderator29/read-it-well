@@ -86,13 +86,30 @@ export function WalletActions({ locale }: { locale: Locale }) {
         the screen is for before you read a word.
 
         Adding money is the primary. Withdraw and Transfer are the quiet pair.
+
+        AND THE QUIET PAIR IS NOW ACTUALLY QUIET. `secondary` is a filled
+        surface with its own border, so the row read as three solid buttons in
+        three shades rather than as one action and two alternatives: the
+        hierarchy the note above describes was stated in the code and not
+        visible on the screen. `ghost` draws the label and nothing else, which
+        is what "quiet" was always supposed to mean, and it lets the one filled
+        control in the row carry all of the weight.
       */}
       <div className="flex items-center gap-2" role="group" aria-label="Wallet actions">
         {PANELS.map((p) => (
           <Button
             key={p.key}
-            variant={p.key === "add" ? "primary" : "secondary"}
-            className="flex-1"
+            variant={p.key === "add" ? "primary" : "ghost"}
+            /* A hairline on the two ghosts, and nothing behind them. Fully
+               borderless in a row beside a filled control reads as two words
+               floating next to a button rather than as three peers; the rule
+               is enough to say "this is pressable" without putting a surface
+               back. */
+            className={
+              p.key === "add"
+                ? "flex-1"
+                : "flex-1 border border-[var(--nf-border-subtle)]"
+            }
             aria-expanded={open === p.key}
             aria-controls={`nf-wallet-panel-${p.key}`}
             onClick={() => setOpen(open === p.key ? null : p.key)}
