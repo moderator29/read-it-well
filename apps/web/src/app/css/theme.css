@@ -74,6 +74,29 @@
   --spacing-card-sm: var(--nf-pad-card-sm);
   --spacing-cell: var(--nf-pad-cell);
 
+  /*
+   * ------------------------------------------------- CONTAINER WIDTHS
+   *
+   * Kept for `@container` queries and for anything that reads the scale by
+   * name. NOTE, and this is the important part: defining these does NOT take
+   * `max-w-*` back from the spacing namespace. That was tried first and the
+   * compiled CSS still read `max-width:var(--nf-space-3xl)`. The override that
+   * actually fixes it is at the bottom of this file.
+   */
+  --container-3xs: 16rem;
+  --container-2xs: 18rem;
+  --container-xs: 20rem;
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-lg: 32rem;
+  --container-xl: 36rem;
+  --container-2xl: 42rem;
+  --container-3xl: 48rem;
+  --container-4xl: 56rem;
+  --container-5xl: 64rem;
+  --container-6xl: 72rem;
+  --container-7xl: 80rem;
+
   --radius-sm: var(--nf-radius-sm);
   --radius-md: var(--nf-radius-md);
   --radius-lg: var(--nf-radius-lg);
@@ -81,4 +104,55 @@
   --radius-2xl: var(--nf-radius-2xl);
 
   --font-sans: var(--nf-font-sans);
+}
+
+/*
+ * ================================================================ max-w-*
+ *
+ * TAKING THE WIDTH CAPS BACK FROM THE SPACING SCALE.
+ *
+ * THE INCIDENT. The spacing rungs above are named `3xs`..`5xl`, the same names
+ * Tailwind's container scale uses. Tailwind resolves `max-w-<name>` from the
+ * `--spacing-*` namespace, and it wins over `--container-*`, so the moment the
+ * spacing scale landed every width cap in the product silently became a
+ * spacing value:
+ *
+ *   max-w-md   448px -> 16px
+ *   max-w-2xl  672px -> 48px
+ *   max-w-3xl  768px -> 64px
+ *
+ * The search bar computed to 64 pixels wide on a 390 pixel phone. Wallet,
+ * settings, profile, feed and messages are all built around a centred column,
+ * so every one of them collapsed to a strip a few characters across: body text
+ * wrapping one word per line, cover photographs rendering as vertical slivers,
+ * rows squeezed into pills. It read as a hundred broken screens and it was one
+ * name collision. 144 `max-w-*` call sites, every one of them wrong.
+ *
+ * WHY THE OVERRIDE RATHER THAN A RENAME. Renaming the rungs would be the
+ * tidier fix and it would touch every `gap-md` and `p-lg` in the tree, which is
+ * not a change to make while the product is broken in front of the owner. This
+ * restores the correct values at the point of use, costs nothing at runtime,
+ * and leaves the rename as a deliberate follow-up rather than an emergency.
+ *
+ * These are Tailwind's own container values. Same specificity as the generated
+ * utilities and later in the cascade, so these win.
+ *
+ * IF YOU ADD A SPACING RUNG, CHECK IT AGAINST THIS LIST. A new rung sharing a
+ * name with a container size takes that width utility with it, and nothing
+ * fails: no error, no warning, no test. The page simply goes narrow.
+ */
+@layer utilities {
+  .max-w-3xs { max-width: 16rem; }
+  .max-w-2xs { max-width: 18rem; }
+  .max-w-xs  { max-width: 20rem; }
+  .max-w-sm  { max-width: 24rem; }
+  .max-w-md  { max-width: 28rem; }
+  .max-w-lg  { max-width: 32rem; }
+  .max-w-xl  { max-width: 36rem; }
+  .max-w-2xl { max-width: 42rem; }
+  .max-w-3xl { max-width: 48rem; }
+  .max-w-4xl { max-width: 56rem; }
+  .max-w-5xl { max-width: 64rem; }
+  .max-w-6xl { max-width: 72rem; }
+  .max-w-7xl { max-width: 80rem; }
 }
