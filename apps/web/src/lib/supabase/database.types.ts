@@ -3508,6 +3508,14 @@ export type Database = {
         Returns: Json;
       };
       verification_is_required: { Args: { p_user: string }; Returns: boolean };
+      verify_payout_account: {
+        Args: {
+          p_account: string;
+          p_identity_name: string;
+          p_resolved_name: string;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       agent_application_status:

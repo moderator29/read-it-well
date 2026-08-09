@@ -79,6 +79,68 @@ export const MIN_DRAFT_TITLE_LENGTH = 2;
 /** One hundred million naira, in kobo. Above this is a typing accident. */
 export const MAX_PRICE_KOBO = 100_000_000_00;
 
+/* ------------------------------------------------------------------ media
+
+   The upload ceilings, stated once and enforced in three places.
+
+   THE BROWSER IS NOT A LIMIT. Anything checked only in JavaScript is a courtesy
+   to an honest person and is removed by anybody who opens the network tab. So
+   each of these numbers appears three times on purpose, and the three are not
+   redundant, they are three different kinds of protection:
+
+     1. HERE, so the uploader can refuse a file before spending somebody's
+        Nigerian mobile data pushing fifty megabytes that will bounce.
+     2. On the STORAGE BUCKET, in Postgres, as file_size_limit and
+        allowed_mime_types. This is the one that actually holds: it is enforced
+        by the storage service against the upload itself, whatever the client
+        believes.
+     3. In the SERVER ACTION that attaches the object to a listing, which reads
+        the object's real size and type back from storage rather than trusting
+        what it was told.
+
+   Fifty megabytes for a video is the owner's number. It is roughly a minute of
+   1080p phone video, which is what a walkthrough actually is.
+   -------------------------------------------------------------------------- */
+
+/** The ceiling on any single upload, video or image. Fifty megabytes. */
+export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+export const MAX_UPLOAD_LABEL = "50MB";
+
+/** What a listing photo may be. HEIC is here because an iPhone shoots it. */
+export const PHOTO_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+] as const;
+
+/** What a walkthrough may be. QuickTime is here because an iPhone records .mov. */
+export const VIDEO_MIME_TYPES = ["video/mp4", "video/quicktime", "video/webm"] as const;
+
+/** Walkthroughs per listing. The database counts them under a lock too. */
+export const MAX_VIDEOS = 3;
+
+/** The longest walkthrough the table will hold, in seconds. */
+export const MAX_VIDEO_SECONDS = 1800;
+
+/**
+ * Why a chosen file cannot be used, in words, before anything is uploaded.
+ * Returns null when it is fine.
+ */
+export function rejectUpload(
+  file: { type: string; size: number },
+  allowed: readonly string[],
+): string | null {
+  if (!allowed.includes(file.type)) {
+    return "That file type is not one we can accept. Choose a different file.";
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return `That file is over ${MAX_UPLOAD_LABEL}. Record a shorter clip, or export it at a lower resolution.`;
+  }
+  return null;
+}
+
 export const PHOTO_TOO_NARROW_MESSAGE =
   "Photos must be at least 1600px wide so they look sharp on every screen.";
 
@@ -616,6 +678,50 @@ export const addPhotoSchema = z.object({
     emptyToUndefined,
     z.number().int().min(0).max(MAX_PHOTOS - 1).optional(),
   ),
+});
+
+/**
+ * Attaching an uploaded walkthrough to a listing.
+ *
+ * The same path rules as a photo, plus a poster and a duration. The path is
+ * validated for traversal here AND by a check constraint on listing_videos,
+ * because a row naming somebody else's object would serve that object under
+ * this listing's name and the storage policy alone does not prevent the ROW.
+ */
+export const addVideoSchema = z.object({
+  listingId: uuid("We could not identify that listing."),
+  /** `<auth uid>/<listing id>/<uuid>.<ext>` inside the listing-videos bucket. */
+  storagePath: z
+    .string()
+    .trim()
+    .min(6, "That upload did not complete. Try the video again.")
+    .max(400, "That upload did not complete. Try the video again.")
+    .regex(/^[0-9a-zA-Z._/-]+$/, "That upload did not complete. Try the video again.")
+    .refine(
+      (path) => !path.split("/").includes(".."),
+      "That upload did not complete. Try the video again.",
+    ),
+  /** The still shown before play. Lives in the public photo bucket. */
+  posterPath: z.preprocess(
+    emptyToUndefined,
+    z
+      .string()
+      .trim()
+      .max(400)
+      .regex(/^[0-9a-zA-Z._/-]+$/)
+      .refine((path) => !path.split("/").includes(".."))
+      .optional(),
+  ),
+  durationSeconds: optionalCount(
+    1,
+    MAX_VIDEO_SECONDS,
+    `A walkthrough can be up to ${MAX_VIDEO_SECONDS / 60} minutes.`,
+  ),
+});
+
+export const removeVideoSchema = z.object({
+  listingId: uuid("We could not identify that listing."),
+  videoId: uuid("We could not identify that video."),
 });
 
 export const removePhotoSchema = z.object({

@@ -34,6 +34,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import {
   PHOTO_BUCKET,
+  VIDEO_BUCKET,
   readMyListings,
   type ListingStatus,
   type ListingSummary,
@@ -41,7 +42,13 @@ import {
 import {
   GATE_SUMMARY_MESSAGE,
   MAX_PHOTOS,
+  MAX_UPLOAD_BYTES,
+  MAX_UPLOAD_LABEL,
+  MAX_VIDEOS,
+  VIDEO_MIME_TYPES,
   addPhotoSchema,
+  addVideoSchema,
+  removeVideoSchema,
   draftInputSchema,
   gateFieldErrors,
   listingAccessSchema,
@@ -81,6 +88,9 @@ const REVIEW_PENDING_MESSAGE =
 
 const PHOTO_FAILED_MESSAGE =
   "We could not attach that photo just now. Please try it again.";
+
+const VIDEO_FAILED_MESSAGE =
+  "We could not attach that video just now. Please try it again.";
 
 /** Statuses an agent may still edit themselves. */
 const EDITABLE: ListingStatus[] = ["DRAFT", "MORE_INFO_REQUIRED", "REJECTED"];
@@ -594,6 +604,165 @@ export async function reorderPhotos(input: {
   return ok({
     photos: (settled ?? []).map((p) => ({ id: p.id, path: p.storage_path })),
   });
+}
+
+/* --------------------------------------------------------------- videos */
+
+/**
+ * Attach an uploaded walkthrough to a listing, having checked the FILE.
+ *
+ * This is the third of the three enforcement points named in listings-schema:
+ * the browser refuses a bad file before it costs anybody data, the bucket
+ * refuses it in Postgres whatever the browser believed, and this reads the
+ * object's REAL size and content type back out of storage before it will write
+ * a row pointing at it.
+ *
+ * The third one is not redundant with the second. The bucket rules apply to the
+ * upload; this applies to the ATTACHMENT, and the two are separate requests. A
+ * caller could upload a legitimate small mp4, then post this action a path
+ * pointing at some other object already in their own folder. Reading the object
+ * back is what makes the row's claim about its own file true.
+ *
+ * The per-listing ceiling is enforced by a trigger, under a lock on the parent
+ * listing row, so two uploads arriving at once cannot both see room for one
+ * more. The count here is only so the refusal is a sentence rather than a 23514.
+ */
+export async function addVideo(input: {
+  listingId: string;
+  storagePath: string;
+  posterPath?: string;
+  durationSeconds?: number;
+}): Promise<ActionResult<{ videoId: string; position: number }>> {
+  const gate = await requireAgent();
+  if (!gate.ok) return fail(gate.error);
+
+  const parsed = validate(addVideoSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { listingId, storagePath, posterPath, durationSeconds } = parsed.data;
+
+  if (!storagePath.startsWith(`${gate.user.id}/`)) {
+    return fail(
+      "That video was not uploaded to your own folder, so we did not attach it. Choose the file again.",
+    );
+  }
+
+  const listing = await ownedListing(gate.supabase, gate.agentId, listingId);
+  if (!listing) return fail(NOT_FOUND_MESSAGE);
+  if (!EDITABLE.includes(listing.status)) return fail(LOCKED_MESSAGE);
+
+  /*
+   * What the object actually is, read from storage rather than believed.
+   *
+   * `list` on the containing folder is the only way to see an object's size and
+   * mime type through the storage client, so the path is split and the entry is
+   * found by name. An object that is not there at all is the common case worth
+   * naming: the upload failed and the browser posted anyway.
+   */
+  const cut = storagePath.lastIndexOf("/");
+  const folder = cut < 0 ? "" : storagePath.slice(0, cut);
+  const fileName = cut < 0 ? storagePath : storagePath.slice(cut + 1);
+
+  const { data: objects, error: listError } = await gate.supabase.storage
+    .from(VIDEO_BUCKET)
+    .list(folder, { search: fileName, limit: 100 });
+  if (listError) return fail(VIDEO_FAILED_MESSAGE);
+
+  const object = (objects ?? []).find((entry) => entry.name === fileName);
+  if (!object) {
+    return fail("That upload did not finish. Try the video again.");
+  }
+
+  const size = Number(object.metadata?.["size"] ?? 0);
+  const mime = String(object.metadata?.["mimetype"] ?? "");
+  if (size > MAX_UPLOAD_BYTES) {
+    return fail(
+      `That video is over ${MAX_UPLOAD_LABEL}. Record a shorter clip, or export it at a lower resolution.`,
+    );
+  }
+  if (!(VIDEO_MIME_TYPES as readonly string[]).includes(mime)) {
+    return fail("That file is not a video we can play. Use MP4, MOV or WebM.");
+  }
+
+  const { data: existing, error: countError } = await gate.supabase
+    .from("listing_videos")
+    .select("id, position")
+    .eq("listing_id", listingId);
+  if (countError) return fail(VIDEO_FAILED_MESSAGE);
+
+  const held = existing ?? [];
+  if (held.length >= MAX_VIDEOS) {
+    return fail(
+      `A listing holds up to ${MAX_VIDEOS} walkthroughs. Remove one to add another.`,
+    );
+  }
+
+  const position = held.reduce((highest, row) => Math.max(highest, row.position + 1), 0);
+
+  const { data: created, error } = await gate.supabase
+    .from("listing_videos")
+    .insert({
+      listing_id: listingId,
+      storage_path: storagePath,
+      poster_path: posterPath ?? null,
+      duration_seconds: durationSeconds ?? null,
+      position,
+    })
+    .select("id, position")
+    .single();
+
+  if (error || !created) {
+    // 23514 is the ceiling trigger winning a race this action's own count lost.
+    if (error?.code === "23514") {
+      return fail(
+        `A listing holds up to ${MAX_VIDEOS} walkthroughs. Remove one to add another.`,
+      );
+    }
+    return fail(VIDEO_FAILED_MESSAGE);
+  }
+
+  refreshAgentSurfaces();
+  return ok({ videoId: created.id, position: created.position });
+}
+
+/** Take a walkthrough off a listing, and the object with it. */
+export async function removeVideo(input: {
+  listingId: string;
+  videoId: string;
+}): Promise<ActionResult<null>> {
+  const gate = await requireAgent();
+  if (!gate.ok) return fail(gate.error);
+
+  const parsed = validate(removeVideoSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { listingId, videoId } = parsed.data;
+
+  const listing = await ownedListing(gate.supabase, gate.agentId, listingId);
+  if (!listing) return fail(NOT_FOUND_MESSAGE);
+  if (!EDITABLE.includes(listing.status)) return fail(LOCKED_MESSAGE);
+
+  const { data: video } = await gate.supabase
+    .from("listing_videos")
+    .select("id, storage_path")
+    .eq("id", videoId)
+    .eq("listing_id", listingId)
+    .maybeSingle();
+  if (!video) {
+    return fail("That video is no longer on this listing. Reload the page to see what it has.");
+  }
+
+  const { error } = await gate.supabase
+    .from("listing_videos")
+    .delete()
+    .eq("id", videoId)
+    .eq("listing_id", listingId);
+  if (error) return fail(VIDEO_FAILED_MESSAGE);
+
+  // Best effort: the listing is already correct either way, and an orphaned
+  // object costs storage rather than correctness.
+  await gate.supabase.storage.from(VIDEO_BUCKET).remove([video.storage_path]);
+
+  refreshAgentSurfaces();
+  return ok(null);
 }
 
 /* ------------------------------------------------------------ amenities */
