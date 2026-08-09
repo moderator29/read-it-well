@@ -2557,7 +2557,277 @@ webhook routes on them. Never change them. Add a comment in
 
 ---
 
-<!-- SENTINEL-1 -->
+## 21. Testing and enforcement
+
+### T-1. 83 browser specs, 8 vitest files, and no CI runs any of them. **OPEN. P0**
+
+**Re-verified today: there is still no `.github/workflows` directory.** Vercel
+deploys from `main`. Nothing mechanical stands between a red spec and production.
+
+This is the single highest-leverage open item in this document, because at least
+nine other entries here are "add a check that fails the build" and none of them
+means anything until something runs checks.
+
+**Do.** One workflow: `npm run typecheck`, `npx eslint .` from `apps/web`,
+`npx vitest run` from `apps/web`, `npm run build`, then serve the build and run
+the directory of node specs. Add as steps: the em dash scan with `docs/archive/`
+excluded, the AI attribution scan, the migration mirror diff (T-10), the
+`PLACEHOLDER` scan for MOB-3, and the `NaijaFinds` scan for RN-2.
+
+### T-2. The node specs are run by hand and the invocation is a known trap. **OPEN. P1**
+
+Two traps, both of which have cost full sweeps.
+- **Vitest must be run from `apps/web`.** From the repo root it resolves a
+  different config, fails to resolve `server-only`, and reports a wall of
+  unrelated failures.
+- **`next start` on a held port does not fail loudly.** The old server keeps
+  serving and the new process exits, so the sweep silently measures the
+  **previous** build. It presents as dozens of unrelated specs failing at once.
+  Before trusting a sweep, confirm exactly one `next-server` process and that
+  `.next-*/BUILD_ID` matches the build just made. Killing `next-server` alone is
+  not enough because `npm exec` respawns it: kill the `npm exec`, the `sh -c` and
+  the `next-server` together. `pkill -f "next start"` matches nothing; the
+  process is `next-server`.
+
+**Do.** Wrap both in a script that asserts the port is free and the BUILD_ID
+matches. The trap is not knowledge, it is a missing script.
+
+### T-3. `pg_cron` is installed and running six jobs. **DONE as a correction**
+
+**Verified live.** `pg_cron` 1.6.4 installed, six active jobs:
+
+| Job | Schedule (UTC) | Runs |
+|---|---|---|
+| `rentme-nightly-badges` | `20 2 * * *` | `private.sweep_badges()` |
+| `rentme_release_stale_holds` | `*/15 * * * *` | `private.release_stale_booking_holds()` |
+| `rentme_purge_rate_limits` | `30 * * * *` | `private.purge_rate_limits()` |
+| `rentme_purge_idempotency` | `10 2 * * *` | `private.purge_idempotency_records()` |
+| `rentme_announce_completed_stays` | `20 5 * * *` | `private.announce_completed_stays()` |
+| `rentme-daily-note` | `0 6 * * *` | `private.post_daily_note()` |
+
+Everything gated on "waiting for a scheduler" is unblocked: W-6's reconciliation,
+E-3's escrow timeout sweep, KYC-5's expiry sweep, MED-3's orphan sweep and the
+notification retention job. **All times are UTC**; the server runs UTC and Lagos
+is UTC+1, so a job written for a Lagos hour must be shifted.
+
+**Still to do.** Six unattended jobs writing to a live database with no alert on
+failure is a silent dependency, and it is the same shape as CASE-1.
+`cron.job_run_details` carries the outcome; a nightly check of it into
+`risk_alerts` is ten lines.
+
+### T-4. Four specs fail and none is caused by application code. **OPEN. P2. Re-verify**
+
+Measured before the current wave. Each was checked rather than assumed at the
+time; re-verify before acting, because five commits have landed since.
+
+| Spec | State when last measured |
+|---|---|
+| `gate` | **Aborts by design** and says so: without the Supabase URL and anon key the guard is a pass-through, so it refuses to pretend it proved anything |
+| `intent-tune` | Byte for byte identical to `origin/main`. Red on main |
+| `interests-settings` | `welcome/page.tsx` carries no `InterestChoices` mount on this branch or on main. Red on main |
+| `session-memory` | `ListingsWorkspace.tsx` byte for byte identical to main. Red on main |
+| `truncation` | Passes alone. Chromium runs out of room after seventy consecutive launches in this sandbox. Run in batches |
+
+### T-5. Four specs skip loudly when the catalogue is empty. Do not make them pass. **OPEN. P1**
+
+**If you make them pass by putting invented listings back, you have undone the
+point.** The seed catalogue of twenty-three places was deleted because twenty-two
+carried `verified: true` with fabricated ratings on addresses that do not exist.
+A spec that skips out loud with an empty catalogue is the correct behaviour and
+must survive every future sweep. See section 11 for the legitimate route.
+
+### T-6. Em dashes are confined to the archive. **DONE. P1**
+
+**Re-verified today:** zero em dashes in any markdown file outside
+`docs/archive/`. The remaining ones are ten historical audit records where a
+mechanical replacement would produce ungrammatical prose in documents nobody will
+reread.
+
+**Do.** Add the scan to CI with `docs/archive/` excluded, and note that three
+test specs legitimately **contain** the character because they are the guards
+that search for it. A sweep must not "fix" those.
+
+### T-7. Verification ritual, as it actually is. **P0 to follow**
+
+```bash
+npm run typecheck                              # all workspaces, must be 0
+cd apps/web && npx eslint .                    # from apps/web
+cd apps/web && npx vitest run                  # from apps/web, never the root
+npm run build                                  # typecheck passing is NOT enough
+# then, with the build served on 3210 from apps/web:
+cd apps/web && for s in tests/*.spec.mjs; do node "$s" || echo "FAILED $s"; done
+node scripts/verify-shots.mjs /route           # 390x844 dark
+node scripts/verify-shots.mjs --light /route   # the paper twin, and LOOK at it
+```
+
+Playwright uses `playwright-core` with
+`executablePath: "/opt/pw-browsers/chromium"`. Do not run `playwright install`.
+
+**A passing typecheck does not mean a passing build.** A client component
+importing a value from a server-only module typechecks fine and fails the build.
+Put shared constants in a client-safe `*-schema.ts`.
+
+### T-8. Specs this document now asks for, collected. **NEW. P1**
+
+Gathered so they can be built as one piece of work rather than nine times.
+
+| Spec | Guards | Entry |
+|---|---|---|
+| Route access matrix: every route, signed out and signed in | The middleware and the client gate agreeing | N-1 |
+| No `getAdminClient()` null branch without an adjacent `logMoney` | The incident's habit | CASE-1 |
+| Fee arithmetic with non-zero fixture rates | A zero-rate engine passing trivially | FEE-5 |
+| No verified mark where `verified_by` is null | The defect that already shipped | V-6, DEMO-2 |
+| No `is_demonstration` row in a sitemap, JSON-LD or email | Fabricated listings being indexed | DEMO-2 |
+| No `PLACEHOLDER` in `public/.well-known/*` | Shipping unverifiable deep links | MOB-3 |
+| No `NaijaFinds` in any rendered page or locale file | The rename staying done | RN-2 |
+| Banned synonyms: host, landlord, compound, hub, gist, ban | The lexicon drifting back | S-4 |
+| Migration filenames match `schema_migrations` | Section 22 | T-10 |
+| Contrast at 390px, both themes, real composited background | Light mode rotting | D-3 |
+| CSP header and nonce on a dynamic route with a `.png` suffix | The matcher hole staying closed | SEC-4 |
+
+### T-9. Two places draw the signed-out line and nothing checks they agree. **NEW. OPEN. P1**
+
+`middleware.ts` decides whole routes. `components/auth/AuthGate.tsx` decides
+individual controls on a page a stranger may read. The middleware file says so
+itself: "That line is drawn in two places and they have to agree."
+
+**Do.** A spec that walks every route signed out and asserts, for each: it either
+redirects to sign in, or it renders and every action control on it raises the
+auth sheet rather than attempting the action. This is the guard for the largest
+behavioural change made this week and there is currently nothing holding it.
+
+---
+
+## 22. The migration mirror
+
+### T-10. The mirror drifted, was repaired, and the repair reintroduced the drift in the same commit. **NEW. OPEN. P0**
+
+**This contradicts what has been reported and it needs to be fixed before the
+next `supabase db push` or `db reset`.**
+
+**What was fixed, and it genuinely was.** Commit `5e5aa79` renamed eight local
+migration files to the versions that actually ran, which also resolved both
+ordering inversions. All eight now pair exactly, confirmed by diffing filenames
+against `supabase_migrations.schema_migrations`.
+
+**What is broken, verified live today.** The **ten property migrations applied in
+that same commit do not pair at all.** Both sides hold 130 rows, but the last ten
+are entirely disjoint:
+
+| Local filename version | Applied version | Name (identical on both sides) |
+|---|---|---|
+| `20260809090000` | `20260809044320` | `nothing_here_came_from_somewhere_else` |
+| `20260809090500` | `20260809044346` | `the_advisor_findings_that_are_real` |
+| `20260809091000` | `20260809044358` | `the_impersonation_helper_goes_before_real_people_arrive` |
+| `20260809100000` | `20260809044441` | `a_listing_says_whether_it_is_to_let_or_for_sale` |
+| `20260809100500` | `20260809044514` | `what_it_actually_costs_to_move_in` |
+| `20260809101000` | `20260809044600` | `a_sale_has_a_price_and_a_title` |
+| `20260809101500` | `20260809044629` | `the_facts_a_nigerian_listing_states` |
+| `20260809102000` | `20260809044725` | `a_column_called_price_per_night_that_held_annual_rent` |
+| **`20260809103000`** | **`20260809044814`** | `the_map_stops_being_impossible` |
+| **`20260809104000`** | **`20260809044737`** | `a_person_says_what_they_came_here_to_do` |
+
+**The mechanism.** The migrations were authored as files with hand-picked
+timestamps and then applied through the management API, which stamps its own
+version at the moment of application. Every name matches; not one version does.
+This is the identical failure mode the commit set out to fix, reintroduced by the
+tool used to fix it.
+
+**Two concrete consequences, and the second is the serious one.**
+
+1. **`supabase db push` will consider all ten pending** and attempt to re-apply
+   them against a database where the DDL already exists. Some will fail on
+   `create type` and `add column`; the ones written with `if not exists` will
+   succeed and record a second history row, leaving 140 rows for 130 migrations.
+2. **The last two are in the wrong order relative to what actually ran.** Locally
+   `the_map_stops_being_impossible` (103000) sorts **before**
+   `a_person_says_what_they_came_here_to_do` (104000). In production
+   `a_person_says_what_they_came_here_to_do` ran at 044737, **before**
+   `the_map_stops_being_impossible` at 044814. So `supabase db reset` builds a
+   database in a different order from production. Whether that matters depends on
+   whether the map migration's trigger or index depends on anything the intent
+   migration created. **Read both files before renaming, and rename them into the
+   order that actually ran, not the order the filenames imply.** A new ordering
+   inversion was created by the commit that fixed two.
+
+**Do.**
+1. Rename all ten files to their applied version strings, preserving the names.
+   No content changes.
+2. Verify: the sorted list of local filename prefixes must equal the sorted list
+   of `schema_migrations.version` exactly, 130 for 130.
+3. **Then add the CI check**, which is the only thing that stops this happening a
+   third time: diff `ls supabase/migrations/*.sql` against `list_migrations` and
+   fail the build on any difference in either direction. Five minutes of work
+   buys a mechanical guarantee that the repository never lies about the database.
+4. **And change the habit.** Either author the file first and apply it by
+   filename, or apply through the API and immediately rename the local file to
+   the returned version. The current workflow guarantees drift, and the fix has
+   to be procedural because it has now happened twice under two different people.
+
+**Why this is P0 rather than P1.** It was P1 when it was eight cosmetic pairs on
+an empty database. It is P0 now because ten of the affected migrations carry the
+entire property schema, the database no longer matches what `db reset` would
+produce, and the next person to run a reset locally will build a subtly different
+schema and spend a day finding out why.
+
+---
+
+## 23. What is not known
+
+Stated plainly, because a recommendation resting on a guess is worse than no
+recommendation.
+
+1. **Whether `SUPABASE_SERVICE_ROLE_KEY` and `PAYSTACK_SECRET_KEY` are set in the
+   live Vercel environment.** Neither can be read from here. CASE-1's first
+   failure is the most probable cause of the funding incident and remains a
+   hypothesis with strong circumstantial evidence, not a confirmed diagnosis. The
+   confirming test is one line: send a signed test payload to
+   `/api/paystack/webhook` in production and see whether a `wallet_entries` row
+   appears. **Do this before building anything else in section 6**, because if
+   the key is present the diagnosis is wrong and something else is broken.
+2. **Whether the deployment at `ninjafinds.vercel.app` is serving this branch.**
+   Not verified. Nothing here confirms which git ref Vercel builds.
+3. **Whether any native build compiles.** MOB-1 lists exactly what was and was
+   not proven. No Android SDK and no macOS in this environment.
+4. **Whether the light theme passes WCAG AA today.** The last measurement found a
+   failure on the most-used text token and predates the token work, and its
+   background walk was faulty. D-3 is the spec that would answer it. Nobody has
+   run one.
+5. **The real type and geometry drift figures behind D-1.** Measured against a
+   3,167 line stylesheet that is now 71 lines and 19 partials. Re-measure before
+   quoting.
+6. **Whether the two ordering-inverted migrations in T-10 are order-dependent.**
+   Read both files. This document did not, because renaming is not its to do.
+7. **Whether the four locale files read naturally.** Yorùbá, Hausa and Igbo are
+   complete, use correct diacritics and hooked letters, and were not written by
+   native speakers. Two terms are flagged as possibly unidiomatic: the Igbo
+   `Ọnụọgụgụ` for Analytics and the Yoruba `Ìdíwọ̀n` for a guest rating. Marketing
+   copy should be rewritten from intent rather than corrected word by word. **And
+   nothing in sections 7, 8, 9 or 12 has been translated at all**, so the escrow,
+   fee, KYC and media copy will arrive English-only unless it is budgeted.
+8. **Whether RentMe is a licensed entity, and under what.** E-7 and LG-5. This
+   gates escrow entirely and has the longest lead time of anything in this
+   document.
+9. **Whether demo listings are being built at all**, or whether DEMO-1 is
+   happening instead. Section 11 branches entirely on this and it is an owner
+   decision, not an engineering one.
+10. **What the real commission rate will be, and when.** Section 8 is built to be
+    correct at zero and correct at any rate. It cannot recommend a number.
+11. **Whether hotels and restaurants are recruited in year one.** S-3, unanswered
+    since the last pass, and now blocking P-7's enum decision.
+12. **Whether hosts should ever see an aggregate save count.** `saved_items` is
+    owner-only by policy, so a host's client cannot read it, and the analytics
+    read deliberately does not bypass that with the service role. The number
+    would also be wrong: a signed-out visitor's saves live in `localStorage` and
+    a cookie and never become rows, and N-1 has just made signed-out visitors far
+    more common. A privacy posture decision, not an implementation detail.
+13. **What "district should feed instantly" meant.** An owner instruction that cut
+    off mid-sentence. It concerns the social layer. Ask rather than guess.
+14. **Whether NaijaFinds Pro is in scope.** The only genuine survivor of the old
+    blocked-decisions table. Still open with the owner, and it should be closed
+    before RN-2 stage 3, because a product called NaijaFinds Pro is a reason not
+    to rename the scope.
+
 
 
 
