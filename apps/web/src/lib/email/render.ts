@@ -423,7 +423,7 @@ export function compose(options: ComposeOptions): Composed {
   const footer = footerLines
     .map(
       (line) =>
-        `<p class="rm-muted" style="margin:0 0 6px;font-size:12px;line-height:18px;color:${LIGHT.muted};">${escapeHtml(line)}</p>`,
+        `<p class="rm-muted" style="margin:0 0 8px;font-family:${FONT_SANS};font-size:13px;line-height:20px;color:${LIGHT.muted};">${escapeHtml(line)}</p>`,
     )
     .join("\n                ");
 
@@ -438,40 +438,58 @@ export function compose(options: ComposeOptions): Composed {
     <style>${DARK_STYLE}
     </style>
   </head>
-  <body class="rm-base" style="margin:0;padding:0;background:${LIGHT.base};color:${LIGHT.body};font-family:${FONT_SANS};">
-    <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;overflow:hidden;mso-hide:all;">${escapeHtml(options.preheader)}</span>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="rm-base" style="background:${LIGHT.base};">
+  <body class="rm-base" style="margin:0;padding:0;width:100%;background:${LIGHT.base};color:${LIGHT.body};font-family:${FONT_SANS};-webkit-font-smoothing:antialiased;">
+    <!-- The inbox preview line. The trailing spacer entities stop a client
+         pulling the first sentence of body copy in after it, which is what
+         makes the preview a line somebody wrote rather than a line that
+         happened. -->
+    <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;mso-hide:all;">${escapeHtml(options.preheader)}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</span>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="rm-base" style="width:100%;background:${LIGHT.base};">
       <tr>
-        <td align="center" style="padding:32px 16px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
-            <!-- electric hairline, the glow edge. The same blue in both schemes. -->
-            <tr><td style="height:4px;line-height:4px;font-size:0;background-image:${GRADIENT};background-color:${GLOW};border-radius:20px 20px 0 0;">&nbsp;</td></tr>
+        <td align="center" style="padding:36px 16px 44px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:${MAX_WIDTH}px;width:100%;">
+            <!-- The glow edge: a luminous rule capping the card, brightest at
+                 its centre. background-color before background-image, so
+                 Outlook keeps a solid electric blue instead of nothing. -->
+            <tr><td style="height:4px;line-height:4px;font-size:0;background-color:${GLOW};background-image:${GRADIENT_CAP};border-radius:20px 20px 0 0;mso-line-height-rule:exactly;">&nbsp;</td></tr>
             <tr>
-              <td class="rm-card" style="background:${LIGHT.card};border:1px solid ${LIGHT.edge};border-top:0;border-radius:0 0 20px 20px;padding:40px 40px 36px;">
-                <!-- lockup. The mark is an image and carries no words; the
-                     wordmark beside it is live text, so the brand is still
-                     legible with images turned off. -->
+              <td class="rm-card" style="background:${LIGHT.card};border:1px solid ${LIGHT.edge};border-top:0;border-radius:0 0 20px 20px;padding:${PAD_X}px ${PAD_X}px 36px;">
+                <!-- The lockup. The mark is an image and carries NO words, so
+                     its alt is deliberately empty: the wordmark beside it is
+                     live text. With images blocked a reader sees "RentMe" once,
+                     in brand blue, rather than "RentMe RentMe" or a broken
+                     image icon where the brand should be. -->
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="vertical-align:middle;padding-right:12px;">
-                      <img src="${siteUrl()}/brand/rentme-logo.png" width="40" height="40" alt="" style="display:block;width:40px;height:40px;border:0;" />
+                      <img src="${siteUrl()}/brand/rentme-logo.png" width="${LOGO_SIZE}" height="${LOGO_SIZE}" alt="" style="display:block;width:${LOGO_SIZE}px;height:${LOGO_SIZE}px;border:0;outline:none;text-decoration:none;" />
                     </td>
                     <td style="vertical-align:middle;">
-                      <span style="font-size:22px;font-weight:700;letter-spacing:-0.02em;color:${GLOW};">RentMe</span>
+                      <span style="font-family:${FONT_SANS};font-size:23px;line-height:28px;font-weight:700;letter-spacing:-0.025em;color:${GLOW};">RentMe</span>
                     </td>
                   </tr>
                 </table>
-                <div style="height:28px;line-height:28px;font-size:0;">&nbsp;</div>
+                <div style="height:32px;line-height:32px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
                 ${body}
               </td>
             </tr>
-            <!-- footer -->
+            <!-- The footer sits on the canvas OUTSIDE the card, so it reads as
+                 small print by position as well as by size. -->
             <tr>
-              <td style="padding:24px 40px 8px;">
+              <td style="padding:26px ${PAD_X - 12}px 0;">
                 ${footer}
-                <p class="rm-muted" style="margin:0;font-size:12px;line-height:18px;color:${LIGHT.muted};">
-                  ${SIGN_OFF}
-                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin:12px 0 0;">
+                  <tr>
+                    <td style="vertical-align:middle;padding-right:9px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                        <td style="width:18px;height:2px;line-height:2px;font-size:0;background-color:${GLOW};background-image:${GRADIENT};border-radius:1px;mso-line-height-rule:exactly;">&nbsp;</td>
+                      </tr></table>
+                    </td>
+                    <td style="vertical-align:middle;">
+                      <p class="rm-muted" style="margin:0;font-family:${FONT_SANS};font-size:13px;line-height:20px;font-weight:600;color:${LIGHT.muted};">${SIGN_OFF}</p>
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
           </table>
