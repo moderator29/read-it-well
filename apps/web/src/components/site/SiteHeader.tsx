@@ -77,7 +77,9 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
             >
               {t.common.signIn}
             </Link>
-            <ButtonLink href="/sign-up" variant="primary" size="sm">
+            {/* /start, not /sign-up: two intro screens explaining what RentMe
+                is, with Skip on both. See (auth)/start/StartCarousel.tsx. */}
+            <ButtonLink href="/start" variant="primary" size="sm">
               {t.common.signUp}
             </ButtonLink>
             <MobileMenu

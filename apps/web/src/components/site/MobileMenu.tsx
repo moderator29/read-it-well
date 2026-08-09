@@ -184,7 +184,7 @@ export function MobileMenu({
                   the single most prominent thing on the surface, animated
                   forever to draw attention to itself. */}
               <ButtonLink
-                href="/sign-up"
+                href="/start"
                 onClick={() => setOpen(false)}
                 variant="primary"
                 size="lg"

@@ -121,6 +121,7 @@ export const ha: Dictionary = {
     agentMode: "Yanayin Wakili",
     consoleLabel: "Kwamiti",
     workspacesLabel: "Wuraren aiki",
+    becomeAgent: "Zama wakili",
   },
 
   social: {

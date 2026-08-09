@@ -86,10 +86,20 @@ export function StartCarousel() {
         </Link>
       </div>
 
+      {/*
+        NO `nf-card` HERE, and it is the one nesting rule with no exceptions.
+
+        The auth layout already wraps its children in `nf-card`, so the first
+        version of this drew a glass panel inside a glass panel: two rounded
+        rectangles, two rims, two shadows, for one piece of content. It is the
+        same mistake the listing creation screen was carrying with ten of them.
+        Checked by rendering the page at 390px rather than by reading the
+        layout, which is how it was spotted.
+      */}
       <section
         aria-roledescription="carousel"
         aria-label="What RentMe is"
-        className="nf-card w-full p-card-lg text-center"
+        className="w-full text-center"
       >
         {/*
           `key` on the object and on the copy, not on the panel. React swaps

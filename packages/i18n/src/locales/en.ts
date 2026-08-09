@@ -153,6 +153,7 @@ export const en = {
     agentMode: "Agent Mode",
     consoleLabel: "Console",
     workspacesLabel: "Workspaces",
+    becomeAgent: "Become an agent",
   },
 
   /**

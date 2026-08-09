@@ -162,6 +162,29 @@
     border-top: 1px solid var(--nf-border-subtle);
   }
 
+  /*
+   * HOME, EXPLORE AND FEED LEAVE THE DRAWER ON A PHONE.
+   *
+   * They live in the bottom dock, permanently, one thumb reach away. Repeating
+   * them at the top of the drawer meant the first thing somebody saw on
+   * opening the menu was three destinations they could already reach WITHOUT
+   * opening the menu, which pushed everything the drawer exists for below the
+   * fold: account, workspaces, becoming an agent, settings.
+   *
+   * 64rem is the same breakpoint the rail appears at, and that is the whole
+   * rule: above it there is no dock, so these three are the only way to those
+   * screens and they stay. Below it the dock has them. The two navigations
+   * never both carry the same destination.
+   */
+  .nf-nav__section--docked {
+    display: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-nav__section--docked {
+      display: block;
+    }
+  }
+
   .nf-nav__heading {
     padding: 0 0.75rem 0.5rem;
     font-size: 0.75rem;
