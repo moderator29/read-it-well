@@ -21,16 +21,16 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
  */
 export default function LoadingSite() {
   return (
-    <LoadingShell label="Loading" className="nf-shell py-12 sm:py-16">
+    <LoadingShell label="Loading" className="nf-shell py-section">
       <Skeleton width="7rem" height="0.875rem" radius="sm" />
-      <Skeleton width="min(28rem, 90%)" height="2.75rem" radius="sm" className="mt-4" />
-      <Skeleton width="min(40rem, 100%)" height="1.25rem" radius="sm" className="mt-4" />
+      <Skeleton width="min(28rem, 90%)" height="2.75rem" radius="sm" className="mt-group" />
+      <Skeleton width="min(40rem, 100%)" height="1.25rem" radius="sm" className="mt-group" />
 
       {/* Prose. Three blocks with a short last line each, which is what a
           paragraph actually looks like and what stops this reading as a table. */}
-      <div className="mt-10 max-w-[46rem] space-y-8">
+      <div className="mt-block max-w-[46rem] space-y-block">
         {Array.from({ length: 3 }, (_, block) => (
-          <div key={block} className="space-y-3">
+          <div key={block} className="space-y-row">
             <Skeleton width="14rem" height="1.5rem" radius="sm" />
             <Skeleton height="1rem" radius="sm" />
             <Skeleton height="1rem" radius="sm" />

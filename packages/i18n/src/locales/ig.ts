@@ -631,10 +631,17 @@ export const ig: Dictionary = {
     topExperiences: "Chọpụta ahụmahụ kacha mma",
     nearby: "Nso gị",
     aiCard: {
-      title: "RentMe AI",
-      body: "Enyi njem gị maara ihe. Jụọ ihe ọ bụla n'okwu dị mfe.",
+      title: "Jụọ RentMe AI",
+      body: "Ọ na-achọ n'ime otu ndepụta ị na-agụ, ya mere ọ ga-agwa gị naanị maka ebe ndị dị na RentMe n'ezie.",
       action: "Jụọ onye enyemaka",
-      samplePrompt: "Ụlọ ime abụọ na Lekki n'okpuru 300k nwere ọdọ mmiri",
+      truths: {
+        listings:
+          "Ọ na-aza site na ndepụta ndị dị adị, ma na-enye njikọ nke ọ bụla ọ kpọrọ aha.",
+        costs:
+          "Ọ maara ihe ịkwaga n'ezie na-efu. Ụgwọ caution, ụgwọ onye nnọchiteanya, ụgwọ ọkàiwu na ụgwọ nkwekọrịta, ọ bụghị naanị ụgwọ ụlọ.",
+        title:
+          "Ọ gaghị agwa gị na akwụkwọ ala dị mma. Ọ na-ekwu ihe ndepụta ahụ kwuru, wee zigara gị ọkàiwu.",
+      },
     },
     agentCard: {
       title: "Bụrụ Onye Nnọchiteanya RentMe",

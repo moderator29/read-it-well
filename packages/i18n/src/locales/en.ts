@@ -788,10 +788,42 @@ export const en = {
     topExperiences: "Explore top experiences",
     nearby: "Near you",
     aiCard: {
-      title: "RentMe AI",
-      body: "Your smart travel buddy. Ask for anything, in plain words.",
+      /*
+       * THIS CARD USED TO BE A PICTURE OF ITS OWN WORDS.
+       *
+       * The banner was a 1536x1024 render with "AI Assistant" and "Your smart
+       * travel buddy" painted into the pixels. That is untranslatable by
+       * definition: these four locale files could not reach it, so three of
+       * our four languages saw English regardless of what they had chosen. It
+       * was also invisible to a screen reader, since the image carried alt=""
+       * and the only real text in the component was the button.
+       *
+       * And it said TRAVEL BUDDY, on a platform for renting and buying
+       * property, above an assistant whose actual instructions are about
+       * move-in costs and land titles.
+       *
+       * What is here now is what the assistant genuinely does, taken from the
+       * rules it actually runs under in app/api/assistant/route.ts, so the
+       * three lines below are checkable rather than promotional.
+       */
+      title: "Ask RentMe AI",
+      body: "It searches the same listings you do, so it can only tell you about places that are really on RentMe.",
       action: "Ask the assistant",
-      samplePrompt: "2 bedroom in Lekki under 300k with a pool",
+      truths: {
+        /* Rule 1 of the system prompt: never invent listings, cite only what
+           the search tool returned, name each one with its /listing/<id>. */
+        listings:
+          "It answers from real listings, and links every one it names.",
+        /* Rule 4: the rent is rarely the whole number. This is the single most
+           useful thing it knows and nothing on the platform said so. */
+        costs:
+          "It knows what moving in actually costs. Caution deposit, agency fee, legal fee and agreement fee, not just the rent.",
+        /* Rule 5: it is not a lawyer and must never say a title is good. A
+           product saying what its assistant will refuse to do is worth more
+           here than another sentence about how clever it is. */
+        title:
+          "It will not tell you a land title is good. It says what the listing claims, then sends you to a lawyer.",
+      },
     },
     agentCard: {
       title: "Become a RentMe Agent",

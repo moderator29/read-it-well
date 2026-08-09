@@ -67,7 +67,9 @@
     ".next-e/types/**/*.ts",
     ".next-e/dev/types/**/*.ts",
     ".next-agentA/types/**/*.ts",
-    ".next-agentA/dev/types/**/*.ts"
+    ".next-agentA/dev/types/**/*.ts",
+    ".next-ds/types/**/*.ts",
+    ".next-ds/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

@@ -625,10 +625,17 @@ export const yo: Dictionary = {
     topExperiences: "Ṣàwárí ìrírí tó ga jù",
     nearby: "Nítòsí rẹ",
     aiCard: {
-      title: "RentMe AI",
-      body: "Ọ̀rẹ́ ìrìnàjò ọlọ́gbọ́n rẹ. Béèrè ohunkóhun ní èdè tí ó rọrùn.",
+      title: "Béèrè lọ́wọ́ RentMe AI",
+      body: "Ó ń wá inú àkójọ kan náà tí ìwọ ń wò, nítorí náà ó lè sọ fún ọ nípa àwọn ibi tí ó wà lórí RentMe nìkan.",
       action: "Béèrè lọ́wọ́ olùrànlọ́wọ́",
-      samplePrompt: "Yàrá méjì ní Lekki lábẹ́ 300k pẹ̀lú adágún",
+      truths: {
+        listings:
+          "Ó ń dáhùn láti inú àkójọ gidi, ó sì ń so ọ̀nà mọ́ gbogbo èyí tí ó bá dárúkọ.",
+        costs:
+          "Ó mọ ohun tí ìṣílọ gan-an ná. Owó caution, owó aṣojú, owó agbẹjọ́rò àti owó àdéhùn, kì í ṣe owó ilé nìkan.",
+        title:
+          "Kò ní sọ fún ọ pé ìwé ilẹ̀ dára. Ó ń sọ ohun tí àkọsílẹ̀ náà sọ, ó sì ń rán ọ sí agbẹjọ́rò.",
+      },
     },
     agentCard: {
       title: "Di Aṣojú RentMe",

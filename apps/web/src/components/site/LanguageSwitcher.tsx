@@ -41,7 +41,7 @@ export function LanguageSwitcher({
         value={value}
         onChange={(e) => change(e.target.value as Locale)}
         disabled={pending}
-        className="nf-btn nf-btn--primary min-h-11 appearance-none cursor-pointer px-3 py-2 pr-7 text-[0.8125rem] disabled:opacity-60"
+        className="nf-btn nf-btn--primary min-h-11 appearance-none cursor-pointer px-row py-inline pr-block text-[0.8125rem] disabled:opacity-60"
         style={{ paddingBlock: compact ? "0.35rem" : undefined }}
       >
         {LOCALES.map((l) => (

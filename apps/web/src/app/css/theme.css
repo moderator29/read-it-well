@@ -63,7 +63,6 @@
   --spacing-section-tight: var(--nf-gap-section-tight);
   --spacing-block: var(--nf-gap-block);
   --spacing-heading: var(--nf-gap-heading);
-  --spacing-lede: var(--nf-gap-lede);
   --spacing-group: var(--nf-gap-group);
   --spacing-row: var(--nf-gap-row);
   --spacing-inline: var(--nf-gap-inline);
@@ -73,6 +72,7 @@
   --spacing-card: var(--nf-pad-card);
   --spacing-card-lg: var(--nf-pad-card-lg);
   --spacing-card-sm: var(--nf-pad-card-sm);
+  --spacing-cell: var(--nf-pad-cell);
 
   --radius-sm: var(--nf-radius-sm);
   --radius-md: var(--nf-radius-md);

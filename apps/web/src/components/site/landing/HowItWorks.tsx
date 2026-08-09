@@ -53,13 +53,13 @@ export function HowItWorks({ t }: { t: Dictionary }) {
   ];
 
   return (
-    <section className="nf-shell py-12 sm:py-16">
-      <Reveal className="mb-8 max-w-[52ch] sm:mb-10">
+    <section className="nf-shell py-section">
+      <Reveal className="mb-block max-w-[52ch]">
         <span className="nf-overline">Three steps</span>
-        <h2 className="nf-h1 mt-3">
+        <h2 className="nf-h1 mt-row">
           <Words text="How it works" accentFrom={2} />
         </h2>
-        <p className="nf-lede mt-4">
+        <p className="nf-lede mt-group">
           From first search to checked in, the whole journey lives in one account.
         </p>
       </Reveal>
@@ -67,8 +67,8 @@ export function HowItWorks({ t }: { t: Dictionary }) {
       <Reveal>
         <ol className="nf-card nf-cells nf-cells--trio">
           {steps.map((s, i) => (
-            <li key={s.title} className="flex flex-col gap-4 p-7 sm:p-8">
-              <div className="flex items-center gap-3">
+            <li key={s.title} className="flex flex-col gap-group p-cell">
+              <div className="flex items-center gap-row">
                 <UiIcon
                   name={s.icon}
                   size={28}

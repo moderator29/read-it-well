@@ -613,12 +613,23 @@
    * is the mechanism behind "fewer containers": you do not need a border to
    * say these four things belong together if the air already says it.
    *
-   *   section  96   between two sections of a page
-   *   block    32   between two blocks inside one section
-   *   heading  24   between a heading and the content under it
-   *   group    16   between sibling items in a group
-   *   row      12   between two rows of one list
-   *   inline    8   between an icon and its label
+   *   section  48 -> 96   between two sections of a page
+   *   section-tight       between two subsections of a long page
+   *   block    32         between two blocks inside one section
+   *   heading  24         between a heading and the content under it
+   *   group    16         between sibling items in a group
+   *   row      12         between two rows of one list, and between a title
+   *                       and its own subtitle, which is the same relationship
+   *   inline    8         between an icon and its label
+   *   inline-tight  4     between two things that are almost one thing
+   *
+   * EIGHT NAMES, EIGHT DISTINCT VALUES. There was very nearly a ninth called
+   * `lede` sitting at 12px next to `row` at 12px, which is the exact fault the
+   * type scale had before it was fixed: body-lg 15.5, body 14, body-sm 14, so
+   * an author reaching for the quieter tier changed nothing and reached for
+   * colour instead. Two names for one number is a scale that lies about how
+   * many decisions it offers. A title and its subtitle ARE two rows of one
+   * object, so they take the row interval and there is no ninth name.
    *
    * SECTION AND SHELL ARE FLUID, AND THAT IS THE OTHER HALF OF THE FIX.
    *
@@ -634,11 +645,10 @@
   --nf-gap-section-tight: clamp(2rem, 1.25rem + 3vw, 3rem);  /* 32 -> 48 */
   --nf-gap-block: var(--nf-space-xl);
   --nf-gap-heading: var(--nf-space-lg);
-  /* A heading and its own subtitle are one unit, so they sit closer than a
-     heading sits to the content it heads. Without this tier every lede was
-     written at mt-2, mt-3, mt-4 or mt-5 depending on who typed it. */
-  --nf-gap-lede: var(--nf-space-sm);
   --nf-gap-group: var(--nf-space-md);
+  /* Rows of a list, and a title with its own subtitle. Before this existed
+     that second case was written at mt-1.5, mt-2, mt-2.5, mt-3, mt-4 and mt-5
+     across the marketing pages alone: six answers to one question. */
   --nf-gap-row: var(--nf-space-sm);
   --nf-gap-inline: var(--nf-space-xs);
   --nf-gap-inline-tight: var(--nf-space-2xs);
@@ -659,6 +669,15 @@
   --nf-pad-card: var(--nf-space-lg);       /* 24, the ordinary card */
   --nf-pad-card-lg: clamp(2rem, 1rem + 4vw, 4rem);      /* the one card a page is built around */
   --nf-pad-card-sm: var(--nf-space-md);    /* 16, a card inside another surface */
+  /*
+   * A CELL inside a grouped surface (.nf-cells), which is not a card and wants
+   * more air than one. A card has a border and a shadow helping it hold its
+   * own edge; a cell has nothing but the space around its contents and a
+   * hairline shared with its neighbour, so the padding IS the container. The
+   * two bands using this pattern had drifted to p-7 sm:p-8 and p-6 sm:p-7,
+   * which is four numbers for one job on one page.
+   */
+  --nf-pad-cell: var(--nf-space-xl);       /* 32 */
   --nf-pad-row-block: var(--nf-space-sm);
   --nf-pad-row-inline: var(--nf-space-md);
   --nf-pad-control-block: var(--nf-space-sm);

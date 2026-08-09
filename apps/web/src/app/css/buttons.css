@@ -29,7 +29,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: var(--nf-gap-inline);
     font-weight: 650;
     font-size: var(--nf-text-body);
     letter-spacing: -0.005em;
@@ -39,7 +39,7 @@
      * across the fifteen reference screens is a full pill.
      */
     border-radius: var(--nf-radius-pill);
-    padding: 0.85rem 1.5rem;
+    padding: var(--nf-space-sm) var(--nf-space-lg);
     /* The floor, and now also the smallest painted size. See `--sm` below. */
     min-height: 3rem;
     cursor: pointer;
@@ -111,7 +111,7 @@
    */
   .nf-btn--sm {
     min-height: 2.75rem;
-    padding: 0.6rem 1.15rem;
+    padding: var(--nf-gap-inline) var(--nf-space-md);
     font-size: var(--nf-text-body-sm);
   }
   /*
@@ -145,12 +145,12 @@
   }
   .nf-btn--md {
     min-height: 3.5rem;
-    padding: 0.85rem 1.5rem;
+    padding: var(--nf-space-sm) var(--nf-space-lg);
   }
 
   /* Icon-only buttons are square at their size, never a padded rectangle. */
   .nf-btn--icon {
-    padding: 0;
+    padding: var(--nf-space-0);
     aspect-ratio: 1;
     width: auto;
   }
@@ -309,7 +309,7 @@
 
   .nf-btn--lg {
     min-height: 4rem;
-    padding: 1.05rem 1.9rem;
+    padding: var(--nf-space-md) var(--nf-space-xl);
     font-size: var(--nf-text-body-lg);
   }
 

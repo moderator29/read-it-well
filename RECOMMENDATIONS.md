@@ -1767,7 +1767,7 @@ below costs a week and creates a liability, and this costs a fortnight of phone
 calls and creates an asset. If it is happening, most of the rest of this section
 is unnecessary. Say which, and put the answer in `docs/PRODUCT.md`.
 
-### DEMO-2. If demo listings are built anyway, these are the non-negotiables. **NEW. OPEN. P0**
+### DEMO-2. If demo listings are built anyway, these are the non-negotiables. **NEW. MOSTLY DONE 2026-08-09. P1 residual, all of it in the UI**
 
 1. **A database-level flag, not a convention.** `listings.is_demonstration
    boolean not null default false`. Not a naming convention on the title, not a
@@ -1797,6 +1797,69 @@ is unnecessary. Say which, and put the answer in `docs/PRODUCT.md`.
    property advertisement with the platform's name on it.
 10. **A deletion date, decided and recorded on the row.** Not "when we get real
     listings". A date. And a spec that fails the build after it passes.
+
+**BUILT 2026-08-09. Forty-two example properties are live**, across Lagos (18),
+Abuja (12), Port Harcourt (6) and Ibadan (6), in 13 real areas, spanning 9
+property types, with real coordinates that answer `listings_in_bounds`. The
+column is `listings.is_demo`, not `is_demonstration` as item 1 proposed; the
+shorter name won because it is read at four call sites in SQL and one in the
+mapper.
+
+**What is enforced in the database, which is items 1, 2, 5 and 7.**
+
+| Rule | Mechanism |
+|---|---|
+| The flag | `listings.is_demo boolean not null default false`, so anything not explicitly an example is real |
+| No trust mark | `listings_demo_carries_no_trust_mark` CHECK: an example row may hold no `address_verified_at`, `physically_inspected_at` or `verified_by` |
+| No promotion | `listings_demo_is_never_featured` CHECK. `featured` is a trust signal quietly, and it is what somebody reaches for while trying to make an empty platform look busy |
+| No verified lister | `listings_demo_lister_is_unverified` trigger, plus `agents.is_demo` and `agents_demo_is_never_verified` |
+| Not transactable | `refuse_transaction_on_demo_listing` on `bookings`, `reviews`, `inspection_requests` and `inspection_confirmations` |
+| Not retro-flaggable | `refuse_demo_flag_on_committed_listing`, so a listing with real bookings cannot be turned into an example |
+| No badge | `refuse_badge_for_example_lister` on `user_badges` |
+| No ratings | Structural. `reviews.booking_id` is NOT NULL and a booking is refused, so no review can exist to average |
+
+**Payment and escrow are covered transitively and deliberately.** Every money
+path in this codebase hangs off a booking, so refusing the booking refuses all
+of them at one chokepoint rather than enumerating money surfaces and missing the
+next one added.
+
+**Two leaks were found by reading the triggers rather than by testing the
+surface, and both are sealed.** `private.announce_published_listing` would have
+posted "A new apartment is now open in Lekki Phase 1" into the area feed as
+news, in a table with no way to qualify it. `private.award_listing_badges` would
+have awarded `first_listing` and `estate_specialist`. **One badge was actually
+awarded during this work**, by a probe row that was inserted, checked and
+deleted a second before the suppression landed, and it outlived the row that
+earned it because badges do not cascade. That is recorded in migration
+`20260809081841` because it is the whole argument for enforcing this at the
+database: the rule was known, was being actively worked on, and still leaked.
+
+**Item 3 is honoured more strictly than written: `address` is NULL on all 42
+rows.** The area, the city and an approximate pin are the whole location claim.
+
+**Item 4 needs no answer yet: there are no photographs at all.** Nothing under
+`apps/web/public` is property imagery, and `MediaFrame` already draws a
+deterministic gradient and skyline per listing hue, so an image-less listing is
+a designed state rather than a failure. This is the right outcome: it removes
+the licensing question entirely and it is visibly not a photograph of a real
+house.
+
+**Item 6, honoured.** The lister is `RentMe Example Collection`, institutional
+rather than a person, with no phone number and no CAC number, on an account at
+the RFC 2606 reserved `.invalid` TLD with no usable password hash and
+`banned_until` in 2099, so it cannot be signed into.
+
+**RESIDUAL, and all of it is in surfaces this pass does not own.**
+
+- **Items 8 and 9 are entirely unbuilt.** No surface renders the statement yet,
+  and nothing excludes these rows from the sitemap, JSON-LD, Open Graph or
+  email. **Item 9 is the urgent one**: an example listing indexed by Google is a
+  fabricated property advertisement carrying our name. The flag is on the domain
+  type as `Listing.isDemo` and on map pins as `MapPin.isDemo`.
+- **Item 10, the deletion date, is not built.** `excludeDemo` on
+  `ListingSearchFilter` is the retirement switch and is pushed down to SQL, so
+  retiring them is a flag rather than a migration. A date on the row and a spec
+  that fails after it passes is still owed.
 
 ### DEMO-3. The honest ways to make an empty platform feel alive. **NEW. OPEN. P1**
 

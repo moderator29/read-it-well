@@ -623,10 +623,17 @@ export const ha: Dictionary = {
     topExperiences: "Bincika manyan kwarewa",
     nearby: "Kusa da kai",
     aiCard: {
-      title: "RentMe AI",
-      body: "Abokin tafiyarka mai wayo. Ka tambaya da harshe mai sauƙi.",
+      title: "Tambayi RentMe AI",
+      body: "Yana bincike a cikin jerin gidajen da kake gani, don haka zai iya gaya maka kawai game da wuraren da suke kan RentMe da gaske.",
       action: "Tambayi mataimaki",
-      samplePrompt: "Ɗaki biyu a Lekki ƙasa da 300k mai wurin ninkaya",
+      truths: {
+        listings:
+          "Yana amsawa daga jerin gidaje na gaskiya, kuma yana haɗa duk wanda ya ambata.",
+        costs:
+          "Ya san abin da ƙaura ke ci da gaske. Kuɗin caution, kuɗin wakili, kuɗin lauya da kuɗin yarjejeniya, ba haya kaɗai ba.",
+        title:
+          "Ba zai gaya maka cewa takardar mallakar ƙasa tana da kyau ba. Yana faɗin abin da tallan ya ce, sannan ya tura ka wurin lauya.",
+      },
     },
     agentCard: {
       title: "Zama Wakilin RentMe",

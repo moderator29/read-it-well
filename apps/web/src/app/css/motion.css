@@ -53,8 +53,8 @@
    * "something just landed" motion.
    */
   .nf-page-header--verified {
-    padding: 0.5rem 0.625rem;
-    margin-inline: -0.625rem;
+    padding: var(--nf-gap-inline);
+    margin-inline: calc(var(--nf-gap-inline) * -1);
     background: color-mix(in oklab, var(--nf-state-success) 12%, transparent);
     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-state-success) 32%, transparent);
     animation: nf-confirm-pop var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
@@ -139,7 +139,7 @@
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    padding: 0.5rem 0.9rem;
+    padding: var(--nf-gap-inline) var(--nf-space-sm);
     border-radius: var(--nf-radius-pill);
     border: 1.5px solid rgb(18 21 26 / 0.14);
     background: rgb(255 255 255 / 0.72);

@@ -31,18 +31,18 @@ export function AgentsBand({ t }: { t: Dictionary }) {
   ] as const;
 
   return (
-    <section className="nf-shell py-12 sm:py-16">
+    <section className="nf-shell py-section">
       <Reveal>
         <div className="nf-card nf-card--live relative overflow-hidden">
-          <div className="grid gap-10 p-8 sm:p-10 lg:grid-cols-[1fr_0.9fr] lg:items-center md:p-12">
+          <div className="grid gap-block p-card-lg lg:grid-cols-[1fr_0.9fr] lg:items-center">
             <div>
               <span className="nf-overline">{t.landing.footer.becomeAgent}</span>
-              <h2 className="nf-h1 mt-3 max-w-[18ch]">
+              <h2 className="nf-h1 mt-row max-w-[18ch]">
                 List your property. Reach all of Nigeria.
               </h2>
-              <p className="nf-lede mt-5 max-w-[44ch]">{t.home.agentCard.body}</p>
+              <p className="nf-lede mt-group max-w-[44ch]">{t.home.agentCard.body}</p>
 
-              <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+              <div className="mt-block flex flex-wrap items-center gap-x-block gap-y-group">
                 <ButtonLink href="/agents" variant="primary" size="lg">
                   {t.home.agentCard.action}
                 </ButtonLink>

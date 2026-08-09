@@ -15,7 +15,7 @@
     flex-direction: column;
     align-items: center;
     transform: translate(-50%, -100%);
-    padding: 4px 11px;
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
     border-radius: var(--nf-radius-pill);
     background: rgb(1 1 24 / 0.88);
     border: 1px solid rgb(92 124 255 / 0.5);

@@ -11,7 +11,7 @@
   .nf-logo {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: var(--nf-gap-inline);
   }
   .nf-logo__text {
     display: flex;
@@ -36,21 +36,19 @@
   }
 
   /*
-   * AI Assistant banner.
+   * `.nf-ai-banner` STOOD HERE AND IS GONE.
    *
-   * The card gradient is CSS so it stretches to any width without distortion, and
-   * the supplied robot rides on top as its own layer, anchored bottom right with
-   * a feathered edge so it dissolves into the gradient rather than showing a
-   * rectangle seam. Composited this way the robot is never cropped, which a
-   * single cover-sized background image could not avoid on a wide banner.
+   * It was the frame for a 1536x1024 AI render with "AI Assistant" and "Your
+   * smart travel buddy" baked into it as pixels, and its own geometry was part
+   * of the problem: `aspect-ratio: 2.15 / 1` meant the card's height was
+   * decided by the artwork rather than by what it had to say, so on a 390px
+   * phone the whole proposition lived in a 181px letterbox. It also carried a
+   * raw rgb() rim, which nothing in either theme could reach.
+   *
+   * The assistant's card is now real type on `.nf-card--live`, the surface the
+   * landing page's closing card and the agents band already use, and it is as
+   * tall as its own content. See components/app/AiAssistantBanner.tsx.
    */
-  .nf-ai-banner {
-    aspect-ratio: 2.15 / 1;
-    background: var(--nf-canvas-base);
-    box-shadow:
-      inset 0 0 0 1px rgb(92 124 255 / 0.18),
-      0 18px 46px -14px color-mix(in oklab, var(--nf-brand-primary) 85%, transparent);
-  }
 
   /* Mobile tab bar: glass slab pinned to the bottom, above the safe area. */
   /*
@@ -110,7 +108,7 @@
      button. Higher specificity than the declaration in chips.css, so this
      holds wherever the two files sit in the cascade. */
   :root[data-keyboard="open"] .nf-action-bar-pinned {
-    padding-bottom: 0;
+    padding-bottom: var(--nf-space-0);
   }
 
   /*
@@ -129,7 +127,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.55rem;
+    gap: var(--nf-gap-inline);
     transition:
       transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
       opacity 160ms ease;
@@ -286,17 +284,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0;
+    gap: var(--nf-space-0);
     height: 3.5rem;
     min-width: 3.5rem;
-    padding-inline: 0.875rem;
+    padding-inline: var(--nf-space-sm);
     border-radius: var(--nf-radius-pill);
     transition:
       gap var(--nf-duration-base) var(--nf-ease-spring),
       color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-tab-pop[aria-current="page"] {
-    gap: 0.4rem;
+    gap: var(--nf-gap-inline);
   }
 
   .nf-tab-pop__pill {
@@ -377,8 +375,8 @@
    */
   .nf-dock {
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.375rem;
+    gap: var(--nf-gap-inline-tight);
+    padding: var(--nf-gap-inline);
     border-radius: var(--nf-radius-pill);
     background: var(--nf-glass-fill-strong);
     border: 1px solid var(--nf-border-subtle);

@@ -41,6 +41,15 @@ export type ListingFacts = {
   amenities: string[];
   instantBook: boolean;
   verified: boolean;
+  /**
+   * True when this illustrates the catalogue and no such property exists.
+   *
+   * Carried in the facts for the same reason `verified` is: the drawer's live
+   * match count runs in the browser against this shape alone, so a filter that
+   * can hide example listings has to be answerable here or the count and the
+   * server would disagree.
+   */
+  isDemo: boolean;
   source?: "rentme";
   /**
    * Light and water, where the host has answered.
@@ -64,6 +73,7 @@ export function factsOf(l: Listing): ListingFacts {
     amenities: l.amenities,
     instantBook: l.instantBook,
     verified: l.verified,
+    isDemo: l.isDemo,
     source: l.source,
     ...(l.utilities !== undefined ? { utilities: l.utilities } : {}),
   };
@@ -153,6 +163,22 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
 
   if (filter.instantBook && !facts.instantBook) return false;
   if (filter.verifiedOnly && !isVerifiedFirstParty(facts)) return false;
+
+  /*
+   * The retirement switch.
+   *
+   * Example listings are in the catalogue because the catalogue is otherwise
+   * empty. The day real supply arrives somebody will want them gone, and that
+   * should be a flag rather than a migration, because the decision is likely to
+   * be reversed once or twice while supply is thin in one city and healthy in
+   * another.
+   *
+   * Note it is one-directional on purpose. There is a filter for "hide the
+   * examples" and deliberately none for "show me only the examples": the second
+   * would be a discovery surface whose entire content is properties that do not
+   * exist, which is the shape this whole exercise exists to prevent.
+   */
+  if (filter.excludeDemo && facts.isDemo) return false;
 
   if (filter.powerBackup && !hasBackupPower(facts)) return false;
   if (filter.powerBandA && facts.utilities?.powerGrid !== "BAND_A") return false;

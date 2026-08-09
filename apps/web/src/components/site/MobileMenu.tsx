@@ -96,8 +96,8 @@ export function MobileMenu({
             className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
           />
 
-          <div className="nf-rise absolute inset-0 flex flex-col overflow-y-auto bg-[var(--nf-surface-primary)] px-5 pb-8 pt-5">
-            <div className="mb-8 flex items-center justify-between">
+          <div className="nf-rise absolute inset-0 flex flex-col overflow-y-auto bg-[var(--nf-surface-primary)] px-heading pb-block pt-heading">
+            <div className="mb-block flex items-center justify-between">
               <Logo size={40} wordSize={19} />
               <button
                 type="button"
@@ -166,7 +166,7 @@ export function MobileMenu({
               </ul>
             </nav>
 
-            <div className="mt-8">
+            <div className="mt-block">
               {/*
                 Theme and language, which are the two things a visitor may want
                 to change before reading a word. Same shape as the group above,
@@ -174,7 +174,7 @@ export function MobileMenu({
                 four kinds of thing.
               */}
               <span className="nf-group-label">Display</span>
-              <div className="nf-card flex items-center gap-2 px-4 py-3">
+              <div className="nf-card flex items-center gap-inline px-group py-row">
                 <ThemeToggle />
                 <LanguageSwitcher current={locale} label={languageLabel} compact />
               </div>
@@ -189,7 +189,7 @@ export function MobileMenu({
                 variant="primary"
                 size="lg"
                 full
-                className="mt-8"
+                className="mt-block"
               >
                 {signUp}
               </ButtonLink>

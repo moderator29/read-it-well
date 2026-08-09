@@ -21,6 +21,13 @@ function listing(over: Partial<Listing> = {}): Listing {
     rating: 0,
     reviewCount: 0,
     verified: false,
+    /*
+     * Required rather than optional on the domain type, on purpose: "is this a
+     * real property" is not a question a reader of a listing should be allowed
+     * to leave unanswered, so a new construction site has to decide. A fixture
+     * says false because the thing it is standing in for is real inventory.
+     */
+    isDemo: false,
     instantBook: false,
     amenities: [],
     photos: [],

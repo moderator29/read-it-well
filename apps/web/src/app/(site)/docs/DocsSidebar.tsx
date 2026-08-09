@@ -53,9 +53,9 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
           onClick={() => setOpen((was) => !was)}
           aria-expanded={open}
           aria-controls={panelId}
-          className="nf-tap flex min-h-11 w-full items-center justify-between gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-default)] bg-[var(--nf-surface-secondary)] px-4 py-2.5 text-left lg:hidden"
+          className="nf-tap flex min-h-11 w-full items-center justify-between gap-row rounded-[var(--nf-radius-md)] border border-[var(--nf-border-default)] bg-[var(--nf-surface-secondary)] px-group py-inline text-left lg:hidden"
         >
-          <span className="flex min-w-0 items-center gap-2.5">
+          <span className="flex min-w-0 items-center gap-inline">
             <UiIcon
               name="panel-left"
               size={16}
@@ -68,7 +68,7 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
           <UiIcon
             name="chevron-down"
             size={16}
-            className={`shrink-0 text-[var(--nf-content-muted)] transition-transform duration-200 ${
+            className={`shrink-0 text-[var(--nf-content-muted)] transition-transform duration-[var(--nf-duration-base)] ${
               open ? "rotate-180" : ""
             }`}
           />
@@ -79,12 +79,12 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
       <nav
         id={panelId}
         aria-label="Documentation chapters"
-        className={`${open ? "mt-2 block" : "hidden"} lg:mt-0 lg:block`}
+        className={`${open ? "mt-inline block" : "hidden"} lg:mt-0 lg:block`}
       >
-        <p className="nf-overline hidden px-3 pb-2 text-[var(--nf-content-muted)] lg:block">
+        <p className="nf-overline hidden px-row pb-inline text-[var(--nf-content-muted)] lg:block">
           Documentation
         </p>
-        <ol className="space-y-0.5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-2 lg:border-0 lg:bg-transparent lg:p-0">
+        <ol className="space-y-inline-tight rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-inline lg:border-0 lg:bg-transparent lg:p-0">
           <li>
             <ChapterLink href="/docs" active={onContents} number={null} title="All chapters" />
           </li>
@@ -127,7 +127,7 @@ function ChapterLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`nf-tap flex min-h-11 items-center gap-2.5 rounded-[var(--nf-radius-sm)] border-l-2 py-2 pr-2.5 pl-2.5 text-[0.8125rem] leading-snug transition-colors ${
+      className={`nf-tap flex min-h-11 items-center gap-inline rounded-[var(--nf-radius-sm)] border-l-2 py-inline pr-inline pl-inline text-[0.8125rem] leading-snug transition-colors ${
         active
           ? "border-l-[var(--nf-brand-secondary)] bg-[var(--nf-brand-primary-soft)] font-semibold text-[var(--nf-content-primary)]"
           : "border-l-transparent text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill-thin)] hover:text-[var(--nf-content-primary)]"

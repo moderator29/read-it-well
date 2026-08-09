@@ -26,16 +26,16 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
   if (listings.length === 0) return null;
 
   return (
-    <section className="nf-shell py-12 sm:py-16">
-      <Reveal className="mb-8 max-w-[52ch] sm:mb-10">
-        <span className="nf-overline mb-3 inline-flex items-center gap-2">
+    <section className="nf-shell py-section">
+      <Reveal className="mb-block max-w-[52ch]">
+        <span className="nf-overline mb-row inline-flex items-center gap-inline">
           <UiIcon name="sparkle" size={16} />
           Hand picked
         </span>
-        <h2 className="nf-h1 mt-3">
+        <h2 className="nf-h1 mt-row">
           <Words text="Featured this week" accentFrom={1} />
         </h2>
-        <p className="nf-lede mt-4">
+        <p className="nf-lede mt-group">
           The highest rated places on the platform right now. Swipe through, or
           step card by card.
         </p>
@@ -57,7 +57,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                   className="nf-card nf-card--interactive group block h-full overflow-hidden"
                 >
                   <div className="relative aspect-[4/3] w-full overflow-hidden">
-                    <div className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100">
+                    <div className="absolute inset-0 transition-transform duration-[var(--nf-duration-slow)] ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                       <MediaFrame hue={l.hue} />
                       {photo && (
                         <Image
@@ -75,7 +75,7 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                       style={{ backgroundImage: "var(--nf-scrim-media)" }}
                       aria-hidden="true"
                     />
-                    <p className="nf-caption absolute bottom-3 left-3 right-3 flex items-center gap-1.5 font-medium text-[var(--nf-content-on-media)]">
+                    <p className="nf-caption absolute bottom-3 left-3 right-3 flex items-center gap-inline font-medium text-[var(--nf-content-on-media)]">
                       <UiIcon
                         name="location"
                         size={12}
@@ -85,20 +85,20 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                     </p>
                   </div>
 
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-4">
+                  <div className="p-card-sm">
+                    <div className="flex items-start justify-between gap-group">
                       {/* Wraps. "Eko Pearl Waterfront Apartment" needed 231px
                           into a 174px column, so every long name in the rail
                           was arriving cut. */}
                       <h3 className="nf-body-sm min-w-0 font-semibold text-[var(--nf-content-primary)]">
                         {l.title}
                       </h3>
-                      <span className="nf-numeric nf-caption flex shrink-0 items-center gap-1 font-semibold text-[var(--nf-content-primary)]">
+                      <span className="nf-numeric nf-caption flex shrink-0 items-center gap-inline-tight font-semibold text-[var(--nf-content-primary)]">
                         <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
                         {formatRating(l.rating, locale)}
                       </span>
                     </div>
-                    <p className="mt-2.5">
+                    <p className="mt-inline">
                       <Amount
                         minorUnits={l.priceMinor}
                         locale={locale}

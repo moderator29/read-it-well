@@ -34,15 +34,15 @@ export default function SiteError({
   }, [error]);
 
   return (
-    <section className="nf-shell py-20 sm:py-28">
+    <section className="nf-shell py-section">
       <div className="mx-auto max-w-[34rem] text-center">
         <h1 className="nf-h1">This page did not load</h1>
-        <p className="mt-4 text-[1rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-group text-[1rem] leading-relaxed text-[var(--nf-content-secondary)]">
           Something on our side stopped part way through. The rest of the site is
           working, and trying again usually settles it.
         </p>
 
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <div className="mt-block flex flex-wrap justify-center gap-row">
           <Button variant="primary" size="lg" onClick={reset}>
             Try again
           </Button>
@@ -52,7 +52,7 @@ export default function SiteError({
         </div>
 
         {error.digest && (
-          <p className="nf-numeric mt-6 text-[0.8125rem] text-[var(--nf-content-muted)]">
+          <p className="nf-numeric mt-heading text-[0.8125rem] text-[var(--nf-content-muted)]">
             Reference {error.digest}
           </p>
         )}

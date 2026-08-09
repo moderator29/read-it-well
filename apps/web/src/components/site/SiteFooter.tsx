@@ -79,23 +79,23 @@ export function SiteFooter({ t }: { t: Dictionary }) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="nf-hairline mt-16 bg-[var(--nf-surface-primary)]">
-      <div className="nf-shell pt-14 pb-8 md:pt-16">
+    <footer className="nf-hairline mt-section bg-[var(--nf-surface-primary)]">
+      <div className="nf-shell pt-section pb-block">
         {/* Brand block and link columns */}
-        <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-[1.6fr_repeat(4,1fr)] md:gap-x-10">
+        <div className="grid grid-cols-2 gap-x-block gap-y-block md:grid-cols-[1.6fr_repeat(4,1fr)]">
           <div className="col-span-2 md:col-span-1">
             <Link href="/" aria-label="RentMe home" className="nf-tap inline-flex">
               <Logo size={40} wordSize={21} />
             </Link>
-            <p className="nf-body-sm mt-5 max-w-[28ch] font-medium text-[var(--nf-content-secondary)]">
+            <p className="nf-body-sm mt-heading max-w-[28ch] font-medium text-[var(--nf-content-secondary)]">
               {t.landing.footer.tagline}
             </p>
-            <p className="nf-caption mt-2.5 max-w-[34ch]">{t.landing.vision.title}</p>
+            <p className="nf-caption mt-inline max-w-[34ch]">{t.landing.vision.title}</p>
           </div>
 
           {columns.map((col) => (
             <nav key={col.title} aria-label={col.title}>
-              <h2 className="nf-overline mb-3.5">{col.title}</h2>
+              <h2 className="nf-overline mb-row">{col.title}</h2>
               {/*
                 No `space-y` here on purpose. These links painted at 17px, well
                 under the 44px floor, and the gap between them was margin
@@ -121,7 +121,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
         </div>
 
         {/* Copyright line */}
-        <div className="nf-hairline nf-caption mt-12 flex flex-col gap-2 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="nf-hairline nf-caption mt-section-tight flex flex-col gap-inline pt-heading sm:flex-row sm:items-center sm:justify-between">
           <p>
             <span className="nf-numeric">{year}</span> RentMe. {t.landing.footer.rights}
           </p>

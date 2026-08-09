@@ -31,10 +31,10 @@ export async function VoicesBand({ locale }: { locale: Locale }) {
   if (reviews.length === 0) return null;
 
   return (
-    <section aria-labelledby="nf-voices-title" className="nf-shell py-12 sm:py-16">
+    <section aria-labelledby="nf-voices-title" className="nf-shell py-section">
       <Reveal>
         <p className="nf-overline">In their words</p>
-        <h2 id="nf-voices-title" className="nf-h2 mt-3 max-w-[18ch]">
+        <h2 id="nf-voices-title" className="nf-h2 mt-row max-w-[18ch]">
           What guests said after they stayed
         </h2>
       </Reveal>
@@ -45,13 +45,13 @@ export async function VoicesBand({ locale }: { locale: Locale }) {
         wildly in length, and columns absorb that where a row of equal-height
         cards would pad the short ones into awkward boxes.
       */}
-      <ul className="mt-10 gap-4 sm:columns-2 lg:columns-3 [&>li]:mb-4 [&>li]:break-inside-avoid">
+      <ul className="mt-block gap-group sm:columns-2 lg:columns-3 [&>li]:mb-group [&>li]:break-inside-avoid">
         {reviews.map((review, i) => (
           <li key={review.id}>
             <Reveal delay={Math.min(i * 60, 240)}>
-              <figure className="nf-card p-6">
+              <figure className="nf-card p-card">
                 <div
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-inline-tight"
                   role="img"
                   aria-label={`${review.rating} out of 5`}
                 >
@@ -70,11 +70,11 @@ export async function VoicesBand({ locale }: { locale: Locale }) {
                   ))}
                 </div>
 
-                <blockquote className="nf-body-sm mt-4 text-[var(--nf-content-secondary)]">
+                <blockquote className="nf-body-sm mt-group text-[var(--nf-content-secondary)]">
                   {review.body}
                 </blockquote>
 
-                <figcaption className="mt-4 flex items-center gap-3">
+                <figcaption className="mt-group flex items-center gap-row">
                   {/*
                     An initial, not a photograph. The database returns a
                     shortened public name and no avatar, and pulling a stock

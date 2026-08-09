@@ -65,7 +65,7 @@ export default async function LandingPage() {
 
       <main id="main">
         {/* ----------------------------------------------------------- hero */}
-        <section className="relative overflow-hidden pb-12 pt-10 sm:pb-16 sm:pt-16 md:pt-20">
+        <section className="relative overflow-hidden pb-section pt-section-tight">
           <div className="nf-aurora" aria-hidden="true" />
           <div className="nf-grid-veil" aria-hidden="true" />
 
@@ -98,7 +98,7 @@ export default async function LandingPage() {
                 </span>
               </h1>
 
-              <p className="nf-lede nf-rise nf-rise-4 mt-5 max-w-[44ch] sm:mt-6">
+              <p className="nf-lede nf-rise nf-rise-4 mt-heading max-w-[44ch]">
                 {t.landing.hero.subtitle}
               </p>
 
@@ -137,7 +137,7 @@ export default async function LandingPage() {
                 button and browsing is the quiet link. Same pair, inverted, in
                 the two places where each is the honest next step.
               */}
-              <div className="nf-rise nf-rise-4 mt-9 flex flex-wrap items-center gap-x-7 gap-y-4 sm:mt-10">
+              <div className="nf-rise nf-rise-4 mt-block flex flex-wrap items-center gap-x-block gap-y-group">
                 <ButtonLink href="/search" variant="primary" size="lg">
                   Browse properties
                 </ButtonLink>
@@ -158,9 +158,9 @@ export default async function LandingPage() {
                 they are, which is a shortcut for somebody who already knows
                 where they want to live.
               */}
-              <div className="nf-rise nf-rise-5 mt-8 flex flex-wrap items-baseline gap-x-5 gap-y-2">
+              <div className="nf-rise nf-rise-5 mt-block flex flex-wrap items-baseline gap-x-heading gap-y-inline">
                 <span className="nf-caption">Popular right now</span>
-                <ul className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
+                <ul className="flex flex-wrap items-baseline gap-x-heading gap-y-inline">
                   {CITIES.map((city) => (
                     <li key={city}>
                       <Link
@@ -200,13 +200,13 @@ export default async function LandingPage() {
            */}
           <nav
             aria-label="Browse by category"
-            className="nf-shell relative z-10 mt-12 sm:mt-14"
+            className="nf-shell relative z-10 mt-section"
           >
             <div
               aria-hidden="true"
-              className="mb-8 h-px w-full bg-[var(--nf-divider)] sm:mb-10"
+              className="mb-block h-px w-full bg-[var(--nf-divider)]"
             />
-            <ul className="grid grid-cols-3 gap-x-3 gap-y-6 sm:grid-cols-5 sm:gap-x-5">
+            <ul className="grid grid-cols-3 gap-x-row gap-y-heading sm:grid-cols-5 sm:gap-x-heading">
               {categories.map((c, i) => (
                 <li
                   key={c.label}
@@ -305,13 +305,13 @@ export default async function LandingPage() {
         <VoicesBand locale={locale} />
 
         {/* 7. One way in. */}
-        <section className="nf-shell py-16 sm:py-24">
+        <section className="nf-shell py-section">
           <Reveal>
-            <div className="nf-card nf-card--live relative overflow-hidden p-10 text-center sm:p-14 md:p-20">
+            <div className="nf-card nf-card--live relative overflow-hidden p-card-lg text-center">
               <div className="nf-aurora opacity-60" aria-hidden="true" />
               <div className="relative z-10">
                 <h2 className="nf-h1 mx-auto max-w-[20ch]">{t.landing.cta.title}</h2>
-                <p className="nf-lede mx-auto mt-5 max-w-[50ch]">
+                <p className="nf-lede mx-auto mt-heading max-w-[50ch]">
                   {t.landing.cta.subtitle}
                 </p>
                 {/* The pair from the hero, inverted. Here the account IS the
@@ -320,7 +320,7 @@ export default async function LandingPage() {
                     filled buttons, which asked the reader to choose between two
                     equally weighted invitations at the exact moment the page
                     was meant to be making one. */}
-                <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+                <div className="mt-block flex flex-wrap items-center justify-center gap-x-block gap-y-group">
                   <ButtonLink href="/sign-up" variant="primary" size="lg">
                     {t.landing.cta.action}
                   </ButtonLink>

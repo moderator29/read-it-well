@@ -242,13 +242,10 @@
     box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
   }
 
-  /* The AI banner artwork stays a lit render; only the frame goes neutral:
-     hairline ring and paper shadow instead of the blue bloom. */
-  :root[data-theme="light"] .nf-ai-banner {
-    box-shadow:
-      inset 0 0 0 1px rgb(18 21 26 / 0.1),
-      var(--nf-shadow-card);
-  }
+  /* The daylight answer for `.nf-ai-banner` stood here. Both are gone with the
+     render: the assistant's card is `.nf-card--live` now, which already has a
+     daylight answer two blocks below, so there is nothing left to special
+     case. */
 
   /* Overlines hold AA on white: same neutral ink family, deeper step. */
   :root[data-theme="light"] .nf-overline {

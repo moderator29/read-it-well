@@ -98,6 +98,19 @@ export type MapPin = {
   bathrooms: number;
   /** The one figure this row leads with, in kobo. Zero when unpriced. */
   priceMinor: number;
+  /**
+   * True when this illustrates the catalogue and no such property exists.
+   *
+   * A pin carries this for the same reason a card does. The map would
+   * otherwise be the one discovery surface in the product where an example
+   * listing is indistinguishable from real inventory, and a pin is the most
+   * concrete claim the platform makes: it says a property is at a place.
+   *
+   * `listings_in_bounds` returns the column, so this is read rather than
+   * inferred. A marker for one of these must be drawn differently and must not
+   * open a sheet that offers to arrange anything.
+   */
+  isDemo: boolean;
 };
 
 export type BoundsFilter = {
@@ -257,6 +270,11 @@ export async function listingsInBounds(
         // `price_minor` is null for a row that states no price at all. A pin
         // showing nothing is honest; a pin showing zero reads as free.
         priceMinor: finite(row.price_minor) ? row.price_minor : 0,
+        // Defaulted to TRUE on an unreadable value, which is the safe
+        // direction: mislabelling a real property as an example costs a
+        // caption, and mislabelling an example as real is the failure this
+        // whole flag exists to prevent.
+        isDemo: row.is_demo !== false,
       });
     }
     return { ok: true, pins };

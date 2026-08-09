@@ -6,6 +6,69 @@
  * the cascade: do not move this one.
  */
 @layer components {
+  /*
+   * ------------------------------------------------------- VERTICAL RHYTHM
+   *
+   * The two primitives that carry the spacing scale into markup, and the
+   * answer to the oldest complaint on this platform: that the product feels
+   * choked, jam-packed and different from one screen to the next.
+   *
+   * It was never a per-screen problem. There was no scale, so every screen
+   * settled its own rhythm from scratch: 4,115 numeric spacing utilities
+   * across 34 distinct steps, and 47 distinct literal values inside these
+   * stylesheets. Fixing one screen by hand cannot fix that, because the next
+   * screen still has nothing to agree WITH. See the SPACE block in tokens.css
+   * for the ladder and the intervals these draw from.
+   *
+   * `.nf-section` is the air around a section. One interval, fluid, so the
+   * page does not jump at 640px and no screen can hold a private opinion
+   * about how much room a section gets.
+   *
+   * `.nf-stack` is the air inside one. It sets the interval once on the
+   * container and every child inherits it, which is what stops a column of
+   * six things carrying six separately-typed margins. It uses `* + *` rather
+   * than `gap` on purpose: it composes with prose, with `display: block`, and
+   * with children that are already flex or grid themselves, none of which a
+   * flex parent with a gap does without changing the layout underneath it.
+   *
+   * The modifier IS the design decision, and it is legible in the markup:
+   * `nf-stack--block` between blocks, `nf-stack--heading` under a heading,
+   * `nf-stack--row` between rows. A reviewer can see what was meant.
+   */
+  .nf-section {
+    padding-block: var(--nf-gap-section);
+  }
+
+  .nf-section--tight {
+    padding-block: var(--nf-gap-section-tight);
+  }
+
+  /* The gap between two sections when neither one owns padding: a rule for
+     the boundary rather than for the box on either side of it. */
+  .nf-section + .nf-section {
+    padding-block-start: var(--nf-space-0);
+  }
+
+  .nf-stack > * + * {
+    margin-block-start: var(--nf-stack-gap, var(--nf-gap-group));
+  }
+
+  .nf-stack--block {
+    --nf-stack-gap: var(--nf-gap-block);
+  }
+  .nf-stack--heading {
+    --nf-stack-gap: var(--nf-gap-heading);
+  }
+  .nf-stack--group {
+    --nf-stack-gap: var(--nf-gap-group);
+  }
+  .nf-stack--row {
+    --nf-stack-gap: var(--nf-gap-row);
+  }
+  .nf-stack--tight {
+    --nf-stack-gap: var(--nf-gap-inline);
+  }
+
   /* ------------------------------------------------------------- utilities */
 
   /*
@@ -39,7 +102,7 @@
    */
   .nf-queue-list {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--nf-gap-row);
   }
   @media (min-width: 1280px) {
     .nf-queue-list {
@@ -48,16 +111,20 @@
     }
   }
 
+  /*
+   * The page gutter.
+   *
+   * It was 1.25rem with a media query stepping it to 2rem at 768px, which is a
+   * gutter that JUMPS by 12px at one width and holds still either side of it.
+   * `--nf-pad-shell` is a clamp, so the gutter grows continuously from 20px on
+   * a phone to 32px on a desktop and there is no breakpoint at which the page
+   * visibly reflows its margins. The media query is gone with it.
+   */
   .nf-shell {
     width: 100%;
     max-width: var(--nf-content-max);
     margin-inline: auto;
-    padding-inline: 1.25rem;
-  }
-  @media (min-width: 768px) {
-    .nf-shell {
-      padding-inline: 2rem;
-    }
+    padding-inline: var(--nf-pad-shell);
   }
 
   /*
@@ -127,45 +194,25 @@
   }
 
   /*
-   * INSET DIVIDERS, which is the detail that makes a list read as ONE OBJECT
-   * WITH PARTS rather than as stacked strips.
+   * A SECOND `.nf-rows--inset` USED TO SIT HERE, AND IT WAS DRAWING A 2PX
+   * DIVIDER ON EVERY GROUPED LIST IN THE PRODUCT.
    *
-   * A hairline that runs the full width of its container meets the container's
-   * own edge, and two lines a few pixels apart at the corner is what makes a
-   * grouped list look like a stack of separate bars. The reference platform
-   * insets every divider so it starts after the row's leading glyph and stops
-   * before the trailing chevron, and the surface reads as a single rounded
-   * object that happens to have rows in it.
+   * This file declared `.nf-rows--inset` twice, roughly a hundred lines apart,
+   * and the two disagreed about how to draw the line. The first gave the
+   * pseudo-element `border-top: 1px solid var(--nf-divider)`; the second gave
+   * it `height: 1px; background: var(--nf-divider)`. Neither reset the other,
+   * because they set different properties, so both applied: a 1px background
+   * band with a 1px border on top of it, which is a 2px rule everywhere the
+   * pattern is used. The two also named different inset variables
+   * (`--nf-row-inset` against `--nf-row-divider-lead`) and different lead
+   * values (2.375rem against 3.25rem), so the first one's variable was
+   * settable and did nothing.
    *
-   * The inset is expressed on the ROW rather than on a pseudo-element, so it
-   * composes with whatever padding the surface carries: the divider is drawn by
-   * the row's own top border and pulled in from both sides by a margin, which
-   * keeps it clear of the corner radius at every width.
+   * A hairline drawn at double weight is exactly the "busy" reading this
+   * pattern exists to remove: it is the difference between one object with
+   * parts and a stack of separate bars. There is now one declaration, below,
+   * and the inset is on the spacing scale.
    *
-   * `--nf-row-inset` is the leading indent. It defaults to the glyph column
-   * (24px glyph plus the 0.875rem row gap) and a surface with no leading glyphs
-   * can set it to 0 locally without a second class.
-   */
-  .nf-rows--inset {
-    --nf-row-inset: 2.375rem;
-  }
-
-  .nf-rows--inset > * + * {
-    border-top: none;
-    position: relative;
-  }
-
-  .nf-rows--inset > * + *::before {
-    content: "";
-    position: absolute;
-    inset-inline-start: var(--nf-row-inset);
-    inset-inline-end: 0;
-    top: 0;
-    border-top: 1px solid var(--nf-divider);
-    pointer-events: none;
-  }
-
-  /*
    * One row. Generous by default, because these are touch targets before they
    * are text: 56px minimum is the comfortable end of the accessible range
    * rather than the 44px floor, and this product is used one-handed on a
@@ -174,9 +221,9 @@
   .nf-row {
     display: flex;
     align-items: center;
-    gap: 0.875rem;
+    gap: var(--nf-gap-row);
     min-height: 3.5rem;
-    padding-block: 0.875rem;
+    padding-block: var(--nf-pad-row-block);
   }
 
   /*
@@ -235,8 +282,11 @@
    * the rows actually carry: an icon in a circle, a bare glyph, or nothing.
    */
   .nf-rows--inset {
-    --nf-row-divider-lead: 3.25rem;
-    --nf-row-divider-tail: 0rem;
+    /* The glyph column: a 32px leading tile plus the row's own gap. Both are
+       scale values now, so a surface that changes its row gap keeps its
+       dividers aligned to the glyph without anybody re-measuring. */
+    --nf-row-divider-lead: calc(2rem + var(--nf-gap-row));
+    --nf-row-divider-tail: var(--nf-space-0);
   }
 
   .nf-rows--inset > * + * {
@@ -262,8 +312,8 @@
    * whole row feel tappable instead of a region inside it.
    */
   .nf-group {
-    padding-block: 0.25rem;
-    padding-inline: 1.125rem;
+    padding-block: var(--nf-space-2xs);
+    padding-inline: var(--nf-pad-row-inline);
   }
 
   /*
@@ -272,8 +322,8 @@
    */
   .nf-group-label {
     display: block;
-    margin-block-end: 0.625rem;
-    padding-inline: 0.25rem;
+    margin-block-end: var(--nf-gap-inline);
+    padding-inline: var(--nf-space-2xs);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-muted);
@@ -305,7 +355,7 @@
    * exactly the widths where it matters.
    */
   .nf-cells {
-    --nf-cell-inset: 1.5rem;
+    --nf-cell-inset: var(--nf-space-lg);
     display: grid;
   }
 
@@ -397,9 +447,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--nf-gap-row);
     text-align: center;
-    padding-block: 0.5rem;
+    padding-block: var(--nf-gap-inline);
     border-radius: var(--nf-radius-md);
     color: var(--nf-content-primary);
   }
@@ -477,7 +527,7 @@
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: var(--nf-gap-inline);
     font-weight: 600;
     color: var(--nf-content-secondary);
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);

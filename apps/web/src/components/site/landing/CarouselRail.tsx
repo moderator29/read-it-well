@@ -47,13 +47,13 @@ export function CarouselRail({
       <ul
         ref={railRef}
         aria-label={ariaLabel}
-        className="nf-snap-x -mx-5 gap-4 px-5 pb-1 sm:mx-0 sm:gap-4 sm:px-0"
+        className="nf-snap-x -mx-gutter gap-group px-gutter pb-inline-tight sm:mx-0 sm:px-0"
       >
         {children}
       </ul>
 
       {/* Paging controls. Phones swipe, so these only appear from sm up. */}
-      <div className="mt-4 hidden justify-end gap-2 sm:flex">
+      <div className="mt-group hidden justify-end gap-inline sm:flex">
         <button
           type="button"
           onClick={() => page(-1)}

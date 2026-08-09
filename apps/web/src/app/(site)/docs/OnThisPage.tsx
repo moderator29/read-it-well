@@ -38,9 +38,9 @@ export function OnThisPage({ sections }: { sections: { id: string; heading: stri
         onClick={() => setOpen((was) => !was)}
         aria-expanded={open}
         aria-controls={panelId}
-        className="nf-tap flex min-h-11 w-full items-center justify-between gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-4 py-2.5 text-left xl:hidden"
+        className="nf-tap flex min-h-11 w-full items-center justify-between gap-row rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-group py-inline text-left xl:hidden"
       >
-        <span className="flex items-center gap-2.5">
+        <span className="flex items-center gap-inline">
           <UiIcon name="document" size={16} className="text-[var(--nf-content-muted)]" />
           <span className="text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
             On this page
@@ -52,25 +52,25 @@ export function OnThisPage({ sections }: { sections: { id: string; heading: stri
         <UiIcon
           name="chevron-down"
           size={16}
-          className={`shrink-0 text-[var(--nf-content-muted)] transition-transform duration-200 ${
+          className={`shrink-0 text-[var(--nf-content-muted)] transition-transform duration-[var(--nf-duration-base)] ${
             open ? "rotate-180" : ""
           }`}
         />
       </button>
 
       {/* ---------------------------------------------------- the headings */}
-      <div id={panelId} className={`${open ? "mt-2 block" : "hidden"} xl:mt-0 xl:block`}>
-        <p className="nf-overline hidden items-center gap-2 text-[var(--nf-content-muted)] xl:flex">
+      <div id={panelId} className={`${open ? "mt-inline block" : "hidden"} xl:mt-0 xl:block`}>
+        <p className="nf-overline hidden items-center gap-inline text-[var(--nf-content-muted)] xl:flex">
           <UiIcon name="document" size={16} />
           On this page
         </p>
-        <ul className="mt-2.5 space-y-0.5 border-l border-[var(--nf-border-subtle)]">
+        <ul className="mt-inline space-y-inline-tight border-l border-[var(--nf-border-subtle)]">
           {sections.map((section) => (
             <li key={section.id}>
               <a
                 href={`#${section.id}`}
                 onClick={() => setOpen(false)}
-                className="nf-tap -ml-px flex min-h-11 items-center border-l-2 border-transparent py-2 pl-3 text-[0.8125rem] leading-snug text-[var(--nf-content-secondary)] transition-colors hover:border-l-[var(--nf-brand-secondary)] hover:text-[var(--nf-content-primary)]"
+                className="nf-tap -ml-px flex min-h-11 items-center border-l-2 border-transparent py-inline pl-row text-[0.8125rem] leading-snug text-[var(--nf-content-secondary)] transition-colors hover:border-l-[var(--nf-brand-secondary)] hover:text-[var(--nf-content-primary)]"
               >
                 {section.heading}
               </a>

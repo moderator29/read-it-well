@@ -1,7 +1,11 @@
 import next from "eslint-config-next";
 import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 import nextTypescript from "eslint-config-next/typescript";
-import nf from "./eslint-rules/no-raw-colour.mjs";
+import nfColour from "./eslint-rules/no-raw-colour.mjs";
+import nfSpacing from "./eslint-rules/no-raw-spacing.mjs";
+
+/** Both design-system rules under one plugin namespace, `nf/`. */
+const nf = { rules: { ...nfColour.rules, ...nfSpacing.rules } };
 
 /**
  * ESLint, which has never actually run on this repository.
@@ -144,6 +148,52 @@ const config = [
     files: ["src/app/**/*.{ts,tsx}"],
     plugins: { nf },
     rules: { "nf/no-raw-colour": "warn" },
+  },
+
+  /*
+   * ------------------------------------------------------------------
+   * Spacing provenance. Same shape as the colour rule above, same reasoning,
+   * one commit behind it on the migration curve.
+   *
+   * See eslint-rules/no-raw-spacing.mjs for what it catches and why. The short
+   * version: there was no spacing scale at all, so 4,115 spacing utilities got
+   * written against 34 raw Tailwind steps plus 19 arbitrary bracket escapes,
+   * and that is the mechanical cause of the product reading as choked on one
+   * screen and loose on the next.
+   *
+   * ERROR ON THE SCREENS THAT ARE MIGRATED. The marketing site, the landing
+   * page and the site components are at zero violations as of this commit, so
+   * the rule holds a real line there rather than describing an aspiration, and
+   * the next raw `p-4` fails the build on the branch that introduces it.
+   *
+   * WARN EVERYWHERE ELSE, for exactly the reason the colour rule is warn under
+   * src/app and the React Compiler rules are warn globally: roughly 3,500
+   * violations remain in the product, agent and admin trees, and three other
+   * streams are building in them right now. A config that fails on a clean
+   * checkout is a config that gets deleted rather than obeyed. Each directory
+   * promotes to error as it reaches zero; the pattern is already established
+   * one block above.
+   * ------------------------------------------------------------------ */
+  {
+    files: [
+      "src/app/page.tsx",
+      "src/app/(site)/**/*.{ts,tsx}",
+      "src/components/site/**/*.{ts,tsx}",
+      "src/components/app/AiAssistantBanner.tsx",
+    ],
+    plugins: { nf },
+    rules: { "nf/no-raw-spacing": "error" },
+  },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: [
+      "src/app/page.tsx",
+      "src/app/(site)/**/*.{ts,tsx}",
+      "src/components/site/**/*.{ts,tsx}",
+      "src/components/app/AiAssistantBanner.tsx",
+    ],
+    plugins: { nf },
+    rules: { "nf/no-raw-spacing": "warn" },
   },
 ];
 

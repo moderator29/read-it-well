@@ -48,15 +48,15 @@ export function WhyRentMe({ t }: { t: Dictionary }) {
   ];
 
   return (
-    <section className="nf-shell py-12 sm:py-16">
-      <Reveal className="mb-8 max-w-[52ch] sm:mb-10">
+    <section className="nf-shell py-section">
+      <Reveal className="mb-block max-w-[52ch]">
         <h2 className="nf-h1">
           <Words text="Why RentMe" accentFrom={1} />
         </h2>
         {/* Was "every search, booking and stay". Nobody stays in a flat they
             have taken a year's lease on, and "stay" is the word this platform
             keeps borrowing from the hotel product it is not. */}
-        <p className="nf-lede mt-4">
+        <p className="nf-lede mt-group">
           What stands behind every search, every listing and every payment.
         </p>
       </Reveal>
@@ -64,7 +64,7 @@ export function WhyRentMe({ t }: { t: Dictionary }) {
       <Reveal>
         <ul className="nf-card nf-cells nf-cells--quad">
           {values.map((v) => (
-            <li key={v.title} className="flex flex-col gap-3 p-6 sm:p-7">
+            <li key={v.title} className="flex flex-col gap-row p-cell">
               <UiIcon
                 name={v.icon}
                 size={28}

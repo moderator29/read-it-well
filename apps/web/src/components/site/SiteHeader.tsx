@@ -38,7 +38,7 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
   return (
     <header className="sticky top-0 z-50">
       <div className="nf-site-bar nf-safe-top">
-        <div className="nf-shell flex h-[60px] items-center gap-4 sm:h-[72px] sm:gap-6">
+        <div className="nf-shell flex h-[60px] items-center gap-group sm:h-[72px] sm:gap-heading">
           <Link href="/" aria-label={t.a11y.logoHome} className="nf-tap shrink-0">
             <Logo size={46} wordSize={21} responsive priority />
           </Link>
@@ -56,17 +56,17 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
                 key={l.href}
                 href={l.href}
                 prefetch
-                className="nf-body-sm rounded-[var(--nf-radius-sm)] px-3.5 py-2 font-medium text-[var(--nf-content-secondary)] transition-colors duration-[var(--nf-duration-fast)] hover:bg-[var(--nf-interactive-hover)] hover:text-[var(--nf-content-primary)]"
+                className="nf-body-sm rounded-[var(--nf-radius-sm)] px-row py-inline font-medium text-[var(--nf-content-secondary)] transition-colors duration-[var(--nf-duration-fast)] hover:bg-[var(--nf-interactive-hover)] hover:text-[var(--nf-content-primary)]"
               >
                 {l.label}
               </Link>
             ))}
           </nav>
 
-          <div className="ms-auto flex items-center gap-2 sm:gap-3">
+          <div className="ms-auto flex items-center gap-inline sm:gap-row">
             {/* Theme and language sit together because they are the same kind
                 of control: how this page is presented to you, decided by you. */}
-            <div className="hidden items-center gap-1 sm:flex">
+            <div className="hidden items-center gap-inline-tight sm:flex">
               <ThemeToggle />
               <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
             </div>
