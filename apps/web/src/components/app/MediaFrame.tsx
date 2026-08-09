@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import type { ListingKind } from "@/lib/listings/types";
 
 /**
@@ -46,18 +48,68 @@ import type { ListingKind } from "@/lib/listings/types";
  * the sky angle, the sun's position and which windows are lit, so a grid of
  * twenty cards has twenty different pictures rather than twenty copies.
  *
- * WHY A DRAWING RATHER THAN A STOCK PHOTOGRAPH. A photograph of somebody else's
- * building placed on a listing is a claim about what that property looks like,
- * and it is not one we can make. These listings are labelled as examples on
- * every surface that shows them; illustrating them with real architecture
- * photography would undo that labelling in the one element people believe most.
- * A drawing is unmistakably a drawing, and it still tells the truth about the
- * kind of place: which is exactly as much as we know.
+ * AND THEN THE DRAWING STOPPED BEING THE ANSWER FOR MOST KINDS. It was argued
+ * for on the grounds that a photograph of somebody else's building is a claim
+ * about a property we cannot make, and that reasoning still holds for STOCK
+ * photography, which is why none is used. What it got wrong is that we already
+ * own two real architectural images, so the choice was never "a drawing or a
+ * lie"; it was "a drawing or our own photograph". See the section below.
  *
- * IT COSTS NOTHING. No binary asset, no image request, no layout shift, and it
- * renders on the server with the rest of the card. The whole scene is inline
- * SVG driven by two numbers.
+ * The drawing survives for LAND, where it is not standing in for a photograph
+ * at all but stating that there is nothing built to photograph, and as the
+ * fallback for any surface that does not know which market it is showing.
  */
+
+/* ========================================================================== */
+/* SECTION: the photograph                                                    */
+/* ========================================================================== */
+
+/**
+ * REAL ARCHITECTURE, FROM OUR OWN ASSETS.
+ *
+ * The drawn scenes below are honest and they do not look like a property
+ * marketplace. Every platform in this market leads with photography, the owner
+ * has said so twice, and a flat vector house on a card next to a competitor's
+ * photograph loses that comparison before a word is read.
+ *
+ * WHAT MADE THIS HARD AND HOW IT IS SOLVED. Stock photography cannot be fetched
+ * from this environment at all - the network policy answers 403 to every image
+ * host - and a photograph of somebody else's building placed on a listing would
+ * be a claim about that property we cannot make anyway. But two genuine
+ * architectural images are already in this repository and already ours:
+ * `rentme-villa.png`, which opens the landing page, and `rentme-city.png`.
+ *
+ * So a listing with no photograph of its own gets one of those two, chosen by
+ * what kind of place it is: the villa for anything somebody lives in, the city
+ * for a block, a hotel or an office floor. LAND KEEPS THE DRAWING, because a
+ * plot has nothing built on it and putting a house on it would be the picture
+ * contradicting the listing.
+ *
+ * TWENTY CARDS DO NOT LOOK IDENTICAL. The listing's own hue drives the crop, so
+ * neighbouring cards frame the same building differently, and a brand-tinted
+ * scrim varies with it. That is the same trick the gradient angle already used
+ * and it is why `hue` exists on every record.
+ *
+ * IT IS STILL A STAND-IN AND IS STILL LABELLED. Every one of these rows carries
+ * the example mark on the card and the full sentence on its detail page. When
+ * an agent uploads real photography of a real property, that photograph is
+ * painted on top of this by every call site and none of this is reached.
+ */
+const STAND_IN: Record<Scene, string | null> = {
+  house: "/brand/rentme-villa.png",
+  villa: "/brand/rentme-villa.png",
+  terrace: "/brand/rentme-villa.png",
+  shortlet: "/brand/rentme-villa.png",
+  flats: "/brand/rentme-city.png",
+  tower: "/brand/rentme-city.png",
+  hotel: "/brand/rentme-city.png",
+  shop: "/brand/rentme-city.png",
+  /* Nothing is built here, so nothing built is shown. */
+  land: null,
+};
+
+/** Six framings of the same building, so a grid does not repeat one crop. */
+const CROPS = ["50% 50%", "30% 60%", "70% 45%", "40% 35%", "60% 70%", "50% 30%"];
 
 /** How many distinct angles a hue can resolve to. */
 const ANGLES = [150, 168, 205, 132, 188, 218];
@@ -386,7 +438,7 @@ export function MediaFrame({
   hue,
   /** Position in a run of panes, so neighbours do not share a sky angle. */
   index = 0,
-  /** Which market this is, so the drawing is of this kind of place. */
+  /** Which market this is, so the picture is of this kind of place. */
   kind,
   className,
 }: {
@@ -395,13 +447,39 @@ export function MediaFrame({
   kind?: ListingKind;
   className?: string;
 }) {
+  const scene = SCENE_BY_KIND[kind ?? "home"];
+  const photo = STAND_IN[scene];
+  const at = Math.abs(hue + index) % CROPS.length;
+
   return (
     <div
       aria-hidden="true"
-      className={`absolute inset-0 ${className ?? ""}`}
+      className={`absolute inset-0 overflow-hidden ${className ?? ""}`}
       style={{ background: mediaGround(hue, index) }}
     >
-      <MediaSkyline hue={hue + index} kind={kind} />
+      {photo ? (
+        <>
+          <Image
+            src={photo}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 50vw, 33vw"
+            style={{ objectFit: "cover", objectPosition: CROPS[at] }}
+          />
+          {/* A brand-tinted wash that varies with the hue, so a run of cards
+              reads as a set rather than as the same photograph six times, and
+              so white text over the bottom of the frame stays legible. It is a
+              token gradient rather than a colour, so it follows the theme. */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(${mediaAngle(hue, index)}deg, transparent 30%, color-mix(in oklab, var(--nf-media-ground-to) ${55 + at * 4}%, transparent) 100%)`,
+            }}
+          />
+        </>
+      ) : (
+        <MediaSkyline hue={hue + index} kind={kind} />
+      )}
     </div>
   );
 }
