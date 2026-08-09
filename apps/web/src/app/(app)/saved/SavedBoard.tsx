@@ -182,7 +182,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
   return (
     <>
       <Reveal>
-        <p className={`mb-5 flex items-center gap-2.5 ${TYPE.bodyLg}`}>
+        <p className={`mb-heading flex items-center gap-inline ${TYPE.bodyLg}`}>
           <UiIcon
             name="heart"
             size={ICON.inline}
@@ -198,7 +198,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
       </Reveal>
 
       <Reveal delay={60}>
-        <ul data-testid="saved-grid" className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <ul data-testid="saved-grid" className="grid grid-cols-1 gap-lg sm:grid-cols-2">
           {rendered.map(({ id, item, state }) => (
             <li key={id}>
               {state === undefined && item ? (
@@ -211,17 +211,17 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
                     aria-pressed="true"
                     aria-label="Remove from saved"
                     data-testid="saved-heart"
-                    className="nf-glass absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full text-[var(--nf-brand-secondary)] transition-transform active:scale-90 disabled:opacity-60"
+                    className="nf-glass absolute right-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-full text-[var(--nf-brand-secondary)] transition-transform active:scale-90 disabled:opacity-60"
                   >
-                    <UiIcon name="heart" size={20} className="[&_path]:fill-current" />
+                    <UiIcon name="heart" size={ICON.row} className="[&_path]:fill-current" />
                   </button>
                 </div>
               ) : (
                 <div
                   data-testid="undo-chip"
-                  className="nf-card flex h-full items-center justify-between gap-4 p-4"
+                  className="nf-card flex h-full items-center justify-between gap-md p-card"
                 >
-                  <p className="text-[0.875rem] text-[var(--nf-content-secondary)]">
+                  <p className="nf-body text-[var(--nf-content-secondary)]">
                     {state === "restoring" ? "Putting it back" : "Removed from saved"}
                   </p>
                   <button
@@ -230,13 +230,13 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
                     disabled={state === "restoring"}
                     className="nf-chip whitespace-nowrap transition-transform active:scale-[0.96] disabled:opacity-60"
                   >
-                    <UiIcon name="heart" size={12} className="shrink-0" />
+                    <UiIcon name="heart" size={ICON.inline} className="shrink-0" />
                     Undo
                   </button>
                 </div>
               )}
               {messages[id] && (
-                <p role="alert" className="mt-1.5 text-[0.75rem] text-[var(--nf-state-error)]">
+                <p role="alert" className="nf-caption mt-inline-tight text-[var(--nf-state-error)]">
                   {messages[id]}
                 </p>
               )}

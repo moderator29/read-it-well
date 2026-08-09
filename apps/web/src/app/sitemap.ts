@@ -1,8 +1,10 @@
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { MetadataRoute } from "next";
 
-import { createClient } from "@/lib/supabase/server";
 import { buildSitemap, type SitemapListing } from "@/lib/listings/sitemap";
 import { siteUrl } from "@/lib/site";
+import type { Database } from "@/lib/supabase/database.types";
+import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 
 /**
  * `/sitemap.xml`, which until now did not exist.
@@ -11,9 +13,9 @@ import { siteUrl } from "@/lib/site";
  * catalogue, they describe properties that DO NOT EXIST, and a sitemap is an
  * explicit invitation to a crawler. Handing Google the address of a fabricated
  * property advertisement published under our name is the single worst thing
- * this file could do, so the exclusion is not a filter written here: it is
- * `SYNDICATION_FILTER` pushed into SQL, and then the gate applied again inside
- * `buildSitemap`. See `lib/listings/syndication.ts` for why both.
+ * this file could do, so the exclusion is refused twice: pushed into SQL below,
+ * and then applied again by the gate inside `buildSitemap`. See
+ * `lib/listings/syndication.ts` for why both.
  *
  * WHY THE READ IS HERE RATHER THAN THROUGH `ListingRepository`. The repository
  * caps a catalogue read at sixty rows, deliberately, because it is serving a
@@ -22,6 +24,13 @@ import { siteUrl } from "@/lib/site";
  * quietly wrong on the day the catalogue grows, which is the day it matters.
  * So this reads the two columns a sitemap needs, in pages, until the table is
  * exhausted, and it never asks for the fifty columns a listing card needs.
+ *
+ * WHY A COOKIE-FREE CLIENT. A sitemap has no reader, so it must be built by
+ * the role that actually crawls it. The request-scoped client acts as whoever
+ * is signed in, which means an admin opening `/sitemap.xml` in their own
+ * browser could be handed rows that `anon` cannot see, and those rows would go
+ * into a file served to everybody. `anon` under RLS is the honest question:
+ * what can a stranger read.
  *
  * `/u/[handle]` and `/post/[id]` are public and are deliberately absent. Both
  * are somebody's own content rather than inventory, both need their own
@@ -45,8 +54,12 @@ const PAGE_SIZE = 1000;
 const MAX_URLS = 20_000;
 
 async function publishedListings(): Promise<SitemapListing[]> {
+  if (!isSupabaseConfigured()) return [];
+
   try {
-    const supabase = await createClient();
+    const supabase = createSupabaseClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
     const rows: SitemapListing[] = [];
 
     for (let from = 0; from < MAX_URLS; from += PAGE_SIZE) {

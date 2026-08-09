@@ -31,18 +31,6 @@ import { requireAdmin, ADMIN_FORBIDDEN_MESSAGE } from "./guard";
 const SERVICE_DOWN =
   "That could not be recorded just now. Nothing was changed. Please try again.";
 
-type RpcCaller = {
-  rpc: (
-    fn: string,
-    args: Record<string, unknown>,
-  ) => PromiseLike<{ data: unknown; error: { message?: string | null } | null }>;
-};
-
-/** See the note in payments-queries.ts on why these calls are narrowed here. */
-function callerFor(supabase: unknown): RpcCaller {
-  return supabase as RpcCaller;
-}
-
 function readEnvelope(data: unknown): Record<string, unknown> | null {
   if (data && typeof data === "object" && !Array.isArray(data)) {
     return data as Record<string, unknown>;
@@ -93,10 +81,9 @@ export async function expireStaleWithdrawalHolds(input: {
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   try {
-    const { data, error } = await callerFor(access.supabase).rpc(
-      "admin_expire_stale_withdrawal_holds",
-      { p_older_than_minutes: parsed.data.olderThanMinutes },
-    );
+    const { data, error } = await access.supabase.rpc("admin_expire_stale_withdrawal_holds", {
+      p_older_than_minutes: parsed.data.olderThanMinutes,
+    });
     if (error) return fail(SERVICE_DOWN);
 
     const status = readStatus(data);
@@ -147,7 +134,7 @@ export async function retireExampleListings(input: {
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   try {
-    const { data, error } = await callerFor(access.supabase).rpc("admin_retire_demo_listings", {
+    const { data, error } = await access.supabase.rpc("admin_retire_demo_listings", {
       p_listing_ids: parsed.data.listingIds,
     });
     if (error) return fail(SERVICE_DOWN);

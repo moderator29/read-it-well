@@ -401,6 +401,31 @@
     }
   }
 
+  /*
+   * Two peers, read ACROSS at every width.
+   *
+   * The trio and the quad both stack on a phone, because three or four blocks
+   * of prose side by side on 390px is four columns of two words. A pair is
+   * different in kind: two figures that exist to be read against each other -
+   * money in against money out, a before against an after - stop being a
+   * comparison the moment one sits under the other. So this one never stacks,
+   * and it is sized for two short facts rather than two paragraphs.
+   *
+   * The inset is the tight rung rather than the 24px the others take, and that
+   * is the whole reason this needs its own modifier rather than reusing
+   * `--quad`. The vertical rule is inset from the top and bottom of the cell,
+   * and a pair of facts is two lines tall: 24px off each end of a ~50px rule
+   * leaves a couple of pixels of line, which reads as a rendering fault rather
+   * than as a divider.
+   */
+  .nf-cells--pair {
+    --nf-cell-inset: var(--nf-space-2xs);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .nf-cells--pair > * + *::after {
+    display: block;
+  }
+
   /* Four peers: two up on a phone, four across from lg. */
   .nf-cells--quad {
     grid-template-columns: repeat(2, minmax(0, 1fr));

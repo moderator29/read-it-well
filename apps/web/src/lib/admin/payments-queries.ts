@@ -34,23 +34,6 @@ import { requireAdmin } from "./guard";
  * Money is integer kobo throughout. Nothing here divides by a hundred.
  */
 
-/**
- * The new functions are not in `supabase/database.types.ts` yet.
- *
- * Regenerating that file is a three-thousand-line diff across a tree three
- * other streams are writing in right now, and it would carry their in-flight
- * schema as well as this one. `lib/wallet/rpc.ts` and `lib/security/service-rpc.ts`
- * both solved exactly this by narrowing the client to the one method they use,
- * in one file, with the expected signature written beside it. This does the
- * same. The narrowing is local; nothing else in the console loses its types.
- */
-type RpcCaller = {
-  rpc: (
-    fn: string,
-    args: Record<string, unknown>,
-  ) => PromiseLike<{ data: unknown; error: { message?: string | null } | null }>;
-};
-
 /** A wallet whose settled entries sum below zero. The books are wrong. */
 export type OverdrawnWallet = {
   walletId: string;
@@ -134,8 +117,7 @@ export async function getPaymentHealth(
   if (access.state !== "admin") return UNAVAILABLE;
 
   try {
-    const caller = access.supabase as unknown as RpcCaller;
-    const { data, error } = await caller.rpc("admin_payment_health", {
+    const { data, error } = await access.supabase.rpc("admin_payment_health", {
       p_stale_minutes: staleMinutes,
     });
     if (error) return UNAVAILABLE;

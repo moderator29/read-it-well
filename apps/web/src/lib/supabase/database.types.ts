@@ -1667,6 +1667,7 @@ export type Database = {
           city: string | null
           condition: Database["public"]["Enums"]["build_condition"] | null
           created_at: string
+          demo_retire_after: string | null
           description: string | null
           featured: boolean
           floor: number | null
@@ -1735,6 +1736,7 @@ export type Database = {
           city?: string | null
           condition?: Database["public"]["Enums"]["build_condition"] | null
           created_at?: string
+          demo_retire_after?: string | null
           description?: string | null
           featured?: boolean
           floor?: number | null
@@ -1803,6 +1805,7 @@ export type Database = {
           city?: string | null
           condition?: Database["public"]["Enums"]["build_condition"] | null
           created_at?: string
+          demo_retire_after?: string | null
           description?: string | null
           featured?: boolean
           floor?: number | null
@@ -2136,6 +2139,67 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_revenue: {
+        Row: {
+          amount_minor: number
+          created_at: string
+          currency: string
+          escrow_id: string | null
+          id: string
+          listing_id: string | null
+          metadata: Json
+          rate_id: string | null
+          reference: string
+          source: Database["public"]["Enums"]["revenue_source"]
+        }
+        Insert: {
+          amount_minor: number
+          created_at?: string
+          currency?: string
+          escrow_id?: string | null
+          id?: string
+          listing_id?: string | null
+          metadata?: Json
+          rate_id?: string | null
+          reference: string
+          source: Database["public"]["Enums"]["revenue_source"]
+        }
+        Update: {
+          amount_minor?: number
+          created_at?: string
+          currency?: string
+          escrow_id?: string | null
+          id?: string
+          listing_id?: string | null
+          metadata?: Json
+          rate_id?: string | null
+          reference?: string
+          source?: Database["public"]["Enums"]["revenue_source"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_revenue_escrow_id_fkey"
+            columns: ["escrow_id"]
+            isOneToOne: false
+            referencedRelation: "escrows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_revenue_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_revenue_rate_id_fkey"
+            columns: ["rate_id"]
+            isOneToOne: false
+            referencedRelation: "fee_rates"
             referencedColumns: ["id"]
           },
         ]
@@ -3358,6 +3422,19 @@ export type Database = {
       }
     }
     Functions: {
+      admin_expire_stale_withdrawal_holds: {
+        Args: { p_older_than_minutes?: number }
+        Returns: Json
+      }
+      admin_payment_health: {
+        Args: { p_stale_minutes?: number }
+        Returns: Json
+      }
+      admin_retire_demo_listings: {
+        Args: { p_listing_ids: string[] }
+        Returns: Json
+      }
+      admin_revenue_summary: { Args: { p_days?: number }; Returns: Json }
       agent_trust: {
         Args: { p_user: string }
         Returns: {
@@ -3749,6 +3826,7 @@ export type Database = {
       rate_period: "night" | "guest"
       rent_period: "month" | "quarter" | "year"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
+      revenue_source: "escrow_commission" | "listing_fee"
       sale_status: "available" | "under_offer" | "sold"
       signup_role: "renter" | "buyer" | "landlord" | "seller" | "agent"
       social_status: "LIVE" | "HELD" | "REMOVED"
@@ -4034,6 +4112,7 @@ export const Constants = {
       rate_period: ["night", "guest"],
       rent_period: ["month", "quarter", "year"],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
+      revenue_source: ["escrow_commission", "listing_fee"],
       sale_status: ["available", "under_offer", "sold"],
       signup_role: ["renter", "buyer", "landlord", "seller", "agent"],
       social_status: ["LIVE", "HELD", "REMOVED"],

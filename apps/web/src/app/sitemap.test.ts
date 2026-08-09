@@ -17,8 +17,14 @@ import { buildSitemap, PUBLIC_PAGES } from "@/lib/listings/sitemap";
 /** Rows the fake database returns, set per test. */
 let rows: { id: string; is_demo: boolean; updated_at: string }[] = [];
 
-vi.mock("@/lib/supabase/server", () => ({
-  createClient: async () => {
+vi.mock("@/lib/supabase/env", () => ({
+  isSupabaseConfigured: () => true,
+  SUPABASE_URL: "https://example.supabase.co",
+  SUPABASE_ANON_KEY: "anon",
+}));
+
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => {
     /* A chainable stand-in: every builder method returns the builder, and the
        terminal `range` resolves the rows. One page, then empty. */
     let served = false;

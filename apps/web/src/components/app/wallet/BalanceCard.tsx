@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatNumber, type Locale } from "@naijafinds/i18n";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Odometer } from "@/components/site/Odometer";
 import type { BalanceBreakdown, WalletEntry } from "@/lib/wallet/types";
@@ -29,7 +28,7 @@ import { BalanceBreakdownSheet } from "./BalanceBreakdownSheet";
  * blues that exist in no token, and the grid painted white lines that in
  * daylight were white lines on a white card.
  *
- * What is left is the balance, the two flow tiles and the sparkline, on the
+ * What is left is the balance, the two flow figures and the sparkline, on the
  * platform's ordinary card material. The one decorative layer that survives is
  * a single token-driven surface wash, because the balance is the hero of the
  * wallet and a completely flat panel under it read as unfinished. Texture is
@@ -209,7 +208,7 @@ export function BalanceCard({
         money moves, and Amount renders a static string. The flow tiles below
         and every ledger row underneath it do go through Amount.
       */}
-      <p className="nf-numeric relative mt-3 leading-none text-[var(--nf-content-primary)]">
+      <p className="nf-numeric relative mt-row leading-none text-[var(--nf-content-primary)]">
         {hidden ? (
           <span className="text-[2.5rem] font-bold tracking-[-0.03em] sm:text-[3rem]">
             {inUsd ? "$" : "\u20A6"}
@@ -242,7 +241,7 @@ export function BalanceCard({
           </>
         )}
       </p>
-      <p className="nf-caption relative mt-2">
+      <p className="nf-caption relative mt-inline">
         {inUsd && usdRate
           ? /* `toLocaleString()` with no argument reads the BROWSER's locale,
                not the app's, so this line grouped the rate "1.600" on a German
@@ -261,7 +260,7 @@ export function BalanceCard({
         BalanceBreakdownSheet for why the breakdown is behind a tap rather than
         on the face of the card.
       */}
-      <div className="relative mt-3">
+      <div className="relative mt-row">
         <BalanceBreakdownSheet breakdown={breakdown} locale={locale} hidden={hidden} />
       </div>
 
@@ -285,7 +284,7 @@ export function BalanceCard({
         the exact tell the reference wallets avoid: the eye should be able to
         find money leaving without reading a sign.
       */}
-      <div className="nf-cells nf-cells--pair relative mt-block grid-cols-2">
+      <div className="nf-cells nf-cells--pair relative mt-block">
         <div className="pr-lg">
           <p className="nf-body-sm text-[var(--nf-content-muted)]">In, last 30 days</p>
           <p className="nf-numeric mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-state-success)]">
@@ -330,7 +329,7 @@ export function BalanceCard({
           viewBox="0 0 100 28"
           preserveAspectRatio="none"
           aria-hidden
-          className="nf-wallet-spark relative mt-4 h-9 w-full text-[var(--nf-brand-secondary)]"
+          className="nf-wallet-spark relative mt-block h-9 w-full text-[var(--nf-brand-secondary)]"
         >
           <defs>
             <linearGradient id="nf-wallet-spark-fill" x1="0" y1="0" x2="0" y2="1">
