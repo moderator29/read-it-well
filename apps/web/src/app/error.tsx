@@ -22,7 +22,7 @@ export default function Error({
 }) {
   useEffect(() => {
     // Replaced by the Sentry client once observability lands in Phase 1.
-    console.error("[naijafinds] route error", error);
+    console.error("[rentme] route error", error);
   }, [error]);
 
   return (
