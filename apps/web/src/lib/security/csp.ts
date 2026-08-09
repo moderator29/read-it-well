@@ -21,20 +21,56 @@ import { SUPABASE_URL } from "../supabase/env";
  * injected `<script>` in a listing description, a review, a support message or
  * an agent's own listing title carries no nonce and does not execute.
  *
- * ## It ships in report-only first, and that is not timidity
+ * ## It shipped report-only, and it now enforces by default
  *
  * A CSP that is wrong does not degrade, it deletes: a missed directive means a
- * blank page or a dead checkout, and the report is the only way to find the
- * ones nobody predicted. So `CSP_ENFORCE` decides the header name and defaults
- * to report-only. Report-only cannot break anything by construction, browsers
- * still report every violation to `/api/csp-report`, and flipping to enforce is
- * one environment variable once the reports are quiet. There is no second
- * policy to keep in step, because both modes serve the same string.
+ * blank page or a dead checkout, and the report was the only way to find the
+ * ones nobody predicted. So this shipped as `Content-Security-Policy-Report-Only`
+ * behind `CSP_ENFORCE === "true"`, which nobody ever set.
+ *
+ * That is the failure mode of a report-only policy nobody flips: it looks like
+ * a control on every audit, in every header dump and in every screenshot, and
+ * it has never blocked a single thing. A report-only policy is documentation.
+ * The default is now the other way round, so a deployment that sets nothing
+ * gets the protection, and turning it back off is a deliberate act somebody has
+ * to write down.
+ *
+ * What was checked before flipping, rather than assumed, because the cost of
+ * being wrong here is a white screen:
+ *
+ *  - Every inline script the app writes is nonced. Two in `app/layout.tsx`
+ *    (theme, save-data) and the JSON-LD block on the listing page, plus every
+ *    inline script Next itself emits for hydration and streaming. Counted in
+ *    the browser, on a production build, in `tests/csp.spec.mjs`.
+ *  - No route emits a `<style>` element, so `style-src-elem` can stay at
+ *    `'self'` and only the `style=` attribute needs the inline allowance.
+ *  - Nothing frames us and we frame nothing, so both frame directives are
+ *    `'none'`.
+ *  - The only cross-origin subresources are basemap tiles, Unsplash stock,
+ *    Google avatars and Supabase storage, all of them images.
+ *  - The only cross-origin NAVIGATION a form can reach is Paystack checkout.
+ *    The Google and Apple sign-in rows that used to post to a server action
+ *    ending in a redirect to Supabase authorize are gone from `AuthChoices`,
+ *    so no provider origin belongs in `form-action`. If those rows ever come
+ *    back, the Supabase origin has to come back with them or Chrome kills the
+ *    sign in at the redirect: it applies `form-action` to the whole chain.
+ *
+ * There is no second policy to keep in step, because both modes serve the same
+ * string, so a deployment that hits something unforeseen can set
+ * `CSP_ENFORCE=false`, read the `[csp]` lines, and come back.
  */
 
-/** Set to the literal "true" to enforce. Anything else, including a typo, reports. */
+/**
+ * Enforcing unless somebody explicitly asks for reports instead.
+ *
+ * Fail closed. The old spelling was `=== "true"`, which meant an unset variable,
+ * a typo, a missing entry in a new environment or a value of "TRUE" all landed
+ * on report-only, and report-only is indistinguishable from no policy at all to
+ * an attacker. Only the literal "false" steps back to reporting now, so the
+ * accident cases all fail towards the protection.
+ */
 export function cspEnforced(): boolean {
-  return process.env.CSP_ENFORCE === "true";
+  return process.env.CSP_ENFORCE !== "false";
 }
 
 export function cspHeaderName(): string {
@@ -151,13 +187,39 @@ export function contentSecurityPolicy(nonce: string): string {
 
     /*
      * `'unsafe-inline'` for styles, honestly labelled rather than quietly
-     * omitted. React writes every `style={{...}}` prop as an inline attribute
-     * and Next inlines critical CSS during streaming, so removing this breaks
-     * the rendering of most of the app. It is a far smaller risk than the
-     * script equivalent: CSS injection can restyle a page, it cannot read a
-     * card number or call an API.
+     * omitted. React writes every `style={{...}}` prop as an inline attribute,
+     * so removing this breaks the rendering of most of the app. It is a far
+     * smaller risk than the script equivalent: CSS injection can restyle a
+     * page, it cannot read a card number or call an API.
+     *
+     * This directive is the FALLBACK now, not the rule. It stays as written
+     * because a browser that does not implement `style-src-elem` reads this
+     * one for everything, and on such a browser the choice is this allowance
+     * or an unstyled product.
      */
     ["style-src", ["'self'", "'unsafe-inline'"]],
+
+    /*
+     * And the half of the allowance that can be taken back, taken back.
+     *
+     * `style-src` above covers two very different things. A `style=` attribute
+     * on an element React rendered is unavoidable. A whole injected `<style>`
+     * block is not, and it is the dangerous one: it can draw a fake sign-in
+     * over the real page, hide the amount above a Pay button, or read the
+     * document through attribute selectors on a nonce or a CSRF field.
+     *
+     * Splitting them costs nothing here because nothing needs the element
+     * form. Measured on a production build rather than reasoned about: a
+     * `<style>` count across seventeen routes, signed out, returned zero on
+     * every one of them. Stylesheets arrive as `<link>` elements, which this
+     * directive also governs and which are same origin.
+     *
+     * A browser that understands this directive stops honouring
+     * `'unsafe-inline'` for elements and keeps honouring it for attributes,
+     * which is exactly the split we want. One that does not understand it
+     * falls back to `style-src` and is no worse off than before.
+     */
+    ["style-src-elem", ["'self'"]],
 
     /*
      * Images used to be `https:`, a wildcard over every host on the web, and
@@ -178,6 +240,24 @@ export function contentSecurityPolicy(nonce: string): string {
      * whatever the URL was built from.
      */
     ["img-src", ["'self'", "data:", "blob:", ...IMAGE_HOSTS, ...supabase]],
+
+    /*
+     * Walkthrough video, from the same places a photo comes from.
+     *
+     * Without this directive `media-src` falls back to `default-src 'self'`,
+     * and the walkthrough player is the one surface where that is about to
+     * matter: `listing_videos` is already joined into the listing detail read
+     * and its rows point at Supabase storage. The day somebody renders the
+     * `<video>` element, an enforcing policy would show a black box with no
+     * server-side trace, and the CSP would be suspected last.
+     *
+     * Named now, while the cost of naming it is nothing: these are the same
+     * origins `img-src` already trusts, for the same buckets, and no host is
+     * added that a listing photo could not already come from. `blob:` is here
+     * for the same reason it is in `img-src`, a chosen file previewed before
+     * it is uploaded.
+     */
+    ["media-src", ["'self'", "blob:", ...supabase]],
 
     // Self-hosted faces only, and `data:` for nothing. See public/fonts.
     ["font-src", ["'self'"]],
