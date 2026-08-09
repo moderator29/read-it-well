@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { factsOf, matchesFacts, matchesFilter } from "./filter";
-import { KIND_NOUN, KIND_ORDER, kindLabel, toPoolFilter } from "./search-params";
-import type { DiscoveryQuery, Listing, ListingKind } from "./types";
+import {
+  KIND_NOUN,
+  KIND_ORDER,
+  kindLabel,
+  toPoolFilter,
+  type DiscoveryQuery,
+} from "./search-params";
+import type { Listing, ListingKind } from "./types";
 
 /**
  * The category, after it stopped being navigation and became a filter.

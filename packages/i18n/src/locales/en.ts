@@ -685,6 +685,72 @@ export const en = {
       signOutEverywhere: "Sign out everywhere",
     },
 
+    /*
+     * Where you are signed in. SEC-5.
+     *
+     * The wording here is doing security work, not decoration, and two lines
+     * carry most of it.
+     *
+     * `caveat` is the honest one. Ending a session stops that device asking for
+     * a new key and cannot stop the key it already holds, because that key is a
+     * signed token nobody looks up. Saying "signed out" flat would tell
+     * somebody whose phone is in a thief's hands that they are safe, and they
+     * would not go and change the password, which is the step that actually
+     * ends the key everywhere.
+     *
+     * `deviceUnknownSub` is the other. The device column on an older session
+     * recorded our own server rather than anybody's phone, and a screen that
+     * asks "do you recognise this?" about a row that was never about the reader
+     * is worse than one that admits it does not know.
+     */
+    devices: {
+      rowLabel: "Devices and sessions",
+      rowNote:
+        "Your wallet sits behind this account. Anything signed in that you do not recognise should be ended here, now.",
+      rowNoteSignedOut: "Sign in to see where your account is signed in.",
+      rowValueOne: "1 signed in",
+      rowValueMany: "{count} signed in",
+      rowValueUnknown: "Check",
+
+      screenTitle: "Where you are signed in",
+      intro:
+        "Every device holding a live sign-in to this account. If one of these is not you, end it and change your password straight after.",
+      caveat:
+        "Ending a session stops that device from getting a new key. The key it is already holding keeps working until it runs out, so there can be a short gap. If a device is in somebody else's hands, change your password as well: that is the step that ends every key at once.",
+
+      thisDevice: "This device",
+      signedInAt: "Signed in {when}",
+      whenNow: "just now",
+      whenMinutes: "{count} minutes ago",
+      whenToday: "today at {time}",
+      whenYesterday: "yesterday at {time}",
+      lastSeenAt: "Last used {when}",
+
+      deviceUnknown: "Device not recorded",
+      deviceUnknownSub:
+        "This sign-in is older than the change that started recording which device it came from.",
+      deviceUnrecognised: "Unrecognised device",
+
+      endThis: "Sign out this device",
+      endCurrent: "Sign out of this browser",
+      endOthers: "Sign out everywhere else",
+      endOthersSub: "Ends every session except the one you are using right now.",
+      endOthersNone: "Nothing else is signed in, so there is nothing to end.",
+      confirm: "Tap again to confirm",
+      working: "Ending it",
+
+      endedOne: "That session is over. The device will have to sign in again.",
+      endedOthers: "Every other session is over. Only this one is left.",
+      endedNone: "There was nothing else signed in. Nothing changed.",
+
+      unreadable:
+        "We could not read your sessions just now. This is not a sign that nothing is signed in, so try again before deciding anything.",
+      accountTitle: "Sign in to see your devices",
+      accountBodySignedOut: "This list belongs to your account, so it needs you signed in.",
+      accountBodyUnconfigured:
+        "Accounts are not switched on in this deployment yet, so there are no sessions to show.",
+    },
+
     data: {
       label: "Your data",
       exportNote:
