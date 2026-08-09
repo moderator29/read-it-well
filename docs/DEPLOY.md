@@ -521,9 +521,15 @@ follows is only the part an operator needs before pressing deploy.
   six places, all through `bestEffortEmail`, so a delivery failure is silent.
   Nothing has ever been sent from this project. `EMAIL_FROM` must be a verified
   sender on the Resend domain or every send is rejected.
-- **The Content Security Policy is served in report-only mode.** `CSP_ENFORCE`
-  is unset, by design. Watch `/api/csp-report` and the `[csp]` lines, then
-  enforce on a day somebody is watching. `RECOMMENDATIONS.md` SEC-1.
+- **The Content Security Policy enforces.** It served report-only for months
+  behind a `CSP_ENFORCE` nobody set, which is a policy that blocks nothing. The
+  default is inverted: unset enforces, and only the literal `false` steps back
+  to reporting. Before flipping it, a production build was walked in a browser
+  across eighteen routes signed out, and the one real violation found was a Zod
+  feature probe calling `new Function("")`, now switched off at source in
+  `src/instrumentation-client.ts` rather than paid for with `'unsafe-eval'`.
+  Re-run `BASE_URL=... node apps/web/tests/csp.spec.mjs` against any deployment
+  before trusting it. `RECOMMENDATIONS.md` SEC-1.
 - **Map tiles are on the non-commercial CARTO endpoint** until
   `NEXT_PUBLIC_MAPTILER_KEY` is set. This is the only item on this page that can
   produce a letter from a lawyer rather than a bug report, and it costs one

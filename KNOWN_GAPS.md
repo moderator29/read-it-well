@@ -88,12 +88,20 @@ every one of the 67 script tags in the document, and no script is left without
 one, because Next propagates the nonce to its own scripts once it sees the
 header.
 
-What remains is the decision to enforce, which is deliberately the owner's and
-deliberately not automatic. `CSP_ENFORCE` is unset, so violations are reported
-to `/api/csp-report` and logged rather than blocked. A wrong policy does not
-degrade, it white-screens, and the reports are the only honest way to find the
-directive nobody predicted. Set it to `true` once the `[csp]` lines stop
-appearing across real traffic.
+**It enforces now, and the enumeration that had to come first is done.** The
+policy sat in report-only behind a `CSP_ENFORCE` nobody ever set, which is the
+failure mode of the whole idea: it looked like a control in every header dump
+and had never blocked a single thing. The default is inverted, so an unset
+variable enforces and only the literal `false` steps back to reporting.
+
+What was checked before flipping, in a browser against a production build, not
+by reading the header: eighteen routes signed out, every inline script nonced
+including the JSON-LD block on the listing page, zero `<style>` elements on any
+route, Leaflet's chunk importing under `strict-dynamic` and CARTO tiles loading
+under `img-src`. One real violation turned up, a Zod feature probe calling
+`new Function("")` on `/around` and `/settings`, and it is switched off at
+source in `src/instrumentation-client.ts` rather than paid for with
+`'unsafe-eval'`. `apps/web/tests/csp.spec.mjs` holds all of it.
 
 **`pg_cron` IS enabled. This entry said the opposite for five days and so did
 six other documents.** Verified live 2026-08-09: `pg_cron` 1.6.4, installed, with

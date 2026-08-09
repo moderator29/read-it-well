@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { contentSecurityPolicy, createNonce } from "./csp";
+import { afterEach, describe, expect, it } from "vitest";
+import { contentSecurityPolicy, createNonce, cspEnforced, cspHeaderName } from "./csp";
 import { safeReturnPath } from "./return-path";
 
 /**
@@ -181,5 +181,98 @@ describe("contentSecurityPolicy", () => {
     const value = policy();
     expect(directive(value, "worker-src")).toContain("blob:");
     expect(directive(value, "manifest-src")).toBe("manifest-src 'self'");
+  });
+
+  it("permits a style attribute and forbids an injected style block", () => {
+    /*
+     * The two halves of `style-src` are not the same risk and no longer carry
+     * the same permission.
+     *
+     * React writes every `style={{...}}` prop as an attribute, so the inline
+     * allowance on `style-src` cannot go: on a browser with no
+     * `style-src-elem`, that directive governs everything and removing it
+     * leaves an unstyled product. What CAN go is the element form, and that is
+     * the one worth taking: a whole injected `<style>` block can draw a fake
+     * sign-in over the real page, hide the amount above a Pay button, or read
+     * the document through attribute selectors. Nothing in this app writes
+     * one; a production sweep of seventeen routes found zero `<style>`
+     * elements, stylesheets all arrive as same-origin `<link>`s.
+     *
+     * Asserting the element directive rather than `style-src` is the point.
+     * `style-src` still says `'unsafe-inline'` and always will, so a test that
+     * read only that one would pass on a policy that had lost the split.
+     */
+    const value = policy();
+    expect(directive(value, "style-src")).toContain("'unsafe-inline'");
+    expect(directive(value, "style-src-elem")).toBe("style-src-elem 'self'");
+  });
+
+  it("names a source for video instead of letting default-src black it out", () => {
+    /*
+     * `listing_videos` is already joined into the listing detail read and its
+     * rows point at Supabase storage. Without this directive `media-src` falls
+     * back to `default-src 'self'`, so the day the walkthrough player renders
+     * its `<video>`, an enforcing policy shows a black box with no server-side
+     * trace. No new host is trusted: this is the set `img-src` already allows,
+     * for the same buckets.
+     */
+    const value = directive(policy(), "media-src") ?? "";
+    expect(value).toContain("'self'");
+    expect(value).toContain("blob:");
+    expect(/(^|\s)https:(\s|$)/.test(value)).toBe(false);
+  });
+
+  it("does not smuggle 'unsafe-eval' back in for a library feature probe", () => {
+    /*
+     * Zod decides whether it may compile a validator by calling
+     * `new Function("")` in a try/catch, which the policy blocks and Zod
+     * handles. The tempting fix was `'unsafe-eval'`, which would hand every
+     * injected string a way to become code and undo the whole directive. The
+     * fix that shipped is `src/instrumentation-client.ts`, which tells Zod not
+     * to probe. This is the assertion that stops the tempting one coming back.
+     */
+    expect(directive(policy(), "script-src") ?? "").not.toContain("'unsafe-eval'");
+  });
+});
+
+describe("cspEnforced", () => {
+  const original = process.env.CSP_ENFORCE;
+  afterEach(() => {
+    if (original === undefined) delete process.env.CSP_ENFORCE;
+    else process.env.CSP_ENFORCE = original;
+  });
+
+  /*
+   * THE DEFAULT IS THE WHOLE TEST.
+   *
+   * This platform served a Content Security Policy for months and enforced
+   * nothing, because the switch read `=== "true"` and nobody set it. A
+   * report-only policy is indistinguishable from a correct one in every header
+   * dump and every audit, and indistinguishable from no policy at all to an
+   * attacker: the browser runs the injected script and then files a report
+   * about having run it.
+   *
+   * So the accident cases all have to land on the protection. Unset, a typo,
+   * a value of "TRUE", a new environment nobody remembered to configure: all
+   * enforce. Only the literal "false" steps back, which is a thing somebody
+   * has to write down and can be asked about.
+   */
+  it("enforces when nothing is set, which is the state that shipped unenforced", () => {
+    delete process.env.CSP_ENFORCE;
+    expect(cspEnforced()).toBe(true);
+    expect(cspHeaderName()).toBe("Content-Security-Policy");
+  });
+
+  it("enforces through the typos that used to silently disable it", () => {
+    for (const value of ["TRUE", "true", "1", "yes", "", "False", " false"]) {
+      process.env.CSP_ENFORCE = value;
+      expect(cspEnforced()).toBe(true);
+    }
+  });
+
+  it("steps back to reporting only on a deliberate literal false", () => {
+    process.env.CSP_ENFORCE = "false";
+    expect(cspEnforced()).toBe(false);
+    expect(cspHeaderName()).toBe("Content-Security-Policy-Report-Only");
   });
 });
