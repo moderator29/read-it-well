@@ -174,7 +174,7 @@ export const yo: Dictionary = {
       line2: "Fi pamọ́.",
       line3: "Gbé e.",
       subtitle:
-        "Pátákó rẹ kan ṣoṣo fún ilé, hòtẹ́lì, ilé oúnjẹ, ìrírí àti púpọ̀ sí i.",
+        "Háyà, rà tàbí ta ilé ní Nàìjíríà. Ènìyàn gidi ni ó fi gbogbo ibi tí ó wà níbí sí.",
       searchPlaceholder: "Ibo ni o fẹ́ lọ?",
       searchLabel: "Wá àwọn ibi jákèjádò Nàìjíríà",
       popularLabel: "Gbajúmọ̀ báyìí",
@@ -209,15 +209,14 @@ export const yo: Dictionary = {
       secure: { title: "Ààbò & Ìgbẹ́kẹ̀lé", body: "Ààbò rẹ ni àkọ́kọ́ wa" },
       ai: { title: "Agbára AI", body: "Ìrírí ọlọ́gbọ́n" },
       africa: { title: "Fún Áfíríkà", body: "Tí a kọ́ pẹ̀lú ìfẹ́ ❤️" },
-      stores: { title: "Wà lórí", body: "App Store & Play Store" },
     },
     categories: {
       title: "Gbogbo rẹ̀, ní ibì kan",
-      subtitle: "Ọ̀nà márùn-ún láti ṣàwárí Nàìjíríà. Àkàǹtì kan, àpò owó kan.",
+      subtitle: "Gbogbo irú ibi tí ẹnìkan lè fi sí ibí. Àkàǹtì kan, àpò owó kan.",
     },
     cta: {
       title: "Ṣé o ti ṣetán láti wá ibi tókàn rẹ?",
-      subtitle: "Dara pọ̀ mọ́ ẹgbẹẹgbẹ̀rún tó ń ṣàwárí ibùgbé, oúnjẹ àti ìrírí.",
+      subtitle: "Ṣí àkàǹtì láti fi àwọn ibi pamọ́, láti fi ìránṣẹ́ sí ẹni tó fi wọn sí, kí o sì háyà tàbí rà ní ibì kan.",
       action: "Bẹ̀rẹ̀ lọ́fẹ̀ẹ́",
       secondary: "Wo bí ó ṣe ń ṣiṣẹ́",
     },

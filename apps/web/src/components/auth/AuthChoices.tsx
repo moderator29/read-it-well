@@ -1,23 +1,20 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
-import { startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
 import type { ProviderId, ProviderState } from "@/lib/auth/providers";
-import { AppleMark, GoogleMark, MailMark } from "./ProviderMarks";
+import { MailMark } from "./ProviderMarks";
 
 /**
- * How you want to get in. Three rows, and nothing else on the screen.
+ * How you want to get in. One row, and nothing else on the screen.
  *
- * This used to be the same component as the form. Choosing email expanded it
- * in place, which on sign-up meant nine fields in four groups unrolled between
- * the heading and the Google and Apple rows - so the two provider buttons
- * ended up stranded four screens down, under a form somebody was already
- * filling in, reading as leftovers rather than as alternatives. That is the
- * fault the owner photographed.
+ * It was three. Google and Apple sat under email behind their own brand marks
+ * and both were disabled, because neither provider is switched on and RentMe
+ * does not offer third-party sign in. Two dead controls and an apology are
+ * worse than an empty space, so all three are gone and email is simply the way
+ * in.
  *
- * So the choice and the form are now two routes. This page offers the three
- * ways in; email opens `/sign-up/email` (or `/sign-in/email`) where the form
- * has the screen to itself and there is a way back. It is what every consumer
- * app of this shape does, and it means the browser's back button undoes the
+ * The choice and the form are two routes. This page offers the way in; email
+ * opens `/sign-up/email` (or `/sign-in/email`) where the form has the screen to
+ * itself and there is a way back. It means the browser's back button undoes the
  * choice, which an in-place expansion never could.
  *
  * A server component: every control here is a link or a form posting to a
@@ -45,11 +42,7 @@ export function AuthChoices({
 }) {
   const isSignUp = mode === "sign-up";
   const configured = (id: ProviderId) => providers.find((p) => p.id === id)?.configured ?? false;
-
-  const oauth: { id: ProviderId; label: string; mark: React.ReactNode }[] = [
-    { id: "google", label: t.auth.continueWithGoogle, mark: <GoogleMark /> },
-    { id: "apple", label: t.auth.continueWithApple, mark: <AppleMark /> },
-  ];
+  const emailReady = configured("email");
 
   return (
     <div className="w-full">
@@ -67,13 +60,13 @@ export function AuthChoices({
         </p>
       ) : null}
 
-      <div className="mt-6 flex items-center gap-4" aria-hidden="true">
-        <span className="h-px flex-1 bg-[var(--nf-border-subtle)]" />
-        <span className="text-[0.75rem] uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
-          {t.auth.orContinue}
-        </span>
-        <span className="h-px flex-1 bg-[var(--nf-border-subtle)]" />
-      </div>
+      {/*
+        THE "OR CONTINUE WITH" RULE IS GONE WITH THE THINGS IT SEPARATED.
+
+        A divider labelled "or" between one option and nothing is a heading
+        over an empty room. Email is the only way in, so it is simply the way
+        in, with no ceremony announcing alternatives that do not exist.
+      */}
 
       <div className="space-y-2.5">
         {/* The destination has to travel with the link, or the chain breaks at
@@ -91,30 +84,20 @@ export function AuthChoices({
           <span className="flex-1 text-left">{t.auth.continueWithEmail}</span>
         </Link>
 
-        {/* Each provider is its own form posting to the OAuth start action.
-            A form rather than an onClick so the handshake begins on the server,
-            where the redirect belongs: a client-side redirect would have to
-            know the callback URL, and only the server does. Until a provider is
-            switched on in the Supabase dashboard and named in
-            NEXT_PUBLIC_AUTH_PROVIDERS, the control stays disabled and says so
-            below, rather than sending someone to an error page. */}
-        {oauth.map((p) => (
-          <form key={p.id} action={p.id === "google" ? startGoogleOAuth : startAppleOAuth}>
-            {next ? <input type="hidden" name="next" value={next} /> : null}
-            {/* Which door this is. The provider round trip loses everything
-                except the callback URL, and both doors post to the same
-                action, so the callback cannot tell a returning person from a
-                new one unless this travels with them. Without it, somebody
-                signing back in was told we were "verifying your email". */}
-            <input type="hidden" name="intent" value={isSignUp ? "sign-up" : "sign-in"} />
-            <button type="submit" disabled={!configured(p.id)} className="nf-auth-row w-full">
-              <span className="nf-auth-row__mark">{p.mark}</span>
-              <span className="flex-1 text-left">{p.label}</span>
-            </button>
-          </form>
-        ))}
+        {/*
+          GOOGLE AND APPLE SIGN IN ARE REMOVED.
 
-        {oauth.some((p) => !configured(p.id)) && (
+          Two rows posted to `startGoogleOAuth` and `startAppleOAuth` behind
+          Google's four-colour mark and Apple's, and both were dark by default:
+          neither provider is enabled, so the honest state of the screen was two
+          disabled buttons and a line of small print explaining that they did
+          not work. RentMe does not offer third-party sign in, so the buttons,
+          their brand marks, and the apology under them are all gone.
+
+          The server actions themselves are the lead's to retire, along with the
+          Supabase provider configuration. Nothing on this screen calls them.
+        */}
+        {!emailReady && (
           <p className="pt-1 text-center text-[0.75rem] text-[var(--nf-content-muted)]">
             {t.auth.providerUnavailable}
           </p>

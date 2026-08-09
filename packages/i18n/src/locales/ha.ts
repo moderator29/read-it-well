@@ -175,7 +175,7 @@ export const ha: Dictionary = {
       line2: "Ajiye shi.",
       line3: "Rayu da shi.",
       subtitle:
-        "Dandalinka guda ɗaya na gidaje, otal, gidan abinci, kwarewa da ƙari.",
+        "Ka yi hayar gida, ka saya ko ka sayar a Najeriya. Mutum na gaske ne ya sanya kowane wuri a nan.",
       searchPlaceholder: "Ina kake son zuwa?",
       searchLabel: "Nemi wurare a faɗin Najeriya",
       popularLabel: "Sanannu yanzu",
@@ -210,15 +210,14 @@ export const ha: Dictionary = {
       secure: { title: "Tsaro & Aminci", body: "Tsaronka shi ne fifikonmu" },
       ai: { title: "Ƙarfin AI", body: "Kwarewa mai wayo" },
       africa: { title: "An yi don Afirka", body: "An gina da so ❤️" },
-      stores: { title: "Ana samu a", body: "App Store & Play Store" },
     },
     categories: {
       title: "Komai, a wuri guda",
-      subtitle: "Hanyoyi biyar na gano Najeriya. Asusu guda, walat guda.",
+      subtitle: "Kowane irin wuri da mutum zai iya sanyawa a nan. Asusu guda, walat guda.",
     },
     cta: {
       title: "A shirye kake ka samu wuri na gaba?",
-      subtitle: "Ka haɗu da dubbai da ke gano masauki, abinci da kwarewa.",
+      subtitle: "Ka buɗe asusu don adana wurare, ka aika saƙo ga wanda ya sanya su, ka yi haya ko sayan gida a wuri guda.",
       action: "Fara kyauta",
       secondary: "Duba yadda yake aiki",
     },

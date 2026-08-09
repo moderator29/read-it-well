@@ -176,7 +176,7 @@ export const ig: Dictionary = {
       line2: "Debe ya.",
       line3: "Bie ya.",
       subtitle:
-        "Ebe gị otu maka ụlọ, họtel, ụlọ oriri, ahụmahụ na ihe ndị ọzọ.",
+        "Gbaa ụlọ, zụta ma ọ bụ ree ala na Naịjirịa. Onye nkịtị debere ebe ọ bụla dị ebe a.",
       searchPlaceholder: "Ebee ka ị chọrọ ịga?",
       searchLabel: "Chọọ ebe na Naịjirịa niile",
       popularLabel: "Ewu ewu ugbu a",
@@ -211,15 +211,14 @@ export const ig: Dictionary = {
       secure: { title: "Nchekwa & Ntụkwasị Obi", body: "Nchekwa gị bụ ihe mbụ" },
       ai: { title: "Ike AI", body: "Ahụmahụ amamihe" },
       africa: { title: "Emere maka Afrika", body: "Ewuru ya na ịhụnanya ❤️" },
-      stores: { title: "Dị na", body: "App Store & Play Store" },
     },
     categories: {
       title: "Ihe niile, n'otu ebe",
-      subtitle: "Ụzọ ise ịchọpụta Naịjirịa. Otu akaụntụ, otu akpa ego.",
+      subtitle: "Ụdị ebe ọ bụla mmadụ nwere ike idebe ebe a. Otu akaụntụ, otu akpa ego.",
     },
     cta: {
       title: "Ị dịla njikere ịchọta ebe ọzọ gị?",
-      subtitle: "Sonye na ọtụtụ puku na-achọpụta ebe obibi, nri na ahụmahụ.",
+      subtitle: "Mepee akaụntụ iji chekwaa ebe, zigara onye debere ha ozi, ma gbaa ma ọ bụ zụta n'otu ebe.",
       action: "Malite n'efu",
       secondary: "Lee ka ọ si arụ ọrụ",
     },

@@ -45,7 +45,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
-import { bestEffortEmail, sendEmail } from "../email/client";
+import { bestEffortEmail, sendMessage } from "../email/client";
 import { walletFunded, withdrawalFailed } from "../email/messages";
 import { contactForSelf, contactForUser } from "../email/recipients";
 import { isFeatureEnabled } from "../flags";
@@ -293,7 +293,7 @@ export async function withdraw(
           bankName: bank.name,
           accountLast4,
         });
-        await sendEmail({ to: owner.email, subject: message.subject, html: message.html });
+        await sendMessage(owner.email, message);
       });
     }
 
@@ -526,7 +526,7 @@ export async function verifyFunding(
       amountMinor: tx.amountMinor,
       balanceMinor: await shownBalanceMinor(admin, ownerId),
     });
-    await sendEmail({ to: owner.email, subject: message.subject, html: message.html });
+    await sendMessage(owner.email, message);
   });
 
   revalidatePath("/wallet");

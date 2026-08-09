@@ -61,7 +61,8 @@ export default async function LandingPage() {
     { icons: ["shield"], ...t.landing.trust.secure },
     { icons: ["ai-chip"], ...t.landing.trust.ai },
     { icons: ["africa"], ...t.landing.trust.africa },
-    { icons: ["app-store", "play-store"], ...t.landing.trust.stores },
+    /* The fifth cell was "Available on / App Store & Play Store" beside Apple's
+       and Google's real badge artwork. We are on neither store. */
   ];
 
   return (
@@ -231,15 +232,26 @@ export default async function LandingPage() {
         {/* ------------------------------------------------ signature villa */}
         <VillaShowcase />
 
-        {/* -------------------------------------------------------- facts band */}
+        {/*
+          -------------------------------------------------------- facts band
+
+          TWO CELLS, BOTH COUNTABLE.
+
+          This was four, and the two that are gone were not facts at all. One
+          printed "₦" in the same display weight as a statistic, so a currency
+          symbol sat in a row of numbers reading as a quantity of something. The
+          other printed "24/7", a support-availability promise nobody on this
+          platform has committed to, wedged between two figures that are true.
+
+          What is left is the coverage of the platform and the number of
+          languages it ships in, and both of those can be checked.
+        */}
         <section className="nf-shell pt-4">
           <Reveal>
-            <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            <ul className="grid grid-cols-2 gap-3 sm:gap-4">
               {[
                 { big: "36 + FCT", small: t.landing.vision.points.everywhere.title },
                 { big: "4", small: t.landing.trust.multiLanguage.title },
-                { big: "₦", small: t.landing.features.prices.title },
-                { big: "24/7", small: t.landing.features.ai.title },
               ].map((s) => (
                 <li key={s.small} className="nf-card px-4 py-4 text-center sm:px-5 sm:py-5">
                   <span className="nf-gradient-text nf-numeric block font-[family-name:var(--nf-font-display)] text-[1.45rem] font-bold leading-none sm:text-[1.8rem]">

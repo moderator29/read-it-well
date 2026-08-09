@@ -21,11 +21,6 @@ const LANGUAGES = [
   { code: "IG", name: "Igbo" },
 ];
 
-const STORES: { name: "app-store" | "play-store"; eyebrow: string; title: string }[] = [
-  { name: "app-store", eyebrow: "Download on the", title: "App Store" },
-  { name: "play-store", eyebrow: "GET IT ON", title: "Google Play" },
-];
-
 const chipClass =
   "inline-flex items-center gap-1.5 rounded-full border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-3 py-1.5 text-[0.75rem] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)]";
 
@@ -134,25 +129,15 @@ export function SiteFooter({ t }: { t: Dictionary }) {
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="nf-overline mr-1">{t.landing.trust.stores.title}</span>
-            {STORES.map((store) => (
-              <span
-                key={store.name}
-                className="inline-flex items-center gap-2 rounded-xl border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] py-1.5 pl-1.5 pr-3.5 transition-colors hover:border-[var(--nf-border-default)]"
-              >
-                <TrustIcon name={store.name} size={26} className="shrink-0 rounded-[7px]" />
-                <span className="leading-tight">
-                  <span className="block text-[0.5625rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
-                    {store.eyebrow}
-                  </span>
-                  <span className="block text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
-                    {store.title}
-                  </span>
-                </span>
-              </span>
-            ))}
-          </div>
+          {/*
+            THE STORE BADGES ARE GONE.
+
+            This carried Apple's App Store badge and Google Play's, drawn to
+            their real brand geometry, under the heading "Available on". RentMe
+            is published on neither store, so the strongest visual claim on the
+            footer was the one thing on it that was not true. Nothing replaces
+            it: an absent claim needs no substitute.
+          */}
         </div>
 
         {/* Copyright line */}

@@ -45,7 +45,17 @@ export async function NumbersBand({ locale }: { locale: Locale }) {
     figures.push({ label: "Cities", value: stats.cities, suffix: "" });
   }
   figures.push({ label: "Languages", value: 4, suffix: "" });
-  figures.push({ label: "Support", value: 24, suffix: "/7" });
+  /*
+   * "Support 24/7" USED TO BE THE FOURTH FIGURE and it is gone.
+   *
+   * It was the only hardcoded claim left in a band whose whole point is that
+   * every number in it is counted, and it sat between two figures read out of
+   * the database, which is what made it dangerous: a reader has no way to tell
+   * which of four numbers on one strip was measured and which was typed. There
+   * is no round-the-clock support rota, so the figure was not true either.
+   *
+   * Nothing replaces it. `COLUMNS` already handles a band of two or three.
+   */
 
   const columns = COLUMNS[figures.length] ?? COLUMNS[4];
 

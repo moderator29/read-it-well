@@ -228,8 +228,12 @@ export const en = {
       line1: "Find it.",
       line2: "Rent it.",
       line3: "Love it.",
+      /* Nigeria first, and the three verbs the marketplace actually supports.
+         The line this replaced described "homes, hotels, restaurants,
+         experiences and more", which read as a travel app and never once said
+         rent, buy or sell. */
       subtitle:
-        "Your all-in-one platform for homes, hotels, restaurants, experiences and more.",
+        "Rent, buy or sell property in Nigeria. Every place here was listed by a real person on RentMe.",
       searchPlaceholder: "Where do you want to go?",
       searchLabel: "Search destinations across Nigeria",
       popularLabel: "Popular right now",
@@ -264,15 +268,24 @@ export const en = {
       secure: { title: "Secure & Trusted", body: "Your safety is our priority" },
       ai: { title: "AI Powered", body: "Smarter experiences" },
       africa: { title: "Made for Africa", body: "Built with love ❤️" },
-      stores: { title: "Available on", body: "App Store & Play Store" },
+      /* `stores` is gone. It read "Available on / App Store & Play Store" and
+         rendered Apple's and Google's real badge artwork beside it, on the
+         landing page and in the footer. RentMe is on neither store. */
     },
     categories: {
       title: "Everything, in one place",
-      subtitle: "Five ways to discover Nigeria. One account, one wallet, one assistant.",
+      /* Counted nothing. It said "Five ways to discover Nigeria" while the
+         category tiles offered eleven, so the sentence was wrong the day it
+         shipped and got wronger with every tile added. It states no number
+         now, which is the only version that cannot go stale. */
+      subtitle: "Every kind of place a person can list here. One account, one wallet, one assistant.",
     },
     cta: {
       title: "Ready to find your next place?",
-      subtitle: "Join thousands discovering stays, food and experiences across Nigeria.",
+      /* "Join thousands discovering stays, food and experiences" was a
+         membership claim we cannot support and a description of a product we
+         are not. This says what an account actually gets you. */
+      subtitle: "Create an account to save places, message whoever listed them, and rent or buy in one place.",
       action: "Get started free",
       secondary: "See how it works",
     },
