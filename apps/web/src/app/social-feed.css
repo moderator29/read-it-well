@@ -79,6 +79,54 @@
   }
 
   /*
+   * THE WHOLE CARD IS A LINK TO ITS OWN THREAD.
+   *
+   * The body used to be inert, so a reader who tapped the words, which is what
+   * everybody does, got nothing. The only doors in were the reply count and
+   * the timestamp.
+   *
+   * Two z-index values do the whole job, and the order between them is the
+   * entire design:
+   *
+   *   the overlay sits at 1, above the text
+   *   every control sits at 2, above the overlay
+   *
+   * So a tap on the words opens the thread and a tap on the like button likes
+   * the post, with no JavaScript deciding which and no event handler to get
+   * wrong. It is also why this is an anchor rather than a click handler on the
+   * article: it middle-clicks, it long-presses into "open in new tab", and a
+   * screen reader announces it as the link it is.
+   *
+   * `:where()` keeps the specificity of the raise at zero, so any of these
+   * controls can still be restyled by a plain class elsewhere without having
+   * to out-specify this rule.
+   */
+  .nf-post__open {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+  }
+
+  .nf-post :where(a:not(.nf-post__open), button, [role="button"], input, textarea, select, video) {
+    position: relative;
+    z-index: 2;
+  }
+
+  /*
+   * The media grid raises itself as a block rather than relying on the rule
+   * above, because a photograph is not an interactive element and would
+   * otherwise sit under the overlay. That is actually correct for opening the
+   * thread, and wrong for the photo viewer, which owns its own click. The
+   * viewer's trigger is a button, so it is covered above; this only keeps the
+   * grid from being painted beneath the overlay's stacking context.
+   */
+  .nf-post__media {
+    position: relative;
+    z-index: 2;
+  }
+
+  /*
    * The AI. A brighter bloom and a stronger ring, so a machine answer is
    * obviously a machine answer without a coloured background shouting about
    * it. The mark inside the card does the naming; this only sets it apart.

@@ -66,7 +66,7 @@
    * The previous guess was a flat 80px, which cleared nothing on a notch.
    */
   :root {
-    --nf-tabbar-clearance: calc(0.35rem + env(safe-area-inset-bottom, 0px) + 4rem + 0.75rem);
+    --nf-tabbar-clearance: calc(0.35rem + env(safe-area-inset-bottom, 0px) + 3.5rem + 0.75rem);
   }
 
   /*
@@ -189,15 +189,16 @@
    * The detached island. Same material as the capsule so the group reads as one
    * family, but circular and standing on its own.
    */
-  /* The island matches the capsule's new height exactly. A 56px row beside a
-     52px circle reads as a mistake rather than as a pair. */
+  /* The island matches the capsule's height exactly. A 48px row beside a
+     64px circle reads as a mistake rather than as a pair, so this came down
+     with it. */
   .nf-dock-island {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 4rem;
-    height: 4rem;
+    width: 3.5rem;
+    height: 3.5rem;
     border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
     background: var(--nf-glass-fill-strong);
@@ -285,8 +286,18 @@
     align-items: center;
     justify-content: center;
     gap: var(--nf-space-0);
-    height: 3.5rem;
-    min-width: 3.5rem;
+    /*
+     * 48px, down from 56px, at the owner's request that the bottom bar be a
+     * bit smaller. It was taking a noticeable band of a phone screen on every
+     * scrolling surface in the product.
+     *
+     * It does not go below 48. 44px is the floor this codebase holds for a tap
+     * target everywhere else, and this is the control a thumb reaches for
+     * without looking, so it keeps four pixels of margin over that floor
+     * rather than sitting exactly on it.
+     */
+    height: 3rem;
+    min-width: 3rem;
     padding-inline: var(--nf-space-sm);
     border-radius: var(--nf-radius-pill);
     transition:

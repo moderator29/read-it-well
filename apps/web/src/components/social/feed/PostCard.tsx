@@ -537,6 +537,36 @@ export function PostCard({
 
   return (
     <article className={shell} aria-label={describe(post)}>
+      {/*
+        TAPPING THE POST OPENS THE POST.
+
+        Until now the body was inert: the only ways into a thread were the
+        reply count and the timestamp, so a reader who tapped the words, which
+        is what everybody does, got nothing at all.
+
+        This is an overlay link rather than a wrapper, and the reason is that a
+        post already contains links: the author, the area, a listing, a
+        mention. Nesting those inside an anchor is invalid HTML, and browsers
+        resolve it by breaking the inner one, so wrapping the card would have
+        traded one dead tap for four.
+
+        So the whole card gets one absolutely positioned anchor sitting above
+        the text and BELOW every control, which `.nf-post__open` and the
+        z-index rule beside it in social-feed.css arrange. A tap on the words
+        hits this; a tap on the like button, the author or the listing plate
+        hits that.
+
+        `editor` is the inline reply composer. While it is open this link is
+        not rendered at all, because an overlay across a form is a text field
+        that navigates away when you try to click into it.
+      */}
+      {editor ? null : (
+        <Link
+          href={`/post/${post.id}`}
+          className="nf-post__open"
+          aria-label="Open post and replies"
+        />
+      )}
       {hasPlate && post.listing ? (
         <>
           <Image

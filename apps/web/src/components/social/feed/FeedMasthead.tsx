@@ -90,8 +90,15 @@ export function FeedTabs({ active, t }: { active: FeedTab; t: Dictionary }) {
   };
 
   return (
-    <nav aria-label={t.social.tabsLabel} className="mb-4" data-testid="feed-tabs">
-      <div className="nf-feedtabs border-b border-[var(--nf-border-subtle)]">
+    <nav aria-label={t.social.tabsLabel} className="mb-block" data-testid="feed-tabs">
+      {/*
+        The rule under this row is gone, at the owner's request and on the
+        merits. It ran the full width of the screen under three pill shaped
+        controls that already read as a group, so it was a line separating the
+        tabs from nothing in particular. Underlines belong to tabs that sit
+        flush against their panel; these float above it.
+      */}
+      <div className="nf-feedtabs">
         {FEED_TABS.map((tab) => (
           <Link
             key={tab}
