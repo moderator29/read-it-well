@@ -120,6 +120,30 @@
    * side and top borders are dropped because the bar spans the viewport.
    */
   .nf-glass--chrome {
+    /*
+     * THE BAR IS THE CANVAS, NOT A WHITE WASH OVER IT.
+     *
+     * `.nf-glass` fills with `--nf-glass-fill`, which is white at 7.5%. On a
+     * panel sitting on a card that is right: a little white lifts the surface
+     * off the one behind it. On a STICKY BAR with a backdrop filter it is a
+     * different thing entirely, because what passes underneath is the whole
+     * page. Everything that scrolls behind the header gets veiled in white, so
+     * the bar reads as a pale lavender band clamped across the top of a deep
+     * navy screen, and the top of every page in the product looked like it
+     * belonged to a different theme from the page under it. Same at the bottom
+     * of the screen.
+     *
+     * The fix is to tint with the CANVAS instead of with white. The blur and
+     * the depth are unchanged - content still softens as it passes under - but
+     * it softens into the platform's own background colour rather than away
+     * from it. Both themes are correct by construction: in daylight the canvas
+     * is near-white and the bar stays light.
+     *
+     * Only the chrome bars take this. A glass CARD still wants the white lift,
+     * because what is behind a card is a fixed background rather than moving
+     * content, and there the wash is what separates the two.
+     */
+    background: color-mix(in oklab, var(--nf-surface-canvas) 84%, transparent);
     border-inline: 0;
     border-top: 0;
     /* The hairline underneath is drawn by the shadow below, so the real border
@@ -151,6 +175,20 @@
     .nf-glass--thin,
     .nf-glass--strong {
       background: var(--nf-surface-elevated);
+    }
+    /*
+     * The chrome bars go FULLY OPAQUE here, and they have to be named
+     * separately because their own rule sets a background after `.nf-glass`
+     * and would otherwise win.
+     *
+     * With no blur available, a bar at 84% is not glass, it is a strip you can
+     * read the page through: text scrolls under the header and stays legible
+     * enough to compete with the header's own. `.nf-site-bar` already reached
+     * this conclusion in chrome.css and its comment is the one to keep - a
+     * washed strip with content showing through is worse than a solid bar.
+     */
+    .nf-glass--chrome {
+      background: var(--nf-surface-canvas);
     }
     .nf-glass::before {
       display: none;
