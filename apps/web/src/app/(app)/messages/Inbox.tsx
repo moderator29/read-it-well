@@ -57,7 +57,7 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
       <Link
         href={`/messages/${row.id}`}
         data-testid="inbox-row"
-        className="flex w-full items-center gap-3.5 py-4 transition-colors hover:bg-[var(--nf-glass-fill)]"
+        className="flex w-full items-center gap-md py-group transition-colors hover:bg-[var(--nf-glass-fill)]"
       >
         {/* ------------------------------------------------------ avatar
 
@@ -75,7 +75,7 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
 
         {/* -------------------------------------------------------- body */}
         <span className="min-w-0 flex-1 leading-tight">
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-inline-tight">
             <span className={`truncate ${TYPE.rowTitle}`}>{row.counterpartName}</span>
             {/* The tick that used to be here is on the avatar. One mark per
                 person per row: two is how a badge stops being read. */}
@@ -83,10 +83,10 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
           {/* The property this thread is about. It is the reason the
               conversation exists, so it is legible rather than micro-print. */}
           {row.listingTitle && (
-            <span className={`mt-1 block truncate ${TYPE.rowMeta}`}>{row.listingTitle}</span>
+            <span className={`mt-inline-tight block truncate ${TYPE.rowMeta}`}>{row.listingTitle}</span>
           )}
           <span
-            className={`mt-1 block truncate text-[0.9375rem] leading-relaxed ${
+            className={`nf-body mt-inline-tight block truncate leading-relaxed ${
               typing
                 ? "font-semibold text-[var(--nf-brand-secondary)]"
                 : row.unread > 0
@@ -99,7 +99,7 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
         </span>
 
         {/* --------------------------------------------- time and marker */}
-        <span className="flex shrink-0 flex-col items-end gap-2 self-stretch pt-0.5">
+        <span className="flex shrink-0 flex-col items-end gap-inline self-stretch">
           <span className={`nf-numeric ${TYPE.caption}`}>{row.whenLabel}</span>
           {row.unread > 0 ? (
             <span
@@ -233,17 +233,46 @@ export function Inbox({
         be one. So the control now goes where a person would actually start a
         new conversation, and its label says so.
       */}
+      {/*
+        MARK ALL READ MOVED INTO THE HEADER, AND A ROW LEAVES THE SCREEN.
+
+        This screen stacked four control surfaces between the title and the
+        first conversation: the header, a search field, three tabs, and then a
+        right-aligned row holding one ghost button. That last one was a whole
+        row of vertical space, on a phone, for a control most people press once
+        a week, and it appeared and disappeared as the unread count crossed
+        zero, so the list below it jumped by 40px whenever somebody read their
+        last message.
+
+        It is a header action now, beside the one that starts a conversation,
+        which is where a screen-level action belongs. Nothing is hidden: it
+        still carries its own count and it still only renders when there is
+        something to mark, but it no longer moves the list when it goes.
+      */}
       <PageHeader
         title="Inbox"
         actions={
-          <Link
-            href="/search"
-            aria-label="Find a place to message an agent about"
-            data-testid="inbox-compose"
-            className="nf-icon-btn h-11 w-11"
-          >
-            <UiIcon name="search" size={ICON.row} />
-          </Link>
+          <div className="flex shrink-0 items-center gap-inline">
+            {canMarkRead && unreadTotal > 0 && (
+              <button
+                type="button"
+                onClick={markAllRead}
+                disabled={marking}
+                data-testid="inbox-mark-read"
+                className="nf-btn nf-btn--ghost nf-btn--sm disabled:opacity-60"
+              >
+                {marking ? "Marking..." : `Mark all read (${unreadTotal})`}
+              </button>
+            )}
+            <Link
+              href="/search"
+              aria-label="Find a place to message an agent about"
+              data-testid="inbox-compose"
+              className="nf-icon-btn h-11 w-11"
+            >
+              <UiIcon name="search" size={ICON.row} />
+            </Link>
+          </div>
         }
       />
 
@@ -282,7 +311,7 @@ export function Inbox({
         on the other two would dangle. The panel points back with
         `aria-labelledby`.
       */}
-      <div className="mt-3.5">
+      <div className="mt-heading">
         <Segmented<Tab>
           label="Filter conversations"
           /* The default `md` rung, not `sm`. `Segmented` paints its real
@@ -305,22 +334,8 @@ export function Inbox({
         />
       </div>
 
-      {/* ------------------------------------------------- mark all read */}
-      {canMarkRead && unreadTotal > 0 && (
-        <div className="mt-3 flex items-center justify-end">
-          <button
-            type="button"
-            onClick={markAllRead}
-            disabled={marking}
-            data-testid="inbox-mark-read"
-            className="nf-btn nf-btn--ghost nf-btn--sm disabled:opacity-60"
-          >
-            {marking ? "Marking..." : `Mark all read (${unreadTotal})`}
-          </button>
-        </div>
-      )}
       {markError && (
-        <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-warning)]">
+        <p role="alert" className="nf-body-sm mt-inline text-[var(--nf-state-warning)]">
           {markError}
         </p>
       )}
@@ -334,7 +349,7 @@ export function Inbox({
         role="tabpanel"
         id={`inbox-panel-${tab}`}
         aria-labelledby={`inbox-tab-${tab}`}
-        className="mt-3.5"
+        className="mt-heading"
       >
         {shown.length > 0 ? (
           /* Hairline rows on the ground, not a card wrapping a divided list.
