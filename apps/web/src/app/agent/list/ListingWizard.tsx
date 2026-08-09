@@ -307,7 +307,7 @@ function Toggle({
   return (
     <button
       type="button"
-      className="flex w-full items-center justify-between gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3 text-left"
+      className="flex w-full items-center justify-between gap-row rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-row text-left"
       aria-pressed={checked}
       onClick={() => onChange(!checked)}
     >
@@ -320,7 +320,12 @@ function Toggle({
         style={{ background: checked ? "var(--nf-gradient-agent)" : "var(--nf-surface-raised)" }}
       >
         <span
-          className="absolute top-1 h-5 w-5 rounded-full bg-white transition-all"
+          /* The knob is a physical object in this metaphor rather than a
+             piece of text, so it takes the on-media ink, which is the token
+             that means "white in both themes" and is what the platform switch
+             in settings-rows.css already uses. `bg-white` is a raw literal and
+             the rule is right to catch it. */
+          className="absolute top-1 h-5 w-5 rounded-full bg-[var(--nf-content-on-media)] transition-all"
           style={{ left: checked ? "1.625rem" : "0.25rem" }}
         />
       </span>
@@ -373,7 +378,7 @@ function Counter({
   onChange: (next: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-[var(--nf-border-subtle)] py-3 last:border-b-0">
+    <div className="flex items-center justify-between gap-row border-b border-[var(--nf-border-subtle)] py-row last:border-b-0">
       <span className="text-[0.9375rem] font-medium text-[var(--nf-content-primary)]">{label}</span>
       <span className="flex items-center gap-md">
         <button
@@ -1287,7 +1292,7 @@ export function ListingWizard({
             </p>
 
             {photos.length === 0 ? (
-              <div className="rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-subtle)] p-8 text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
+              <div className="rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-subtle)] p-cell text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
                 {copy.photos.empty}
               </div>
             ) : (
@@ -1308,7 +1313,11 @@ export function ListingWizard({
                     <div className="mt-inline-tight flex items-center justify-between gap-inline">
                       <button
                         type="button"
-                        className="text-[0.75rem] font-semibold text-[var(--nf-electric-300)] disabled:opacity-40"
+                        /* `--nf-content-link`, not the palette value it happens to resolve
+                           to. A component reaching past the semantic layer into
+                           `--nf-electric-300` is the one thing ADR-002 forbids, and it
+                           is why this control stayed the dark theme's blue on paper. */
+                        className="nf-body-sm font-semibold text-[var(--nf-content-link)] disabled:opacity-40"
                         onClick={() => makeCover(index)}
                         disabled={index === 0}
                       >
@@ -1531,7 +1540,7 @@ export function ListingWizard({
               </p>
             </fieldset>
 
-            <label className="flex items-center justify-between gap-4 border-y border-[var(--nf-border-subtle)] py-3">
+            <label className="flex items-center justify-between gap-md border-y border-[var(--nf-border-subtle)] py-row">
               <span>
                 <span className="block text-[0.9375rem] font-medium text-[var(--nf-content-primary)]">
                   Prepaid meter
@@ -1826,7 +1835,7 @@ export function ListingWizard({
                     shown as not stated, never as zero.
                   </p>
 
-                  <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="mt-group grid grid-cols-2 gap-row">
                     <Field label="Caution deposit" error={fieldErrors.cautionDepositNaira}>
                       <input
                         className="nf-field"
@@ -1865,7 +1874,7 @@ export function ListingWizard({
                     </Field>
                   </div>
 
-                  <div className="mt-3 grid grid-cols-2 gap-3">
+                  <div className="mt-row grid grid-cols-2 gap-row">
                     <Field label="Service charge" error={fieldErrors.serviceChargeNaira}>
                       <input
                         className="nf-field"
@@ -1892,7 +1901,7 @@ export function ListingWizard({
                     </Field>
                   </div>
 
-                  <div className="mt-4">
+                  <div className="mt-group">
                     <Field
                       label="Total to move in"
                       error={fieldErrors.totalMoveInNaira}
@@ -1915,9 +1924,9 @@ export function ListingWizard({
                   </div>
 
                   {moveInMinor > 0 && (
-                    <p className="nf-numeric mt-3 text-[0.9375rem] font-bold text-[var(--nf-content-primary)]">
+                    <p className="nf-numeric nf-body mt-row font-bold text-[var(--nf-content-primary)]">
                       {formatMoney(moveInMinor, locale)}
-                      <span className="ml-1.5 text-[0.75rem] font-normal text-[var(--nf-content-muted)]">
+                      <span className="nf-body-sm ml-inline-tight font-normal text-[var(--nf-content-muted)]">
                         {statedTotalMinor === null ? "from the parts above" : "as you stated it"}
                       </span>
                     </p>
@@ -2032,7 +2041,11 @@ export function ListingWizard({
                   </div>
                 )}
                 <div
-                  className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/65 to-transparent"
+                  /* The platform scrim, not a hand-rolled black gradient. One
+                     definition, used by the listing card and the gallery too, so
+                     a preview of a card matches the card it previews. */
+                  className="absolute inset-x-0 bottom-0 h-20"
+                  style={{ backgroundImage: "var(--nf-scrim-media)" }}
                   aria-hidden="true"
                 />
                 {/* One badge, and which one it is says which market this is. The
@@ -2057,7 +2070,7 @@ export function ListingWizard({
                   look right and could never follow a theme, which is exactly
                   the distinction the on-media family exists to hold.
                 */}
-                <p className="nf-body-sm absolute bottom-3 left-3 right-3 flex items-center gap-1.5 font-medium text-[var(--nf-content-on-media)]">
+                <p className="nf-body-sm absolute bottom-3 left-3 right-3 flex items-center gap-inline-tight font-medium text-[var(--nf-content-on-media)]">
                   <UiIcon
                     name="location"
                     size={12}
@@ -2069,11 +2082,11 @@ export function ListingWizard({
                   </span>
                 </p>
               </div>
-              <div className="p-4">
+              <div className="p-card">
                 <h3 className="text-[0.9375rem] font-semibold leading-snug">
                   {values.title || copy.guestView.titlePlaceholder}
                 </h3>
-                <p className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
+                <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-muted)]">
                   {/* The dictionary sentence names a guest count this model no
                       longer has, so the preview states the two facts it does
                       hold rather than printing a number nothing stores. */}
@@ -2086,7 +2099,7 @@ export function ListingWizard({
                     .filter(Boolean)
                     .join(" · ")}
                 </p>
-                <p className="mt-2.5 flex items-baseline gap-1.5">
+                <p className="mt-inline flex items-baseline gap-inline-tight">
                   <span className="nf-numeric text-[1.0625rem] font-bold">
                     {price ?? copy.guestView.priceToSet}
                   </span>
@@ -2109,7 +2122,7 @@ export function ListingWizard({
                 )}
               </div>
             </article>
-            <p className="mt-4 whitespace-pre-line text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="nf-body-sm mt-group whitespace-pre-line leading-relaxed text-[var(--nf-content-secondary)]">
               {values.description || copy.guestView.descriptionPlaceholder}
             </p>
           </div>
@@ -2119,11 +2132,11 @@ export function ListingWizard({
         {step === 7 && (
           <div>
             <h2 className="nf-h3">{copy.submit.title}</h2>
-            <p className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="nf-body-sm mt-inline leading-relaxed text-[var(--nf-content-secondary)]">
               {copy.submit.body}
             </p>
 
-            <ul className="mt-4 space-y-2.5">
+            <ul className="mt-group space-y-row">
               {[
                 { field: "title", label: copy.submit.checklist.title },
                 {
@@ -2148,9 +2161,9 @@ export function ListingWizard({
               ].map((item) => {
                 const problem = unmet.find((u) => u.field === item.field);
                 return (
-                  <li key={item.field} className="flex items-start gap-3">
+                  <li key={item.field} className="flex items-start gap-row">
                     <span
-                      className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full"
+                      className="mt-inline-tight grid h-5 w-5 shrink-0 place-items-center rounded-full"
                       style={{
                         background: problem
                           ? "var(--nf-state-warning-surface)"
@@ -2176,7 +2189,7 @@ export function ListingWizard({
             <Button
               variant="primary"
               full
-              className="mt-6"
+              className="mt-heading"
               onClick={send}
               disabled={unmet.length > 0}
               loading={pending}
@@ -2197,8 +2210,8 @@ export function ListingWizard({
       )}
 
       {/* Sticky step footer: the way forward never moves. */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 lg:left-[var(--nf-rail-width)]">
-        <div className="mx-auto flex max-w-2xl items-center gap-4">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-gutter pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-row lg:left-[var(--nf-rail-width)]">
+        <div className="mx-auto flex max-w-2xl items-center gap-md">
           <Button
             variant="secondary"
             className="flex-1"
