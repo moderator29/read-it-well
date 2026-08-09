@@ -47,8 +47,13 @@ export type Database = {
           account_number: string | null;
           agree_terms: boolean;
           bank_name: string | null;
+          business_address: string | null;
+          business_email: string | null;
+          business_established_on: string | null;
           business_name: string | null;
+          business_phone: string | null;
           business_rc: string | null;
+          business_tax_id: string | null;
           city: string | null;
           created_at: string;
           email: string | null;
@@ -74,8 +79,13 @@ export type Database = {
           account_number?: string | null;
           agree_terms?: boolean;
           bank_name?: string | null;
+          business_address?: string | null;
+          business_email?: string | null;
+          business_established_on?: string | null;
           business_name?: string | null;
+          business_phone?: string | null;
           business_rc?: string | null;
+          business_tax_id?: string | null;
           city?: string | null;
           created_at?: string;
           email?: string | null;
@@ -101,8 +111,13 @@ export type Database = {
           account_number?: string | null;
           agree_terms?: boolean;
           bank_name?: string | null;
+          business_address?: string | null;
+          business_email?: string | null;
+          business_established_on?: string | null;
           business_name?: string | null;
+          business_phone?: string | null;
           business_rc?: string | null;
+          business_tax_id?: string | null;
           city?: string | null;
           created_at?: string;
           email?: string | null;
@@ -135,25 +150,49 @@ export type Database = {
       };
       agent_documents: {
         Row: {
-          application_id: string;
+          application_id: string | null;
           id: string;
+          issued_on: string | null;
           kind: string;
+          rejection_reason: string | null;
+          review_status: Database["public"]["Enums"]["document_review_status"];
+          reviewed_at: string | null;
+          reviewed_by: string | null;
           storage_path: string;
+          subtype: Database["public"]["Enums"]["document_subtype"] | null;
+          supersedes_id: string | null;
           uploaded_at: string;
+          uploader_id: string | null;
         };
         Insert: {
-          application_id: string;
+          application_id?: string | null;
           id?: string;
+          issued_on?: string | null;
           kind: string;
+          rejection_reason?: string | null;
+          review_status?: Database["public"]["Enums"]["document_review_status"];
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
           storage_path: string;
+          subtype?: Database["public"]["Enums"]["document_subtype"] | null;
+          supersedes_id?: string | null;
           uploaded_at?: string;
+          uploader_id?: string | null;
         };
         Update: {
-          application_id?: string;
+          application_id?: string | null;
           id?: string;
+          issued_on?: string | null;
           kind?: string;
+          rejection_reason?: string | null;
+          review_status?: Database["public"]["Enums"]["document_review_status"];
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
           storage_path?: string;
+          subtype?: Database["public"]["Enums"]["document_subtype"] | null;
+          supersedes_id?: string | null;
           uploaded_at?: string;
+          uploader_id?: string | null;
         };
         Relationships: [
           {
@@ -161,6 +200,13 @@ export type Database = {
             columns: ["application_id"];
             isOneToOne: false;
             referencedRelation: "agent_applications";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "agent_documents_supersedes_id_fkey";
+            columns: ["supersedes_id"];
+            isOneToOne: false;
+            referencedRelation: "agent_documents";
             referencedColumns: ["id"];
           }
         ];
@@ -982,6 +1028,124 @@ export type Database = {
           }
         ];
       };
+      escrows: {
+        Row: {
+          amount_minor: number;
+          auto_release_at: string | null;
+          commission_minor: number | null;
+          commission_rate_id: string | null;
+          created_at: string;
+          currency: string;
+          dispute_reason: string | null;
+          disputed_at: string | null;
+          disputed_by: string | null;
+          funded_at: string | null;
+          held_at: string | null;
+          id: string;
+          initiated_at: string;
+          inspection_confirmation_id: string | null;
+          listing_id: string | null;
+          payee_confirmed_at: string | null;
+          payee_id: string;
+          payer_confirmed_at: string | null;
+          payer_id: string;
+          purpose: Database["public"]["Enums"]["escrow_purpose"];
+          refunded_at: string | null;
+          release_requested_at: string | null;
+          release_requested_by: string | null;
+          released_at: string | null;
+          resolution_note: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          state: Database["public"]["Enums"]["escrow_state"];
+          updated_at: string;
+        };
+        Insert: {
+          amount_minor: number;
+          auto_release_at?: string | null;
+          commission_minor?: number | null;
+          commission_rate_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          dispute_reason?: string | null;
+          disputed_at?: string | null;
+          disputed_by?: string | null;
+          funded_at?: string | null;
+          held_at?: string | null;
+          id?: string;
+          initiated_at?: string;
+          inspection_confirmation_id?: string | null;
+          listing_id?: string | null;
+          payee_confirmed_at?: string | null;
+          payee_id: string;
+          payer_confirmed_at?: string | null;
+          payer_id: string;
+          purpose: Database["public"]["Enums"]["escrow_purpose"];
+          refunded_at?: string | null;
+          release_requested_at?: string | null;
+          release_requested_by?: string | null;
+          released_at?: string | null;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          state?: Database["public"]["Enums"]["escrow_state"];
+          updated_at?: string;
+        };
+        Update: {
+          amount_minor?: number;
+          auto_release_at?: string | null;
+          commission_minor?: number | null;
+          commission_rate_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          dispute_reason?: string | null;
+          disputed_at?: string | null;
+          disputed_by?: string | null;
+          funded_at?: string | null;
+          held_at?: string | null;
+          id?: string;
+          initiated_at?: string;
+          inspection_confirmation_id?: string | null;
+          listing_id?: string | null;
+          payee_confirmed_at?: string | null;
+          payee_id?: string;
+          payer_confirmed_at?: string | null;
+          payer_id?: string;
+          purpose?: Database["public"]["Enums"]["escrow_purpose"];
+          refunded_at?: string | null;
+          release_requested_at?: string | null;
+          release_requested_by?: string | null;
+          released_at?: string | null;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          state?: Database["public"]["Enums"]["escrow_state"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "escrows_commission_rate_id_fkey";
+            columns: ["commission_rate_id"];
+            isOneToOne: false;
+            referencedRelation: "fee_rates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "escrows_inspection_confirmation_id_fkey";
+            columns: ["inspection_confirmation_id"];
+            isOneToOne: false;
+            referencedRelation: "inspection_confirmations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "escrows_listing_id_fkey";
+            columns: ["listing_id"];
+            isOneToOne: false;
+            referencedRelation: "listings";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       event_attendees: {
         Row: {
           decided_at: string | null;
@@ -1113,6 +1277,39 @@ export type Database = {
           key?: string;
           note?: string | null;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      fee_rates: {
+        Row: {
+          basis_points: number;
+          created_at: string;
+          created_by: string | null;
+          effective_from: string;
+          flat_minor: number;
+          id: string;
+          kind: Database["public"]["Enums"]["fee_kind"];
+          note: string | null;
+        };
+        Insert: {
+          basis_points?: number;
+          created_at?: string;
+          created_by?: string | null;
+          effective_from?: string;
+          flat_minor?: number;
+          id?: string;
+          kind: Database["public"]["Enums"]["fee_kind"];
+          note?: string | null;
+        };
+        Update: {
+          basis_points?: number;
+          created_at?: string;
+          created_by?: string | null;
+          effective_from?: string;
+          flat_minor?: number;
+          id?: string;
+          kind?: Database["public"]["Enums"]["fee_kind"];
+          note?: string | null;
         };
         Relationships: [];
       };
@@ -1413,6 +1610,9 @@ export type Database = {
           landmark: string | null;
           latitude: number | null;
           legal_fee_minor: number | null;
+          listing_fee_charged_at: string | null;
+          listing_fee_minor: number | null;
+          listing_fee_rate_id: string | null;
           listing_intent: Database["public"]["Enums"]["listing_intent"];
           location: unknown;
           longitude: number | null;
@@ -1477,6 +1677,9 @@ export type Database = {
           landmark?: string | null;
           latitude?: number | null;
           legal_fee_minor?: number | null;
+          listing_fee_charged_at?: string | null;
+          listing_fee_minor?: number | null;
+          listing_fee_rate_id?: string | null;
           listing_intent?: Database["public"]["Enums"]["listing_intent"];
           location?: unknown;
           longitude?: number | null;
@@ -1541,6 +1744,9 @@ export type Database = {
           landmark?: string | null;
           latitude?: number | null;
           legal_fee_minor?: number | null;
+          listing_fee_charged_at?: string | null;
+          listing_fee_minor?: number | null;
+          listing_fee_rate_id?: string | null;
           listing_intent?: Database["public"]["Enums"]["listing_intent"];
           location?: unknown;
           longitude?: number | null;
@@ -1588,6 +1794,13 @@ export type Database = {
             columns: ["agent_id"];
             isOneToOne: false;
             referencedRelation: "agents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "listings_listing_fee_rate_id_fkey";
+            columns: ["listing_fee_rate_id"];
+            isOneToOne: false;
+            referencedRelation: "fee_rates";
             referencedColumns: ["id"];
           },
           {
@@ -1816,28 +2029,37 @@ export type Database = {
           account_name: string;
           account_number: string;
           agent_id: string;
+          bank_code: string | null;
           bank_name: string;
           created_at: string;
           id: string;
           is_default: boolean;
+          resolved_account_name: string | null;
+          resolved_at: string | null;
         };
         Insert: {
           account_name: string;
           account_number: string;
           agent_id: string;
+          bank_code?: string | null;
           bank_name: string;
           created_at?: string;
           id?: string;
           is_default?: boolean;
+          resolved_account_name?: string | null;
+          resolved_at?: string | null;
         };
         Update: {
           account_name?: string;
           account_number?: string;
           agent_id?: string;
+          bank_code?: string | null;
           bank_name?: string;
           created_at?: string;
           id?: string;
           is_default?: boolean;
+          resolved_account_name?: string | null;
+          resolved_at?: string | null;
         };
         Relationships: [
           {
@@ -3106,6 +3328,39 @@ export type Database = {
           status: Database["public"]["Enums"]["area_status"];
         }[];
       };
+      escrow_admin_resolve: {
+        Args: { p_direction: string; p_escrow: string; p_note: string };
+        Returns: Json;
+      };
+      escrow_confirm: { Args: { p_escrow: string }; Returns: Json };
+      escrow_fund_from_wallet: {
+        Args: {
+          p_amount_minor: number;
+          p_hold_days?: number;
+          p_listing: string;
+          p_payee: string;
+          p_purpose: Database["public"]["Enums"]["escrow_purpose"];
+          p_reference: string;
+        };
+        Returns: Json;
+      };
+      escrow_raise_dispute: {
+        Args: { p_escrow: string; p_reason: string };
+        Returns: Json;
+      };
+      escrow_request_release: { Args: { p_escrow: string }; Returns: Json };
+      fee_rate_at: {
+        Args: {
+          p_at?: string;
+          p_kind: Database["public"]["Enums"]["fee_kind"];
+        };
+        Returns: {
+          basis_points: number;
+          effective_from: string;
+          flat_minor: number;
+          rate_id: string;
+        }[];
+      };
       grant_staff_role: {
         Args: {
           acting_admin: string;
@@ -3200,6 +3455,7 @@ export type Database = {
         };
         Returns: Json;
       };
+      verification_is_required: { Args: { p_user: string }; Returns: boolean };
     };
     Enums: {
       agent_application_status:
@@ -3222,9 +3478,36 @@ export type Database = {
       badge_audience: "AGENT" | "MEMBER";
       booking_status: "PENDING" | "CONFIRMED" | "CANCELLED";
       build_condition: "newly_built" | "renovated" | "old" | "off_plan";
+      document_review_status: "pending" | "approved" | "rejected";
+      document_subtype:
+        | "passport"
+        | "drivers_licence"
+        | "nin_card"
+        | "voters_card"
+        | "utility_bill"
+        | "bank_statement"
+        | "tenancy_agreement"
+        | "cac_certificate"
+        | "tax_certificate"
+        | "business_address_proof";
+      escrow_purpose:
+        | "rent_deposit"
+        | "first_rent"
+        | "purchase_deposit"
+        | "purchase_balance";
+      escrow_state:
+        | "INITIATED"
+        | "FUNDED"
+        | "HELD"
+        | "RELEASE_REQUESTED"
+        | "RELEASED"
+        | "REFUNDED"
+        | "DISPUTED"
+        | "RESOLVED";
       event_attendance: "GOING" | "WAITLIST" | "WITHDRAWN";
       event_status: "DRAFT" | "LIVE" | "HELD" | "CANCELLED" | "REMOVED";
       event_venue_kind: "PUBLIC_VENUE" | "ESTATE_COMMON" | "ONLINE";
+      fee_kind: "commission" | "listing_fee";
       furnishing: "unfurnished" | "semi_furnished" | "fully_furnished";
       geopolitical_zone:
         | "north_central"
@@ -3303,7 +3586,10 @@ export type Database = {
         | "payment"
         | "refund"
         | "transfer_in"
-        | "transfer_out";
+        | "transfer_out"
+        | "escrow_hold"
+        | "escrow_release"
+        | "escrow_refund";
       wallet_entry_status: "PENDING" | "COMPLETED" | "FAILED" | "REVERSED";
       water_supply:
         | "TREATED_MAINS"
@@ -3462,9 +3748,39 @@ export const Constants = {
       badge_audience: ["AGENT", "MEMBER"],
       booking_status: ["PENDING", "CONFIRMED", "CANCELLED"],
       build_condition: ["newly_built", "renovated", "old", "off_plan"],
+      document_review_status: ["pending", "approved", "rejected"],
+      document_subtype: [
+        "passport",
+        "drivers_licence",
+        "nin_card",
+        "voters_card",
+        "utility_bill",
+        "bank_statement",
+        "tenancy_agreement",
+        "cac_certificate",
+        "tax_certificate",
+        "business_address_proof",
+      ],
+      escrow_purpose: [
+        "rent_deposit",
+        "first_rent",
+        "purchase_deposit",
+        "purchase_balance",
+      ],
+      escrow_state: [
+        "INITIATED",
+        "FUNDED",
+        "HELD",
+        "RELEASE_REQUESTED",
+        "RELEASED",
+        "REFUNDED",
+        "DISPUTED",
+        "RESOLVED",
+      ],
       event_attendance: ["GOING", "WAITLIST", "WITHDRAWN"],
       event_status: ["DRAFT", "LIVE", "HELD", "CANCELLED", "REMOVED"],
       event_venue_kind: ["PUBLIC_VENUE", "ESTATE_COMMON", "ONLINE"],
+      fee_kind: ["commission", "listing_fee"],
       furnishing: ["unfurnished", "semi_furnished", "fully_furnished"],
       geopolitical_zone: [
         "north_central",
@@ -3551,6 +3867,9 @@ export const Constants = {
         "refund",
         "transfer_in",
         "transfer_out",
+        "escrow_hold",
+        "escrow_release",
+        "escrow_refund",
       ],
       wallet_entry_status: ["PENDING", "COMPLETED", "FAILED", "REVERSED"],
       water_supply: [
