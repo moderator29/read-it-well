@@ -9,6 +9,7 @@ import type { WalletEntry, WalletEntryKind } from "@/lib/wallet/types";
 import { Amount } from "@/components/ui/Amount";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+import { EmptyState, TYPE } from "@/components/app/Screen";
 
 /**
  * Wallet transaction history.
@@ -39,6 +40,9 @@ const KIND_ICON: Record<WalletEntryKind, BrandIconName> = {
   refund: "shield-check",
   transfer_in: "user-check",
   transfer_out: "user-check",
+  escrow_hold: "shield-lock",
+  escrow_release: "shield-check",
+  escrow_refund: "shield-check",
 };
 
 const KIND_LABEL: Record<WalletEntryKind, string> = {
@@ -48,6 +52,13 @@ const KIND_LABEL: Record<WalletEntryKind, string> = {
   refund: "Refund",
   transfer_in: "Transfer received",
   transfer_out: "Transfer sent",
+  /* Escrow money is wallet money and it shows in this one statement, so it
+     needs words a payer recognises rather than the enum's own vocabulary.
+     "Held in escrow" says where the money is; the other two say where it
+     went. */
+  escrow_hold: "Held in escrow",
+  escrow_release: "Escrow released",
+  escrow_refund: "Escrow refunded",
 };
 
 function matches(entry: WalletEntry, filter: Filter): boolean {
@@ -98,7 +109,7 @@ export function TransactionsSection({
 
   return (
     <section aria-labelledby="nf-wallet-tx-title">
-      <div className="mb-3 flex items-center justify-between gap-4">
+      <div className="mb-heading flex items-center justify-between gap-md">
         <h2 id="nf-wallet-tx-title" className="nf-overline">
           Transactions
         </h2>
@@ -133,11 +144,28 @@ export function TransactionsSection({
       </div>
 
       {groups.length > 0 ? (
-        <div className="space-y-4">
+        /*
+          ONE CARD PER DAY WAS N CARDS FOR ONE LIST.
+
+          Each day group wrapped its rows in its own `nf-card`, so a wallet with
+          movement in the last week drew five or six separate glass surfaces
+          down the screen, each one a border, a blur, a radius and a corner
+          bloom, for a single continuous statement. That is exactly the "eight
+          cards where the reference draws one" ratio, and on the wallet it is
+          worse than elsewhere because the balance hero directly above is itself
+          a card: the eye read seven peers where there is one hero and one list.
+
+          Hairline rows on the ground now, which is what the Inbox already does
+          with the same shape of content, and the day label is the group label
+          above each run rather than an overline inside a box. The history goes
+          from six containers to none, and the balance card is the only surface
+          on the screen again.
+        */
+        <div className="space-y-block">
           {groups.map((group, i) => (
             <Reveal key={`${filter}-${group.key}`} delay={Math.min(i * 70, 280)}>
-              <h3 className="nf-overline mb-2">{dayLabel(group.firstIso, locale)}</h3>
-              <ul className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
+              <h3 className="nf-group-label">{dayLabel(group.firstIso, locale)}</h3>
+              <ul className="divide-y divide-[var(--nf-border-subtle)]">
                 {group.entries.map((e, i) => (
                   <EntryRow key={e.id} entry={e} locale={locale} index={i} />
                 ))}
@@ -146,17 +174,15 @@ export function TransactionsSection({
           ))}
         </div>
       ) : (
-        <div className="nf-card flex flex-col items-center px-6 py-10 text-center">
-          <span className="h-12 w-12">
-            <BrandIcon name="wallet-secure" fill />
-          </span>
-          <p className="mt-3 text-[0.9375rem] font-semibold">No transactions yet</p>
-          <p className="mt-1 max-w-[34ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-            {filter === "all"
+        <EmptyState
+          icon="wallet-secure"
+          title="No transactions yet"
+          body={
+            filter === "all"
               ? "Every deposit, payment, transfer and withdrawal will appear here the moment it happens."
-              : "Nothing in this category yet. Movements will appear here the moment they happen."}
-          </p>
-        </div>
+              : "Nothing in this category yet. Movements will appear here the moment they happen."
+          }
+        />
       )}
     </section>
   );
@@ -178,26 +204,55 @@ function EntryRow({
 
   return (
     <li
-      className={`flex items-center gap-4 px-4 py-3.5 ${credit ? "nf-tx-in" : "nf-tx-out"}`}
+      className={`flex items-center gap-md py-row ${credit ? "nf-tx-in" : "nf-tx-out"}`}
       style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
     >
-      {/* Raw white washes replaced with tokens; they inverted to a white-on-white
-          smear on the light theme. */}
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] shadow-[var(--nf-elev-1-rim)]">
-        <span className="h-12 w-12">
-          <BrandIcon name={KIND_ICON[entry.kind]} fill />
-        </span>
+      {/*
+        THE OBJECT LOST ITS PLINTH, AND THE PLINTH WAS SMALLER THAN THE OBJECT.
+
+        This was a 44px bordered, filled, rim-shadowed tile with a 48px
+        `BrandIcon` inside it. Two separate faults in four lines. The artwork is
+        lit and carries its own shadow, so a plate behind it flattens exactly
+        the depth it was drawn to have - `BrandIcon`'s own documentation says a
+        tile is earned only when the object is the subject of a surface, and in
+        a ledger row it is the smallest thing on the line. And the numbers did
+        not fit: h-12 inside h-11 is 48 inside 44, so every object in the
+        statement was overflowing its own container by two pixels on each side.
+
+        On the surface at 40px now, nothing drawn around it, and one container
+        per ledger row leaves the screen.
+      */}
+      <span className="block h-10 w-10 shrink-0">
+        <BrandIcon name={KIND_ICON[entry.kind]} fill />
       </span>
       <span className="min-w-0 flex-1 leading-tight">
         {/* "Booking payment, Victoria Island suite" was rendering as
             "Booking payment, Vic". The note is the only thing on the row that
             says what the money was for, so it wraps. */}
-        <span className="block text-[0.875rem] font-semibold">
-          {entry.note ?? KIND_LABEL[entry.kind]}
-        </span>
+        <span className={`block ${TYPE.rowTitle}`}>{entry.note ?? KIND_LABEL[entry.kind]}</span>
+
+        {/*
+          THE PROPERTY, WHICH THIS LEDGER NEVER NAMED.
+
+          Both reference platforms put the property on every money row that has
+          one, and it is the difference between a receipt somebody has to
+          remember and one they can check: "Held in escrow, ₦1,200,000" against
+          "Held in escrow, ₦1,200,000, 3 bedroom flat at Admiralty Way".
+
+          Nothing is invented. It is resolved in the repository from the
+          reference the escrow leg was keyed on, so a row only carries a title
+          when a real listing is genuinely behind it, and a listing that has
+          since come down leaves the row exactly as it was.
+        */}
+        {entry.property && (
+          <span className={`mt-inline-tight block ${TYPE.rowMeta} [overflow-wrap:anywhere]`}>
+            {entry.property}
+          </span>
+        )}
+
         {/* The reference is how a person reconciles this row against their bank
             statement, so it wraps rather than ending at "WD-GTB-00". */}
-        <span className="mt-0.5 block text-[0.72rem] text-[var(--nf-content-muted)] [overflow-wrap:anywhere]">
+        <span className={`mt-inline-tight block ${TYPE.caption} [overflow-wrap:anywhere]`}>
           {KIND_LABEL[entry.kind]} · {entry.reference}
         </span>
       </span>
@@ -216,7 +271,7 @@ function EntryRow({
       */}
       <span className="nf-numeric shrink-0 text-right leading-tight">
         <span
-          className={`block text-[0.875rem] font-semibold ${credit ? "text-[var(--nf-state-success)]" : "text-[var(--nf-state-error)]"}`}
+          className={`block nf-body font-semibold ${credit ? "text-[var(--nf-state-success)]" : "text-[var(--nf-state-error)]"}`}
         >
           {credit ? "+" : "-"}
           <Amount
@@ -233,7 +288,7 @@ function EntryRow({
             Not `live`: a ledger renders many of these at once, and a live
             region per row would announce the whole history on arrival. */}
         {!settled && (
-          <StatusPill tone={toneForStatus(entry.status)} className="mt-1">
+          <StatusPill tone={toneForStatus(entry.status)} className="mt-inline-tight">
             {entry.status.toLowerCase()}
           </StatusPill>
         )}

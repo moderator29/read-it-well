@@ -5,21 +5,66 @@ import type { UiIconName } from "@/design-system/icons/UiIcon";
  * The side navigation, as data.
  *
  * One module, read by both the desktop rail and the phone drawer, so the two
- * cannot drift. Master Rule 17 froze the destinations; this does not add any.
- * It **groups** the ones that were already a flat list of twelve, because five
- * of them were `/search?type=` variants of one screen and were sitting at the
- * same level as Wallet.
+ * cannot drift.
  *
- * A group has a `href` of its own. Tapping the parent goes somewhere real,
- * and the disclosure arrow beside it opens the children. That matters: a
- * parent that only expands is a dead control the first time somebody taps the
- * word rather than the arrow.
+ * ---------------------------------------------------------------------------
+ * THIS FILE JUST GOT MUCH SHORTER, AND THAT IS THE POINT.
  *
- * **Nothing here is offered to somebody who cannot use it.** Agent Mode
- * appears only for an approved agent and the console only for staff, both
- * resolved from the person's own RLS-bound reads in `getShellIdentity`. An
- * Agent Mode group on an account with no `agents` row is a dead end four taps
- * deep, which is the failure this whole file is arranged to prevent.
+ * An ordinary renter was offered TWENTY-FIVE destinations here, and an agent
+ * who is also staff was offered FORTY. Nobody navigates twenty-five things.
+ * They scan the first five, give up, and use search. Counted before:
+ *
+ *   Discover      Home, Rent, Explore + 5 children, Feed + 3 children   12
+ *   Account       Bookings, Messages, Notifications, Wallet, Assistant,
+ *                 Profile + 3 children                                   9
+ *   Become agent                                                         1
+ *   Legal         Help, Terms, Privacy                                   3
+ *                                                                       ==
+ *                                                                       25
+ *
+ * Counted after: ELEVEN for a renter and TWELVE for an agent who is also staff
+ * (the same eleven, minus the Become an agent row nobody needs now, plus one
+ * row each for the two workspaces). Every one of them is a place that does
+ * something the others do not.
+ *
+ * THERE IS NO SUB-NAVIGATION LEFT ANYWHERE IN THIS FILE. No row has children,
+ * `NavTree` no longer renders them, and the rule that produced that is the
+ * owner's: if a thing needs children it is either its own screen or it does not
+ * belong in navigation. What went, and why:
+ *
+ *  - **The five Explore children.** `/search?type=hotel`, `?type=property`,
+ *    `?type=home`, `?type=restaurant`, `?type=experience` were five rows
+ *    pointing at ONE screen with one query parameter changed. That screen
+ *    already draws `CategoryTiles` at the top of itself, which offers twelve
+ *    categories rather than five, in a control the reader can actually see the
+ *    options in. Five rows in a drawer were a worse copy of a tile grid.
+ *
+ *  - **Rent.** `/rent` is discovery filtered to the long-let market, which is
+ *    the same thing again: a filter presented as a destination.
+ *
+ *  - **The three Feed children.** Feed, Places and People are the feed screen
+ *    and two indexes reachable from it. The first child pointed at the same
+ *    href as its own parent.
+ *
+ *  - **The three Profile children.** Profile is already a row of its own at the
+ *    top of the rail (`nf-nav__who`) and the island on the tab bar. Saved is
+ *    promoted to a real row because it is a destination people go to on
+ *    purpose; Settings likewise.
+ *
+ *  - **The whole Legal section.** Help, Terms and Privacy are all three
+ *    already rows inside Settings, under About, and they were only ever put
+ *    here because nothing else in the product linked them. Something does now.
+ *
+ * WHAT DID NOT CHANGE: nothing here is offered to somebody who cannot use it.
+ * The agent workspace appears only for an approved agent and the console only
+ * for staff, both resolved from the person's own RLS-bound reads in
+ * `getShellIdentity`.
+ *
+ * WHERE THE ASSISTANT LIVES. Exactly one placement per viewport, and this is
+ * it. It used to have three at once: a permanently filled primary button in the
+ * app header, a tab on the phone dock, and this row. The header button and the
+ * tab are both gone. Below `lg` this file renders as the drawer and above it as
+ * the rail, so on any given screen there is one Assistant control.
  */
 
 export type NavLeaf = {
@@ -56,50 +101,33 @@ export function buildNav({
   const sections: NavSection[] = [
     {
       heading: null,
+      /*
+       * Three places to look at the marketplace, and they are genuinely three
+       * different things: the shelf assembled for you, the whole catalogue you
+       * search yourself, and what people nearby are saying. Everything that
+       * used to sit here was one of these three with a filter on it.
+       *
+       * Open to a signed-out visitor, all three, because a marketplace nobody
+       * can see cannot be found. Acting is what gates, not looking.
+       */
       items: [
         { href: "/home", label: t.nav.home, icon: "home" },
-        { href: "/rent", label: t.nav.rent, icon: "key" },
-        {
-          /* The parent goes to unfiltered search, which is the honest answer to
-             "Explore" and the screen all five children are one query parameter
-             away from. */
-          href: "/search",
-          label: t.nav.explore,
-          icon: "search",
-          children: [
-            { href: "/search?type=hotel", label: t.nav.hotels, icon: "building-hotel" },
-            {
-              href: "/search?type=property",
-              label: t.nav.apartments,
-              icon: "building-apartment",
-            },
-            { href: "/search?type=home", label: t.nav.homes, icon: "house" },
-            { href: "/search?type=restaurant", label: t.nav.restaurants, icon: "utensils" },
-            { href: "/search?type=experience", label: t.nav.experiences, icon: "ticket" },
-          ],
-        },
-        {
-          href: "/around",
-          label: t.nav.feed,
-          icon: "map",
-          /* Three children, and only three, because those are the three index
-             routes the social layer actually has. Stories are reached from a
-             place and a person, and a Stories row would point at a route that
-             does not exist.
-
-             The Places row used to point at `/around`, the same href as its own
-             parent, because `/around` WAS the directory. It is the feed now, so
-             the parent and the first child are the feed and Places is the
-             directory behind it. */
-          children: [
-            { href: "/around", label: t.nav.feed, icon: "grid" },
-            { href: "/around/settings", label: t.nav.places, icon: "compass" },
-            { href: "/u", label: t.nav.people, icon: "user" },
-          ],
-        },
+        { href: "/search", label: t.nav.explore, icon: "compass" },
+        { href: "/around", label: t.nav.feed, icon: "grid" },
       ],
     },
-    {
+  ];
+
+  /*
+   * The account block, which only means anything once there is an account.
+   *
+   * Showing Bookings, Wallet and Messages to a signed-out browser is offering
+   * six rows that all lead to the same sign-up screen, which teaches somebody
+   * that this navigation wastes their time. They get the three above and the
+   * Sign up control in the header instead.
+   */
+  if (signedIn) {
+    sections.push({
       heading: t.nav.accountLabel,
       items: [
         { href: "/bookings", label: t.nav.bookings, icon: "calendar-booking" },
@@ -110,28 +138,39 @@ export function buildNav({
           icon: "bell",
           ...(unreadNotifications > 0 ? { badge: unreadNotifications } : {}),
         },
+        { href: "/saved", label: t.nav.saved, icon: "heart" },
         { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
-        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
-        {
-          href: "/profile",
-          label: t.nav.profile,
-          icon: "user",
-          children: [
-            { href: "/profile", label: t.nav.profile, icon: "user" },
-            { href: "/saved", label: t.nav.saved, icon: "heart" },
-            { href: "/settings", label: t.nav.settings, icon: "sliders" },
-          ],
-        },
+        /*
+         * THE ASSISTANT ROW WENT, AND THE ASSISTANT DID NOT.
+         *
+         * `/assistant` is already a door on `/home`, where `AiAssistantBanner`
+         * links straight into it, and a persistent rail row is a second door to
+         * one place. The rule the owner applied to the profile avatar in the
+         * header applies here for the same reason: two doors to one room make
+         * the navigation longer without making anything more reachable.
+         *
+         * The assistant is a TOOL you reach for from inside what you are
+         * doing, not a destination you navigate to on purpose, which is the
+         * test for whether something belongs in a persistent rail at all.
+         */
       ],
-    },
-  ];
+    });
+  }
 
   /*
-   * The two workspaces, shown only to somebody who has one.
+   * The two workspaces, shown only to somebody who has one, and each is ONE
+   * ROW.
    *
-   * An agent reaching their own listings used to mean leaving the app shell
-   * entirely and knowing the /agent URL, because Personal Mode's navigation
-   * had one row for becoming an agent and none for being one.
+   * The agent group used to carry eight children and the console six, so an
+   * agent who is also staff was offered forty destinations in this one panel.
+   * A workspace is a place you GO, and once you are in it, it has its own
+   * navigation with its own rail: reproducing that rail inside the consumer
+   * drawer is drawing the same eight rows in two places and making the person
+   * who has both choose which copy to use.
+   *
+   * Nothing became unreachable. Every one of those fourteen destinations is a
+   * row in the workspace's own navigation, one tap further in, which is where
+   * somebody who is working looks for it.
    */
   const workspaces: NavNode[] = [];
 
@@ -140,72 +179,46 @@ export function buildNav({
       href: "/agent/dashboard",
       label: t.nav.agentMode,
       icon: "building-apartment",
-      children: [
-        { href: "/agent/dashboard", label: t.agent.nav.dashboard, icon: "grid" },
-        { href: "/agent/listings", label: t.agent.nav.myListings, icon: "house" },
-        { href: "/agent/bookings", label: t.nav.bookings, icon: "calendar-booking" },
-        { href: "/agent/messages", label: t.nav.messages, icon: "chat-bubble" },
-        { href: "/agent/reviews", label: t.agent.nav.reviews, icon: "star" },
-        { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet" },
-        { href: "/agent/verification", label: t.agent.nav.verification, icon: "verified" },
-        { href: "/agent/settings", label: t.nav.settings, icon: "sliders" },
-      ],
     });
   }
 
   if (isAdmin) {
-    workspaces.push({
-      href: "/admin",
-      label: t.nav.consoleLabel,
-      icon: "shield-stop",
-      children: [
-        { href: "/admin", label: t.admin.nav.overview.label, icon: "grid" },
-        { href: "/admin/moderation", label: t.admin.nav.moderation.label, icon: "sliders" },
-        { href: "/admin/reports", label: t.admin.nav.reports.label, icon: "search" },
-        { href: "/admin/agents", label: t.admin.nav.applications.label, icon: "user" },
-        { href: "/admin/stops", label: t.admin.nav.stops.label, icon: "shield-stop" },
-        { href: "/admin/support", label: t.admin.nav.tickets.label, icon: "ticket" },
-      ],
-    });
+    workspaces.push({ href: "/admin", label: t.nav.consoleLabel, icon: "shield-stop" });
   }
 
   if (workspaces.length > 0) {
     sections.push({ heading: t.nav.workspacesLabel, items: workspaces });
   }
 
-  // Somebody with no agent workspace is offered the way into one. Somebody who
-  // already has it is not offered it twice.
-  if (signedIn && !isAgent) {
-    sections.push({
-      heading: null,
-      items: [{ href: "/agents", label: t.landing.footer.becomeAgent, icon: "sparkle" }],
-    });
-  }
-
   /*
-   * Legal, last and quiet.
+   * The last section: one way to start listing, and one way to change
+   * everything else.
    *
-   * These three were reachable only from the marketing footer, which the app
-   * shell does not render, so a signed-in person inside the product had no way
-   * to Privacy or Terms at all without typing the URL. That is the wrong answer
-   * for the two pages somebody opens to exercise a right rather than to browse.
-   *
-   * The labels come from the footer's own dictionary rather than new keys,
-   * because they are the same three destinations and should not be able to
-   * disagree with themselves in four languages.
+   * Settings is the destination that absorbed the cuts. Theme and language used
+   * to be two permanent controls in the app header on every single screen, for
+   * a choice most people make once; both are cards on that page. Help, Terms
+   * and Privacy are rows on it too, which is why the Legal section here is
+   * gone.
    */
-  sections.push({
-    heading: t.landing.footer.legal,
-    items: [
-      { href: "/help", label: t.landing.footer.help, icon: "chat-bubble" },
-      /* In-product routes, not the marketing pages. Tapping these used to
-         leave the product entirely, and the back button then returned to the
-         landing site rather than to the screen the reader came from. Same
-         text, from `lib/legal/`, inside the app shell. */
-      { href: "/legal/terms", label: t.landing.footer.terms, icon: "document" },
-      { href: "/legal/privacy", label: t.landing.footer.privacy, icon: "verified" },
-    ],
-  });
+  /*
+   * BECOME AN AGENT WENT, AND THEN THE WHOLE IDEA OF IT WENT.
+   *
+   * The row was cut first, as the third door to a page the profile already
+   * linked twice: a permanent rail row for an action you take once is the
+   * clearest possible case of something that belongs inside a screen.
+   *
+   * The page itself has since gone too, and with it the framing. There is no
+   * conversion from renter to agent. There is one account carrying three
+   * profiles, and the switch-profile sheet on `/profile` both switches between
+   * them and sets up whichever one is not there yet. Nothing in this file
+   * points at it, because switching profile is not navigation: it changes what
+   * the rest of this list means.
+   */
+  const tail: NavNode[] = [];
+  if (signedIn) {
+    tail.push({ href: "/settings", label: t.nav.settings, icon: "settings-gear" });
+  }
+  if (tail.length > 0) sections.push({ heading: null, items: tail });
 
   return sections;
 }
@@ -213,15 +226,17 @@ export function buildNav({
 /**
  * Whether a row is the page being looked at.
  *
- * Compared on pathname **and** the `type` parameter, because five of the rows
- * are the same pathname with a different query and a plain pathname match
- * would light all five at once. Everything else ignores the query entirely, so
- * `/search?q=Lekki` still lights Explore rather than nothing.
+ * `activeType` is still a parameter and still consulted, even though no row in
+ * this file carries a `?type=` any more. The agent navigation reads the same
+ * `NavTree`, and a future row may want the same trick; the honest reason to
+ * keep it is that removing it would change `NavTree`'s signature for a saving
+ * of four lines. A row with no query still ignores the query entirely, so
+ * `/search?q=Lekki` lights Explore rather than nothing.
  */
 export function isCurrent(href: string, activePath: string, activeType: string | null): boolean {
   const [path, query] = href.split("?");
   if (path !== activePath) return false;
-  if (!query) return activeType === null;
+  if (!query) return true;
   const wanted = new URLSearchParams(query).get("type");
   return wanted === activeType;
 }

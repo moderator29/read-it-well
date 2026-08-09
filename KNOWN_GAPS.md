@@ -3,38 +3,60 @@
 Everything deliberately incomplete, with why and what unblocks it. Nothing here
 is hidden behind a passing build.
 
-Last updated: 2026-08-07.
+This file is the honest absence list. What should be **done** about any of it is
+`RECOMMENDATIONS.md`, which carries a priority and an approach on each. What the
+product IS is `docs/PRODUCT.md`.
 
-**This file had rotted badly and was rewritten.** It was last accurate on
-2026-07-28 and still described a platform with no session layer, no search, no
-rate limiting, no tests and a scaffolded light theme, every one of which had
-been built and shipped since. A gaps file that lists finished work as missing is
-worse than no gaps file, because the next engineer either rebuilds something or
-stops trusting the document. Every claim below was verified against the code on
-the date above.
+Last updated: 2026-08-09.
+
+**Corrected 2026-08-09. Five entries were stale and every one of them named a
+blocker that no longer exists.** `pg_cron` was listed as not enabled: it is
+installed and running six jobs. The whole third-party inventory section
+described providers that have been deleted from the codebase. The migration
+mirror was reported as one genuinely missing file: that file is committed and
+the current drift is eight cosmetic filename pairs. The suite was 79 specs and
+is 83. The three hardcoded `en-NG` calls are now two, in one component. Each is
+corrected in place below rather than removed, because the pattern matters: a
+gaps file whose gaps are closed teaches the next reader to distrust the
+document.
+
+**An earlier correction, kept.** This file was last accurate on 2026-07-28 and
+described a platform with no session layer, no search, no rate limiting, no
+tests and a scaffolded light theme, every one of which had shipped.
 
 ---
 
 ## Genuinely still missing
 
-**`lib/inventory/providers/amadeus.ts` is dead code, 417 lines of it.** Amadeus
-decommissioned its Self-Service portal on 17 July 2026 and disabled the keys
-with it, so the endpoints this provider calls now answer 401 to everybody,
-permanently. It is still registered, still permanently keyless, and costs one
-synchronous string check per search. The comment in `inventory/index.ts` used to
-say it was "two environment variables away" from working, which was the reason
-nobody deleted it; that is now corrected, because Amadeus Enterprise is a
-different portal, a different auth flow and a different API surface, so reaching
-it would be a new provider rather than a credential. Deleting somebody's
-complete module is the owner's call, so it is recorded here rather than removed.
-`LITEAPI_KEY` replaces it (`providers/liteapi.ts`, and docs/DATA_SOURCES.md).
+**The product cannot express a sale.** RentMe is a marketplace for renting,
+buying and selling. `public.listings` has no `sale_price_minor`, no
+`listing_intent`, no `tenure` and no title document field; `price_period` is an
+enum of exactly `night` and `year`. Buying and selling is zero percent modelled.
+This is the largest gap in the platform and the cheapest moment it will ever be
+to close, because there are zero listings. `RECOMMENDATIONS.md` P-1 has the
+migration shape.
 
-**No partner hotel can be booked, only priced.** `providers/liteapi.ts` maps
-search and rates; it does not call `POST /rates/prebook` or `POST /rates/book`,
-so partner hotel cards carry a naira price and no Reserve button. This is a stop
-rather than an omission: the checkout settles money against a first-party
-`bookings` row, and there is no row for stock we do not own. What closing it
-needs is costed in docs/HYBRID_INVENTORY.md section 7.
+**Escrow is zero percent implemented.** No table, no ledger hold, no release
+condition, no dispute path, no timeout. `wallet_entry_kind` carries no hold
+state beyond the withdrawal hold. It is also, correctly, promised nowhere: a
+grep for escrow across every `.ts`, `.tsx` and `.sql` file returns three hits,
+all code comments, and one of them
+(`apps/web/src/app/(site)/safety/page.tsx:27`) is the safety page explicitly
+refusing to promise it. Do not undo that refusal. `RECOMMENDATIONS.md` E-1.
+
+**`booking_status` has no `COMPLETED`.** It is `PENDING, CONFIRMED, CANCELLED`.
+So "they stayed" is not a moment the schema records, which blocks escrow
+release, the review prompt and two badges at once. It is one enum value and a
+transition, and nothing else about escrow can be specified until it exists.
+
+**Third-party inventory: built, then removed by the owner, and residue remains.**
+This section used to describe a live Amadeus provider, a LiteAPI hotel feed and
+Google Places restaurants. `apps/web/src/lib/inventory/` no longer exists,
+`PartnerMeta` is gone from `lib/listings/types.ts`, and `source` is a
+single-valued field. What is left behind: `public.places_cache` still holds 243
+rows of cached Google Places data, `public.partner_stay_intents` still exists
+empty, and the `hybrid_hotels` and `hybrid_restaurants` rows are still in
+`public.feature_flags`. `RECOMMENDATIONS.md` S-2.
 
 **A restaurant reservation cannot be paid for, and does not need to be yet.**
 The loop is closed end to end: an agent lists a restaurant, a guest requests a
@@ -50,9 +72,13 @@ today, and nothing about the schema blocks adding one: a per-venue amount where
 zero means free is a column and a checkout step, not a migration of anything
 that already exists.
 
-No aggregator was ever going to supply this: resOS issues its key to a
-restaurant that already runs resOS as its POS, and OpenTable has no self-serve
-tier (docs/DATA_SOURCES.md section 3).
+No aggregator was ever going to supply this, and both were checked properly
+before being written off: resOS issues its key to a restaurant that already runs
+resOS as its POS, so it is a per-merchant integration rather than an aggregator,
+and OpenTable has no self-serve tier at all. The same research found the same
+answer for shortlets: there is no Nigerian shortlet platform with self-serve
+developer keys, which is why shortlets are ours to win rather than ours to
+aggregate. (Archived detail: `docs/archive/DATA_SOURCES.md` section 3.)
 
 **The Content Security Policy is reported, not enforced.** It exists now:
 `lib/security/csp.ts` builds it, the middleware serves it with a per-request
@@ -62,18 +88,42 @@ every one of the 67 script tags in the document, and no script is left without
 one, because Next propagates the nonce to its own scripts once it sees the
 header.
 
-What remains is the decision to enforce, which is deliberately the owner's and
-deliberately not automatic. `CSP_ENFORCE` is unset, so violations are reported
-to `/api/csp-report` and logged rather than blocked. A wrong policy does not
-degrade, it white-screens, and the reports are the only honest way to find the
-directive nobody predicted. Set it to `true` once the `[csp]` lines stop
-appearing across real traffic.
+**It enforces now, and the enumeration that had to come first is done.** The
+policy sat in report-only behind a `CSP_ENFORCE` nobody ever set, which is the
+failure mode of the whole idea: it looked like a control in every header dump
+and had never blocked a single thing. The default is inverted, so an unset
+variable enforces and only the literal `false` steps back to reporting.
 
-**`pg_cron` is not enabled.** It is a Supabase toggle, not code, and attempts to
-enable it have been blocked. Until it lands, three things cannot run on a
-schedule: the stale booking hold sweep (`private.release_stale_booking_holds`,
-which exists and works when called), badge awarding, and the social layer's gist
-expiry. Raise it with the owner rather than engineering around it.
+What was checked before flipping, in a browser against a production build, not
+by reading the header: eighteen routes signed out, every inline script nonced
+including the JSON-LD block on the listing page, zero `<style>` elements on any
+route, Leaflet's chunk importing under `strict-dynamic` and CARTO tiles loading
+under `img-src`. One real violation turned up, a Zod feature probe calling
+`new Function("")` on `/around` and `/settings`, and it is switched off at
+source in `src/instrumentation-client.ts` rather than paid for with
+`'unsafe-eval'`. `apps/web/tests/csp.spec.mjs` holds all of it.
+
+**`pg_cron` IS enabled. This entry said the opposite for five days and so did
+six other documents.** Verified live 2026-08-09: `pg_cron` 1.6.4, installed, with
+six active jobs in `cron.job`. It was applied by
+`supabase/migrations/20260804184423_the_scheduler_exists_now.sql`, which also
+explains why it is `pg_cron` and not a Vercel cron: the Hobby plan allows one
+invocation per day, and releasing a stale booking hold once a day means a real
+bed nobody could book for a whole day.
+
+| Job | Schedule (UTC) | Runs |
+|---|---|---|
+| `rentme-nightly-badges` | `20 2 * * *` | `private.sweep_badges()` |
+| `rentme_release_stale_holds` | `*/15 * * * *` | `private.release_stale_booking_holds()` |
+| `rentme_purge_rate_limits` | `30 * * * *` | `private.purge_rate_limits()` |
+| `rentme_purge_idempotency` | `10 2 * * *` | `private.purge_idempotency_records()` |
+| `rentme_announce_completed_stays` | `20 5 * * *` | `private.announce_completed_stays()` |
+| `rentme-daily-note` | `0 6 * * *` | `private.post_daily_note()` |
+
+**What is genuinely still missing here is monitoring.** Six unattended jobs write
+to a live database and nothing alerts on a failure. `cron.job_run_details` carries
+the outcome. All schedules are UTC and Lagos is UTC+1, which this project has
+already been caught by once.
 
 **`getPlatformStats()` returns null on purpose.** The landing reference shows
 figures like "Hotels 5,130+", which are mockup numbers. Publishing invented
@@ -207,7 +257,7 @@ real work worth doing: one sheet, one set of mechanics, eight call sites to
 migrate. It was not attempted here because the primitive belongs to another
 session's file scope.
 
-**963 em dashes remain in `docs/ui-audit/`,** across ten files, against a house
+**963 em dashes remain in `docs/archive/ui-audit/`,** across ten files, against a house
 rule that says zero anywhere including documentation. They are historical audit
 records from a single session, and a mechanical replacement would produce
 ungrammatical prose in documents nobody is going to reread. The live documents
@@ -217,8 +267,11 @@ user-facing, the agent application wizard's step label. Note that three test
 specs legitimately CONTAIN the character, because they are the guards that
 search for it, and a sweep must not "fix" those.
 
-**The suite is 79 specs. 75 pass. None of the four that do not is caused by this
-branch, and each was checked rather than assumed.**
+**The suite is 83 node specs and 8 vitest files, counted 2026-08-09.** It was 79
+and 5 within the last fortnight, so re-count rather than quoting this. The five
+below were the known failures at the last full sweep. None was caused by
+application code, and each was checked rather than assumed. **No CI runs any of
+it:** there is no `.github/workflows` directory and Vercel deploys from `main`.
 
 | Spec | State |
 |---|---|
@@ -237,9 +290,9 @@ matches the build just made. Killing `next-server` alone is not enough either,
 because `npm exec` respawns it; kill the `npm exec`, the `sh -c` and the
 `next-server` together.
 
-**Seven orphan modules, 1,197 lines, verified unimported but deliberately NOT
-deleted.** Each was checked with an exact module-path grep, not a bare
-identifier, and each has zero importers:
+**Nine orphan modules, 1,276 lines, verified unimported but deliberately NOT
+deleted.** Re-counted 2026-08-09 with exact module-path greps, not bare
+identifiers. Each has zero import references:
 
 | File | Lines |
 |---|---|
@@ -247,19 +300,29 @@ identifier, and each has zero importers:
 | `components/app/wallet/WalletActions.tsx` | 306 |
 | `components/app/account/ProfileIdentityCard.tsx` | 201 |
 | `lib/social/comments-queries.ts` | 149 |
+| `components/agent/StatCard.tsx` | 100 |
 | `components/agent/charts/DonutChart.tsx` | 78 |
-| `components/agent/StatCard.tsx` | 76 |
 | `components/agent/charts/AreaSparkline.tsx` | 67 |
+| `lib/assistant/protocol.ts` | 34 |
+| `lib/mode.ts` | 21 |
 
-They are left in place on purpose. A parallel session is working in this tree
-and several of these look like components staged just ahead of the screen that
-will mount them, which is a normal way to build and a hostile thing to delete
-out from under somebody. The retired icon tier WAS removed, because
-`docs/HANDOFF.md` states outright that `Icon` and `Icon3D` are retired and must
-never be imported, so that one is sanctioned rather than guessed.
+**Two that were on this list are no longer orphans and must not be deleted:**
+`components/app/MomentScreen.tsx` now has 9 importers, and
+`lib/platform-stats.ts` has 1. That is the reason the list is re-derived rather
+than carried forward.
 
-Whoever owns these should confirm and remove them, or wire them up. The
-evidence is above; it does not need re-deriving.
+`WalletActions.tsx` is the heavy one and it takes four exports with it: it is the
+only caller of `requestDeposit`, `requestWithdrawal` and `requestTransfer` in
+`lib/wallet/actions.ts`, and `getStatement` there is imported by nothing at all.
+The live wallet page renders `WalletDeck`, which uses different actions
+entirely. Two implementations of the money surface is how a security fix lands
+on the wrong one.
+
+They were left in place because a parallel session was working in this tree and
+several looked like components staged ahead of the screen that would mount them,
+which is a normal way to build and a hostile thing to delete out from under
+somebody. Whoever owns them should confirm and remove them, or wire them. The
+evidence does not need re-deriving.
 
 **`apps/web/tsconfig.json` carries ten dead `include` entries.** Parallel builds
 add `".next-a1/types/**"` and friends as they are used, but `exclude` holds
@@ -280,15 +343,19 @@ user data, so nothing of value was lost, but it is recorded here rather than
 left to be noticed.
 
 **Those tables are no longer at zero, and that is the platform working rather
-than a probe left behind.** Counted live on 2026-08-07: `profiles` 1 with 2
-`user_roles`, `audit_log` 4, `areas` 6, `posts` 12. Every one of the twelve
-posts is `author_kind = 'SYSTEM'`, `kind = 'SYSTEM'`, `status = 'LIVE'`, which
-is the designed cold start answer rather than anybody's content, and the six
-areas come from `seed_first_areas_lagos`. `agents`, `agent_applications`,
-`listings`, `bookings`, `social_profiles` and `risk_alerts` are still empty, so
-the supply chain has not started; somebody has an account now, and nobody has
-applied to be an agent yet. Written down because two documents in this
-repository still open by telling the reader nobody has signed up at all.
+than a probe left behind.** Counted live on **2026-08-09**: `profiles` 1 with 2
+`user_roles`, `audit_log` 4, `areas` **7**, `posts` **18**, `badges` 15,
+`user_badges` 1, `places_cache` 243, `local_governments` 774, `occupations` 749,
+`states` 37. Every post is `author_kind = 'SYSTEM'`, which is the designed cold
+start rather than anybody's content, and the daily note job adds one each
+morning. `agents`, `agent_applications`, `listings`, `bookings`, `reviews`,
+`wallets`, `wallet_entries`, `transactions`, `ledger_entries`, `events`,
+`reservations` and `saved_searches` are all still empty, so the supply chain has
+not started: somebody has an account, and nobody has applied to be an agent yet.
+
+The one number here that is not the platform working is `places_cache` at 243.
+Those are cached Google Places rows from the third-party inventory layer that has
+since been deleted from the codebase. `RECOMMENDATIONS.md` S-2.
 
 ---
 
@@ -305,14 +372,17 @@ Recorded so nobody rebuilds them.
 | `payout_accounts` has no writer | `lib/agent/payout-actions.ts` adds, defaults and removes accounts through the agent's own RLS-bound client, re-resolving the account name against the bank rather than trusting the form |
 | Reviews have no writer | Guests write from `/bookings/[bookingId]/review`; hosts answer through `lib/agent/reviews-actions.ts` |
 | `rate-limit.ts` holds a literal NUL byte and is invisible to grep | Rewritten with the byte written as a unicode escape. `file` now reports ASCII text, the compiled string is unchanged, and the separator carries a comment explaining why it has to be NUL |
-| No session layer | `lib/auth/actions.ts` has real `signInWithPassword`, `signUp`, sign-out and Google/Apple OAuth |
+| No session layer | `lib/auth/actions.ts` has real `signInWithPassword`, `signUp` and sign-out. Google and Apple OAuth were also built and are being removed by owner decision: `RECOMMENDATIONS.md` N-4 |
 | No search, map, filters or pagination | `/search` has a real engine, `FilterDrawer`, `MapCanvas`, `MapDock` and a square filter opener |
 | Light theme scaffolded, must not be exposed | Fully designed exchange-grade paper twin, shipped, and the default is dark |
 | No rate limiting, bot protection or audit logging | Durable Postgres rate limiting (`private.consume_rate_limit`) plus idempotency records, both fail-open; `audit_log` exists |
-| No test suite | 18 standalone Playwright specs under `apps/web/tests` |
+| No test suite | 83 standalone node specs under `apps/web/tests` plus 8 vitest files |
+| `pg_cron` is not enabled | Installed 2026-08-04, six active jobs. See the section above |
+| Badges are a thinking document with nothing implemented | 15 rows in `public.badges`, swept nightly by `private.sweep_badges` |
+| Third-party hotel and restaurant feeds are the growth plan | Deleted from the product. Everything on RentMe was listed on RentMe |
 | Saved is a stub with no write path | `toggleSave` writes `saved_items` under RLS |
 | Seed rows carry a "Sample content" label | Removed. Owner rule: zero sample, preview or demo strings in UI copy |
-| Branch `claude/repo-cleanup-1spitz` conflicts with the rules | Everything is on `main` now, which Vercel deploys |
+| A working branch conflicted with the branch rules | Everything is on `main` now, which Vercel deploys |
 | Admin navigation undecided, blocks every admin surface | Decided and built |
 | Listing wizard step count undecided | Built |
 | Location model blocked on LGA | Built on state, city, area |
@@ -324,45 +394,47 @@ Recorded so nobody rebuilds them.
 
 ## Still open with the owner
 
-**The migration mirror has drifted, in both directions.** House rule: every
-applied migration is mirrored into `supabase/migrations/` with its timestamp
-prefix, so the repository never lies about the database. Compared on 2026-08-07,
-113 versions are recorded server side and 111 files are committed, and the two
-lists disagree on nine entries. Four of them are the same migration under two
-timestamps, where the file carries a rounded hand-written prefix and the server
-carries the real one: `a_second_admin_and_a_way_to_remove_one`,
-`one_honest_question_at_the_door` and
-`making_somebody_staff_is_not_a_thing_a_signed_in_user_can_do` each appear once
-on each side with prefixes minutes or hours apart, and the server's
-`occupations_common_rank` is almost certainly the file
-`20260805183000_the_answers_most_people_here_give.sql`. That is cosmetic but it
-defeats the check the rule exists for, because a diff by filename reports eight
-problems where there is really one habit.
+**The migration mirror has drifted, and the drift is now entirely cosmetic.**
+House rule: every applied migration is mirrored into `supabase/migrations/` with
+its timestamp prefix, so the repository never lies about the database. Diffed
+filename by filename on 2026-08-09: **120 versions applied, 120 files
+committed**, disagreeing on eight entries each way. Every one is the same
+migration under two prefixes, six of them a hand-rounded timestamp against the
+real one. The two whose names also differ were read and matched by content:
+`20260805183000_the_answers_most_people_here_give.sql` is the server's
+`occupations_common_rank`, and
+`20260807110000_saying_that_address_is_already_signed_up.sql` is the server's
+`signup_method_for_email`. `RECOMMENDATIONS.md` T-4 has the full table.
 
-The one that is not cosmetic: the server records
-`20260807101114_the_last_foreign_key_without_a_covering_index` and no file of
-that name or any other carries it. Reconciling this wants somebody who knows
-which of those migrations they wrote, which is why it is recorded rather than
-guessed at.
+**The one that was not cosmetic is closed.**
+`20260807101114_the_last_foreign_key_without_a_covering_index` was recorded
+server side with no file. The file is committed and present on both sides.
 
-**Repository is named `read-it-well`**, which does not match the product. Cosmetic,
-but it surprises everyone who clones it.
+The fix is renaming eight files and adding a CI check that diffs the two lists.
+Until that check exists, a diff by filename reports eight problems where there
+is really one habit, which is exactly how the one real problem hid for a week.
 
-**`PAYSTACK_SECRET_KEY` in the live environment could not be verified** from
-here; only `.env.example` is visible and it is blank by design. The owner adds
-env keys personally. Payment code is env-guarded and degrades honestly, so a
-missing key is a designed state rather than a crash.
+**Repository is named `read-it-well`**, and the root `package.json` still
+describes the product as "NaijaFinds. Nigeria-first discovery, stay, food and
+experience platform." Cosmetic, and it surprises everyone who clones it.
+`RECOMMENDATIONS.md` S-1.
 
-**`pg_cron` is available but not installed**, and seven badges want it.
-`first_stay`, `ten_stays` and `year_one` are the passage of a date rather than
-an event any trigger can fire on. `booking_status` is PENDING, CONFIRMED,
-CANCELLED, with no COMPLETED, so "they stayed" is not a moment the schema
-records. `fast_responder` is a median that has to be recomputed, `local_guide`
-is not yet defined in numbers, `photo_pro` needs a per-listing rejection
-history nobody keeps, and `rentme_elite` depends on the other six plus a ninety
-day clean window. The other seven badges award themselves from event triggers
-today. Turning `pg_cron` on, or adding one authenticated maintenance route the
-platform calls on a schedule, closes all seven. It is the owner's call which.
+**`PAYSTACK_SECRET_KEY` and `SUPABASE_SERVICE_ROLE_KEY` in the live environment
+could not be verified from here**, and the second one matters far more than this
+entry used to suggest. Payment code is env-guarded, but a missing service role
+key does not degrade honestly on the webhook: it answers HTTP 200 with no log, so
+Paystack never retries and a paid funding is lost. That is the most probable
+cause of the reported wallet failure. `RECOMMENDATIONS.md` W-1.
+
+**The badge criteria that needed a scheduler are met and the criteria that need
+new data are not.** `pg_cron` is installed and `private.sweep_badges` runs
+nightly, so this entry's premise is gone. What is still true is the data:
+`booking_status` has no `COMPLETED`, so "they stayed" is not a moment the schema
+records; `photo_pro` needs a per-listing rejection history nobody keeps;
+`local_guide` is not yet defined in numbers; and `rentme_elite` depends on the
+other six plus a ninety day clean window. Those are schema and definition gaps,
+not scheduling gaps. `public.badges` holds 15 rows and `public.user_badges`
+holds 1.
 
 **`private.probe_as` exists for testing only.** It sets `request.jwt.claims` so
 a probe can run as a real signed-in person under RLS, because a probe through
@@ -392,15 +464,18 @@ every `social-media` object whose name no `post_media` row and no
 `stories.image_path` mentions. Nothing is readable in the meantime; this is
 storage cost, not exposure.
 
-**Three counts in the social layer are formatted with a hardcoded `en-NG`, and
-it currently changes nothing.** `PlacePicker` (a member count and a result
-total) and `PostCard` (a view count in a `title`) call
-`toLocaleString("en-NG")` rather than `formatNumber(value, locale)`. The
-equivalent calls on `/around` and `/around/[slug]` are fixed, because those are
-server components and the locale is one `getLocale()` away.
+**Two counts in the social layer are formatted with a hardcoded `en-NG`, and it
+currently changes nothing.** Re-measured 2026-08-09: this said three and one of
+them moved. `PostCard` is **fixed** and now calls `formatNumber(n, locale)`.
+What remains is `apps/web/src/components/social/PlacePicker.tsx:322` (a member
+count) and `:341` (a result total), plus one at
+`apps/web/src/app/(site)/docs/chapters.tsx:1361`, which is a documentation page
+rather than a social component. The equivalent calls on `/around` and
+`/around/[slug]` were always fine, because those are server components and the
+locale is one `getLocale()` away.
 
-These three are not, and the fix is not worth what it costs today. Measured
-across every locale the platform ships:
+The fix is not worth what it costs today. Measured across every locale the
+platform ships:
 
     en  842   1,234   12,500   1,234,567
     yo  842   1,234   12,500   1,234,567
@@ -409,9 +484,9 @@ across every locale the platform ships:
 
 All four are identical, because all four use Latin digits and comma grouping,
 so the hardcoded tag produces the same string as the correct call for every
-reader the product has. There is no client locale hook and no locale context,
-only `<html lang>`, so fixing these three means either inventing a context or
-threading a prop through several social components for a change nobody can see.
+reader the product has. `PlacePicker` is a client component and there is no
+locale hook and no locale context, only `<html lang>`, so fixing it means either
+inventing a context or threading a prop for a change nobody can see.
 
 Worth doing the moment either of two things happens: a locale is added that
 groups or digits differently (Arabic and most Indic locales do), or a context

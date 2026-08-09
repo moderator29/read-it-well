@@ -55,17 +55,17 @@ export default async function DocChapterPage({
     <div>
       {/* --------------------------------------------------------- heading */}
       <header className="nf-rise">
-        <nav aria-label="Breadcrumb" className="mb-3">
+        <nav aria-label="Breadcrumb" className="mb-row">
           <Link
             href="/docs"
-            className="nf-tap inline-flex min-h-11 items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
+            className="nf-tap inline-flex min-h-11 items-center gap-inline text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
           >
             <UiIcon name="arrow-left" size={16} />
             All chapters
           </Link>
         </nav>
 
-        <div className="flex items-start gap-3.5">
+        <div className="flex items-start gap-row">
           <span className="inline-grid h-12 w-12 shrink-0 place-items-center sm:h-14 sm:w-14">
             <BrandIcon name={chapter.icon} fill priority />
           </span>
@@ -73,11 +73,11 @@ export default async function DocChapterPage({
             <span className="nf-numeric block text-[0.6875rem] font-semibold tracking-[var(--nf-tracking-overline)] text-[var(--nf-content-muted)] uppercase">
               Chapter {chapter.number} of {CHAPTER_INDEX.length}
             </span>
-            <h1 className="nf-h1 mt-1">{chapter.title}</h1>
+            <h1 className="nf-h1 mt-inline-tight">{chapter.title}</h1>
           </div>
         </div>
 
-        <p className="mt-4 max-w-[62ch] text-[var(--nf-content-secondary)]">{chapter.summary}</p>
+        <p className="mt-group max-w-[62ch] text-[var(--nf-content-secondary)]">{chapter.summary}</p>
       </header>
 
       {/*
@@ -89,17 +89,17 @@ export default async function DocChapterPage({
         third column. `min-w-0` on the article is what stops a long reference
         from widening the column and giving the page a sideways scroll.
       */}
-      <div className="mt-6 flex flex-col gap-8 xl:mt-8 xl:flex-row xl:items-start xl:gap-10">
+      <div className="mt-heading flex flex-col gap-block xl:mt-block xl:flex-row xl:items-start">
         <OnThisPage sections={headings} />
 
         <article className="min-w-0 flex-1 xl:order-first">
           {/* ---------------------------------------------------- sections */}
-          <div className="nf-card nf-rise p-5 sm:p-7" style={{ animationDelay: "80ms" }}>
-            <div className="space-y-9">
+          <div className="nf-card nf-rise p-card" style={{ animationDelay: "80ms" }}>
+            <div className="space-y-block">
               {chapter.sections.map((section) => (
                 <section key={section.id} id={section.id} className="scroll-mt-28">
                   <h2 className="nf-h3">{section.heading}</h2>
-                  <div className="mt-3 max-w-[68ch] space-y-3.5 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)] [&_code]:rounded-[var(--nf-radius-xs)] [&_code]:border [&_code]:border-[var(--nf-border-subtle)] [&_code]:bg-[var(--nf-surface-inset)] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[0.8125rem] [&_code]:break-words [&_code]:text-[var(--nf-content-primary)] [&_em]:font-medium [&_em]:text-[var(--nf-content-primary)] [&_em]:not-italic [&_li]:mt-1.5 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_strong]:font-semibold [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5">
+                  <div className="mt-row max-w-[68ch] space-y-row text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)] [&_code]:rounded-[var(--nf-radius-xs)] [&_code]:border [&_code]:border-[var(--nf-border-subtle)] [&_code]:bg-[var(--nf-surface-inset)] [&_code]:px-inline [&_code]:py-inline-tight [&_code]:text-[0.8125rem] [&_code]:break-words [&_code]:text-[var(--nf-content-primary)] [&_em]:font-medium [&_em]:text-[var(--nf-content-primary)] [&_em]:not-italic [&_li]:mt-inline [&_ol]:list-decimal [&_ol]:space-y-inline [&_ol]:pl-heading [&_strong]:font-semibold [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-inline [&_ul]:pl-heading">
                     {section.body}
                   </div>
                 </section>
@@ -108,18 +108,18 @@ export default async function DocChapterPage({
           </div>
 
           {/* -------------------------------------------------- prev / next */}
-          <nav aria-label="Chapter navigation" className="mt-8 grid gap-3 sm:grid-cols-2">
+          <nav aria-label="Chapter navigation" className="mt-block grid gap-row sm:grid-cols-2">
             {previous ? (
               <Link
                 href={`/docs/${previous.slug}`}
                 rel="prev"
-                className="nf-card nf-card--interactive flex min-h-11 flex-col p-4"
+                className="nf-card nf-card--interactive flex min-h-11 flex-col p-card-sm"
               >
-                <span className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
+                <span className="flex items-center gap-inline text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
                   <UiIcon name="arrow-left" size={12} />
                   Previous
                 </span>
-                <span className="mt-1 text-[0.875rem] leading-snug font-semibold text-[var(--nf-content-primary)]">
+                <span className="mt-inline-tight text-[0.875rem] leading-snug font-semibold text-[var(--nf-content-primary)]">
                   {previous.number}. {previous.title}
                 </span>
               </Link>
@@ -131,13 +131,13 @@ export default async function DocChapterPage({
               <Link
                 href={`/docs/${next.slug}`}
                 rel="next"
-                className="nf-card nf-card--interactive flex min-h-11 flex-col p-4 sm:items-end sm:text-right"
+                className="nf-card nf-card--interactive flex min-h-11 flex-col p-card-sm sm:items-end sm:text-right"
               >
-                <span className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
+                <span className="flex items-center gap-inline text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
                   Next
                   <UiIcon name="arrow-right" size={12} />
                 </span>
-                <span className="mt-1 text-[0.875rem] leading-snug font-semibold text-[var(--nf-content-primary)]">
+                <span className="mt-inline-tight text-[0.875rem] leading-snug font-semibold text-[var(--nf-content-primary)]">
                   {next.number}. {next.title}
                 </span>
               </Link>
@@ -145,11 +145,11 @@ export default async function DocChapterPage({
           </nav>
 
           {/* ---------------------------------------------------- closing */}
-          <p className="mt-8 text-[0.875rem] text-[var(--nf-content-muted)]">
+          <p className="mt-block text-[0.875rem] text-[var(--nf-content-muted)]">
             Something here unclear, or something missing?{" "}
             <Link
               href="/contact"
-              className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+              className="font-semibold text-[var(--nf-content-link)] hover:underline"
             >
               Tell us
             </Link>{" "}

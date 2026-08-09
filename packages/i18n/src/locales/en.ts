@@ -101,6 +101,23 @@ export const en = {
     /* Shared by every row that has no answer yet: "Not set" appearing three
        different ways down one screen reads as three different states. */
     notSet: "Not set",
+
+    /* -------------------------------------------------- the property card.
+       Seven words the card needs and the dictionary did not have, which is why
+       "guest", "Instant" and the bed and bath counts were English literals
+       inside a component on a four-language platform. Singular and plural are
+       separate entries rather than an appended "s": Yoruba, Hausa and Igbo do
+       not mark a plural noun that way, so the arithmetic version produced a
+       word that exists in no language here. */
+    bed: "bed",
+    beds: "beds",
+    bath: "bath",
+    baths: "baths",
+    guest: "guest",
+    instantBook: "Instant",
+    /* A listing with no real price. Never a guessed naira figure and never a
+       zero, both of which are worse than saying we do not know. */
+    priceOnRequest: "Price on request",
   },
 
   nav: {
@@ -109,6 +126,10 @@ export const en = {
     apartments: "Apartments",
     homes: "Homes",
     rent: "Rent",
+    buy: "Buy",
+    shortlets: "Shortlets",
+    land: "Land",
+    commercial: "Commercial",
     restaurants: "Restaurants",
     experiences: "Experiences",
     services: "Services",
@@ -228,8 +249,12 @@ export const en = {
       line1: "Find it.",
       line2: "Rent it.",
       line3: "Love it.",
+      /* Nigeria first, and the three verbs the marketplace actually supports.
+         The line this replaced described "homes, hotels, restaurants,
+         experiences and more", which read as a travel app and never once said
+         rent, buy or sell. */
       subtitle:
-        "Your all-in-one platform for homes, hotels, restaurants, experiences and more.",
+        "Rent, buy or sell property in Nigeria. Every place here was listed by a real person on RentMe.",
       searchPlaceholder: "Where do you want to go?",
       searchLabel: "Search destinations across Nigeria",
       popularLabel: "Popular right now",
@@ -264,15 +289,24 @@ export const en = {
       secure: { title: "Secure & Trusted", body: "Your safety is our priority" },
       ai: { title: "AI Powered", body: "Smarter experiences" },
       africa: { title: "Made for Africa", body: "Built with love ❤️" },
-      stores: { title: "Available on", body: "App Store & Play Store" },
+      /* `stores` is gone. It read "Available on / App Store & Play Store" and
+         rendered Apple's and Google's real badge artwork beside it, on the
+         landing page and in the footer. RentMe is on neither store. */
     },
     categories: {
       title: "Everything, in one place",
-      subtitle: "Five ways to discover Nigeria. One account, one wallet, one assistant.",
+      /* Counted nothing. It said "Five ways to discover Nigeria" while the
+         category tiles offered eleven, so the sentence was wrong the day it
+         shipped and got wronger with every tile added. It states no number
+         now, which is the only version that cannot go stale. */
+      subtitle: "Every kind of place a person can list here. One account, one wallet, one assistant.",
     },
     cta: {
       title: "Ready to find your next place?",
-      subtitle: "Join thousands discovering stays, food and experiences across Nigeria.",
+      /* "Join thousands discovering stays, food and experiences" was a
+         membership claim we cannot support and a description of a product we
+         are not. This says what an account actually gets you. */
+      subtitle: "Create an account to save places, message whoever listed them, and rent or buy in one place.",
       action: "Get started free",
       secondary: "See how it works",
     },
@@ -754,10 +788,42 @@ export const en = {
     topExperiences: "Explore top experiences",
     nearby: "Near you",
     aiCard: {
-      title: "RentMe AI",
-      body: "Your smart travel buddy. Ask for anything, in plain words.",
+      /*
+       * THIS CARD USED TO BE A PICTURE OF ITS OWN WORDS.
+       *
+       * The banner was a 1536x1024 render with "AI Assistant" and "Your smart
+       * travel buddy" painted into the pixels. That is untranslatable by
+       * definition: these four locale files could not reach it, so three of
+       * our four languages saw English regardless of what they had chosen. It
+       * was also invisible to a screen reader, since the image carried alt=""
+       * and the only real text in the component was the button.
+       *
+       * And it said TRAVEL BUDDY, on a platform for renting and buying
+       * property, above an assistant whose actual instructions are about
+       * move-in costs and land titles.
+       *
+       * What is here now is what the assistant genuinely does, taken from the
+       * rules it actually runs under in app/api/assistant/route.ts, so the
+       * three lines below are checkable rather than promotional.
+       */
+      title: "Ask RentMe AI",
+      body: "It searches the same listings you do, so it can only tell you about places that are really on RentMe.",
       action: "Ask the assistant",
-      samplePrompt: "2 bedroom in Lekki under 300k with a pool",
+      truths: {
+        /* Rule 1 of the system prompt: never invent listings, cite only what
+           the search tool returned, name each one with its /listing/<id>. */
+        listings:
+          "It answers from real listings, and links every one it names.",
+        /* Rule 4: the rent is rarely the whole number. This is the single most
+           useful thing it knows and nothing on the platform said so. */
+        costs:
+          "It knows what moving in actually costs. Caution deposit, agency fee, legal fee and agreement fee, not just the rent.",
+        /* Rule 5: it is not a lawyer and must never say a title is good. A
+           product saying what its assistant will refuse to do is worth more
+           here than another sentence about how clever it is. */
+        title:
+          "It will not tell you a land title is good. It says what the listing claims, then sends you to a lawyer.",
+      },
     },
     agentCard: {
       title: "Become a RentMe Agent",

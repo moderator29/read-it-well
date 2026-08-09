@@ -43,27 +43,27 @@ export function ContactForm({
   // ------------------------------------------------------------ filed
   if (state?.ok) {
     return (
-      <div className="nf-card p-6 text-center" data-testid="contact-filed">
+      <div className="nf-card p-card text-center" data-testid="contact-filed">
         <span className="mx-auto grid h-14 w-14 place-items-center">
           <BrandIcon name="support-chat" fill />
         </span>
-        <p className="mt-3 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+        <p className="mt-row text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
           Your message is with support
         </p>
-        <p className="mx-auto mt-2 max-w-[44ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mx-auto mt-inline max-w-[44ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
           We reply within one business day, Monday to Saturday. Your reference is
           below, and it is in the confirmation email we have just sent you.
         </p>
-        <p className="nf-numeric mt-4 inline-block rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-4 py-2.5 text-[1.0625rem] font-bold tracking-wide text-[var(--nf-content-primary)]">
+        <p className="nf-numeric mt-group inline-block rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-group py-inline text-[1.0625rem] font-bold tracking-wide text-[var(--nf-content-primary)]">
           {state.data.reference}
         </p>
-        <p className="mt-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-group text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
           {SUPPORT_IS_EMAIL ? (
             <>
               Need to add something? Reply to that email, or write to{" "}
               <a
                 href={`mailto:${SUPPORT_EMAIL}`}
-                className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+                className="font-semibold text-[var(--nf-content-link)] hover:underline"
               >
                 {SUPPORT_EMAIL}
               </a>{" "}
@@ -78,10 +78,10 @@ export function ContactForm({
   }
 
   return (
-    <form action={formAction} noValidate className="space-y-4" aria-describedby="contact-form-note">
-      <div className="grid gap-5 sm:grid-cols-2">
+    <form action={formAction} noValidate className="space-y-group" aria-describedby="contact-form-note">
+      <div className="grid gap-heading sm:grid-cols-2">
         <label className="block">
-          <span className="nf-overline mb-1.5 block">Your name</span>
+          <span className="nf-overline mb-inline block">Your name</span>
           <input
             type="text"
             name="name"
@@ -91,13 +91,13 @@ export function ContactForm({
             aria-invalid={fieldError("name") ? true : undefined}
           />
           {fieldError("name") && (
-            <span className="mt-1.5 block text-[0.78rem] text-[var(--nf-state-warning)]">
+            <span className="mt-inline block text-[0.78rem] text-[var(--nf-state-warning)]">
               {fieldError("name")}
             </span>
           )}
         </label>
         <label className="block">
-          <span className="nf-overline mb-1.5 block">Email</span>
+          <span className="nf-overline mb-inline block">Email</span>
           <input
             type="email"
             name="email"
@@ -107,7 +107,7 @@ export function ContactForm({
             aria-invalid={fieldError("email") ? true : undefined}
           />
           {fieldError("email") && (
-            <span className="mt-1.5 block text-[0.78rem] text-[var(--nf-state-warning)]">
+            <span className="mt-inline block text-[0.78rem] text-[var(--nf-state-warning)]">
               {fieldError("email")}
             </span>
           )}
@@ -115,7 +115,7 @@ export function ContactForm({
       </div>
 
       <label className="block">
-        <span className="nf-overline mb-1.5 block">Topic</span>
+        <span className="nf-overline mb-inline block">Topic</span>
         {/*
           The safety topic is first and it is worded as the thing that actually
           happens, not as a category name. The admin support queue reads this
@@ -132,7 +132,7 @@ export function ContactForm({
       </label>
 
       <label className="block">
-        <span className="nf-overline mb-1.5 block">Message</span>
+        <span className="nf-overline mb-inline block">Message</span>
         <textarea
           name="message"
           rows={5}
@@ -141,7 +141,7 @@ export function ContactForm({
           aria-invalid={fieldError("message") ? true : undefined}
         />
         {fieldError("message") && (
-          <span className="mt-1.5 block text-[0.78rem] text-[var(--nf-state-warning)]">
+          <span className="mt-inline block text-[0.78rem] text-[var(--nf-state-warning)]">
             {fieldError("message")}
           </span>
         )}
@@ -156,7 +156,7 @@ export function ContactForm({
         <p
           id="contact-form-note"
           role="alert"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
         >
           {state.error}
           {SUPPORT_IS_EMAIL ? (
@@ -164,7 +164,7 @@ export function ContactForm({
               {" "}You can also email{" "}
               <a
                 href={`mailto:${SUPPORT_EMAIL}`}
-                className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+                className="font-semibold text-[var(--nf-content-link)] hover:underline"
               >
                 {SUPPORT_EMAIL}
               </a>{" "}
@@ -185,7 +185,7 @@ export function ContactForm({
               {" "}If you would rather write to us yourself, the address is{" "}
               <a
                 href={`mailto:${SUPPORT_EMAIL}`}
-                className="font-semibold text-[var(--nf-electric-300)] hover:underline"
+                className="font-semibold text-[var(--nf-content-link)] hover:underline"
               >
                 {SUPPORT_EMAIL}
               </a>

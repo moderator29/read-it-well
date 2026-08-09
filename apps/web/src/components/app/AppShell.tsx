@@ -4,30 +4,62 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import type { Dictionary, Locale } from "@naijafinds/i18n";
+import type { Dictionary } from "@naijafinds/i18n";
 import { AppRail } from "./AppRail";
 import { MobileTabBar, showsTabBar } from "./MobileTabBar";
-import { DesktopDock } from "./DesktopDock";
-import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
-import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ButtonLink } from "@/components/ui/Button";
+import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
 
 /**
  * Personal Mode shell.
  *
  * The single wrapper for every consumer page, so the navigation is identical
- * everywhere rather than living on the home route alone (Master Rule 17). On
- * `lg` and up the sticky `AppRail` sits beside the content; below `lg` the rail
- * is gone and the fixed `MobileTabBar` carries navigation, with the main column
- * padded so nothing hides behind it. The active destination is read from the
- * current path here, so the highlight stays correct as the user moves around
- * without each page having to pass it in.
+ * everywhere rather than living on the home route alone. On `lg` and up the
+ * sticky `AppRail` sits beside the content; below `lg` the rail is gone and the
+ * fixed `MobileTabBar` carries navigation, with the main column padded so
+ * nothing hides behind it. The active destination is read from the current path
+ * here, so the highlight stays correct as the user moves around without each
+ * page having to pass it in.
+ *
+ * ---------------------------------------------------------------------------
+ * THE HEADER LOST THREE CONTROLS AND THE SHELL LOST A WHOLE NAVIGATION SURFACE.
+ *
+ * The app bar carried six controls on every screen: the drawer toggle, the
+ * wordmark, a language switcher, a theme toggle, a permanently filled AI
+ * Assistant button, the notification bell and the avatar. Three of those had no
+ * business being there:
+ *
+ *  - **Language** is a choice somebody makes once, and it is a card on
+ *    `/settings`. A permanent control for a once-ever decision is a control
+ *    that is wrong 99.9% of the time it is on screen.
+ *  - **Theme** is the same argument, and it is a card on `/settings` too.
+ *  - **The assistant** was the loudest thing on the bar - filled primary, brand
+ *    gradient, on every route - and it was ALSO a tab on the phone dock and
+ *    ALSO a row in the rail. Three placements for one feature. It keeps the
+ *    one in the side navigation, which renders as the rail on desktop and the
+ *    drawer on a phone, so it has exactly one placement per viewport.
+ *
+ * **The desktop dock is gone entirely.** It was a floating pill fixed over the
+ * bottom of the content offering Notifications, Messages and Settings - all
+ * three of which are rows in the rail, three inches away, permanently visible
+ * on the same viewport the dock only appeared on. It was a second navigation
+ * competing with the first, and on the listing page it fought the sticky action
+ * bar for the bottom edge, which is why `pinsActionBar` existed. That special
+ * case is gone with it.
+ *
+ * WHAT THE HEADER CARRIES NOW: the drawer toggle and the wordmark on a phone,
+ * then either the bell and the avatar (signed in) or Sign up and Log in
+ * (signed out).
  */
 export function AppShell({
   t,
-  locale,
+  /*
+   * `locale` USED TO BE A PROP HERE and is gone with the language switcher.
+   * The header carried a permanent `LanguageSwitcher` on every app screen for a
+   * choice most people make once; it is a card on `/settings`, so the shell no
+   * longer needs to know what language it is in.
+   */
   userName,
   unreadNotifications = 0,
   avatarUrl = "",
@@ -37,7 +69,6 @@ export function AppShell({
   children,
 }: {
   t: Dictionary;
-  locale: Locale;
   userName: string;
   /** Real unread notification count, resolved on the server by the layout. */
   unreadNotifications?: number;
@@ -100,19 +131,12 @@ export function AppShell({
   const edgeToEdge = /^\/listing\/[^/]+$/.test(active);
 
   /*
-   * Routes that pin their own action bar to the bottom edge.
-   *
-   * The listing page now ends on an `<ActionBar>` - a full-width blurred
-   * footer at `bottom-0 z-50`, which is what every reference screen ends with.
-   * The desktop dock is a centred floating pill at `bottom-6 z-40`, so from
-   * `lg` up the two occupy the same strip and the dock floats over the bar.
-   *
-   * The bar wins: it carries the decision the screen exists to produce, and
-   * the dock is a quick-access shortcut that is reachable from the rail on the
-   * same viewport. Kept as a predicate beside `showsTabBar` so the two
-   * bottom-edge rules live together rather than drifting apart.
+   * `pinsActionBar` USED TO BE DECLARED HERE and is gone with the desktop
+   * dock. It existed for exactly one collision: the listing page ends on a
+   * full-width `<ActionBar>` at `bottom-0 z-50`, and the dock was a floating
+   * pill at `bottom-6 z-40`, so from `lg` up the two occupied the same strip
+   * and one floated over the other. No dock, no collision, no special case.
    */
-  const pinsActionBar = /^\/listing\/[^/]+$/.test(active);
 
   /* The drawer closes itself on navigation. Escape, the scroll lock, the focus
      trap and returning focus to the opener are all useOverlay's, because this
@@ -123,6 +147,16 @@ export function AppShell({
   useOverlay({ open: drawer, onClose: closeDrawer, panelRef: drawerPanel });
 
   return (
+    /*
+     * The gate, once, around the whole shell.
+     *
+     * Every gated control below - save, message, request inspection, pay, list,
+     * wallet, switch profile, follow, react, post - reads the session from this
+     * one provider rather than being handed a `signedIn` prop down through
+     * however many components sit between it and the layout. There is one
+     * definition of "may this person act", and it is here.
+     */
+    <AuthGateProvider signedIn={signedIn}>
     <div className="flex min-h-dvh">
       <AppRail
         t={t}
@@ -161,7 +195,7 @@ export function AppShell({
             type="button"
             aria-label={t.a11y.closeMenu}
             onClick={() => setDrawer(false)}
-            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
           />
           <div className="nf-drawer nf-drawer--right absolute inset-y-0 right-0 overflow-y-auto">
             <AppRail
@@ -186,7 +220,13 @@ export function AppShell({
         className={
           immersive
             ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden"
-            : `min-w-0 flex-1 lg:pb-20 ${showsTabBar(active) ? "pb-24" : "pb-8"}`
+            : /* Bottom clearance. `pb-4xl` is the 96px that keeps the last row
+                 of a page clear of the phone tab bar; `pb-xl` is the ordinary
+                 end-of-page air where there is no bar to clear. The desktop
+                 figure was 80px of clearance for a floating dock that no longer
+                 exists, so it is now just the end of a page and takes the
+                 section rung rather than a number left over from a deletion. */
+              `min-w-0 flex-1 lg:pb-3xl ${showsTabBar(active) ? "pb-4xl" : "pb-xl"}`
         }
       >
         {/* ------------------------------------------------------- top bar */}
@@ -205,24 +245,31 @@ export function AppShell({
             edgeToEdge ? "hidden lg:block" : ""
           }`}
         >
-          <div className="flex h-[64px] items-center gap-4 px-4 sm:gap-4 sm:px-5 md:px-8">
+          {/* The bar's own inline padding is the page gutter, so the menu
+              button and the wordmark start on the same vertical as the content
+              under them. It used to be px-4 stepping to px-5 then px-8, which
+              is three values none of which matched the shell's own. */}
+          <div className="flex h-[64px] items-center gap-md px-gutter">
             {/* Phones lead with the side navigation, exactly like the desktop left rail. */}
             <button
               type="button"
               aria-label={t.a11y.openMenu}
               aria-expanded={drawer}
               onClick={() => setDrawer(true)}
-              className="nf-icon-btn h-10 w-10 lg:hidden"
+              className="nf-icon-btn h-12 w-12 lg:hidden"
             >
               {/*
-                The panel toggle, not a hamburger.
+                THE PLAIN THREE LINE MENU, by request.
 
-                Three stacked lines say "a list is behind this" and nothing
-                more, and they say it identically whether the thing that opens
-                is a menu, a filter sheet or a drawer. This glyph says what
-                actually happens: a panel arrives beside the content.
+                It was `panel-left` - a bordered rectangle with a divider - on
+                the argument that it says what actually happens (a panel arrives
+                beside the content) rather than merely "a list is behind this".
+                True, and beside the point: the three lines are the most
+                recognised control in software and the bordered rectangle is one
+                people have to be taught, on the screen where a first-time
+                visitor has the least patience for learning anything.
               */}
-              <UiIcon name="panel-left" size={20} />
+              <UiIcon name="menu" size="md" />
             </button>
             {/* The wordmark, on phones only: above lg the rail already carries
                 it, and repeating a logo twice on one screen is noise. It used
@@ -235,88 +282,45 @@ export function AppShell({
 
             <div className="flex-1" />
 
-            <div className="hidden sm:contents">
-              <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
-            </div>
-            <ThemeToggle />
+            {/*
+              SIGNED OUT: the two things that matter, top right.
 
-            {/* The primitive, not a hand-rolled `nf-btn` class list: the
-                variant, the size ramp, the loading slot and the haptic all
-                come from `ButtonLink`. Main's props are kept verbatim -
-                including `max-sm:hidden`, because on a phone the bell and the
-                avatar take this space and the assistant lives on the rail. */}
-            <ButtonLink
-              href="/assistant"
-              variant="primary"
-              size="sm"
-              aria-label={t.nav.aiAssistant}
-              className="max-sm:hidden"
-            >
-              <UiIcon name="sparkle" size={20} />
-              <span className="hidden sm:inline">{t.nav.aiAssistant}</span>
-            </ButtonLink>
+              Sign up is the filled primary because a visitor who has got this
+              far is the person the screen is for; Log in is the quiet outline
+              beside it because somebody returning is looking for it rather than
+              being sold it. Both carry the screen they are standing on, so
+              joining from a property page comes back to that property page.
+            */}
+            <SignedOutActions t={t} />
 
-            {/* The bell and its marker. A dot, not a numeral: the exact count
-                lives on the rail and on /notifications, and at this size a
-                number is unreadable. Zero renders no marker at all. */}
-            <Link
-              href="/notifications"
-              /* The count is INSIDE one dictionary sentence rather than
-                 appended to a translated noun. English writes "Notifications,
-                 3 unread" and the other three do not all put the number in the
-                 same place, so a template assembled here could only ever be
-                 right in one language. The marker beside it is a dot, so this
-                 label is the only place the number is stated at all. */
-              aria-label={
-                unreadNotifications > 0
-                  ? t.a11y.notificationsUnread.replace(
-                      "{count}",
-                      String(unreadNotifications),
-                    )
-                  : t.nav.notifications
-              }
-              className="nf-icon-btn relative h-10 w-10 shrink-0"
-            >
-              <UiIcon name="bell" size={20} />
-              {unreadNotifications > 0 && (
-                <span
-                  aria-hidden="true"
-                  data-testid="shell-unread-dot"
-                  className="absolute right-2 top-2 block h-2.5 w-2.5 rounded-full border-2 border-[var(--nf-surface-primary)] bg-[var(--nf-brand-primary)]"
-                />
-              )}
-            </Link>
+            {/*
+              THE TOP RIGHT IS EMPTY, AND THAT IS THE DESIGN.
 
-            <Link
-              href={signedIn ? "/profile" : "/sign-in"}
-              aria-label={signedIn ? t.nav.profile : t.common.signIn}
-              className="nf-tap shrink-0 rounded-full p-[1.5px]"
-              style={{ background: "var(--nf-gradient-brand)" }}
-            >
-              <span className="block rounded-full bg-[var(--nf-surface-primary)] p-[1.5px]">
-                {avatarUrl ? (
-                  /* The avatars bucket is public, so the CDN URL renders
-                     without a signed request. next/image is skipped
-                     deliberately: one small square from a host that only
-                     exists once the platform keys land. */
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={avatarUrl}
-                    alt=""
-                    width={32}
-                    height={32}
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <span
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-[0.8125rem] font-bold text-white"
-                    style={{ background: "var(--nf-gradient-brand)" }}
-                  >
-                    {userName.slice(0, 1).toUpperCase()}
-                  </span>
-                )}
-              </span>
-            </Link>
+              Three controls used to live here and all three have gone to where
+              they belong:
+
+                THE AVATAR was a third door to Profile, which is already a row
+                in the rail and the island on the phone tab bar. Three doors to
+                one room is not convenience, it is a header you have to read.
+
+                THE THEME TOGGLE is in the navigation now, at the foot of the
+                rail and the drawer. A preference is not chrome.
+
+                THE BELL is gone too, and this one was a judgement call. It is
+                genuinely time sensitive in a way a theme preference is not,
+                which is the argument for keeping it. But the unread state is
+                ALREADY carried in both places a person looks: the rail's
+                Notifications row shows the real count as a badge, and on a
+                phone the tab bar's profile island carries the marker. The bell
+                was a third marker for one fact, and it was the last thing
+                standing between this header and a clean top edge.
+
+              What remains is the menu button and the wordmark on phones, both
+              of which are navigation rather than chrome, and neither of which
+              appears on desktop where the rail already carries them. Above
+              `lg`, this bar is empty by design: the greeting and the content
+              start at the top of the screen with nothing hanging off them.
+            */}
           </div>
         </header>
         )}
@@ -327,7 +331,17 @@ export function AppShell({
           /* The same wrapper for `edgeToEdge` as for everything else. The hero
              reaches all four edges by cancelling this padding, which only
              works while the padding is here to cancel. */
-          <div className="nf-shell py-8 sm:py-10">{children}</div>
+          /*
+           * MORE AIR AT THE TOP OF EVERY SIGNED-IN SCREEN, AND IT IS FLUID.
+           *
+           * `py-8 sm:py-10` is 32px stepping to 40px at 640px, so every app
+           * screen changed its top margin at one width and held still either
+           * side of it, and 40px is not a lot of room above a page title on a
+           * 1440px display. `section-tight` is the platform's own interval and
+           * a clamp from 32 to 48: the phone keeps what it had, the desktop
+           * gains, and nothing jumps on the way between them.
+           */
+          <div className="nf-shell py-section-tight">{children}</div>
         )}
       </main>
 
@@ -340,9 +354,14 @@ export function AppShell({
         affordance instead.
       */}
       {!immersive && showsTabBar(active) && (
-        <MobileTabBar t={t} active={active} unreadNotifications={unreadNotifications} />
+        <MobileTabBar
+          t={t}
+          active={active}
+          unreadNotifications={unreadNotifications}
+          signedIn={signedIn}
+        />
       )}
-      {!immersive && !pinsActionBar && <DesktopDock t={t} active={active} />}
     </div>
+    </AuthGateProvider>
   );
 }

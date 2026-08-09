@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BinGlyph, PlusGlyph } from "./glyphs";
 import type { Thread } from "./threads";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
@@ -102,7 +101,7 @@ export function AssistantSidebar({
           autoComplete="off"
         />
         <Button variant="primary" size="sm" full onClick={onNew}>
-          <PlusGlyph size={15} />
+          <UiIcon name="plus" size={15} />
           New chat
         </Button>
       </div>
@@ -156,7 +155,7 @@ export function AssistantSidebar({
                     onClick={() => onDelete(t.id)}
                     className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[var(--nf-content-muted)] opacity-70 transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] group-hover:opacity-100"
                   >
-                    <BinGlyph size={15} />
+                    <UiIcon name="trash" size={15} />
                   </button>
                 </li>
               );

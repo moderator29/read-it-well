@@ -49,9 +49,34 @@ export type UiIconName =
   | "share"
   | "shield-stop"
   | "panel-left"
+  | "menu"
   | "document"
   | "chevron-right"
-  | "map";
+  | "map"
+  /* ------------------------------------------- folded in from the two
+     private sets. See the note at the top of the file. */
+  | "history"
+  | "trash"
+  | "repost"
+  | "views"
+  | "more"
+  | "bookmark"
+  | "picture"
+  | "link"
+  | "flag"
+  | "mute"
+  | "block"
+  | "sun"
+  | "moon"
+  /* ---------------------------------- consolidated from inline SVG blocks.
+     Each of these was hand-drawn at a call site, several of them more than
+     once, at a stroke weight the platform does not use. */
+  | "eye"
+  | "eye-off"
+  | "arrow-up"
+  | "arrow-down"
+  | "info"
+  | "mail";
 
 const PATHS: Record<UiIconName, React.ReactNode> = {
   // Filter control. Two rails with offset handles, the convention every
@@ -171,6 +196,23 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="M8.8 13h6.4M8.8 16.4h4.2" />
     </>
   ),
+  /*
+   * THE MENU. Three lines, and that is the whole design.
+   *
+   * `panel-left` below is what the app header used before it, on the argument
+   * that three stacked lines "say a list is behind this and nothing more"
+   * while a frame with a divider says what actually happens. That argument is
+   * correct about what the two glyphs MEAN and wrong about what people know.
+   * The three lines are the most recognised control in software; a bordered
+   * rectangle with a line in it is a glyph somebody has to be taught, and it
+   * is also almost exactly the shape of a sidebar TOGGLE in a desktop
+   * application, which is a different control.
+   *
+   * The owner asked for a plain three line menu, so it is plain: three equal
+   * strokes, evenly spaced, no decorative shortening of the middle one, no
+   * animation into a cross.
+   */
+  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   "panel-left": (
     <>
       <rect x="3.2" y="4.4" width="17.6" height="15.2" rx="3" />
@@ -225,12 +267,28 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="m15.7 8.3-1.9 5.5-5.5 1.9 1.9-5.5Z" />
     </>
   ),
+  /*
+   * HOTEL, REDRAWN. The owner called this one out by name.
+   *
+   * What was wrong with it: a tower, a ground line, a door, and then TWELVE
+   * separate window ticks drawn as six pairs of 1.3-unit dashes. At the sizes
+   * this glyph is actually used - 20 to 24px - those twelve marks collapse into
+   * a grey texture, so the icon read as a hatched rectangle rather than as a
+   * building. It was also drawing three things a hotel does not need to be
+   * recognised: the ground it stands on, its front door, and every window.
+   *
+   * This is a bed and a canopy. A hotel is somewhere you SLEEP, which is what
+   * distinguishes it from an office block, and a bed says that in three strokes
+   * where a facade needs fifteen. Four marks total, all of them legible at
+   * 16px, and it reads as a distinct silhouette next to the apartment tower
+   * rather than as the same rectangle with different hatching.
+   */
   "building-hotel": (
     <>
-      <path d="M6.2 20.6V5.3a1.8 1.8 0 0 1 1.8-1.8h8a1.8 1.8 0 0 1 1.8 1.8v15.3" />
-      <path d="M3.6 20.6h16.8" />
-      <path d="M9.4 7.2h1.3M13.3 7.2h1.3M9.4 10.7h1.3M13.3 10.7h1.3M9.4 14.2h1.3M13.3 14.2h1.3" />
-      <path d="M10.6 20.6v-2.4a1.4 1.4 0 0 1 2.8 0v2.4" />
+      <path d="M3.4 19.4v-6.2a2 2 0 0 1 2-2h13.2a2 2 0 0 1 2 2v6.2" />
+      <path d="M3.4 16.2h17.2" />
+      <path d="M6.6 11.2V8a2.4 2.4 0 0 1 2.4-2.4h6a2.4 2.4 0 0 1 2.4 2.4v3.2" />
+      <path d="M12 5.6V3.4" />
     </>
   ),
   "building-apartment": (
@@ -261,12 +319,26 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="M14.8 7.6v1.1M14.8 11.5v1.1M14.8 15.4v1.1" />
     </>
   ),
+  /*
+   * BOOKING, REDRAWN. The other one the owner called out.
+   *
+   * What was wrong with it: a rounded rectangle, a rule under the header, two
+   * hanging rings, and a tick inside. Five elements, and the two rings and the
+   * header rule together put three near-horizontal lines in the top third of a
+   * 24 grid, which at 20px merge into one thick band. The frame also used a
+   * 2.2 radius against the 3-and-up radii the rest of this set settled on, so
+   * it read as slightly boxier than everything beside it.
+   *
+   * Now: one softer frame, one header rule, one tick, and the rings are gone.
+   * A calendar is recognised by the grid-with-a-header shape, not by its
+   * hardware, and the tick is the only thing that says BOOKED rather than
+   * DATE - so it is drawn larger, centred in the body, with room around it.
+   */
   "calendar-booking": (
     <>
-      <rect x="3.6" y="5" width="16.8" height="15.4" rx="2.2" />
-      <path d="M3.6 9.9h16.8" />
-      <path d="M8.1 3.1v3.3M15.9 3.1v3.3" />
-      <path d="m9.4 14.9 1.9 1.9 3.6-3.7" />
+      <rect x="3.4" y="4.6" width="17.2" height="16" rx="3.4" />
+      <path d="M3.4 9.4h17.2" />
+      <path d="m8.6 15 2.4 2.4 4.4-4.6" />
     </>
   ),
   "chat-bubble": (
@@ -328,18 +400,215 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="M17.6 6.4 6.4 17.6" />
     </>
   ),
+
+  /* ------------------------------------------------------- folded in.
+     Everything below arrived from `components/app/assistant/glyphs.tsx` or
+     `components/social/feed/PostGlyph.tsx`. Redrawn where the private set had
+     hand-tuned its own stroke weight, because the weight is the platform's and
+     is derived from the size here; otherwise the geometry is carried over
+     unchanged, which is why the social marks still read as the family they
+     were designed as. */
+
+  /* Clock face with a rewind arrow. Conversation history. */
+  history: (
+    <>
+      <path d="M3.2 12a8.8 8.8 0 1 0 2.6-6.2" />
+      <path d="M3.2 3.4v4.4h4.4" />
+      <path d="M12 7.6v4.6l3 2.4" />
+    </>
+  ),
+
+  /* A lid, a body, and nothing inside it. */
+  trash: (
+    <>
+      <path d="M4.2 7h15.6" />
+      <path d="M9.2 7V5.4A1.4 1.4 0 0 1 10.6 4h2.8a1.4 1.4 0 0 1 1.4 1.4V7" />
+      <path d="M6.6 7l.75 11.7a1.9 1.9 0 0 0 1.9 1.8h5.5a1.9 1.9 0 0 0 1.9-1.8L17.4 7" />
+      <path d="M10 10.8v5.7M14 10.8v5.7" />
+    </>
+  ),
+
+  /* Two rails and two chevrons: the same words travelling to another place and
+     back. Squared corners rather than the soft recycle loop every other
+     product uses, and open chevrons so the direction survives at 16px. */
+  repost: (
+    <>
+      <path d="M7.4 9.2V7.6A1.8 1.8 0 0 1 9.2 5.8h7.4" />
+      <path d="M14.2 3.4 16.8 5.8 14.2 8.2" />
+      <path d="M16.6 14.8v1.6a1.8 1.8 0 0 1-1.8 1.8H7.4" />
+      <path d="M9.8 15.8 7.2 18.2 9.8 20.6" />
+    </>
+  ),
+
+  /* Three strokes rising, the tallest capped with a node. Deliberately not an
+     eye, which is the glyph every other product reaches for and which quietly
+     says "we are watching you". */
+  views: (
+    <>
+      <path d="M5.5 17.8v-3.4" />
+      <path d="M12 17.8v-6.8" />
+      <path d="M18.5 17.8V9.2" />
+      <circle cx="18.5" cy="6.4" r="1.8" fill="currentColor" stroke="none" />
+    </>
+  ),
+
+  /* Three nodes. The one conventional mark in the social set, by request: an
+     invented affordance for "more actions" is an affordance nobody finds. */
+  more: (
+    <>
+      <circle cx="5.4" cy="12" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="18.6" cy="12" r="1.7" fill="currentColor" stroke="none" />
+    </>
+  ),
+
+  /* A stroke folded back on itself. Keeping something is holding one end of
+     it, so the mark is one line that turns rather than a ribbon. */
+  bookmark: <path d="M7 5.4h10v13.2l-5-3.4-5 3.4z" />,
+
+  /* A frame, a node and a stroke that turns twice: light above a ridge. No
+     camera body and no shutter, because a picture in a post is a photograph of
+     a street and not a device. */
+  picture: (
+    <>
+      <rect x="4.2" y="5.8" width="15.6" height="12.4" rx="3.2" />
+      <circle cx="9" cy="10.3" r="1.5" fill="currentColor" stroke="none" />
+      <path d="M5.4 16.6 9.8 12.6l2.8 2.5 2.4-1.9 3.4 3" />
+    </>
+  ),
+
+  /* Two chamfered capsules holding each other. A link is a join, and the join
+     is what the mark draws. */
+  link: (
+    <>
+      <path d="M10.4 13.6a3.6 3.6 0 0 0 5.4.4l2.2-2.2a3.6 3.6 0 0 0-5.1-5.1l-1.3 1.3" />
+      <path d="M13.6 10.4a3.6 3.6 0 0 0-5.4-.4L6 12.2a3.6 3.6 0 0 0 5.1 5.1l1.3-1.3" />
+    </>
+  ),
+
+  /* A flag on a mast, the cloth cut square. Report. A gear stood here before,
+     which is the icon for settings on every other screen of this platform. */
+  flag: (
+    <>
+      <path d="M6.6 20.2V4.6" />
+      <path d="M6.6 5.4h9.8l-2.2 3.6 2.2 3.6H6.6" />
+    </>
+  ),
+
+  /* A bell with the clapper gone and a cut through it. Muting is not blocking:
+     the bell is still there, it just says nothing. */
+  mute: (
+    <>
+      <path d="M8 10.6a4 4 0 0 1 8 0c0 3.4 1.2 4.6 1.2 4.6H6.8S8 14 8 10.6Z" />
+      <path d="M5 5 19 19" />
+    </>
+  ),
+
+  /* The prohibition sign, and the one mark here that is deliberately
+     universal. An invented glyph for the most permanent action in a menu is an
+     invented glyph somebody presses by mistake. */
+  block: (
+    <>
+      <circle cx="12" cy="12" r="7.6" />
+      <path d="M6.6 6.6 17.4 17.4" />
+    </>
+  ),
+
+  /* Light and dark. Both were hand-drawn inline inside `ThemeToggle` with
+     their own strokeWidth of 1.8, which is the fifteenth weight the sweep
+     existed to remove. */
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4.4" />
+      <path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7" />
+    </>
+  ),
+  moon: <path d="M20.2 13.6A8.4 8.4 0 0 1 10.4 3.8a8.4 8.4 0 1 0 9.8 9.8Z" />,
+
+  /* Reveal a password. It was drawn inline in `components/auth/fields.tsx` at
+     strokeWidth 1.7 and again in `wallet/BalanceCard.tsx` at strokeWidth 2, as
+     two slightly different eyes doing the same job on two screens. */
+  eye: (
+    <>
+      <path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="2.9" />
+    </>
+  ),
+  /* The same eye with a cut through it. Its own name rather than a boolean on
+     `eye`, because the platform's icons are named by what they mean and a
+     password that is currently shown is a different meaning from one that is
+     hidden. */
+  "eye-off": (
+    <>
+      <path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="2.9" />
+      <path d="m4.5 4.5 15 15" />
+    </>
+  ),
+
+  /* A trend, up and down. Drawn inline in `StatCard` at strokeWidth 3 on an
+     11px box, which renders at 1.4 CSS pixels - heavier than every other glyph
+     beside it and for no reason anybody recorded. */
+  "arrow-up": (
+    <>
+      <path d="M12 19.5v-15" />
+      <path d="m6 10.5 6-6 6 6" />
+    </>
+  ),
+  "arrow-down": (
+    <>
+      <path d="M12 4.5v15" />
+      <path d="m6 13.5 6 6 6-6" />
+    </>
+  ),
+
+  /* Listing and safety options. A circle, a stem and a node. */
+  info: (
+    <>
+      <circle cx="12" cy="12" r="8.6" />
+      <path d="M12 11.2v5" />
+      <circle cx="12" cy="7.9" r="0.9" fill="currentColor" stroke="none" />
+    </>
+  ),
+
+  /* An envelope. The last surviving glyph in `components/auth/ProviderMarks`,
+     which is otherwise an empty file now that Google and Apple sign in are
+     gone. */
+  mail: (
+    <>
+      <rect x="2.6" y="4.6" width="18.8" height="14.8" rx="2.6" />
+      <path d="m3.3 6.6 8.02 5.9a1.3 1.3 0 0 0 1.56 0l8.02-5.9" />
+    </>
+  ),
 };
 
 /**
- * THE SIZE SCALE. A 4px grid from 12 to 32, and nothing between the steps.
+ * THE SIZE SCALE, AND IT JUST MOVED UP A STEP.
  *
- * Before this existed the platform rendered stroked glyphs at fifteen different
- * sizes (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 26 and 30), which
- * is not a scale, it is an accumulation. Every call site now lands on a step,
- * and `snapUiIconSize` rounds anything else onto the nearest one so a size can
- * never drift off the grid again, whatever a future caller passes.
+ * The owner asked for bigger icons, directly, and this is where that happens:
+ * once, on the scale, rather than by editing two hundred call sites. Every step
+ * except the smallest is unchanged; what moved is the FLOOR and the names.
+ *
+ *   before   12  16  20  24  28  32
+ *   after        16  20  24  28  32  40
+ *
+ * The 12px step is gone. It was the single most-used size on the platform - the
+ * tick in a badge, the chevron in a row, the pin on a location line - and at
+ * 12px a stroked glyph on a 24 grid renders at 0.7 CSS pixels of stroke, which
+ * on a non-retina screen is a grey smudge rather than a line. `snapUiIconSize`
+ * rounds anything below the floor UP to 16, so every one of those call sites
+ * got a third bigger and a good deal crisper without being touched, and none of
+ * them can drift back off the grid.
+ *
+ * 40 is added at the top for the places that genuinely want a display glyph:
+ * an empty state, the mark in a role row, a submitted screen.
+ *
+ * THE NAMES MOVED WITH IT. `sm` was 16 and is now 20, `md` was 20 and is now
+ * 24, and the DEFAULT is `sm` rather than the old 16. A component that asked
+ * for a named step asked for "the small one", not for "sixteen pixels", so the
+ * names are what carry the increase to everything that used them.
  */
-export const UI_ICON_SIZES = [12, 16, 20, 24, 28, 32] as const;
+export const UI_ICON_SIZES = [16, 20, 24, 28, 32, 40] as const;
 export type UiIconSize = (typeof UI_ICON_SIZES)[number];
 
 /** Nearest step, ties to the larger. Clamped to the ends of the scale. */
@@ -361,10 +630,10 @@ export function snapUiIconSize(size: number): UiIconSize {
  *
  * Numbers are what the grid is defined in, but a call site reads better saying
  * what it means than restating the arithmetic, and a name cannot drift the way
- * a literal can. These are the six steps above under the names the rest of the
- * platform uses; nothing here is a new size.
+ * a literal can. These are six of the seven steps above under the names the
+ * rest of the platform uses; nothing here is a size the scale does not have.
  */
-export const ICON_SIZE = { xs: 12, sm: 16, md: 20, lg: 24, xl: 28 } as const;
+export const ICON_SIZE = { xs: 16, sm: 20, md: 24, lg: 28, xl: 32, display: 40 } as const;
 export type IconSize = keyof typeof ICON_SIZE;
 
 /**
@@ -383,7 +652,7 @@ export type IconSize = keyof typeof ICON_SIZE;
  * the optical sizing the audit asked for, stated as a constant rather than as a
  * clamped division, and it is why no call site carries a stroke of its own.
  */
-export const UI_ICON_STROKE_PX = 1.4;
+export const UI_ICON_STROKE_PX = 1.5;
 
 /**
  * Symbol effects.
@@ -423,6 +692,11 @@ const FILLABLE = new Set<UiIconName>([
   "chat-bubble",
   "sparkle",
   "ticket",
+  /* Both close into a single readable silhouette, and both have a real active
+     state: a saved post and a reposted one. */
+  "bookmark",
+  "block",
+  "moon",
 ]);
 
 /**
@@ -459,10 +733,12 @@ const FILLED_PATHS: Partial<Record<UiIconName, React.ReactNode>> = {
   user: (
     <path d="M12 4.4a3.7 3.7 0 1 1 0 7.4 3.7 3.7 0 0 1 0-7.4Zm0 8.7c4.06 0 7.35 2.55 7.35 5.7 0 .94-.76 1.4-1.6 1.4H6.25c-.84 0-1.6-.46-1.6-1.4 0-3.15 3.29-5.7 7.35-5.7Z" />
   ),
+  /* The filled twin of the redrawn outline. The two rings are gone from this
+     one too: a silhouette that disagrees with its own outline is two icons. */
   "calendar-booking": (
     <path
       fillRule="evenodd"
-      d="M8.1 2.3a.9.9 0 0 1 .9.9v.9h6v-.9a.9.9 0 1 1 1.8 0v.9h1.6a2.2 2.2 0 0 1 2.2 2.2v13a2.2 2.2 0 0 1-2.2 2.2H5.6a2.2 2.2 0 0 1-2.2-2.2v-13A2.2 2.2 0 0 1 5.6 4.1h1.6v-.9a.9.9 0 0 1 .9-.9Zm-3.4 7.6v9.3c0 .22.18.4.4.4h13.8a.4.4 0 0 0 .4-.4V9.9Zm4.7 5 1.9 1.9 3.6-3.7 1.28 1.25-4.87 5-3.18-3.19Z"
+      d="M6.8 4.6h10.4a3.4 3.4 0 0 1 3.4 3.4v9.6a3.4 3.4 0 0 1-3.4 3.4H6.8a3.4 3.4 0 0 1-3.4-3.4V8a3.4 3.4 0 0 1 3.4-3.4Zm-1.6 5.6v7.4c0 .88.72 1.6 1.6 1.6h10.4c.88 0 1.6-.72 1.6-1.6v-7.4Zm3.4 4.8 2.4 2.4 4.4-4.6 1.3 1.24-5.66 5.92-3.68-3.68Z"
     />
   ),
   key: (
@@ -481,6 +757,7 @@ const FILLED_PATHS: Partial<Record<UiIconName, React.ReactNode>> = {
 
 export function UiIcon({
   name,
+  /* `sm` is 20px now, up from 16. See the scale note above. */
   size = ICON_SIZE.sm,
   className,
   label,

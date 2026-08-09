@@ -21,6 +21,20 @@ import { fileURLToPath } from "node:url";
  * this field, so the package is aliased straight at the empty entry its own
  * exports map already points `react-server` at. That is the same file the real
  * build gets, chosen explicitly rather than by condition.
+ *
+ * REACT IS ALIASED FOR EXACTLY THE SAME REASON, and it matters more than it
+ * looks. `react` has a `react-server` export condition too, and the two builds
+ * are not interchangeable: in the server build `cache` memoises through the
+ * current async dispatcher, and in the client build `cache` is a bare
+ * passthrough that calls the function every time. So a server module wrapped in
+ * `cache` behaves ONE WAY in the app and a completely different way under test,
+ * with every test still green. `lib/actions/session.ts` is exactly that module,
+ * and its memo is what keeps one page render to one auth round trip.
+ *
+ * `resolve.conditions` does not reach `react` for the same reason it does not
+ * reach `server-only`, so it is aliased at the entry its own exports map points
+ * `react-server` at. Every module under test here is a server module; nothing
+ * in this suite renders a component or calls a client hook.
  */
 export default defineConfig({
   resolve: {
@@ -29,6 +43,9 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       "server-only": fileURLToPath(
         new URL("../../node_modules/server-only/empty.js", import.meta.url),
+      ),
+      react: fileURLToPath(
+        new URL("../../node_modules/react/react.react-server.js", import.meta.url),
       ),
     },
   },

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { AuthGate } from "@/components/auth/AuthGate";
 import { toggleSave } from "@/lib/saved/actions";
 import { addLocalSave, readLocalSaves, removeLocalSave } from "@/lib/saved/local";
 
@@ -14,6 +15,13 @@ import { addLocalSave, readLocalSaves, removeLocalSave } from "@/lib/saved/local
  * control would vanish on a bright photo, and a night-only glass panel would
  * look wrong in daylight. Everything underneath them is an image, so this is
  * the one place where the same treatment is correct at noon and at midnight.
+ *
+ * That reasoning was right and the implementation was not: it was written as
+ * bg-black/45, border-white/25 and text-white, by hand, in this file and in
+ * five others, so nothing recorded WHY the darkness was deliberate and nothing
+ * distinguished it from the dark-only literals that genuinely do break in
+ * daylight. It now reads the `-on-media` token family, which is theme
+ * independent on purpose and says so in one place.
  *
  * Save flips instantly and settles against the truth the action returns:
  * a catalogue listing is kept on the device, a platform listing is a row under
@@ -146,32 +154,46 @@ export function ListingActions({
           onClick={share}
           aria-label="Share this listing"
           data-testid="listing-share"
-          className="grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
+          className="grid h-11 w-11 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="share" size={16} />
         </button>
-        <button
-          type="button"
-          onClick={toggle}
-          disabled={pending}
-          aria-pressed={saved}
-          aria-label={saved ? "Remove from saved" : "Save this listing"}
-          data-testid="listing-save"
-          className="grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90 disabled:opacity-70 motion-reduce:transition-none"
-        >
-          <UiIcon
-            name="heart"
-            size={16}
-            className={saved ? "text-[var(--nf-electric-300)] [&_path]:fill-current" : undefined}
-          />
-        </button>
+        {/*
+          Save gates. Share does not, and the difference is the whole rule:
+          sharing a link is a thing a guest may do to a page they are allowed to
+          read, and saving writes a row against an account.
+
+          Wrapped rather than checked inside `toggle`, because `toggle` already
+          flips the heart optimistically before the server answers, and a check
+          inside it would flip a heart we are about to navigate away from. The
+          gate intercepts in the capture phase, so for a guest the handler never
+          runs at all and they arrive at sign-up with `?do=save` on the URL they
+          came from.
+        */}
+        <AuthGate action="save">
+          <button
+            type="button"
+            onClick={toggle}
+            disabled={pending}
+            aria-pressed={saved}
+            aria-label={saved ? "Remove from saved" : "Save this listing"}
+            data-testid="listing-save"
+            className="grid h-11 w-11 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 disabled:opacity-70 motion-reduce:transition-none"
+          >
+            <UiIcon
+              name="heart"
+              size={16}
+              className={saved ? "text-[var(--nf-status-verified)] [&_path]:fill-current" : undefined}
+            />
+          </button>
+        </AuthGate>
       </div>
 
       {message && (
         <p
           role="status"
           data-testid="listing-action-message"
-          className="max-w-[15rem] rounded-full bg-black/75 px-3 py-1.5 text-right text-[0.75rem] font-medium leading-snug text-white backdrop-blur-md"
+          className="max-w-[15rem] rounded-full bg-[var(--nf-overlay-media-strong)] px-3 py-1.5 text-right text-[0.75rem] font-medium leading-snug text-[var(--nf-content-on-media)] backdrop-blur-md"
         >
           {message}
           {signInPrompt && (

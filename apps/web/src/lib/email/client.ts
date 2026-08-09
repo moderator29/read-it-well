@@ -47,6 +47,18 @@ export type SendEmailMessage = {
   to: string;
   subject: string;
   html: string;
+  /**
+   * The text/plain alternative.
+   *
+   * Optional on this type and required on every message the catalogue builds,
+   * which is the split that matters: a message always has one, and a call site
+   * that has not been moved to `sendMessage` yet still compiles. Sending
+   * without it is worse in two ways that are easy to miss until they bite. A
+   * multipart message with no text part is a bulk-mail signature to every
+   * major spam filter, and a text-only client shows an empty body rather than
+   * a degraded one.
+   */
+  text?: string;
   /** Where a reply should land, when it is not the sending address. */
   replyTo?: string;
 };
@@ -107,6 +119,9 @@ export async function sendEmail(message: SendEmailMessage): Promise<SendEmailRes
         to: [to],
         subject: message.subject,
         html: message.html,
+        ...(typeof message.text === "string" && message.text.length > 0
+          ? { text: message.text }
+          : {}),
         ...(ADDRESS_RE.test(replyTo) ? { reply_to: replyTo } : {}),
       }),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -135,6 +150,30 @@ export async function sendEmail(message: SendEmailMessage): Promise<SendEmailRes
   }
 
   return { sent: true, id: typeof body?.id === "string" ? body.id : null };
+}
+
+/**
+ * Send a catalogue message to one person.
+ *
+ * The one-liner every send site should use. It exists because the alternative,
+ * spreading a message into sendEmail by hand, is how the text alternative gets
+ * left off: `{ to, subject: m.subject, html: m.html }` compiles perfectly and
+ * silently drops the part that keeps the mail out of spam. Passing the whole
+ * message means a field added to the catalogue reaches the wire without every
+ * call site being edited again.
+ */
+export async function sendMessage(
+  to: string,
+  message: { subject: string; html: string; text: string },
+  options?: { replyTo?: string },
+): Promise<SendEmailResult> {
+  return sendEmail({
+    to,
+    subject: message.subject,
+    html: message.html,
+    text: message.text,
+    ...(options?.replyTo ? { replyTo: options.replyTo } : {}),
+  });
 }
 
 /**

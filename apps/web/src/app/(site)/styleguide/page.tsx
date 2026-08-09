@@ -47,14 +47,14 @@ function Section({
 }) {
   const id = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   return (
-    <section aria-labelledby={id} className="mt-12 first:mt-0">
+    <section aria-labelledby={id} className="mt-section first:mt-0">
       <h2 id={id} className="nf-h2">
         {title}
       </h2>
-      <p className="mt-2 max-w-[62ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-inline max-w-[62ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
         {blurb}
       </p>
-      <div className="mt-5">{children}</div>
+      <div className="mt-heading">{children}</div>
     </section>
   );
 }
@@ -70,7 +70,7 @@ function SwatchRow({
   kind: "surface" | "text" | "border";
 }) {
   return (
-    <li className="flex items-center gap-4 border-b border-[var(--nf-border-subtle)] py-3 last:border-b-0">
+    <li className="flex items-center gap-group border-b border-[var(--nf-border-subtle)] py-row last:border-b-0">
       <span
         aria-hidden="true"
         className="h-11 w-11 shrink-0 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-default)]"
@@ -92,7 +92,7 @@ function SwatchRow({
         <code className="block text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
           {name}
         </code>
-        <span className="mt-0.5 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <span className="mt-inline-tight block text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
           {note}
         </span>
       </span>
@@ -129,11 +129,11 @@ const ICONS: UiIconName[] = [
 
 export default function StyleguidePage() {
   return (
-    <div className="nf-shell py-10 sm:py-14">
+    <div className="nf-shell py-section">
       <header className="max-w-[62ch]">
         <span className="nf-overline">Internal</span>
-        <h1 className="nf-h1 mt-3">Styleguide</h1>
-        <p className="mt-4 text-[1.0625rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <h1 className="nf-h1 mt-row">Styleguide</h1>
+        <p className="mt-group text-[1.0625rem] leading-relaxed text-[var(--nf-content-secondary)]">
           Every swatch here paints its own token rather than a copied value, so
           this page cannot drift from the sheet it documents. Switch the theme
           and it all moves with you, which is the point: these are the same
@@ -145,7 +145,7 @@ export default function StyleguidePage() {
         title="Surfaces"
         blurb="Planes, lowest to highest. A card does not sit on the canvas by having a lighter hex value; it sits on it by using the next surface up. Reach for the next one rather than inventing a shade between two."
       >
-        <ul className="nf-card p-4 sm:p-5">
+        <ul className="nf-card p-card-sm">
           {SURFACES.map((s) => (
             <SwatchRow key={s.name} {...s} kind="surface" />
           ))}
@@ -156,7 +156,7 @@ export default function StyleguidePage() {
         title="Text"
         blurb="Four weights of emphasis and one for brand fills. Muted is for counts and captions and never for a sentence somebody has to act on, because it is the only one that does not clear AA at body size on every surface."
       >
-        <ul className="nf-card p-4 sm:p-5">
+        <ul className="nf-card p-card-sm">
           {CONTENT.map((s) => (
             <SwatchRow key={s.name} {...s} kind="text" />
           ))}
@@ -167,7 +167,7 @@ export default function StyleguidePage() {
         title="Brand"
         blurb="One blue family, and that is the whole palette. There is no orange, amber, gold, purple or magenta anywhere on this platform, and a second accent colour is the fastest way to make a product look like two products."
       >
-        <ul className="nf-card p-4 sm:p-5">
+        <ul className="nf-card p-card-sm">
           {BRAND.map((s) => (
             <SwatchRow key={s.name} {...s} kind="surface" />
           ))}
@@ -178,7 +178,7 @@ export default function StyleguidePage() {
         title="Borders"
         blurb="Four edges. Subtle for dividers inside a surface, default for the edge of one, strong when it has to be seen, brand when the control is active."
       >
-        <ul className="nf-card p-4 sm:p-5">
+        <ul className="nf-card p-card-sm">
           {BORDERS.map((s) => (
             <SwatchRow key={s.name} {...s} kind="border" />
           ))}
@@ -189,16 +189,16 @@ export default function StyleguidePage() {
         title="States"
         blurb="Each state is a pair, and it is only correct as a pair. The text colour alone on a card is a coloured word, not a state, and every one of these was measured against its own surface rather than against the page."
       >
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="grid gap-row sm:grid-cols-2">
           {STATES.map((s) => (
             <li
               key={s.name}
-              className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-4"
+              className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card-sm"
               style={{ background: `var(${s.surface})`, color: `var(${s.name})` }}
             >
               <p className="text-[0.9375rem] font-bold">{s.label}</p>
-              <p className="mt-1 text-[0.8125rem] leading-relaxed opacity-90">{s.note}</p>
-              <code className="mt-2 block text-[0.75rem] opacity-80">{s.name}</code>
+              <p className="mt-inline-tight text-[0.8125rem] leading-relaxed opacity-90">{s.note}</p>
+              <code className="mt-inline block text-[0.75rem] opacity-80">{s.name}</code>
             </li>
           ))}
         </ul>
@@ -208,7 +208,7 @@ export default function StyleguidePage() {
         title="Radii"
         blurb="Seven, and nothing between them. A radius typed as a pixel value is the single most common way a card stops matching the card beside it."
       >
-        <ul className="flex flex-wrap gap-4">
+        <ul className="flex flex-wrap gap-group">
           {RADII.map((r) => (
             <li key={r.name} className="w-[9.5rem]">
               <span
@@ -216,10 +216,10 @@ export default function StyleguidePage() {
                 className="block h-16 w-full border border-[var(--nf-border-default)] bg-[var(--nf-surface-secondary)]"
                 style={{ borderRadius: `var(${r.name})` }}
               />
-              <code className="mt-2 block text-[0.75rem] font-semibold text-[var(--nf-content-primary)]">
+              <code className="mt-inline block text-[0.75rem] font-semibold text-[var(--nf-content-primary)]">
                 {r.name.replace("--nf-radius-", "")}
               </code>
-              <span className="mt-0.5 block text-[0.75rem] leading-snug text-[var(--nf-content-muted)]">
+              <span className="mt-inline-tight block text-[0.75rem] leading-snug text-[var(--nf-content-muted)]">
                 {r.note}
               </span>
             </li>
@@ -231,11 +231,11 @@ export default function StyleguidePage() {
         title="Buttons"
         blurb="Six variants and three heights, 40, 48 and 56px. No other button heights exist on this platform. Every one of these is the real primitive, so a variant added to Button appears here and a variant removed breaks this file, which is the right place for that to hurt."
       >
-        <div className="nf-card space-y-5 p-4 sm:p-5">
+        <div className="nf-card space-y-heading p-card-sm">
           {(["sm", "md", "lg"] as const).map((size) => (
             <div key={size}>
-              <p className="nf-overline mb-2.5">{size}</p>
-              <div className="flex flex-wrap items-center gap-3">
+              <p className="nf-overline mb-inline">{size}</p>
+              <div className="flex flex-wrap items-center gap-row">
                 {BUTTON_VARIANTS.map((variant) => (
                   <Button key={variant} variant={variant} size={size}>
                     {variant}
@@ -245,8 +245,8 @@ export default function StyleguidePage() {
             </div>
           ))}
           <div>
-            <p className="nf-overline mb-2.5">Loading and disabled</p>
-            <div className="flex flex-wrap items-center gap-3">
+            <p className="nf-overline mb-inline">Loading and disabled</p>
+            <div className="flex flex-wrap items-center gap-row">
               <Button variant="primary" loading>
                 Working
               </Button>
@@ -262,10 +262,10 @@ export default function StyleguidePage() {
         title="Chips and pills"
         blurb="A chip is a choice a person makes. A status pill is a fact the system states. They look related on purpose and they are never interchangeable: nothing that reports a state should be tappable, and nothing tappable should look like a report."
       >
-        <div className="nf-card space-y-5 p-4 sm:p-5">
+        <div className="nf-card space-y-heading p-card-sm">
           <div>
-            <p className="nf-overline mb-2.5">Chips</p>
-            <div className="flex flex-wrap items-center gap-2">
+            <p className="nf-overline mb-inline">Chips</p>
+            <div className="flex flex-wrap items-center gap-inline">
               <Chip size="sm">Small</Chip>
               <Chip size="md">Medium</Chip>
               <Chip size="md" icon="verified">
@@ -274,8 +274,8 @@ export default function StyleguidePage() {
             </div>
           </div>
           <div>
-            <p className="nf-overline mb-2.5">Status pills</p>
-            <div className="flex flex-wrap items-center gap-2">
+            <p className="nf-overline mb-inline">Status pills</p>
+            <div className="flex flex-wrap items-center gap-inline">
               {STATUS_TONES.map((tone) => (
                 <StatusPill key={tone} tone={tone}>
                   {tone}
@@ -290,20 +290,20 @@ export default function StyleguidePage() {
         title="Loading"
         blurb="Skeletons shaped like the thing that is coming, never a spinner. A spinner says something is happening; a skeleton says what is about to be there, which is the difference between waiting and waiting for something."
       >
-        <div className="nf-card space-y-5 p-4 sm:p-5">
+        <div className="nf-card space-y-heading p-card-sm">
           <div>
-            <p className="nf-overline mb-2.5">Text</p>
+            <p className="nf-overline mb-inline">Text</p>
             <SkeletonText lines={3} />
           </div>
           <div>
-            <p className="nf-overline mb-2.5">Shapes</p>
-            <div className="flex items-center gap-3">
+            <p className="nf-overline mb-inline">Shapes</p>
+            <div className="flex items-center gap-row">
               <Skeleton className="h-11 w-11 rounded-[var(--nf-radius-pill)]" />
               <Skeleton className="h-11 w-40" />
             </div>
           </div>
           <div>
-            <p className="nf-overline mb-2.5">Card</p>
+            <p className="nf-overline mb-inline">Card</p>
             <div className="max-w-sm">
               <SkeletonCard />
             </div>
@@ -315,11 +315,11 @@ export default function StyleguidePage() {
         title="Icons"
         blurb="UiIcon is for navigation and controls: one stroke weight, one 24 box, drawn as paths so they inherit colour and never carry their own. BrandIcon is for content and is a separate tier. Icon3D is retired and must not appear anywhere."
       >
-        <ul className="nf-card grid grid-cols-3 gap-3 p-4 sm:grid-cols-5 sm:p-5 lg:grid-cols-8">
+        <ul className="nf-card grid grid-cols-3 gap-row p-card-sm sm:grid-cols-5 lg:grid-cols-8">
           {ICONS.map((name) => (
             <li
               key={name}
-              className="flex flex-col items-center gap-2 rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-secondary)] px-2 py-3 text-center"
+              className="flex flex-col items-center gap-inline rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-secondary)] px-inline py-row text-center"
             >
               <UiIcon name={name} size={20} />
               <code className="text-[0.6875rem] leading-tight text-[var(--nf-content-muted)]">
@@ -343,7 +343,7 @@ export default function StyleguidePage() {
                 "linear-gradient(120deg, var(--nf-brand-primary), var(--nf-surface-canvas) 70%)",
             }}
           />
-          <div className="nf-glass absolute inset-x-4 bottom-4 rounded-[var(--nf-radius-md)] px-4 py-3">
+          <div className="nf-glass absolute inset-x-4 bottom-4 rounded-[var(--nf-radius-md)] px-group py-row">
             <p className="text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
               nf-glass
             </p>
@@ -358,7 +358,7 @@ export default function StyleguidePage() {
         title="Targets"
         blurb="Every interactive element is at least 44px in both directions. A control may be painted smaller than that, and several are, but the target it accepts a press on never is: the extra area comes from a pseudo-element rather than from inflating the box, so a 36px chip still catches a thumb."
       >
-        <div className="nf-card flex flex-wrap items-center gap-4 p-4 sm:p-5">
+        <div className="nf-card flex flex-wrap items-center gap-group p-card-sm">
           <span className="grid h-11 w-11 place-items-center rounded-[var(--nf-radius-md)] border border-dashed border-[var(--nf-border-strong)] text-[0.6875rem] text-[var(--nf-content-muted)]">
             44
           </span>

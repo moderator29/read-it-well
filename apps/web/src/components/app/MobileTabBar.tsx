@@ -4,22 +4,46 @@ import type { Dictionary } from "@naijafinds/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
- * Mobile tab bar.
+ * The bottom tab bar.
  *
- * Six destinations: District, Explore, Map, Inbox and the Assistant in the
- * capsule, with Profile standing alone beside it. This is deliberately NOT the
- * twelve item desktop rail; the rail's remaining destinations live under
- * Profile rather than being crammed in here.
+ * ---------------------------------------------------------------------------
+ * THE EXACT CHANGE, AS ASKED FOR, IN THE ORDER IT WAS ASKED FOR.
  *
- * A floating dock, lifted clear of every edge rather than an edge-to-edge bar:
- * same shape language as the desktop dock, just wide enough to carry primary
- * navigation instead of quick-access shortcuts.
+ *   was      Feed    Explore   Map    Messages   Assistant    + Profile
+ *   no map   Feed    Explore   __     Messages   Assistant    + Profile
+ *   home in  Feed    Explore   Home   Messages   Assistant    + Profile
+ *   swap     Home    Explore   Feed   Messages   Assistant    + Profile
  *
+ * THE MAP TAB IS GONE. It pointed at `/search?view=map`, the same pathname
+ * Explore owns, so the two could never both resolve their active state
+ * correctly - and more to the point a map is a VIEW OF discovery, not a peer
+ * destination beside it. The search screen already carries `ViewToggle`, which
+ * is the control a view switch belongs to.
+ *
+ * HOME TOOK THE SLOT and then Home and Feed exchanged places, which is what
+ * puts Home first. That ordering is also the rail's: Home, Explore, Feed, in
+ * that order, in both places. Before this the dock led with Feed and the rail
+ * led with Home, so the two disagreed about what the product opens on.
+ *
+ * THE ASSISTANT TAB IS GONE TOO, for a different reason. It was here, in the
+ * app header as a permanently filled primary button, and as a rail row: three
+ * placements for one feature. It keeps exactly one, the side navigation, which
+ * on this viewport is the drawer behind the header's menu control.
+ *
+ * SIGNED OUT IT IS THREE AND A DOOR. Bookings, a wallet and an inbox all lead
+ * to the same sign-up screen for a guest, so offering them teaches somebody
+ * that this bar wastes taps. A guest gets the three surfaces they can genuinely
+ * read, and the island becomes the way to join.
+ *
+ * BIGGER, throughout. The glyphs are on the `lg` step, which moved from 24 to
+ * 28 with the scale, the labels are 13px rather than 11, and the row is taller.
+ * The owner asked for navigation that reads as deliberate and tappable rather
+ * than as a dense toolbar, and a dock is where that is felt first.
+ *
+ * A floating dock lifted clear of every edge rather than an edge-to-edge bar.
  * The active tab expands into a labelled capsule while the rest stay icon-only,
  * and because the outgoing label collapses on the same spring the incoming one
- * expands on, the highlight reads as travelling along the bar. Labels used to
- * be spoken only, which kept the dock compact but meant a sighted user had no
- * idea what any glyph meant until they tapped it.
+ * expands on, the highlight reads as travelling along the bar.
  */
 type Tab = { href: string; label: string; icon: UiIconName };
 
@@ -45,6 +69,7 @@ export const TAB_BAR_ROUTES = [
   "/search",
   "/messages",
   "/profile",
+  "/saved",
   /*
    * `/assistant` is deliberately NOT here even though it is a dock
    * destination. It is an immersive route - it owns the whole viewport with
@@ -63,55 +88,40 @@ export function MobileTabBar({
   t,
   active = "/home",
   unreadNotifications = 0,
+  signedIn = false,
 }: {
   t: Dictionary;
   active?: string;
   /**
    * Unread notifications for this caller. The dock carries no Notifications
-   * destination of its own, because six targets is already the ceiling on a
-   * phone, so the marker sits on Profile, which is where the rail's remaining
-   * destinations live. A dot rather than a number: at this size a numeral is
-   * unreadable, and the job here is only to say "something is in there".
+   * destination of its own, so the marker sits on the island, which is where
+   * the rail's remaining destinations live. A dot rather than a number: at this
+   * size a numeral is unreadable, and the job here is only to say "something is
+   * in there".
    */
   unreadNotifications?: number;
+  /** No session means no inbox, no profile, and an island that opens the door. */
+  signedIn?: boolean;
 }) {
   /*
-   * Four in the capsule, Profile alone on the right.
-   *
-   * Profile is the one pulled out: it is the only destination about the user
-   * rather than about inventory, and holding it apart keeps the capsule at four
-   * so the active label has room to expand on a narrow phone.
-   *
-   * The map tab is gone from the dock. It pointed at `/search?view=map`, the
-   * same pathname Explore already owns, so the two could never both resolve
-   * their active state - and the search screen carries its own map toggle,
-   * which is where that control belongs. Its slot goes to the assistant, which
-   * is the thing this product has that a listings app does not.
+   * The same first three the rail leads with, in the same order, followed by
+   * the inbox. Four is the ceiling on a narrow phone once the active tab
+   * expands into a labelled capsule.
    */
   const tabs: Tab[] = [
-    /* "Feed", not "Around". The owner's word for the destination, and the
-       destination changed under it: this tab used to open a directory of
-       places and now opens a timeline. The icon does not change - people
-       find a tab by its shape long before they read its label. */
-    { href: "/around", label: t.nav.feed, icon: "grid" },
+    { href: "/home", label: t.nav.home, icon: "home" },
     { href: "/search", label: t.nav.explore, icon: "compass" },
-    /*
-     * The map is back, as an ordinary tab rather than the raised centre button
-     * it used to be. Raised meant a 56px circle with a printed label in a row
-     * of 48px glyphs, which is what "bold and too small" describes: heavier
-     * than everything beside it and carrying 9px type nobody can read.
-     *
-     * It points at ?view=map on the search route, so `showsTabBar` keys off
-     * /search for both this and Explore.
-     */
-    { href: "/search?view=map", label: t.nav.map, icon: "map" },
-    { href: "/messages", label: t.nav.messages, icon: "chat-bubble" },
-    { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+    { href: "/around", label: t.nav.feed, icon: "grid" },
+    ...(signedIn ? [{ href: "/messages", label: t.nav.messages, icon: "chat-bubble" } as Tab] : []),
   ];
-  const profile: Tab = { href: "/profile", label: t.nav.profile, icon: "user" };
-  const profileActive = profile.href === active;
-  /* Profile is the way through to notifications on a phone. */
-  const marked = unreadNotifications > 0;
+
+  /* Profile for a member, the way in for a guest. One slot, two honest jobs. */
+  const island: Tab = signedIn
+    ? { href: "/profile", label: t.nav.profile, icon: "user" }
+    : { href: "/sign-up", label: t.common.signUp, icon: "user" };
+  const islandActive = island.href === active;
+  /* The island is the way through to notifications on a phone. */
+  const marked = signedIn && unreadNotifications > 0;
 
   return (
     <AutoHideDock
@@ -124,8 +134,7 @@ export function MobileTabBar({
        * on exactly the devices that need it: on a notched iPhone the bottom
        * inset is 34px, so max() returned the inset and the dock landed flush on
        * the home indicator with zero visual gap. Adding the inset to the margin
-       * keeps real air below it on every device. Sits low and close to the
-       * home indicator by design - it is a dock, not a floating panel.
+       * keeps real air below it on every device.
        */
       className="nf-dockrow fixed inset-x-4 bottom-[calc(0.35rem+env(safe-area-inset-bottom))] z-50 lg:hidden"
     >
@@ -142,17 +151,13 @@ export function MobileTabBar({
                 className={[
                   "nf-tab-pop",
                   isActive
-                    ? "text-white"
+                    ? "text-[var(--nf-content-on-brand)]"
                     : "text-[var(--nf-content-primary)] opacity-75 hover:opacity-100",
                 ].join(" ")}
               >
                 <span className="nf-tab-pop__pill" aria-hidden="true" />
                 <span className="nf-tab-pop__icon">
-                  <UiIcon
-                    name={tab.icon}
-                    size="lg"
-                    filled={isActive}
-                  />
+                  <UiIcon name={tab.icon} size="lg" filled={isActive} />
                 </span>
                 {/*
                   The label is always in the DOM, so it is always available to a
@@ -170,33 +175,27 @@ export function MobileTabBar({
 
       {/*
         The detached island. Its own material, its own blur, its own shadow.
-        It carries the unread marker too, because Profile is the way through to
-        notifications on a phone and the island is the only target here that is
-        about the person rather than about inventory.
       */}
       <Link
-        href={profile.href}
-        aria-current={profileActive ? "page" : undefined}
+        href={island.href}
+        aria-current={islandActive ? "page" : undefined}
         /* One dictionary sentence with both slots, not a translated noun with
-           an English tail welded on. The old version also inflected the plural
-           by appending "s", which is an English rule: Yoruba, Hausa and Igbo do
-           not mark a plural noun that way, so it produced a word that exists in
-           no language on the platform. */
+           an English tail welded on. */
         aria-label={
           marked
             ? t.a11y.unreadOn
-                .replace("{label}", profile.label)
+                .replace("{label}", island.label)
                 .replace("{count}", String(unreadNotifications))
-            : profile.label
+            : island.label
         }
         className={[
           "nf-dock-island relative",
-          profileActive ? "" : "opacity-90 hover:opacity-100",
+          islandActive ? "" : "opacity-90 hover:opacity-100",
         ]
           .filter(Boolean)
           .join(" ")}
       >
-        <UiIcon name={profile.icon} size="lg" />
+        <UiIcon name={island.icon} size="lg" />
         {marked && (
           <span
             aria-hidden="true"

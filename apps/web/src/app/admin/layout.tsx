@@ -47,38 +47,44 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <div className="flex min-h-dvh">
+      {/*
+        The gutter is `--nf-pad-shell` through `px-gutter`, which is a clamp:
+        the rail, the header and the page body all breathe from 20px on a phone
+        to 32px on a desktop, continuously. It used to be `px-4 sm:px-5 md:px-8`
+        written out three times, which is the same intent expressed as two
+        jumps at two breakpoints, and the three copies had already drifted apart
+        by a step.
+      */}
       <aside
-        className="sticky top-0 hidden h-dvh w-[var(--nf-rail-width)] shrink-0 flex-col border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 py-5 lg:flex"
+        className="sticky top-0 hidden h-dvh w-[var(--nf-rail-width)] shrink-0 flex-col border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-gutter py-lg lg:flex"
         aria-label={t.admin.console.navLabel}
       >
-        <Link href="/" aria-label={t.a11y.logoHome} className="mb-2 px-1">
+        <Link href="/" aria-label={t.a11y.logoHome} className="mb-inline-tight">
           <Logo size={38} wordSize={19} />
         </Link>
-        <AdminPill label={t.admin.console.title} className="mb-5 ml-1" />
+        <AdminPill label={t.admin.console.title} className="mb-heading" />
         <AdminRail
           counts={badges}
           labels={t.admin.nav}
           navLabel={t.admin.console.navLabel}
         />
-        <p className="mt-4 px-1 text-[0.6875rem] leading-relaxed text-[var(--nf-content-muted)]">
-          {t.admin.console.auditNote}
-        </p>
+        <p className="nf-caption mt-group">{t.admin.console.auditNote}</p>
       </aside>
 
       <main id="main" className="min-w-0 flex-1">
         <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
-          <div className="flex h-[60px] items-center gap-2 px-4 sm:h-[64px] sm:gap-4 sm:px-5 md:px-8">
+          <div className="flex h-[60px] items-center gap-inline px-gutter sm:h-[64px]">
             <BackButton fallback="/home" className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
             <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
               <LogoMark size={30} />
             </Link>
             <AdminPill label={t.admin.console.title} />
             <span className="flex-1" />
-            <span className="hidden truncate text-[0.8125rem] text-[var(--nf-content-muted)] sm:block">
+            <span className="nf-body-sm hidden truncate text-muted sm:block">
               {access.user.email ?? t.admin.console.signedIn}
             </span>
           </div>
-          <div className="px-4 sm:px-5 md:px-8">
+          <div className="px-gutter">
             <AdminTabs
               counts={badges}
               labels={t.admin.nav}
@@ -87,7 +93,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           </div>
         </header>
 
-        <div className="px-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-5 sm:px-5 md:px-8 md:pt-7 lg:pb-10">
+        <div className="px-gutter pb-[calc(var(--nf-space-2xl)+env(safe-area-inset-bottom))] pt-lg md:pt-xl">
           {children}
         </div>
       </main>
@@ -100,10 +106,15 @@ function AdminPill({ label, className }: { label: string; className?: string }) 
   return (
     <span
       className={[
-        "inline-flex w-fit items-center gap-1.5 rounded-[var(--nf-radius-pill)] px-2.5 py-1 text-[0.6875rem] font-bold",
+        "nf-caption inline-flex w-fit items-center gap-2xs rounded-[var(--nf-radius-pill)] px-xs py-3xs font-bold",
         className ?? "",
       ].join(" ")}
-      style={{ background: "var(--nf-brand-primary-soft)", color: "var(--nf-electric-300)" }}
+      /* `--nf-brand-secondary` is the layer-2 alias this pill should always
+         have used: it is the same token `.nf-badge--brand` reads for the same
+         job, so the console marker and every brand badge beside it now move
+         together, and it carries a daylight value where the raw palette rung
+         did not. */
+      style={{ background: "var(--nf-brand-primary-soft)", color: "var(--nf-brand-secondary)" }}
     >
       <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--nf-brand-primary)]" />
       {label}

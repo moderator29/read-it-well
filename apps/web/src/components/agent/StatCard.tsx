@@ -1,4 +1,5 @@
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * Agent dashboard stat tile.
@@ -79,15 +80,7 @@ export function StatCard({
             className="nf-numeric inline-flex items-center gap-1 font-semibold"
             style={{ color: up ? "var(--nf-state-success)" : "var(--nf-state-error)" }}
           >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d={up ? "M12 5v14M6 11l6-6 6 6" : "M12 19V5M6 13l6 6 6-6"}
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <UiIcon name={up ? "arrow-up" : "arrow-down"} size="xs" />
             {up ? "+" : ""}
             {deltaPct}%
           </span>

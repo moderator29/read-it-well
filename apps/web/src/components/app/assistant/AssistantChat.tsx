@@ -18,7 +18,6 @@ import {
   type Language,
   type Tone,
 } from "./AssistantSidebar";
-import { CloseGlyph, HistoryGlyph } from "./glyphs";
 import {
   clearStoredThreads,
   deriveTitle,
@@ -440,7 +439,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
             onClick={openHistory}
             className="nf-icon-btn h-9 w-9 lg:hidden"
           >
-            <HistoryGlyph size={17} />
+            <UiIcon name="history" size={17} />
           </button>
         }
       />
@@ -488,7 +487,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
               if (m.role === "user") {
                 return (
                   <div key={m.id} className="nf-rise flex justify-end">
-                    <p className="max-w-[85%] rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-4 py-2.5 text-[0.9rem] leading-relaxed text-white">
+                    <p className="max-w-[85%] rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-4 py-2.5 text-[0.9rem] leading-relaxed text-[var(--nf-content-on-brand)]">
                       {m.text}
                     </p>
                   </div>
@@ -615,7 +614,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
             type="button"
             aria-label="Close conversation history"
             onClick={closeHistory}
-            className={`absolute inset-0 bg-black/60 transition-opacity duration-200 ${
+            className={`absolute inset-0 bg-[var(--nf-overlay-backdrop)] transition-opacity duration-200 ${
               historyShown ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -636,7 +635,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
                 onClick={closeHistory}
                 className="nf-icon-btn h-9 w-9"
               >
-                <CloseGlyph size={16} />
+                <UiIcon name="close" size={16} />
               </button>
             </div>
             <div className="min-h-0 flex-1">{sidebar()}</div>

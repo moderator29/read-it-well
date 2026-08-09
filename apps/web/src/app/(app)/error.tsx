@@ -35,7 +35,7 @@ export default function AppError({
   useEffect(() => {
     /* Console until observability lands, matching the root boundary. The full
        error object goes here and nowhere near the rendered output. */
-    console.error("[naijafinds] app route error", error);
+    console.error("[rentme] app route error", error);
   }, [error]);
 
   return (

@@ -47,10 +47,7 @@ export function AgentRail({
         sections={buildAgentNav(t, unreadMessages)}
         active={active}
         label={t.agent.mode.workspaceLabel}
-        storageKey="nf_agent_nav_open"
         accent="agent"
-        expandLabel={t.a11y.expand}
-        collapseLabel={t.a11y.collapse}
       />
 
       {/* Identity card plus switch back to Personal Mode. */}

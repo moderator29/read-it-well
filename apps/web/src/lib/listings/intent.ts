@@ -46,9 +46,8 @@ export function hasOwnRequest(query: DiscoveryQuery): boolean {
  * Matching kinds first, everything else after, order preserved inside both.
  *
  * A stable partition rather than a sort: the repository's own order is
- * meaningful (first-party inventory before partner stock, featured before the
- * rest, newest before older) and a comparator that only knows about intent
- * would scramble it. Partitioning moves whole groups and leaves the ranking
+ * meaningful (featured before the rest, newest before older) and a comparator
+ * that only knows about intent would scramble it. Partitioning moves whole groups and leaves the ranking
  * within each group exactly as it arrived.
  *
  * Returns the SAME array instance when there is nothing to do - no intent, an

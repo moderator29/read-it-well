@@ -171,8 +171,9 @@ than looking plausible.
   enlarges anything, and a proper master removes the compromise.
 
 ### Platform
-- [ ] `pg_cron` enabled on Supabase. Still blocking the stale booking hold
-  sweep, badge awarding and gist expiry.
+- [x] **`pg_cron` is enabled**, corrected 2026-08-09. It was installed on
+  2026-08-04 and six jobs are active. This checkbox sat unticked for five days
+  and appears in three other documents; it is not blocking anything.
 
 ---
 

@@ -5,6 +5,7 @@ import { getListingSubmissions, type ListingReviewView } from "@/lib/admin/queri
 import { ListingDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { PERIOD_SUFFIX, SALE_STATUS_LABEL, TENURE_LABEL } from "@/lib/listings/pricing";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -89,8 +90,52 @@ function ListingCard({
           copy.locationMissing}
         {" · "}
         {formatMoney(listing.priceMinor, locale)}{" "}
-        {listing.pricePeriod === "year" ? copy.perYear : copy.perNight}
+        {/* Six possible units now, not two. The dictionary carries the yearly
+            and nightly wordings it was written for; the four the rent-and-sale
+            model added read in English rather than being forced into one of
+            those two, because printing "per night" beside an asking price is
+            worse than printing an untranslated phrase. */}
+        {listing.pricePeriod === "year"
+          ? copy.perYear
+          : listing.pricePeriod === "night"
+            ? copy.perNight
+            : PERIOD_SUFFIX[listing.pricePeriod]}
+        {listing.intent === "sale" && listing.tenure ? (
+          <>
+            {" · "}
+            {TENURE_LABEL[listing.tenure]}
+          </>
+        ) : null}
       </p>
+
+      {/*
+        What a tenant actually has to find, itemised.
+
+        The reviewer approving a listing is the last person who can catch a
+        4.5m yearly rent that quietly costs seven million at the door, and
+        until now this screen showed them one figure and no breakdown at all.
+      */}
+      {listing.moveIn && (
+        <div className="mt-2 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3">
+          <p className="text-[0.75rem] font-semibold text-[var(--nf-content-primary)]">
+            To move in: {formatMoney(listing.moveIn.totalMinor, locale)}
+            <span className="ml-1.5 font-normal text-[var(--nf-content-muted)]">
+              {listing.moveIn.totalStated ? "as stated" : "summed from the parts"}
+            </span>
+          </p>
+          <ul className="mt-1.5 space-y-0.5">
+            {listing.moveIn.parts.map((part) => (
+              <li
+                key={part.key}
+                className="flex justify-between gap-3 text-[0.75rem] text-[var(--nf-content-secondary)]"
+              >
+                <span>{part.label}</span>
+                <span className="nf-numeric">{formatMoney(part.minor, locale)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {listing.photos.length > 0 && (
         <div className="nf-scroll-x -mx-1 mt-3 px-1">
@@ -129,15 +174,24 @@ function ListingCard({
 
       <ui.DetailSection title={copy.submission}>
         <ui.DetailRow label={f.agent} value={listing.agentName} />
+        {/* Guests and beds are no longer columns, so the dictionary's four-slot
+            capacity sentence cannot be filled. Two facts stated plainly beat
+            four with two of them invented. */}
         <ui.DetailRow
           label={f.capacity}
-          value={fill(copy.capacity, {
-            guests: listing.maxGuests,
-            bedrooms: listing.bedrooms,
-            beds: listing.beds,
-            bathrooms: listing.bathrooms,
-          })}
+          value={`${listing.bedrooms} bedrooms, ${listing.bathrooms} bathrooms`}
         />
+        {listing.intent === "sale" && (
+          <ui.DetailRow
+            label="Sale"
+            value={[
+              listing.tenure ? TENURE_LABEL[listing.tenure] : "No title stated",
+              listing.saleStatus ? SALE_STATUS_LABEL[listing.saleStatus] : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          />
+        )}
         <ui.DetailRow label={f.address} value={listing.address} />
         <ui.DetailRow
           label={f.amenities}

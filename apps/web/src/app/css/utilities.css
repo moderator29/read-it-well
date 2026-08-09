@@ -6,6 +6,69 @@
  * the cascade: do not move this one.
  */
 @layer components {
+  /*
+   * ------------------------------------------------------- VERTICAL RHYTHM
+   *
+   * The two primitives that carry the spacing scale into markup, and the
+   * answer to the oldest complaint on this platform: that the product feels
+   * choked, jam-packed and different from one screen to the next.
+   *
+   * It was never a per-screen problem. There was no scale, so every screen
+   * settled its own rhythm from scratch: 4,115 numeric spacing utilities
+   * across 34 distinct steps, and 47 distinct literal values inside these
+   * stylesheets. Fixing one screen by hand cannot fix that, because the next
+   * screen still has nothing to agree WITH. See the SPACE block in tokens.css
+   * for the ladder and the intervals these draw from.
+   *
+   * `.nf-section` is the air around a section. One interval, fluid, so the
+   * page does not jump at 640px and no screen can hold a private opinion
+   * about how much room a section gets.
+   *
+   * `.nf-stack` is the air inside one. It sets the interval once on the
+   * container and every child inherits it, which is what stops a column of
+   * six things carrying six separately-typed margins. It uses `* + *` rather
+   * than `gap` on purpose: it composes with prose, with `display: block`, and
+   * with children that are already flex or grid themselves, none of which a
+   * flex parent with a gap does without changing the layout underneath it.
+   *
+   * The modifier IS the design decision, and it is legible in the markup:
+   * `nf-stack--block` between blocks, `nf-stack--heading` under a heading,
+   * `nf-stack--row` between rows. A reviewer can see what was meant.
+   */
+  .nf-section {
+    padding-block: var(--nf-gap-section);
+  }
+
+  .nf-section--tight {
+    padding-block: var(--nf-gap-section-tight);
+  }
+
+  /* The gap between two sections when neither one owns padding: a rule for
+     the boundary rather than for the box on either side of it. */
+  .nf-section + .nf-section {
+    padding-block-start: var(--nf-space-0);
+  }
+
+  .nf-stack > * + * {
+    margin-block-start: var(--nf-stack-gap, var(--nf-gap-group));
+  }
+
+  .nf-stack--block {
+    --nf-stack-gap: var(--nf-gap-block);
+  }
+  .nf-stack--heading {
+    --nf-stack-gap: var(--nf-gap-heading);
+  }
+  .nf-stack--group {
+    --nf-stack-gap: var(--nf-gap-group);
+  }
+  .nf-stack--row {
+    --nf-stack-gap: var(--nf-gap-row);
+  }
+  .nf-stack--tight {
+    --nf-stack-gap: var(--nf-gap-inline);
+  }
+
   /* ------------------------------------------------------------- utilities */
 
   /*
@@ -39,7 +102,7 @@
    */
   .nf-queue-list {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--nf-gap-row);
   }
   @media (min-width: 1280px) {
     .nf-queue-list {
@@ -48,16 +111,20 @@
     }
   }
 
+  /*
+   * The page gutter.
+   *
+   * It was 1.25rem with a media query stepping it to 2rem at 768px, which is a
+   * gutter that JUMPS by 12px at one width and holds still either side of it.
+   * `--nf-pad-shell` is a clamp, so the gutter grows continuously from 20px on
+   * a phone to 32px on a desktop and there is no breakpoint at which the page
+   * visibly reflows its margins. The media query is gone with it.
+   */
   .nf-shell {
     width: 100%;
     max-width: var(--nf-content-max);
     margin-inline: auto;
-    padding-inline: 1.25rem;
-  }
-  @media (min-width: 768px) {
-    .nf-shell {
-      padding-inline: 2rem;
-    }
+    padding-inline: var(--nf-pad-shell);
   }
 
   /*
@@ -88,5 +155,488 @@
   }
   .nf-scroll-x::-webkit-scrollbar {
     display: none;
+  }
+
+  /*
+   * ------------------------------------------------------------ ROW LISTS
+   *
+   * The pattern that replaces a stack of cards, and the single biggest lever
+   * on the "too many containers" complaint.
+   *
+   * A list of five settings, five wallet actions or five profile rows drawn as
+   * five cards is five borders, five shadows and five rounded rectangles for
+   * information that is one thing with five parts. Drawn as one surface with
+   * hairline dividers it is one border, no shadows, and the eye reads it as a
+   * group instead of as five competing objects. It is what both reference
+   * platforms use for essentially every list they have, and it is why their
+   * screens look calm while carrying the same number of options as ours.
+   *
+   * WHY --nf-divider AND NOT --nf-border-subtle. They were the same call site
+   * for a long time: border-subtle appears 138 times doing both jobs, while
+   * the divider token existed and was used three times. They are not the same
+   * job. A BORDER bounds a surface and has to hold its edge against whatever
+   * is behind it. A DIVIDER separates peers INSIDE a surface and should be the
+   * quietest line that still reads as a line, because it is dividing things
+   * that already belong together. Making them one value means either the
+   * container edge is too faint or every row separator is too loud, and this
+   * codebase had chosen the second.
+   *
+   * The first and last dividers are deliberately absent: a line immediately
+   * inside the container's own edge is two lines a couple of pixels apart.
+   */
+  .nf-rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nf-rows > * + * {
+    border-top: 1px solid var(--nf-divider);
+  }
+
+  /*
+   * A SECOND `.nf-rows--inset` USED TO SIT HERE, AND IT WAS DRAWING A 2PX
+   * DIVIDER ON EVERY GROUPED LIST IN THE PRODUCT.
+   *
+   * This file declared `.nf-rows--inset` twice, roughly a hundred lines apart,
+   * and the two disagreed about how to draw the line. The first gave the
+   * pseudo-element `border-top: 1px solid var(--nf-divider)`; the second gave
+   * it `height: 1px; background: var(--nf-divider)`. Neither reset the other,
+   * because they set different properties, so both applied: a 1px background
+   * band with a 1px border on top of it, which is a 2px rule everywhere the
+   * pattern is used. The two also named different inset variables
+   * (`--nf-row-inset` against `--nf-row-divider-lead`) and different lead
+   * values (2.375rem against 3.25rem), so the first one's variable was
+   * settable and did nothing.
+   *
+   * A hairline drawn at double weight is exactly the "busy" reading this
+   * pattern exists to remove: it is the difference between one object with
+   * parts and a stack of separate bars. There is now one declaration, below,
+   * and the inset is on the spacing scale.
+   *
+   * One row. Generous by default, because these are touch targets before they
+   * are text: 56px minimum is the comfortable end of the accessible range
+   * rather than the 44px floor, and this product is used one-handed on a
+   * phone.
+   */
+  .nf-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    min-height: 3.5rem;
+    padding-block: var(--nf-pad-row-block);
+  }
+
+  /*
+   * A row that goes somewhere. The whole row is the target, not the label
+   * inside it, which is the difference between a list that feels considered
+   * and one that makes you aim.
+   */
+  .nf-row--tap {
+    cursor: pointer;
+    border-radius: var(--nf-radius-sm);
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  @media (hover: hover) {
+    .nf-row--tap:hover {
+      background-color: var(--nf-interactive-hover);
+    }
+  }
+
+  .nf-row--tap:active {
+    background-color: var(--nf-interactive-active);
+  }
+
+  /* No reduced-motion block here on purpose: every --nf-duration-* token
+     already collapses to 1ms under prefers-reduced-motion in tokens.css, so
+     this transition resolves immediately without a second rule claiming
+     responsibility for it. */
+
+  /*
+   * ONE SURFACE PER GROUP, NOT ONE PER ITEM.
+   *
+   * This is the container philosophy the reference platform runs on, and it is
+   * a different idea from "use fewer boxes". Their settings screen puts account
+   * information, profile switching, payments and history inside a SINGLE
+   * rounded surface with hairline rules between them. Ours would have drawn
+   * four cards. They end up with two or three surfaces on a screen where we
+   * have eight or nine, and that ratio is most of why their screens feel calm
+   * while carrying the same number of options.
+   *
+   * Usage: an .nf-card wrapping .nf-rows--inset, with the section label OUTSIDE
+   * the card above it. The card holds content and never a heading, because a
+   * heading inside a surface costs a line of padding and makes the surface look
+   * busier than its contents are.
+   */
+
+  /*
+   * The inset divider, which is the detail that does the work.
+   *
+   * A rule between two rows must NOT run to the container's edges. It starts
+   * after the row's leading icon and stops before its trailing chevron. Run to
+   * the edge and a list reads as stacked strips that happen to be adjacent;
+   * inset, the same list reads as one object with parts. It is a few pixels and
+   * it changes what the eye groups.
+   *
+   * The lead is a variable so a caller can align it to whatever leading element
+   * the rows actually carry: an icon in a circle, a bare glyph, or nothing.
+   */
+  .nf-rows--inset {
+    /* The glyph column: a 32px leading tile plus the row's own gap. Both are
+       scale values now, so a surface that changes its row gap keeps its
+       dividers aligned to the glyph without anybody re-measuring. */
+    --nf-row-divider-lead: calc(2rem + var(--nf-gap-row));
+    --nf-row-divider-tail: var(--nf-space-0);
+  }
+
+  .nf-rows--inset > * + * {
+    border-top: 0;
+    position: relative;
+  }
+
+  .nf-rows--inset > * + *::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: var(--nf-row-divider-lead);
+    inset-inline-end: var(--nf-row-divider-tail);
+    inset-block-start: 0;
+    height: 1px;
+    background: var(--nf-divider);
+    pointer-events: none;
+  }
+
+  /*
+   * A grouped surface's own padding. Block padding only: the rows supply their
+   * own inline padding so a row's hover and press states reach the full width
+   * of the surface rather than stopping short of it, which is what makes a
+   * whole row feel tappable instead of a region inside it.
+   */
+  .nf-group {
+    padding-block: var(--nf-space-2xs);
+    padding-inline: var(--nf-pad-row-inline);
+  }
+
+  /*
+   * The label above a grouped surface. Outside the container, quiet, and the
+   * only thing between one group and the next.
+   */
+  .nf-group-label {
+    display: block;
+    margin-block-end: var(--nf-gap-inline);
+    padding-inline: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * ----------------------------------------------------------------- CELLS
+   *
+   * The other half of "one surface per group": a group whose parts sit BESIDE
+   * each other rather than under each other.
+   *
+   * `.nf-rows` covers a settings list, where every part is a line. It does not
+   * cover three steps or four promises, which are peers of equal weight that
+   * want to be read across. Drawn as three or four separate cards, those are
+   * three or four borders, three or four shadows and three or four corner
+   * blooms for one idea with parts, which is the exact thing the row list was
+   * built to stop. Drawn as one surface with a hairline between the cells, the
+   * eye reads the group first and the parts second, which is the order they
+   * are meant to be read in.
+   *
+   * The rule turns with the layout. Stacked on a phone it is horizontal; once
+   * the cells sit side by side it is vertical. Both are inset from the
+   * surface's own edges by --nf-cell-inset, for the same reason a row divider
+   * is: a hairline that runs into the container's corner radius puts two lines
+   * a few pixels apart and the surface stops reading as one object.
+   *
+   * The rules are pseudo-elements rather than borders because a border changes
+   * the cell's box and would knock the columns out of alignment by a pixel at
+   * exactly the widths where it matters.
+   */
+  .nf-cells {
+    --nf-cell-inset: var(--nf-space-lg);
+    display: grid;
+  }
+
+  .nf-cells > * {
+    position: relative;
+  }
+
+  .nf-cells > *::before,
+  .nf-cells > *::after {
+    content: "";
+    position: absolute;
+    display: none;
+    background: var(--nf-divider);
+    pointer-events: none;
+  }
+
+  /* ::before is the rule ABOVE a cell. ::after is the rule BEFORE it inline. */
+  .nf-cells > *::before {
+    inset-inline: var(--nf-cell-inset);
+    inset-block-start: 0;
+    height: 1px;
+  }
+
+  .nf-cells > *::after {
+    inset-block: var(--nf-cell-inset);
+    inset-inline-start: 0;
+    width: 1px;
+  }
+
+  /* Three peers: a column on a phone, a row from md. */
+  .nf-cells--trio > * + *::before {
+    display: block;
+  }
+  @media (min-width: 768px) {
+    .nf-cells--trio {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .nf-cells--trio > * + *::before {
+      display: none;
+    }
+    .nf-cells--trio > * + *::after {
+      display: block;
+    }
+  }
+
+  /*
+   * Two peers, read ACROSS at every width.
+   *
+   * The trio and the quad both stack on a phone, because three or four blocks
+   * of prose side by side on 390px is four columns of two words. A pair is
+   * different in kind: two figures that exist to be read against each other -
+   * money in against money out, a before against an after - stop being a
+   * comparison the moment one sits under the other. So this one never stacks,
+   * and it is sized for two short facts rather than two paragraphs.
+   *
+   * The inset is the tight rung rather than the 24px the others take, and that
+   * is the whole reason this needs its own modifier rather than reusing
+   * `--quad`. The vertical rule is inset from the top and bottom of the cell,
+   * and a pair of facts is two lines tall: 24px off each end of a ~50px rule
+   * leaves a couple of pixels of line, which reads as a rendering fault rather
+   * than as a divider.
+   */
+  .nf-cells--pair {
+    --nf-cell-inset: var(--nf-space-2xs);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .nf-cells--pair > * + *::after {
+    display: block;
+  }
+
+  /* Four peers: two up on a phone, four across from lg. */
+  .nf-cells--quad {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .nf-cells--quad > :nth-child(n + 3)::before {
+    display: block;
+  }
+  .nf-cells--quad > :nth-child(2n)::after {
+    display: block;
+  }
+  @media (min-width: 1024px) {
+    .nf-cells--quad {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .nf-cells--quad > :nth-child(n + 3)::before {
+      display: none;
+    }
+    .nf-cells--quad > :nth-child(n + 2)::after {
+      display: block;
+    }
+  }
+
+  /*
+   * ------------------------------------------------------------ THE OPTION
+   *
+   * A choice in a grid of choices: a property type, a listing intent, a
+   * tenure. One of a set, exactly one selected, and it lives INSIDE the
+   * surface the form is already drawn on.
+   *
+   * IT EXISTS BECAUSE THESE WERE `.nf-card`, INSIDE AN `.nf-card`.
+   *
+   * The listing wizard draws each step on one glass surface and then filled
+   * that surface with eight more glass surfaces to pick a property type, and
+   * two more under it to pick an intent. That is the one rule the surface
+   * language has no exceptions to - a raised surface may not contain another
+   * raised surface - and the effect is precisely the "jam-packed" reading:
+   * eleven blurred, rimmed, corner-lit rectangles nested one inside the other
+   * on the screen where somebody is trying to concentrate on typing an
+   * address.
+   *
+   * A card is a discrete OBJECT you could pick up and move somewhere else. An
+   * option is not an object; it is one answer to a question that is already
+   * inside a container. So it takes the INSET treatment: a hairline, the inset
+   * fill, and no shadow, no blur and no rim.
+   *
+   * THE SELECTED STATE IS A STATE, NOT A STYLE PROP. It was two inline `style`
+   * objects, typed out twice in the same file, each setting `borderColor` and
+   * a `boxShadow` ring in the agent accent. Two copies of one decision drift by
+   * definition. It is `[aria-pressed="true"]` here, so the ARIA the control
+   * already had to carry is the same thing that paints it, and a third grid of
+   * options cannot invent a third selected look.
+   */
+  .nf-option {
+    display: block;
+    width: 100%;
+    text-align: start;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+    padding: var(--nf-pad-card-sm);
+    cursor: pointer;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  @media (hover: hover) {
+    .nf-option:hover {
+      border-color: var(--nf-border-strong);
+    }
+  }
+
+  .nf-option[aria-pressed="true"] {
+    border-color: var(--nf-mode-agent);
+    /* A wash rather than a second ring. The ring the inline styles drew was a
+       1px box-shadow sitting directly on top of a 1px border, which is two
+       lines a pixel apart pretending to be one thicker one. */
+    background: color-mix(in oklab, var(--nf-mode-agent) 12%, transparent);
+  }
+
+  .nf-option:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+
+  /*
+   * ------------------------------------------------------- THE FLAT OBJECT
+   *
+   * A category on the marketing site: a drawn glyph with a label under it and
+   * NOTHING around either.
+   *
+   * This row used to be five 3D brand objects, which is the wrong instrument on
+   * this page and right on the one after it. The signature family is warm,
+   * lit, blue-and-white and unmistakably ours, and inside the product that is
+   * exactly what a person should meet. A landing page is read by somebody who
+   * has not decided whether this is a real company yet, and five rendered toys
+   * across the top is the visual grammar of a consumer app store listing rather
+   * than of a business somebody is about to send rent through. The stroked
+   * vector set says the same five things in the register the page needs.
+   *
+   * Still no container. A box around a glyph adds a second edge competing with
+   * the edge the glyph already has, and five of them turn a considered row into
+   * a toolbar. What carries the row instead is SIZE, AIR and one accent on
+   * hover.
+   */
+  .nf-cat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    text-align: center;
+    padding-block: var(--nf-gap-inline);
+    border-radius: var(--nf-radius-md);
+    color: var(--nf-content-primary);
+  }
+
+  .nf-cat__glyph {
+    display: grid;
+    place-items: center;
+    color: var(--nf-content-primary);
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-spring),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  .nf-cat__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.3;
+    color: inherit;
+  }
+
+  /* The label does not change colour on hover. It is already at the primary
+     content colour because it is a destination somebody has to read, and a
+     label that brightens on hover means the resting state was dimmed for the
+     sake of the hover, which is paying for a flourish with legibility. Only the
+     glyph moves. */
+  @media (hover: hover) {
+    .nf-cat:hover .nf-cat__glyph {
+      transform: translateY(-4px);
+      color: var(--nf-brand-accent);
+    }
+  }
+
+  /* Press: the lift collapses THROUGH the resting position rather than back to
+     it, so a tap reads as the object being pushed rather than as the hover
+     simply ending. */
+  .nf-cat:active .nf-cat__glyph {
+    transform: translateY(0) scale(0.92);
+    transition-duration: var(--nf-duration-instant);
+  }
+
+  .nf-cat:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+
+  /*
+   * --------------------------------------------------------- PRESS AND LIFT
+   *
+   * The two halves of "this thing answered me", available to anything that is
+   * not already a button or a card.
+   *
+   * A surface that lifts on hover and does not move on press is only half a
+   * control: the pointer says "you can" and the click says nothing back. On a
+   * phone, where there is no hover at all, press is the ONLY feedback there is,
+   * and most of this platform had none.
+   */
+  .nf-press {
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-press:active {
+    transform: scale(0.97);
+    transition-duration: var(--nf-duration-instant);
+  }
+
+  /*
+   * The quiet secondary: a text link that draws its own underline on hover.
+   *
+   * The reference platforms put ONE filled button on a screen and everything
+   * else is a line of text. Two filled buttons side by side is two primaries,
+   * and a reader has to decide which one the page meant. The rule grows from
+   * the leading edge rather than fading in, which is a smaller and more
+   * deliberate movement than a colour change.
+   */
+  .nf-link-quiet {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-link-quiet::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-end: -0.15rem;
+    height: 1px;
+    width: 100%;
+    background: currentcolor;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-link-quiet:hover {
+    color: var(--nf-content-primary);
+  }
+  .nf-link-quiet:hover::after,
+  .nf-link-quiet:focus-visible::after {
+    transform: scaleX(1);
   }
 }

@@ -136,20 +136,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
             onClick={() => setSheetOpen(true)}
             className="nf-icon-btn h-9 w-9 sm:h-10 sm:w-10"
           >
-            <svg
-              width={18}
-              height={18}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="8.6" />
-              <path d="M12 11.2v5" />
-              <circle cx="12" cy="7.9" r="0.5" fill="currentColor" stroke="none" />
-            </svg>
+            <UiIcon name="info" size="sm" />
           </button>
         }
       />
@@ -179,7 +166,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
           m.author === "guest" ? (
             <div key={m.id} className="nf-rise flex justify-end">
               {/* Deep blue keeps white body text readable at chat sizes. */}
-              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-4 py-2.5 text-white">
+              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-4 py-2.5 text-[var(--nf-content-on-brand)]">
                 {m.image && (
                   /* Object URLs cannot go through the image optimiser. */
                   // eslint-disable-next-line @next/next/no-img-element
@@ -190,7 +177,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
                   />
                 )}
                 {m.body && <p className="text-[0.9rem] leading-relaxed">{m.body}</p>}
-                <p className="nf-numeric mt-1 text-right text-[0.65rem] text-white/70">
+                <p className="nf-numeric mt-1 text-right text-[0.65rem] text-[color-mix(in_oklab,var(--nf-content-on-brand)_72%,transparent)]">
                   {timeLabel(m.sentAt)}
                 </p>
               </div>
@@ -199,7 +186,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
             <div key={m.id} className="nf-rise flex items-end gap-3">
               <span
                 aria-hidden="true"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-electric-300)]"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-brand-secondary)]"
               >
                 {thread.agentName.charAt(0)}
               </span>
@@ -275,21 +262,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
           onClick={() => fileRef.current?.click()}
           className="nf-icon-btn h-11 w-11 shrink-0"
         >
-          <svg
-            width={18}
-            height={18}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <rect x="3.4" y="5" width="17.2" height="14" rx="2.6" />
-            <circle cx="9" cy="10" r="1.7" />
-            <path d="m5 17.6 4.6-4.4 3.2 3 3.4-3.4 3.4 3.6" />
-          </svg>
+          <UiIcon name="picture" size="sm" />
         </button>
         <label htmlFor="thread-input" className="sr-only">
           Message {thread.agentName}

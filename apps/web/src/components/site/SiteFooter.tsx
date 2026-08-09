@@ -1,43 +1,50 @@
 import Link from "next/link";
 import type { Dictionary } from "@naijafinds/i18n";
 import { Logo } from "@/design-system/brand/Logo";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { TrustIcon } from "@/design-system/icons/TrustIcon";
-import { gatedHref } from "@/lib/site/gated-href";
 
 /**
  * Site footer.
  *
  * Sits directly on the canvas with hairlines rather than in a card, the calm
- * close to every marketing page: brand block, four link columns, a language
- * and trust strip, then the copyright line. Columns collapse to two-up on
- * phones so the footer stays tight without becoming a scroll of stacked lists.
+ * close to every marketing page: brand block, four link columns, then the
+ * copyright line. Columns collapse to two-up on phones so the footer stays
+ * tight without becoming a scroll of stacked lists.
+ *
+ * THREE THINGS CAME OFF IT.
+ *
+ * A "VERIFIED LISTINGS" BADGE, a shield glyph in the brand blue with an
+ * absolute claim beside it, sitting under the wordmark as the last thing a
+ * reader met on every page of the site. It is our version of the "100 percent
+ * verified" banner both reference platforms lead with, and it is the same
+ * problem: verification here is a queue somebody is standing in, and one bad
+ * listing turns a badge like that into evidence against us. The claim we can
+ * actually make is made properly, as a sentence, in the Why band.
+ *
+ * A LANGUAGE STRIP of four pills reading EN, YO, HA, IG. The language
+ * SWITCHER is in the header and in the phone panel and it actually changes the
+ * language. Four pills that only announce the languages exist is a fact
+ * restated as decoration, next to the control that does something about it.
+ *
+ * A "MADE FOR AFRICA" PILL, which is an adjective with a flag on it.
+ *
+ * The PRODUCT column was also wrong rather than merely decorative. It listed
+ * Hotels, Apartments, Restaurants and Experiences, which are the categories
+ * this platform stopped having: the hero row, the product home and the search
+ * filters all deal in Rent, Buy, Shortlets, Land and Commercial. A footer
+ * pointing at four `?type=` values the rest of the site no longer uses is four
+ * links to an empty result set.
  */
-
-const LANGUAGES = [
-  { code: "EN", name: "English" },
-  { code: "YO", name: "Yorùbá" },
-  { code: "HA", name: "Hausa" },
-  { code: "IG", name: "Igbo" },
-];
-
-const STORES: { name: "app-store" | "play-store"; eyebrow: string; title: string }[] = [
-  { name: "app-store", eyebrow: "Download on the", title: "App Store" },
-  { name: "play-store", eyebrow: "GET IT ON", title: "Google Play" },
-];
-
-const chipClass =
-  "inline-flex items-center gap-1.5 rounded-full border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-3 py-1.5 text-[0.75rem] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)]";
 
 export function SiteFooter({ t }: { t: Dictionary }) {
   const columns = [
     {
       title: t.landing.footer.product,
       links: [
-        { href: gatedHref("/search?type=hotel"), label: t.nav.hotels },
-        { href: gatedHref("/search?type=property"), label: t.nav.apartments },
-        { href: gatedHref("/search?type=restaurant"), label: t.nav.restaurants },
-        { href: gatedHref("/search?type=experience"), label: t.nav.experiences },
+        { href: "/search?intent=rent", label: t.nav.rent },
+        { href: "/search?intent=sale", label: t.nav.buy },
+        { href: "/search?type=shortlet", label: t.nav.shortlets },
+        { href: "/search?type=land", label: t.nav.land },
+        { href: "/search?type=office", label: t.nav.commercial },
       ],
     },
     {
@@ -72,29 +79,23 @@ export function SiteFooter({ t }: { t: Dictionary }) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="nf-hairline mt-24 bg-[var(--nf-surface-primary)]">
-      <div className="nf-shell pt-14 pb-8 md:pt-16">
+    <footer className="nf-hairline mt-section bg-[var(--nf-surface-primary)]">
+      <div className="nf-shell pt-section pb-block">
         {/* Brand block and link columns */}
-        <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-[1.6fr_repeat(4,1fr)] md:gap-x-10">
+        <div className="grid grid-cols-2 gap-x-block gap-y-block md:grid-cols-[1.6fr_repeat(4,1fr)]">
           <div className="col-span-2 md:col-span-1">
             <Link href="/" aria-label="RentMe home" className="nf-tap inline-flex">
               <Logo size={40} wordSize={21} />
             </Link>
-            <p className="mt-4 max-w-[28ch] text-[0.9375rem] font-medium text-[var(--nf-content-secondary)]">
+            <p className="nf-body-sm mt-heading max-w-[28ch] font-medium text-[var(--nf-content-secondary)]">
               {t.landing.footer.tagline}
             </p>
-            <p className="mt-2.5 max-w-[34ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-              {t.landing.vision.title}
-            </p>
-            <p className="mt-5 inline-flex items-center gap-1.5 text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
-              <UiIcon name="verified" size={16} className="text-[var(--nf-brand-primary)]" />
-              {t.landing.features.verified.title}
-            </p>
+            <p className="nf-caption mt-inline max-w-[34ch]">{t.landing.vision.title}</p>
           </div>
 
           {columns.map((col) => (
             <nav key={col.title} aria-label={col.title}>
-              <h2 className="nf-overline mb-3.5">{col.title}</h2>
+              <h2 className="nf-overline mb-row">{col.title}</h2>
               {/*
                 No `space-y` here on purpose. These links painted at 17px, well
                 under the 44px floor, and the gap between them was margin
@@ -108,7 +109,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
                   <li key={l.label}>
                     <Link
                       href={l.href}
-                      className="flex min-h-11 items-center text-[0.875rem] text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)]"
+                      className="nf-body-sm flex min-h-11 items-center text-[var(--nf-content-secondary)] transition-colors duration-[var(--nf-duration-fast)] hover:text-[var(--nf-content-primary)]"
                     >
                       {l.label}
                     </Link>
@@ -119,44 +120,8 @@ export function SiteFooter({ t }: { t: Dictionary }) {
           ))}
         </div>
 
-        {/* Language and trust strip */}
-        <div className="nf-hairline mt-12 flex flex-col gap-6 pt-7 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="nf-overline mr-1">{t.landing.trust.multiLanguage.title}</span>
-            {LANGUAGES.map((lang) => (
-              <span key={lang.code} className={chipClass} title={lang.name}>
-                {lang.code}
-              </span>
-            ))}
-            <span className={chipClass}>
-              <TrustIcon name="africa" size={16} className="-ml-0.5 shrink-0 rounded-[4px]" />
-              {t.landing.trust.africa.title}
-            </span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="nf-overline mr-1">{t.landing.trust.stores.title}</span>
-            {STORES.map((store) => (
-              <span
-                key={store.name}
-                className="inline-flex items-center gap-2 rounded-xl border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] py-1.5 pl-1.5 pr-3.5 transition-colors hover:border-[var(--nf-border-default)]"
-              >
-                <TrustIcon name={store.name} size={26} className="shrink-0 rounded-[7px]" />
-                <span className="leading-tight">
-                  <span className="block text-[0.5625rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
-                    {store.eyebrow}
-                  </span>
-                  <span className="block text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
-                    {store.title}
-                  </span>
-                </span>
-              </span>
-            ))}
-          </div>
-        </div>
-
         {/* Copyright line */}
-        <div className="nf-hairline mt-7 flex flex-col gap-2 pt-6 text-[0.8125rem] text-[var(--nf-content-muted)] sm:flex-row sm:items-center sm:justify-between">
+        <div className="nf-hairline nf-caption mt-section-tight flex flex-col gap-inline pt-heading sm:flex-row sm:items-center sm:justify-between">
           <p>
             <span className="nf-numeric">{year}</span> RentMe. {t.landing.footer.rights}
           </p>

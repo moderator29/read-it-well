@@ -12,6 +12,24 @@ import Image from "next/image";
  * so they sit naturally on paper in daylight and inside a soft luminous
  * chip at night. Navigation keeps the stroked UiIcon glyphs; these are
  * never used for navigation.
+ *
+ * THE TILE IS OFF BY DEFAULT, and it used to be on.
+ *
+ * `tile` defaulted to true, so 144 of the 149 call sites on the platform drew
+ * the full glass chip: a gradient shell, an inner well drawn with a second
+ * pseudo-element, a four-layer box-shadow and a blue glow, a 1.5px gradient
+ * border and a parallax transform. Almost all of those tiles sit INSIDE an
+ * `.nf-card`, which already carries a gradient border, its own rim and its own
+ * elevation shadow. Two containers deep, six visual layers, around one 24px
+ * icon. That is the single largest reason the product reads as choked: not any
+ * one screen, but the same nested chrome repeated 144 times.
+ *
+ * A tile is now something a surface asks for, and the answer is usually no.
+ * Ask for it where the object is the SUBJECT rather than an ornament: an empty
+ * state whose whole content is one object and a sentence, a category grid
+ * where the chip is the tap target, the showcase panel whose job is to display
+ * the material itself. An icon beside a heading, inside a button, in a list
+ * row or on a stat tile does not get one.
  */
 
 export const BRAND_ICONS = [
@@ -82,7 +100,7 @@ export function BrandIcon({
   fill,
   label,
   priority,
-  tile = true,
+  tile = false,
   state,
   index,
   className,
@@ -95,7 +113,11 @@ export function BrandIcon({
   /** Accessible name. Omit for decorative icons. */
   label?: string;
   priority?: boolean;
-  /** Draw the glass chip behind the object. On by default. */
+  /**
+   * Draw the full glass chip behind the object. OFF by default: see the note
+   * at the top of this file. Turn it on only where the object is the subject
+   * of the surface rather than an ornament on it.
+   */
   tile?: boolean;
   /**
    * React to something real rather than to a loop: "alert" rings the object
@@ -114,11 +136,25 @@ export function BrandIcon({
    * absolute fill mode. Absolute fill escapes any wrapper that is not
    * positioned, which silently spills icons across the card they belong to.
    *
-   * The object is rendered inside its own tile by default. The artwork is a
-   * lit ceramic object photographed on white: without a container it floats
-   * with nothing holding it, which is exactly what a bare icon looked like.
-   * The tile is the platform's glass chip, so every object sits on the same
-   * material as the rest of the design system.
+   * WHY AN UNTILED OBJECT STILL GETS A GROUND, AND WHY IT IS ONE FLAT PLATE.
+   *
+   * The artwork is opaque RGB rendered on white, with no alpha channel, and
+   * the white is removed at paint time by `mix-blend-mode: multiply` in
+   * glass.css. Multiply against the night canvas returns the night canvas, so
+   * an object with nothing light behind it is not understated, it is
+   * INVISIBLE. Dropping the tile without answering that would have deleted
+   * 144 icons from the dark theme, which is the default theme.
+   *
+   * So an untiled object gets `--nf-icon-ground`: one flat plate, squircle
+   * radius, no border, no rim, no shadow, no glow, no parallax. One layer
+   * instead of six. In daylight the same token resolves to `transparent`,
+   * because multiply is the identity against white and the object genuinely
+   * needs nothing there.
+   *
+   * The ground sits on the WRAPPER rather than on the image. `mix-blend-mode`
+   * blends an element together with its own background, so a plate painted on
+   * the blended element would multiply itself into the canvas and vanish with
+   * everything else.
    *
    * WHY A FIXED-SIZE TILE OVERRIDES ITS OWN PADDING. The tile is styled with
    * `padding: 9%`, and a percentage padding resolves against the width of the
@@ -151,7 +187,18 @@ export function BrandIcon({
   );
 
   if (!tile) {
-    return <span className={className}>{img}</span>;
+    /* The plate hugs the image exactly rather than being sized here: the
+       artwork already carries its own white margin, and multiply turns that
+       margin into the plate colour, so the ground reads as a soft square with
+       the object breathing inside it and no padding of its own. Sizing stays
+       wherever the call site already put it. */
+    return (
+      <span
+        className={`nf-brand-icon-ground ${fill ? "block h-full w-full" : "inline-flex"} ${className ?? ""}`}
+      >
+        {img}
+      </span>
+    );
   }
 
   return (

@@ -1,82 +1,91 @@
 import type { Dictionary } from "@naijafinds/i18n";
 import { Reveal } from "@/components/site/Reveal";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Words } from "@/components/site/Words";
 
 /**
  * "How it works" band.
  *
- * Three steps rendered as connected cards: a vertical spine of cards on phones
- * with short connector strokes between them, opening into a horizontal row on
- * desktop where a single hairline runs behind the step badges. Presentational
- * only; the copy that exists in the dictionary is reused, the rest is plain
- * English until keys land.
+ * ONE SURFACE, THREE CELLS. It was three cards.
+ *
+ * Three separate `nf-card`s is three borders, three corner blooms and three
+ * shadows for one idea that happens to have three parts, and it needed a
+ * decorative hairline drawn BEHIND the row plus a connector stub between each
+ * pair on phones to put back the relationship the three containers had taken
+ * apart. One surface with a rule between the cells says the same thing with
+ * nothing drawn to say it: the parts are inside the group, so the group does
+ * not have to be re-asserted.
+ *
+ * The step numbers moved out of the glass pip that used to float in each card's
+ * top right corner and became the first thing in the cell, set as an overline
+ * beside the glyph. A number in a circle in a corner is a badge, which is what
+ * you use when the number is a status; these are an ORDER, and an order is read
+ * at the start of the line.
+ *
+ * Vector glyphs rather than the 3D family, because this is the marketing page.
+ * See the note on `categories` in app/page.tsx.
  */
 export function HowItWorks({ t }: { t: Dictionary }) {
-  const steps: { icon: BrandIconName; title: string; body: string }[] = [
+  const steps: { icon: UiIconName; title: string; body: string }[] = [
     {
-      icon: "home-search",
+      icon: "search",
+      /* The old body read "Hotels, apartments, homes, restaurants and
+         experiences across Nigeria". Three of those five are categories this
+         platform stopped having: the hero row, the product home, the search
+         filters and now the footer all deal in Rent, Buy, Shortlets, Land and
+         Commercial. A landing page that names a different set of things from
+         the one the search returns is a page describing a different product. */
       title: "Search and discover",
-      body: `${t.landing.hero.line1} Hotels, apartments, homes, restaurants and experiences across Nigeria, in one search.`,
+      body: `${t.landing.hero.line1} Homes to rent, homes to buy, shortlets, land and commercial space, in one search.`,
     },
     {
-      icon: "calendar-check",
+      icon: "calendar-booking",
       title: "Book and pay securely",
       body: `${t.landing.hero.line2} Clear naira totals and secure payment before anything is confirmed.`,
     },
     {
-      icon: "luggage-check",
-      title: "Live the experience",
-      body: `${t.landing.hero.line3} Check in, eat well, explore, and keep every booking in one place.`,
+      icon: "key",
+      title: "Move in",
+      /* Was "Live the experience", with a body about checking in and eating
+         well, which is hotel copy on a page about renting a flat for a year. */
+      body: `${t.landing.hero.line3} Keep the agreement, the payments and every message about the place in one account.`,
     },
   ];
 
   return (
-    <section className="nf-shell py-10 sm:py-14">
-      <Reveal className="mb-7 max-w-[52ch] sm:mb-9">
+    <section className="nf-shell py-section">
+      <Reveal className="mb-block max-w-[52ch]">
         <span className="nf-overline">Three steps</span>
-        <h2 className="nf-h1 mt-3">
+        <h2 className="nf-h1 mt-row">
           <Words text="How it works" accentFrom={2} />
         </h2>
-        <p className="mt-3 text-[var(--nf-content-secondary)]">
+        <p className="nf-lede mt-group">
           From first search to checked in, the whole journey lives in one account.
         </p>
       </Reveal>
 
-      <div className="relative">
-        {/* Connecting line behind the step badges on desktop. Decorative. */}
-        <div
-          aria-hidden="true"
-          className="absolute left-[16%] right-[16%] top-9 hidden h-px bg-gradient-to-r from-transparent via-[var(--nf-border-subtle)] to-transparent lg:block"
-        />
-
-        <ol className="relative flex flex-col gap-0 lg:grid lg:grid-cols-3 lg:gap-4">
+      <Reveal>
+        <ol className="nf-card nf-cells nf-cells--trio">
           {steps.map((s, i) => (
-            <Reveal as="li" key={s.title} delay={i * 90} className="flex flex-col">
-              {i > 0 && (
-                <span
-                  aria-hidden="true"
-                  className="mx-auto block h-6 w-px bg-[var(--nf-border-subtle)] lg:hidden"
+            <li key={s.title} className="flex flex-col gap-group p-cell">
+              <div className="flex items-center gap-row">
+                <UiIcon
+                  name={s.icon}
+                  size={28}
+                  className="shrink-0 text-[var(--nf-content-primary)]"
                 />
-              )}
-              <div className="nf-card nf-card--interactive relative flex h-full flex-col items-center gap-4 p-5 text-center sm:p-6">
-                <span className="nf-glass nf-numeric absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-[0.8125rem] font-bold text-[var(--nf-content-primary)]">
-                  {i + 1}
-                </span>
-                <span className="h-14 w-14 sm:h-14 sm:w-14">
-                  <BrandIcon name={s.icon} fill />
-                </span>
-                <span className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)] sm:text-[1rem]">
-                  {s.title}
-                </span>
-                <span className="max-w-[34ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)] sm:text-[0.875rem]">
-                  {s.body}
+                <span className="nf-overline nf-numeric">
+                  Step {String(i + 1).padStart(2, "0")}
                 </span>
               </div>
-            </Reveal>
+              <h3 className="nf-h4 text-[var(--nf-content-primary)]">{s.title}</h3>
+              <p className="nf-body-sm max-w-[36ch] text-[var(--nf-content-secondary)]">
+                {s.body}
+              </p>
+            </li>
           ))}
         </ol>
-      </div>
+      </Reveal>
     </section>
   );
 }

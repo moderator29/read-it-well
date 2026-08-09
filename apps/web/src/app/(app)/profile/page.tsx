@@ -8,8 +8,28 @@ import { getProfileFeed } from "@/lib/social/posts-queries";
 import { AccountHero } from "./AccountHero";
 import { SignedOutHero } from "./SignedOutHero";
 import { AccountBody } from "./AccountBody";
+import { getAgentContext } from "@/lib/agent/listings-queries";
+import { getMode } from "@/lib/mode";
+import { RoleSwitcher } from "@/components/roles/RoleSwitcher";
+import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
+import { roleStateFrom, type AgentFacts, type RoleState } from "@/components/roles/roles";
 
 export const metadata: Metadata = { title: "Profile" };
+
+/**
+ * What the three roles look like when there is no account behind them.
+ *
+ * Not `roleStateFrom(null, "personal")`, even though that returns the same
+ * shape, because that function's job is to read an account and there is no
+ * account here. Stating the three explicitly keeps the signed-out branch
+ * honest about the fact that it is describing the product rather than a
+ * person.
+ */
+const SIGNED_OUT_ROLES: RoleState[] = [
+  { id: "renter", setUp: false, verified: false },
+  { id: "owner", setUp: false, verified: false },
+  { id: "professional", setUp: false, verified: false },
+];
 
 /**
  * Profile: your account, wearing your own identity.
@@ -43,10 +63,30 @@ export default async function ProfilePage() {
   // Three reads that do not depend on each other, so they cost one round trip
   // rather than three. On the connections this product is built for that is the
   // difference between a page and a wait.
-  const [account, social] = await Promise.all([
+  const [account, social, agentContext, mode] = await Promise.all([
     loadProfileState(),
     loadAccountSocialIdentity(),
+    /*
+     * WHAT THIS ACCOUNT IS, not what it is called.
+     *
+     * The three roles are read off the one `agents` row: absent means renter
+     * only, `individual` means somebody listing their own property, `business`
+     * means a professional. There is no roles table and this page does not
+     * invent one - see `components/roles/roles.ts` for the whole mapping.
+     */
+    getAgentContext(),
+    getMode(),
   ]);
+
+  const agentFacts: AgentFacts =
+    agentContext.state === "agent"
+      ? {
+          type: agentContext.agent.type,
+          status: agentContext.agent.status,
+          verified: agentContext.agent.verified,
+        }
+      : null;
+  const rolesView = roleStateFrom(agentFacts, mode);
 
   const identity = social.state === "claimed" ? social.identity : null;
 
@@ -61,7 +101,6 @@ export default async function ProfilePage() {
     wallet: t.nav.wallet,
     messages: t.nav.messages,
     settings: t.nav.settings,
-    becomeAgent: t.landing.footer.becomeAgent,
   };
 
   if (account.state !== "signed-in") {
@@ -90,13 +129,23 @@ export default async function ProfilePage() {
             <RowLink href="/saved" icon="heart" label={t.nav.saved} />
           </SettingsGroup>
 
+          {/*
+            SWITCHING PROFILE IS OFFERED SIGNED OUT TOO, and it is the same
+            control the signed-in screen carries rather than a second one.
+
+            `RoleSwitcher` wraps its own trigger in `AuthGate`, so tapping it
+            here opens the sign-in door with `?do=switch-profile` and the
+            screen to come back to. That is a better answer than the row this
+            replaces, which pointed a signed-out visitor at a marketing page
+            and then asked them to sign in at the end of it anyway.
+
+            Every role reads as not set up, which is the truth about an
+            account that does not exist yet.
+          */}
+          <RoleSwitcher roles={SIGNED_OUT_ROLES} current="renter" variant="row" />
+
           <SettingsGroup label="More">
             <RowLink href="/settings" icon="sliders" label={t.nav.settings} />
-            <RowLink
-              href="/agents"
-              icon="building-apartment"
-              label={t.landing.footer.becomeAgent}
-            />
             <RowLink href="/help" icon="ticket" label="Help" />
           </SettingsGroup>
         </div>
@@ -109,6 +158,34 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      {/*
+        SWITCHING WHAT YOU ARE HERE TO DO, on your own page.
+
+        One account holds all three roles and switching between them never asks
+        for a second one. The row opens a sheet; picking a role that is not set
+        up explains what it is and what setting it up involves rather than
+        dead-ending on a refusal screen, which is what the old two-option mode
+        dropdown did.
+      */}
+      <RoleSwitcher
+        roles={rolesView.roles}
+        current={rolesView.current}
+        variant="row"
+        className="mb-4"
+      />
+
+      {/*
+        The calm verification prompt.
+
+        Renders for a seller or an agent who has applied and not been verified,
+        and for nobody else. A renter or buyer is NEVER asked to verify, so this
+        returns null for them by construction rather than by a condition
+        somebody has to remember here.
+      */}
+      {rolesView.roles.map((role) => (
+        <VerifyPrompt key={role.id} role={role} className="mb-5" />
+      ))}
+
       <AccountHero
         userId={profile.userId}
         displayName={

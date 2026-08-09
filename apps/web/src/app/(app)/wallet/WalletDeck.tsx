@@ -80,21 +80,56 @@ export function WalletDeck({
 
   return (
     <div>
-      <div className="grid grid-cols-3 gap-2" role="group" aria-label="Wallet actions">
-        {TILES.map((tile) => (
-          <button
-            key={tile.key}
-            type="button"
-            aria-haspopup="dialog"
-            onClick={() => setOpen(tile.key)}
-            className="nf-card nf-card--interactive flex flex-col items-center gap-2 px-2 py-4 text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]"
-          >
-            <span className="h-12 w-12">
-              <BrandIcon name={tile.icon} fill />
-            </span>
-            {tile.label}
-          </button>
-        ))}
+      {/*
+        ONE PRIMARY ACTION, TWO QUIET ONES. IT WAS THREE OF EQUAL WEIGHT.
+
+        This was a three column grid of identical cards, each a bordered and
+        shadowed box wrapping a 48px object with a label under it. Two problems
+        in one component.
+
+        The boxes. A plate behind an object is the thing the owner has asked us
+        to stop doing everywhere, and here there were three of them in a row,
+        each adding an edge and a shadow around artwork that is already lit and
+        already has its own edge.
+
+        The equal weight. Adding money is what somebody comes to this screen to
+        do, and it is the only one of the three that works on an empty wallet.
+        Withdraw and Transfer both need a balance to act on, so presenting all
+        three identically offers a person with zero naira two doors that lead
+        straight to "you do not have enough". Add money is now the full width
+        primary; the other two sit under it as quiet siblings, still one tap
+        away, nothing hidden.
+
+        No icons on the buttons at all. A label on a button is faster to read
+        than a picture of a wallet, and three objects competing above three
+        words was noise standing where a decision should be.
+      */}
+      <div role="group" aria-label="Wallet actions">
+        <Button
+          type="button"
+          variant="primary"
+          size="lg"
+          full
+          aria-haspopup="dialog"
+          onClick={() => setOpen("fund")}
+        >
+          {TILES[0]!.label}
+        </Button>
+
+        <div className="mt-row grid grid-cols-2 gap-row">
+          {TILES.slice(1).map((tile) => (
+            <Button
+              key={tile.key}
+              type="button"
+              variant="secondary"
+              size="lg"
+              aria-haspopup="dialog"
+              onClick={() => setOpen(tile.key)}
+            >
+              {tile.label}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {TILES.map((tile) => (
@@ -151,11 +186,11 @@ function WalletDrawer({
       title={title}
     >
       <div className="mx-auto w-full max-w-md">
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <div className="mb-heading flex items-start justify-between gap-md">
+          <p className="nf-body-sm leading-relaxed text-[var(--nf-content-muted)]">
             {hint}
           </p>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-inline">
             <span className="h-13 w-13">
               <BrandIcon name={icon} fill />
             </span>
@@ -170,7 +205,7 @@ function WalletDrawer({
           </div>
         </div>
 
-        <div className="nf-card p-4 sm:p-5">{children}</div>
+        <div className="nf-card p-card-sm sm:p-card">{children}</div>
       </div>
     </Sheet>
   );
@@ -203,9 +238,9 @@ function FundForm({ locale }: { locale: Locale }) {
 
   if (redirecting) {
     return (
-      <div role="status" aria-live="polite" className="py-4 text-center">
-        <p className="text-[0.9375rem] font-semibold">Opening the secure payment window</p>
-        <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <div role="status" aria-live="polite" className="py-group text-center">
+        <p className="nf-body font-semibold">Opening the secure payment window</p>
+        <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
           You are on your way to Paystack to complete the payment. Your wallet updates the
           moment it lands.
         </p>
@@ -216,7 +251,7 @@ function FundForm({ locale }: { locale: Locale }) {
   return (
     <form action={formAction} noValidate>
       <AmountField error={fieldError(state, "amount")} quickAmounts locale={locale} />
-      <Button type="submit" variant="primary" full className="mt-3" loading={pending}>
+      <Button type="submit" variant="primary" full className="mt-row" loading={pending}>
         Continue to payment
       </Button>
       <ErrorNotice state={state} />
@@ -243,7 +278,7 @@ function WithdrawForm({
 
   if (state.ok && state.data) {
     return (
-      <div role="status" aria-live="polite" className="py-2 text-center">
+      <div role="status" aria-live="polite" className="py-inline text-center">
         <p>
           <Amount
             minorUnits={state.data.amountMinor}
@@ -252,10 +287,10 @@ function WithdrawForm({
             className="text-[1.4rem] font-bold tracking-tight"
           />
         </p>
-        <p className="mt-1 text-[0.9375rem] font-semibold">
+        <p className="nf-body mt-inline-tight font-semibold">
           On its way to {state.data.bankName} ****{state.data.accountLast4}
         </p>
-        <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
           The withdrawal shows as pending until the bank confirms it, then your history
           updates on its own.
         </p>
@@ -264,7 +299,7 @@ function WithdrawForm({
   }
 
   return (
-    <form action={formAction} noValidate className="space-y-3">
+    <form action={formAction} noValidate className="space-y-row">
       {live && <BalanceLine balanceMinor={balanceMinor} locale={locale} />}
       <AmountField error={fieldError(state, "amount")} locale={locale} />
       <SelectField
@@ -304,7 +339,7 @@ function WithdrawForm({
         placeholder="As it appears at your bank"
         error={fieldError(state, "accountName")}
       />
-      <Button type="submit" variant="primary" full className="mt-1" loading={pending}>
+      <Button type="submit" variant="primary" full className="mt-inline-tight" loading={pending}>
         Withdraw
       </Button>
       <ErrorNotice state={state} />
@@ -330,7 +365,7 @@ function TransferForm({
 
   if (state.ok && state.data) {
     return (
-      <div role="status" aria-live="polite" className="py-2 text-center">
+      <div role="status" aria-live="polite" className="py-inline text-center">
         <p>
           <Amount
             minorUnits={state.data.amountMinor}
@@ -339,10 +374,10 @@ function TransferForm({
             className="text-[1.4rem] font-bold tracking-tight"
           />
         </p>
-        <p className="mt-1 text-[0.9375rem] font-semibold">
+        <p className="nf-body mt-inline-tight font-semibold">
           Sent to {state.data.recipientName}
         </p>
-        <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
           Their wallet has it already, and both sides of the movement are in your history.
         </p>
       </div>
@@ -350,7 +385,7 @@ function TransferForm({
   }
 
   return (
-    <form action={formAction} noValidate className="space-y-3">
+    <form action={formAction} noValidate className="space-y-row">
       {live && <BalanceLine balanceMinor={balanceMinor} locale={locale} />}
       <TextField
         label="Recipient email"
@@ -371,7 +406,7 @@ function TransferForm({
         placeholder="What is it for?"
         error={fieldError(state, "note")}
       />
-      <Button type="submit" variant="primary" full className="mt-1" loading={pending}>
+      <Button type="submit" variant="primary" full className="mt-inline-tight" loading={pending}>
         Send transfer
       </Button>
       <ErrorNotice state={state} />
@@ -436,7 +471,7 @@ function AmountField({
         /* Presets, not a filter: `filter` semantics (aria-pressed) rather than
            `choice`, because a radio group with nothing selected leaves every
            chip at tabIndex -1 and unreachable by keyboard. */
-        <ChipRow bleed={false} fadeEdges={false} snap={false} className="mt-2">
+        <ChipRow bleed={false} fadeEdges={false} snap={false} className="mt-inline">
           {QUICK_AMOUNTS_KOBO.map((kobo) => {
             const canonical = canonicalNaira(kobo);
             return (
@@ -464,8 +499,15 @@ function BalanceLine({ balanceMinor, locale }: { balanceMinor: number; locale: L
   const absMinor = Math.abs(balanceMinor);
   const koboRemainder = absMinor % 100;
   const wholeNaira = (absMinor - koboRemainder) / 100;
+  /*
+   * Was border-white/10 on bg-white/[0.04]. A white wash reads as a subtle
+   * inset on a dark ground and as nothing at all on a light one, so in
+   * daylight this line lost its container and floated loose in the form. The
+   * inset surface and the subtle border are the two tokens that mean this in
+   * both themes.
+   */
   return (
-    <p className="rounded-[var(--nf-radius-md)] border border-white/10 bg-white/[0.04] px-3 py-2 text-[0.78rem] text-[var(--nf-content-muted)]">
+    <p className="nf-body-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-row py-inline text-[var(--nf-content-muted)]">
       Available balance{" "}
       <span className="nf-numeric font-semibold text-[var(--nf-content-primary)]">
         {"₦"}
@@ -485,7 +527,7 @@ function ErrorNotice<T>({ state }: { state: ActionResult<T> }) {
     <div
       role="status"
       aria-live="polite"
-      className="mt-3 rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-glass-fill)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+      className="nf-body-sm mt-row rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-glass-fill)] p-row leading-relaxed text-[var(--nf-content-secondary)]"
     >
       <p>{state.error}</p>
     </div>

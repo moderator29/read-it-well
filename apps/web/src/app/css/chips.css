@@ -21,8 +21,8 @@
     align-items: center;
     justify-content: center;
     min-height: 44px;
-    gap: 0.45rem;
-    padding: 0.45rem 0.9rem;
+    gap: var(--nf-gap-inline);
+    padding: var(--nf-pad-chip-block) var(--nf-pad-chip-inline);
     border-radius: var(--nf-radius-pill);
     font-size: var(--nf-text-caption);
     font-weight: 600;
@@ -107,7 +107,7 @@
     align-items: center;
     justify-content: center;
     height: 34px;
-    padding: 0 0.85rem;
+    padding: var(--nf-space-0) var(--nf-pad-chip-inline);
     border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-caption);
     font-weight: 600;
@@ -159,7 +159,7 @@
      that centres itself reads as a banner. */
   .nf-feedtabs {
     display: flex;
-    gap: 0.25rem;
+    gap: var(--nf-gap-inline-tight);
     overflow-x: auto;
     scrollbar-width: none;
   }
@@ -170,8 +170,8 @@
   .nf-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.25rem 0.6rem;
+    gap: var(--nf-gap-inline-tight);
+    padding: var(--nf-space-2xs) var(--nf-gap-inline);
     border-radius: var(--nf-radius-pill);
     font-size: var(--nf-text-overline);
     font-weight: 700;
@@ -183,7 +183,7 @@
   }
   .nf-badge--brand {
     background: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
-    color: var(--nf-electric-300);
+    color: var(--nf-brand-secondary);
   }
   .nf-badge--warning {
     background: var(--nf-state-warning-surface);
@@ -229,12 +229,12 @@
    */
   .nf-badge-overlap {
     position: absolute;
-    top: -0.65rem;
-    right: -0.5rem;
+    top: calc(var(--nf-gap-inline) * -1);
+    right: calc(var(--nf-gap-inline) * -1);
     z-index: 1;
     display: inline-flex;
     align-items: center;
-    padding: 0.3rem 0.7rem;
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
     border-radius: var(--nf-radius-pill);
     font-size: var(--nf-text-overline);
     font-weight: 800;
@@ -257,12 +257,12 @@
     justify-content: center;
     min-width: 1.375rem;
     height: 1.375rem;
-    padding: 0 0.4rem;
+    padding: var(--nf-space-0) var(--nf-space-2xs);
     border-radius: var(--nf-radius-pill);
     font-size: 0.6875rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-    color: var(--nf-electric-300);
+    color: var(--nf-brand-secondary);
     background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
   }
 
@@ -274,7 +274,7 @@
   .nf-hero-figure {
     display: flex;
     align-items: baseline;
-    gap: 0.35rem;
+    gap: var(--nf-gap-inline);
     font-size: clamp(2.75rem, 11vw, 4.25rem);
     font-weight: 800;
     letter-spacing: -0.03em;
@@ -297,14 +297,14 @@
   .nf-tag-pill {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.3rem 0.55rem;
+    gap: var(--nf-gap-inline-tight);
+    padding: var(--nf-space-2xs) var(--nf-gap-inline);
     border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-overline);
     font-weight: 700;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    color: var(--nf-electric-300);
+    color: var(--nf-brand-secondary);
     background: color-mix(in oklab, var(--nf-brand-primary) 15%, transparent);
     border: 1px solid color-mix(in oklab, var(--nf-brand-primary) 28%, transparent);
   }
@@ -331,7 +331,7 @@
    */
   .nf-panel-sunken {
     border-radius: var(--nf-radius-lg);
-    padding: 1.1rem 1.25rem;
+    padding: var(--nf-space-md) var(--nf-space-lg);
     background: linear-gradient(180deg, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.68));
     box-shadow:
       inset 0 2px 10px rgb(0 0 0 / 0.55),
@@ -356,10 +356,10 @@
     display: inline-flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--nf-gap-inline);
     background: none;
     border: none;
-    padding: 0;
+    padding: var(--nf-space-0);
     color: var(--nf-content-secondary);
     cursor: pointer;
   }
@@ -412,7 +412,7 @@
   .nf-action-bar {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--nf-gap-row);
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
   .nf-action-bar__fill {
@@ -489,7 +489,7 @@
     justify-content: center;
     flex: 1;
     min-height: 60vh;
-    padding: 2rem 1.5rem;
+    padding: var(--nf-space-xl) var(--nf-space-lg);
     text-align: center;
     position: relative;
   }
@@ -512,7 +512,7 @@
   .nf-moment__badge {
     position: relative;
     z-index: 1;
-    margin-bottom: 1.75rem;
+    margin-bottom: var(--nf-gap-block);
     animation: nf-moment-badge-in 0.5s var(--nf-ease-standard) both;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -532,7 +532,7 @@
   .nf-moment__description {
     position: relative;
     z-index: 1;
-    margin-top: 0.6rem;
+    margin-top: var(--nf-gap-row);
     max-width: 24rem;
     color: var(--nf-content-secondary);
     line-height: 1.5;
@@ -542,15 +542,15 @@
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--nf-gap-row);
     width: 100%;
     max-width: 22rem;
-    margin-top: 2.25rem;
+    margin-top: var(--nf-gap-block);
   }
   .nf-moment__footnote {
     position: relative;
     z-index: 1;
-    margin-top: 1rem;
+    margin-top: var(--nf-gap-group);
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }

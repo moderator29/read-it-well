@@ -1,7 +1,19 @@
 # Architecture Decision Record
 
 Every entry states the decision, why it was made, what else was considered, and
-what it would cost to change later. Required by Master Rule 22.
+what it would cost to change later.
+
+**Corrected 2026-08-09.** Three entries had drifted from the code and are amended
+in place: ADR-003 and ADR-010 said `Icon3D` was retired and kept in the
+repository, and it does not exist at all any more; ADR-007 described a flat
+twelve-destination consumer rail that the code groups into a tree; ADR-009's
+advisory count is a moving number and now says so. Two decisions have been made
+since and are recorded as ADR-013 and ADR-014.
+
+**The live decisions, in one line each.** ADR-002 two layer tokens, CSS first.
+ADR-004 money is always integer kobo. ADR-010 use the supplied artwork rather
+than redraws. ADR-011 two icon tiers. ADR-012 the stride. Those five are the ones
+a new surface has to obey.
 
 ---
 
@@ -49,9 +61,16 @@ replace.
 > **VOID. Superseded by ADR-010**, which reverses it and explains why. Read that
 > entry instead. This banner is here because ADR-010 sits two hundred lines
 > further down and nothing at this end of the file said so, while the text below
-> still describes `Icon3D` as the production component. `Icon3D` is retired and
-> must never be imported; the live tiers are `BrandIcon` for content objects and
-> `UiIcon` for navigation, per ADR-011.
+> still describes `Icon3D` as the production component.
+>
+> **`Icon3D` does not exist.** Corrected 2026-08-09: it is not retired-and-kept,
+> it was deleted. `apps/web/src/design-system/icons/` contains exactly three
+> files, `BrandIcon.tsx`, `UiIcon.tsx` and `TrustIcon.tsx`. There is no
+> `Icon3D.tsx`, no `glyphs.tsx` and no `Icon` wrapper. A grep for `Icon3D` across
+> `apps/web/src` and `packages/` returns two hits and both are prose in comments
+> telling the reader it is retired. The live tiers are `BrandIcon` for content
+> objects and `UiIcon` for navigation, per ADR-011, plus `TrustIcon`, a
+> landing-only mark set that is not a tier.
 
 **Decision.** The production icon set is authored as SVG in
 `apps/web/src/design-system/icons/`. The supplied pack is kept in
@@ -151,24 +170,46 @@ is validated against a real four language string set plus ₦.
 
 ## ADR-007. Consumer navigation frozen at twelve destinations
 
-**Decision.** Home, Hotels, Apartments, Homes, Restaurants, Experiences, then
-Bookings, Messages, Wallet, AI Assistant, Profile, Settings.
+**Decision, as originally made.** Home, Hotels, Apartments, Homes, Restaurants,
+Experiences, then Bookings, Messages, Wallet, AI Assistant, Profile, Settings.
 
 **Why.** Master Rule 17 freezes navigation. Three independent source-of-truth
 references agree on exactly this list and order, including the brand sheet whose
 icon row enumerates all twelve. A fourth reference shows a different consumer
 rail, which is recorded as contradiction C-10 and is not adopted.
 
+**Amended 2026-08-09: the twelve are grouped, not flat, and the destinations
+have moved.** `apps/web/src/components/app/nav-model.ts` is the one source both
+the desktop rail and the phone drawer read. It builds a tree: Home, Rent, Explore
+(with Hotels, Apartments, Homes, Restaurants and Experiences as `?type=`
+children), Around (with three children), then an Account section holding
+Bookings, Messages, Notifications, Wallet, AI Assistant and Profile (with Saved
+and Settings as children), then Agent Mode and the Console for whoever has one,
+then Legal.
+
+The reason is written in that file at lines 8 to 16 and is good: five of the
+twelve were `?type=` variants of one screen sitting at the same level as Wallet.
+**Rent** is new and is the pivot arriving in the navigation. The phone dock is a
+deliberately different six destinations
+(`components/app/MobileTabBar.tsx:9-12`), because a twelve item rail does not
+fit a thumb.
+
+**Still not in the navigation: Buy and Sell.** The product is a marketplace for
+renting, buying and selling and no rail, dock or chip mentions sale. That is
+downstream of the data model, which cannot express one: `RECOMMENDATIONS.md`
+P-1 and N-6.
+
 **Cost to change.** Moderate and rising. Routing, layout shells and permission
 boundaries all key off it.
 
-**Resolved 2026-07-28, recorded here 2026-08-07.** The admin rail had four
-conflicting variants. The owner picked reference 04 (B-10) and the console was
-built on it: 13 sections under `/admin`, covering agents, alerts, bookings,
-flags, listings, moderation, reference, reports, social, standing, stops,
-support and switches. This entry stood as "NOT decided. No admin surface is
-built" for ten days after the console shipped, which is the kind of line that
-gets an ADR file disbelieved as a whole.
+**The admin rail, resolved 2026-07-28.** It had four conflicting variants. The
+owner picked reference 04 (B-10) and the console was built on it: **14
+destinations** in `app/admin/_components/nav.ts`, being overview, flags,
+moderation, alerts, reports, applications, stops, listings, bookings, tickets,
+social, standing, reference and switches. This entry stood as "NOT decided. No
+admin surface is built" for ten days after the console shipped, and then said 13
+for a further ten, which is the kind of line that gets an ADR file disbelieved as
+a whole.
 
 ---
 
@@ -196,10 +237,11 @@ four libvips CVEs and two postcss advisories. `npm audit fix --force` proposes
 downgrading Next to version 9, which is absurd. The overrides resolve all six
 while the build stays green.
 
-**Residual, re-run 2026-08-07.** `npm audit` reports **2** high severity
-advisories, not the nine this entry recorded. Both are still lint-time only and
-neither reaches the shipped bundle or the request path, which is the reason the
-decision stands unchanged:
+**Residual, last re-run 2026-08-07. Not re-run 2026-08-09, so treat the number
+as unverified.** `npm audit` reported **2** high severity advisories, not the
+nine this entry originally recorded. Both were lint-time only and neither reaches
+the shipped bundle or the request path, which is the reason the decision stands
+unchanged:
 
 - `brace-expansion`, the original residual, reduced from nine advisories to one.
 - `js-yaml` 4.3.0, reached through `eslint > @eslint/eslintrc`. Newer than this
@@ -240,9 +282,16 @@ the scripts against them. No call site changes.
 
 ## ADR-011. Two icon tiers
 
-**Decision.** Tier two is the 3D signature object family, used at 32px and
-above. Tier one is `UiIcon`, a stroked set on a 24 grid inheriting
-`currentColor`, used below 32px.
+**Decision.** Tier two is the 3D signature object family, `BrandIcon`, 57
+commissioned objects, used at 32px and above. Tier one is `UiIcon`, a stroked set
+on a 24 grid inheriting `currentColor`, 40 glyphs, used below 32px.
+
+**Plus one mark set that is not a tier.** `TrustIcon` holds six marks (globe,
+shield, ai-chip, africa, app-store, play-store) and is used on the landing trust
+strip and nowhere else. It is deliberately not exported for general use.
+`docs/ICON_SYSTEM.md` called this "tier 3" and it is not: a tier is a rule about
+which family answers a job, and there is no job anywhere else in the product that
+this set answers.
 
 **Why.** The design direction asks for exactly this split, and the reason became
 concrete in review: the 3D objects carry a lit tile, and at 14px that tile
@@ -273,3 +322,72 @@ as physically depressing rather than just changing colour.
 **Fallback.** Surfaces relying on `backdrop-filter` fall back to a solid body
 where it is unsupported, so low end Android gets a legible panel rather than a
 washed out one.
+
+---
+
+## ADR-013. First-party inventory only
+
+**Decision, 2026-08-09.** Every listing on RentMe was listed on RentMe by a
+person who applied, was verified and was approved. No Google Places, no LiteAPI,
+no Amadeus, no scraped feed, no affiliate deep link.
+
+**Why.** A hybrid model was designed, built and shipped: one provider interface,
+a registry, per-provider kill switches in `public.feature_flags`, a hard 2.5s
+timeout collected with `allSettled`, and a dedupe rule requiring both a 150 metre
+haversine match and a name token match before two records collapse. It worked.
+It was removed anyway, and the reason is the one thing a partner feed can never
+give: an agent to message, a property to inspect, and somebody accountable when
+it is not what the photographs showed. The verified badge, the verification
+ladder and escrow are all claims the platform makes about a person. There is no
+person behind a rate feed.
+
+There is a second reason and it is commercial. `POST /rates/book` with a card
+would have made RentMe the merchant of record: paying the supplier from a funded
+wallet, collecting naira ourselves, and owing the guest a refund out of our own
+pocket every time a supplier failed after we had taken their card. That is a
+funded account and an accepted liability before it is a line of code.
+
+**Considered.** Keeping partner stock priced but not bookable, which is what
+shipped for a while and is honest. Rejected because a shelf of things you cannot
+buy trains people to leave.
+
+**Cost to change.** Low to reverse in code and high to reverse in trust. The
+interface is deleted but the shape is recorded in
+`docs/archive/HYBRID_INVENTORY.md`.
+
+**Consequence.** Discovery is empty until agents list. That is correct rather
+than broken, and four specs skip out loud when the catalogue is empty rather than
+passing on invented rows. Do not make them pass by putting a seed catalogue back.
+
+**Residue to clear.** `public.places_cache` (243 rows), `partner_stay_intents`,
+and two feature flag rows. `RECOMMENDATIONS.md` S-2.
+
+---
+
+## ADR-014. Scheduled work runs in Postgres, not in the deployment
+
+**Decision, 2026-08-04.** `pg_cron` inside the database, applied by
+`supabase/migrations/20260804184423_the_scheduler_exists_now.sql`. Six jobs.
+
+**Why.** The obvious alternative was a route Vercel's cron calls, and on the
+Hobby plan that is **one invocation per day**. Releasing a stale booking hold
+once a day means a guest who abandons a checkout at nine in the morning keeps
+somebody else's room until the following night: a real bed nobody could book, for
+a whole day. Rate limit rows would pile up for twenty four hours between sweeps.
+
+`pg_cron` is not an HTTP request, so it does not touch the deployment's cron
+budget at all, it cannot be lost to a cold start or a function timeout, and it
+keeps running when the web application is down. The one Vercel cron stays free
+for something that genuinely has to be a request.
+
+**Considered.** One authenticated maintenance route the platform calls on a
+schedule from outside. Rejected: it needs a secret, it needs somebody to own the
+caller, and it fails silently the day that caller stops.
+
+**Cost to change.** Low. Six `cron.schedule` calls.
+
+**The two traps.** Every schedule is **UTC** and Lagos is UTC+1, so a job written
+for a Lagos hour must be shifted; this project has been caught by that once
+already, and each schedule in the migration names the Lagos time it means. And
+the jobs are unattended with no alert on failure: `cron.job_run_details` carries
+the outcome and nothing reads it. `RECOMMENDATIONS.md` T-3.

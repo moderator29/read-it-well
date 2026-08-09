@@ -2,8 +2,14 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
+import { failureReason, logMoney } from "../payments/observability";
 import type { Database, Json } from "../supabase/database.types";
 import type { ViewerWallet, WalletEntry, WalletSummary } from "./types";
+import {
+  EMPTY_BREAKDOWN,
+  readBalanceBreakdown,
+  readPropertyNamesForReferences,
+} from "./breakdown";
 
 /**
  * Wallet data access.
@@ -92,11 +98,35 @@ export async function readStatement(
     .limit(STATEMENT_LIMIT);
   if (entriesRead.error) throw new Error(entriesRead.error.message);
 
+  const entries = (entriesRead.data ?? []).map(toWalletEntry);
+
+  /*
+   * THE PROPERTY EACH MONEY ROW IS ABOUT.
+   *
+   * A statement that reads "Escrow hold, ₦1,200,000" is a receipt somebody has
+   * to remember; one that reads "Escrow hold, ₦1,200,000, 3 bedroom flat at
+   * Admiralty Way" is one they can check. The listing is already derivable
+   * from the reference the leg was keyed on, so this costs two reads and no
+   * schema change. See lib/wallet/breakdown.ts.
+   *
+   * `property` never overwrites `note`: the note is what the ledger row was
+   * written with and the property is context added on the way out. A row that
+   * carries both shows both, in that order.
+   */
+  const names = await readPropertyNamesForReferences(
+    supabase,
+    entries.map((entry) => entry.reference),
+  );
+  for (const entry of entries) {
+    const property = names.get(entry.reference);
+    if (property) entry.property = property;
+  }
+
   return {
     id: wallet.wallet_id,
     balanceMinor: wallet.balance_minor ?? 0,
     currency: wallet.currency ?? "NGN",
-    entries: (entriesRead.data ?? []).map(toWalletEntry),
+    entries,
   };
 }
 
@@ -117,19 +147,55 @@ export async function readStatement(
  * symbol is read as a fact about the reader before any caption is. That is the
  * industry standard and this now follows it.
  *
- * Never throws; a read failure falls back to an empty wallet rather than
- * inventing money.
+ * Never throws, because a wallet page that crashes helps nobody. But a failure
+ * is now REPORTED rather than disguised: it is logged on the money channel and
+ * it comes back with readFailed set, so the screen can say the balance could
+ * not be read instead of printing a zero that looks like an answer.
+ *
+ * That distinction is the whole lesson of the funding incident. Every layer
+ * below this one was correct. The credit simply never arrived, and this
+ * function turned "we do not know" into "you have nothing".
  */
 export async function getWalletForViewer(): Promise<ViewerWallet> {
   const session = await resolveSession();
   if (session.state !== "signed-in") {
-    return { id: null, balanceMinor: 0, currency: "NGN", entries: [], live: false };
+    return {
+      id: null,
+      balanceMinor: 0,
+      currency: "NGN",
+      entries: [],
+      live: false,
+      readFailed: false,
+      breakdown: EMPTY_BREAKDOWN,
+    };
   }
   try {
     const statement = await readStatement(session.supabase, session.user.id);
-    return { ...statement, live: true };
-  } catch {
-    return { id: null, balanceMinor: 0, currency: "NGN", entries: [], live: true };
+    /* Sequential rather than parallel with the statement, on purpose: the
+       breakdown needs the balance the statement just read, and a second
+       independent read of `wallet_balances` could disagree with the first. */
+    const breakdown = await readBalanceBreakdown(
+      session.supabase,
+      session.user.id,
+      statement.balanceMinor,
+    );
+    return { ...statement, live: true, readFailed: false, breakdown };
+  } catch (error) {
+    logMoney({
+      surface: "fund",
+      outcome: "failed",
+      reason: `statement_read_failed:${failureReason(error)}`,
+      userId: session.user.id,
+    });
+    return {
+      id: null,
+      balanceMinor: 0,
+      currency: "NGN",
+      entries: [],
+      live: true,
+      readFailed: true,
+      breakdown: { ...EMPTY_BREAKDOWN, readFailed: true },
+    };
   }
 }
 

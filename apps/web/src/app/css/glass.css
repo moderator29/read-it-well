@@ -31,13 +31,41 @@
    * z-index on the pseudo keeps it under content without needing a z-index on
    * every child.
    */
+  /*
+   * ==================================================================
+   * THE PREFIX GOES FIRST. THE STANDARD PROPERTY GOES LAST. ALWAYS.
+   * ==================================================================
+   *
+   * This file, and chrome.css, controls.css, light.css and overlays.css, all
+   * declared these the other way round: `backdrop-filter` and then
+   * `-webkit-backdrop-filter` under it, twelve pairs in total. That is the
+   * order a lot of hand-written CSS uses and it is backwards, and on this
+   * codebase it had a consequence.
+   *
+   * Lightning CSS, which is what Next runs the stylesheet through, treats a
+   * prefixed and unprefixed pair as one declaration and keeps the LAST one it
+   * sees. So every one of those twelve pairs shipped as `-webkit-backdrop-
+   * filter` alone. And `-webkit-backdrop-filter` is a SAFARI-ONLY alias:
+   * Chromium has never implemented it under that name and silently drops the
+   * declaration.
+   *
+   * The result, measured in a real browser: `getComputedStyle(header).
+   * backdropFilter === "none"`. Every glass surface on this platform - the
+   * header, the tab bar, the dock, the sheets, the cards - has been rendering
+   * in Chrome, Edge and every Android browser as a flat 7.5% white fill with
+   * NO blur behind it, for as long as this rule has existed. The material the
+   * whole design is built on was only ever working in Safari.
+   *
+   * With the standard property last it survives the merge, and the prefix is
+   * still there for the Safari versions that need it.
+   */
   .nf-glass {
     position: relative;
     isolation: isolate;
     background: var(--nf-glass-fill);
     border: 1px solid var(--nf-glass-border);
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
     -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim),
       inset 0 -1px 0 var(--nf-glass-floor),
@@ -72,13 +100,13 @@
   /* Depth modifiers. Blur, fill and shadow move together or the illusion breaks. */
   .nf-glass--thin {
     background: var(--nf-glass-fill-thin);
-    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
   }
   .nf-glass--strong {
     background: var(--nf-glass-fill-strong);
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim-strong),
       inset 0 -1px 0 var(--nf-glass-floor),
@@ -210,14 +238,14 @@
         padding-box,
       linear-gradient(
           142deg,
-          color-mix(in oklab, var(--nf-electric-500) 55%, transparent) 0%,
-          color-mix(in oklab, var(--nf-electric-500) 28%, transparent) 34%,
+          color-mix(in oklab, var(--nf-brand-primary) 55%, transparent) 0%,
+          color-mix(in oklab, var(--nf-brand-primary) 28%, transparent) 34%,
           rgb(255 255 255 / 0.07) 62%,
           rgb(255 255 255 / 0.03) 100%
         )
         border-box;
     box-shadow:
-      0 0 16px -10px color-mix(in oklab, var(--nf-electric-500) 35%, transparent),
+      0 0 16px -10px color-mix(in oklab, var(--nf-brand-primary) 35%, transparent),
       var(--nf-shadow-card);
   }
 
@@ -233,9 +261,26 @@
         transparent 68%)
         border-box;
     border: 1px solid transparent;
-    border-radius: var(--nf-radius-lg);
-    backdrop-filter: blur(14px) saturate(140%);
+    /*
+     * 22px, up from 18px.
+     *
+     * The material stays exactly as it is: the layered gradient, the corner
+     * bloom and the rim are the best surface on this platform and they are not
+     * being flattened. What changes is the PROPORTION.
+     *
+     * The reference platform's surfaces sit around 20 to 24px and read as
+     * roomy. At 18px, with our padding, a card reads as a box holding content
+     * rather than as a space content lives in, and the difference between
+     * those two readings is most of what "mature" means when somebody looks at
+     * a screen and cannot say why one feels expensive.
+     *
+     * A radius change is cheap to make and expensive to get wrong, so it is
+     * made once, here, on the shared material, rather than as a per-component
+     * override that drifts.
+     */
+    border-radius: var(--nf-radius-xl);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
     /*
      * Rung 1 of the ladder rather than a hand-written drop. The card keeps its
      * own gradient border and corner glow - that layered material is the best
@@ -351,6 +396,30 @@
     /* The artwork is lit on white, so it multiplies cleanly into any tile:
        the ground disappears and only the object and its shadow survive. */
     mix-blend-mode: multiply;
+  }
+
+  /*
+   * The untiled object's ground, and the default treatment for a brand object
+   * everywhere on the platform.
+   *
+   * ONE LAYER. A flat plate with a squircle radius: no border, no rim, no
+   * shadow, no glow, no inner well, no parallax. Compare with `.nf-icon-tile`
+   * below, which carries six, and which used to be what every object wore.
+   *
+   * It cannot simply be nothing. The artwork is opaque RGB on white and the
+   * white is removed by the `mix-blend-mode: multiply` above; multiply against
+   * the night canvas returns the night canvas, so an object with nothing light
+   * behind it disappears entirely in the default theme. `--nf-icon-ground`
+   * resolves to a soft near-white at night and to `transparent` in daylight,
+   * where multiply is already the identity against the white surfaces and the
+   * object needs no ground at all.
+   */
+  .nf-brand-icon-ground {
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 26%;
+    background: var(--nf-icon-ground);
   }
 
   /*

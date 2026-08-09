@@ -158,7 +158,10 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
       aria-label={copy.title}
       data-testid="delete-drawer"
     >
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      {/* `bg-black/70` was a dark-only backdrop: in the light theme it dropped
+          a near-opaque black sheet behind a white panel. `--nf-overlay-backdrop`
+          is the platform's one scrim and is lighter in daylight. */}
+      <div className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm" />
 
       <div
         ref={panelRef}

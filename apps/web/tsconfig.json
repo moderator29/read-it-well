@@ -63,7 +63,21 @@
     ".next-a2places/types/**/*.ts",
     ".next-a2places/dev/types/**/*.ts",
     ".next-a2/types/**/*.ts",
-    ".next-a2/dev/types/**/*.ts"
+    ".next-a2/dev/types/**/*.ts",
+    ".next-e/types/**/*.ts",
+    ".next-e/dev/types/**/*.ts",
+    ".next-agentA/types/**/*.ts",
+    ".next-agentA/dev/types/**/*.ts",
+    ".next-ds/types/**/*.ts",
+    ".next-ds/dev/types/**/*.ts",
+    ".next-admin/types/**/*.ts",
+    ".next-admin/dev/types/**/*.ts",
+    ".next-fe/types/**/*.ts",
+    ".next-fe/dev/types/**/*.ts",
+    ".next-sec/types/**/*.ts",
+    ".next-sec/dev/types/**/*.ts",
+    ".next-fix/types/**/*.ts",
+    ".next-fix/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

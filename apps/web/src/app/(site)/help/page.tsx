@@ -166,7 +166,7 @@ const FAQS: Faq[] = [
 
 export default function HelpPage() {
   return (
-    <div className="nf-shell py-12 sm:py-16">
+    <div className="nf-shell py-section">
       <div className="mx-auto max-w-3xl">
         {/* -------------------------------------------------------- hero */}
         <div className="nf-rise text-center">
@@ -176,8 +176,8 @@ export default function HelpPage() {
             </span>
             Help centre
           </span>
-          <h1 className="nf-h1 mx-auto mt-5 max-w-[16ch]">How can we help?</h1>
-          <p className="mx-auto mt-4 max-w-[50ch] text-[var(--nf-content-secondary)]">
+          <h1 className="nf-h1 mx-auto mt-heading max-w-[16ch]">How can we help?</h1>
+          <p className="mx-auto mt-group max-w-[50ch] text-[var(--nf-content-secondary)]">
             Straight answers about booking, payments, refunds, listing and
             verification. Search below, or browse by topic.
           </p>
@@ -186,18 +186,18 @@ export default function HelpPage() {
         {/* ------------------------------------------------ trust surfaces */}
         <nav
           aria-label="Safety and policy"
-          className="nf-rise mt-8 grid gap-3 sm:grid-cols-3"
+          className="nf-rise mt-block grid gap-row sm:grid-cols-3"
           style={{ animationDelay: "60ms" }}
         >
           {TRUST_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="nf-card nf-card--interactive p-4">
+            <Link key={link.href} href={link.href} className="nf-card nf-card--interactive p-card-sm">
               <span className="inline-grid h-9 w-9 place-items-center">
                 <BrandIcon name={link.icon} fill />
               </span>
-              <span className="mt-2 block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <span className="mt-inline block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 {link.title}
               </span>
-              <span className="mt-1 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <span className="mt-inline-tight block text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
                 {link.body}
               </span>
             </Link>
@@ -205,18 +205,18 @@ export default function HelpPage() {
         </nav>
 
         {/* --------------------------------------------- searchable list */}
-        <div className="nf-rise mt-10" style={{ animationDelay: "100ms" }}>
+        <div className="nf-rise mt-block" style={{ animationDelay: "100ms" }}>
           <HelpSearch faqs={FAQS} />
         </div>
 
         {/* ------------------------------------------- ask the agent */}
-        <div className="nf-rise mt-10" style={{ animationDelay: "160ms" }}>
+        <div className="nf-rise mt-block" style={{ animationDelay: "160ms" }}>
           <SupportChat />
         </div>
 
         {/* ------------------------------------------------ still stuck */}
-        <div className="nf-card mt-14 flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-          <div className="flex items-center gap-4">
+        <div className="nf-card mt-section-tight flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-group">
             <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
               <BrandIcon name="chat" fill />
             </span>

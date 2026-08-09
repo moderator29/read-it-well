@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { LOCALES, localeMeta, type Locale } from "@naijafinds/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * Language switcher.
@@ -40,7 +41,7 @@ export function LanguageSwitcher({
         value={value}
         onChange={(e) => change(e.target.value as Locale)}
         disabled={pending}
-        className="nf-btn nf-btn--primary min-h-11 appearance-none cursor-pointer px-3 py-2 pr-7 text-[0.8125rem] disabled:opacity-60"
+        className="nf-btn nf-btn--primary min-h-11 appearance-none cursor-pointer px-row py-inline pr-block text-[0.8125rem] disabled:opacity-60"
         style={{ paddingBlock: compact ? "0.35rem" : undefined }}
       >
         {LOCALES.map((l) => (
@@ -49,18 +50,11 @@ export function LanguageSwitcher({
           </option>
         ))}
       </select>
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 24 24"
-        className="pointer-events-none absolute right-2.5 h-3 w-3 opacity-60"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="m6 9 6 6 6-6" />
-      </svg>
+      <UiIcon
+        name="chevron-down"
+        size="xs"
+        className="pointer-events-none absolute right-2.5 opacity-60"
+      />
     </label>
   );
 }

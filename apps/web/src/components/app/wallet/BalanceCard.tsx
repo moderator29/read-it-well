@@ -2,22 +2,37 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatNumber, type Locale } from "@naijafinds/i18n";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Odometer } from "@/components/site/Odometer";
-import type { WalletEntry } from "@/lib/wallet/types";
+import type { BalanceBreakdown, WalletEntry } from "@/lib/wallet/types";
 import { formatKoboExact } from "./money";
 import { Amount } from "@/components/ui/Amount";
+import { BalanceBreakdownSheet } from "./BalanceBreakdownSheet";
 
 /**
  * Wallet balance hero.
  *
  * The one place the user's money is stated, so it is stated exactly: integer
  * kobo split with integer arithmetic and rendered to the kobo, never a rounded
- * approximation. The card is the edge-lit glass material with an inner conic
- * shimmer and a fine grid texture, an eye toggle to mask the figure, in and
- * out totals for the last thirty days, and a sparkline of the running balance.
+ * approximation. The card carries an eye toggle to mask the figure, in and out
+ * totals for the last thirty days, and a sparkline of the running balance.
  * Every derived number below is summed as integer kobo; division appears only
  * when mapping values to sparkline pixel geometry, never in a money display.
+ *
+ * SIX LAYERS CAME OFF THIS CARD.
+ *
+ * It used to stack a conic shimmer, a hand-drawn white grid with two mask
+ * gradients, a border-white/15 bg-white/5 eye button and the glass card's own
+ * material, all under the largest number on the platform. Every one of those
+ * layers was a raw literal: the conic ran three rgb() stops in cyan and two
+ * blues that exist in no token, and the grid painted white lines that in
+ * daylight were white lines on a white card.
+ *
+ * What is left is the balance, the two flow figures and the sparkline, on the
+ * platform's ordinary card material. The one decorative layer that survives is
+ * a single token-driven surface wash, because the balance is the hero of the
+ * wallet and a completely flat panel under it read as unfinished. Texture is
+ * not what makes a number feel important; size, spacing and silence are.
  */
 
 const DAY_MS = 86_400_000;
@@ -64,11 +79,22 @@ function sparklinePoints(entries: WalletEntry[]): string | null {
 export function BalanceCard({
   balanceMinor,
   entries,
+  breakdown,
   locale,
   usdRate,
 }: {
   balanceMinor: number;
   entries: WalletEntry[];
+  /**
+   * What the headline figure is made of.
+   *
+   * The card still states ONE number. This only drives the control that opens
+   * the breakdown, and the label on that control, which reads "Money in
+   * escrow" when there is some and "Breakdown" when there is not - so somebody
+   * whose balance just dropped by a deposit can see where it went without
+   * having to guess that a generic control would tell them.
+   */
+  breakdown: BalanceBreakdown;
   locale: Locale;
   /**
    * Naira per one US dollar. Optional on purpose.
@@ -113,47 +139,47 @@ export function BalanceCard({
     <section
       aria-labelledby="nf-wallet-balance-label"
       data-pulse={pulse ?? undefined}
-      className="nf-card nf-balance-pulse relative overflow-hidden rounded-[var(--nf-radius-2xl)] p-5 sm:p-6"
+      className="nf-card nf-balance-pulse relative overflow-hidden rounded-[var(--nf-radius-2xl)] p-card sm:p-cell"
     >
-      {/* Inner conic shimmer, the light source sweeping the glass. Hidden in
-          the light theme, where it would smear a white card. */}
+      {/* The one surviving decorative layer: the platform's surface wash, which
+          lifts the top of the card off the bottom of it. It is a token, so it
+          is a neutral wash on paper rather than the white-on-white nothing the
+          hand-written version resolved to. */}
       <div
         aria-hidden
-        className="nf-wallet-sheen pointer-events-none absolute inset-0 opacity-60"
-        style={{
-          background:
-            "conic-gradient(from 215deg at 78% 12%, rgb(0 200 255 / 0.18) 0deg, transparent 95deg, rgb(51 138 255 / 0.10) 175deg, transparent 250deg, rgb(0 102 255 / 0.16) 360deg)",
-        }}
-      />
-      {/* Fine grid texture, fading out towards the foot of the card. Hidden in
-          the light theme along with the sheen. */}
-      <div
-        aria-hidden
-        className="nf-wallet-grid pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px)",
-          backgroundSize: "22px 22px",
-          maskImage: "linear-gradient(180deg, rgb(0 0 0) 0%, transparent 85%)",
-          WebkitMaskImage: "linear-gradient(180deg, rgb(0 0 0) 0%, transparent 85%)",
-        }}
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "var(--nf-gradient-surface)" }}
       />
 
-      <div className="relative flex items-start justify-between gap-4">
+      <div className="relative flex items-start justify-between gap-md">
         <p
           id="nf-wallet-balance-label"
-          className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[var(--nf-content-muted)]"
+          className="nf-body-sm font-semibold text-[var(--nf-content-muted)]"
         >
           Available balance
         </p>
-        <div className="flex items-center gap-2">
+        {/*
+          TWO CONTROLS IN THIS CORNER, AND IT WAS TWO CONTROLS AND A PICTURE.
+
+          A 44px wallet object sat at the end of this row, at the same size and
+          on the same baseline as the eye button and the currency toggle beside
+          it. Three things of one size in a line read as three controls, so the
+          decoration was being scanned as a button that does not respond, in the
+          top right corner of the screen where somebody's money is stated.
+
+          The object is not needed to say what the card is. The label says
+          "Available balance", the figure carries a naira sign and is the
+          largest numeral on the platform, and the page title two rows up says
+          Wallet. Nothing about the identity of this surface was resting on it.
+        */}
+        <div className="flex items-center gap-inline">
           {usdRate ? (
             <button
               type="button"
               onClick={() => setInUsd((v) => !v)}
               aria-pressed={inUsd}
               aria-label={inUsd ? "Show balance in naira" : "Show balance in US dollars"}
-              className="nf-chip min-h-11 px-3 font-bold"
+              className="nf-chip min-h-11 px-row font-bold"
             >
               {inUsd ? "$" : "\u20A6"}
             </button>
@@ -163,13 +189,10 @@ export function BalanceCard({
             onClick={() => setHidden((h) => !h)}
             aria-pressed={hidden}
             aria-label={hidden ? "Show balance" : "Hide balance"}
-            className="grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-white/5 text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
+            className="nf-icon-btn h-11 w-11 rounded-full"
           >
             <EyeGlyph off={hidden} />
           </button>
-          <span className="h-12 w-12 shrink-0">
-            <BrandIcon name="wallet-secure" fill />
-          </span>
         </div>
       </div>
 
@@ -185,7 +208,7 @@ export function BalanceCard({
         money moves, and Amount renders a static string. The flow tiles below
         and every ledger row underneath it do go through Amount.
       */}
-      <p className="nf-numeric relative mt-3 leading-none text-[var(--nf-content-primary)]">
+      <p className="nf-numeric relative mt-row leading-none text-[var(--nf-content-primary)]">
         {hidden ? (
           <span className="text-[2.5rem] font-bold tracking-[-0.03em] sm:text-[3rem]">
             {inUsd ? "$" : "\u20A6"}
@@ -218,7 +241,7 @@ export function BalanceCard({
           </>
         )}
       </p>
-      <p className="relative mt-2 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="nf-caption relative mt-inline">
         {inUsd && usdRate
           ? /* `toLocaleString()` with no argument reads the BROWSER's locale,
                not the app's, so this line grouped the rate "1.600" on a German
@@ -229,22 +252,42 @@ export function BalanceCard({
       </p>
 
       {/*
-        Flow tiles. `bg-white/[0.04]` and `border-white/10` were raw literals
-        that inverted badly on paper - a white wash over a white card. They now
-        take the inset surface and the elevation ladder's hairline, so both
-        themes are handled by tokens.
+        WHERE THE REST OF THE MONEY IS.
+
+        One control, under the figure, not a second and third figure beside it.
+        An escrow hold is a debit, so the headline drops when somebody pays a
+        deposit into escrow and this card had no way to say where it went. See
+        BalanceBreakdownSheet for why the breakdown is behind a tap rather than
+        on the face of the card.
+      */}
+      <div className="relative mt-row">
+        <BalanceBreakdownSheet breakdown={breakdown} locale={locale} hidden={hidden} />
+      </div>
+
+      {/*
+        THE TWO FLOWS LOST THEIR BOXES.
+
+        They were two rounded, bordered, inset-filled tiles side by side INSIDE
+        the glass card, which is two more containers drawn around one idea with
+        two parts, on the one surface on the platform that should be the calmest
+        thing a person sees. The reference does not box these; nor does any
+        bank. What separates two facts read across is a hairline and alignment,
+        which is what `nf-cells` exists for and what it does here: one rule
+        between them, inset from the surface's own edges, and nothing else.
+
+        The labels come up with it. They were `nf-caption` uppercase and tracked
+        out, which is 13px shouting; a fact's label is a label, so it takes
+        body-sm in sentence case and the figure above it does the work.
 
         Money out is painted in the error ink rather than neutral. A ledger
         where credits are green and debits are the same colour as the label is
         the exact tell the reference wallets avoid: the eye should be able to
         find money leaving without reading a sign.
       */}
-      <div className="relative mt-4 grid grid-cols-2 gap-2">
-        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] px-3 py-2">
-          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
-            In, last 30 days
-          </p>
-          <p className="nf-numeric mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-success)]">
+      <div className="nf-cells nf-cells--pair relative mt-block">
+        <div className="pr-lg">
+          <p className="nf-body-sm text-[var(--nf-content-muted)]">In, last 30 days</p>
+          <p className="nf-numeric mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-state-success)]">
             {hidden ? (
               "••••"
             ) : (
@@ -254,11 +297,9 @@ export function BalanceCard({
             )}
           </p>
         </div>
-        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-elev-1-border)] bg-[var(--nf-surface-inset)] px-3 py-2">
-          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
-            Out, last 30 days
-          </p>
-          <p className="nf-numeric mt-0.5 text-[0.9rem] font-semibold text-[var(--nf-state-error)]">
+        <div className="pl-lg">
+          <p className="nf-body-sm text-[var(--nf-content-muted)]">Out, last 30 days</p>
+          <p className="nf-numeric mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-state-error)]">
             {hidden ? (
               "••••"
             ) : (
@@ -288,7 +329,7 @@ export function BalanceCard({
           viewBox="0 0 100 28"
           preserveAspectRatio="none"
           aria-hidden
-          className="nf-wallet-spark relative mt-4 h-9 w-full text-[var(--nf-brand-secondary)]"
+          className="nf-wallet-spark relative mt-block h-9 w-full text-[var(--nf-brand-secondary)]"
         >
           <defs>
             <linearGradient id="nf-wallet-spark-fill" x1="0" y1="0" x2="0" y2="1">
@@ -313,23 +354,13 @@ export function BalanceCard({
   );
 }
 
-/** Small stroke glyph for the visibility toggle; decorative, labelled by the button. */
+/**
+ * The visibility toggle's mark.
+ *
+ * This was the second of two inline eyes on the platform - a slightly different
+ * curve at strokeWidth 2 against the auth field's 1.7, doing the same job on
+ * another screen. Both are the platform glyph now.
+ */
 function EyeGlyph({ off }: { off: boolean }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" />
-      <circle cx="12" cy="12" r="2.6" />
-      {off && <path d="M4 4l16 16" />}
-    </svg>
-  );
+  return <UiIcon name={off ? "eye-off" : "eye"} size="xs" />;
 }

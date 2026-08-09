@@ -14,13 +14,22 @@ export default function LoadingMessages() {
     <LoadingShell label="Loading your messages" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton subtitle />
 
-      <ul className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
+      {/* Hairline rows on the ground, matching `Inbox`, which has not drawn a
+          card around this list for some time. A skeleton that reserves a
+          bordered box the screen then dissolves is a layout shift dressed as a
+          transition. It also reserves the search field and the tab row above
+          the list, both of which used to arrive and push the first
+          conversation down by ninety pixels. */}
+      <Skeleton height="3.5rem" radius="lg" />
+      <Skeleton className="mt-heading" height="2.75rem" radius="pill" />
+
+      <ul className="mt-heading divide-y divide-[var(--nf-border-subtle)]">
         {Array.from({ length: 6 }, (_, i) => (
-          <li key={i} className="flex items-start gap-3 px-4 py-3.5">
+          <li key={i} className="flex items-start gap-md py-group">
             <Skeleton circle width="2.5rem" className="shrink-0" />
             <div className="min-w-0 flex-1">
-              <Skeleton width="45%" height="0.9375rem" radius="sm" />
-              <Skeleton className="mt-2" width="80%" height="0.8125rem" radius="sm" />
+              <Skeleton width="45%" height="1rem" radius="sm" />
+              <Skeleton className="mt-inline-tight" width="80%" height="0.90625rem" radius="sm" />
             </div>
             <Skeleton width="2.5rem" height="0.75rem" radius="sm" className="shrink-0" />
           </li>

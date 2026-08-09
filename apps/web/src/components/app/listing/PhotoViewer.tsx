@@ -202,7 +202,7 @@ function Lightbox({
       className={[
         // Above the Sheet primitive's 80/81, so a photo opened from the
         // "Show all" sheet is never painted behind the sheet it came from.
-        "fixed inset-0 z-[90] bg-black outline-none",
+        "fixed inset-0 z-[90] bg-[var(--nf-surface-artwork)] outline-none",
         "transition-opacity duration-200 ease-out motion-reduce:transition-none",
         "motion-safe:transition-[opacity,transform] motion-safe:duration-200",
         entered ? "opacity-100 motion-safe:scale-100" : "opacity-0 motion-safe:scale-[0.98]",
@@ -241,11 +241,11 @@ function Lightbox({
           onClick={onClose}
           aria-label="Close photos"
           data-testid="lightbox-close"
-          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/55 text-white backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
+          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media-strong)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="close" size={20} />
         </button>
-        <p className="nf-numeric pointer-events-none mt-1.5 rounded-full bg-black/55 px-3 py-1.5 text-[0.8125rem] font-semibold text-white backdrop-blur-md">
+        <p className="nf-numeric pointer-events-none mt-1.5 rounded-full bg-[var(--nf-overlay-media-strong)] px-3 py-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md">
           <span className="sr-only">Photo </span>
           {active + 1} / {photos.length}
         </p>
@@ -258,7 +258,7 @@ function Lightbox({
             onClick={() => go(active - 1)}
             disabled={active === 0}
             aria-label="Previous photo"
-            className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-black/55 text-white backdrop-blur-md disabled:opacity-0 sm:grid"
+            className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media-strong)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-left" size={20} />
           </button>
@@ -267,7 +267,7 @@ function Lightbox({
             onClick={() => go(active + 1)}
             disabled={active === photos.length - 1}
             aria-label="Next photo"
-            className="absolute right-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-black/55 text-white backdrop-blur-md disabled:opacity-0 sm:grid"
+            className="absolute right-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media-strong)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-right" size={20} />
           </button>

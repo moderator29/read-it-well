@@ -3,6 +3,7 @@
 import { getDictionary, plural, type Locale } from "@naijafinds/i18n";
 import { useStayDatesOptional } from "./StayDates";
 import { ButtonLink } from "@/components/ui/Button";
+import { AuthGate } from "@/components/auth/AuthGate";
 import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
 
@@ -138,28 +139,48 @@ export function ListingStickyBar({
           until there is room for it - the label stays in the accessible name
           throughout, so the control is never unlabelled to a screen reader.
         */}
+        {/*
+          BOTH HALVES GATE, and they gate to different verbs.
+
+          A guest reaching this bar is allowed to be here - the property page is
+          open to anybody - so these controls are drawn at full strength rather
+          than hidden or disabled. What they do differs: with a session they go
+          where they say, and without one they open sign-up carrying this
+          listing's URL and the verb, so signing in lands the person back on
+          this property with the same button under their thumb.
+
+          The verbs are inferred from the market rather than passed in, because
+          they are already determined by it: the ghost half is always the
+          conversation, and the solid half is the inspection on a rental and the
+          payment on a stay. A fourth combination would mean a new market, and a
+          new market has to be described here anyway.
+        */}
         {secondary && (
-          <ButtonLink
-            href={secondary.href}
-            {...external(secondary)}
-            variant="ghost"
-            leadingIcon={variant === "partner" ? "arrow-right" : "chat-bubble"}
-            aria-label={secondary.label}
-            className="shrink-0"
-          >
-            <span className="nf-btn__label hidden sm:inline">{secondary.label}</span>
-          </ButtonLink>
+          <AuthGate action="message">
+            <ButtonLink
+              href={secondary.href}
+              {...external(secondary)}
+              variant="ghost"
+              leadingIcon={variant === "partner" ? "arrow-right" : "chat-bubble"}
+              aria-label={secondary.label}
+              className="shrink-0"
+            >
+              <span className="nf-btn__label hidden sm:inline">{secondary.label}</span>
+            </ButtonLink>
+          </AuthGate>
         )}
 
         {action && (
-          <ButtonLink
-            href={action.href}
-            {...external(action)}
-            variant="primary"
-            className="shrink-0"
-          >
-            {action.label}
-          </ButtonLink>
+          <AuthGate action={variant === "rental" ? "inspect" : "pay"}>
+            <ButtonLink
+              href={action.href}
+              {...external(action)}
+              variant="primary"
+              className="shrink-0"
+            >
+              {action.label}
+            </ButtonLink>
+          </AuthGate>
         )}
       </div>
     </ActionBar>

@@ -34,6 +34,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import {
   PHOTO_BUCKET,
+  VIDEO_BUCKET,
   readMyListings,
   type ListingStatus,
   type ListingSummary,
@@ -41,12 +42,19 @@ import {
 import {
   GATE_SUMMARY_MESSAGE,
   MAX_PHOTOS,
+  MAX_UPLOAD_BYTES,
+  MAX_UPLOAD_LABEL,
+  MAX_VIDEOS,
+  VIDEO_MIME_TYPES,
   addPhotoSchema,
+  addVideoSchema,
+  removeVideoSchema,
   draftInputSchema,
   gateFieldErrors,
   listingAccessSchema,
   listingIdSchema,
-  pricePeriodFor,
+  isTenancy,
+  ratePeriodFor,
   removePhotoSchema,
   reorderPhotosSchema,
   setAmenitiesSchema,
@@ -54,6 +62,7 @@ import {
   type DraftInput,
   type ListingAccessInput,
   type PropertyType,
+  type RentPeriod,
 } from "./listings-schema";
 
 const NOT_AGENT_MESSAGE =
@@ -79,6 +88,9 @@ const REVIEW_PENDING_MESSAGE =
 
 const PHOTO_FAILED_MESSAGE =
   "We could not attach that photo just now. Please try it again.";
+
+const VIDEO_FAILED_MESSAGE =
+  "We could not attach that video just now. Please try it again.";
 
 /** Statuses an agent may still edit themselves. */
 const EDITABLE: ListingStatus[] = ["DRAFT", "MORE_INFO_REQUIRED", "REJECTED"];
@@ -125,7 +137,7 @@ async function ownedListing(
   const { data } = await supabase
     .from("listings")
     .select(
-      "id, status, title, description, property_type, price_period, price_per_night_minor, state_code, city, area, bedrooms, bathrooms, max_guests",
+      "id, status, title, description, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, sale_status, tenure, caution_deposit_minor, service_charge_minor, agency_fee_minor, legal_fee_minor, agreement_fee_minor, state_code, city, area, bedrooms, bathrooms",
     )
     .eq("id", listingId)
     .eq("agent_id", agentId)
@@ -137,6 +149,11 @@ function refreshAgentSurfaces() {
   revalidatePath("/agent/listings");
   revalidatePath("/agent/list");
   revalidatePath("/agent/dashboard");
+  /* Inspections hang off a listing, and both surfaces that show them read a
+     title from it. Publishing, unpublishing or renaming a property has to
+     reach the queue that names it, or an agent sees a row about a listing
+     that no longer says what it says. */
+  revalidatePath("/agent/inspections");
 }
 
 /* --------------------------------------------------------------- drafts */
@@ -159,8 +176,63 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const value = parsed.data;
 
-  const propertyType: PropertyType = value.propertyType ?? "apartment";
-  const period = pricePeriodFor(propertyType);
+  /* The row as it stands, when there is one. Read before the columns are built
+     because three of the rules below (which intent applies, whether a stated
+     total still covers its parts, which period an amount inherits) are
+     questions about the whole row rather than about this request, and a
+     forgiving draft save sends only what changed. */
+  const existing = value.id
+    ? await ownedListing(gate.supabase, gate.agentId, value.id)
+    : null;
+  if (value.id) {
+    if (!existing) return fail(NOT_FOUND_MESSAGE);
+    if (!EDITABLE.includes(existing.status)) return fail(LOCKED_MESSAGE);
+  }
+
+  const propertyType: PropertyType =
+    value.propertyType ?? existing?.property_type ?? "apartment";
+  const intent = value.intent ?? existing?.listing_intent ?? "rent";
+  const tenancy = isTenancy(propertyType);
+
+  /* An amount without its cycle is not an amount, and Postgres says so in
+     three separate check constraints. Rather than bouncing a 23514 the host
+     cannot act on, every amount that arrives without a period is given the
+     obvious one: a rent defaults to yearly, which is what the Nigerian tenancy
+     market quotes, and a service charge follows the rent it sits beside. */
+  const rentPeriod: RentPeriod | undefined =
+    value.rentPeriod ?? existing?.rent_period ?? (value.rentNaira !== undefined ? "year" : undefined);
+  const serviceChargePeriod: RentPeriod | undefined =
+    value.serviceChargePeriod ??
+    (value.serviceChargeNaira !== undefined ? (rentPeriod ?? "year") : undefined);
+
+  /*
+   * The total to find at the door, checked against its own parts here rather
+   * than at the database.
+   *
+   * `listings_total_move_in_covers_its_parts` refuses a total below the sum of
+   * the parts that were named, which is right: a total of 4.5m beside a rent of
+   * 4.5m and an agency fee of 450k is arithmetic nobody meant. But the
+   * constraint fires as a 23514 with a constraint name in it, and the host who
+   * mistyped one digit deserves the sentence rather than the error code. The
+   * parts are resolved against the stored row for anything this request did not
+   * send, because a forgiving draft save sends only what changed.
+   */
+  const settled = (sent: number | undefined, stored: number | null | undefined) =>
+    sent !== undefined ? sent : Number(stored ?? 0);
+  const partsSum =
+    settled(value.rentNaira, existing?.rent_amount_minor) +
+    settled(value.cautionDepositNaira, existing?.caution_deposit_minor) +
+    settled(value.agencyFeeNaira, existing?.agency_fee_minor) +
+    settled(value.legalFeeNaira, existing?.legal_fee_minor) +
+    settled(value.agreementFeeNaira, existing?.agreement_fee_minor);
+  if (value.totalMoveInNaira !== undefined && value.totalMoveInNaira < partsSum) {
+    return fail(
+      "The total to move in is less than the fees you listed, so one of the two figures is wrong.",
+      {
+        totalMoveInNaira: `The parts you have entered already come to ${formatKobo(partsSum)}. The total has to be at least that.`,
+      },
+    );
+  }
 
   // Shared column set. Undefined keys are dropped before the request, which is
   // exactly the "leave it as it was" behaviour a forgiving draft needs.
@@ -168,22 +240,64 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     title: value.title,
     description: value.description,
     property_type: propertyType,
-    price_period: period,
+    listing_intent: intent,
     state_code: value.stateCode,
     city: value.city,
     area: value.area,
     address: value.address,
     landmark: value.landmark,
-    max_guests: value.maxGuests,
     bedrooms: value.bedrooms,
-    beds: value.beds,
     bathrooms: value.bathrooms,
-    price_per_night_minor: value.priceNaira,
-    // Rentals carry no cleaning charge and no instant book: the path is
-    // message, inspect, then pay.
-    cleaning_fee_minor: period === "year" ? 0 : value.cleaningNaira,
-    min_stay_nights: period === "year" ? 1 : value.minStayNights,
-    instant_book: period === "year" ? false : value.instantBook,
+    toilets: value.toilets,
+    parking_spaces: value.parkingSpaces,
+    floor: value.floor,
+    total_floors: value.totalFloors,
+    size_sqm: value.sizeSqm,
+
+    /* ------------------------------------------------------------ the rent
+       Written whatever the intent, because a lister who typed a rent, changed
+       their mind to sale and changed it back must find their figure still
+       there. What the intent decides is which one is READ, and that is decided
+       once in `headlinePrice`, not here. */
+    rent_amount_minor: tenancy ? value.rentNaira : undefined,
+    rent_period: tenancy ? rentPeriod : undefined,
+    rent_negotiable: value.rentNegotiable,
+    caution_deposit_minor: value.cautionDepositNaira,
+    service_charge_minor: value.serviceChargeNaira,
+    service_charge_period: serviceChargePeriod,
+    agency_fee_minor: value.agencyFeeNaira,
+    legal_fee_minor: value.legalFeeNaira,
+    agreement_fee_minor: value.agreementFeeNaira,
+    total_move_in_cost_minor: value.totalMoveInNaira,
+    minimum_tenancy_months: value.minimumTenancyMonths,
+    available_from: value.availableFrom,
+    furnished: value.furnished,
+
+    /* ------------------------------------------------------------ the rate
+       A nightly or per-head figure, for the categories that are let that way.
+       The period is never asked for: a restaurant is per head and everything
+       else on this side is per night, and asking somebody to confirm the
+       category they already chose is a question with one answer. */
+    rate_minor: tenancy ? undefined : value.rateNaira,
+    rate_period:
+      tenancy || value.rateNaira === undefined
+        ? undefined
+        : value.rateNaira > 0
+          ? ratePeriodFor(propertyType)
+          : null,
+
+    /* ------------------------------------------------------------ the sale
+       `listings_sale_needs_a_status` requires a status on a sale and forbids
+       one on anything else, in both directions, so switching intent has to
+       write the column either way. 'available' is the only honest default: a
+       listing somebody is putting up is one they are still selling. */
+    sale_price_minor: value.salePriceNaira,
+    price_negotiable: value.priceNegotiable,
+    tenure: value.tenure,
+    year_built: value.yearBuilt,
+    condition: value.condition,
+    sale_status:
+      intent === "sale" ? (value.saleStatus ?? existing?.sale_status ?? "available") : null,
 
     power_grid: value.powerGrid,
     power_backup: value.powerBackup,
@@ -197,11 +311,7 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     prepaid_meter: value.prepaidMeter,
   };
 
-  if (value.id) {
-    const existing = await ownedListing(gate.supabase, gate.agentId, value.id);
-    if (!existing) return fail(NOT_FOUND_MESSAGE);
-    if (!EDITABLE.includes(existing.status)) return fail(LOCKED_MESSAGE);
-
+  if (value.id && existing) {
     const { error } = await gate.supabase
       .from("listings")
       .update(columns)
@@ -223,6 +333,14 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
 
   refreshAgentSurfaces();
   return ok({ id: created.id, status: created.status });
+}
+
+/** Kobo as naira text, for one error sentence. Integer division, never a float. */
+function formatKobo(minor: number): string {
+  const kobo = minor % 100;
+  const naira = (minor - kobo) / 100;
+  const grouped = naira.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return kobo === 0 ? `${grouped} naira` : `${grouped}.${String(kobo).padStart(2, "0")} naira`;
 }
 
 /* --------------------------------------------------------------- photos */
@@ -491,6 +609,165 @@ export async function reorderPhotos(input: {
   });
 }
 
+/* --------------------------------------------------------------- videos */
+
+/**
+ * Attach an uploaded walkthrough to a listing, having checked the FILE.
+ *
+ * This is the third of the three enforcement points named in listings-schema:
+ * the browser refuses a bad file before it costs anybody data, the bucket
+ * refuses it in Postgres whatever the browser believed, and this reads the
+ * object's REAL size and content type back out of storage before it will write
+ * a row pointing at it.
+ *
+ * The third one is not redundant with the second. The bucket rules apply to the
+ * upload; this applies to the ATTACHMENT, and the two are separate requests. A
+ * caller could upload a legitimate small mp4, then post this action a path
+ * pointing at some other object already in their own folder. Reading the object
+ * back is what makes the row's claim about its own file true.
+ *
+ * The per-listing ceiling is enforced by a trigger, under a lock on the parent
+ * listing row, so two uploads arriving at once cannot both see room for one
+ * more. The count here is only so the refusal is a sentence rather than a 23514.
+ */
+export async function addVideo(input: {
+  listingId: string;
+  storagePath: string;
+  posterPath?: string;
+  durationSeconds?: number;
+}): Promise<ActionResult<{ videoId: string; position: number }>> {
+  const gate = await requireAgent();
+  if (!gate.ok) return fail(gate.error);
+
+  const parsed = validate(addVideoSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { listingId, storagePath, posterPath, durationSeconds } = parsed.data;
+
+  if (!storagePath.startsWith(`${gate.user.id}/`)) {
+    return fail(
+      "That video was not uploaded to your own folder, so we did not attach it. Choose the file again.",
+    );
+  }
+
+  const listing = await ownedListing(gate.supabase, gate.agentId, listingId);
+  if (!listing) return fail(NOT_FOUND_MESSAGE);
+  if (!EDITABLE.includes(listing.status)) return fail(LOCKED_MESSAGE);
+
+  /*
+   * What the object actually is, read from storage rather than believed.
+   *
+   * `list` on the containing folder is the only way to see an object's size and
+   * mime type through the storage client, so the path is split and the entry is
+   * found by name. An object that is not there at all is the common case worth
+   * naming: the upload failed and the browser posted anyway.
+   */
+  const cut = storagePath.lastIndexOf("/");
+  const folder = cut < 0 ? "" : storagePath.slice(0, cut);
+  const fileName = cut < 0 ? storagePath : storagePath.slice(cut + 1);
+
+  const { data: objects, error: listError } = await gate.supabase.storage
+    .from(VIDEO_BUCKET)
+    .list(folder, { search: fileName, limit: 100 });
+  if (listError) return fail(VIDEO_FAILED_MESSAGE);
+
+  const object = (objects ?? []).find((entry) => entry.name === fileName);
+  if (!object) {
+    return fail("That upload did not finish. Try the video again.");
+  }
+
+  const size = Number(object.metadata?.["size"] ?? 0);
+  const mime = String(object.metadata?.["mimetype"] ?? "");
+  if (size > MAX_UPLOAD_BYTES) {
+    return fail(
+      `That video is over ${MAX_UPLOAD_LABEL}. Record a shorter clip, or export it at a lower resolution.`,
+    );
+  }
+  if (!(VIDEO_MIME_TYPES as readonly string[]).includes(mime)) {
+    return fail("That file is not a video we can play. Use MP4, MOV or WebM.");
+  }
+
+  const { data: existing, error: countError } = await gate.supabase
+    .from("listing_videos")
+    .select("id, position")
+    .eq("listing_id", listingId);
+  if (countError) return fail(VIDEO_FAILED_MESSAGE);
+
+  const held = existing ?? [];
+  if (held.length >= MAX_VIDEOS) {
+    return fail(
+      `A listing holds up to ${MAX_VIDEOS} walkthroughs. Remove one to add another.`,
+    );
+  }
+
+  const position = held.reduce((highest, row) => Math.max(highest, row.position + 1), 0);
+
+  const { data: created, error } = await gate.supabase
+    .from("listing_videos")
+    .insert({
+      listing_id: listingId,
+      storage_path: storagePath,
+      poster_path: posterPath ?? null,
+      duration_seconds: durationSeconds ?? null,
+      position,
+    })
+    .select("id, position")
+    .single();
+
+  if (error || !created) {
+    // 23514 is the ceiling trigger winning a race this action's own count lost.
+    if (error?.code === "23514") {
+      return fail(
+        `A listing holds up to ${MAX_VIDEOS} walkthroughs. Remove one to add another.`,
+      );
+    }
+    return fail(VIDEO_FAILED_MESSAGE);
+  }
+
+  refreshAgentSurfaces();
+  return ok({ videoId: created.id, position: created.position });
+}
+
+/** Take a walkthrough off a listing, and the object with it. */
+export async function removeVideo(input: {
+  listingId: string;
+  videoId: string;
+}): Promise<ActionResult<null>> {
+  const gate = await requireAgent();
+  if (!gate.ok) return fail(gate.error);
+
+  const parsed = validate(removeVideoSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { listingId, videoId } = parsed.data;
+
+  const listing = await ownedListing(gate.supabase, gate.agentId, listingId);
+  if (!listing) return fail(NOT_FOUND_MESSAGE);
+  if (!EDITABLE.includes(listing.status)) return fail(LOCKED_MESSAGE);
+
+  const { data: video } = await gate.supabase
+    .from("listing_videos")
+    .select("id, storage_path")
+    .eq("id", videoId)
+    .eq("listing_id", listingId)
+    .maybeSingle();
+  if (!video) {
+    return fail("That video is no longer on this listing. Reload the page to see what it has.");
+  }
+
+  const { error } = await gate.supabase
+    .from("listing_videos")
+    .delete()
+    .eq("id", videoId)
+    .eq("listing_id", listingId);
+  if (error) return fail(VIDEO_FAILED_MESSAGE);
+
+  // Best effort: the listing is already correct either way, and an orphaned
+  // object costs storage rather than correctness.
+  await gate.supabase.storage.from(VIDEO_BUCKET).remove([video.storage_path]);
+
+  refreshAgentSurfaces();
+  return ok(null);
+}
+
 /* ------------------------------------------------------------ amenities */
 
 /** Replace the listing's amenities with exactly the codes given. */
@@ -637,10 +914,15 @@ export async function submitListing(input: {
     stateCode: listing.state_code,
     city: listing.city,
     area: listing.area,
-    priceMinor: listing.price_per_night_minor,
+    intent: listing.listing_intent,
+    rentMinor: listing.rent_amount_minor,
+    rentPeriod: listing.rent_period,
+    rateMinor: listing.rate_minor,
+    ratePeriod: listing.rate_period,
+    salePriceMinor: listing.sale_price_minor,
+    tenure: listing.tenure,
     bedrooms: listing.bedrooms,
     bathrooms: listing.bathrooms,
-    maxGuests: listing.max_guests,
     amenityCount: (amenityRes.data ?? []).length,
     photoCount: photos.length,
     hasCover: photos.some((p) => p.position === 0),

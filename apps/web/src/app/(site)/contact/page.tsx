@@ -45,7 +45,7 @@ export default async function ContactPage({
   const defaultTopic = topicFrom((await searchParams).topic);
 
   return (
-    <div className="nf-shell py-12 sm:py-16">
+    <div className="nf-shell py-section">
       <div className="mx-auto max-w-3xl">
         {/* -------------------------------------------------------- hero */}
         <div className="nf-rise text-center">
@@ -55,16 +55,16 @@ export default async function ContactPage({
             </span>
             Contact us
           </span>
-          <h1 className="nf-h1 mx-auto mt-5 max-w-[16ch]">Talk to a human</h1>
-          <p className="mx-auto mt-4 max-w-[52ch] text-[var(--nf-content-secondary)]">
+          <h1 className="nf-h1 mx-auto mt-heading max-w-[16ch]">Talk to a human</h1>
+          <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
             Whether it is a booking, a payment, a listing or something odd you spotted,
             the fastest route to a fix is below.
           </p>
         </div>
 
         {/* ------------------------------------------------ the promise */}
-        <Reveal as="section" className="mt-12">
-          <div className="nf-card p-6 text-center sm:p-8">
+        <Reveal as="section" className="mt-section">
+          <div className="nf-card p-card text-center-lg">
             {/*
               The hero used to be a large mailto to support@rentme.ng, a
               mailbox that does not exist, sitting directly above a form that
@@ -80,7 +80,7 @@ export default async function ContactPage({
                 <p className="nf-overline">Support email</p>
                 <a
                   href={`mailto:${SUPPORT_EMAIL}`}
-                  className="nf-tap mt-2 inline-block break-all text-[1.25rem] font-bold text-[var(--nf-electric-300)] hover:underline sm:text-[1.5rem]"
+                  className="nf-tap mt-inline inline-block break-all text-[1.25rem] font-bold text-[var(--nf-content-link)] hover:underline sm:text-[1.5rem]"
                 >
                   {SUPPORT_EMAIL}
                 </a>
@@ -88,16 +88,16 @@ export default async function ContactPage({
             ) : (
               <>
                 <p className="nf-overline">Talk to a person</p>
-                <p className="mt-2 text-[1.25rem] font-bold text-[var(--nf-content-primary)] sm:text-[1.5rem]">
+                <p className="mt-inline text-[1.25rem] font-bold text-[var(--nf-content-primary)] sm:text-[1.5rem]">
                   Send us a message
                 </p>
               </>
             )}
-            <p className="mx-auto mt-4 max-w-[48ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mx-auto mt-group max-w-[48ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               We reply within one business day, Monday to Saturday. Urgent booking
               problems on the day of check-in are answered first.
             </p>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <div className="mt-heading flex flex-wrap items-center justify-center gap-inline">
               <span className="nf-chip">Replies within 24 hours</span>
               <span className="nf-chip">English, Yoruba, Hausa, Igbo</span>
             </div>
@@ -105,9 +105,9 @@ export default async function ContactPage({
         </Reveal>
 
         {/* --------------------------------------------- help centre first */}
-        <Reveal as="section" className="mt-6">
-          <div className="nf-card flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-            <div className="flex items-center gap-4">
+        <Reveal as="section" className="mt-heading">
+          <div className="nf-card flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-group">
               <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
                 <BrandIcon name="support-chat" fill />
               </span>
@@ -123,9 +123,9 @@ export default async function ContactPage({
         </Reveal>
 
         {/* ------------------------------------------------ safety first */}
-        <Reveal as="section" className="mt-6">
-          <div className="nf-card flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-            <div className="flex items-center gap-4">
+        <Reveal as="section" className="mt-heading">
+          <div className="nf-card flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-group">
               <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
                 <BrandIcon name="shield-check" fill />
               </span>
@@ -143,28 +143,28 @@ export default async function ContactPage({
         </Reveal>
 
         {/* -------------------------------------------------------- form */}
-        <Reveal as="section" className="mt-12">
+        <Reveal as="section" className="mt-section">
           <h2 className="nf-overline text-center">Or write to us here</h2>
-          <div className="nf-card mt-4 p-5 sm:p-7">
+          <div className="nf-card mt-group p-card">
             <ContactForm defaultTopic={defaultTopic} />
           </div>
         </Reveal>
 
         {/* ------------------------------------------------ other routes */}
-        <Reveal as="section" className="mt-12">
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="nf-card p-5">
+        <Reveal as="section" className="mt-section">
+          <div className="grid gap-heading sm:grid-cols-2">
+            <div className="nf-card p-card">
               <p className="nf-overline">Careers</p>
-              <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                 Applications and anything hiring related go through the form
                 above. Put Careers in the topic and it reaches the same queue.
               </p>
             </div>
-            <div className="nf-card p-5">
+            <div className="nf-card p-card">
               <p className="nf-overline">Agents</p>
-              <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                 Applying to list, or checking on an application? Start at{" "}
-                <Link href="/agents" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+                <Link href="/agents" className="font-semibold text-[var(--nf-content-link)] hover:underline">
                   Become an agent
                 </Link>
                 .

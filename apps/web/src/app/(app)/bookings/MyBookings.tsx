@@ -8,12 +8,12 @@ import { cancel } from "@/lib/bookings/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { getDictionary, plural, type Locale } from "@naijafinds/i18n";
 import type { BookingGroups, BookingView } from "@/lib/bookings/queries";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Segmented } from "@/components/ui/Segmented";
 import { Sheet } from "@/components/ui/Sheet";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
 
 /**
  * The signed-in trips hub: the user's real bookings from the platform,
@@ -31,10 +31,27 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "cancelled", label: "Cancelled" },
 ];
 
+/**
+ * The three empty states, each true of the tab it belongs to.
+ *
+ * A title and a body rather than one orphan sentence, so all three take the
+ * same shape as every other empty state on the platform. "Your next adventure
+ * starts with a search" went: this is a property marketplace in Nigeria, not a
+ * travel brochure, and the sentence said nothing a reader could act on.
+ */
+const EMPTY_TITLE: Record<TabKey, string> = {
+  upcoming: "Nothing booked yet",
+  completed: "No completed stays yet",
+  cancelled: "Nothing cancelled",
+};
+
 const EMPTY_COPY: Record<TabKey, string> = {
-  upcoming: "No upcoming trips yet. Your next adventure starts with a search.",
-  completed: "Stays you have completed will appear here after checkout.",
-  cancelled: "Cancelled bookings are kept here so nothing gets lost.",
+  upcoming:
+    "When you reserve a place, it appears here with your dates, your total and everything you need on the day.",
+  completed:
+    "A stay moves here after checkout, and that is where you can leave a review of it.",
+  cancelled:
+    "Cancelled bookings are kept here so you always have the record, even after the dates have gone.",
 };
 
 /**
@@ -80,8 +97,11 @@ function BookingCard({
         <Link
           href={`/listing/${b.listingId}`}
           aria-label={b.title}
-          className="relative block h-[5.75rem] w-[5.75rem] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)] sm:h-24 sm:w-32"
-          style={{ background: "linear-gradient(150deg, #1E3A8A 0%, #172554 100%)" }}
+          /* Was a hard-coded navy gradient, `#1E3A8A` to `#172554`. That is a
+             dark-only treatment: in the light theme it put a near-black tile
+             where a photograph should be. A layer-2 surface follows the theme
+             and is the right ground for a frame that has not loaded. */
+          className="relative block h-[5.75rem] w-[5.75rem] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-secondary)] sm:h-24 sm:w-32"
         >
           {b.photo && <Image src={b.photo} alt="" fill sizes="128px" className="object-cover" />}
         </Link>
@@ -92,26 +112,24 @@ function BookingCard({
               Palm Grove Shortlet" as "Lekki Pa". The name of the stay is the
               whole point of the card. */}
           <StatusPill tone={toneForStatus(b.status)}>{STATUS_LABEL[b.status]}</StatusPill>
-          <h3 className="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
-            {b.title}
-          </h3>
+          <h3 className={`mt-2 ${TYPE.rowTitle}`}>{b.title}</h3>
 
           {/* Wraps rather than clipping: "Marina Waterfront, Calabar" was one
               pixel over its column and arrived as "Calaba". */}
           {(b.area || b.city) && (
-            <p className="mt-1 flex items-start gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
-              <UiIcon name="location" size={12} className="mt-0.5 shrink-0" />
+            <p className={`mt-1.5 flex items-start gap-2 ${TYPE.rowMeta}`}>
+              <UiIcon name="location" size={ICON.inline} className="mt-px shrink-0" />
               <span>{[b.area, b.city].filter(Boolean).join(", ")}</span>
             </p>
           )}
 
-          <p className="mt-2.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
-            <UiIcon name="calendar-booking" size={16} className="shrink-0" />
-            {b.dateRange}
+          <p className={`mt-3 flex items-center gap-2 ${TYPE.body}`}>
+            <UiIcon name="calendar-booking" size={ICON.inline} className="shrink-0" />
+            <span className="font-medium">{b.dateRange}</span>
           </p>
 
-          <p className="mt-1.5 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
-            <UiIcon name="user" size={16} className="shrink-0" />
+          <p className={`mt-1.5 flex items-center gap-2 ${TYPE.body}`}>
+            <UiIcon name="user" size={ICON.inline} className="shrink-0" />
             {plural(b.guests, counts.guests, locale)} &middot;{" "}
             {plural(b.nights, counts.nights, locale)}
           </p>
@@ -184,7 +202,7 @@ function BookingCard({
           )}
           <Link
             href={`/listing/${b.listingId}`}
-            className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+            className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             View details
             <UiIcon name="arrow-right" size={16} />
@@ -343,17 +361,25 @@ export function MyBookings({
           role="tabpanel"
           id={`bookings-panel-${current.key}`}
           aria-labelledby={`bookings-tab-${current.key}`}
-          className="nf-rise flex flex-col items-center gap-4 py-10 text-center sm:py-14"
+          className="nf-rise"
         >
-          <span className="block h-20 w-20">
-            <BrandIcon name="calendar-check" fill />
-          </span>
-          <p className="mx-auto max-w-[38ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-            {EMPTY_COPY[current.key]}
-          </p>
-          <ButtonLink href="/search" variant="primary">
-            Explore stays
-          </ButtonLink>
+          <EmptyState
+            icon="calendar-check"
+            title={EMPTY_TITLE[current.key]}
+            body={EMPTY_COPY[current.key]}
+            action={
+              /* Never a dead end: the two tabs that are empty because nothing
+                 has happened YET point at the thing that would make something
+                 happen. Cancelled is empty because nothing went wrong, which is
+                 good news and needs no call to action. */
+              current.key === "cancelled" ? undefined : (
+                <ButtonLink href="/search" variant="primary">
+                  Find a place
+                </ButtonLink>
+              )
+            }
+            data-testid={`bookings-empty-${current.key}`}
+          />
         </div>
       )}
 

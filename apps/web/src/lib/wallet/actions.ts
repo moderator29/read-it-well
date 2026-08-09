@@ -45,10 +45,11 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
-import { bestEffortEmail, sendEmail } from "../email/client";
+import { bestEffortEmail, sendMessage } from "../email/client";
 import { walletFunded, withdrawalFailed } from "../email/messages";
 import { contactForSelf, contactForUser } from "../email/recipients";
 import { isFeatureEnabled } from "../flags";
+import { logMoney } from "../payments/observability";
 import {
   PaystackError,
   createTransferRecipient,
@@ -57,7 +58,9 @@ import {
   isPaystackConfigured,
   verifyTransaction,
 } from "../payments/paystack";
+import { FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
 import { bankByCode, bankByName } from "./banks";
+import { recordMoneyAudit } from "./audit";
 import {
   availableBalanceMinor,
   displayNameFor,
@@ -69,6 +72,7 @@ import {
   setEntryStatus,
   type AdminClient,
 } from "./ledger";
+import { callMoneyRpc, readMoneyStatus } from "./rpc";
 import { readStatement } from "./repository";
 import {
   fundReferenceSchema,
@@ -165,7 +169,7 @@ export async function fundWallet(
     );
   }
 
-  const reference = `rm-fund-${randomUUID()}`;
+  const reference = `${FUND_PREFIX}${randomUUID()}`;
   const callbackUrl = `${await siteOrigin()}/wallet?funded=1&reference=${reference}`;
 
   try {
@@ -176,8 +180,38 @@ export async function fundWallet(
       callbackUrl,
       metadata: { user_id: session.user.id, purpose: "wallet_fund" },
     });
+    // The intent, recorded before the money moves. Without this line a charge
+    // that never reaches the ledger has no record on our side that it was ever
+    // started, and reconciliation has only Paystack's word to work from.
+    logMoney({
+      surface: "fund",
+      outcome: "received",
+      reason: "checkout_opened",
+      reference,
+      amountMinor: parsed.data.amount,
+      userId: session.user.id,
+    });
+    const admin = getAdminClient();
+    if (admin) {
+      await recordMoneyAudit(admin, {
+        actor: { kind: "user", userId: session.user.id },
+        action: "wallet.funding.started",
+        reference,
+        amountMinor: parsed.data.amount,
+        subjectUserId: session.user.id,
+        outcome: "started",
+      });
+    }
     return ok({ authorizationUrl: tx.authorizationUrl, reference: tx.reference });
   } catch (e) {
+    logMoney({
+      surface: "fund",
+      outcome: "failed",
+      reason: "checkout_could_not_open",
+      reference,
+      amountMinor: parsed.data.amount,
+      userId: session.user.id,
+    });
     return fail(
       describePaystackError(
         e,
@@ -197,11 +231,21 @@ export type WithdrawReceipt = {
 };
 
 /**
- * Withdraw to a Nigerian bank account. Checks the spendable balance (derived
- * balance minus pending debits) server-side, posts a PENDING debit hold under
- * rm-wd-<uuid>, then initiates the Paystack transfer with that same
- * reference. The webhook settles the entry; if the transfer cannot start, the
- * hold is marked FAILED and the balance is untouched.
+ * Withdraw to a Nigerian bank account.
+ *
+ * The hold and the balance check happen together, under a row lock on the
+ * owner's wallet, inside public.hold_wallet_withdrawal. They used to be two
+ * PostgREST round trips with nothing between them, which is the same gap
+ * transferToUser had: two concurrent withdrawals both read the same balance,
+ * both found it sufficient, and both posted a hold. private.pay_booking_from_wallet
+ * shows the shape this has to take and hold_wallet_withdrawal is the withdrawal
+ * equivalent, requested from Agent B and specified in lib/wallet/rpc.ts.
+ *
+ * Once the hold exists, the same rm-wd-<uuid> reference is handed to Paystack
+ * as a transfer. The webhook settles the entry; if the transfer cannot start,
+ * the hold is marked FAILED and the balance is untouched; and if neither ever
+ * happens, sweepStaleWithdrawalHolds asks Paystack what became of it and
+ * releases the money rather than holding it forever.
  */
 export async function withdraw(
   _prev: ActionResult<WithdrawReceipt | null>,
@@ -227,35 +271,139 @@ export async function withdraw(
 
   const amountMinor = parsed.data.amount;
   const accountLast4 = parsed.data.accountNumber.slice(-4);
-  const reference = `rm-wd-${randomUUID()}`;
+  const reference = `${WITHDRAW_PREFIX}${randomUUID()}`;
 
-  try {
-    const walletId = await ensureWalletId(admin, session.user.id);
-    const available = await availableBalanceMinor(admin, walletId);
-    if (amountMinor > available) {
+  /*
+   * The hold's metadata. The account NUMBER never goes in: the last four digits
+   * are what a receipt needs and what the settlement email prints, and the full
+   * NUBAN belongs to Paystack's recipient record, not to a row every admin can
+   * read.
+   */
+  const holdMetadata = {
+    note: `Withdrawal to ${bank.name} ****${accountLast4}`,
+    bank_code: bank.code,
+    bank_name: bank.name,
+    account_last4: accountLast4,
+    account_name: parsed.data.accountName,
+  };
+
+  const held = await callMoneyRpc(
+    admin,
+    "withdraw",
+    "hold_wallet_withdrawal",
+    {
+      owner_user: session.user.id,
+      amount: amountMinor,
+      hold_reference: reference,
+      hold_metadata: holdMetadata,
+    },
+    { reference, amountMinor, userId: session.user.id },
+  );
+
+  if (held.outcome === "failed") {
+    return fail("The withdrawal could not be recorded. Your balance is untouched. Please try again.");
+  }
+
+  if (held.outcome === "ok") {
+    const status = readMoneyStatus(held.data);
+    if (status.status === "insufficient") {
+      const available = status.availableMinor ?? 0;
+      logMoney({
+        surface: "withdraw",
+        outcome: "rejected",
+        reason: "insufficient_balance",
+        reference,
+        amountMinor,
+        userId: session.user.id,
+      });
       return fail(
         `Your available balance is ${nairaExact(available)}, so this withdrawal of ${nairaExact(amountMinor)} cannot go through.`,
         { amount: "There is not enough in your wallet for this amount." },
       );
     }
-
-    await postEntry(admin, {
-      walletId,
-      kind: "withdrawal",
-      direction: "debit",
-      amountMinor,
+    if (status.status !== "ok" && status.status !== "duplicate") {
+      logMoney({
+        surface: "withdraw",
+        outcome: "rejected",
+        reason: `rpc_status:${status.status}`,
+        reference,
+        amountMinor,
+        userId: session.user.id,
+      });
+      return fail(
+        "The withdrawal could not be recorded. Your balance is untouched. Please try again.",
+      );
+    }
+    logMoney({
+      surface: "withdraw",
+      outcome: "posted",
+      reason: "hold_placed",
       reference,
-      status: "PENDING",
-      metadata: {
-        note: `Withdrawal to ${bank.name} ****${accountLast4}`,
-        bank_code: bank.code,
-        bank_name: bank.name,
-        account_last4: accountLast4,
-        account_name: parsed.data.accountName,
-      },
+      amountMinor,
+      userId: session.user.id,
+      ...(status.walletId ? { walletId: status.walletId } : {}),
     });
-  } catch {
-    return fail("The withdrawal could not be recorded. Your balance is untouched. Please try again.");
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId: session.user.id },
+      action: "wallet.withdrawal.hold_placed",
+      reference,
+      amountMinor,
+      subjectUserId: session.user.id,
+      walletId: status.walletId,
+      outcome: status.status,
+      detail: { bank_code: bank.code, account_last4: accountLast4, atomic: true },
+    });
+  } else {
+    /*
+     * THE FALLBACK. See the identical note in transferToUser: the public
+     * wrapper is not applied yet, and refusing every withdrawal would be a
+     * worse answer than running the path that already shipped. It says so on
+     * the money channel every time, and it goes the day
+     * public.hold_wallet_withdrawal lands.
+     */
+    logMoney({
+      surface: "withdraw",
+      outcome: "unconfigured",
+      reason: "atomic_hold_unavailable_using_unlocked_path",
+      reference,
+      amountMinor,
+      userId: session.user.id,
+    });
+    try {
+      const walletId = await ensureWalletId(admin, session.user.id);
+      const available = await availableBalanceMinor(admin, walletId);
+      if (amountMinor > available) {
+        return fail(
+          `Your available balance is ${nairaExact(available)}, so this withdrawal of ${nairaExact(amountMinor)} cannot go through.`,
+          { amount: "There is not enough in your wallet for this amount." },
+        );
+      }
+
+      await postEntry(admin, {
+        walletId,
+        kind: "withdrawal",
+        direction: "debit",
+        amountMinor,
+        reference,
+        status: "PENDING",
+        metadata: holdMetadata,
+      });
+
+      await recordMoneyAudit(admin, {
+        actor: { kind: "user", userId: session.user.id },
+        action: "wallet.withdrawal.hold_placed",
+        reference,
+        amountMinor,
+        subjectUserId: session.user.id,
+        walletId,
+        outcome: "posted",
+        detail: { bank_code: bank.code, account_last4: accountLast4, atomic: false },
+      });
+    } catch {
+      return fail(
+        "The withdrawal could not be recorded. Your balance is untouched. Please try again.",
+      );
+    }
   }
 
   try {
@@ -278,8 +426,28 @@ export async function withdraw(
       });
       markedFailed = true;
     } catch {
-      // The hold stays PENDING; reconciliation settles it against Paystack.
+      // The hold stays PENDING. sweepStaleWithdrawalHolds asks Paystack what
+      // became of this reference and, finding no transfer under it, releases
+      // the hold. That is the path that used to end in a balance held forever.
     }
+
+    logMoney({
+      surface: "withdraw",
+      outcome: markedFailed ? "rejected" : "failed",
+      reason: markedFailed ? "transfer_not_started_hold_released" : "transfer_not_started_hold_stuck",
+      reference,
+      amountMinor,
+      userId: session.user.id,
+    });
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId: session.user.id },
+      action: "wallet.withdrawal.not_started",
+      reference,
+      amountMinor,
+      subjectUserId: session.user.id,
+      outcome: markedFailed ? "FAILED" : "still_pending",
+      detail: { bank_code: bank.code, account_last4: accountLast4 },
+    });
 
     // Only once the hold is genuinely FAILED is it true to say the money is
     // back in the wallet, so only then does the email go.
@@ -293,7 +461,7 @@ export async function withdraw(
           bankName: bank.name,
           accountLast4,
         });
-        await sendEmail({ to: owner.email, subject: message.subject, html: message.html });
+        await sendMessage(owner.email, message);
       });
     }
 
@@ -318,9 +486,23 @@ export type TransferReceipt = {
 };
 
 /**
- * Transfer wallet money to another RentMe user by email. Writes both ledger
- * legs with paired references (rm-p2p-<uuid>-out and -in), both COMPLETED;
- * if the recipient leg cannot land, the sender leg is marked REVERSED.
+ * Transfer wallet money to another RentMe user by email.
+ *
+ * BOTH LEGS, ONE TRANSACTION, ONE ROW LOCK. This used to read
+ * availableBalanceMinor and then post two entries in separate PostgREST round
+ * trips, with no transaction and no lock between the check and the writes. Two
+ * concurrent transfers both read the same balance, both found it sufficient,
+ * and both posted: a wallet holding NGN 5,000 could send NGN 5,000 twice and
+ * end up at minus NGN 5,000. That is not an exotic race. It is two taps on a
+ * slow connection, and private.wallets_overdrawn() exists precisely because
+ * somebody expected it to happen.
+ *
+ * private.transfer_between_wallets has done this correctly the whole time. It
+ * locks the sender's wallet with SELECT FOR UPDATE, computes settled minus
+ * pending debits inside that lock, writes both legs in ONE insert statement so
+ * neither can land without the other, and treats a unique_violation on either
+ * reference as a duplicate rather than as a second payment. Nothing had ever
+ * called it. This calls it.
  */
 export async function transferToUser(
   _prev: ActionResult<TransferReceipt | null>,
@@ -356,66 +538,163 @@ export async function transferToUser(
 
   const amountMinor = parsed.data.amount;
   const pairId = randomUUID();
-  const outReference = `rm-p2p-${pairId}-out`;
-  const inReference = `rm-p2p-${pairId}-in`;
+  const outReference = `${P2P_PREFIX}${pairId}-out`;
+  const inReference = `${P2P_PREFIX}${pairId}-in`;
 
+  // Display names only. Read before the movement so the receipt can name the
+  // recipient, and never allowed to decide whether money moves.
+  let senderName = session.user.email ?? "A RentMe user";
+  let recipientName = parsed.data.recipientEmail;
   try {
-    const senderWalletId = await ensureWalletId(admin, session.user.id);
-    const available = await availableBalanceMinor(admin, senderWalletId);
-    if (amountMinor > available) {
+    senderName = (await displayNameFor(admin, session.user.id)) ?? senderName;
+    recipientName = (await displayNameFor(admin, recipient.id)) ?? recipientName;
+  } catch {
+    // A missing display name is not a reason to refuse a transfer.
+  }
+
+  const call = await callMoneyRpc(
+    admin,
+    "transfer",
+    "transfer_between_wallets",
+    {
+      sender_user: session.user.id,
+      recipient_user: recipient.id,
+      amount: amountMinor,
+      out_reference: outReference,
+      in_reference: inReference,
+      note: parsed.data.note ?? null,
+    },
+    { reference: outReference, amountMinor, userId: session.user.id },
+  );
+
+  if (call.outcome === "failed") {
+    return fail("The transfer could not be completed. Your balance is untouched. Please try again.");
+  }
+
+  if (call.outcome === "ok") {
+    const status = readMoneyStatus(call.data).status;
+
+    if (status === "insufficient") {
+      // Read the figure only to say it. The refusal was already decided under
+      // the lock, by the database, on the balance as it was at that instant.
+      let available = 0;
+      try {
+        available = await availableBalanceMinor(admin, await ensureWalletId(admin, session.user.id));
+      } catch {
+        // Fall through with zero rather than turn a clean refusal into an error.
+      }
+      logMoney({
+        surface: "transfer",
+        outcome: "rejected",
+        reason: "insufficient_balance",
+        reference: outReference,
+        amountMinor,
+        userId: session.user.id,
+      });
       return fail(
         `Your available balance is ${nairaExact(available)}, so this transfer of ${nairaExact(amountMinor)} cannot go through.`,
         { amount: "There is not enough in your wallet for this amount." },
       );
     }
 
-    const recipientWalletId = await ensureWalletId(admin, recipient.id);
-    const senderName =
-      (await displayNameFor(admin, session.user.id)) ?? session.user.email ?? "A RentMe user";
-    const recipientName =
-      (await displayNameFor(admin, recipient.id)) ?? parsed.data.recipientEmail;
-
-    await postEntry(admin, {
-      walletId: senderWalletId,
-      kind: "transfer_out",
-      direction: "debit",
-      amountMinor,
-      reference: outReference,
-      status: "COMPLETED",
-      metadata: {
-        note: `Transfer to ${recipientName}`,
-        counterparty_user_id: recipient.id,
-        ...(parsed.data.note ? { message: parsed.data.note } : {}),
-      },
-    });
-
-    try {
-      await postEntry(admin, {
-        walletId: recipientWalletId,
-        kind: "transfer_in",
-        direction: "credit",
+    if (status !== "ok" && status !== "duplicate") {
+      logMoney({
+        surface: "transfer",
+        outcome: "rejected",
+        reason: `rpc_status:${status}`,
+        reference: outReference,
         amountMinor,
-        reference: inReference,
-        status: "COMPLETED",
-        metadata: {
-          note: `Transfer from ${senderName}`,
-          counterparty_user_id: session.user.id,
-          ...(parsed.data.note ? { message: parsed.data.note } : {}),
-        },
-      });
-    } catch {
-      await setEntryStatus(admin, outReference, "REVERSED", {
-        reversal_reason: "The recipient leg could not be recorded.",
+        userId: session.user.id,
       });
       return fail(
-        "The transfer could not reach the recipient, so it was reversed. Your balance is untouched.",
+        "The transfer could not be completed. Your balance is untouched. Please try again.",
       );
     }
 
+    logMoney({
+      surface: "transfer",
+      outcome: status === "ok" ? "posted" : "duplicate",
+      reason: status === "ok" ? "both_legs_posted" : "already_posted",
+      reference: outReference,
+      amountMinor,
+      userId: session.user.id,
+    });
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId: session.user.id },
+      action: "wallet.transfer.posted",
+      reference: outReference,
+      amountMinor,
+      subjectUserId: session.user.id,
+      outcome: status,
+      detail: { counterparty_user_id: recipient.id, in_reference: inReference, atomic: true },
+    });
+
+    // Display text only, and best effort. The database function writes the
+    // counterparty and the sender's message; the statement's human-readable
+    // note is ours to add and no balance depends on it, so a failure here can
+    // never unmake a transfer that has already committed.
+    await labelTransferLegs(admin, {
+      outReference,
+      inReference,
+      outNote: `Transfer to ${recipientName}`,
+      inNote: `Transfer from ${senderName}`,
+    });
+
     revalidatePath("/wallet");
-    return ok({ amountMinor, reference: `rm-p2p-${pairId}`, recipientName });
+    return ok({ amountMinor, reference: `${P2P_PREFIX}${pairId}`, recipientName });
+  }
+
+  /*
+   * NO FALLBACK ANY MORE, AND THAT IS THE POINT.
+   *
+   * There used to be one here: if the public wrapper was absent, this ran the
+   * old path that read the balance and then posted two ledger rows in separate
+   * round trips. Two concurrent transfers both passed the check and both
+   * posted. It was kept deliberately and temporarily, with a loud log line,
+   * because refusing every transfer would have been worse than continuing to
+   * run what already shipped.
+   *
+   * public.transfer_between_wallets is applied now, so the wrapper cannot be
+   * missing, and the block is gone rather than left unreachable. An unlocked
+   * money path that nothing can currently reach is still an unlocked money
+   * path sitting in the file waiting for somebody to call it.
+   *
+   * Anything other than "ok" or "duplicate" above has already returned. This
+   * is the genuinely unexpected case: the function exists and answered with
+   * something the contract does not list.
+   */
+  logMoney({
+    surface: "transfer",
+    outcome: "failed",
+    reason: `transfer_rpc_missing:${call.outcome}`,
+    reference: outReference,
+    amountMinor,
+    userId: session.user.id,
+  });
+
+  return fail(
+    "The transfer could not be completed. Your balance is untouched. Please try again.",
+  );
+}
+
+/**
+ * Put a human-readable note on both legs of a completed transfer.
+ *
+ * The statement screen renders metadata.note, and the database function writes
+ * the counterparty id and the sender's own message but not that display line.
+ * Adding it afterwards is a display-only write against two unique references:
+ * it moves no money, it cannot fail a transfer, and running it twice sets the
+ * same two strings. Every failure is swallowed for exactly that reason.
+ */
+async function labelTransferLegs(
+  admin: AdminClient,
+  legs: { outReference: string; inReference: string; outNote: string; inNote: string },
+): Promise<void> {
+  try {
+    await setEntryStatus(admin, legs.outReference, "COMPLETED", { note: legs.outNote });
+    await setEntryStatus(admin, legs.inReference, "COMPLETED", { note: legs.inNote });
   } catch {
-    return fail("The transfer could not be completed. Your balance is untouched. Please try again.");
+    // A statement row without its caption is a cosmetic problem. See above.
   }
 }
 
@@ -504,7 +783,32 @@ export async function verifyFunding(
         purpose: "wallet_fund",
       },
     });
+    logMoney({
+      surface: "verify",
+      outcome: posted === "posted" ? "posted" : "duplicate",
+      reason: posted === "posted" ? "credited_on_redirect" : "webhook_got_there_first",
+      reference: parsedReference.data,
+      amountMinor: tx.amountMinor,
+      userId: ownerId,
+    });
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId: session.user.id },
+      action: posted === "posted" ? "wallet.funding.posted" : "wallet.funding.duplicate",
+      reference: parsedReference.data,
+      amountMinor: tx.amountMinor,
+      subjectUserId: ownerId,
+      outcome: posted,
+      detail: { source: "verify_on_redirect", channel: tx.channel },
+    });
   } catch {
+    logMoney({
+      surface: "verify",
+      outcome: "failed",
+      reason: "post_failed",
+      reference: parsedReference.data,
+      amountMinor: tx.amountMinor,
+      userId: ownerId,
+    });
     return fail(
       "The payment succeeded but could not be recorded just now. Your balance updates automatically in a moment.",
     );
@@ -526,7 +830,7 @@ export async function verifyFunding(
       amountMinor: tx.amountMinor,
       balanceMinor: await shownBalanceMinor(admin, ownerId),
     });
-    await sendEmail({ to: owner.email, subject: message.subject, html: message.html });
+    await sendMessage(owner.email, message);
   });
 
   revalidatePath("/wallet");

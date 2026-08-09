@@ -29,7 +29,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: var(--nf-gap-inline);
     font-weight: 650;
     font-size: var(--nf-text-body);
     letter-spacing: -0.005em;
@@ -39,9 +39,9 @@
      * across the fifteen reference screens is a full pill.
      */
     border-radius: var(--nf-radius-pill);
-    padding: 0.72rem 1.2rem;
-    /* Padding alone resolved to 43px, one pixel under the HIG 44pt floor. */
-    min-height: 2.75rem;
+    padding: var(--nf-space-sm) var(--nf-space-lg);
+    /* The floor, and now also the smallest painted size. See `--sm` below. */
+    min-height: 3rem;
     cursor: pointer;
     white-space: nowrap;
     border: 1px solid transparent;
@@ -90,10 +90,29 @@
   }
 
   /* Size scale. Three heights exist; nothing else is a button height. */
+  /*
+   * THE THREE SIZES WENT UP A STEP. 40/48/56 became 44/56/64.
+   *
+   * The owner asked for bigger buttons with a comfortable hit target, and the
+   * honest reading of "comfortable" is that 44px is the FLOOR rather than the
+   * target: Apple's 44pt and Google's 48dp are both stated as minimums, and a
+   * primary action somebody taps with a thumb on a moving bus wants more than
+   * the minimum.
+   *
+   * The compact size is 44 now, which also retires a workaround. It used to be
+   * 40 with a `::before` pseudo-element stretching the hit area to 44 without
+   * moving a pixel of the design - a good trick, and one that only existed
+   * because the painted control was too small. The pseudo-element stays,
+   * because it still costs nothing and still guarantees the floor whatever a
+   * border does to the box, but it is no longer papering over anything.
+   *
+   * The label went up with the heights. `--nf-text-caption` on the small size
+   * was 13px on a control people press to do things.
+   */
   .nf-btn--sm {
-    min-height: 2.5rem;
-    padding: 0.5rem 0.95rem;
-    font-size: var(--nf-text-caption);
+    min-height: 2.75rem;
+    padding: var(--nf-gap-inline) var(--nf-space-md);
+    font-size: var(--nf-text-body-sm);
   }
   /*
    * The 44pt floor on the compact size.
@@ -125,24 +144,26 @@
     border-radius: inherit;
   }
   .nf-btn--md {
-    min-height: 3rem;
-    padding: 0.72rem 1.2rem;
+    min-height: 3.5rem;
+    padding: var(--nf-space-sm) var(--nf-space-lg);
   }
 
   /* Icon-only buttons are square at their size, never a padded rectangle. */
   .nf-btn--icon {
-    padding: 0;
+    padding: var(--nf-space-0);
     aspect-ratio: 1;
     width: auto;
   }
+  /* Square at their size, and the sizes moved, so these move with them. A
+     square that disagreed with its own height would render an oval. */
   .nf-btn--icon.nf-btn--sm {
-    min-width: 2.5rem;
+    min-width: 2.75rem;
   }
   .nf-btn--icon.nf-btn--md {
-    min-width: 3rem;
+    min-width: 3.5rem;
   }
   .nf-btn--icon.nf-btn--lg {
-    min-width: 3.5rem;
+    min-width: 4rem;
   }
 
   .nf-btn--full {
@@ -287,8 +308,8 @@
   }
 
   .nf-btn--lg {
-    min-height: 3.5rem;
-    padding: 0.92rem 1.65rem;
+    min-height: 4rem;
+    padding: var(--nf-space-md) var(--nf-space-xl);
     font-size: var(--nf-text-body-lg);
   }
 

@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ICON } from "@/components/app/Screen";
 import { canGoBackInApp } from "@/lib/ui/history";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
@@ -22,6 +24,7 @@ import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 export function PageHeader({
   title,
   subtitle,
+  subtitleHref,
   fallback = "/home",
   backLabel,
   actions,
@@ -30,6 +33,17 @@ export function PageHeader({
 }: {
   title: string;
   subtitle?: string;
+  /**
+   * Makes the subtitle a link.
+   *
+   * Added for the message thread, where the subtitle is the PROPERTY the
+   * conversation is about. It was already the right piece of context to put
+   * there, and it was inert: the only route back to the property was an info
+   * button in the corner that opens a sheet. Somebody halfway through
+   * negotiating a flat should be one tap from the flat, so when a caller knows
+   * where the subtitle points, it points there.
+   */
+  subtitleHref?: string;
   fallback?: string;
   /**
    * Accessible name for the back control. Optional: a caller holding a real
@@ -62,22 +76,29 @@ export function PageHeader({
 
   return (
     <div
-      className={`mb-5 flex items-center gap-4 rounded-[var(--nf-radius-lg)] sm:mb-6 ${
+      className={`mb-heading flex items-center gap-md rounded-[var(--nf-radius-lg)] ${
         tone === "verified" ? "nf-page-header--verified" : ""
       }`}
     >
-      {/* 36px drawn, 44px tappable. The circle stays small because the header
-          is a quiet row and a big filled disc would shout over the title, but a
-          36px target fails the 44px minimum, so a transparent inset extends the
-          hit area without moving a pixel of the design. Same technique as the
-          post card's action row. */}
+      {/*
+        44px drawn, on every screen size.
+
+        This used to be 36px drawn with a transparent inset faking the target,
+        on the argument that a big filled disc would shout over the title. That
+        held while the title was smaller. It is `nf-h2` and the body around it
+        is 16px now, and a 36px circle holding a 16px glyph beside a heading
+        that size reads as the control having been forgotten rather than kept
+        quiet. `nf-icon-btn` is a glass square, not a filled disc, so drawing it
+        at the real target size costs nothing in loudness and removes the
+        pseudo-element that was standing in for it.
+      */}
       <button
         type="button"
         aria-label={label}
         onClick={back}
-        className="nf-icon-btn relative h-9 w-9 before:absolute before:-inset-1 before:content-[''] sm:h-10 sm:w-10 sm:before:inset-0"
+        className="nf-icon-btn h-11 w-11 shrink-0"
       >
-        <UiIcon name="arrow-left" size={16} />
+        <UiIcon name="arrow-left" size={ICON.inline} />
       </button>
       {leading}
       <div className="min-w-0 flex-1">
@@ -86,11 +107,20 @@ export function PageHeader({
             owner has already caught this once. Two lines is the ceiling: past
             that the words are wrong, not the box. */}
         <h1 className="nf-h2 [overflow-wrap:anywhere] line-clamp-2">{title}</h1>
-        {subtitle && (
-          <p className="mt-0.5 text-[0.8125rem] leading-snug text-[var(--nf-content-muted)] [overflow-wrap:anywhere] line-clamp-2">
-            {subtitle}
-          </p>
-        )}
+        {subtitle &&
+          (subtitleHref ? (
+            <Link
+              href={subtitleHref}
+              className="nf-body-sm mt-inline-tight flex items-center gap-inline-tight font-medium leading-snug text-[var(--nf-content-link)] underline-offset-4 [overflow-wrap:anywhere] line-clamp-2 hover:underline"
+            >
+              <span className="min-w-0 truncate">{subtitle}</span>
+              <UiIcon name="chevron-right" size={ICON.inline} className="shrink-0" />
+            </Link>
+          ) : (
+            <p className="nf-body-sm mt-inline-tight leading-snug text-[var(--nf-content-muted)] [overflow-wrap:anywhere] line-clamp-2">
+              {subtitle}
+            </p>
+          ))}
       </div>
       {actions}
     </div>

@@ -7,6 +7,8 @@ import { type Locale, formatRating } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MapCopy, MapListing } from "./mapTypes";
 import { Amount } from "@/components/ui/Amount";
+import { MediaFrame } from "@/components/app/MediaFrame";
+import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 
 /**
  * The card that docks at the foot of the map when a pin is chosen.
@@ -22,16 +24,6 @@ import { Amount } from "@/components/ui/Amount";
  * It is dismissable three ways: the control, a downward swipe, and Escape
  * (handled by the map, which owns the selection).
  */
-
-/** Gradient tiles behind the photo, so an unreachable CDN still reads as a place. */
-const HUES: [string, string][] = [
-  ["#1E3A8A", "#172554"],
-  ["#155E75", "#0F172A"],
-  ["#0C4A6E", "#111827"],
-  ["#334155", "#0F172A"],
-  ["#1E40AF", "#1E1B4B"],
-  ["#312E81", "#0F172A"],
-];
 
 /** How far down the card must travel before the swipe counts as a dismissal. */
 const DISMISS_AT = 56;
@@ -65,7 +57,6 @@ export function MapDock({
     listing.area && listing.area !== listing.city
       ? `${listing.area}, ${listing.city}`
       : listing.area || listing.city;
-  const [from, to] = HUES[listing.hue % HUES.length] ?? HUES[0]!;
   const hasPrice = listing.priceMinor > 0;
   const per =
     listing.period === "guest"
@@ -102,7 +93,7 @@ export function MapDock({
   return (
     <div
       data-testid="map-dock"
-      className="pointer-events-auto px-3 pb-3"
+      className="pointer-events-auto px-row pb-row"
       role="group"
       aria-label={`Chosen place: ${listing.title}`}
     >
@@ -129,24 +120,28 @@ export function MapDock({
           onClick={(event) => {
             if (dragged.current) event.preventDefault();
           }}
-          className="flex items-stretch gap-3 p-2.5 pt-3.5"
+          className="flex flex-wrap items-stretch gap-row p-inline pt-row"
         >
+          {/*
+            THE DISCLOSURE, ON THE ONE CARD THAT DOES NOT GO THROUGH
+            `ListingCard`.
+
+            This dock is a property card by every measure that matters: a
+            photograph, a title, a place, a rating and a price, arrived at by
+            tapping a pin. It is not built from `ListingCard`, so putting the
+            example statement on that component alone would have left the map
+            as the single surface where somebody meets an invented property
+            with a real Lekki address and a real naira figure and is told
+            nothing.
+
+            Full width above the photograph and the price, for the same reason
+            it sits above them in a grid card: it corrects a belief before the
+            belief forms. `basis-full` because the row it lives in is a flex
+            row built for the thumbnail and the text column beside it.
+          */}
+          {listing.isDemo && <ExampleNotice className="basis-full" />}
           <div className="relative h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]">
-            <div
-              className="absolute inset-0"
-              style={{ background: `linear-gradient(150deg, ${from} 0%, ${to} 100%)` }}
-            />
-            <svg
-              viewBox="0 0 400 300"
-              className="absolute inset-0 h-full w-full opacity-60"
-              aria-hidden="true"
-              preserveAspectRatio="none"
-            >
-              <path
-                d="M0 300V190h34v-52h30v52h28v-84h44v84h26v-40h38v40h30v-66h40v66h34v-30h32v30h30v-46h34v46Z"
-                fill="rgba(0,0,0,0.42)"
-              />
-            </svg>
+            <MediaFrame hue={listing.hue} />
             {listing.photo && (
               <Image
                 src={listing.photo}
@@ -158,40 +153,38 @@ export function MapDock({
             )}
           </div>
 
-          <div className="min-w-0 flex-1 pr-[4.5rem]">
-            <h3 className="truncate text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+          {/* Clearance for the two absolute controls in the corner, derived rather
+              than typed: two 44px targets, the gap between them, and the gap they
+              sit in from the edge. It was pr-[4.5rem], measured against 32px
+              buttons that are now 44. */}
+          <div className="min-w-0 flex-1 pr-[calc(5.5rem+var(--nf-gap-inline-tight)+var(--nf-gap-inline))]">
+            <h3 className="nf-body truncate font-semibold leading-snug text-[var(--nf-content-primary)]">
               {listing.title}
             </h3>
-            <p className="mt-1 flex items-center gap-1.5 text-[0.75rem] text-[var(--nf-content-secondary)]">
-              <UiIcon name="location" size={12} className="shrink-0 opacity-70" />
+            <p className="nf-body-sm mt-inline-tight flex items-center gap-inline-tight text-[var(--nf-content-secondary)]">
+              <UiIcon name="location" size={16} className="shrink-0 opacity-70" />
               <span className="truncate">{where}</span>
             </p>
 
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <div className="mt-inline flex flex-wrap items-center gap-x-inline gap-y-inline-tight">
               {listing.rating > 0 && (
-                <span className="nf-numeric flex items-center gap-1 text-[0.75rem] font-semibold text-[var(--nf-content-primary)]">
-                  <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />
+                <span className="nf-numeric nf-body-sm flex items-center gap-inline-tight font-semibold text-[var(--nf-content-primary)]">
+                  <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
                   {formatRating(listing.rating, locale)}
                   <span className="font-normal text-[var(--nf-content-muted)]">
                     ({listing.reviewCount})
                   </span>
                 </span>
               )}
-              {/* Only first party inventory may carry the verified badge. */}
-              {listing.verified && !listing.partner && (
+              {listing.verified && (
                 <span className="nf-badge nf-badge--verified">
-                  <UiIcon name="verified" size={12} />
+                  <UiIcon name="verified" size={16} />
                   {copy.verified}
-                </span>
-              )}
-              {listing.partner && (
-                <span className="nf-badge bg-[var(--nf-surface-raised)] text-[var(--nf-content-secondary)]">
-                  Partner
                 </span>
               )}
             </div>
 
-            <p className="mt-1.5">
+            <p className="mt-inline">
               {hasPrice ? (
                 <Amount
                   minorUnits={listing.priceMinor}
@@ -203,7 +196,7 @@ export function MapDock({
                   secondaryClassName="text-[0.65em] font-semibold opacity-60"
                 />
               ) : (
-                <span className="text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]">
+                <span className="nf-body-sm font-semibold text-[var(--nf-content-secondary)]">
                   {listing.kindLabel}
                 </span>
               )}
@@ -212,7 +205,7 @@ export function MapDock({
         </Link>
 
         {/* Controls sit outside the link so no anchor is ever nested in one. */}
-        <div className="absolute right-2 top-2.5 flex items-center gap-1">
+        <div className="absolute right-2 top-2 flex items-center gap-inline-tight">
           <button
             type="button"
             onClick={onSave}
@@ -220,11 +213,11 @@ export function MapDock({
             aria-pressed={saved}
             aria-label={saved ? `Remove ${listing.title} from saved` : `Save ${listing.title}`}
             data-testid="map-dock-save"
-            className="nf-icon-btn h-8 w-8"
+            className="nf-icon-btn h-11 w-11"
           >
             <UiIcon
               name="heart"
-              size={16}
+              size={20}
               className={saved ? "text-[var(--nf-brand-primary)]" : undefined}
             />
           </button>
@@ -233,16 +226,16 @@ export function MapDock({
             onClick={onDismiss}
             aria-label="Dismiss this card"
             data-testid="map-dock-close"
-            className="nf-icon-btn h-8 w-8"
+            className="nf-icon-btn h-11 w-11"
           >
-            <UiIcon name="chevron-down" size={16} />
+            <UiIcon name="chevron-down" size={20} />
           </button>
         </div>
 
         {saveMessage && (
           <p
             role="status"
-            className="border-t border-[var(--nf-border-subtle)] px-3 py-2 text-[0.75rem] text-[var(--nf-state-error)]"
+            className="nf-body-sm border-t border-[var(--nf-border-subtle)] px-row py-inline text-[var(--nf-state-error)]"
           >
             {saveMessage}
           </p>

@@ -12,10 +12,10 @@ import {
 } from "react";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { toggleSave } from "@/lib/saved/actions";
 import { addLocalSave, readLocalSaves, removeLocalSave, writeLocalSaves } from "@/lib/saved/local";
 import { ButtonLink } from "@/components/ui/Button";
+import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
 
 /**
  * The shortlist, made interactive.
@@ -157,21 +157,24 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
   if (items.length === 0 && rendered.length === 0) {
     return (
       <Reveal>
-        <div className="nf-card p-10 text-center">
-          <span className="nf-story-art mx-auto block h-20 w-20">
-            <BrandIcon name="heart-home" fill />
-          </span>
-          <p className="mt-4 font-semibold">
-            {hydrating ? "Bringing your saves together" : "Nothing saved yet"}
-          </p>
-          <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
-            Tap the heart on any place and it waits for you here, ready to
-            compare or book.
-          </p>
-          <ButtonLink href="/search" variant="primary" className="mt-6">
-            Explore stays
-          </ButtonLink>
-        </div>
+        {/* The one platform empty state. Was a `.nf-card` padded to 10 with an
+            80px object: a bordered box drawn around a message whose entire job
+            is to say the box is empty. */}
+        <EmptyState
+          icon="heart-home"
+          title={hydrating ? "Bringing your saves together" : "Nothing saved yet"}
+          body={
+            hydrating
+              ? "Places you hearted on this device are being matched to your account. This takes a moment."
+              : "Tap the heart on any place and it waits for you here, ready to compare side by side."
+          }
+          action={
+            <ButtonLink href="/search" variant="primary">
+              Find a place
+            </ButtonLink>
+          }
+          data-testid="saved-empty"
+        />
       </Reveal>
     );
   }
@@ -179,23 +182,23 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
   return (
     <>
       <Reveal>
-        <p className="mb-4 flex items-center gap-2 text-[0.875rem] text-[var(--nf-content-secondary)]">
+        <p className={`mb-heading flex items-center gap-inline ${TYPE.bodyLg}`}>
           <UiIcon
             name="heart"
-            size={16}
-            className="shrink-0 text-[var(--nf-electric-300)]"
+            size={ICON.inline}
+            className="shrink-0 text-[var(--nf-brand-secondary)]"
           />
           <span>
             <span className="font-semibold text-[var(--nf-content-primary)]">
               {visible} {visible === 1 ? "place" : "places"} saved
             </span>{" "}
-            &middot; ready to compare or book
+            &middot; ready to compare
           </span>
         </p>
       </Reveal>
 
       <Reveal delay={60}>
-        <ul data-testid="saved-grid" className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <ul data-testid="saved-grid" className="grid grid-cols-1 gap-lg sm:grid-cols-2">
           {rendered.map(({ id, item, state }) => (
             <li key={id}>
               {state === undefined && item ? (
@@ -208,17 +211,17 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
                     aria-pressed="true"
                     aria-label="Remove from saved"
                     data-testid="saved-heart"
-                    className="nf-glass absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full text-[var(--nf-electric-300)] transition-transform active:scale-90 disabled:opacity-60"
+                    className="nf-glass absolute right-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-full text-[var(--nf-brand-secondary)] transition-transform active:scale-90 disabled:opacity-60"
                   >
-                    <UiIcon name="heart" size={20} className="[&_path]:fill-current" />
+                    <UiIcon name="heart" size={ICON.row} className="[&_path]:fill-current" />
                   </button>
                 </div>
               ) : (
                 <div
                   data-testid="undo-chip"
-                  className="nf-card flex h-full items-center justify-between gap-4 p-4"
+                  className="nf-card flex h-full items-center justify-between gap-md p-card"
                 >
-                  <p className="text-[0.875rem] text-[var(--nf-content-secondary)]">
+                  <p className="nf-body text-[var(--nf-content-secondary)]">
                     {state === "restoring" ? "Putting it back" : "Removed from saved"}
                   </p>
                   <button
@@ -227,13 +230,13 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
                     disabled={state === "restoring"}
                     className="nf-chip whitespace-nowrap transition-transform active:scale-[0.96] disabled:opacity-60"
                   >
-                    <UiIcon name="heart" size={12} className="shrink-0" />
+                    <UiIcon name="heart" size={ICON.inline} className="shrink-0" />
                     Undo
                   </button>
                 </div>
               )}
               {messages[id] && (
-                <p role="alert" className="mt-1.5 text-[0.75rem] text-[var(--nf-state-error)]">
+                <p role="alert" className="nf-caption mt-inline-tight text-[var(--nf-state-error)]">
                   {messages[id]}
                 </p>
               )}

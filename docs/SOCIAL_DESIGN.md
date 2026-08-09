@@ -1,14 +1,29 @@
 # AROUND: the social layer, argued from first principles
 
-My own recommendation, written after reading `docs/SOCIAL_TODO.md`,
-`docs/SOCIAL_LAYER.md`, `docs/BADGES.md`, the full recommendations body, the
-gap and dead-end audits, the token system and the live database.
+> **This shipped. It is the design record, not a plan.** Corrected 2026-08-09.
+> The line "Nothing here is built" below was true on 2026-08-04 and false the
+> same week. Live on 2026-08-09: `areas` 7, `posts` 18 (every one
+> `author_kind = 'SYSTEM'`, the designed cold start), plus `area_members`,
+> `area_moderator_applications`, `social_profiles`, `follows`, `post_media`,
+> `post_reactions`, `post_reposts`, `post_views`, `blocks`, `mutes`, `stories`
+> and its four companion tables, `events`, `event_attendees`, `badges` and
+> `user_badges`. Routes: `/around`, `/around/[slug]`, `/around/new`,
+> `/around/manage`, `/around/settings`, `/u`, `/u/[handle]` with its follower
+> views, `/post/[id]`, `/stories/[id]`, `/stories/new`, plus `/admin/social`,
+> `/admin/moderation` and `/admin/standing`.
+>
+> Read this to understand WHY the layer is shaped as it is, and read the
+> **AMENDMENT** immediately below before anything else, because it records where
+> the owner overruled the design. What is still open is
+> `RECOMMENDATIONS.md` section 9.
 
-`docs/SOCIAL_TODO.md` is the foundation this argues with. Where the two
-disagree, this document wins and that one becomes history, in the same way
-`SOCIAL_LAYER.md` already defers to `SOCIAL_TODO.md`.
+My own recommendation, written after reading `docs/archive/SOCIAL_TODO.md`,
+`docs/archive/SOCIAL_LAYER.md`, `docs/BADGES.md`, the full recommendations body,
+the gap and dead-end audits, the token system and the live database. All three of
+those source documents are now in `docs/archive/` and govern nothing.
 
-The build order that follows from this is `docs/SOCIAL_BUILD.md`.
+The build order that followed from this was `docs/archive/SOCIAL_BUILD.md`. Its
+112 checkboxes were never ticked and mean nothing: read the database.
 
 ---
 
@@ -63,7 +78,11 @@ are unaffected. Section 7 is void. Section 5.3's cut of `follows` is reversed.
 
 ---
 
-Nothing here is built. This is for the owner to approve, reject or redirect.
+~~Nothing here is built. This is for the owner to approve, reject or redirect.~~
+**It was approved, redirected once (see the amendment above), and built. Struck
+through rather than deleted, because this sentence was still on the page five
+days after the layer shipped and it is exactly the kind of line that sends a
+fresh session off to rebuild a subsystem.**
 
 ---
 
@@ -441,7 +460,8 @@ understands data will pay more for that than for the average.
 
 **And one thing we do not do:** the recompute runs in a **trigger on insert**,
 synchronous and bounded, so the live state never waits on a job. `pg_cron`
-improves the nightly rollup and gates nothing.
+improves the nightly rollup and gates nothing. (It is installed now, six active
+jobs, ADR-014.)
 
 ---
 
@@ -813,14 +833,11 @@ Four decisions I should not make alone.
    two cannot both be true. My recommendation is to keep rule 9 and drop paid
    placement, and to reach agents through the free system entry instead. Your
    call.
-2. **`pg_cron`.** Still off. This design does not block on it: expiry is a read
-   filter and the recompute is a trigger. But the nightly `area_utility_daily`
-   rollup, badge awarding and the stale booking hold sweep all still want it.
-   It is a Supabase toggle, not code.
-3. **The branch.** You said main, and Vercel deploys from main. My session is
-   assigned `claude/rentme-social-design-je796y` by the harness and told never
-   to push elsewhere without permission. These documents are on that branch.
-   Say the word and I will merge to main, or tell me to push to main directly.
+2. **`pg_cron`. RESOLVED 2026-08-04, corrected here 2026-08-09.** It is
+   installed and six jobs are active, including badge awarding, the stale
+   booking hold sweep and the daily note. This design never blocked on it
+   anyway: expiry is a read filter and the recompute is a trigger. ADR-014.
+3. **The branch. RESOLVED.** Everything is on `main`, which Vercel deploys.
 4. **One city.** I would open Lagos only, and specifically three to five areas
    inside it, not six cities. Moderation is the constraint and it is a person,
    not a query.

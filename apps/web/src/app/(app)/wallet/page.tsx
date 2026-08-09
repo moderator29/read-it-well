@@ -4,8 +4,8 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { EmptyState } from "@/components/app/Screen";
 import { BalanceCard } from "@/components/app/wallet/BalanceCard";
 import { TransactionsSection } from "@/components/app/wallet/TransactionsSection";
 import { WalletSettingsSheet } from "@/components/app/wallet/WalletSettingsSheet";
@@ -74,37 +74,95 @@ export default async function WalletPage({
           lives inside that sheet along with everything else about how the
           wallet behaves.
         */}
-        <div className="flex items-start justify-between gap-4">
-          <PageHeader title={t.nav.wallet} />
-          <div className="mt-1 shrink-0">
-            <WalletSettingsSheet />
-          </div>
-        </div>
+        {/* The settings control rides the header's own actions slot rather
+            than being a second element in a flex row beside it. The row it used
+            to sit in had to nudge itself down by `mt-1` to line up with a title
+            it was not actually inside; inside the header there is nothing to
+            align to by hand. */}
+        <PageHeader title={t.nav.wallet} actions={<WalletSettingsSheet />} />
       </div>
 
       {verifying && <FundingVerifier reference={verifying} locale={locale} />}
 
       {!wallet.live ? (
+        /*
+         * THE PLATFORM EMPTY STATE, not a third hand-built one.
+         *
+         * Both of this page's non-balance states were an `nf-card p-6 sm:p-8`
+         * wrapping a 64px object, an h3, a paragraph and a pair of buttons: a
+         * bordered box drawn around a message reporting that there is nothing
+         * to draw a box around, which is the shape every other screen in the
+         * product stopped using. `EmptyState` is that shape, at 112px with the
+         * copy a tier up, and two containers leave this screen.
+         *
+         * ONE ACTION, NOT TWO. Signing in is what this state is about; drifting
+         * off to browse places is a way out rather than an answer, so it is the
+         * quiet link beside the button rather than a second filled peer.
+         */
         <Reveal>
-          <div className="nf-card p-6 text-center sm:p-8">
-            <span className="nf-story-art mx-auto block h-16 w-16">
-              <BrandIcon name="wallet-secure" fill />
-            </span>
-            <h2 className="nf-h3 mt-4">Your wallet is behind your sign in</h2>
-            <p className="mx-auto mt-2 max-w-[46ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              Sign in to see your balance, add money, send it on and read every
-              payment in and out. Nothing about your money is shown to anybody
-              who is not signed in as you.
-            </p>
-            <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <EmptyState
+            icon="wallet-secure"
+            title="Your wallet is behind your sign in"
+            body="Sign in to see your balance, add money, send it on and read every payment in and out. Nothing about your money is shown to anybody who is not signed in as you."
+            action={
               <ButtonLink href="/sign-in" variant="primary">
                 Sign in
               </ButtonLink>
-              <ButtonLink href="/search" variant="secondary">
+            }
+            secondary={
+              <ButtonLink href="/search" variant="ghost">
                 Explore places
               </ButtonLink>
-            </div>
-          </div>
+            }
+          />
+        </Reveal>
+      ) : wallet.readFailed ? (
+        /*
+         * THE LEDGER COULD NOT BE READ, AND THIS PAGE SAYS SO.
+         *
+         * This branch is the whole lesson of the funding incident, and for a
+         * while it was the part still missing. The reader was taught to report
+         * a failure instead of swallowing it, and then the screen carried on
+         * printing whatever came back, which on a failure is zero.
+         *
+         * A zero balance and an unreadable balance look identical and mean
+         * opposite things. One says you have no money. The other says we do
+         * not currently know, which is the only honest thing to say and the
+         * one thing a person can act on: they can stop, and they can ask.
+         *
+         * So no figure is drawn here at all. Not a zero, not a dash, not a
+         * skeleton that will settle into a number. A balance is a claim about
+         * somebody's money, and when we cannot make that claim we do not get
+         * to make a quieter version of it.
+         *
+         * The history is withheld for the same reason: an empty list under a
+         * missing balance reads as "no transactions", which is a second false
+         * statement dressed as an absence.
+         */
+        <Reveal>
+          <EmptyState
+            icon="wallet-secure"
+            title="Your balance could not be loaded"
+            body="Something on our side stopped part way through, so we are not showing a figure rather than showing you one we cannot stand behind. Every movement in and out of your wallet is recorded permanently, so nothing is lost while this is unreadable. Try again in a moment, and tell support if it keeps happening."
+            action={
+              <ButtonLink href="/wallet" variant="primary">
+                Try again
+              </ButtonLink>
+            }
+            secondary={
+              /* /settings, not an invented /settings/support: the support chat
+                 is rendered there, and a dead link on the screen that tells
+                 somebody to ask for help is the worst place to put one.
+
+                 The three stacked paragraphs this used to carry are two
+                 sentences in the body above, with nothing dropped. Three
+                 paragraphs of reassurance is more reading than somebody staring
+                 at a missing balance is going to do. */
+              <ButtonLink href="/settings" variant="ghost">
+                Contact support
+              </ButtonLink>
+            }
+          />
         </Reveal>
       ) : (
         <>
@@ -112,16 +170,17 @@ export default async function WalletPage({
         <BalanceCard
           balanceMinor={wallet.balanceMinor}
           entries={wallet.entries}
+          breakdown={wallet.breakdown}
           locale={locale}
           usdRate={usdRate}
         />
       </Reveal>
 
-      <Reveal delay={80} className="mt-4">
+      <Reveal delay={80} className="mt-group">
         <WalletDeck locale={locale} balanceMinor={wallet.balanceMinor} live={wallet.live} />
       </Reveal>
 
-      <Reveal delay={140} className="mt-8">
+      <Reveal delay={140} className="mt-block">
         <TransactionsSection entries={wallet.entries} locale={locale} />
       </Reveal>
         </>

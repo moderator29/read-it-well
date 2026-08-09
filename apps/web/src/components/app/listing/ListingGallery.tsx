@@ -154,11 +154,11 @@ export function ListingGallery({
       {/* Scrims: the controls sit on light sky at the top and the counter on
           whatever the photograph does at the bottom. Both need their own. */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-32 bg-gradient-to-b from-black/50 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-32 [background-image:var(--nf-scrim-media-top)]"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-24 bg-gradient-to-t from-black/45 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-24 [background-image:var(--nf-scrim-media)]"
         aria-hidden="true"
       />
 
@@ -169,7 +169,7 @@ export function ListingGallery({
           type="button"
           onClick={back}
           aria-label={t.common.back}
-          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
+          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="arrow-left" size={16} />
         </button>
@@ -191,7 +191,7 @@ export function ListingGallery({
       {count > 0 && (
         <p
           data-testid="gallery-counter"
-          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-full bg-black/55 px-2.5 py-1 text-[0.75rem] font-semibold text-white backdrop-blur-md sm:bottom-14 sm:right-4"
+          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-full bg-[var(--nf-overlay-media-strong)] px-2.5 py-1 text-[0.75rem] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md sm:bottom-14 sm:right-4"
         >
           <span className="sr-only">Photo </span>
           {Math.min(active + 1, count)} / {count}
@@ -206,7 +206,7 @@ export function ListingGallery({
             onClick={() => go(active - 1)}
             disabled={active === 0}
             aria-label="Previous photo"
-            className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md disabled:opacity-0 sm:grid"
+            className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-left" size={16} />
           </button>
@@ -215,7 +215,7 @@ export function ListingGallery({
             onClick={() => go(active + 1)}
             disabled={active === panes.length - 1}
             aria-label="Next photo"
-            className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md disabled:opacity-0 sm:grid"
+            className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-right" size={16} />
           </button>
@@ -228,7 +228,9 @@ export function ListingGallery({
               <li
                 key={photo ?? `dot-${i}`}
                 className={`h-1.5 rounded-full transition-all motion-reduce:transition-none ${
-                  i === active ? "w-4 bg-white" : "w-1.5 bg-white/55"
+                  i === active
+                    ? "w-4 bg-[var(--nf-content-on-media)]"
+                    : "w-1.5 bg-[var(--nf-content-on-media-muted)]"
                 }`}
               />
             ))}

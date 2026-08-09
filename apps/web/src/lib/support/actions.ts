@@ -14,7 +14,7 @@ import {
 import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "../security/rate-limit";
 import type { Database } from "../supabase/database.types";
 import { NOT_CONFIGURED_MESSAGE, resolveSession } from "../actions/session";
-import { bestEffortEmail, sendEmail } from "../email/client";
+import { bestEffortEmail, sendMessage } from "../email/client";
 import { supportTicketFiled } from "../email/messages";
 import { isFeatureEnabled } from "../flags";
 import { isSupabaseConfigured } from "../supabase/env";
@@ -179,7 +179,7 @@ export async function fileSupportTicket(
             topic: topic ?? null,
             body,
           });
-          await sendEmail({ to: email, subject: message.subject, html: message.html });
+          await sendMessage(email, message);
         });
         return ok({ reference });
       }

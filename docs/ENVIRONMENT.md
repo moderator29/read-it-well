@@ -43,17 +43,28 @@ so you know which ones cost money before launch and which do not.
 | **Anthropic** | [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) | The AI assistant and the support-escalation summariser | No, pay as you go |
 | **Paystack** | [dashboard.paystack.com → Settings → API Keys & Webhooks](https://dashboard.paystack.com/#/settings/developers) | Card, transfer and USSD payments in naira | No fee to hold an account; per-transaction fee |
 | **Resend** | [resend.com/api-keys](https://resend.com/api-keys) | Booking confirmations, receipts, every transactional email | Yes, 3k emails/month |
-| **Google Cloud** | [console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials), enable **Places API (New)** | Restaurant discovery and address autocomplete | Monthly credit, then paid |
-| **LiteAPI (Nuitée Connect)** | [nuitee.com](https://nuitee.com) → sign up → Developers → API Keys | Third-party hotel rates, the only partner source that puts a naira figure on a hotel card | Sandbox key free and instant, no card. Core booking workflow free; they earn commission per booking |
-| **Google Cloud (OAuth)** | Same console, **Credentials → OAuth client ID** | "Continue with Google" | Free |
-| **Apple Developer** | [developer.apple.com/account/resources/identifiers](https://developer.apple.com/account/resources/identifiers) | "Continue with Apple", **required by App Store guideline 4.8** if any other third-party sign-in is offered | $99/year, which you need anyway to ship on iOS |
+| **MapTiler** | [cloud.maptiler.com/account/keys](https://cloud.maptiler.com/account/keys) | Map tiles. **A licence, not a feature**: unset, the map draws on CARTO's public basemaps, which are non-commercial use only, and a marketplace taking bookings is a commercial use | Free tier, and this is the only item here that can cost you a letter rather than a bug report |
+| **Apple Developer** | [developer.apple.com/account/resources/identifiers](https://developer.apple.com/account/resources/identifiers) | The App Store, code signing, the Team ID the deep links need | $99/year, which you need anyway to ship on iOS |
 
-### The two OAuth ones do not go in this file
+### Three services this file used to list and no longer needs
 
-Google and Apple client secrets are pasted into **Supabase → Authentication →
-Providers**, never into the app. Supabase performs the handshake and issues the
-session; the app never sees a provider secret. All the app needs is to be told
-which buttons are safe to show, which is `NEXT_PUBLIC_AUTH_PROVIDERS` below.
+Corrected 2026-08-09.
+
+- **Google Cloud (Places API New)** and **LiteAPI (Nuitée Connect)** powered
+  third-party hotel and restaurant inventory. **The owner removed third-party
+  inventory from the product** and `apps/web/src/lib/inventory/` no longer
+  exists, so neither key does anything. Delete `GOOGLE_PLACES_API_KEY`,
+  `GOOGLE_ROUTES_API_KEY`, `LITEAPI_KEY` and `LITEAPI_WHITELABEL_DOMAIN` from
+  every environment. ADR-013. Residue still in the database is
+  `RECOMMENDATIONS.md` S-2.
+- **Google Cloud (OAuth)** powered "Continue with Google". **No Google or Apple
+  sign in.** The buttons and the server actions are still in the tree and are
+  being removed (`RECOMMENDATIONS.md` N-4). Do not enable a provider in the
+  Supabase dashboard and do not set `NEXT_PUBLIC_AUTH_PROVIDERS`. Removing
+  Google also removes the Apple obligation: guideline 4.8 requires Sign in with
+  Apple only when another third-party sign-in is offered.
+
+The Apple Developer account is still needed, for the store and for signing.
 
 ---
 
@@ -61,22 +72,19 @@ which buttons are safe to show, which is `NEXT_PUBLIC_AUTH_PROVIDERS` below.
 
 | Variable | Scope | Without it |
 |---|---|---|
-| `NEXT_PUBLIC_AUTH_PROVIDERS` | public | Comma-separated: `google,apple`. Empty means email-only, and the Google/Apple rows render disabled with a plain explanation. Only list a provider **after** enabling it in the Supabase dashboard, because listing one that is off sends people to an error page. |
+| `NEXT_PUBLIC_AUTH_PROVIDERS` | public | **Leave unset, permanently.** The product is email and password only. Setting this to `google` or `apple` enables buttons whose OAuth return journey is not closed on native (`docs/MOBILE.md` section 6), and the whole path is being deleted (`RECOMMENDATIONS.md` N-4). Unset, the two rows render disabled with a plain explanation, which is itself a defect while they exist. |
 | `ANTHROPIC_API_KEY` | **server** | The assistant answers 200 with an honest "not configured" message rather than pretending; support falls back to its keyword FAQ store, so support never goes dark. |
 | `ASSISTANT_MODEL` | server | Defaults to `claude-sonnet-5`. Only set to pin a different model. |
 | `SUPPORT_MODEL` | server | Same, for the support route. |
 | `PAYSTACK_SECRET_KEY` | **server** | Checkout cannot take money. The flow explains itself rather than failing at the card form. |
 | `RESEND_API_KEY` | **server** | `sendEmail` returns `{sent: false, reason: "unconfigured"}` and nothing leaves the process. No booking confirmations, no receipts. |
 | `EMAIL_FROM` | server | Defaults to `RentMe <hello@rentme.ng>`. Must be a **verified sender on your Resend domain** or delivery is rejected outright. |
-| `GOOGLE_PLACES_API_KEY` | **server** | Restaurant discovery and address autocomplete return nothing. Server-only on purpose: the key never ships to the browser and responses can be policy-cached. |
-| `LITEAPI_KEY` | **server** | Partner hotels show no price at all, because the only other hotel feed is Google Places and Places reports a price level rather than an amount. Own listings are unaffected. Key from https://nuitee.com → Developers → API Keys; the sandbox key works in the same field. Partner stock never carries the verified badge and never opens in-platform messaging. See `docs/HYBRID_INVENTORY.md`. |
-| `LITEAPI_WHITELABEL_DOMAIN` | **server** | Partner hotels are priced but not bookable, and the detail page says so instead of showing a button that goes nowhere. Set it to `<yourname>.nuitee.link` after switching the whitelabel on in the Nuitée dashboard. The guest pays there, they confirm with the supplier, we earn commission and never handle the money. |
+| `GOOGLE_PLACES_API_KEY`, `GOOGLE_ROUTES_API_KEY`, `LITEAPI_KEY`, `LITEAPI_WHITELABEL_DOMAIN` | none | **Gone, 2026-08-09.** All four powered third-party inventory. `apps/web/src/lib/inventory/` no longer exists, so nothing reads any of them and setting them does nothing at all. Delete them from every environment. ADR-013. |
 | `AMADEUS_CLIENT_ID` / `AMADEUS_CLIENT_SECRET` / `AMADEUS_ENV` | none | **Gone.** The provider was removed on 2026-08-07 along with these variables. Amadeus decommissioned its Self-Service portal on 17 July 2026 and disabled the keys, so nothing could ever configure it again. Setting these now does nothing at all; delete them from any environment that still carries them. |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | public | Six surfaces show a support address. Until this names a real mailbox they show the in-app route instead of an address that bounces. |
 | `NEXT_PUBLIC_MAPTILER_KEY` | public | **A licence, not a feature.** Unset, the map draws on CARTO's public basemaps, which are **non-commercial use only**, and a marketplace taking a booking fee is a commercial use. Set it and the map switches provider, zoom ceiling and attribution together. [cloud.maptiler.com/account/keys](https://cloud.maptiler.com/account/keys) |
 | `NEXT_PUBLIC_NGN_USD_RATE` | public | The wallet's naira→dollar toggle simply does not appear. It is gated rather than defaulted because a made-up FX rate on a wallet balance is a lie about money. |
-| `GOOGLE_ROUTES_API_KEY` | **server** | Nothing, in the normal case. Google enables APIs per project, so `GOOGLE_PLACES_API_KEY` already serves Routes once Routes is enabled on the same project. Set this only to split the two into separate keys and quotas. With neither, a restaurant shows no drive time and no request is made. |
-| `CSP_ENFORCE` | **server** | The Content Security Policy is reported, not enforced. That is the intended starting state: violations post to `/api/csp-report` and appear as `[csp]` lines in the deployment log. Set to the literal `true` to start blocking, once those lines have stopped. Any other value keeps reporting. |
+| `CSP_ENFORCE` | **server** | **Leave it unset. The Content Security Policy enforces by default now.** It used to read `=== "true"`, which meant an unset variable, a typo or a new environment all landed on report-only, and a report-only policy blocks nothing. Set to the literal `false`, and only that, to step back to reporting while chasing a directive: violations post to `/api/csp-report` and appear as `[csp]` lines in the deployment log. Every other value, including no value, enforces. |
 | `NF_DATA_SOURCE` | server | `repository` (default) or `api`. Selects the listing/agent data source. Leave unset. |
 
 ---
@@ -105,21 +113,26 @@ Read by specs under `apps/web/tests/`, never by the application: `BASE_URL`,
 
 ## 6. Order of work
 
-1. **Supabase URL + anon key + service role + site URL.** Everything else is
-   decoration until these four are right in Vercel.
-2. **Anthropic.** The assistant is a headline feature and the key takes a
+Reordered 2026-08-09. Steps 5 and 6 used to send the reader to spend an afternoon
+on Google OAuth and two inventory providers that the product no longer has.
+
+1. **`SUPABASE_SERVICE_ROLE_KEY`, first, before anything.** It was step 1 already
+   and it is now called out on its own line, because a missing service role key
+   does not degrade honestly: the Paystack webhook answers HTTP 200 with no log,
+   Paystack never retries, and a paid funding is lost permanently. That is the
+   most probable cause of the reported wallet failure.
+   `RECOMMENDATIONS.md` W-1.
+2. **`NEXT_PUBLIC_SUPABASE_URL`, the anon key and `NEXT_PUBLIC_SITE_URL`.**
+   Everything else is decoration until these are right in Vercel.
+3. **Anthropic.** The assistant is a headline feature and the key takes a
    minute.
-3. **Resend + a verified sending domain.** A booking with no confirmation email
-   is a support ticket.
-4. **Paystack.** Required before anyone can pay.
-5. **Google OAuth, then Apple.** Apple is mandatory for the App Store the
-   moment Google is offered.
-6. **Google Places, then LiteAPI.** Both widen inventory; neither blocks launch.
-   Not Amadeus: section 3 of this same file already says its keys were disabled
-   by the vendor and no value would work, so this step used to send the reader
-   to spend an afternoon on a provider the document itself calls dead.
-   `LITEAPI_KEY` is the one that replaces it, and its sandbox key is free and
-   instant.
+4. **Resend + a verified sending domain.** A booking with no confirmation email
+   is a support ticket, and `EMAIL_FROM` must be a verified sender or delivery
+   is rejected outright.
+5. **Paystack.** Required before anyone can pay.
+6. **Supabase dashboard: turn on leaked password protection.** Authentication,
+   Policies. One toggle, and it is the only real item on the security advisor
+   list. `docs/DATABASE_AUDIT.md` section 1.1.
 7. **`NEXT_PUBLIC_MAPTILER_KEY`.** Wired now, see section 3. It is a
    licensing item rather than a feature item, and it is the only one on this
    list that can cost you a letter rather than a bug report.

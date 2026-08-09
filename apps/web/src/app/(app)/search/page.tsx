@@ -12,7 +12,6 @@ import { FilterDrawer } from "@/components/app/filters/FilterDrawer";
 import { ViewToggle } from "@/components/app/filters/ViewToggle";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
-import { WhyEmpty } from "@/components/app/search/WhyEmpty";
 import { factsOf } from "@/lib/listings/filter";
 import {
   hasOwnRequest,
@@ -38,7 +37,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { EmptyState, ICON } from "@/components/app/Screen";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -77,7 +76,6 @@ function sentenceCase(value: string): string {
 }
 
 /** Destination quick picks. Each chip is a shareable link, not client state. */
-const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Ibadan", "Enugu", "Calabar"];
 
 /**
  * The tiebreaker: at EQUAL relevance, a verified place goes first.
@@ -221,18 +219,16 @@ export default async function SearchPage({
     repo.search(toFilter(query)),
     repo.search(toPoolFilter(query)),
     /*
-     * Our own inventory only, and this is a cost decision rather than a
-     * behaviour one.
+     * `whole` feeds the map's per-city price floor.
      *
-     * `whole` feeds the map's per-city price floor, and the loop that builds it
-     * skips any row without a real price. Google Places reports a price LEVEL
-     * rather than an amount, so every Places row this fetched was discarded a
-     * few lines below. It was spending two billed SearchText requests per page
-     * view on data written to be thrown away, and with the other two searches
-     * that put the page at up to six. A day of quota goes quickly at six a
-     * view, and the 429 it ends in looks exactly like every other empty shelf.
+     * This used to pass `{ partners: false }` to keep a billed Google Places
+     * request off a page that discarded every row it returned, because Places
+     * reports a price LEVEL rather than an amount. That inventory is gone and
+     * the flag has been ignored for some time, so the last thing keeping it
+     * alive was this call site. Both are removed together, which is the only
+     * way a compatibility shim ever actually leaves a codebase.
      */
-    repo.search({}, { partners: false }),
+    repo.search({}),
   ]);
   const sorted = sortListings(rawResults, query.sort);
 
@@ -291,17 +287,23 @@ export default async function SearchPage({
   return (
     <>
       {/* ------------------------------------------------ sticky search bar */}
-      <div className="nf-glass -mx-5 -mt-4 border-b border-[var(--nf-border-subtle)] px-5 py-3 md:-mx-8 md:px-8">
+      {/* The bar bleeds to the screen edges by cancelling the shell's gutter,
+          so the cancel and the restore are one decision and take one value.
+          They were -mx-5/px-5 stepping to -mx-8/px-8 at md, which is the
+          gutter's OLD fixed pair written out by hand: the gutter is a clamp
+          now, so those four numbers agreed with it at two widths and were
+          wrong at every width in between. */}
+      <div className="nf-glass -mx-gutter -mt-group border-b border-[var(--nf-border-subtle)] px-gutter py-row">
         {/* The bar and its filter control are siblings: the pill holds the
             query and its submit, the filter control sits beside it as its own
             glass square, which is how the reference reads and keeps the typing
             area uncluttered. */}
-        <div className="mx-auto flex max-w-3xl items-center gap-2">
+        <div className="mx-auto flex max-w-3xl items-center gap-inline">
         <form
           action="/search"
           method="get"
           role="search"
-          className="flex min-w-0 flex-1 items-center gap-2"
+          className="flex min-w-0 flex-1 items-center gap-inline"
         >
           {/* One field build, shared with every other search bar on the
               platform. The label is the placeholder's own copy, hidden but
@@ -337,7 +339,7 @@ export default async function SearchPage({
             aria-label={t.common.search}
             className="shrink-0"
           >
-            <UiIcon name="search" size={20} className="sm:hidden" />
+            <UiIcon name="search" size={ICON.row} className="sm:hidden" />
             <span className="hidden sm:inline">{t.common.search}</span>
           </Button>
         </form>
@@ -350,61 +352,35 @@ export default async function SearchPage({
         </div>
 
         {/* Categories: the markets we actually run, each one a link. */}
-        <div className="mx-auto mt-3 max-w-3xl">
+        <div className="mx-auto mt-row max-w-3xl">
           <CategoryTiles query={query} t={t} />
         </div>
 
-        {/* City quick picks. Links, so a tap submits instantly and is shareable. */}
-        <nav aria-label="Popular destinations" className="nf-scroll-x -mx-5 mt-3 md:-mx-8">
-          <ul className="flex gap-2 px-5 md:justify-center md:px-8">
-            {CITIES.map((city) => {
-              const active = query.q?.trim().toLowerCase() === city.toLowerCase();
-              return (
-                <li key={city} className="shrink-0">
-                  <Link
-                    href={toSearchHref({ ...query, q: active ? undefined : city })}
-                    prefetch
-                    aria-current={active ? "true" : undefined}
-                    className={`nf-chip whitespace-nowrap transition-transform active:scale-[0.96] ${
-                      active ? "nf-chip--active" : ""
-                    }`}
-                  >
-                    <UiIcon name="location" size={12} className="shrink-0 opacity-70" />
-                    {city}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+        {/*
+          TWO ROWS ABOVE THE FIRST RESULT. IT WAS FIVE.
 
-        {/* Sort chips. Links, not buttons: the sort is real and shareable. */}
-        <nav aria-label="Sort results" className="nf-scroll-x -mx-5 mt-2.5 md:-mx-8">
-          <ul className="flex gap-2 px-5 md:justify-center md:px-8">
-            {SORTS.map((s) => {
-              const active = query.sort === s.key;
-              return (
-                <li key={s.key} className="shrink-0">
-                  <Link
-                    href={toSearchHref({ ...query, sort: s.key })}
-                    prefetch
-                    aria-current={active ? "true" : undefined}
-                    className={`nf-chip whitespace-nowrap transition-transform active:scale-[0.96] ${
-                      active
-                        ? "nf-chip--active font-bold text-[var(--nf-content-primary)]"
-                        : ""
-                    }`}
-                  >
-                    {active && (
-                      <UiIcon name="verified" size={12} className="shrink-0" />
-                    )}
-                    {s.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+          The sticky bar carried, in order: the search field with its filter
+          button, twelve category tiles, five city chips, and a rail of sort
+          chips. Below it came the results heading, a view toggle and an active
+          filter row. Six control surfaces stacked between somebody and the
+          first property, on a screen whose entire job is to show properties.
+          On a phone that is most of the viewport spent on controls.
+
+          The two that left did not lose their function, they went where they
+          belong:
+
+          CITY CHIPS were a location filter drawn as navigation. Five hardcoded
+          cities cannot serve a country with 774 local governments, and the
+          filter drawer already has a real location control that can. Somebody
+          wanting Lagos types Lagos, which is the field directly above, or opens
+          filters and picks it properly.
+
+          SORT is not a filter and it is not navigation. It orders a result set,
+          so it belongs beside the result count where the count it reorders is
+          visible, and that is where it now is. As a chip rail up here it was
+          four permanent options taking a row of a phone screen to answer a
+          question most people never ask.
+        */}
       </div>
 
       {/* Nothing rendered. Records the view and the hunt for the strip below. */}
@@ -419,8 +395,8 @@ export default async function SearchPage({
       <RecentStrip />
 
       {/* ---------------------------------------------------- results header */}
-      <Reveal as="section" className="mt-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+      <Reveal as="section" className="mt-heading">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-inline">
           <div className="min-w-0">
             <h1 className="nf-h3">
               {query.q ? (
@@ -430,7 +406,7 @@ export default async function SearchPage({
               ) : query.kind ? (
                 `Explore ${KIND_NOUN[query.kind].many}`
               ) : (
-                "Explore stays"
+                "Explore properties"
               )}
             </h1>
             {/*
@@ -454,7 +430,7 @@ export default async function SearchPage({
               data-count={listings.length}
               aria-live="polite"
               aria-atomic="true"
-              className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]"
+              className="nf-body-sm mt-inline-tight text-[var(--nf-content-muted)]"
             >
               {formatNumber(listings.length, locale)}{" "}
               {listings.length === 1 ? noun.one : noun.many}{" "}
@@ -471,7 +447,7 @@ export default async function SearchPage({
               <p
                 data-testid="intent-note"
                 data-intent={intentKinds.join(",")}
-                className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]"
+                className="nf-body-sm mt-inline-tight text-[var(--nf-content-muted)]"
               >
                 {sentenceCase(intentKinds.map((kind) => KIND_NOUN[kind].many).join(", "))}{" "}
                 first, because that is what you said you came for. Search or
@@ -479,7 +455,42 @@ export default async function SearchPage({
               </p>
             )}
           </div>
-          <ViewToggle query={query} />
+
+          {/*
+            Sort and view, together, beside the count they act on.
+
+            Sort was a rail of four chips in the sticky bar, permanently taking
+            a row of a phone screen to answer a question most people never ask.
+            Here it sits next to the number it reorders, which is the only place
+            it means anything, and it stays links rather than a control so an
+            ordering is still shareable and still survives a back button.
+
+            The active option is the one shown; the rest are one tap away and
+            marked with aria-current so a screen reader is told which ordering
+            it is reading.
+          */}
+          <div className="flex shrink-0 items-center gap-inline">
+            <nav aria-label="Sort results" className="nf-scroll-x">
+              <ul className="flex items-center gap-inline-tight">
+                {SORTS.map((srt) => {
+                  const active = query.sort === srt.key;
+                  return (
+                    <li key={srt.key}>
+                      <Link
+                        href={toSearchHref({ ...query, sort: srt.key })}
+                        prefetch
+                        aria-current={active ? "true" : undefined}
+                        className={`nf-chip whitespace-nowrap ${active ? "nf-chip--active" : ""}`}
+                      >
+                        {srt.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+            <ViewToggle query={query} />
+          </div>
         </div>
 
         {/* Everything narrowing the results, each one removable in one tap. */}
@@ -488,7 +499,7 @@ export default async function SearchPage({
 
       {/* -------------------------------------------------------- map view */}
       {query.view === "map" && (
-        <Reveal className="mt-5" delay={60}>
+        <Reveal className="mt-heading" delay={60}>
           {/*
             Skip to the map itself.
 
@@ -524,47 +535,52 @@ export default async function SearchPage({
 
       {/* ------------------------------------------------------ results grid */}
       {query.view === "list" && (
-        <Reveal className="mt-5" delay={60}>
+        <Reveal className="mt-heading" delay={60}>
           {listings.length === 0 ? (
-            <div className="nf-card p-10 text-center">
-              <span className="nf-story-art mx-auto block h-20 w-20">
-                <BrandIcon name="search-home" fill />
-              </span>
-              {/*
-               * Three different nothings, and telling them apart is the whole
-               * job of this block.
-               *
-               * A filter that matched nothing is the reader's own doing and
-               * one tap undoes it. A search term that matched nothing is
-               * nearly the same. But a catalogue with nothing in it at all is
-               * not a search problem, and answering it with "try a different
-               * search" sends somebody to type the same query again and get
-               * the same page. It also used to point at the home screen,
-               * which is fed by the same empty catalogue, so the one offered
-               * way out led straight back here.
-               *
-               * `pool` is this text and category with no structured bounds, so
-               * an empty pool and no query means the shelves themselves are
-               * bare. That happens before supply arrives, and the honest
-               * answer is to say so and offer the thing that would change it.
-               */}
-              <p className="mt-4 font-semibold">
-                {narrowed || query.q ? "No places matched" : "Nothing on the shelves yet"}
-              </p>
-              <p className="mt-1 text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
-                {narrowed
+            /*
+             * Three different nothings, and telling them apart is the whole
+             * job of this block.
+             *
+             * A filter that matched nothing is the reader's own doing and one
+             * tap undoes it. A search term that matched nothing is nearly the
+             * same. But a catalogue with nothing in it at all is not a search
+             * problem, and answering it with "try a different search" sends
+             * somebody to type the same query again and get the same page. It
+             * also used to point at the home screen, which is fed by the same
+             * empty catalogue, so the one offered way out led straight back
+             * here.
+             *
+             * `pool` is this text and category with no structured bounds, so an
+             * empty pool and no query means the shelves themselves are bare.
+             * That happens before supply arrives, and the honest answer is to
+             * say so and offer the thing that would change it.
+             *
+             * IT IS THE PLATFORM EMPTY STATE NOW, AND A CONTAINER LEAVES THE
+             * SCREEN. It was an `nf-card` padded to 10 wrapping an 80px object
+             * - a bordered, blurred, shadowed box drawn around a message whose
+             * entire job is to report an absence. `EmptyState` is the one shape
+             * every other screen in the product already uses for this, at 112px
+             * and with the copy a tier larger, and it draws nothing at all.
+             *
+             * TWO BUTTONS BECAME ONE AND A QUIET LINK. On the bare-catalogue
+             * branch this offered "List your place" and "How RentMe works" as
+             * two filled peers, which is two primary actions on a screen whose
+             * whole state is that it has nothing to show. Listing a place is
+             * the one that changes anything; the explanation is a text link
+             * beside it, which is what `secondary` is for.
+             */
+            <EmptyState
+              icon="search-home"
+              title={narrowed || query.q ? "No places matched" : "Nothing on the shelves yet"}
+              body={
+                narrowed
                   ? "Your filters are narrower than the catalogue right now. Widen them and the results come straight back."
                   : query.q
                     ? "Nothing here matches those words yet. Try a place name, or a state."
-                    : "Agents are still listing. When a place goes live it appears here the same minute, and there is nothing to wait for on your side."}
-              </p>
-              {/* Staff only, and silent for everybody else. Four rounds of
-                  "nothing is pulling" were spent learning things this could
-                  have said on the screen where the problem appeared. */}
-              <WhyEmpty filter={toFilter(query)} />
-
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                {narrowed ? (
+                    : "Agents are still listing. When a place goes live it appears here the same minute, and there is nothing to wait for on your side."
+              }
+              action={
+                narrowed ? (
                   <ButtonLink
                     href={toSearchHref(clearedFilters(query))}
                     prefetch
@@ -583,31 +599,39 @@ export default async function SearchPage({
                     Clear this search
                   </ButtonLink>
                 ) : (
-                  <>
-                    {/* A real next action, not a lap of the same empty
-                        shelves: the person reading this may be the one with
-                        a place to let. */}
-                    <ButtonLink href="/agents" variant="primary" data-testid="empty-list-place">
-                      List your place
-                    </ButtonLink>
-                    <ButtonLink href="/docs" variant="secondary">
-                      How RentMe works
-                    </ButtonLink>
-                  </>
-                )}
-              </div>
-              {narrowed && pool.length > 0 && (
-                <p className="mt-3 text-[0.8125rem] text-[var(--nf-content-muted)]">
-                  {formatNumber(pool.length, locale)}{" "}
-                  {pool.length === 1 ? noun.one : noun.many} waiting without them
-                </p>
-              )}
-            </div>
+                  /* A real next action, not a lap of the same empty shelves:
+                     the person reading this may be the one with a place to let.
+                     Straight into the switch-profile sheet, on the Seller
+                     explanation. There is no "Become an agent" page left to
+                     send anybody to: listing is a PROFILE you switch into, and
+                     the sheet both explains it and starts the setup. */
+                  <ButtonLink
+                    href="/profile?switch=owner"
+                    variant="primary"
+                    data-testid="empty-list-place"
+                  >
+                    List your place
+                  </ButtonLink>
+                )
+              }
+              secondary={
+                narrowed && pool.length > 0 ? (
+                  <span className="nf-body-sm text-[var(--nf-content-muted)]">
+                    {formatNumber(pool.length, locale)}{" "}
+                    {pool.length === 1 ? noun.one : noun.many} waiting without them
+                  </span>
+                ) : !narrowed && !query.q ? (
+                  <Link href="/docs" className="nf-link-quiet nf-body text-[var(--nf-content-link)]">
+                    How RentMe works
+                  </Link>
+                ) : undefined
+              }
+            />
           ) : (
             <ul
               key={toSearchHref(query)}
               data-testid="results-grid"
-              className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+              className="grid grid-cols-1 gap-lg sm:grid-cols-2 lg:grid-cols-3"
             >
               {listings.map((l, i) => (
                 <li key={l.id}>
@@ -630,7 +654,7 @@ export default async function SearchPage({
 
       {/* --------------------------------------------------------- load more */}
       {query.view === "list" && listings.length > 0 && (
-        <Reveal className="mt-8 text-center" delay={90}>
+        <Reveal className="mt-block text-center" delay={90}>
           {/*
            * A disabled button is not an explanation.
            *
@@ -652,7 +676,7 @@ export default async function SearchPage({
            * end of a list rather than a control that refuses.
            */}
           {repo.isSeed ? (
-            <p className="text-[0.875rem] text-[var(--nf-content-muted)]">
+            <p className="nf-body-sm text-[var(--nf-content-muted)]">
               That is everything matching this search.
             </p>
           ) : (

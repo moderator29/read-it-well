@@ -60,7 +60,7 @@ export function CityRow({
       <Link
         href="/search"
         aria-label="Search"
-        className="grid h-13 w-13 shrink-0 place-items-center rounded-full border border-[color-mix(in_oklab,var(--nf-brand-primary)_55%,transparent)] text-[var(--nf-content-on-brand)] shadow-[0_0_18px_rgb(12_57_239_/_0.45)] transition-transform active:translate-y-px"
+        className="grid h-13 w-13 shrink-0 place-items-center rounded-full border border-[color-mix(in_oklab,var(--nf-brand-primary)_55%,transparent)] text-[var(--nf-content-on-brand)] shadow-[var(--nf-glow-accent)] transition-transform active:translate-y-px"
         style={{ background: "var(--nf-gradient-cta)" }}
       >
         <UiIcon name="search" size={20} />

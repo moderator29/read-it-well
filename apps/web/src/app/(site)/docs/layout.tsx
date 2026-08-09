@@ -20,8 +20,8 @@ import { DocsSidebar } from "./DocsSidebar";
  */
 export default function DocsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="nf-shell py-8 sm:py-12">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
+    <div className="nf-shell py-section-tight">
+      <div className="mx-auto flex max-w-6xl flex-col gap-heading lg:flex-row lg:items-start lg:gap-block">
         <DocsSidebar items={CHAPTER_INDEX} />
         <div className="min-w-0 flex-1">{children}</div>
       </div>

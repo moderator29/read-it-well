@@ -29,7 +29,7 @@ export default function AdminError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[naijafinds] admin route error", error);
+    console.error("[rentme] admin route error", error);
   }, [error]);
 
   return (

@@ -32,7 +32,13 @@ export type ButtonVariant =
   | "dangerQuiet"
   | "glass";
 
-/** 40 / 48 / 56px. No other button heights exist on the platform. */
+/**
+ * 44 / 56 / 64px, up a step from 40 / 48 / 56.
+ *
+ * The owner asked for bigger buttons with a comfortable hit target. The heights
+ * themselves live in `css/buttons.css`; this union is the vocabulary. No other
+ * button heights exist on the platform.
+ */
 export type ButtonSize = "sm" | "md" | "lg";
 
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
@@ -52,15 +58,14 @@ const SIZE_CLASS: Record<ButtonSize, string> = {
 
 /** Icon sizing tracks the button size so the glyph stays optically centred. */
 /*
- * On the icon scale, not beside it.
+ * On the icon scale, not beside it, and up a step with the rest of it.
  *
- * This was 15/17/19, which are three of the fifteen ad-hoc sizes the icon sweep
- * existed to remove. `UiIcon` snaps anything off-scale at render time, so those
- * numbers were already being drawn at 16/16/20; the literals only meant the
- * source disagreed with the pixels. Naming the real steps makes the two agree
- * and keeps the button's own comment honest.
+ * This was 15/17/19 once, which are three of the fifteen ad-hoc sizes the icon
+ * sweep existed to remove, then 16/16/20 to land on the grid. It is 20/24/24
+ * now: the scale's floor moved to 16 and its steps moved with it, and a glyph
+ * that stayed put while its button grew by 8px would read as having shrunk.
  */
-const ICON_SIZE: Record<ButtonSize, UiIconSize> = { sm: 16, md: 16, lg: 20 };
+const ICON_SIZE: Record<ButtonSize, UiIconSize> = { sm: 20, md: 24, lg: 24 };
 
 type CommonProps = {
   variant?: ButtonVariant;

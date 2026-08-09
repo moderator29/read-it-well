@@ -16,7 +16,7 @@ export default function LoadingSaved() {
     <LoadingShell label="Loading your saved places" className="mx-auto w-full max-w-3xl">
       <PageHeaderSkeleton />
 
-      <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-lg sm:grid-cols-2">
         {Array.from({ length: 4 }, (_, i) => (
           <li key={i}>
             <SkeletonCard />

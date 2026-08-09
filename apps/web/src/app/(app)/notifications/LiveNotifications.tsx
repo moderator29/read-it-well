@@ -4,11 +4,11 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { markNotificationsRead } from "@/lib/messages/notifications-actions";
 import { lagosTimeLabel } from "@/lib/messages/time";
 import { useNotificationsRealtime, type LiveNotificationRow } from "@/lib/messages/useRealtime";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { EmptyState, ICON, SECTION_GAP, TYPE } from "@/components/app/Screen";
 
 /**
  * The signed-in notifications inbox.
@@ -120,21 +120,17 @@ export function LiveNotifications({
     return (
       <div>
         {header}
-        <div className="nf-card nf-rise p-6 text-center">
-          <span className="nf-story-art mx-auto block h-16 w-16">
-            <BrandIcon name="bell-badge" fill />
-          </span>
-          <h2 className="nf-h3 mt-4">You are all caught up</h2>
-          <p className="mx-auto mt-2 max-w-md text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
-            Bookings, messages, wallet activity and everything happening in your
-            district will land here the moment it does.
-          </p>
-          <div className="mt-5 flex justify-center">
+        <EmptyState
+          icon="bell-badge"
+          title="You are all caught up"
+          body="Bookings, messages, wallet activity and everything happening in your district land here the moment they happen."
+          action={
             <ButtonLink href="/search" variant="primary">
-              Explore places
+              Find a place
             </ButtonLink>
-          </div>
-        </div>
+          }
+          data-testid="notifications-empty"
+        />
       </div>
     );
   }
@@ -150,35 +146,44 @@ export function LiveNotifications({
     <div>
       {header}
 
-      <div className="space-y-5">
+      <div className={SECTION_GAP}>
         {sections.map((section) => (
           <section key={section.label} aria-label={section.label}>
-            <div className="mb-2 flex items-baseline justify-between gap-3">
-              <h2 className="text-[0.9375rem] font-bold text-[var(--nf-content-primary)]">
-                {section.label}
-              </h2>
-              <span className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
-                {section.items.length}
-              </span>
+            <div className="mb-heading flex items-baseline justify-between gap-row">
+              <h2 className={TYPE.sectionTitle}>{section.label}</h2>
+              <span className={`nf-numeric ${TYPE.caption}`}>{section.items.length}</span>
             </div>
-            <ul className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
+            <ul className="divide-y divide-[var(--nf-border-subtle)]">
               {section.items.map((n) => {
+                /* `py-group` on a 1rem title gives a row past 60px, comfortably
+                   over the 44px minimum. The old py-3.5 on 0.9rem text did
+                   not, and 3.5 is not a step on any scale. */
                 const rowClass =
-                  "flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[var(--nf-glass-fill)]";
+                  "flex w-full items-center gap-md py-group text-left transition-colors hover:bg-[var(--nf-glass-fill)]";
                 const inner = (
                   <>
-                    {/* Avatar with the kind riding its corner, so a glance
-                        separates a follow from a booking without reading. */}
-                    <span className="relative shrink-0" aria-hidden="true">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-electric-300)]">
-                        <UiIcon name={iconFor(n.kind)} size={20} />
-                      </span>
-                      <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-[var(--nf-surface-primary)] bg-[var(--nf-brand-primary)]" />
-                    </span>
+                    {/*
+                      THE GLYPH SITS ON THE SURFACE. It was inside a 44px
+                      tinted disc with a second brand dot riding its corner:
+                      a plate behind an icon, plus an ornament on the plate,
+                      repeated down the whole list. The kind is still legible
+                      at a glance because the glyph is bigger than the one it
+                      replaces, and the unread state is already stated by the
+                      dot on the right and by the weight of the title.
+                    */}
+                    <UiIcon
+                      name={iconFor(n.kind)}
+                      size={ICON.row}
+                      className={`shrink-0 ${
+                        n.read
+                          ? "text-[var(--nf-content-muted)]"
+                          : "text-[var(--nf-brand-secondary)]"
+                      }`}
+                    />
 
                     <span className="min-w-0 flex-1 leading-tight">
                       <span
-                        className={`block text-[0.9063rem] ${
+                        className={`nf-body block leading-snug ${
                           n.read
                             ? "font-medium text-[var(--nf-content-secondary)]"
                             : "font-semibold text-[var(--nf-content-primary)]"
@@ -187,14 +192,12 @@ export function LiveNotifications({
                         {n.title}
                       </span>
                       {n.body && (
-                        <span className="mt-0.5 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-                          {n.body}
-                        </span>
+                        <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{n.body}</span>
                       )}
                     </span>
 
-                    <span className="flex shrink-0 flex-col items-end gap-2">
-                      <span className="nf-numeric text-[0.7rem] text-[var(--nf-content-muted)]">
+                    <span className="flex shrink-0 flex-col items-end gap-inline">
+                      <span className={`nf-numeric ${TYPE.caption}`}>
                         {lagosTimeLabel(n.createdAt)}
                       </span>
                       {n.read ? (

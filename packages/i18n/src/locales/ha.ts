@@ -79,6 +79,13 @@ export const ha: Dictionary = {
     verified: "An tabbatar",
     skipToContent: "Tsallake zuwa abun ciki",
     notSet: "Ba a saita ba",
+    bed: "daki",
+    beds: "dakuna",
+    bath: "banɗaki",
+    baths: "banɗaki",
+    guest: "baƙo",
+    instantBook: "Nan take",
+    priceOnRequest: "Farashi bisa buƙata",
   },
 
   nav: {
@@ -87,6 +94,10 @@ export const ha: Dictionary = {
     apartments: "Gidaje",
     homes: "Muhalli",
     rent: "Hayar gida",
+    buy: "Siyan gida",
+    shortlets: "Zaman ɗan lokaci",
+    land: "Fili",
+    commercial: "Kadarar kasuwanci",
     restaurants: "Gidan abinci",
     experiences: "Kwarewa",
     services: "Ayyuka",
@@ -175,7 +186,7 @@ export const ha: Dictionary = {
       line2: "Ajiye shi.",
       line3: "Rayu da shi.",
       subtitle:
-        "Dandalinka guda ɗaya na gidaje, otal, gidan abinci, kwarewa da ƙari.",
+        "Ka yi hayar gida, ka saya ko ka sayar a Najeriya. Mutum na gaske ne ya sanya kowane wuri a nan.",
       searchPlaceholder: "Ina kake son zuwa?",
       searchLabel: "Nemi wurare a faɗin Najeriya",
       popularLabel: "Sanannu yanzu",
@@ -210,15 +221,14 @@ export const ha: Dictionary = {
       secure: { title: "Tsaro & Aminci", body: "Tsaronka shi ne fifikonmu" },
       ai: { title: "Ƙarfin AI", body: "Kwarewa mai wayo" },
       africa: { title: "An yi don Afirka", body: "An gina da so ❤️" },
-      stores: { title: "Ana samu a", body: "App Store & Play Store" },
     },
     categories: {
       title: "Komai, a wuri guda",
-      subtitle: "Hanyoyi biyar na gano Najeriya. Asusu guda, walat guda.",
+      subtitle: "Kowane irin wuri da mutum zai iya sanyawa a nan. Asusu guda, walat guda.",
     },
     cta: {
       title: "A shirye kake ka samu wuri na gaba?",
-      subtitle: "Ka haɗu da dubbai da ke gano masauki, abinci da kwarewa.",
+      subtitle: "Ka buɗe asusu don adana wurare, ka aika saƙo ga wanda ya sanya su, ka yi haya ko sayan gida a wuri guda.",
       action: "Fara kyauta",
       secondary: "Duba yadda yake aiki",
     },
@@ -613,10 +623,17 @@ export const ha: Dictionary = {
     topExperiences: "Bincika manyan kwarewa",
     nearby: "Kusa da kai",
     aiCard: {
-      title: "RentMe AI",
-      body: "Abokin tafiyarka mai wayo. Ka tambaya da harshe mai sauƙi.",
+      title: "Tambayi RentMe AI",
+      body: "Yana bincike a cikin jerin gidajen da kake gani, don haka zai iya gaya maka kawai game da wuraren da suke kan RentMe da gaske.",
       action: "Tambayi mataimaki",
-      samplePrompt: "Ɗaki biyu a Lekki ƙasa da 300k mai wurin ninkaya",
+      truths: {
+        listings:
+          "Yana amsawa daga jerin gidaje na gaskiya, kuma yana haɗa duk wanda ya ambata.",
+        costs:
+          "Ya san abin da ƙaura ke ci da gaske. Kuɗin caution, kuɗin wakili, kuɗin lauya da kuɗin yarjejeniya, ba haya kaɗai ba.",
+        title:
+          "Ba zai gaya maka cewa takardar mallakar ƙasa tana da kyau ba. Yana faɗin abin da tallan ya ce, sannan ya tura ka wurin lauya.",
+      },
     },
     agentCard: {
       title: "Zama Wakilin RentMe",

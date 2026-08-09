@@ -2,7 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
-import { bestEffortEmail, sendEmail } from "../email/client";
+import { bestEffortEmail, sendMessage } from "../email/client";
 import { bookingConfirmed, stayArrivalDetails, type ArrivalAccess } from "../email/messages";
 import { contactForUser, emailMuted, type Contact } from "../email/recipients";
 
@@ -171,7 +171,7 @@ export async function announceConfirmedStay(
           arriving,
           access: reachable ? null : access,
         });
-        jobs.push(sendEmail({ to: payer.email, subject: message.subject, html: message.html }));
+        jobs.push(sendMessage(payer.email, message));
       }
     }
 
@@ -193,7 +193,7 @@ export async function announceConfirmedStay(
         nights: booking.nights,
         access,
       });
-      jobs.push(sendEmail({ to: arrivingEmail, subject: message.subject, html: message.html }));
+      jobs.push(sendMessage(arrivingEmail, message));
     }
 
     await Promise.allSettled(jobs);

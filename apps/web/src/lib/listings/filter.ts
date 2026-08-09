@@ -1,18 +1,14 @@
+import type { ListingIntent } from "./pricing";
 import type { Listing, ListingKind, ListingSearchFilter } from "./types";
 
 /**
- * Filter and ranking semantics shared by every listing source.
+ * Filter and ranking semantics, in one place.
  *
- * The seed catalogue and the Supabase catalogue must answer the same question
- * the same way, otherwise a blended result set would filter differently
- * depending on which half a listing came from. Both sources import these
- * functions, so there is exactly one definition of "matches this search" and
- * one definition of "a good recommendation rail" in the codebase.
- *
- * Partner stock is held to the same rule: the partner decorator in
- * `repository.ts` runs every provider result through `matchesFilter` before it
- * is appended, so a hotel feed cannot ignore a price ceiling, an amenity or a
- * verified-only request just because it arrived from somewhere else.
+ * The server and the browser must answer the same question the same way: the
+ * filter drawer counts what a pending filter set would leave, and the
+ * repository applies the same set against Postgres. Both import from here, so
+ * there is exactly one definition of "matches this search" and one definition
+ * of "a good recommendation rail" in the codebase.
  *
  * This module is deliberately free of server-only imports. The filter drawer
  * imports `matchesFacts` in the browser to count how many places a pending set
@@ -33,6 +29,11 @@ export function haystack(l: Listing): string {
  */
 export type ListingFacts = {
   priceMinor: number;
+  /**
+   * To let, or for sale. Absent reads as "rent", which is what the seed
+   * catalogue is and what every row that predates the distinction was.
+   */
+  intent?: ListingIntent;
   bedrooms: number;
   bathrooms: number;
   /** The host's declared capacity, where the source carries one. */
@@ -40,7 +41,16 @@ export type ListingFacts = {
   amenities: string[];
   instantBook: boolean;
   verified: boolean;
-  source?: "rentme" | "partner";
+  /**
+   * True when this illustrates the catalogue and no such property exists.
+   *
+   * Carried in the facts for the same reason `verified` is: the drawer's live
+   * match count runs in the browser against this shape alone, so a filter that
+   * can hide example listings has to be answerable here or the count and the
+   * server would disagree.
+   */
+  isDemo: boolean;
+  source?: "rentme";
   /**
    * Light and water, where the host has answered.
    *
@@ -56,12 +66,14 @@ export type ListingFacts = {
 export function factsOf(l: Listing): ListingFacts {
   return {
     priceMinor: l.priceMinor,
+    ...(l.intent !== undefined ? { intent: l.intent } : {}),
     bedrooms: l.bedrooms,
     bathrooms: l.bathrooms,
     ...(l.maxGuests !== undefined ? { maxGuests: l.maxGuests } : {}),
     amenities: l.amenities,
     instantBook: l.instantBook,
     verified: l.verified,
+    isDemo: l.isDemo,
     source: l.source,
     ...(l.utilities !== undefined ? { utilities: l.utilities } : {}),
   };
@@ -91,7 +103,7 @@ export function hasBackupPower(facts: ListingFacts): boolean {
  * somebody else's property, and it also hid four-guest flats from a search for
  * four guests whenever the host had put them in two bedrooms.
  *
- * Where no number is declared (the seed catalogue), capacity falls back to two
+ * Where no number is declared, capacity falls back to two
  * guests per bedroom, the convention every lodging site uses when a host has
  * not said. A listing with neither a declared capacity nor a bedroom is not a
  * small place, it is a place where bedrooms are the wrong unit (a restaurant
@@ -103,9 +115,15 @@ export function sleeps(facts: ListingFacts): number | null {
   return facts.bedrooms > 0 ? facts.bedrooms * 2 : null;
 }
 
-/** Only first-party inventory that passed admission carries verification. */
+/**
+ * Only inventory that passed admission carries verification.
+ *
+ * This used to also have to exclude third-party stock, which could never be
+ * verified because there was nobody behind it to verify. There is no
+ * third-party stock any more, so the flag on the row is the whole answer.
+ */
 export function isVerifiedFirstParty(facts: ListingFacts): boolean {
-  return facts.verified && facts.source !== "partner";
+  return facts.verified;
 }
 
 /**
@@ -115,6 +133,11 @@ export function isVerifiedFirstParty(facts: ListingFacts): boolean {
  * skipped when it was not asked for, so an empty filter matches everything.
  */
 export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = {}): boolean {
+  // Rent and sale are two markets, and a 180m asking price landing in a rent
+  // search is the single most confusing thing this catalogue could do. Absent
+  // reads as "rent" because that is what every row without the column is.
+  if (filter.intent && (facts.intent ?? "rent") !== filter.intent) return false;
+
   const wantsBudget = filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
   if (wantsBudget) {
     // A price of zero is "we were not given an amount", not "free".
@@ -140,6 +163,22 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
 
   if (filter.instantBook && !facts.instantBook) return false;
   if (filter.verifiedOnly && !isVerifiedFirstParty(facts)) return false;
+
+  /*
+   * The retirement switch.
+   *
+   * Example listings are in the catalogue because the catalogue is otherwise
+   * empty. The day real supply arrives somebody will want them gone, and that
+   * should be a flag rather than a migration, because the decision is likely to
+   * be reversed once or twice while supply is thin in one city and healthy in
+   * another.
+   *
+   * Note it is one-directional on purpose. There is a filter for "hide the
+   * examples" and deliberately none for "show me only the examples": the second
+   * would be a discovery surface whose entire content is properties that do not
+   * exist, which is the shape this whole exercise exists to prevent.
+   */
+  if (filter.excludeDemo && facts.isDemo) return false;
 
   if (filter.powerBackup && !hasBackupPower(facts)) return false;
   if (filter.powerBandA && facts.utilities?.powerGrid !== "BAND_A") return false;

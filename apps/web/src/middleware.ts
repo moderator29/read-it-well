@@ -33,10 +33,27 @@ import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/sup
  * Matched on the first path segment rather than by prefix string, so `/search`
  * is protected and a future public route called `/searching` is not caught by
  * accident.
+ *
+ * WHAT CHANGED, and why it matters more than it looks.
+ *
+ * This set used to hold `search`, `listing`, `rent`, `around`, `u` and `post`,
+ * which meant an anonymous visitor could not see a single property. A shared
+ * listing link hit a sign-in wall. Google could not index one page of
+ * inventory. An app store reviewer would have opened the app, been asked to
+ * register, and had no way to see that the product does anything.
+ *
+ * A property marketplace that cannot be seen cannot be found, and being found
+ * is most of what a marketplace is for. So browsing is open and DOING is what
+ * costs an account: saving, messaging, requesting an inspection, paying,
+ * listing, the wallet, and everything in the consoles. That line is drawn in
+ * two places and they have to agree. Here, for whole routes. And in the client
+ * gate, for the individual controls on a page a stranger is allowed to read.
+ *
+ * Anything holding somebody's own data, their money, or somebody else's
+ * attention stays behind the wall.
  */
 const PRODUCT_SEGMENTS = new Set([
   // The (app) group.
-  "around",
   "assistant",
   "bookings",
   "checkout",
@@ -46,17 +63,14 @@ const PRODUCT_SEGMENTS = new Set([
      is for; these are the same text inside the product shell and there is no
      reason for a stranger to reach them rather than the canonical page. */
   "legal",
-  "listing",
   "messages",
   "notifications",
-  "post",
   "profile",
-  "rent",
   "saved",
-  "search",
   "settings",
+  /* Stories expire and count their viewers, so a view is a write against
+     somebody's post. There is nothing to read here anonymously. */
   "stories",
-  "u",
   "wallet",
   // The consoles. These have their own role checks on top; this only decides
   // whether an anonymous visitor gets as far as being told they lack a role.
@@ -69,11 +83,11 @@ const PRODUCT_SEGMENTS = new Set([
 /**
  * Product that does not own its own first segment.
  *
- * `/agents` is the pitch and stays open, because somebody has to be able to
- * read what listing on RentMe means before they have an account. Everything
- * under it that DOES something is inside: an application is attached to a
- * person, and a status screen is a person's own application. Both used to
- * render to anybody who typed the address.
+ * The two agent addresses that used to be listed here are gone with the
+ * `/agents` tree: setting a profile up is `/profile/setup/[role]` and an
+ * application's state is `/profile/application`, both of which live under
+ * `profile`, which is already a protected first segment. So the rule that
+ * guarded them still applies and no longer needs naming twice.
  *
  * `/styleguide` is the design reference. It carries noindex and it is ours,
  * not a page a visitor has any business reading.
@@ -81,7 +95,7 @@ const PRODUCT_SEGMENTS = new Set([
  * Matched on the exact path, and on the path with a trailing slash, because
  * `/styleguide/` is the same page to a browser and a different string here.
  */
-const PRODUCT_PATHS = new Set(["/agents/apply", "/agents/status", "/styleguide"]);
+const PRODUCT_PATHS = new Set(["/styleguide"]);
 
 /**
  * Stamp the policy on a response, whichever response it turned out to be.

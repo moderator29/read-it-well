@@ -13,12 +13,25 @@ import { ThemeToggle } from "./ThemeToggle";
 import type { Locale } from "@naijafinds/i18n";
 
 /**
- * Marketing header menu for phones.
+ * Marketing side navigation, for phones.
  *
- * A full-page panel: brand row with a close control, the nav stack as chevron
- * rows over hairline dividers, the two controls that decide how the page is
- * presented, and the primary call to action pinned at the foot. Locks page
- * scroll while open and closes on any navigation.
+ * SHORT. One grouped surface of rows, the display controls, and one button.
+ *
+ * What it was: a bare list where every row carried its own bottom border
+ * INCLUDING the last one, so the stack ended on a hairline hanging under
+ * nothing; an "Display" overline over two loose controls; a "Contact support"
+ * line set as a third kind of thing again, at a third size; and the sign-up
+ * button wearing `nf-breathe`, a permanent looping pulse on the one control in
+ * the panel that did not need help being noticed. Four different row treatments
+ * for what is, at most, six destinations.
+ *
+ * Now: the destinations live in a single glass surface with inset hairlines
+ * between them and none at either end, which is the platform's grouped list and
+ * the pattern the reference set uses for every panel it has. Support is a row
+ * in that group rather than a separate species. The label sits OUTSIDE the
+ * surface. The two display controls sit under their own label in the same
+ * shape, and the only filled thing in the panel is the one action it is asking
+ * for.
  *
  * The opener is the product's panel glyph rather than the three-line
  * hamburger it used to be. Two menus on one platform drawn differently is two
@@ -80,77 +93,103 @@ export function MobileMenu({
             type="button"
             aria-label={closeLabel}
             onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
           />
 
-          <div className="nf-rise absolute inset-0 flex flex-col overflow-y-auto bg-[var(--nf-surface-primary)] px-5 pb-6 pt-5">
-            <div className="mb-4 flex items-center justify-between">
+          <div className="nf-rise absolute inset-0 flex flex-col overflow-y-auto bg-[var(--nf-surface-primary)] px-heading pb-block pt-heading">
+            <div className="mb-block flex items-center justify-between">
               <Logo size={40} wordSize={19} />
               <button
                 type="button"
                 aria-label={closeLabel}
                 onClick={() => setOpen(false)}
-                className="nf-icon-btn h-9 w-9"
+                className="nf-icon-btn nf-press h-9 w-9"
               >
-                <span className="relative block h-3 w-3" aria-hidden="true">
-                  <span className="absolute left-0 top-1/2 block h-[2px] w-full -translate-y-1/2 rotate-45 rounded-full bg-current" />
-                  <span className="absolute left-0 top-1/2 block h-[2px] w-full -translate-y-1/2 -rotate-45 rounded-full bg-current" />
-                </span>
+                <UiIcon name="close" size={16} />
               </button>
             </div>
 
             <nav className="flex-1">
-              <ul>
-                {[...links, { href: "/sign-in", label: signIn }].map((l) => (
-                  <li key={l.href} className="border-b border-[var(--nf-border-subtle)]">
-                    <Link
-                      href={l.href}
-                      onClick={() => setOpen(false)}
-                      className="flex items-center justify-between py-4 text-[1rem] font-semibold text-[var(--nf-content-primary)] transition-colors hover:text-[var(--nf-electric-300)]"
-                    >
-                      {l.label}
-                      <UiIcon name="arrow-right" size={16} className="text-[var(--nf-content-muted)]" />
-                    </Link>
-                  </li>
-                ))}
+              <span className="nf-group-label">Go to</span>
+              {/*
+                ONE SURFACE. The rows used to each carry their own bottom
+                border, last one included, so the list ended on a rule hanging
+                under nothing and read as five separate strips. Inset dividers,
+                none at the ends, and the whole thing inside a single card: one
+                object with parts.
+
+                No `--inset` modifier: an inset divider exists to clear a
+                leading glyph column, and these rows have no leading glyph. The
+                card's own inline padding is what holds the rules off the
+                corners here, which is the same job done by the surface instead
+                of by the row.
+              */}
+              <ul className="nf-card nf-group nf-rows">
+                {[
+                  ...links,
+                  { href: "/sign-in", label: signIn },
+                  { href: SUPPORT_HREF, label: "Contact support" },
+                ].map((l) =>
+                  l.href === SUPPORT_HREF && SUPPORT_IS_EMAIL ? (
+                    <li key={l.href}>
+                      <a href={l.href} className="nf-row nf-row--tap justify-between">
+                        <span className="nf-body font-semibold text-[var(--nf-content-primary)]">
+                          {l.label}
+                        </span>
+                        <UiIcon
+                          name="chevron-right"
+                          size={16}
+                          className="shrink-0 text-[var(--nf-content-muted)]"
+                        />
+                      </a>
+                    </li>
+                  ) : (
+                    <li key={l.href}>
+                      <Link
+                        href={l.href}
+                        prefetch
+                        onClick={() => setOpen(false)}
+                        className="nf-row nf-row--tap justify-between"
+                      >
+                        <span className="nf-body font-semibold text-[var(--nf-content-primary)]">
+                          {l.label}
+                        </span>
+                        <UiIcon
+                          name="chevron-right"
+                          size={16}
+                          className="shrink-0 text-[var(--nf-content-muted)]"
+                        />
+                      </Link>
+                    </li>
+                  ),
+                )}
               </ul>
             </nav>
 
-            <div className="mt-6">
+            <div className="mt-block">
               {/*
                 Theme and language, which are the two things a visitor may want
-                to change before reading a word, and which lived only in the
-                product and in the desktop header until now.
+                to change before reading a word. Same shape as the group above,
+                label outside, so the panel has two objects on it rather than
+                four kinds of thing.
               */}
-              <p className="nf-overline mb-3">Display</p>
-              <div className="mb-5 flex items-center gap-2">
+              <span className="nf-group-label">Display</span>
+              <div className="nf-card flex items-center gap-inline px-group py-row">
                 <ThemeToggle />
                 <LanguageSwitcher current={locale} label={languageLabel} compact />
               </div>
 
-              {/*
-                One way to reach a person, and it goes wherever the support
-                module says it goes. This was `mailto:hello@rentme.ng`, a
-                mailbox that does not exist, so every tap of it was a message
-                sent nowhere. The RentMe AI link next to it pointed at
-                `/assistant`, which is inside the product and now behind a
-                session, so it was a link to a redirect.
-              */}
-              <a
-                href={SUPPORT_HREF}
-                {...(SUPPORT_IS_EMAIL ? {} : { onClick: () => setOpen(false) })}
-                className="mb-5 flex min-h-11 items-center gap-2 text-[0.9375rem] font-semibold text-[var(--nf-content-secondary)] hover:text-[var(--nf-electric-300)]"
-              >
-                <UiIcon name="chat-bubble" size={16} />
-                Contact support
-              </a>
-
+              {/* The one filled control in the panel, and the reason the panel
+                  exists. It used to wear `nf-breathe`, a permanent pulse loop:
+                  the single most prominent thing on the surface, animated
+                  forever to draw attention to itself. */}
               <ButtonLink
                 href="/sign-up"
                 onClick={() => setOpen(false)}
                 variant="primary"
+                size="lg"
                 full
-                className="nf-breathe"
+                className="mt-block"
               >
                 {signUp}
               </ButtonLink>

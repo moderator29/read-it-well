@@ -30,6 +30,7 @@ import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE } from "../actions/session";
 import { PaystackError, isPaystackConfigured, resolveAccountNumber } from "../payments/paystack";
+import { createAdminClient } from "../supabase/admin";
 import { getAgentContext } from "./listings-queries";
 import {
   addPayoutAccountInputSchema,
@@ -116,12 +117,20 @@ export async function addPayoutAccount(
     return fail(SERVICE_DOWN_MESSAGE);
   }
 
-  const { error: insertError } = await context.supabase.from("payout_accounts").insert({
-    agent_id: context.agent.id,
-    bank_name: parsed.data.bankName,
-    account_number: parsed.data.accountNumber,
-    account_name: accountName,
-  });
+  const { data: created, error: insertError } = await context.supabase
+    .from("payout_accounts")
+    .insert({
+      agent_id: context.agent.id,
+      bank_name: parsed.data.bankName,
+      /* The code, not only the name. Paystack resolves an account by code, so
+         an account stored without one can never climb the payout rung again
+         after this insert: nothing would know which bank to ask. */
+      bank_code: parsed.data.bankCode,
+      account_number: parsed.data.accountNumber,
+      account_name: accountName,
+    })
+    .select("id")
+    .single();
 
   if (insertError) {
     // 23505 is the per-agent unique NUBAN.
@@ -144,7 +153,43 @@ export async function addPayoutAccount(
     return fail(SERVICE_DOWN_MESSAGE);
   }
 
+  /*
+   * The verification rung, climbed for free, right here.
+   *
+   * resolveAccountNumber has been exported since the payments work and called
+   * by nothing. It is the strongest automated identity check available to this
+   * platform: a Nigerian bank has already done KYC on that account and has just
+   * told us whose it is. Comparing that against the name on the agent's record
+   * is a verification rung that costs one request nobody has to review.
+   *
+   * WHY THE SERVICE ROLE FOR THIS ONE STEP, in a file whose header says the
+   * service role is never used. The rule that header states is about the payout
+   * account itself, and it still holds: the row above was written by the
+   * agent's own client under their own policy. This call is different in kind.
+   * The resolved name IS the evidence, so the rung is worth nothing if a
+   * session can supply it, and public.verify_payout_account is therefore
+   * granted to service_role alone. The name passed here came from Paystack
+   * eleven lines up and never touched the browser.
+   *
+   * Best effort. A rung that could not be recorded must never cost somebody
+   * their payout account, which is already saved and already correct.
+   */
+  if (created) {
+    try {
+      const admin = createAdminClient();
+      await admin.rpc("verify_payout_account", {
+        p_account: created.id,
+        p_resolved_name: accountName,
+        p_identity_name: context.agent.displayName,
+      });
+    } catch {
+      /* The account is saved. The rung can be recorded by hand from the
+         verification queue, which shows the payout rung and its note. */
+    }
+  }
+
   revalidatePath("/agent/earnings");
+  revalidatePath("/agent/verification");
   return ok(null);
 }
 

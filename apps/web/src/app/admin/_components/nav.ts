@@ -14,10 +14,23 @@ import type { UiIconName } from "@/design-system/icons/UiIcon";
 export type AdminNavKey = keyof Dictionary["admin"]["nav"];
 
 export type AdminDestination = {
-  key: AdminNavKey;
+  key: AdminNavKey | MoneyNavKey;
   href: string;
   icon: UiIconName;
+  /**
+   * An English label, for a destination the dictionary does not carry yet.
+   *
+   * The four money sections were added after the dictionary was written, and
+   * packages/i18n is not this app's to change. A hardcoded English string is
+   * honest about that; inventing a key that resolves to undefined and renders a
+   * blank rail entry would not be. When the translations land, the key moves
+   * into Dictionary["admin"]["nav"] and this field comes off.
+   */
+  label?: string;
 };
+
+/** Destinations whose labels are not in the dictionary yet. See `label` above. */
+type MoneyNavKey = "money" | "escrow" | "kyc" | "fees" | "payments" | "examples";
 
 export const ADMIN_NAV: AdminDestination[] = [
   { key: "overview", href: "/admin", icon: "grid" },
@@ -51,6 +64,40 @@ export const ADMIN_NAV: AdminDestination[] = [
   // Reference data is the platform's own vocabulary: the occupations and the
   // local governments every profile picks from. It sits with the switches
   // because both are settings for the platform rather than queues of people.
+  /*
+   * The money block, and it sits here rather than at the top for a reason.
+   *
+   * The safety queues above it are things that must never sit unread: a flagged
+   * message, a held post, a risk alert. Money is not that shape. An operator
+   * comes to these four because somebody asked them a question, or because they
+   * are looking at a dispute. Putting a wallet list above a message flag would
+   * push the queues that decay down the rail.
+   *
+   * Escrow carries the dispute count as a badge and the other three carry
+   * nothing, deliberately. A wallet list and a rate table are not work waiting.
+   */
+  { key: "money", href: "/admin/money", icon: "wallet", label: "Money" },
+  { key: "escrow", href: "/admin/escrow", icon: "shield-stop", label: "Escrow" },
+  /*
+   * Payments sits directly under escrow, and it is the one entry in this block
+   * that CAN carry work waiting.
+   *
+   * The note above says a wallet list and a rate table are not a queue, and
+   * that is still true of Money and Fees. Payments is different in kind: an
+   * overdrawn wallet and a withdrawal frozen past its window are both somebody
+   * short of their own money right now, which is the same shape as a dispute
+   * and belongs beside it rather than below the reference data.
+   */
+  { key: "payments", href: "/admin/payments", icon: "wallet", label: "Payments" },
+  { key: "kyc", href: "/admin/kyc", icon: "verified", label: "Verification" },
+  { key: "fees", href: "/admin/fees", icon: "document", label: "Fees" },
+  /*
+   * Examples sits with the settings rather than the queues. The seeded stock is
+   * a property of the platform's own configuration, like the occupations list
+   * and the switches, and the badge it carries counts rows that are past the
+   * date somebody recorded for them rather than people waiting on an answer.
+   */
+  { key: "examples", href: "/admin/examples", icon: "building-apartment", label: "Examples" },
   { key: "reference", href: "/admin/reference", icon: "grid" },
   { key: "switches", href: "/admin/switches", icon: "key" },
 ];

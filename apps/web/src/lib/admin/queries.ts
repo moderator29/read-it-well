@@ -4,6 +4,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "../supabase/admin";
 import type { Database } from "../supabase/database.types";
 import { requireAdmin } from "./guard";
+import {
+  PERIOD_SUFFIX,
+  headlinePeriod,
+  headlinePrice,
+  moveInParts,
+  moveInTotal,
+  type MoveInPart,
+  type PricePeriod,
+} from "../listings/pricing";
 
 /**
  * The console's read layer.
@@ -554,17 +563,23 @@ export type ListingReviewView = {
   title: string;
   status: Database["public"]["Enums"]["listing_status"];
   propertyType: Database["public"]["Enums"]["property_type"];
-  pricePeriod: Database["public"]["Enums"]["price_period"];
+  /** To let, or for sale. Decides which money block the reviewer is shown. */
+  intent: Database["public"]["Enums"]["listing_intent"];
+  /** The unit the headline figure is quoted in, or "sale" for an asking price. */
+  pricePeriod: PricePeriod | "sale";
   priceMinor: number;
+  /** The rent breakdown, present only on a tenancy that stated any of it. */
+  moveIn: { parts: MoveInPart[]; totalMinor: number; totalStated: boolean } | null;
+  /** The title being transferred, present only on a sale. */
+  tenure: Database["public"]["Enums"]["land_tenure"] | null;
+  saleStatus: Database["public"]["Enums"]["sale_status"] | null;
   city: string | null;
   area: string | null;
   stateCode: string | null;
   address: string | null;
   description: string | null;
   bedrooms: number;
-  beds: number;
   bathrooms: number;
-  maxGuests: number;
   agentName: string | null;
   photos: string[];
   amenityCount: number;
@@ -576,24 +591,35 @@ export type ListingReviewView = {
 };
 
 const LISTING_COLUMNS =
-  "id, title, status, property_type, price_period, price_per_night_minor, city, area, state_code, address, description, bedrooms, beds, bathrooms, max_guests, submitted_at, reviewed_at, review_notes, created_at, agents ( display_name ), listing_photos ( storage_path, position ), listing_amenities ( amenity_id )";
+  "id, title, status, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, tenure, sale_status, caution_deposit_minor, service_charge_minor, service_charge_period, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, city, area, state_code, address, description, bedrooms, bathrooms, submitted_at, reviewed_at, review_notes, created_at, agents ( display_name ), listing_photos ( storage_path, position ), listing_amenities ( amenity_id )";
 
 type ListingRow = {
   id: string;
   title: string;
   status: Database["public"]["Enums"]["listing_status"];
   property_type: Database["public"]["Enums"]["property_type"];
-  price_period: Database["public"]["Enums"]["price_period"];
-  price_per_night_minor: number;
+  listing_intent: Database["public"]["Enums"]["listing_intent"];
+  rent_amount_minor: number | null;
+  rent_period: Database["public"]["Enums"]["rent_period"] | null;
+  rate_minor: number;
+  rate_period: Database["public"]["Enums"]["rate_period"] | null;
+  sale_price_minor: number | null;
+  tenure: Database["public"]["Enums"]["land_tenure"] | null;
+  sale_status: Database["public"]["Enums"]["sale_status"] | null;
+  caution_deposit_minor: number | null;
+  service_charge_minor: number | null;
+  service_charge_period: Database["public"]["Enums"]["rent_period"] | null;
+  agency_fee_minor: number | null;
+  legal_fee_minor: number | null;
+  agreement_fee_minor: number | null;
+  total_move_in_cost_minor: number | null;
   city: string | null;
   area: string | null;
   state_code: string | null;
   address: string | null;
   description: string | null;
   bedrooms: number;
-  beds: number;
   bathrooms: number;
-  max_guests: number;
   submitted_at: string | null;
   reviewed_at: string | null;
   review_notes: string | null;
@@ -654,9 +680,21 @@ function qualityChecks(row: ListingRow): QualityCheck[] {
       detail: [row.area, row.city].filter(Boolean).join(", ") || "Not given",
     },
     {
-      label: "Price recorded in naira",
-      pass: row.price_per_night_minor > 0,
-      detail: row.price_period === "year" ? "Per year" : "Per night",
+      /* Three markets, one line. A sale passes on an asking price, a tenancy on
+         a rent, a shortlet on a nightly rate, and the detail says which of the
+         three the reviewer is looking at so they can tell a 4.5m yearly rent
+         from a 4.5m asking price at a glance. */
+      label: row.listing_intent === "sale" ? "Asking price recorded" : "Price recorded in naira",
+      pass: headlinePrice(row).minor > 0,
+      detail: PERIOD_SUFFIX[headlinePeriod(headlinePrice(row))],
+    },
+    {
+      label: "Title deed stated",
+      pass: row.listing_intent !== "sale" || row.tenure !== null,
+      detail:
+        row.listing_intent !== "sale"
+          ? "Not asked of a listing to let"
+          : (row.tenure ?? "Not stated"),
     },
     {
       label: "Bedrooms and bathrooms recorded",
@@ -689,6 +727,9 @@ function photoUrl(admin: SupabaseClient<Database>, path: string): string {
 }
 
 function toListingView(admin: SupabaseClient<Database>, row: ListingRow): ListingReviewView {
+  const headline = headlinePrice(row);
+  const parts = moveInParts(row);
+  const total = moveInTotal(row);
   const photos = [...row.listing_photos]
     .sort((a, b) => a.position - b.position)
     .map((photo) => photoUrl(admin, photo.storage_path));
@@ -698,17 +739,22 @@ function toListingView(admin: SupabaseClient<Database>, row: ListingRow): Listin
     title: row.title,
     status: row.status,
     propertyType: row.property_type,
-    pricePeriod: row.price_period,
-    priceMinor: row.price_per_night_minor,
+    intent: row.listing_intent,
+    pricePeriod: headlinePeriod(headline),
+    priceMinor: headline.minor,
+    moveIn:
+      row.listing_intent === "sale" || parts.length === 0
+        ? null
+        : { parts, totalMinor: total.minor, totalStated: total.stated },
+    tenure: row.tenure,
+    saleStatus: row.sale_status,
     city: row.city,
     area: row.area,
     stateCode: row.state_code,
     address: row.address,
     description: row.description,
     bedrooms: row.bedrooms,
-    beds: row.beds,
     bathrooms: row.bathrooms,
-    maxGuests: row.max_guests,
     agentName: row.agents?.display_name ?? null,
     photos,
     amenityCount: row.listing_amenities.length,

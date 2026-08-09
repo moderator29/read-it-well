@@ -24,9 +24,19 @@ export type MapListing = {
   photo?: string;
   /** Deterministic hue index for the gradient tile, 0 to 5. */
   hue: number;
-  /** First party verification. Partner stock can never carry it. */
+  /** Verified by RentMe. */
   verified: boolean;
-  partner: boolean;
+  /**
+   * An example listing: no such property is available.
+   *
+   * On the projection rather than resolved on the client, because the docked
+   * card is a CARD and has to be able to disclose the same thing a grid card
+   * does. It was the one surface where a reader could meet an invented property
+   * with a real area and a real price and be told nothing at all, since the map
+   * does not go through `ListingCard`. One boolean is the cheapest field on
+   * this type and it is the only one that changes what the card MEANS.
+   */
+  isDemo: boolean;
   lat: number;
   lng: number;
   /**

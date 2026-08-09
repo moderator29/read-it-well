@@ -47,6 +47,21 @@ import { randomUUID } from "node:crypto";
  *    lands in the RentMe wallet, exactly as /cancellations promises, and leaves
  *    it later as an ordinary withdrawal under `rm-wd-`.
  *
+ *  - `rm-esc-<escrow uuid>-hold` / `-release` / `-refund`  Escrow. Three legs,
+ *    one escrow agreement, all three in the SAME ledger everything else is in
+ *    (`public.wallet_entries`, kinds `escrow_hold`, `escrow_release`,
+ *    `escrow_refund`). There is no second table of escrow balances anywhere:
+ *    a shadow ledger is how a marketplace ends up unable to answer "how much
+ *    does this person have" with one number.
+ *
+ *    The uuid in the middle is the ESCROW ROW's id, not a fresh one. That is
+ *    deliberate and it is the whole idempotency story: a retried release
+ *    computes the identical reference, collides with the unique index on
+ *    wallet_entries.reference, and moves nothing. A random uuid per attempt
+ *    would make every retry a second payment. Each escrow therefore has at most
+ *    one hold, and at most one of release or refund; a partial settlement is a
+ *    new escrow row, not a fourth leg on this one.
+ *
  * The platform charges nothing, so a booking reference always moves the
  * booking total and nothing more (docs/MASTER_TODO.md section 5b).
  */
@@ -56,6 +71,7 @@ export const WITHDRAW_PREFIX = "rm-wd-";
 export const P2P_PREFIX = "rm-p2p-";
 export const BOOKING_PREFIX = "rm-book-";
 export const REFUND_PREFIX = "rm-refund-";
+export const ESCROW_PREFIX = "rm-esc-";
 
 const REFERENCE_UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -78,4 +94,40 @@ export function refundReference(): string {
 export function isBookingReference(value: string): boolean {
   if (!value.startsWith(BOOKING_PREFIX)) return false;
   return REFERENCE_UUID_RE.test(value.slice(BOOKING_PREFIX.length));
+}
+
+/**
+ * True when a string is a reference this platform generated for a wallet
+ * funding. The reconciliation sweep asks Paystack for every successful charge
+ * it has taken, and most of them are not ours to credit; this is the shape test
+ * that decides which ones are.
+ */
+export function isFundReference(value: string): boolean {
+  if (!value.startsWith(FUND_PREFIX)) return false;
+  return REFERENCE_UUID_RE.test(value.slice(FUND_PREFIX.length));
+}
+
+/** The three legs an escrow agreement can ever post. */
+export type EscrowLeg = "hold" | "release" | "refund";
+
+/**
+ * The reference for one leg of one escrow agreement.
+ *
+ * Deterministic on the escrow id, which is what makes every escrow movement
+ * safe to retry: the second attempt writes the same key and the unique index
+ * refuses it. Never call this with a value that is not the escrow row's id.
+ */
+export function escrowReference(escrowId: string, leg: EscrowLeg): string {
+  return `${ESCROW_PREFIX}${escrowId}-${leg}`;
+}
+
+/** True when a string is a reference this platform generated for escrow. */
+export function isEscrowReference(value: string): boolean {
+  if (!value.startsWith(ESCROW_PREFIX)) return false;
+  const rest = value.slice(ESCROW_PREFIX.length);
+  const cut = rest.lastIndexOf("-");
+  if (cut < 0) return false;
+  const leg = rest.slice(cut + 1);
+  if (leg !== "hold" && leg !== "release" && leg !== "refund") return false;
+  return REFERENCE_UUID_RE.test(rest.slice(0, cut));
 }

@@ -39,7 +39,20 @@
   .nf-ambient > span:nth-child(1) {
     background: url("/brand/rentme-bg.png") center bottom / cover no-repeat;
     transform: scaleY(-1) scaleX(-1);
-    opacity: 0.8;
+    /*
+     * 0.3, down from 0.8.
+     *
+     * This span is the brand wave artwork mirrored onto the TOP of the
+     * viewport, and at 0.8 it printed a bright diagonal band straight across
+     * the hero headline on every screen in the product. It is the loudest
+     * single layer on the canvas and it sits directly behind the one thing on
+     * the page a reader is meant to read first.
+     *
+     * The artwork is not being removed. It is being put behind the content
+     * instead of in front of it, which is what an ambient layer is for. The
+     * real, unmirrored waves still hold the foot of the page at full strength.
+     */
+    opacity: 0.3;
     mask-image: linear-gradient(to top, rgb(0 0 0) 0%, rgb(0 0 0 / 0.55) 32%, transparent 62%);
     -webkit-mask-image: linear-gradient(to top, rgb(0 0 0) 0%, rgb(0 0 0 / 0.55) 32%, transparent 62%);
   }
@@ -50,7 +63,7 @@
     width: 62vmax;
     height: 62vmax;
     border-radius: 50%;
-    background: radial-gradient(circle, rgb(12 57 239 / 0.5) 0%, transparent 62%);
+    background: radial-gradient(circle, rgb(12 57 239 / 0.26) 0%, transparent 62%);
     animation: nf-drift-a 16s ease-in-out infinite;
     will-change: transform, opacity;
   }
@@ -61,7 +74,7 @@
     width: 68vmax;
     height: 68vmax;
     border-radius: 50%;
-    background: radial-gradient(circle, rgb(92 124 255 / 0.32) 0%, transparent 64%);
+    background: radial-gradient(circle, rgb(92 124 255 / 0.18) 0%, transparent 64%);
     animation: nf-drift-b 21s ease-in-out infinite;
     animation-delay: -7s;
     will-change: transform, opacity;
@@ -78,7 +91,7 @@
     width: 46vmax;
     height: 46vmax;
     border-radius: 50%;
-    background: radial-gradient(circle, rgb(12 57 239 / 0.2) 0%, transparent 60%);
+    background: radial-gradient(circle, rgb(12 57 239 / 0.12) 0%, transparent 60%);
     transition:
       left 1100ms var(--nf-ease-standard),
       top 1100ms var(--nf-ease-standard);
@@ -94,13 +107,13 @@
    * hotter, deep night settles darker. Set by the LivingCanvas director.
    */
   :root[data-daypart="day"] .nf-ambient::before {
-    opacity: 0.62;
+    opacity: 0.38;
   }
   :root[data-daypart="dusk"] .nf-ambient::before {
-    opacity: 0.7;
+    opacity: 0.44;
   }
   :root[data-daypart="night"] .nf-ambient::before {
-    opacity: 0.48;
+    opacity: 0.3;
   }
   .nf-ambient::before,
   .nf-ambient::after {
@@ -116,7 +129,7 @@
       radial-gradient(ellipse 100% 60% at 50% 80%, rgb(92 124 255 / 0.18) 0%, transparent 55%),
       radial-gradient(ellipse 40% 40% at 70% 60%, rgb(18 48 179 / 0.16) 0%, transparent 55%);
     animation: nf-aurora-pulse 9s ease-in-out infinite;
-    opacity: 0.55;
+    opacity: 0.34;
     will-change: transform, opacity;
   }
   .nf-ambient::after {
@@ -129,8 +142,17 @@
       transparent 240deg,
       rgb(18 48 179 / 0.24) 300deg,
       transparent 360deg);
+    /*
+     * 0.16, down from 0.45.
+     *
+     * A full conic gradient rotating through 360 degrees, forever, across the
+     * whole viewport. At 0.45 it was a visible sweep of light crossing the
+     * page while somebody was trying to read it, and it is the layer that made
+     * the dark theme read as a screensaver rather than as a ground. Kept,
+     * quietly, because it is what stops the four static blooms banding.
+     */
     animation: nf-aurora-drift 20s linear infinite;
-    opacity: 0.45;
+    opacity: 0.16;
     will-change: transform;
   }
   /*
@@ -229,7 +251,7 @@
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 0%,
           color-mix(in oklab, var(--nf-brand-accent) 60%, transparent) 22%,
           rgb(255 255 255 / 0.05) 46%,
-          color-mix(in oklab, var(--nf-electric-500) 55%, transparent) 68%,
+          color-mix(in oklab, var(--nf-brand-primary) 55%, transparent) 68%,
           rgb(255 255 255 / 0.04) 84%,
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 100%
         )
@@ -320,7 +342,7 @@
     height: 46rem;
     top: -18rem;
     left: -10rem;
-    background: radial-gradient(circle, var(--nf-electric-600) 0%, transparent 68%);
+    background: radial-gradient(circle, var(--nf-brand-primary-strong) 0%, transparent 68%);
   }
   .nf-aurora::after {
     width: 38rem;
@@ -328,8 +350,8 @@
     top: -6rem;
     right: -12rem;
     background:
-      radial-gradient(circle at 30% 70%, color-mix(in oklab, var(--nf-electric-400) 55%, transparent) 0%, transparent 55%),
-      radial-gradient(circle, var(--nf-electric-300) 0%, transparent 68%);
+      radial-gradient(circle at 30% 70%, color-mix(in oklab, var(--nf-brand-accent) 55%, transparent) 0%, transparent 55%),
+      radial-gradient(circle, var(--nf-brand-secondary) 0%, transparent 68%);
   }
 
   .nf-grid-veil {
@@ -339,8 +361,8 @@
     /* Soft crossing light beams in place of the old square grid: pure glow,
        no geometry, so the canvas reads as atmosphere rather than graph paper. */
     background:
-      linear-gradient(115deg, transparent 30%, color-mix(in oklab, var(--nf-electric-500) 14%, transparent) 46%, transparent 60%),
-      linear-gradient(65deg, transparent 42%, color-mix(in oklab, var(--nf-electric-300) 9%, transparent) 55%, transparent 68%);
+      linear-gradient(115deg, transparent 30%, color-mix(in oklab, var(--nf-brand-primary) 14%, transparent) 46%, transparent 60%),
+      linear-gradient(65deg, transparent 42%, color-mix(in oklab, var(--nf-brand-secondary) 9%, transparent) 55%, transparent 68%);
     mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
     -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
     opacity: 0.35;

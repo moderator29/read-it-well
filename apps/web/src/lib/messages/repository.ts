@@ -42,9 +42,8 @@ import type {
  * What is left is deliberately empty rather than deleted outright. Three other
  * routes ask `conversationIdForListing` to deep link a "Message the agent"
  * button into an existing thread, and all three already fall back to `/messages`
- * when the answer is null, which is exactly what partner stock with no agent
- * has always done. Answering null is therefore the honest answer and not a
- * degradation.
+ * when the answer is null. Answering null is therefore the honest answer and
+ * not a degradation.
  *
  * Selected by NF_DATA_SOURCE:
  *   unset (default) no local conversations exist; the real ones need a session

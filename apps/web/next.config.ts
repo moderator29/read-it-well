@@ -85,6 +85,40 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  /**
+   * BECOME AN AGENT IS NOT A DESTINATION ANY MORE.
+   *
+   * There used to be a `/agents` pitch page, an `/agents/apply` wizard and an
+   * `/agents/status` screen: a separate marketing funnel, in the public site
+   * chrome, for something that is not a separate product. It is one account
+   * with three profiles on it. You switch to the Seller or the Realtor profile
+   * from the switch-profile sheet, and if that profile is not set up the sheet
+   * explains what it is and starts the setup. So the three routes are gone and
+   * these three redirects put anything still pointing at them where the thing
+   * actually lives now.
+   *
+   * WHY REDIRECTS RATHER THAN JUST DELETING THEM. Three groups of links are
+   * outside this change's reach: the marketing pages under `(site)`, which
+   * another owner holds; the help centre and the docs chapters, which quote
+   * the address in prose; and anything a person has already shared. A 404 on
+   * "become an agent" is the worst possible answer for somebody who wants to
+   * list a property, and it is the one visitor the business most wants.
+   *
+   * `/agents` lands on the profile with `?switch=owner`, which opens the
+   * switch-profile sheet on the Seller explanation. That is the replacement,
+   * exactly: the pitch is now the thing that starts the setup.
+   *
+   * All three are 307, not 308. A permanent redirect is cached by the browser
+   * forever and these addresses may yet be wanted for something else.
+   */
+  async redirects() {
+    return [
+      { source: "/agents", destination: "/profile?switch=owner", permanent: false },
+      { source: "/agents/apply", destination: "/profile/setup/owner", permanent: false },
+      { source: "/agents/status", destination: "/profile/application", permanent: false },
+    ];
+  },
+
   // Security headers. Applied at the edge for every route.
   async headers() {
     return [

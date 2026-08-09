@@ -168,6 +168,39 @@ export type VerifiedTransaction = {
   metadata: Record<string, unknown>;
 };
 
+/**
+ * Paystack metadata, as an object, whatever shape it actually arrived in.
+ *
+ * Paystack echoes metadata back as an OBJECT on most transactions and as a
+ * JSON STRING on others: the hosted checkout serialises it when it was set
+ * through certain channels, and the webhook payload and the verify response do
+ * not always agree with each other for the same charge. Every reader in this
+ * codebase used to accept objects only, so a stringified metadata yielded no
+ * user_id, the funding was dropped, and there was no trace of the drop.
+ *
+ * Anything that is not an object and not a JSON object string becomes an empty
+ * record, so callers can always index into the result. This never throws: a
+ * malformed metadata is a missing metadata, not a failed payment.
+ */
+export function metadataObject(value: unknown): Record<string, unknown> {
+  if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) return {};
+    try {
+      const parsed: unknown = JSON.parse(trimmed);
+      if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
 /** Look a transaction up by reference and report its settled truth. */
 export async function verifyTransaction(reference: string): Promise<VerifiedTransaction> {
   const data = await request<{
@@ -183,10 +216,7 @@ export async function verifyTransaction(reference: string): Promise<VerifiedTran
     metadata: unknown;
   }>(`/transaction/verify/${encodeURIComponent(reference)}`);
 
-  const metadata =
-    data.metadata !== null && typeof data.metadata === "object" && !Array.isArray(data.metadata)
-      ? (data.metadata as Record<string, unknown>)
-      : {};
+  const metadata = metadataObject(data.metadata);
 
   return {
     status: data.status as VerifiedTransactionStatus,
@@ -200,6 +230,87 @@ export async function verifyTransaction(reference: string): Promise<VerifiedTran
     customerEmail: data.customer?.email ?? null,
     metadata,
   };
+}
+
+/**
+ * One successful charge as the reconciliation sweep needs to see it.
+ *
+ * Deliberately smaller than VerifiedTransaction: a listing page returns
+ * hundreds of rows and the sweep only has to answer "did this reach our
+ * ledger". The authoritative read for anything it decides to POST is still
+ * verifyTransaction against the single reference.
+ */
+export type ChargeSummary = {
+  reference: string;
+  /** Integer kobo. */
+  amountMinor: number;
+  currency: string;
+  paidAt: string | null;
+  channel: string | null;
+  customerEmail: string | null;
+  metadata: Record<string, unknown>;
+};
+
+/** The largest page Paystack will serve, and the sweep's page size. */
+const LIST_PAGE_SIZE = 100;
+
+/**
+ * Every successful charge Paystack has taken in a window.
+ *
+ * This is the other half of reconciliation. Verifying a reference we already
+ * know about can only recover a payment somebody thought to ask about; asking
+ * the processor what it actually charged is the only way to find the ones
+ * nobody knows are missing. Pages until the window is exhausted or `maxPages`
+ * is reached, so one bad window cannot spin forever.
+ */
+export async function listSuccessfulCharges(params: {
+  /** ISO date or datetime, inclusive lower bound. */
+  from: string;
+  /** ISO date or datetime, inclusive upper bound. Defaults to now. */
+  to?: string;
+  maxPages?: number;
+}): Promise<ChargeSummary[]> {
+  const maxPages = Math.max(1, Math.min(params.maxPages ?? 10, 50));
+  const out: ChargeSummary[] = [];
+
+  for (let page = 1; page <= maxPages; page += 1) {
+    const query = new URLSearchParams({
+      status: "success",
+      perPage: String(LIST_PAGE_SIZE),
+      page: String(page),
+      from: params.from,
+      ...(params.to ? { to: params.to } : {}),
+    });
+    const rows = await request<
+      {
+        reference?: string | null;
+        amount?: number | null;
+        currency?: string | null;
+        paid_at?: string | null;
+        channel?: string | null;
+        customer?: { email?: string | null } | null;
+        metadata?: unknown;
+      }[]
+    >(`/transaction?${query.toString()}`);
+
+    for (const row of rows) {
+      const reference = typeof row.reference === "string" ? row.reference : "";
+      if (reference.length === 0) continue;
+      out.push({
+        reference,
+        amountMinor: Number.isSafeInteger(row.amount) ? (row.amount as number) : 0,
+        currency: row.currency ?? "NGN",
+        paidAt: row.paid_at ?? null,
+        channel: row.channel ?? null,
+        customerEmail: row.customer?.email ?? null,
+        metadata: metadataObject(row.metadata),
+      });
+    }
+
+    if (rows.length < LIST_PAGE_SIZE) break;
+  }
+
+  return out;
 }
 
 /* ---------------------------------------------------------------- webhooks */
@@ -285,6 +396,40 @@ export async function initiateTransfer(params: {
     transferCode: data.transfer_code,
     reference: data.reference,
     status: data.status,
+  };
+}
+
+export type VerifiedTransfer = {
+  /** Paystack's own word: success, failed, reversed, pending, otp, abandoned. */
+  status: string;
+  /** Integer kobo. */
+  amountMinor: number;
+  reference: string;
+};
+
+/**
+ * What actually became of a transfer we started.
+ *
+ * The withdrawal sweeper cannot expire a PENDING hold on age alone. A hold
+ * whose transfer really did pay out, and whose webhook was merely late or lost,
+ * would be marked FAILED and the money handed back to a wallet it had already
+ * left. So the sweeper asks the processor first and acts on the answer, and a
+ * hold is only released when Paystack says the transfer failed, was reversed,
+ * or does not exist at all.
+ *
+ * Throws PaystackError when the reference is unknown, which is the useful case:
+ * a hold was posted and the transfer never started.
+ */
+export async function verifyTransfer(reference: string): Promise<VerifiedTransfer> {
+  const data = await request<{
+    status: string;
+    amount: number;
+    reference: string;
+  }>(`/transfer/verify/${encodeURIComponent(reference)}`);
+  return {
+    status: data.status,
+    amountMinor: Number.isSafeInteger(data.amount) ? data.amount : 0,
+    reference: data.reference,
   };
 }
 

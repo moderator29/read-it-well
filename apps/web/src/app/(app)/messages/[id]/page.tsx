@@ -72,6 +72,24 @@ export default async function ConversationPage({
         live
         conversationId={thread.conversationId}
         meId={thread.meId}
+        /*
+          THE COUNTERPART'S VERIFIED STATE, AND WHERE IT HAS TO COME FROM.
+
+          `loadThread` resolves it - `identitiesOf` reads `agents.verified`
+          through the service role for exactly this - but it hands it back
+          filed under `listing.verified`, which is a misleading home for it:
+          that key sits on the LISTING object and reads as a fact about the
+          property when it is a fact about the person. It is the same value.
+
+          The cost of that shape shows up here. A direct message with no
+          listing attached has nowhere to carry it, so it resolves false and a
+          verified agent messaging outside a listing shows no mark. That fails
+          in the safe direction - a missing badge, never a false one - and it is
+          logged for the lead: `loadThread` should return `counterpartVerified`
+          at the top level, beside `counterpartName`, and this line becomes
+          `thread.counterpartVerified`.
+        */
+        counterpartVerified={thread.listing?.verified ?? false}
         counterpartName={thread.counterpartName}
         listing={
           thread.listing

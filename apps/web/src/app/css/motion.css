@@ -53,8 +53,8 @@
    * "something just landed" motion.
    */
   .nf-page-header--verified {
-    padding: 0.5rem 0.625rem;
-    margin-inline: -0.625rem;
+    padding: var(--nf-gap-inline);
+    margin-inline: calc(var(--nf-gap-inline) * -1);
     background: color-mix(in oklab, var(--nf-state-success) 12%, transparent);
     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-state-success) 32%, transparent);
     animation: nf-confirm-pop var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
@@ -82,8 +82,8 @@
     inset: -4px;
     border-radius: 999px;
     border: 2px solid transparent;
-    border-top-color: var(--nf-electric-300);
-    border-right-color: color-mix(in oklab, var(--nf-electric-300) 35%, transparent);
+    border-top-color: var(--nf-brand-secondary);
+    border-right-color: color-mix(in oklab, var(--nf-brand-secondary) 35%, transparent);
     animation: nf-bot-spin 850ms linear infinite;
     pointer-events: none;
   }
@@ -139,7 +139,7 @@
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    padding: 0.5rem 0.9rem;
+    padding: var(--nf-gap-inline) var(--nf-space-sm);
     border-radius: var(--nf-radius-pill);
     border: 1.5px solid rgb(18 21 26 / 0.14);
     background: rgb(255 255 255 / 0.72);
@@ -262,7 +262,7 @@
   /* Figures paint solid brand ink: a clipped gradient cannot cross the
      transformed digit strips, which leaves the numbers invisible. */
   .nf-odometer-figure {
-    color: var(--nf-electric-300);
+    color: var(--nf-brand-secondary);
   }
   :root[data-theme="light"] .nf-odometer-figure {
     color: var(--nf-brand-primary);

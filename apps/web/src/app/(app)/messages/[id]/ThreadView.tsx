@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import {
   attachImage,
@@ -21,7 +22,6 @@ import {
   type LiveMessageRow,
 } from "@/lib/messages/useRealtime";
 import { createClient } from "@/lib/supabase/client";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
 
@@ -52,6 +52,15 @@ export type ThreadViewProps = {
   conversationId: string;
   meId: string | null;
   counterpartName: string;
+  /**
+   * The counterpart's REAL verification state, from `agents.verified`.
+   *
+   * Required rather than optional and never defaulted at this boundary, for the
+   * same reason `VerifiedAvatar` requires it: the tick beside a stranger's name
+   * is the mark somebody weighs before agreeing to meet them at a property, and
+   * one that appears because a prop was forgotten is worse than none at all.
+   */
+  counterpartVerified: boolean;
   listing: SheetListing | null;
   inspected: boolean;
   messages: ThreadBubble[];
@@ -108,6 +117,7 @@ export function ThreadView({
   conversationId,
   meId,
   counterpartName,
+  counterpartVerified,
   listing,
   inspected: inspectedInitial,
   messages,
@@ -356,15 +366,31 @@ export function ThreadView({
     <div className="mx-auto flex h-full min-h-0 w-full max-w-3xl flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
       <PageHeader
         title={counterpartName}
+        /* The property this thread is about, and now a way back to it. The
+           subtitle already carried the title so nobody has to open with "which
+           property"; it was inert, so the only route to the property itself was
+           the info button in the corner. */
         subtitle={listing?.title ?? "Direct message"}
+        subtitleHref={listing ? `/listing/${listing.id}` : undefined}
         fallback="/messages"
         tone={inspected ? "verified" : "default"}
+        /*
+          The counterpart's avatar, carrying their verified mark.
+
+          This slot used to hold a shield that appeared when an INSPECTION had
+          been confirmed, which is a fact about the booking rather than about
+          the person, and it looked exactly like a verification badge. Somebody
+          reading a thread saw a shield beside a stranger's name and had no way
+          to tell that it meant "you visited this flat" rather than "we checked
+          who this is". The inspection still tints the header row through
+          `tone`; the mark on the avatar is now only ever about identity.
+        */
         leading={
-          inspected ? (
-            <span className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" aria-hidden="true">
-              <BrandIcon name="shield-check" state="verified" fill />
-            </span>
-          ) : undefined
+          <VerifiedAvatar
+            name={counterpartName}
+            verified={counterpartVerified}
+            size="sm"
+          />
         }
         actions={
           listing ? (
@@ -377,20 +403,7 @@ export function ThreadView({
               onClick={() => setSheetOpen(true)}
               className="nf-icon-btn h-9 w-9 sm:h-10 sm:w-10"
             >
-              <svg
-                width={18}
-                height={18}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.8}
-                strokeLinecap="round"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="8.6" />
-                <path d="M12 11.2v5" />
-                <circle cx="12" cy="7.9" r="0.5" fill="currentColor" stroke="none" />
-              </svg>
+<UiIcon name="info" size="sm" />
             </button>
           ) : undefined
         }
@@ -425,9 +438,17 @@ export function ThreadView({
         {items.map((m) =>
           m.mine ? (
             <div key={m.id} className="nf-msg-in--mine flex flex-col items-end">
-              {/* Deep blue keeps white body text readable at chat sizes. */}
+              {/*
+                The outgoing bubble is a BRAND FILL, so its text is
+                `--nf-content-on-brand` rather than a raw `text-white`. The two
+                resolve to the same white today, and that is exactly why the
+                literal survived: it looked right, so nothing caught that it was
+                a dark-only assumption written next to a colour that follows the
+                theme. The token is the contract, and it is the one that keeps
+                holding if the brand fill ever lightens.
+              */}
               <div
-                className={`max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-4 py-2.5 text-white ${
+                className={`max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-4 py-2.5 text-[var(--nf-content-on-brand)] ${
                   m.state === "sending" ? "opacity-70" : ""
                 }`}
               >
@@ -440,8 +461,11 @@ export function ThreadView({
                     className="mb-2 aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
-                {m.body && <p className="text-[0.9rem] leading-relaxed">{m.body}</p>}
-                <p className="nf-numeric mt-1 text-right text-[0.65rem] text-white/70">
+                {m.body && <p className="nf-body">{m.body}</p>}
+                {/* Same rule as the bubble above: on a brand fill the text is
+                    the on-brand token, dimmed with opacity rather than with a
+                    `text-white/70` that cannot follow a theme. */}
+                <p className="nf-numeric nf-caption mt-1 text-right text-[var(--nf-content-on-brand)] opacity-70">
                   {m.state === "sending" ? "Sending" : m.timeLabel}
                 </p>
               </div>
@@ -462,7 +486,7 @@ export function ThreadView({
             <div key={m.id} className="nf-msg-in--theirs flex items-end gap-3">
               <span
                 aria-hidden="true"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-electric-300)]"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-brand-secondary)]"
               >
                 {counterpartName.charAt(0)}
               </span>
@@ -494,7 +518,7 @@ export function ThreadView({
           <div className="nf-msg-in--theirs flex items-end gap-3">
             <span
               aria-hidden="true"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-electric-300)]"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-brand-secondary)]"
             >
               {counterpartName.charAt(0)}
             </span>
@@ -522,7 +546,7 @@ export function ThreadView({
           role="status"
           className="nf-card mb-2 flex items-start gap-3 border-t border-[var(--nf-border-subtle)] p-3.5"
         >
-          <span className="mt-0.5 shrink-0 text-[var(--nf-electric-300)]" aria-hidden="true">
+          <span className="mt-0.5 shrink-0 text-[var(--nf-brand-secondary)]" aria-hidden="true">
             <UiIcon name="verified" size={16} />
           </span>
           <p className="min-w-0 flex-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -588,21 +612,7 @@ export function ThreadView({
           onClick={() => fileRef.current?.click()}
           className="nf-icon-btn h-11 w-11 shrink-0"
         >
-          <svg
-            width={18}
-            height={18}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <rect x="3.4" y="5" width="17.2" height="14" rx="2.6" />
-            <circle cx="9" cy="10" r="1.7" />
-            <path d="m5 17.6 4.6-4.4 3.2 3 3.4-3.4 3.4 3.6" />
-          </svg>
+<UiIcon name="picture" size="sm" />
         </button>
         <label htmlFor="thread-input" className="sr-only">
           Message {counterpartName}

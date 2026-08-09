@@ -7,6 +7,7 @@ import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { buildNav } from "./nav-model";
 import { NavTree } from "./NavTree";
+import { ThemeToggle } from "@/components/site/ThemeToggle";
 
 /**
  * Personal Mode navigation.
@@ -103,11 +104,32 @@ export function AppRail({
         active={active}
         activeType={activeType}
         label={t.nav.primaryLabel}
-        storageKey="nf_nav_open"
-        expandLabel={t.a11y.expand}
-        collapseLabel={t.a11y.collapse}
         onNavigate={onNavigate}
       />
+
+      {/*
+        LIGHT AND DARK LIVES IN THE NAVIGATION, AND THE APP CHROME CARRIES
+        NOTHING.
+
+        It has now been in three places and this is the right one. It began as a
+        permanent control in the app header on every screen, moved into Settings
+        because a choice most people make once should not occupy the chrome
+        forever, and briefly came back to the header because four taps into
+        Settings is too far for something people flip by reaction to the room
+        they are sitting in.
+
+        The navigation resolves that: one tap from the rail on desktop, one tap
+        from the drawer on a phone, and nothing hanging off the top of any
+        screen. It sits at the FOOT of the panel, below the destinations,
+        because it is a preference rather than a place - the only control here
+        that changes how the product looks instead of where you are.
+
+        The Settings entry stays. Both write `data-theme` on the root element
+        through the same key, so the two can never disagree.
+      */}
+      <div className="nf-nav__foot">
+        <ThemeToggle variant="row" />
+      </div>
     </aside>
   );
 }

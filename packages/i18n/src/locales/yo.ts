@@ -78,6 +78,13 @@ export const yo: Dictionary = {
     verified: "Tí fọwọ́sí",
     skipToContent: "Fò sí àkóónú",
     notSet: "Kò tíì sí",
+    bed: "yàrá",
+    beds: "yàrá",
+    bath: "balùwẹ̀",
+    baths: "balùwẹ̀",
+    guest: "àlejò",
+    instantBook: "Lẹ́sẹ̀kẹsẹ̀",
+    priceOnRequest: "Iye lórí ìbéèrè",
   },
 
   nav: {
@@ -86,6 +93,10 @@ export const yo: Dictionary = {
     apartments: "Fúláàtì",
     homes: "Ilé gbígbé",
     rent: "Yíyà ilé",
+    buy: "Ríra ilé",
+    shortlets: "Ìgbàdíẹ̀",
+    land: "Ilẹ̀",
+    commercial: "Ohun ìní òwò",
     restaurants: "Ilé oúnjẹ",
     experiences: "Ìrírí",
     services: "Iṣẹ́ ìsìn",
@@ -174,7 +185,7 @@ export const yo: Dictionary = {
       line2: "Fi pamọ́.",
       line3: "Gbé e.",
       subtitle:
-        "Pátákó rẹ kan ṣoṣo fún ilé, hòtẹ́lì, ilé oúnjẹ, ìrírí àti púpọ̀ sí i.",
+        "Háyà, rà tàbí ta ilé ní Nàìjíríà. Ènìyàn gidi ni ó fi gbogbo ibi tí ó wà níbí sí.",
       searchPlaceholder: "Ibo ni o fẹ́ lọ?",
       searchLabel: "Wá àwọn ibi jákèjádò Nàìjíríà",
       popularLabel: "Gbajúmọ̀ báyìí",
@@ -209,15 +220,14 @@ export const yo: Dictionary = {
       secure: { title: "Ààbò & Ìgbẹ́kẹ̀lé", body: "Ààbò rẹ ni àkọ́kọ́ wa" },
       ai: { title: "Agbára AI", body: "Ìrírí ọlọ́gbọ́n" },
       africa: { title: "Fún Áfíríkà", body: "Tí a kọ́ pẹ̀lú ìfẹ́ ❤️" },
-      stores: { title: "Wà lórí", body: "App Store & Play Store" },
     },
     categories: {
       title: "Gbogbo rẹ̀, ní ibì kan",
-      subtitle: "Ọ̀nà márùn-ún láti ṣàwárí Nàìjíríà. Àkàǹtì kan, àpò owó kan.",
+      subtitle: "Gbogbo irú ibi tí ẹnìkan lè fi sí ibí. Àkàǹtì kan, àpò owó kan.",
     },
     cta: {
       title: "Ṣé o ti ṣetán láti wá ibi tókàn rẹ?",
-      subtitle: "Dara pọ̀ mọ́ ẹgbẹẹgbẹ̀rún tó ń ṣàwárí ibùgbé, oúnjẹ àti ìrírí.",
+      subtitle: "Ṣí àkàǹtì láti fi àwọn ibi pamọ́, láti fi ìránṣẹ́ sí ẹni tó fi wọn sí, kí o sì háyà tàbí rà ní ibì kan.",
       action: "Bẹ̀rẹ̀ lọ́fẹ̀ẹ́",
       secondary: "Wo bí ó ṣe ń ṣiṣẹ́",
     },
@@ -615,10 +625,17 @@ export const yo: Dictionary = {
     topExperiences: "Ṣàwárí ìrírí tó ga jù",
     nearby: "Nítòsí rẹ",
     aiCard: {
-      title: "RentMe AI",
-      body: "Ọ̀rẹ́ ìrìnàjò ọlọ́gbọ́n rẹ. Béèrè ohunkóhun ní èdè tí ó rọrùn.",
+      title: "Béèrè lọ́wọ́ RentMe AI",
+      body: "Ó ń wá inú àkójọ kan náà tí ìwọ ń wò, nítorí náà ó lè sọ fún ọ nípa àwọn ibi tí ó wà lórí RentMe nìkan.",
       action: "Béèrè lọ́wọ́ olùrànlọ́wọ́",
-      samplePrompt: "Yàrá méjì ní Lekki lábẹ́ 300k pẹ̀lú adágún",
+      truths: {
+        listings:
+          "Ó ń dáhùn láti inú àkójọ gidi, ó sì ń so ọ̀nà mọ́ gbogbo èyí tí ó bá dárúkọ.",
+        costs:
+          "Ó mọ ohun tí ìṣílọ gan-an ná. Owó caution, owó aṣojú, owó agbẹjọ́rò àti owó àdéhùn, kì í ṣe owó ilé nìkan.",
+        title:
+          "Kò ní sọ fún ọ pé ìwé ilẹ̀ dára. Ó ń sọ ohun tí àkọsílẹ̀ náà sọ, ó sì ń rán ọ sí agbẹjọ́rò.",
+      },
     },
     agentCard: {
       title: "Di Aṣojú RentMe",

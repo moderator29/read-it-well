@@ -42,6 +42,54 @@
     letter-spacing: var(--nf-tracking-tight);
   }
 
+  .nf-h4 {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    line-height: 1.35;
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+  }
+
+  /*
+   * THE BODY TIERS, WHICH DID NOT EXIST.
+   *
+   * The scale had five body-end tokens and this file gave components no class
+   * for any of them. There was a display, three headings and an overline, and
+   * then a cliff. So every paragraph, every label, every caption in the
+   * product reached for an arbitrary value instead, and the count is the
+   * evidence: 1,239 arbitrary font sizes across 47 distinct values, against 16
+   * uses of the scale.
+   *
+   * That is not a discipline failure by whoever wrote those components. There
+   * was nothing to reach for. A scale nobody can name is a scale nobody can
+   * use, and the result is 47 sizes doing the work of five.
+   *
+   * Each tier carries its own line height, because leading is part of a size
+   * rather than a separate decision: running text wants 1.6, a lede wants a
+   * little more air, and a caption sitting under something wants less.
+   */
+  .nf-lede {
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.62;
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-body {
+    font-size: var(--nf-text-body);
+    line-height: 1.6;
+  }
+
+  .nf-body-sm {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+  }
+
+  .nf-caption {
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+
   .nf-overline {
     font-size: var(--nf-text-overline);
     text-transform: uppercase;

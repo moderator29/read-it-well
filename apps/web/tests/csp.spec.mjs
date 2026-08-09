@@ -21,6 +21,10 @@
  *   5. The hand-written theme script in `app/layout.tsx` carries the nonce.
  *   6. Nothing is actually blocked. Zero violations, zero console refusals.
  *   7. The page hydrates, proving the nonce reached Next's own inline scripts.
+ *   8. The policy is ENFORCING, not report-only. A report-only policy passes
+ *      every other check on this list and stops nothing, which is the state
+ *      this platform sat in for months. Set CSP_ENFORCE=false to run the walk
+ *      against a reporting deployment on purpose.
  *
  * Self-contained: no runner, no config. Run with a server already listening:
  *
@@ -60,6 +64,18 @@ function servedPolicy(response) {
   return (
     headers["content-security-policy"] ?? headers["content-security-policy-report-only"] ?? ""
   );
+}
+
+/**
+ * Which of the two header names carried it.
+ *
+ * The distinction is the whole difference between a control and a note. Every
+ * shape check in this file passes identically on a report-only policy, and a
+ * report-only policy has never blocked anything: the browser renders the
+ * violating script, then posts a report about having done so.
+ */
+function isEnforcing(response) {
+  return (response?.headers() ?? {})["content-security-policy"] !== undefined;
 }
 
 /** Pull one directive's source list out of a policy string. */
@@ -103,6 +119,12 @@ async function auditRoute(page, refusals, route) {
   check(`${route} serves a Content Security Policy`, policy.length > 0);
   if (policy.length === 0) return null;
 
+  check(
+    `${route} serves it as ENFORCING, not report-only`,
+    isEnforcing(response),
+    "Content-Security-Policy-Report-Only",
+  );
+
   const script = directive(policy, "script-src") ?? "";
   check(`${route} script-src carries a nonce`, /'nonce-[A-Za-z0-9+/=]+'/.test(script), script);
   check(`${route} script-src has no 'unsafe-inline'`, !script.includes("'unsafe-inline'"));
@@ -117,10 +139,26 @@ async function auditRoute(page, refusals, route) {
     check(`${route} sets ${name} ${expected}`, value === `${name} ${expected}`, value ?? "absent");
   }
 
-  /* form-action is not an exact match: it names the two redirect destinations
-     the no-JS path needs, Supabase authorize and Paystack checkout. What must
-     hold is that it exists, starts from 'self', and has not been widened to a
-     wildcard. See the long note in lib/security/csp.ts. */
+  /*
+   * An injected `<style>` block must not run, even though a `style=` attribute
+   * may. `style-src` keeps 'unsafe-inline' as the fallback for browsers with
+   * no `style-src-elem`, so asserting on `style-src` alone would pass on a
+   * policy that had quietly lost the split. Assert the element directive.
+   */
+  const styleElem = directive(policy, "style-src-elem");
+  check(
+    `${route} forbids an injected <style> block`,
+    styleElem === "style-src-elem 'self'",
+    styleElem ?? "absent",
+  );
+
+  /* form-action is not an exact match: it names the one cross-origin
+     destination a form submission can legitimately reach, Paystack checkout,
+     which a wallet deposit reaches through a same-origin POST that answers
+     with a redirect. No provider origin is here because the Google and Apple
+     rows are gone from AuthChoices. What must hold is that it exists, starts
+     from 'self', and has not been widened to a wildcard. See the long note in
+     lib/security/csp.ts. */
   const formAction = directive(policy, "form-action") ?? "";
   check(`${route} sets form-action from 'self'`, formAction.startsWith("form-action 'self'"), formAction);
   check(`${route} form-action is not a wildcard`, !/[\s]\*|https:(\s|$)/.test(formAction), formAction);
@@ -222,7 +260,46 @@ page.on("console", (message) => {
  * these product routes render their signed-out or unconfigured states rather
  * than redirecting. That is what makes them reachable to walk here at all.
  */
-const WALK = ["/search", "/wallet", "/assistant", "/styleguide", "/docs", "/privacy"];
+/*
+ * THE SIGNED-OUT BROWSE SURFACE IS WALKED BECAUSE IT IS NEW.
+ *
+ * N-1 opened six route families to anonymous traffic in one commit, and the
+ * report-only policy had only ever been tuned against authenticated traffic,
+ * because until that commit these addresses redirected to sign in before a
+ * browser ever loaded them. A policy tuned on pages a stranger cannot reach is
+ * a policy that has never been tested on the pages a stranger CAN reach, and
+ * those are now the common case: a shared listing link, a search result, a
+ * public profile.
+ *
+ * `/listing/[id]` earns its place twice over. It is the only route that writes
+ * a third inline script, the JSON-LD block, and that block is built from a
+ * listing's own title and description, which is attacker-controlled text on a
+ * marketplace anybody can list on.
+ */
+const WALK = [
+  // The signed-out browse surface, opened by N-1.
+  "/search",
+  "/rent",
+  "/around",
+  "/listing/ed000000-0000-4000-8000-000000000003",
+  "/u/example_collect",
+  "/u",
+  // The doors.
+  "/sign-in",
+  "/sign-up",
+  "/forgot-password",
+  // Product behind the wall, rendering its signed-out state in this sandbox.
+  "/wallet",
+  "/assistant",
+  "/settings",
+  // The marketing and reference site.
+  "/styleguide",
+  "/docs",
+  "/privacy",
+  "/help",
+  "/about",
+  "/contact",
+];
 
 async function walkRoute(page, refusals, route) {
   refusals.length = 0;
@@ -233,10 +310,46 @@ async function walkRoute(page, refusals, route) {
 
   const policy = servedPolicy(response);
   check(`${route} carries the policy`, policy.length > 0);
+  check(`${route} carries it as enforcing`, isEnforcing(response));
+
+  /* Every inline script on the page, not only the ones the landing page has.
+     `/listing/[id]` writes a third one, the JSON-LD block, and it is built
+     from listing text a stranger supplied. */
+  const unnonced = await page.evaluate(() =>
+    [...document.querySelectorAll("script:not([src])")]
+      .filter((tag) => tag.textContent.trim().length > 0)
+      .filter((tag) => !(tag.nonce || tag.getAttribute("nonce")))
+      .map((tag) => tag.textContent.trim().slice(0, 60)),
+  );
+  check(`${route} nonces every inline script`, unnonced.length === 0, unnonced.join(" | "));
 
   const violations = await page.evaluate(() => window.__cspViolations ?? []);
   check(`${route} blocks nothing`, violations.length === 0, violations.join(", "));
   check(`${route} logs no refusals`, refusals.length === 0, refusals.join(" | "));
+}
+
+/**
+ * SEC-4's residual, the one thing that fix left unheld.
+ *
+ * The middleware matcher used to exclude any path ENDING in an asset
+ * extension rather than paths under an asset directory, so every dynamic route
+ * on this platform served full HTML with no policy, no nonce and no session
+ * refresh the moment somebody put `.png` inside the parameter. It is fixed by
+ * anchoring on directories, and nothing held the fix in place.
+ *
+ * This does. A dynamic route with an asset suffix in its parameter has to come
+ * back with the policy on it and a nonce inside it, exactly like the same route
+ * without the suffix.
+ */
+async function auditAssetSuffix(page, route) {
+  const response = await page.goto(`${BASE_URL}${route}`, { waitUntil: "load" });
+  const policy = servedPolicy(response);
+  check(`${route} still carries the policy despite the asset suffix`, policy.length > 0);
+  check(`${route} carries it as enforcing`, isEnforcing(response));
+  check(
+    `${route} still gets a per-request nonce`,
+    /'nonce-[A-Za-z0-9+/=]+'/.test(directive(policy, "script-src") ?? ""),
+  );
 }
 
 try {
@@ -253,6 +366,11 @@ try {
   console.log("nothing blocked across the product");
   for (const route of WALK) {
     await walkRoute(page, refusals, route);
+  }
+
+  console.log("the middleware matcher hole, held closed");
+  for (const route of ["/listing/abc.png", "/u/somebody.svg", "/checkout/abc.jpg"]) {
+    await auditAssetSuffix(page, route);
   }
 
   /*
@@ -275,23 +393,45 @@ try {
     if (/cartocdn|maptiler/.test(request.url())) tiles.push(request.url());
   });
 
-  await page.goto(`${BASE_URL}/search`, { waitUntil: "load" });
-  await page.waitForTimeout(2500);
-  const mapOpener = page.locator('button:has-text("Map"), [data-testid*="map"]').first();
-  if (await mapOpener.count()) {
-    await mapOpener.click().catch(() => {});
-    await page.waitForTimeout(3500);
-  }
+  /*
+   * DESKTOP WIDTH, AND A DISPATCHED CLICK. Both are spec faults being fixed,
+   * not product behaviour being worked around.
+   *
+   * The list/map toggle sits in a horizontally scrolling control, and at the
+   * 390px viewport the rest of this file uses it lands outside the visible
+   * box. Playwright's actionability check refuses to click it, the catch
+   * above swallowed the refusal, and the two checks below then reported that
+   * `strict-dynamic` had broken the Leaflet import when in truth the map had
+   * never been asked to open. A security spec that reports a policy failure
+   * for a scroll position is worse than no spec: it is the check that gets
+   * ignored the day it is right.
+   *
+   * The click is dispatched rather than synthesised for the same reason. What
+   * this section proves is about module loading and image origins, and neither
+   * cares which pixel the pointer was over.
+   */
+  const wide = await context.newPage();
+  wide.on("request", (request) => {
+    if (/cartocdn|maptiler/.test(request.url())) tiles.push(request.url());
+  });
+  await wide.setViewportSize({ width: 1280, height: 900 });
+  await wide.goto(`${BASE_URL}/search`, { waitUntil: "load" });
+  await wide.waitForTimeout(2500);
+  await wide
+    .evaluate(() => document.querySelector('[data-testid="view-map"]')?.click())
+    .catch(() => {});
+  await wide.waitForTimeout(4000);
 
   check(
     "Leaflet's chunk loads and constructs, so strict-dynamic permits the import",
-    (await page.locator(".leaflet-container").count()) > 0,
+    (await wide.locator(".leaflet-container").count()) > 0,
   );
   check("tiles load from the third party, so img-src names the host", tiles.length > 0, `${tiles.length} tile requests`);
   check(
     "and the map triggered no violations",
-    (await page.evaluate(() => window.__cspViolations ?? [])).length === 0,
+    (await wide.evaluate(() => window.__cspViolations ?? [])).length === 0,
   );
+  await wide.close();
 } finally {
   await browser.close();
 }

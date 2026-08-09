@@ -45,7 +45,50 @@ const MAX_FIELD = 200;
 /** How long the same directive and blocked source stays quiet. */
 const QUIET_MS = 60_000;
 
+/**
+ * The most distinct violations kept in the quiet map at once.
+ *
+ * The map is keyed on the directive AND the blocked URL, and the blocked URL is
+ * chosen by whoever posts the report. Without a ceiling, a caller sending a
+ * unique blocked URL each time grows this map for as long as the instance
+ * lives, which turns the one mitigation this endpoint does not have (there is
+ * no authentication, by necessity) into a slow memory exhaustion.
+ *
+ * 500 is far above any real deployment. A page breaking every directive in a
+ * strict policy produces on the order of a dozen distinct pairs, not hundreds,
+ * so a map that has grown past this is by definition not being fed by browsers
+ * reporting genuine violations.
+ */
+const MAX_QUIET_KEYS = 500;
+
 const lastLogged = new Map<string, number>();
+
+/**
+ * Keep the quiet map bounded.
+ *
+ * Expired entries first, because those are free and are the common case: a
+ * quiet window that has rolled over carries no information. Only if the map is
+ * still oversized does it drop live entries, oldest insertion first, and the
+ * cost of that is a single duplicate log line for a violation that had already
+ * been seen. `Map` iterates in insertion order, which is what makes the second
+ * pass an eviction policy rather than an arbitrary cull.
+ *
+ * This mirrors `pruneDenyCache` in `lib/security/rate-limit.ts` deliberately.
+ * That module solved the same problem for the same reason and reasoned it out
+ * in a comment; two answers to one question is how they drift apart.
+ */
+function pruneQuietMap(now: number): void {
+  for (const [key, at] of lastLogged) {
+    if (now - at >= QUIET_MS) lastLogged.delete(key);
+  }
+  if (lastLogged.size <= MAX_QUIET_KEYS) return;
+  let overflow = lastLogged.size - MAX_QUIET_KEYS;
+  for (const key of lastLogged.keys()) {
+    lastLogged.delete(key);
+    overflow -= 1;
+    if (overflow <= 0) break;
+  }
+}
 
 function field(value: unknown): string {
   return typeof value === "string" ? value.slice(0, MAX_FIELD) : "";
@@ -117,6 +160,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const now = Date.now();
     const previous = lastLogged.get(key);
     if (previous !== undefined && now - previous < QUIET_MS) continue;
+    if (lastLogged.size >= MAX_QUIET_KEYS) pruneQuietMap(now);
     lastLogged.set(key, now);
 
     console.warn(

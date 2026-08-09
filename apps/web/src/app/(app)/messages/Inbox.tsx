@@ -6,10 +6,11 @@ import { useRouter } from "next/navigation";
 import { markInboxRead } from "@/lib/messages/actions";
 import { useInboxTyping } from "@/lib/messages/useRealtime";
 import { PageHeader } from "@/components/app/PageHeader";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 import { Segmented } from "@/components/ui/Segmented";
 import { TextField } from "@/components/ui/Field";
+import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
 
 /**
  * The Inbox.
@@ -50,63 +51,44 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "requests", label: "Requests" },
 ];
 
-function initialOf(name: string): string {
-  const trimmed = name.trim();
-  return trimmed.length > 0 ? trimmed.charAt(0).toUpperCase() : "?";
-}
-
 function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
   return (
     <li>
       <Link
         href={`/messages/${row.id}`}
         data-testid="inbox-row"
-        className="flex w-full items-center gap-3 px-4 py-3.5 transition-colors hover:bg-[var(--nf-glass-fill)]"
+        className="flex w-full items-center gap-md py-group transition-colors hover:bg-[var(--nf-glass-fill)]"
       >
-        {/* ------------------------------------------------------ avatar */}
-        <span className="relative shrink-0">
-          <span
-            aria-hidden="true"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[1rem] font-bold text-[var(--nf-electric-300)]"
-          >
-            {initialOf(row.counterpartName)}
-          </span>
-          {/* The dot says what this person is, not whether they are online:
-              a green light nobody is maintaining is a lie, and "host" is the
-              fact that actually changes how you read the message. */}
-          <span
-            aria-hidden="true"
-            className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-[var(--nf-surface-primary)] ${
-              row.counterpartKind === "agent"
-                ? "bg-[var(--nf-brand-primary)]"
-                : "bg-[var(--nf-content-muted)]"
-            }`}
-          />
-        </span>
+        {/* ------------------------------------------------------ avatar
+
+            The verified mark rides the avatar now rather than sitting as a
+            12px tick beside the name. Two reasons. It is where every messaging
+            product puts it, so it is found without being looked for. And in a
+            list, the avatar is what the eye lands on: a mark on the name is
+            read after you have already decided whether to open the thread. */}
+        <VerifiedAvatar
+          name={row.counterpartName}
+          verified={row.counterpartVerified}
+          kind={row.counterpartKind}
+          size="md"
+        />
 
         {/* -------------------------------------------------------- body */}
         <span className="min-w-0 flex-1 leading-tight">
-          <span className="flex items-center gap-1.5">
-            <span className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-              {row.counterpartName}
-            </span>
-            {row.counterpartVerified && (
-              <UiIcon
-                name="verified"
-                size={12}
-                className="shrink-0 text-[var(--nf-state-success)]"
-              />
-            )}
+          <span className="flex items-center gap-inline-tight">
+            <span className={`truncate ${TYPE.rowTitle}`}>{row.counterpartName}</span>
+            {/* The tick that used to be here is on the avatar. One mark per
+                person per row: two is how a badge stops being read. */}
           </span>
+          {/* The property this thread is about. It is the reason the
+              conversation exists, so it is legible rather than micro-print. */}
           {row.listingTitle && (
-            <span className="mt-0.5 block truncate text-[0.75rem] text-[var(--nf-content-muted)]">
-              {row.listingTitle}
-            </span>
+            <span className={`mt-inline-tight block truncate ${TYPE.rowMeta}`}>{row.listingTitle}</span>
           )}
           <span
-            className={`mt-1 block truncate text-[0.8125rem] leading-relaxed ${
+            className={`nf-body mt-inline-tight block truncate leading-relaxed ${
               typing
-                ? "font-semibold text-[var(--nf-electric-300)]"
+                ? "font-semibold text-[var(--nf-brand-secondary)]"
                 : row.unread > 0
                   ? "font-medium text-[var(--nf-content-primary)]"
                   : "text-[var(--nf-content-secondary)]"
@@ -117,10 +99,8 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
         </span>
 
         {/* --------------------------------------------- time and marker */}
-        <span className="flex shrink-0 flex-col items-end gap-2 self-stretch pt-0.5">
-          <span className="nf-numeric text-[0.7rem] text-[var(--nf-content-muted)]">
-            {row.whenLabel}
-          </span>
+        <span className="flex shrink-0 flex-col items-end gap-inline self-stretch">
+          <span className={`nf-numeric ${TYPE.caption}`}>{row.whenLabel}</span>
           {row.unread > 0 ? (
             <span
               aria-label={`${row.unread} unread`}
@@ -156,31 +136,26 @@ export function InboxEmpty({
   secondary?: { href: string; label: string };
 }) {
   return (
-    <div className="nf-card p-8 text-center" data-testid="inbox-empty">
-      <span className="nf-story-art mx-auto block h-16 w-16">
-        <BrandIcon name="chat-duo" fill />
-      </span>
-      <p className="mt-3.5 text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-        {title}
-      </p>
-      <p className="mx-auto mt-1.5 max-w-[38ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-        {body}
-      </p>
-      {(action || secondary) && (
-        <div className="mt-4 flex flex-col items-stretch justify-center gap-2 sm:flex-row">
-          {action && (
-            <Link href={action.href} className="nf-btn nf-btn--primary inline-flex justify-center">
-              {action.label}
-            </Link>
-          )}
-          {secondary && (
-            <Link href={secondary.href} className="nf-btn nf-btn--ghost inline-flex justify-center">
-              {secondary.label}
-            </Link>
-          )}
-        </div>
-      )}
-    </div>
+    <EmptyState
+      icon="chat-duo"
+      title={title}
+      body={body}
+      data-testid="inbox-empty"
+      action={
+        action && (
+          <Link href={action.href} className="nf-btn nf-btn--primary nf-btn--md">
+            {action.label}
+          </Link>
+        )
+      }
+      secondary={
+        secondary && (
+          <Link href={secondary.href} className="nf-btn nf-btn--ghost nf-btn--md">
+            {secondary.label}
+          </Link>
+        )
+      }
+    />
   );
 }
 
@@ -245,17 +220,59 @@ export function Inbox({
       {/* ------------------------------------------------------- heading */}
       {/* The back control belongs to the page, per the platform's header
           contract, and the compose button rides the same row on the right. */}
+      {/*
+        THE COMPOSE CONTROL WENT NOWHERE. It linked to `/messages/new`, and that
+        route's first line is `if (!listing) redirect("/messages")` - so the
+        button bounced straight back to the screen it was pressed on. A control
+        that does nothing is worse than no control, and this one advertised a
+        capability the product does not have.
+
+        It is not removed, it is pointed at the truth. Every conversation on
+        RentMe starts from a property, because the thread is with the agent
+        FOR that property; there is no freeform compose and there should not
+        be one. So the control now goes where a person would actually start a
+        new conversation, and its label says so.
+      */}
+      {/*
+        MARK ALL READ MOVED INTO THE HEADER, AND A ROW LEAVES THE SCREEN.
+
+        This screen stacked four control surfaces between the title and the
+        first conversation: the header, a search field, three tabs, and then a
+        right-aligned row holding one ghost button. That last one was a whole
+        row of vertical space, on a phone, for a control most people press once
+        a week, and it appeared and disappeared as the unread count crossed
+        zero, so the list below it jumped by 40px whenever somebody read their
+        last message.
+
+        It is a header action now, beside the one that starts a conversation,
+        which is where a screen-level action belongs. Nothing is hidden: it
+        still carries its own count and it still only renders when there is
+        something to mark, but it no longer moves the list when it goes.
+      */}
       <PageHeader
         title="Inbox"
         actions={
-          <Link
-            href="/messages/new"
-            aria-label="Start a new conversation"
-            data-testid="inbox-compose"
-            className="nf-icon-btn h-10 w-10"
-          >
-            <UiIcon name="chat-bubble" size={20} />
-          </Link>
+          <div className="flex shrink-0 items-center gap-inline">
+            {canMarkRead && unreadTotal > 0 && (
+              <button
+                type="button"
+                onClick={markAllRead}
+                disabled={marking}
+                data-testid="inbox-mark-read"
+                className="nf-btn nf-btn--ghost nf-btn--sm disabled:opacity-60"
+              >
+                {marking ? "Marking..." : `Mark all read (${unreadTotal})`}
+              </button>
+            )}
+            <Link
+              href="/search"
+              aria-label="Find a place to message an agent about"
+              data-testid="inbox-compose"
+              className="nf-icon-btn h-11 w-11"
+            >
+              <UiIcon name="search" size={ICON.row} />
+            </Link>
+          </div>
         }
       />
 
@@ -294,7 +311,7 @@ export function Inbox({
         on the other two would dangle. The panel points back with
         `aria-labelledby`.
       */}
-      <div className="mt-3.5">
+      <div className="mt-heading">
         <Segmented<Tab>
           label="Filter conversations"
           /* The default `md` rung, not `sm`. `Segmented` paints its real
@@ -317,22 +334,8 @@ export function Inbox({
         />
       </div>
 
-      {/* ------------------------------------------------- mark all read */}
-      {canMarkRead && unreadTotal > 0 && (
-        <div className="mt-3 flex items-center justify-end">
-          <button
-            type="button"
-            onClick={markAllRead}
-            disabled={marking}
-            data-testid="inbox-mark-read"
-            className="nf-btn nf-btn--ghost nf-btn--sm disabled:opacity-60"
-          >
-            {marking ? "Marking..." : `Mark all read (${unreadTotal})`}
-          </button>
-        </div>
-      )}
       {markError && (
-        <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-warning)]">
+        <p role="alert" className="nf-body-sm mt-inline text-[var(--nf-state-warning)]">
           {markError}
         </p>
       )}
@@ -346,10 +349,12 @@ export function Inbox({
         role="tabpanel"
         id={`inbox-panel-${tab}`}
         aria-labelledby={`inbox-tab-${tab}`}
-        className="mt-3.5"
+        className="mt-heading"
       >
         {shown.length > 0 ? (
-          <ul className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
+          /* Hairline rows on the ground, not a card wrapping a divided list.
+             One line between two conversations, nothing around either. */
+          <ul className="divide-y divide-[var(--nf-border-subtle)]">
             {shown.map((row) => (
               <Row key={row.id} row={row} typing={typing.has(row.id)} />
             ))}
@@ -367,8 +372,8 @@ export function Inbox({
         ) : rows.length === 0 ? (
           <Empty
             title="No conversations yet"
-            body="Message a host from any listing and the thread appears here."
-            action={{ href: "/search", label: "Explore places" }}
+            body="Open any property and tap Message agent. The thread appears here, with the property attached, so nobody has to ask which one you mean."
+            action={{ href: "/search", label: "Find a place" }}
           />
         ) : (
           <Empty

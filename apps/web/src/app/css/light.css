@@ -22,8 +22,8 @@
       linear-gradient(#FFFFFF, #FFFFFF) padding-box,
       linear-gradient(rgb(18 21 26 / 0.09), rgb(18 21 26 / 0.09)) border-box;
     box-shadow: var(--nf-shadow-card);
-    backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
   :root[data-theme="light"] .nf-card--interactive:hover {
     background:
@@ -113,21 +113,20 @@
   :root[data-theme="light"] .nf-icon3d .nf-icon3d__bloom {
     opacity: 0.35;
   }
-  /* Header sign up: white on paper, ink label, hairline that warms to blue. */
-  :root[data-theme="light"] .nf-signup-btn {
-    background: #FFFFFF;
-    color: var(--nf-content-primary);
-    border: 1.5px solid rgb(18 21 26 / 0.14);
-    box-shadow: 0 1px 2px rgb(18 21 26 / 0.05);
-  }
-  :root[data-theme="light"] .nf-signup-btn:hover:not(:disabled) {
-    border-color: rgb(12 57 239 / 0.55);
-    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
-    transform: translateY(-1px);
-  }
-  :root[data-theme="light"] .nf-signup-btn::after {
-    display: none;
-  }
+  /*
+   * THE HEADER SIGN UP OVERRIDE IS GONE.
+   *
+   * It repainted the button white with an ink label and a grey hairline in
+   * daylight. That was the right call while the header carried TWO filled
+   * buttons: Sign in was the blue one, and this stopped a second blue slab
+   * sitting against it.
+   *
+   * Sign in is a text link now, so Sign up is the only action on the bar, and
+   * on a near-white canvas a white button with a 14% grey rim is not an action
+   * at all - it is a rounded rectangle a reader's eye passes over. The one
+   * primary on the page is the brand-filled button, in both themes, which is
+   * the whole point of having one.
+   */
   /*
    * Daylight is paper-first: near-white canvas, no neon wash. The waves, the
    * ribbon and the pointer bloom belong to the night theme; daylight keeps
@@ -195,8 +194,8 @@
   :root[data-theme="light"] .nf-auth-row {
     background: #FFFFFF;
     border-color: rgb(18 21 26 / 0.14);
-    backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     box-shadow: 0 1px 2px rgb(18 21 26 / 0.05);
   }
   :root[data-theme="light"] .nf-auth-row::after {
@@ -243,13 +242,10 @@
     box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
   }
 
-  /* The AI banner artwork stays a lit render; only the frame goes neutral:
-     hairline ring and paper shadow instead of the blue bloom. */
-  :root[data-theme="light"] .nf-ai-banner {
-    box-shadow:
-      inset 0 0 0 1px rgb(18 21 26 / 0.1),
-      var(--nf-shadow-card);
-  }
+  /* The daylight answer for `.nf-ai-banner` stood here. Both are gone with the
+     render: the assistant's card is `.nf-card--live` now, which already has a
+     daylight answer two blocks below, so there is nothing left to special
+     case. */
 
   /* Overlines hold AA on white: same neutral ink family, deeper step. */
   :root[data-theme="light"] .nf-overline {
@@ -281,8 +277,8 @@
   :root[data-theme="light"] .nf-glass.nf-card--interactive {
     background: #FFFFFF;
     border-color: rgb(18 21 26 / 0.1);
-    backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     box-shadow: var(--nf-shadow-card);
   }
   :root[data-theme="light"] .nf-glass.nf-card--interactive:hover {
@@ -321,13 +317,10 @@
     box-shadow: 0 6px 18px rgb(18 21 26 / 0.22);
   }
 
-  /* Wallet balance card: the cyan conic sheen and the white grid texture are
-     night-glass dressing; on a white card they read as smears, so daylight
-     removes them and inks the sparkline in brand blue. */
-  :root[data-theme="light"] .nf-wallet-sheen,
-  :root[data-theme="light"] .nf-wallet-grid {
-    display: none;
-  }
+  /* The wallet card's cyan conic sheen and white grid texture are gone rather
+     than hidden here. Daylight was switching off two decorative layers that
+     the night theme should not have been carrying either: six stacked visual
+     layers under the platform's largest number. This rule went with them. */
   :root[data-theme="light"] .nf-wallet-spark polyline {
     stroke: var(--nf-brand-primary);
     filter: none !important;

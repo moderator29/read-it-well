@@ -10,6 +10,7 @@ import {
   readAgentNumbers,
 } from "@/lib/agent/listings-queries";
 import { RealDashboard } from "./RealDashboard";
+import { readInspectionsForLister } from "@/lib/inspections/queries";
 import { ButtonLink } from "@/components/ui/Button";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -47,7 +48,13 @@ export default async function AgentDashboardPage() {
 
   const context = await getAgentContext();
   if (context.state === "agent") {
-    const numbers = await readAgentNumbers(context.supabase, context.agent.id, context.user.id);
+    /* Two independent reads, so they cost one round trip rather than two.
+       On the connections this product is built for that is the difference
+       between a dashboard and a wait. */
+    const [numbers, inspections] = await Promise.all([
+      readAgentNumbers(context.supabase, context.agent.id, context.user.id),
+      readInspectionsForLister(),
+    ]);
     return (
       <AgentShell
         t={t}
@@ -60,6 +67,7 @@ export default async function AgentDashboardPage() {
           locale={locale}
           displayName={context.agent.displayName}
           numbers={numbers}
+          inspections={inspections}
         />
       </AgentShell>
     );
@@ -80,11 +88,19 @@ export default async function AgentDashboardPage() {
         }
       : context.state === "signed-out"
         ? { title: a.signedOutTitle, body: a.signedOutBody, href: "/sign-in", cta: t.common.signIn }
-        : { title: a.notAgentTitle, body: a.notAgentBody, href: "/agents/apply", cta: a.applyCta };
+        : {
+            title: a.notAgentTitle,
+            body: a.notAgentBody,
+            /* Setting up the Seller profile, which is where the agent
+               application went when "Become an agent" stopped being a
+               destination. See next.config.ts and roles.ts. */
+            href: "/profile/setup/owner",
+            cta: a.applyCta,
+          };
 
   return (
     <AgentShell t={t} locale={locale} active="/agent/dashboard" profile={null}>
-      <div className="mx-auto max-w-lg py-12 text-center sm:py-16">
+      <div className="mx-auto max-w-lg py-section text-center">
         <div className="relative mx-auto grid h-24 w-24 place-items-center sm:h-28 sm:w-28">
           <span
             aria-hidden="true"
@@ -96,11 +112,11 @@ export default async function AgentDashboardPage() {
           </span>
         </div>
 
-        <h1 className="nf-h2 mt-5">{state.title}</h1>
-        <p className="mx-auto mt-3 max-w-[44ch] leading-relaxed text-[var(--nf-content-secondary)]">
+        <h1 className="nf-h2 mt-heading">{state.title}</h1>
+        <p className="nf-lede mx-auto mt-row max-w-[44ch]">
           {state.body}
         </p>
-        <ButtonLink href={state.href} variant="primary" size="lg" className="mt-7">
+        <ButtonLink href={state.href} variant="primary" size="lg" className="mt-block">
           {state.cta}
         </ButtonLink>
 
@@ -109,7 +125,7 @@ export default async function AgentDashboardPage() {
           list of what is here is honest at nought listings and still honest at
           a hundred; a chart of numbers nobody earned is neither.
         */}
-        <ul className="mt-10 grid gap-3 text-left sm:grid-cols-2">
+        <ul className="mt-section-tight grid gap-row text-left sm:grid-cols-2">
           {(
             [
               { icon: "homes-sparkle", label: a.addListing, href: "/agent/list" },
@@ -121,7 +137,7 @@ export default async function AgentDashboardPage() {
             <li key={quick.href}>
               <Link
                 href={quick.href}
-                className="nf-card nf-card--interactive flex items-center gap-3 p-3.5"
+                className="nf-card nf-card--interactive flex items-center gap-row p-card-sm"
               >
                 <span className="nf-icon-tile block h-10 w-10 shrink-0">
                   <BrandIcon name={quick.icon} fill />

@@ -122,7 +122,7 @@ export function CityHero({
   return (
     <section aria-label={`Places open in ${cityLabel || "Nigeria"}`}>
       <div
-        className="relative isolate overflow-hidden rounded-[var(--nf-radius-2xl)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_38%,transparent)] shadow-[0_24px_60px_-30px_rgb(0_16_224_/_0.75)]"
+        className="relative isolate overflow-hidden rounded-[var(--nf-radius-2xl)] border border-[var(--nf-border-brand)] shadow-[var(--nf-glow-brand)]"
         /* The hook data-saver.css turns off. 2.1MB of artwork, and a reader
            on a 2g link needs the prices under it far more than the scenery. */
         data-artwork="city"
@@ -130,31 +130,34 @@ export function CityHero({
           backgroundImage: "url('/brand/rentme-city.png')",
           backgroundSize: "cover",
           backgroundPosition: "center 62%",
-          backgroundColor: "#010118",
+          backgroundColor: "var(--nf-surface-artwork)",
         }}
       >
-        {/* The artwork is a night scene in both themes, so the card keeps its
-            own dark ground on paper too and the text on it stays white. */}
+        {/*
+          The artwork is a night scene in both themes, so this card keeps the
+          deep navy ground the render is lit against and the ink on it stays
+          pale in daylight too. That is what the `-artwork` and `-on-media`
+          tokens are for: thirteen raw literals used to live in these seventy
+          lines, which made this the single least theme-aware file on the
+          platform even though its treatment was correct.
+        */}
         <div className="relative aspect-[7/6] w-full sm:aspect-[16/9]">
           <div
             aria-hidden="true"
             className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(180deg, rgb(1 1 24 / 0.82) 0%, rgb(1 1 24 / 0.24) 34%, rgb(1 1 24 / 0.30) 62%, rgb(1 1 24 / 0.88) 100%)",
-            }}
+            style={{ background: "var(--nf-scrim-artwork)" }}
           />
 
           <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4 sm:p-5">
             <div className="min-w-0">
-              <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-[rgb(150_180_255)]">
+              <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-[var(--nf-content-on-media-accent)]">
                 {contextLabel}
               </p>
-              <p className="mt-0.5 text-[1.375rem] font-bold leading-tight text-white sm:text-[1.625rem]">
+              <p className="mt-0.5 text-[1.375rem] font-bold leading-tight text-[var(--nf-content-on-media)] sm:text-[1.625rem]">
                 {cityLabel || "Nigeria"}
               </p>
             </div>
-            <span className="nf-numeric shrink-0 rounded-[var(--nf-radius-pill)] border border-[rgb(90_120_255_/_0.55)] bg-[rgb(1_1_24_/_0.6)] px-2.5 py-1 text-[0.6875rem] font-semibold text-[rgb(190_210_255)]">
+            <span className="nf-numeric shrink-0 rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-2.5 py-1 text-[0.6875rem] font-semibold text-[var(--nf-content-on-media-accent)]">
               {areas.length} {areas.length === 1 ? "place" : "places"}
             </span>
           </div>
@@ -174,12 +177,12 @@ export function CityHero({
                 }}
               >
                 <span className="relative grid h-3 w-3 shrink-0 place-items-center">
-                  <span className="nf-map-pin-breathe absolute inset-[-6px] rounded-full bg-[rgb(12_57_239_/_0.45)] blur-[6px]" />
-                  <span className="relative block h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_10px_3px_rgb(12_57_239_/_0.9)]" />
+                  <span className="nf-map-pin-breathe absolute inset-[-6px] rounded-full bg-[var(--nf-halo-on-media)] blur-[6px]" />
+                  <span className="relative block h-2.5 w-2.5 rounded-full bg-[var(--nf-content-on-media)] shadow-[var(--nf-glow-on-media)]" />
                 </span>
-                <span className="whitespace-nowrap rounded-[var(--nf-radius-pill)] border border-[rgb(90_120_255_/_0.5)] bg-[rgb(1_1_24_/_0.78)] px-2 py-[3px] text-[0.625rem] font-semibold leading-none text-white backdrop-blur-sm">
+                <span className="whitespace-nowrap rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-2 py-[3px] text-[0.625rem] font-semibold leading-none text-[var(--nf-content-on-media)] backdrop-blur-sm">
                   {pin.area.name}
-                  <span className="nf-numeric ml-1.5 text-[rgb(150_180_255)]">
+                  <span className="nf-numeric ml-1.5 text-[var(--nf-content-on-media-accent)]">
                     {pin.area.postCount}
                   </span>
                 </span>
@@ -188,7 +191,7 @@ export function CityHero({
           </div>
 
           <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-            <p className="text-[0.8125rem] leading-relaxed text-[rgb(200_215_255)]">
+            <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-on-media-accent)]">
               {areas.length === 0
                 ? "No places are open here yet. When one opens it appears on this card."
                 : totalPosts === 0

@@ -68,7 +68,7 @@ const INSPECTION_STEPS: { title: string; body: string }[] = [
 
 export default function SafetyCentrePage() {
   return (
-    <div className="nf-shell py-12 sm:py-16">
+    <div className="nf-shell py-section">
       <div className="mx-auto max-w-3xl">
         {/* ---------------------------------------------------------- hero */}
         <div className="nf-rise text-center">
@@ -78,10 +78,10 @@ export default function SafetyCentrePage() {
             </span>
             Safety centre
           </span>
-          <h1 className="nf-h1 mx-auto mt-5 max-w-[18ch]">
+          <h1 className="nf-h1 mx-auto mt-heading max-w-[18ch]">
             Nobody on RentMe should ever ask you to pay outside it
           </h1>
-          <p className="mx-auto mt-4 max-w-[52ch] text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
             How payments work here, how inspections work, what we will never ask
             you for, and what to do the moment somebody asks you for money off
             the platform.
@@ -89,18 +89,18 @@ export default function SafetyCentrePage() {
         </div>
 
         {/* ------------------------------------------------- the one rule */}
-        <section className="nf-card mt-10 p-5 sm:p-6" aria-labelledby="one-rule">
+        <section className="nf-card mt-section p-card" aria-labelledby="one-rule">
           <span className="nf-overline">The rule that matters most</span>
-          <h2 id="one-rule" className="nf-h2 mt-2 text-[1.375rem]">
+          <h2 id="one-rule" className="nf-h2 mt-inline text-[1.375rem]">
             {NO_FEES_LINE}
           </h2>
-          <p className="mt-3 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-row text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
             We take nothing from your booking and nothing from an agent&apos;s
             earnings. So there is no honest reason for anyone to send you an
             account number, and if somebody does, they are not doing platform
             business. Report them and stop replying.
           </p>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-group flex flex-wrap gap-row">
             <ButtonLink href="/contact?topic=safety" variant="primary" size="md">
               Report someone
             </ButtonLink>
@@ -111,21 +111,21 @@ export default function SafetyCentrePage() {
         </section>
 
         {/* -------------------------------------- what we never ask you for */}
-        <section className="mt-12" aria-labelledby="never-ask">
+        <section className="mt-section" aria-labelledby="never-ask">
           <h2 id="never-ask" className="nf-h2 text-[1.375rem]">
             What RentMe will never ask you for
           </h2>
-          <p className="mt-2 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
             Four things. If a message, a call or an email asks you for any of
             them, it is not us, whatever it looks like.
           </p>
-          <ul className="mt-4 space-y-3">
+          <ul className="mt-group space-y-row">
             {NEVER_ASK.map((item) => (
-              <li key={item.title} className="nf-card p-4">
+              <li key={item.title} className="nf-card p-card-sm">
                 <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                   {item.title}
                 </h3>
-                <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                   {item.body}
                 </p>
               </li>
@@ -134,20 +134,20 @@ export default function SafetyCentrePage() {
         </section>
 
         {/* -------------------------------------------- how payments work */}
-        <section className="mt-12" aria-labelledby="how-payments">
+        <section className="mt-section" aria-labelledby="how-payments">
           <h2 id="how-payments" className="nf-h2 text-[1.375rem]">
             How paying on RentMe works
           </h2>
-          <ol className="mt-4 space-y-3">
+          <ol className="mt-group space-y-row">
             {PAYING_STEPS.map((step, index) => (
-              <li key={step.title} className="nf-card p-4">
+              <li key={step.title} className="nf-card p-card-sm">
                 <span className="nf-overline">
                   Step <span className="nf-numeric">{index + 1}</span>
                 </span>
-                <h3 className="mt-1 text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                <h3 className="mt-inline-tight text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                   {step.title}
                 </h3>
-                <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                   {step.body}
                 </p>
               </li>
@@ -156,25 +156,25 @@ export default function SafetyCentrePage() {
         </section>
 
         {/* ----------------------------------------- how inspections work */}
-        <section className="mt-12" aria-labelledby="how-inspections">
+        <section className="mt-section" aria-labelledby="how-inspections">
           <h2 id="how-inspections" className="nf-h2 text-[1.375rem]">
             How inspections work
           </h2>
-          <p className="mt-2 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
             Renting a place you have never seen is how most people lose money in
             this market. The order below is the whole defence, and it costs
             nothing.
           </p>
-          <ol className="mt-4 space-y-3">
+          <ol className="mt-group space-y-row">
             {INSPECTION_STEPS.map((step, index) => (
-              <li key={step.title} className="nf-card p-4">
+              <li key={step.title} className="nf-card p-card-sm">
                 <span className="nf-overline">
                   Step <span className="nf-numeric">{index + 1}</span>
                 </span>
-                <h3 className="mt-1 text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                <h3 className="mt-inline-tight text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                   {step.title}
                 </h3>
-                <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                   {step.body}
                 </p>
               </li>
@@ -183,14 +183,14 @@ export default function SafetyCentrePage() {
         </section>
 
         {/* ----------------------------------------------- cancellations */}
-        <section className="mt-12" aria-labelledby="cancelling">
+        <section className="mt-section" aria-labelledby="cancelling">
           <h2 id="cancelling" className="nf-h2 text-[1.375rem]">
             If your plans change
           </h2>
-          <div className="mt-4">
+          <div className="mt-group">
             <CancellationTimeline headingLevel="h3" />
           </div>
-          <p className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
             The same schedule is shown on every listing and on your booking,
             against your own dates and your own total.{" "}
             <Link
@@ -204,32 +204,32 @@ export default function SafetyCentrePage() {
         </section>
 
         {/* --------------------------------------------- how to report */}
-        <section className="mt-12" aria-labelledby="how-to-report">
+        <section className="mt-section" aria-labelledby="how-to-report">
           <h2 id="how-to-report" className="nf-h2 text-[1.375rem]">
             How to report something
           </h2>
-          <p className="mt-2 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
             Every listing carries a report control, and the contact form reaches
             the same queue. You do not need proof and you will not be charged
             for being wrong. These are the reasons you can choose from, and they
             are the same words the queue is sorted by.
           </p>
-          <ul className="mt-4 space-y-2.5">
+          <ul className="mt-group space-y-inline">
             {REPORT_CATEGORY_ORDER.map((category) => (
-              <li key={category} className="nf-card p-4">
+              <li key={category} className="nf-card p-card-sm">
                 <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                   {REPORT_CATEGORY_COPY[category].label}
                 </h3>
-                <p className="mt-1 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline-tight text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                   {REPORT_CATEGORY_COPY[category].hint}
                 </p>
               </li>
             ))}
           </ul>
 
-          <div className="nf-card mt-6 p-5">
+          <div className="nf-card mt-heading p-card">
             <span className="nf-overline">What happens next</span>
-            <p className="mt-2 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               A report about being asked to pay outside RentMe, or about anything
               unsafe, is answered{" "}
               <span className="font-semibold text-[var(--nf-content-primary)]">
@@ -242,7 +242,7 @@ export default function SafetyCentrePage() {
               . A listing can be taken out of search while we look at it, and the
               person who reported it is never named to the person reported.
             </p>
-            <div className="mt-4 flex flex-wrap gap-3">
+            <div className="mt-group flex flex-wrap gap-row">
               <ButtonLink href="/contact?topic=safety" variant="primary" size="md">
                 Report it now
               </ButtonLink>
@@ -254,27 +254,27 @@ export default function SafetyCentrePage() {
         </section>
 
         {/* --------------------------------- if you already paid outside */}
-        <section className="mt-12" aria-labelledby="already-paid">
+        <section className="mt-section" aria-labelledby="already-paid">
           <h2 id="already-paid" className="nf-h2 text-[1.375rem]">
             If you have already paid someone outside RentMe
           </h2>
-          <ol className="mt-4 space-y-3">
-            <li className="nf-card p-4">
+          <ol className="mt-group space-y-row">
+            <li className="nf-card p-card-sm">
               <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 Tell your bank today, not tomorrow
               </h3>
-              <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                 A Nigerian bank can sometimes place a lien on a receiving account
                 if you report a fraudulent transfer quickly. Call your bank first,
                 before anything else, and ask them to raise a dispute on the
                 transfer.
               </p>
             </li>
-            <li className="nf-card p-4">
+            <li className="nf-card p-card-sm">
               <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 Then report it here
               </h3>
-              <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                 Send us the listing link, the account details you were given and
                 the messages. We cannot recover money that never came through the
                 platform, and we will not pretend otherwise, but we can remove the
@@ -282,11 +282,11 @@ export default function SafetyCentrePage() {
                 to the next person.
               </p>
             </li>
-            <li className="nf-card p-4">
+            <li className="nf-card p-card-sm">
               <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 Keep everything
               </h3>
-              <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                 Screenshots, the account number, the phone number, the transfer
                 receipt. Do not delete the conversation. If the police or your
                 bank ask, that is the file.
@@ -296,8 +296,8 @@ export default function SafetyCentrePage() {
         </section>
 
         {/* ------------------------------------------------------- close */}
-        <div className="nf-card mt-14 flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-          <div className="flex items-center gap-4">
+        <div className="nf-card mt-section-tight flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-group">
             <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
               <BrandIcon name="support-shield" fill />
             </span>

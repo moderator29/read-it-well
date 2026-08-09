@@ -7,12 +7,20 @@ import { resolveSession } from "../actions/session";
 import type { AgentProfile } from "./types";
 import {
   AMENITY_CHOICES,
+  type BuildCondition,
+  type Furnishing,
+  type LandTenure,
+  type ListingIntent,
   type PropertyType,
+  type RatePeriod,
+  type RentPeriod,
+  type SaleStatus,
   koboToNairaInput,
   type PowerBackup,
   type PowerGrid,
   type WaterSupply,
 } from "./listings-schema";
+import { headlinePrice, headlinePeriod, type PricePeriod } from "../listings/pricing";
 
 /**
  * Server-side reads for the agent supply loop.
@@ -116,13 +124,30 @@ export function photoPublicUrl(storagePath: string): string {
 
 export type ListingPhoto = { id: string; path: string; url: string; position: number };
 
+/** One walkthrough on a listing. Same shape as a photo, plus what a video has. */
+export type ListingVideo = {
+  id: string;
+  path: string;
+  url: string;
+  posterUrl: string | null;
+  durationSeconds: number | null;
+  position: number;
+};
+
 /** One card in the agent's workspace. Money stays integer kobo. */
 export type ListingSummary = {
   id: string;
   title: string;
   status: ListingStatus;
   propertyType: PropertyType;
-  pricePeriod: "night" | "year";
+  intent: ListingIntent;
+  /**
+   * What the headline figure is quoted in, or "sale" when it is an asking price
+   * and there is no period at all. Resolved by `headlinePrice`, the same
+   * function the public catalogue uses, so the agent's own card and the card a
+   * renter sees cannot print different numbers.
+   */
+  pricePeriod: PricePeriod | "sale";
   priceMinor: number;
   city: string | null;
   area: string | null;
@@ -145,14 +170,44 @@ export type WizardDraft = {
   area: string;
   address: string;
   landmark: string;
-  maxGuests: number;
   bedrooms: number;
-  beds: number;
   bathrooms: number;
-  priceNaira: string;
-  cleaningNaira: string;
-  minStayNights: number;
-  instantBook: boolean;
+  toilets: string;
+  parkingSpaces: string;
+  floor: string;
+  totalFloors: string;
+  sizeSqm: string;
+
+  /** To let, or for sale. Every money field below hangs off this one answer. */
+  intent: ListingIntent;
+
+  /* A tenancy: the rent, its cycle, and what it costs to get through the door. */
+  rentNaira: string;
+  rentPeriod: RentPeriod | "";
+  rentNegotiable: boolean;
+  cautionDepositNaira: string;
+  serviceChargeNaira: string;
+  serviceChargePeriod: RentPeriod | "";
+  agencyFeeNaira: string;
+  legalFeeNaira: string;
+  agreementFeeNaira: string;
+  totalMoveInNaira: string;
+  minimumTenancyMonths: string;
+  availableFrom: string;
+  furnished: Furnishing | "";
+
+  /* A short stay: one rate, per night or per head. */
+  rateNaira: string;
+  ratePeriod: RatePeriod | "";
+
+  /* A sale: the asking price and the title being transferred with it. */
+  salePriceNaira: string;
+  priceNegotiable: boolean;
+  tenure: LandTenure | "";
+  saleStatus: SaleStatus | "";
+  yearBuilt: string;
+  condition: BuildCondition | "";
+
   powerGrid: PowerGrid | "";
   powerBackup: PowerBackup | "";
   powerBackupHours: string;
@@ -168,15 +223,22 @@ export type WizardDraft = {
   };
   amenityCodes: string[];
   photos: ListingPhoto[];
+  videos: ListingVideo[];
   reviewNotes: string | null;
 };
 
 const LISTING_SELECT =
-  "id, title, description, status, property_type, price_period, price_per_night_minor, " +
-  "cleaning_fee_minor, min_stay_nights, instant_book, state_code, city, area, address, " +
-  "landmark, max_guests, bedrooms, beds, bathrooms, submitted_at, review_notes, updated_at, " +
-  "power_grid, power_backup, power_backup_hours, water_supply, prepaid_meter, " +
-  "listing_photos(id, storage_path, position), listing_amenities(amenities(code)), " +
+  "id, title, description, status, property_type, listing_intent, " +
+  "rent_amount_minor, rent_period, rent_negotiable, caution_deposit_minor, " +
+  "service_charge_minor, service_charge_period, agency_fee_minor, legal_fee_minor, " +
+  "agreement_fee_minor, total_move_in_cost_minor, minimum_tenancy_months, available_from, " +
+  "furnished, rate_minor, rate_period, sale_price_minor, price_negotiable, tenure, " +
+  "sale_status, year_built, condition, size_sqm, toilets, parking_spaces, floor, total_floors, " +
+  "state_code, city, area, address, landmark, bedrooms, bathrooms, submitted_at, " +
+  "review_notes, updated_at, power_grid, power_backup, power_backup_hours, water_supply, " +
+  "prepaid_meter, listing_photos(id, storage_path, position), " +
+  "listing_videos(id, storage_path, poster_path, duration_seconds, position), " +
+  "listing_amenities(amenities(code)), " +
   "listing_access(estate_name, gate_directions, security_phone, access_code)";
 
 type ListingWithChildren = {
@@ -185,19 +247,39 @@ type ListingWithChildren = {
   description: string | null;
   status: ListingStatus;
   property_type: PropertyType;
-  price_period: "night" | "year";
-  price_per_night_minor: number;
-  cleaning_fee_minor: number;
-  min_stay_nights: number;
-  instant_book: boolean;
+  listing_intent: ListingIntent;
+  rent_amount_minor: number | null;
+  rent_period: RentPeriod | null;
+  rent_negotiable: boolean | null;
+  caution_deposit_minor: number | null;
+  service_charge_minor: number | null;
+  service_charge_period: RentPeriod | null;
+  agency_fee_minor: number | null;
+  legal_fee_minor: number | null;
+  agreement_fee_minor: number | null;
+  total_move_in_cost_minor: number | null;
+  minimum_tenancy_months: number | null;
+  available_from: string | null;
+  furnished: Furnishing | null;
+  rate_minor: number;
+  rate_period: RatePeriod | null;
+  sale_price_minor: number | null;
+  price_negotiable: boolean | null;
+  tenure: LandTenure | null;
+  sale_status: SaleStatus | null;
+  year_built: number | null;
+  condition: BuildCondition | null;
+  size_sqm: number | string | null;
+  toilets: number | null;
+  parking_spaces: number | null;
+  floor: number | null;
+  total_floors: number | null;
   state_code: string | null;
   city: string | null;
   area: string | null;
   address: string | null;
   landmark: string | null;
-  max_guests: number;
   bedrooms: number;
-  beds: number;
   bathrooms: number;
   submitted_at: string | null;
   review_notes: string | null;
@@ -208,6 +290,15 @@ type ListingWithChildren = {
   water_supply: WaterSupply | null;
   prepaid_meter: boolean | null;
   listing_photos: { id: string; storage_path: string; position: number }[] | null;
+  listing_videos:
+    | {
+        id: string;
+        storage_path: string;
+        poster_path: string | null;
+        duration_seconds: number | null;
+        position: number;
+      }[]
+    | null;
   listing_amenities: { amenities: { code: string } | null }[] | null;
   /* One row or none. PostgREST returns an object for a one-to-one embed and
      null when the row does not exist, so both shapes are handled. */
@@ -232,6 +323,54 @@ function sortedPhotos(row: ListingWithChildren): ListingPhoto[] {
     }));
 }
 
+/**
+ * Walkthroughs. Private, so the wizard reads them through a signed URL exactly
+ * as the public catalogue does. See lib/listings/supabase-repository for why
+ * this bucket is not public when listing-photos is.
+ */
+export const VIDEO_BUCKET = "listing-videos";
+const VIDEO_URL_SECONDS = 3600;
+
+/**
+ * The rows, with a signed URL each. Async because signing is a request, and one
+ * request for all of a listing's videos rather than one each.
+ *
+ * A video whose URL will not sign comes back with an empty url rather than
+ * being dropped: this is the OWNER's own workspace, and silently hiding a file
+ * they uploaded would look exactly like losing it.
+ */
+async function sortedVideos(
+  supabase: SupabaseClient<Database>,
+  row: ListingWithChildren,
+): Promise<ListingVideo[]> {
+  const rows = [...(row.listing_videos ?? [])].sort((a, b) => a.position - b.position);
+  if (rows.length === 0) return [];
+
+  const signed = new Map<string, string>();
+  try {
+    const { data } = await supabase.storage
+      .from(VIDEO_BUCKET)
+      .createSignedUrls(
+        rows.map((v) => v.storage_path),
+        VIDEO_URL_SECONDS,
+      );
+    for (const entry of data ?? []) {
+      if (entry.path && entry.signedUrl) signed.set(entry.path, entry.signedUrl);
+    }
+  } catch {
+    /* Storage unreachable. The list still renders with what it knows. */
+  }
+
+  return rows.map((v) => ({
+    id: v.id,
+    path: v.storage_path,
+    url: signed.get(v.storage_path) ?? "",
+    posterUrl: v.poster_path ? photoPublicUrl(v.poster_path) : null,
+    durationSeconds: v.duration_seconds,
+    position: v.position,
+  }));
+}
+
 function amenityCodesOf(row: ListingWithChildren): string[] {
   return (row.listing_amenities ?? [])
     .map((join) => join.amenities?.code)
@@ -241,13 +380,15 @@ function amenityCodesOf(row: ListingWithChildren): string[] {
 function toSummary(row: ListingWithChildren): ListingSummary {
   const photos = sortedPhotos(row);
   const cover = photos[0];
+  const headline = headlinePrice(row);
   return {
     id: row.id,
     title: row.title,
     status: row.status,
     propertyType: row.property_type,
-    pricePeriod: row.price_period,
-    priceMinor: row.price_per_night_minor,
+    intent: row.listing_intent,
+    pricePeriod: headlinePeriod(headline),
+    priceMinor: headline.minor,
     city: row.city,
     area: row.area,
     photoCount: photos.length,
@@ -258,7 +399,15 @@ function toSummary(row: ListingWithChildren): ListingSummary {
   };
 }
 
-function toDraft(row: ListingWithChildren): WizardDraft {
+/** A number for an input: the value as typed, or an empty box. */
+function numberInput(value: number | string | null | undefined): string {
+  return value === null || value === undefined ? "" : String(value);
+}
+
+async function toDraft(
+  supabase: SupabaseClient<Database>,
+  row: ListingWithChildren,
+): Promise<WizardDraft> {
   return {
     id: row.id,
     status: row.status,
@@ -270,14 +419,40 @@ function toDraft(row: ListingWithChildren): WizardDraft {
     area: row.area ?? "",
     address: row.address ?? "",
     landmark: row.landmark ?? "",
-    maxGuests: row.max_guests,
     bedrooms: row.bedrooms,
-    beds: row.beds,
     bathrooms: row.bathrooms,
-    priceNaira: koboToNairaInput(row.price_per_night_minor),
-    cleaningNaira: koboToNairaInput(row.cleaning_fee_minor),
-    minStayNights: row.min_stay_nights,
-    instantBook: row.instant_book,
+    toilets: numberInput(row.toilets),
+    parkingSpaces: numberInput(row.parking_spaces),
+    floor: numberInput(row.floor),
+    totalFloors: numberInput(row.total_floors),
+    sizeSqm: numberInput(row.size_sqm),
+
+    intent: row.listing_intent,
+
+    rentNaira: koboToNairaInput(row.rent_amount_minor),
+    rentPeriod: row.rent_period ?? "",
+    rentNegotiable: row.rent_negotiable ?? false,
+    cautionDepositNaira: koboToNairaInput(row.caution_deposit_minor),
+    serviceChargeNaira: koboToNairaInput(row.service_charge_minor),
+    serviceChargePeriod: row.service_charge_period ?? "",
+    agencyFeeNaira: koboToNairaInput(row.agency_fee_minor),
+    legalFeeNaira: koboToNairaInput(row.legal_fee_minor),
+    agreementFeeNaira: koboToNairaInput(row.agreement_fee_minor),
+    totalMoveInNaira: koboToNairaInput(row.total_move_in_cost_minor),
+    minimumTenancyMonths: numberInput(row.minimum_tenancy_months),
+    availableFrom: row.available_from ?? "",
+    furnished: row.furnished ?? "",
+
+    rateNaira: koboToNairaInput(row.rate_minor),
+    ratePeriod: row.rate_period ?? "",
+
+    salePriceNaira: koboToNairaInput(row.sale_price_minor),
+    priceNegotiable: row.price_negotiable ?? false,
+    tenure: row.tenure ?? "",
+    saleStatus: row.sale_status ?? "",
+    yearBuilt: numberInput(row.year_built),
+    condition: row.condition ?? "",
+
     powerGrid: row.power_grid ?? "",
     powerBackup: row.power_backup ?? "",
     powerBackupHours: row.power_backup_hours === null ? "" : String(row.power_backup_hours),
@@ -291,6 +466,7 @@ function toDraft(row: ListingWithChildren): WizardDraft {
     },
     amenityCodes: amenityCodesOf(row),
     photos: sortedPhotos(row),
+    videos: await sortedVideos(supabase, row),
     reviewNotes: row.review_notes,
   };
 }
@@ -324,7 +500,7 @@ export async function readDraft(
     .maybeSingle();
 
   if (error || !data) return null;
-  return toDraft(data as unknown as ListingWithChildren);
+  return toDraft(supabase, data as unknown as ListingWithChildren);
 }
 
 /**
@@ -363,7 +539,7 @@ export async function readOpenDraft(
     .maybeSingle();
 
   if (error || !data) return null;
-  return toDraft(data as unknown as ListingWithChildren);
+  return toDraft(supabase, data as unknown as ListingWithChildren);
 }
 
 /* ------------------------------------------------------- reference data */

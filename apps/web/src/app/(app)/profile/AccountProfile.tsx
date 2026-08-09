@@ -335,7 +335,10 @@ function AvatarPicker({
             />
           ) : (
             <span
-              className="flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-full text-2xl font-bold text-white sm:h-16 sm:w-16"
+              /* The initial sits on the brand gradient, so it takes
+                 `--nf-content-on-brand` rather than a raw `text-white`: the
+                 fill is a token and the text on it has to be one too. */
+              className="flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-full text-2xl font-bold text-[var(--nf-content-on-brand)] sm:h-16 sm:w-16"
               style={{ background: "var(--nf-gradient-brand)" }}
             >
               {initial}

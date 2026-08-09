@@ -80,6 +80,13 @@ export const ig: Dictionary = {
     verified: "Enyochala",
     skipToContent: "Wụga na ọdịnaya",
     notSet: "Edobeghị ya",
+    bed: "ime ụlọ",
+    beds: "ime ụlọ",
+    bath: "ụlọ ịsa ahụ",
+    baths: "ụlọ ịsa ahụ",
+    guest: "ọbịa",
+    instantBook: "Ozugbo",
+    priceOnRequest: "Ọnụahịa na arịrịọ",
   },
 
   nav: {
@@ -88,6 +95,10 @@ export const ig: Dictionary = {
     apartments: "Ụlọ obibi",
     homes: "Ebe obibi",
     rent: "Mgbazinye ụlọ",
+    buy: "Ịzụta ụlọ",
+    shortlets: "Obibi nwa oge",
+    land: "Ala",
+    commercial: "Ihe onwunwe azụmahịa",
     restaurants: "Ụlọ oriri",
     experiences: "Ahụmahụ",
     services: "Ọrụ",
@@ -176,7 +187,7 @@ export const ig: Dictionary = {
       line2: "Debe ya.",
       line3: "Bie ya.",
       subtitle:
-        "Ebe gị otu maka ụlọ, họtel, ụlọ oriri, ahụmahụ na ihe ndị ọzọ.",
+        "Gbaa ụlọ, zụta ma ọ bụ ree ala na Naịjirịa. Onye nkịtị debere ebe ọ bụla dị ebe a.",
       searchPlaceholder: "Ebee ka ị chọrọ ịga?",
       searchLabel: "Chọọ ebe na Naịjirịa niile",
       popularLabel: "Ewu ewu ugbu a",
@@ -211,15 +222,14 @@ export const ig: Dictionary = {
       secure: { title: "Nchekwa & Ntụkwasị Obi", body: "Nchekwa gị bụ ihe mbụ" },
       ai: { title: "Ike AI", body: "Ahụmahụ amamihe" },
       africa: { title: "Emere maka Afrika", body: "Ewuru ya na ịhụnanya ❤️" },
-      stores: { title: "Dị na", body: "App Store & Play Store" },
     },
     categories: {
       title: "Ihe niile, n'otu ebe",
-      subtitle: "Ụzọ ise ịchọpụta Naịjirịa. Otu akaụntụ, otu akpa ego.",
+      subtitle: "Ụdị ebe ọ bụla mmadụ nwere ike idebe ebe a. Otu akaụntụ, otu akpa ego.",
     },
     cta: {
       title: "Ị dịla njikere ịchọta ebe ọzọ gị?",
-      subtitle: "Sonye na ọtụtụ puku na-achọpụta ebe obibi, nri na ahụmahụ.",
+      subtitle: "Mepee akaụntụ iji chekwaa ebe, zigara onye debere ha ozi, ma gbaa ma ọ bụ zụta n'otu ebe.",
       action: "Malite n'efu",
       secondary: "Lee ka ọ si arụ ọrụ",
     },
@@ -621,10 +631,17 @@ export const ig: Dictionary = {
     topExperiences: "Chọpụta ahụmahụ kacha mma",
     nearby: "Nso gị",
     aiCard: {
-      title: "RentMe AI",
-      body: "Enyi njem gị maara ihe. Jụọ ihe ọ bụla n'okwu dị mfe.",
+      title: "Jụọ RentMe AI",
+      body: "Ọ na-achọ n'ime otu ndepụta ị na-agụ, ya mere ọ ga-agwa gị naanị maka ebe ndị dị na RentMe n'ezie.",
       action: "Jụọ onye enyemaka",
-      samplePrompt: "Ụlọ ime abụọ na Lekki n'okpuru 300k nwere ọdọ mmiri",
+      truths: {
+        listings:
+          "Ọ na-aza site na ndepụta ndị dị adị, ma na-enye njikọ nke ọ bụla ọ kpọrọ aha.",
+        costs:
+          "Ọ maara ihe ịkwaga n'ezie na-efu. Ụgwọ caution, ụgwọ onye nnọchiteanya, ụgwọ ọkàiwu na ụgwọ nkwekọrịta, ọ bụghị naanị ụgwọ ụlọ.",
+        title:
+          "Ọ gaghị agwa gị na akwụkwọ ala dị mma. Ọ na-ekwu ihe ndepụta ahụ kwuru, wee zigara gị ọkàiwu.",
+      },
     },
     agentCard: {
       title: "Bụrụ Onye Nnọchiteanya RentMe",

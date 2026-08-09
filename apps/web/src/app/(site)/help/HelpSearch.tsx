@@ -54,10 +54,10 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search the help centre, e.g. refund, inspection, verify"
           aria-label="Search help articles"
-          className="nf-field pl-10"
+          className="nf-field pl-block"
         />
       </div>
-      <p className="mt-2 text-[0.8125rem] text-[var(--nf-content-muted)]" role="status">
+      <p className="mt-inline text-[0.8125rem] text-[var(--nf-content-muted)]" role="status">
         {visible.length === faqs.length
           ? `${faqs.length} answers`
           : `${visible.length} of ${faqs.length} answers match`}
@@ -65,16 +65,16 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
 
       {/* Grouped results */}
       {visible.length > 0 ? (
-        <div className="mt-6 space-y-8">
+        <div className="mt-heading space-y-block">
           {categories.map((cat) => (
             <section key={cat} aria-label={cat}>
-              <h2 className="nf-overline mb-3">{cat}</h2>
-              <div className="space-y-3">
+              <h2 className="nf-overline mb-row">{cat}</h2>
+              <div className="space-y-row">
                 {visible
                   .filter((f) => f.category === cat)
                   .map((f) => (
                     <details key={f.q} className="nf-card group p-0">
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 font-semibold leading-snug sm:p-5 [&::-webkit-details-marker]:hidden">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-row p-card-sm font-semibold leading-snug [&::-webkit-details-marker]:hidden">
                         {f.q}
                         <UiIcon
                           name="chevron-down"
@@ -82,7 +82,7 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
                           className="shrink-0 text-[var(--nf-content-muted)] transition-transform group-open:rotate-180"
                         />
                       </summary>
-                      <p className="px-4 pb-4 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)] sm:px-5 sm:pb-5">
+                      <p className="px-group pb-group text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)] sm:px-heading sm:pb-heading">
                         {f.a}
                       </p>
                     </details>
@@ -92,12 +92,12 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
           ))}
         </div>
       ) : (
-        <div className="nf-card mt-6 p-7 text-center sm:p-9">
+        <div className="nf-card mt-heading p-card text-center-lg">
           <h2 className="nf-h3">Nothing matches that yet</h2>
-          <p className="mx-auto mt-2 max-w-[46ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-inline max-w-[46ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
             Try a shorter word, or ask us directly. A person reads every message.
           </p>
-          <div className="mt-5 flex justify-center">
+          <div className="mt-heading flex justify-center">
             <ButtonLink href="/contact" variant="secondary">
               Contact support
             </ButtonLink>

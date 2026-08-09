@@ -1,5 +1,5 @@
 /*
- * NaijaFinds design tokens.
+ * RentMe design tokens.
  *
  * This file is the single source of truth for every colour, radius, shadow,
  * blur and motion value in the product (Master Rules 27 and 29).
@@ -111,17 +111,147 @@
   --nf-surface-raised: var(--nf-ink-750);
   --nf-surface-inset: color-mix(in oklab, var(--nf-ink-950) 70%, black);
 
-  /* Content */
+  /* Content
+   *
+   * Four readable tiers plus two inks that answer a specific ground.
+   *
+   * `--nf-content-subtle` sits between secondary and muted. It is the tier for
+   * supporting text that should recede without becoming decoration: metadata
+   * beside a heading, a unit after a figure, the second line of a list row.
+   * Before it existed those all reached for muted, which is the AA floor, so
+   * the quietest readable tier and the quietest legal tier were the same
+   * colour and nothing could sit between them. It measures 11.47:1 on the
+   * night canvas and 6.95:1 on paper, so it is safe at any size in both.
+   *
+   * `--nf-content-inverse` is the ink for a surface that runs OPPOSITE to the
+   * theme: a white chip in the dark theme, a dark tooltip in daylight. It is
+   * NOT --nf-content-on-brand, which is white in both themes because the brand
+   * fill is a deep blue in both. Painting a white-on-dark chip with
+   * content-on-brand produced white on white, which is how the icon tile and
+   * the assistant pill both ended up unreadable in one theme each. */
   --nf-content-primary: var(--nf-mist-100);
   --nf-content-secondary: var(--nf-mist-300);
+  --nf-content-subtle: var(--nf-mist-400);
   --nf-content-muted: var(--nf-mist-500);
   --nf-content-on-brand: #FFFFFF;
+  --nf-content-inverse: #0B0D14;
 
-  /* Borders */
+  /* Borders
+   *
+   * `--nf-divider` is a separator INSIDE a surface: the rule between two rows
+   * of a list, between a card's head and its body. It is not the same role as
+   * border-subtle, which is the outer edge of an object, and keeping them
+   * apart is what lets a divider be tuned without every card edge moving with
+   * it. Every list on the platform was drawing its rules from border-subtle
+   * for want of anywhere else to look. */
   --nf-border-subtle: rgb(255 255 255 / 0.08);
   --nf-border-default: rgb(255 255 255 / 0.13);
   --nf-border-strong: rgb(255 255 255 / 0.22);
   --nf-border-brand: color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
+  --nf-divider: rgb(255 255 255 / 0.10);
+
+  /* Interactive feedback
+   *
+   * The tint an interactive surface takes on when a pointer is over it, while
+   * it is being pressed, and when it is refusing input. They are overlays
+   * rather than solid colours on purpose: one pair of values works on a card,
+   * a row, a chip and a menu item without each of those needing a hover
+   * colour of its own. Every hover on the platform was previously an inline
+   * rgb(255 255 255 / 0.0x), which is why hover states were invisible in
+   * daylight: a white wash over a white card is nothing. */
+  --nf-interactive-hover: rgb(255 255 255 / 0.07);
+  --nf-interactive-active: rgb(255 255 255 / 0.12);
+  --nf-interactive-disabled: rgb(255 255 255 / 0.04);
+
+  /* Modal backdrop
+   *
+   * The wash behind a sheet, a drawer or a dialog. It was written by hand at
+   * every call site and the hands disagreed: bg-black/55, /60, /65, /70 and
+   * /75 across nine overlays, which is five different answers to one question.
+   * Daylight softens it and moves it to the neutral ink, because a 62 percent
+   * pure black behind a white sheet is a hole in the page. */
+  --nf-overlay-backdrop: rgb(0 0 0 / 0.62);
+
+  /* Media overlay
+   *
+   * The one place a dark treatment is correct in BOTH themes, because what is
+   * underneath is a photograph rather than the page. A paper-white control
+   * vanishes on a bright photo and a night-only glass panel looks wrong at
+   * noon, so the gallery controls, the lightbox chrome and the scrims over
+   * card photography all read from here and are deliberately theme
+   * independent. Having them as tokens is what stops the next person writing
+   * bg-black/45 and border-white/25 by hand for the eleventh time. */
+  --nf-overlay-media: rgb(0 0 0 / 0.45);
+  --nf-overlay-media-strong: rgb(0 0 0 / 0.62);
+  --nf-border-on-media: rgb(255 255 255 / 0.25);
+  --nf-content-on-media: #FFFFFF;
+  --nf-content-on-media-muted: rgb(255 255 255 / 0.72);
+  --nf-scrim-media: linear-gradient(
+    to top,
+    rgb(0 0 0 / 0.65) 0%,
+    rgb(0 0 0 / 0.25) 45%,
+    transparent 100%
+  );
+  /* The same scrim the other way up, for chrome that floats at the top of a
+     photograph. A separate token rather than a rotate on the element: rotating
+     a positioned strip to reuse a gradient is the kind of trick that survives
+     until someone puts a shadow on it. */
+  --nf-scrim-media-top: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0.55) 0%,
+    rgb(0 0 0 / 0.20) 45%,
+    transparent 100%
+  );
+
+  /*
+   * Commissioned ARTWORK, which is a narrower case than photography.
+   *
+   * The city card, the assistant banner and the landing showcases are painted
+   * on renders that are night scenes in both themes: the artwork does not have
+   * a daylight variant and inventing one by washing it out would be worse than
+   * leaving it. So a panel laid over artwork keeps the deep navy the render is
+   * lit against rather than the theme's own surface, and the ink on it is the
+   * pale end of the blue family rather than the theme's own content colour.
+   *
+   * These are the values the city card had inline nine times over: rgb(1 1 24)
+   * at four alphas, three different pale blues, and one bare #010118.
+   */
+  --nf-surface-artwork: #010118;
+  --nf-overlay-artwork: rgb(1 1 24 / 0.78);
+  --nf-content-on-media-accent: #B4C6FF;
+  --nf-scrim-artwork: linear-gradient(
+    180deg,
+    rgb(1 1 24 / 0.82) 0%,
+    rgb(1 1 24 / 0.24) 34%,
+    rgb(1 1 24 / 0.30) 62%,
+    rgb(1 1 24 / 0.88) 100%
+  );
+  --nf-glow-on-media: 0 0 10px 3px color-mix(in oklab, var(--nf-electric-400) 90%, transparent);
+  --nf-halo-on-media: color-mix(in oklab, var(--nf-electric-400) 45%, transparent);
+
+  /* Photographic ground
+   *
+   * What a listing photograph is painted ON, and what shows when it has not
+   * arrived. Deliberately NOT brand blue: a card whose fallback is the brand
+   * gradient makes an empty result look like a designed feature. These are
+   * quiet depths of the surface family, so a missing photo reads as a place
+   * that has no photo rather than as a decoration. */
+  --nf-media-ground-from: var(--nf-ink-850);
+  --nf-media-ground-to: var(--nf-ink-950);
+  --nf-media-silhouette: rgb(0 0 0 / 0.42);
+  --nf-media-moon: rgb(255 255 255 / 0.16);
+
+  /* Brand object ground
+   *
+   * The commissioned icon artwork is opaque RGB rendered on white, and the
+   * white is removed at paint time with `mix-blend-mode: multiply`. Multiply
+   * against a near-black canvas returns near-black, so an object with nothing
+   * light behind it is not "subtle", it is gone. This token is the minimum
+   * ground that keeps an untiled object legible: one flat plate, no border, no
+   * shadow, no glow. In daylight the surfaces are already white, multiply is
+   * the identity there, and the token goes transparent so the object simply
+   * sits on the page with nothing around it at all. */
+  --nf-icon-ground: #F5F7FD;
 
   /* State
    *
@@ -156,6 +286,20 @@
   --nf-focus-ring: var(--nf-electric-300);
   --nf-focus-ring-width: 2px;
   --nf-focus-ring-offset: 2px;
+
+  /* Link ink
+   *
+   * An inline text link, and the "see all", "clear", "sign in" affordances
+   * that behave as one. It is its own role for the same reason the focus ring
+   * is: it is TYPE, so it has to clear 4.5:1 at body size in both themes,
+   * which --nf-brand-primary does not do at night. It rides --nf-electric-300
+   * exactly as the ring, the rating and the verified ink do, so all four move
+   * together with the one daylight override that token already carries.
+   *
+   * It exists because forty-odd link-coloured spans across the component tree
+   * were reaching straight into layer 1 for want of a name, which is the
+   * single most common ADR-002 violation in the codebase. */
+  --nf-content-link: var(--nf-electric-300);
 
   /* State surfaces, for chips and badges */
   --nf-state-success-surface: color-mix(in oklab, var(--nf-emerald-400) 15%, transparent);
@@ -195,7 +339,7 @@
   --nf-status-verified-surface: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
 
   /* ---------------------------------------------------------------------
-   * NaijaFinds Material. Four surface families (Design prompt §5).
+   * RentMe Material. Four surface families (Design prompt §5).
    * ------------------------------------------------------------------ */
 
   /*
@@ -394,6 +538,154 @@
   --nf-radius-pill: 999px;
 
   /* ---------------------------------------------------------------------
+   * SPACE. THE SCALE THAT DID NOT EXIST.
+   *
+   * This file tokenised radius, duration, easing, type, colour, gradient and
+   * shadow, and then stopped. Space, which is the single most frequent design
+   * decision anybody makes in this codebase, had nothing to reach for.
+   *
+   * The count at the time of writing, across 664 files under apps/web/src:
+   *
+   *   34 distinct raw Tailwind steps  (-px, -1.5, 0, 0.5 … 4.5, 7, 9, 11, 28)
+   *   4,115 uses of them
+   *   19 distinct arbitrary bracket escapes in 43 uses
+   *      p-[0.4rem]  gap-[0.55rem]  mt-[1.9rem]  pl-[3.25rem]  p-[2.375rem]
+   *   47 distinct literal values across 70 declarations in the stylesheets
+   *      padding: 0.52rem 0.95rem   padding: 0.85rem 1.5rem   gap: 0.35rem
+   *
+   * That is roughly four thousand one hundred spacing decisions taken against
+   * fifty three different answers, and it is why the product feels choked and
+   * inconsistent no matter how carefully any single screen is built. A gap of
+   * 0.85rem and a gap of 0.875rem are not two designs, they are one design
+   * typed twice; but 4.5 versus 5 versus 4 IS three designs, taken by three
+   * people who had no way of knowing what the other two chose. Nothing here
+   * was comparable to anything else, so every fix was a judgement call on one
+   * screen rather than a step on a shared scale.
+   *
+   * THE LADDER. Eleven steps. It doubles every two steps, so it is two
+   * interleaved doubling ramps (4-8-16-32-64-128 and 6-12-24-48-96) and the
+   * ratio between neighbours is a constant sqrt(2) ~ 1.414 in the middle,
+   * loosening to 1.5/1.33 at the ends where the eye needs finer control.
+   *
+   * A geometric ladder is the point. On a linear ladder (Tailwind's 1,2,3,4,
+   * 5,6,7,8) neighbouring steps are indistinguishable at the small end and
+   * useless at the large end, which is exactly what produced 2 and 2.5 and 3
+   * and 3.5 all in use on one screen. On a geometric ladder every step is a
+   * VISIBLE change, so choosing one is a real decision and the next person can
+   * see which decision you took.
+   *
+   * The base unit is 4px, so every value still lands on the 4px grid the icon
+   * sizes, control heights and hairlines are already drawn on.
+   * ------------------------------------------------------------------ */
+  --nf-space-0: 0rem;
+  --nf-space-3xs: 0.125rem;  /*  2px  hairline nudges, optical alignment */
+  --nf-space-2xs: 0.25rem;   /*  4px  inside a badge, letter-adjacent */
+  --nf-space-xs: 0.5rem;     /*  8px  icon to label, chip to chip */
+  --nf-space-sm: 0.75rem;    /* 12px  row to row, field to field */
+  --nf-space-md: 1rem;       /* 16px  item to item in a group */
+  --nf-space-lg: 1.5rem;     /* 24px  heading to its content, card padding */
+  --nf-space-xl: 2rem;       /* 32px  block to block inside a section */
+  --nf-space-2xl: 3rem;      /* 48px  section to section on a phone */
+  --nf-space-3xl: 4rem;      /* 64px  section to section on a tablet */
+  --nf-space-4xl: 6rem;      /* 96px  section to section on a desktop */
+  --nf-space-5xl: 8rem;      /* 128px the one deliberate silence on a page */
+
+  /* ---------------------------------------------------------------------
+   * VERTICAL RHYTHM. What the space is FOR, not how big it is.
+   *
+   * The ladder above stops the values disagreeing. It does not by itself make
+   * two screens feel the same, because two authors can pick two different
+   * rungs for the same job and both be "on the scale". The reference
+   * platform's calm comes as much from consistent vertical rhythm as it does
+   * from having fewer containers: the air between two sections is the same
+   * everywhere, the air between a heading and its content is the same
+   * everywhere, and the eye learns the interval within one screen and then
+   * trusts it for the rest of the product.
+   *
+   * So these are named for the RELATIONSHIP they express. An author asking
+   * "how much space goes between a heading and the thing it heads" gets one
+   * answer, not a rung to choose from.
+   *
+   * Five intervals, largest to smallest, and the ratio between neighbours is
+   * the same ~1.4 the ladder runs on, which is what makes the nesting legible:
+   * the space around a group is always visibly larger than the space inside it,
+   * so grouping is carried by rhythm rather than by drawing another box. That
+   * is the mechanism behind "fewer containers": you do not need a border to
+   * say these four things belong together if the air already says it.
+   *
+   *   section  48 -> 96   between two sections of a page
+   *   section-tight       between two subsections of a long page
+   *   block    32         between two blocks inside one section
+   *   heading  24         between a heading and the content under it
+   *   group    16         between sibling items in a group
+   *   row      12         between two rows of one list, and between a title
+   *                       and its own subtitle, which is the same relationship
+   *   inline    8         between an icon and its label
+   *   inline-tight  4     between two things that are almost one thing
+   *
+   * EIGHT NAMES, EIGHT DISTINCT VALUES. There was very nearly a ninth called
+   * `lede` sitting at 12px next to `row` at 12px, which is the exact fault the
+   * type scale had before it was fixed: body-lg 15.5, body 14, body-sm 14, so
+   * an author reaching for the quieter tier changed nothing and reached for
+   * colour instead. Two names for one number is a scale that lies about how
+   * many decisions it offers. A title and its subtitle ARE two rows of one
+   * object, so they take the row interval and there is no ninth name.
+   *
+   * SECTION AND SHELL ARE FLUID, AND THAT IS THE OTHER HALF OF THE FIX.
+   *
+   * Every section on the landing page currently writes its own responsive
+   * pair by hand: six of them say `py-12 sm:py-16` and the one below them says
+   * `py-16 sm:py-24`, so the same page changes its rhythm halfway down and
+   * jumps at exactly one breakpoint on the way. clamp() removes both faults at
+   * once. There is one section interval, it grows continuously with the
+   * viewport instead of stepping at 640px, and no screen can hold a different
+   * opinion about it because there is nothing per screen left to type.
+   * ------------------------------------------------------------------ */
+  --nf-gap-section: clamp(3rem, 1.5rem + 6vw, 6rem);        /* 48 -> 96 */
+  --nf-gap-section-tight: clamp(2rem, 1.25rem + 3vw, 3rem);  /* 32 -> 48 */
+  --nf-gap-block: var(--nf-space-xl);
+  --nf-gap-heading: var(--nf-space-lg);
+  --nf-gap-group: var(--nf-space-md);
+  /* Rows of a list, and a title with its own subtitle. Before this existed
+     that second case was written at mt-1.5, mt-2, mt-2.5, mt-3, mt-4 and mt-5
+     across the marketing pages alone: six answers to one question. */
+  --nf-gap-row: var(--nf-space-sm);
+  --nf-gap-inline: var(--nf-space-xs);
+  --nf-gap-inline-tight: var(--nf-space-2xs);
+
+  /* ---------------------------------------------------------------------
+   * PADDING ROLES. The inside of an object, by what the object is.
+   *
+   * Card padding was p-4, p-5, p-6, p-7, p-8, p-9 and p-10 in the marketing
+   * tree alone, which is seven answers to "how much air does a card have
+   * inside it". Two remain: the ordinary card and the one that is carrying a
+   * page's whole argument.
+   *
+   * A row supplies its own INLINE padding while the group supplies the block
+   * padding, which is what lets a row's hover and press states reach the full
+   * width of the surface rather than stopping short of it. See .nf-group.
+   * ------------------------------------------------------------------ */
+  --nf-pad-shell: clamp(1.25rem, 0.75rem + 2vw, 2rem);  /* the page gutter, 20 -> 32 */
+  --nf-pad-card: var(--nf-space-lg);       /* 24, the ordinary card */
+  --nf-pad-card-lg: clamp(2rem, 1rem + 4vw, 4rem);      /* the one card a page is built around */
+  --nf-pad-card-sm: var(--nf-space-md);    /* 16, a card inside another surface */
+  /*
+   * A CELL inside a grouped surface (.nf-cells), which is not a card and wants
+   * more air than one. A card has a border and a shadow helping it hold its
+   * own edge; a cell has nothing but the space around its contents and a
+   * hairline shared with its neighbour, so the padding IS the container. The
+   * two bands using this pattern had drifted to p-7 sm:p-8 and p-6 sm:p-7,
+   * which is four numbers for one job on one page.
+   */
+  --nf-pad-cell: var(--nf-space-xl);       /* 32 */
+  --nf-pad-row-block: var(--nf-space-sm);
+  --nf-pad-row-inline: var(--nf-space-md);
+  --nf-pad-control-block: var(--nf-space-sm);
+  --nf-pad-control-inline: var(--nf-space-md);
+  --nf-pad-chip-block: var(--nf-space-xs);
+  --nf-pad-chip-inline: var(--nf-space-sm);
+
+  /* ---------------------------------------------------------------------
    * Motion. Every duration here has a reduced motion answer below.
    * ------------------------------------------------------------------ */
   --nf-duration-instant: 90ms;
@@ -429,18 +721,45 @@
    * Type scale. The clamp lower bounds are tuned for a phone first: a heading
    * must feel calm on a 390px screen, not shout, so the mobile floor sits well
    * below the desktop ceiling and grows with the viewport.
+   *
+   * THE BODY END OF THIS SCALE WAS TOO SMALL, AND TWO OF ITS STEPS WERE THE
+   * SAME NUMBER.
+   *
+   * It read: body-lg 15.5px, body 14px, body-sm 14px. So the default reading
+   * size on a consumer product people use one-handed on a phone in daylight
+   * was 14px, "large" body was a step of one and a half pixels above it, and
+   * body-sm was not small at all, it was body under a second name. Three
+   * tokens describing two sizes, one of which was too small to be the default.
+   *
+   * A component author reaching for body-sm believed they were making
+   * something quieter and changed nothing, so the quiet tier got expressed in
+   * colour instead, which is why muted grey ended up doing the work that size
+   * should have been doing.
+   *
+   * The scale now steps properly and starts where a phone wants it:
+   *
+   *   body-lg  17px   a lede, or the first paragraph of a section
+   *   body     16px   THE DEFAULT. What running text is, everywhere.
+   *   body-sm  14.5px genuinely smaller: metadata, secondary rows
+   *   caption  13px   the quietest readable tier
+   *   overline 11.5px labels above a section, uppercase and tracked
+   *
+   * h4 goes to 1.25rem so there is a real step between it and body-lg rather
+   * than the 1.5px that separated them, and h3's floor rises with it so the
+   * heading tiers stay distinguishable on a narrow screen, which is the only
+   * place they were ever at risk of collapsing into each other.
    */
   --nf-text-display: clamp(1.95rem, 1.1rem + 4vw, 4.6rem);
   --nf-text-hero: clamp(1.7rem, 1.05rem + 2.9vw, 3.5rem);
-  --nf-text-h1: clamp(1.45rem, 1.1rem + 1.7vw, 2.5rem);
-  --nf-text-h2: clamp(1.22rem, 1.05rem + 0.9vw, 1.8rem);
-  --nf-text-h3: clamp(1.15rem, 1.05rem + 0.5vw, 1.375rem);
-  --nf-text-h4: 1.125rem;
-  --nf-text-body-lg: 0.9688rem;
-  --nf-text-body: 0.875rem;
-  --nf-text-body-sm: 0.875rem;
+  --nf-text-h1: clamp(1.5rem, 1.1rem + 1.8vw, 2.5rem);
+  --nf-text-h2: clamp(1.3rem, 1.05rem + 1vw, 1.85rem);
+  --nf-text-h3: clamp(1.1875rem, 1.05rem + 0.6vw, 1.4375rem);
+  --nf-text-h4: 1.25rem;
+  --nf-text-body-lg: 1.0625rem;
+  --nf-text-body: 1rem;
+  --nf-text-body-sm: 0.90625rem;
   --nf-text-caption: 0.8125rem;
-  --nf-text-overline: 0.6875rem;
+  --nf-text-overline: 0.71875rem;
 
   --nf-tracking-display: -0.035em;
   --nf-tracking-tight: -0.02em;
@@ -465,12 +784,22 @@
 }
 
 /*
- * Light theme scaffold.
+ * The light theme.
  *
- * Every reference supplied so far is dark, so dark is the designed and reviewed
- * theme. These light values keep components token driven and prevent hard coded
- * darkness leaking into markup, but the light theme has NOT had a design pass.
- * Tracked in KNOWN_GAPS.md before it is exposed to users.
+ * No longer a scaffold. Dark is still the default and the theme most of the
+ * reference material was drawn against, but daylight is now a designed twin
+ * rather than an inversion of the night: its own flat neutral canvas, its own
+ * elevation ladder, and every ink in it measured against the surface it is
+ * actually painted on. The state colours, the muted ink, the info ink and the
+ * gradient text stops all carry values chosen to clear WCAG AA here rather
+ * than values inherited from the dark theme and hoped for.
+ *
+ * The rule for anything added below: a token that exists in the dark block and
+ * is not answered here is a token that will be wrong in daylight. Blues that
+ * glow against black go flat or invisible on paper, and white washes over a
+ * white card are nothing at all. Nine tokens were in exactly that state, the
+ * worst of them --nf-gradient-surface, which painted a white gradient onto a
+ * white surface. They are all answered now.
  */
 :root[data-theme="light"] {
   /*
@@ -498,10 +827,35 @@
    */
   --nf-content-muted: #676E76;
   --nf-content-on-brand: #FFFFFF;
+  /* 6.95:1 on white, 6.38:1 on canvas, 6.15:1 on inset: the readable tier
+     between secondary and muted, safe at any size on every light surface. */
+  --nf-content-subtle: #545A63;
+  /* The opposite ground to daylight's own, so the ink on it is white. */
+  --nf-content-inverse: #FFFFFF;
 
   /* Vivid brand blue that holds contrast on paper. */
   --nf-brand-primary: #0C2FE8;
   --nf-brand-primary-strong: #0010D0;
+  /*
+   * The accent was the one brand token with no daylight answer. It stayed on
+   * --nf-electric-400 (#0C39EF), which is fine as a fill but is used through
+   * color-mix at 32 to 95 percent as a RING and a GLOW, and a deep electric
+   * ring on white paper reads as a hard navy hairline rather than a highlight.
+   * Daylight takes the vivid brand blue, which is the same family one step
+   * brighter and is what every other accent role here already resolves to.
+   */
+  --nf-brand-accent: #0C2FE8;
+
+  /*
+   * Mode accents on paper. Personal, agent and admin are told apart by depth
+   * rather than by hue, and the three night values (#0010E0, #0C39EF,
+   * #000F98) collapse into each other against white: two of them are within
+   * 1.4:1 of one another there, so the three modes were indistinguishable in
+   * daylight. These keep the same ordering, spread far enough apart to read.
+   */
+  --nf-mode-personal: #0C2FE8;
+  --nf-mode-agent: #2450FF;
+  --nf-mode-admin: #0010A0;
 
   /* Daylight CTA is a near-flat vivid brand blue, never near-black navy. */
   --nf-gradient-cta: linear-gradient(180deg, #2450FF 0%, #0C39EF 100%);
@@ -509,6 +863,34 @@
   --nf-border-subtle: rgb(18 21 26 / 0.08);
   --nf-border-default: rgb(18 21 26 / 0.13);
   --nf-border-strong: rgb(18 21 26 / 0.22);
+  --nf-divider: rgb(18 21 26 / 0.09);
+
+  /*
+   * Interactive feedback on paper. The night values are white washes, and a
+   * white wash over a white card is not a hover state, it is nothing. These
+   * are the same overlays inverted to the neutral ink, so one set of class
+   * names gives a visible response in both themes.
+   */
+  --nf-interactive-hover: rgb(18 21 26 / 0.045);
+  --nf-interactive-active: rgb(18 21 26 / 0.085);
+  --nf-interactive-disabled: rgb(18 21 26 / 0.035);
+
+  --nf-overlay-backdrop: rgb(18 21 26 / 0.42);
+
+  /*
+   * The photographic ground follows the theme; the media OVERLAY tokens
+   * deliberately do not. What sits under a gallery control is a photograph in
+   * both themes, so the dark glass is correct at noon as well as at midnight
+   * and those five tokens are intentionally absent from this block.
+   */
+  --nf-media-ground-from: #DFE4EC;
+  --nf-media-ground-to: #C7CEDB;
+  --nf-media-silhouette: rgb(18 21 26 / 0.20);
+  --nf-media-moon: rgb(255 255 255 / 0.55);
+
+  /* Multiply is the identity against white, so a brand object needs no plate
+     at all on paper: it simply sits on the page. */
+  --nf-icon-ground: transparent;
 
   /*
    * Daylight glass. Same four ingredients as the night theme, tuned for paper:
@@ -641,6 +1023,63 @@
   --nf-state-info-surface: color-mix(in oklab, var(--nf-state-info) 12%, transparent);
   /* Rating rides --nf-electric-300, so it follows this deeper blue on paper
      without needing its own daylight value. */
+
+  /*
+   * ------------------------------------------------------------------
+   * Daylight gradients and glows.
+   *
+   * All of these had no light value at all, which meant the night value ran
+   * unchanged on paper. Listed worst first.
+   * ------------------------------------------------------------------ */
+
+  /*
+   * WHITE ON WHITE. The night value is a white wash used to lift a surface off
+   * the canvas behind it. On paper the surfaces ARE white, so the wash lifted
+   * nothing and every element carrying it was a flat white rectangle. It is
+   * now the same shape in the neutral ink, so the lift survives the theme.
+   */
+  --nf-gradient-surface: linear-gradient(
+    180deg,
+    rgb(18 21 26 / 0.035) 0%,
+    rgb(18 21 26 / 0.012) 100%
+  );
+
+  /*
+   * The two glows. A glow is a light source, and a light source only reads
+   * against a dark ground: the night values throw a 40px electric bloom that
+   * on white paper is a dirty blue smudge with a hard navy ring inside it.
+   * Daylight keeps the RING, which is the part that carries the meaning, and
+   * replaces the bloom with a short soft brand-tinted shadow.
+   */
+  --nf-glow-brand:
+    0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 28%, transparent),
+    0 6px 18px -8px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+  --nf-glow-accent: 0 6px 18px -10px color-mix(in oklab, var(--nf-brand-accent) 28%, transparent);
+
+  /*
+   * The signature ramps.
+   *
+   * All four travel the blue family, and all four were tuned against the night
+   * canvas: their bright ends run #5C7CFF, which measures 3.63:1 against white
+   * and only 1.4:1 against the deep end of the same gradient. Used as a FILL
+   * under white text, that end failed AA outright: avatars, progress bars, the
+   * agent stepper and the wizard rail all print white on #5C7CFF in daylight.
+   *
+   * Each ramp keeps its shape, its direction and its number of stops, and
+   * every stop steps down until white on the LIGHTEST point of the gradient
+   * clears 4.5:1. The lightest stop below is #2450FF at 5.73:1.
+   */
+  --nf-gradient-primary: linear-gradient(
+    90deg,
+    #2450FF 0%,
+    #2B3FE0 22%,
+    #0C39EF 48%,
+    #0C2FE8 72%,
+    #1A2596 100%
+  );
+  --nf-gradient-brand: linear-gradient(135deg, #2450FF 0%, #0010D0 100%);
+  --nf-gradient-iridescent: linear-gradient(135deg, #2450FF 0%, #0C39EF 52%, #0010D0 100%);
+  --nf-gradient-agent: linear-gradient(135deg, #2450FF 0%, #0010D0 100%);
 }
 
 /*

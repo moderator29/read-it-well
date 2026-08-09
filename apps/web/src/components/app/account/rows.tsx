@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { ICON } from "@/components/app/Screen";
 import { useOverlay } from "@/lib/ui/use-overlay";
 
 /**
@@ -49,7 +50,10 @@ export function SettingsGroup({
           {label}
         </h2>
       )}
-      <div className="nf-sgroup__body">{children}</div>
+      {/* `.nf-card` is the platform's glass. The group used to paint its own
+          flat fill and its own border, which made the account screens the one
+          place in the product rendering opaque boxes. One material, everywhere. */}
+      <div className="nf-sgroup__body nf-card">{children}</div>
       {note && <p className="nf-sgroup__note">{note}</p>}
     </section>
   );
@@ -74,7 +78,7 @@ function RowInner({
     <>
       {icon ? (
         <span className="nf-srow__icon" aria-hidden="true">
-          <UiIcon name={icon} size={20} />
+          <UiIcon name={icon} size={ICON.row} />
         </span>
       ) : (
         /* Keeps the label column aligned in a group where only some rows carry
@@ -95,7 +99,7 @@ function RowInner({
 
 const Chevron = (
   <span className="nf-srow__chev" aria-hidden="true">
-    <UiIcon name="chevron-down" size={16} className="-rotate-90" />
+    <UiIcon name="chevron-down" size={ICON.inline} className="-rotate-90" />
   </span>
 );
 
@@ -263,7 +267,7 @@ export function RowSwitch({
     <div className="nf-srow">
       {icon ? (
         <span className="nf-srow__icon" aria-hidden="true">
-          <UiIcon name={icon} size={20} />
+          <UiIcon name={icon} size={ICON.row} />
         </span>
       ) : (
         <span className="nf-srow__icon" aria-hidden="true" />
@@ -337,7 +341,7 @@ export function RowSelect<T extends string>({
           adjacent-sibling rule in the stylesheet handles that. */}
       {icon ? (
         <span className="nf-srow__icon" aria-hidden="true">
-          <UiIcon name={icon} size={20} />
+          <UiIcon name={icon} size={ICON.row} />
         </span>
       ) : (
         <span className="nf-srow__icon" aria-hidden="true" />
@@ -350,7 +354,7 @@ export function RowSelect<T extends string>({
       </span>
       <span className="nf-srow__value">{current?.label ?? value}</span>
       <span className="nf-srow__chev" aria-hidden="true">
-        <UiIcon name="chevron-down" size={16} />
+        <UiIcon name="chevron-down" size={ICON.inline} />
       </span>
     </div>
   );
@@ -406,7 +410,7 @@ export function RowSegment<T extends string>({
     <div className="nf-srow flex-wrap">
       {icon ? (
         <span className="nf-srow__icon" aria-hidden="true">
-          <UiIcon name={icon} size={20} />
+          <UiIcon name={icon} size={ICON.row} />
         </span>
       ) : (
         <span className="nf-srow__icon" aria-hidden="true" />
@@ -415,7 +419,11 @@ export function RowSegment<T extends string>({
         <span className="nf-srow__label">{label}</span>
         {sub && <span className="nf-srow__sub">{sub}</span>}
       </span>
-      <div className="w-full min-w-0 basis-full pl-[2.375rem] pt-2 sm:w-auto sm:basis-auto sm:pl-0 sm:pt-0">
+      {/* On a phone the segment drops to its own line and lines up under the
+          label rather than under the glyph. The indent is the glyph box plus
+          the row's gap, which is the same sum the row divider is inset by, so
+          the two stay aligned without either being measured by hand. */}
+      <div className="w-full min-w-0 basis-full pl-[calc(1.75rem+var(--nf-gap-inline))] pt-inline sm:w-auto sm:basis-auto sm:pl-0 sm:pt-0">
         <Segment value={value} options={options} onChange={onChange} label={label} />
       </div>
     </div>
@@ -501,7 +509,7 @@ export function Sheet({
             aria-label="Close"
             className="nf-rows-sheet__close nf-tap"
           >
-            <UiIcon name="close" size={16} />
+            <UiIcon name="close" size={ICON.inline} />
           </button>
         </div>
         <div className="nf-rows-sheet__body">{children}</div>

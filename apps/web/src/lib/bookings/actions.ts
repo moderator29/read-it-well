@@ -25,7 +25,7 @@
 
 import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
-import { bestEffortEmail, sendEmail } from "../email/client";
+import { bestEffortEmail, sendMessage } from "../email/client";
 import {
   bookingCancelled,
   bookingRequested,
@@ -61,7 +61,13 @@ const SEED_LISTING_MESSAGE =
   "This stay opens for booking as soon as live inventory lands. Save it and check back soon.";
 
 const RENTAL_MESSAGE =
-  "This home is rented per year, not per night. Message the agent to arrange an inspection.";
+  "This home is rented on a tenancy, not per night. Message the agent to arrange an inspection.";
+
+const SALE_MESSAGE =
+  "This property is for sale, not for booking. Message the agent to arrange a viewing.";
+
+const RESTAURANT_MESSAGE =
+  "This place takes table reservations rather than overnight stays. Reserve a table from the listing.";
 
 const UNKNOWN_LISTING_MESSAGE =
   "We could not find this listing. It may no longer be available. Explore other stays from search.";
@@ -141,15 +147,23 @@ export async function reserve(
   // cannot be written to bookings (the FK points at real listings), so they
   // get an honest refusal rather than a fake booking.
   let priceMinor: number | null = null;
-  let cleaningMinor = 0;
-  let serviceMinor = 0;
-  /* The shortest stay this host accepts. Defaults to one so a seed listing,
-     which has no such column, behaves exactly as it did before. */
-  let minStayNights = 1;
-  /* How many guests the host says the place takes. Defaults to null, which
-     means "this source declares no capacity", so a seed listing behaves
-     exactly as it did before. */
-  let maxGuests: number | null = null;
+  /* Cleaning and service fees are gone from the schema. They belonged to the
+     short-stay model this platform started as; the rent and sale model that
+     replaced it has a move-in cost breakdown instead, which is a property of
+     the tenancy and not of a night. Kept as named zeros rather than deleted
+     because `bookings` still carries both columns and a booking row has to
+     state something for them. */
+  const cleaningMinor = 0;
+  const serviceMinor = 0;
+  /* The shortest stay a host accepts is no longer a column. `min_stay_nights`
+     went with the short-stay model, so every stay is one night or more, which
+     is what the date validation already enforces. */
+  const minStayNights = 1;
+  /* Capacity is no longer declared per listing either: `max_guests` went with
+     the same model. Null means "this source declares no capacity", which is
+     exactly how the seed catalogue has always behaved, so the party-size check
+     below is skipped rather than guessing a ceiling nobody stated. */
+  const maxGuests: number | null = null;
   // Read for the emails sent once the booking has saved, nothing else.
   let listingTitle = "your stay";
   let listingAgentId: string | null = null;
@@ -157,19 +171,28 @@ export async function reserve(
   if (UUID_RE.test(input.listingId)) {
     const { data: row, error } = await session.supabase
       .from("listings")
-      .select(
-        "id, title, agent_id, price_per_night_minor, cleaning_fee_minor, service_fee_minor, price_period, min_stay_nights, max_guests",
-      )
+      .select("id, title, agent_id, listing_intent, rate_minor, rate_period, rent_amount_minor")
       .eq("id", input.listingId)
       .maybeSingle();
     if (error) return fail(GENERIC_RESERVE_MESSAGE);
     if (row) {
-      if (row.price_period === "year") return fail(RENTAL_MESSAGE);
-      priceMinor = row.price_per_night_minor;
-      cleaningMinor = row.cleaning_fee_minor;
-      serviceMinor = row.service_fee_minor;
-      minStayNights = row.min_stay_nights;
-      maxGuests = row.max_guests;
+      /* Three refusals, in the order somebody would meet them.
+
+         A property for sale is not reservable at all: there are no nights to
+         hold and no arrival date to hold them for. A tenancy is not reservable
+         either, and that refusal has always existed here; what changed is how
+         it is detected. `price_period = 'year'` used to say it. Now the honest
+         test is whether the listing carries a nightly rate at all: a tenancy
+         states rent_amount_minor and leaves rate_minor at zero, and a shortlet
+         does the reverse. */
+      if (row.listing_intent === "sale") return fail(SALE_MESSAGE);
+      if (row.rate_minor <= 0 || row.rate_period === null) return fail(RENTAL_MESSAGE);
+      /* Per head, not per night. A restaurant table is reserved through
+         `reservations`, which is its own path with its own row shape, and
+         multiplying a head price by a number of nights would invoice somebody
+         for a week of dinners they never ordered. */
+      if (row.rate_period === "guest") return fail(RESTAURANT_MESSAGE);
+      priceMinor = row.rate_minor;
       listingTitle = row.title;
       listingAgentId = row.agent_id;
     }
@@ -317,7 +340,7 @@ export async function reserve(
 
     if (guest) {
       const message = bookingRequested({ guestName: guest.name, ...stay });
-      jobs.push(sendEmail({ to: guest.email, subject: message.subject, html: message.html }));
+      jobs.push(sendMessage(guest.email, message));
     }
 
     // The host's address needs the service role. Without it, their email is
@@ -331,7 +354,7 @@ export async function reserve(
           guestName: guest?.name ?? null,
           ...stay,
         });
-        jobs.push(sendEmail({ to: host.email, subject: message.subject, html: message.html }));
+        jobs.push(sendMessage(host.email, message));
       }
     }
 
@@ -447,7 +470,7 @@ export async function cancel(
       checkIn: booking.check_in,
       checkOut: booking.check_out,
     });
-    await sendEmail({ to: guest.email, subject: message.subject, html: message.html });
+    await sendMessage(guest.email, message);
   });
 
   revalidatePath("/bookings");

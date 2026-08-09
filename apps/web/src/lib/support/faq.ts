@@ -76,19 +76,19 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "verified-badge",
     keywords: ["verif", "badge", "trust", "kyc", "identity", "real listing", "genuine"],
     answer:
-      "The blue verified badge appears only on first-party RentMe inventory, where an agent has passed ID and address checks. Partner stock from outside feeds never carries the badge, so the badge always means a person we have verified stands behind the listing.",
+      "The blue verified badge means the person behind the listing has passed ID and address checks on RentMe. Every listing on RentMe was put up by a real person here, so the badge is about how far up the verification ladder that person has climbed, never about where the listing came from.",
   },
   {
-    id: "partner-stock",
-    keywords: ["partner", "hotel", "restaurant", "no price", "price is missing", "third party"],
+    id: "where-listings-come-from",
+    keywords: ["partner", "third party", "feed", "where do listings come from", "real listing", "scrape"],
     answer:
-      "Some hotels and restaurants come from partner feeds rather than from a RentMe agent. They are shown without the verified badge, and where the partner publishes no nightly rate we say the price is not published rather than showing you a figure we were not given. Booking a partner stay happens through the partner's own terms, which the listing states.",
+      "Every listing on RentMe was put up by somebody on RentMe. We import nothing from outside feeds, so there is always a real person behind a listing: somebody to message, somebody to inspect the place with, and somebody accountable if it is not as described.",
   },
   {
     id: "agents",
     keywords: ["agent", "list my", "list a propert", "become", "host", "shortlet", "rent out", "landlady"],
     answer:
-      "To list property, open Become an agent from your profile and complete the application: your details, business area and a valid ID. Applications and verification documents are answered within 3 days. Once approved you can publish listings, manage availability and receive bookings.",
+      "To list property, open your profile and switch profile at the top of the screen, then pick Listing or selling if the property is your own, or Agent or realtor if you do this for other people. Whichever you pick explains what it is and starts the setup: your details, business area and a valid ID. Applications and verification documents are answered within 3 days. Once approved you can publish listings, manage availability and receive bookings.",
   },
   {
     id: "languages",

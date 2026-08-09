@@ -1,6 +1,7 @@
 "use client";
 
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { MediaSkyline, mediaGround } from "@/components/app/MediaFrame";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { SAFETY_EDUCATION_COPY } from "@/lib/messages/education";
 import { Button } from "@/components/ui/Button";
@@ -27,15 +28,20 @@ export type SheetListing = {
   hue: number;
 };
 
-/** Placeholder media hues, matching the listing card treatment. */
-const HUES: [string, string][] = [
-  ["#1E3A8A", "#172554"],
-  ["#155E75", "#0F172A"],
-  ["#0C4A6E", "#111827"],
-  ["#334155", "#0F172A"],
-  ["#1E40AF", "#1E1B4B"],
-  ["#312E81", "#0F172A"],
-];
+/*
+ * THE SEVENTH COPY OF THE HARD-CODED HUE ARRAY, NOW DELETED.
+ *
+ * Twelve raw hex literals lived here as a local "placeholder media hues,
+ * matching the listing card treatment" table. It did not match it: the card
+ * moved to `mediaGround` and its tokens some time ago, so this sheet was the
+ * last surface still painting a fixed navy ramp. Being fixed, it stayed navy in
+ * the light theme, where the rest of the sheet is white.
+ *
+ * `mediaGround(hue)` is the shared treatment. It keeps the hue meaningful - the
+ * value still rotates the gradient angle, so two listings do not look identical
+ * - while the colours themselves come from `--nf-media-ground-*` and follow the
+ * theme.
+ */
 
 export function ThreadOptionsSheet({
   open,
@@ -60,7 +66,6 @@ export function ThreadOptionsSheet({
   onConfirmInspection: () => void;
   onClose: () => void;
 }) {
-  const [from, to] = HUES[listing.hue % HUES.length] ?? HUES[0]!;
 
   return (
     <Sheet
@@ -104,18 +109,15 @@ export function ThreadOptionsSheet({
         <div
           aria-hidden="true"
           className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl"
-          style={{ background: `linear-gradient(150deg, ${from} 0%, ${to} 100%)` }}
+          style={{ background: mediaGround(listing.hue) }}
         >
-          <svg
-            viewBox="0 0 400 300"
-            className="absolute inset-0 h-full w-full opacity-60"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M0 300V190h34v-52h30v52h28v-84h44v84h26v-40h38v40h30v-66h40v66h34v-30h32v30h30v-46h34v46Z"
-              fill="rgba(0,0,0,0.42)"
-            />
-          </svg>
+          {/* The platform's own media fallback, not a seventh copy of it.
+              This carried the skyline path inline with `fill="rgba(0,0,0,0.42)"`
+              hardcoded, which is a raw colour and a dark one: on a light theme
+              it punched a black silhouette through the sheet. `MediaSkyline`
+              draws the same path on `--nf-media-silhouette`, which is a depth
+              of the surface family in each theme. */}
+          <MediaSkyline hue={0} className="opacity-60" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[0.9063rem] font-semibold">{listing.title}</p>
