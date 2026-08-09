@@ -68,7 +68,7 @@ export function ReviewForm({ subject }: { subject: ReviewSubject }) {
   const remaining = BODY_MAX - body.length;
 
   return (
-    <form action={formAction} className="nf-card p-4 sm:p-5">
+    <form action={formAction} className="nf-card p-card">
       <input type="hidden" name="bookingId" value={subject.bookingId} />
 
       <fieldset className="border-0 p-0">
@@ -76,7 +76,7 @@ export function ReviewForm({ subject }: { subject: ReviewSubject }) {
           How was the stay?
         </legend>
 
-        <div className="mt-3 flex items-center gap-1">
+        <div className="mt-heading flex items-center gap-inline-tight">
           {stars.map((value) => {
             const active = rating >= value;
             return (
@@ -115,13 +115,13 @@ export function ReviewForm({ subject }: { subject: ReviewSubject }) {
             when the first star is picked. */}
         <p
           aria-live="polite"
-          className="mt-1 min-h-[1.25rem] text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]"
+          className="mt-row min-h-[1.25rem] nf-body-sm font-medium text-[var(--nf-content-secondary)]"
         >
           {rating > 0 ? RATING_LABELS[rating] : ""}
         </p>
       </fieldset>
 
-      <div className="mt-5">
+      <div className="mt-block">
         <label
           htmlFor="review-body"
           className="nf-overline block text-[var(--nf-content-muted)]"
@@ -136,9 +136,9 @@ export function ReviewForm({ subject }: { subject: ReviewSubject }) {
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Was there steady light and water? How was the host? Would you go back?"
-          className="nf-field mt-2 w-full resize-y leading-relaxed"
+          className="nf-field mt-heading w-full resize-y leading-relaxed"
         />
-        <p className="mt-1.5 flex items-center justify-between gap-3 text-[0.75rem] text-[var(--nf-content-muted)]">
+        <p className="mt-row flex items-center justify-between gap-row nf-caption text-[var(--nf-content-muted)]">
           <span>Optional. Your first name and last initial appear with it.</span>
           <span className="nf-numeric shrink-0">{remaining}</span>
         </p>
@@ -147,7 +147,7 @@ export function ReviewForm({ subject }: { subject: ReviewSubject }) {
       {state && !state.ok && (
         <p
           role="alert"
-          className="mt-4 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+          className="mt-block rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-card-sm nf-body-sm leading-relaxed text-[var(--nf-state-warning)]"
         >
           {state.error}
         </p>
@@ -156,12 +156,14 @@ export function ReviewForm({ subject }: { subject: ReviewSubject }) {
       <button
         type="submit"
         disabled={pending}
-        className="nf-btn nf-btn--primary mt-5 w-full disabled:opacity-60"
+        className="nf-btn nf-btn--primary mt-block w-full disabled:opacity-60"
       >
         {pending ? "Sharing your review..." : "Share review"}
       </button>
 
-      <p className="mt-3 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+      {/* 12px on the sentence warning somebody not to put a bank account
+          number where the whole internet can read it. Caption is the floor. */}
+      <p className="mt-heading nf-caption leading-relaxed text-[var(--nf-content-muted)]">
         Reviews are public and cannot be edited once shared, so please write what
         you would want to read. Never put a bank account number in a review.
       </p>

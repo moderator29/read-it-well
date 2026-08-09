@@ -10,10 +10,10 @@ export default function LoadingReview() {
   return (
     <LoadingShell label="Loading this stay" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton />
-      <div className="nf-card p-5">
+      <div className="nf-card p-card">
         <Skeleton width="40%" height="0.8125rem" radius="sm" />
-        <Skeleton className="mt-3" height="2.25rem" radius="sm" />
-        <Skeleton className="mt-4" height="3.5rem" radius="lg" />
+        <Skeleton className="mt-heading" height="2.25rem" radius="sm" />
+        <Skeleton className="mt-block" height="3.5rem" radius="lg" />
       </div>
     </LoadingShell>
   );
