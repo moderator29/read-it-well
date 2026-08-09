@@ -127,6 +127,45 @@
   }
 
   /*
+   * INSET DIVIDERS, which is the detail that makes a list read as ONE OBJECT
+   * WITH PARTS rather than as stacked strips.
+   *
+   * A hairline that runs the full width of its container meets the container's
+   * own edge, and two lines a few pixels apart at the corner is what makes a
+   * grouped list look like a stack of separate bars. The reference platform
+   * insets every divider so it starts after the row's leading glyph and stops
+   * before the trailing chevron, and the surface reads as a single rounded
+   * object that happens to have rows in it.
+   *
+   * The inset is expressed on the ROW rather than on a pseudo-element, so it
+   * composes with whatever padding the surface carries: the divider is drawn by
+   * the row's own top border and pulled in from both sides by a margin, which
+   * keeps it clear of the corner radius at every width.
+   *
+   * `--nf-row-inset` is the leading indent. It defaults to the glyph column
+   * (24px glyph plus the 0.875rem row gap) and a surface with no leading glyphs
+   * can set it to 0 locally without a second class.
+   */
+  .nf-rows--inset {
+    --nf-row-inset: 2.375rem;
+  }
+
+  .nf-rows--inset > * + * {
+    border-top: none;
+    position: relative;
+  }
+
+  .nf-rows--inset > * + *::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: var(--nf-row-inset);
+    inset-inline-end: 0;
+    top: 0;
+    border-top: 1px solid var(--nf-divider);
+    pointer-events: none;
+  }
+
+  /*
    * One row. Generous by default, because these are touch targets before they
    * are text: 56px minimum is the comfortable end of the accessible range
    * rather than the 44px floor, and this product is used one-handed on a

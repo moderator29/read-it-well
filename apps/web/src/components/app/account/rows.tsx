@@ -49,7 +49,10 @@ export function SettingsGroup({
           {label}
         </h2>
       )}
-      <div className="nf-sgroup__body">{children}</div>
+      {/* `.nf-card` is the platform's glass. The group used to paint its own
+          flat fill and its own border, which made the account screens the one
+          place in the product rendering opaque boxes. One material, everywhere. */}
+      <div className="nf-sgroup__body nf-card">{children}</div>
       {note && <p className="nf-sgroup__note">{note}</p>}
     </section>
   );

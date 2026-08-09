@@ -288,21 +288,30 @@ export function EmptyState({
 export function RowList({
   children,
   boxed,
+  inset = true,
   className,
   "data-testid": testId,
 }: {
   children: ReactNode;
-  /** Put ONE surface around the whole list. See `Surface` for the geometry. */
+  /** Put ONE glass surface around the whole list. See `Surface`. */
   boxed?: boolean;
+  /**
+   * Inset the dividers so they clear the leading glyph column.
+   *
+   * On by default, because it is what makes a boxed list read as one object
+   * with parts. Turn it off for a list with no leading glyphs, where an
+   * indented line would look like a mistake rather than an alignment.
+   */
+  inset?: boolean;
   className?: string;
   "data-testid"?: string;
 }) {
   return (
     <ul
       data-testid={testId}
-      className={`nf-rows ${boxed ? "nf-card overflow-hidden px-5 sm:px-7" : ""} ${
-        className ?? ""
-      }`}
+      className={`nf-rows ${inset ? "nf-rows--inset" : ""} ${
+        boxed ? "nf-card overflow-hidden rounded-[var(--nf-radius-xl)] px-5 sm:px-7" : ""
+      } ${className ?? ""}`}
     >
       {children}
     </ul>
@@ -337,20 +346,37 @@ export function Row({
 /* ========================================================================== */
 
 /**
- * One large, calm, generous surface.
+ * One large, calm, generous glass surface.
  *
- * THE DIRECTION IS FEWER AND BIGGER, NOT SMALLER. Four little boxes in a row is
- * the thing that reads cheap; one roomy surface holding the same four things,
- * separated by dividers and air, is what the reference platform does and what
- * reads expensive. So this exists to stop the next person reaching for
- * `nf-card p-4`: padding, radius and internal rhythm are decided here once.
+ * THE MATERIAL IS OURS AND STAYS. This is `.nf-card`: the edge-lit glass with
+ * its gradient rim and its corner glow, which is the best surface on the
+ * platform. What changed is the SHAPE, the SCALE and what goes inside.
  *
- * `p-6 sm:p-8` against the `p-4`/`p-5` that was everywhere, and the large
- * radius rung rather than the medium one. If a surface feels tight, it is
- * because it is holding too much, not because the padding is wrong.
+ * ONE CONTAINER PER GROUP, NOT ONE PER ITEM. This is the whole idea and it is
+ * most of why the reference platform's screens feel calm: their settings screen
+ * puts account information, profile switching, payments and history inside a
+ * SINGLE rounded surface separated by hairlines, where we would have drawn four
+ * cards. Two or three surfaces per screen against our eight or nine. If you are
+ * about to render two of these next to each other, they are almost certainly
+ * one of these with a `RowList` inside it.
  *
- * Still subject to the one hard rule: a raised surface may not contain another
- * raised surface.
+ * BIG RADIUS, BIG PADDING. `--nf-radius-xl` (22px) and `p-6 sm:p-8`, against
+ * the `p-4`/`p-5` and medium radius that was everywhere. A surface should feel
+ * roomy. If it feels tight it is holding too much, not padded too little.
+ *
+ * NO SECOND BORDER. The glass already reads as a LIFT off the canvas through
+ * its rim and its elevation, so nothing here adds a visible outline on top of
+ * that. An outlined box and a lifted surface are two different container
+ * languages and drawing both at once is what makes a card look heavy.
+ *
+ * THE LABEL GOES OUTSIDE. A heading inside the surface costs a line of padding
+ * and makes the surface look busier than it is. `Section` puts the title above,
+ * small and quiet, and the surface holds only content. That pairing - label
+ * outside, content inside - is the standard composition.
+ *
+ * NOTHING NESTED. Inside one of these you find rows, text and controls. You do
+ * not find another one. That is the one hard rule of the surface language and
+ * it has no exceptions.
  */
 export function Surface({
   children,

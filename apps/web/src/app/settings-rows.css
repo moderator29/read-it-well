@@ -45,12 +45,32 @@
     color: var(--nf-content-muted);
   }
 
-  .nf-sgroup__body {
+  /*
+   * ONE GLASS SURFACE PER GROUP.
+   *
+   * This was a flat filled rectangle: `background: --nf-elev-2` with a 1px
+   * `--nf-elev-2-border` drawn on top of it. Two things wrong with that, and
+   * they are the two the owner named.
+   *
+   * FIRST, IT WAS NOT GLASS. The platform's surface material is the edge-lit
+   * translucent card in glass.css, and the account screens - the ones a person
+   * uses most - were the only place rendering plain opaque boxes instead. The
+   * material is ours and it stays, so the body carries `.nf-card` from the
+   * component now and this rule no longer paints a fill of its own.
+   *
+   * SECOND, THE BORDER FOUGHT THE FILL. A visible 1px outline AND a background
+   * AND a shadow is three ways of saying "edge" at once, which is what makes a
+   * card read as heavy. The glass rim already states the edge as a LIFT off the
+   * canvas. We lean on the rim and draw nothing over it.
+   *
+   * The radius goes up a rung with it, to the 22px the reference platform uses.
+   * The selector is doubled deliberately: settings-rows.css is imported BEFORE
+   * css/glass.css, so at equal specificity `.nf-card`'s own `--nf-radius-lg`
+   * would win and the corner would quietly stay at 18px.
+   */
+  .nf-sgroup .nf-sgroup__body {
     overflow: hidden;
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-elev-2-border);
-    background: var(--nf-elev-2);
-    box-shadow: var(--nf-elev-shadow);
+    border-radius: var(--nf-radius-xl);
   }
 
   /* A sentence under the group, in the reference's own idiom: the explanation
