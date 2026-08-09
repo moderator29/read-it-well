@@ -90,6 +90,57 @@ export const BRAND_ICONS = [
   "user-check",
   "user-verified",
   "wallet-secure",
+
+  /*
+   * ------------------------------------------------- PROPERTY TYPES
+   *
+   * Thirty objects, one per kind of place somebody can list. Everything above
+   * this line is an ACTION or a CONCEPT: a wallet, a shield, a calendar. These
+   * are the things themselves.
+   *
+   * Why it matters that they exist. Until now every property type reached for
+   * the same handful of house objects, so a mansion, a mini flat and a
+   * warehouse were drawn with the same picture and the icon carried no
+   * information at all. A category grid where every tile looks alike is a
+   * category grid nobody reads.
+   *
+   * Cropped from two supplied sheets rather than drawn: 384px square, white
+   * paper, the same format as all 57 above, so they sit in a row together
+   * without one of them looking imported. The crop finds the blank gap between
+   * the object and its caption instead of slicing at a fixed fraction, which
+   * is how "Land / Plot" ended up baked into the first attempt at `land-plot`
+   * as pixels. See the contact sheet check in the commit for that one.
+   */
+  "beach-house",
+  "bungalow",
+  "cluster-home",
+  "container-home",
+  "coworking-space",
+  "duplex",
+  "farm-house",
+  "hotel",
+  "house-boat",
+  "lake-house",
+  "land-plot",
+  "loft",
+  "mansion",
+  "mini-flat",
+  "modern-house",
+  "mountain-cabin",
+  "office-space",
+  "parking-space",
+  "penthouse",
+  "serviced-apartment",
+  "shared-apartment",
+  "shop-retail",
+  "studio-apartment",
+  "swimming-pool",
+  "terrace-house",
+  "townhouse",
+  "tree-house",
+  "twin-house",
+  "villa",
+  "warehouse",
 ] as const;
 
 export type BrandIconName = (typeof BRAND_ICONS)[number];
