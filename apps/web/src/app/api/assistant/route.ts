@@ -327,7 +327,12 @@ async function runAreaIntel(input: unknown): Promise<{
 /** Run the catalogue search server-side; the model only ever sees real rows. */
 async function runListingSearch(
   input: unknown,
-): Promise<{ items: AssistantListingItem[]; forModel: Omit<AssistantListingItem, "photo">[] }> {
+): Promise<{
+  items: AssistantListingItem[];
+  forModel: Omit<AssistantListingItem, "photo">[];
+  /** True when the only rows matching this search were example listings. */
+  exampleOnly: boolean;
+}> {
   const repo = getListingRepository();
   const raw = typeof input === "object" && input !== null ? (input as Record<string, unknown>) : {};
 
@@ -360,11 +365,39 @@ async function runListingSearch(
       return true;
     });
 
-  let rows = narrow(await repo.search({ q: query, kind }));
+  /*
+   * EXAMPLE LISTINGS ARE NOT ANSWERS, AND THIS IS THE FIFTH SURFACE.
+   *
+   * The example-listing sweep sealed the sitemap, the structured data, the
+   * Open Graph card and email. It missed this one, because the assistant is
+   * not a page and nobody thinks of a chat reply as a publication. It is the
+   * worst of the five: the others show a property, this one RECOMMENDS one, in
+   * a sentence, with a naira price and a link, to somebody who asked for help.
+   *
+   * The database refuses every transaction against these rows, so a person
+   * following that recommendation reaches a wall the assistant sent them to.
+   */
+  let rows = narrow(await repo.search({ q: query, kind, excludeDemo: true }));
   if (rows.length === 0 && query) {
     // Free text over-restricted; keep the structured filters and drop it.
-    rows = narrow(await repo.search({ kind }));
+    rows = narrow(await repo.search({ kind, excludeDemo: true }));
   }
+
+  /*
+   * Why the empty case is not simply empty.
+   *
+   * Today the catalogue is 42 example properties and no real ones, so
+   * excluding them correctly returns nothing for almost any question. "I found
+   * nothing" would be true and would also be a worse answer than the truth,
+   * because the search page visibly shows results for the same query and the
+   * assistant would look broken rather than careful.
+   *
+   * So when the exclusion is what emptied the result, say so. The model can
+   * then explain that the places shown in search are examples rather than
+   * pretending the catalogue is bare, and it never has to be trusted to
+   * remember a caveat about a row it was handed.
+   */
+  const exampleOnly = rows.length === 0 && narrow(await repo.search({ kind })).length > 0;
 
   const top = rows
     .sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount)
@@ -420,7 +453,7 @@ async function runListingSearch(
     const photo = top[i]?.photos[0];
     return photo ? { ...entry, photo } : { ...entry };
   });
-  return { items, forModel };
+  return { items, forModel, exampleOnly };
 }
 
 /**
@@ -479,6 +512,22 @@ async function runCompareListings(input: unknown): Promise<Record<string, unknow
   const out: Record<string, unknown>[] = [];
   for (const id of ids) {
     const row = await repo.byId(id).catch(() => null);
+    /*
+     * The second door onto the same room, closed for the same reason.
+     *
+     * Search no longer returns example listings, so in the ordinary flow the
+     * model cannot have one of these ids to compare. It takes ids as input
+     * though, and an id can arrive from a stale turn earlier in the
+     * conversation or be invented outright, so the exclusion has to live where
+     * the row is read rather than only where it is found. Reported as
+     * `found: false` rather than with a reason, because a comparison table is
+     * not the place to explain what an example listing is and the search path
+     * already does that properly.
+     */
+    if (row?.isDemo) {
+      out.push({ id, found: false });
+      continue;
+    }
     out.push(row ? comparisonOf(row) : { id, found: false });
   }
   return out;
@@ -895,7 +944,7 @@ export async function POST(req: NextRequest) {
               continue;
             }
 
-            const { items, forModel } = await runListingSearch(use.input);
+            const { items, forModel, exampleOnly } = await runListingSearch(use.input);
             if (items.length > 0) emit({ type: "listings", items });
             toolResults.push({
               type: "tool_result",
@@ -903,7 +952,20 @@ export async function POST(req: NextRequest) {
               content: JSON.stringify(
                 forModel.length > 0
                   ? forModel
-                  : { results: [], note: "No listings matched. Suggest widening the search." },
+                  : exampleOnly
+                    ? {
+                        results: [],
+                        /*
+                         * Written as an instruction rather than as data,
+                         * because the model has to do something specific with
+                         * it and "exampleOnly: true" invites paraphrase. It
+                         * also states the prohibition, since the tempting move
+                         * from here is to describe the examples helpfully.
+                         */
+                        note:
+                          "The only properties matching this search are example listings that RentMe uses to illustrate the catalogue. They do not exist and cannot be booked, inspected or paid for. Tell the person plainly that there is nothing real matching this yet, and that the places they may see while browsing are examples. Do NOT describe, name, price or recommend any of them.",
+                      }
+                    : { results: [], note: "No listings matched. Suggest widening the search." },
               ),
             });
           }

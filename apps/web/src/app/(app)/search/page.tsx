@@ -219,18 +219,16 @@ export default async function SearchPage({
     repo.search(toFilter(query)),
     repo.search(toPoolFilter(query)),
     /*
-     * Our own inventory only, and this is a cost decision rather than a
-     * behaviour one.
+     * `whole` feeds the map's per-city price floor.
      *
-     * `whole` feeds the map's per-city price floor, and the loop that builds it
-     * skips any row without a real price. Google Places reports a price LEVEL
-     * rather than an amount, so every Places row this fetched was discarded a
-     * few lines below. It was spending two billed SearchText requests per page
-     * view on data written to be thrown away, and with the other two searches
-     * that put the page at up to six. A day of quota goes quickly at six a
-     * view, and the 429 it ends in looks exactly like every other empty shelf.
+     * This used to pass `{ partners: false }` to keep a billed Google Places
+     * request off a page that discarded every row it returned, because Places
+     * reports a price LEVEL rather than an amount. That inventory is gone and
+     * the flag has been ignored for some time, so the last thing keeping it
+     * alive was this call site. Both are removed together, which is the only
+     * way a compatibility shim ever actually leaves a codebase.
      */
-    repo.search({}, { partners: false }),
+    repo.search({}),
   ]);
   const sorted = sortListings(rawResults, query.sort);
 

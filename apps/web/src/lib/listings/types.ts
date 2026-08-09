@@ -361,12 +361,6 @@ export type ListingSearchFilter = {
  */
 export type ListingSearchOptions = {
   /**
-   * Ignored. Retained so existing call sites still compile, and there are two
-   * left: `app/(app)/search/page.tsx` and `app/(app)/bookings/page.tsx`. Delete
-   * those, then delete this.
-   */
-  partners?: boolean;
-  /**
    * How many rows the catalogue read may pull, before the in-memory matcher
    * runs over them.
    *
