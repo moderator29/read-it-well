@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ICON } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 
 const NAME_KEY = "nf_profile_name";
@@ -98,16 +99,19 @@ export function ProfileIdentityCard() {
   const initial = shownName.charAt(0).toUpperCase();
 
   return (
-    <section className="nf-card p-5 sm:p-6" aria-label={shownName}>
-      <div className="flex items-center gap-4">
+    <section className="nf-card p-card" aria-label={shownName}>
+      <div className="flex items-center gap-group">
         {/* Avatar with gradient ring: brand gradient outside, a hairline of
             surface between, the lit monogram inside. */}
         <span
           aria-hidden="true"
-          className="shrink-0 rounded-full p-[2px] shadow-[0_10px_26px_-8px_color-mix(in_oklab,var(--nf-brand-primary)_85%,transparent)]"
+          /* The two rings are HAIRLINES drawn around the monogram, not the
+             rhythm between two pieces of content, so they take the 2px optical
+             rung rather than a hand-picked 2 and 2.5. */
+          className="shrink-0 rounded-full p-3xs shadow-[0_10px_26px_-8px_color-mix(in_oklab,var(--nf-brand-primary)_85%,transparent)]"
           style={{ background: "var(--nf-gradient-brand)" }}
         >
-          <span className="block rounded-full bg-[var(--nf-surface-canvas)] p-[2.5px]">
+          <span className="block rounded-full bg-[var(--nf-surface-canvas)] p-3xs">
             <span
               className="flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-full text-2xl font-bold text-[var(--nf-content-on-brand)] sm:h-16 sm:w-16"
               style={{ background: "var(--nf-gradient-brand)" }}
@@ -122,7 +126,7 @@ export function ProfileIdentityCard() {
           {/* What this date measures is the first time this card mounted in
               this browser. It is not a membership, and it no longer says it
               is: there is no account behind this card by definition. */}
-          <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
+          <p className="mt-row nf-caption text-[var(--nf-content-muted)]">
             {since ? `Saved on this device since ${since}` : "Welcome to RentMe"}
           </p>
         </div>
@@ -131,7 +135,8 @@ export function ProfileIdentityCard() {
           type="button"
           onClick={() => setEditing((v) => !v)}
           aria-expanded={editing}
-          className="nf-chip shrink-0 cursor-pointer text-[0.8125rem] font-semibold"
+          /* `.nf-chip` sets the caption tier and the 44px floor itself. */
+          className="nf-chip shrink-0 cursor-pointer font-semibold"
         >
           {editing ? "Done" : "Edit"}
         </button>
@@ -139,14 +144,14 @@ export function ProfileIdentityCard() {
 
       {editing && (
         <form
-          className="nf-rise mt-4 space-y-3"
+          className="nf-rise mt-heading space-y-row"
           onSubmit={(e) => {
             e.preventDefault();
             setEditing(false);
           }}
         >
           <div>
-            <label htmlFor={nameId} className="nf-label mb-1.5 block">
+            <label htmlFor={nameId} className="nf-label mb-inline block">
               Display name
             </label>
             <input
@@ -162,7 +167,7 @@ export function ProfileIdentityCard() {
             />
           </div>
           <div>
-            <label htmlFor={emailId} className="nf-label mb-1.5 block">
+            <label htmlFor={emailId} className="nf-label mb-inline block">
               Email address
             </label>
             <input
@@ -176,8 +181,11 @@ export function ProfileIdentityCard() {
               className="nf-field"
             />
           </div>
-          <p className="flex items-center gap-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
-            <UiIcon name="verified" size={12} className="shrink-0" />
+          {/* 12px type and a 12px glyph on the line that tells somebody where
+              their name and email are actually kept. Both come up: the caption
+              tier is the quietest readable one, and the icon floor is 20. */}
+          <p className="flex items-center gap-inline nf-caption text-[var(--nf-content-muted)]">
+            <UiIcon name="verified" size={ICON.inline} className="shrink-0" />
             Stored on this device only, until you create an account.
           </p>
         </form>
@@ -186,13 +194,17 @@ export function ProfileIdentityCard() {
       {/* Where the activity strip was. Trips, saves and reviews are real
           counts of real rows, so they arrive with an account and not before;
           `AccountProfile` renders them the moment there is one. */}
-      <div className="mt-5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-4 text-center">
-        <p className="text-[0.875rem] font-semibold">Your trips live in your account</p>
-        <p className="mx-auto mt-1.5 max-w-sm text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      {/* NO SECOND BORDER. This was a bordered box inside a card, which is the
+          one nesting the surface language has no exceptions to, drawn around a
+          prompt that the card's own bottom edge already separates. The rule
+          above it is enough, and it is the same hairline a row list uses. */}
+      <div className="nf-hairline mt-block pt-block text-center">
+        <p className="nf-body font-semibold">Your trips live in your account</p>
+        <p className="mx-auto mt-row max-w-sm nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
           Sign in and this card shows what you have actually booked, saved and
           reviewed, on every device you use.
         </p>
-        <ButtonLink href="/sign-in" variant="primary" size="sm" className="mt-4">
+        <ButtonLink href="/sign-in" variant="primary" size="sm" className="mt-heading">
           Sign in
         </ButtonLink>
       </div>

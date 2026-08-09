@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { ICON } from "@/components/app/Screen";
 import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import {
@@ -363,7 +364,7 @@ export function ThreadView({
   }, []);
 
   return (
-    <div className="mx-auto flex h-full min-h-0 w-full max-w-3xl flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-3xl flex-col px-gutter pb-[max(1rem,env(safe-area-inset-bottom))] pt-row">
       <PageHeader
         title={counterpartName}
         /* The property this thread is about, and now a way back to it. The
@@ -426,12 +427,16 @@ export function ThreadView({
       {/* ------------------------------------------------------ chat thread */}
       <div
         ref={scrollerRef}
-        className="flex-1 space-y-5 overflow-y-auto pb-5 pr-1"
+        className="flex-1 space-y-lg overflow-y-auto pb-lg pr-2xs"
         aria-live="polite"
         aria-label="Conversation"
       >
-        <p className="flex items-center justify-center gap-1.5 py-1 text-center text-[0.7rem] text-[var(--nf-content-muted)]">
-          <UiIcon name="verified" size={12} />
+        {/* 0.7rem, which is 11px, on the one line telling somebody to keep the
+            money inside the platform. That is the sentence that stops a person
+            being defrauded off-platform, and it was the smallest type on the
+            screen. Caption is the quietest tier that still reads. */}
+        <p className="flex items-center justify-center gap-inline nf-caption py-2xs text-center text-[var(--nf-content-muted)]">
+          <UiIcon name="verified" size={ICON.inline} />
           Keep every chat and payment inside RentMe
         </p>
 
@@ -448,7 +453,7 @@ export function ThreadView({
                 holding if the brand fill ever lightens.
               */}
               <div
-                className={`max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-4 py-2.5 text-[var(--nf-content-on-brand)] ${
+                className={`max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-md py-xs text-[var(--nf-content-on-brand)] ${
                   m.state === "sending" ? "opacity-70" : ""
                 }`}
               >
@@ -458,19 +463,19 @@ export function ThreadView({
                   <img
                     src={m.imageUrl}
                     alt="Photo you attached"
-                    className="mb-2 aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
+                    className="mb-xs aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
                 {m.body && <p className="nf-body">{m.body}</p>}
                 {/* Same rule as the bubble above: on a brand fill the text is
                     the on-brand token, dimmed with opacity rather than with a
                     `text-white/70` that cannot follow a theme. */}
-                <p className="nf-numeric nf-caption mt-1 text-right text-[var(--nf-content-on-brand)] opacity-70">
+                <p className="nf-numeric nf-caption mt-inline-tight text-right text-[var(--nf-content-on-brand)] opacity-70">
                   {m.state === "sending" ? "Sending" : m.timeLabel}
                 </p>
               </div>
               {m.state === "failed" && (
-                <p className="mt-1 flex items-center gap-2 text-[0.75rem] text-[var(--nf-state-error)]">
+                <p className="mt-inline-tight flex items-center gap-xs nf-caption text-[var(--nf-state-error)]">
                   Not sent.
                   <button
                     type="button"
@@ -483,28 +488,31 @@ export function ThreadView({
               )}
             </div>
           ) : (
-            <div key={m.id} className="nf-msg-in--theirs flex items-end gap-3">
+            <div key={m.id} className="nf-msg-in--theirs flex items-end gap-row">
               <span
                 aria-hidden="true"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-brand-secondary)]"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] nf-caption font-bold text-[var(--nf-brand-secondary)]"
               >
                 {counterpartName.charAt(0)}
               </span>
-              <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md px-4 py-2.5">
+              <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md px-md py-xs">
                 {m.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={m.imageUrl}
                     alt={`Photo from ${counterpartName}`}
-                    className="mb-2 aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
+                    className="mb-xs aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
                 {m.body && (
-                  <p className="text-[0.9rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                  <p className="nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
                     {m.body}
                   </p>
                 )}
-                <p className="nf-numeric mt-1 text-right text-[0.65rem] text-[var(--nf-content-muted)]">
+                {/* 0.65rem is 10px. A timestamp is allowed to be the quietest
+                    thing in the bubble; it is not allowed to be unreadable, and
+                    the outgoing bubble beside it already used caption. */}
+                <p className="nf-numeric nf-caption mt-inline-tight text-right text-[var(--nf-content-muted)]">
                   {m.timeLabel}
                 </p>
               </div>
@@ -515,15 +523,15 @@ export function ThreadView({
         {/* "Someone is typing": three breathing dots in the same bubble shape
             a reply lands in, driven by the real broadcast above. */}
         {counterpartTyping && (
-          <div className="nf-msg-in--theirs flex items-end gap-3">
+          <div className="nf-msg-in--theirs flex items-end gap-row">
             <span
               aria-hidden="true"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-brand-secondary)]"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] nf-caption font-bold text-[var(--nf-brand-secondary)]"
             >
               {counterpartName.charAt(0)}
             </span>
             <div
-              className="nf-card flex items-center gap-1.5 rounded-2xl rounded-bl-md px-4 py-3.5"
+              className="nf-card flex items-center gap-inline-tight rounded-2xl rounded-bl-md px-md py-sm"
               role="status"
               aria-label={`${counterpartName} is typing`}
             >
@@ -544,35 +552,37 @@ export function ThreadView({
       {educationOpen && (
         <div
           role="status"
-          className="nf-card mb-2 flex items-start gap-3 border-t border-[var(--nf-border-subtle)] p-3.5"
+          className="nf-card mb-xs flex items-start gap-row border-t border-[var(--nf-border-subtle)] p-card-sm"
         >
-          <span className="mt-0.5 shrink-0 text-[var(--nf-brand-secondary)]" aria-hidden="true">
-            <UiIcon name="verified" size={16} />
+          {/* 3xs is the optical rung: a glyph nudged onto the first line's
+              baseline, not an interval between two pieces of content. */}
+          <span className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" aria-hidden="true">
+            <UiIcon name="verified" size={ICON.inline} />
           </span>
-          <p className="min-w-0 flex-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="min-w-0 flex-1 nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
             {SAFETY_EDUCATION_COPY}
           </p>
           <button
             type="button"
             aria-label="Dismiss safety note"
             onClick={() => setEducationOpen(false)}
-            className="nf-icon-btn h-8 w-8 shrink-0"
+            className="nf-icon-btn h-11 w-11 shrink-0"
           >
-            <UiIcon name="close" size={16} />
+            <UiIcon name="close" size={ICON.inline} />
           </button>
         </div>
       )}
 
       {/* --------------------------------------------------------- composer */}
       {pendingFile && (
-        <div className="flex items-center gap-3 border-t border-[var(--nf-border-subtle)] pt-3">
+        <div className="flex items-center gap-row border-t border-[var(--nf-border-subtle)] pt-row">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={pendingFile.url}
             alt="Photo ready to send"
             className="h-14 w-14 rounded-xl object-cover"
           />
-          <p className="min-w-0 flex-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
+          <p className="min-w-0 flex-1 nf-body-sm text-[var(--nf-content-muted)]">
             Photo attached
           </p>
           <Button
@@ -593,7 +603,7 @@ export function ThreadView({
           e.preventDefault();
           send();
         }}
-        className={`flex items-center gap-3 pt-3 ${
+        className={`flex items-center gap-row pt-row ${
           pendingFile || educationOpen ? "" : "border-t border-[var(--nf-border-subtle)]"
         }`}
       >

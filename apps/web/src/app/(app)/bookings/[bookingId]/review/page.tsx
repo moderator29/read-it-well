@@ -6,6 +6,7 @@ import { RATING_LABELS } from "@/lib/reviews/schema";
 import { MomentScreen } from "@/components/app/MomentScreen";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
+import { ICON } from "@/components/app/Screen";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ReviewForm } from "./ReviewForm";
@@ -155,20 +156,20 @@ export default async function ReviewPage({
     return (
       <Shell subtitle={read.subject.title}>
         <Reveal>
-          <section className="nf-card p-4 sm:p-5">
+          <section className="nf-card p-card">
             <h2 className="nf-h3">You have already reviewed this stay</h2>
-            <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-row nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
               This is what other guests see on {read.subject.title}.
             </p>
 
-            <div className="mt-4 border-t border-[var(--nf-border-subtle)] pt-4">
-              <p className="flex items-center gap-2">
-                <span className="flex items-center gap-0.5" aria-hidden="true">
+            <div className="nf-hairline mt-block pt-block">
+              <p className="flex items-center gap-xs">
+                <span className="flex items-center gap-3xs" aria-hidden="true">
                   {Array.from({ length: 5 }, (_, i) => (
                     <UiIcon
                       key={i}
                       name="star"
-                      size={16}
+                      size={ICON.inline}
                       className={
                         i < review.rating
                           ? "text-[var(--nf-rating)]"
@@ -177,23 +178,23 @@ export default async function ReviewPage({
                     />
                   ))}
                 </span>
-                <span className="text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
+                <span className="nf-body-sm font-medium text-[var(--nf-content-secondary)]">
                   {review.rating} out of 5, {RATING_LABELS[review.rating]}
                 </span>
               </p>
               {review.body && (
-                <p className="mt-3 text-[0.875rem] leading-relaxed text-[var(--nf-content-primary)]">
+                <p className="mt-heading nf-body leading-relaxed text-[var(--nf-content-primary)]">
                   {review.body}
                 </p>
               )}
-              <p className="mt-3 text-[0.75rem] text-[var(--nf-content-muted)]">
+              <p className="mt-heading nf-caption text-[var(--nf-content-muted)]">
                 {review.author} &middot; {review.when}
               </p>
             </div>
           </section>
         </Reveal>
 
-        <Reveal delay={80} className="mt-4 flex flex-wrap gap-3">
+        <Reveal delay={80} className="mt-block flex flex-wrap gap-row">
           <Link
             href={`/listing/${read.subject.listingId}`}
             className="nf-btn nf-btn--primary"
@@ -211,21 +212,21 @@ export default async function ReviewPage({
   return (
     <Shell subtitle={read.subject.title}>
       <Reveal>
-        <section className="nf-card p-4 sm:p-5">
+        <section className="nf-card p-card">
           <h2 className="nf-h3">{read.subject.title}</h2>
           {read.subject.location.length > 0 && (
-            <p className="mt-1 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
-              <UiIcon name="location" size={12} className="shrink-0" />
+            <p className="mt-row flex items-center gap-inline nf-body-sm text-[var(--nf-content-muted)]">
+              <UiIcon name="location" size={ICON.inline} className="shrink-0" />
               <span className="truncate">{read.subject.location}</span>
             </p>
           )}
-          <p className="mt-2 text-[0.8125rem] text-[var(--nf-content-muted)]">
+          <p className="mt-row nf-body-sm text-[var(--nf-content-muted)]">
             You checked out on {read.subject.checkOutDisplay}.
           </p>
         </section>
       </Reveal>
 
-      <Reveal delay={80} className="mt-4">
+      <Reveal delay={80} className="mt-block">
         <ReviewForm subject={read.subject} />
       </Reveal>
     </Shell>
