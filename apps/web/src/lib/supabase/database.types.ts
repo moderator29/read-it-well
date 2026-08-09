@@ -3344,8 +3344,46 @@ export type Database = {
         };
         Returns: Json;
       };
+      escrow_hold: {
+        Args: {
+          amount: number;
+          escrow_id: string;
+          hold_reference: string;
+          note?: string;
+          payer_user: string;
+        };
+        Returns: Json;
+      };
+      escrow_open: {
+        Args: {
+          amount: number;
+          listing: string;
+          payee_user: string;
+          payer_user: string;
+          purpose: Database["public"]["Enums"]["escrow_purpose"];
+        };
+        Returns: Json;
+      };
       escrow_raise_dispute: {
         Args: { p_escrow: string; p_reason: string };
+        Returns: Json;
+      };
+      escrow_refund: {
+        Args: {
+          escrow_id: string;
+          note?: string;
+          payer_user: string;
+          refund_reference: string;
+        };
+        Returns: Json;
+      };
+      escrow_release: {
+        Args: {
+          beneficiary_user: string;
+          escrow_id: string;
+          note?: string;
+          release_reference: string;
+        };
         Returns: Json;
       };
       escrow_request_release: { Args: { p_escrow: string }; Returns: Json };
@@ -3437,11 +3475,25 @@ export type Database = {
         Args: { key: string; scope: string; subject: string };
         Returns: boolean;
       };
+      review_kyc_document: {
+        Args: { p_approve: boolean; p_document: string; p_reason: string };
+        Returns: Json;
+      };
       revoke_staff_role: {
         Args: {
           acting_admin: string;
           old_role: Database["public"]["Enums"]["app_role"];
           target_user: string;
+        };
+        Returns: Json;
+      };
+      set_fee_rate: {
+        Args: {
+          p_basis_points: number;
+          p_effective_from: string;
+          p_flat_minor: number;
+          p_kind: Database["public"]["Enums"]["fee_kind"];
+          p_note: string;
         };
         Returns: Json;
       };
