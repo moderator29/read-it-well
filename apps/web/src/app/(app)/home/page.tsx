@@ -20,6 +20,7 @@ import { getMode } from "@/lib/mode";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
 import { roleStateFrom, type AgentFacts } from "@/components/roles/roles";
 import { ButtonLink } from "@/components/ui/Button";
+import { EmptyState, ICON } from "@/components/app/Screen";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -128,14 +129,14 @@ export default async function HomePage() {
         closes it.
       */}
       {roles.map((role) => (
-        <VerifyPrompt key={role.id} role={role} className="mb-6" />
+        <VerifyPrompt key={role.id} role={role} className="mb-heading" />
       ))}
 
       {/* ---------------------------------------------------- the greeting */}
       <section className="nf-rise">
         <p className="nf-body-sm font-medium text-[var(--nf-content-secondary)]">{greeting}</p>
         {name ? (
-          <h1 className="nf-rise nf-rise-2 mt-1 flex items-center gap-2.5">
+          <h1 className="nf-rise nf-rise-2 mt-inline-tight flex items-center gap-inline">
             <span className="nf-h1">{name}</span>
             <span className="inline-block shrink-0 translate-y-[2px]">
               <LogoMark size={26} title="RentMe" />
@@ -147,12 +148,12 @@ export default async function HomePage() {
              is in. This branch already ends in the word RentMe, with the
              wordmark in the rail two centimetres to its left, so the mark made
              three brand statements inside one screen width. */
-          <h1 className="nf-rise nf-rise-2 mt-1">
+          <h1 className="nf-rise nf-rise-2 mt-inline-tight">
             <span className="nf-h1">Welcome to RentMe</span>
           </h1>
         )}
         {!overview.signedIn && (
-          <p className="nf-body mt-2 text-[var(--nf-content-secondary)]">
+          <p className="nf-body mt-row text-[var(--nf-content-secondary)]">
             <Link
               href="/sign-in"
               className="nf-link-quiet text-[var(--nf-content-link)]"
@@ -190,12 +191,12 @@ export default async function HomePage() {
         before they signed up should find the same thing in the same shape
         afterwards.
       */}
-      <div className="nf-rise nf-rise-3 mt-7 flex items-start gap-2 sm:items-center">
+      <div className="nf-rise nf-rise-3 mt-block flex items-start gap-inline sm:items-center">
         <form
           action="/search"
           method="get"
           role="search"
-          className="nf-card nf-card--live nf-focus-well flex min-w-0 flex-1 flex-col gap-2 p-2 sm:flex-row sm:items-center"
+          className="nf-card nf-card--live nf-focus-well flex min-w-0 flex-1 flex-col gap-inline p-inline sm:flex-row sm:items-center"
         >
           <label htmlFor="home-q" className="sr-only">
             {t.landing.hero.searchLabel}
@@ -203,10 +204,10 @@ export default async function HomePage() {
           {/* The glyph warms to the content colour once the field has focus,
               so the control acknowledges the cursor before a single character
               is typed. One property, one token duration. */}
-          <div className="group flex min-w-0 flex-1 items-center gap-3 px-3">
+          <div className="group flex min-w-0 flex-1 items-center gap-row px-row">
             <UiIcon
               name="search"
-              size={20}
+              size={ICON.row}
               className="shrink-0 text-[var(--nf-content-muted)] transition-colors duration-[var(--nf-duration-fast)] group-focus-within:text-[var(--nf-content-primary)]"
             />
             <input
@@ -215,7 +216,7 @@ export default async function HomePage() {
               type="search"
               autoComplete="off"
               placeholder={t.landing.hero.searchPlaceholder}
-              className="nf-body w-full bg-transparent py-3 text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
+              className="nf-body w-full bg-transparent py-row text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
             />
           </div>
           <Button type="submit" variant="primary" size="lg">
@@ -232,7 +233,18 @@ export default async function HomePage() {
         which put two blocks of atmosphere between a person and the five
         shortcuts they most likely wanted.
       */}
-      <Reveal as="section" className="mt-10 sm:mt-12">
+      {/*
+        ONE INTERVAL BETWEEN SECTIONS, NOT FOUR.
+
+        This page held four different opinions about how far apart two of its
+        own sections sit: mt-10 sm:mt-12 here, mt-14 sm:mt-16 under it, then
+        mt-12 sm:mt-14 three times running. Nothing chose between them, and the
+        result is a page whose rhythm changes twice on the way down, which is
+        exactly the "different from one screen to the next" complaint happening
+        inside a single screen. `section-tight` is the platform's answer, it is
+        a clamp, and the page no longer jumps at 640px either.
+      */}
+      <Reveal as="section" className="mt-section-tight">
         {/* Was "Find a place to stay". Nobody stays in a property they are
             renting for a year, and nobody buys one to stay in it.
 
@@ -264,7 +276,12 @@ export default async function HomePage() {
           finished loading. The motion these needed was the motion they did not
           have, which is a response to being touched.
         */}
-        <ul className="nf-scroll-x -mx-5 flex snap-x snap-mandatory gap-6 px-5 pb-1 scroll-pl-5 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-7 sm:px-0 sm:pb-0 lg:grid-cols-5">
+        {/* The negative margin and the padding that cancels it are the rail's
+            bleed to the screen edge, so they are one decision and take one
+            value: the page gutter. They were -mx-5 against px-5, which happened
+            to agree with the gutter at its old fixed 20px and stopped agreeing
+            the moment the gutter became a clamp. */}
+        <ul className="nf-scroll-x -mx-gutter flex snap-x snap-mandatory gap-lg px-gutter pb-3xs scroll-pl-gutter sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-xl sm:px-0 sm:pb-0 lg:grid-cols-5">
           {categories.map((c, i) => (
             <li
               key={c.href}
@@ -288,36 +305,40 @@ export default async function HomePage() {
       </Reveal>
 
       {/* -------------------------------------------------- recommended */}
-      <Reveal as="section" className="mt-14 sm:mt-16">
-        <div className="mb-6 flex items-end justify-between gap-4">
+      <Reveal as="section" className="mt-section-tight">
+        <div className="mb-heading flex items-end justify-between gap-md">
           <h2 className="nf-h2">{t.home.recommended}</h2>
           <Link
             href="/search"
             className="nf-link-quiet nf-tap nf-body-sm shrink-0 text-[var(--nf-content-link)]"
           >
             {t.common.viewAll}
-            <UiIcon name="arrow-right" size={16} />
+            <UiIcon name="arrow-right" size={ICON.inline} />
           </Link>
         </div>
 
         {listings.length === 0 ? (
-          <div className="nf-card p-12 text-center">
-            <span className="mx-auto block h-16 w-16">
-              <BrandIcon name="home-search" fill />
-            </span>
-            <p className="nf-body mt-5 font-semibold text-[var(--nf-content-primary)]">
-              Nothing to show here yet
-            </p>
-            <p className="nf-body-sm mx-auto mt-1.5 max-w-[40ch] text-[var(--nf-content-muted)]">
-              Once listings are approved they will appear in this space.
-            </p>
-          </div>
+          /*
+            THE ONE PLATFORM EMPTY STATE, not a fourth hand-drawn one.
+
+            This was an `nf-card` padded to 12 holding a 64px object and two
+            lines, which is a bordered box drawn around a message whose entire
+            job is to say the box is empty - the exact shape `EmptyState` exists
+            to stop, and which Saved and the Inbox already stopped drawing. One
+            container leaves this screen, the object goes 64px to 112px, and the
+            words go up a tier with it.
+          */
+          <EmptyState
+            icon="home-search"
+            title="Nothing to show here yet"
+            body="Once listings are approved they will appear in this space."
+          />
         ) : (
           /* The grid assembles on the shared card stagger rather than landing
              as one block. `--card-i` is what `nf-card-in` reads, and it is
              capped by the same rule the search grid uses so a long list does
              not keep animating after the eye has arrived. */
-          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-lg sm:grid-cols-2 lg:grid-cols-3">
             {listings.map((l, i) => (
               <li
                 key={l.id}
@@ -352,7 +373,7 @@ export default async function HomePage() {
         better here, as something to browse once the properties have been
         looked at, than as a toll gate in front of them.
       */}
-      <Reveal as="section" className="mt-12 sm:mt-14">
+      <Reveal as="section" className="mt-section-tight">
         <TrendingStrip
           items={overview.trending}
           cityLabel={overview.place.label}
@@ -362,24 +383,27 @@ export default async function HomePage() {
 
 
       {/* ----------------------------------------------------------- ai card */}
-      <Reveal className="mt-12 sm:mt-14" delay={60}>
+      <Reveal className="mt-section-tight" delay={60}>
         <AiAssistantBanner t={t} />
       </Reveal>
 
       {/* -------------------------------------------------- agent promo */}
-      <Reveal as="section" className="mt-12 sm:mt-14" delay={60}>
-        <div className="nf-card relative flex flex-col gap-5 overflow-hidden p-6 sm:p-7 md:flex-row md:items-center">
+      <Reveal as="section" className="mt-section-tight" delay={60}>
+        <div className="nf-card relative flex flex-col gap-lg overflow-hidden p-card sm:p-cell md:flex-row md:items-center">
           <div
             className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full blur-3xl"
             style={{ background: "var(--nf-gradient-agent)", opacity: 0.24 }}
             aria-hidden="true"
           />
-          <span className="block h-16 w-16 shrink-0 sm:h-[3.75rem] sm:w-[3.75rem]">
+          {/* One size, not two. It was h-16 on a phone and 3.75rem from sm,
+              which is 64px shrinking to 60px as the screen gets bigger: a step
+              nobody would choose written as an arbitrary bracket. */}
+          <span className="block h-16 w-16 shrink-0">
             <BrandIcon name="homes-sparkle" fill />
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="nf-h3">{t.home.agentCard.title}</h2>
-            <p className="nf-body-sm mt-2 max-w-[58ch] text-[var(--nf-content-secondary)]">
+            <p className="nf-body mt-row max-w-[58ch] text-[var(--nf-content-secondary)]">
               {t.home.agentCard.body}
             </p>
           </div>

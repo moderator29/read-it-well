@@ -79,8 +79,12 @@ export function CategoryTiles({ query, t }: { query: DiscoveryQuery; t: Dictiona
   ];
 
   return (
-    <nav aria-label="Categories" className="nf-scroll-x -mx-5 md:-mx-8">
-      <ul className="flex gap-6 px-5 md:gap-7 md:px-8">
+    /* The bleed and the padding that cancels it are one decision, so they take
+       one value: the page gutter. They were -mx-5/px-5 stepping to -mx-8/px-8,
+       which is the gutter's old fixed pair typed out by hand and no longer
+       agrees with it now the gutter is a clamp. */
+    <nav aria-label="Categories" className="nf-scroll-x -mx-gutter">
+      <ul className="flex gap-lg px-gutter md:gap-xl">
         {entries.map((entry) => {
           const active = entry.kind === null ? !query.kind : query.kind === entry.kind;
           /* Tapping the active category clears it rather than dead-ending. */
@@ -96,13 +100,13 @@ export function CategoryTiles({ query, t }: { query: DiscoveryQuery; t: Dictiona
                 prefetch
                 data-testid={entry.kind ? `category-${entry.kind}` : "category-all"}
                 aria-current={active ? "true" : undefined}
-                className="nf-tap flex w-[5.25rem] flex-col items-center gap-2.5 text-center"
+                className="nf-tap flex w-[5.25rem] flex-col items-center gap-inline text-center"
               >
                 <span className="nf-story-art block h-18 w-18">
                   <BrandIcon name={entry.icon} fill />
                 </span>
                 <span
-                  className={`text-[0.875rem] font-semibold leading-snug ${
+                  className={`nf-body-sm font-semibold leading-snug ${
                     active
                       ? "text-[var(--nf-content-primary)]"
                       : "text-[var(--nf-content-secondary)]"
