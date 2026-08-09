@@ -74,6 +74,17 @@ comment on function public.agent_trust(uuid) is
        default is only ever evaluated for `authenticated`, whose grant is
        untouched below.
    ------------------------------------------------------------------------- */
+/*
+ * PUBLIC as well as anon, and that pairing is the whole statement.
+ *
+ * Postgres grants EXECUTE on a new function to PUBLIC automatically, and
+ * `has_function_privilege` counts a PUBLIC grant, so revoking only from anon
+ * can leave the privilege exactly where it was while the ACL looks tidier.
+ * The live ACL for this function happens to carry no PUBLIC entry, because
+ * 20260728151253_harden_function_grants stripped it, but relying on that
+ * means this file is correct only against the database it was written for.
+ */
+revoke execute on function public.current_agent_id() from public;
 revoke execute on function public.current_agent_id() from anon;
 
 comment on function public.current_agent_id() is

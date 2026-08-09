@@ -68,7 +68,7 @@ as live features.
 `partner_stay_intents`, delete the two hybrid flags. Remove the four keys from
 Vercel and from `apps/web/.env.example`. Correct `docs/ENVIRONMENT.md` section 3.
 Keep `NEXT_PUBLIC_MAPTILER_KEY`, which is a different thing and is a licence
-exposure, not a feature: see PERF-4.
+exposure, not a feature: see M-1.
 
 **Why.** Cached third-party venue data sitting in a marketplace's own database is
 a licensing question nobody has asked, and a feature flag that switches on a code
@@ -102,16 +102,25 @@ only thing that will keep the vocabulary from drifting back.
 
 ## 2. Design system and theming
 
-### D-1. There is no stylelint and no Tailwind config, so the token system has no enforcement. **P1**
+### D-1. The colour half of the token system now has enforcement. The type and geometry halves do not. **P1**
 
-**Wrong today.** ESLint now exists (`apps/web/eslint.config.mjs`, and its own
-header records that it had never run before). There is still no `stylelint` and
-no `tailwind.config`. The measured drift the last audit found, quoted in that
-same header: roughly 250 raw colour literals inside a stylesheet whose header
-says "Nothing below may introduce a raw colour", one blue 68 times and one ink
-51 times; 768 arbitrary `text-[…rem]` literals across 35 distinct values against
-11 scale tokens referenced 6 times in total; 12 button implementations across 7
-heights.
+**Landed while this file was being written, and it is the right shape.**
+`apps/web/eslint-rules/no-raw-colour.mjs` errors on four things: a raw hex, a raw
+`rgb`/`hsl` function, a Tailwind palette class including `bg-black/45` and
+`text-white/70`, and any layer-1 token reference. It is wired in
+`eslint.config.mjs:141` as an error and `:146` as a warning for the directories
+still migrating, and `apps/web/scripts/check-css-tokens.mjs` covers the
+stylesheets the AST rule cannot see. It deliberately ignores comments, because
+half the value of this codebase is in comments quoting the literal they replaced.
+
+**Still unenforced.** There is no `tailwind.config` and nothing checks the type
+scale or control geometry. The last audit measured 768 arbitrary `text-[…rem]`
+literals across 35 distinct values against 11 scale tokens referenced 6 times in
+total, and 12 button implementations across 7 heights.
+
+**Do.** Extend the same rule to reject arbitrary `text-[…]`, `h-[…]` and
+`shadow-[…]` values outside a small allow-list, warning first. The pattern is
+proven now; this is the second application of it.
 
 **Caveat, and it matters.** Those numbers were measured against a 3,167 line
 `globals.css`. That file is now **71 lines** and 19 ordered partials under

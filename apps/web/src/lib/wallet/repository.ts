@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
+import { failureReason, logMoney } from "../payments/observability";
 import type { Database, Json } from "../supabase/database.types";
 import type { ViewerWallet, WalletEntry, WalletSummary } from "./types";
 
@@ -117,19 +118,45 @@ export async function readStatement(
  * symbol is read as a fact about the reader before any caption is. That is the
  * industry standard and this now follows it.
  *
- * Never throws; a read failure falls back to an empty wallet rather than
- * inventing money.
+ * Never throws, because a wallet page that crashes helps nobody. But a failure
+ * is now REPORTED rather than disguised: it is logged on the money channel and
+ * it comes back with readFailed set, so the screen can say the balance could
+ * not be read instead of printing a zero that looks like an answer.
+ *
+ * That distinction is the whole lesson of the funding incident. Every layer
+ * below this one was correct. The credit simply never arrived, and this
+ * function turned "we do not know" into "you have nothing".
  */
 export async function getWalletForViewer(): Promise<ViewerWallet> {
   const session = await resolveSession();
   if (session.state !== "signed-in") {
-    return { id: null, balanceMinor: 0, currency: "NGN", entries: [], live: false };
+    return {
+      id: null,
+      balanceMinor: 0,
+      currency: "NGN",
+      entries: [],
+      live: false,
+      readFailed: false,
+    };
   }
   try {
     const statement = await readStatement(session.supabase, session.user.id);
-    return { ...statement, live: true };
-  } catch {
-    return { id: null, balanceMinor: 0, currency: "NGN", entries: [], live: true };
+    return { ...statement, live: true, readFailed: false };
+  } catch (error) {
+    logMoney({
+      surface: "fund",
+      outcome: "failed",
+      reason: `statement_read_failed:${failureReason(error)}`,
+      userId: session.user.id,
+    });
+    return {
+      id: null,
+      balanceMinor: 0,
+      currency: "NGN",
+      entries: [],
+      live: true,
+      readFailed: true,
+    };
   }
 }
 

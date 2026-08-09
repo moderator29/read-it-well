@@ -49,10 +49,23 @@ export type WalletSummary = {
 export type ViewerWallet = WalletSummary & {
   /**
    * True when the figures are the signed-in user's real ledger read under
-   * RLS. False when the viewer is signed out or Supabase is unconfigured,
-   * in which case the seed dataset stands in.
+   * RLS. False when the viewer is signed out or Supabase is unconfigured.
    */
   live: boolean;
+  /**
+   * True when the ledger read THREW and these figures are therefore not an
+   * answer, only the absence of one.
+   *
+   * This flag exists because of a real incident. The reader used to catch its
+   * own failure and return a zero balance with no entries, which is
+   * indistinguishable on screen from a wallet that is genuinely empty. An
+   * account was funded, the credit never reached the ledger, and the page
+   * calmly reported nothing wrong for days.
+   *
+   * A balance is a claim about somebody's money. When we cannot make that
+   * claim, the screen has to say so rather than print a confident zero.
+   */
+  readFailed: boolean;
 };
 
 export interface WalletRepository {
