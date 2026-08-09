@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import type { Dictionary } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Chip, ChipRow } from "@/components/ui/Chip";
-import { ADMIN_NAV } from "./nav";
+import { ADMIN_NAV, type AdminDestination } from "./nav";
 
 type NavCopy = Dictionary["admin"]["nav"];
 
@@ -21,6 +21,25 @@ type NavCopy = Dictionary["admin"]["nav"];
  * The labels arrive from the layout, which is where the locale is resolved: a
  * client component never reads the dictionary itself.
  */
+/**
+ * A destination's words.
+ *
+ * Most come from the dictionary and follow the reader's language. The four
+ * money sections carry an English label of their own until packages/i18n gains
+ * their keys, and resolving the dictionary first means the moment those keys
+ * land the hardcoded string stops being used without anybody editing this.
+ */
+function labelFor(item: AdminDestination, labels: NavCopy): string {
+  const fromDictionary = (labels as Record<string, { label?: string } | undefined>)[item.key];
+  return fromDictionary?.label ?? item.label ?? item.key;
+}
+
+/** The same, for the phone tab strip, where the words are shorter. */
+function shortFor(item: AdminDestination, labels: NavCopy): string {
+  const fromDictionary = (labels as Record<string, { short?: string } | undefined>)[item.key];
+  return fromDictionary?.short ?? item.label ?? item.key;
+}
+
 function isActive(pathname: string, href: string): boolean {
   if (href === "/admin") return pathname === "/admin";
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -56,7 +75,7 @@ export function AdminRail({
                 ].join(" ")}
               >
                 <UiIcon name={item.icon} size={20} className="shrink-0" />
-                <span className="flex-1 truncate">{labels[item.key].label}</span>
+                <span className="flex-1 truncate">{labelFor(item, labels)}</span>
                 {count > 0 && (
                   <span className="nf-numeric inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--nf-brand-primary)] px-1.5 text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
                     {count}
@@ -109,7 +128,7 @@ export function AdminTabs({
               icon={item.icon}
               {...(count > 0 ? { count } : null)}
             >
-              {labels[item.key].short}
+              {shortFor(item, labels)}
             </Chip>
           );
         })}
