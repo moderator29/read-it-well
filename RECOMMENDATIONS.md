@@ -207,6 +207,32 @@ survivable. Every future money surface has to be reviewed against all three
 questions: what happens when the environment is incomplete, what do we tell the
 system upstream of us, and what do we tell the user when we do not know.
 
+**The third question turned out to be a pattern, not an incident.** Auditing for
+it found the same bug in three separate places, wearing three costumes:
+
+1. **The wallet** drew a confident zero balance on a failed read. Fixed: the
+   reader reports `readFailed` and the screen draws NO FIGURE AT ALL, not a zero,
+   not a dash, not a skeleton that settles into a number. History is withheld
+   with it, because an empty list under a missing balance reads as "no
+   transactions", which is a second false statement dressed as an absence.
+2. **The trips hub** returned three empty groups on a query error, so somebody
+   with a stay next week, on a bad connection, was told they had no trips. Fixed
+   before this audit, and fixed well: it returns `"unavailable"` rather than
+   `null`, because `null` already meant signed out and reusing it would have been
+   a second bug wearing the first one's clothes.
+3. **The admin money desk** would have reported "nothing stuck, nothing earned"
+   when a permission check failed. Fixed with the surface: payment health and
+   revenue resolve to `unavailable` rather than to empty, and the sweep fails
+   rather than claiming a clean queue it never saw.
+
+**The rule, stated once so it can be applied without rediscovering it.** An
+absence of data must never be rendered as a fact about the world. A zero, an
+empty list and a clean queue are all claims. If the read failed, the only honest
+answer is that we do not know, and it is the only one a person can act on: they
+can stop, and they can ask. Check this FIRST in anything new that touches money
+or somebody's own records, because all three of these passed review and passed
+tests.
+
 ---
 
 ## 1. Product scope and terminology
@@ -1318,6 +1344,54 @@ This is exactly the right shape and it means the hard half is done. A fee is not
 a subtraction applied somewhere; it is a named component of a sum that must
 balance. Do not replace this with a percentage multiplied at render time.
 
+### FEE-1b. Escrow withheld a commission and credited it to nobody. **NEW. DONE. Was P0 the moment a rate went above zero**
+
+**Found by auditing the money paths, not by a failing test, and it is the exact
+counterexample to FEE-1 above.**
+
+`private.escrow_settle` computed a commission, subtracted it from what the payee
+received, recorded the number on `escrows.commission_minor`, and then credited it
+to nobody. The payer was debited the full amount, the payee credited less, and
+the difference existed only as an integer on a row. There was no platform wallet,
+no `commission` value in the `wallet_entry_kind` enum, and no revenue table.
+
+**Why it survived review.** Every rate is zero today, so the commission is always
+zero, and zero going missing is invisible. It would have started losing money
+silently on the day somebody raised a rate, which is precisely the day nobody is
+watching the ledger.
+
+**Why FEE-1 did not protect it.** FEE-1 is right that a fee should be a named
+component of a sum that must balance, and `ledger_entries` enforces exactly that
+with `ledger_balances_chk`. But that is the BOOKING settlement path. Escrow
+settles through `wallet_entries`, which has no such structure, so escrow took a
+different road and skipped the discipline bookings already had. **The lesson is
+not "add a constraint", it is that a second money path was built without being
+held to the first one's rules.** Check that first when a third one appears.
+
+**Fixed** in `20260809084522_the_commission_we_withhold_lands_somewhere`.
+`public.platform_revenue` is append only, RLS enabled with NO policies so every
+client role is denied outright and `service_role` is the only reader, unique on a
+reference derived from the escrow id so a replay cannot double book, foreign keys
+`on delete restrict` because if deleting an escrow would erase the record that we
+took money from it, the delete is the bug.
+
+**A table, not a house wallet, deliberately.** Wallets here are user-shaped: RLS
+around `auth.uid()`, read by the wallet screen, the source for withdrawal and
+transfer, payout accounts attached. A platform wallet would inherit every one of
+those paths and need excluding from each by hand forever, including from code
+nobody has written yet.
+
+**Verified against the live database, rolled back.** Five percent rate, 100000
+kobo escrow released: payee 95000, revenue 5000, summing to gross exactly. Second
+settle returned `already_settled` with the revenue row count still at one.
+Afterwards the revenue table, escrows, wallet entries and the probe rate were all
+confirmed absent.
+
+**Still open, and small: `listing_fee` charges nothing anywhere.** It is in the
+`revenue_source` enum and in `fee_rates`, and no code path would collect it even
+if the rate were raised. Where a listing fee should be taken, at publish, at
+first enquiry, or monthly, is an owner decision and was deliberately not invented.
+
 ### FEE-2. Rates need a table, and the table needs effective dates. **NEW. OPEN. P1**
 
 **Wrong today.** The zero is a constant in application code. A constant cannot
@@ -2306,6 +2380,37 @@ direction.**
 | Leaked password protection disabled | WARN | **Real.** See V-5 |
 
 **`places_cache` has dropped off this list**, which independently confirms S-2.
+
+**Re-run again after the example-listing work, and it grew a new category that
+is now fixed.** Building the demo enforcement added six trigger functions to
+`public`, and Postgres grants EXECUTE to PUBLIC by default when a function is
+created, so `anon` and `authenticated` inherited it. PostgREST publishes anything
+in `public` the caller may execute, so five guard rails enforcing that an example
+listing cannot wear a badge or be transacted against were sitting on the REST
+surface, callable by a signed-out stranger.
+
+**Not a vulnerability, and it was not written up as one.** Postgres refuses to
+run a trigger function called directly. It is the API surface telling the truth
+about itself: every name on it is a name an attacker enumerates and a reviewer
+has to account for.
+
+Revoked in `20260809082855_a_trigger_function_is_not_an_api_endpoint`, **as a
+loop over the catalogue rather than six named revokes**, so a trigger function
+added next month is covered instead of quietly reopening this.
+
+**The claim worth checking before running anything like it:** Postgres checks
+EXECUTE on a trigger function when the trigger is CREATED, not each time it
+fires. Verified rather than trusted, by attempting a badge insert for the example
+lister afterwards and watching it still raise `check_violation`, inside a block
+that rolled back. All 21 triggers remain attached and enabled and no trigger
+function is executable by `anon` or `authenticated`.
+
+**Three findings that look alarming in the advisor output and are correct.**
+`escrow_admin_resolve`, `set_fee_rate` and `review_kyc_document` are callable by
+any signed-in user, and each checks `private.has_role(actor, 'admin')` or
+`'super_admin'` first and returns `{"status": "forbidden"}`. That is the right
+shape for an RPC: the authorisation lives inside the function. Do not "fix" these
+by revoking EXECUTE; read them first.
 
 **The pattern worth naming, because it is the rule for every future SECURITY
 DEFINER function:** the callable ones take no argument, or take one that
@@ -3621,7 +3726,22 @@ files, 493 tests. **Everything else in this codebase wrapped in `cache` was
 untested by accident until this change**, and `getHomeOverview` and
 `getShellIdentity` are both in that set.
 
-### BE-2. The catalogue's default ordering has no index behind it. **NEW. OPEN. P1**
+### BE-2. The catalogue's default ordering has no index behind it. **DONE. P1**
+
+**Fixed** in migration `20260809081657_the_catalogue_stops_sorting_every_row_and_starts_finding_them`.
+`listings_catalogue_order_idx` is `(featured desc, published_at desc nulls last,
+created_at desc) where status = 'PUBLISHED'`: the ORDER BY clause exactly,
+including `nulls last`, because a btree can only be walked in sorted order if its
+declared order is the one being asked for.
+
+**Do not read this as a proven speed-up.** Verified against the live database at
+42 rows, the planner still chooses a sequential scan, which is correct when the
+whole table is four pages. What is verified is that the index is applicable, not
+that it is being used yet. It starts earning its keep when the catalogue grows.
+
+The original entry below is kept because the reasoning is still the reasoning.
+
+---
 
 `SupabaseListingRepository.search()` ends every query with:
 
@@ -3654,7 +3774,47 @@ create index listings_catalogue_order_idx
 Owner note: this is a migration, so it belongs to whoever owns `supabase/**`.
 It is one statement and it is the highest-value index the schema is missing.
 
-### BE-3. There is no full-text index, and free text is filtered in the application. **NEW. OPEN. P1**
+### BE-3. There is no full-text index, and free text is filtered in the application. **DONE. P0 in hindsight, not P1**
+
+**Fixed** in the same migration as BE-2, plus `freeTextGroups` in
+`supabase-repository.ts` and `free-text.test.ts`.
+
+The entry below called this correctly: it was a correctness bug, not a
+performance one, and the severity was understated at P1. Free text never reached
+SQL at all, so search could only ever see the newest 200 published rows.
+
+**Trigram, not tsvector, and the reason is not preference.** `matchesFilter` is
+the authority on whether a listing matches, and it asks a substring question.
+`to_tsvector` matches whole lexemes, so full text search would have answered a
+DIFFERENT question than the browser's live match count, and those two are
+required not to disagree. `gin_trgm_ops` indexes `ilike '%term%'`, which is the
+same question. Three partial GIN indexes on title, city and area.
+
+**The invariant the push-down obeys, and the thing to preserve if anybody
+touches it.** SQL may hand back rows the matcher then drops. It may NEVER
+withhold a row the matcher would have kept, because nothing runs afterwards to
+notice. Three consequences, each of which looks arbitrary until you know that:
+
+- Words are ANDed, columns ORed. If the term is a substring of the joined
+  haystack then each word is too, and a word has no space in it, so it must sit
+  inside one field rather than straddle two.
+- Punctuation becomes a wildcard rather than being deleted. Deleting turns `st.`
+  into `st` and stops matching "St. Peter's", which is the forbidden direction.
+  It also stops a user typing `%` from handing us a pattern matching everything.
+- State is resolved in JavaScript against the reference map, because the
+  haystack holds a state's NAME while the row holds its code, and somebody
+  searching Ogun has to reach a listing in Abeokuta.
+
+`free-text.test.ts` asserts the invariant itself rather than asserting the
+strings come out a particular shape, and pins the haystack's five fields so
+adding a sixth fails there instead of quietly breaking recall.
+
+Verified applicable against the live database: forcing the planner shows
+`listings_city_trgm_idx` serving `Index Cond: (city ~~* '%lekki%')`.
+
+The original entry below is kept because the diagnosis is worth reading.
+
+---
 
 `search()` says so plainly in its own comment: free text runs "in memory (the
 shared haystack, until a Postgres full text index exists)". Verified: the
