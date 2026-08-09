@@ -10,6 +10,7 @@ import {
 import type { AgentStanding, StopRecord } from "@/lib/admin/suspension-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ICON } from "@/components/app/Screen";
 
 /**
  * The stops desk.
@@ -69,14 +70,14 @@ function WithdrawnList({
 }) {
   if (withdrawn.length === 0) {
     return (
-      <p className="mt-2 text-[0.8125rem] text-[var(--nf-content-muted)]">
+      <p className="mt-row nf-body-sm text-[var(--nf-content-muted)]">
         Nothing of theirs was live, so nothing came down.
       </p>
     );
   }
 
   return (
-    <ul className="mt-2 space-y-1.5">
+    <ul className="mt-row space-y-inline">
       {withdrawn.map((listing) => {
         // A listing that is no longer where the stop left it will not move when
         // the stop is lifted, and saying so here is the difference between an
@@ -85,12 +86,12 @@ function WithdrawnList({
         return (
           <li
             key={listing.id}
-            className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 border-t border-[var(--nf-border-subtle)] pt-1.5 text-[0.8125rem]"
+            className="flex flex-wrap items-baseline gap-x-xs gap-y-3xs border-t border-[var(--nf-divider)] pt-inline nf-body-sm"
           >
             <span className="min-w-0 flex-1 break-words text-[var(--nf-content-primary)]">
               {listing.title ?? "A listing that has since been deleted"}
             </span>
-            <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
+            <span className="nf-caption text-[var(--nf-content-muted)]">
               {lifted
                 ? `was ${statusWord(listing.from).toLowerCase()}`
                 : willReturn
@@ -110,17 +111,18 @@ function StopHistory({ records }: { records: StopRecord[] }) {
   if (records.length === 0) return null;
 
   return (
-    <details className="mt-3">
-      <summary className="cursor-pointer text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]">
+    <details className="mt-heading">
+      {/* The 44px floor on a disclosure an operator taps to open a case file. */}
+      <summary className="flex min-h-11 cursor-pointer items-center nf-body-sm font-semibold text-[var(--nf-content-secondary)]">
         {records.length === 1 ? "One earlier stop" : `${records.length} earlier stops`}
       </summary>
-      <ul className="mt-2 space-y-3">
+      <ul className="mt-row space-y-row">
         {records.map((record) => (
-          <li key={record.id} className="border-t border-[var(--nf-border-subtle)] pt-2.5">
-            <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-primary)]">
+          <li key={record.id} className="border-t border-[var(--nf-divider)] pt-row">
+            <p className="nf-body-sm leading-relaxed text-[var(--nf-content-primary)]">
               {record.reason}
             </p>
-            <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+            <p className="mt-inline-tight nf-caption text-[var(--nf-content-muted)]">
               {signedBy(record)} on {dateLabel(record.suspendedAt)}. Lifted by{" "}
               {record.liftedByName ?? "an administrator"} on {dateLabel(record.liftedAt)}.{" "}
               {record.restoredCount === 0
@@ -130,7 +132,7 @@ function StopHistory({ records }: { records: StopRecord[] }) {
                   : `${record.restoredCount} listings were put back.`}
             </p>
             {record.liftNote && (
-              <p className="mt-1 text-[0.75rem] italic text-[var(--nf-content-secondary)]">
+              <p className="mt-inline-tight nf-caption italic text-[var(--nf-content-secondary)]">
                 {record.liftNote}
               </p>
             )}
@@ -156,8 +158,8 @@ function StoppedCard({
   const mine = state && state.ok && state.data.agentId === agent.agentId;
 
   return (
-    <li className="nf-card p-4 sm:p-5">
-      <div className="flex flex-wrap items-center gap-2">
+    <li className="nf-card p-card">
+      <div className="flex flex-wrap items-center gap-xs">
         <span
           className="nf-badge shrink-0"
           style={{
@@ -167,41 +169,44 @@ function StoppedCard({
         >
           Stopped
         </span>
-        <h3 className="text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+        <h3 className="nf-lede font-semibold text-[var(--nf-content-primary)]">
           {agent.displayName}
         </h3>
       </div>
 
       {stop ? (
         <>
-          <p className="mt-2.5 text-[0.9375rem] leading-relaxed text-[var(--nf-content-primary)]">
+          <p className="mt-heading nf-body leading-relaxed text-[var(--nf-content-primary)]">
             {stop.reason}
           </p>
-          <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+          <p className="mt-inline-tight nf-caption text-[var(--nf-content-muted)]">
             {signedBy(stop)} on {dateLabel(stop.suspendedAt)}.
           </p>
 
           {stop.staysAhead > 0 && (
-            <p className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-row nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
               {stop.staysAhead === 1
                 ? "One confirmed stay was still ahead when this landed. It was never cancelled and that guest keeps it."
                 : `${stop.staysAhead} confirmed stays were still ahead when this landed. None were cancelled and those guests keep them.`}
             </p>
           )}
 
-          <h4 className="mt-3 text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
+          {/* 0.6875rem, which is 11px, uppercase and tracked, on the heading
+              over the list of a person's withdrawn inventory. `nf-overline` is
+              the platform's own answer for a label above a section. */}
+          <h4 className="mt-heading nf-overline text-[var(--nf-content-muted)]">
             What came down
           </h4>
           <WithdrawnList withdrawn={stop.withdrawn} lifted={false} />
         </>
       ) : (
-        <p className="mt-2.5 text-[0.875rem] leading-relaxed text-[var(--nf-state-warning)]">
+        <p className="mt-heading nf-body-sm leading-relaxed text-[var(--nf-state-warning)]">
           This agent reads as stopped but nothing on the file explains why. Lifting will put them
           back to trading and record that there was nothing to restore.
         </p>
       )}
 
-      <form action={action} className="mt-4">
+      <form action={action} className="mt-block">
         <input type="hidden" name="agentId" value={agent.agentId} />
         <label className="block">
           <span className="nf-label">Note for the record</span>
@@ -215,14 +220,14 @@ function StoppedCard({
         <button
           type="submit"
           disabled={pending}
-          className="nf-btn nf-btn--primary nf-btn--sm mt-2.5"
+          className="nf-btn nf-btn--primary nf-btn--sm mt-heading"
         >
           {pending ? "Letting them back" : "Let them back"}
         </button>
       </form>
 
       {mine && (
-        <p role="status" className="mt-2 text-[0.8125rem] text-[var(--nf-status-approved)]">
+        <p role="status" className="mt-row nf-body-sm text-[var(--nf-status-approved)]">
           {state.data.displayName} is trading again.{" "}
           {state.data.restoredCount === 0
             ? "Nothing needed putting back."
@@ -256,18 +261,18 @@ function TradingCard({
     state && !state.ok && open ? (state.fieldErrors?.reason ?? undefined) : undefined;
 
   return (
-    <li className="nf-card p-4 sm:p-5">
-      <div className="flex flex-wrap items-center gap-2">
-        <h3 className="min-w-0 flex-1 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+    <li className="nf-card p-card">
+      <div className="flex flex-wrap items-center gap-xs">
+        <h3 className="min-w-0 flex-1 nf-body font-semibold text-[var(--nf-content-primary)]">
           {agent.displayName}
         </h3>
-        <span className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
+        <span className="nf-numeric nf-caption text-[var(--nf-content-muted)]">
           {agent.liveListingCount === 1 ? "1 live listing" : `${agent.liveListingCount} live listings`}
         </span>
       </div>
 
       {agent.pastStops.length > 0 && (
-        <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+        <p className="mt-inline-tight nf-caption text-[var(--nf-content-muted)]">
           {agent.pastStops.length === 1
             ? "Stopped once before."
             : `Stopped ${agent.pastStops.length} times before.`}
@@ -275,7 +280,7 @@ function TradingCard({
       )}
 
       {open ? (
-        <form action={action} noValidate className="mt-3">
+        <form action={action} noValidate className="mt-heading">
           <input type="hidden" name="agentId" value={agent.agentId} />
           <label className="block">
             <span className="nf-label">Why they are being stopped</span>
@@ -288,13 +293,13 @@ function TradingCard({
               className="nf-field"
             />
             {fieldError && (
-              <span className="mt-1.5 block text-[0.78rem] text-[var(--nf-state-warning)]">
+              <span className="mt-inline block nf-body-sm text-[var(--nf-state-warning)]">
                 {fieldError}
               </span>
             )}
           </label>
 
-          <p className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-row nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
             {agent.liveListingCount === 0
               ? "Nothing of theirs is live, so nothing will come down."
               : agent.liveListingCount === 1
@@ -303,7 +308,7 @@ function TradingCard({
             Confirmed stays are never cancelled.
           </p>
 
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-heading flex flex-wrap gap-xs">
             <button
               type="submit"
               disabled={pending}
@@ -324,14 +329,14 @@ function TradingCard({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="nf-btn nf-btn--ghost nf-btn--sm mt-3"
+          className="nf-btn nf-btn--ghost nf-btn--sm mt-heading"
         >
           Stop this agent
         </button>
       )}
 
       {mine && (
-        <p role="status" className="mt-2 text-[0.8125rem] text-[var(--nf-status-approved)]">
+        <p role="status" className="mt-row nf-body-sm text-[var(--nf-status-approved)]">
           {state.data.displayName} has been stopped and told why.{" "}
           {state.data.withdrawnCount === 0
             ? "Nothing was live."
@@ -371,14 +376,16 @@ export function StopsDesk({
     : trading;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-section-tight">
       <section aria-label="Stopped">
-        <h2 className="text-[0.9375rem] font-bold text-[var(--nf-content-primary)]">
+        <h2 className="nf-h4 text-[var(--nf-content-primary)]">
           Stopped {stopped.length > 0 && <span className="nf-numeric">({stopped.length})</span>}
         </h2>
 
         {stopped.length === 0 ? (
-          <div className="nf-card mt-2 p-6 text-center">
+          /* An empty state draws no container anywhere else in the product, and
+             the message here is that there is nothing to see. */
+          <div className="mt-heading p-card text-center">
             <span
               className="mx-auto grid h-12 w-12 place-items-center rounded-full"
               style={{
@@ -386,18 +393,18 @@ export function StopsDesk({
                 color: "var(--nf-status-approved)",
               }}
             >
-              <UiIcon name="verified" size={24} />
+              <UiIcon name="verified" size={ICON.row} />
             </span>
-            <p className="mt-3 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+            <p className="mt-heading nf-body font-semibold text-[var(--nf-content-primary)]">
               Nobody is stopped
             </p>
-            <p className="mx-auto mt-1.5 max-w-[44ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mx-auto mt-row max-w-[44ch] nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
               Every agent on the platform is trading. A stop taken here comes with a reason the
               agent reads, and it can always be lifted.
             </p>
           </div>
         ) : (
-          <ul className="mt-2 space-y-3">
+          <ul className="mt-heading space-y-row">
             {stopped.map((agent) => (
               <StoppedCard
                 key={agent.agentId}
@@ -411,24 +418,24 @@ export function StopsDesk({
         )}
 
         {liftState && !liftState.ok && (
-          <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-warning)]">
+          <p role="alert" className="mt-row nf-body-sm text-[var(--nf-state-warning)]">
             {liftState.error}
           </p>
         )}
       </section>
 
       <section aria-label="Trading">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className="text-[0.9375rem] font-bold text-[var(--nf-content-primary)]">
+        <div className="flex flex-wrap items-baseline justify-between gap-row">
+          <h2 className="nf-h4 text-[var(--nf-content-primary)]">
             Trading <span className="nf-numeric">({trading.length})</span>
           </h2>
         </div>
-        <p className="mt-1 max-w-[62ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-row max-w-[62ch] nf-body-sm leading-relaxed text-[var(--nf-content-muted)]">
           Every approved agent. A stop takes down everything of theirs that is live and tells them
           why, in your words.
         </p>
 
-        <label className="mt-3 block">
+        <label className="mt-heading block">
           <span className="sr-only">Find an agent by name</span>
           <input
             type="search"
@@ -440,13 +447,13 @@ export function StopsDesk({
         </label>
 
         {shown.length === 0 ? (
-          <p className="mt-3 text-[0.875rem] text-[var(--nf-content-muted)]">
+          <p className="mt-heading nf-body-sm text-[var(--nf-content-muted)]">
             {trading.length === 0
               ? "No agent is approved yet, so there is nobody who could be stopped."
               : `No agent's name matches "${search.trim()}". Clear the box to see all ${trading.length}.`}
           </p>
         ) : (
-          <ul className="mt-3 space-y-3">
+          <ul className="mt-heading space-y-row">
             {shown.map((agent) => (
               <TradingCard
                 key={agent.agentId}
@@ -460,7 +467,7 @@ export function StopsDesk({
         )}
 
         {stopState && !stopState.ok && !stopState.fieldErrors?.reason && (
-          <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-warning)]">
+          <p role="alert" className="mt-row nf-body-sm text-[var(--nf-state-warning)]">
             {stopState.error}
           </p>
         )}

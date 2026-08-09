@@ -489,8 +489,19 @@ export default async function SearchPage({
             marked with aria-current so a screen reader is told which ordering
             it is reading.
           */}
-          <div className="flex shrink-0 items-center gap-inline">
-            <nav aria-label="Sort results" className="nf-scroll-x">
+          {/*
+            `min-w-0` and NOT `shrink-0`, and the difference is a phone screen.
+
+            `shrink-0` told this row to keep its natural width, which is the four
+            sort chips laid end to end at about 667px. On a 390px phone that is
+            not a rail that scrolls, it is a page that is 667px wide: the whole
+            document gained a horizontal scrollbar and every screen edge went
+            ragged. `nf-scroll-x` on the nav below is what makes the chips
+            reachable, and it can only do that if this parent is allowed to be
+            narrower than its contents, which is exactly what `min-w-0` permits.
+          */}
+          <div className="flex min-w-0 items-center gap-inline">
+            <nav aria-label="Sort results" className="nf-scroll-x min-w-0">
               <ul className="flex items-center gap-inline-tight">
                 {SORTS.map((srt) => {
                   const active = query.sort === srt.key;
