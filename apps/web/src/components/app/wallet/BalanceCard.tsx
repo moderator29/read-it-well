@@ -13,11 +13,25 @@ import { Amount } from "@/components/ui/Amount";
  *
  * The one place the user's money is stated, so it is stated exactly: integer
  * kobo split with integer arithmetic and rendered to the kobo, never a rounded
- * approximation. The card is the edge-lit glass material with an inner conic
- * shimmer and a fine grid texture, an eye toggle to mask the figure, in and
- * out totals for the last thirty days, and a sparkline of the running balance.
+ * approximation. The card carries an eye toggle to mask the figure, in and out
+ * totals for the last thirty days, and a sparkline of the running balance.
  * Every derived number below is summed as integer kobo; division appears only
  * when mapping values to sparkline pixel geometry, never in a money display.
+ *
+ * SIX LAYERS CAME OFF THIS CARD.
+ *
+ * It used to stack a conic shimmer, a hand-drawn white grid with two mask
+ * gradients, a border-white/15 bg-white/5 eye button and the glass card's own
+ * material, all under the largest number on the platform. Every one of those
+ * layers was a raw literal: the conic ran three rgb() stops in cyan and two
+ * blues that exist in no token, and the grid painted white lines that in
+ * daylight were white lines on a white card.
+ *
+ * What is left is the balance, the two flow tiles and the sparkline, on the
+ * platform's ordinary card material. The one decorative layer that survives is
+ * a single token-driven surface wash, because the balance is the hero of the
+ * wallet and a completely flat panel under it read as unfinished. Texture is
+ * not what makes a number feel important; size, spacing and silence are.
  */
 
 const DAY_MS = 86_400_000;
@@ -115,28 +129,14 @@ export function BalanceCard({
       data-pulse={pulse ?? undefined}
       className="nf-card nf-balance-pulse relative overflow-hidden rounded-[var(--nf-radius-2xl)] p-5 sm:p-6"
     >
-      {/* Inner conic shimmer, the light source sweeping the glass. Hidden in
-          the light theme, where it would smear a white card. */}
+      {/* The one surviving decorative layer: the platform's surface wash, which
+          lifts the top of the card off the bottom of it. It is a token, so it
+          is a neutral wash on paper rather than the white-on-white nothing the
+          hand-written version resolved to. */}
       <div
         aria-hidden
-        className="nf-wallet-sheen pointer-events-none absolute inset-0 opacity-60"
-        style={{
-          background:
-            "conic-gradient(from 215deg at 78% 12%, rgb(0 200 255 / 0.18) 0deg, transparent 95deg, rgb(51 138 255 / 0.10) 175deg, transparent 250deg, rgb(0 102 255 / 0.16) 360deg)",
-        }}
-      />
-      {/* Fine grid texture, fading out towards the foot of the card. Hidden in
-          the light theme along with the sheen. */}
-      <div
-        aria-hidden
-        className="nf-wallet-grid pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px)",
-          backgroundSize: "22px 22px",
-          maskImage: "linear-gradient(180deg, rgb(0 0 0) 0%, transparent 85%)",
-          WebkitMaskImage: "linear-gradient(180deg, rgb(0 0 0) 0%, transparent 85%)",
-        }}
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "var(--nf-gradient-surface)" }}
       />
 
       <div className="relative flex items-start justify-between gap-4">
@@ -163,11 +163,11 @@ export function BalanceCard({
             onClick={() => setHidden((h) => !h)}
             aria-pressed={hidden}
             aria-label={hidden ? "Show balance" : "Hide balance"}
-            className="grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-white/5 text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
+            className="nf-icon-btn h-11 w-11 rounded-full"
           >
             <EyeGlyph off={hidden} />
           </button>
-          <span className="h-12 w-12 shrink-0">
+          <span className="h-11 w-11 shrink-0">
             <BrandIcon name="wallet-secure" fill />
           </span>
         </div>

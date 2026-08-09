@@ -80,7 +80,7 @@ export function MobileMenu({
             type="button"
             aria-label={closeLabel}
             onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
           />
 
           <div className="nf-rise absolute inset-0 flex flex-col overflow-y-auto bg-[var(--nf-surface-primary)] px-5 pb-6 pt-5">
@@ -106,7 +106,7 @@ export function MobileMenu({
                     <Link
                       href={l.href}
                       onClick={() => setOpen(false)}
-                      className="flex items-center justify-between py-4 text-[1rem] font-semibold text-[var(--nf-content-primary)] transition-colors hover:text-[var(--nf-electric-300)]"
+                      className="flex items-center justify-between py-4 text-[1rem] font-semibold text-[var(--nf-content-primary)] transition-colors hover:text-[var(--nf-content-link)]"
                     >
                       {l.label}
                       <UiIcon name="arrow-right" size={16} className="text-[var(--nf-content-muted)]" />
@@ -139,7 +139,7 @@ export function MobileMenu({
               <a
                 href={SUPPORT_HREF}
                 {...(SUPPORT_IS_EMAIL ? {} : { onClick: () => setOpen(false) })}
-                className="mb-5 flex min-h-11 items-center gap-2 text-[0.9375rem] font-semibold text-[var(--nf-content-secondary)] hover:text-[var(--nf-electric-300)]"
+                className="mb-5 flex min-h-11 items-center gap-2 text-[0.9375rem] font-semibold text-[var(--nf-content-secondary)] hover:text-[var(--nf-content-link)]"
               >
                 <UiIcon name="chat-bubble" size={16} />
                 Contact support

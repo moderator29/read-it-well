@@ -210,7 +210,7 @@ None of these can be done from inside the repository.
 - [ ] The privacy policy URL, which exists in-product at `/privacy` and needs a public canonical address
 - [ ] Data safety and App Privacy questionnaires, answerable from section 5
 - [ ] Age rating questionnaires
-- [ ] `pg_cron` enabled on Supabase, which is a toggle rather than code, and which currently blocks the stale booking hold sweep, badge awarding and gist expiry
+- [x] **`pg_cron` is enabled**, corrected 2026-08-09. Installed 2026-08-04, six active jobs. It blocks nothing
 
 ---
 

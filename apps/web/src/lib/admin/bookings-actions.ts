@@ -37,7 +37,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { formatMoney } from "@naijafinds/i18n";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
-import { bestEffortEmail, sendEmail } from "../email/client";
+import { bestEffortEmail, sendMessage } from "../email/client";
 import { bookingRefunded } from "../email/messages";
 import { contactForUser } from "../email/recipients";
 import { refundReference } from "../payments/references";
@@ -260,7 +260,7 @@ export async function cancelBookingAsAdmin(
         reasonLine: reasonLine(reason, refundMinor, retainedMinor),
         reference: refundMinor > 0 ? reference : null,
       });
-      await sendEmail({ to: guest.email, subject: message.subject, html: message.html });
+      await sendMessage(guest.email, message);
     });
   } catch {
     // The refund is recorded and the money has moved either way.

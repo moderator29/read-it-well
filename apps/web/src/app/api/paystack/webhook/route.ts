@@ -12,7 +12,7 @@ import {
   walletOwnerId,
   type AdminClient,
 } from "@/lib/wallet/ledger";
-import { bestEffortEmail, sendEmail } from "@/lib/email/client";
+import { bestEffortEmail, sendMessage } from "@/lib/email/client";
 import { walletFunded, withdrawalFailed } from "@/lib/email/messages";
 import { contactForUser } from "@/lib/email/recipients";
 import { announceConfirmedStay } from "@/lib/bookings/arrival";
@@ -114,7 +114,7 @@ async function handleChargeSuccess(
     const walletId = await ensureWalletId(admin, userId);
     const balanceMinor = await availableBalanceMinor(admin, walletId);
     const message = walletFunded({ ownerName: owner.name, amountMinor, balanceMinor });
-    await sendEmail({ to: owner.email, subject: message.subject, html: message.html });
+    await sendMessage(owner.email, message);
   });
 }
 
@@ -225,7 +225,7 @@ async function handleTransferEvent(
       bankName,
       accountLast4,
     });
-    await sendEmail({ to: owner.email, subject: message.subject, html: message.html });
+    await sendMessage(owner.email, message);
   });
 }
 

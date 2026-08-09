@@ -229,7 +229,7 @@
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 0%,
           color-mix(in oklab, var(--nf-brand-accent) 60%, transparent) 22%,
           rgb(255 255 255 / 0.05) 46%,
-          color-mix(in oklab, var(--nf-electric-500) 55%, transparent) 68%,
+          color-mix(in oklab, var(--nf-brand-primary) 55%, transparent) 68%,
           rgb(255 255 255 / 0.04) 84%,
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 100%
         )
@@ -320,7 +320,7 @@
     height: 46rem;
     top: -18rem;
     left: -10rem;
-    background: radial-gradient(circle, var(--nf-electric-600) 0%, transparent 68%);
+    background: radial-gradient(circle, var(--nf-brand-primary-strong) 0%, transparent 68%);
   }
   .nf-aurora::after {
     width: 38rem;
@@ -328,8 +328,8 @@
     top: -6rem;
     right: -12rem;
     background:
-      radial-gradient(circle at 30% 70%, color-mix(in oklab, var(--nf-electric-400) 55%, transparent) 0%, transparent 55%),
-      radial-gradient(circle, var(--nf-electric-300) 0%, transparent 68%);
+      radial-gradient(circle at 30% 70%, color-mix(in oklab, var(--nf-brand-accent) 55%, transparent) 0%, transparent 55%),
+      radial-gradient(circle, var(--nf-brand-secondary) 0%, transparent 68%);
   }
 
   .nf-grid-veil {
@@ -339,8 +339,8 @@
     /* Soft crossing light beams in place of the old square grid: pure glow,
        no geometry, so the canvas reads as atmosphere rather than graph paper. */
     background:
-      linear-gradient(115deg, transparent 30%, color-mix(in oklab, var(--nf-electric-500) 14%, transparent) 46%, transparent 60%),
-      linear-gradient(65deg, transparent 42%, color-mix(in oklab, var(--nf-electric-300) 9%, transparent) 55%, transparent 68%);
+      linear-gradient(115deg, transparent 30%, color-mix(in oklab, var(--nf-brand-primary) 14%, transparent) 46%, transparent 60%),
+      linear-gradient(65deg, transparent 42%, color-mix(in oklab, var(--nf-brand-secondary) 9%, transparent) 55%, transparent 68%);
     mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
     -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
     opacity: 0.35;

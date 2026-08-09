@@ -51,7 +51,7 @@ export async function ProductFrame({ t, locale }: { t: Dictionary; locale: Local
         <div className="relative overflow-hidden rounded-[2.2rem] bg-[var(--nf-surface-canvas)]">
           {/* The notch, sized to the real thing so the frame reads as a phone
               at a glance rather than as a rounded rectangle. */}
-          <div className="absolute left-1/2 top-2 z-20 h-[1.35rem] w-[5.5rem] -translate-x-1/2 rounded-full bg-[var(--nf-ink-950)]" />
+          <div className="absolute left-1/2 top-2 z-20 h-[1.35rem] w-[5.5rem] -translate-x-1/2 rounded-full bg-[var(--nf-surface-artwork)]" />
 
           <div className="px-3 pb-3 pt-9">
             {/* A real search affordance, drawn from the same tokens the app's

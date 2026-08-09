@@ -24,9 +24,8 @@ export type MapListing = {
   photo?: string;
   /** Deterministic hue index for the gradient tile, 0 to 5. */
   hue: number;
-  /** First party verification. Partner stock can never carry it. */
+  /** Verified by RentMe. */
   verified: boolean;
-  partner: boolean;
   lat: number;
   lng: number;
   /**

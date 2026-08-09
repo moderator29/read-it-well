@@ -210,14 +210,14 @@
         padding-box,
       linear-gradient(
           142deg,
-          color-mix(in oklab, var(--nf-electric-500) 55%, transparent) 0%,
-          color-mix(in oklab, var(--nf-electric-500) 28%, transparent) 34%,
+          color-mix(in oklab, var(--nf-brand-primary) 55%, transparent) 0%,
+          color-mix(in oklab, var(--nf-brand-primary) 28%, transparent) 34%,
           rgb(255 255 255 / 0.07) 62%,
           rgb(255 255 255 / 0.03) 100%
         )
         border-box;
     box-shadow:
-      0 0 16px -10px color-mix(in oklab, var(--nf-electric-500) 35%, transparent),
+      0 0 16px -10px color-mix(in oklab, var(--nf-brand-primary) 35%, transparent),
       var(--nf-shadow-card);
   }
 
@@ -351,6 +351,30 @@
     /* The artwork is lit on white, so it multiplies cleanly into any tile:
        the ground disappears and only the object and its shadow survive. */
     mix-blend-mode: multiply;
+  }
+
+  /*
+   * The untiled object's ground, and the default treatment for a brand object
+   * everywhere on the platform.
+   *
+   * ONE LAYER. A flat plate with a squircle radius: no border, no rim, no
+   * shadow, no glow, no inner well, no parallax. Compare with `.nf-icon-tile`
+   * below, which carries six, and which used to be what every object wore.
+   *
+   * It cannot simply be nothing. The artwork is opaque RGB on white and the
+   * white is removed by the `mix-blend-mode: multiply` above; multiply against
+   * the night canvas returns the night canvas, so an object with nothing light
+   * behind it disappears entirely in the default theme. `--nf-icon-ground`
+   * resolves to a soft near-white at night and to `transparent` in daylight,
+   * where multiply is already the identity against the white surfaces and the
+   * object needs no ground at all.
+   */
+  .nf-brand-icon-ground {
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 26%;
+    background: var(--nf-icon-ground);
   }
 
   /*

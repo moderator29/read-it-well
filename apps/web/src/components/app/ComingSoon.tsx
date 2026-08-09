@@ -29,8 +29,12 @@ export function ComingSoon({
       <PageHeader title={title} />
       <div className="py-4 text-center sm:py-6">
       <Reveal>
+        {/* One of the few surfaces that asks for the tile. The object is the
+            entire content of this screen: nothing else competes with it, there
+            is no card around it, and the chip is what stops a lone icon
+            floating in the middle of an empty page. */}
         <span className="mx-auto block h-20 w-20 sm:h-24 sm:w-24">
-          <BrandIcon name={icon} fill />
+          <BrandIcon name={icon} fill tile />
         </span>
         <p className="mx-auto mt-2.5 max-w-[44ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {promise}

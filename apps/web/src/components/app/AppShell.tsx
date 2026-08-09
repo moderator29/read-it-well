@@ -161,7 +161,7 @@ export function AppShell({
             type="button"
             aria-label={t.a11y.closeMenu}
             onClick={() => setDrawer(false)}
-            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
           />
           <div className="nf-drawer nf-drawer--right absolute inset-y-0 right-0 overflow-y-auto">
             <AppRail
@@ -309,7 +309,7 @@ export function AppShell({
                   />
                 ) : (
                   <span
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-[0.8125rem] font-bold text-white"
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-[0.8125rem] font-bold text-[var(--nf-content-on-brand)]"
                     style={{ background: "var(--nf-gradient-brand)" }}
                   >
                     {userName.slice(0, 1).toUpperCase()}

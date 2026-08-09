@@ -407,7 +407,7 @@
     transform: translateY(-1px);
   }
   .nf-dock__btn[aria-current="page"] {
-    color: var(--nf-electric-300);
+    color: var(--nf-brand-secondary);
     background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
   }
   @media (prefers-reduced-motion: reduce) {
@@ -427,7 +427,7 @@
     background: rgb(255 255 255 / 0.12);
   }
   :root[data-theme="light"] .nf-dock__btn[aria-current="page"] {
-    color: var(--nf-electric-300);
+    color: var(--nf-brand-secondary);
     background: rgb(255 255 255 / 0.14);
   }
 }

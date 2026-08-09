@@ -28,7 +28,7 @@ export function StatChart({
   const line = coords.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
   const area = `0,32 ${line} 100,32`;
   const gradientId = `nf-statchart-${tone}`;
-  const strokeVar = tone === "success" ? "var(--nf-state-success)" : "var(--nf-electric-300)";
+  const strokeVar = tone === "success" ? "var(--nf-state-success)" : "var(--nf-brand-secondary)";
 
   return (
     <svg

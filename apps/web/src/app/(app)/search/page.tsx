@@ -12,7 +12,6 @@ import { FilterDrawer } from "@/components/app/filters/FilterDrawer";
 import { ViewToggle } from "@/components/app/filters/ViewToggle";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
-import { WhyEmpty } from "@/components/app/search/WhyEmpty";
 import { factsOf } from "@/lib/listings/filter";
 import {
   hasOwnRequest,
@@ -558,11 +557,6 @@ export default async function SearchPage({
                     ? "Nothing here matches those words yet. Try a place name, or a state."
                     : "Agents are still listing. When a place goes live it appears here the same minute, and there is nothing to wait for on your side."}
               </p>
-              {/* Staff only, and silent for everybody else. Four rounds of
-                  "nothing is pulling" were spent learning things this could
-                  have said on the screen where the problem appeared. */}
-              <WhyEmpty filter={toFilter(query)} />
-
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 {narrowed ? (
                   <ButtonLink

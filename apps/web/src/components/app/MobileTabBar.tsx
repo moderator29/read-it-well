@@ -142,7 +142,7 @@ export function MobileTabBar({
                 className={[
                   "nf-tab-pop",
                   isActive
-                    ? "text-white"
+                    ? "text-[var(--nf-content-on-brand)]"
                     : "text-[var(--nf-content-primary)] opacity-75 hover:opacity-100",
                 ].join(" ")}
               >

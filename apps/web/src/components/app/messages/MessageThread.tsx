@@ -179,7 +179,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
           m.author === "guest" ? (
             <div key={m.id} className="nf-rise flex justify-end">
               {/* Deep blue keeps white body text readable at chat sizes. */}
-              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-4 py-2.5 text-white">
+              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-4 py-2.5 text-[var(--nf-content-on-brand)]">
                 {m.image && (
                   /* Object URLs cannot go through the image optimiser. */
                   // eslint-disable-next-line @next/next/no-img-element
@@ -190,7 +190,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
                   />
                 )}
                 {m.body && <p className="text-[0.9rem] leading-relaxed">{m.body}</p>}
-                <p className="nf-numeric mt-1 text-right text-[0.65rem] text-white/70">
+                <p className="nf-numeric mt-1 text-right text-[0.65rem] text-[color-mix(in_oklab,var(--nf-content-on-brand)_72%,transparent)]">
                   {timeLabel(m.sentAt)}
                 </p>
               </div>
@@ -199,7 +199,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
             <div key={m.id} className="nf-rise flex items-end gap-3">
               <span
                 aria-hidden="true"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-electric-300)]"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-brand-secondary)]"
               >
                 {thread.agentName.charAt(0)}
               </span>

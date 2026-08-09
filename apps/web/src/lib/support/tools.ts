@@ -47,8 +47,8 @@ import type { SupportAction } from "./types";
  * Amounts are formatted here, in kobo-exact naira, and an amount we could not
  * read comes back as an explicit "unknown" the model is instructed to repeat
  * rather than as a zero. A zero beside a currency symbol reads as "free", and
- * this platform has already had one surface tell people that an unpriced
- * partner hotel cost nothing.
+ * this platform has already had one surface tell people that a listing with no
+ * price on it cost nothing.
  */
 
 /* ------------------------------------------------------------------ shapes */

@@ -85,12 +85,11 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string; blurb: string
   /*
    * The one thing on this list nobody sleeps in.
    *
-   * Discovery has shown restaurants since the beginning, but every one of them
-   * came from Google Places, which means partner stock: a name, a photo and a
-   * pin, with no verified badge, nobody to message and no way to hold anybody a
-   * table. This value is what lets a restaurant be ours instead, and the whole
-   * difference a guest sees is the two things partner stock cannot have, a
-   * message button and a reservation (docs/HYBRID_INVENTORY.md section 9).
+   * Discovery used to fill this category from a Google Places feed: a name, a
+   * photo and a pin, with no verified badge, nobody to message and no way to
+   * hold anybody a table. The feed is gone and this value is what a restaurant
+   * is now, a place somebody here put up, with a message button and a
+   * reservation this platform actually holds.
    *
    * Priced per head, which needs no new price period: `YEARLY` below does not
    * contain it, so it files as a nightly figure, and every reader of a

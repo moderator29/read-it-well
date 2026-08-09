@@ -24,10 +24,16 @@ Order of operations, because some steps depend on earlier ones:
 
 ## 1. What is in the box
 
-- 36 page routes plus the API routes under `apps/web/src/app/api`.
-- 23 applied migrations, RLS on every table, `private.*` security-definer
-  helpers. Nothing in this runbook needs a migration run by hand unless
-  section 4.6 says so.
+Counts corrected 2026-08-09. They said 36 routes and 23 migrations, which was
+true on 2026-07-29 and understated the platform by a factor of three.
+
+- **85 page routes**, plus four API routes under `apps/web/src/app/api`:
+  `/api/assistant`, `/api/paystack/webhook`, `/api/support`, `/api/csp-report`.
+- **120 applied migrations, 71 tables**, RLS on every one, `private.*`
+  security-definer helpers. Nothing in this runbook needs a migration run by
+  hand unless section 4.6 says so.
+- **`pg_cron` installed with six active jobs.** They run whether or not the web
+  application is up. ADR-014.
 - An installable PWA: `apps/web/src/app/manifest.ts` serves
   `/manifest.webmanifest`, `apps/web/public/sw.js` is the hand written service
   worker, `/offline` is the offline shell, and the icon set lives in
@@ -58,9 +64,9 @@ nobody re-adds a key on the strength of having seen it here once.
 
 | Variable | If it is missing | Where to obtain it |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | The whole Supabase layer switches off. Every client is env-guarded, so nothing crashes: discovery falls back to the seed catalogue in `lib/listings/`, sign-in and sign-up render as honest disabled states, bookings show the seeded trips, messaging shows the seeded threads. Nothing writes to a database. | Supabase dashboard, Project Settings, API. Already known for this project: `https://uccixoonmbhrnyczyigt.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_URL` | The whole Supabase layer switches off. Every client is env-guarded, so nothing crashes: discovery returns **nothing** and every screen draws its designed empty state, sign-in and sign-up render as honest disabled states. The seed catalogue this row used to promise as a fallback was deleted, deliberately, and an honest absence replaced it (ADR-005). Nothing writes to a database. | Supabase dashboard, Project Settings, API. Already known for this project: `https://uccixoonmbhrnyczyigt.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same as above. The URL alone is not enough; `isSupabaseConfigured()` requires both, and the auth middleware becomes a pass-through. | Supabase dashboard, Project Settings, API, "anon public" key |
-| `SUPABASE_SERVICE_ROLE_KEY` (SERVER ONLY) | Every path that must bypass RLS legitimately stops working: the Paystack webhook cannot settle a wallet entry, booking `confirm` cannot transition a row on the agent's behalf, and an anonymous support escalation cannot be filed (there is deliberately no anon insert policy on `support_tickets`). Signed-in user paths under their own RLS keep working. | Supabase dashboard, Project Settings, API, "service_role" key. Treat as a root password |
+| `SUPABASE_SERVICE_ROLE_KEY` (SERVER ONLY) | **Set this first, and verify it.** Every path that must bypass RLS legitimately stops working, and the worst one does so silently: the Paystack webhook answers HTTP 200 with `{received:false}` and no log (`app/api/paystack/webhook/route.ts:242-243`), so Paystack never retries and a funding that was paid for is lost permanently. The redirect verify path takes the same branch. This is the most probable cause of the reported wallet failure: `RECOMMENDATIONS.md` W-1. Also affected: booking `confirm`, and anonymous support escalation (there is deliberately no anon insert policy on `support_tickets`). Signed-in user paths under their own RLS keep working. | Supabase dashboard, Project Settings, API, "service_role" key. Treat as a root password |
 | `NEXT_PUBLIC_SITE_URL` | Absolute URLs fall back to `http://localhost:3000`. Consequences: Open Graph and canonical URLs in page metadata point at localhost, Paystack callback URLs built by the wallet actions point at localhost, and rendered email links point at localhost. This is the single most commonly forgotten variable and the damage is invisible until someone shares a link. | Your own production URL, for example `https://rentme.ng`. No trailing slash |
 
 ### 2.2 Required per feature
@@ -74,7 +80,7 @@ nobody re-adds a key on the strength of having seen it here once.
 | `RESEND_API_KEY` (SERVER ONLY) | `isEmailConfigured()` returns false, `sendEmail` returns `{sent: false, reason: "unconfigured"}` and nothing leaves the process. Every event that would have emailed still fires its in-app notification, so users are not left uninformed, only un-emailed. Email and password sign-in is unaffected: Supabase issues that session itself. | https://resend.com/api-keys. The sending domain must be verified in Resend first, or Resend rejects the send |
 | `EMAIL_FROM` | Optional. Defaults to `RentMe <hello@rentme.ng>`. If that domain is not the one verified in Resend, every send is rejected, so set this to match the verified domain. | Your verified sending address |
 | `NF_DATA_SOURCE` | Optional. Selects the repository implementation for listings, agents and messages. Leave unset for the default. Setting it to `api` throws on the agent repository, which is not implemented. | Not a secret |
-| `NEXT_PUBLIC_AUTH_PROVIDERS` | No social sign-in buttons are drawn; email and password still work. This is a list of which buttons to offer, comma separated, not a credential. Only list a provider after enabling it inside Supabase, because listing one that is not enabled sends people to an error page. | Not a secret. `google`, `apple` |
+| `NEXT_PUBLIC_AUTH_PROVIDERS` | **Leave unset, permanently.** Email and password only, by owner decision. Section 4.2 says why, and `RECOMMENDATIONS.md` N-4 removes the code. | Do not set |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | All six "contact support" surfaces point at `/contact` instead of a `mailto:`. That is a working channel, not a fallback: the form writes a real `support_tickets` row under RLS and the reply notifies the sender. Set this only once the mailbox genuinely receives mail, because an address that bounces fails silently while the person who wrote believes they have asked. | Your own mailbox, once it exists |
 | `NEXT_PUBLIC_NGN_USD_RATE` | The wallet's currency toggle does not render and balances show in naira only. There is deliberately no fallback rate in code: an invented or stale figure sitting where somebody reads their balance is worse than no conversion. | Naira per one US dollar |
 
@@ -86,18 +92,25 @@ nobody re-adds a key on the strength of having seen it here once.
 | `GOOGLE_PLACES_API_KEY` (SERVER ONLY) | No restaurant discovery or address autocomplete from Places. Not built yet. | https://console.cloud.google.com/apis/credentials with "Places API (New)" enabled |
 | `BASE_URL` | Nothing in the product. Read only by the Playwright specs in `apps/web/tests`, each of which defaults to its own localhost port. Set it only to point the suite at a deployed build. | Not a secret |
 
-### 2.4 Where the social sign-in secrets actually live
+### 2.4 Social sign-in: do not configure it
 
-Not here. Google and Apple credentials are pasted into the **Supabase**
-dashboard, under Authentication, Providers. This application never reads them.
+**Corrected 2026-08-09. This section used to tell you how to set Google and
+Apple up. Do not.** The product is email and password only, by owner decision.
+Leave `NEXT_PUBLIC_AUTH_PROVIDERS` unset and enable nothing in the Supabase
+Authentication, Providers screen.
 
-- Google OAuth client: https://console.cloud.google.com/apis/credentials
-- Apple Sign In: https://developer.apple.com/account/resources/identifiers
+The code has not caught up yet: `startGoogleOAuth` and `startAppleOAuth` still
+exist in `apps/web/src/lib/auth/actions.ts` and the buttons still render,
+disabled, because no provider is listed. Removing them is
+`RECOMMENDATIONS.md` N-4. Until then, setting that variable would enable a path
+whose native return journey is not closed (`docs/MOBILE.md` section 6), leaving
+the mobile application signed out after a successful sign-in.
 
-What the application does read is `NEXT_PUBLIC_AUTH_PROVIDERS`, which decides
-only which buttons to draw. So a provider needs two steps, in this order:
-enable it in Supabase, then name it here. Naming it without enabling it sends
-people to an error page, which is why the default is to draw nothing.
+For the record of how it worked, because the migration
+`20260807125555_a_google_account_arrives_with_its_name_and_its_face` is still
+applied and reads Google identity metadata on signup: provider secrets went into
+the Supabase dashboard and never into this application, which only ever read
+which buttons to draw.
 
 ### 2.5 Removed from the template, and why
 
@@ -115,7 +128,7 @@ commit does not read as an accidental omission.
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Same leftover. These belong in the Supabase dashboard, per 2.4 |
 | `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | Same |
 | `X_CLIENT_ID`, `X_CLIENT_SECRET` | Sign in with X was never built, and its API tier is paid |
-| `NEXT_PUBLIC_MAPTILER_KEY` | The map runs on Carto tiles and never reads a MapTiler key. The non-commercial licensing question is real and is tracked in `docs/DEAD_ENDS.md`, but an unread environment variable does not answer it |
+| `NEXT_PUBLIC_MAPTILER_KEY` | The map runs on Carto tiles and never reads a MapTiler key. The non-commercial licensing question is real and is tracked in `RECOMMENDATIONS.md` M-1, but an unread environment variable does not answer it |
 | `GOOGLE_MAPS_SERVER_KEY`, `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY` | Same. Google Maps is not the map provider. `GOOGLE_PLACES_API_KEY` is separate and is read |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Media goes to Supabase Storage |
 | `TERMII_API_KEY` | No SMS or OTP path calls it |
@@ -203,40 +216,21 @@ dashboard for project `uccixoonmbhrnyczyigt`.
   - `http://localhost:3000/**` and `http://localhost:3210/**` for local work
     (3210 is the port the Playwright specs and the screenshot harness expect)
 
-### 4.2 Google sign-in
+### 4.2 and 4.3 Google and Apple sign-in: SKIP BOTH
 
-**Authentication, Providers, Google.** Enable it, then paste the client ID and
-client secret.
+**Corrected 2026-08-09. These two sections used to walk you through configuring
+Google and Apple. Do neither.** The product is email and password only, by owner
+decision, and the code that would use them is being removed
+(`RECOMMENDATIONS.md` N-4).
 
-To obtain them: https://console.cloud.google.com/apis/credentials, Create
-Credentials, OAuth client ID, Web application. The **Authorised redirect URI**
-must be Supabase's callback, exactly:
+Leave Authentication, Providers alone. Leave `NEXT_PUBLIC_AUTH_PROVIDERS` unset.
+Enabling a provider today would light up a path whose native return journey is
+not closed, so a mobile sign-in would complete in the system browser and leave
+the application signed out (`docs/MOBILE.md` section 6).
 
-```
-https://uccixoonmbhrnyczyigt.supabase.co/auth/v1/callback
-```
-
-That is the whole of it. This document used to say the client ID and secret
-also had to go into Vercel as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
-They do not, and the application never reads either. What decides whether the
-button is drawn is `NEXT_PUBLIC_AUTH_PROVIDERS`, so add `google` to that list
-once Supabase is configured, and not before.
-
-### 4.3 Apple sign-in
-
-**Authentication, Providers, Apple.** Apple is more involved than Google and
-needs a paid Apple Developer account.
-
-1. https://developer.apple.com/account/resources/identifiers: create an **App
-   ID**, then a **Services ID**. The Services ID is your client ID.
-2. On the Services ID, enable Sign In with Apple and configure the domain and
-   the return URL, again pointing at
-   `https://uccixoonmbhrnyczyigt.supabase.co/auth/v1/callback`.
-3. Create a **Sign in with Apple key** (a `.p8` file). Note the Key ID and
-   your Team ID. The `.p8` downloads once and cannot be downloaded again.
-4. Paste the client ID and the generated secret into Supabase. Nothing goes
-   into Vercel: the four `APPLE_*` variables this step used to name are read by
-   nothing. Add `apple` to `NEXT_PUBLIC_AUTH_PROVIDERS` to draw the button.
+One consequence worth knowing: App Store guideline 4.8 requires Sign in with
+Apple only when another third-party sign-in is offered. Offering neither removes
+the obligation and removes the paid-key work that came with it.
 
 ### 4.4 Auth email delivery and the five templates
 
@@ -289,22 +283,41 @@ If you add a bucket later, add its RLS policies in the same commit. The
 project has an event trigger that enables RLS automatically on new tables; it
 does not do that for storage policies.
 
-### 4.6 Two database items to settle before launch
+### 4.6 Three database items to settle before launch
 
-- **Rate limiting and idempotency are applied** (`20260730013645_rate_limits_and_idempotency.sql` plus the ambiguity fix in `20260730013758`). They stay inert until `SUPABASE_SERVICE_ROLE_KEY` is set, because the limiter fails open by design.
-  Apply it when the rate limiting it supports is wired up; the assistant's
-  limiter is in-process today (section 9).
-- **Migration `20260729174306_rls_initplan_and_fk_index`** is recorded
-  server-side with no matching file in `supabase/migrations/`. Pull the applied
-  SQL and commit the file, or the repository and `list_migrations` will keep
-  disagreeing.
+Rewritten 2026-08-09. Both original items were resolved and one of them said the
+opposite of the truth.
+
+- **Turn on leaked password protection.** Authentication, Policies. It is off,
+  and it is the only genuine item on the security advisor list. Credential
+  stuffing against a marketplace with a naira wallet behind it is exactly what
+  it prevents. `docs/DATABASE_AUDIT.md` section 1.1.
+- **Drop `private.probe_as` before real people's data arrives.** It sets
+  `request.jwt.claims` so a probe can run as a signed-in person under RLS, which
+  is the only way to test a policy. It is revoked from every role but
+  `service_role` and no application code calls it. It is still the wrong thing
+  to leave on a production database. `RECOMMENDATIONS.md` V-4.
+- **The migration mirror disagrees on eight filenames.** Not a missing
+  migration: 120 applied, 120 committed, eight of them under a hand-rounded
+  timestamp rather than the real one. `RECOMMENDATIONS.md` T-4 has the table and
+  the two whose names also differ. The previously reported genuinely-missing file
+  (`20260729174306_rls_initplan_and_fk_index`) is committed.
+
+Rate limiting and idempotency are applied and live
+(`20260730013645_rate_limits_and_idempotency.sql` plus the ambiguity fix in
+`20260730013758`). They stay inert until `SUPABASE_SERVICE_ROLE_KEY` is set,
+because the limiter fails open by design.
 
 ### 4.7 Run the advisors
 
-**Advisors, Security Advisor** and **Performance Advisor**. Security should read
-zero lints. Performance will show multiple-permissive-policy notes and unused
-indexes on empty tables; that is expected pre-launch noise, not a regression.
-Re-run both after real data lands.
+**Advisors, Security Advisor** and **Performance Advisor**. Security returns
+eleven items and **ten of them are correct by design**: read
+`docs/DATABASE_AUDIT.md` section 4, the do-not-fix list, before changing
+anything. "Fixing" any of those five breaks the landing page, the agent trust
+panel or the machinery that stops a payment being taken twice. Performance shows
+multiple-permissive-policy notes and unused indexes on empty tables; that is
+expected pre-launch noise, not a regression. Re-run both after the first real
+month, which is the first point at which the performance list means anything.
 
 ---
 
@@ -477,53 +490,78 @@ Against the real production URL, on a real Android phone if possible.
 Do not promise any of this at launch. It is either unbuilt or unconfigured, and
 the product is written to behave gracefully in each case rather than pretend.
 
-- **Agent listings CRUD and the admin console** are not built. Because of that
-  `public.listings` and `public.agents` have zero rows, so everything a visitor
-  sees on `/search` and `/listing/[id]` is the seed catalogue in
-  `lib/listings/`. Every write path below it is real; there is simply no real
-  inventory yet. There is also no queue for an administrator to work
-  `message_flags`, `support_tickets`, agent applications or listing approvals.
-- **Money has never actually moved.** `PAYSTACK_SECRET_KEY` has not been
-  supplied, so no charge or transfer has been made against the live Paystack
-  API. There is no transaction PIN, and no scheduled reconciliation job for a
-  withdrawal hold whose webhook is lost.
-- **Booking holds do not self-expire.** `private.release_stale_booking_holds()`
-  exists and works, but `pg_cron` is not installed on the project, so nothing
-  calls it. An abandoned PENDING request holds inventory until someone calls the
-  function. Either install `pg_cron` or call it from a scheduled job.
-- **Transactional email is unproven.** The Resend layer exists
-  (`lib/email/*`), but no key has been supplied, so nothing has ever been sent.
-  Booking, wallet and support events fire in-app notifications regardless.
-- **Assistant threads do not read back.** Threads persist to
-  `ai_conversations`/`ai_messages` for signed-in users, but the sidebar reads
-  only `localStorage` (`nf_ai_threads`), so a thread does not appear on a new
-  device or after clearing storage. The rows exist; nothing fetches them.
-- **The assistant rate limiter is per-instance.** A 20 requests per 5 minutes
-  token bucket held in process memory, not shared across serverless instances,
-  so the effective limit scales with the number of running instances.
-  `supabase/migrations/20260730013645_rate_limits_and_idempotency.sql` is the fix and is
-  applied.
-- **Hybrid inventory** (Amadeus hotels, Google Places restaurants) is a
-  specification, types and environment keys. No provider layer exists.
-- **Map tiles are on the non-commercial Carto endpoint** until
-  `NEXT_PUBLIC_MAPTILER_KEY` is set. This is a licensing matter, not a quality
-  one.
+**Rewritten 2026-08-09.** Seven of the twelve entries this section carried were
+closed and one of them, "the admin console is not built", had been false for
+almost two weeks. The full and current list is `RECOMMENDATIONS.md`; what
+follows is only the part an operator needs before pressing deploy.
+
+- **There is no inventory.** `public.listings` holds zero rows, and so do
+  `agents` and `agent_applications`. That is a supply problem, not a code
+  problem: the whole chain from agent application to admin approval to published
+  listing works. Discovery correctly shows its designed empty state. The seed
+  catalogue that used to fill it was deleted because twenty-two of its
+  twenty-three places carried a verified badge on an address that does not
+  exist. **Do not put one back.**
+- **The product cannot express a sale.** RentMe is for renting, buying and
+  selling, and `public.listings` has no sale price, no intent and no tenure
+  field. `RECOMMENDATIONS.md` P-1.
+- **Escrow does not exist.** Zero implementation, and correctly promised nowhere
+  in product copy. Nothing in a launch announcement may mention it.
+  `RECOMMENDATIONS.md` E-1.
+- **Money has never actually moved.** No charge or transfer has been made
+  against the live Paystack API from this project. Before the first one, read
+  `RECOMMENDATIONS.md` W-1: a missing `SUPABASE_SERVICE_ROLE_KEY` makes the
+  webhook answer HTTP 200 with no log, so Paystack never retries and a paid
+  funding is lost permanently. There is also no transaction PIN, no rate limit on
+  any money action, and no reconciliation job.
+- **Signed-out visitors are locked out of the whole product**, which is the
+  opposite of the intended rule and means a shared listing link goes to a sign-in
+  wall. `RECOMMENDATIONS.md` N-1. Fix this before any marketing spend.
+- **Transactional email is unproven.** Nine message builders and live sends from
+  six places, all through `bestEffortEmail`, so a delivery failure is silent.
+  Nothing has ever been sent from this project. `EMAIL_FROM` must be a verified
+  sender on the Resend domain or every send is rejected.
+- **The Content Security Policy is served in report-only mode.** `CSP_ENFORCE`
+  is unset, by design. Watch `/api/csp-report` and the `[csp]` lines, then
+  enforce on a day somebody is watching. `RECOMMENDATIONS.md` SEC-1.
+- **Map tiles are on the non-commercial CARTO endpoint** until
+  `NEXT_PUBLIC_MAPTILER_KEY` is set. This is the only item on this page that can
+  produce a letter from a lawyer rather than a bug report, and it costs one
+  signup. `RECOMMENDATIONS.md` M-1.
+- **Nothing tells a crawler anything.** No `robots.ts`, no `sitemap.ts`, no
+  JSON-LD. `/admin` relies entirely on per-page `robots` metadata, so one page
+  added without it is a console in a search index. `RECOMMENDATIONS.md` N-2.
+- **The landing page claims NDPA compliance as a fact** and nothing in the
+  repository can establish it. Change that sentence before launch, and start the
+  NDPC registration, which has weeks of lead time. `RECOMMENDATIONS.md` LG-1.
 - **No analytics and no error tracking.** `NEXT_PUBLIC_POSTHOG_KEY` and
   `SENTRY_DSN` are documented but nothing reads them. A production incident
-  currently leaves only Vercel's own logs.
-- **Unread badge counts** are absent from the desktop rail and the mobile tab
-  bar; neither surface reads a count.
+  leaves only Vercel's own logs. That absence is also a genuine privacy asset:
+  `docs/MOBILE_READINESS.md` section 5.
+- **No CI.** There is no `.github/workflows` directory, and 83 browser specs
+  plus 8 vitest files run only when a human remembers.
+  `RECOMMENDATIONS.md` T-1.
+- **Assistant threads do not read back.** Threads persist to `ai_conversations`
+  and `ai_messages`, and the sidebar reads only `localStorage`, so history
+  vanishes on a new device. `RECOMMENDATIONS.md` AI-1.
 - **Universal Links and Android App Links are not configured**, so a
-  WhatsApp-shared listing opens in the browser rather than the installed app.
-  That needs an `apple-app-site-association` file and an `assetlinks.json`,
-  which are only meaningful once native apps exist.
-- **`apps/web/src/middleware.ts` still uses the middleware filename.** Next 16
-  prefers `proxy.ts`. It works as-is; renaming it is deliberate follow-up work
-  and was left alone rather than touched blind during a deploy pass.
+  WhatsApp-shared listing opens in the browser rather than the installed
+  application. Both association files exist and carry loud placeholders that fail
+  verification rather than looking plausible. `docs/MOBILE.md` section 5.
 - **Push notifications are not implemented.** The service worker has no `push`
   or `notificationclick` handler by choice: a worker that asks for notification
   permission before the product has anything to say with it burns the one
   permission prompt a user will ever grant.
-- **Locale coverage is incomplete.** The Yoruba, Hausa and Igbo hero lines
-  still translate the previous slogan and need native review, and the newest
-  surfaces carry some untranslated English strings.
+- **`apps/web/src/middleware.ts` still uses the middleware filename.** Next 16
+  prefers `proxy.ts`. It works as-is; renaming it is deliberate follow-up work
+  and was left alone rather than touched blind during a deploy pass.
+- **Locale coverage is incomplete.** Yoruba, Hausa and Igbo are complete and
+  functional and were not written by native speakers. Marketing copy in
+  particular should be rewritten from intent rather than corrected word by word.
+
+**Closed since this section was written, so nobody re-reports them:** the admin
+console (14 destinations, built), agent listings CRUD, the unread badge on the
+rail and the dock, the durable rate limiter replacing the in-process one, and
+`pg_cron`, which is installed and running six jobs. Hybrid inventory is not
+closed but removed: there is no provider layer and there will not be one
+(ADR-013).

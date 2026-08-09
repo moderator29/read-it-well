@@ -26,8 +26,10 @@ export function EmptyPanel({
 }) {
   return (
     <div className="nf-card nf-social-card p-7 text-center sm:p-9">
+      {/* Tiled: an empty panel has one object and one sentence in it, so the
+          object is the subject rather than an ornament beside something. */}
       <div className="mx-auto w-fit">
-        <BrandIcon name={icon} size={56} />
+        <BrandIcon name={icon} size={56} tile />
       </div>
       <h3 className="nf-h3 mt-4 text-[1.05rem]">{title}</h3>
       <p className="mx-auto mt-2.5 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">

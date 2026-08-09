@@ -242,7 +242,7 @@ export function ChoicePicker({
             aria-label={label}
             data-testid={testId ? `${testId}-drawer` : undefined}
           >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm" />
 
             <div
               ref={panelRef}

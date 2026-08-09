@@ -116,9 +116,9 @@ export async function getMyBookings(
    * This returned three empty groups on `error`, so a query that failed
    * rendered the trips hub as "you have no trips". Somebody with a stay next
    * week, on a bad connection or during a database blip, was told their
-   * booking did not exist. That is the same shape as a partner venue with no
-   * price being reported as costing zero: an absence of data stated as a fact
-   * about the world.
+   * booking did not exist. That is the same shape as a listing with no price
+   * being reported as costing zero: an absence of data stated as a fact about
+   * the world.
    *
    * It does NOT return null either, which was the obvious fix and is a second
    * bug wearing the first one's clothes: null already means signed out, and the

@@ -1,6 +1,37 @@
 # Badges: earned standing for agents and members
 
-Thinking document, not a build order. Nothing here is implemented.
+**This shipped. The line "Nothing here is implemented" was true when written on
+2026-07-30 and has been false since 2026-08-04.** Corrected 2026-08-09.
+
+What is live, verified against the database on 2026-08-09:
+
+- `public.badges` holds **15 rows**: seven AGENT, eight MEMBER, one of them
+  `manual_only`. `public.user_badges` holds 1.
+- Awarding runs nightly. `private.sweep_badges()` is scheduled in `cron.job` as
+  `rentme-nightly-badges` at `20 2 * * *` UTC and is active. `pg_cron` is
+  installed; this document's assumption that it was not is gone.
+- Manual grant and revoke are in the console at `/admin/standing`, with a
+  mandatory reason and an `audit_log` row.
+- `20260804163732_the_other_seven_badges_can_be_earned_now` is the migration that
+  closed the criteria that were waiting.
+
+The shipped codes are `verified_agent`, `first_listing`, `fast_responder`,
+`ten_stays`, `estate_specialist`, `photo_pro`, `rentme_elite` on the agent side,
+and `verified_member`, `first_stay`, `year_one`, `honest_reviewer`, `neighbour`,
+`guardian`, `local_guide`, `top_contributor` on the member side. The design below
+proposed nine agent badges and eight member badges; two agent ones
+(`Inspection Champion`, `Five Star Streak`) and one member one (`Connector`) were
+not built, and `top_contributor` was added as the manual-only grant.
+
+**What is still genuinely missing**, and these are data gaps rather than
+scheduling gaps: `booking_status` has no `COMPLETED`, so "they stayed" is not a
+moment the schema records; `photo_pro` needs a per-listing rejection history
+nobody keeps; `local_guide` is not yet defined in numbers; and the earned moment
+(the designed reveal, the notification, the shareable card) is not built at all,
+which is the cheapest retention mechanic in this document.
+
+Everything below is the original 2026-07-30 design argument, unaltered. The
+principles in sections 1, 4 and 7 are the durable part.
 
 Owner brief, 2026-07-30: badges for agents and for ordinary members, earned by
 accomplishment, different marks for each side, grantable by an admin even when
@@ -107,8 +138,9 @@ shareable card. That is the cheapest retention mechanic in the whole document.
 conversation sample, the hub. That is what makes a badge auditable rather than
 a rumour, and it is what lets us revoke one honestly.
 
-Awarding runs as a scheduled job over the existing tables, which is another
-thing waiting on `pg_cron`. Manual grants go through the admin console and
+Awarding runs as a scheduled job over the existing tables. **That job exists and
+runs**: `private.sweep_badges()` nightly at 02:20 UTC. This paragraph used to say
+it was waiting on `pg_cron`. Manual grants go through the admin console and
 write an `audit_log` row like every other privileged action, with the actor,
 the target, the badge and the reason. A granted badge and an earned badge are
 distinguishable in the data, and I would not hide that distinction in the UI

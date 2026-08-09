@@ -5,6 +5,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { MediaFrame } from "@/components/app/MediaFrame";
 
 /**
  * In-chat listing options sheet.
@@ -16,16 +17,6 @@ import { Sheet } from "@/components/ui/Sheet";
  * focus trap, focus restoration, Escape, backdrop and body scroll lock) belong
  * to `<Sheet>`.
  */
-
-/** Placeholder media hues, matching the listing card treatment. */
-const HUES: [string, string][] = [
-  ["#1E3A8A", "#172554"],
-  ["#155E75", "#0F172A"],
-  ["#0C4A6E", "#111827"],
-  ["#334155", "#0F172A"],
-  ["#1E40AF", "#1E1B4B"],
-  ["#312E81", "#0F172A"],
-];
 
 export function ListingOptionsSheet({
   open,
@@ -42,8 +33,6 @@ export function ListingOptionsSheet({
   onConfirmInspection: () => void;
   onClose: () => void;
 }) {
-  const [from, to] = HUES[listing.hue % HUES.length] ?? HUES[0]!;
-
   return (
     <Sheet
       open={open}
@@ -77,15 +66,9 @@ export function ListingOptionsSheet({
       <div className="nf-card flex items-center gap-4 p-3">
         <div
           aria-hidden="true"
-          className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl"
-          style={{ background: `linear-gradient(150deg, ${from} 0%, ${to} 100%)` }}
+          className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]"
         >
-          <svg viewBox="0 0 400 300" className="absolute inset-0 h-full w-full opacity-60" preserveAspectRatio="none">
-            <path
-              d="M0 300V190h34v-52h30v52h28v-84h44v84h26v-40h38v40h30v-66h40v66h34v-30h32v30h30v-46h34v46Z"
-              fill="rgba(0,0,0,0.42)"
-            />
-          </svg>
+          <MediaFrame hue={listing.hue} />
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[0.9063rem] font-semibold">{listing.title}</p>

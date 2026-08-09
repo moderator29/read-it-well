@@ -183,7 +183,7 @@
   }
   .nf-badge--brand {
     background: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
-    color: var(--nf-electric-300);
+    color: var(--nf-brand-secondary);
   }
   .nf-badge--warning {
     background: var(--nf-state-warning-surface);
@@ -262,7 +262,7 @@
     font-size: 0.6875rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-    color: var(--nf-electric-300);
+    color: var(--nf-brand-secondary);
     background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
   }
 
@@ -304,7 +304,7 @@
     font-weight: 700;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    color: var(--nf-electric-300);
+    color: var(--nf-brand-secondary);
     background: color-mix(in oklab, var(--nf-brand-primary) 15%, transparent);
     border: 1px solid color-mix(in oklab, var(--nf-brand-primary) 28%, transparent);
   }

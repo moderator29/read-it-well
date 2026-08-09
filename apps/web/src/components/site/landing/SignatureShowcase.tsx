@@ -10,6 +10,13 @@ import { gatedHref } from "@/lib/site/gated-href";
  * The signature landing showcases, built around the three commissioned
  * artworks: the neon villa, the lit map of Nigeria, and the assistant
  * hologram. Copy is the owner's canonical wording for these panels.
+ *
+ * The artwork carries these panels, so the panels themselves stop competing
+ * with it. Three raw glows came off: a 24px electric halo behind the mark, a
+ * 60px electric drop shadow under the city render, and a two-direction navy
+ * gradient over the assistant. All three were rgb literals that painted the
+ * same dark neon onto a white page in daylight, and the first two were dressing
+ * a render that is already lit.
  */
 
 export function VillaShowcase() {
@@ -20,7 +27,7 @@ export function VillaShowcase() {
           <div className="flex flex-col items-start justify-center p-6 sm:p-10 lg:p-12">
             <LogoMark
               size={52}
-              className="mb-5 rounded-2xl shadow-[0_0_24px_rgb(12_57_239/0.35)] ring-1 ring-[var(--nf-border-subtle)]"
+              className="mb-5 rounded-[var(--nf-radius-lg)] ring-1 ring-[var(--nf-border-subtle)]"
             />
             <h2 id="nf-villa-title" className="nf-h1">
               Find it. Rent it. <span className="nf-gradient-text">Love it.</span>
@@ -70,7 +77,7 @@ export function VillaShowcase() {
               width={1536}
               height={888}
               sizes="(max-width: 1024px) 90vw, 46vw"
-              className="h-auto w-full max-w-[580px] drop-shadow-[0_30px_60px_rgba(12,57,239,0.45)]"
+              className="h-auto w-full max-w-[580px]"
             />
           </div>
         </div>
@@ -127,7 +134,7 @@ export function AssistantShowcase() {
             />
             <div
               aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-t from-[rgb(1_1_24_/_0.55)] via-transparent to-transparent lg:bg-gradient-to-l lg:from-[rgb(1_1_24_/_0.6)] lg:via-transparent lg:to-transparent"
+              className="absolute inset-0 [background-image:var(--nf-scrim-media)]"
             />
           </div>
 

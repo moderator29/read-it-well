@@ -1,13 +1,13 @@
 import type { Listing, ListingKind, ListingSearchFilter } from "./types";
 
 /**
- * Filter and ranking semantics shared by every listing source.
+ * Filter and ranking semantics, in one place.
  *
- * The seed catalogue and the Supabase catalogue must answer the same question
- * the same way, otherwise a blended result set would filter differently
- * depending on which half a listing came from. Both sources import these
- * functions, so there is exactly one definition of "matches this search" and
- * one definition of "a good recommendation rail" in the codebase.
+ * The server and the browser must answer the same question the same way: the
+ * filter drawer counts what a pending filter set would leave, and the
+ * repository applies the same set against Postgres. Both import from here, so
+ * there is exactly one definition of "matches this search" and one definition
+ * of "a good recommendation rail" in the codebase.
  *
  * This module is deliberately free of server-only imports. The filter drawer
  * imports `matchesFacts` in the browser to count how many places a pending set
@@ -86,7 +86,7 @@ export function hasBackupPower(facts: ListingFacts): boolean {
  * somebody else's property, and it also hid four-guest flats from a search for
  * four guests whenever the host had put them in two bedrooms.
  *
- * Where no number is declared (the seed catalogue), capacity falls back to two
+ * Where no number is declared, capacity falls back to two
  * guests per bedroom, the convention every lodging site uses when a host has
  * not said. A listing with neither a declared capacity nor a bedroom is not a
  * small place, it is a place where bedrooms are the wrong unit (a restaurant

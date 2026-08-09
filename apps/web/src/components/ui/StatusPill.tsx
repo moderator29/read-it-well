@@ -41,7 +41,7 @@ const TONE_STYLE: Record<StatusTone, CSSProperties> = {
   info: { background: "var(--nf-state-info-surface)", color: "var(--nf-state-info)" },
   brand: {
     background: "color-mix(in oklab, var(--nf-brand-primary) 20%, transparent)",
-    color: "var(--nf-electric-300)",
+    color: "var(--nf-brand-secondary)",
   },
   neutral: {
     background: "color-mix(in oklab, var(--nf-content-primary) 10%, transparent)",

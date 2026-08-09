@@ -1,4 +1,13 @@
-/** Third party provider marks. Drawn inline so no external asset is fetched. */
+/**
+ * Third party provider marks. Drawn inline so no external asset is fetched.
+ *
+ * Google's four brand colours are the one thing on a sign-in screen that MUST
+ * NOT be tokenised or themed: an approximated Google mark is a trademark
+ * problem, and a Google mark that changes with our theme is not the mark. The
+ * raw-colour rule is switched off for exactly this file and for exactly that
+ * reason.
+ */
+/* eslint-disable nf/no-raw-colour */
 
 export function GoogleMark({ size = 18 }: { size?: number }) {
   return (

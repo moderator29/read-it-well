@@ -8,6 +8,7 @@ import { CarouselRail } from "./CarouselRail";
 import { Words } from "@/components/site/Words";
 import { Amount } from "@/components/ui/Amount";
 import { gatedHref } from "@/lib/site/gated-href";
+import { MediaFrame } from "@/components/app/MediaFrame";
 
 /**
  * Featured this week.
@@ -16,19 +17,9 @@ import { gatedHref } from "@/lib/site/gated-href";
  * Phones swipe through the cards natively; from sm up the glass prev and next
  * controls in CarouselRail page the rail one card at a time. Every card links
  * straight to its listing page, prices go through <Amount> on integer kobo,
- * and the photo sits on a blue gradient tile so a slow image never leaves an
- * empty hole.
+ * and the photo sits on the platform's shared media frame so a slow image
+ * never leaves an empty hole.
  */
-
-/** Blue family gradient pairs keyed by the listing's deterministic hue. */
-const HUES: [string, string][] = [
-  ["#1E3A8A", "#172554"],
-  ["#155E75", "#0F172A"],
-  ["#0C4A6E", "#111827"],
-  ["#334155", "#0F172A"],
-  ["#1E40AF", "#1E1B4B"],
-  ["#312E81", "#0F172A"],
-];
 
 export async function FeaturedCarousel({ locale }: { locale: Locale }) {
   const listings = await getListingRepository().recommended(6);
@@ -57,7 +48,6 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
           nextLabel="Next featured listing"
         >
           {listings.map((l) => {
-            const [from, to] = HUES[l.hue % HUES.length] ?? HUES[0]!;
             const photo = l.photos[0];
             const perHead = l.kind === "restaurant" || l.kind === "experience";
             return (
@@ -67,10 +57,8 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                   className="nf-card nf-card--interactive group block h-full overflow-hidden"
                 >
                   <div className="relative aspect-[4/3] w-full overflow-hidden">
-                    <div
-                      className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                      style={{ background: `linear-gradient(150deg, ${from} 0%, ${to} 100%)` }}
-                    >
+                    <div className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100">
+                      <MediaFrame hue={l.hue} />
                       {photo && (
                         <Image
                           src={photo}
@@ -83,11 +71,16 @@ export async function FeaturedCarousel({ locale }: { locale: Locale }) {
                     </div>
                     {/* Scrim keeps the location line legible on every photo. */}
                     <div
-                      className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/65 via-black/25 to-transparent"
+                      className="absolute inset-x-0 bottom-0 h-20"
+                      style={{ backgroundImage: "var(--nf-scrim-media)" }}
                       aria-hidden="true"
                     />
-                    <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">
-                      <UiIcon name="location" size={12} className="shrink-0 text-white/70" />
+                    <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-on-media)]">
+                      <UiIcon
+                        name="location"
+                        size={12}
+                        className="shrink-0 text-[var(--nf-content-on-media-muted)]"
+                      />
                       <span className="truncate">{l.city}</span>
                     </p>
                   </div>

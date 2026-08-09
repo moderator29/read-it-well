@@ -1,6 +1,13 @@
 # RentMe Icon System
 
-Three tiers, each with one job. Never mix them.
+**Two tiers, each with one job, plus one landing-only mark set that is not a
+tier. Never mix them.**
+
+Corrected 2026-08-09. This file said three tiers, which disagreed with ADR-011,
+and it carried a section describing `Icon3D` as retired-but-kept-in-the-repository
+when those files do not exist at all. It also said 33 checked-in UI vectors when
+there are 40, and told the reader to wrap objects in a `.nf-icon-chip` class that
+is defined nowhere in the codebase.
 
 ## Tier 1: BrandIcon, the commissioned 3D pack (content)
 
@@ -24,10 +31,21 @@ shield-check, shield-home, shield-lock, support-chat, support-shield,
 tag-hash, tag-percent, tour-360, user-check, user-verified, wallet-secure.
 
 Usage: `<BrandIcon name="shield-check" size={44} />` or `fill` inside a sized
-wrapper. The artwork is rendered on white: in daylight it composites with
-multiply so the ground disappears on paper, at night it is masked and lifted
-so the object reads on the dark canvas. Wrap in `.nf-icon-chip` when the
-object needs its own tile.
+wrapper. Props are `name`, `size`, `fill`, `label`, `priority` and `className`.
+**There is no `ramp` prop.** The artwork is rendered on white: in daylight it
+composites with multiply so the ground disappears on paper, at night it is
+masked and lifted so the object reads on the dark canvas.
+
+**Do not reach for `.nf-icon-chip`.** This file used to tell you to wrap an
+object in that class when it needed its own tile. The class is defined in no
+stylesheet in the repository and never was. A tinted tile behind a glyph came
+from the retired reference brief, not from this system: see
+`RECOMMENDATIONS.md` D-2 and D-5.
+
+**The percentage padding trap.** Percentage padding resolves against the
+containing block, not the element. A 22px icon tile inside a 330px button got
+about 30px of padding per side and rendered a 0x0 image, so every non-`fill`
+`BrandIcon` was an empty white chip and nothing caught it but a screenshot.
 
 Sizing convention: 20 to 24px inline in dense rows, 40 to 48px in feature
 cards and list rows, 64 to 96px in showcase and empty states, and larger only
@@ -53,26 +71,37 @@ nearest one, so a size cannot drift off the grid whatever a caller passes.
 BrandIcon sits on an 8px grid from 24 up; below 24 the plinth in the artwork
 collapses into a coloured square.
 
-**Vector sources are checked in.** `assets/icons/ui/*.svg`, 33 files, generated
-from this component by `node scripts/build-icon-vectors.mjs` and verified by
-`--check`. Nobody has to trace a glyph from a screenshot. See
-`assets/icons/README.md` for where all three tiers' artwork lives.
+**Vector sources are checked in.** `assets/icons/ui/*.svg`, **40 files**, one per
+glyph, generated from this component by `node scripts/build-icon-vectors.mjs` and
+verified by `--check`, which exits non-zero if the two copies have drifted. Edit
+the TSX and re-run the script, never the other way round. Nobody has to trace a
+glyph from a screenshot. See `assets/icons/README.md` for where the artwork
+lives.
 
-## Tier 3: TrustIcon (trust strip marks)
+## Not a tier: TrustIcon (the landing trust strip)
 
-`apps/web/src/design-system/icons/TrustIcon.tsx`. Globe, shield, ai-chip,
-africa, app-store, play-store. Landing trust strip only.
+`apps/web/src/design-system/icons/TrustIcon.tsx`. Six marks: globe, shield,
+ai-chip, africa, app-store, play-store. **Landing trust strip only**, and
+deliberately not exported for general use.
 
-## Retired: Icon3D vector objects
+ADR-011 is the authority and it says two tiers. This is a mark set, not a tier: a
+tier is a rule about which family answers a job, and no job anywhere else in the
+product is answered by these six.
 
-`apps/web/src/design-system/icons/Icon3D.tsx`, `glyphs.tsx` and the `Icon`
-wrapper were the previous content tier: hand built SVG 3D objects on
-gradient tiles with per-instance paint servers. They are superseded by the
-commissioned pack and are kept in the repository, unused, as a fallback and
-as reference for the light direction and material language the pack follows.
-Do not delete them without the owner's word.
+## Deleted: Icon3D
 
-Historical name mapping, old vector name to pack object:
+`Icon3D.tsx`, `glyphs.tsx` and the `Icon` wrapper were the previous content tier,
+hand-built SVG 3D objects on gradient tiles with per-instance paint servers.
+ADR-003 chose them; ADR-010 reversed that and they were **deleted**.
+
+This section used to say they were kept in the repository, unused, as a fallback,
+and asked the reader not to delete them without the owner's word. That has been
+wrong for some time. `apps/web/src/design-system/icons/` contains exactly three
+files. Never import `Icon3D`; the standing pre-commit scan greps for it and must
+return empty.
+
+Historical name mapping, old vector name to pack object, kept because old
+screenshots and old comments still use the left-hand names:
 help to support-chat, apartment to homes-sparkle, wallet to wallet-secure,
 secure to shield-lock, star to reviews, search to home-search, ai-assistant
 to bot-home, verified to shield-check, profile to user-check, location to

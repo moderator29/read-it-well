@@ -7,6 +7,7 @@ import { type Locale, formatRating } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MapCopy, MapListing } from "./mapTypes";
 import { Amount } from "@/components/ui/Amount";
+import { MediaFrame } from "@/components/app/MediaFrame";
 
 /**
  * The card that docks at the foot of the map when a pin is chosen.
@@ -22,16 +23,6 @@ import { Amount } from "@/components/ui/Amount";
  * It is dismissable three ways: the control, a downward swipe, and Escape
  * (handled by the map, which owns the selection).
  */
-
-/** Gradient tiles behind the photo, so an unreachable CDN still reads as a place. */
-const HUES: [string, string][] = [
-  ["#1E3A8A", "#172554"],
-  ["#155E75", "#0F172A"],
-  ["#0C4A6E", "#111827"],
-  ["#334155", "#0F172A"],
-  ["#1E40AF", "#1E1B4B"],
-  ["#312E81", "#0F172A"],
-];
 
 /** How far down the card must travel before the swipe counts as a dismissal. */
 const DISMISS_AT = 56;
@@ -65,7 +56,6 @@ export function MapDock({
     listing.area && listing.area !== listing.city
       ? `${listing.area}, ${listing.city}`
       : listing.area || listing.city;
-  const [from, to] = HUES[listing.hue % HUES.length] ?? HUES[0]!;
   const hasPrice = listing.priceMinor > 0;
   const per =
     listing.period === "guest"
@@ -132,21 +122,7 @@ export function MapDock({
           className="flex items-stretch gap-3 p-2.5 pt-3.5"
         >
           <div className="relative h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]">
-            <div
-              className="absolute inset-0"
-              style={{ background: `linear-gradient(150deg, ${from} 0%, ${to} 100%)` }}
-            />
-            <svg
-              viewBox="0 0 400 300"
-              className="absolute inset-0 h-full w-full opacity-60"
-              aria-hidden="true"
-              preserveAspectRatio="none"
-            >
-              <path
-                d="M0 300V190h34v-52h30v52h28v-84h44v84h26v-40h38v40h30v-66h40v66h34v-30h32v30h30v-46h34v46Z"
-                fill="rgba(0,0,0,0.42)"
-              />
-            </svg>
+            <MediaFrame hue={listing.hue} />
             {listing.photo && (
               <Image
                 src={listing.photo}
@@ -177,16 +153,10 @@ export function MapDock({
                   </span>
                 </span>
               )}
-              {/* Only first party inventory may carry the verified badge. */}
-              {listing.verified && !listing.partner && (
+              {listing.verified && (
                 <span className="nf-badge nf-badge--verified">
                   <UiIcon name="verified" size={12} />
                   {copy.verified}
-                </span>
-              )}
-              {listing.partner && (
-                <span className="nf-badge bg-[var(--nf-surface-raised)] text-[var(--nf-content-secondary)]">
-                  Partner
                 </span>
               )}
             </div>

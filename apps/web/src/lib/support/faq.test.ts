@@ -64,10 +64,10 @@ describe("what the store says about money", () => {
     expect(answer).toMatch(/charges nothing/i);
   });
 
-  it("says an absent price is unpublished rather than free", () => {
-    const answer = faqAnswerById("partner-stock") ?? "";
-    expect(answer).toMatch(/not published/i);
-    expect(answer).not.toMatch(/free/i);
+  it("says every listing came from a person on the platform", () => {
+    const answer = faqAnswerById("where-listings-come-from") ?? "";
+    expect(answer).toMatch(/real person/i);
+    expect(answer).toMatch(/import nothing/i);
   });
 });
 

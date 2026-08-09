@@ -102,9 +102,7 @@ export async function RealMap({
       reviewCount: listing.reviewCount,
       ...(listing.photos[0] ? { photo: listing.photos[0] } : {}),
       hue: listing.hue,
-      // Partner stock never carries verification, whatever the row says.
-      verified: listing.verified && listing.source !== "partner",
-      partner: listing.source === "partner",
+      verified: listing.verified,
       lat: at.lat,
       lng: at.lng,
       byArea,

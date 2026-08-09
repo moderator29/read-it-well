@@ -15,6 +15,13 @@ import { addLocalSave, readLocalSaves, removeLocalSave } from "@/lib/saved/local
  * look wrong in daylight. Everything underneath them is an image, so this is
  * the one place where the same treatment is correct at noon and at midnight.
  *
+ * That reasoning was right and the implementation was not: it was written as
+ * bg-black/45, border-white/25 and text-white, by hand, in this file and in
+ * five others, so nothing recorded WHY the darkness was deliberate and nothing
+ * distinguished it from the dark-only literals that genuinely do break in
+ * daylight. It now reads the `-on-media` token family, which is theme
+ * independent on purpose and says so in one place.
+ *
  * Save flips instantly and settles against the truth the action returns:
  * a catalogue listing is kept on the device, a platform listing is a row under
  * RLS, and a write that fails puts the heart straight back and says why.
@@ -146,7 +153,7 @@ export function ListingActions({
           onClick={share}
           aria-label="Share this listing"
           data-testid="listing-share"
-          className="grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
+          className="grid h-11 w-11 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="share" size={16} />
         </button>
@@ -157,12 +164,12 @@ export function ListingActions({
           aria-pressed={saved}
           aria-label={saved ? "Remove from saved" : "Save this listing"}
           data-testid="listing-save"
-          className="grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-md transition-transform active:scale-90 disabled:opacity-70 motion-reduce:transition-none"
+          className="grid h-11 w-11 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 disabled:opacity-70 motion-reduce:transition-none"
         >
           <UiIcon
             name="heart"
             size={16}
-            className={saved ? "text-[var(--nf-electric-300)] [&_path]:fill-current" : undefined}
+            className={saved ? "text-[var(--nf-status-verified)] [&_path]:fill-current" : undefined}
           />
         </button>
       </div>
@@ -171,7 +178,7 @@ export function ListingActions({
         <p
           role="status"
           data-testid="listing-action-message"
-          className="max-w-[15rem] rounded-full bg-black/75 px-3 py-1.5 text-right text-[0.75rem] font-medium leading-snug text-white backdrop-blur-md"
+          className="max-w-[15rem] rounded-full bg-[var(--nf-overlay-media-strong)] px-3 py-1.5 text-right text-[0.75rem] font-medium leading-snug text-[var(--nf-content-on-media)] backdrop-blur-md"
         >
           {message}
           {signInPrompt && (

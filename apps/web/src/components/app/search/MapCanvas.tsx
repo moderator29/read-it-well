@@ -644,7 +644,7 @@ export function MapCanvas({
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(120% 80% at 50% 25%, color-mix(in oklab, var(--nf-electric-500) 16%, transparent) 0%, transparent 68%)",
+              "radial-gradient(120% 80% at 50% 25%, color-mix(in oklab, var(--nf-brand-primary) 16%, transparent) 0%, transparent 68%)",
           }}
         />
       )}
@@ -712,8 +712,7 @@ export function MapCanvas({
               <span
                 className={`inline-flex items-center gap-1 ${chosen ? "" : "nf-map-pin-breathe"}`}
               >
-                {/* Partner stock never carries the verified badge, here or anywhere. */}
-                {pin.verified && !pin.partner && (
+                {pin.verified && (
                   <UiIcon
                     name="verified"
                     size={12}

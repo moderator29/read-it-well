@@ -85,7 +85,7 @@ export function ListingPhotoGrid({
               >
                 <Tile photo={photo} hue={hue} index={i} sizes="(max-width: 640px) 33vw, 220px" />
                 {last && (
-                  <span className="nf-numeric absolute inset-0 grid place-items-center bg-black/55 text-[1.0625rem] font-bold text-white backdrop-blur-[2px]">
+                  <span className="nf-numeric absolute inset-0 grid place-items-center bg-[var(--nf-overlay-media-strong)] text-[1.0625rem] font-bold text-[var(--nf-content-on-media)] backdrop-blur-[2px]">
                     +{remainder}
                   </span>
                 )}

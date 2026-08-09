@@ -223,7 +223,7 @@ export function StoryRail() {
                     ))}
                   </ul>
 
-                  <span className="mt-5 inline-flex items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-electric-300)]">
+                  <span className="mt-5 inline-flex items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-content-link)]">
                     {s.action}
                     <UiIcon
                       name="arrow-right"

@@ -1,15 +1,25 @@
-# RentMe: Session Handoff
+# RentMe: the working contract
 
-You are the co-founder engineer on RentMe, a Nigeria-first discovery, property,
-hospitality and booking platform. This document is the contract. Read it fully
-before touching a file, then read the documents in section 1 before writing a
-line of code.
+You are the co-founder engineer on RentMe, a **Nigeria first property
+marketplace for renting, buying and selling, with a social layer, a wallet,
+escrow and a verification ladder.** This document is the contract: the rules, the
+state, and the gotchas that each cost real time to learn. Read it fully before
+touching a file.
 
-The platform LOOKS finished, and large parts of it genuinely are. What remains
-is the social layer, plus a queue of platform upgrades, and both have to be
-built to the standard of everything already here.
+**Read `docs/PRODUCT.md` first if you have not.** It is shorter than this and it
+says what the product is. This file says how to work on it.
+
+The platform LOOKS finished, and large parts of it genuinely are. What remains is
+in `RECOMMENDATIONS.md`, by domain, with a priority on every entry.
 
 Owner: moderator29. Repository: `read-it-well`. Branch: **`main`**.
+
+**Corrected 2026-08-09.** Section 1's reading list pointed at nine documents that
+are now in `docs/archive/` and one that no longer exists in that form; section
+3.3 said `pg_cron` was not enabled when it has been running six jobs since
+2026-08-04; section 8's counts were nine days behind; and the whole of sections 4
+and 5 described a two-agent protocol around a social layer that shipped. Each is
+fixed in place.
 
 ---
 
@@ -34,27 +44,35 @@ Not horizontal layers. Not "the backend for six features". One whole thing.
 
 ## 1. Read these before you write anything
 
-In this order. They are not background reading, they are the brief.
+Fourteen live documents, and that is the whole set. Anything under
+`docs/archive/` is history and governs nothing: if it disagrees with the code,
+the database or the list below, it is wrong.
 
 | File | What it is | Why you need it |
 |---|---|---|
-| `docs/HANDOFF.md` | This file | The contract |
-| `docs/SOCIAL_DESIGN.md` | The social layer argument | Supersedes SOCIAL_TODO and SOCIAL_LAYER, both of which say so in their own headers |
-| `docs/SOCIAL_BUILD.md` | The social layer build order | The slices. **Its checkboxes were never ticked and are not a status**, see section 3.2 |
-| `docs/SOCIAL_TODO.md`, `docs/SOCIAL_LAYER.md` | Earlier thinking | Superseded 2026-08-04. History, not a plan |
-| `docs/BADGES.md` | Earned standing for agents and members | Feeds the social layer's S5 |
-| `RECOMMENDATIONS.md` | 52 formal R-01 to R-52 entries | The considered upgrade list |
-| `docs/recommendations-inbox.md` | 250 raw numbered items | **The full pool agent 1 picks from** |
-| `docs/ICON_SYSTEM.md` | The three-tier icon system | You WILL get this wrong without it |
-| `KNOWN_GAPS.md` | What is honestly missing | Do not rediscover these |
-| `docs/DEAD_ENDS.md` | Audited dead ends with file:line | Same |
-| `docs/MASTER_TODO.md` | The long build order and architecture canon | Context for what came before |
+| `docs/PRODUCT.md` | What RentMe is, in under 200 lines | Read first. Roles, taxonomy, terminology |
+| `docs/HANDOFF.md` | This file | The rules, the gotchas, the verification ritual |
+| `RECOMMENDATIONS.md` | Every open recommendation by domain, P0 to P2, with evidence | The work queue. Replaced the old 137-entry file on 2026-08-09 |
+| `KNOWN_GAPS.md` | What is honestly missing and why | Do not rediscover these |
+| `ROADMAP.md` | What has landed | Context, not a plan |
 | `ARCHITECTURE_DECISIONS.md` | Why things are the way they are | Read before proposing a rewrite |
-| `docs/DEPLOY.md` | Deploy and env reality | Before touching config |
-| `docs/HYBRID_INVENTORY.md` | Hybrid supply providers | If you touch inventory |
+| `docs/ICON_SYSTEM.md` | Two icon tiers plus a landing mark set | You WILL get this wrong without it |
+| `docs/SOCIAL_DESIGN.md` | The social layer design record | The layer is BUILT. This is why it is shaped as it is |
+| `docs/BADGES.md` | Earned standing. Shipped | The principles in sections 1, 4 and 7 are the durable part |
+| `docs/ENVIRONMENT.md` | Every credential the code reads, and what breaks without it | Before touching config |
+| `docs/DEPLOY.md` | The deploy runbook | Before touching Vercel or Supabase settings |
+| `docs/DATABASE_AUDIT.md` | Live advisor findings, and the do-not-fix list | Before "fixing" a Supabase lint |
+| `docs/MOBILE.md` | Build, sign and ship the native applications | If you touch `android/`, `ios/` or `capacitor.config.ts` |
+| `docs/MOBILE_READINESS.md` | Store readiness, permissions and the privacy inventory | Answers a store questionnaire |
 
 **Do not skim these.** Several of the most expensive mistakes in this project's
 history were things already written down in one of them.
+
+**And do not read the archive as a brief.** `docs/archive/ui-audit/00-reference-brief.md`
+in particular asked for tinted icon tiles, symbol effects everywhere, an island
+tab bar and photo chips, and it is the direct cause of the visual clutter now
+being removed. It is stamped superseded. `docs/archive/README.md` explains what
+is in there and why each thing was retired.
 
 ---
 
@@ -96,23 +114,39 @@ older one, and everything below is current as of this handoff.
     at the input boundary. Display only through `formatMoney` from
     `@naijafinds/i18n`. Never float money. Never divide by 100 yourself.
 11. **RENT is message, inspect, then pay.** No Reserve button on a rental.
-12. The verified badge is **first-party inventory only**.
+12. **All inventory is first party.** Everything on RentMe was listed on RentMe.
+    No Google Places, no LiteAPI, no external feed. The verified badge, the
+    verification ladder and escrow only mean something because there is a real
+    person behind every listing. ADR-013.
 13. Zero "sample", "preview", "demo" or "not live" strings anywhere in UI copy.
 14. Messaging trust flow: guests DM agents of approved listings; a database
     trigger flags 10-digit account numbers and payment keywords to admin;
     in-chat verify-inspection sheet; "pay only after inspection" messaging.
 15. The owner adds all environment keys personally. Never block on a missing
     env. Env-guard every client and degrade into an honest, designed state.
+    **One exception, and it is important:** a missing key must never fail
+    silently on a payment webhook. See `RECOMMENDATIONS.md` W-1.
+15a. **No Google or Apple sign in.** Email and password only. The OAuth code is
+    still in the tree and is being removed: `RECOMMENDATIONS.md` N-4.
+15b. **Signed-out visitors get view only.** Any action requiring an account
+    raises sign up or sign in. The middleware does the opposite today and that
+    is `RECOMMENDATIONS.md` N-1.
+15c. **Never promise escrow in copy until escrow exists.** It does not exist.
+    `apps/web/src/app/(site)/safety/page.tsx` refuses to promise it on purpose.
 
 ### 2.3 Craft
 
 16. **Mobile-first at 390px**, always, then up. Verify every new surface there.
 17. **ZERO em dashes** anywhere: code, copy, docs, commit messages. British
     spelling in docs and product copy.
-18. Navigation icons are stroked `UiIcon` glyphs. Content objects are
-    `BrandIcon` (57 commissioned 3D objects, props name/size/fill/label/
-    priority/className, there is NO `ramp` prop). `Icon` and `Icon3D` are
-    RETIRED. Never import them.
+18. Navigation icons are stroked `UiIcon` glyphs, 40 of them, one stroke weight
+    (`UI_ICON_STROKE_PX` 1.4 rendered pixels, computed from the size, there is
+    no `strokeWidth` prop) and one size scale (12, 16, 20, 24, 28, 32, nothing
+    between). Content objects are `BrandIcon`, 57 commissioned 3D objects, props
+    `name`/`size`/`fill`/`label`/`priority`/`className`, there is NO `ramp`
+    prop. `Icon` and `Icon3D` are **deleted**, not merely retired, and the
+    pre-commit grep for `Icon3D` must return empty. `TrustIcon` is six marks on
+    the landing trust strip and nowhere else.
 19. Full-page drawers, never partial. Footer on landing and site pages only.
 20. Every app page has a PageHeader back button following real history
     (`history.state.idx > 0 ? router.back() : router.push(fallback)`).
@@ -163,9 +197,13 @@ were then removed:
 
 ### 3.2 Not started
 
-- **The recommendations queue.** 52 formal entries plus a 250-item inbox. Worked
-  through in part since this was written; treat the count as unverified rather
-  than as untouched.
+- **Buying and selling.** The product is named for renting and is meant to sell,
+  and `public.listings` cannot express a sale at all: no sale price, no intent,
+  no tenure. `RECOMMENDATIONS.md` P-1. This is the largest gap in the platform.
+- **Escrow.** Zero implementation. `RECOMMENDATIONS.md` E-1.
+- **Everything else** is `RECOMMENDATIONS.md`, by domain, each with evidence and
+  a priority. The old "52 formal entries plus a 250-item inbox" pool is retired;
+  what survived it is in that file and the pool is in `docs/archive/`.
 
 ### 3.2b The social layer is BUILT. Do not rebuild it.
 
@@ -187,17 +225,24 @@ The shape moved from what the old plan drew: one `posts` table rather than
 "around" in place of "compound", because a compound is a different thing in
 Nigerian property. `docs/SOCIAL_DESIGN.md` section 0 argues all five changes.
 
-**The checkboxes in `docs/SOCIAL_BUILD.md` and `docs/SOCIAL_TODO.md` are all
-still unticked and mean nothing.** 112 and 45 empty boxes respectively, against
-work that is done. Nobody went back to them. Read the database and the route
-table, not those files, and do not treat an empty box there as a gap.
+**The build checklists that recorded this work were never ticked and meant
+nothing.** `SOCIAL_BUILD.md` carried 112 empty boxes and `SOCIAL_TODO.md` 45,
+against work that is finished. Both are now in `docs/archive/`. Read the database
+and the route table, and never treat an empty box in the archive as a gap.
+
+Live counts, 2026-08-09: `areas` 7, `posts` 18 (every one `author_kind =
+'SYSTEM'`, the designed cold start), `badges` 15, `user_badges` 1.
 
 ### 3.3 Blockers and hazards
 
-- **`pg_cron` is NOT enabled.** It blocks the stale-hold sweep, badge awarding,
-  and the social layer's gist expiry. Enabling it is a Supabase toggle, not
-  code. Attempts have been blocked; raise it with the owner rather than
-  engineering around it.
+- **`pg_cron` IS enabled.** This bullet said the opposite for five days and so
+  did six other documents. Verified live 2026-08-09: `pg_cron` 1.6.4 installed,
+  six active jobs, applied by
+  `supabase/migrations/20260804184423_the_scheduler_exists_now.sql`. The badge
+  sweep, the stale hold release, both purges, the completed-stay announcement and
+  the daily note all run. **All schedules are UTC and Lagos is UTC+1.** Nothing
+  alerts on a failed job; `cron.job_run_details` carries the outcome and nothing
+  reads it.
 - **The sandbox cannot reach the Supabase host.** The agent proxy blocks it by
   organisation policy, so pages render signed-out or fallback states locally.
   Verify the data layer through the Supabase MCP tools instead. Never disable
@@ -207,53 +252,47 @@ table, not those files, and do not treat an empty box there as a gap.
 
 ---
 
-## 4. Your two jobs, and the order
+## 4. The job
 
-**Job 1 is finished.** The owner said go, it was designed and it was built. See
-section 3.2b. The instruction below is kept because the way it was approached,
-argue with the plan first and present before building, is how the next large
-piece should be approached too, but nobody should read it as an outstanding
-task.
+**Rewritten 2026-08-09.** This section described two jobs: build the social layer
+and work a 302-item recommendations pool. The social layer shipped on 2026-08-04
+and the pool is retired. Both instructions are now actively wrong and following
+either one wastes a session.
 
-### Job 1: the social layer. You lead it. (COMPLETE)
+**The job is `RECOMMENDATIONS.md`, in priority order.** Every entry states what
+is wrong today with evidence, what to do, and why it matters, and carries P0, P1
+or P2. Start at the P0s. The four largest, and they are in different domains so
+they can be worked in parallel:
 
-**Do not start building the moment you finish reading.**
+1. **P-1**, the data model cannot express a sale, on a platform meant to sell.
+   Free to fix today with zero listings.
+2. **N-1**, signed-out visitors are locked out of the whole product, which is the
+   opposite of the stated rule and defeats every discovery item behind it.
+3. **W-1**, a missing service role key silently kills both money settlement paths
+   and answers HTTP 200, so a paid funding is lost with no retry and no log.
+4. **E-1**, escrow is zero percent built and is correctly promised nowhere. Do
+   not let a marketing pass promise it first.
 
-The owner's instruction, in their words: the existing plan "is not that good but
-it's a foundation for him to think how we build it all clean next gen". So:
-
-1. Read `docs/SOCIAL_TODO.md` and `docs/SOCIAL_LAYER.md` properly.
-2. **Think harder than those documents did.** Argue with them. Section 7 lists
-   where they are genuinely weak.
-3. Produce **your own recommendations**: architecture, data model, the visual
-   system, the mechanics, what to cut, what is missing. Go much deeper on the
-   design than the current plan does. Next generation, clean, Nigerian, unlike
-   any social product that exists.
-4. Build a **TODO list** covering everything end to end, backend and frontend.
-5. **Present all of it to the owner and WAIT.** The owner says go, then you
-   build. Do not build before that word.
-
-### Job 2: the recommendations. Agent 1 owns it.
-
-Runs in parallel from the start. It does not wait for the social layer's go.
+**How the last large piece was approached, and it worked.** Do not start building
+the moment you finish reading. Argue with the plan first, produce your own
+recommendation, present it, and wait for the word. That is how the social layer
+went from a weak document to a shipped subsystem, and it is how the sale market
+and escrow should go too.
 
 ---
 
 ## 5. The agent protocol: exactly two
 
-Two subagents. Not three, not four. The owner has been explicit and repeated.
+Two subagents. Not three, not four. The owner has been explicit and repeated: a
+large fleet burned an enormous amount of usage for very little gain.
 
 ### Agent 1: Platform Upgrades
 
-- **Source pool:** the FULL body. `RECOMMENDATIONS.md` (R-01 to R-52) plus
-  `docs/recommendations-inbox.md` (250 numbered items). **Not a pre-filtered
-  shortlist.** A previous session picked 50; ignore that selection entirely and
-  let this agent make its own.
-- **First task:** read the whole pool and pick **the best 50 that genuinely
-  upgrade the platform**, ranked, one line of reasoning each. Report that list
-  before starting any of them.
-- **Then work them ONE BY ONE.** One item, closed completely, verified, handed
-  over. Then the next. Never a batch of half-finished items.
+- **Source:** `RECOMMENDATIONS.md`, worked in priority order. The old pool of
+  "R-01 to R-52 plus 250 inbox items" is retired to `docs/archive/`; do not
+  reopen it, and do not treat a previous session's ranked shortlist as scope.
+- **Work them ONE BY ONE.** One item, closed completely, verified, handed over.
+  Then the next. Never a batch of half-finished items.
 - **Per item it re-audits its own work** against the ONE LAW: typecheck and
   build to zero, run the relevant specs, look at a 390px screenshot in both
   themes, and only then hand it to the lead.
@@ -261,9 +300,12 @@ Two subagents. Not three, not four. The owner has been explicit and repeated.
   item. If the lead's audit finds a problem, it goes back.
 - Never runs git. Never commits. Never pushes.
 
-### Agent 2: Social Layer Build
+### Agent 2: whatever the current large piece is
 
-- Starts only once the owner has said go on the social layer.
+- The social layer was Agent 2's job and it shipped. The slot is not retired, the
+  brief is: Agent 2 takes the current large piece, which is the sale market
+  (`RECOMMENDATIONS.md` P-1) followed by escrow (E-1).
+- Starts only once the owner has said go on that piece.
 - Takes the half of each vertical slice the lead is not holding, with **strict
   non-overlapping file scopes agreed in writing before it starts.**
 - Same contract: closes its own loop, re-audits itself, hands to the lead, lead
@@ -367,7 +409,7 @@ are point 3, the cold start, which the `SYSTEM` author kind answers, and point
 5, the utility record being gameable, which is the one this section was most
 right about.
 
-`docs/SOCIAL_TODO.md` is a foundation, and the owner is right that it is not
+`docs/archive/SOCIAL_TODO.md` is a foundation, and the owner is right that it is not
 good enough yet. Here is an honest read of where it is strong and where you
 should push much harder.
 
@@ -457,18 +499,30 @@ npm workspaces monorepo.
   mutation speaks.
 - `apps/web/src/lib/actions/session.ts`: `resolveSession()` returning
   `unconfigured | signed-out | signed-in`.
-- `supabase/migrations/`: every applied migration, mirrored as a file.
+- `apps/web/src/app/css/`: 19 ordered partials. `globals.css` is 71 lines of
+  imports and **the order is the cascade**. Three selectors are declared twice on
+  purpose.
+- `apps/web/src/components/ui/`: 12 primitives. `Button`, `Chip`, `Field`,
+  `Segmented`, `Sheet`, `Skeleton`, `StatusPill`, `Switch`, `Table`, `Progress`,
+  `Amount`, `ActionBar`. Compose from these rather than re-specifying geometry.
+- `supabase/migrations/`: every applied migration, mirrored as a file. 120 files
+  against 120 applied versions, with eight cosmetic filename mismatches:
+  `RECOMMENDATIONS.md` T-4.
 - `supabase/templates/` and `scripts/build-auth-emails.mjs`: five branded auth
-  emails.
+  emails, generated and never hand-edited.
 - `scripts/verify-shots.mjs`: the screenshot harness.
-- `apps/web/tests/*.spec.mjs`: 78 standalone node specs (NOT vitest suites).
-  They need a server on port 3210. Counted 2026-08-07; this said 18 for long
-  enough that section 9's list of spec names is also short by sixty.
-- `apps/web/src/**/*.test.ts`: 66 vitest unit tests across 5 files, for the
-  handful of things a browser cannot reach (the partner provider mappers and
-  the undo window). `apps/web/vitest.config.ts` explains why they exist at all.
-  **Run vitest from `apps/web`**, never from the repo root: the root resolves a
-  different config and the run appears to fail.
+- `apps/web/tests/*.spec.mjs`: **83** standalone node specs (NOT vitest suites).
+  They need a server on port 3210. Counted 2026-08-09; this said 18, then 78.
+  Count it, do not quote it.
+- `apps/web/src/**/*.test.ts`: **8 vitest files**, for the handful of things a
+  browser cannot reach. `apps/web/vitest.config.ts` explains why they exist at
+  all. **Run vitest from `apps/web`**, never from the repo root: the root
+  resolves a different config and the run appears to fail.
+- `apps/web/eslint.config.mjs`: exists now, and had never run before it did. Its
+  header records the drift that produced. There is still no stylelint and no
+  `tailwind.config`: `RECOMMENDATIONS.md` D-1.
+- **No `.github/`.** Nothing runs any of the above automatically, and Vercel
+  deploys from `main`. `RECOMMENDATIONS.md` T-1.
 
 ---
 
@@ -478,7 +532,8 @@ Run all of it. Every time.
 
 ```bash
 npm run typecheck          # must be 0 errors, all workspaces
-cd apps/web && npx vitest run && cd ../..   # 66 unit tests, no server needed
+cd apps/web && npx eslint . && cd ../..     # from apps/web
+cd apps/web && npx vitest run && cd ../..   # 8 files, no server needed
 npm run build              # must be clean; typecheck passing is NOT enough
 ```
 
@@ -488,9 +543,17 @@ failures that have nothing to do with your change.
 
 Then, with the app served on port 3210 (`npx next start -p 3210` from
 `apps/web`), run the specs. They are standalone node scripts, so `npm test`
-will NOT run them correctly. There are 78 of them now, so run the directory
-rather than a hand-kept list, which is what let the list below fall sixty
-behind without anyone noticing:
+will NOT run them correctly. There are 83 of them, so run the directory rather
+than a hand-kept list, which is what let an earlier list fall sixty behind
+without anyone noticing.
+
+**Before you trust the run, confirm the port was free.** `next start` on a held
+port does NOT fail loudly: the old server keeps serving and the new process
+exits, so the sweep silently measures the PREVIOUS build. It presents as dozens
+of unrelated specs failing at once. Confirm exactly one `next-server` process and
+that `.next-*/BUILD_ID` matches the build just made. Killing `next-server` alone
+is not enough because `npm exec` respawns it: kill the `npm exec`, the `sh -c`
+and the `next-server` together. `pkill -f "next start"` matches nothing.
 
 ```bash
 cd apps/web
@@ -524,10 +587,14 @@ Playwright uses `playwright-core` with
   preventing double-booking, an append-only kobo ledger with derived balances.
 - Apply migrations through the Supabase MCP tools, then mirror the exact SQL
   into `supabase/migrations/` with a timestamp prefix.
-- Reference contract: `rm-fund-<uuid>`, `rm-wd-<uuid>`, `rm-p2p-<uuid>-out/-in`,
-  `rm-book-<uuid>`.
+- Reference contract, owned by `lib/payments/references.ts`: `rm-fund-<uuid>`,
+  `rm-wd-<uuid>`, `rm-p2p-<uuid>-out/-in`, `rm-book-<uuid>`, `rm-refund-<uuid>`.
 - Durable Postgres rate limiting (`private.consume_rate_limit`) plus idempotency
-  records, both fail-open.
+  records, both fail-open. Called from two API routes only; the money surfaces
+  count nothing (`RECOMMENDATIONS.md` W-2).
+- **`pg_cron` 1.6.4 installed, six active jobs, all schedules UTC.** ADR-014.
+- 71 tables in `public`, 120 migrations. Live row counts are in
+  `docs/PRODUCT.md` section 8 and are re-counted rather than remembered.
 
 ---
 

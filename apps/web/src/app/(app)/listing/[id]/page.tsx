@@ -14,7 +14,6 @@ import { lagosToday } from "@/lib/bookings/schema";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { RecordVisit } from "@/components/app/listing/RecordVisit";
 import { TravelTime } from "@/components/app/listing/TravelTime";
-import { BookPartnerStay } from "@/components/app/listing/BookPartnerStay";
 import { ReservePanel } from "./ReservePanel";
 import { RentalPanel } from "./RentalPanel";
 import { ReserveTable } from "./ReserveTable";
@@ -177,25 +176,20 @@ export default async function ListingDetailPage({
   if (!listing) notFound();
 
   /*
-   * Third-party stock, per docs/HYBRID_INVENTORY.md section 4: never the
-   * verified badge, never in-platform messaging, never a Reserve control that
-   * implies a booking of ours. A partner hotel is booked with the partner and a
-   * partner restaurant links to directions and its own page, nothing more.
+   * Every listing on RentMe was put here by somebody on RentMe. There is no
+   * third-party stock and no external feed, so every listing has an owner or
+   * agent to message, can be reviewed, and can carry our verification when it
+   * has earned it. The partner branch that used to live here went with the
+   * inventory layer it served.
    */
-  const isPartner = listing.source === "partner";
-  const partner = listing.partner;
 
   // Written reviews for this listing. Public by policy for a PUBLISHED listing,
-  // so this read works for a signed-out visitor too. Partner stock is never
-  // reviewed here, so it is not read for.
-  const reviews = isPartner ? [] : await getListingReviews(listing.id, locale);
+  // so this read works for a signed-out visitor too.
+  const reviews = await getListingReviews(listing.id, locale);
 
   // Message agent deep links into the existing thread about this listing when
-  // one exists, and otherwise lands on the conversation list. Partner stock has
-  // no agent, so it never asks.
-  const conversationId = isPartner
-    ? null
-    : await getMessageRepository().conversationIdForListing(listing.id);
+  // one exists, and otherwise lands on the conversation list.
+  const conversationId = await getMessageRepository().conversationIdForListing(listing.id);
   const messageHref = conversationId ? `/messages/${conversationId}` : "/messages";
 
   // Rentals are annual tenancies: no Reserve control anywhere on the page.
@@ -208,7 +202,7 @@ export default async function ListingDetailPage({
      is a party size at a moment, which is public.reservations and a different
      panel entirely (docs/HYBRID_INVENTORY.md section 9). */
   const isRestaurant = listing.kind === "restaurant";
-  const isBookable = !isPartner && !isRental && !isRestaurant;
+  const isBookable = !isRental && !isRestaurant;
 
   // Nights a guest cannot pick: booked or blocked dates from the platform
   // calendar. Empty for catalogue listings and when Supabase is not
@@ -243,22 +237,11 @@ export default async function ListingDetailPage({
       : Promise.resolve(false),
   ]);
 
-  // Partner locality collapses when the feed places a venue by city alone.
+  // An area is only worth naming when it says something the city does not.
   const where =
     listing.area && listing.area !== listing.city
       ? `${listing.area}, ${listing.city}, ${stateLabel(listing.state)}`
       : `${listing.city}, ${stateLabel(listing.state)}`;
-
-  // The off-platform action for partner stock, and the only action it gets.
-  const partnerAction: { label: string; href: string } | null = isPartner
-    ? listing.kind === "hotel" && partner?.bookUrl
-      ? { label: "Book", href: partner.bookUrl }
-      : partner?.directionsUrl
-        ? { label: "Directions", href: partner.directionsUrl }
-        : partner?.venueUrl
-          ? { label: "Menu", href: partner.venueUrl }
-          : null
-    : null;
 
   const kind = KIND_LABEL[listing.kind];
   const market = MARKET_PILL[listing.kind];
@@ -303,20 +286,7 @@ export default async function ListingDetailPage({
     `${listing.title} is ${roomPhrase} in ${where}.${amenitySentence}`,
   ];
 
-  if (isPartner) {
-    aboutParagraphs.push(
-      `This listing comes from one of our inventory partners rather than a RentMe agent, so it carries no RentMe verification and no in-platform messaging. ${
-        listing.kind === "hotel"
-          ? "The stay is booked with the partner that supplies it."
-          : "The venue takes its own bookings; we only point you to it."
-      }`,
-    );
-    aboutParagraphs.push(
-      listing.kind === "hotel"
-        ? "The rate is reconfirmed with the partner before anything is paid, so treat the figure here as the price they were advertising when we last read their feed."
-        : "Opening times, the menu and any booking the venue takes all live on its own page, which is where the links below go.",
-    );
-  } else if (isRental) {
+  if (isRental) {
     aboutParagraphs.push(
       "This home is let on an annual tenancy. Message the agent to ask questions and arrange an inspection, then pay only after you have inspected the property.",
     );
@@ -355,34 +325,21 @@ export default async function ListingDetailPage({
   }
 
   // What the sticky bar does, decided by the market the listing belongs to.
-  const stickyAction: StickyAction | null = isPartner
-    ? partnerAction
-      ? { ...partnerAction, external: true }
-      : null
-    : isRental || isRestaurant
+  const stickyAction: StickyAction | null =
+    isRental || isRestaurant
       ? { label: "Message agent", href: `/messages/new?listing=${listing.id}` }
       : { label: "Check availability", href: "#reserve" };
 
   /*
-   * The ghost half of reference 3's CTA pair, and only where a second action
-   * honestly exists.
-   *
-   * A stay has two real paths - ask the agent, or pick dates - so it pairs.
-   * A partner venue pairs its own page with directions, but only when the feed
-   * gave us two distinct destinations. A rental has exactly one path, so it
-   * gets one button rather than a decorative twin.
+   * The quiet half of the CTA pair, and only where a second action honestly
+   * exists. A stay has two real paths, ask the agent or pick dates, so it
+   * pairs. A rental has exactly one path, so it gets one button rather than a
+   * decorative twin.
    */
-  const stickySecondary: StickyAction | null = isPartner
-    ? partner?.venueUrl && partnerAction && partner.venueUrl !== partnerAction.href
-      ? { label: "Menu", href: partner.venueUrl, external: true }
-      : null
-    : isRental || isRestaurant
-      ? null
-      : { label: "Message agent", href: messageHref };
+  const stickySecondary: StickyAction | null =
+    isRental || isRestaurant ? null : { label: "Message agent", href: messageHref };
 
-  const bookingPanel = isPartner ? (
-    <PartnerPanel listing={listing} locale={locale} t={t} action={partnerAction} />
-  ) : isRestaurant ? (
+  const bookingPanel = isRestaurant ? (
     <div className="flex flex-col gap-4">
       <ReserveTable listingId={listing.id} messageHref={messageHref} />
       <RestaurantPanel listing={listing} locale={locale} t={t} messageHref={messageHref} />
@@ -458,32 +415,15 @@ export default async function ListingDetailPage({
                 {market.label}
               </StatusPill>
 
-              {/* Only first-party inventory may carry the verified badge. */}
-              {listing.verified && !isPartner && (
+              {listing.verified && (
                 <StatusPill tone="success" icon="verified" size="sm">
                   {t.common.verified}
                 </StatusPill>
-              )}
-              {isPartner && (
-                /* `display: contents`, so the marker attribute survives on an
-                   element that adds no box of its own: the pill stays a direct
-                   child of the row and the provenance hook every hybrid check
-                   counts stays exactly where it was. */
-                <span data-partner-tag className="contents">
-                  <StatusPill tone="neutral" size="sm">
-                    Partner
-                  </StatusPill>
-                </span>
               )}
               {listing.instantBook && (
                 <StatusPill tone="brand" icon="sparkle" size="sm">
                   Instant Book
                 </StatusPill>
-              )}
-              {partner?.attribution === "Google" && (
-                <span className="text-[0.6875rem] text-[var(--nf-content-muted)]">
-                  Powered by Google
-                </span>
               )}
 
               {/*
@@ -584,29 +524,22 @@ export default async function ListingDetailPage({
           )}
 
           {/* ------------------------------------------------ host panel */}
-          {/* No agent behind partner stock, so no host panel and no Message. */}
-          {!isPartner && (
-            <Reveal as="section" className="mt-8" delay={40}>
-              <h2 className="nf-h3 mb-3.5">Hosted by</h2>
-              <ListingHostPanel verified={listing.verified} t={t} messageHref={messageHref} />
-            </Reveal>
-          )}
+          <Reveal as="section" className="mt-8" delay={40}>
+            <h2 className="nf-h3 mb-3.5">Hosted by</h2>
+            <ListingHostPanel verified={listing.verified} t={t} messageHref={messageHref} />
+          </Reveal>
 
           {/* --------------------------------------------------- reviews */}
-          {/* A partner rating belongs to the partner, and the reviews section
-              speaks about RentMe stays, so partner listings do not show it. */}
-          {!isPartner && (
-            <Reveal as="section" className="mt-8" delay={40}>
-              <h2 className="nf-h3 mb-3.5">Reviews</h2>
-              <ListingReviews
-                rating={listing.rating}
-                reviewCount={listing.reviewCount}
-                reviews={reviews}
-                locale={locale}
-                t={t}
-              />
-            </Reveal>
-          )}
+          <Reveal as="section" className="mt-8" delay={40}>
+            <h2 className="nf-h3 mb-3.5">Reviews</h2>
+            <ListingReviews
+              rating={listing.rating}
+              reviewCount={listing.reviewCount}
+              reviews={reviews}
+              locale={locale}
+              t={t}
+            />
+          </Reveal>
 
           {/* ---------------------------------------- cancellation policy */}
           {/*
@@ -617,12 +550,9 @@ export default async function ListingDetailPage({
             own dates and their own total.
 
             Not on a rental, which is message, inspect then pay and has no
-            booking to cancel. Not on partner stock either: that inventory
-            belongs to somebody else and so does its refund policy, and
-            printing ours over theirs would be the most expensive kind of
-            wrong.
+            booking to cancel.
           */}
-          {!isPartner && !isRental && (
+          {!isRental && (
             <Reveal as="section" className="mt-8" delay={40}>
               <CancellationTimeline locale={locale} headingLevel="h2" />
             </Reveal>
@@ -631,18 +561,15 @@ export default async function ListingDetailPage({
           {/* ---------------------------------------------------- report */}
           {/* Last on the page on purpose. It is the thing you go looking for
               rather than the thing you are offered, and it must always be
-              findable. Partner stock is somebody else's inventory, so there is
-              nothing of ours to act on. */}
-          {!isPartner && (
-            <div className="mt-8 flex justify-center">
-              <ReportSheet
-                targetType="listing"
-                targetId={listing.id}
-                targetLabel={listing.title}
-                signedIn={signedIn}
-              />
-            </div>
-          )}
+              findable. */}
+          <div className="mt-8 flex justify-center">
+            <ReportSheet
+              targetType="listing"
+              targetId={listing.id}
+              targetLabel={listing.title}
+              signedIn={signedIn}
+            />
+          </div>
         </div>
 
         {/* --------------------------------------- booking panel, desktop */}
@@ -661,7 +588,7 @@ export default async function ListingDetailPage({
       />
 
       <ListingStickyBar
-        variant={isPartner ? "partner" : isRental ? "rental" : "stay"}
+        variant={isRental ? "rental" : "stay"}
         priceMinor={listing.priceMinor}
         currency={listing.currency}
         locale={locale}
@@ -688,107 +615,6 @@ export default async function ListingDetailPage({
     >
       {body}
     </StayDatesProvider>
-  );
-}
-
-/**
- * The panel a partner listing gets instead of Reserve.
- *
- * It states the price when the feed gives a real one, says plainly where the
- * listing comes from, and offers the one action the spec's table allows for that
- * category: Book for a partner hotel (completed with the partner, never against
- * a booking of ours), directions and the venue's own page for a partner
- * restaurant, which is never bookable here. No Reserve, no Message agent, no
- * inspection flow, because none of those exist for stock we do not own.
- */
-function PartnerPanel({
-  listing,
-  locale,
-  t,
-  action,
-}: {
-  listing: Listing;
-  locale: Locale;
-  t: Dictionary;
-  action: { label: string; href: string } | null;
-}) {
-  const partner = listing.partner;
-  const isHotel = listing.kind === "hotel";
-  const secondary = isHotel ? null : partner?.venueUrl;
-  const showSecondary = Boolean(secondary && action && secondary !== action.href);
-
-  return (
-    <div className="nf-card p-5">
-      {listing.priceMinor > 0 && (
-        <p>
-          <Amount
-            minorUnits={listing.priceMinor}
-            locale={locale}
-            currency={listing.currency}
-            suffix={t.common.perNight}
-            className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
-            secondaryClassName="text-[0.54em] font-semibold opacity-60"
-          />
-        </p>
-      )}
-
-      {/* The hotel copy has to answer to whether there is actually a button
-          under it. It used to say the stay "is booked with the partner"
-          unconditionally, and a hotel feed that supplies a rate but no booking
-          destination renders no action at all, so the page promised a booking
-          and then offered nowhere to make one. The sentence now follows the
-          action rather than assuming it. */}
-      <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-        {isHotel
-          ? action
-            ? "Supplied by one of our hotel partners. The stay is booked with the partner, and the rate is reconfirmed there before you pay."
-            : "Supplied by one of our hotel partners. The rate is what it costs for one night from tomorrow, and it moves with your dates. This one cannot be booked on RentMe yet."
-          : "Supplied by one of our restaurant partners. Head straight to the venue; it takes its own bookings."}
-      </p>
-
-      {action &&
-        (isHotel ? (
-          /* A hotel rate is revalidated on the tap, because the price beside
-             this button came from a search and rooms reprice continuously.
-             Directions and a menu have no price to go stale, so they stay
-             ordinary links. */
-          <BookPartnerStay listingId={listing.id} href={action.href} label={action.label} />
-        ) : (
-          <ButtonLink
-            href={action.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="primary"
-            full
-            className="mt-4"
-          >
-            {action.label}
-          </ButtonLink>
-        ))}
-      {showSecondary && secondary && (
-        <ButtonLink
-          href={secondary}
-          target="_blank"
-          rel="noopener noreferrer"
-          variant="secondary"
-          full
-          className="mt-2.5"
-        >
-          Menu
-        </ButtonLink>
-      )}
-
-      {/* Only on food. Nobody cross-references a hotel against where they are
-          standing, but "can I be there by eight" is the whole question about
-          dinner, and in Lagos it is a traffic question rather than a distance
-          one. Rendered for partner venues as much as for ours, because it is
-          the one useful thing we can offer about a restaurant we cannot book. */}
-      {!isHotel && <TravelTime listingId={listing.id} label={t.common.travelTime} workingLabel={t.common.loading} />}
-
-      {partner?.attribution === "Google" && (
-        <p className="mt-3 text-[0.6875rem] text-[var(--nf-content-muted)]">Powered by Google</p>
-      )}
-    </div>
   );
 }
 

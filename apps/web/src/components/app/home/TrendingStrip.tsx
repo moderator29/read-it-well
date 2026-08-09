@@ -35,7 +35,7 @@ export function TrendingStrip({
         {hasPlaces && (
           <Link
             href="/around/settings"
-            className="shrink-0 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+            className="shrink-0 text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             All places
           </Link>

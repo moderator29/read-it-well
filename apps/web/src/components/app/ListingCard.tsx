@@ -7,28 +7,24 @@ import { useRef, useState } from "react";
 import { type Dictionary, type Locale, formatRating } from "@naijafinds/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
 import { IntentTune } from "@/components/app/IntentTune";
+import { MediaFrame } from "@/components/app/MediaFrame";
 import { isPropertyType, type PropertyType } from "@/lib/interests/schema";
 import { isDataSaver } from "@/lib/ui/data-saver";
 
 /**
  * Listing card media.
  *
- * The lead photo renders on top of a deterministic gradient scene. When the
- * photo cannot load (offline, CDN unreachable) the gradient and skyline
- * silhouette are already painted underneath, so the card degrades gracefully
- * instead of showing an empty tile.
+ * The lead photo renders on top of the platform's shared media frame. When the
+ * photo cannot load (offline, CDN unreachable) the ground and skyline are
+ * already painted underneath, so the card degrades gracefully instead of
+ * showing an empty tile.
+ *
+ * The six-pair gradient array that used to live here was one of six identical
+ * copies, all of them Tailwind indigo and slate hexes outside the palette and
+ * all of them dark in both themes. It lives in `MediaFrame` now, on tokens.
  */
-const HUES: [string, string][] = [
-  ["#1E3A8A", "#172554"],
-  ["#155E75", "#0F172A"],
-  ["#0C4A6E", "#111827"],
-  ["#334155", "#0F172A"],
-  ["#1E40AF", "#1E1B4B"],
-  ["#312E81", "#0F172A"],
-];
 
 const AMENITY_ICON: Record<string, UiIconName> = {
   pool: "pool",
@@ -36,49 +32,6 @@ const AMENITY_ICON: Record<string, UiIconName> = {
   kitchen: "kitchen",
   parking: "parking",
 };
-
-/**
- * Partner cards, per docs/HYBRID_INVENTORY.md section 4.
- *
- * Third-party stock never shows the verified badge and never opens in-platform
- * messaging, because there is no agent behind it and no inspection path. The
- * action always leaves the platform: a hotel is booked with the partner, a
- * restaurant links to directions and its own page and is never bookable here.
- * The links sit outside the card's own link so an anchor never nests inside one.
- */
-function PartnerActions({ listing }: { listing: Listing }) {
-  const partner = listing.partner;
-  const book = listing.kind === "hotel" ? partner?.bookUrl : undefined;
-  const directions = listing.kind === "restaurant" ? partner?.directionsUrl : undefined;
-  const venue = listing.kind === "restaurant" ? partner?.venueUrl : undefined;
-  const hasAction = Boolean(book ?? directions ?? venue);
-  if (!hasAction && !partner?.attribution) return null;
-
-  return (
-    <div className="flex flex-wrap items-center gap-2 px-4 pb-4">
-      {book && (
-        <ButtonLink href={book} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
-          Book
-        </ButtonLink>
-      )}
-      {directions && (
-        <ButtonLink href={directions} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
-          Directions
-        </ButtonLink>
-      )}
-      {venue && (
-        <ButtonLink href={venue} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
-          Menu
-        </ButtonLink>
-      )}
-      {partner?.attribution === "Google" && (
-        <span className="ml-auto text-[0.6875rem] text-[var(--nf-content-muted)]">
-          Powered by Google
-        </span>
-      )}
-    </div>
-  );
-}
 
 export function ListingCard({
   listing,
@@ -112,7 +65,6 @@ export function ListingCard({
   intent?: PropertyType[];
 }) {
   const router = useRouter();
-  const [from, to] = HUES[listing.hue % HUES.length] ?? HUES[0]!;
   const photo = listing.photos[0];
   const href = `/listing/${listing.id}`;
 
@@ -187,15 +139,14 @@ export function ListingCard({
   };
   // Restaurants and experiences price per head; everything else is nightly.
   const perHead = listing.kind === "restaurant" || listing.kind === "experience";
-  const isPartner = listing.source === "partner";
-  // Partner feeds place a venue by city without an area below it. Printing
-  // "Lagos, Lagos" would read as a bug, so a repeated locality collapses to one.
+  // A listing may state the same locality twice, e.g. a venue placed by city
+  // with no area under it. Printing "Lagos, Lagos" reads as a bug, so a
+  // repeated locality collapses to one.
   const where =
     listing.area && listing.area !== listing.city
       ? `${listing.area}, ${listing.city}`
       : (listing.area || listing.city);
-  // A price is shown only when there is a real one. Partner restaurants come
-  // with a price level rather than an amount, and a guessed naira figure is
+  // A price is shown only when there is a real one. A guessed naira figure is
   // worse than none.
   const hasPrice = listing.priceMinor > 0;
 
@@ -246,24 +197,8 @@ export function ListingCard({
           style={{ viewTransitionName: `listing-photo-${listing.id}` }}
         >
           {/* Media layer scales gently on hover; badges and scrim stay put. */}
-          <div
-            className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-            style={{ background: `linear-gradient(150deg, ${from} 0%, ${to} 100%)` }}
-          >
-            {/* Skyline silhouette, so the fallback still reads as a place. */}
-            <svg
-              viewBox="0 0 400 300"
-              className="absolute inset-0 h-full w-full opacity-60"
-              aria-hidden="true"
-              preserveAspectRatio="none"
-            >
-              <path
-                d="M0 300V190h34v-52h30v52h28v-84h44v84h26v-40h38v40h30v-66h40v66h34v-30h32v30h30v-46h34v46Z"
-                fill="rgba(0,0,0,0.42)"
-              />
-              <circle cx="322" cy="62" r="26" fill="rgba(255,255,255,0.16)" />
-            </svg>
-
+          <div className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100">
+            <MediaFrame hue={listing.hue} index={index ?? 0} />
             {photo && (
               <Image
                 src={photo}
@@ -275,27 +210,23 @@ export function ListingCard({
             )}
           </div>
 
-          {/* Gradient scrim keeps the location line legible on every photo. */}
+          {/*
+            Scrim, so the location line is legible on every photograph. It is
+            the shared media scrim rather than a local from-black/65 stack:
+            what is underneath is a photograph in both themes, which is the one
+            case where a dark treatment is correct in daylight too.
+          */}
           <div
-            className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/65 via-black/25 to-transparent"
+            className="absolute inset-x-0 bottom-0 h-24"
+            style={{ backgroundImage: "var(--nf-scrim-media)" }}
             aria-hidden="true"
           />
 
           <div className="absolute left-3 top-3 flex gap-1.5">
-            {/* Only first-party inventory may carry the verified badge. */}
-            {listing.verified && listing.source !== "partner" && (
+            {listing.verified && (
               <span className="nf-badge nf-badge--verified">
                 <UiIcon name="verified" size={12} />
                 {t.common.verified}
-              </span>
-            )}
-            {/* Neutral, never a trust signal: it states where the stock is from. */}
-            {isPartner && (
-              <span
-                data-partner-tag
-                className="nf-badge bg-black/45 text-white/90 backdrop-blur-sm"
-              >
-                Partner
               </span>
             )}
             {listing.kind === "rental" && (
@@ -304,8 +235,12 @@ export function ListingCard({
             {listing.instantBook && <span className="nf-badge nf-badge--brand">Instant</span>}
           </div>
 
-          <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-white/90">
-            <UiIcon name="location" size={12} className="shrink-0 text-white/70" />
+          <p className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-on-media)]">
+            <UiIcon
+              name="location"
+              size={12}
+              className="shrink-0 text-[var(--nf-content-on-media-muted)]"
+            />
             <span className="truncate">{where}</span>
           </p>
         </div>
@@ -374,7 +309,6 @@ export function ListingCard({
           )}
         </div>
       </Link>
-      {isPartner && <PartnerActions listing={listing} />}
     </article>
   );
 }

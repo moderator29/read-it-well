@@ -25,7 +25,7 @@
 
 import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
-import { bestEffortEmail, sendEmail } from "../email/client";
+import { bestEffortEmail, sendMessage } from "../email/client";
 import {
   bookingCancelled,
   bookingRequested,
@@ -317,7 +317,7 @@ export async function reserve(
 
     if (guest) {
       const message = bookingRequested({ guestName: guest.name, ...stay });
-      jobs.push(sendEmail({ to: guest.email, subject: message.subject, html: message.html }));
+      jobs.push(sendMessage(guest.email, message));
     }
 
     // The host's address needs the service role. Without it, their email is
@@ -331,7 +331,7 @@ export async function reserve(
           guestName: guest?.name ?? null,
           ...stay,
         });
-        jobs.push(sendEmail({ to: host.email, subject: message.subject, html: message.html }));
+        jobs.push(sendMessage(host.email, message));
       }
     }
 
@@ -447,7 +447,7 @@ export async function cancel(
       checkIn: booking.check_in,
       checkOut: booking.check_out,
     });
-    await sendEmail({ to: guest.email, subject: message.subject, html: message.html });
+    await sendMessage(guest.email, message);
   });
 
   revalidatePath("/bookings");

@@ -1,5 +1,5 @@
 /*
- * NaijaFinds design tokens.
+ * RentMe design tokens.
  *
  * This file is the single source of truth for every colour, radius, shadow,
  * blur and motion value in the product (Master Rules 27 and 29).
@@ -111,17 +111,147 @@
   --nf-surface-raised: var(--nf-ink-750);
   --nf-surface-inset: color-mix(in oklab, var(--nf-ink-950) 70%, black);
 
-  /* Content */
+  /* Content
+   *
+   * Four readable tiers plus two inks that answer a specific ground.
+   *
+   * `--nf-content-subtle` sits between secondary and muted. It is the tier for
+   * supporting text that should recede without becoming decoration: metadata
+   * beside a heading, a unit after a figure, the second line of a list row.
+   * Before it existed those all reached for muted, which is the AA floor, so
+   * the quietest readable tier and the quietest legal tier were the same
+   * colour and nothing could sit between them. It measures 11.47:1 on the
+   * night canvas and 6.95:1 on paper, so it is safe at any size in both.
+   *
+   * `--nf-content-inverse` is the ink for a surface that runs OPPOSITE to the
+   * theme: a white chip in the dark theme, a dark tooltip in daylight. It is
+   * NOT --nf-content-on-brand, which is white in both themes because the brand
+   * fill is a deep blue in both. Painting a white-on-dark chip with
+   * content-on-brand produced white on white, which is how the icon tile and
+   * the assistant pill both ended up unreadable in one theme each. */
   --nf-content-primary: var(--nf-mist-100);
   --nf-content-secondary: var(--nf-mist-300);
+  --nf-content-subtle: var(--nf-mist-400);
   --nf-content-muted: var(--nf-mist-500);
   --nf-content-on-brand: #FFFFFF;
+  --nf-content-inverse: #0B0D14;
 
-  /* Borders */
+  /* Borders
+   *
+   * `--nf-divider` is a separator INSIDE a surface: the rule between two rows
+   * of a list, between a card's head and its body. It is not the same role as
+   * border-subtle, which is the outer edge of an object, and keeping them
+   * apart is what lets a divider be tuned without every card edge moving with
+   * it. Every list on the platform was drawing its rules from border-subtle
+   * for want of anywhere else to look. */
   --nf-border-subtle: rgb(255 255 255 / 0.08);
   --nf-border-default: rgb(255 255 255 / 0.13);
   --nf-border-strong: rgb(255 255 255 / 0.22);
   --nf-border-brand: color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
+  --nf-divider: rgb(255 255 255 / 0.10);
+
+  /* Interactive feedback
+   *
+   * The tint an interactive surface takes on when a pointer is over it, while
+   * it is being pressed, and when it is refusing input. They are overlays
+   * rather than solid colours on purpose: one pair of values works on a card,
+   * a row, a chip and a menu item without each of those needing a hover
+   * colour of its own. Every hover on the platform was previously an inline
+   * rgb(255 255 255 / 0.0x), which is why hover states were invisible in
+   * daylight: a white wash over a white card is nothing. */
+  --nf-interactive-hover: rgb(255 255 255 / 0.07);
+  --nf-interactive-active: rgb(255 255 255 / 0.12);
+  --nf-interactive-disabled: rgb(255 255 255 / 0.04);
+
+  /* Modal backdrop
+   *
+   * The wash behind a sheet, a drawer or a dialog. It was written by hand at
+   * every call site and the hands disagreed: bg-black/55, /60, /65, /70 and
+   * /75 across nine overlays, which is five different answers to one question.
+   * Daylight softens it and moves it to the neutral ink, because a 62 percent
+   * pure black behind a white sheet is a hole in the page. */
+  --nf-overlay-backdrop: rgb(0 0 0 / 0.62);
+
+  /* Media overlay
+   *
+   * The one place a dark treatment is correct in BOTH themes, because what is
+   * underneath is a photograph rather than the page. A paper-white control
+   * vanishes on a bright photo and a night-only glass panel looks wrong at
+   * noon, so the gallery controls, the lightbox chrome and the scrims over
+   * card photography all read from here and are deliberately theme
+   * independent. Having them as tokens is what stops the next person writing
+   * bg-black/45 and border-white/25 by hand for the eleventh time. */
+  --nf-overlay-media: rgb(0 0 0 / 0.45);
+  --nf-overlay-media-strong: rgb(0 0 0 / 0.62);
+  --nf-border-on-media: rgb(255 255 255 / 0.25);
+  --nf-content-on-media: #FFFFFF;
+  --nf-content-on-media-muted: rgb(255 255 255 / 0.72);
+  --nf-scrim-media: linear-gradient(
+    to top,
+    rgb(0 0 0 / 0.65) 0%,
+    rgb(0 0 0 / 0.25) 45%,
+    transparent 100%
+  );
+  /* The same scrim the other way up, for chrome that floats at the top of a
+     photograph. A separate token rather than a rotate on the element: rotating
+     a positioned strip to reuse a gradient is the kind of trick that survives
+     until someone puts a shadow on it. */
+  --nf-scrim-media-top: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0.55) 0%,
+    rgb(0 0 0 / 0.20) 45%,
+    transparent 100%
+  );
+
+  /*
+   * Commissioned ARTWORK, which is a narrower case than photography.
+   *
+   * The city card, the assistant banner and the landing showcases are painted
+   * on renders that are night scenes in both themes: the artwork does not have
+   * a daylight variant and inventing one by washing it out would be worse than
+   * leaving it. So a panel laid over artwork keeps the deep navy the render is
+   * lit against rather than the theme's own surface, and the ink on it is the
+   * pale end of the blue family rather than the theme's own content colour.
+   *
+   * These are the values the city card had inline nine times over: rgb(1 1 24)
+   * at four alphas, three different pale blues, and one bare #010118.
+   */
+  --nf-surface-artwork: #010118;
+  --nf-overlay-artwork: rgb(1 1 24 / 0.78);
+  --nf-content-on-media-accent: #B4C6FF;
+  --nf-scrim-artwork: linear-gradient(
+    180deg,
+    rgb(1 1 24 / 0.82) 0%,
+    rgb(1 1 24 / 0.24) 34%,
+    rgb(1 1 24 / 0.30) 62%,
+    rgb(1 1 24 / 0.88) 100%
+  );
+  --nf-glow-on-media: 0 0 10px 3px color-mix(in oklab, var(--nf-electric-400) 90%, transparent);
+  --nf-halo-on-media: color-mix(in oklab, var(--nf-electric-400) 45%, transparent);
+
+  /* Photographic ground
+   *
+   * What a listing photograph is painted ON, and what shows when it has not
+   * arrived. Deliberately NOT brand blue: a card whose fallback is the brand
+   * gradient makes an empty result look like a designed feature. These are
+   * quiet depths of the surface family, so a missing photo reads as a place
+   * that has no photo rather than as a decoration. */
+  --nf-media-ground-from: var(--nf-ink-850);
+  --nf-media-ground-to: var(--nf-ink-950);
+  --nf-media-silhouette: rgb(0 0 0 / 0.42);
+  --nf-media-moon: rgb(255 255 255 / 0.16);
+
+  /* Brand object ground
+   *
+   * The commissioned icon artwork is opaque RGB rendered on white, and the
+   * white is removed at paint time with `mix-blend-mode: multiply`. Multiply
+   * against a near-black canvas returns near-black, so an object with nothing
+   * light behind it is not "subtle", it is gone. This token is the minimum
+   * ground that keeps an untiled object legible: one flat plate, no border, no
+   * shadow, no glow. In daylight the surfaces are already white, multiply is
+   * the identity there, and the token goes transparent so the object simply
+   * sits on the page with nothing around it at all. */
+  --nf-icon-ground: #F5F7FD;
 
   /* State
    *
@@ -156,6 +286,20 @@
   --nf-focus-ring: var(--nf-electric-300);
   --nf-focus-ring-width: 2px;
   --nf-focus-ring-offset: 2px;
+
+  /* Link ink
+   *
+   * An inline text link, and the "see all", "clear", "sign in" affordances
+   * that behave as one. It is its own role for the same reason the focus ring
+   * is: it is TYPE, so it has to clear 4.5:1 at body size in both themes,
+   * which --nf-brand-primary does not do at night. It rides --nf-electric-300
+   * exactly as the ring, the rating and the verified ink do, so all four move
+   * together with the one daylight override that token already carries.
+   *
+   * It exists because forty-odd link-coloured spans across the component tree
+   * were reaching straight into layer 1 for want of a name, which is the
+   * single most common ADR-002 violation in the codebase. */
+  --nf-content-link: var(--nf-electric-300);
 
   /* State surfaces, for chips and badges */
   --nf-state-success-surface: color-mix(in oklab, var(--nf-emerald-400) 15%, transparent);
@@ -195,7 +339,7 @@
   --nf-status-verified-surface: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
 
   /* ---------------------------------------------------------------------
-   * NaijaFinds Material. Four surface families (Design prompt §5).
+   * RentMe Material. Four surface families (Design prompt §5).
    * ------------------------------------------------------------------ */
 
   /*
@@ -465,12 +609,22 @@
 }
 
 /*
- * Light theme scaffold.
+ * The light theme.
  *
- * Every reference supplied so far is dark, so dark is the designed and reviewed
- * theme. These light values keep components token driven and prevent hard coded
- * darkness leaking into markup, but the light theme has NOT had a design pass.
- * Tracked in KNOWN_GAPS.md before it is exposed to users.
+ * No longer a scaffold. Dark is still the default and the theme most of the
+ * reference material was drawn against, but daylight is now a designed twin
+ * rather than an inversion of the night: its own flat neutral canvas, its own
+ * elevation ladder, and every ink in it measured against the surface it is
+ * actually painted on. The state colours, the muted ink, the info ink and the
+ * gradient text stops all carry values chosen to clear WCAG AA here rather
+ * than values inherited from the dark theme and hoped for.
+ *
+ * The rule for anything added below: a token that exists in the dark block and
+ * is not answered here is a token that will be wrong in daylight. Blues that
+ * glow against black go flat or invisible on paper, and white washes over a
+ * white card are nothing at all. Nine tokens were in exactly that state, the
+ * worst of them --nf-gradient-surface, which painted a white gradient onto a
+ * white surface. They are all answered now.
  */
 :root[data-theme="light"] {
   /*
@@ -498,10 +652,35 @@
    */
   --nf-content-muted: #676E76;
   --nf-content-on-brand: #FFFFFF;
+  /* 6.95:1 on white, 6.38:1 on canvas, 6.15:1 on inset: the readable tier
+     between secondary and muted, safe at any size on every light surface. */
+  --nf-content-subtle: #545A63;
+  /* The opposite ground to daylight's own, so the ink on it is white. */
+  --nf-content-inverse: #FFFFFF;
 
   /* Vivid brand blue that holds contrast on paper. */
   --nf-brand-primary: #0C2FE8;
   --nf-brand-primary-strong: #0010D0;
+  /*
+   * The accent was the one brand token with no daylight answer. It stayed on
+   * --nf-electric-400 (#0C39EF), which is fine as a fill but is used through
+   * color-mix at 32 to 95 percent as a RING and a GLOW, and a deep electric
+   * ring on white paper reads as a hard navy hairline rather than a highlight.
+   * Daylight takes the vivid brand blue, which is the same family one step
+   * brighter and is what every other accent role here already resolves to.
+   */
+  --nf-brand-accent: #0C2FE8;
+
+  /*
+   * Mode accents on paper. Personal, agent and admin are told apart by depth
+   * rather than by hue, and the three night values (#0010E0, #0C39EF,
+   * #000F98) collapse into each other against white: two of them are within
+   * 1.4:1 of one another there, so the three modes were indistinguishable in
+   * daylight. These keep the same ordering, spread far enough apart to read.
+   */
+  --nf-mode-personal: #0C2FE8;
+  --nf-mode-agent: #2450FF;
+  --nf-mode-admin: #0010A0;
 
   /* Daylight CTA is a near-flat vivid brand blue, never near-black navy. */
   --nf-gradient-cta: linear-gradient(180deg, #2450FF 0%, #0C39EF 100%);
@@ -509,6 +688,34 @@
   --nf-border-subtle: rgb(18 21 26 / 0.08);
   --nf-border-default: rgb(18 21 26 / 0.13);
   --nf-border-strong: rgb(18 21 26 / 0.22);
+  --nf-divider: rgb(18 21 26 / 0.09);
+
+  /*
+   * Interactive feedback on paper. The night values are white washes, and a
+   * white wash over a white card is not a hover state, it is nothing. These
+   * are the same overlays inverted to the neutral ink, so one set of class
+   * names gives a visible response in both themes.
+   */
+  --nf-interactive-hover: rgb(18 21 26 / 0.045);
+  --nf-interactive-active: rgb(18 21 26 / 0.085);
+  --nf-interactive-disabled: rgb(18 21 26 / 0.035);
+
+  --nf-overlay-backdrop: rgb(18 21 26 / 0.42);
+
+  /*
+   * The photographic ground follows the theme; the media OVERLAY tokens
+   * deliberately do not. What sits under a gallery control is a photograph in
+   * both themes, so the dark glass is correct at noon as well as at midnight
+   * and those five tokens are intentionally absent from this block.
+   */
+  --nf-media-ground-from: #DFE4EC;
+  --nf-media-ground-to: #C7CEDB;
+  --nf-media-silhouette: rgb(18 21 26 / 0.20);
+  --nf-media-moon: rgb(255 255 255 / 0.55);
+
+  /* Multiply is the identity against white, so a brand object needs no plate
+     at all on paper: it simply sits on the page. */
+  --nf-icon-ground: transparent;
 
   /*
    * Daylight glass. Same four ingredients as the night theme, tuned for paper:
@@ -641,6 +848,63 @@
   --nf-state-info-surface: color-mix(in oklab, var(--nf-state-info) 12%, transparent);
   /* Rating rides --nf-electric-300, so it follows this deeper blue on paper
      without needing its own daylight value. */
+
+  /*
+   * ------------------------------------------------------------------
+   * Daylight gradients and glows.
+   *
+   * All of these had no light value at all, which meant the night value ran
+   * unchanged on paper. Listed worst first.
+   * ------------------------------------------------------------------ */
+
+  /*
+   * WHITE ON WHITE. The night value is a white wash used to lift a surface off
+   * the canvas behind it. On paper the surfaces ARE white, so the wash lifted
+   * nothing and every element carrying it was a flat white rectangle. It is
+   * now the same shape in the neutral ink, so the lift survives the theme.
+   */
+  --nf-gradient-surface: linear-gradient(
+    180deg,
+    rgb(18 21 26 / 0.035) 0%,
+    rgb(18 21 26 / 0.012) 100%
+  );
+
+  /*
+   * The two glows. A glow is a light source, and a light source only reads
+   * against a dark ground: the night values throw a 40px electric bloom that
+   * on white paper is a dirty blue smudge with a hard navy ring inside it.
+   * Daylight keeps the RING, which is the part that carries the meaning, and
+   * replaces the bloom with a short soft brand-tinted shadow.
+   */
+  --nf-glow-brand:
+    0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 28%, transparent),
+    0 6px 18px -8px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+  --nf-glow-accent: 0 6px 18px -10px color-mix(in oklab, var(--nf-brand-accent) 28%, transparent);
+
+  /*
+   * The signature ramps.
+   *
+   * All four travel the blue family, and all four were tuned against the night
+   * canvas: their bright ends run #5C7CFF, which measures 3.63:1 against white
+   * and only 1.4:1 against the deep end of the same gradient. Used as a FILL
+   * under white text, that end failed AA outright: avatars, progress bars, the
+   * agent stepper and the wizard rail all print white on #5C7CFF in daylight.
+   *
+   * Each ramp keeps its shape, its direction and its number of stops, and
+   * every stop steps down until white on the LIGHTEST point of the gradient
+   * clears 4.5:1. The lightest stop below is #2450FF at 5.73:1.
+   */
+  --nf-gradient-primary: linear-gradient(
+    90deg,
+    #2450FF 0%,
+    #2B3FE0 22%,
+    #0C39EF 48%,
+    #0C2FE8 72%,
+    #1A2596 100%
+  );
+  --nf-gradient-brand: linear-gradient(135deg, #2450FF 0%, #0010D0 100%);
+  --nf-gradient-iridescent: linear-gradient(135deg, #2450FF 0%, #0C39EF 52%, #0010D0 100%);
+  --nf-gradient-agent: linear-gradient(135deg, #2450FF 0%, #0010D0 100%);
 }
 
 /*

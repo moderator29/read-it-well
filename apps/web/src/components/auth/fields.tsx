@@ -336,7 +336,7 @@ const STRENGTH_COLOURS: Record<StrengthScore, string> = {
   0: "transparent",
   1: "var(--nf-state-error)",
   2: "var(--nf-state-warning)",
-  3: "var(--nf-electric-300)",
+  3: "var(--nf-brand-secondary)",
   4: "var(--nf-state-success)",
 };
 

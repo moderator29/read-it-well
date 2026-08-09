@@ -81,7 +81,7 @@ export function AgentIdentityCard({
           </span>
           <Link
             href="/sign-in"
-            className="mt-0.5 inline-block text-[0.75rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+            className="mt-0.5 inline-block text-[0.75rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {signInLabel}
           </Link>
@@ -93,7 +93,7 @@ export function AgentIdentityCard({
   return (
     <div className="nf-card flex items-center gap-4 p-3">
       <span
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.8125rem] font-bold text-white"
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.8125rem] font-bold text-[var(--nf-content-on-brand)]"
         style={{ background: "var(--nf-gradient-agent)" }}
         aria-hidden="true"
       >

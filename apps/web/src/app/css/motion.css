@@ -82,8 +82,8 @@
     inset: -4px;
     border-radius: 999px;
     border: 2px solid transparent;
-    border-top-color: var(--nf-electric-300);
-    border-right-color: color-mix(in oklab, var(--nf-electric-300) 35%, transparent);
+    border-top-color: var(--nf-brand-secondary);
+    border-right-color: color-mix(in oklab, var(--nf-brand-secondary) 35%, transparent);
     animation: nf-bot-spin 850ms linear infinite;
     pointer-events: none;
   }
@@ -262,7 +262,7 @@
   /* Figures paint solid brand ink: a clipped gradient cannot cross the
      transformed digit strips, which leaves the numbers invisible. */
   .nf-odometer-figure {
-    color: var(--nf-electric-300);
+    color: var(--nf-brand-secondary);
   }
   :root[data-theme="light"] .nf-odometer-figure {
     color: var(--nf-brand-primary);

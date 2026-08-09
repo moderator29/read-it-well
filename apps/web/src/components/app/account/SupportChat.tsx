@@ -415,7 +415,7 @@ export function SupportChat() {
               {messages.map((m) =>
                 m.role === "user" ? (
                   <div key={m.id} className="nf-rise flex justify-end">
-                    <p className="max-w-[85%] break-words rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-3.5 py-2 text-[0.875rem] leading-relaxed text-white">
+                    <p className="max-w-[85%] break-words rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-3.5 py-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-on-brand)]">
                       {m.text}
                     </p>
                   </div>
@@ -584,7 +584,7 @@ function TicketReceipt({ reference }: { reference: string }) {
       data-testid="support-receipt"
       className="mt-3 rounded-[var(--nf-radius-sm)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_8%,transparent)] p-3"
     >
-      <p className="flex items-start gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)]">
+      <p className="flex items-start gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)]">
         <UiIcon name="verified" size={16} className="mt-0.5 shrink-0" />
         <span className="min-w-0 break-words">
           Ticket {reference} is filed. A person replies by email.
@@ -657,7 +657,7 @@ function EscalationCard({
       data-testid="support-escalation"
       className="mt-3 rounded-[var(--nf-radius-sm)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_8%,transparent)] p-3"
     >
-      <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)]">
+      <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)]">
         <UiIcon name="user" size={16} className="shrink-0" />
         Bring in a person
       </p>

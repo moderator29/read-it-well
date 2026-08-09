@@ -288,7 +288,7 @@ function AccountRow({ account }: { account: PayoutAccount }) {
             <button
               type="submit"
               disabled={settingDefault}
-              className="text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline disabled:opacity-60"
+              className="text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline disabled:opacity-60"
             >
               {settingDefault ? "Switching..." : "Pay me here instead"}
             </button>

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { MediaFrame } from "@/components/app/MediaFrame";
 import { getDictionary, plural, type Locale } from "@naijafinds/i18n";
 import type { Booking } from "@/lib/demo/bookings";
 import { ButtonLink } from "@/components/ui/Button";
@@ -49,8 +50,11 @@ function BookingCard({ booking: b, locale }: { booking: Booking; locale: Locale 
           href={`/listing/${b.listingId}`}
           aria-label={b.title}
           className="relative block h-[5.75rem] w-[5.75rem] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)] sm:h-24 sm:w-32"
-          style={{ background: "linear-gradient(150deg, #1E3A8A 0%, #172554 100%)" }}
         >
+          {/* A seventh copy of the card gradient lived here, hard coded to one
+              pair rather than the six, so a booking row's fallback did not even
+              match the card the booking was made from. */}
+          <MediaFrame hue={0} />
           {b.photo && (
             <Image src={b.photo} alt="" fill sizes="128px" className="object-cover" />
           )}
@@ -104,7 +108,7 @@ function BookingCard({ booking: b, locale }: { booking: Booking; locale: Locale 
             /bookings/[id]/review, and is offered there. */}
         <Link
           href={`/listing/${b.listingId}`}
-          className="nf-tap flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+          className="nf-tap flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
           View details
           <UiIcon name="arrow-right" size={16} />

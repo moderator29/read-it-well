@@ -12,9 +12,9 @@ import type { Listing, ListingKind, ListingRepository, ListingSearchFilter } fro
  *
  * Public reads see PUBLISHED listings only, which is enforced by RLS rather
  * than by this file: the policy is the authority, the query simply asks for
- * what it needs. Every listing that comes back is first-party agent inventory,
- * so it carries source "rentme" and the verified badge; partner stock arrives
- * later through the provider layer and is not this repository's business.
+ * what it needs. Every listing that comes back was listed on this platform by
+ * a person on this platform, so it carries source "rentme". There is no other
+ * source and there is not going to be one.
  *
  * Money stays integer kobo end to end. `price_per_night_minor` is the unit
  * price per `price_period` unit (per night for stays, per year for rentals),
@@ -118,15 +118,13 @@ const KIND_BY_PROPERTY_TYPE: Record<string, ListingKind> = {
   office: "office",
   land: "land",
   /*
-   * Restaurants an agent listed, which is a different thing from the
-   * restaurants already in discovery.
+   * Restaurants somebody listed here.
    *
-   * The category has always been full, and every row in it came from Google
-   * Places: partner stock, so no verified badge, no messaging and no way to
-   * hold anybody a table. This value is what lets a restaurant be OURS, with an
-   * agent to message and a reservation to make, sitting on the same shelf as
-   * the partner venues that can only be looked at (docs/HYBRID_INVENTORY.md
-   * section 9).
+   * The category used to be filled by a Google Places feed, which meant no
+   * verified badge, nobody to message and no way to hold anybody a table. The
+   * feed is gone. A restaurant on RentMe is now what every other listing is:
+   * a real place put up by a real person, with an owner to talk to and a
+   * reservation that this platform actually holds.
    *
    * Priced per head rather than per night, which needs no column: the domain
    * type already states that restaurants and experiences ignore `pricePeriod`,
@@ -417,13 +415,12 @@ export class SupabaseListingRepository implements ListingRepository {
    *            `listing_amenities` join. Every one of them is a column
    *            predicate, so a row that cannot match must never be read, let
    *            alone occupy one of the page's rows.
-   *   In memory  free text (the same haystack the seed catalogue uses, until a
-   *            Postgres full text index exists) and verified-only, which needs
-   *            no predicate here: RLS publishes first-party rows only and
-   *            admission is what makes them verified, so every row this query
-   *            can return already satisfies it. The shared matcher still
-   *            enforces it, because it is also what holds partner stock and
-   *            unverified catalogue rows to the same request.
+   *   In memory  free text (the shared haystack, until a Postgres full text
+   *            index exists) and verified-only, which needs no predicate here:
+   *            RLS publishes admitted rows only and admission is what makes
+   *            them verified, so every row this query can return already
+   *            satisfies it. The shared matcher still enforces it so that the
+   *            browser count and the server answer cannot disagree.
    *
    * The matcher runs over the results either way, so SQL is an optimisation
    * and never the authority: the two halves cannot disagree.

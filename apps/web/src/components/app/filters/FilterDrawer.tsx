@@ -376,7 +376,7 @@ export function FilterDrawer({
         aria-label="Close filters"
         tabIndex={-1}
         onClick={close}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
       />
       <div
         ref={panelRef}

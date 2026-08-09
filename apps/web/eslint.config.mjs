@@ -1,6 +1,7 @@
 import next from "eslint-config-next";
 import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 import nextTypescript from "eslint-config-next/typescript";
+import nf from "./eslint-rules/no-raw-colour.mjs";
 
 /**
  * ESLint, which has never actually run on this repository.
@@ -112,6 +113,37 @@ const config = [
     rules: {
       "no-console": "off",
     },
+  },
+
+  /*
+   * ------------------------------------------------------------------
+   * Colour provenance, the mechanical half of ADR-002.
+   *
+   * There was no stylelint, no eslint rule and no tailwind config guarding
+   * any of this, which is exactly why it grew back after the last cleanup.
+   * See eslint-rules/no-raw-colour.mjs for what it catches and why.
+   *
+   * ERROR in the design system and the component tree. Those directories are
+   * at zero violations as of this commit, so the rule holds a real line
+   * rather than describing an aspiration, and the next raw hex fails the
+   * build on the branch that introduces it.
+   *
+   * WARN under src/app. Eleven files there carry twenty-four violations, and
+   * they belong to routes rather than to the design system. Shipping them as
+   * errors would mean `npm run lint` fails on a clean checkout, which is the
+   * first step towards the config being deleted; the same reasoning the React
+   * Compiler rules above are held at warn for. Promote to error once those
+   * twenty-four reach zero.
+   * ------------------------------------------------------------------ */
+  {
+    files: ["src/design-system/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
+    plugins: { nf },
+    rules: { "nf/no-raw-colour": "error" },
+  },
+  {
+    files: ["src/app/**/*.{ts,tsx}"],
+    plugins: { nf },
+    rules: { "nf/no-raw-colour": "warn" },
   },
 ];
 

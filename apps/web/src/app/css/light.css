@@ -321,13 +321,10 @@
     box-shadow: 0 6px 18px rgb(18 21 26 / 0.22);
   }
 
-  /* Wallet balance card: the cyan conic sheen and the white grid texture are
-     night-glass dressing; on a white card they read as smears, so daylight
-     removes them and inks the sparkline in brand blue. */
-  :root[data-theme="light"] .nf-wallet-sheen,
-  :root[data-theme="light"] .nf-wallet-grid {
-    display: none;
-  }
+  /* The wallet card's cyan conic sheen and white grid texture are gone rather
+     than hidden here. Daylight was switching off two decorative layers that
+     the night theme should not have been carrying either: six stacked visual
+     layers under the platform's largest number. This rule went with them. */
   :root[data-theme="light"] .nf-wallet-spark polyline {
     stroke: var(--nf-brand-primary);
     filter: none !important;

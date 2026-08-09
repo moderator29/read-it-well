@@ -238,7 +238,7 @@ export function ActiveFilters({
               href={toSearchHref(clearedFilters(query))}
               prefetch
               data-testid="active-clear-all"
-              className="inline-flex min-h-11 items-center px-2 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+              className="inline-flex min-h-11 items-center px-2 text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
             >
               Clear all
             </Link>

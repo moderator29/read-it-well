@@ -58,7 +58,7 @@ export function SceneBanner({
         <span className="mt-1 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {body}
         </span>
-        <span className="mt-2.5 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)]">
+        <span className="mt-2.5 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-link)]">
           {action}
           <UiIcon
             name="arrow-right"

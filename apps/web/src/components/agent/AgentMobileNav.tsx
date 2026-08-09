@@ -79,7 +79,7 @@ export function AgentMobileNav({
           aria-hidden="true"
           onClick={close}
           className={[
-            "absolute inset-0 bg-black/55 backdrop-blur-sm transition-opacity duration-300",
+            "absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm transition-opacity duration-300",
             open ? "opacity-100" : "opacity-0",
           ].join(" ")}
         />
