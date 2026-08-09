@@ -10,6 +10,7 @@ import { MobileTabBar, showsTabBar } from "./MobileTabBar";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
+import { ThemeToggle } from "@/components/site/ThemeToggle";
 
 /**
  * Personal Mode shell.
@@ -316,38 +317,25 @@ export function AppShell({
             </Link>
             )}
 
-            {signedIn && (
-            <Link
-              href="/profile"
-              aria-label={t.nav.profile}
-              className="nf-tap shrink-0 rounded-full p-[1.5px]"
-              style={{ background: "var(--nf-gradient-brand)" }}
-            >
-              <span className="block rounded-full bg-[var(--nf-surface-primary)] p-[1.5px]">
-                {avatarUrl ? (
-                  /* The avatars bucket is public, so the CDN URL renders
-                     without a signed request. next/image is skipped
-                     deliberately: one small square from a host that only
-                     exists once the platform keys land. */
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={avatarUrl}
-                    alt=""
-                    width={32}
-                    height={32}
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <span
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-[0.8125rem] font-bold text-[var(--nf-content-on-brand)]"
-                    style={{ background: "var(--nf-gradient-brand)" }}
-                  >
-                    {userName.slice(0, 1).toUpperCase()}
-                  </span>
-                )}
-              </span>
-            </Link>
-            )}
+            {/*
+              THE TOP RIGHT CARRIES THE THEME TOGGLE, AND ONLY THE THEME
+              TOGGLE.
+
+              The profile avatar that used to sit here is gone. It was a second
+              door to a room the navigation already opens: Profile is a row in
+              the rail, an island on the phone tab bar, and the destination of
+              the account block. Three doors to one place is not convenience, it
+              is a header that has to be read.
+
+              The toggle comes BACK here, reversing an earlier move that put it
+              only in Settings. Light and dark is a choice people make by
+              reaction to the room they are sitting in, not by intention, so it
+              has to be one tap from anywhere rather than four taps into a
+              settings page. The Settings entry stays as well: the two write the
+              same `data-theme` on the root element through the same key, so
+              neither can disagree with the other.
+            */}
+            <ThemeToggle className="h-11 w-11 shrink-0" />
           </div>
         </header>
         )}

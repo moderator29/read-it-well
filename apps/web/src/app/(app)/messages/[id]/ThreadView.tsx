@@ -438,9 +438,17 @@ export function ThreadView({
         {items.map((m) =>
           m.mine ? (
             <div key={m.id} className="nf-msg-in--mine flex flex-col items-end">
-              {/* Deep blue keeps white body text readable at chat sizes. */}
+              {/*
+                The outgoing bubble is a BRAND FILL, so its text is
+                `--nf-content-on-brand` rather than a raw `text-white`. The two
+                resolve to the same white today, and that is exactly why the
+                literal survived: it looked right, so nothing caught that it was
+                a dark-only assumption written next to a colour that follows the
+                theme. The token is the contract, and it is the one that keeps
+                holding if the brand fill ever lightens.
+              */}
               <div
-                className={`max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-4 py-2.5 text-white ${
+                className={`max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-4 py-2.5 text-[var(--nf-content-on-brand)] ${
                   m.state === "sending" ? "opacity-70" : ""
                 }`}
               >
@@ -453,8 +461,11 @@ export function ThreadView({
                     className="mb-2 aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
-                {m.body && <p className="text-[0.9rem] leading-relaxed">{m.body}</p>}
-                <p className="nf-numeric mt-1 text-right text-[0.65rem] text-white/70">
+                {m.body && <p className="nf-body">{m.body}</p>}
+                {/* Same rule as the bubble above: on a brand fill the text is
+                    the on-brand token, dimmed with opacity rather than with a
+                    `text-white/70` that cannot follow a theme. */}
+                <p className="nf-numeric nf-caption mt-1 text-right text-[var(--nf-content-on-brand)] opacity-70">
                   {m.state === "sending" ? "Sending" : m.timeLabel}
                 </p>
               </div>
