@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { getDictionary, type Locale } from "@naijafinds/i18n";
 import { getLocale } from "@/lib/locale";
@@ -34,12 +33,10 @@ export default async function LandingPage() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
 
-  const features: { icon: BrandIconName; title: string; body: string }[] = [
-    { icon: "bot-home", ...t.landing.features.ai },
-    { icon: "shield-check", ...t.landing.features.verified },
-    { icon: "tag-percent", ...t.landing.features.prices },
-    { icon: "calendar-check", ...t.landing.features.booking },
-  ];
+  /* `features` USED TO BE DECLARED HERE. It fed a four-card row under the
+     hero - AI Assistant, Verified Listings, Best Prices, Easy Booking - which
+     went with the hero imagery it sat beside. The declaration outlived the
+     markup by one edit; nothing reads it. */
 
   /*
    * The five things somebody can do here, in the order they are wanted.

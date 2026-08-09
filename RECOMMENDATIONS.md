@@ -1077,31 +1077,63 @@ belongs to.
 
 ## 7. Escrow
 
-### E-1. Escrow is zero percent built and zero percent promised. Keep the second half true. **OPEN. P0 to build, P0 to keep not marketing**
+### E-1. Escrow has just started, in the right place. Nothing is promised yet. **STARTED during this pass. P0 to finish, P0 to keep not marketing**
 
-**Re-verified today.** Grep `escrow` across `apps/`, `packages/` and `supabase/`:
-every hit is a code comment or the string `"escrow"` as an unused member of the
-`MoneySurface` union in `lib/payments/observability.ts:35`. There is no
-`escrow_holds` table, no `HELD` state on `wallet_entries` beyond the withdrawal
-hold, no release condition, no release actor, no dispute path and no timeout.
-Grep the four locale files: zero. **The product does not promise escrow
-anywhere**, and `app/(site)/safety/page.tsx:27` says in a comment that the page
-makes "no promise of an escrow that is not built", and keeps that promise.
+**Re-verified live, and this changed while this document was being written.**
+Migration `20260809051007_escrow_money_stays_in_the_one_ledger` is applied.
+`public.wallet_entry_kind` now reads `deposit, withdrawal, payment, refund,
+transfer_in, transfer_out, escrow_hold, escrow_release, escrow_refund`.
 
-That refusal is the most honest thing in this codebase. It must survive the
-marketing pass. See E-6 for the specific sentences that must never ship.
+**The decision embedded in that migration is the right one and should be
+defended.** Escrow moves through `public.wallet_entries`, the ledger the platform
+already has, rather than through a second table of balances that shadows it. A
+shadow ledger is how a marketplace ends up unable to answer "how much does this
+person have" with one number. A hold is a debit that has left the payer's
+spendable balance and not yet reached anybody; a release is the credit that lands
+on the other side; a refund is the credit that goes back. All three are wallet
+movements and all three belong where every other movement is.
 
-### E-2. Add `COMPLETED` to `booking_status` before anything else. **OPEN. P0, and it is the gate**
+The migration also isolates the three enum values in a file of their own, because
+Postgres will not let a transaction use an enum value the same transaction added
+unless it also created the type. That makes the ordering a fact of the filesystem
+rather than a rule somebody has to remember, which is the correct way to encode
+it. And the values can never be removed: Postgres has no `DROP VALUE`, so adding
+to an enum is a one-way door. Three were added and not a fourth.
 
-**Verified.** `booking_status` is `PENDING`, `CONFIRMED`, `CANCELLED`. There is
-no `COMPLETED`. So the platform cannot record that a stay happened, and "release
-the money once the thing happened" cannot be expressed at all.
+**What still does not exist.** No `escrow_holds` table. No state machine. No
+release condition, no release actor, no dispute path, no timeout. No UI.
+`booking_status` is still `PENDING, CONFIRMED, CANCELLED` with no `COMPLETED`,
+verified live, so the platform still cannot record that a stay happened. **The
+ledger vocabulary now exists and the thing it describes does not.**
 
-**Do this first.** It is a one-line enum addition plus a scheduled transition,
-and `private.announce_completed_stays` already runs nightly and already reasons
-about completed stays, so the moment exists in code and not in the schema.
-Nothing else in escrow can be specified until this lands. It also unblocks two
-badges and the review prompt.
+**And nothing is promised.** Grep the four locale files for escrow: zero.
+`app/(site)/safety/page.tsx:27` says in a comment that the page makes "no promise
+of an escrow that is not built", and keeps that promise. That refusal is the most
+honest thing in this codebase and it must survive the marketing pass. It must
+also survive the build: the pressure to announce escrow will peak the moment the
+first hold posts in a staging environment, which is months before it should be
+mentioned to anybody. See E-6.
+
+### E-2. Add `COMPLETED` to `booking_status`. Escrow is being built around its absence. **OPEN. P0, and it is now the gate that is actively being built past**
+
+**Re-verified live after the escrow migration landed:** `booking_status` is still
+`PENDING`, `CONFIRMED`, `CANCELLED`. There is no `COMPLETED`.
+
+So the ledger can now express "money is held" and the schema still cannot express
+"the thing happened". Escrow's entire purpose is to connect those two sentences,
+and the second one has no column. **This is now the most urgent item in section
+7**, and it was overtaken: the ledger vocabulary was added first, which is
+defensible on its own terms and means the gate is now behind the work rather than
+in front of it.
+
+**Do this next, before any escrow table.** It is a one-line enum addition plus a
+scheduled transition, and `private.announce_completed_stays` already runs nightly
+and already reasons about completed stays, so the moment exists in code and not
+in the schema. Note the same Postgres constraint the escrow migration documented:
+a new enum value cannot be used by the transaction that adds it, so `COMPLETED`
+needs its own migration ahead of anything that references it.
+
+It also unblocks two badges and the review prompt.
 
 ### E-3. The state machine. **NEW. OPEN. P0**
 
@@ -2700,19 +2732,23 @@ behavioural change made this week and there is currently nothing holding it.
 
 ## 22. The migration mirror
 
-### T-10. The mirror drifted, was repaired, and the repair reintroduced the drift in the same commit. **NEW. OPEN. P0**
+### T-10. The mirror drifted twice, and is now repaired. Add the check. **NEW. FIXED during this pass. P1 residual**
 
-**This contradicts what has been reported and it needs to be fixed before the
-next `supabase db push` or `db reset`.**
+**Status.** This entry was written as an open P0. It was fixed by a parallel work
+stream within the hour, while this document was being written. **Re-verified
+live: 131 local migration files, 131 rows in `supabase_migrations.schema_migrations`,
+and every version string pairs exactly**, including the ordering inversion. The
+record below is kept because the mechanism is a habit, the habit has now produced
+this fault twice under two different people, and nothing yet stops it happening a
+third time.
 
-**What was fixed, and it genuinely was.** Commit `5e5aa79` renamed eight local
-migration files to the versions that actually ran, which also resolved both
-ordering inversions. All eight now pair exactly, confirmed by diffing filenames
-against `supabase_migrations.schema_migrations`.
+**What was fixed first, and it genuinely was.** Commit `5e5aa79` renamed eight
+local migration files to the versions that actually ran, which also resolved two
+ordering inversions.
 
-**What is broken, verified live today.** The **ten property migrations applied in
-that same commit do not pair at all.** Both sides hold 130 rows, but the last ten
-are entirely disjoint:
+**What that same commit broke.** The **ten property migrations applied in it did
+not pair at all.** Both sides held 130 rows and the last ten were entirely
+disjoint:
 
 | Local filename version | Applied version | Name (identical on both sides) |
 |---|---|---|
@@ -2750,25 +2786,30 @@ tool used to fix it.
    order that actually ran, not the order the filenames imply.** A new ordering
    inversion was created by the commit that fixed two.
 
-**Do.**
-1. Rename all ten files to their applied version strings, preserving the names.
-   No content changes.
-2. Verify: the sorted list of local filename prefixes must equal the sorted list
-   of `schema_migrations.version` exactly, 130 for 130.
-3. **Then add the CI check**, which is the only thing that stops this happening a
-   third time: diff `ls supabase/migrations/*.sql` against `list_migrations` and
-   fail the build on any difference in either direction. Five minutes of work
-   buys a mechanical guarantee that the repository never lies about the database.
-4. **And change the habit.** Either author the file first and apply it by
-   filename, or apply through the API and immediately rename the local file to
-   the returned version. The current workflow guarantees drift, and the fix has
-   to be procedural because it has now happened twice under two different people.
+**Done, by a parallel stream.** All ten files were renamed to their applied
+version strings with no content change, and the two inverted ones now sort in the
+order that actually ran: `044737_a_person_says_what_they_came_here_to_do` before
+`044814_the_map_stops_being_impossible`.
 
-**Why this is P0 rather than P1.** It was P1 when it was eight cosmetic pairs on
-an empty database. It is P0 now because ten of the affected migrations carry the
-entire property schema, the database no longer matches what `db reset` would
-produce, and the next person to run a reset locally will build a subtly different
-schema and spend a day finding out why.
+**Still to do, and this is the whole point of the entry.**
+
+1. **Add the CI check.** Diff `ls supabase/migrations/*.sql` prefixes against
+   `supabase_migrations.schema_migrations.version` and fail the build on any
+   difference in either direction. Five minutes of work buys a mechanical
+   guarantee that the repository never lies about the database. Without it, the
+   third occurrence is a matter of time, because the two people who caused the
+   first two were each being careful.
+2. **Change the habit, because the tooling causes this.** Applying a migration
+   through the management API stamps its own version at the moment of
+   application, which will never match a hand-picked filename. Either author the
+   file first and apply it by filename, or apply through the API and immediately
+   rename the local file to the version the API returned. Write whichever is
+   chosen into `docs/HANDOFF.md`, because it is a procedure and not a
+   preference.
+3. **Note the ordering trap specifically.** Renaming to the applied version can
+   silently reorder files relative to each other, which is what happened here.
+   After any such rename, read the affected migrations for dependencies before
+   assuming a `db reset` still builds the same schema.
 
 ---
 
