@@ -220,7 +220,13 @@ export function AppShell({
         className={
           immersive
             ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden"
-            : `min-w-0 flex-1 lg:pb-20 ${showsTabBar(active) ? "pb-24" : "pb-8"}`
+            : /* Bottom clearance. `pb-4xl` is the 96px that keeps the last row
+                 of a page clear of the phone tab bar; `pb-xl` is the ordinary
+                 end-of-page air where there is no bar to clear. The desktop
+                 figure was 80px of clearance for a floating dock that no longer
+                 exists, so it is now just the end of a page and takes the
+                 section rung rather than a number left over from a deletion. */
+              `min-w-0 flex-1 lg:pb-3xl ${showsTabBar(active) ? "pb-4xl" : "pb-xl"}`
         }
       >
         {/* ------------------------------------------------------- top bar */}
@@ -239,7 +245,11 @@ export function AppShell({
             edgeToEdge ? "hidden lg:block" : ""
           }`}
         >
-          <div className="flex h-[64px] items-center gap-4 px-4 sm:gap-4 sm:px-5 md:px-8">
+          {/* The bar's own inline padding is the page gutter, so the menu
+              button and the wordmark start on the same vertical as the content
+              under them. It used to be px-4 stepping to px-5 then px-8, which
+              is three values none of which matched the shell's own. */}
+          <div className="flex h-[64px] items-center gap-md px-gutter">
             {/* Phones lead with the side navigation, exactly like the desktop left rail. */}
             <button
               type="button"
@@ -321,7 +331,17 @@ export function AppShell({
           /* The same wrapper for `edgeToEdge` as for everything else. The hero
              reaches all four edges by cancelling this padding, which only
              works while the padding is here to cancel. */
-          <div className="nf-shell py-8 sm:py-10">{children}</div>
+          /*
+           * MORE AIR AT THE TOP OF EVERY SIGNED-IN SCREEN, AND IT IS FLUID.
+           *
+           * `py-8 sm:py-10` is 32px stepping to 40px at 640px, so every app
+           * screen changed its top margin at one width and held still either
+           * side of it, and 40px is not a lot of room above a page title on a
+           * 1440px display. `section-tight` is the platform's own interval and
+           * a clamp from 32 to 48: the phone keeps what it had, the desktop
+           * gains, and nothing jumps on the way between them.
+           */
+          <div className="nf-shell py-section-tight">{children}</div>
         )}
       </main>
 

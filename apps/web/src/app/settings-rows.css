@@ -34,14 +34,31 @@
     display: block;
   }
 
-  /* Outside the card, quiet, uppercase. It names the group; it is not a
-     heading somebody reads on the way past. */
+  /*
+   * Outside the card, quiet. It names the group; it is not a heading somebody
+   * reads on the way past.
+   *
+   * IT WAS 12PX, WHICH IS BELOW THE PLATFORM'S SMALLEST READABLE TIER.
+   *
+   * `--nf-text-caption` is 13px and is documented as the quietest size a person
+   * should be asked to read; this label sat a pixel under it, bold and tracked,
+   * which is the shape of a label that has been shrunk until only its weight is
+   * left doing the work. It is the same value `.nf-group-label` in utilities.css
+   * settled on for the same job, `--nf-text-body-sm`, so the two patterns
+   * finally agree instead of naming a group two different sizes on two screens.
+   *
+   * The padding is on the scale too. It was 0 0.25rem 0.5rem, which is the
+   * inline-tight and inline rungs typed as numbers.
+   */
   .nf-sgroup__label {
     display: block;
-    padding: 0 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
+    padding-block: var(--nf-space-0) var(--nf-gap-inline);
+    padding-inline: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+    /* The 0.04em it carried was there to hold 12px uppercase apart. At a
+       readable size, tracked-out lower case just looks loose. */
+    letter-spacing: var(--nf-tracking-normal);
     color: var(--nf-content-muted);
   }
 
@@ -77,15 +94,36 @@
      lives outside the card so the card stays a list of controls. */
   .nf-sgroup__note {
     display: block;
-    padding: 0.5rem 0.25rem 0;
-    font-size: 0.8125rem;
+    padding-block: var(--nf-gap-inline) var(--nf-space-0);
+    padding-inline: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
     line-height: 1.55;
     color: var(--nf-content-muted);
   }
 
   /* ------------------------------------------------------------------ row */
 
+  /**
+   * One row, and it got taller, roomier and bigger-typed in one pass.
+   *
+   * The numbers it carried were 0.875rem gap, 3.25rem minimum, 0.6875rem by
+   * 1rem padding: three values, none of them on any scale, chosen to fit a
+   * 15px label and a 20px glyph. With the label at the platform's 16px body and
+   * the glyph at 24 (see below) the old box would have been holding larger
+   * contents in the same space, which reads as tighter rather than bigger.
+   *
+   * So the geometry moves onto the scale with the type: the gap is the inline
+   * interval, the padding is the row's own padding role, and the minimum height
+   * is 3.5rem, which is `nf-row`'s figure and the comfortable end of the
+   * accessible range rather than the 44px floor. The glyph column and the
+   * divider inset below are both derived from those, so nothing has to be
+   * re-measured by hand the next time one of them moves.
+   */
   .nf-srow {
+    /* The glyph box and the row's own leading padding, named once, because the
+       divider inset is exactly their sum and used to be a hand-typed 3.375rem
+       that no longer agreed with either after any change to either. */
+    --nf-srow-glyph: 1.75rem;
     position: relative;
     display: flex;
     /* Wraps so an overlong value drops to its own line whole rather than
@@ -93,20 +131,24 @@
     flex-wrap: wrap;
     width: 100%;
     align-items: center;
-    gap: 0.875rem;
-    min-height: 3.25rem;
-    padding: 0.6875rem 1rem;
+    gap: var(--nf-gap-inline);
+    min-height: 3.5rem;
+    padding-block: var(--nf-pad-row-block);
+    padding-inline: var(--nf-pad-row-inline);
     text-align: left;
     color: var(--nf-content-primary);
     transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
   /* The hairline starts where the label starts, not where the card starts, so
-     the glyph column reads as a rail. */
+     the glyph column reads as a rail. Derived rather than typed: leading
+     padding, plus the glyph box, plus the row's gap. */
   .nf-srow + .nf-srow::before {
     content: "";
     position: absolute;
-    inset-inline-start: 3.375rem;
+    inset-inline-start: calc(
+      var(--nf-pad-row-inline) + var(--nf-srow-glyph) + var(--nf-gap-inline)
+    );
     inset-inline-end: 0;
     top: 0;
     height: 1px;
@@ -141,8 +183,8 @@
     display: grid;
     place-items: center;
     flex: none;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: var(--nf-srow-glyph);
+    height: var(--nf-srow-glyph);
     color: var(--nf-content-secondary);
   }
 
@@ -174,17 +216,26 @@
     line-height: 1.3;
   }
 
+  /*
+   * THE LABEL IS THE DEFAULT READING SIZE NOW, NOT A STEP UNDER IT.
+   *
+   * It was 0.9375rem, 15px, which the type scale does not contain: it sat
+   * between body at 16 and body-sm at 14.5, so the most-used text in the
+   * signed-in product was the one size nothing else on the platform matched.
+   * Settings, profile and every account surface read a pixel small against
+   * their own headings for exactly that reason.
+   */
   .nf-srow__label {
     display: block;
-    font-size: 0.9375rem;
+    font-size: var(--nf-text-body);
     font-weight: 500;
     color: var(--nf-content-primary);
   }
 
   .nf-srow__sub {
     display: block;
-    margin-top: 0.125rem;
-    font-size: 0.8125rem;
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-body-sm);
     line-height: 1.45;
     color: var(--nf-content-muted);
   }
@@ -207,7 +258,10 @@
     flex: 0 0 auto;
     margin-inline-start: auto;
     text-align: end;
-    font-size: 0.9375rem;
+    /* One step under the label, deliberately. The label is the question and
+       this is only what it currently is, so it takes the platform's genuinely
+       smaller tier rather than the same 15px the label used to be. */
+    font-size: var(--nf-text-body-sm);
     color: var(--nf-content-muted);
     white-space: nowrap;
   }

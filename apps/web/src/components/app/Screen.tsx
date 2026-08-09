@@ -147,8 +147,14 @@ export const ICON = {
  *
  * Chosen per screen is how the 1.25 / 1.5 / 1.75 / 2rem spread happened, so it
  * is not chosen per screen any more.
+ *
+ * It was `space-y-9 sm:space-y-11`, which is 36px stepping to 44px at exactly
+ * one breakpoint. `section-tight` is the platform's own interval between two
+ * subsections of a long page, it is a clamp from 32 to 48, and it grows
+ * continuously instead of jumping at 640px. The screens using it therefore
+ * breathe more at the top end than they used to and never reflow on the way.
  */
-export const SECTION_GAP = "space-y-9 sm:space-y-11";
+export const SECTION_GAP = "space-y-section-tight";
 
 /* ========================================================================== */
 /* SECTION: the GROUND surface                                                */
@@ -189,13 +195,18 @@ export function Section({
   return (
     <section
       id={id}
-      className={`${divided ? "nf-hairline pt-9 sm:pt-11" : ""} ${className ?? ""}`}
+      className={`${divided ? "nf-hairline pt-section-tight" : ""} ${className ?? ""}`}
     >
       {(title || action) && (
-        <div className="mb-4 flex items-baseline justify-between gap-4">
+        /* `mb-heading` is the platform's one answer to "how much room goes
+           between a heading and the thing it heads". It was mb-4, which is 16
+           and the interval for two siblings INSIDE a group, so a section title
+           sat as close to its content as two rows of a list sit to each other
+           and the grouping had to be carried by weight alone. */
+        <div className="mb-heading flex items-baseline justify-between gap-md">
           <div className="min-w-0">
             {title && <Heading className={TYPE.sectionTitle}>{title}</Heading>}
-            {description && <p className={`mt-1.5 ${TYPE.body}`}>{description}</p>}
+            {description && <p className={`mt-row ${TYPE.body}`}>{description}</p>}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </div>
@@ -260,15 +271,15 @@ export function EmptyState({
   return (
     <div
       data-testid={testId}
-      className={`flex flex-col items-center px-6 py-14 text-center sm:py-20 ${className ?? ""}`}
+      className={`flex flex-col items-center px-lg py-section text-center ${className ?? ""}`}
     >
       <span className="block h-28 w-28">
         <BrandIcon name={icon} fill />
       </span>
-      <p className={`mt-6 ${TYPE.sectionTitle}`}>{title}</p>
-      <p className={`mt-2.5 max-w-[42ch] ${TYPE.bodyLg}`}>{body}</p>
-      {action && <div className="mt-7">{action}</div>}
-      {secondary && <div className="mt-4">{secondary}</div>}
+      <p className={`mt-heading ${TYPE.sectionTitle}`}>{title}</p>
+      <p className={`mt-row max-w-[42ch] ${TYPE.bodyLg}`}>{body}</p>
+      {action && <div className="mt-block">{action}</div>}
+      {secondary && <div className="mt-group">{secondary}</div>}
     </div>
   );
 }
@@ -310,7 +321,7 @@ export function RowList({
     <ul
       data-testid={testId}
       className={`nf-rows ${inset ? "nf-rows--inset" : ""} ${
-        boxed ? "nf-card overflow-hidden rounded-[var(--nf-radius-xl)] px-5 sm:px-7" : ""
+        boxed ? "nf-card overflow-hidden rounded-[var(--nf-radius-xl)] px-lg sm:px-xl" : ""
       } ${className ?? ""}`}
     >
       {children}
@@ -360,9 +371,12 @@ export function Row({
  * about to render two of these next to each other, they are almost certainly
  * one of these with a `RowList` inside it.
  *
- * BIG RADIUS, BIG PADDING. `--nf-radius-xl` (22px) and `p-6 sm:p-8`, against
- * the `p-4`/`p-5` and medium radius that was everywhere. A surface should feel
- * roomy. If it feels tight it is holding too much, not padded too little.
+ * BIG RADIUS, BIG PADDING. `--nf-radius-xl` (22px) and `p-card` stepping to
+ * `p-cell`, against the `p-4`/`p-5` and medium radius that was everywhere. A
+ * surface should feel roomy. If it feels tight it is holding too much, not
+ * padded too little. Those two are the scale's own names for "the inside of an
+ * ordinary card" and "the inside of a part of a grouped surface", which is 24
+ * and 32; they were typed as `p-6 sm:p-8` and meant exactly that.
  *
  * NO SECOND BORDER. The glass already reads as a LIFT off the canvas through
  * its rim and its elevation, so nothing here adds a visible outline on top of
@@ -390,7 +404,7 @@ export function Surface({
   return (
     <div
       data-testid={testId}
-      className={`nf-card rounded-[var(--nf-radius-xl)] p-6 sm:p-8 ${className ?? ""}`}
+      className={`nf-card rounded-[var(--nf-radius-xl)] p-card sm:p-cell ${className ?? ""}`}
     >
       {children}
     </div>
@@ -427,19 +441,19 @@ export function FactGrid({ facts, className }: { facts: Fact[]; className?: stri
   if (facts.length === 0) return null;
   return (
     <dl
-      className={`grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3 ${className ?? ""}`}
+      className={`grid grid-cols-2 gap-x-lg gap-y-xl sm:grid-cols-3 ${className ?? ""}`}
       data-testid="fact-grid"
     >
       {facts.map((fact) => (
         <div key={fact.label} className="min-w-0">
-          <dt className={`flex items-center gap-2 ${TYPE.label}`}>
+          <dt className={`flex items-center gap-inline ${TYPE.label}`}>
             {fact.icon && <UiIcon name={fact.icon} size={ICON.inline} className="shrink-0" />}
             {fact.label}
           </dt>
-          <dd className="mt-1.5 text-[1.0625rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+          <dd className="mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold leading-snug text-[var(--nf-content-primary)]">
             {fact.value}
           </dd>
-          {fact.note && <p className={`mt-1 ${TYPE.caption} leading-snug`}>{fact.note}</p>}
+          {fact.note && <p className={`mt-inline-tight ${TYPE.caption} leading-snug`}>{fact.note}</p>}
         </div>
       ))}
     </dl>
