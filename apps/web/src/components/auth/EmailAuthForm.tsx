@@ -51,6 +51,35 @@ export function EmailAuthForm({
   next?: string | undefined;
 }) {
   const [state, formAction, pending] = useActionState(action, EMPTY);
+  /*
+   * EVERY TEXT FIELD IS CONTROLLED, AND IT HAS TO BE.
+   *
+   * THE BUG: filling the whole sign-up form, submitting, and getting one
+   * validation error back wiped fields that were already correct. It took
+   * several attempts to get through, because each attempt cleared more than it
+   * complained about.
+   *
+   * THE CAUSE is not our validation. React RESETS AN UNCONTROLLED FORM WHEN THE
+   * ACTION PASSED TO `<form action>` COMPLETES - on failure exactly as on
+   * success, because from React's side an action that returned is an action
+   * that finished. Password and confirm were already controlled, which is why
+   * those two survived and the rest did not; that inconsistency is what made it
+   * look intermittent.
+   *
+   * So the values live here. The form re-renders after the action with the
+   * state intact, the inputs read from it, and nothing a person typed is thrown
+   * away by a message telling them to fix one thing.
+   *
+   * PASSWORDS ARE NOT IN THIS OBJECT. They have their own state above and are
+   * kept out of the generic bag deliberately, so that anything added later
+   * which logs, serialises or inspects `values` cannot reach them.
+   */
+  const [values, setValues] = useState<Record<string, string>>({});
+  const bind = (field: string) => ({
+    value: values[field] ?? "",
+    onChange: (next: string) => setValues((v) => ({ ...v, [field]: next })),
+  });
+
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [place, setPlace] = useState<PlaceValues>({
@@ -123,6 +152,7 @@ export function EmailAuthForm({
                   t={t}
                   id="firstName"
                   name="firstName"
+                  {...bind("firstName")}
                   type="text"
                   label={t.signUp.firstNameLabel}
                   placeholder={t.signUp.firstNamePlaceholder}
@@ -133,6 +163,7 @@ export function EmailAuthForm({
                   t={t}
                   id="surname"
                   name="surname"
+                  {...bind("surname")}
                   type="text"
                   label={t.signUp.surnameLabel}
                   placeholder={t.signUp.surnamePlaceholder}
@@ -144,6 +175,7 @@ export function EmailAuthForm({
                 t={t}
                 id="nickname"
                 name="nickname"
+                {...bind("nickname")}
                 type="text"
                 label={t.signUp.nicknameLabel}
                 optional
@@ -212,6 +244,7 @@ export function EmailAuthForm({
                 t={t}
                 id="referralCode"
                 name="referralCode"
+                {...bind("referralCode")}
                 type="text"
                 label={t.signUp.referralLabel}
                 optional
@@ -227,6 +260,7 @@ export function EmailAuthForm({
               t={t}
               id="email"
               name="email"
+              {...bind("email")}
               type="email"
               label={t.auth.emailLabel}
               placeholder={t.auth.emailPlaceholder}
