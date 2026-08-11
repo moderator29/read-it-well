@@ -49,6 +49,7 @@ export function AppRail({
   signedIn = false,
   variant = "rail",
   onNavigate,
+  onClose,
 }: {
   t: Dictionary;
   /** The current pathname, with no query on it. */
@@ -65,6 +66,15 @@ export function AppRail({
   variant?: "rail" | "drawer";
   /** The drawer closes itself when a row is followed. */
   onNavigate?: () => void;
+  /**
+   * Shuts the drawer without going anywhere.
+   *
+   * Separate from `onNavigate` even though both currently close the panel:
+   * one is a side effect of leaving, the other is the whole action. The
+   * desktop rail passes neither, which is what keeps the close button out
+   * of a panel that is never open or shut.
+   */
+  onClose?: () => void;
 }) {
   const sections = useMemo(
     () => buildNav({ t, unreadNotifications, isAgent, isAdmin, signedIn }),
@@ -75,13 +85,34 @@ export function AppRail({
       className={variant === "rail" ? "nf-nav nf-nav--rail" : "nf-nav nf-nav--drawer"}
       aria-label={t.nav.primaryLabel}
     >
-      {/* The workspace header, which the reference leads with: who this is,
-          and the control that closes the panel. The close button belongs to
-          the drawer, which owns the open state. */}
+      {/*
+        The workspace header, which the reference leads with: who this is, and
+        the control that closes the panel.
+
+        THAT SECOND HALF WAS A COMMENT AND NOTHING ELSE. This head has claimed
+        to carry a close button since it was written and has only ever rendered
+        the wordmark, so an open drawer on a phone offered no visible way out:
+        the backdrop is an unlabelled transparent button that reads as the
+        dimmed app rather than a target, and Escape is not a key a phone has.
+
+        The button belongs to the drawer, which owns the open state, so the
+        drawer passes the handler and the desktop rail passes none - a sticky
+        column that is always there has nothing to close.
+      */}
       <div className="nf-nav__head">
         <Link href="/" aria-label={t.a11y.logoHome} className="nf-nav__brand">
           <Logo size={34} wordSize={17} responsive />
         </Link>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t.a11y.closeMenu}
+            className="nf-nav__close nf-tap"
+          >
+            <UiIcon name="close" size="sm" />
+          </button>
+        )}
       </div>
 
       {signedIn && (

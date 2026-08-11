@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 /**
  * The overview: where the work is, right now.
  *
- * Six numbers, each one a live count from the table behind it and each one a
+ * Seven numbers, each one a live count from the table behind it and each one a
  * link into the queue that clears it. Nothing here is decorative; if a tile
  * reads zero, that queue really is empty.
  */
@@ -122,7 +122,7 @@ export default async function AdminOverviewPage() {
             </ul>
             <Link
               href="/admin/switches"
-              className="mt-3 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+              className="mt-3 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
             >
               {o.how.openSwitches}
               <UiIcon name="arrow-right" size={16} />
@@ -130,45 +130,21 @@ export default async function AdminOverviewPage() {
           </section>
 
           {/*
-            Why the shelves are empty, answered rather than guessed at.
+            A "Why is the shelf empty?" panel used to sit here and it was a
+            ghost of an architecture this platform no longer has.
 
-            `/api/admin/inventory` has been able to answer this for a while and
-            nothing pointed at it, so the only way to reach it was to already
-            know the URL. That is a diagnostic nobody runs. An empty hotel
-            shelf looks identical whether a key is missing, refused, rate
-            limited, switched off in feature_flags, or pointed at a city with
-            no supply, and those are five different problems with five
-            different fixes.
+            It offered to "run one live search against every partner feed" and
+            linked to `/api/admin/inventory`. There are no partner feeds: the
+            third-party inventory was taken out when RentMe became first-party
+            listings only, and that route went with it. Both links 404, so the
+            console's own overview was the one screen guaranteed to hand an
+            operator a dead end - and the copy above them described a supply
+            model somebody would then go looking for.
 
-            Deliberately not localised, and deliberately outside the tile grid.
-            It answers raw JSON, it names upstream status codes, and it is read
-            by whoever holds the keys rather than by anybody using RentMe.
+            Deleted rather than repointed. Nothing behind it exists to point at,
+            and the honest replacement for a diagnostic with no subject is no
+            diagnostic.
           */}
-          <section className="nf-card mt-4 p-4 sm:p-5">
-            <h2 className="nf-h3">Why is the shelf empty?</h2>
-            <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              Runs one live search against every partner feed and reports what came back:
-              which have credentials, which are switched off, which answered an error, and
-              how many places each returned. Spends a real request per provider, so it is
-              the honest answer rather than a guess from the shape of the key.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
-              <a
-                href="/api/admin/inventory?q=Lagos"
-                className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
-              >
-                Check Lagos
-                <UiIcon name="arrow-right" size={16} />
-              </a>
-              <a
-                href="/api/admin/inventory"
-                className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
-              >
-                Check the default market
-                <UiIcon name="arrow-right" size={16} />
-              </a>
-            </div>
-          </section>
         </>
       )}
     </div>

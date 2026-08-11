@@ -52,7 +52,7 @@ export function AccessScreen({
 
         <span
           className="mx-auto mt-6 grid h-14 w-14 place-items-center rounded-full"
-          style={{ background: "var(--nf-brand-primary-soft)", color: "var(--nf-electric-300)" }}
+          style={{ background: "var(--nf-brand-primary-soft)", color: "var(--nf-content-link)" }}
         >
           <UiIcon name="key" size={24} />
         </span>
@@ -69,7 +69,7 @@ export function AccessScreen({
         {state !== "signed-out" && (
           <Link
             href="/sign-in"
-            className="mt-3 inline-block text-[0.8125rem] font-semibold text-[var(--nf-electric-300)] underline-offset-4 hover:underline"
+            className="mt-3 inline-block text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {a.otherAccount}
           </Link>
