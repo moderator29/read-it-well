@@ -5,15 +5,20 @@ import { Amount } from "@/components/ui/Amount";
 import { TYPE } from "@/components/app/Screen";
 import { RequestInspection } from "@/components/app/inspections/RequestInspection";
 import { readOpenInspectionFor } from "@/lib/inspections/queries";
+import { PERIOD_SUFFIX, PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";
+import { TenancyTerm } from "./TenancyTerm";
 
 /**
  * The panel for rental listings, the serious rent market.
  *
  * Annual tenancies carry NO Reserve and NO Check availability control by
  * design (docs/HYBRID_INVENTORY.md sections 1 and 4): the path is message the
- * agent inside the platform, inspect the property, then pay. Per-year price,
- * the three steps stated plainly, and the canonical safety wording from
- * section 6 word for word.
+ * agent inside the platform, inspect the property, then pay. The price in the
+ * term the row states, the three steps stated plainly, and the canonical safety
+ * wording from section 6 word for word.
+ *
+ * It serves SALES as well as tenancies, which is easy to miss and was the cause
+ * of one of the two price bugs this file used to carry. See `period` below.
  *
  * ---------------------------------------------------------------------------
  * STEP TWO IS NOW A CONTROL RATHER THAN A SENTENCE.
@@ -41,18 +46,45 @@ const STEPS = [
   { label: "Pay through RentMe", detail: "Only once you have seen the place." },
 ];
 
+/** A minimum stated in months, in this listing's own unit. */
+const MONTHS_PER_TERM: Record<RentPeriod, number> = { month: 1, quarter: 3, year: 12 };
+
 export async function RentalPanel({
   listingId,
   priceMinor,
   currency,
   locale,
+  period = "year",
+  minimumTenancyMonths,
 }: {
   listingId: string;
   priceMinor: number;
   currency: string;
   locale: Locale;
+  /**
+   * What the figure above is, from the row rather than assumed.
+   *
+   * The panel printed "/ year" flat and it is rendered for TWO intents, so it
+   * was wrong in two different ways at once. A listing the database said was
+   * priced monthly showed its monthly rent labelled as a year's - on the same
+   * screen where the hero above it, which resolves the period properly, said
+   * "per month". And a property FOR SALE, which also lands on this panel,
+   * printed its asking price as though it were annual rent.
+   */
+  period?: RentPeriod | "sale";
+  /** What the agent set as the shortest tenancy they will take, in months. */
+  minimumTenancyMonths?: number | undefined;
 }) {
   const existing = await readOpenInspectionFor(listingId);
+  const forSale = period === "sale";
+
+  /* Months into terms, rounding UP: a listing priced yearly with an 18 month
+     minimum takes two years, not one. Rounding down would offer a tenancy
+     shorter than the one the agent said they would accept. */
+  const minimumTerms =
+    !forSale && minimumTenancyMonths
+      ? Math.max(1, Math.ceil(minimumTenancyMonths / MONTHS_PER_TERM[period]))
+      : 1;
 
   return (
     <div className="nf-card p-5" data-testid="rental-panel">
@@ -61,14 +93,29 @@ export async function RentalPanel({
           minorUnits={priceMinor}
           locale={locale}
           currency={currency}
-          suffix="/ year"
+          suffix={forSale ? PERIOD_SUFFIX.sale : PERIOD_SUFFIX_SLASH[period]}
           className="nf-h3 leading-none tracking-tight text-[var(--nf-content-primary)]"
           secondaryClassName="text-[0.54em] font-semibold opacity-60"
         />
       </p>
       <p className={`mt-1 ${TYPE.rowMeta}`}>
-        Annual tenancy, agreed with the agent after an inspection.
+        {forSale
+          ? "Agreed with the agent after an inspection."
+          : period === "year"
+            ? "Annual tenancy, agreed with the agent after an inspection."
+            : "Tenancy agreed with the agent after an inspection."}
       </p>
+
+      {/* A sale has no term to lengthen. Nothing is bought by the year. */}
+      {!forSale && (
+        <TenancyTerm
+          priceMinor={priceMinor}
+          period={period}
+          currency={currency}
+          locale={locale}
+          minimumTerms={minimumTerms}
+        />
+      )}
 
       <ol className="mt-4 space-y-3 border-t border-[var(--nf-border-subtle)] pt-4">
         {STEPS.map((step, i) => (
