@@ -5,18 +5,20 @@ import { usePathname } from "next/navigation";
 import type { Dictionary } from "@naijafinds/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Chip, ChipRow } from "@/components/ui/Chip";
-import { ADMIN_NAV, type AdminDestination } from "./nav";
+import { ADMIN_NAV, ADMIN_NAV_GROUPS, type AdminDestination } from "./nav";
 
 type NavCopy = Dictionary["admin"]["nav"];
 
 /**
  * Console navigation, one definition, two form factors.
  *
- * On desktop it is a compact rail; below lg the same eight destinations become
- * a scrollable tab strip pinned under the header, which is the only pattern
- * that keeps eight targets at thumb size on a 390px screen. The queue counts
- * ride along as badges so an operator can see where the work is without
- * opening anything.
+ * On desktop it is a banded rail; below lg the same destinations become a
+ * scrollable tab strip pinned under the header, which is the only pattern that
+ * keeps nineteen targets at thumb size on a 390px screen. The strip is flat
+ * because a single scrolling row has nowhere to put a heading, and it reads
+ * `ADMIN_NAV`, which is derived from the bands rather than written beside them.
+ * The queue counts ride along as badges so an operator can see where the work
+ * is without opening anything.
  *
  * The labels arrive from the layout, which is where the locale is resolved: a
  * client component never reads the dictionary itself.
@@ -57,35 +59,62 @@ export function AdminRail({
   const pathname = usePathname();
 
   return (
+    /*
+      The rail is banded, and the bands are the whole point of this pass.
+      Nineteen destinations in one unbroken column is nineteen labels to read
+      before the eye finds the one it wants, and `nav.ts` had already spent
+      several paragraphs arguing an order - safety, then supply, then people,
+      then money, then settings - that was visible only to somebody reading
+      `nav.ts`. Nothing moved. The headings just say out loud what the order
+      already meant.
+
+      `role="group"` with `aria-labelledby` rather than five separate `<nav>`
+      elements: it is one navigation with five sections, and five landmarks
+      would make a screen reader announce five menus.
+    */
     <nav aria-label={navLabel} className="hidden lg:block">
-      <ul className="space-y-0.5">
-        {ADMIN_NAV.map((item) => {
-          const active = isActive(pathname, item.href);
-          const count = counts[item.key] ?? 0;
-          return (
-            <li key={item.key}>
-              <Link
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={[
-                  "flex items-center gap-3 rounded-[var(--nf-radius-md)] px-3 py-2.5 text-[0.875rem] font-medium transition-colors",
-                  active
-                    ? "bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-content-primary)]"
-                    : "text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
-                ].join(" ")}
-              >
-                <UiIcon name={item.icon} size={20} className="shrink-0" />
-                <span className="flex-1 truncate">{labelFor(item, labels)}</span>
-                {count > 0 && (
-                  <span className="nf-numeric inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--nf-brand-primary)] px-1.5 text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
-                    {count}
-                  </span>
-                )}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      {ADMIN_NAV_GROUPS.map((group) => (
+        <div
+          key={group.key}
+          role="group"
+          {...(group.heading ? { "aria-labelledby": `admin-nav-${group.key}` } : null)}
+          className="mt-group first:mt-0"
+        >
+          {group.heading && (
+            <p id={`admin-nav-${group.key}`} className="nf-overline mb-inline-tight px-3">
+              {group.heading}
+            </p>
+          )}
+          <ul className="space-y-0.5">
+            {group.items.map((item) => {
+              const active = isActive(pathname, item.href);
+              const count = counts[item.key] ?? 0;
+              return (
+                <li key={item.key}>
+                  <Link
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={[
+                      "flex items-center gap-3 rounded-[var(--nf-radius-md)] px-3 py-2.5 text-[0.875rem] font-medium transition-colors",
+                      active
+                        ? "bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-content-primary)]"
+                        : "text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
+                    ].join(" ")}
+                  >
+                    <UiIcon name={item.icon} size={20} className="shrink-0" />
+                    <span className="flex-1 truncate">{labelFor(item, labels)}</span>
+                    {count > 0 && (
+                      <span className="nf-numeric inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--nf-brand-primary)] px-1.5 text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
+                        {count}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
     </nav>
   );
 }
@@ -108,8 +137,8 @@ export function AdminTabs({
       that somebody had tried to fix the touch target by inflating the box and
       then had to undo it to keep the strip reading as a strip. `Chip` settles
       that argument: it paints at its own height and grows only its hit region,
-      so these eight destinations are 44pt to tap on a 390px screen without the
-      rail getting any taller.
+      so every destination is 44pt to tap on a 390px screen without the rail
+      getting any taller.
     */
     <nav
       aria-label={navLabel}

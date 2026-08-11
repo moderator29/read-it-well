@@ -180,8 +180,18 @@ export function AppShell({
         It now behaves the way the supplied reference does: it slides in from
         the RIGHT, stops just short of the far edge so a strip of the dimmed app
         stays visible and tappable, and travels on the spring rather than
-        fading. Right rather than left because the trigger sits on the right and
-        because a right-hand drawer is reachable one-handed on a phone.
+        fading.
+
+        Right rather than left because a right-hand drawer is reachable
+        one-handed on a phone. The comment used to add "and because the trigger
+        sits on the right", which was never true: the menu button is the first
+        thing in the header, at the far LEFT, and has been for as long as this
+        header has existed. One real reason, stated once.
+
+        The panel now carries its own close control at the head. The backdrop
+        below is still a dismiss target and still labelled, but a transparent
+        full-screen button reads as the dimmed app rather than as something to
+        press, so it can no longer be the only way out.
       */}
       {drawer && (
         <div
@@ -210,6 +220,7 @@ export function AppShell({
               signedIn={signedIn}
               variant="drawer"
               onNavigate={closeDrawer}
+              onClose={closeDrawer}
             />
           </div>
         </div>

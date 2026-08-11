@@ -37,6 +37,19 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     counts.state === "ok"
       ? {
           flags: counts.data.flags,
+          /*
+             Held was computed and then dropped on the floor.
+
+             `getQueueCounts` has always summed the four things the safety scan
+             can hold - posts, stories, story comments and bios - and this map
+             never carried the result, so the one rail entry `nav.ts` calls out
+             as "somebody's words stopped mid-sentence, and the author has
+             already been told a person is looking at them" was the one entry
+             that could never show it had work waiting. The overview tile read
+             the count correctly all along, which is what hid it: the number was
+             on screen, just not where an operator passing the rail would see
+             it. */
+          moderation: counts.data.moderation,
           alerts: counts.data.alerts,
           applications: counts.data.applications,
           listings: counts.data.listings,

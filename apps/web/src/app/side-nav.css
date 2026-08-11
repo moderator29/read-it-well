@@ -61,6 +61,61 @@
     border-radius: var(--nf-radius-sm);
   }
 
+  /*
+   * The control that shuts the drawer, which the head has claimed to carry
+   * since it was written and never did.
+   *
+   * Until now the only ways out of an open drawer were the backdrop - an
+   * unlabelled transparent button that looks like nothing and reads, to anybody
+   * who has not been told, as the dimmed app rather than a target - and the
+   * Escape key, which a phone does not have. The panel slides in from the right
+   * and stops short of the edge, so the strip of app it leaves behind IS the
+   * dismiss area, and a strip of dimmed screen is not a control.
+   *
+   * It sits at the far end of the head, opposite the wordmark, at the side the
+   * panel came in from: the thumb that opened it is already there.
+   *
+   * `margin-inline-start: auto` rather than `justify-content: space-between` on
+   * the head, because the head holds one child on the desktop rail and two in
+   * the drawer, and space-between would leave the lone wordmark exactly where
+   * it is while quietly making the rule depend on how many children there are.
+   */
+  .nf-nav__close {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    margin-inline-start: auto;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-md);
+    color: var(--nf-content-secondary);
+    transition:
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  .nf-nav__close:hover {
+    background: var(--nf-glass-fill);
+    color: var(--nf-content-primary);
+  }
+
+  .nf-nav__close:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* 44pt to tap without a 44pt box to look at, the same trick `.nf-icon-btn`
+     uses: the paint stays 36px and the hit region grows past it. */
+  .nf-nav__close::after {
+    content: "";
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 2.75rem;
+    height: 2.75rem;
+    transform: translate(-50%, -50%);
+  }
+
   .nf-nav__brand:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 3px;
@@ -280,6 +335,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    /* Stated rather than inherited, because one row in this panel is a
+       `<button>` and the rest are `<a>`. A button centres its text by UA
+       default, so the theme switch at the foot sat with its label floating in
+       the middle of the row while every destination above it started hard
+       against its glyph. The eye reads that as a different kind of thing. */
+    text-align: start;
   }
 
   .nf-nav__badge {

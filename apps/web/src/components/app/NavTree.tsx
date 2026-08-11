@@ -83,6 +83,24 @@ export function NavTree({
     );
   };
 
+  /*
+   * HIDING A SECTION BECAUSE THE DOCK REPEATS IT ONLY MAKES SENSE IF SOMETHING
+   * ELSE IS LEFT TO SHOW.
+   *
+   * `hideWhenDocked` drops Home, Explore and Around below 64rem, because the
+   * bottom dock already carries those three and a drawer that repeats them is
+   * a drawer of things you can already reach. Sound, with one case nobody
+   * checked: a SIGNED-OUT visitor has no account block, so that section is the
+   * only one there is, and hiding it left the phone drawer completely empty -
+   * a full-height panel holding a wordmark, a close button and the theme
+   * switch, and not one place to go.
+   *
+   * So the flag is only honoured while another section survives it. Nothing
+   * changes for a signed-in reader, and nothing changes on desktop, where the
+   * rule was already inert.
+   */
+  const suppressDocking = sections.filter((section) => !section.hideWhenDocked).length === 0;
+
   return (
     <nav
       aria-label={label}
@@ -91,7 +109,9 @@ export function NavTree({
       {sections.map((section, index) => (
         <div
           key={section.heading ?? `section-${index}`}
-          className={`nf-nav__section${section.hideWhenDocked ? " nf-nav__section--docked" : ""}`}
+          className={`nf-nav__section${
+            section.hideWhenDocked && !suppressDocking ? " nf-nav__section--docked" : ""
+          }`}
         >
           {section.heading && <h2 className="nf-nav__heading">{section.heading}</h2>}
           <ul>{section.items.map(row)}</ul>
