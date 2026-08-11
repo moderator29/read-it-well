@@ -27,6 +27,22 @@ function nextDays(fromIso: string, count: number): string[] {
 }
 
 /**
+ * The lengths a shortlet is actually taken for.
+ *
+ * A weekend, a week, a fortnight, a month. Thirty nights rather than a calendar
+ * month, because a calendar month is 28, 29, 30 or 31 nights depending on where
+ * the check-in lands, and a chip that means a different stay in February than in
+ * March is a chip that quotes a different price for the same word. Thirty is one
+ * number, always, and the dates under it say exactly which nights they are.
+ */
+const STAY_LENGTHS: { label: string; nights: number }[] = [
+  { label: "Weekend", nights: 2 },
+  { label: "1 week", nights: 7 },
+  { label: "2 weeks", nights: 14 },
+  { label: "1 month", nights: 30 },
+];
+
+/**
  * "Today", "Tomorrow", then a short weekday and day number.
  *
  * Built from the ISO string with a midday anchor rather than `new Date(iso)`,
@@ -291,6 +307,18 @@ export function ReservePanel({
             minorUnits={priceMinor}
             locale={locale}
             currency={currency}
+            /*
+              Hardcoded, and unlike `RentalPanel` that is correct here.
+
+              This is not a label describing the row; it is a label describing
+              the arithmetic directly underneath it, which is rate times NIGHTS
+              in `StayDates` and again in `reserve()`. A per-head experience
+              priced with `rate_period = 'guest'` would still be charged by the
+              night by this panel, so reading the period off the row and
+              printing "/ head" would make the caption disagree with the total
+              it sits above. That gap is in the model, not in this string, and
+              closing it means a per-head booking path rather than a new word.
+            */
             suffix="/ night"
             className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
             secondaryClassName="text-[0.54em] font-semibold opacity-60"
@@ -352,6 +380,53 @@ export function ReservePanel({
             its min-content width, so a date input's intrinsic size decided the
             column rather than the column deciding the input. Two of them then
             measured wider than the card. */}
+        {/* --------------------------------------------------- how long */}
+        {/*
+          WEEKLY AND MONTHLY, WITHOUT A WEEKLY OR MONTHLY PRICE.
+
+          A shortlet quoted "per night" and then asked for two dates, so
+          somebody who wanted a week set a check-in, opened a calendar, counted
+          seven days and set a check-out. The rail answers that in one tap.
+
+          The important part is what this is NOT. It does not introduce a weekly
+          rate or a monthly rate. There is no such column, and inventing one
+          would mean a second price to keep in step with the first and a second
+          total to compute - and the total is computed TWICE already, once in
+          `StayDates` for the panel and once in `reserve()` for the charge. The
+          comment on `totalMinor` records what happened last time those two
+          disagreed: the guest saw one number and was billed a bigger one.
+
+          A length is a check-out date. It writes to the same setter the
+          calendar writes to, the nights come out as 7 or 30, and the existing
+          rate times nights is the answer on both sides. Nothing new to keep in
+          step.
+        */}
+        <div className="mb-heading">
+          <p className="nf-label mb-inline">How long</p>
+          <ChipRow label="Length of stay" radiogroup>
+            {STAY_LENGTHS.map((length) => {
+              const from = checkIn || today;
+              const target = addDaysIso(from, length.nights);
+              return (
+                <Chip
+                  key={length.label}
+                  behaviour="choice"
+                  selected={checkIn !== "" && checkOut === target}
+                  onSelectedChange={() => {
+                    /* A length with no check-in yet means today, so the chip
+                       does something on first tap rather than sitting inert
+                       waiting for a date the person has not been asked for. */
+                    if (!checkIn) setCheckIn(from);
+                    setCheckOut(target);
+                  }}
+                >
+                  {length.label}
+                </Chip>
+              );
+            })}
+          </ChipRow>
+        </div>
+
         <div className="grid grid-cols-2 gap-row [&>*]:min-w-0">
           <div>
             <label htmlFor={`${uid}-checkin`} className="nf-label">

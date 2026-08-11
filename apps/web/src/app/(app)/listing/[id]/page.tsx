@@ -17,6 +17,8 @@ import {
   PERIOD_SUFFIX,
   FURNISHING_LABEL,
   CONDITION_LABEL,
+  type PricePeriod,
+  type RentPeriod,
 } from "@/lib/listings/pricing";
 import { formatNumber } from "@naijafinds/i18n";
 import { getBlockedDates } from "@/lib/bookings/queries";
@@ -128,6 +130,17 @@ const KIND_LABEL: Record<ListingKind, string> = {
  * colour rather than a generic grey. It is a restatement of `listing.kind`,
  * which every record carries, so nothing here can be invented.
  */
+/**
+ * The resolved period, narrowed to the three a tenancy can be quoted in.
+ *
+ * A nightly or per-head rate never belongs to a rental listing, and if one
+ * somehow reached this page, falling back to the year the rest of the screen
+ * assumes beats labelling a year's rent as a night's.
+ */
+function rentPeriodOf(value: PricePeriod | null | undefined): RentPeriod {
+  return value === "month" || value === "quarter" ? value : "year";
+}
+
 const MARKET_PILL: Record<ListingKind, { icon: UiIconName; label: string; tone: StatusTone }> = {
   rental: { icon: "key", label: "For rent", tone: "brand" },
   hotel: { icon: "calendar-booking", label: "For stays", tone: "success" },
@@ -487,11 +500,24 @@ export default async function ListingDetailPage({
       <RestaurantPanel listing={listing} locale={locale} t={t} messageHref={messageHref} />
     </div>
   ) : isRental || isSale ? (
+    /*
+      The panel gets the SAME period the hero above it gets.
+
+      It used to get none and print "/ year" regardless, so this page could
+      state two different units for one price forty pixels apart - and did,
+      on every monthly rental and on every sale. `rentPeriodOf` narrows the
+      resolved value to what a tenancy can actually be quoted in; a nightly or
+      per-head rate never reaches a rental listing, and if one somehow did,
+      falling back to the year the rest of this page assumes is better than
+      labelling annual rent as nightly.
+    */
     <RentalPanel
       listingId={listing.id}
       priceMinor={listing.priceMinor}
       currency={listing.currency}
       locale={locale}
+      period={isSale ? "sale" : rentPeriodOf(listing.pricePeriod)}
+      minimumTenancyMonths={listing.minimumTenancyMonths}
     />
   ) : (
     <ReservePanel

@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { headlinePeriod, headlinePrice, moveInParts, moveInTotal } from "./pricing";
+import {
+  headlinePeriod,
+  headlinePrice,
+  moveInParts,
+  moveInTotal,
+  PERIOD_NOUN,
+  PERIOD_SUFFIX,
+  PERIOD_SUFFIX_SHORT,
+  PERIOD_SUFFIX_SLASH,
+  RENT_PERIOD_VALUES,
+  RATE_PERIOD_VALUES,
+} from "./pricing";
 import { submitRequirements, type SubmitSubject } from "../agent/listings-schema";
 
 /**
@@ -183,5 +194,58 @@ describe("submitRequirements", () => {
   it("never asks a plot of land for a bathroom", () => {
     const unmet = submitRequirements({ ...ready, propertyType: "land", bathrooms: 0 });
     expect(unmet.map((u) => u.field)).not.toContain("bathrooms");
+  });
+});
+
+/**
+ * The suffix maps, which are the words the platform puts after money.
+ *
+ * They earn a test because the failure they guard against is invisible in
+ * review and expensive in the wild: a figure labelled with the wrong unit is
+ * not a typo, it is the platform stating a different price. Two panels had it
+ * wrong for exactly this reason - they carried their own hardcoded string
+ * instead of reading a map, so a monthly rental printed "/ year" and an asking
+ * price printed "/ year" underneath a hero that said "asking price".
+ *
+ * Every period must appear in every map. A missing key is `undefined` rendered
+ * next to a number, which reads as no unit at all.
+ */
+describe("the period suffixes", () => {
+  const everyPeriod = [...RENT_PERIOD_VALUES, ...RATE_PERIOD_VALUES];
+
+  it("names every period in all three maps", () => {
+    for (const period of everyPeriod) {
+      expect(PERIOD_SUFFIX[period], `PERIOD_SUFFIX.${period}`).toBeTruthy();
+      expect(PERIOD_SUFFIX_SHORT[period], `PERIOD_SUFFIX_SHORT.${period}`).toBeTruthy();
+      expect(PERIOD_SUFFIX_SLASH[period], `PERIOD_SUFFIX_SLASH.${period}`).toBeTruthy();
+    }
+  });
+
+  it("carries a sale in the two maps that can express one, and not in the third", () => {
+    expect(PERIOD_SUFFIX.sale).toBe("asking price");
+    // An asking price divided by nothing has no unit to follow a slash, so the
+    // slash map deliberately has no "sale" key at all rather than an empty one
+    // that would render as a bare "/".
+    expect("sale" in PERIOD_SUFFIX_SLASH).toBe(false);
+  });
+
+  it("spells the slash suffixes the way the booking panels print them", () => {
+    // Pinned rather than derived: `bookings.spec.mjs` asserts the panel text
+    // contains "/ night" and `listing-detail.spec.mjs` accepts "/ year", so
+    // these exact strings are load-bearing outside this module.
+    expect(PERIOD_SUFFIX_SLASH.night).toBe("/ night");
+    expect(PERIOD_SUFFIX_SLASH.year).toBe("/ year");
+    expect(PERIOD_SUFFIX_SLASH.month).toBe("/ month");
+    expect(PERIOD_SUFFIX_SLASH.quarter).toBe("/ quarter");
+  });
+
+  it("gives every rent period a singular noun the tenancy control can count", () => {
+    for (const period of RENT_PERIOD_VALUES) {
+      const noun = PERIOD_NOUN[period];
+      expect(noun, `PERIOD_NOUN.${period}`).toBeTruthy();
+      // Singular, because the control appends the s. A plural here would read
+      // "1 years" at the floor of the stepper, which is where it starts.
+      expect(noun.endsWith("s"), `PERIOD_NOUN.${period} must be singular`).toBe(false);
+    }
   });
 });

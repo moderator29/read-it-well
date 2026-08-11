@@ -141,6 +141,39 @@ export const PERIOD_SUFFIX_SHORT: Record<PricePeriod | "sale", string> = {
   sale: "",
 };
 
+/**
+ * The same again in the booking panels' own style, with the slash.
+ *
+ * A third map rather than a clever join, because the panels' visual is
+ * "₦450,000 / night" and neither of the two above produces it: `PERIOD_SUFFIX`
+ * has no slash and `PERIOD_SUFFIX_SHORT` abbreviates the word. Both panels were
+ * hardcoding their string instead, which is how `RentalPanel` came to print
+ * "/ year" over a listing the row said was priced monthly.
+ *
+ * "sale" is absent on purpose. An asking price divided by nothing is not a rate
+ * and there is no unit to put after the slash; a sale never reaches a panel
+ * that uses this.
+ */
+export const PERIOD_SUFFIX_SLASH: Record<PricePeriod, string> = {
+  month: "/ month",
+  quarter: "/ quarter",
+  year: "/ year",
+  night: "/ night",
+  guest: "/ head",
+};
+
+/**
+ * One period, as the noun you would count. "2 years", "3 months".
+ *
+ * Singular here; `plural` in the i18n package puts the s on. Used by the
+ * tenancy control, where the reader is choosing how many of these they want.
+ */
+export const PERIOD_NOUN: Record<RentPeriod, string> = {
+  month: "month",
+  quarter: "quarter",
+  year: "year",
+};
+
 export const RENT_PERIOD_LABEL: Record<RentPeriod, string> = {
   month: "Monthly",
   quarter: "Quarterly",
