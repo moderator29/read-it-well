@@ -162,6 +162,49 @@ export async function fundWallet(
 
   if (!isPaystackConfigured()) return fail(FUNDING_UNCONFIGURED_MESSAGE);
 
+  /*
+   * NO CHECKOUT WITHOUT A WAY TO ACCOUNT FOR IT.
+   *
+   * This is the defect that left a real payment unrecorded for seventeen hours,
+   * and the shape of it is worth stating exactly because it recurs otherwise.
+   *
+   * The service role client was resolved LATER, after the charge had been
+   * opened, and it was consulted as `if (admin) { record the audit }`. So with
+   * that key absent, every one of these happened quietly and in order:
+   *
+   *   - the Paystack checkout opened, because that needs only the Paystack key;
+   *   - the person paid;
+   *   - the audit row was skipped, with no error and no log line;
+   *   - and the WEBHOOK, which is what credits the wallet, needs the same key,
+   *     so it could not post the ledger entry either.
+   *
+   * That is the worst outcome a money surface has. The charge succeeds, nothing
+   * on our side records it was ever started, and the only trace is at the
+   * processor. It was found by asking Paystack rather than by reading our own
+   * data, because there was no data of ours to read.
+   *
+   * `if (admin)` is what made it silent. An optional audit is defensible where
+   * the audit is a nicety; on the call that OPENS A CHARGE it is the difference
+   * between a recoverable payment and a lost one. So the check moves ahead of
+   * the money and it refuses rather than degrades: if we cannot write down that
+   * this started, we do not start it.
+   *
+   * Nothing is charged at this point, so the reader gets one plain sentence and
+   * no instructions, because there is nothing for them to do but come back.
+   */
+  const admin = getAdminClient();
+  if (!admin) {
+    logMoney({
+      surface: "fund",
+      outcome: "unconfigured",
+      reason: "service_role_key_missing",
+      userId: session.user.id,
+    });
+    return fail(
+      "Funding is unavailable just now, so nothing was charged. This is our side, not yours, and it is already flagged. Please try again shortly.",
+    );
+  }
+
   const email = session.user.email;
   if (!email) {
     return fail(
@@ -191,17 +234,18 @@ export async function fundWallet(
       amountMinor: parsed.data.amount,
       userId: session.user.id,
     });
-    const admin = getAdminClient();
-    if (admin) {
-      await recordMoneyAudit(admin, {
-        actor: { kind: "user", userId: session.user.id },
-        action: "wallet.funding.started",
-        reference,
-        amountMinor: parsed.data.amount,
-        subjectUserId: session.user.id,
-        outcome: "started",
-      });
-    }
+    /* Unconditional. The client was resolved and REFUSED ON above, before the
+       charge was opened, so by the time execution is here it exists and the
+       intent is always written down. That is the whole of the fix: the audit
+       is no longer something that happens if the environment feels like it. */
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId: session.user.id },
+      action: "wallet.funding.started",
+      reference,
+      amountMinor: parsed.data.amount,
+      subjectUserId: session.user.id,
+      outcome: "started",
+    });
     return ok({ authorizationUrl: tx.authorizationUrl, reference: tx.reference });
   } catch (e) {
     logMoney({
