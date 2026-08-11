@@ -283,12 +283,33 @@ function TransferForm({ locale }: { locale: Locale }) {
   return (
     <form action={formAction} noValidate className="space-y-3">
       <AmountField err={state.fieldErrors} locale={locale} />
+      {/*
+        THE FIELD SAID "Email or phone number" AND THE ACTION REJECTED PHONE
+        NUMBERS.
+
+        `requestTransfer` refuses anything without an `@` and answers
+        "Transfers use the recipient's RentMe email address for now", so the
+        placeholder was advertising a route that could only ever fail. Somebody
+        typing the number they know by heart got an error for doing exactly
+        what the form told them to.
+
+        This is the same defect as a Reserve button on a listing nobody can
+        book, and it is fixed the same way: by the control saying what is
+        actually true rather than by inventing the capability under it.
+
+        SENDING TO AN @HANDLE IS THE RIGHT DESTINATION and is deliberately not
+        smuggled in here. `social_profiles.handle` resolves to a `user_id`, and
+        the transfer path needs an EMAIL, so it wants a `user_id` to address
+        lookup that does not exist yet. Half-wiring it would put a second
+        promise on this field, which is the thing being fixed.
+      */}
       <TextField
-        label="Recipient"
+        label="Recipient's RentMe email"
         name="recipient"
-        type="text"
+        type="email"
+        inputMode="email"
         autoComplete="off"
-        placeholder="Email or phone number"
+        placeholder="name@example.com"
         error={state.fieldErrors?.recipient}
       />
       <SubmitRow pending={pending} label="Send transfer" />
