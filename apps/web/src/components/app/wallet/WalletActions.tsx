@@ -5,6 +5,7 @@ import { formatMoney, type Locale } from "@naijafinds/i18n";
 import { NIGERIAN_BANKS } from "@/lib/data/nigeria";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import {
+  lookupAccountName,
   requestDeposit,
   requestTransfer,
   requestWithdrawal,
@@ -172,6 +173,52 @@ function AddMoneyForm({ locale }: { locale: Locale }) {
 
 function WithdrawForm({ locale }: { locale: Locale }) {
   const [state, formAction, pending] = useActionState(requestWithdrawal, EMPTY);
+
+  /*
+   * THE NAME ON THE ACCOUNT, SHOWN BEFORE THE TAP.
+   *
+   * The withdrawal already resolves this against the bank and refuses on a
+   * mismatch, so the money was never at risk. What it could not do is tell
+   * somebody EARLY: a wrong digit came back as a rejection after the sheet was
+   * full and the amount was in. This asks the same question as soon as a bank
+   * and ten digits exist, and puts the answer under the field.
+   *
+   * `null` is "we have not asked or the pair is incomplete", which draws
+   * nothing at all. A form that says "checking" over every keystroke, or that
+   * shows an error while somebody is halfway through typing an account number,
+   * is worse than one that waits.
+   */
+  const [holder, setHolder] = useState<
+    | { state: "idle" }
+    | { state: "checking" }
+    | { state: "found"; name: string }
+    | { state: "missing"; reason: string }
+  >({ state: "idle" });
+  const [bankName, setBankName] = useState("");
+
+  const [accountNumber, setAccountNumber] = useState("");
+
+  /* The request that was in flight when the inputs last changed. A slow reply
+     for an account number the reader has already edited must not overwrite the
+     answer for the one now on screen. */
+  const attempt = useRef(0);
+
+  const check = (nextBank: string, nextNumber: string) => {
+    const digits = nextNumber.replace(/\D/g, "");
+    if (nextBank.length === 0 || digits.length !== 10) {
+      setHolder({ state: "idle" });
+      return;
+    }
+    const mine = ++attempt.current;
+    setHolder({ state: "checking" });
+    void lookupAccountName(nextBank, digits).then((result) => {
+      if (mine !== attempt.current) return;
+      if (result.ok) setHolder({ state: "found", name: result.accountName });
+      else if (result.reason.length > 0) setHolder({ state: "missing", reason: result.reason });
+      else setHolder({ state: "idle" });
+    });
+  };
+
   return (
     <form action={formAction} noValidate className="space-y-3">
       <AmountField err={state.fieldErrors} locale={locale} />
@@ -179,6 +226,10 @@ function WithdrawForm({ locale }: { locale: Locale }) {
         label="Bank"
         name="bankName"
         defaultValue=""
+        onChange={(event) => {
+          setBankName(event.target.value);
+          check(event.target.value, accountNumber);
+        }}
         error={state.fieldErrors?.bankName}
       >
         <option value="" disabled style={{ background: "var(--nf-surface-elevated)" }}>
@@ -198,8 +249,29 @@ function WithdrawForm({ locale }: { locale: Locale }) {
         autoComplete="off"
         maxLength={10}
         placeholder="10-digit account number"
+        onChange={(event) => {
+          setAccountNumber(event.target.value);
+          check(bankName, event.target.value);
+        }}
         error={state.fieldErrors?.accountNumber}
       />
+
+      {/*
+        The answer, in the one place it is useful. A found name is stated
+        plainly rather than dressed as a success banner: it is a fact about the
+        account, and the reader's job is to read it and recognise it. It is
+        never editable, because it is the bank's answer and not ours.
+      */}
+      {holder.state === "checking" ? (
+        <p className="nf-body-sm text-[var(--nf-content-muted)]">Checking the account…</p>
+      ) : holder.state === "found" ? (
+        <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
+          {holder.name}
+        </p>
+      ) : holder.state === "missing" ? (
+        <p className="nf-body-sm text-[var(--nf-state-warning)]">{holder.reason}</p>
+      ) : null}
+
       <SubmitRow pending={pending} label="Request withdrawal" />
       <ResultNotice state={state} locale={locale} />
     </form>

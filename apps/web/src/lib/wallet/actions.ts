@@ -951,6 +951,51 @@ export async function requestDeposit(
   };
 }
 
+/**
+ * Who owns this account, asked while the reader can still act on the answer.
+ *
+ * THE SAME CALL THE WITHDRAWAL ITSELF MAKES, moved one step earlier.
+ * `requestWithdrawal` resolves the name and refuses on a mismatch, which is
+ * correct and is also the worst moment to find out you typed a digit wrong: the
+ * sheet is full, the amount is entered, and the feedback arrives as a
+ * rejection. Here it arrives as a name appearing under the field.
+ *
+ * NOTHING FROM HERE IS TRUSTED. This is a convenience read for the form, and
+ * the withdrawal resolves the account again on its own rather than accepting
+ * whatever comes back from the browser. A name that reached the client could be
+ * edited there; the one that goes into the payout instruction never leaves the
+ * server.
+ *
+ * IT RETURNS FAILURE AS A VALUE rather than throwing. A half-typed account
+ * number is the normal state of this field, not an error somebody has made, so
+ * the empty `reason` cases are silent by design and only a complete pair that
+ * genuinely does not resolve says anything.
+ */
+export async function lookupAccountName(
+  bankName: string,
+  accountNumber: string,
+): Promise<{ ok: true; accountName: string } | { ok: false; reason: string }> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return { ok: false, reason: "" };
+  if (!isPaystackConfigured()) return { ok: false, reason: "" };
+
+  const bank = bankByName(bankName.trim());
+  if (!bank) return { ok: false, reason: "" };
+
+  const digits = accountNumber.replace(/\D/g, "");
+  if (digits.length !== 10) return { ok: false, reason: "" };
+
+  try {
+    const resolved = await resolveAccountNumber(digits, bank.code);
+    return { ok: true, accountName: resolved.accountName };
+  } catch {
+    /* Deliberately not the processor's wording. The reader is still filling the
+       form and the only useful thing to say is that this pair does not match;
+       the withdrawal gives the full message if they go on anyway. */
+    return { ok: false, reason: "No account found with that number at this bank." };
+  }
+}
+
 export async function requestWithdrawal(
   _prev: WalletActionResult,
   formData: FormData,
