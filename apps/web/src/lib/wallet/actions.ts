@@ -56,6 +56,7 @@ import {
   initializeTransaction,
   initiateTransfer,
   isPaystackConfigured,
+  resolveAccountNumber,
   verifyTransaction,
 } from "../payments/paystack";
 import { FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
@@ -960,18 +961,62 @@ export async function requestWithdrawal(
     return { ok: false, fieldErrors: { bankName: "Choose a bank from the list." } };
   }
 
-  const session = await resolveSession();
-  const accountName =
-    session.state === "signed-in"
-      ? ((session.user.user_metadata["full_name"] as string | undefined) ??
-        session.user.email ??
-        "RentMe member")
-      : "RentMe member";
+  /*
+   * THE NAME COMES FROM THE BANK NOW, AND IT USED TO BE INVENTED HERE.
+   *
+   * This read `user_metadata.full_name`, then fell back to the email address,
+   * then to the literal string "RentMe member", and sent whichever it got to
+   * Paystack as the name on the destination account. Every one of those three
+   * is a guess about somebody else's bank record:
+   *
+   *   - a profile name is what the person typed at sign-up and has no
+   *     relationship to what their bank holds;
+   *   - an email address is not a name at all;
+   *   - and "RentMe member" is a placeholder being passed off as an account
+   *     holder in a payout instruction.
+   *
+   * `resolveAccountNumber` asks the bank and is answered with the real name, on
+   * an account the bank has already done KYC against. It has been exported
+   * since the payments work and the agent payout flow already uses it for
+   * exactly this; the wallet was the one money surface still guessing.
+   *
+   * IT ALSO CATCHES A TYPO BEFORE IT COSTS ANYTHING. A wrong digit resolves to
+   * a different person or does not resolve at all, and either way this returns
+   * a field error against the account number instead of instructing a transfer
+   * into a stranger's account.
+   *
+   * The form's own "Name on the account" box is no longer the source of truth
+   * for this and the resolved name overrides it. Showing that name back before
+   * the tap is a UI change on top of this one; the correctness does not wait
+   * for it.
+   */
+  const accountNumber = String(formData.get("accountNumber") ?? "").replace(/\s/g, "");
+
+  let accountName: string;
+  try {
+    const resolved = await resolveAccountNumber(accountNumber, bank.code);
+    accountName = resolved.accountName;
+  } catch (error) {
+    logMoney({
+      surface: "withdraw",
+      outcome: "rejected",
+      reason: "account_not_resolved",
+    });
+    return {
+      ok: false,
+      fieldErrors: {
+        accountNumber: describePaystackError(
+          error,
+          "We could not find that account at the bank you chose. Check the number and the bank, and nothing has been sent.",
+        ),
+      },
+    };
+  }
 
   const mapped = new FormData();
   mapped.set("amount", String(formData.get("amount") ?? ""));
   mapped.set("bankCode", bank.code);
-  mapped.set("accountNumber", String(formData.get("accountNumber") ?? ""));
+  mapped.set("accountNumber", accountNumber);
   mapped.set("accountName", accountName);
 
   const result = await withdraw(EMPTY_ENVELOPE, mapped);
