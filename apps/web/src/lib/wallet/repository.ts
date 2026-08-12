@@ -200,3 +200,48 @@ export async function getWalletForViewer(): Promise<ViewerWallet> {
 }
 
 
+
+/**
+ * One movement, for its receipt.
+ *
+ * Read through the SIGNED-IN SESSION's client rather than the service role,
+ * so RLS decides whether this entry belongs to the person asking. A receipt
+ * addressed by id is a URL somebody can change a character of, and the answer
+ * to "whose row is this" must never be this function's to make.
+ *
+ * The property title is resolved the same way `readStatement` resolves it -
+ * from the reference, on the way out, never stored on the money row - so a
+ * receipt and the statement line it came from name the same place.
+ *
+ * Null covers three cases deliberately and tells them apart nowhere: signed
+ * out, not found, and not yours. The page shows one "no such receipt" for all
+ * three, because distinguishing them would confirm to a stranger that a
+ * reference exists.
+ */
+export async function readWalletEntry(id: string): Promise<WalletEntry | null> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+
+  try {
+    const { data, error } = await session.supabase
+      .from("wallet_entries")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    if (error || !data) return null;
+
+    const entry = toWalletEntry(data);
+    const names = await readPropertyNamesForReferences(session.supabase, [entry.reference]);
+    const property = names.get(entry.reference);
+    if (property) entry.property = property;
+    return entry;
+  } catch (error) {
+    logMoney({
+      surface: "fund",
+      outcome: "failed",
+      reason: `entry_read_failed:${failureReason(error)}`,
+      userId: session.user.id,
+    });
+    return null;
+  }
+}

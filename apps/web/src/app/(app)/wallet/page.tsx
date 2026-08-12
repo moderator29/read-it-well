@@ -7,7 +7,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
 import { BalanceCard } from "@/components/app/wallet/BalanceCard";
-import { TransactionsSection } from "@/components/app/wallet/TransactionsSection";
+import { RecentActivity } from "@/components/app/wallet/RecentActivity";
 import { WalletSettingsSheet } from "@/components/app/wallet/WalletSettingsSheet";
 import { getWalletForViewer } from "@/lib/wallet/repository";
 import { FundingVerifier } from "./FundingVerifier";
@@ -180,8 +180,17 @@ export default async function WalletPage({
         <WalletDeck locale={locale} balanceMinor={wallet.balanceMinor} live={wallet.live} />
       </Reveal>
 
+      {/*
+        THE STATEMENT MOVED TO ITS OWN SCREEN.
+
+        It was rendered here in full, with its filters, directly under the
+        action deck - so on any wallet with use in it the page became a
+        balance, three buttons and then an unbounded list, and everything
+        below sat behind a scroll. Three rows and a way in is what a person
+        wants at a glance; the record lives at /wallet/transactions.
+      */}
       <Reveal delay={140} className="mt-block">
-        <TransactionsSection entries={wallet.entries} locale={locale} />
+        <RecentActivity entries={wallet.entries} locale={locale} />
       </Reveal>
         </>
       )}
