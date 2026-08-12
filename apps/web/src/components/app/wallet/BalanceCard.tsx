@@ -293,9 +293,19 @@ export function BalanceCard({
         the exact tell the reference wallets avoid: the eye should be able to
         find money leaving without reading a sign.
       */}
-      <div className="nf-cells nf-cells--pair relative mt-block">
+      {/*
+        THE PERIOD IS SAID ONCE, ABOVE BOTH COLUMNS.
+
+        It was "In, last 30 days" and "Out, last 30 days", and the second one
+        wrapped to two lines on a 390px screen while the first did not - so the
+        two figures underneath sat at different heights and the pair stopped
+        reading as a pair. The period is the same for both, and a fact repeated
+        in two labels is a fact that belongs above them.
+      */}
+      <p className="nf-overline mt-block">Last 30 days</p>
+      <div className="nf-cells nf-cells--pair relative mt-row">
         <div className="pr-lg">
-          <p className="nf-body-sm text-[var(--nf-content-muted)]">In, last 30 days</p>
+          <p className="nf-body-sm text-[var(--nf-content-muted)]">In</p>
           <p className="nf-numeric mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-state-success)]">
             {hidden ? (
               "••••"
@@ -307,7 +317,7 @@ export function BalanceCard({
           </p>
         </div>
         <div className="pl-lg">
-          <p className="nf-body-sm text-[var(--nf-content-muted)]">Out, last 30 days</p>
+          <p className="nf-body-sm text-[var(--nf-content-muted)]">Out</p>
           <p className="nf-numeric mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-state-error)]">
             {hidden ? (
               "••••"
