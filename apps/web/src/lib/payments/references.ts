@@ -72,6 +72,17 @@ export const P2P_PREFIX = "rm-p2p-";
 export const BOOKING_PREFIX = "rm-book-";
 export const REFUND_PREFIX = "rm-refund-";
 export const ESCROW_PREFIX = "rm-esc-";
+/**
+ * A crypto on-ramp deposit.
+ *
+ * Its own prefix rather than reusing `rm-fund-`, because the two are settled by
+ * DIFFERENT PROCESSORS and the reconciliation sweep asks Paystack for every
+ * charge it has taken. A crypto deposit carrying a fund reference would be a
+ * row that sweep looks for at Paystack, does not find, and has to decide about
+ * - and the safe decision on "a credit we cannot see at the processor" is one
+ * nobody should have to make by hand.
+ */
+export const CRYPTO_PREFIX = "rm-yc-";
 
 const REFERENCE_UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -105,6 +116,13 @@ export function isBookingReference(value: string): boolean {
 export function isFundReference(value: string): boolean {
   if (!value.startsWith(FUND_PREFIX)) return false;
   return REFERENCE_UUID_RE.test(value.slice(FUND_PREFIX.length));
+}
+
+/** True when a string is a reference this platform generated for a crypto
+    deposit. Same shape test as `isFundReference`, against the other prefix. */
+export function isCryptoReference(value: string): boolean {
+  if (!value.startsWith(CRYPTO_PREFIX)) return false;
+  return REFERENCE_UUID_RE.test(value.slice(CRYPTO_PREFIX.length));
 }
 
 /** The three legs an escrow agreement can ever post. */
