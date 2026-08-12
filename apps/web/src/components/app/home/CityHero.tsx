@@ -157,7 +157,7 @@ export function CityHero({
                 {cityLabel || "Nigeria"}
               </p>
             </div>
-            <span className="nf-numeric shrink-0 rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-2.5 py-1 text-[0.6875rem] font-semibold text-[var(--nf-content-on-media-accent)]">
+            <span className="nf-numeric shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-2.5 py-1 text-[0.6875rem] font-semibold text-[var(--nf-content-on-media-accent)]">
               {areas.length} {areas.length === 1 ? "place" : "places"}
             </span>
           </div>
@@ -180,7 +180,7 @@ export function CityHero({
                   <span className="nf-map-pin-breathe absolute inset-[-6px] rounded-full bg-[var(--nf-halo-on-media)] blur-[6px]" />
                   <span className="relative block h-2.5 w-2.5 rounded-full bg-[var(--nf-content-on-media)] shadow-[var(--nf-glow-on-media)]" />
                 </span>
-                <span className="whitespace-nowrap rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-2 py-[3px] text-[0.625rem] font-semibold leading-none text-[var(--nf-content-on-media)] backdrop-blur-sm">
+                <span className="whitespace-nowrap rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-2 py-[3px] text-[0.625rem] font-semibold leading-none text-[var(--nf-content-on-media)] backdrop-blur-sm">
                   {pin.area.name}
                   <span className="nf-numeric ml-1.5 text-[var(--nf-content-on-media-accent)]">
                     {pin.area.postCount}

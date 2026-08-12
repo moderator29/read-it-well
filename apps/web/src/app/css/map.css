@@ -16,7 +16,7 @@
     align-items: center;
     transform: translate(-50%, -100%);
     padding: var(--nf-space-2xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     background: rgb(1 1 24 / 0.88);
     border: 1px solid rgb(92 124 255 / 0.5);
     color: #ffffff;
@@ -106,7 +106,7 @@
     content: "";
     position: absolute;
     inset: -7px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     border: 1.5px solid var(--nf-brand-secondary);
     animation: nf-map-pin-bloom 1.5s var(--nf-ease-standard) 500ms both;
     pointer-events: none;

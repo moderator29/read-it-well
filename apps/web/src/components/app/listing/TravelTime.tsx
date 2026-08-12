@@ -140,7 +140,7 @@ export function TravelTime({
       onClick={ask}
       disabled={working}
       aria-busy={working}
-      className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--nf-border-subtle)] px-3 py-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)] transition-opacity hover:opacity-80 disabled:opacity-60"
+      className="mt-3 inline-flex items-center gap-1.5 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-3 py-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)] transition-opacity hover:opacity-80 disabled:opacity-60"
     >
       <UiIcon name="compass" size={16} className="shrink-0 opacity-70" aria-hidden />
       {working ? workingLabel : label}

@@ -166,7 +166,7 @@ export function Segmented<T extends string>({
             tabIndex={semantics === "tabs" ? (selected ? 0 : -1) : 0}
             onClick={() => onChange(o.value)}
             className={[
-              "nf-segmented__item relative z-1 inline-flex items-center justify-center gap-1.5 rounded-[var(--nf-radius-pill)] font-semibold transition-colors",
+              "nf-segmented__item relative z-1 inline-flex items-center justify-center gap-1.5 rounded-[var(--nf-radius-control)] font-semibold transition-colors",
               seg,
               full ? "flex-1" : "",
               selected

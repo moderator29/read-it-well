@@ -177,7 +177,7 @@ export function ListingGallery({
           type="button"
           onClick={back}
           aria-label={t.common.back}
-          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
+          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="arrow-left" size={16} />
         </button>
@@ -199,7 +199,7 @@ export function ListingGallery({
       {count > 0 && (
         <p
           data-testid="gallery-counter"
-          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-full bg-[var(--nf-overlay-media-strong)] px-2.5 py-1 text-[0.75rem] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md sm:bottom-14 sm:right-4"
+          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-2.5 py-1 text-[0.75rem] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md sm:bottom-14 sm:right-4"
         >
           <span className="sr-only">Photo </span>
           {Math.min(active + 1, count)} / {count}
@@ -214,7 +214,7 @@ export function ListingGallery({
             onClick={() => go(active - 1)}
             disabled={active === 0}
             aria-label="Previous photo"
-            className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
+            className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-left" size={16} />
           </button>
@@ -223,7 +223,7 @@ export function ListingGallery({
             onClick={() => go(active + 1)}
             disabled={active === panes.length - 1}
             aria-label="Next photo"
-            className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
+            className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-right" size={16} />
           </button>

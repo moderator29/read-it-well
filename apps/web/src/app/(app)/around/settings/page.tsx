@@ -165,7 +165,7 @@ export default async function AroundManagePage({
                     {proposal.city} &middot; you suggested this
                   </p>
                 </div>
-                <span className="shrink-0 rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-3 py-1 text-xs font-semibold text-[var(--nf-content-muted)]">
+                <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-3 py-1 text-xs font-semibold text-[var(--nf-content-muted)]">
                   With us
                 </span>
               </li>
@@ -281,7 +281,7 @@ function AreaRow({
             {area.name}
           </p>
           {area.status === "PAUSED" ? (
-            <span className="shrink-0 rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
+            <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
               Paused
             </span>
           ) : null}

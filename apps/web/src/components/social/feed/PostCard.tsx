@@ -359,11 +359,11 @@ export function PostCard({
 
       <div className="flex items-center gap-2">
         {isSystem ? (
-          <span className="rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-subtle)] px-2.5 py-1 text-[0.66rem] font-bold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
+          <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-2.5 py-1 text-[0.66rem] font-bold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
             RentMe
           </span>
         ) : isBot ? (
-          <span className="inline-flex items-center gap-1.5 rounded-[var(--nf-radius-pill)] bg-[var(--nf-brand-primary)] px-3 py-1 text-[0.7rem] font-bold text-[var(--nf-content-on-brand)]">
+          <span className="inline-flex items-center gap-1.5 rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-3 py-1 text-[0.7rem] font-bold text-[var(--nf-content-on-brand)]">
             RentMe AI
           </span>
         ) : (
@@ -384,12 +384,12 @@ export function PostCard({
                 per cent, and over a white card on paper it lands in the purple
                 range. The brand carries no purple. */}
             {post.author?.isAgent ? (
-              <span className="shrink-0 rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-brand)] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
+              <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
                 Agent
               </span>
             ) : null}
             {post.author?.moderatorOf ? (
-              <span className="shrink-0 rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-subtle)] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
+              <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
                 Mod
               </span>
             ) : null}
@@ -485,7 +485,7 @@ export function PostCard({
       {post.areaName && post.areaSlug && !isSystem ? (
         <Link
           href={`/around/${post.areaSlug}`}
-          className="mt-3 inline-flex h-6 items-center rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-subtle)] px-2.5 text-[0.68rem] font-semibold text-[var(--nf-content-muted)]"
+          className="mt-3 inline-flex h-6 items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-2.5 text-[0.68rem] font-semibold text-[var(--nf-content-muted)]"
         >
           Around {post.areaName}
         </Link>

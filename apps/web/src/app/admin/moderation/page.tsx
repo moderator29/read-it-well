@@ -192,7 +192,7 @@ function Section({
     <section>
       <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--nf-content-primary)]">
         {title}
-        <span className="nf-numeric rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
+        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
           {count}
         </span>
       </h2>

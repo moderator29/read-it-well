@@ -178,7 +178,7 @@
        content. See the note on `.nf-glass--chrome` in glass.css. */
     background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
     border: 1px solid var(--nf-glass-border);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
@@ -201,7 +201,7 @@
     flex-shrink: 0;
     width: 3.5rem;
     height: 3.5rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     color: var(--nf-content-primary);
     /* The canvas rather than a white wash, for the same reason the header
        takes it: this floats over scrolling content, so a white fill lightens
@@ -305,7 +305,7 @@
     height: 3rem;
     min-width: 3rem;
     padding-inline: var(--nf-space-sm);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     transition:
       gap var(--nf-duration-base) var(--nf-ease-spring),
       color var(--nf-duration-fast) var(--nf-ease-standard);
@@ -317,7 +317,7 @@
   .nf-tab-pop__pill {
     position: absolute;
     inset: 0;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     opacity: 0;
     transform: scale(0.82);
     background: var(--nf-gradient-brand);
@@ -394,7 +394,7 @@
     align-items: center;
     gap: var(--nf-gap-inline-tight);
     padding: var(--nf-gap-inline);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     /* Canvas tint rather than a white wash: this floats over scrolling
        content. See the note on `.nf-glass--chrome` in glass.css. */
     background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
@@ -416,7 +416,7 @@
     justify-content: center;
     width: 2.5rem;
     height: 2.5rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     color: var(--nf-content-secondary);
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),

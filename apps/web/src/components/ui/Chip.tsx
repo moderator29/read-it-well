@@ -114,12 +114,25 @@ const THUMB_PX: Record<ChipSize, number> = { sm: 22, md: 26 };
  * specificity fight, which is what kept the old selected state from surviving
  * a hover.
  */
+/*
+ * SELECTED IS FILLED NOW, AND IT USED TO BE A RING AROUND ALMOST NOTHING.
+ *
+ * It painted the brand at 20% over whatever was behind it and then drew a 2px
+ * brand ring outside that. On the dark theme 20% of blue over near-black still
+ * reads as a tint. On PAPER it does not: 20% over white is very nearly white,
+ * so the selected chip was a white lozenge with a blue outline sitting in a row
+ * of white lozenges with grey outlines - the owner's words were "it's showing
+ * white on the edge, make it full blue".
+ *
+ * Solid brand with on-brand ink is the same answer the primary button already
+ * gives, so a selected chip and a primary action now agree about what "this one
+ * is chosen" looks like. The ring goes with it: a filled shape does not need an
+ * outline to be found, and the ring was carrying the whole signal before.
+ */
 const SELECTED_STYLE: CSSProperties = {
-  background: "color-mix(in oklab, var(--nf-brand-primary) 20%, transparent)",
+  background: "var(--nf-brand-primary)",
   borderColor: "transparent",
-  color: "var(--nf-content-primary)",
-  boxShadow:
-    "0 0 0 2px var(--nf-brand-primary), inset 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent)",
+  color: "var(--nf-content-on-brand)",
 };
 
 function ChipInner({

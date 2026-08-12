@@ -136,7 +136,7 @@ export function IntentTune({
          * and nothing else, so a span reports 32x32 and fails a floor it is
          * actually meeting. The same reasoning is written out in `Switch.tsx`.
          */
-        className="nf-tap grid size-8 place-items-center rounded-[var(--nf-radius-pill)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-sm transition-transform active:scale-[0.92] motion-reduce:transition-none"
+        className="nf-tap grid size-8 place-items-center rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-sm transition-transform active:scale-[0.92] motion-reduce:transition-none"
       >
         <UiIcon name="sliders" size={16} />
       </button>

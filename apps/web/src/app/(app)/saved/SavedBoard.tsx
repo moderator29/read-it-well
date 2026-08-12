@@ -211,7 +211,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
                     aria-pressed="true"
                     aria-label="Remove from saved"
                     data-testid="saved-heart"
-                    className="nf-glass absolute right-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-full text-[var(--nf-brand-secondary)] transition-transform active:scale-90 disabled:opacity-60"
+                    className="nf-glass absolute right-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-[var(--nf-radius-control)] text-[var(--nf-brand-secondary)] transition-transform active:scale-90 disabled:opacity-60"
                   >
                     <UiIcon name="heart" size={ICON.row} className="[&_path]:fill-current" />
                   </button>

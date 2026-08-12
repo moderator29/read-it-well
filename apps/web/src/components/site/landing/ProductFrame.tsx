@@ -122,7 +122,7 @@ function Device({
                   key={icon}
                   className={
                     i === 0
-                      ? "grid h-7 place-items-center rounded-full px-inline text-[var(--nf-content-on-brand)]"
+                      ? "grid h-7 place-items-center rounded-[var(--nf-radius-control)] px-inline text-[var(--nf-content-on-brand)]"
                       : "grid h-7 w-7 place-items-center opacity-60"
                   }
                   style={i === 0 ? { background: "var(--nf-gradient-brand)" } : undefined}

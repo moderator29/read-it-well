@@ -804,7 +804,7 @@ function UploadZone({
           </span>
         )}
         {done && !slot?.uploading && (
-          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-[var(--nf-radius-pill)] bg-[var(--nf-brand-primary)] px-2 py-0.5 text-[0.625rem] font-bold text-[var(--nf-content-on-brand)]">
+          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-2 py-0.5 text-[0.625rem] font-bold text-[var(--nf-content-on-brand)]">
             <UiIcon name="verified" size={12} />
             Uploaded
           </span>

@@ -80,7 +80,7 @@ export function StartCarousel() {
         <Link
           href="/sign-up"
           prefetch
-          className="nf-body-sm rounded-[var(--nf-radius-pill)] px-inline py-inline-tight text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)]"
+          className="nf-body-sm rounded-[var(--nf-radius-control)] px-inline py-inline-tight text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)]"
         >
           Skip
         </Link>

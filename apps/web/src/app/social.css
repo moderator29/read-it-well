@@ -196,7 +196,7 @@
     width: 5.5rem;
     height: 5.5rem;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     overflow: hidden;
     background: var(--nf-gradient-brand);
     color: var(--nf-content-on-brand);
@@ -231,7 +231,7 @@
     place-items: center;
     width: 1.5rem;
     height: 1.5rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     background: var(--nf-surface-canvas);
     color: var(--nf-content-primary);
     border: 1px solid var(--nf-border-strong);
@@ -360,7 +360,7 @@
     width: 1.75rem;
     height: 2px;
     transform: translateX(-50%);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-brand-primary);
     box-shadow: 0 0 12px -2px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent);
   }

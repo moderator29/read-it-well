@@ -252,11 +252,11 @@ function Lightbox({
           onClick={onClose}
           aria-label="Close photos"
           data-testid="lightbox-close"
-          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media-strong)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
+          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media-strong)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="close" size={20} />
         </button>
-        <p className="nf-numeric pointer-events-none mt-1.5 rounded-full bg-[var(--nf-overlay-media-strong)] px-3 py-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md">
+        <p className="nf-numeric pointer-events-none mt-1.5 rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-3 py-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md">
           <span className="sr-only">Photo </span>
           {active + 1} / {photos.length}
         </p>
@@ -269,7 +269,7 @@ function Lightbox({
             onClick={() => go(active - 1)}
             disabled={active === 0}
             aria-label="Previous photo"
-            className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media-strong)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
+            className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media-strong)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-left" size={20} />
           </button>
@@ -278,7 +278,7 @@ function Lightbox({
             onClick={() => go(active + 1)}
             disabled={active === photos.length - 1}
             aria-label="Next photo"
-            className="absolute right-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media-strong)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
+            className="absolute right-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media-strong)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-right" size={20} />
           </button>

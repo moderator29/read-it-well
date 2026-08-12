@@ -288,7 +288,7 @@
     /* Anchors the guaranteed hit area below. */
     position: relative;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     color: var(--nf-content-primary);
     cursor: pointer;
     border: 1px solid rgb(12 57 239 / 0.45);
@@ -409,7 +409,7 @@
     flex-shrink: 0;
     width: 2.75rem;
     height: 2.75rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     color: var(--nf-brand-primary);
     background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
   }
@@ -459,7 +459,7 @@
     flex-shrink: 0;
     width: 2.25rem;
     height: 2.25rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     color: var(--nf-status-pending);
     background: var(--nf-status-pending-surface);
   }

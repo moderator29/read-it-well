@@ -473,7 +473,7 @@
     place-items: center;
     inline-size: 26px;
     block-size: 26px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     color: var(--nf-content-on-brand);
     background: rgb(0 0 0 / 0.62);
     border: 1px solid rgb(255 255 255 / 0.22);
@@ -658,7 +658,7 @@
     inline-size: 46px;
     block-size: 46px;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     overflow: hidden;
     background: var(--nf-gradient-brand);
     color: var(--nf-content-on-brand);
@@ -682,7 +682,7 @@
     justify-content: center;
     inline-size: 44px;
     block-size: 44px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-default);
     background: var(--nf-surface-raised);
     color: var(--nf-content-secondary);
@@ -769,7 +769,7 @@
     place-items: center;
     inline-size: 44px;
     block-size: 44px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     color: #fff;
     background: rgb(0 0 0 / 0.42);
     border: 1px solid rgb(255 255 255 / 0.22);
@@ -832,7 +832,7 @@
     inline-size: 6rem;
     block-size: 6rem;
     padding: 3px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     background:
       linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
       linear-gradient(
@@ -854,7 +854,7 @@
     place-items: center;
     inline-size: 100%;
     block-size: 100%;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     overflow: hidden;
     background: var(--nf-gradient-brand);
     color: var(--nf-content-on-brand);
@@ -876,7 +876,7 @@
     inset-inline-end: 4px;
     inline-size: 17px;
     block-size: 17px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     background: var(--nf-state-success);
     box-shadow: 0 0 0 3px var(--nf-surface-canvas);
   }
@@ -960,7 +960,7 @@
     align-items: center;
     gap: 0.3rem;
     padding: 0.2rem 0.55rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-brand);
     color: var(--nf-brand-secondary);
     font-size: 0.6875rem;
@@ -988,7 +988,7 @@
     gap: 6px;
     min-block-size: 30px;
     padding-inline: 11px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-subtle);
     font-size: var(--nf-text-caption);
     font-weight: 650;
@@ -1177,7 +1177,7 @@
     gap: 4px;
     margin-block-start: 1.5rem;
     padding: 4px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-subtle);
     background: var(--nf-surface-inset);
     overflow-x: auto;
@@ -1189,7 +1189,7 @@
 
   .nf-social-tabs .nf-social-tab {
     padding: 0.5rem 0.4rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     font-size: var(--nf-text-caption);
     white-space: nowrap;
   }
@@ -1361,7 +1361,7 @@
     inline-size: 38px;
     block-size: 38px;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     overflow: hidden;
     background: var(--nf-gradient-brand);
     color: #fff;
@@ -1428,7 +1428,7 @@
     place-items: center;
     inline-size: 36px;
     block-size: 36px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     color: rgb(255 255 255 / 0.85);
     background: rgb(255 255 255 / 0.12);
   }
@@ -1444,7 +1444,7 @@
     align-items: center;
     block-size: 22px;
     padding-inline: 9px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
     font-size: 0.625rem;
@@ -1514,7 +1514,7 @@
     place-items: center;
     inline-size: 46px;
     block-size: 46px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     background: rgb(255 255 255 / 0.14);
     border: 1px solid rgb(255 255 255 / 0.18);
     transition:
@@ -1552,7 +1552,7 @@
     place-items: center;
     inline-size: 28px;
     block-size: 28px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     overflow: hidden;
     background: var(--nf-gradient-brand);
     color: #fff;
@@ -1573,7 +1573,7 @@
     place-items: center;
     block-size: 24px;
     padding-inline: 8px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: rgb(255 255 255 / 0.16);
     color: #fff;
     font-size: 0.7rem;
@@ -1593,7 +1593,7 @@
     inline-size: 100%;
     min-block-size: 50px;
     padding-inline: 1rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: rgb(255 255 255 / 0.13);
     border: 1px solid rgb(255 255 255 / 0.18);
     color: rgb(255 255 255 / 0.78);
@@ -1605,7 +1605,7 @@
     place-items: center;
     inline-size: 34px;
     block-size: 34px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
   }
@@ -1823,7 +1823,7 @@
     inline-size: 38px;
     block-size: 4px;
     margin: 8px auto 0;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     background: var(--nf-border-default);
   }
   @media (min-width: 640px) {
@@ -1879,7 +1879,7 @@
     inline-size: 34px;
     block-size: 34px;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     overflow: hidden;
     background: var(--nf-gradient-brand);
     color: var(--nf-content-on-brand);
@@ -2014,7 +2014,7 @@
     min-block-size: 44px;
     max-block-size: 8rem;
     resize: none;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     padding-block: 11px;
   }
   .nf-comments__send {
@@ -2023,7 +2023,7 @@
     inline-size: 44px;
     block-size: 44px;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
   }
@@ -2129,7 +2129,7 @@
   .nf-ring__core {
     inline-size: 4.25rem;
     block-size: 4.25rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     background: var(--nf-gradient-brand);
     box-shadow:
       0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent),
@@ -2229,7 +2229,7 @@
     place-items: center;
     inline-size: 52px;
     block-size: 52px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-default);
     background: var(--nf-surface-raised);
     color: var(--nf-content-secondary);
@@ -2315,7 +2315,7 @@
     inline-size: 38px;
     block-size: 4px;
     margin: 4px auto 10px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     background: var(--nf-border-default);
   }
   .nf-actions__row {
@@ -2464,7 +2464,7 @@
     flex-shrink: 0;
     min-block-size: 38px;
     padding-inline: 15px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-default);
     font-size: var(--nf-text-caption);
     font-weight: 650;
@@ -2519,7 +2519,7 @@
     place-items: center;
     inline-size: 56px;
     block-size: 56px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-gradient-brand);
     color: var(--nf-content-on-brand);
     border: 1px solid var(--nf-border-brand);
@@ -2628,7 +2628,7 @@
     gap: 10px;
     margin-block-start: 4px;
     padding: 6px 6px 6px 14px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-default);
     background: var(--nf-surface-inset);
     color: var(--nf-content-muted);
@@ -2679,7 +2679,7 @@
     inline-size: 46px;
     block-size: 46px;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     overflow: hidden;
     background: var(--nf-gradient-brand);
     color: var(--nf-content-on-brand);
@@ -2785,7 +2785,7 @@
     flex-shrink: 0;
     min-block-size: 34px;
     padding-inline: 11px 13px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-subtle);
     font-size: var(--nf-text-caption);
     font-weight: 650;
@@ -2812,7 +2812,7 @@
     gap: 10px;
     margin-block-start: 0.875rem;
     padding-inline: 13px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-subtle);
     background: var(--nf-surface-inset);
   }
@@ -2853,7 +2853,7 @@
     gap: 7px;
     min-block-size: 40px;
     padding-inline: 14px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-default);
     background: var(--nf-surface-inset);
     font-size: var(--nf-text-caption);

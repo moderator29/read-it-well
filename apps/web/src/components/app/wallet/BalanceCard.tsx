@@ -198,7 +198,7 @@ export function BalanceCard({
             onClick={() => setHidden((h) => !h)}
             aria-pressed={hidden}
             aria-label={hidden ? "Show balance" : "Hide balance"}
-            className="nf-icon-btn h-11 w-11 rounded-full"
+            className="nf-icon-btn h-11 w-11 rounded-[var(--nf-radius-control)]"
           >
             <EyeGlyph off={hidden} />
           </button>

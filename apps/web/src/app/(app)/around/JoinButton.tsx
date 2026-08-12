@@ -74,7 +74,7 @@ export function JoinButton({
         onClick={toggle}
         disabled={pending}
         aria-pressed={isJoined}
-        className={`inline-flex items-center justify-center rounded-[var(--nf-radius-pill)] font-semibold transition-colors ${height} ${
+        className={`inline-flex items-center justify-center rounded-[var(--nf-radius-control)] font-semibold transition-colors ${height} ${
           isJoined
             ? "border border-[var(--nf-border-default)] bg-transparent text-[var(--nf-content-primary)]"
             : "nf-btn nf-btn--primary"
