@@ -31,7 +31,7 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+
 import { formatMoney } from "@naijafinds/i18n";
 import {
   fail,
@@ -60,7 +60,7 @@ import {
   verifyTransaction,
 } from "../payments/paystack";
 import { FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
-import { bankByCode, bankByName } from "./banks";
+import { bankByCode } from "./banks";
 import { recordMoneyAudit } from "./audit";
 import {
   availableBalanceMinor,
@@ -314,6 +314,40 @@ export async function withdraw(
   const bank = bankByCode(parsed.data.bankCode);
   if (!bank) return fail("Choose a bank from the list.", { bankCode: "Choose a bank from the list." });
 
+  /*
+   * WHO THE MONEY IS GOING TO, ASKED OF THE BANK, BEFORE ANYTHING IS HELD.
+   *
+   * This used to arrive as a form field the person filled in themselves, so
+   * the name on a payout instruction was whatever they had typed - unchecked
+   * against the account it named. The resolution lived in `requestWithdrawal`,
+   * a wrapper whose only caller was a wallet panel nothing rendered, so the
+   * live sheet posted here directly and skipped it entirely.
+   *
+   * It is in `withdraw` now, which is the function that moves the money, so
+   * there is no path to a payout that has not been through it.
+   *
+   * BEFORE THE HOLD, deliberately. A failure here has taken nothing and locked
+   * nothing; resolving after the hold would leave a typo holding somebody's
+   * balance until it expired.
+   */
+  let accountName: string;
+  try {
+    const resolved = await resolveAccountNumber(parsed.data.accountNumber, bank.code);
+    accountName = resolved.accountName;
+  } catch (error) {
+    logMoney({ surface: "withdraw", outcome: "rejected", reason: "account_not_resolved" });
+    return fail(
+      describePaystackError(
+        error,
+        "We could not find that account at the bank you chose. Check the number and the bank, and nothing has been sent.",
+      ),
+      {
+        accountNumber:
+          "We could not find that account at the bank you chose. Nothing has been sent.",
+      },
+    );
+  }
+
   const amountMinor = parsed.data.amount;
   const accountLast4 = parsed.data.accountNumber.slice(-4);
   const reference = `${WITHDRAW_PREFIX}${randomUUID()}`;
@@ -329,7 +363,7 @@ export async function withdraw(
     bank_code: bank.code,
     bank_name: bank.name,
     account_last4: accountLast4,
-    account_name: parsed.data.accountName,
+    account_name: accountName,
   };
 
   const held = await callMoneyRpc(
@@ -453,7 +487,10 @@ export async function withdraw(
 
   try {
     const recipient = await createTransferRecipient({
-      name: parsed.data.accountName,
+      /* The bank's own answer, resolved above. This read a form field until
+         now, so the name on the Paystack recipient record was whatever the
+         person had typed rather than who the account belongs to. */
+      name: accountName,
       accountNumber: parsed.data.accountNumber,
       bankCode: bank.code,
     });
@@ -903,60 +940,31 @@ export async function getStatement(): Promise<ActionResult<WalletSummary | null>
   }
 }
 
-/* ------------------------------------------------- legacy form signatures */
+/* ------------------------------------------------ the account name lookup */
 
-/**
- * The original wallet action deck posts to the three actions below. They now
- * delegate to the real flows above, translating between the legacy result
- * shape and the ActionResult envelope so the older component keeps working
- * without modification.
+/*
+ * A block of "legacy form signatures" used to sit here: `requestDeposit`,
+ * `requestWithdrawal` and `requestTransfer`, plus a result type and a field
+ * name translator, all of it wrapping the real actions above for one older
+ * wallet panel.
+ *
+ * That panel was imported by nothing. The live wallet posts straight to
+ * `fundWallet`, `withdraw` and `transferToUser`, so the wrappers were a second
+ * set of money entry points that no screen could reach - and the one piece of
+ * correctness that lived only in a wrapper, resolving the destination account
+ * name with the bank, was therefore skipped by the form people actually use.
+ * That resolution is inside `withdraw` now, where the money moves.
+ *
+ * Deleted rather than kept for safety. Two ways into a payout is how one of
+ * them goes unmaintained, and this is which one it was.
  */
-
-export type WalletActionField = "amount" | "bankName" | "accountNumber" | "recipient";
-
-export type WalletActionResult = {
-  ok: boolean;
-  message?: string;
-  fieldErrors?: Partial<Record<WalletActionField, string>>;
-  /** The validated amount in integer kobo, echoed back for display. */
-  amountMinor?: number;
-};
-
-const EMPTY_ENVELOPE = { ok: false, error: "" } as const;
-
-function legacyFieldErrors(
-  fieldErrors: Record<string, string> | undefined,
-  map: Partial<Record<string, WalletActionField>>,
-): Partial<Record<WalletActionField, string>> | undefined {
-  if (!fieldErrors) return undefined;
-  const out: Partial<Record<WalletActionField, string>> = {};
-  for (const [key, message] of Object.entries(fieldErrors)) {
-    const target = map[key];
-    if (target && !(target in out)) out[target] = message;
-  }
-  return Object.keys(out).length > 0 ? out : undefined;
-}
-
-export async function requestDeposit(
-  _prev: WalletActionResult,
-  formData: FormData,
-): Promise<WalletActionResult> {
-  const result = await fundWallet(EMPTY_ENVELOPE, formData);
-  if (result.ok && result.data) redirect(result.data.authorizationUrl);
-  if (result.ok) return { ok: true };
-  return {
-    ok: false,
-    message: result.error || undefined,
-    fieldErrors: legacyFieldErrors(result.fieldErrors, { amount: "amount" }),
-  };
-}
 
 /**
  * Who owns this account, asked while the reader can still act on the answer.
  *
  * THE SAME CALL THE WITHDRAWAL ITSELF MAKES, moved one step earlier.
- * `requestWithdrawal` resolves the name and refuses on a mismatch, which is
- * correct and is also the worst moment to find out you typed a digit wrong: the
+ * `withdraw` resolves the name and refuses on a mismatch, which is correct and
+ * is also the worst moment to find out you typed a digit wrong: the
  * sheet is full, the amount is entered, and the feedback arrives as a
  * rejection. Here it arrives as a name appearing under the field.
  *
@@ -972,14 +980,18 @@ export async function requestDeposit(
  * genuinely does not resolve says anything.
  */
 export async function lookupAccountName(
-  bankName: string,
+  bankCode: string,
   accountNumber: string,
 ): Promise<{ ok: true; accountName: string } | { ok: false; reason: string }> {
   const session = await resolveSession();
   if (session.state !== "signed-in") return { ok: false, reason: "" };
   if (!isPaystackConfigured()) return { ok: false, reason: "" };
 
-  const bank = bankByName(bankName.trim());
+  /* Keyed on the CODE, which is what every caller actually holds: the select on
+     the withdraw sheet posts `bankCode`, and `withdraw` resolves by code too.
+     It took a display name until now, and its only caller was a wallet panel
+     that nothing rendered. */
+  const bank = bankByCode(bankCode.trim());
   if (!bank) return { ok: false, reason: "" };
 
   const digits = accountNumber.replace(/\D/g, "");
@@ -994,127 +1006,4 @@ export async function lookupAccountName(
        the withdrawal gives the full message if they go on anyway. */
     return { ok: false, reason: "No account found with that number at this bank." };
   }
-}
-
-export async function requestWithdrawal(
-  _prev: WalletActionResult,
-  formData: FormData,
-): Promise<WalletActionResult> {
-  const bankName = String(formData.get("bankName") ?? "").trim();
-  const bank = bankByName(bankName);
-  if (!bank) {
-    return { ok: false, fieldErrors: { bankName: "Choose a bank from the list." } };
-  }
-
-  /*
-   * THE NAME COMES FROM THE BANK NOW, AND IT USED TO BE INVENTED HERE.
-   *
-   * This read `user_metadata.full_name`, then fell back to the email address,
-   * then to the literal string "RentMe member", and sent whichever it got to
-   * Paystack as the name on the destination account. Every one of those three
-   * is a guess about somebody else's bank record:
-   *
-   *   - a profile name is what the person typed at sign-up and has no
-   *     relationship to what their bank holds;
-   *   - an email address is not a name at all;
-   *   - and "RentMe member" is a placeholder being passed off as an account
-   *     holder in a payout instruction.
-   *
-   * `resolveAccountNumber` asks the bank and is answered with the real name, on
-   * an account the bank has already done KYC against. It has been exported
-   * since the payments work and the agent payout flow already uses it for
-   * exactly this; the wallet was the one money surface still guessing.
-   *
-   * IT ALSO CATCHES A TYPO BEFORE IT COSTS ANYTHING. A wrong digit resolves to
-   * a different person or does not resolve at all, and either way this returns
-   * a field error against the account number instead of instructing a transfer
-   * into a stranger's account.
-   *
-   * The form's own "Name on the account" box is no longer the source of truth
-   * for this and the resolved name overrides it. Showing that name back before
-   * the tap is a UI change on top of this one; the correctness does not wait
-   * for it.
-   */
-  const accountNumber = String(formData.get("accountNumber") ?? "").replace(/\s/g, "");
-
-  let accountName: string;
-  try {
-    const resolved = await resolveAccountNumber(accountNumber, bank.code);
-    accountName = resolved.accountName;
-  } catch (error) {
-    logMoney({
-      surface: "withdraw",
-      outcome: "rejected",
-      reason: "account_not_resolved",
-    });
-    return {
-      ok: false,
-      fieldErrors: {
-        accountNumber: describePaystackError(
-          error,
-          "We could not find that account at the bank you chose. Check the number and the bank, and nothing has been sent.",
-        ),
-      },
-    };
-  }
-
-  const mapped = new FormData();
-  mapped.set("amount", String(formData.get("amount") ?? ""));
-  mapped.set("bankCode", bank.code);
-  mapped.set("accountNumber", accountNumber);
-  mapped.set("accountName", accountName);
-
-  const result = await withdraw(EMPTY_ENVELOPE, mapped);
-  if (result.ok && result.data) {
-    return {
-      ok: true,
-      amountMinor: result.data.amountMinor,
-      message: `Your withdrawal to ${result.data.bankName} ****${result.data.accountLast4} is on its way. It completes the moment the bank confirms.`,
-    };
-  }
-  if (result.ok) return { ok: true };
-  return {
-    ok: false,
-    message: result.error || undefined,
-    fieldErrors: legacyFieldErrors(result.fieldErrors, {
-      amount: "amount",
-      bankCode: "bankName",
-      accountNumber: "accountNumber",
-    }),
-  };
-}
-
-export async function requestTransfer(
-  _prev: WalletActionResult,
-  formData: FormData,
-): Promise<WalletActionResult> {
-  const recipient = String(formData.get("recipient") ?? "").trim();
-  if (recipient.length > 0 && !recipient.includes("@")) {
-    return {
-      ok: false,
-      fieldErrors: { recipient: "Transfers use the recipient's RentMe email address for now." },
-    };
-  }
-
-  const mapped = new FormData();
-  mapped.set("recipientEmail", recipient);
-  mapped.set("amount", String(formData.get("amount") ?? ""));
-
-  const result = await transferToUser(EMPTY_ENVELOPE, mapped);
-  if (result.ok && result.data) {
-    return {
-      ok: true,
-      amountMinor: result.data.amountMinor,
-      message: `Sent to ${result.data.recipientName}. Their wallet has it already.`,
-    };
-  }
-  if (result.ok) return { ok: true };
-  return {
-    ok: false,
-    message: result.error || undefined,
-    fieldErrors: legacyFieldErrors(result.fieldErrors, {
-      amount: "amount",
-      recipientEmail: "recipient",
-    }),
-  };
 }
