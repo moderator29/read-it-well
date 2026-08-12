@@ -4,17 +4,17 @@ import { useMemo, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Thread } from "./threads";
 import { Button } from "@/components/ui/Button";
-import { Chip } from "@/components/ui/Chip";
 import { TextField } from "@/components/ui/Field";
+import { AssistantSettingsSheet } from "./AssistantSettingsSheet";
 
 /**
  * Assistant side navigation.
  *
  * One component serves both placements: the persistent left column on
  * desktop and the slide-in drawer on mobile. Top to bottom it reads search,
- * new chat, conversation history, then a settings block pinned to the foot
- * with reply style, language and the clear-all control. The search field
- * filters titles and message text so a half-remembered conversation is
+ * new chat, conversation history, then a single Settings row pinned to the
+ * foot which opens reply style, language and clear-all in a sheet. The search
+ * field filters titles and message text so a half-remembered conversation is
  * still findable.
  */
 
@@ -68,6 +68,7 @@ export function AssistantSidebar({
   onLanguageChange: (language: Language) => void;
 }) {
   const [query, setQuery] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const visible = useMemo(() => {
     const ordered = [...threads].sort((a, b) => b.updatedAt - a.updatedAt);
@@ -165,52 +166,49 @@ export function AssistantSidebar({
       </nav>
 
       {/* ------------------------------------------------------ settings */}
-      <div className="space-y-3.5 border-t border-[var(--nf-border-subtle)] p-3">
-        <div>
-          <p className="nf-overline mb-2">Reply style</p>
-          {/* `behaviour="filter"`, keeping the `aria-pressed` these already
-              announced. They are a choice out of two, but the group has no
-              `radiogroup` around it and never had one, and a `role="radio"`
-              with no group is invalid ARIA - worse than the toggle semantics
-              that were at least true. The `px-3 py-1.5` override is gone: it
-              was there to force the height back DOWN after the chip had been
-              inflated to reach the touch floor. The primitive keeps the paint
-              at 36px and overflows an invisible 44pt target. */}
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Reply style">
-            {TONES.map((t) => (
-              <Chip
-                key={t}
-                size="sm"
-                behaviour="filter"
-                selected={tone === t}
-                onSelectedChange={() => onToneChange(t)}
-              >
-                {t}
-              </Chip>
-            ))}
-          </div>
-        </div>
-        <div className="flex items-center justify-between gap-4">
-          <p className="nf-overline">Language</p>
-          <button
-            type="button"
-            aria-label={`Language: ${language}. Switch to the next language`}
-            onClick={() => {
-              const next =
-                LANGUAGES[(LANGUAGES.indexOf(language) + 1) % LANGUAGES.length] ??
-                "English";
-              onLanguageChange(next);
-            }}
-            className="nf-chip px-3 py-1.5 text-[0.75rem]"
-          >
-            {language}
-            <UiIcon name="chevron-down" size={12} />
-          </button>
-        </div>
-        <Button variant="ghost" size="sm" full onClick={onClearAll} disabled={threads.length === 0}>
-          Clear all history
-        </Button>
+      {/*
+        ONE ROW, AND IT WAS THREE CONTROLS PERMANENTLY OPEN.
+
+        Reply style, language and clear-all were splayed under the history with
+        a heading each, taking the bottom third of a column whose job is
+        showing you which conversation to go back to. On a phone drawer that
+        was most of the history gone - to show settings somebody chooses once
+        in their first week and then never looks at again.
+
+        The row sits at the foot the way ChatGPT puts its account there, and
+        `AssistantSettingsSheet` holds the lot. The history gets the space.
+      */}
+      <div className="border-t border-[var(--nf-border-subtle)] p-3">
+        <button
+          type="button"
+          onClick={() => setSettingsOpen(true)}
+          aria-haspopup="dialog"
+          className="nf-tap flex w-full items-center gap-md rounded-[var(--nf-radius-control)] px-3 py-2.5 text-left text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
+        >
+          <UiIcon name="settings-gear" size={18} className="shrink-0" />
+          <span className="flex-1 text-[0.8438rem] font-medium">Settings</span>
+          {/* The current reply style, on the row. A settings entry that says
+              only "Settings" makes somebody open it to find out what it is
+              set to; naming the one they are most likely to be checking
+              answers that without a tap. */}
+          <span className="shrink-0 text-[0.75rem] text-[var(--nf-content-muted)]">
+            {tone}
+          </span>
+          <UiIcon name="chevron-right" size={14} className="shrink-0" />
+        </button>
       </div>
+
+      <AssistantSettingsSheet
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        tone={tone}
+        language={language}
+        onToneChange={onToneChange}
+        onLanguageChange={onLanguageChange}
+        onClearAll={onClearAll}
+        threadCount={threads.length}
+      />
+
     </div>
   );
 }
