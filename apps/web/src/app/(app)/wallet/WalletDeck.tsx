@@ -64,7 +64,12 @@ const TILES: {
   },
   {
     key: "crypto",
-    label: "Top up with crypto",
+    /* ONE WORD, because this label sits in a half-width grid cell beside
+       "Withdraw" and `.nf-btn` is `white-space: nowrap`. "Top up with crypto"
+       did not wrap - it ran straight out of its own button and was clipped by
+       the screen edge, in both themes. The sheet it opens is titled "Top up
+       with crypto", so nothing is lost by the button being short. */
+    label: "Crypto",
     icon: "wallet-secure",
     title: "Top up with crypto",
     hint: "Pay in crypto and your wallet is credited in naira. Yellow Card handles the exchange and settles to us; nothing about a coin or a rate touches your balance.",
@@ -139,7 +144,19 @@ export function WalletDeck({
           {TILES[0]!.label}
         </Button>
 
-        <div className="mt-row grid grid-cols-2 gap-row">
+        {/*
+          The column count follows the number of actions.
+
+          It was a hard `grid-cols-2` holding whatever was left after the
+          primary. With crypto switched on that is THREE, so Withdraw and
+          Crypto shared a row and Transfer sat alone beside an empty cell -
+          a hole in the middle of the wallet's controls. Two stays two.
+        */}
+        <div
+          className={`mt-row grid gap-row ${
+            tiles.length - 1 >= 3 ? "grid-cols-3" : "grid-cols-2"
+          }`}
+        >
           {tiles.slice(1).map((tile) => (
             <Button
               key={tile.key}
