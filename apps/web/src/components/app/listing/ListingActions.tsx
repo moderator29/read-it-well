@@ -154,7 +154,7 @@ export function ListingActions({
           onClick={share}
           aria-label="Share this listing"
           data-testid="listing-share"
-          className="grid h-11 w-11 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
+          className="grid h-11 w-11 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="share" size={16} />
         </button>
@@ -178,7 +178,7 @@ export function ListingActions({
             aria-pressed={saved}
             aria-label={saved ? "Remove from saved" : "Save this listing"}
             data-testid="listing-save"
-            className="grid h-11 w-11 place-items-center rounded-full border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 disabled:opacity-70 motion-reduce:transition-none"
+            className="grid h-11 w-11 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 disabled:opacity-70 motion-reduce:transition-none"
           >
             <UiIcon
               name="heart"
@@ -193,7 +193,7 @@ export function ListingActions({
         <p
           role="status"
           data-testid="listing-action-message"
-          className="max-w-[15rem] rounded-full bg-[var(--nf-overlay-media-strong)] px-3 py-1.5 text-right text-[0.75rem] font-medium leading-snug text-[var(--nf-content-on-media)] backdrop-blur-md"
+          className="max-w-[15rem] rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-3 py-1.5 text-right text-[0.75rem] font-medium leading-snug text-[var(--nf-content-on-media)] backdrop-blur-md"
         >
           {message}
           {signInPrompt && (

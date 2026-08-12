@@ -380,7 +380,7 @@ export function ListingCard({
               The one Nigerian field that earns space in a grid. Absent, and
               therefore invisible, when the host has not answered. */}
           {power && (
-            <p className="nf-caption mt-inline inline-flex max-w-full items-center gap-inline-tight rounded-[var(--nf-radius-pill)] bg-[var(--nf-surface-secondary)] px-sm py-2xs font-medium text-[var(--nf-content-secondary)]">
+            <p className="nf-caption mt-inline inline-flex max-w-full items-center gap-inline-tight rounded-[var(--nf-radius-control)] bg-[var(--nf-surface-secondary)] px-sm py-2xs font-medium text-[var(--nf-content-secondary)]">
               <UiIcon name="sparkle" size="xs" className="shrink-0 text-[var(--nf-brand-primary)]" />
               <span className="truncate">{power}</span>
             </p>

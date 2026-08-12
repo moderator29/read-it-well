@@ -172,7 +172,7 @@ export function WelcomeCards({
           type="button"
           onClick={onDone}
           data-testid="welcome-skip"
-          className="nf-tap rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] px-3.5 py-2 text-[0.8125rem] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md"
+          className="nf-tap rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] px-3.5 py-2 text-[0.8125rem] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md"
         >
           {w.skip}
         </button>

@@ -159,18 +159,20 @@ export function buildNav({
         { href: "/saved", label: t.nav.saved, icon: "heart" },
         { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
         /*
-         * THE ASSISTANT ROW WENT, AND THE ASSISTANT DID NOT.
+         * THE ASSISTANT ROW IS BACK, BY REQUEST.
          *
-         * `/assistant` is already a door on `/home`, where `AiAssistantBanner`
-         * links straight into it, and a persistent rail row is a second door to
-         * one place. The rule the owner applied to the profile avatar in the
-         * header applies here for the same reason: two doors to one room make
-         * the navigation longer without making anything more reachable.
+         * It was taken out on the argument that `/assistant` already has a door
+         * on `/home` through `AiAssistantBanner`, and that two doors to one room
+         * make the navigation longer without making anything more reachable.
          *
-         * The assistant is a TOOL you reach for from inside what you are
-         * doing, not a destination you navigate to on purpose, which is the
-         * test for whether something belongs in a persistent rail at all.
+         * That argument had a hole in it: the banner is on ONE screen. From
+         * anywhere else - a listing, the wallet, a thread - reaching the
+         * assistant meant going home first, so the "second door" was in practice
+         * the only door, and it was on a screen you had to leave to use it. A
+         * tool you reach for from inside what you are doing is precisely a thing
+         * that has to be reachable from inside what you are doing.
          */
+        { href: "/assistant", label: "RentMe AI", icon: "sparkle" },
       ],
     });
   }

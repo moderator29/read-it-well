@@ -61,7 +61,7 @@ export default async function AdminSocialPage() {
       <section>
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--nf-content-primary)]">
           Places waiting
-          <span className="nf-numeric rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
+          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
             {queue.proposed.length}
           </span>
         </h2>
@@ -119,7 +119,7 @@ export default async function AdminSocialPage() {
       <section>
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--nf-content-primary)]">
           People who want to look after a place
-          <span className="nf-numeric rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
+          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
             {queue.applications.length}
           </span>
         </h2>
@@ -177,7 +177,7 @@ export default async function AdminSocialPage() {
       <section>
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--nf-content-primary)]">
           Open places
-          <span className="nf-numeric rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
+          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
             {queue.open.length}
           </span>
         </h2>
@@ -202,7 +202,7 @@ export default async function AdminSocialPage() {
                       {area.name}
                     </Link>
                     {area.status === "PAUSED" ? (
-                      <span className="rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
+                      <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
                         Paused
                       </span>
                     ) : null}

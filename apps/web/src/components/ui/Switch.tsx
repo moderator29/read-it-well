@@ -83,7 +83,7 @@ export function Switch({
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}
       className={[
-        "relative h-8 w-13 shrink-0 cursor-pointer rounded-[var(--nf-radius-pill)] transition-colors motion-reduce:transition-none",
+        "relative h-8 w-13 shrink-0 cursor-pointer rounded-[var(--nf-radius-control)] transition-colors motion-reduce:transition-none",
         /*
          * The 44pt floor, as a pseudo element rather than a child span.
          *

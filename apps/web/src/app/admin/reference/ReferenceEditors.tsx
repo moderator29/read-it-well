@@ -164,7 +164,7 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
     <section>
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <h2 className="text-sm font-semibold text-[var(--nf-content-primary)]">Occupations</h2>
-        <span className="nf-numeric rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
+        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
           {rows.length}
         </span>
         <button
@@ -339,7 +339,7 @@ export function LocalGovernmentEditor({
         <h2 className="text-sm font-semibold text-[var(--nf-content-primary)]">
           Local governments
         </h2>
-        <span className="nf-numeric rounded-[var(--nf-radius-pill)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
+        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
           {rows.length}
         </span>
         <button

@@ -347,7 +347,7 @@
     flex: none;
     min-width: 1.375rem;
     padding: 0.125rem 0.4375rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-circle);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
     font-size: 0.6875rem;

@@ -347,7 +347,7 @@ export function Composer({
               role="radio"
               aria-checked={kind === option}
               onClick={() => setKind(option)}
-              className={`inline-flex h-9 items-center rounded-[var(--nf-radius-pill)] px-4 text-xs font-semibold transition-colors ${
+              className={`inline-flex h-9 items-center rounded-[var(--nf-radius-control)] px-4 text-xs font-semibold transition-colors ${
                 kind === option
                   ? "bg-[var(--nf-brand-primary)] text-[var(--nf-content-on-brand)]"
                   : "border border-[var(--nf-border-default)] text-[var(--nf-content-secondary)]"

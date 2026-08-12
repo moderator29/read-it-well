@@ -140,7 +140,7 @@
     align-items: center;
     min-height: 44px;
     padding: var(--nf-gap-inline) var(--nf-space-sm);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1.5px solid rgb(18 21 26 / 0.14);
     background: rgb(255 255 255 / 0.72);
     backdrop-filter: blur(6px);

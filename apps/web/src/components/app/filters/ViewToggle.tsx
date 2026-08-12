@@ -24,7 +24,7 @@ export function ViewToggle({ query }: { query: DiscoveryQuery }) {
   return (
     <nav
       aria-label="Result view"
-      className="nf-glass inline-flex shrink-0 items-center gap-1 rounded-[var(--nf-radius-pill)] p-1"
+      className="nf-glass inline-flex shrink-0 items-center gap-1 rounded-[var(--nf-radius-control)] p-1"
     >
       {options.map((option) => {
         const active = query.view === option.view;

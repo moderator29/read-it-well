@@ -289,9 +289,40 @@
 
   /* Soft depth: the default card material, now wearing the stride. */
   .nf-card {
+    /*
+     * THE FILL IS THE CANVAS NOW, NOT A BLUE MIXED BY HAND TO LOOK LIKE IT.
+     *
+     * The three stops here were literal `rgb(2 8 56)`, `rgb(0 3 30)` and
+     * `rgb(0 2 20)` over a canvas of `#000010`, with a 16% brand bloom on top.
+     * Every one of those is bluer and lighter than the page, so a card read as
+     * a panel laid on the app rather than as part of it - which is exactly what
+     * the owner pointed at on the assistant card and the search box: "check the
+     * background of that area to our platform background, you see they are
+     * different".
+     *
+     * Derived from `--nf-surface-canvas` the divergence cannot come back. A
+     * card is now a veil of the page's own colour at three depths, so if the
+     * canvas is ever retuned the cards follow it without anybody remembering
+     * this file exists. The bloom drops to 7%: enough to keep the corner lit,
+     * not enough to make the panel a different colour from the screen.
+     *
+     * The rim below is untouched. The brand edge is what makes this material
+     * ours and it was never the thing that clashed.
+     */
     background:
-      radial-gradient(125% 90% at 0% 0%, rgb(12 57 239 / 0.16) 0%, transparent 44%) padding-box,
-      linear-gradient(160deg, rgb(2 8 56 / 0.42) 0%, rgb(0 3 30 / 0.52) 64%, rgb(0 2 20 / 0.6) 100%) padding-box,
+      radial-gradient(
+          125% 90% at 0% 0%,
+          color-mix(in oklab, var(--nf-brand-primary) 7%, transparent) 0%,
+          transparent 46%
+        )
+        padding-box,
+      linear-gradient(
+          160deg,
+          color-mix(in oklab, var(--nf-surface-canvas) 58%, transparent) 0%,
+          color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 64%,
+          color-mix(in oklab, var(--nf-surface-canvas) 78%, transparent) 100%
+        )
+        padding-box,
       linear-gradient(135deg,
         rgb(92 124 255 / 0.82) 0%,
         rgb(12 57 239 / 0.52) 20%,

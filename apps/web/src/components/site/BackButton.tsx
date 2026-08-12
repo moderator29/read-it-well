@@ -50,7 +50,18 @@ export function BackButton({
         if (canGoBackInApp()) router.back();
         else router.push(fallback);
       }}
-      className={`nf-icon-btn ${className ?? ""}`}
+      /*
+        NO CONTAINER. `nf-icon-btn` draws a bordered glass plate, so every
+        screen with a back arrow opened with a boxed object in the top left
+        competing with the title beside it - and this one component is the back
+        control on the admin console, the agent shell and every page header.
+        The arrow is the most recognised control in software and needs nothing
+        drawn around it to be found.
+
+        `nf-tap` keeps the 44pt hit region the plate used to imply, so what
+        goes is the paint and not the target.
+      */
+      className={`nf-tap grid place-items-center rounded-[var(--nf-radius-control)] text-[var(--nf-content-primary)] transition-colors hover:text-[var(--nf-brand-secondary)] ${className ?? ""}`}
     >
       <UiIcon name="arrow-left" size={20} />
     </button>

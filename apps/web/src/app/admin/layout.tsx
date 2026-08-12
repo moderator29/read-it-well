@@ -119,7 +119,7 @@ function AdminPill({ label, className }: { label: string; className?: string }) 
   return (
     <span
       className={[
-        "nf-caption inline-flex w-fit items-center gap-2xs rounded-[var(--nf-radius-pill)] px-xs py-3xs font-bold",
+        "nf-caption inline-flex w-fit items-center gap-2xs rounded-[var(--nf-radius-control)] px-xs py-3xs font-bold",
         className ?? "",
       ].join(" ")}
       /* `--nf-brand-secondary` is the layer-2 alias this pill should always

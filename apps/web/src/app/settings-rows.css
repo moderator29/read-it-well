@@ -331,7 +331,7 @@
     flex: none;
     width: 3.125rem;
     height: 1.875rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-subtle);
     background: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
     cursor: pointer;
@@ -385,7 +385,7 @@
     display: flex;
     gap: 0.25rem;
     padding: 0.1875rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
   }
 
@@ -393,7 +393,7 @@
     flex: 1 1 0;
     min-height: 2rem;
     padding: 0 0.625rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     font-size: 0.8125rem;
     font-weight: 600;
     color: var(--nf-content-secondary);

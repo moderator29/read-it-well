@@ -34,11 +34,18 @@
     font-size: var(--nf-text-body);
     letter-spacing: -0.005em;
     /*
-     * Pill, not an 18px rounded rectangle. --nf-radius-pill already existed and
-     * was already used by chips; buttons were the odd one out. Every primary CTA
-     * across the fifteen reference screens is a full pill.
+     * A ROUNDED RECTANGLE, AND THIS COMMENT USED TO ARGUE THE OPPOSITE.
+     *
+     * It said "pill, not an 18px rounded rectangle", on the evidence that every
+     * primary CTA across the reference screens was a full capsule. The owner
+     * has since looked at the platform whole and asked for the other shape, so
+     * the argument is settled by the person whose product it is.
+     *
+     * `--nf-radius-control` rather than a number, because the same answer has
+     * to hold for chips, tabs, fields, icon buttons and segments, and a value
+     * repeated in six stylesheets is six chances to disagree.
      */
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     padding: var(--nf-space-sm) var(--nf-space-lg);
     /* The floor, and now also the smallest painted size. See `--sm` below. */
     min-height: 3rem;
@@ -328,7 +335,7 @@
    * curve or the two outlines fight at the ends.
    */
   .nf-segmented {
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-surface-inset);
     border: 1px solid var(--nf-elev-1-border);
     box-shadow: var(--nf-elev-1-rim);
@@ -340,7 +347,7 @@
     left: 0;
     height: calc(100% - 8px);
     translate: 0 -50%;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-surface-raised);
     box-shadow:
       var(--nf-elev-2-rim),

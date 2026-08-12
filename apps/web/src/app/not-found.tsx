@@ -70,7 +70,7 @@ export default async function NotFound() {
             href="/search"
             variant="secondary"
             full
-            className="justify-start rounded-full text-left"
+            className="justify-start rounded-[var(--nf-radius-control)] text-left"
           >
             <UiIcon name="search" size={20} className="shrink-0 text-[var(--nf-content-muted)]" />
             <span className="text-[0.9375rem] text-[var(--nf-content-secondary)]">

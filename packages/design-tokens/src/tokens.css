@@ -590,6 +590,35 @@
   --nf-radius-2xl: 32px;
   --nf-radius-pill: 999px;
 
+  /*
+   * THE CORNER OF ANYTHING YOU PRESS. One token, platform wide.
+   *
+   * Every button, chip, tab, field, icon button and segment was a full pill,
+   * because `--nf-radius-pill` was the only name that meant "a control" and it
+   * happened to mean 999px. So a capsule was not a decision anybody took per
+   * control; it was the consequence of there being nowhere else to point.
+   *
+   * The owner asked for rectangles across the platform. That is one value here
+   * rather than a hundred and eighteen call sites edited to `--nf-radius-md`,
+   * and it leaves a name to change if the answer is ever 12 or 18 instead.
+   *
+   * `--nf-radius-pill` STAYS, because a progress bar's cap and a sheet grip
+   * genuinely want a semicircle and would look wrong at 14px. What it no
+   * longer means is "this is a control".
+   */
+  --nf-radius-control: 14px;
+
+  /*
+   * A CIRCLE, SAID AS A CIRCLE.
+   *
+   * Avatars, status dots, spinner rings and count badges were all reading
+   * `--nf-radius-pill` to mean "round me completely", which worked only while
+   * a control and a circle shared one token. They do not any more, and 50% is
+   * what those elements actually meant: it follows the box rather than relying
+   * on 999px being larger than half of it.
+   */
+  --nf-radius-circle: 50%;
+
   /* ---------------------------------------------------------------------
    * SPACE. THE SCALE THAT DID NOT EXIST.
    *

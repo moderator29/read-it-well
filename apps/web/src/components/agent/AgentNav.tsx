@@ -29,7 +29,7 @@ export function AgentModePill({ label, className }: { label: string; className?:
   return (
     <span
       className={[
-        "inline-flex w-fit items-center gap-1.5 rounded-[var(--nf-radius-pill)] px-2.5 py-1 text-[0.6875rem] font-bold",
+        "inline-flex w-fit items-center gap-1.5 rounded-[var(--nf-radius-control)] px-2.5 py-1 text-[0.6875rem] font-bold",
         className ?? "",
       ].join(" ")}
       style={{
