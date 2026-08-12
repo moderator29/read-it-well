@@ -11,8 +11,10 @@ import type { ActionResult } from "@/lib/actions/envelope";
 import {
   fundWallet,
   lookupAccountName,
+  startCryptoDeposit,
   transferToUser,
   withdraw,
+  type CryptoStart,
   type FundStart,
   type TransferReceipt,
   type WithdrawReceipt,
@@ -25,9 +27,10 @@ import { TextField, SelectField } from "@/components/ui/Field";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 
 /**
- * Wallet action deck: Add money, Withdraw, Transfer.
+ * Wallet action deck: Add money, Withdraw, Transfer, and crypto when it is
+ * configured.
  *
- * The same three glass tiles as always, each opening a full-page drawer
+ * Each tile opens a full-page drawer
  * (Master Rule: full-page drawers, never partial) holding a real form wired
  * to the wallet server actions. Amounts are typed in naira and become integer
  * kobo on the server, once, inside the schema; the client never does money
@@ -36,7 +39,7 @@ import { Chip, ChipRow } from "@/components/ui/Chip";
  * the balance card and history reflect the new truth immediately.
  */
 
-type DeckKey = "fund" | "withdraw" | "transfer";
+type DeckKey = "fund" | "crypto" | "withdraw" | "transfer";
 
 const TILES: {
   key: DeckKey;
@@ -60,6 +63,13 @@ const TILES: {
     hint: "Send wallet funds to any Nigerian bank account in your name.",
   },
   {
+    key: "crypto",
+    label: "Top up with crypto",
+    icon: "wallet-secure",
+    title: "Top up with crypto",
+    hint: "Pay in crypto and your wallet is credited in naira. Yellow Card handles the exchange and settles to us; nothing about a coin or a rate touches your balance.",
+  },
+  {
     key: "transfer",
     label: "Transfer",
     icon: "user-check",
@@ -72,12 +82,24 @@ export function WalletDeck({
   locale,
   balanceMinor,
   live,
+  cryptoEnabled = false,
 }: {
   locale: Locale;
   balanceMinor: number;
   live: boolean;
+  /**
+   * Whether the crypto on-ramp has keys.
+   *
+   * Resolved on the SERVER and passed down, because the answer depends on
+   * environment variables a browser must never see. False by default, so the
+   * control cannot appear by omission - which is the whole guarantee: a crypto
+   * button that cannot take money is the same defect as a Reserve button on an
+   * unbookable listing, and worse, because this one is about money.
+   */
+  cryptoEnabled?: boolean;
 }) {
   const [open, setOpen] = useState<DeckKey | null>(null);
+  const tiles = TILES.filter((tile) => tile.key !== "crypto" || cryptoEnabled);
 
   return (
     <div>
@@ -118,7 +140,7 @@ export function WalletDeck({
         </Button>
 
         <div className="mt-row grid grid-cols-2 gap-row">
-          {TILES.slice(1).map((tile) => (
+          {tiles.slice(1).map((tile) => (
             <Button
               key={tile.key}
               type="button"
@@ -133,7 +155,7 @@ export function WalletDeck({
         </div>
       </div>
 
-      {TILES.map((tile) => (
+      {tiles.map((tile) => (
         <WalletDrawer
           key={tile.key}
           open={open === tile.key}
@@ -143,6 +165,7 @@ export function WalletDeck({
           onClose={() => setOpen(null)}
         >
           {tile.key === "fund" && <FundForm locale={locale} />}
+          {tile.key === "crypto" && <CryptoForm locale={locale} />}
           {tile.key === "withdraw" && (
             <WithdrawForm locale={locale} balanceMinor={balanceMinor} live={live} />
           )}
@@ -217,6 +240,7 @@ function WalletDrawer({
 const FUND_INITIAL: ActionResult<FundStart | null> = { ok: false, error: "" };
 const WITHDRAW_INITIAL: ActionResult<WithdrawReceipt | null> = { ok: false, error: "" };
 const TRANSFER_INITIAL: ActionResult<TransferReceipt | null> = { ok: false, error: "" };
+const CRYPTO_INITIAL: ActionResult<CryptoStart | null> = { ok: false, error: "" };
 
 /*
  * The locale prop is back on this one form.
@@ -252,6 +276,57 @@ function FundForm({ locale }: { locale: Locale }) {
   return (
     <form action={formAction} noValidate>
       <AmountField error={fieldError(state, "amount")} quickAmounts locale={locale} />
+      <Button type="submit" variant="primary" full className="mt-row" loading={pending}>
+        Continue to payment
+      </Button>
+      <ErrorNotice state={state} />
+    </form>
+  );
+}
+
+/**
+ * The crypto top-up.
+ *
+ * Deliberately the same shape as `FundForm`: a naira amount, a submit, a hand
+ * off to a hosted page. The person is never asked for a coin, a network or an
+ * address, and never shown a rate. They say how much naira they want in their
+ * wallet; Yellow Card decides what that costs in crypto at the moment they pay
+ * and carries the movement.
+ *
+ * This form only exists when `cryptoEnabled` is true, which is decided on the
+ * server from whether the keys are set. It cannot appear before it works.
+ */
+function CryptoForm({ locale }: { locale: Locale }) {
+  const [state, formAction, pending] = useActionState(startCryptoDeposit, CRYPTO_INITIAL);
+  const redirecting = state.ok && state.data !== null;
+
+  useEffect(() => {
+    if (state.ok && state.data) window.location.assign(state.data.paymentUrl);
+  }, [state]);
+
+  if (redirecting) {
+    return (
+      <div role="status" aria-live="polite" className="py-group text-center">
+        <p className="nf-body font-semibold">Opening the crypto payment window</p>
+        <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
+          You are on your way to Yellow Card to pay. Your wallet is credited in
+          naira once the payment settles on the network, which is usually a few
+          minutes.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form action={formAction} noValidate>
+      <AmountField error={fieldError(state, "amount")} quickAmounts locale={locale} />
+      {/* The one thing somebody topping up with crypto needs to know before
+          they commit, said before the button rather than after the payment:
+          the amount they type is what lands, and settlement is not instant. */}
+      <p className="nf-body-sm mt-row leading-relaxed text-[var(--nf-content-muted)]">
+        You are topping up in naira. The crypto amount is worked out at the
+        payment window, and this figure is what reaches your wallet.
+      </p>
       <Button type="submit" variant="primary" full className="mt-row" loading={pending}>
         Continue to payment
       </Button>

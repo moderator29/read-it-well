@@ -10,6 +10,7 @@ import { BalanceCard } from "@/components/app/wallet/BalanceCard";
 import { RecentActivity } from "@/components/app/wallet/RecentActivity";
 import { WalletSettingsSheet } from "@/components/app/wallet/WalletSettingsSheet";
 import { getWalletForViewer } from "@/lib/wallet/repository";
+import { isYellowCardConfigured } from "@/lib/payments/yellowcard";
 import { FundingVerifier } from "./FundingVerifier";
 import { WalletDeck } from "./WalletDeck";
 
@@ -177,7 +178,16 @@ export default async function WalletPage({
       </Reveal>
 
       <Reveal delay={80} className="mt-group">
-        <WalletDeck locale={locale} balanceMinor={wallet.balanceMinor} live={wallet.live} />
+        {/* Whether crypto is offered is decided HERE, on the server, because
+            the answer is an environment variable a browser must never be
+            handed. The deck defaults it to false, so a page that forgets to
+            pass it hides the control rather than showing a dead one. */}
+        <WalletDeck
+          locale={locale}
+          balanceMinor={wallet.balanceMinor}
+          live={wallet.live}
+          cryptoEnabled={isYellowCardConfigured()}
+        />
       </Reveal>
 
       {/*

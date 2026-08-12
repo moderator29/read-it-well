@@ -59,7 +59,12 @@ import {
   resolveAccountNumber,
   verifyTransaction,
 } from "../payments/paystack";
-import { FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
+import {
+  createCollection,
+  isYellowCardConfigured,
+  YellowCardError,
+} from "../payments/yellowcard";
+import { CRYPTO_PREFIX, FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
 import { bankByCode } from "./banks";
 import { recordMoneyAudit } from "./audit";
 import {
@@ -937,6 +942,121 @@ export async function getStatement(): Promise<ActionResult<WalletSummary | null>
     return ok(await readStatement(session.supabase, session.user.id));
   } catch {
     return fail("Your statement could not be loaded just now. Please try again shortly.");
+  }
+}
+
+/* --------------------------------------------------------------- crypto */
+
+export type CryptoStart = {
+  paymentUrl: string;
+  reference: string;
+};
+
+/**
+ * Fund the wallet with crypto, through Yellow Card.
+ *
+ * Structurally identical to `fundWallet` and deliberately so: same validation,
+ * same admin-client guard BEFORE anything is opened, same intent-recorded-first
+ * order, same hosted page the browser is handed to. A second money entry point
+ * that did its own thing would be a second set of mistakes to make.
+ *
+ * The two differences are both about honesty:
+ *
+ *  1. IT REFUSES WHEN UNCONFIGURED, and says so plainly. The wallet does not
+ *     draw the control in that state either, so this branch should be
+ *     unreachable from the interface - it exists because a server action is a
+ *     public endpoint and the interface not offering something is not the same
+ *     as it being impossible.
+ *
+ *  2. THE AMOUNT IS IN NAIRA. Nothing here knows a rate, a coin or a chain.
+ *     The person is told "top up ₦50,000" and Yellow Card decides what that
+ *     costs in USDT at the moment they pay. If this function ever needs to
+ *     know a price, the design has gone wrong.
+ */
+export async function startCryptoDeposit(
+  _prev: ActionResult<CryptoStart | null>,
+  formData: FormData,
+): Promise<ActionResult<CryptoStart | null>> {
+  if (!(await isFeatureEnabled("wallet"))) return fail(WALLET_OFF_MESSAGE);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  const parsed = validate(fundSchema, formDataToObject(formData));
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  if (!isYellowCardConfigured()) {
+    return fail(
+      "Crypto top-ups are not switched on yet. Your balance is untouched and nothing was charged.",
+    );
+  }
+
+  /* The same guard, in the same place, for the same reason the comment on
+     `fundWallet` spells out at length: without the service role key the
+     webhook cannot credit the wallet either, so opening a payment page here
+     would take somebody's money with nothing on our side able to record it. */
+  const admin = getAdminClient();
+  if (!admin) {
+    logMoney({
+      surface: "fund",
+      outcome: "unconfigured",
+      reason: "service_role_key_missing",
+      userId: session.user.id,
+    });
+    return fail(
+      "Crypto top-ups are unavailable just now, so nothing was charged. This is our side, not yours, and it is already flagged. Please try again shortly.",
+    );
+  }
+
+  const email = session.user.email;
+  if (!email) {
+    return fail(
+      "Your account has no email address, which a top-up needs. Add one to your profile and try again.",
+    );
+  }
+
+  const reference = `${CRYPTO_PREFIX}${randomUUID()}`;
+  const callbackUrl = `${await siteOrigin()}/wallet`;
+
+  try {
+    const collection = await createCollection({
+      amountMinor: parsed.data.amount,
+      reference,
+      email,
+      callbackUrl,
+    });
+    logMoney({
+      surface: "fund",
+      outcome: "received",
+      reason: "crypto_collection_opened",
+      reference,
+      amountMinor: parsed.data.amount,
+      userId: session.user.id,
+    });
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId: session.user.id },
+      action: "wallet.funding.started",
+      reference,
+      amountMinor: parsed.data.amount,
+      subjectUserId: session.user.id,
+      outcome: "started",
+    });
+    return ok({ paymentUrl: collection.paymentUrl, reference: collection.reference });
+  } catch (e) {
+    logMoney({
+      surface: "fund",
+      outcome: "failed",
+      reason: "crypto_collection_could_not_open",
+      reference,
+      amountMinor: parsed.data.amount,
+      userId: session.user.id,
+    });
+    return fail(
+      e instanceof YellowCardError && e.message.trim().length > 0
+        ? `The crypto service could not start this top-up. Nothing was charged. It said: ${e.message.trim()}`
+        : "The crypto service could not start this top-up, and nothing was charged. Please try again shortly.",
+    );
   }
 }
 
