@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { Locale } from "@naijafinds/i18n";
 import { formatDate } from "@naijafinds/i18n";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
-import type { WalletEntry, WalletEntryKind } from "@/lib/wallet/types";
+import type { WalletEntry } from "@/lib/wallet/types";
+import { KIND_ICON, KIND_LABEL } from "./kinds";
 import { Amount } from "@/components/ui/Amount";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
@@ -33,33 +35,6 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "pending", label: "Pending" },
 ];
 
-const KIND_ICON: Record<WalletEntryKind, BrandIconName> = {
-  deposit: "wallet-secure",
-  withdrawal: "naira-hand",
-  payment: "card-lock",
-  refund: "shield-check",
-  transfer_in: "user-check",
-  transfer_out: "user-check",
-  escrow_hold: "shield-lock",
-  escrow_release: "shield-check",
-  escrow_refund: "shield-check",
-};
-
-const KIND_LABEL: Record<WalletEntryKind, string> = {
-  deposit: "Deposit",
-  withdrawal: "Withdrawal",
-  payment: "Payment",
-  refund: "Refund",
-  transfer_in: "Transfer received",
-  transfer_out: "Transfer sent",
-  /* Escrow money is wallet money and it shows in this one statement, so it
-     needs words a payer recognises rather than the enum's own vocabulary.
-     "Held in escrow" says where the money is; the other two say where it
-     went. */
-  escrow_hold: "Held in escrow",
-  escrow_release: "Escrow released",
-  escrow_refund: "Escrow refunded",
-};
 
 function matches(entry: WalletEntry, filter: Filter): boolean {
   if (filter === "all") return true;
@@ -99,9 +74,18 @@ function groupByDay(entries: WalletEntry[]): DayGroup[] {
 export function TransactionsSection({
   entries,
   locale,
+  heading = true,
 }: {
   entries: WalletEntry[];
   locale: Locale;
+  /**
+   * Draw the "Transactions" overline.
+   *
+   * False on `/wallet/transactions`, where the page header already says it and
+   * a second heading four pixels under the first is the screen telling you
+   * twice. The filters stay either way; they are the point of that screen.
+   */
+  heading?: boolean;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
   const visible = entries.filter((e) => matches(e, filter));
@@ -110,9 +94,15 @@ export function TransactionsSection({
   return (
     <section aria-labelledby="nf-wallet-tx-title">
       <div className="mb-heading flex items-center justify-between gap-md">
-        <h2 id="nf-wallet-tx-title" className="nf-overline">
-          Transactions
-        </h2>
+        {heading ? (
+          <h2 id="nf-wallet-tx-title" className="nf-overline">
+            Transactions
+          </h2>
+        ) : (
+          <span className="sr-only" id="nf-wallet-tx-title">
+            Transactions
+          </span>
+        )}
         {/*
           The ledger filters, on the shared rail.
 
@@ -204,9 +194,25 @@ function EntryRow({
 
   return (
     <li
-      className={`flex items-center gap-md py-row ${credit ? "nf-tx-in" : "nf-tx-out"}`}
+      className={credit ? "nf-tx-in" : "nf-tx-out"}
       style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
     >
+      {/*
+        THE WHOLE ROW OPENS ITS RECEIPT.
+
+        A statement line answers "what happened". The thing somebody needs when
+        a landlord says the rent never arrived is the receipt: the full
+        reference, the exact minute, the status in words. That existed nowhere,
+        so the reference was printed into the row itself in the hope that
+        reading it off a phone would do.
+
+        A link rather than a button, because a receipt is a place with a URL
+        that can be opened in a new tab and sent to somebody.
+      */}
+      <Link
+        href={`/wallet/transactions/${entry.id}`}
+        className="nf-tap flex w-full items-center gap-md rounded-[var(--nf-radius-control)] py-row text-left transition-colors hover:bg-[var(--nf-glass-fill)]"
+      >
       {/*
         THE OBJECT LOST ITS PLINTH, AND THE PLINTH WAS SMALLER THAN THE OBJECT.
 
@@ -293,6 +299,7 @@ function EntryRow({
           </StatusPill>
         )}
       </span>
+      </Link>
     </li>
   );
 }
