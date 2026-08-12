@@ -11,6 +11,8 @@ import { RecentActivity } from "@/components/app/wallet/RecentActivity";
 import { WalletSettingsSheet } from "@/components/app/wallet/WalletSettingsSheet";
 import { getWalletForViewer } from "@/lib/wallet/repository";
 import { isYellowCardConfigured } from "@/lib/payments/yellowcard";
+import { readPots } from "@/lib/wallet/pots";
+import { PotsSection } from "@/components/app/wallet/PotsSection";
 import { FundingVerifier } from "./FundingVerifier";
 import { WalletDeck } from "./WalletDeck";
 
@@ -46,6 +48,13 @@ export default async function WalletPage({
   const locale = await getLocale();
   const t = getDictionary(locale);
   const wallet = await getWalletForViewer();
+  /*
+   * Pots answer "unavailable" until the migration is applied, and the section
+   * is simply not drawn in that state - the same gate the crypto top-up uses,
+   * for the same reason. So this ships ahead of the SQL and lights up by
+   * itself the moment the SQL is run, with nothing to redeploy.
+   */
+  const pots = await readPots();
 
   const verifying =
     funded === "1" && typeof reference === "string" && reference.startsWith("rm-fund-")
@@ -199,6 +208,12 @@ export default async function WalletPage({
         below sat behind a scroll. Three rows and a way in is what a person
         wants at a glance; the record lives at /wallet/transactions.
       */}
+      {pots.state === "ok" && (
+        <Reveal delay={120} className="mt-block">
+          <PotsSection pots={pots.pots} locale={locale} />
+        </Reveal>
+      )}
+
       <Reveal delay={140} className="mt-block">
         <RecentActivity entries={wallet.entries} locale={locale} />
       </Reveal>
