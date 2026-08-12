@@ -84,11 +84,22 @@ export const withdrawSchema = z.object({
     .trim()
     .transform((v) => v.replace(/\s/g, ""))
     .refine((v) => /^\d{10}$/.test(v), "A Nigerian account number is 10 digits."),
-  accountName: z
-    .string()
-    .trim()
-    .min(3, "Enter the name on the account.")
-    .max(120, "Keep the account name under 120 characters."),
+  /*
+   * THE ACCOUNT NAME IS NO LONGER AN INPUT.
+   *
+   * It was a required field on this schema and a text box on the sheet reading
+   * "As it appears at your bank", which is the platform asking somebody to
+   * type a fact it can look up - and typing it proved nothing, because what
+   * they typed was never checked against the account. A confident typo went
+   * straight into a payout instruction.
+   *
+   * `withdraw` now asks the bank itself, which answers with the real holder on
+   * an account the bank has already done KYC against, and a wrong digit fails
+   * there instead of resolving to a stranger. Taking the field off the schema
+   * rather than leaving it optional is deliberate: an optional field is one a
+   * future form can start posting again, and it must never be possible for a
+   * caller to supply the name a payout is addressed to.
+   */
 });
 
 export const transferSchema = z.object({

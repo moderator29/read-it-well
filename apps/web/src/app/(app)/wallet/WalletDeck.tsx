@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatMoney, type Locale } from "@naijafinds/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
@@ -10,6 +10,7 @@ import { Amount } from "@/components/ui/Amount";
 import type { ActionResult } from "@/lib/actions/envelope";
 import {
   fundWallet,
+  lookupAccountName,
   transferToUser,
   withdraw,
   type FundStart,
@@ -276,6 +277,51 @@ function WithdrawForm({
     if (state.ok && state.data) router.refresh();
   }, [state, router]);
 
+  /*
+   * THE NAME COMES FROM THE BANK, AND THIS FORM WAS STILL ASKING FOR IT.
+   *
+   * The box read "Name on the account / As it appears at your bank", which is
+   * the platform asking somebody to type a fact it can look up - and typing it
+   * proves nothing, because whatever they type is not checked against the
+   * account. A wrong digit in the account number was only discovered after the
+   * tap.
+   *
+   * `lookupAccountName` asks the bank the moment a bank and ten digits are
+   * both present, and the answer is displayed rather than made editable: it is
+   * the bank's record, not ours to let anyone correct. `withdraw` resolves it
+   * again server-side and that remains the source of truth for the payout, so
+   * this is the courtesy, not the guard.
+   *
+   * THE ATTEMPT COUNTER IS NOT DECORATION. Typing the tenth digit and then
+   * changing the bank fires two lookups; without it the slower first answer
+   * can land last and show a name belonging to the account the reader has
+   * already moved away from.
+   */
+  const [bankCode, setBankCode] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [holder, setHolder] = useState<
+    | { state: "idle" }
+    | { state: "checking" }
+    | { state: "found"; name: string }
+    | { state: "missing"; reason: string }
+  >({ state: "idle" });
+  const attempt = useRef(0);
+
+  const check = (nextBank: string, nextNumber: string) => {
+    const digits = nextNumber.replace(/\D/g, "");
+    if (nextBank.length === 0 || digits.length !== 10) {
+      setHolder({ state: "idle" });
+      return;
+    }
+    const mine = ++attempt.current;
+    setHolder({ state: "checking" });
+    void lookupAccountName(nextBank, digits).then((result) => {
+      if (mine !== attempt.current) return;
+      if (result.ok) setHolder({ state: "found", name: result.accountName });
+      else setHolder({ state: "missing", reason: result.reason });
+    });
+  };
+
   if (state.ok && state.data) {
     return (
       <div role="status" aria-live="polite" className="py-inline text-center">
@@ -305,7 +351,11 @@ function WithdrawForm({
       <SelectField
         label="Bank"
         name="bankCode"
-        defaultValue=""
+        value={bankCode}
+        onChange={(event) => {
+          setBankCode(event.target.value);
+          check(event.target.value, accountNumber);
+        }}
         error={fieldError(state, "bankCode")}
       >
         <option value="" disabled style={{ background: "var(--nf-surface-elevated)" }}>
@@ -329,16 +379,38 @@ function WithdrawForm({
         autoComplete="off"
         maxLength={10}
         placeholder="10-digit account number"
+        value={accountNumber}
+        onChange={(event) => {
+          setAccountNumber(event.target.value);
+          check(bankCode, event.target.value);
+        }}
         error={fieldError(state, "accountNumber")}
       />
-      <TextField
-        label="Name on the account"
-        name="accountName"
-        type="text"
-        autoComplete="name"
-        placeholder="As it appears at your bank"
-        error={fieldError(state, "accountName")}
-      />
+
+      {/*
+        The answer, where the box used to be.
+
+        Stated plainly rather than dressed as a success banner: it is a fact
+        about the account and the reader's job is to read it and recognise it.
+        Never editable, because it is the bank's answer and not ours.
+      */}
+      {holder.state === "checking" && (
+        <p className="nf-body-sm text-[var(--nf-content-muted)]">Checking the account…</p>
+      )}
+      {holder.state === "found" && (
+        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-sunken)] px-3 py-2.5">
+          <p className="nf-overline">Name on the account</p>
+          <p className="nf-body mt-0.5 font-semibold text-[var(--nf-content-primary)]">
+            {holder.name}
+          </p>
+        </div>
+      )}
+      {holder.state === "missing" && holder.reason.length > 0 && (
+        <p role="alert" className="nf-body-sm text-[var(--nf-state-warning)]">
+          {holder.reason}
+        </p>
+      )}
+
       <Button type="submit" variant="primary" full className="mt-inline-tight" loading={pending}>
         Withdraw
       </Button>
