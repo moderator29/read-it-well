@@ -72,11 +72,19 @@ it about where their money went.
 The names follow the escrow pair they behave like: a hold takes money out of
 spendable, a release puts it back.
 
-## What is not built yet
+## The app layer is already shipped, and it waits for you
 
-The app layer — server actions, the pots screen, the top-up control — lands once
-the migration is applied, because `database.types.ts` is generated **from the
-live database** and the TypeScript cannot reference a table that does not exist
-there yet.
+Server actions, the pots section, create, top up and take out are all on main.
+**They appear by themselves the moment you run the SQL** — there is nothing to
+redeploy.
 
-Tell me when you have run them and I will finish it.
+Until then `readPots()` answers `unavailable`, the wallet draws no pots section,
+and every action answers "Savings pots are not switched on for this account
+yet." Verified against a running build with the table absent: the wallet returns
+200 and the words "Set aside" appear zero times.
+
+The generated types do not know about `wallet_pots` yet, so the read and the
+insert go through narrow casts contained in `lib/wallet/pots.ts` and
+`lib/wallet/pot-actions.ts` — the same approach `lib/wallet/rpc.ts` already
+takes for the money functions, and for the same reason. Regenerating the types
+changes nothing; the casts simply stop being load-bearing.
