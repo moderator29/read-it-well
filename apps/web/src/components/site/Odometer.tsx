@@ -41,18 +41,46 @@ export function Odometer({
   const formatted = formatNumber(Math.max(0, Math.round(value)), locale);
   const chars = formatted.split("");
 
+  /*
+   * THE UNROLLED STATE SHOWED ZEROS, AND THIS THING CARRIES A WALLET BALANCE.
+   *
+   * Every strip sat at digit 0 until an IntersectionObserver saw the element,
+   * so a figure that never came into view rendered as a complete, plausible,
+   * WRONG number: ₦999,999,999.99 read as ₦000,000,000.99. Not a blank, not a
+   * skeleton - a different amount of somebody's money, in the same typeface as
+   * the real one.
+   *
+   * On today's wallet the card is at the top of the page and the observer
+   * fires, so this was not reachable there. It was reachable anywhere else
+   * this component is used below the fold, and "the layout currently happens
+   * to save us" is not a property to rely on for a money figure.
+   *
+   * So the observer is now a fail-open timer as well: if it has not fired
+   * within a second - element never scrolled to, observer unsupported, tab
+   * backgrounded on load - the digits go to their real values without the
+   * animation. The roll is decoration and the number is the point, and when
+   * those two conflict the number wins.
+   */
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      typeof IntersectionObserver === "undefined" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       setRolled(true);
       return;
     }
     const el = ref.current;
-    if (!el) return;
+    if (!el) {
+      setRolled(true);
+      return;
+    }
+    const fallback = window.setTimeout(() => setRolled(true), 1000);
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
           if (e.isIntersecting) {
             setRolled(true);
+            window.clearTimeout(fallback);
             io.disconnect();
           }
         }
@@ -60,7 +88,10 @@ export function Odometer({
       { threshold: 0.4 },
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      window.clearTimeout(fallback);
+      io.disconnect();
+    };
   }, []);
 
   return (
