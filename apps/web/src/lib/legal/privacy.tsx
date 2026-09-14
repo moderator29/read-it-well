@@ -14,6 +14,14 @@
  */
 
 import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
+import {
+  COMPANY_DOMAIN,
+  COMPANY_FORMAL_NAME,
+  COMPANY_NDPC_REGISTRATION,
+  COMPANY_REGISTERED_OFFICE,
+  COMPANY_TRADING_NAME,
+  DATA_PROTECTION_OFFICER,
+} from "./company";
 
 export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
   {
@@ -21,18 +29,32 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <>
         <p>
-          RentMe (&quot;RentMe&quot;, &quot;we&quot;, &quot;us&quot;) operates a
-          Nigeria-first platform for discovering and booking stays, hotels, restaurants
-          and experiences, on the web at rentme.ng. For the purposes of the Nigeria
-          Data Protection Act 2023 (the &quot;NDPA&quot;), RentMe is the data
-          controller for the personal data described in this policy.
+          {COMPANY_TRADING_NAME} is a Nigeria-first platform for discovering and booking
+          stays, hotels, restaurants and experiences
+          {COMPANY_DOMAIN ? <>, on the web at {COMPANY_DOMAIN}</> : null}. It is operated
+          by {COMPANY_FORMAL_NAME}, a private company limited by shares registered in
+          Nigeria under the Companies and Allied Matters Act 2020, whose registered
+          office is {COMPANY_REGISTERED_OFFICE}.
         </p>
         <p>
-          Questions about this policy or about your data should go to{" "}
+          For the purposes of the Nigeria Data Protection Act 2023 (the &quot;NDPA&quot;),{" "}
+          <strong>{COMPANY_FORMAL_NAME}</strong> is the data controller for the personal
+          data described in this policy. Where this policy says &quot;we&quot; or
+          &quot;us&quot;, it means that company.
+          {COMPANY_NDPC_REGISTRATION ? (
+            <> It is registered with the Nigeria Data Protection Commission under
+            registration number {COMPANY_NDPC_REGISTRATION}.</>
+          ) : null}
+        </p>
+        <p>
+          Our Data Protection Officer is {DATA_PROTECTION_OFFICER}. Questions about this
+          policy, about the data we hold about you, or any request to exercise the rights
+          in section 8, should go to{" "}
           <a href={SUPPORT_HREF} className="font-semibold text-[var(--nf-electric-300)] hover:underline">
             {SUPPORT_LABEL}
           </a>
-          , with Privacy as the subject.
+          , with Privacy as the subject. Requests sent that way reach the Data Protection
+          Officer.
         </p>
       </>
     ),
@@ -210,9 +232,9 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
     title: "10. Children",
     body: (
       <p>
-        RentMe is for adults. You must be at least 18 years old to create an account,
-        book a stay or list a property. We do not knowingly collect personal data from
-        children, and we delete any such data we discover.
+        {COMPANY_TRADING_NAME} is for adults. You must be at least 18 years old to create
+        an account, book a stay or list a property. We do not knowingly collect personal
+        data from children, and we delete any such data we discover.
       </p>
     ),
   },
