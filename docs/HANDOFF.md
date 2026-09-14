@@ -9,6 +9,11 @@ touching a file.
 **Read `docs/PRODUCT.md` first if you have not.** It is shorter than this and it
 says what the product is. This file says how to work on it.
 
+**Read `docs/COMPANY.md` if the work touches the company, the investor, the
+budget, the lawyer or NDPC compliance.** The platform now has VALLO SPACES LTD
+behind it, a co-founder investor, and live regulatory obligations. None of that
+is in this file.
+
 The platform LOOKS finished, and large parts of it genuinely are. What remains is
 in `RECOMMENDATIONS.md`, by domain, with a priority on every entry.
 
