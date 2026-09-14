@@ -9,10 +9,21 @@ touching a file.
 **Read `docs/PRODUCT.md` first if you have not.** It is shorter than this and it
 says what the product is. This file says how to work on it.
 
-**Read `docs/COMPANY.md` if the work touches the company, the investor, the
-budget, the lawyer or NDPC compliance.** The platform now has VALLO SPACES LTD
-behind it, a co-founder investor, and live regulatory obligations. None of that
-is in this file.
+**There are now two numbered handoffs above this file, and they supersede it
+wherever they disagree.**
+
+- **`docs/HANDOFF_01_COMPANY.md`** is the company, the money, the law and the
+  standards. VALLO SPACES LTD, the co-founder investor, the agreements, the
+  solicitor, NDPC and SCUML, and the privacy work the Act actually requires.
+  Read it first, even if the work is entirely technical
+- **`docs/HANDOFF_02_PLATFORM.md`** is the codebase and the full product
+  transformation: digest, survey, rate, research, recommend, prioritise, build,
+  test, sweep again
+
+This file remains the working contract for day to day engineering: the ONE LAW,
+the owner rules, and the gotchas. **The product is now called Vallo.** The
+RentMe and NaijaFinds names throughout this file are the dead working names, and
+removing them from the codebase is `HANDOFF_02` section 14.
 
 The platform LOOKS finished, and large parts of it genuinely are. What remains is
 in `RECOMMENDATIONS.md`, by domain, with a priority on every entry.
