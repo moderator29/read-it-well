@@ -205,25 +205,30 @@ Everything else: decide it, do it, write down why.
 
 ### 3.3 Repository and branch hygiene
 
+**The founder's rule, stated directly: everything that needs to be in `main` is
+already in `main`. Any branch not touched in the last five days is dead. Delete
+all of them.**
+
+That is the instruction and it is followed. What follows is only how to carry it
+out without a one-way mistake.
+
 **Counted on 14 September 2026.** Fifteen remote branches. Verify before acting,
 because this moves.
 
-`main` is the deploy branch and Vercel builds from it. It is currently one commit
-ahead of the working branch: `a41b9c1`, the founder's upload of the new Vallo
-logo.
+`main` is the deploy branch and Vercel builds from it. It was one commit ahead of
+the working branch at `a41b9c1`, the founder's upload of the new Vallo logo.
 
-**Fully merged into `main`, so deleting them loses nothing.** Delete these
-without asking:
+**The five-day line.** Anything whose last commit is older than five days goes.
+On 14 September that leaves exactly two branches alive:
 
-- `origin/claude/greeting-4np7sj`
-- `origin/claude/rentme-data-sourcing-arch-birz8q`
-- `origin/claude/rentme-polish-pass-p4808t`
+| Branch | Last commit | Verdict |
+| --- | --- | --- |
+| `main` | current | **Keep.** The deploy branch |
+| `claude/rentme-v2-platform-audit-xuvg0a` | 2026-09-14 | **Keep.** The working branch |
 
-**Not merged, and this is where care is required.** Ten branches carry between 30
-and 474 commits that are not in `main`, and all but the working branch are from
-late July and early August:
+Everything else is from 28 July to 7 August, six weeks stale, and is deleted:
 
-| Branch | Commits ahead | Last commit |
+| Branch | Commits ahead of main | Last commit |
 | --- | ---: | --- |
 | `claude/master-autonomous-engineering-os-c4guqi` | 474 | 2026-08-07 |
 | `claude/platform-premium-ui-audit-vtpvtc` | 405 | 2026-08-06 |
@@ -233,39 +238,38 @@ late July and early August:
 | `primitives-wip` | 197 | 2026-08-05 |
 | `integration/rentme-next` | 153 | 2026-08-01 |
 | `claude/rentme-loop-closure-pb0ird` | 116 | 2026-07-30 |
-| `claude/repo-cleanup-1spitz` | 83 | 2026-07-30 |
+| `claude/repo-cleanup-1spitz` | 83 | 2026-07-28 |
 | `feat/naijafinds-brand-system` | 30 | 2026-07-28 |
+| `claude/greeting-4np7sj` | 0, merged | stale |
+| `claude/rentme-data-sourcing-arch-birz8q` | 0, merged | stale |
+| `claude/rentme-polish-pass-p4808t` | 0, merged | stale |
 
-**Do not merge these into `main` wholesale.** A branch that is 474 commits ahead
-and six weeks old diverged before the social layer shipped. Merging it would not
-add work to `main`, it would fight `main` in hundreds of files and could
-resurrect deleted subsystems, the orange palette and the `Icon3D` component that
-is supposed to be gone. That is not hypothetical: `feat/naijafinds-brand-system`
-is a brand system for a name the company no longer uses.
+**A high commit count is not a reason to keep one.** Those branches diverged
+before the social layer shipped in August. A 474-commit branch from 7 August
+would fight `main` in hundreds of files and could resurrect deleted subsystems,
+the orange palette and the `Icon3D` component that is supposed to be gone.
+`feat/naijafinds-brand-system` is a brand system for a name the company no longer
+uses. They are not held-back work, they are abandoned paths.
 
-**The method, which is autonomous and does not lose work:**
+**The method, which is one extra command and makes every delete reversible:**
 
-1. For each unmerged branch, run `git log --oneline origin/main..<branch>` and
-   `git diff --stat origin/main...<branch>`. Read what is actually in it
-2. Classify it in writing, one of three ways:
-   - **Superseded.** Everything in it reached `main` by another route, or it
-     describes a system that has since been rebuilt. Most will be this
-   - **Carries something real.** Name the specific commits or files worth having
-   - **Unclear.** Cannot be determined from the log
-3. **Anything real is cherry-picked onto the working branch**, verified against
-   the ONE LAW, and pushed. Not merged wholesale
-4. Write the verdict for all ten into `docs/BRANCH_AUDIT.md`: branch name, head
-   SHA, commit count, verdict, reason. **The SHA is what makes a delete
-   recoverable**, because a deleted branch can be restored from its SHA for as
-   long as the reflog holds it
-5. **Then delete**: the three merged branches immediately, and the superseded
-   ones once `docs/BRANCH_AUDIT.md` is committed and pushed. Leave anything
-   classified unclear alive and say so in the report
-6. Finally bring the working branch up to date with `main` so the logo commit is
-   present, and push to `main` once Track A is green
+1. **Record first.** Before deleting anything, write `docs/BRANCH_AUDIT.md` with
+   every branch name, its **head SHA**, its commit count and its last commit
+   date. The SHA is the whole point: a deleted branch can be restored from its
+   SHA, and without it the delete is final
+2. **Commit and push `docs/BRANCH_AUDIT.md` before the first delete**
+3. **Then delete all thirteen**, local and remote
+4. Bring the working branch up to date with `main` so the logo commit is present
+5. Push Track A to `main` as it lands
 
-The founder asked for the branch list cleaned and the work on `main`. This is how
-that happens without throwing away six weeks of history on a guess.
+**Do not spend the session reading six weeks of abandoned commits** looking for
+something to save. The founder has said the work is in `main`. Record the SHAs,
+delete, move on. If something later turns out to be missing, the audit file says
+exactly where to find it.
+
+**Going forward: one working branch at a time.** The reason thirteen branches
+accumulated is that each session opened its own and none closed it. Merge to
+`main` and delete the branch in the same session that created it.
 
 ### 3.4 Never claim what did not happen
 
@@ -1274,11 +1278,21 @@ renders himself and has rejected over-specified engineering prompts before. The
 prompt that works reads like a creative director briefing a 3D artist: the
 object, the material, the lighting, the mood, the angle. Not a spec sheet.
 
-Put every prompt in `docs/BRAND_MARKS.md`, one per missing mark, each saying what
-state it represents and where it will be used, and each written to match the
-house style of the existing 87 so a new object does not look like a visitor.
-Anchor them to the new logo: glass and chrome, electric blue, navy-black ground,
-studio lighting, soft rim glow, slight three-quarter angle.
+**`docs/BRAND_MARKS.md` already holds this.** The house style block to use
+verbatim, the twenty existing marks that must not be duplicated, and twenty-four
+to commission with a subject line each. Use it and extend it rather than starting
+over.
+
+**One thing in there is easy to get wrong and it is worth stating twice.** There
+are two 3D languages in this brand. The **logo** is glass and neon: navy tile,
+electric blue rim light, chrome, glow. The **87 brand objects are not that.**
+They are soft matte white clay on a white plinth, on a white background, with
+brand blue used only on the part that carries the meaning. A new mark matches the
+objects, not the logo, or it will not sit in the set.
+
+And `user-verified.png` already is the blue scalloped rosette with a white tick,
+which is exactly the mark the reference screenshot rendered in orange. It does
+not need replacing.
 
 ### 24.5 What to actually look for in the audit
 
