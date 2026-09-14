@@ -14,6 +14,7 @@
  */
 
 import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
+import { COMPANY_FORMAL_NAME, COMPANY_TRADING_NAME } from "./company";
 import Link from "next/link";
 
 export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
@@ -21,22 +22,25 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     title: "1. About these terms",
     body: (
       <p>
-        These terms are an agreement between you and RentMe (&quot;RentMe&quot;,
-        &quot;we&quot;, &quot;us&quot;) governing your use of the RentMe website,
-        apps and services. By creating an account or using the platform you accept them.
-        If you do not accept them, please do not use the platform.
+        These terms are an agreement between you and {COMPANY_FORMAL_NAME}, a private
+        company limited by shares registered in Nigeria, which operates the{" "}
+        {COMPANY_TRADING_NAME} website, apps and services. Where these terms say{" "}
+        &quot;{COMPANY_TRADING_NAME}&quot;, &quot;we&quot; or &quot;us&quot;, they mean
+        that company. By creating an account or using the platform you accept these
+        terms. If you do not accept them, please do not use the platform.
       </p>
     ),
   },
   {
-    title: "2. What RentMe is",
+    title: `2. What ${COMPANY_TRADING_NAME} is`,
     body: (
       <p>
-        RentMe is a marketplace that connects guests with independent agents who
-        list stays, hotels, restaurants and experiences across Nigeria. We verify
-        agents, host listings, carry messages and process payments. The accommodation
-        or experience itself is provided by the agent, not by RentMe, and the
-        booking contract for the stay is between you and the agent.
+        {COMPANY_TRADING_NAME} is a marketplace that connects guests with independent
+        agents who list stays, hotels, restaurants and experiences across Nigeria. We
+        verify agents, host listings, carry messages and process payments. The
+        accommodation or experience itself is provided by the agent, not by{" "}
+        {COMPANY_TRADING_NAME}, and the booking contract for the stay is between you and
+        the agent.
       </p>
     ),
   },
@@ -44,7 +48,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     title: "3. Accounts and eligibility",
     body: (
       <ul>
-        <li>You must be at least 18 years old to use RentMe.</li>
+        <li>You must be at least 18 years old to use {COMPANY_TRADING_NAME}.</li>
         <li>
           The information on your account must be accurate and kept up to date, and you
           may hold only one personal account.
@@ -65,8 +69,9 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           before you confirm a booking.
         </li>
         <li>
-          Your payment is held securely by RentMe and released to the agent only
-          after check-in, or after you confirm that an inspection matched the listing.
+          Your payment is held securely by {COMPANY_TRADING_NAME} and released to the
+          agent only after check-in, or after you confirm that an inspection matched the
+          listing.
           Paying an agent in cash or by direct transfer outside the platform removes
           this protection, and we cannot help recover money paid that way.
         </li>
@@ -90,8 +95,9 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           or unavailable, you receive a refund of what you paid for that booking.
         </li>
         <li>
-          Refunds go back the way you paid, or to your RentMe wallet if you choose.
-          Card and bank refunds typically arrive within three to ten business days.
+          Refunds go back the way you paid, or to your {COMPANY_TRADING_NAME} wallet if
+          you choose. Card and bank refunds typically arrive within three to ten business
+          days.
         </li>
       </ul>
     ),
@@ -101,8 +107,10 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <ul>
         <li>
-          Listing is free. RentMe charges agents a commission only when a booking
-          completes; current rates are shown in the agent dashboard before you publish.
+          Listing is free. {COMPANY_TRADING_NAME} charges no listing fee and no booking
+          fee. If a commission on completed bookings is introduced, the rate will be shown
+          in the agent dashboard before you publish and will apply only to bookings made
+          after it takes effect.
         </li>
         <li>
           Agents must complete identity verification, and business agents must provide
@@ -142,9 +150,9 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <p>
         Reviews must reflect a genuine stay or visit. You keep ownership of the content
-        you post, and you grant RentMe a licence to display it on the platform and
-        in connection with the service. We may remove content that is unlawful, abusive
-        or misleading.
+        you post, and you grant {COMPANY_TRADING_NAME} a licence to display it on the
+        platform and in connection with the service. We may remove content that is
+        unlawful, abusive or misleading.
       </p>
     ),
   },
@@ -153,9 +161,10 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <>
         <p>
-          We work hard to keep listings honest and payments safe, but RentMe is a
-          marketplace: we do not own, inspect daily, or control the properties and
-          experiences agents list. To the extent Nigerian law allows:
+          We work hard to keep listings honest and payments safe, but{" "}
+          {COMPANY_TRADING_NAME} is a marketplace: we do not own, inspect daily, or
+          control the properties and experiences agents list. To the extent Nigerian law
+          allows:
         </p>
         <ul>
           <li>
@@ -207,7 +216,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
         We may update these terms as the platform grows. The date at the top of this
         page always shows the current version, and we will notify you through the
         product or by email before significant changes take effect. Continuing to use
-        RentMe after a change means you accept the updated terms.
+        {COMPANY_TRADING_NAME} after a change means you accept the updated terms.
       </p>
     ),
   },
