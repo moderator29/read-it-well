@@ -42,7 +42,7 @@ strategist, quality control.
 **Do not do only what was explicitly asked.** If something is missing, weak,
 outdated, unsafe, unfinished, ugly, inefficient, legally risky, fragile or
 strategically important, bring it forward and recommend the better answer. Then,
-per section 30, either make the call or surface it, depending on which kind of
+per section 27, either make the call or surface it, depending on which kind of
 decision it is.
 
 ---
@@ -152,7 +152,130 @@ in this codebase.
 
 ---
 
-## 3. Phase 1: digest
+## 3. Autonomous operating mode
+
+**This session runs autonomously.** Do not stop after each step to report and
+wait. Do not ask permission for work that is already described in this document.
+The founder has said plainly that constantly stopping to check wastes more of his
+time than a wrong reversible decision does.
+
+Autonomous does not mean unaccountable. It means: decide, do, verify, record,
+keep going, and tell the truth about what happened.
+
+### 3.1 The two tracks run at the same time
+
+The lead session and the agents work in parallel from the first hour. The lead
+does not sit idle synthesising while three agents work.
+
+**The lead session owns Track A**, the identity and legal work. It is bounded, it
+is mostly mechanical, and it is the thing the founder can see immediately:
+
+1. Repository and branch hygiene (3.3)
+2. The full old-name sweep: RentMe and NaijaFinds out of everything (section 15)
+3. The new Vallo logo in every place a logo appears (15.2)
+4. The sample property imagery (15.4)
+5. Terms, disclaimers and the privacy notice (HANDOFF 01 section 4)
+
+**The three agents own Track B**, the 400-plus recommendation mission across the
+whole platform (sections 5 through 9, and 25).
+
+**The tracks must not collide.** Track A rewrites strings, assets and legal copy
+across roughly 190 files. Track B reads the whole platform and writes findings.
+So the rule is: **agents in Track B produce recommendations, they do not edit
+files in Track A's path set** until Track A has landed and pushed. If an agent
+finds a branding or legal defect, it files it as a recommendation addressed to
+Track A rather than fixing it. Two writers in one file is how a session loses
+work.
+
+### 3.2 When to stop, and it is a short list
+
+Keep going through everything else. Stop only for:
+
+- A change to the agreements, the budget or anything the solicitor has seen
+- Native app identifiers in `apps/web/android` and `apps/web/ios`, because an
+  application ID cannot be changed after a store listing exists
+- Deleting a remote branch that carries unmerged work (3.3)
+- A destructive database change: a drop, a data-losing migration, a revoke
+- Spending money, or adding a paid vendor
+- A Supabase dashboard setting, which only the founder can reach
+- Anything where the honest answer is "I do not have the information and cannot
+  get it"
+
+Everything else: decide it, do it, write down why.
+
+### 3.3 Repository and branch hygiene
+
+**Counted on 14 September 2026.** Fifteen remote branches. Verify before acting,
+because this moves.
+
+`main` is the deploy branch and Vercel builds from it. It is currently one commit
+ahead of the working branch: `a41b9c1`, the founder's upload of the new Vallo
+logo.
+
+**Fully merged into `main`, so deleting them loses nothing.** Delete these
+without asking:
+
+- `origin/claude/greeting-4np7sj`
+- `origin/claude/rentme-data-sourcing-arch-birz8q`
+- `origin/claude/rentme-polish-pass-p4808t`
+
+**Not merged, and this is where care is required.** Ten branches carry between 30
+and 474 commits that are not in `main`, and all but the working branch are from
+late July and early August:
+
+| Branch | Commits ahead | Last commit |
+| --- | ---: | --- |
+| `claude/master-autonomous-engineering-os-c4guqi` | 474 | 2026-08-07 |
+| `claude/platform-premium-ui-audit-vtpvtc` | 405 | 2026-08-06 |
+| `claude/rentme-social-and-polish` | 402 | 2026-08-06 |
+| `fix/main-social-regressions` | 219 | 2026-08-05 |
+| `claude/rentme-social-design-je796y` | 214 | 2026-08-04 |
+| `primitives-wip` | 197 | 2026-08-05 |
+| `integration/rentme-next` | 153 | 2026-08-01 |
+| `claude/rentme-loop-closure-pb0ird` | 116 | 2026-07-30 |
+| `claude/repo-cleanup-1spitz` | 83 | 2026-07-30 |
+| `feat/naijafinds-brand-system` | 30 | 2026-07-28 |
+
+**Do not merge these into `main` wholesale.** A branch that is 474 commits ahead
+and six weeks old diverged before the social layer shipped. Merging it would not
+add work to `main`, it would fight `main` in hundreds of files and could
+resurrect deleted subsystems, the orange palette and the `Icon3D` component that
+is supposed to be gone. That is not hypothetical: `feat/naijafinds-brand-system`
+is a brand system for a name the company no longer uses.
+
+**The method, which is autonomous and does not lose work:**
+
+1. For each unmerged branch, run `git log --oneline origin/main..<branch>` and
+   `git diff --stat origin/main...<branch>`. Read what is actually in it
+2. Classify it in writing, one of three ways:
+   - **Superseded.** Everything in it reached `main` by another route, or it
+     describes a system that has since been rebuilt. Most will be this
+   - **Carries something real.** Name the specific commits or files worth having
+   - **Unclear.** Cannot be determined from the log
+3. **Anything real is cherry-picked onto the working branch**, verified against
+   the ONE LAW, and pushed. Not merged wholesale
+4. Write the verdict for all ten into `docs/BRANCH_AUDIT.md`: branch name, head
+   SHA, commit count, verdict, reason. **The SHA is what makes a delete
+   recoverable**, because a deleted branch can be restored from its SHA for as
+   long as the reflog holds it
+5. **Then delete**: the three merged branches immediately, and the superseded
+   ones once `docs/BRANCH_AUDIT.md` is committed and pushed. Leave anything
+   classified unclear alive and say so in the report
+6. Finally bring the working branch up to date with `main` so the logo commit is
+   present, and push to `main` once Track A is green
+
+The founder asked for the branch list cleaned and the work on `main`. This is how
+that happens without throwing away six weeks of history on a guess.
+
+### 3.4 Never claim what did not happen
+
+Four words that must be true when used: **committed**, **pushed**, **tested**,
+**compliant**. A quiet skip is worse than a stated one. If a step was skipped,
+say which and why in the final report, without being asked.
+
+---
+
+## 4. Phase 1: digest
 
 Before any major change, understand the whole system. Not page by page as you
 happen to open them. Deliberately, in this order.
@@ -185,7 +308,7 @@ not dead code.
 
 ---
 
-## 4. Phase 2: the wide survey
+## 5. Phase 2: the wide survey
 
 Sweep the whole platform, not the obvious pages. The obvious pages are the ones
 already polished; the damage is in the surfaces nobody demos.
@@ -230,7 +353,7 @@ And whatever else the sweep turns up, which is the point of doing it wide.
 
 ---
 
-## 5. Phase 3: the rating
+## 6. Phase 3: the rating
 
 Rate the platform honestly on all twenty-five dimensions. **Realistic ratings,
 not flattering ones.** A dishonest score wastes the session it was supposed to
@@ -270,7 +393,7 @@ the gap that made this rating necessary.
 
 ---
 
-## 6. Phase 4: the research standard
+## 7. Phase 4: the research standard
 
 Think like the best people in each discipline: product and UX researchers,
 frontend, backend and database engineers, security engineers, product and brand
@@ -304,7 +427,7 @@ The question is not "what does the competition do". It is:
 
 ---
 
-## 7. Phase 5: the 400 recommendation mission
+## 8. Phase 5: the 400 recommendation mission
 
 Target **at least 400** meaningful recommendations, and do not stop there
 artificially. If the sweep genuinely produces 500 or 600, keep them. If it
@@ -355,7 +478,7 @@ loop. Nothing else is critical, however annoying.
 
 ---
 
-## 8. Phase 6: prioritise
+## 9. Phase 6: prioritise
 
 Sort by what actually gets the platform to launch, not by what is interesting.
 
@@ -383,7 +506,7 @@ is how the sale market and escrow should go too.
 
 ---
 
-## 9. Phase 7: build
+## 10. Phase 7: build
 
 ### The ONE LAW
 
@@ -416,7 +539,7 @@ horizontal layers, and never "the backend for six features".
 
 ---
 
-## 10. Phase 8: test, and Phase 9: sweep again
+## 11. Phase 8: test, and Phase 9: sweep again
 
 ### Test
 
@@ -442,7 +565,7 @@ the reason there is a second one.
 
 ---
 
-## 11. Frontend and design: make it next-gen
+## 12. Frontend and design: make it next-gen
 
 The direction: **classy, premium, clean, modern, fast, seamless, elegant.
 2030-level. Apple-level polish.**
@@ -498,7 +621,7 @@ These come from the owner directly and they are not open.
 
 ---
 
-## 12. The design system
+## 13. The design system
 
 Strengthen the system rather than adding components. There are 183 components
 and 1,192 lines of tokens already; the risk is not too few parts, it is parts
@@ -536,7 +659,7 @@ Two tiers, and they do not mix. `docs/ICON_SYSTEM.md` is required reading.
 
 ---
 
-## 13. Motion
+## 14. Motion
 
 Motion where it improves the experience: page transitions, shared-element-like
 transitions, subtle card interactions, modal and sheet behaviour, navigation
@@ -556,48 +679,172 @@ outright**, not revealed.
 
 ---
 
-## 14. Removing the old identity
+## 15. Removing the old identity, and standing up the new one
+
+This is Track A and the lead session owns it. It is the most visible work in the
+session and it is bounded, which is exactly why it runs in parallel with the
+agents rather than after them.
 
 The product is **Vallo**. The registered company is **VALLO SPACES LTD** and it
 appears only on legal surfaces. **RentMe** and **NaijaFinds** are dead working
 names. HANDOFF 01 section 5 is the authority on which name goes where.
 
+### 15.1 The name sweep
+
 Roughly 190 files reference `rentme` and roughly 190 reference `naijafinds`.
 This is not a find and replace. Do it in this order, because the order is what
-keeps the build green.
+keeps the build green, and **commit after each step** so any one of them can be
+reverted alone.
 
 1. **User-visible copy first.** Strings, page titles, metadata, alt text, email
    templates, empty states, headers, footers, navigation, auth pages, error
-   messages. Highest value, lowest risk
-2. **Assets.** Logos, background graphics, favicon and app icons, placeholder
-   imagery, and every old logo reference in the product UI. The current logo
-   paths are `/brand/rentme-logo.png` and `rentme-logo-ink.png`, the second being
-   the ink recolour that CSS swaps in for the light theme. Both need renaming and
-   every reference updating together
+   messages, the offline page, the PWA manifest, the service worker. Highest
+   value, lowest risk
+2. **Assets and their references** (15.2)
 3. **Domains.** `rentme.ng` appears in the legal pages and in metadata. It must
    become the live Vallo domain, and a stale domain in a privacy notice is the
    legal defect described in HANDOFF 01 section 4.2
 4. **The npm scope, last and deliberately.** `@naijafinds/web`,
    `@naijafinds/i18n`, `@naijafinds/design-tokens` and the root `package.json`
-   name. This touches every import in the tree and is the one that can break the
-   build in a hundred files at once. **Do it as its own commit, with nothing else
-   in it**, so a revert is clean
+   name and description. This touches every import in the tree and is the one
+   that can break the build in a hundred files at once. **Do it as its own
+   commit, with nothing else in it**, so a revert is clean
 5. **Native app identifiers.** `apps/web/android` and `apps/web/ios` carry bundle
    identifiers and display names. Changing an application ID after a store
-   listing exists is not reversible, so **confirm with the founder before
-   touching these**, and read `docs/MOBILE.md` first
+   listing exists is not reversible, so **this one stops and asks**, per section
+   3.2. Read `docs/MOBILE.md` first
 
 **Do not blindly rename legal references.** Some strings must remain the
-registered company name, and some, like the commented explanation of the dead
-`support@rentme.ng` mailbox in the privacy file, are historical records that
-should be updated in substance rather than string-replaced.
+registered company name. And some are historical records rather than branding:
+the comment in `apps/web/src/lib/legal/privacy.tsx` explaining that
+`support@rentme.ng` never existed and that every NDPA request sent there vanished
+is a record of a real bug. **Update it in substance, do not string-replace it.**
 
-**The visual brand did not change with the name.** Section 11 still applies in
+**Search for more than the two words.** Old copy hides in: `rent me`, `rent-me`,
+`RentMe`, `NaijaFinds`, `naija`, `nf-` token prefixes, the `nf/` ESLint rule
+namespace, alt text, `aria-label`s, JSON-LD, OpenGraph tags, email subject lines,
+seed data and test fixtures. The `nf-` CSS token prefix and the `nf/` lint rules
+are internal, not user-visible, so renaming them is optional churn. **Leave them
+unless the sweep is otherwise complete**, and say that you left them.
+
+### 15.2 The new logo
+
+**The founder has already uploaded it.** It is on `main` as commit `a41b9c1`, at
+the repository root, named `00C4432C-058C-4607-9273-3E23301F106B.png`. First job
+is to move it somewhere sane and give it a real name.
+
+What it is: a glass app-icon tile, rounded square, deep navy-black ground with an
+electric blue rim light and outer glow. Inside it, a stylised skyline of five
+glass towers with an orbital swoosh curving under them, and the **VALLO**
+wordmark beneath in the same brushed chrome and blue. It is a premium 3D studio
+render, and it matches the brand rules in section 12 exactly: navy-black,
+electric blue, no orange, no purple.
+
+The old logo is `/brand/rentme-logo.png` with `/brand/rentme-logo-ink.png` as the
+ink recolour that CSS swaps in for the light theme. **The uploaded file is one
+asset and the product needs a set.** Derive it:
+
+| Asset | From the upload | Used by |
+| --- | --- | --- |
+| App icon, square with the tile | The upload as it is | PWA, native, favicon, store listings |
+| Wordmark on transparent | Mark plus wordmark, tile removed | Headers, navigation, footer |
+| Mark only, transparent | The skyline and swoosh alone | Compact headers, avatars, the tab bar |
+| Ink variant | The same, recoloured for light | The light theme, exactly as the old ink file worked |
+| Favicon set | 16, 32, 180, 192, 512 | `apps/web/public/` and the manifest |
+
+**Rules while doing this.** Never cut the background out of the supplied render
+by hand and leave halos; if a transparent version cannot be produced cleanly,
+say so rather than shipping a bad cutout. The glass tile is designed to sit on
+dark; on the light theme use the ink variant, not the tile on white. And every
+place the old logo is referenced gets updated in the same commit as the rename,
+or the product ships with broken images.
+
+### 15.3 What else is in `/brand/`
+
+Ten more assets carry the old name and most are in active use:
+`rentme-bg.png`, `rentme-city.png`, `rentme-villa.png`, `rentme-map.png`,
+`rentme-assistant.png`, `ai-banner.png`, and eight `story-*.png` files. Rename
+the files and update every reference together. `grep -rn "rentme-" apps/web/src`
+is the list.
+
+### 15.4 The sample property imagery
+
+**Read `apps/web/src/components/app/MediaFrame.tsx` before touching any of
+this.** The header comment explains the current design and it was a deliberate
+decision, not laziness.
+
+What exists: two architectural images do all the work. `rentme-villa.png` covers
+house, villa, terrace and shortlet; `rentme-city.png` covers flats, tower, hotel
+and shop; land deliberately keeps a drawing, because a plot has nothing built on
+it and putting a house on it would make the picture contradict the listing. The
+same building is framed six ways by the listing's own hue so twenty cards do not
+look identical, and **every one carries the example mark on the card and the full
+sentence on its detail page.**
+
+The founder wants better houses: best-of-the-best architectural photography, the
+kind of thing you would find on Pinterest, used as samples on the landing page
+and in the property containers. That is the right instinct and the current two
+images are the weakest part of the visual product. **Three things constrain how
+it gets done, and none of them is a reason not to do it.**
+
+1. **The network blocks image hosts.** The MediaFrame comment records that this
+   environment answers 403 to every image host, and that is still true. **A
+   session cannot download photography.** So the deliverable is a shortlist, not
+   a download: specific images, direct URLs, the licence each one carries, and
+   what each is for, written to `docs/IMAGERY.md` so the founder can pull them in
+   one sitting. Then wire the code to accept them by filename so dropping the
+   files in is the only remaining step
+2. **Pinterest is not a source.** Almost everything on it is someone else's
+   copyrighted photograph reposted without licence, and this is a public
+   commercial landing page for a registered company. Use sources whose licence
+   actually permits commercial use: **Unsplash, Pexels and Pixabay**, all of
+   which carry genuinely world-class architectural and interior photography for
+   free. Pinterest is fine as a **mood reference** for deciding what good looks
+   like. It is not fine as a file source. Record the licence next to every
+   entry in `docs/IMAGERY.md`
+3. **A real photograph on a listing is a claim about that property.** On the
+   landing page, the hero, the city scenes and marketing surfaces, premium
+   photography is right and should be used freely. On a **listing card or a
+   listing detail page** it is a stand-in for a property it is not a picture of,
+   so it stays labelled exactly as it is labelled today. Upgrade the image
+   quality; **do not remove the example mark.** HANDOFF 01 section 4.7
+
+What good looks like for this platform: Nigerian and West African architecture
+where it can be found, modern and aspirational rather than generic American
+suburbia, warm natural light against the dark UI, a mix of detached houses,
+terraces, apartment towers and interiors, and enough variety that eight scene
+types each get their own image instead of two images covering eight.
+
+**The landing page hero is the highest-value single image in the product.** It is
+the first thing a visitor sees and it currently reuses `rentme-city.png` as a CSS
+background in `CityHero.tsx`. Treat it as its own decision.
+
+### 15.5 Terms, disclaimers and privacy
+
+These are Track A because they are text, they are quick, and one of them is a
+legal defect today. **HANDOFF 01 section 4 is the full specification.** In short:
+
+- The privacy notice names **RentMe** as the data controller. The controller is
+  **VALLO SPACES LTD**. Section 4.2 has the exact table of what to change:
+  controller identity, registered address, a named DPO contact, NDPC number when
+  it exists, and the live domain
+- Terms need the clauses in section 4.6 that match what the platform actually
+  does: user-generated listings, what a verified badge means and does not mean,
+  the messaging trigger, the wallet, inspections, bot output, suspension and
+  appeal, IP, and Nigerian law
+- Disclaimers per section 4.7, and the table there says which surface needs
+  which. **Escrow is the one that matters most: it does not exist and nothing may
+  imply it does**
+- **Do not invent legal provisions.** Where a clause carries real legal
+  consequence, write it, mark it clearly for the solicitor, and say so in the
+  report
+
+**The visual brand did not change with the name.** Section 12 still applies in
 full.
 
 ---
 
-## 15. Security sweep
+## 16. Security sweep
 
 The platform holds government identity documents and moves money. This section is
 not a checklist to tick, it is the one where a miss is unrecoverable.
@@ -657,7 +904,7 @@ of them has already turned out to be wrong.
 
 ---
 
-## 16. Authentication and account safety
+## 17. Authentication and account safety
 
 Every flow works end to end, or it is not done. No dead-end screens, no fake
 success messages, no missing loading states, no broken resend, no insecure
@@ -678,7 +925,7 @@ device and session management, account deletion, account recovery.
 
 ---
 
-## 17. Database and backend
+## 18. Database and backend
 
 Do not focus only on how the frontend looks. Inspect the schema, relationships,
 constraints, indexes, query efficiency, transactions, concurrency, race
@@ -728,7 +975,7 @@ There are 167 migrations and real money paths on top of them.
 
 ---
 
-## 18. The admin panel
+## 19. The admin panel
 
 Treat it as a product of its own, because operations is where a marketplace lives
 or dies. Identify everything missing across: user management, search, filters,
@@ -755,7 +1002,7 @@ Rights the notice promises have to be executable by a human in this panel.
 
 ---
 
-## 19. Property, messaging, money
+## 20. Property, messaging, money
 
 ### Property and listing experience
 
@@ -805,7 +1052,7 @@ both files before touching either area.
 
 ---
 
-## 20. Inspections, bots and smart features
+## 21. Inspections, bots and smart features
 
 Inspections are a real differentiator in the Nigerian market, because the whole
 fraud pattern the platform exists to prevent happens between first contact and
@@ -823,7 +1070,7 @@ assistance, not advice, and never a substitute for viewing a property.
 
 ---
 
-## 21. Integrations
+## 22. Integrations
 
 Sweep what exists, what is broken, what is missing: webhooks, email, SMS,
 payments, identity and verification, maps and location, storage, analytics,
@@ -845,23 +1092,78 @@ network at 9pm is not an upgrade.
 
 ---
 
-## 22. Retention, growth and performance
+## 23. Retention, growth and performance
 
-### Retention
+### 23.1 Retention: think outside the box
 
-Think about why someone would download the app, return to it, trust it,
-recommend it and stay. Then research the mechanisms: better onboarding,
-personalisation, discovery, saved searches, smart notifications, useful
-reminders, better recommendations, sharing, network effects, trust signals,
-verification, progress systems, useful history, receipts, wallet utility,
-messaging, personalised dashboards, re-engagement, referrals, value loops.
+Start with the honest question. Why would a Nigerian renter open this app a
+second time? Most property apps are used once, for one search, and abandoned the
+day a place is found. A marketplace that only matters during a search is a
+marketplace with no retention, and no amount of push notification fixes that.
+
+**So the brief is not "add retention features". It is: find the reasons to come
+back that are already latent in what this platform uniquely has.** Three assets
+here that a normal listings site does not have, and each one is a retention
+engine nobody has built yet:
+
+- **A social layer that already ships.** 20-plus tables, areas, posts, stories,
+  follows, badges. Right now it is a feed. It could be the reason someone opens
+  the app on a day they are not moving house
+- **A wallet and a ledger.** Money that lives in the product is a reason to
+  return that has nothing to do with searching
+- **A verification ladder and earned badges.** Standing that took effort to earn
+  is standing people come back to maintain
+
+**Go wide before going deep.** Generate the long list first, judge it after.
+Directions worth pushing on, and none of these is a specification, they are
+starting points to argue with:
+
+- **The tenancy does not end at the booking.** Rent renewal dates, receipts,
+  agreement storage, the reminder that the tenancy expires in 60 days and here is
+  what is available now. That turns a one-search product into an annual
+  relationship
+- **Save the search, not the listing.** An alert when something matching a saved
+  brief appears is the single most common reason a property app is reopened
+- **Neighbourhood as content.** Someone who moved into an area knows things about
+  it. The social layer is already shaped for this. An area page worth reading is
+  worth revisiting
+- **Verification as a status people maintain.** Badges already exist. What does a
+  person lose by letting them lapse
+- **The wallet as a habit, not a checkout.** Money set aside toward rent, visible
+  progress, and the receipts history that a Nigerian tenant currently keeps in a
+  WhatsApp thread
+- **Agents are the other half of the market and they are the ones with a daily
+  reason to open the app.** An agent console that genuinely runs a small business
+  is more retentive than anything aimed at renters. Agents also bring the
+  inventory, and without inventory there is no product
+- **Diaspora.** The platform has a CGO in the UK for a reason. Someone renting or
+  buying in Nigeria from abroad has a completely different set of problems:
+  trust, remote inspection, someone to view on their behalf, paying from outside.
+  Nobody serves this well and it is the most obvious differentiation available
+- **Trust as the product.** Every mechanism that makes a person feel safer
+  transacting is retention, because the alternative to this platform is a
+  WhatsApp group where people get defrauded
+
+For each idea, ask the twelve questions in section 27 and be willing to throw it
+away. **A retention idea that only works if the user is confused is a dark
+pattern.**
+
+### 23.2 The line that is not crossed
 
 **No dark patterns.** No manufactured urgency, no fake scarcity, no fake social
-proof, no notification designed to manipulate rather than inform. Retention comes
-from real value, and on a platform whose entire pitch is trust, a manipulative
-pattern costs more than it earns.
+proof, no invented view counts, no countdown that resets, no notification
+designed to manipulate rather than inform, no interface that makes leaving
+harder than arriving.
 
-### Performance
+The whole pitch of this platform is that it is the trustworthy place to do a
+transaction people currently get defrauded in. **A manipulative pattern costs
+more here than it earns anywhere.** If a growth idea requires the user not to
+notice something, it is not a growth idea.
+
+And **the platform charges no fees anywhere**, so monetisation research has to
+work within that. Copy must never mention a fee.
+
+### 23.3 Performance
 
 It should feel fast on a mid-range Android phone on a Nigerian mobile network,
 which is the actual target, not a laptop on fibre.
@@ -872,9 +1174,134 @@ behaviour, and behaviour on a poor or intermittent connection. There is a
 `save-data.ts` in the tree already, which is the right instinct; verify it is
 actually honoured.
 
+**Performance is retention.** On the target network, a heavy hero image or an
+unbatched query is the reason someone never sees the second screen. Every
+recommendation in 23.1 is worthless if the app takes nine seconds to open.
+
 ---
 
-## 23. The small things, which are most of the work
+## 24. Moments of confirmation: success, pending, verified, failed
+
+This is its own section because it is its own system, and right now it is not one.
+It is also the part of a product people screenshot and send to a friend, which
+makes it disproportionately worth getting right.
+
+**The moment a transaction lands is the moment the platform earns its trust.**
+Somebody in Nigeria who has just sent money for a property is, in that second,
+either reassured or frightened. Every one of these screens is a trust screen.
+
+### 24.1 What this covers
+
+Every state the platform tells a person about, across every flow:
+
+- **Success.** Payment made, wallet funded, transfer sent, booking confirmed,
+  listing published, inspection booked, application submitted, message sent,
+  profile saved, password changed
+- **Pending.** Payment processing, transfer in flight, verification under review,
+  listing awaiting approval, agent application in the queue, withdrawal
+  settling. **Pending is the most neglected state in this product and the most
+  anxious one for the user**
+- **Verified.** The verification ladder, the agent badge, a verified listing, a
+  verified identity, the earned badges that already exist
+- **Failed and partial.** Payment declined, transfer reversed, verification
+  rejected, upload failed, listing rejected with a reason
+- **Banners and persistent notices.** Account not yet verified, email not
+  confirmed, a document expiring, a tenancy ending, an action required
+- **Receipts.** Which are a success state that has to survive being looked at
+  again six months later
+
+### 24.2 The reference, and what is wrong with it
+
+The founder supplied a screenshot of a confirmation sheet from another product: a
+white sheet, a scalloped orange rosette with a white tick, "Successful!", the
+amount, and two buttons. The structure is right and worth learning from. **The
+execution is everything this platform's brand is not.**
+
+- **It is orange.** There is no orange, amber or gold in this product. Section 12
+  rule 2, and the founder has been explicit: "it's blue, our blue, I don't want
+  to hear that anymore"
+- **It is a white sheet.** Dark is the default here
+- **The rosette is a generic sticker.** This platform has 87 commissioned 3D
+  brand objects and a glass identity that the new logo just made explicit
+
+So: **take the anatomy, rebuild it in the Vallo language.** A confirmation sheet
+that is unmistakably ours, in glass and electric blue on navy-black, using the
+brand objects that already exist.
+
+### 24.3 The Vallo confirmation language
+
+Design it once, as a system, then use it everywhere. **Do not build a bespoke
+success screen per flow**, which is what happens today.
+
+The anatomy, which holds across every state:
+
+1. **The mark.** A 3D brand object in a glass container, sized generously. This
+   is the emotional payload and it is what makes the screen ours
+2. **The verdict**, in one or two words. "Payment sent". "Under review". Not
+   "Successful!" with an exclamation mark, which reads cheap
+3. **The fact**, being the amount, the property, the date, whatever the person
+   will want to screenshot
+4. **The consequence**, being one line saying what happens next and when.
+   **This is the line most products skip and it is the one that removes fear**
+5. **Two actions at most**, one primary and one quiet
+
+The container follows the new logo: a glass tile, rounded, deep navy-black
+ground, electric blue rim light, a soft outer glow, and real depth. **Glass where
+it earns it, not everywhere**, per section 12.
+
+Colour by meaning, and only these: **electric blue** for the brand and the
+primary action, **emerald** for success, **bright cyan** for attention and
+pending, **rose** for failure. Nothing else. A pending state is not orange, it is
+cyan, and that decision was made when orange was removed.
+
+### 24.4 The marks, and what already exists
+
+**Eighteen of the 87 brand objects are already status marks.** Check these before
+commissioning anything:
+
+`shield-check`, `user-verified`, `user-check`, `home-check`, `calendar-check`,
+`clock-check`, `calendar-clock`, `doc-shield`, `doc-lock`, `shield-lock`,
+`shield-home`, `card-lock`, `bell-alert`, `bell-badge`, `luggage-check`,
+`support-shield`, `gift-star`, `hotel-star`.
+
+That covers a lot: verified identity, verified property, confirmed booking, a
+document under protection, an alert. **The gaps are mostly on the money and
+failure side**: a payment-sent mark, a transfer-in-flight mark, a pending or
+under-review mark, a declined mark, and a receipt mark.
+
+**Write the prompts, do not guess at the art.** The founder generates these
+renders himself and has rejected over-specified engineering prompts before. The
+prompt that works reads like a creative director briefing a 3D artist: the
+object, the material, the lighting, the mood, the angle. Not a spec sheet.
+
+Put every prompt in `docs/BRAND_MARKS.md`, one per missing mark, each saying what
+state it represents and where it will be used, and each written to match the
+house style of the existing 87 so a new object does not look like a visitor.
+Anchor them to the new logo: glass and chrome, electric blue, navy-black ground,
+studio lighting, soft rim glow, slight three-quarter angle.
+
+### 24.5 What to actually look for in the audit
+
+- **Find every success, pending, failed and empty state in the product and list
+  them.** There are 97 pages. The list will be long and it will not be consistent
+- There is a `StatusPill` and a `Sheet` in `components/ui/` and no shared
+  confirmation component. **That is the gap**: one `ResultSheet` or equivalent,
+  driven by state, used by every flow
+- **Pending states are probably missing entirely in places.** Anywhere money
+  moves, look for what the user sees between tapping and settling. If the answer
+  is a spinner, that is a recommendation
+- **Check the failure copy.** A declined payment that says "Something went wrong"
+  is worse than useless to someone who just tried to pay rent
+- **Check what a receipt looks like six months later**, and whether it can be
+  saved or shared
+- **Check the banners.** Persistent notices are where dead or stale states hide
+
+**This area alone should produce dozens of recommendations**, and they are exactly
+the small, high-impact kind section 8 asks for.
+
+---
+
+## 25. The small things, which are most of the work
 
 Do not skip these because they are small. They are what "premium" is made of.
 
@@ -889,42 +1316,95 @@ unnecessary steps.
 
 ---
 
-## 24. The agent protocol: three, and never more
+## 26. The agent protocol: three, and never more
 
 **Maximum three agents at a time.** A large fleet once burned an enormous amount
 of usage for very little gain, and the founder has been explicit and repeated
-about this.
+about this. Three is the ceiling, not a target: use fewer where fewer is enough.
 
-Suggested separation:
+These should be the best agents this project has run. That is a function of what
+you put in their prompt, not of how many you launch.
 
-1. **Research, product and UX**
-2. **Engineering, backend and security**
-3. **Frontend, design and QA**
+### 26.1 The three, mapped to Track B
 
-### The contract every agent works under
+1. **Research, product, UX and growth.** Sections 5, 7, 8, 21, 23. Owns the
+   survey of flows, the competitive and pattern research, retention thinking, and
+   the largest share of the recommendation count
+2. **Engineering, backend, database and security.** Sections 16, 17, 18, 19, 22.
+   Owns the security sweep, the schema and query audit, the admin panel gap
+   analysis, integrations
+3. **Frontend, design, motion and QA.** Sections 12, 13, 14, 20, 24, 25. Owns the
+   design system audit, the confirmation and status system, the property and
+   messaging surfaces, the small things, and the test inventory
 
-- **Strict non-overlapping file scopes, agreed in writing before it starts.** No
-  two agents in the same area
-- **Agents never run git.** They never commit and never push. **The lead
-  commits**
+The **lead session** runs Track A in parallel (section 3.1) and synthesises
+everything. It is not a fourth agent and it does not wait.
+
+### 26.2 What every agent prompt must contain
+
+Do not launch an agent with a one-line brief. Each one gets, in its prompt, every
+time:
+
+- **The rules, and an instruction to acknowledge them before starting.** Zero em
+  dashes, British spelling, integer kobo as bigint, the `ActionResult` envelope,
+  `BrandIcon` and `UiIcon` only with no `Icon3D`, 390px first, dark default, no
+  fees anywhere, no orange or amber or gold or purple, first-party inventory
+  only, escrow promised nowhere. **An agent that has not restated the rules has
+  not read them**
+- **Its exact file scope**, and the scopes of the other two, so it knows what not
+  to touch
+- **Which handoff sections are its brief**, by number
+- **The reading list in section 1**, and the warning that `docs/archive/` governs
+  nothing
+- **The output format** for recommendations from section 8: evidence, action,
+  reason, impact, effort, risk, priority
+- **What is already done and must not be rebuilt** (section 2), because an agent
+  that proposes rebuilding the social layer has wasted its run
+
+### 26.3 Brutal honesty, and rechecking before reporting
+
+This is the part that decides whether the output is worth anything.
+
+- **Be brutally honest. Flattering scores and generous assessments are worse than
+  useless**, because the founder will make decisions on them. If a subsystem is
+  bad, say it is bad and say why
+- **Recheck before asserting.** Read the file again. Run the query again. Look at
+  the screenshot. A confident wrong finding costs more than a missing one, and
+  this project has been burned by exactly that
+- **Say plainly what was not checked.** "I did not verify X" is a valid and
+  valuable line in a report
+- **Report honestly what you did not do.** A quiet skip is worse than a stated one
+- **Do not pad the count.** A recommendation with no reason is a preference. The
+  target is 400 real ones, and inventing filler to reach a number is the one way
+  to fail this mission outright
+
+### 26.4 The contract
+
+- **Strict non-overlapping file scopes, agreed in writing before anything
+  starts.** No two agents in the same area, and none of them in Track A's paths
+- **Agents never run git.** They never commit, never push, never branch. **The
+  lead commits**
 - **The lead re-audits before committing.** Two independent passes on everything.
   If the lead's audit finds a problem, it goes back
 - Work items **one by one**, closed completely and verified, then the next. Never
   a batch of half-finished items
-- Each agent gets the house rules in its prompt, every time: zero em dashes,
-  integer kobo, the `ActionResult` envelope, `BrandIcon` and `UiIcon` only, 390px
-  first, dark default, no fees, no orange
-- Each agent reports honestly what it did **not** do. A quiet skip is worse than a
-  stated one
 - **Do not trust an agent's success report at face value. Verify it yourself.**
   That has caught real problems more than once
 
-The main session synthesises. No duplicated work, no chaotic parallel changes, no
-two agents editing the same file.
+### 26.5 Aim high on what they propose
+
+The founder asked for revolutionary, high-end frontend, tools and features, not a
+tidy-up. So the brief to the agents is not "find bugs". It is:
+
+**"What would make this the best property platform anyone in this market has
+seen, and what specifically is stopping it from being that today?"**
+
+Think beyond the obvious. Propose the thing that does not exist yet. Then apply
+section 27 and be willing to kill your own idea if it does not create real value.
 
 ---
 
-## 25. The decision standard
+## 27. The decision standard
 
 At every decision, twelve questions:
 
@@ -960,7 +1440,7 @@ I think we can make it better because".
 
 ---
 
-## 26. Working with the founder
+## 28. Working with the founder
 
 This is in HANDOFF 01 section 9 in full. The short version, because getting it
 wrong wastes his time and he will say so:
@@ -976,7 +1456,7 @@ wrong wastes his time and he will say so:
 
 ---
 
-## 27. The standard
+## 29. The standard
 
 Not "the app works". The standard is:
 
@@ -992,17 +1472,51 @@ unnecessary complexity. No careless security. No generic design. No "good enough
 
 ---
 
-## 28. Start here
+## 30. Start here
+
+This session runs autonomously (section 3). Work the list. Do not stop between
+steps to ask whether to continue.
+
+### Hour one, in order
 
 1. Read `docs/HANDOFF_01_COMPANY.md`, then `docs/PRODUCT.md`, then
    `docs/HANDOFF.md`, then `RECOMMENDATIONS.md`
-2. Confirm the branch and the working tree are clean
+2. Confirm the branch, fetch `origin`, and bring the working branch up to date
+   with `main` so the new logo commit is present
 3. Run the baseline: `npm run typecheck`, `npm run lint`, `npm run test`,
-   `npm run build`. **Record what fails before changing anything**, so a
+   `npm run build`. **Record what already fails before changing anything**, so a
    pre-existing failure is never mistaken for one you caused
-4. Digest, then survey, then rate. Write the rating to a file
-5. Present: **where we are, what is missing, what is broken, what is risky, what
-   should be removed, what should be upgraded, what should be built, what should
-   be tested, and what takes Vallo from 0 to 100**
-6. Then wait for the word before building the large pieces
-7. Then execute. Then sweep again
+4. Inventory the branches and write `docs/BRANCH_AUDIT.md` (section 3.3)
+5. **Launch the three agents** with full prompts per section 26.2. They start on
+   Track B immediately
+
+### Then, both tracks at once
+
+**Lead, Track A**, committing after each step:
+
+- The name sweep, in the order in 15.1
+- The logo set, derived from the upload (15.2), and the `/brand/` assets (15.3)
+- `docs/IMAGERY.md` and the property imagery wiring (15.4)
+- Privacy, terms and disclaimers (15.5, and HANDOFF 01 section 4)
+- Branch deletions once `docs/BRANCH_AUDIT.md` is pushed
+
+**Agents, Track B**: digest, survey, rate, research, recommend. Rating written to
+a file. Recommendations appended to `RECOMMENDATIONS.md` in its existing format,
+with nothing renumbered and nothing discarded.
+
+### The report, when both tracks have landed
+
+Write it as a file, not only as a message. It answers:
+
+**Where we are. What is missing. What is broken. What is risky. What should be
+removed. What should be upgraded. What should be built. What should be tested.
+What takes Vallo from 0 to 100.**
+
+Plus the twenty-five ratings with evidence, the recommendation count by priority,
+what was pushed, what was deliberately left, and **what was skipped and why.**
+
+### Then
+
+Push Track A to `main` once it is green. Build the highest-value items from the
+prioritised list. Then sweep again, because the second sweep finds what the first
+one did not know to look for.
