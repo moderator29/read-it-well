@@ -9,13 +9,13 @@ import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schem
 export const metadata: Metadata = {
   title: "Safety centre",
   description:
-    "How payments work on RentMe, how inspections work, what we will never ask you for, and how to report someone who asks you to pay outside the platform.",
+    "How payments work on Vallo, how inspections work, what we will never ask you for, and how to report someone who asks you to pay outside the platform.",
 };
 
 /**
  * The safety centre.
  *
- * The platform's most important rule is that RentMe charges no fees and that
+ * The platform's most important rule is that Vallo charges no fees and that
  * nobody should ever be asked to pay outside it. Until this page existed that
  * rule was enforced in three places nobody can see: a database trigger that
  * flags account numbers in messages, a scanner that holds posts and listings
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 const PAYING_STEPS: { title: string; body: string }[] = [
   {
     title: "You never pay a person, you pay the platform",
-    body: "Every payment on RentMe goes through the checkout screen with a licensed Nigerian payment processor, using a card, a bank transfer raised by the processor, or your RentMe wallet. There is no other way to pay for a stay here, and there is no step where somebody sends you an account number.",
+    body: "Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment processor, using a card, a bank transfer raised by the processor, or your Vallo wallet. There is no other way to pay for a stay here, and there is no step where somebody sends you an account number.",
   },
   {
     title: "The price you agree is the price you pay",
@@ -43,14 +43,14 @@ const PAYING_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "Money comes back to your wallet first",
-    body: "A refund lands in your RentMe wallet, which is the fastest route we have, and you move it to your bank from there whenever you want.",
+    body: "A refund lands in your Vallo wallet, which is the fastest route we have, and you move it to your bank from there whenever you want.",
   },
 ];
 
 const INSPECTION_STEPS: { title: string; body: string }[] = [
   {
     title: "Message first",
-    body: "Open the listing and message the agent. Ask about light, water, the road, the gate and anything else that matters to you. Keep the whole conversation on RentMe: it is scanned for account numbers and payment wording, and it is the record if there is ever a dispute.",
+    body: "Open the listing and message the agent. Ask about light, water, the road, the gate and anything else that matters to you. Keep the whole conversation on Vallo: it is scanned for account numbers and payment wording, and it is the record if there is ever a dispute.",
   },
   {
     title: "Then inspect",
@@ -61,7 +61,7 @@ const INSPECTION_STEPS: { title: string; body: string }[] = [
     body: "Both sides can record that the inspection happened, in the conversation itself. That record sits with the booking, so nobody can later claim a viewing that did not happen.",
   },
   {
-    title: "Only then, pay on RentMe",
+    title: "Only then, pay on Vallo",
     body: "Rent is message, inspect, then pay. There is no reserve button on a rental for exactly that reason. Never hand over cash at a viewing, and never pay an inspection fee, a holding fee or an agency fee to anybody.",
   },
 ];
@@ -79,7 +79,7 @@ export default function SafetyCentrePage() {
             Safety centre
           </span>
           <h1 className="nf-h1 mx-auto mt-heading max-w-[18ch]">
-            Nobody on RentMe should ever ask you to pay outside it
+            Nobody on Vallo should ever ask you to pay outside it
           </h1>
           <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
             How payments work here, how inspections work, what we will never ask
@@ -113,7 +113,7 @@ export default function SafetyCentrePage() {
         {/* -------------------------------------- what we never ask you for */}
         <section className="mt-section" aria-labelledby="never-ask">
           <h2 id="never-ask" className="nf-h2 text-[1.375rem]">
-            What RentMe will never ask you for
+            What Vallo will never ask you for
           </h2>
           <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
             Four things. If a message, a call or an email asks you for any of
@@ -136,7 +136,7 @@ export default function SafetyCentrePage() {
         {/* -------------------------------------------- how payments work */}
         <section className="mt-section" aria-labelledby="how-payments">
           <h2 id="how-payments" className="nf-h2 text-[1.375rem]">
-            How paying on RentMe works
+            How paying on Vallo works
           </h2>
           <ol className="mt-group space-y-row">
             {PAYING_STEPS.map((step, index) => (
@@ -230,7 +230,7 @@ export default function SafetyCentrePage() {
           <div className="nf-card mt-heading p-card">
             <span className="nf-overline">What happens next</span>
             <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              A report about being asked to pay outside RentMe, or about anything
+              A report about being asked to pay outside Vallo, or about anything
               unsafe, is answered{" "}
               <span className="font-semibold text-[var(--nf-content-primary)]">
                 {RESPONSE_COMMITMENTS.urgent.label.toLowerCase()}
@@ -256,7 +256,7 @@ export default function SafetyCentrePage() {
         {/* --------------------------------- if you already paid outside */}
         <section className="mt-section" aria-labelledby="already-paid">
           <h2 id="already-paid" className="nf-h2 text-[1.375rem]">
-            If you have already paid someone outside RentMe
+            If you have already paid someone outside Vallo
           </h2>
           <ol className="mt-group space-y-row">
             <li className="nf-card p-card-sm">

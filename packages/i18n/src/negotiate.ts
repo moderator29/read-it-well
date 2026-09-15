@@ -8,7 +8,7 @@
  * for it would be a third-party surface on the very first byte of every
  * anonymous request, which is not a trade worth making for thirty lines.
  *
- * It also has no idea which locales RentMe ships. It takes the supported list
+ * It also has no idea which locales Vallo ships. It takes the supported list
  * as an argument so it stays a pure function of its inputs: no cookies, no
  * request, no module state. That is what makes it testable without a server,
  * and it is why the matching lives here rather than inside `lib/locale.ts`,
@@ -79,7 +79,7 @@ export function parseAcceptLanguage(header: string | null | undefined): Language
  * The first supported locale the header asks for, or null if it asks for none.
  *
  * Matching is on the primary subtag and case insensitive, so `yo-NG`, `yo-Latn-NG`
- * and `YO` all resolve to `yo`. Every locale RentMe ships is a bare primary
+ * and `YO` all resolve to `yo`. Every locale Vallo ships is a bare primary
  * subtag, so there is no regional variant to prefer over a plain one and the
  * simple comparison is the whole of the rule.
  *

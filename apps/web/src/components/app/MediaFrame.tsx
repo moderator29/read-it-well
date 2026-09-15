@@ -5,7 +5,7 @@ import type { ListingKind } from "@/lib/listings/types";
 /**
  * The one photographic frame on the platform.
  *
- * Every place on RentMe that paints a listing photograph paints it on top of
+ * Every place on Vallo that paints a listing photograph paints it on top of
  * this: the listing card, the gallery hero, the photo grid, the lightbox, the
  * map dock, the featured carousel and the message sheets. What shows through
  * when the photograph has not arrived, or the CDN cannot be reached, is this
@@ -20,7 +20,7 @@ import type { ListingKind } from "@/lib/listings/types";
  * surface is a fallback nobody can reason about.
  *
  * WHY THE COLOURS ARE NOT BRAND COLOURS. The six original pairs were Tailwind's
- * indigo, sky and slate defaults. None of them is a RentMe colour, none came
+ * indigo, sky and slate defaults. None of them is a Vallo colour, none came
  * from the token layer, and all six were dark, so in daylight an unloaded
  * photograph punched a navy hole through a white page. The ground reads from
  * `--nf-media-ground-*`, which is a quiet depth of the surface family in each

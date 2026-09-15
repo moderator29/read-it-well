@@ -12,7 +12,7 @@ import { verificationCode } from "@/lib/email/messages";
  *
  * Supabase renders auth mail itself, from templates in its dashboard, sent from
  * its own address. Two consequences the owner has been looking at: the inbox
- * says "Supabase Auth" rather than RentMe, and the default confirm template
+ * says "Supabase Auth" rather than Vallo, and the default confirm template
  * carries `{{ .ConfirmationURL }}`, a LINK, while our screen asks for six
  * digits. The screen and the inbox disagreed about what we had sent.
  *

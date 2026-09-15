@@ -41,9 +41,9 @@ import { TenancyTerm } from "./TenancyTerm";
  */
 
 const STEPS = [
-  { label: "Message the agent", detail: "Ask your questions inside RentMe." },
+  { label: "Message the agent", detail: "Ask your questions inside Vallo." },
   { label: "Inspect the property", detail: "Arrange a viewing before anything is agreed." },
-  { label: "Pay through RentMe", detail: "Only once you have seen the place." },
+  { label: "Pay through Vallo", detail: "Only once you have seen the place." },
 ];
 
 /** A minimum stated in months, in this listing's own unit. */
@@ -160,7 +160,7 @@ export async function RentalPanel({
           <BrandIcon name="shield-check" fill />
         </span>
         <p className={TYPE.rowMeta}>
-          For your safety, keep every chat and payment inside RentMe. Deals made outside the
+          For your safety, keep every chat and payment inside Vallo. Deals made outside the
           platform are not protected by us. Pay only after you have inspected the property.
         </p>
       </div>

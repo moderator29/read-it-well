@@ -240,7 +240,7 @@ export function AccountBody({
             <EmptyPanel
               icon="user-verified"
               title="Claim a handle and this fills up"
-              body="A handle is your address on RentMe. Everything you write around a place collects here once you have one."
+              body="A handle is your address on Vallo. Everything you write around a place collects here once you have one."
             />
           ) : (
             /* The public page's own panel, not a second one built for this

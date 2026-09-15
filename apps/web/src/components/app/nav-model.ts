@@ -172,7 +172,7 @@ export function buildNav({
          * tool you reach for from inside what you are doing is precisely a thing
          * that has to be reachable from inside what you are doing.
          */
-        { href: "/assistant", label: "RentMe AI", icon: "sparkle" },
+        { href: "/assistant", label: "Vallo AI", icon: "sparkle" },
       ],
     });
   }

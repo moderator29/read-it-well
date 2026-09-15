@@ -1,5 +1,5 @@
 /**
- * `@rentme` in a thread, and the answer it writes back.
+ * `@vallo` in a thread, and the answer it writes back.
  *
  * Self-contained node script, no runner and no config, matching the other specs
  * in this directory:
@@ -27,7 +27,7 @@
  * social route in its designed unconfigured state and no thread is ever mounted.
  * Rather than assert nothing, the spec carries its own stand-in for PostgREST:
  * a small read-only server that answers the exact queries `getThread` makes with
- * one fixed conversation in it, a question naming `@rentme`, the assistant's
+ * one fixed conversation in it, a question naming `@vallo`, the assistant's
  * reply with two cited flats, and a person replying underneath. Build the app
  * against it and the strong assertions fire:
  *
@@ -102,15 +102,15 @@ function check(name, condition) {
 
 console.log("\nthe rules, from bot-schema.ts");
 
-check("the assistant's name is rentme", BOT_HANDLE === "rentme");
+check("the assistant's name is vallo", BOT_HANDLE === "vallo");
 
 for (const [label, body, expected] of [
-  ["a summon at the start of a post", "@rentme where can I stay for a week?", true],
-  ["a summon mid sentence", "does anybody know, @rentme?", true],
-  ["case does not matter", "@RentMe help", true],
-  ["an email address does not summon anybody", "write to me at ade@rentmenow.com", false],
-  ["a doubled at sign is not a summon", "@@rentme", false],
-  ["the name inside a longer handle is not a summon", "@rentmehq is somebody else", false],
+  ["a summon at the start of a post", "@vallo where can I stay for a week?", true],
+  ["a summon mid sentence", "does anybody know, @vallo?", true],
+  ["case does not matter", "@Vallo help", true],
+  ["an email address does not summon anybody", "write to me at ade@vallonow.com", false],
+  ["a doubled at sign is not a summon", "@@vallo", false],
+  ["the name inside a longer handle is not a summon", "@vallohq is somebody else", false],
   ["an ordinary sentence summons nobody", "the light has been on since morning", false],
   ["an empty body is not an error", "", false],
 ]) {
@@ -172,7 +172,7 @@ const FLAT_TWO = "cccc0000-0000-4000-8000-000000000002";
 const ANSWER_BODY =
   "There are two places published around Yaba at the moment, both a short walk from the rail line. Message the agent first and see the flat in person before any money moves.";
 const ANSWER_SOURCE = sourceNote(2, "Yaba");
-const QUESTION_BODY = `@rentme where can I stay around here for a week, and is @aduke still letting the flat upstairs?`;
+const QUESTION_BODY = `@vallo where can I stay around here for a week, and is @aduke still letting the flat upstairs?`;
 
 const ago = (minutes) => new Date(Date.now() - minutes * 60_000).toISOString();
 
@@ -506,7 +506,7 @@ async function run(theme) {
       (await page.evaluate(() => document.documentElement.dataset.theme ?? "dark")) === theme,
     );
 
-    const botCard = page.locator('article[aria-label="Answered by the RentMe assistant"]');
+    const botCard = page.locator('article[aria-label="Answered by the Vallo assistant"]');
     const mounted = (await botCard.count()) > 0;
 
     if (mounted) {
@@ -514,7 +514,7 @@ async function run(theme) {
       check("the assistant's answer is one card in the thread", (await botCard.count()) === 1);
       check(
         "it names itself as a machine",
-        (await botCard.getByText("RentMe AI", { exact: true }).count()) > 0,
+        (await botCard.getByText("Vallo AI", { exact: true }).count()) > 0,
       );
       check("the answer's words are on the screen", (await botCard.innerText()).includes(ANSWER_BODY));
       check("the citation line is under the answer", (await botCard.innerText()).includes(ANSWER_SOURCE));
@@ -560,7 +560,7 @@ async function run(theme) {
          answering rather than leaving the reply floating. */
       check(
         "a person's reply under it names the assistant as who it answers",
-        (await page.getByText("RentMe AI", { exact: true }).count()) >= 2,
+        (await page.getByText("Vallo AI", { exact: true }).count()) >= 2,
       );
 
       /* ------------------------------------------------------ the summon itself */
@@ -576,7 +576,7 @@ async function run(theme) {
       );
       check(
         "and it is not a link, because no account can ever hold that name",
-        (await page.locator('a[href="/u/rentme"]').count()) === 0,
+        (await page.locator('a[href="/u/vallo"]').count()) === 0,
       );
       check(
         "an ordinary handle beside it still links to the person",
@@ -592,7 +592,7 @@ async function run(theme) {
          read correctly on their own. Only the computed style on a real thread
          shows it, which is why it is asserted here rather than trusted. */
       const material = await page.evaluate(() => {
-        const ai = document.querySelector('article[aria-label="Answered by the RentMe assistant"]');
+        const ai = document.querySelector('article[aria-label="Answered by the Vallo assistant"]');
         const person = document.querySelector('article[aria-label^="Posted by"]');
         const cs = getComputedStyle(ai);
         return {
@@ -651,7 +651,7 @@ async function run(theme) {
       await page.goBack({ waitUntil: "load" });
       await page.waitForTimeout(WAIT);
 
-      const stops = await panelStops(page, 'article[aria-label="Answered by the RentMe assistant"]');
+      const stops = await panelStops(page, 'article[aria-label="Answered by the Vallo assistant"]');
       check("the assistant's card is painted, not blank", stops.length > 0);
       const solid = stops.filter((s) => s.alpha >= 0.35);
       check(

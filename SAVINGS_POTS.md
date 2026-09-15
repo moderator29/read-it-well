@@ -26,7 +26,7 @@ new enum value be *used* in the same transaction that adds it, which is why the
 enum is on its own and why they cannot be pasted together.
 
 The Supabase MCP connected to my session points at a different account from
-RentMe's, so I have not run these against your database and will not — applying
+Vallo's, so I have not run these against your database and will not — applying
 a migration to the wrong project is exactly the failure worth being careful
 about. Open the **SQL editor** in your Supabase dashboard and paste each file,
 the same way you set the Vault secret.

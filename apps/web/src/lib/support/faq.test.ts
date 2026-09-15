@@ -47,7 +47,7 @@ describe("the store itself", () => {
 describe("what the store says about money", () => {
   /*
    * The cancellations answer used to describe a free-cancellation deadline set
-   * by each listing, and a full refund before it. RentMe has one schedule for
+   * by each listing, and a full refund before it. Vallo has one schedule for
    * the whole platform, and this is the check that keeps the paragraph and the
    * arithmetic in `lib/trust/cancellation.ts` from drifting apart again.
    */
@@ -59,7 +59,7 @@ describe("what the store says about money", () => {
     expect(answer).not.toMatch(/that listing's cancellation policy/i);
   });
 
-  it("never implies RentMe takes a cut", () => {
+  it("never implies Vallo takes a cut", () => {
     const answer = faqAnswerById("charges") ?? "";
     expect(answer).toMatch(/charges nothing/i);
   });
@@ -106,7 +106,7 @@ describe("matching a question", () => {
 
   it("finds the entries a person in trouble actually asks for", () => {
     expect(findFaqEntry("Where is my refund?")?.id).toBe("refunds");
-    expect(findFaqEntry("Somebody asked me to pay outside RentMe")?.id).toBe("messaging-safety");
+    expect(findFaqEntry("Somebody asked me to pay outside Vallo")?.id).toBe("messaging-safety");
     expect(findFaqEntry("What happened to my ticket?")?.id).toBe("tickets");
     expect(findFaqEntry("I could not get in to the flat")?.id).toBe("arrival");
     expect(findFaqEntry("How do I review my stay?")?.id).toBe("reviews");

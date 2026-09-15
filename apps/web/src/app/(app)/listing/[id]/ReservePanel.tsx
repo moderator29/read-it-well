@@ -662,7 +662,7 @@ export function ReservePanel({
                   </dd>
                 </div>
                 <p className="pt-2xs nf-caption leading-relaxed text-[var(--nf-content-muted)]">
-                  RentMe adds nothing of its own. Every figure here is the
+                  Vallo adds nothing of its own. Every figure here is the
                   host&apos;s.
                 </p>
               </dl>

@@ -12,7 +12,7 @@ import { TIER_NAME, VERIFICATION_ORDER } from "@/lib/trust/verification";
 export const metadata: Metadata = {
   title: "Trust and safety standards",
   description:
-    "What is not allowed on RentMe, how we enforce it, how long we take to answer a report, and how to appeal a decision.",
+    "What is not allowed on Vallo, how we enforce it, how long we take to answer a report, and how to appeal a decision.",
 };
 
 /**
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 
 const NOT_ALLOWED: { title: string; body: string }[] = [
   {
-    title: "Asking anyone to pay outside RentMe",
+    title: "Asking anyone to pay outside Vallo",
     body: "Sending an account number, asking for a transfer, moving the conversation to WhatsApp to arrange money, or asking for cash at a viewing. This is the most serious thing on the platform and it ends an account.",
   },
   {
@@ -52,7 +52,7 @@ const NOT_ALLOWED: { title: string; body: string }[] = [
   },
   {
     title: "Fake accounts and manufactured reputation",
-    body: "More than one account for one person, reviews written for a stay that did not happen, and utility reports filed about a place you are selling in. Standing on RentMe is earned or it is worth nothing.",
+    body: "More than one account for one person, reviews written for a stay that did not happen, and utility reports filed about a place you are selling in. Standing on Vallo is earned or it is worth nothing.",
   },
 ];
 
@@ -110,7 +110,7 @@ export default function StandardsPage() {
             What we do not allow, and how quickly we answer
           </h1>
           <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
-            These are the standards every person on RentMe agrees to, the way we
+            These are the standards every person on Vallo agrees to, the way we
             enforce them, and the response times we hold ourselves to. If we miss
             one, tell us and quote your reference.
           </p>

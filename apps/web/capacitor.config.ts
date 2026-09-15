@@ -10,7 +10,7 @@ import { KeyboardResize } from "@capacitor/keyboard";
  * READ THIS BEFORE CHANGING `webDir` OR `server`.
  *
  * Capacitor normally packages a folder of static files into the native binary.
- * RentMe cannot produce one, and that is not a gap to be closed later: 40 files
+ * Vallo cannot produce one, and that is not a gap to be closed later: 40 files
  * declare server actions and `output: 'export'` refuses a project containing
  * one; `src/middleware.ts` is the session lock and static export runs no
  * middleware, so a static bundle would ship with no route protection at all;
@@ -65,7 +65,7 @@ const config: CapacitorConfig = {
 
   /* What appears under the icon on a home screen. Kept to one word for the
      same reason `short_name` in the web manifest is: a launcher truncates. */
-  appName: "RentMe",
+  appName: "Vallo",
 
   webDir: "native-shell",
 

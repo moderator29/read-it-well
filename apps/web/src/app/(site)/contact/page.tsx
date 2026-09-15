@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description:
     /* This printed the fifteen characters {SUPPORT_EMAIL} into the page
        description, which is what a search result and a shared link show. */
-    "Reach the RentMe support team. Send us a message and we reply within one business day.",
+    "Reach the Vallo support team. Send us a message and we reply within one business day.",
 };
 
 
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 
 /**
  * `?topic=safety` arrives from the safety centre's report control, so the
- * person who has just read that nobody should ask them to pay outside RentMe
+ * person who has just read that nobody should ask them to pay outside Vallo
  * does not then have to find the right option in a select. Anything else in
  * that parameter is ignored rather than trusted into the form.
  */
@@ -131,7 +131,7 @@ export default async function ContactPage({
               </span>
               <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
                 Asked to pay into an account, or to move the conversation off
-                RentMe? Say so in the form below and we answer within{" "}
+                Vallo? Say so in the form below and we answer within{" "}
                 <span className="nf-numeric">{RESPONSE_COMMITMENTS.urgent.hours}</span>{" "}
                 hours.
               </p>

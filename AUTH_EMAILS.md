@@ -2,7 +2,7 @@
 
 The five messages Supabase sends on our behalf: confirm sign-up, magic link,
 password reset, email change and re-authentication. This file holds the HTML for
-each one and the two dashboard settings that make them arrive as RentMe rather
+each one and the two dashboard settings that make them arrive as Vallo rather
 than as Supabase.
 
 **Nothing in this file is applied by deploying.** Auth emails are rendered by
@@ -14,7 +14,7 @@ can diff.
 
 ---
 
-## 1. Send as RentMe, not as Supabase
+## 1. Send as Vallo, not as Supabase
 
 The sender identity is a project setting and it is why the inbox still says
 "Supabase Auth". Templates cannot fix it; the from-address is decided before
@@ -29,7 +29,7 @@ the template is rendered.
 | Username | `resend` |
 | Password | a Resend API key |
 | Sender email | `no-reply@` your verified domain |
-| Sender name | `RentMe` |
+| Sender name | `Vallo` |
 
 The domain has to be verified in Resend first (Domains → Add → the DNS records
 it gives you). Until then Resend will only deliver to your own address, which is
@@ -69,7 +69,7 @@ the image used below. Replace `YOUR-DOMAIN` throughout with the real host.
 
 ## Template: Confirm sign-up
 
-Subject: `Your RentMe code is {{ .Token }}`
+Subject: `Your Vallo code is {{ .Token }}`
 
 ```html
 <!doctype html>
@@ -85,7 +85,7 @@ Subject: `Your RentMe code is {{ .Token }}`
             <!-- Wordmark. Small, on paper, above the band. -->
             <tr>
               <td style="padding:20px 28px 16px;">
-                <img src="https://YOUR-DOMAIN/brand/rentme-logo.png" width="34" height="34" alt="RentMe" style="display:block;border:0;" />
+                <img src="https://YOUR-DOMAIN/brand/rentme-logo.png" width="34" height="34" alt="Vallo" style="display:block;border:0;" />
               </td>
             </tr>
 
@@ -102,7 +102,7 @@ Subject: `Your RentMe code is {{ .Token }}`
                   Confirm your email
                 </h1>
                 <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#475467;">
-                  Hello, and welcome to RentMe. Enter this code on the confirmation
+                  Hello, and welcome to Vallo. Enter this code on the confirmation
                   screen and your account is open.
                 </p>
 
@@ -129,7 +129,7 @@ Subject: `Your RentMe code is {{ .Token }}`
                 </ul>
 
                 <p style="margin:0;padding:14px 16px;border-radius:10px;background:#FFF6E5;font-size:13px;line-height:1.6;color:#7A4E00;">
-                  <strong>Keep it on RentMe.</strong> Never send money to anybody
+                  <strong>Keep it on Vallo.</strong> Never send money to anybody
                   outside the platform, and never share this code with anyone.
                 </p>
               </td>
@@ -139,10 +139,10 @@ Subject: `Your RentMe code is {{ .Token }}`
               <td style="padding:0 28px 28px;">
                 <p style="margin:0;font-size:12px;line-height:1.6;color:#98A2B3;border-top:1px solid #F2F4F7;padding-top:16px;">
                   You are getting this because somebody used this address to
-                  create a RentMe account. If that was not you, ignore this email
+                  create a Vallo account. If that was not you, ignore this email
                   and nothing happens.
                   <br /><br />
-                  RentMe &middot; Nigeria
+                  Vallo &middot; Nigeria
                 </p>
               </td>
             </tr>
@@ -164,10 +164,10 @@ does not exist.
 
 | Template | Subject | Heading | Lead paragraph |
 | --- | --- | --- | --- |
-| Magic link | `Your RentMe code is {{ .Token }}` | Sign in to RentMe | Enter this code to sign in. It works once and lasts an hour. |
-| Reset password | `Your RentMe reset code is {{ .Token }}` | Reset your password | Enter this code to set a new password. If you did not ask for this, your password has not changed. |
-| Change email | `Confirm your new address` | Confirm this address | Enter this code to move your RentMe account to this address. |
-| Reauthentication | `Your RentMe code is {{ .Token }}` | Confirm it is you | Enter this code to confirm the change you just asked for. |
+| Magic link | `Your Vallo code is {{ .Token }}` | Sign in to Vallo | Enter this code to sign in. It works once and lasts an hour. |
+| Reset password | `Your Vallo reset code is {{ .Token }}` | Reset your password | Enter this code to set a new password. If you did not ask for this, your password has not changed. |
+| Change email | `Confirm your new address` | Confirm this address | Enter this code to move your Vallo account to this address. |
+| Reauthentication | `Your Vallo code is {{ .Token }}` | Confirm it is you | Enter this code to confirm the change you just asked for. |
 
 Drop the "What you can do once you are in" list from all four: it belongs in the
 one email somebody reads before they have an account and is noise in the four

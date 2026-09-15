@@ -33,10 +33,10 @@ export const metadata: Metadata = { title: "Start listing" };
 export default function ProfileSetupPage() {
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Start listing on RentMe" />
+      <PageHeader title="Start listing on Vallo" />
 
       <p className={`mt-block max-w-[52ch] ${TYPE.body}`}>
-        Both of these let you put property on RentMe and take enquiries. Pick
+        Both of these let you put property on Vallo and take enquiries. Pick
         the one that describes you, and we will tell you what is needed before
         you start.
       </p>

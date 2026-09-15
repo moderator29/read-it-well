@@ -127,7 +127,7 @@ export function ProfileIdentityCard() {
               this browser. It is not a membership, and it no longer says it
               is: there is no account behind this card by definition. */}
           <p className="mt-row nf-caption text-[var(--nf-content-muted)]">
-            {since ? `Saved on this device since ${since}` : "Welcome to RentMe"}
+            {since ? `Saved on this device since ${since}` : "Welcome to Vallo"}
           </p>
         </div>
 

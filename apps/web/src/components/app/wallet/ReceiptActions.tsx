@@ -42,7 +42,7 @@ export function ReceiptActions({
   const share = async () => {
     if (typeof navigator.share === "function") {
       try {
-        await navigator.share({ title: "RentMe receipt", text: summary });
+        await navigator.share({ title: "Vallo receipt", text: summary });
         return;
       } catch {
         /* Dismissed the share sheet, which is not an error. */

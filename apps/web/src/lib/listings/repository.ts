@@ -31,7 +31,7 @@ import type {
  * in behind first-party rows by a decorator that lived in this file.
  *
  * Neither is coming back, and the reason is the same for both. Everything on
- * RentMe must be something a person listed on RentMe. That is what makes the
+ * Vallo must be something a person listed on Vallo. That is what makes the
  * verification ladder mean anything, what makes escrow possible, and what
  * makes a listing something a human being can be held to. A feed is none of
  * those things: there is nobody to message, nobody to inspect with, nobody to

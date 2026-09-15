@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 /**
- * RentMe brand icon.
+ * Vallo brand icon.
  *
  * The commissioned 3D icon pack: white ceramic objects with brand blue
  * accents, each resting on its own soft plinth, lit from the upper left.

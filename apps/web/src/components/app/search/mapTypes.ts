@@ -31,7 +31,7 @@ export type MapListing = {
   photo?: string;
   /** Deterministic hue index for the gradient tile, 0 to 5. */
   hue: number;
-  /** Verified by RentMe. */
+  /** Verified by Vallo. */
   verified: boolean;
   /**
    * An example listing: no such property is available.

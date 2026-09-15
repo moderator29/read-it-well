@@ -22,7 +22,7 @@ export default function Error({
 }) {
   useEffect(() => {
     // Replaced by the Sentry client once observability lands in Phase 1.
-    console.error("[rentme] route error", error);
+    console.error("[vallo] route error", error);
   }, [error]);
 
   return (
@@ -43,7 +43,7 @@ export default function Error({
       </div>
 
       <div className="relative z-10">
-        <Link href="/" aria-label="RentMe home" className="nf-tap inline-flex">
+        <Link href="/" aria-label="Vallo home" className="nf-tap inline-flex">
           <LogoMark size={56} />
         </Link>
 

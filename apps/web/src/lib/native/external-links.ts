@@ -92,7 +92,7 @@ function externalHttpUrl(raw: string): string | null {
  * booking is still on screen underneath.
  *
  * The toolbar is painted with the platform's own chrome colour for the theme
- * in force, so the handoff reads as part of RentMe rather than as being thrown
+ * in force, so the handoff reads as part of Vallo rather than as being thrown
  * out of it.
  */
 export async function openExternal(url: string): Promise<void> {

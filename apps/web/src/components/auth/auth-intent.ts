@@ -1,7 +1,7 @@
 /**
  * What somebody was trying to do when we stopped them, as a URL.
  *
- * A signed-out visitor may READ all of RentMe: the listings, discovery, the
+ * A signed-out visitor may READ all of Vallo: the listings, discovery, the
  * map, a property page. They may not DO anything. Every action gates, and the
  * gate has one job beyond asking them to sign in, which is the job that
  * everybody gets wrong: it must put them back where they were, doing what they

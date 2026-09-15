@@ -72,11 +72,11 @@ export const handleSchema = z
 /**
  * Names the platform keeps for itself.
  *
- * `private.validate_social_handle` refuses any handle containing `rentme` or
- * `naijafinds` outright, with SQLSTATE RM002. This is that same rule, said
- * before the round trip rather than after it, because `/u/rentme` used to offer
- * a visitor a "Claim @rentme" button that walked them into a refusal, and
- * `@rentme` is now a name the product itself uses in every thread.
+ * `private.validate_social_handle` refuses any handle containing `vallo` or
+ * `vallo` outright, with SQLSTATE RM002. This is that same rule, said
+ * before the round trip rather than after it, because `/u/vallo` used to offer
+ * a visitor a "Claim @vallo" button that walked them into a refusal, and
+ * `@vallo` is now a name the product itself uses in every thread.
  *
  * **It is deliberately not the whole rule.** The database also keeps a
  * `private.reserved_handles` table and a ninety day lock on released handles,
@@ -87,7 +87,7 @@ export const handleSchema = z
  */
 export function isOfficialHandle(handle: string): boolean {
   const value = handle.trim().toLowerCase();
-  return value.includes("rentme") || value.includes("naijafinds");
+  return value.includes("vallo") || value.includes("vallo");
 }
 
 /**

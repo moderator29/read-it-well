@@ -3,7 +3,7 @@ import type { UiIconName } from "@/design-system/icons/UiIcon";
 /**
  * ONE ACCOUNT, THREE ROLES.
  *
- * RentMe has three kinds of person and they are not three kinds of user:
+ * Vallo has three kinds of person and they are not three kinds of user:
  *
  *   renting or buying   somebody looking for a place to live or to own
  *   listing or selling  somebody putting their OWN property on the market

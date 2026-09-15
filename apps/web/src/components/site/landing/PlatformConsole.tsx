@@ -31,7 +31,7 @@ export function PlatformConsole() {
               The console
             </span>
             <p className="mt-1 max-w-[38ch] text-[0.9375rem] text-[var(--nf-content-secondary)]">
-              The same real numbers behind every booking, wallet and message on RentMe.
+              The same real numbers behind every booking, wallet and message on Vallo.
             </p>
           </div>
           <span className="nf-count-badge shrink-0">{TILES.length}</span>

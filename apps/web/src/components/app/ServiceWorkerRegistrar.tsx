@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 /**
- * Registers the service worker that gives RentMe its offline shell.
+ * Registers the service worker that gives Vallo its offline shell.
  *
  * Four deliberate constraints:
  *

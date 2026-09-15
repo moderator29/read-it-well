@@ -179,7 +179,7 @@ describe("every rendered email reads completely with images blocked", () => {
 
     /*
      * alt is EMPTY on purpose. The mark carries no words and the wordmark
-     * beside it is live text, so alt="RentMe" would render the brand twice for
+     * beside it is live text, so alt="Vallo" would render the brand twice for
      * a reader with images off. A non-empty alt here is the signal that
      * somebody has put copy inside a picture, which is unreadable in the half
      * of inboxes that block images and unreadable to a screen reader always.
@@ -200,7 +200,7 @@ describe("every rendered email reads completely with images blocked", () => {
       .replace(/\s+/g, " ")
       .trim();
 
-    expect(visible).toContain("RentMe");
+    expect(visible).toContain("Vallo");
     expect(visible).toContain(theme.SIGN_OFF);
     // A real message, not a stub: the shortest of these is the sign-in link.
     expect(visible.length).toBeGreaterThan(200);
@@ -336,9 +336,9 @@ describe("the five auth templates are what the generator produces", () => {
      * temporary directory and comparing is the only check that catches a hand
      * edit before it is silently overwritten.
      */
-    const out = mkdtempSync(join(tmpdir(), "rentme-auth-"));
+    const out = mkdtempSync(join(tmpdir(), "vallo-auth-"));
     execFileSync(process.execPath, [GENERATOR], {
-      env: { ...process.env, RENTME_AUTH_EMAIL_OUT_DIR: out },
+      env: { ...process.env, VALLO_AUTH_EMAIL_OUT_DIR: out },
       stdio: "pipe",
     });
 

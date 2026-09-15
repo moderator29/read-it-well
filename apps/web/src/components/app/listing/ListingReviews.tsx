@@ -63,7 +63,7 @@ export function ListingReviews({
       <EmptyState
         icon="reviews"
         title="No reviews yet"
-        body="This place has not hosted a RentMe stay yet. Reviews appear here once a guest has actually stayed, and never before."
+        body="This place has not hosted a Vallo stay yet. Reviews appear here once a guest has actually stayed, and never before."
         data-testid="reviews-empty"
       />
     );
@@ -123,7 +123,7 @@ export function ListingReviews({
         <p className={`mt-4 flex items-start gap-2.5 ${TYPE.body}`}>
           <UiIcon name="star" size={ICON.inline} className="mt-0.5 shrink-0" />
           Written reviews from verified stays will appear here once guests share
-          them on RentMe.
+          them on Vallo.
         </p>
       )}
     </div>

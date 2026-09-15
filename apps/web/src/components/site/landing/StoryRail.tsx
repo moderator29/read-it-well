@@ -39,8 +39,8 @@ const STORIES: Story[] = [
   {
     art: "/brand/story-assistant.png",
     stage: "paper",
-    alt: "The RentMe assistant surrounded by floating glass app cards",
-    overline: "RentMe AI",
+    alt: "The Vallo assistant surrounded by floating glass app cards",
+    overline: "Vallo AI",
     title: "An assistant that knows every street",
     body: "Ask in plain words for a two bedroom in Lekki under 300k with a pool. It reads the whole catalogue and hands back places you can actually book.",
     href: gatedHref("/assistant"),
@@ -53,7 +53,7 @@ const STORIES: Story[] = [
   {
     art: "/brand/story-search.png",
     stage: "paper",
-    alt: "A magnifier over the RentMe house mark with a verification check",
+    alt: "A magnifier over the Vallo house mark with a verification check",
     overline: "Smart search",
     title: "Find the exact place, not a page of noise",
     body: "Filter by city, budget and bedrooms, and by the things that actually matter here: prepaid meter, borehole, estate security, real photos.",
@@ -123,7 +123,7 @@ const STORIES: Story[] = [
   {
     art: "/brand/story-world.png",
     stage: "paper",
-    alt: "The RentMe world: the house mark surrounded by map, keys, calendar, wallet and shield",
+    alt: "The Vallo world: the house mark surrounded by map, keys, calendar, wallet and shield",
     overline: "One platform",
     title: "Search, book, message and pay in one place",
     body: "Your account, your wallet, your bookings and your conversations all live together, so nothing about a move is scattered across five apps.",
@@ -137,10 +137,10 @@ const STORIES: Story[] = [
   {
     art: "/brand/story-shield.png",
     stage: "paper",
-    alt: "The RentMe shield mark with a verification check",
+    alt: "The Vallo shield mark with a verification check",
     overline: "The rent market",
     title: "Real homes, real yearly rent, real agents",
-    body: "The serious side of RentMe: annual tenancies priced per year. Message the agent, inspect the property, then pay. No shortcuts, no pressure.",
+    body: "The serious side of Vallo: annual tenancies priced per year. Message the agent, inspect the property, then pay. No shortcuts, no pressure.",
     href: gatedHref("/rent"),
     action: "Browse rentals",
     points: [
@@ -158,13 +158,13 @@ export function StoryRail() {
           <div className="max-w-2xl">
             <span className="nf-overline inline-flex items-center gap-2">
               <UiIcon name="sparkle" size={16} />
-              The RentMe way
+              The Vallo way
             </span>
             <h2 id="nf-story-title" className="nf-h2 mt-2">
               Everything a move needs, <span className="nf-gradient-text">in one place</span>
             </h2>
             <p className="mt-2.5 text-[var(--nf-content-secondary)]">
-              Swipe through what RentMe does for you, from the first search to the keys in
+              Swipe through what Vallo does for you, from the first search to the keys in
               your hand.
             </p>
           </div>
@@ -173,7 +173,7 @@ export function StoryRail() {
 
       <Reveal className="mt-6 sm:mt-8" delay={60}>
         <CarouselRail
-          ariaLabel="What RentMe does for you"
+          ariaLabel="What Vallo does for you"
           prevLabel="Previous promise"
           nextLabel="Next promise"
         >

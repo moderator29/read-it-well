@@ -47,12 +47,12 @@ const PRELOADED_FONTS: Record<string, readonly string[]> = {
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: {
-    default: "RentMe. Find it. Rent it. Love it.",
-    template: "%s | RentMe",
+    default: "Vallo. Find it. Rent it. Love it.",
+    template: "%s | Vallo",
   },
   description:
     "Discover and book homes, hotels, restaurants and experiences across Nigeria. Verified listings, secure payments and an assistant that understands what you actually want.",
-  applicationName: "RentMe",
+  applicationName: "Vallo",
   keywords: [
     "Nigeria",
     "shortlet",
@@ -65,10 +65,10 @@ export const metadata: Metadata = {
     "Abuja",
   ],
   openGraph: {
-    title: "RentMe. Find it. Rent it. Love it.",
+    title: "Vallo. Find it. Rent it. Love it.",
     description:
       "Your all-in-one platform for homes, hotels, restaurants, experiences and more, across Nigeria.",
-    siteName: "RentMe",
+    siteName: "Vallo",
     locale: "en_NG",
     type: "website",
   },
@@ -91,7 +91,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "RentMe",
+    title: "Vallo",
     statusBarStyle: "black-translucent",
   },
   other: {
@@ -185,7 +185,7 @@ export default async function RootLayout({
 
           DARK IS THE DEFAULT AND NOTHING OVERRIDES IT SILENTLY. This used to
           fall back to the operating system when nothing was stored, which meant
-          almost every first-time visitor opened RentMe in light: phones ship
+          almost every first-time visitor opened Vallo in light: phones ship
           set to light, so the brand's own theme was the one people saw least.
           Now only an explicit choice moves it. No key, or "dark", is dark.
           "light" is light. "system" follows the OS, and it is something someone

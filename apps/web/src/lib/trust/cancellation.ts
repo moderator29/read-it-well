@@ -46,7 +46,7 @@ export const CANCELLATION_STOPS: CancellationStop[] = [
     refundBasisPoints: 10_000,
     label: "Everything back",
     detail:
-      "Cancel more than 72 hours before check-in and the full amount you paid returns to your RentMe wallet, usually within minutes.",
+      "Cancel more than 72 hours before check-in and the full amount you paid returns to your Vallo wallet, usually within minutes.",
   },
   {
     tier: "half",

@@ -99,7 +99,7 @@ export async function getStandingDesk(): Promise<StandingRead> {
       manualBadges: (badges ?? []).map((b) => ({ code: b.code, name: b.name })),
       grants: (rows ?? []).map((row) => ({
         userId: row.user_id,
-        holder: names.get(row.user_id) ?? "A RentMe member",
+        holder: names.get(row.user_id) ?? "A Vallo member",
         badgeCode: row.badge_code,
         badgeName: badgeName.get(row.badge_code) ?? row.badge_code,
         grantedAt: row.granted_at,

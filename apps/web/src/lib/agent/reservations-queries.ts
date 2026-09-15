@@ -69,7 +69,7 @@ export const EMPTY_RESERVATION_BOARD: HostReservationBoard = {
 };
 
 /** Enough of a name to address somebody by, when the service key is absent. */
-const FALLBACK_GUEST_NAME = "RentMe guest";
+const FALLBACK_GUEST_NAME = "Vallo guest";
 const FALLBACK_LISTING_TITLE = "Your restaurant";
 
 /** A console shows work, not an archive. */

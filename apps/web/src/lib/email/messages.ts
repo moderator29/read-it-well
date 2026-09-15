@@ -1,5 +1,5 @@
 /**
- * The RentMe transactional email catalogue.
+ * The Vallo transactional email catalogue.
  *
  * One function per message, each taking typed data and returning a subject, an
  * HTML body and a plain text alternative. Nothing here reads the environment
@@ -70,11 +70,11 @@ export type EmailMessage = {
 
 /** The safety line for somebody about to pay or about to meet a lister. */
 const MONEY_SAFETY_LINE =
-  "Keep your chats and your payments inside RentMe, and pay only after you have inspected the property.";
+  "Keep your chats and your payments inside Vallo, and pay only after you have inspected the property.";
 
 /** The same guidance, stated to a lister about the people contacting them. */
 const LISTER_SAFETY_LINE =
-  "RentMe asks everybody to keep chats and payments inside RentMe and to pay only after inspecting.";
+  "Vallo asks everybody to keep chats and payments inside Vallo and to pay only after inspecting.";
 
 /** "2 adults and 1 child", or null when the party size is not known. */
 function partyLine(adults?: number, children?: number): string | null {
@@ -215,76 +215,76 @@ export function welcome(data: WelcomeData): EmailMessage {
   switch (data.role) {
     case "renter":
       return message(
-        "Welcome to RentMe",
+        "Welcome to Vallo",
         "Start with search, and read the move-in cost before you plan a viewing.",
         [
-          heading("Welcome to RentMe"),
+          heading("Welcome to Vallo"),
           paragraph(
             `${greeting} You are here to find somewhere to live, so here is what is worth knowing before you start looking.`,
           ),
           paragraph(
-            "Every listing on RentMe was put up by a real person on RentMe. Nothing is imported from an outside feed, so there is always somebody to message and somebody to inspect the place with.",
+            "Every listing on Vallo was put up by a real person on Vallo. Nothing is imported from an outside feed, so there is always somebody to message and somebody to inspect the place with.",
           ),
           paragraph(
             "The rent is rarely the whole number. Caution deposit, agency fee, legal fee, agreement fee and service charge are normal here, and together they are often half as much again. Where a listing states its total move-in cost, that is the figure to plan around.",
           ),
           bullets([
             "Search by area, then filter on the total move-in cost rather than the rent.",
-            "Message the lister inside RentMe and ask your questions in writing.",
+            "Message the lister inside Vallo and ask your questions in writing.",
             "Inspect the property in person before any money moves.",
-            "Pay through RentMe, so the money is held until the tenancy is real.",
+            "Pay through Vallo, so the money is held until the tenancy is real.",
           ]),
           button("Start searching", appUrl("/search")),
           note(
-            "Nobody at RentMe will ever ask you to pay outside the platform. If somebody does, report them from the listing.",
+            "Nobody at Vallo will ever ask you to pay outside the platform. If somebody does, report them from the listing.",
           ),
         ],
         [
-          "You are receiving this because you created a RentMe account.",
+          "You are receiving this because you created a Vallo account.",
           MONEY_SAFETY_LINE,
         ],
       );
 
     case "buyer":
       return message(
-        "Welcome to RentMe",
+        "Welcome to Vallo",
         "Start with search, and never let money move before a lawyer has seen the title.",
         [
-          heading("Welcome to RentMe"),
+          heading("Welcome to Vallo"),
           paragraph(
             `${greeting} You are here to buy, so the most useful thing we can tell you first is about title.`,
           ),
           paragraph(
-            "Certificate of occupancy, governor's consent, deed of assignment, gazette, freehold and leasehold are not interchangeable words. Every listing for sale on RentMe states which one the seller claims, and states plainly when none was given.",
+            "Certificate of occupancy, governor's consent, deed of assignment, gazette, freehold and leasehold are not interchangeable words. Every listing for sale on Vallo states which one the seller claims, and states plainly when none was given.",
           ),
           paragraph(
             "We record the claim. We cannot verify it, and nobody who is not a lawyer at the land registry can. Have yours do a search before any money moves, however good the paperwork looks.",
           ),
           bullets([
             "Search by area and filter on the title you are willing to accept.",
-            "Message the seller inside RentMe and keep every answer in writing.",
+            "Message the seller inside Vallo and keep every answer in writing.",
             "Inspect the property, and have a lawyer verify title at the registry.",
-            "Pay through RentMe, so the money is held until the transaction completes.",
+            "Pay through Vallo, so the money is held until the transaction completes.",
           ]),
           button("Browse property for sale", appUrl("/search")),
           note(
-            "Nobody at RentMe will ever ask you to pay outside the platform. If somebody does, report them from the listing.",
+            "Nobody at Vallo will ever ask you to pay outside the platform. If somebody does, report them from the listing.",
           ),
         ],
         [
-          "You are receiving this because you created a RentMe account.",
+          "You are receiving this because you created a Vallo account.",
           MONEY_SAFETY_LINE,
         ],
       );
 
     case "landlord":
       return message(
-        "Welcome to RentMe",
+        "Welcome to Vallo",
         "List your property, and get verified so people trust what you have written.",
         [
-          heading("Welcome to RentMe"),
+          heading("Welcome to Vallo"),
           paragraph(
-            `${greeting} You have property to let, so here is what makes a listing on RentMe work.`,
+            `${greeting} You have property to let, so here is what makes a listing on Vallo work.`,
           ),
           paragraph(
             "State the whole cost. Rent, caution deposit, agency, legal, agreement and service charge, and the total somebody actually has to find. Listings that state the total get far fewer wasted viewings, because the people who arrive have already decided they can afford it.",
@@ -300,26 +300,26 @@ export function welcome(data: WelcomeData): EmailMessage {
           ]),
           button("List your property", appUrl("/agent/listings/new")),
           note(
-            "Keep every conversation and payment inside RentMe. It is the record that protects you as much as it protects your tenant.",
+            "Keep every conversation and payment inside Vallo. It is the record that protects you as much as it protects your tenant.",
           ),
         ],
         [
-          "You are receiving this because you created a RentMe account.",
+          "You are receiving this because you created a Vallo account.",
           LISTER_SAFETY_LINE,
         ],
       );
 
     case "seller":
       return message(
-        "Welcome to RentMe",
+        "Welcome to Vallo",
         "List your property, and state the title you hold.",
         [
-          heading("Welcome to RentMe"),
+          heading("Welcome to Vallo"),
           paragraph(
             `${greeting} You have property to sell, so state your title first and everything else follows.`,
           ),
           paragraph(
-            "Buyers on RentMe filter on title before they filter on price. A listing that names its certificate of occupancy or its governor's consent is taken seriously; one that says nothing is assumed to have nothing, whether or not that is fair.",
+            "Buyers on Vallo filter on title before they filter on price. A listing that names its certificate of occupancy or its governor's consent is taken seriously; one that says nothing is assumed to have nothing, whether or not that is fair.",
           ),
           paragraph(
             "Photographs sell a viewing, a walkthrough video sells the property. A continuous walk through the building and out to the gate answers more questions than twenty stills, and it is the thing a serious buyer asks for.",
@@ -328,30 +328,30 @@ export function welcome(data: WelcomeData): EmailMessage {
             "Add the property, the asking price and the title you hold.",
             "Upload photographs, and a walkthrough video where you can.",
             "Work up the verification ladder from Settings.",
-            "Answer enquiries inside RentMe, so the conversation is on the record.",
+            "Answer enquiries inside Vallo, so the conversation is on the record.",
           ]),
           button("List your property", appUrl("/agent/listings/new")),
           note(
-            "Keep every conversation and payment inside RentMe. It is the record that protects you as much as it protects your buyer.",
+            "Keep every conversation and payment inside Vallo. It is the record that protects you as much as it protects your buyer.",
           ),
         ],
         [
-          "You are receiving this because you created a RentMe account.",
+          "You are receiving this because you created a Vallo account.",
           LISTER_SAFETY_LINE,
         ],
       );
 
     case "agent":
       return message(
-        "Welcome to RentMe",
+        "Welcome to Vallo",
         "Apply to be verified, then list. Verification is what earns reach here.",
         [
-          heading("Welcome to RentMe"),
+          heading("Welcome to Vallo"),
           paragraph(
             `${greeting} You do this for a living, so the part worth your attention is verification.`,
           ),
           paragraph(
-            "RentMe carries no listings from outside feeds. Everything here was put up by somebody here, and the verification ladder is how a reader tells one lister from another: phone, then identity document, then address, then a physical inspection of a property.",
+            "Vallo carries no listings from outside feeds. Everything here was put up by somebody here, and the verification ladder is how a reader tells one lister from another: phone, then identity document, then address, then a physical inspection of a property.",
           ),
           paragraph(
             "Reach follows the ladder. A verified agent's listings rank above an unverified one at equal relevance, and that is the only thing on this platform that money cannot buy.",
@@ -359,44 +359,44 @@ export function welcome(data: WelcomeData): EmailMessage {
           bullets([
             "Apply from your profile: your details, your business area and a valid ID.",
             "Applications and verification documents are answered within 3 days.",
-            "Once approved, publish listings and answer enquiries inside RentMe.",
+            "Once approved, publish listings and answer enquiries inside Vallo.",
             "State the full move-in cost on every rental. It is what people shop on.",
           ]),
           button("Apply to be an agent", appUrl("/agent/apply")),
           note(
-            "RentMe charges you nothing to list or to be verified.",
+            "Vallo charges you nothing to list or to be verified.",
           ),
         ],
         [
-          "You are receiving this because you created a RentMe account.",
+          "You are receiving this because you created a Vallo account.",
           LISTER_SAFETY_LINE,
         ],
       );
 
     default:
       return message(
-        "Welcome to RentMe",
+        "Welcome to Vallo",
         "Everything here was listed by a real person. Here is how it works.",
         [
-          heading("Welcome to RentMe"),
+          heading("Welcome to Vallo"),
           paragraph(
-            `${greeting} RentMe is a Nigerian property marketplace for renting, buying and selling.`,
+            `${greeting} Vallo is a Nigerian property marketplace for renting, buying and selling.`,
           ),
           paragraph(
-            "Every listing was put up by a real person on RentMe. Nothing is imported from an outside feed, so there is always somebody to message, somebody to inspect the place with, and somebody accountable for what a listing says.",
+            "Every listing was put up by a real person on Vallo. Nothing is imported from an outside feed, so there is always somebody to message, somebody to inspect the place with, and somebody accountable for what a listing says.",
           ),
           paragraph(
-            "Money you pay through RentMe is held until the thing it was paid for has happened, and the person behind a listing climbs a verification ladder you can see: phone, identity document, address, then a physical inspection.",
+            "Money you pay through Vallo is held until the thing it was paid for has happened, and the person behind a listing climbs a verification ladder you can see: phone, identity document, address, then a physical inspection.",
           ),
           bullets([
             "Looking for somewhere: start with search and filter on the total move-in cost.",
             "Have property: add it from your profile and work up the verification ladder.",
           ]),
           button("Start searching", appUrl("/search")),
-          note("Nobody at RentMe will ever ask you to pay outside the platform."),
+          note("Nobody at Vallo will ever ask you to pay outside the platform."),
         ],
         [
-          "You are receiving this because you created a RentMe account.",
+          "You are receiving this because you created a Vallo account.",
           MONEY_SAFETY_LINE,
         ],
       );
@@ -425,10 +425,10 @@ export type VerificationCodeData = {
  */
 export function verificationCode(data: VerificationCodeData): EmailMessage {
   return message(
-    `${data.code} is your RentMe code`,
+    `${data.code} is your Vallo code`,
     `Your code expires in ${data.expiresInMinutes} minutes.`,
     [
-      heading("Your RentMe code"),
+      heading("Your Vallo code"),
       paragraph(`${hello(data.name)} Type this into the tab you have open.`),
       code(data.code),
       paragraph(
@@ -439,8 +439,8 @@ export function verificationCode(data: VerificationCodeData): EmailMessage {
       ),
     ],
     [
-      "You are receiving this because a code was requested for this address on RentMe.",
-      "RentMe will never ask you for this code. Not by phone, not by message, not by email.",
+      "You are receiving this because a code was requested for this address on Vallo.",
+      "Vallo will never ask you for this code. Not by phone, not by message, not by email.",
     ],
   );
 }
@@ -455,7 +455,7 @@ export type PasswordResetData = {
 /** The password reset link. */
 export function passwordReset(data: PasswordResetData): EmailMessage {
   return message(
-    "Reset your RentMe password",
+    "Reset your Vallo password",
     `Your reset link expires in ${data.expiresInMinutes} minutes.`,
     [
       heading("Reset your password"),
@@ -485,7 +485,7 @@ export type WalletFundedData = {
 /** To the wallet owner when a funding lands in the ledger. */
 export function walletFunded(data: WalletFundedData): EmailMessage {
   return message(
-    `${money(data.amountMinor)} added to your RentMe wallet`,
+    `${money(data.amountMinor)} added to your Vallo wallet`,
     `Your wallet has been credited with ${money(data.amountMinor)}.`,
     [
       heading("Your wallet has been topped up"),
@@ -495,12 +495,12 @@ export function walletFunded(data: WalletFundedData): EmailMessage {
         { label: "New balance", value: money(data.balanceMinor), strong: true },
       ]),
       paragraph(
-        "The money is available now. You can spend it on RentMe, send it to another RentMe wallet, or withdraw it to your bank account.",
+        "The money is available now. You can spend it on Vallo, send it to another Vallo wallet, or withdraw it to your bank account.",
       ),
       button("Open my wallet", appUrl("/wallet")),
       note("Your full statement, every credit and debit, is in the wallet."),
     ],
-    ["You are receiving this because your RentMe wallet was credited."],
+    ["You are receiving this because your Vallo wallet was credited."],
   );
 }
 
@@ -561,7 +561,7 @@ export function withdrawalOutcome(data: WithdrawalOutcomeData): EmailMessage {
   const explanation = paid
     ? "Banks normally credit within minutes, and can take up to one working day. Once it has left us, the timing is theirs."
     : data.outcome === "reversed"
-      ? "The transfer left us and the bank sent it back, so you may see a debit and then a credit on your statement. The money is in your RentMe wallet now. This is almost always a name or account number that does not match."
+      ? "The transfer left us and the bank sent it back, so you may see a debit and then a credit on your statement. The money is in your Vallo wallet now. This is almost always a name or account number that does not match."
       : "This is usually the account details, or a bank that is temporarily unreachable. Check the account number and the bank, then try the withdrawal again.";
 
   return message(
@@ -569,13 +569,13 @@ export function withdrawalOutcome(data: WithdrawalOutcomeData): EmailMessage {
       ? `${money(data.amountMinor)} is on its way to your bank`
       : "Your withdrawal did not go through",
     paid
-      ? `${money(data.amountMinor)} has left your RentMe wallet for your bank.`
-      : `${money(data.amountMinor)} stays in your RentMe wallet.`,
+      ? `${money(data.amountMinor)} has left your Vallo wallet for your bank.`
+      : `${money(data.amountMinor)} stays in your Vallo wallet.`,
     [
       heading(paid ? "Your withdrawal is on its way" : "Your withdrawal did not go through"),
       paragraph(
         paid
-          ? `${hello(data.ownerName)} The transfer has left RentMe for your bank account.`
+          ? `${hello(data.ownerName)} The transfer has left Vallo for your bank account.`
           : `${hello(data.ownerName)} The transfer to your bank did not complete, so the money is in your wallet and is available to you now.`,
       ),
       rows(list),
@@ -588,7 +588,7 @@ export function withdrawalOutcome(data: WithdrawalOutcomeData): EmailMessage {
           : "If it fails a second time, contact support with the reference above and a person will look into it with you.",
       ),
     ],
-    ["You are receiving this because of a withdrawal from your RentMe wallet."],
+    ["You are receiving this because of a withdrawal from your Vallo wallet."],
   );
 }
 
@@ -615,11 +615,11 @@ export type EscrowFundedData = {
 export function escrowFunded(data: EscrowFundedData): EmailMessage {
   return message(
     `${money(data.amountMinor)} is held in escrow for ${data.listingTitle}`,
-    `Your money is held by RentMe and has not gone to anybody yet.`,
+    `Your money is held by Vallo and has not gone to anybody yet.`,
     [
       heading("Your money is held in escrow"),
       paragraph(
-        `${hello(data.payerName)} RentMe is holding this money. It has not been paid to the lister and it will not be until the condition below is met.`,
+        `${hello(data.payerName)} Vallo is holding this money. It has not been paid to the lister and it will not be until the condition below is met.`,
       ),
       rows([
         { label: "Property", value: data.listingTitle },
@@ -632,11 +632,11 @@ export function escrowFunded(data: EscrowFundedData): EmailMessage {
       ),
       button("View this transaction", appUrl("/wallet")),
       note(
-        "Nobody at RentMe will ever ask you to release this money early, or to send anything further outside the platform.",
+        "Nobody at Vallo will ever ask you to release this money early, or to send anything further outside the platform.",
       ),
     ],
     [
-      "You are receiving this because you paid into escrow on RentMe.",
+      "You are receiving this because you paid into escrow on Vallo.",
       MONEY_SAFETY_LINE,
     ],
   );
@@ -674,8 +674,8 @@ export function escrowReleased(data: EscrowReleasedData): EmailMessage {
       heading(toRecipient ? "The money is yours" : "Your escrow has been released"),
       paragraph(
         toRecipient
-          ? `${hello(data.name)} The condition on this payment has been met, so RentMe has released the money into your wallet.`
-          : `${hello(data.name)} The condition on this payment has been met, so RentMe has released the money to the lister.`,
+          ? `${hello(data.name)} The condition on this payment has been met, so Vallo has released the money into your wallet.`
+          : `${hello(data.name)} The condition on this payment has been met, so Vallo has released the money to the lister.`,
       ),
       rows([
         { label: "Property", value: data.listingTitle },
@@ -690,7 +690,7 @@ export function escrowReleased(data: EscrowReleasedData): EmailMessage {
           : "If you believe this was released in error, contact support with the reference above and a person will look at it.",
       ),
     ],
-    ["You are receiving this because of an escrow payment on RentMe."],
+    ["You are receiving this because of an escrow payment on Vallo."],
   );
 }
 
@@ -759,11 +759,11 @@ export function inspectionScheduled(data: InspectionScheduledData): EmailMessage
               "Go in daylight where you can.",
               "Tell somebody where you are going and when you expect to be back.",
               "Do not carry money to a viewing and do not pay anything at the gate.",
-              "Keep the conversation in RentMe, so there is a record of what was agreed.",
+              "Keep the conversation in Vallo, so there is a record of what was agreed.",
             ]
           : [
-              "Confirm the time in RentMe so the record shows what was agreed.",
-              "Never ask a viewer for money at the property. Payment goes through RentMe.",
+              "Confirm the time in Vallo so the record shows what was agreed.",
+              "Never ask a viewer for money at the property. Payment goes through Vallo.",
               "If plans change, say so in the app rather than only by phone.",
             ],
       ),
@@ -771,7 +771,7 @@ export function inspectionScheduled(data: InspectionScheduledData): EmailMessage
       note("If you need to change or cancel this, do it in the app so both sides are told."),
     ],
     [
-      "You are receiving this because an inspection was arranged on RentMe.",
+      "You are receiving this because an inspection was arranged on Vallo.",
       viewing ? MONEY_SAFETY_LINE : LISTER_SAFETY_LINE,
     ],
   );
@@ -806,7 +806,7 @@ export function listingApproved(data: ListingApprovedData): EmailMessage {
       note("Answer enquiries quickly. People choose listers who reply."),
     ],
     [
-      "You are receiving this because you have a listing on RentMe.",
+      "You are receiving this because you have a listing on Vallo.",
       LISTER_SAFETY_LINE,
     ],
   );
@@ -855,7 +855,7 @@ export function listingRejected(data: ListingRejectedData): EmailMessage {
       button(again ? "Edit your listing" : "Contact support", appUrl(again ? "/agent/listings" : "/support")),
       note("Nothing has happened to your account, and your other listings are unaffected."),
     ],
-    ["You are receiving this because you submitted a listing on RentMe."],
+    ["You are receiving this because you submitted a listing on Vallo."],
   );
 }
 
@@ -882,7 +882,7 @@ const RUNG_MEANS: Record<VerificationRung, string> = {
   phone: "We have reached you on a Nigerian number that answers.",
   identity: "A person has checked your identity document against your name.",
   address: "A person has confirmed the address you gave is real and is yours.",
-  inspection: "Somebody from RentMe has physically stood in your property.",
+  inspection: "Somebody from Vallo has physically stood in your property.",
 };
 
 /**
@@ -897,7 +897,7 @@ export function verificationRungPassed(data: VerificationRungPassedData): EmailM
   const next = data.nextRung ?? null;
   return message(
     `Verified: ${RUNG_NAME[data.rung].toLowerCase()}`,
-    `${RUNG_NAME[data.rung]} is confirmed on your RentMe account.`,
+    `${RUNG_NAME[data.rung]} is confirmed on your Vallo account.`,
     [
       heading("Another rung confirmed"),
       paragraph(
@@ -910,12 +910,12 @@ export function verificationRungPassed(data: VerificationRungPassedData): EmailM
       paragraph(
         next
           ? `The next rung is ${RUNG_NAME[next].toLowerCase()}. Each one you pass is shown to everybody who looks at your listings, and verification is what earns reach here.`
-          : "That is the top of the ladder. A physically inspected property is the strongest thing RentMe can say about a listing, and very few carry it.",
+          : "That is the top of the ladder. A physically inspected property is the strongest thing Vallo can say about a listing, and very few carry it.",
       ),
       button("View your profile", appUrl("/profile")),
-      note("RentMe charges nothing for verification, at any rung."),
+      note("Vallo charges nothing for verification, at any rung."),
     ],
-    ["You are receiving this because of a verification check on your RentMe account."],
+    ["You are receiving this because of a verification check on your Vallo account."],
   );
 }
 
@@ -963,15 +963,15 @@ export function newEnquiry(data: NewEnquiryData): EmailMessage {
         ...(shown.length > 0 ? [{ label: "They wrote", value: shown, strong: true }] : []),
       ]),
       paragraph(
-        "Reply inside RentMe. Enquiries that are answered the same day turn into viewings far more often than ones answered the next week, and the conversation on the platform is the record that protects you both.",
+        "Reply inside Vallo. Enquiries that are answered the same day turn into viewings far more often than ones answered the next week, and the conversation on the platform is the record that protects you both.",
       ),
-      button("Reply in RentMe", appUrl(data.conversationPath)),
+      button("Reply in Vallo", appUrl(data.conversationPath)),
       note(
         "Never move a conversation off the platform, and never accept a payment outside it. Both are how people get defrauded in this market.",
       ),
     ],
     [
-      "You are receiving this because somebody enquired about your RentMe listing.",
+      "You are receiving this because somebody enquired about your Vallo listing.",
       LISTER_SAFETY_LINE,
     ],
   );
@@ -1014,7 +1014,7 @@ export function bookingRequested(data: BookingRequestedData): EmailMessage {
       note("You can follow the request, message the host or cancel it from your bookings."),
     ],
     [
-      "You are receiving this because you requested a stay on RentMe.",
+      "You are receiving this because you requested a stay on Vallo.",
       MONEY_SAFETY_LINE,
     ],
   );
@@ -1056,7 +1056,7 @@ export function bookingRequestedHost(data: BookingRequestedHostData): EmailMessa
       note("Guests choose hosts who reply quickly, so an early answer helps your listing."),
     ],
     [
-      "You are receiving this because you host this listing on RentMe.",
+      "You are receiving this because you host this listing on Vallo.",
       LISTER_SAFETY_LINE,
     ],
   );
@@ -1104,14 +1104,14 @@ export function bookingConfirmed(data: BookingConfirmedData): EmailMessage {
       note("Plans changed? You can cancel from your bookings before the stay begins."),
     ],
     [
-      "You are receiving this because you booked a stay on RentMe.",
+      "You are receiving this because you booked a stay on Vallo.",
       MONEY_SAFETY_LINE,
     ],
   );
 }
 
 export type StayArrivalDetailsData = {
-  /** The person arriving. They have no RentMe account and need none. */
+  /** The person arriving. They have no Vallo account and need none. */
   arrivingName: string;
   /** Who booked it for them, so this is not an email from a stranger. */
   bookedByName?: string | null;
@@ -1141,7 +1141,7 @@ export function stayArrivalDetails(data: StayArrivalDetailsData): EmailMessage {
       paragraph(
         `${hello(data.arrivingName)} ${
           booker ?? "Somebody"
-        } has booked a stay for you on RentMe and the host has confirmed it. Here are your dates.`,
+        } has booked a stay for you on Vallo and the host has confirmed it. Here are your dates.`,
       ),
       rows([
         { label: "Stay", value: data.listingTitle },
@@ -1155,11 +1155,11 @@ export function stayArrivalDetails(data: StayArrivalDetailsData): EmailMessage {
           ),
       rows(gate),
       note(
-        "You do not need a RentMe account to stay here. Keep this email, and show it if anybody asks for it.",
+        "You do not need a Vallo account to stay here. Keep this email, and show it if anybody asks for it.",
       ),
     ],
     [
-      "You are receiving this because somebody booked a RentMe stay for you.",
+      "You are receiving this because somebody booked a Vallo stay for you.",
       MONEY_SAFETY_LINE,
     ],
   );
@@ -1196,7 +1196,7 @@ export function bookingCancelled(data: BookingCancelledData): EmailMessage {
       ),
     ],
     [
-      "You are receiving this because of a change to your RentMe booking.",
+      "You are receiving this because of a change to your Vallo booking.",
       MONEY_SAFETY_LINE,
     ],
   );
@@ -1220,7 +1220,7 @@ export type BookingRefundedData = {
 };
 
 /**
- * To the guest when RentMe support cancels a stay they had paid for.
+ * To the guest when Vallo support cancels a stay they had paid for.
  *
  * /cancellations promises them, in these words, "the amount and the reason in
  * writing". This is that promise, so it never leaves out either one, and it
@@ -1244,7 +1244,7 @@ export function bookingRefunded(data: BookingRefundedData): EmailMessage {
 
   return message(
     returned
-      ? `${money(data.refundMinor)} is back in your RentMe wallet`
+      ? `${money(data.refundMinor)} is back in your Vallo wallet`
       : `Cancelled: ${data.listingTitle}`,
     returned
       ? `Your stay is cancelled and ${money(data.refundMinor)} has returned to your wallet.`
@@ -1252,13 +1252,13 @@ export function bookingRefunded(data: BookingRefundedData): EmailMessage {
     [
       heading(returned ? "Your refund is in your wallet" : "Your stay is cancelled"),
       paragraph(
-        `${hello(data.guestName)} A person at RentMe has cancelled this stay and released the dates.`,
+        `${hello(data.guestName)} A person at Vallo has cancelled this stay and released the dates.`,
       ),
       paragraph(data.reasonLine),
       rows(list),
       returned
         ? paragraph(
-            "The money is in your RentMe wallet now. Spend it on another booking, or withdraw it to your bank from the wallet whenever you want it.",
+            "The money is in your Vallo wallet now. Spend it on another booking, or withdraw it to your bank from the wallet whenever you want it.",
           )
         : paragraph(
             "Nothing has been taken from you beyond what you had already paid for this stay, and the booking stays in your history for your records.",
@@ -1273,7 +1273,7 @@ export function bookingRefunded(data: BookingRefundedData): EmailMessage {
       ),
     ],
     [
-      "You are receiving this because of a change to your RentMe booking.",
+      "You are receiving this because of a change to your Vallo booking.",
       MONEY_SAFETY_LINE,
     ],
   );
@@ -1320,7 +1320,7 @@ export function supportTicketFiled(data: SupportTicketFiledData): EmailMessage {
         "Answers to the most common questions are in the help centre, often faster than waiting for a reply.",
       ),
     ],
-    ["You are receiving this because a support request was filed with RentMe."],
+    ["You are receiving this because a support request was filed with Vallo."],
   );
 }
 

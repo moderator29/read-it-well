@@ -249,7 +249,7 @@ export function AccountHero({
             {identity?.isAgent ? (
               <span
                 className="nf-social-verified"
-                title="A verified RentMe agent"
+                title="A verified Vallo agent"
                 aria-label="Verified agent"
               >
                 <UiIcon name="verified" size={16} />
@@ -347,7 +347,7 @@ export function AccountHero({
 
       {!identity && (
         <p className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-          A handle is your address on RentMe. Claim one and this page gets a cover, a
+          A handle is your address on Vallo. Claim one and this page gets a cover, a
           public page and somewhere for what you write to live.
         </p>
       )}

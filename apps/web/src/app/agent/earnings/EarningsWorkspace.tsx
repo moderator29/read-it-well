@@ -12,7 +12,7 @@ import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
  *
  * A server component on purpose: nothing here mutates, so there is no reason
  * to ship it as client JavaScript. Every figure comes from AgentEarnings
- * exactly as earnings-queries.ts computed it. RentMe charges no listing fee
+ * exactly as earnings-queries.ts computed it. Vallo charges no listing fee
  * and this page never invents one; the only fee copy on the page is the
  * generic reconciliation note, which names the payment processor's cut, not
  * a platform cut.

@@ -59,9 +59,9 @@ const MAX_MOVE = formatMoney(MAX_MOVE_KOBO);
 export const CHAPTERS: DocChapter[] = [
   /* ------------------------------------------------------------------ 1 */
   {
-    slug: "what-rentme-is",
+    slug: "what-vallo-is",
     number: 1,
-    title: "What RentMe is, and who it is for",
+    title: "What Vallo is, and who it is for",
     summary:
       "A Nigeria-first platform for finding somewhere, booking it, paying for it and talking about it, with no platform fee anywhere.",
     icon: "house-sparkle",
@@ -72,7 +72,7 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <>
             <p>
-              RentMe is a Nigerian platform for finding a place and getting into it.
+              Vallo is a Nigerian platform for finding a place and getting into it.
               Shortlets, hotels, apartments, homes, villas, restaurants, experiences,
               annual rentals, shops, offices and land all sit in one catalogue, and the
               same account carries your bookings, your money, your messages and your
@@ -103,7 +103,7 @@ export const CHAPTERS: DocChapter[] = [
             </li>
             <li>
               <strong>Keep your money in one place.</strong> Fund a wallet, withdraw to
-              a Nigerian bank account, send money to another RentMe account, and read
+              a Nigerian bank account, send money to another Vallo account, and read
               every movement in a statement that cannot be edited.
             </li>
             <li>
@@ -154,7 +154,7 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <>
             <p>
-              RentMe takes no fee. Not to look, not to book, not to list, not to be
+              Vallo takes no fee. Not to look, not to book, not to list, not to be
               paid. The total on a booking is the nightly rate multiplied by the nights
               plus a cleaning charge if the host sets one. There is no service fee, no
               booking fee, no listing fee and no commission taken out of what a guest
@@ -169,7 +169,7 @@ export const CHAPTERS: DocChapter[] = [
             </p>
             <p>
               So if anybody presents an agency fee, an inspection fee, a holding fee or
-              a caution fee as a RentMe charge, they are lying to you. Read{" "}
+              a caution fee as a Vallo charge, they are lying to you. Read{" "}
               <Link href="/docs/trust-and-safety" className={A}>
                 Trust and safety
               </Link>{" "}
@@ -342,7 +342,7 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <>
             <p>
-              A handle is your address on RentMe. Claim one and your public page lives at{" "}
+              A handle is your address on Vallo. Claim one and your public page lives at{" "}
               <code>/u/your-handle</code>: your name, your area, your occupation, any
               standing you have earned, and tabs for what you have posted, replied to
               and shared. An agent gets a Properties tab and a Reviews tab instead.
@@ -630,7 +630,7 @@ export const CHAPTERS: DocChapter[] = [
               property.
             </p>
             <p>
-              Partner listings also do not book on RentMe. A partner hotel opens the
+              Partner listings also do not book on Vallo. A partner hotel opens the
               partner to book; a partner restaurant gives you directions and the venue,
               because we do not take restaurant reservations for venues that are not
               ours. Nothing about a partner listing touches your wallet.
@@ -956,7 +956,7 @@ export const CHAPTERS: DocChapter[] = [
             </ul>
             <p>
               If the host cancels, or the property was materially not what was listed, you
-              get everything back whenever it happens. Refunds land in your RentMe wallet,
+              get everything back whenever it happens. Refunds land in your Vallo wallet,
               usually within minutes, and you move them to your bank from there.
             </p>
             <p>
@@ -1054,7 +1054,7 @@ export const CHAPTERS: DocChapter[] = [
         heading: "Sending money to another account",
         body: (
           <p>
-            <strong>Transfer</strong> sends money to another RentMe account by email
+            <strong>Transfer</strong> sends money to another Vallo account by email
             address or phone number. It moves inside the platform, so it is instant and
             it lands in their wallet. Both sides get a row in their statement, paired on a
             reference beginning <code>rm-p2p-</code>.
@@ -1122,7 +1122,7 @@ export const CHAPTERS: DocChapter[] = [
             <p>
               A card processor may charge for moving money. Where that happens it is
               labelled as the processor charge, because it belongs to them and not to us.
-              Nobody at RentMe will ever ask you for a fee of any other kind.
+              Nobody at Vallo will ever ask you for a fee of any other kind.
             </p>
           </>
         ),
@@ -1173,14 +1173,14 @@ export const CHAPTERS: DocChapter[] = [
               The first time a message you are typing drifts towards money, the composer
               shows one line and then gets out of the way:{" "}
               <em>
-                for your safety, keep every chat and payment inside RentMe. Deals made
+                for your safety, keep every chat and payment inside Vallo. Deals made
                 outside the platform are not protected by us. Pay only after you have
                 inspected the property.
               </em>
             </p>
             <p>
               Ten-digit account numbers and payment wording in a thread are flagged
-              automatically to the RentMe team. Nobody reads your conversations for
+              automatically to the Vallo team. Nobody reads your conversations for
               entertainment, but an account number being passed around is the single
               clearest signal of the fraud this platform exists to keep out.
             </p>
@@ -1402,7 +1402,7 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <>
             <p>
-              A place can have moderators, who are members of that place and not RentMe
+              A place can have moderators, who are members of that place and not Vallo
               staff. The word administrator is deliberately not used for them anywhere you
               can see it, because they are not one.
             </p>
@@ -1679,7 +1679,7 @@ export const CHAPTERS: DocChapter[] = [
               behind it, we have seen that identification, and the listing was reviewed
               before it went live. Higher rungs mean we also know where they are, that
               their payout account is genuinely theirs, and in the top case that somebody
-              from RentMe has met them or stood in one of their properties.
+              from Vallo has met them or stood in one of their properties.
             </p>
             <p>
               It does not mean the mattress is comfortable. Read the reviews for that.
@@ -1698,7 +1698,7 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <>
             <p>
-              Every payment happens inside RentMe: on the checkout screen, by card, by a
+              Every payment happens inside Vallo: on the checkout screen, by card, by a
               bank transfer the processor raises, or from your wallet. That is what leaves
               a reference against your booking that both you and support can open, which
               is the thing that makes a dispute solvable.
@@ -1710,7 +1710,7 @@ export const CHAPTERS: DocChapter[] = [
             </p>
             <p>
               There is no holding fee, no inspection fee, no agency fee and no caution fee
-              payable to RentMe, because RentMe charges nothing at all. Anybody presenting
+              payable to Vallo, because Vallo charges nothing at all. Anybody presenting
               one as ours is lying.
             </p>
             <p>
@@ -1776,7 +1776,7 @@ export const CHAPTERS: DocChapter[] = [
             </p>
             <p>
               Then report it to us with the listing link, the account details and the
-              messages. We cannot recover money that never came through RentMe. We can
+              messages. We cannot recover money that never came through Vallo. We can
               remove the account and stop the same person reaching anybody else, which is
               worth doing immediately.
             </p>
@@ -2073,7 +2073,7 @@ export const CHAPTERS: DocChapter[] = [
         heading: "My refund has not arrived",
         body: (
           <p>
-            Refunds land in your RentMe wallet, usually within minutes, not back on your
+            Refunds land in your Vallo wallet, usually within minutes, not back on your
             card. Check the{" "}
             <Link href="/wallet" className={A}>
               wallet statement
@@ -2136,7 +2136,7 @@ export const CHAPTERS: DocChapter[] = [
         heading: "Nothing is loading",
         body: (
           <p>
-            RentMe installs as an app and keeps working on a bad connection, with an
+            Vallo installs as an app and keeps working on a bad connection, with an
             honest offline screen rather than a blank one. If a page shows an error, the
             back control follows your real history rather than guessing, so you will not be
             thrown to the top of the product. If it persists, tell us what you were doing

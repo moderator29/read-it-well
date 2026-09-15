@@ -1,4 +1,4 @@
-# RentMe deploy runbook
+# Vallo deploy runbook
 
 Written for the owner, to be worked top to bottom. Every step is either a
 value to paste, a dashboard screen to visit, or a command to run. Where
@@ -78,7 +78,7 @@ nobody re-adds a key on the strength of having seen it here once.
 | `ASSISTANT_MODEL` | Optional. Falls back to the default model pinned in `app/api/assistant/route.ts`. Only set this to move the assistant to a different model deliberately. | Not a secret. A model identifier |
 | `SUPPORT_MODEL` | Optional. The same, for the support escalation summariser in `app/api/support/route.ts`. Falls back to its own pinned default. | Not a secret. A model identifier |
 | `RESEND_API_KEY` (SERVER ONLY) | `isEmailConfigured()` returns false, `sendEmail` returns `{sent: false, reason: "unconfigured"}` and nothing leaves the process. Every event that would have emailed still fires its in-app notification, so users are not left uninformed, only un-emailed. Email and password sign-in is unaffected: Supabase issues that session itself. | https://resend.com/api-keys. The sending domain must be verified in Resend first, or Resend rejects the send |
-| `EMAIL_FROM` | Optional. Defaults to `RentMe <hello@rentme.ng>`. If that domain is not the one verified in Resend, every send is rejected, so set this to match the verified domain. | Your verified sending address |
+| `EMAIL_FROM` | Optional. Defaults to `Vallo <hello@rentme.ng>`. If that domain is not the one verified in Resend, every send is rejected, so set this to match the verified domain. | Your verified sending address |
 | `NF_DATA_SOURCE` | Optional. Selects the repository implementation for listings, agents and messages. Leave unset for the default. Setting it to `api` throws on the agent repository, which is not implemented. | Not a secret |
 | `NEXT_PUBLIC_AUTH_PROVIDERS` | **Leave unset, permanently.** Email and password only, by owner decision. Section 4.2 says why, and `RECOMMENDATIONS.md` N-4 removes the code. | Do not set |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | All six "contact support" surfaces point at `/contact` instead of a `mailto:`. That is a working channel, not a fallback: the form writes a real `support_tickets` row under RLS and the reply notifies the sender. Set this only once the mailbox genuinely receives mail, because an address that bounces fails silently while the person who wrote believes they have asked. | Your own mailbox, once it exists |
@@ -245,7 +245,7 @@ fill in:
   transactional mail, so using it for auth mail keeps one sending domain and
   one reputation to manage.)
 - Sender email and sender name: an address on the domain you verified in
-  Resend, for example `hello@rentme.ng` and `RentMe`.
+  Resend, for example `hello@rentme.ng` and `Vallo`.
 
 Then **Authentication, Email Templates**, and paste each file from
 `supabase/templates/` into the matching template. All five, or the ones you
@@ -394,7 +394,7 @@ worker is the one artefact that can outlive a bad deploy on a user's phone.
   written, because filling a cache is itself paid-for traffic.
 - **Versioning**: `CACHE_VERSION` at the top of `sw.js`. **Bump it in the same
   commit as any change to that file.** The `activate` step deletes every
-  `rentme-` cache not in the current set, so a deploy cannot leave a user on
+  `vallo-` cache not in the current set, so a deploy cannot leave a user on
   last week's shell.
 
 If you ever need to retire the worker entirely, replace `sw.js` with a script
@@ -444,7 +444,7 @@ Then, by eye:
 - Listing photos and map tiles render as grey placeholders in this sandbox
   because it has no outbound access to Unsplash or the tile servers. They load
   on a real deploy. This is not a bug to fix.
-- `grep -rn "NaijaFinds" apps/web/src packages/i18n/src` should find nothing in
+- `grep -rn "Vallo" apps/web/src packages/i18n/src` should find nothing in
   user-facing copy.
 - Em dash scan: `grep -rn "$(printf '\xe2\x80\x94')" apps packages docs` should
   find nothing.
@@ -459,7 +459,7 @@ Then, by eye:
 Against the real production URL, on a real Android phone if possible.
 
 1. `https://rentme.ng/manifest.webmanifest` returns JSON with `"name":
-   "RentMe"` and `"start_url": "/home"`.
+   "Vallo"` and `"start_url": "/home"`.
 2. Chrome on Android offers "Install app" or "Add to Home screen". Install it.
    The home-screen icon shows the house-and-R mark on navy, not a screenshot of
    the page and not a blank tile.
@@ -468,14 +468,14 @@ Against the real production URL, on a real Android phone if possible.
 4. Long-press the home-screen icon. Search, Bookings and Wallet appear as
    shortcuts, and each opens the right surface.
 5. In DevTools, Application, Service Workers: `sw.js` is activated and running.
-   Application, Cache Storage shows `rentme-shell-v1` and `rentme-assets-v1`.
+   Application, Cache Storage shows `vallo-shell-v1` and `vallo-assets-v1`.
 6. Turn on airplane mode and navigate anywhere. The designed `/offline` screen
    appears with its heading, its three-point list and a working Try again
    button. Turn airplane mode off, tap Try again, and the app carries on.
 7. In Cache Storage, confirm no entry exists for `/wallet`, `/messages`,
    `/api/...` or any admin or agent path. This is the check that matters most.
 8. Sign in with Google. Sign in with Apple. Request a password reset and
-   confirm the email that arrives is the branded RentMe template, with the logo
+   confirm the email that arrives is the branded Vallo template, with the logo
    loading.
 9. Fund the wallet with the smallest amount Paystack will accept, on a real
    card. Confirm the balance moves, the transaction appears, and the
@@ -502,7 +502,7 @@ follows is only the part an operator needs before pressing deploy.
   catalogue that used to fill it was deleted because twenty-two of its
   twenty-three places carried a verified badge on an address that does not
   exist. **Do not put one back.**
-- **The product cannot express a sale.** RentMe is for renting, buying and
+- **The product cannot express a sale.** Vallo is for renting, buying and
   selling, and `public.listings` has no sale price, no intent and no tenure
   field. `RECOMMENDATIONS.md` P-1.
 - **Escrow does not exist.** Zero implementation, and correctly promised nowhere

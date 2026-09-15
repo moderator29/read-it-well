@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 /**
- * RentMe brand mark.
+ * Vallo brand mark.
  *
  * The supplied asset, not a redraw. Two forms exist because they serve
  * different jobs:
@@ -9,7 +9,7 @@ import Image from "next/image";
  *   `mark`   the liquid blob with the location pin, no wordmark. Pairs with
  *            live text so the wordmark stays selectable, translatable and
  *            crisp at any size.
- *   `lockup` the full supplied logo with RentMe set inside the blob. Used
+ *   `lockup` the full supplied logo with Vallo set inside the blob. Used
  *            large and centred, on auth and hero surfaces.
  */
 
@@ -69,7 +69,7 @@ export function LogoLockup({
   return (
     <Image
       src="/brand/rentme-logo.png"
-      alt="RentMe"
+      alt="Vallo"
       width={size}
       height={size}
       priority={priority}
@@ -104,7 +104,7 @@ export function Logo({
     : wordSize;
   return (
     <span className={`nf-logo ${className ?? ""}`}>
-      <LogoMark size={size} responsive={responsive} title="RentMe" priority={priority} />
+      <LogoMark size={size} responsive={responsive} title="Vallo" priority={priority} />
       <span className="nf-logo__text">
         <span className="nf-logo__word" style={{ fontSize: wordFontSize }}>
           Rent<span className="nf-logo__word-accent">Me</span>

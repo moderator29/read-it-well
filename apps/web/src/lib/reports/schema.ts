@@ -29,7 +29,7 @@ export type ReportCategory = (typeof REPORT_CATEGORIES)[number];
 /** The label and the line under it, in the order a person should read them. */
 export const REPORT_CATEGORY_COPY: Record<ReportCategory, { label: string; hint: string }> = {
   off_platform_payment: {
-    label: "Asked me to pay outside RentMe",
+    label: "Asked me to pay outside Vallo",
     hint: "An account number, a transfer, or anything that skips the platform.",
   },
   scam: {

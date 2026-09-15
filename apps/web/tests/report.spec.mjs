@@ -118,7 +118,7 @@ async function run(theme) {
       check(`every category is offered (${options})`, options === 8);
       check(
         "the serious one is named plainly",
-        /pay outside RentMe/i.test(text),
+        /pay outside Vallo/i.test(text),
       );
       const submit = sheet.locator('button[type="submit"]');
       check("send is refused until a reason is chosen", await submit.isDisabled());

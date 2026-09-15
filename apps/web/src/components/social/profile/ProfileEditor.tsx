@@ -33,7 +33,7 @@ import {
  * correct.
  *
  * The handle is the one field that can be refused by a rule the browser cannot
- * know about. Reserved words, anything resembling an official RentMe name and a
+ * know about. Reserved words, anything resembling an official Vallo name and a
  * handle released inside the last 90 days are all refused by a trigger, which
  * hands back a sentence written for a person. Those arrive as a field error on
  * this input, in the trigger's own words.

@@ -1,5 +1,5 @@
 /*
- * RentMe service worker. Hand written, no library, deliberately small.
+ * Vallo service worker. Hand written, no library, deliberately small.
  *
  * The audience is Nigerian and frequently on a mid-range Android over 3G with
  * a metered data bundle, so this worker has two jobs and no others:
@@ -35,8 +35,8 @@
  */
 
 const CACHE_VERSION = "v1";
-const SHELL_CACHE = `rentme-shell-${CACHE_VERSION}`;
-const ASSET_CACHE = `rentme-assets-${CACHE_VERSION}`;
+const SHELL_CACHE = `vallo-shell-${CACHE_VERSION}`;
+const ASSET_CACHE = `vallo-assets-${CACHE_VERSION}`;
 const CURRENT_CACHES = [SHELL_CACHE, ASSET_CACHE];
 
 const OFFLINE_URL = "/offline";
@@ -185,7 +185,7 @@ self.addEventListener("activate", (event) => {
       const names = await caches.keys();
       await Promise.all(
         names
-          .filter((name) => name.startsWith("rentme-") && !CURRENT_CACHES.includes(name))
+          .filter((name) => name.startsWith("vallo-") && !CURRENT_CACHES.includes(name))
           .map((name) => caches.delete(name)),
       );
       await self.clients.claim();

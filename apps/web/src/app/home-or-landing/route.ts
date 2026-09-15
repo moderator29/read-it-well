@@ -5,7 +5,7 @@ import { resolveSession } from "@/lib/actions/session";
  * "Home", resolved by who is asking.
  *
  * There are two homes in this product and only one word for them. `/` is the
- * landing page, which exists to explain RentMe to somebody who has never seen
+ * landing page, which exists to explain Vallo to somebody who has never seen
  * it. `/home` is the first screen inside the platform, which is what "home"
  * means to anybody who has signed in.
  *

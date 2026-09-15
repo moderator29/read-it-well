@@ -78,7 +78,7 @@ The Apple Developer account is still needed, for the store and for signing.
 | `SUPPORT_MODEL` | server | Same, for the support route. |
 | `PAYSTACK_SECRET_KEY` | **server** | Checkout cannot take money. The flow explains itself rather than failing at the card form. |
 | `RESEND_API_KEY` | **server** | `sendEmail` returns `{sent: false, reason: "unconfigured"}` and nothing leaves the process. No booking confirmations, no receipts. |
-| `EMAIL_FROM` | server | Defaults to `RentMe <hello@rentme.ng>`. Must be a **verified sender on your Resend domain** or delivery is rejected outright. |
+| `EMAIL_FROM` | server | Defaults to `Vallo <hello@rentme.ng>`. Must be a **verified sender on your Resend domain** or delivery is rejected outright. |
 | `GOOGLE_PLACES_API_KEY`, `GOOGLE_ROUTES_API_KEY`, `LITEAPI_KEY`, `LITEAPI_WHITELABEL_DOMAIN` | none | **Gone, 2026-08-09.** All four powered third-party inventory. `apps/web/src/lib/inventory/` no longer exists, so nothing reads any of them and setting them does nothing at all. Delete them from every environment. ADR-013. |
 | `AMADEUS_CLIENT_ID` / `AMADEUS_CLIENT_SECRET` / `AMADEUS_ENV` | none | **Gone.** The provider was removed on 2026-08-07 along with these variables. Amadeus decommissioned its Self-Service portal on 17 July 2026 and disabled the keys, so nothing could ever configure it again. Setting these now does nothing at all; delete them from any environment that still carries them. |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | public | Six surfaces show a support address. Until this names a real mailbox they show the in-app route instead of an address that bounces. |

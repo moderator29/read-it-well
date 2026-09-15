@@ -1,5 +1,5 @@
 /*
- * RentMe design tokens.
+ * Vallo design tokens.
  *
  * This file is the single source of truth for every colour, radius, shadow,
  * blur and motion value in the product (Master Rules 27 and 29).
@@ -375,7 +375,7 @@
    *
    * The assignment: pending is the cyan attention state, approved is emerald,
    * rejected is rose, and VERIFIED IS BRAND BLUE. Verified is not a state a
-   * thing passed through, it is RentMe putting its own name to something, so it
+   * thing passed through, it is Vallo putting its own name to something, so it
    * wears the brand rather than the success colour. That also frees emerald to
    * mean one thing only.
    *
@@ -392,7 +392,7 @@
   --nf-status-verified-surface: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
 
   /* ---------------------------------------------------------------------
-   * RentMe Material. Four surface families (Design prompt §5).
+   * Vallo Material. Four surface families (Design prompt §5).
    * ------------------------------------------------------------------ */
 
   /*

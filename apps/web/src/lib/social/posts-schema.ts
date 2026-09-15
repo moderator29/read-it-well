@@ -172,7 +172,7 @@ export const reportProfileSchema = z.object({
 
 export const REPORT_REASON_LABEL: Record<ReportReason, string> = {
   SCAM: "It looks like a scam",
-  OFF_PLATFORM_PAYMENT: "Asking for payment outside RentMe",
+  OFF_PLATFORM_PAYMENT: "Asking for payment outside Vallo",
   HARASSMENT: "Harassment or abuse",
   MISLEADING: "It is not true",
   IMPERSONATION: "Pretending to be somebody else",
@@ -223,7 +223,7 @@ export const POST_COPY = {
   emptyFeedSignedOut: "Nothing has been said here yet.",
   endOfSession: "That is everything for today.",
   blockedDone:
-    "Blocked. You will not see each other anywhere on RentMe, and they are not told.",
+    "Blocked. You will not see each other anywhere on Vallo, and they are not told.",
   /*
    * Precise on purpose, and it now matches every place a mute actually acts.
    *

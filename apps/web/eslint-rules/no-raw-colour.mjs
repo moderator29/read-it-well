@@ -37,7 +37,7 @@
 const HEX = /#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b/;
 const FUNCTIONAL = /\b(?:rgba?|hsla?)\s*\(/;
 
-/** Tailwind's default palette families. None of these is a RentMe colour. */
+/** Tailwind's default palette families. None of these is a Vallo colour. */
 const FAMILIES = [
   "slate", "gray", "zinc", "neutral", "stone",
   "red", "orange", "amber", "yellow", "lime", "green", "emerald", "teal",
@@ -89,7 +89,7 @@ const CHECKS = [
     test: PALETTE_CLASS,
     id: "palette-class",
     message:
-      "Tailwind palette colour class. The RentMe palette is one blue family " +
+      "Tailwind palette colour class. The Vallo palette is one blue family " +
       "plus emerald for success and rose for error; nothing else exists. Use a " +
       "token utility, e.g. text-[var(--nf-content-secondary)].",
   },

@@ -43,7 +43,7 @@ const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromi
 
 /** The canonical rental safety wording, docs/HYBRID_INVENTORY.md section 6. */
 const SAFETY_COPY =
-  "For your safety, keep every chat and payment inside RentMe. Deals made outside the platform are not protected by us. Pay only after you have inspected the property.";
+  "For your safety, keep every chat and payment inside Vallo. Deals made outside the platform are not protected by us. Pay only after you have inspected the property.";
 
 async function walk(colorScheme) {
   console.log(`\n================ ${colorScheme} ================`);

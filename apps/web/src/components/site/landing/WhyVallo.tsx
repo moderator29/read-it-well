@@ -4,7 +4,7 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Words } from "@/components/site/Words";
 
 /**
- * "Why RentMe" value band.
+ * "Why Vallo" value band.
  *
  * ONE SURFACE, FOUR CELLS. It was four cards, two up on a phone and four across
  * on desktop, each one a bordered blurred container holding a 48px 3D object,
@@ -42,7 +42,7 @@ import { Words } from "@/components/site/Words";
  * before the listing goes live. That claim used to read "Every listing and
  * agent is checked before it goes live", which was false in both halves.
  */
-export function WhyRentMe({ t }: { t: Dictionary }) {
+export function WhyVallo({ t }: { t: Dictionary }) {
   void t;
   const values: { icon: BrandIconName; title: string; body: string }[] = [
     { icon: "user-verified", title: "Agents are checked", body: "A person here checks the agent before the tick appears." },
@@ -55,7 +55,7 @@ export function WhyRentMe({ t }: { t: Dictionary }) {
     <section className="nf-shell py-section">
       <Reveal className="mb-block max-w-[52ch]">
         <h2 className="nf-h1">
-          <Words text="Why RentMe" accentFrom={1} />
+          <Words text="Why Vallo" accentFrom={1} />
         </h2>
         <p className="nf-lede mt-group">
           What stands behind every search, every listing and every payment.

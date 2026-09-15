@@ -294,7 +294,7 @@ export async function reviewAgentApplication(input: {
         {
           user_id: application.user_id,
           application_id: application.id,
-          display_name: application.full_name ?? "RentMe agent",
+          display_name: application.full_name ?? "Vallo agent",
           type: application.type,
           status: "APPROVED",
           verified: true,
@@ -315,7 +315,7 @@ export async function reviewAgentApplication(input: {
     const notice =
       decision === "approve"
         ? {
-            title: "You are a verified RentMe agent",
+            title: "You are a verified Vallo agent",
             body: "Your application is approved. Agent Mode is open, so you can list your first property.",
           }
         : decision === "reject"

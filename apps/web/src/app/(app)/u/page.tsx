@@ -146,7 +146,7 @@ export default async function PeoplePage({
                     {person.isAgent ? (
                       <span
                         className="nf-social-verified"
-                        title="A verified RentMe agent"
+                        title="A verified Vallo agent"
                         aria-label="Verified agent"
                       >
                         <UiIcon name="verified" size={15} />

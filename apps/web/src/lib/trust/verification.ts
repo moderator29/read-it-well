@@ -68,7 +68,7 @@ export const VERIFICATION_LADDER: Record<VerificationRung, RungDefinition> = {
     step: 4,
     label: "Met in person",
     meaning:
-      "Somebody from RentMe has met this agent or stood in one of their properties.",
+      "Somebody from Vallo has met this agent or stood in one of their properties.",
     evidence: "A visit or a live video call, recorded with the date and who did it.",
   },
 };

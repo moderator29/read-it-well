@@ -503,7 +503,7 @@ export async function withdraw(
       amountMinor,
       recipientCode: recipient.recipientCode,
       reference,
-      reason: "RentMe wallet withdrawal",
+      reason: "Vallo wallet withdrawal",
     });
   } catch (e) {
     let markedFailed = false;
@@ -573,7 +573,7 @@ export type TransferReceipt = {
 };
 
 /**
- * Transfer wallet money to another RentMe user by email.
+ * Transfer wallet money to another Vallo user by email.
  *
  * BOTH LEGS, ONE TRANSACTION, ONE ROW LOCK. This used to read
  * availableBalanceMinor and then post two entries in separate PostgREST round
@@ -610,7 +610,7 @@ export async function transferToUser(
   const recipient = await findUserByEmail(parsed.data.recipientEmail);
   if (!recipient) {
     return fail(
-      "No RentMe account uses that email address yet. Check the spelling, or ask them to sign up for RentMe and send it once they have.",
+      "No Vallo account uses that email address yet. Check the spelling, or ask them to sign up for Vallo and send it once they have.",
       {
         recipientEmail:
           "No account uses this address. Check the spelling, or ask them to sign up first.",
@@ -630,7 +630,7 @@ export async function transferToUser(
 
   // Display names only. Read before the movement so the receipt can name the
   // recipient, and never allowed to decide whether money moves.
-  let senderName = session.user.email ?? "A RentMe user";
+  let senderName = session.user.email ?? "A Vallo user";
   let recipientName = parsed.data.recipientEmail;
   try {
     senderName = (await displayNameFor(admin, session.user.id)) ?? senderName;

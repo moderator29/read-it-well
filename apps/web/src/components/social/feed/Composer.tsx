@@ -403,7 +403,7 @@ export function Composer({
           data-testid="composer-destination"
         >
           <UiIcon name={areaId ? "location" : "compass"} size={16} />
-          {areaId && areaName ? `Posting in ${areaName}` : "Posting to everyone on RentMe"}
+          {areaId && areaName ? `Posting in ${areaName}` : "Posting to everyone on Vallo"}
         </p>
       ) : null}
 

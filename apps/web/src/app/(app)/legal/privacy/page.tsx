@@ -17,7 +17,7 @@ export default function AppPrivacyPage() {
   return (
     <LegalDocument
       title="Privacy policy"
-      intro="How RentMe collects, uses and protects your personal data, and the rights the Nigeria Data Protection Act 2023 gives you over it."
+      intro="How Vallo collects, uses and protects your personal data, and the rights the Nigeria Data Protection Act 2023 gives you over it."
       updated="28 July 2026"
       sections={PRIVACY_SECTIONS}
       otherHref="/legal/terms"

@@ -9,7 +9,7 @@ import { ButtonLink } from "@/components/ui/Button";
 export const metadata: Metadata = {
   title: "Help centre",
   description:
-    "Answers about booking, payments after inspection, refunds, listing a property, verification and languages on RentMe.",
+    "Answers about booking, payments after inspection, refunds, listing a property, verification and languages on Vallo.",
 };
 
 /**
@@ -51,7 +51,7 @@ const FAQS: Faq[] = [
   // ------------------------------------------------------------ booking
   {
     category: "Booking a stay",
-    q: "How do I book a stay on RentMe?",
+    q: "How do I book a stay on Vallo?",
     a: "Search for the city or area you want, open a listing, pick your dates and follow the booking steps. You will see the full price in naira before you confirm anything, and your booking then appears under Bookings in your account.",
   },
   {
@@ -62,7 +62,7 @@ const FAQS: Faq[] = [
   {
     category: "Booking a stay",
     q: "Can I talk to the agent before I book?",
-    a: "Yes. Every listing has a message option, so you can ask about the area, power supply, water, parking or anything else before you commit. Keep the conversation on RentMe so there is a record if anything goes wrong.",
+    a: "Yes. Every listing has a message option, so you can ask about the area, power supply, water, parking or anything else before you commit. Keep the conversation on Vallo so there is a record if anything goes wrong.",
   },
   {
     category: "Booking a stay",
@@ -74,22 +74,22 @@ const FAQS: Faq[] = [
   {
     category: "Payments and refunds",
     q: "Do I pay the agent directly?",
-    a: "Never. You pay on RentMe, through the checkout screen, using a card, a bank transfer raised by the payment processor, or your RentMe wallet. Nobody on this platform has any reason to send you an account number, and if somebody does, report them. Settlement to the agent is between RentMe and the agent, and it is not something you arrange or hand over.",
+    a: "Never. You pay on Vallo, through the checkout screen, using a card, a bank transfer raised by the payment processor, or your Vallo wallet. Nobody on this platform has any reason to send you an account number, and if somebody does, report them. Settlement to the agent is between Vallo and the agent, and it is not something you arrange or hand over.",
   },
   {
     category: "Payments and refunds",
     q: "What payment methods can I use?",
-    a: "You can pay in naira with Nigerian debit cards or by bank transfer, and from your RentMe wallet. Prices are always shown in naira with no hidden conversion.",
+    a: "You can pay in naira with Nigerian debit cards or by bank transfer, and from your Vallo wallet. Prices are always shown in naira with no hidden conversion.",
   },
   {
     category: "Payments and refunds",
-    q: "Is it safe to pay through RentMe?",
+    q: "Is it safe to pay through Vallo?",
     a: "Payments run through licensed Nigerian payment processors and we never store your full card details. Every payment leaves a reference against your booking that both you and our support team can open, which is what makes a dispute solvable. Cash at a viewing, or a transfer to a stranger's account, leaves us nothing to work from.",
   },
   {
     category: "Payments and refunds",
     q: "How do refunds work?",
-    a: "One schedule applies to every stay on RentMe. Cancel more than 72 hours before check-in and you get everything back; inside that window you get half; once check-in day has started the stay is the host's. If the host cancels, or the property was not what was listed, you get everything back whenever it happens. Refunds land in your RentMe wallet, and you move them to your bank from there.",
+    a: "One schedule applies to every stay on Vallo. Cancel more than 72 hours before check-in and you get everything back; inside that window you get half; once check-in day has started the stay is the host's. If the host cancels, or the property was not what was listed, you get everything back whenever it happens. Refunds land in your Vallo wallet, and you move them to your bank from there.",
   },
   {
     category: "Payments and refunds",
@@ -100,13 +100,13 @@ const FAQS: Faq[] = [
   // ------------------------------------------------------------ listing
   {
     category: "Listing your property",
-    q: "How do I list my property on RentMe?",
+    q: "How do I list my property on Vallo?",
     a: "Apply through the Become an agent page. The application has six short steps: personal details, identity verification, business type, documents, payout account and review. Your progress saves as you go, and once approved you can publish listings from the agent dashboard.",
   },
   {
     category: "Listing your property",
     q: "Does it cost anything to list?",
-    a: "No. Listing is free, and it stays free. RentMe charges no fees at all: not to list, not to book, and nothing is taken out of what a guest pays you.",
+    a: "No. Listing is free, and it stays free. Vallo charges no fees at all: not to list, not to book, and nothing is taken out of what a guest pays you.",
   },
   {
     category: "Listing your property",
@@ -118,7 +118,7 @@ const FAQS: Faq[] = [
   {
     category: "Verification and trust",
     q: "What does the verified badge on a listing mean?",
-    a: "It means the agent behind the listing passed identity verification with a government issued ID or NIN, and the listing details were checked before going live. Listings that fail our checks do not appear on RentMe at all.",
+    a: "It means the agent behind the listing passed identity verification with a government issued ID or NIN, and the listing details were checked before going live. Listings that fail our checks do not appear on Vallo at all.",
   },
   {
     category: "Verification and trust",
@@ -137,24 +137,24 @@ const FAQS: Faq[] = [
   // --------------------------------------------------- safety and money
   {
     category: "Verification and trust",
-    q: "Does RentMe charge any fees?",
-    a: "No. RentMe charges no fees. Not to book, not to list, not to be paid. The total you see before you confirm a stay is the host's nightly rate and cleaning charge and nothing else. Anyone presenting an inspection fee, a holding fee, an agency fee or a caution fee as ours is lying, and you should report them.",
+    q: "Does Vallo charge any fees?",
+    a: "No. Vallo charges no fees. Not to book, not to list, not to be paid. The total you see before you confirm a stay is the host's nightly rate and cleaning charge and nothing else. Anyone presenting an inspection fee, a holding fee, an agency fee or a caution fee as ours is lying, and you should report them.",
   },
   {
     category: "Verification and trust",
     q: "Someone asked me to pay into a bank account. What do I do?",
-    a: "Stop, and report them. No RentMe staff member, agent or listing will ever give you an account number to pay into: every payment happens inside the platform. Use the report control on the listing, or the contact form, and include the account number and the messages. Reports about off-platform payment are answered within four hours.",
+    a: "Stop, and report them. No Vallo staff member, agent or listing will ever give you an account number to pay into: every payment happens inside the platform. Use the report control on the listing, or the contact form, and include the account number and the messages. Reports about off-platform payment are answered within four hours.",
   },
   {
     category: "Verification and trust",
     q: "What if I have already sent money outside the platform?",
-    a: "Call your bank first and ask them to raise a dispute on the transfer, because a fast report is sometimes enough for them to place a lien on the receiving account. Then report it to us with the listing link, the account details and the messages. We cannot recover money that never came through RentMe, but we can remove the account and stop the same person reaching anybody else.",
+    a: "Call your bank first and ask them to raise a dispute on the transfer, because a fast report is sometimes enough for them to place a lien on the receiving account. Then report it to us with the listing link, the account details and the messages. We cannot recover money that never came through Vallo, but we can remove the account and stop the same person reaching anybody else.",
   },
 
   // ---------------------------------------------------------- languages
   {
     category: "Languages and accessibility",
-    q: "Which languages does RentMe work in?",
+    q: "Which languages does Vallo work in?",
     a: "English, Yoruba, Hausa and Igbo. You can switch language at any time from the switcher in the header, and your choice is remembered on your device.",
   },
   {

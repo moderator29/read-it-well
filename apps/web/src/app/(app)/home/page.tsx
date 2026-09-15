@@ -139,17 +139,17 @@ export default async function HomePage() {
           <h1 className="nf-rise nf-rise-2 mt-inline-tight flex items-center gap-inline">
             <span className="nf-h1">{name}</span>
             <span className="inline-block shrink-0 translate-y-[2px]">
-              <LogoMark size={26} title="RentMe" />
+              <LogoMark size={26} title="Vallo" />
             </span>
           </h1>
         ) : (
           /* NO MARK ON THIS BRANCH. The signed-in greeting earns one, because
              it reads "Chidi" and the mark is what says whose product that name
-             is in. This branch already ends in the word RentMe, with the
+             is in. This branch already ends in the word Vallo, with the
              wordmark in the rail two centimetres to its left, so the mark made
              three brand statements inside one screen width. */
           <h1 className="nf-rise nf-rise-2 mt-inline-tight">
-            <span className="nf-h1">Welcome to RentMe</span>
+            <span className="nf-h1">Welcome to Vallo</span>
           </h1>
         )}
         {!overview.signedIn && (
@@ -175,7 +175,7 @@ export default async function HomePage() {
       {/*
         ------------------------------------------------------------- search
 
-        THE ONE THING SOMEBODY OPENS RENTME TO DO, AND IT WAS NOT ON THIS
+        THE ONE THING SOMEBODY OPENS VALLO TO DO, AND IT WAS NOT ON THIS
         SCREEN.
 
         The in-product home had no search field anywhere. It opened with a

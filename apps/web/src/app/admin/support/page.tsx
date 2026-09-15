@@ -25,7 +25,7 @@ export const dynamic = "force-dynamic";
  * database trigger on that insert notifies the ticket owner, so the reply lands
  * on the platform they already use rather than in a queue nobody watches.
  *
- * The contact form's first option is "Someone asked me to pay outside RentMe",
+ * The contact form's first option is "Someone asked me to pay outside Vallo",
  * and that choice has to mean something on this side or the wording is
  * decoration. It does: the stored topic is read back through the same module
  * the form renders from, and an open ticket carrying it takes the four-hour

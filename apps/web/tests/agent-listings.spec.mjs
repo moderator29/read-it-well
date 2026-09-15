@@ -48,7 +48,7 @@ try {
   const titleInput = page.locator('input[placeholder="Bright 2 bedroom flat in Lekki Phase 1"]');
   const wizardVisible = await titleInput.isVisible().catch(() => false);
   const pitchVisible = await page
-    .locator("text=List your property on RentMe")
+    .locator("text=List your property on Vallo")
     .first()
     .isVisible()
     .catch(() => false);

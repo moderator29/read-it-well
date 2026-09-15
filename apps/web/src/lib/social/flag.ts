@@ -39,7 +39,7 @@ export async function isSocialEnabled(): Promise<boolean> {
 export const SOCIAL_OFF_TITLE = "Around is paused";
 
 export const SOCIAL_OFF_BODY =
-  "Places, posts and people are switched off for a moment while we sort something out. Nothing has been deleted and nothing you wrote has gone anywhere. The rest of RentMe works as normal.";
+  "Places, posts and people are switched off for a moment while we sort something out. Nothing has been deleted and nothing you wrote has gone anywhere. The rest of Vallo works as normal.";
 
 /** The same fact, as one line, for an action that cannot go through. */
 export const SOCIAL_OFF_MESSAGE =

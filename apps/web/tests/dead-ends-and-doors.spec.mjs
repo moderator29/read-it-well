@@ -12,7 +12,7 @@
  * ONE ROOT CAUSE, TWICE. Both screens are shared by two audiences and neither
  * asked which one it had.
  *
- *   `/` and `/home` are both called home. `/` explains RentMe to somebody who
+ *   `/` and `/home` are both called home. `/` explains Vallo to somebody who
  *   has never seen it; `/home` is the first screen inside the product. Half
  *   the dead ends pointed at `/`, so a signed-in person was thrown out of the
  *   product by the button offering to take them back into it.

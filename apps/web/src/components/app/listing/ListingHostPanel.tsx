@@ -9,7 +9,7 @@ import { ICON, TYPE } from "@/components/app/Screen";
  * Who listed this place, and how to reach them.
  *
  * Agent accounts are not connected to listings yet, so this states only what is
- * true today: that a RentMe agent manages the listing, whether the listing
+ * true today: that a Vallo agent manages the listing, whether the listing
  * carries our verification, and the one control that reaches them. Real agent
  * profiles slot straight in when the agent repository joins listings to their
  * owners.
@@ -49,8 +49,8 @@ export function ListingHostPanel({
           <BrandIcon name="user-check" fill />
         </span>
         <div className="min-w-0 flex-1">
-          <p className={TYPE.rowTitle}>RentMe partner agent</p>
-          <p className={`mt-1 ${TYPE.rowMeta}`}>Manages this listing on RentMe</p>
+          <p className={TYPE.rowTitle}>Vallo partner agent</p>
+          <p className={`mt-1 ${TYPE.rowMeta}`}>Manages this listing on Vallo</p>
           {verified && (
             <p className={`mt-2 flex items-center gap-2 ${TYPE.body}`}>
               <UiIcon

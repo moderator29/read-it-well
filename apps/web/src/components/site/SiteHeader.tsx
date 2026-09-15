@@ -77,7 +77,7 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
             >
               {t.common.signIn}
             </Link>
-            {/* /start, not /sign-up: two intro screens explaining what RentMe
+            {/* /start, not /sign-up: two intro screens explaining what Vallo
                 is, with Skip on both. See (auth)/start/StartCarousel.tsx. */}
             <ButtonLink href="/start" variant="primary" size="sm">
               {t.common.signUp}

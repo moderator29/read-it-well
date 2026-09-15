@@ -364,7 +364,7 @@ export async function getReports(): Promise<AdminRead<ReportView[]>> {
       state: "ok",
       data: rows.map((row) => ({
         id: row.id,
-        reporterName: names.get(row.reporter_id) ?? "A RentMe member",
+        reporterName: names.get(row.reporter_id) ?? "A Vallo member",
         targetType: row.target_type,
         targetId: row.target_id,
         category: row.category,

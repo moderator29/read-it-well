@@ -43,7 +43,7 @@ export const INTEREST_COPY: Record<PropertyType, { label: string; hint: string }
   land: { label: "Land", hint: "Plots to buy or lease" },
   /* The one market here that is not somewhere to sleep or work. It reached
      this list by growing the enum rather than by being designed into it, so
-     the hint says what a RentMe restaurant is that a Google one is not: a
+     the hint says what a Vallo restaurant is that a Google one is not: a
      table somebody will actually hold for you. */
   restaurant: { label: "Restaurants", hint: "Tables you can reserve" },
 };

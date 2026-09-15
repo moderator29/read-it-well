@@ -135,7 +135,7 @@ export default async function AdminOverviewPage() {
 
             It offered to "run one live search against every partner feed" and
             linked to `/api/admin/inventory`. There are no partner feeds: the
-            third-party inventory was taken out when RentMe became first-party
+            third-party inventory was taken out when Vallo became first-party
             listings only, and that route went with it. Both links 404, so the
             console's own overview was the one screen guaranteed to hand an
             operator a dead end - and the copy above them described a supply

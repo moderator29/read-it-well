@@ -59,7 +59,7 @@ export const en = {
    * a chance to break it.
    */
   welcomeCards: {
-    label: "What RentMe is",
+    label: "What Vallo is",
     skip: "Skip",
     start: "Let me in",
     goTo: "Go to card {n}",
@@ -76,7 +76,7 @@ export const en = {
     three: {
       title: "Message first, pay when you are sure",
       body:
-        "Talk to the host, inspect the place, then pay on the platform. Never send money to anybody outside RentMe.",
+        "Talk to the host, inspect the place, then pay on the platform. Never send money to anybody outside Vallo.",
     },
   },
 
@@ -168,7 +168,7 @@ export const en = {
    * server module that only speaks English.
    */
   social: {
-    feedName: "RentMe feed",
+    feedName: "Vallo feed",
     tabForYou: "For you",
     tabFollowing: "Following",
     tabNew: "New",
@@ -215,7 +215,7 @@ export const en = {
   socialProfile: {
     back: "Back",
     verified: "Verified agent",
-    verifiedTitle: "A verified RentMe agent",
+    verifiedTitle: "A verified Vallo agent",
     /* The badge beside the name reads MOD, then the place. Short because it
        sits on the same line as a display name at 390px. The full sentence is
        the badge's accessible name, so nothing is lost to the abbreviation. */
@@ -255,7 +255,7 @@ export const en = {
          experiences and more", which read as a travel app and never once said
          rent, buy or sell. */
       subtitle:
-        "Rent, buy or sell property in Nigeria. Every place here was listed by a real person on RentMe.",
+        "Rent, buy or sell property in Nigeria. Every place here was listed by a real person on Vallo.",
       searchPlaceholder: "Where do you want to go?",
       searchLabel: "Search destinations across Nigeria",
       popularLabel: "Popular right now",
@@ -263,7 +263,7 @@ export const en = {
     vision: {
       overline: "Our vision",
       title: "Nigeria at your fingertips. Africa next.",
-      body: "RentMe is the trusted place to rent, buy and let property in Nigeria, and then across the continent. One account, one wallet, one assistant, made for how Africa actually moves.",
+      body: "Vallo is the trusted place to rent, buy and let property in Nigeria, and then across the continent. One account, one wallet, one assistant, made for how Africa actually moves.",
       missionOverline: "Our mission",
       missionTitle: "Make finding and booking anything effortless and safe.",
       missionBody: "Honest prices in naira with the move-in total spelled out, agents checked by hand, real reviews from real tenancies, and an assistant that understands what you want.",
@@ -671,7 +671,7 @@ export const en = {
 
     search: {
       label: "Search",
-      note: "Search opens on your default area, and you can always look anywhere. Every price across RentMe is shown in Naira.",
+      note: "Search opens on your default area, and you can always look anywhere. Every price across Vallo is shown in Naira.",
       defaultArea: "Default area",
       allOfNigeria: "All of Nigeria",
       currency: "Currency",
@@ -767,9 +767,9 @@ export const en = {
     data: {
       label: "Your data",
       exportNote:
-        "Right now everything RentMe knows about you lives in this browser, and nothing has left this device. Full data export ships with the launch release.",
+        "Right now everything Vallo knows about you lives in this browser, and nothing has left this device. Full data export ships with the launch release.",
       download: "Download my data",
-      downloadSub: "A copy of everything RentMe holds about you.",
+      downloadSub: "A copy of everything Vallo holds about you.",
       clear: "Clear local data",
       clearAgain: "Tap again to confirm",
       clearSub:
@@ -885,8 +885,8 @@ export const en = {
        * rules it actually runs under in app/api/assistant/route.ts, so the
        * three lines below are checkable rather than promotional.
        */
-      title: "Ask RentMe AI",
-      body: "It searches the same listings you do, so it can only tell you about places that are really on RentMe.",
+      title: "Ask Vallo AI",
+      body: "It searches the same listings you do, so it can only tell you about places that are really on Vallo.",
       action: "Ask the assistant",
       truths: {
         /* Rule 1 of the system prompt: never invent listings, cite only what
@@ -905,7 +905,7 @@ export const en = {
       },
     },
     agentCard: {
-      title: "Become a RentMe Agent",
+      title: "Become a Vallo Agent",
       body: "List your properties, manage bookings, earn more and grow your business.",
       action: "Become an agent",
     },
@@ -949,7 +949,7 @@ export const en = {
       settings: "Settings",
     },
     join: {
-      title: "Join the RentMe Agent Community",
+      title: "Join the Vallo Agent Community",
       body: "List properties, connect with verified guests, manage bookings and earn.",
       start: "Start application",
       resume: "Continue application",
@@ -994,7 +994,7 @@ export const en = {
         bankName: "Bank",
         accountNumber: "Account number",
         accountName: "Account name",
-        agreeTerms: "I agree to the RentMe Agent Terms and Payout Policy.",
+        agreeTerms: "I agree to the Vallo Agent Terms and Payout Policy.",
       },
       documents: {
         title: "Upload your documents",
@@ -1074,10 +1074,10 @@ export const en = {
         "Your earnings, your bookings, your calendar and your listings, all in one place. Sign in to open yours.",
       notAgentTitle: "You are not listing yet",
       notAgentBody:
-        "This workspace fills in the moment you have a place on RentMe. Applying takes about two minutes and a person reads every application.",
+        "This workspace fills in the moment you have a place on Vallo. Applying takes about two minutes and a person reads every application.",
       unconfiguredTitle: "The workspace is not connected yet",
       unconfiguredBody:
-        "This platform is not holding its keys, so there is nothing to read here. Everything else on RentMe still works.",
+        "This platform is not holding its keys, so there is nothing to read here. Everything else on Vallo still works.",
       applyCta: "Apply to list",
     },
   },
@@ -1228,7 +1228,7 @@ export const en = {
       instantTitle: "Instant book",
       instantBody: "Guests book without waiting for you to confirm.",
       rentalNote:
-        "Rentals are priced per year. Guests message you inside RentMe, inspect the property, then pay. For your safety, keep every chat and payment inside RentMe.",
+        "Rentals are priced per year. Guests message you inside Vallo, inspect the property, then pay. For your safety, keep every chat and payment inside Vallo.",
     },
 
     guestView: {
@@ -1299,7 +1299,7 @@ export const en = {
     },
 
     pitch: {
-      title: "List your property on RentMe",
+      title: "List your property on Vallo",
       bodySignedIn:
         "Listing is open to approved agents. The application takes about two minutes and we review within 24 to 48 hours.",
       bodySignedOut:
@@ -1311,12 +1311,12 @@ export const en = {
             "Every listing is checked by hand, so the badge on your property means something to guests.",
         },
         inside: {
-          title: "Guests reach you inside RentMe",
+          title: "Guests reach you inside Vallo",
           body: "Chats, inspections and payments stay on the platform, where they are protected.",
         },
         keep: {
           title: "You keep what you charge",
-          body: "RentMe charges you nothing to list. Your price is your price.",
+          body: "Vallo charges you nothing to list. Your price is your price.",
         },
       },
       apply: "Become an agent",
@@ -1326,7 +1326,7 @@ export const en = {
 
     workspace: {
       title: "My listings",
-      lede: "Every property you have on RentMe, and where each one stands.",
+      lede: "Every property you have on Vallo, and where each one stands.",
       start: "Start a listing",
       unconfigured:
         "Your listings appear here the moment the platform keys land. You can start building one now: the wizard keeps your work on this device until then.",
@@ -1632,7 +1632,7 @@ export const en = {
     notCounted: {
       title: "What this page does not count",
       views:
-        "Views. RentMe does not count how many people looked at a property, so there is no view figure here and no conversion rate built on one. Publishing either would mean making them up.",
+        "Views. Vallo does not count how many people looked at a property, so there is no view figure here and no conversion rate built on one. Publishing either would mean making them up.",
       saves:
         "Saves from guests who are not signed in. A signed-out visitor's saved list stays on their own phone and never reaches us, so the saved figure beside each property counts only guests with an account and is short by an amount nobody can measure. Read it as a floor, not a total.",
       occupancy:
@@ -1678,8 +1678,8 @@ export const en = {
       signedOutBody: "Sign in with your operations account to continue.",
       notAdminTitle: "You do not have console access",
       notAdminBody:
-        "This area is for the RentMe operations team. Your account does not carry that role.",
-      backToRentMe: "Back to RentMe",
+        "This area is for the Vallo operations team. Your account does not carry that role.",
+      backToVallo: "Back to Vallo",
       signIn: "Sign in",
       backToYourHome: "Back to your home",
       otherAccount: "Sign in with another account",
@@ -1737,7 +1737,7 @@ export const en = {
     overview: {
       title: "Operations overview",
       lede:
-        "Every trust signal RentMe produces ends here: what the safety scan caught, what members reported, who is waiting to be approved, and what is waiting to go live. Each number is a queue you can clear.",
+        "Every trust signal Vallo produces ends here: what the safety scan caught, what members reported, who is waiting to be approved, and what is waiting to go live. Each number is a queue you can clear.",
       queueClear: "This queue is clear.",
       tiles: {
         moderation: {
@@ -2107,7 +2107,7 @@ export const en = {
       signedInWhenFiled: "Signed in when they filed it",
       noAccountAttached: "No account attached",
       whatTheyAsked: "What they asked",
-      supportSender: "RentMe support",
+      supportSender: "Vallo support",
       waitingOnUs: "Waiting on us",
       noneWaitingHeading: "No tickets waiting on us",
       nothingWaitingTitle: "Nothing waiting",
@@ -2219,12 +2219,12 @@ export const en = {
     switches: {
       title: "Switches",
       lede:
-        "Turn a surface off across RentMe without a deploy, then turn it back on when the incident is over. Nothing is deleted either way.",
+        "Turn a surface off across Vallo without a deploy, then turn it back on when the incident is over. Nothing is deleted either way.",
       warning:
         "Switching a surface off takes it away from everyone immediately, including people in the middle of using it. Work already saved is kept. Pages pick the change up within about thirty seconds. Every flip is written to the audit log with your name against it.",
       on: "On",
       off: "Off",
-      defaultNote: "A switchable RentMe surface.",
+      defaultNote: "A switchable Vallo surface.",
       switchingOff: "Switching off: {consequence}",
       lastChanged: "Last changed {when}",
       switchOn: "Switch on",
@@ -2254,7 +2254,7 @@ export const en = {
       sheet: {
         title: "Switch off {label}?",
         body:
-          "Everyone loses this part of RentMe straight away, including people in the middle of using it. Nothing already saved is deleted, and switching it back on restores the surface. The change reaches every page within about thirty seconds.",
+          "Everyone loses this part of Vallo straight away, including people in the middle of using it. Nothing already saved is deleted, and switching it back on restores the surface. The change reaches every page within about thirty seconds.",
         confirm: "Yes, switch it off",
         successTitle: "Switched off",
         successBody: "The surface is off for everyone and the change is in the audit log.",
@@ -2263,7 +2263,7 @@ export const en = {
   },
 
   a11y: {
-    logoHome: "RentMe home",
+    logoHome: "Vallo home",
     expand: "Expand",
     collapse: "Collapse",
     openMenu: "Open menu",

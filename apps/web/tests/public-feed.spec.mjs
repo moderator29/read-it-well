@@ -94,7 +94,7 @@ check(
 );
 check(
   "everybody is an offered destination, not an absence",
-  /post-to-everyone/.test(dock) && /Everyone on RentMe/.test(dock),
+  /post-to-everyone/.test(dock) && /Everyone on Vallo/.test(dock),
 );
 check(
   "isMember is gone rather than left behind as a dead prop",
@@ -190,10 +190,10 @@ try {
 
 /* ------------------------------------------- the platform's own daily voice */
 
-console.log("\nRentMe says one thing a day, and it is a thing that stays true");
+console.log("\nVallo says one thing a day, and it is a thing that stays true");
 
 const daily = readFileSync(
-  join(ROOT, "../../supabase/migrations/20260807150000_rentme_says_one_useful_thing_a_day.sql"),
+  join(ROOT, "../../supabase/migrations/20260807150000_vallo_says_one_useful_thing_a_day.sql"),
   "utf8",
 );
 

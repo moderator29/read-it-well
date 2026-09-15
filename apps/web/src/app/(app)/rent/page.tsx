@@ -69,7 +69,7 @@ export default async function RentPage({
             className="mt-0.5 shrink-0 text-[var(--nf-state-success)]"
           />
           <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-            For your safety, keep every chat and payment inside RentMe. Deals
+            For your safety, keep every chat and payment inside Vallo. Deals
             made outside the platform are not protected by us. Pay only after
             you have inspected the property.
           </p>
@@ -77,10 +77,10 @@ export default async function RentPage({
 
         <SceneBanner
           art="/brand/story-shield.png"
-          alt="The RentMe shield mark with a verification check"
+          alt="The Vallo shield mark with a verification check"
           stage="paper"
           title="Every rental here is checked"
-          body="Listings and agents are verified before they go live, and the whole conversation stays inside RentMe."
+          body="Listings and agents are verified before they go live, and the whole conversation stays inside Vallo."
           href="/help"
           action="How we protect you"
           className="mt-4"

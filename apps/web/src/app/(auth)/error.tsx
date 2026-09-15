@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/Button";
  * stacked brand pages, and every route out of the auth flow gone.
  *
  * This one stays inside the panel, so the aurora and the lockup behind it are
- * untouched and the person can still see they are on RentMe's sign-in screen.
+ * untouched and the person can still see they are on Vallo's sign-in screen.
  *
  * WHY THE COPY IS SPECIFIC. "Something went wrong" on an auth screen is
  * genuinely frightening: the two things a person immediately suspects are that
@@ -35,7 +35,7 @@ export default function AuthError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[rentme] auth route error", error);
+    console.error("[vallo] auth route error", error);
   }, [error]);
 
   return (

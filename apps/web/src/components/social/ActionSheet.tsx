@@ -272,7 +272,7 @@ export function actionsForPost(options: {
     rows.push({
       key: "block",
       title: `Block ${options.who}`,
-      note: "You will not see each other anywhere on RentMe",
+      note: "You will not see each other anywhere on Vallo",
       glyph: "block",
       danger: true,
     });

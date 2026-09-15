@@ -60,7 +60,7 @@ export function CancellationTimeline({
       <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
         Before you pay, you can let a hold go at any time and nothing is taken.
         Once a stay is paid for, this is the schedule, and it is the same on
-        every listing on RentMe.
+        every listing on Vallo.
       </p>
 
       <ol className="mt-4 space-y-3">
@@ -108,7 +108,7 @@ export function CancellationTimeline({
       </ol>
 
       <p className="mt-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-        Refunds return to your RentMe wallet, which is the fastest route, and
+        Refunds return to your Vallo wallet, which is the fastest route, and
         you can move wallet money to your bank from there. The{" "}
         <span className="nf-numeric">{FULL_REFUND_HOURS}</span> hour window is
         measured to check-in at <span className="nf-numeric">3pm</span> Lagos

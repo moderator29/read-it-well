@@ -1,5 +1,5 @@
 /**
- * The response times RentMe publishes, as data.
+ * The response times Vallo publishes, as data.
  *
  * A stated response time is only worth anything if the console that has to
  * keep it reads the same number the public page prints. So the commitments
@@ -31,7 +31,7 @@ export const RESPONSE_COMMITMENTS: Record<ResponseGrade, ResponseCommitment> = {
     hours: 4,
     label: "Within 4 hours",
     covers:
-      "Anyone asked to pay outside RentMe, anything unsafe or threatening, and any report that somebody has already lost money.",
+      "Anyone asked to pay outside Vallo, anything unsafe or threatening, and any report that somebody has already lost money.",
   },
   standard: {
     grade: "standard",
@@ -108,12 +108,12 @@ export function dueBy(
  * so it cannot be reworded into something weaker by accident.
  */
 export const NO_FEES_LINE =
-  "RentMe charges no fees. Not to book, not to list, not to be paid.";
+  "Vallo charges no fees. Not to book, not to list, not to be paid.";
 
 export const NEVER_ASK: { title: string; body: string }[] = [
   {
     title: "An account number",
-    body: "No RentMe staff member, agent or listing will ever give you a personal or company account number to pay into. Every payment happens inside the platform.",
+    body: "No Vallo staff member, agent or listing will ever give you a personal or company account number to pay into. Every payment happens inside the platform.",
   },
   {
     title: "A transfer to hold a place",
@@ -125,6 +125,6 @@ export const NEVER_ASK: { title: string; body: string }[] = [
   },
   {
     title: "Payment on WhatsApp or by cash at the gate",
-    body: "A conversation that starts on RentMe and moves off it to arrange money is the single clearest warning sign in this market. Keep it here, where there is a record.",
+    body: "A conversation that starts on Vallo and moves off it to arrange money is the single clearest warning sign in this market. Keep it here, where there is a record.",
   },
 ];

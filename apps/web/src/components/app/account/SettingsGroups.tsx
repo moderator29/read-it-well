@@ -377,7 +377,7 @@ export function SecurityCard({ t }: { t: Dictionary }) {
 
 /**
  * Data: an export request that says exactly where it stands, and a working
- * clear-out that removes every RentMe key from this device and reloads.
+ * clear-out that removes every Vallo key from this device and reloads.
  */
 export function DataCard({ t }: { t: Dictionary }) {
   const copy = t.settings.data;

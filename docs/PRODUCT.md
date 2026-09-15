@@ -1,4 +1,4 @@
-# RentMe
+# Vallo
 
 Read this first. It says what the product is, who it is for, what a listing is,
 who can do what, and which words we use. Everything else in `docs/` is detail
@@ -15,7 +15,7 @@ Last verified against the code and the live Supabase project
 
 ---
 
-## 1. What RentMe is
+## 1. What Vallo is
 
 **A Nigeria first property marketplace for renting, buying and selling, with a
 social layer, a naira wallet, escrow and a verification ladder.**
@@ -31,8 +31,8 @@ and an inspection can mean anything.
 dropped, the `hybrid_hotels` and `hybrid_restaurants` flags are deleted, and
 6,043 lines of provider code are gone.
 
-The product was NaijaFinds, a discovery, stay, food and experience platform. It
-is RentMe. The parts of NaijaFinds that survive do so because a Nigerian looking
+The product was Vallo, a discovery, stay, food and experience platform. It
+is Vallo. The parts of Vallo that survive do so because a Nigerian looking
 for a place to live also eats, travels and stays, and because a hotelier or a
 restaurateur listing their own venue is a supplier like any other. What does not
 survive is anybody else's inventory.
@@ -264,7 +264,7 @@ inspection's outcome and not on the payment. The moment a badge can be bought,
 every badge on the platform is worth nothing.
 
 The standing safety rule, stated on `/rent`, on every rental detail and in first
-message education: keep every chat and payment inside RentMe, deals made outside
+message education: keep every chat and payment inside Vallo, deals made outside
 are not protected by us, pay only after you have inspected the property. A
 database trigger flags ten digit account numbers and payment keywords in
 messages, listing text, reviews and posts into an admin queue.
@@ -370,4 +370,4 @@ Kept here so the list is short and visible rather than scattered.
 | No storage bucket has a size or type limit | RECOMMENDATIONS MED-1 |
 | The money write path still logs nothing and still answers 200 on a misconfiguration | RECOMMENDATIONS CASE-1 |
 | Escrow ledger kinds exist; `booking_status` has no `COMPLETED`, so nothing can release | RECOMMENDATIONS E-2 |
-| The npm scope, the workspace and the live domain still say NaijaFinds, or worse, ninjafinds | RECOMMENDATIONS section 20 |
+| The npm scope, the workspace and the live domain still say Vallo, or worse, vallo | RECOMMENDATIONS section 20 |

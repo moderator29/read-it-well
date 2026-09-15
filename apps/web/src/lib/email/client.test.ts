@@ -207,12 +207,12 @@ describe("nothing private is written to the logs", () => {
 });
 
 describe("the sender", () => {
-  it("defaults to the RentMe address when EMAIL_FROM is unset", () => {
-    expect(emailFrom()).toBe("RentMe <hello@rentme.ng>");
+  it("defaults to the Vallo address when EMAIL_FROM is unset", () => {
+    expect(emailFrom()).toBe("Vallo <hello@rentme.ng>");
   });
 
   it("honours EMAIL_FROM when it is set", () => {
-    vi.stubEnv(FROM, "RentMe <no-reply@rentme.ng>");
-    expect(emailFrom()).toBe("RentMe <no-reply@rentme.ng>");
+    vi.stubEnv(FROM, "Vallo <no-reply@rentme.ng>");
+    expect(emailFrom()).toBe("Vallo <no-reply@rentme.ng>");
   });
 });

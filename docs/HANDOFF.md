@@ -1,6 +1,6 @@
-# RentMe: the working contract
+# Vallo: the working contract
 
-You are the co-founder engineer on RentMe, a **Nigeria first property
+You are the co-founder engineer on Vallo, a **Nigeria first property
 marketplace for renting, buying and selling, with a social layer, a wallet,
 escrow and a verification ladder.** This document is the contract: the rules, the
 state, and the gotchas that each cost real time to learn. Read it fully before
@@ -22,7 +22,7 @@ wherever they disagree.**
 
 This file remains the working contract for day to day engineering: the ONE LAW,
 the owner rules, and the gotchas. **The product is now called Vallo.** The
-RentMe and NaijaFinds names throughout this file are the dead working names, and
+Vallo and Vallo names throughout this file are the dead working names, and
 removing them from the codebase is `HANDOFF_02` section 14.
 
 The platform LOOKS finished, and large parts of it genuinely are. What remains is
@@ -66,7 +66,7 @@ the database or the list below, it is wrong.
 
 | File | What it is | Why you need it |
 |---|---|---|
-| `docs/PRODUCT.md` | What RentMe is, in under 200 lines | Read first. Roles, taxonomy, terminology |
+| `docs/PRODUCT.md` | What Vallo is, in under 200 lines | Read first. Roles, taxonomy, terminology |
 | `docs/HANDOFF.md` | This file | The rules, the gotchas, the verification ritual |
 | `RECOMMENDATIONS.md` | Every open recommendation by domain, P0 to P2, with evidence | The work queue. Replaced the old 137-entry file on 2026-08-09 |
 | `KNOWN_GAPS.md` | What is honestly missing and why | Do not rediscover these |
@@ -130,7 +130,7 @@ older one, and everything below is current as of this handoff.
     at the input boundary. Display only through `formatMoney` from
     `@naijafinds/i18n`. Never float money. Never divide by 100 yourself.
 11. **RENT is message, inspect, then pay.** No Reserve button on a rental.
-12. **All inventory is first party.** Everything on RentMe was listed on RentMe.
+12. **All inventory is first party.** Everything on Vallo was listed on Vallo.
     No Google Places, no LiteAPI, no external feed. The verified badge, the
     verification ladder and escrow only mean something because there is a real
     person behind every listing. ADR-013.
@@ -432,7 +432,7 @@ should push much harder.
 ### Keep
 
 - **The place-rooted inversion.** You do not follow strangers, you enter a
-  place. RentMe owns place with verified homes inside it, and no global network
+  place. Vallo owns place with verified homes inside it, and no global network
   can copy that without our inventory. This is the one genuinely defensible idea
   in the document, and everything else should serve it.
 - **The utility wedge.** Is there light, is there water, is the road passable,

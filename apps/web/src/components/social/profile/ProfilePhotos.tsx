@@ -136,7 +136,7 @@ export function ProfilePhotos({
         return;
       }
       setAvatarUrl(result.data.avatarUrl);
-      setNote("Your photo is saved, here and everywhere else on RentMe.");
+      setNote("Your photo is saved, here and everywhere else on Vallo.");
       router.refresh();
     } catch {
       setError("We could not read that photo. Try a different one.");
@@ -240,7 +240,7 @@ export function ProfilePhotos({
             {busy === "avatar" ? "Saving your photo" : "Your photo"}
           </p>
           <p className="mt-0.5 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
-            This is the same photo you use everywhere on RentMe. You can also change it from{" "}
+            This is the same photo you use everywhere on Vallo. You can also change it from{" "}
             <Link href="/profile" className="font-semibold text-[var(--nf-brand-secondary)]">
               your account
             </Link>

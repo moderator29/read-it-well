@@ -8,7 +8,7 @@
  * The card material is deliberately the platform's own stride (ADR-012) rather
  * than a plain hairline: a luminous ring on the border box with the fill on the
  * padding box, brightest at the upper left. That treatment is what makes this
- * feed read as RentMe rather than as a dark mode clone of somebody else.
+ * feed read as Vallo rather than as a dark mode clone of somebody else.
  *
  * Everything here sits inside @layer components, for the same reason the rest
  * of the platform's component classes do: Tailwind emits utilities in a later

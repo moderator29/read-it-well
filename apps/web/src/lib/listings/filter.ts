@@ -60,7 +60,7 @@ export type ListingFacts = {
    * server would disagree.
    */
   isDemo: boolean;
-  source?: "rentme";
+  source?: "vallo";
   /**
    * Light and water, where the host has answered.
    *

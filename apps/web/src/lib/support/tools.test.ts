@@ -559,7 +559,7 @@ describe("my_tickets", () => {
     expect(ticket.reference).toBe("NF-SUP-00042");
     expect(ticket.answeredBySupport).toBe(true);
     expect(ticket.answeredWithin).toBe("Within 4 hours");
-    expect(String(ticket.about)).toMatch(/pay outside RentMe/i);
+    expect(String(ticket.about)).toMatch(/pay outside Vallo/i);
     expect(ticket.meaning).toBe("filed and waiting to be picked up");
   });
 

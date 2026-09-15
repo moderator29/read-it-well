@@ -57,7 +57,7 @@ type Option = {
  * So the geometry the board asks for is honoured with a sixth thing this
  * product genuinely lets somebody make: a place. Suggesting one is a real form,
  * a validated action, a row under RLS and an admin decision that comes back as
- * a notification, and it is the most RentMe answer available to "what do you
+ * a notification, and it is the most Vallo answer available to "what do you
  * want to create today?", because the place is what everything else hangs off.
  *
  * What an events table would need before Event could take a petal is written

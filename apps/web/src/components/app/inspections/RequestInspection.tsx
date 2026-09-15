@@ -164,7 +164,7 @@ const WHEN_LABEL = "When you would like to see it";
 const NOTE_LABEL = "Anything they should know";
 const NOTE_PLACEHOLDER = "Coming from Yaba, so late morning is easier";
 const SAFETY =
-  "Inspect before you pay anything. Keep the chat and the payment inside RentMe; a deal made outside it is not protected by us.";
+  "Inspect before you pay anything. Keep the chat and the payment inside Vallo; a deal made outside it is not protected by us.";
 const SEND = "Send the request";
 const ASKED_FOR = "You asked to see this on";
 const CONFIRMED_FOR = "Your inspection is confirmed for";

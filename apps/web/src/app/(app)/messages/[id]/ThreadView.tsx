@@ -437,7 +437,7 @@ export function ThreadView({
             screen. Caption is the quietest tier that still reads. */}
         <p className="flex items-center justify-center gap-inline nf-caption py-2xs text-center text-[var(--nf-content-muted)]">
           <UiIcon name="verified" size={ICON.inline} />
-          Keep every chat and payment inside RentMe
+          Keep every chat and payment inside Vallo
         </p>
 
         {items.map((m) =>

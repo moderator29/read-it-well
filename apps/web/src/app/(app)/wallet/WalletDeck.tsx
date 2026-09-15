@@ -79,7 +79,7 @@ const TILES: {
     label: "Transfer",
     icon: "user-check",
     title: "Transfer to another user",
-    hint: "Send money to another RentMe user by email. It lands instantly.",
+    hint: "Send money to another Vallo user by email. It lands instantly.",
   },
 ];
 

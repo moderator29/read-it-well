@@ -11,7 +11,7 @@
  * Three things the database does that this file deliberately does not:
  *
  *   The handle trigger normalises, checks the charset, refuses a reserved word
- *   or anything resembling an official RentMe name, and refuses a handle
+ *   or anything resembling an official Vallo name, and refuses a handle
  *   released inside the last 90 days. It raises RM001, RM002 and RM003, each
  *   with a sentence already written for a person to read, so this file maps the
  *   code to the field and passes the sentence straight through rather than

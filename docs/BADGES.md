@@ -8,7 +8,7 @@ What is live, verified against the database on 2026-08-09:
 - `public.badges` holds **15 rows**: seven AGENT, eight MEMBER, one of them
   `manual_only`. `public.user_badges` holds 1.
 - Awarding runs nightly. `private.sweep_badges()` is scheduled in `cron.job` as
-  `rentme-nightly-badges` at `20 2 * * *` UTC and is active. `pg_cron` is
+  `vallo-nightly-badges` at `20 2 * * *` UTC and is active. `pg_cron` is
   installed; this document's assumption that it was not is gone.
 - Manual grant and revoke are in the console at `/admin/standing`, with a
   mandatory reason and an `audit_log` row.
@@ -16,7 +16,7 @@ What is live, verified against the database on 2026-08-09:
   closed the criteria that were waiting.
 
 The shipped codes are `verified_agent`, `first_listing`, `fast_responder`,
-`ten_stays`, `estate_specialist`, `photo_pro`, `rentme_elite` on the agent side,
+`ten_stays`, `estate_specialist`, `photo_pro`, `vallo_elite` on the agent side,
 and `verified_member`, `first_stay`, `year_one`, `honest_reviewer`, `neighbour`,
 `guardian`, `local_guide`, `top_contributor` on the member side. The design below
 proposed nine agent badges and eight member badges; two agent ones
@@ -73,7 +73,7 @@ Every criterion below is computable from tables that already exist.
 | Five Star Streak | `reviews` | Ten consecutive five star reviews |
 | Estate Specialist | `map-spot` | Five or more PUBLISHED listings in one area |
 | Photo Pro | `camera` | Ten listings pass the quality gate with no rejections |
-| RentMe Elite | `house-sparkle` | All of the above, and no open trust flag for ninety days |
+| Vallo Elite | `house-sparkle` | All of the above, and no open trust flag for ninety days |
 
 Elite is deliberately hard and deliberately **revocable**: an open flag
 suspends it. A top badge that survives bad behaviour is worse than no badge.

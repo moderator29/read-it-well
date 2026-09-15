@@ -84,7 +84,7 @@ async function run(theme) {
     /* The platform charges nothing, anywhere, and this is a money surface. */
     check(
       "no platform fee is ever mentioned on a money surface",
-      !/platform fee|our fee|service charge by RentMe|RentMe takes \d/i.test(text),
+      !/platform fee|our fee|service charge by Vallo|Vallo takes \d/i.test(text),
     );
 
     /* Whatever state it lands in, there must be a way onward rather than a

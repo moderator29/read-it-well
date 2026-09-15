@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cut the NaijaFinds brand artwork out of the supplied sheets.
+Cut the Vallo brand artwork out of the supplied sheets.
 
 Reproducible so the assets can be regenerated when new artwork arrives, rather
 than existing as one-off files nobody can rebuild.

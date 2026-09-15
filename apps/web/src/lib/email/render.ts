@@ -16,7 +16,7 @@ import {
 } from "./theme";
 
 /**
- * The RentMe transactional email shell.
+ * The Vallo transactional email shell.
  *
  * ONE DESCRIPTION, TWO RENDERINGS.
  *
@@ -70,7 +70,7 @@ import {
  *
  * THE PALETTE, THE TYPE STACK AND THE MEASUREMENTS ALL LIVE IN `theme.ts`,
  * which is also what `scripts/build-auth-emails.mjs` mirrors, so the first
- * email somebody ever gets from RentMe and the twentieth are the same design.
+ * email somebody ever gets from Vallo and the twentieth are the same design.
  * That file explains at length why literal hex is correct in an email and must
  * not be "fixed" into a CSS custom property.
  */
@@ -437,7 +437,7 @@ export function compose(options: ComposeOptions): Composed {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <meta name="supported-color-schemes" content="light dark" />
-    <title>RentMe</title>
+    <title>Vallo</title>
     <style>${DARK_STYLE}
     </style>
   </head>
@@ -458,8 +458,8 @@ export function compose(options: ComposeOptions): Composed {
               <td class="rm-card" style="background:${LIGHT.card};border:1px solid ${LIGHT.edge};border-top:0;border-radius:0 0 20px 20px;padding:${PAD_X}px ${PAD_X}px 36px;">
                 <!-- The lockup. The mark is an image and carries NO words, so
                      its alt is deliberately empty: the wordmark beside it is
-                     live text. With images blocked a reader sees "RentMe" once,
-                     in brand blue, rather than "RentMe RentMe" or a broken
+                     live text. With images blocked a reader sees "Vallo" once,
+                     in brand blue, rather than "Vallo Vallo" or a broken
                      image icon where the brand should be. -->
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
@@ -467,7 +467,7 @@ export function compose(options: ComposeOptions): Composed {
                       <img src="${siteUrl()}/brand/rentme-logo.png" width="${LOGO_SIZE}" height="${LOGO_SIZE}" alt="" style="display:block;width:${LOGO_SIZE}px;height:${LOGO_SIZE}px;border:0;outline:none;text-decoration:none;" />
                     </td>
                     <td style="vertical-align:middle;">
-                      <span class="rm-brand" style="font-family:${FONT_SANS};font-size:23px;line-height:28px;font-weight:700;letter-spacing:-0.025em;color:${GLOW};">RentMe</span>
+                      <span class="rm-brand" style="font-family:${FONT_SANS};font-size:23px;line-height:28px;font-weight:700;letter-spacing:-0.025em;color:${GLOW};">Vallo</span>
                     </td>
                   </tr>
                 </table>
@@ -512,7 +512,7 @@ export function compose(options: ComposeOptions): Composed {
    */
   const text =
     [
-      "RentMe",
+      "Vallo",
       "",
       blocks.map(textBlock).join("\n\n"),
       "",

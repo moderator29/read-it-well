@@ -52,7 +52,7 @@ export type AreaRole = (typeof AREA_ROLES)[number];
 export const MODERATOR_CAN = [
   "Hide a post while a person reviews it",
   "Welcome people and answer questions about the place",
-  "Flag a listing or a profile to the RentMe team",
+  "Flag a listing or a profile to the Vallo team",
 ] as const;
 
 export const MODERATOR_CANNOT = [
@@ -139,7 +139,7 @@ export const areaIdSchema = z.object({
 
 export const AREA_COPY = {
   /** The one line that explains what Around is, to someone who has never seen it. */
-  what: "Places on RentMe, kept by the people who actually live around them.",
+  what: "Places on Vallo, kept by the people who actually live around them.",
 
   proposePending:
     "Your place is with us. We look at every one by hand, usually within a day, and you will get a notification either way.",

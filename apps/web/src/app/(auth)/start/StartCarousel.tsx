@@ -12,7 +12,7 @@ import { Button, ButtonLink } from "@/components/ui/Button";
  * WHY TWO AND NOT THREE. The reference platform runs three, and the third is
  * where a person's patience runs out: an onboarding carousel is a toll on the
  * way to the thing somebody already decided to do when they pressed Sign up.
- * Two is enough to say what RentMe is and what makes it different, and the
+ * Two is enough to say what Vallo is and what makes it different, and the
  * owner asked for two.
  *
  * WHY IT IS NOT SKIPPABLE-BY-ACCIDENT AND ALWAYS SKIPPABLE-ON-PURPOSE. Skip is
@@ -29,7 +29,7 @@ import { Button, ButtonLink } from "@/components/ui/Button";
  *
  * THE DRAWING. The reference is flat pastel with a stock illustration. Ours is
  * the platform's own dark glass with the brand object large and lit, which is
- * the one visual language RentMe already owns. The panel does not move between
+ * the one visual language Vallo already owns. The panel does not move between
  * slides: only the object, the words and the dots change, so the transition is
  * a change of subject rather than a page swap, and there is no layout shift to
  * make it feel cheap.
@@ -50,7 +50,7 @@ const SLIDES: Slide[] = [
   {
     icon: "home-check",
     title: "Deal with a real person",
-    body: "Every listing here was put up by somebody on RentMe, so there is always an owner to message and a property you can arrange to see.",
+    body: "Every listing here was put up by somebody on Vallo, so there is always an owner to message and a property you can arrange to see.",
   },
 ];
 
@@ -98,7 +98,7 @@ export function StartCarousel() {
       */}
       <section
         aria-roledescription="carousel"
-        aria-label="What RentMe is"
+        aria-label="What Vallo is"
         className="w-full text-center"
       >
         {/*
@@ -151,7 +151,7 @@ export function StartCarousel() {
             wrong button in the header, and making them walk the intro to find
             that out is the rudest thing this screen could do. */}
         <p className="nf-body-sm mt-block text-[var(--nf-content-muted)]">
-          Already on RentMe?{" "}
+          Already on Vallo?{" "}
           <ButtonLink href="/sign-in" variant="ghost" size="sm" className="align-baseline">
             Sign in
           </ButtonLink>

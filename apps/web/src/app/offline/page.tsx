@@ -11,13 +11,13 @@ import { RetryButton } from "./RetryButton";
  *      optimised `next/image` URL and no data source. The one graphic is
  *      `/pwa/icon-192.png`, which the worker precaches alongside this
  *      document, as a plain `img` so there is no hashed optimiser URL to miss.
- *   2. The copy has to be honest. RentMe never answers a question about
+ *   2. The copy has to be honest. Vallo never answers a question about
  *      money, messages or bookings from an old copy, so this screen says that
  *      plainly rather than implying more works offline than really does.
  */
 export const metadata: Metadata = {
   title: "You are offline",
-  description: "RentMe could not reach the network. Reconnect to carry on.",
+  description: "Vallo could not reach the network. Reconnect to carry on.",
   robots: { index: false, follow: false },
 };
 
@@ -59,7 +59,7 @@ export default function OfflinePage() {
                 className="mt-[0.4rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-brand-primary)]"
               />
               <span>
-                RentMe stays on your home screen and opens straight to this
+                Vallo stays on your home screen and opens straight to this
                 screen, so you never land on a browser error page.
               </span>
             </li>

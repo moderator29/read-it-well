@@ -50,8 +50,8 @@ export type ListingKind =
  * `PartnerMeta` and `source: "partner"` described third-party stock: Google
  * Places venues and LiteAPI hotels, merged into discovery behind first-party
  * rows, carrying an off-platform booking link instead of an agent to message.
- * All of it is deleted. Every listing on RentMe is listed by a real person on
- * RentMe, which is the only reason the verified badge, escrow and an
+ * All of it is deleted. Every listing on Vallo is listed by a real person on
+ * Vallo, which is the only reason the verified badge, escrow and an
  * inspection can mean anything at all.
  *
  * `source` is kept as a single-valued field rather than removed outright
@@ -164,17 +164,17 @@ export type Listing = {
    */
   videos?: { url: string; posterUrl: string | null; durationSeconds: number | null }[];
   /**
-   * When somebody from RentMe stood in the property. Not the same claim as
+   * When somebody from Vallo stood in the property. Not the same claim as
    * `verified`, which only says the lister was admitted.
    */
   inspectedAt?: string;
   /** When the stated address was checked against the pin. */
   addressVerifiedAt?: string;
   /**
-   * Where the listing comes from. There is one answer and it is "rentme":
+   * Where the listing comes from. There is one answer and it is "vallo":
    * inventory listed on this platform by a person on this platform.
    */
-  source?: "rentme";
+  source?: "vallo";
   bedrooms: number;
   bathrooms: number;
   /**
@@ -214,7 +214,7 @@ export type Listing = {
    *
    *   1. **Say so, on the card and on the page.** Not in a tooltip, not in a
    *      footnote. The agreed wording is "This is an example listing. No such
-   *      property is available. RentMe has not verified anything on this page."
+   *      property is available. Vallo has not verified anything on this page."
    *      The words "demo", "sample", "preview" and "not live" are banned in UI
    *      copy and are enforced by `tests/agent-identity.spec.mjs`; "example"
    *      is the sanctioned word.

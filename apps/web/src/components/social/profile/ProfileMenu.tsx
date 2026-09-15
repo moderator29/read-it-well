@@ -341,7 +341,7 @@ export function ProfileMenu({
           <div ref={confirmRef} className="nf-social-sheet__panel">
             <h2 className="nf-h3 text-[1.15rem]">Block {who}?</h2>
             <p className="mt-3 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              You will not see each other anywhere on RentMe. Their page stops
+              You will not see each other anywhere on Vallo. Their page stops
               existing for you and yours stops existing for them, including in
               places you are both in.
             </p>

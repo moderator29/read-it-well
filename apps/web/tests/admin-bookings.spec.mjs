@@ -6,7 +6,7 @@
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/admin-bookings.spec.mjs
  *
- * This screen is the only place on RentMe where a paid stay can be cancelled
+ * This screen is the only place on Vallo where a paid stay can be cancelled
  * and somebody's money returned, so the refusal matters more here than on any
  * other console surface. The sandbox carries no session, which makes it exactly
  * the visitor this test needs: /admin/bookings and a stay's own page must both

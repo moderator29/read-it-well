@@ -39,7 +39,7 @@ export const ha: Dictionary = {
    * a chance to break it.
    */
   welcomeCards: {
-    label: "Menene RentMe",
+    label: "Menene Vallo",
     skip: "Tsallake",
     start: "Bari in shiga",
     goTo: "Je katin {n}",
@@ -56,7 +56,7 @@ export const ha: Dictionary = {
     three: {
       title: "Ka fara aika saƙo, ka biya sa'ad da ka tabbata",
       body:
-        "Ka yi magana da mai gidan, ka duba wurin, sannan ka biya a dandalin. Kada ka taɓa aika kudi ga kowa a wajen RentMe.",
+        "Ka yi magana da mai gidan, ka duba wurin, sannan ka biya a dandalin. Kada ka taɓa aika kudi ga kowa a wajen Vallo.",
     },
   },
 
@@ -125,7 +125,7 @@ export const ha: Dictionary = {
   },
 
   social: {
-    feedName: "Labaran RentMe",
+    feedName: "Labaran Vallo",
     tabForYou: "A gare ka",
     tabFollowing: "Waɗanda kake bi",
     tabNew: "Sabo",
@@ -154,7 +154,7 @@ export const ha: Dictionary = {
   socialProfile: {
     back: "Koma",
     verified: "Wakili da aka tabbatar",
-    verifiedTitle: "Wakilin RentMe da aka tabbatar",
+    verifiedTitle: "Wakilin Vallo da aka tabbatar",
     moderatorShort: "MAI KULA",
     moderatorOf: "Yana kula da {place}",
     pidginWelcome: "Ana maraba da Pidgin",
@@ -195,7 +195,7 @@ export const ha: Dictionary = {
     vision: {
       overline: "Hangen nesanmu",
       title: "Najeriya a tafin hannunka. Afirka na gaba.",
-      body: "RentMe na gina amintaccen gida don ganowa, wuraren zama, abinci da abubuwan more rayuwa a duk faɗin Najeriya, sannan nahiyar. Asusu ɗaya, jakar kuɗi ɗaya, mataimaki ɗaya.",
+      body: "Vallo na gina amintaccen gida don ganowa, wuraren zama, abinci da abubuwan more rayuwa a duk faɗin Najeriya, sannan nahiyar. Asusu ɗaya, jakar kuɗi ɗaya, mataimaki ɗaya.",
       missionOverline: "Manufarmu",
       missionTitle: "Sa neman da yin rijistar komai ya zama mai sauƙi da aminci.",
       missionBody: "Wuraren da aka tabbatar, farashi na gaskiya da naira, sharhi na gaskiya, da mataimaki mai fahimtar abin da kake so.",
@@ -494,7 +494,7 @@ export const ha: Dictionary = {
 
     search: {
       label: "Bincike",
-      note: "Bincike yana buɗewa a yankinka na asali, kuma kana iya dubawa ko'ina koyaushe. Ana nuna kowane farashi a RentMe da Naira.",
+      note: "Bincike yana buɗewa a yankinka na asali, kuma kana iya dubawa ko'ina koyaushe. Ana nuna kowane farashi a Vallo da Naira.",
       defaultArea: "Yankin asali",
       allOfNigeria: "Duk Najeriya",
       currency: "Kuɗi",
@@ -579,9 +579,9 @@ export const ha: Dictionary = {
     data: {
       label: "Bayananka",
       exportNote:
-        "A yanzu duk abin da RentMe ya sani game da kai yana cikin wannan burauzar, kuma babu abin da ya bar wannan na'urar. Cikakken fitar da bayanai zai zo tare da sakin ƙaddamarwa.",
+        "A yanzu duk abin da Vallo ya sani game da kai yana cikin wannan burauzar, kuma babu abin da ya bar wannan na'urar. Cikakken fitar da bayanai zai zo tare da sakin ƙaddamarwa.",
       download: "Sauke bayanaina",
-      downloadSub: "Kwafin duk abin da RentMe ke riƙe game da kai.",
+      downloadSub: "Kwafin duk abin da Vallo ke riƙe game da kai.",
       clear: "Share bayanan na'urar",
       clearAgain: "Sake danna don tabbatarwa",
       clearSub:
@@ -677,8 +677,8 @@ export const ha: Dictionary = {
     topExperiences: "Bincika manyan kwarewa",
     nearby: "Kusa da kai",
     aiCard: {
-      title: "Tambayi RentMe AI",
-      body: "Yana bincike a cikin jerin gidajen da kake gani, don haka zai iya gaya maka kawai game da wuraren da suke kan RentMe da gaske.",
+      title: "Tambayi Vallo AI",
+      body: "Yana bincike a cikin jerin gidajen da kake gani, don haka zai iya gaya maka kawai game da wuraren da suke kan Vallo da gaske.",
       action: "Tambayi mataimaki",
       truths: {
         listings:
@@ -690,7 +690,7 @@ export const ha: Dictionary = {
       },
     },
     agentCard: {
-      title: "Zama Wakilin RentMe",
+      title: "Zama Wakilin Vallo",
       body: "Jera kadarorinka, sarrafa ajiye, ka ƙara samu kuma ka haɓaka kasuwancinka.",
       action: "Zama wakili",
     },
@@ -734,7 +734,7 @@ export const ha: Dictionary = {
       settings: "Saituna",
     },
     join: {
-      title: "Shiga Al'ummar Wakilan RentMe",
+      title: "Shiga Al'ummar Wakilan Vallo",
       body: "Jera kadarori, hada da bakin da aka tabbatar, sarrafa ajiye ka samu kudi.",
       start: "Fara bukata",
       resume: "Ci gaba da bukata",
@@ -779,7 +779,7 @@ export const ha: Dictionary = {
         bankName: "Banki",
         accountNumber: "Lambar asusu",
         accountName: "Sunan asusu",
-        agreeTerms: "Na yarda da Sharuddan Wakilcin RentMe da Manufar Biya.",
+        agreeTerms: "Na yarda da Sharuddan Wakilcin Vallo da Manufar Biya.",
       },
       documents: {
         title: "Loda takardun ka",
@@ -857,10 +857,10 @@ export const ha: Dictionary = {
         "Kudin shigarka, ajiyeyyun kwanakinka, kalandarka da gidajenka, duk a wuri guda. Shiga don buɗe naka.",
       notAgentTitle: "Ba ka saka gida ba tukuna",
       notAgentBody:
-        "Wannan wurin aiki zai cika lokacin da ka sami gida a RentMe. Nema yana ɗaukar kusan minti biyu kuma mutum yana karanta kowace buƙata.",
+        "Wannan wurin aiki zai cika lokacin da ka sami gida a Vallo. Nema yana ɗaukar kusan minti biyu kuma mutum yana karanta kowace buƙata.",
       unconfiguredTitle: "Ba a haɗa wurin aiki ba tukuna",
       unconfiguredBody:
-        "Wannan dandalin bai riƙe makullansa ba, don haka babu abin karantawa a nan. Sauran abubuwan RentMe suna aiki.",
+        "Wannan dandalin bai riƙe makullansa ba, don haka babu abin karantawa a nan. Sauran abubuwan Vallo suna aiki.",
       applyCta: "Nemi ka saka gida",
     },
   },
@@ -1009,7 +1009,7 @@ export const ha: Dictionary = {
       instantTitle: "Ajiye nan take",
       instantBody: "Baƙi za su ajiye ba tare da jiran tabbatarwarka ba.",
       rentalNote:
-        "Ana sa farashin haya na shekara. Baƙi za su tuntuɓe ka cikin RentMe, su duba gidan, sannan su biya. Domin tsaronka, ka bar kowace hira da kowane biya cikin RentMe.",
+        "Ana sa farashin haya na shekara. Baƙi za su tuntuɓe ka cikin Vallo, su duba gidan, sannan su biya. Domin tsaronka, ka bar kowace hira da kowane biya cikin Vallo.",
     },
 
     guestView: {
@@ -1075,7 +1075,7 @@ export const ha: Dictionary = {
     },
 
     pitch: {
-      title: "Jera kadararka a RentMe",
+      title: "Jera kadararka a Vallo",
       bodySignedIn:
         "Jeri na buɗe ga wakilan da aka amince da su. Bukatar tana ɗaukar kusan minti biyu, muna nazari cikin sa'o'i 24 zuwa 48.",
       bodySignedOut:
@@ -1087,12 +1087,12 @@ export const ha: Dictionary = {
             "Ana duba kowane jeri da hannu, don haka alamar da ke kan kadararka na nufin wani abu ga baƙi.",
         },
         inside: {
-          title: "Baƙi na iso gare ka cikin RentMe",
+          title: "Baƙi na iso gare ka cikin Vallo",
           body: "Hira, dubawa da biya duk suna cikin dandalin, inda ake kare su.",
         },
         keep: {
           title: "Kai ke riƙe abin da ka sa",
-          body: "RentMe ba ya karɓar ko sisi a hannunka don jeri. Farashinka nasa ne.",
+          body: "Vallo ba ya karɓar ko sisi a hannunka don jeri. Farashinka nasa ne.",
         },
       },
       apply: "Zama wakili",
@@ -1102,7 +1102,7 @@ export const ha: Dictionary = {
 
     workspace: {
       title: "Jerina",
-      lede: "Duk kadarar da kake da ita a RentMe, da inda kowacce ta tsaya.",
+      lede: "Duk kadarar da kake da ita a Vallo, da inda kowacce ta tsaya.",
       start: "Fara jeri",
       unconfigured:
         "Jerinka zai bayyana nan daidai lokacin da mabuɗan dandalin suka iso. Kana iya fara gina ɗaya yanzu: mai jeri yana ajiye aikinka a wannan na'urar har sai lokacin.",
@@ -1386,7 +1386,7 @@ export const ha: Dictionary = {
     notCounted: {
       title: "Abin da wannan shafin bai ƙidaya ba",
       views:
-        "Kallo. RentMe ba ya ƙidaya yawan mutanen da suka duba kadara, don haka babu adadin kallo a nan kuma babu ƙimar juyawa da aka gina a kansa. Nuna ko wanne zai zama ƙirƙira.",
+        "Kallo. Vallo ba ya ƙidaya yawan mutanen da suka duba kadara, don haka babu adadin kallo a nan kuma babu ƙimar juyawa da aka gina a kansa. Nuna ko wanne zai zama ƙirƙira.",
       saves:
         "Ajiyar baƙin da ba su shiga ba. Jerin ajiyar wanda bai shiga ba yana kan wayarsa kuma bai taɓa isa gare mu ba, saboda haka adadin da ke gefen kowane gida yana ƙidaya baƙi masu asusu kaɗai. Karanta shi a matsayin mafi ƙaranci, ba jimla ba.",
       occupancy:
@@ -1430,8 +1430,8 @@ export const ha: Dictionary = {
       signedOutTitle: "Shigar ma'aikata",
       signedOutBody: "Ka shiga da asusun aikinka don ci gaba.",
       notAdminTitle: "Ba ka da damar shiga console",
-      notAdminBody: "Wannan wurin na ƙungiyar aikin RentMe ne. Asusunka ba ya ɗauke da wannan matsayi.",
-      backToRentMe: "Koma RentMe",
+      notAdminBody: "Wannan wurin na ƙungiyar aikin Vallo ne. Asusunka ba ya ɗauke da wannan matsayi.",
+      backToVallo: "Koma Vallo",
       signIn: "Shiga",
       backToYourHome: "Koma gidanka",
       otherAccount: "Shiga da wani asusu",
@@ -1491,7 +1491,7 @@ export const ha: Dictionary = {
     overview: {
       title: "Taƙaitawar aiki",
       lede:
-        "Kowace alamar amincin da RentMe ke samarwa tana ƙarewa nan: abin da binciken tsaro ya kama, abin da mambobi suka ƙorafta, wanda ke jiran amincewa, da abin da ke jiran fara aiki. Kowace lamba layi ce da za ka iya kammalawa.",
+        "Kowace alamar amincin da Vallo ke samarwa tana ƙarewa nan: abin da binciken tsaro ya kama, abin da mambobi suka ƙorafta, wanda ke jiran amincewa, da abin da ke jiran fara aiki. Kowace lamba layi ce da za ka iya kammalawa.",
       queueClear: "Wannan layin babu abu.",
       tiles: {
         moderation: {
@@ -1863,7 +1863,7 @@ export const ha: Dictionary = {
       signedInWhenFiled: "Ya shiga lokacin da ya shigar da shi",
       noAccountAttached: "Babu asusun da aka haɗa",
       whatTheyAsked: "Abin da suka tambaya",
-      supportSender: "Tallafin RentMe",
+      supportSender: "Tallafin Vallo",
       waitingOnUs: "Yana jiran mu",
       noneWaitingHeading: "Babu tikitin da ke jiran mu",
       nothingWaitingTitle: "Babu abin da ke jira",
@@ -1975,12 +1975,12 @@ export const ha: Dictionary = {
       // NATIVE REVIEW: "switch" kept in English throughout this surface.
       title: "Switch",
       lede:
-        "Ka kashe wani sashe a duk RentMe ba tare da sabon deploy ba, sannan ka kunna shi idan matsalar ta ƙare. Ba a share komai ko ta yaya.",
+        "Ka kashe wani sashe a duk Vallo ba tare da sabon deploy ba, sannan ka kunna shi idan matsalar ta ƙare. Ba a share komai ko ta yaya.",
       warning:
         "Kashe wani sashe yana cire shi ga kowa nan take, har da mutanen da ke tsakiyar amfani da shi. Ana kiyaye aikin da aka ajiye. Shafuka suna ɗaukar canjin cikin kusan daƙiƙa talatin. Ana rubuta kowane juyi a audit log da sunanka a kansa.",
       on: "A kunne",
       off: "A kashe",
-      defaultNote: "Sashen RentMe da ake iya kashewa.",
+      defaultNote: "Sashen Vallo da ake iya kashewa.",
       switchingOff: "Kashe shi: {consequence}",
       lastChanged: "Canji na ƙarshe {when}",
       switchOn: "Kunna",
@@ -2011,7 +2011,7 @@ export const ha: Dictionary = {
       sheet: {
         title: "A kashe {label}?",
         body:
-          "Kowa zai rasa wannan sashen RentMe nan take, har da mutanen da ke tsakiyar amfani da shi. Ba a share abin da aka ajiye ba, kuma sake kunna shi yana mayar da sashen. Canjin yana kai kowane shafi cikin kusan daƙiƙa talatin.",
+          "Kowa zai rasa wannan sashen Vallo nan take, har da mutanen da ke tsakiyar amfani da shi. Ba a share abin da aka ajiye ba, kuma sake kunna shi yana mayar da sashen. Canjin yana kai kowane shafi cikin kusan daƙiƙa talatin.",
         confirm: "Ee, ka kashe shi",
         successTitle: "An kashe",
         successBody: "Sashen a kashe ne ga kowa kuma canjin na cikin audit log.",
@@ -2020,7 +2020,7 @@ export const ha: Dictionary = {
   },
 
   a11y: {
-    logoHome: "Gidan RentMe",
+    logoHome: "Gidan Vallo",
     expand: "Buɗe",
     collapse: "Rufe",
     openMenu: "Buɗe menu",

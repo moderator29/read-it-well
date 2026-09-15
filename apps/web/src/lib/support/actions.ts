@@ -207,7 +207,7 @@ export async function fileSupportTicket(
  * `SUPPORT_TOPICS` has six. The copy of the list here had five, with no
  * "safety" in it, so `value in CONTACT_TOPICS` was false for the one topic
  * worded as the thing this queue exists for, and anybody choosing "Someone
- * asked me to pay outside RentMe" was refused with "Pick one of the topics
+ * asked me to pay outside Vallo" was refused with "Pick one of the topics
  * listed" for picking a topic that was listed.
  *
  * The second half was quieter and just as wrong: this file translated the code

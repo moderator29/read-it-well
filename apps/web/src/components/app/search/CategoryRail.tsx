@@ -58,7 +58,7 @@ import type { ListingKind } from "@/lib/listings/types";
 
 /**
  * The nine markets, in the order they are offered, with the object that stands
- * for each and the name RentMe uses for it.
+ * for each and the name Vallo uses for it.
  *
  * THE NAMES ARE OURS AND THEY ARE NOT THE NOUNS. `KIND_NOUN` holds lower-case
  * mid-sentence nouns ("rentals", "plots") because that is what a result count

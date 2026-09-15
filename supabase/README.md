@@ -1,11 +1,11 @@
 # Supabase
 
-Configuration and assets for the RentMe Supabase project
+Configuration and assets for the Vallo Supabase project
 (`uccixoonmbhrnyczyigt`, region eu-west-1, Postgres 17).
 
 ## Auth email templates
 
-`templates/` holds the branded RentMe versions of the Supabase auth emails.
+`templates/` holds the branded Vallo versions of the Supabase auth emails.
 They are generated, not hand-edited, so the masthead, palette, glow and trust
 language stay identical across every message and can be moved in one place. To
 change them, edit `scripts/build-auth-emails.mjs` and regenerate:

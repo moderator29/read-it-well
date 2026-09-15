@@ -9,7 +9,7 @@ import { RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
 export const metadata: Metadata = {
   title: "Cancellation policy",
   description:
-    "One cancellation schedule for every stay on RentMe: everything back until 72 hours before check-in, half back inside that window, nothing back once check-in day starts.",
+    "One cancellation schedule for every stay on Vallo: everything back until 72 hours before check-in, half back inside that window, nothing back once check-in day starts.",
 };
 
 /**
@@ -42,7 +42,7 @@ export default function CancellationPolicyPage() {
           </h1>
           <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
             Not one policy per host. The same three steps apply to every stay on
-            RentMe, so you never have to work out which rules you agreed to.
+            Vallo, so you never have to work out which rules you agreed to.
           </p>
         </div>
 
@@ -81,7 +81,7 @@ export default function CancellationPolicyPage() {
               than by a button, because a refund is somebody&apos;s money and it
               deserves a name against the decision. Write to support with your
               booking reference. We apply the schedule above exactly as it is
-              written, the refund goes to your RentMe wallet, and you get the
+              written, the refund goes to your Vallo wallet, and you get the
               amount and the reason in writing.
             </p>
             <p className="mt-row text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -148,7 +148,7 @@ export default function CancellationPolicyPage() {
           </h2>
           <div className="nf-card mt-group p-card">
             <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              Into your RentMe wallet, in naira, to the kobo. That is the fastest
+              Into your Vallo wallet, in naira, to the kobo. That is the fastest
               route available in this market and it is not a store credit: move it
               to your Nigerian bank account from the wallet whenever you want, or
               spend it on your next stay. Card reversals are slower and depend on

@@ -232,7 +232,7 @@ export default async function CheckoutPage({
             </p>
             {view.platformTakesNothing && (
               <p className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-                RentMe adds nothing of its own to this total. Every naira goes to the stay.
+                Vallo adds nothing of its own to this total. Every naira goes to the stay.
               </p>
             )}
           </div>

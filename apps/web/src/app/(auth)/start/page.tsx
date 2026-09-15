@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { StartCarousel } from "./StartCarousel";
 
 export const metadata: Metadata = {
-  title: "Welcome to RentMe",
+  title: "Welcome to Vallo",
   /*
    * Not indexed, deliberately. This is a doorway on the way to sign up, not a
    * destination, and a search result landing somebody here rather than on the

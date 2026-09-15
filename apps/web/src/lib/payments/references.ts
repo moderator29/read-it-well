@@ -38,13 +38,13 @@ import { randomUUID } from "node:crypto";
  *    database function, so paying a booking from the wallet is idempotent on
  *    exactly the same key as paying it by card.
  *
- *  - `rm-refund-<uuid>`  Money going back to a guest after RentMe support
+ *  - `rm-refund-<uuid>`  Money going back to a guest after Vallo support
  *    cancels a stay they had paid for. Posted as a COMPLETED `refund` credit
  *    inside private.refund_and_cancel_booking, in the same transaction as the
  *    contra ledger row, the booking transition and the calendar release. The
  *    unique reference is what makes a double tap on the console a no-op rather
  *    than a second payment out. Nothing hands this shape to Paystack: the money
- *    lands in the RentMe wallet, exactly as /cancellations promises, and leaves
+ *    lands in the Vallo wallet, exactly as /cancellations promises, and leaves
  *    it later as an ordinary withdrawal under `rm-wd-`.
  *
  *  - `rm-esc-<escrow uuid>-hold` / `-release` / `-refund`  Escrow. Three legs,

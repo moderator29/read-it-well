@@ -64,7 +64,7 @@ describe("the assistant cannot recommend a property that does not exist", () => 
     // "I found nothing" is true and is a worse answer than the truth, because
     // the search page visibly shows results for the same query.
     expect(ROUTE).toContain("exampleOnly");
-    expect(ROUTE).toMatch(/example listings that RentMe uses to illustrate/);
+    expect(ROUTE).toMatch(/example listings that Vallo uses to illustrate/);
   });
 
   it("forbids describing them rather than leaving it to the model's judgement", () => {

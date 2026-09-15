@@ -718,7 +718,7 @@ export async function getThread(postId: string): Promise<Thread | null> {
             ? parentAuthor?.handle
               ? `@${parentAuthor.handle}`
               : parent.author_kind === "BOT"
-                ? "RentMe AI"
+                ? "Vallo AI"
                 : null
             : null,
         depth: row.depth,
@@ -839,7 +839,7 @@ export async function getProfileReplies(userId: string): Promise<PostView[]> {
       replyingTo: handle
         ? `@${handle}`
         : parent?.author_kind === "BOT"
-          ? "RentMe AI"
+          ? "Vallo AI"
           : null,
     };
   });

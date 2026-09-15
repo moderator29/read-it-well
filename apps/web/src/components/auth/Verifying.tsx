@@ -129,7 +129,7 @@ export function Verifying({
             the mark renders as a block, so it hung on the left edge above a
             centred column. */}
         <span className="flex justify-center">
-          <LogoMark size={44} title="RentMe" />
+          <LogoMark size={44} title="Vallo" />
         </span>
         <h1 className="nf-h2 mt-5">We could not confirm that link</h1>
         <p className="mt-3 leading-relaxed text-[var(--nf-content-secondary)]">{said}</p>

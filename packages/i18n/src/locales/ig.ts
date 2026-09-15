@@ -40,7 +40,7 @@ export const ig: Dictionary = {
    * a chance to break it.
    */
   welcomeCards: {
-    label: "Gịnị bụ RentMe",
+    label: "Gịnị bụ Vallo",
     skip: "Wufee",
     start: "Hapụ m banye",
     goTo: "Gaa na kaadị {n}",
@@ -57,7 +57,7 @@ export const ig: Dictionary = {
     three: {
       title: "Ziga ozi bụ ụzọ, kwụọ ụgwọ mgbe obi siri gị ike",
       body:
-        "Gwa onye nwe ụlọ okwu, lelee ebe ahụ, wee kwụọ ụgwọ na ikpo okwu a. Ezigala mmadụ ọ bụla ego na mpụga RentMe.",
+        "Gwa onye nwe ụlọ okwu, lelee ebe ahụ, wee kwụọ ụgwọ na ikpo okwu a. Ezigala mmadụ ọ bụla ego na mpụga Vallo.",
     },
   },
 
@@ -126,7 +126,7 @@ export const ig: Dictionary = {
   },
 
   social: {
-    feedName: "Akụkọ RentMe",
+    feedName: "Akụkọ Vallo",
     tabForYou: "Maka gị",
     tabFollowing: "Ndị ị na-eso",
     tabNew: "Ọhụrụ",
@@ -155,7 +155,7 @@ export const ig: Dictionary = {
   socialProfile: {
     back: "Laghachi",
     verified: "Onye nnọchiteanya enyochara",
-    verifiedTitle: "Onye nnọchiteanya RentMe enyochara",
+    verifiedTitle: "Onye nnọchiteanya Vallo enyochara",
     moderatorShort: "NLEKỌTA",
     moderatorOf: "Ọ na-elekọta {place}",
     pidginWelcome: "Pidgin nabatara",
@@ -196,7 +196,7 @@ export const ig: Dictionary = {
     vision: {
       overline: "Ọhụụ anyị",
       title: "Naịjịrịa n'aka gị. Afrịka na-esote.",
-      body: "RentMe na-ewu ụlọ a pụrụ ịtụkwasị obi maka nchọpụta, ebe obibi, nri na ahụmịhe n'ofe Naịjịrịa, wee bụrụ kọntinent ahụ. Otu akaụntụ, otu obere akpa ego, otu onye enyemaka.",
+      body: "Vallo na-ewu ụlọ a pụrụ ịtụkwasị obi maka nchọpụta, ebe obibi, nri na ahụmịhe n'ofe Naịjịrịa, wee bụrụ kọntinent ahụ. Otu akaụntụ, otu obere akpa ego, otu onye enyemaka.",
       missionOverline: "Ebumnuche anyị",
       missionTitle: "Mee ka ịchọta na idebe ihe ọ bụla dị mfe ma dị mma.",
       missionBody: "Ebe akwadoro, ọnụahịa ziri ezi na naira, nyocha ziri ezi, na onye enyemaka nke ghọtara ihe ị chọrọ.",
@@ -495,7 +495,7 @@ export const ig: Dictionary = {
 
     search: {
       label: "Nchọta",
-      note: "Nchọta na-emepe na mpaghara mbụ gị, ị nwekwara ike ile ebe ọ bụla mgbe ọ bụla. A na-egosi ọnụahịa niile na RentMe na Naira.",
+      note: "Nchọta na-emepe na mpaghara mbụ gị, ị nwekwara ike ile ebe ọ bụla mgbe ọ bụla. A na-egosi ọnụahịa niile na Vallo na Naira.",
       defaultArea: "Mpaghara mbụ",
       allOfNigeria: "Naịjirịa dum",
       currency: "Ego",
@@ -581,9 +581,9 @@ export const ig: Dictionary = {
     data: {
       label: "Data gị",
       exportNote:
-        "Ugbu a ihe niile RentMe maara banyere gị nọ n'ime ihe nchọgharị a, ọ dịghịkwa ihe hapụrụ ngwaọrụ a. Mbupụ data zuru oke ga-abịa na mwepụta mmalite.",
+        "Ugbu a ihe niile Vallo maara banyere gị nọ n'ime ihe nchọgharị a, ọ dịghịkwa ihe hapụrụ ngwaọrụ a. Mbupụ data zuru oke ga-abịa na mwepụta mmalite.",
       download: "Budata data m",
-      downloadSub: "Otu ndetu nke ihe niile RentMe ji banyere gị.",
+      downloadSub: "Otu ndetu nke ihe niile Vallo ji banyere gị.",
       clear: "Hichapụ data ngwaọrụ a",
       clearAgain: "Pịa ọzọ iji kwado",
       clearSub:
@@ -685,8 +685,8 @@ export const ig: Dictionary = {
     topExperiences: "Chọpụta ahụmahụ kacha mma",
     nearby: "Nso gị",
     aiCard: {
-      title: "Jụọ RentMe AI",
-      body: "Ọ na-achọ n'ime otu ndepụta ị na-agụ, ya mere ọ ga-agwa gị naanị maka ebe ndị dị na RentMe n'ezie.",
+      title: "Jụọ Vallo AI",
+      body: "Ọ na-achọ n'ime otu ndepụta ị na-agụ, ya mere ọ ga-agwa gị naanị maka ebe ndị dị na Vallo n'ezie.",
       action: "Jụọ onye enyemaka",
       truths: {
         listings:
@@ -698,7 +698,7 @@ export const ig: Dictionary = {
       },
     },
     agentCard: {
-      title: "Bụrụ Onye Nnọchiteanya RentMe",
+      title: "Bụrụ Onye Nnọchiteanya Vallo",
       body: "Depụta ihe onwunwe gị, jikwaa ndebe, nweta karịa ma zụlite azụmahịa gị.",
       action: "Bụrụ onye nnọchiteanya",
     },
@@ -742,7 +742,7 @@ export const ig: Dictionary = {
       settings: "Ntọala",
     },
     join: {
-      title: "Sonye na Obodo Ndị Nnọchi RentMe",
+      title: "Sonye na Obodo Ndị Nnọchi Vallo",
       body: "Depụta ihe onwunwe, jikọọ na ndị ọbịa enyochara, jikwaa ndebe ma nweta ego.",
       start: "Malite arịrịọ",
       resume: "Gaa n'ihu na arịrịọ",
@@ -787,7 +787,7 @@ export const ig: Dictionary = {
         bankName: "Ụlọ akụ",
         accountNumber: "Nọmba akaụntụ",
         accountName: "Aha akaụntụ",
-        agreeTerms: "Ekwenyere m na Usoro Onye Nnọchi RentMe na Iwu Ụgwọ.",
+        agreeTerms: "Ekwenyere m na Usoro Onye Nnọchi Vallo na Iwu Ụgwọ.",
       },
       documents: {
         title: "Bulite akwụkwọ gị",
@@ -865,10 +865,10 @@ export const ig: Dictionary = {
         "Ego i nwetara, ndebanye aha gị, kalenda gị na ụlọ gị, ha niile n'otu ebe. Banye ka i mepee nke gị.",
       notAgentTitle: "Ị depụtabeghị ụlọ ọ bụla",
       notAgentBody:
-        "Ebe ọrụ a ga-ejupụta ozugbo i nwere ebe na RentMe. Ịrịọ na-ewe ihe dịka nkeji abụọ, mmadụ na-agụkwa arịrịọ ọ bụla.",
+        "Ebe ọrụ a ga-ejupụta ozugbo i nwere ebe na Vallo. Ịrịọ na-ewe ihe dịka nkeji abụọ, mmadụ na-agụkwa arịrịọ ọ bụla.",
       unconfiguredTitle: "Ejikọtabeghị ebe ọrụ a",
       unconfiguredBody:
-        "Ikpo okwu a ejighị igodo ya, ya mere ọ dịghị ihe a ga-agụ ebe a. Ihe niile ọzọ dị na RentMe ka na-arụ ọrụ.",
+        "Ikpo okwu a ejighị igodo ya, ya mere ọ dịghị ihe a ga-agụ ebe a. Ihe niile ọzọ dị na Vallo ka na-arụ ọrụ.",
       applyCta: "Rịọ ka i depụta ụlọ",
     },
   },
@@ -1019,7 +1019,7 @@ export const ig: Dictionary = {
       instantTitle: "Ndebe ozugbo",
       instantBody: "Ndị ọbịa na-edebe n'echereghị nkwenye gị.",
       rentalNote:
-        "A na-ekpebi ọnụahịa mgbazinye kwa afọ. Ndị ọbịa na-ezitere gị ozi n'ime RentMe, ha na-eleta ụlọ, mgbe ahụ ha na-akwụ ụgwọ. Maka nchekwa gị, hapụ nkata na ịkwụ ụgwọ niile n'ime RentMe.",
+        "A na-ekpebi ọnụahịa mgbazinye kwa afọ. Ndị ọbịa na-ezitere gị ozi n'ime Vallo, ha na-eleta ụlọ, mgbe ahụ ha na-akwụ ụgwọ. Maka nchekwa gị, hapụ nkata na ịkwụ ụgwọ niile n'ime Vallo.",
     },
 
     guestView: {
@@ -1085,7 +1085,7 @@ export const ig: Dictionary = {
     },
 
     pitch: {
-      title: "Depụta ihe onwunwe gị na RentMe",
+      title: "Depụta ihe onwunwe gị na Vallo",
       bodySignedIn:
         "Ndepụta mepere ndị nnọchi akwadoro. Arịrịọ ahụ na-ewe ihe dịka nkeji abụọ, anyị na-enyocha n'ime awa 24 ruo 48.",
       bodySignedOut:
@@ -1097,12 +1097,12 @@ export const ig: Dictionary = {
             "A na-enyocha ndepụta ọ bụla n'aka, ya mere akara dị n'ihe onwunwe gị pụtara ihe nye ndị ọbịa.",
         },
         inside: {
-          title: "Ndị ọbịa na-erute gị n'ime RentMe",
+          title: "Ndị ọbịa na-erute gị n'ime Vallo",
           body: "Nkata, nleta ụlọ na ịkwụ ụgwọ na-anọ n'ikpo okwu, ebe a na-echekwa ha.",
         },
         keep: {
           title: "Ị na-ewere ihe ị kwuru",
-          body: "RentMe anaghị anara gị ihe ọ bụla maka idepụta. Ọnụahịa gị bụ ọnụahịa gị.",
+          body: "Vallo anaghị anara gị ihe ọ bụla maka idepụta. Ọnụahịa gị bụ ọnụahịa gị.",
         },
       },
       apply: "Bụrụ onye nnọchiteanya",
@@ -1112,7 +1112,7 @@ export const ig: Dictionary = {
 
     workspace: {
       title: "Ndepụta m",
-      lede: "Ihe onwunwe niile ị nwere na RentMe, na ebe nke ọ bụla guzo.",
+      lede: "Ihe onwunwe niile ị nwere na Vallo, na ebe nke ọ bụla guzo.",
       start: "Malite ndepụta",
       unconfigured:
         "Ndepụta gị ga-apụta ebe a ozugbo igodo ikpo okwu rutere. Ị nwere ike ịmalite iwu otu ugbu a: onye ndu ndepụta na-echekwa ọrụ gị na ngwaọrụ a ruo mgbe ahụ.",
@@ -1396,7 +1396,7 @@ export const ig: Dictionary = {
     notCounted: {
       title: "Ihe ibe a na-adịghị agụ",
       views:
-        "Nlele. RentMe anaghị agụ ọnụ ọgụgụ ndị lere ihe onwunwe anya, ya mere ọ dịghị ọnụọgụ nlele ebe a ma ọ dịghị ọnụego mgbanwe e wuru na ya. Igosi nke ọ bụla ga-abụ ihe e chepụtara.",
+        "Nlele. Vallo anaghị agụ ọnụ ọgụgụ ndị lere ihe onwunwe anya, ya mere ọ dịghị ọnụọgụ nlele ebe a ma ọ dịghị ọnụego mgbanwe e wuru na ya. Igosi nke ọ bụla ga-abụ ihe e chepụtara.",
       saves:
         "Nchekwa sitere n'aka ndị ọbịa na-abanyeghị. Ndepụta nchekwa nke onye na-abanyeghị na-anọ na ekwentị ya, ọ dịghịkwa erute anyị, ya mere ọnụọgụ dị n'akụkụ ụlọ ọ bụla na-agụta naanị ndị ọbịa nwere akaụntụ. Gụọ ya dị ka ala, ọ bụghị mkpokọta.",
       occupancy:
@@ -1440,8 +1440,8 @@ export const ig: Dictionary = {
       signedOutTitle: "Nbanye ndị ọrụ",
       signedOutBody: "Jiri akaụntụ ọrụ gị banye ka ị gaa n'ihu.",
       notAdminTitle: "Ị nweghị ohere ịbanye console",
-      notAdminBody: "Ebe a bụ maka ndị otu ọrụ RentMe. Akaụntụ gị anaghị ebu ọkwa ahụ.",
-      backToRentMe: "Laghachi na RentMe",
+      notAdminBody: "Ebe a bụ maka ndị otu ọrụ Vallo. Akaụntụ gị anaghị ebu ọkwa ahụ.",
+      backToVallo: "Laghachi na Vallo",
       signIn: "Banye",
       backToYourHome: "Laghachi n'ụlọ gị",
       otherAccount: "Jiri akaụntụ ọzọ banye",
@@ -1501,7 +1501,7 @@ export const ig: Dictionary = {
     overview: {
       title: "Nchịkọta ọrụ",
       lede:
-        "Akara ntụkwasị obi ọ bụla RentMe na-emepụta na-akwụsị ebe a: ihe nyocha nchekwa jidere, ihe ndị òtù kpesara, onye na-echere nkwado, na ihe na-echere ịmalite ọrụ. Ọnụọgụ ọ bụla bụ ahịrị ị nwere ike ikpocha.",
+        "Akara ntụkwasị obi ọ bụla Vallo na-emepụta na-akwụsị ebe a: ihe nyocha nchekwa jidere, ihe ndị òtù kpesara, onye na-echere nkwado, na ihe na-echere ịmalite ọrụ. Ọnụọgụ ọ bụla bụ ahịrị ị nwere ike ikpocha.",
       queueClear: "Ahịrị a dị ọcha.",
       tiles: {
         moderation: {
@@ -1873,7 +1873,7 @@ export const ig: Dictionary = {
       signedInWhenFiled: "Ọ banyere mgbe o tinyere ya",
       noAccountAttached: "Enweghị akaụntụ ejikọtara",
       whatTheyAsked: "Ihe ha jụrụ",
-      supportSender: "Nkwado RentMe",
+      supportSender: "Nkwado Vallo",
       waitingOnUs: "Ọ na-echere anyị",
       noneWaitingHeading: "Enweghị tiketi na-echere anyị",
       nothingWaitingTitle: "Ọ dịghị ihe na-echere",
@@ -1985,12 +1985,12 @@ export const ig: Dictionary = {
       // NATIVE REVIEW: "switch" kept in English throughout this surface.
       title: "Switch",
       lede:
-        "Gbanyụọ akụkụ n'ofe RentMe n'enweghị mbipụta ọhụrụ, wee gbanye ya ọzọ mgbe nsogbu ahụ gwụchara. Ọ dịghị ihe e hichapụrụ ma ọ bụrụ otu ma ọ bụ ibe.",
+        "Gbanyụọ akụkụ n'ofe Vallo n'enweghị mbipụta ọhụrụ, wee gbanye ya ọzọ mgbe nsogbu ahụ gwụchara. Ọ dịghị ihe e hichapụrụ ma ọ bụrụ otu ma ọ bụ ibe.",
       warning:
         "Ịgbanyụ akụkụ na-ewepụ ya n'aka onye ọ bụla ozugbo, gụnyere ndị nọ n'etiti iji ya. A na-echekwa ọrụ echekwaralarị. Peeji na-ewere mgbanwe ahụ n'ime ihe dịka sekọnd iri atọ. A na-ede ntụgharị ọ bụla n'ime audit log ya na aha gị na ya.",
       on: "Ọ gbanyere",
       off: "Ọ gbanyụrụ",
-      defaultNote: "Akụkụ RentMe a pụrụ ịgbanyụ.",
+      defaultNote: "Akụkụ Vallo a pụrụ ịgbanyụ.",
       switchingOff: "Ịgbanyụ ya: {consequence}",
       lastChanged: "Mgbanwe ikpeazụ {when}",
       switchOn: "Gbanye",
@@ -2020,7 +2020,7 @@ export const ig: Dictionary = {
       sheet: {
         title: "Gbanyụọ {label}?",
         body:
-          "Onye ọ bụla ga-atụfu akụkụ RentMe a ozugbo, gụnyere ndị nọ n'etiti iji ya. A naghị ehichapụ ihe echekwaralarị, ịgbanye ya ọzọ na-eweghachi akụkụ ahụ. Mgbanwe ahụ na-eru peeji ọ bụla n'ime ihe dịka sekọnd iri atọ.",
+          "Onye ọ bụla ga-atụfu akụkụ Vallo a ozugbo, gụnyere ndị nọ n'etiti iji ya. A naghị ehichapụ ihe echekwaralarị, ịgbanye ya ọzọ na-eweghachi akụkụ ahụ. Mgbanwe ahụ na-eru peeji ọ bụla n'ime ihe dịka sekọnd iri atọ.",
         confirm: "Ee, gbanyụọ ya",
         successTitle: "Agbanyụrụ ya",
         successBody: "Akụkụ ahụ gbanyụrụ maka onye ọ bụla, mgbanwe ahụ dịkwa n'ime audit log.",
@@ -2029,7 +2029,7 @@ export const ig: Dictionary = {
   },
 
   a11y: {
-    logoHome: "Ụlọ RentMe",
+    logoHome: "Ụlọ Vallo",
     expand: "Mepee",
     collapse: "Mechie",
     openMenu: "Mepee menu",

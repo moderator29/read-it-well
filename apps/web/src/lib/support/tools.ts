@@ -39,7 +39,7 @@ import type { SupportAction } from "./types";
  * `loadConversationSummaries` resolves the counterpart's DISPLAY NAME through
  * the admin client strictly after RLS has already chosen which conversations
  * exist for this caller, exactly as the inbox does, because profiles and agents
- * are select-own tables and a thread with "RentMe member" on every row answers
+ * are select-own tables and a thread with "Vallo member" on every row answers
  * nobody's question about whether their agent replied.
  *
  * THE RULE THAT SHAPES EVERY RETURN BELOW: the model never receives a bare
@@ -141,7 +141,7 @@ export const SUPPORT_TOOLS = [
   {
     name: "search_help",
     description:
-      "Search RentMe's canonical help notes: how bookings, payments, the wallet, listing a property, verification, cancellations, refunds, reviews, reporting, languages, privacy and messaging safety actually work. Call this before answering any question about policy or how the platform works, and answer from what it returns rather than from memory.",
+      "Search Vallo's canonical help notes: how bookings, payments, the wallet, listing a property, verification, cancellations, refunds, reviews, reporting, languages, privacy and messaging safety actually work. Call this before answering any question about policy or how the platform works, and answer from what it returns rather than from memory.",
     input_schema: {
       type: "object",
       properties: {
@@ -231,7 +231,7 @@ export const SUPPORT_TOOLS = [
           type: "string",
           enum: [...SUPPORT_TOPICS],
           description:
-            "Which queue this belongs in. Choose safety for anyone asked to pay outside RentMe, anything unsafe, or money already lost: it carries a four hour response time, and the wrong choice here slows a real person down.",
+            "Which queue this belongs in. Choose safety for anyone asked to pay outside Vallo, anything unsafe, or money already lost: it carries a four hour response time, and the wrong choice here slows a real person down.",
         },
         question: {
           type: "string",
@@ -555,7 +555,7 @@ function nextStepsFor(
     ];
   }
   return [
-    "This stay is paid for, so cancelling it is done by a person rather than by the button: ask support here and the published schedule decides the amount, which goes back to their RentMe wallet.",
+    "This stay is paid for, so cancelling it is done by a person rather than by the button: ask support here and the published schedule decides the amount, which goes back to their Vallo wallet.",
     "Call booking_policy with this booking id before quoting any figure.",
   ];
 }
@@ -693,7 +693,7 @@ async function runMyWallet(session: SignedIn): Promise<ToolOutcome> {
  * This used to hand the model the FAQ paragraph on cancellations and a boolean
  * from the trips hub. Both were wrong in the same direction, towards promising
  * more than the platform does: the paragraph described per-listing deadlines,
- * which RentMe deliberately does not have, and the boolean said a paid stay
+ * which Vallo deliberately does not have, and the boolean said a paid stay
  * could be cancelled with a button that refuses paid stays. The schedule now
  * comes from `lib/trust/cancellation.ts`, the single module the public policy
  * page, the listing, the booking and the admin refund desk all compute from, so
@@ -718,7 +718,7 @@ async function runBookingPolicy(session: SignedIn, input: unknown): Promise<Tool
   }
 
   const { paidMinor, currency } = figures;
-  const scheduleNote = `One schedule covers every stay on RentMe. The free-cancellation deadline is ${FULL_REFUND_HOURS} hours before check-in.`;
+  const scheduleNote = `One schedule covers every stay on Vallo. The free-cancellation deadline is ${FULL_REFUND_HOURS} hours before check-in.`;
 
   if (booking.status === "CANCELLED") {
     return {
@@ -777,7 +777,7 @@ async function runBookingPolicy(session: SignedIn, input: unknown): Promise<Tool
       booking,
       route: "a person on the support team",
       whatHappens:
-        "This stay is paid for, so it is not cancelled by the button in the app: ask here and a person applies the published schedule, returns the money to their RentMe wallet in naira, and puts the amount and the reason in writing. Cancellation requests are answered within 1 day, sooner when check-in is close.",
+        "This stay is paid for, so it is not cancelled by the button in the app: ask here and a person applies the published schedule, returns the money to their Vallo wallet in naira, and puts the amount and the reason in writing. Cancellation requests are answered within 1 day, sooner when check-in is close.",
       paid: naira(paidMinor, currency),
       ifCancelledNow: {
         tier: outcome.stop.label,
@@ -972,7 +972,7 @@ async function runFileTicket(session: SessionState, input: unknown): Promise<Too
    * `supportTopicLabel` and, more importantly, by `gradeForTopic`, which puts
    * the four hour clock on anything filed as safety. A free-text subject line
    * stored here renders raw in the queue and can never match that grade, so an
-   * escalation about somebody being asked to pay outside RentMe would sit in
+   * escalation about somebody being asked to pay outside Vallo would sit in
    * the ordinary pile. An unrecognised value falls back to "other" rather than
    * being stored, because a topic the queue does not know is worth less than a
    * topic it can sort.
@@ -999,7 +999,7 @@ async function runFileTicket(session: SessionState, input: unknown): Promise<Too
    * conversation is the only source there is and it stays that way.
    */
   const email = signedIn ? accountEmail || asString(raw.email) : asString(raw.email);
-  const name = accountName || asString(raw.name) || (signedIn ? "RentMe member" : "");
+  const name = accountName || asString(raw.name) || (signedIn ? "Vallo member" : "");
 
   if (!name || !email) {
     return {

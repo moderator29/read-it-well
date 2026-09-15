@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Generate the RentMe Supabase auth email templates.
+ * Generate the Vallo Supabase auth email templates.
  *
  * Supabase sends one HTML template per auth action: confirm signup, magic link,
  * recovery, email change, invite. Left at their defaults they are plain and
@@ -17,7 +17,7 @@
  *
  * WHY THESE FIVE MATTER MORE THAN THE OTHERS.
  *
- * They are the first email anybody ever gets from RentMe. A confirm-signup
+ * They are the first email anybody ever gets from Vallo. A confirm-signup
  * message arrives before the reader has any opinion of this product at all, so
  * it is not a utility, it is the first impression. It is also the message a
  * phishing kit will imitate, which is why the copy here never asks for
@@ -89,7 +89,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  * the committed copy is the only thing that catches that before it happens.
  */
 const OUT_DIR =
-  process.env.RENTME_AUTH_EMAIL_OUT_DIR ?? join(__dirname, "..", "supabase", "templates");
+  process.env.VALLO_AUTH_EMAIL_OUT_DIR ?? join(__dirname, "..", "supabase", "templates");
 
 /* ------------------------------------------------------------------------- *
  * The palette. Mirrored value for value from
@@ -137,7 +137,7 @@ const PAD_X = 40;
 const LOGO_SIZE = 40;
 
 const LOGO = "{{ .SiteURL }}/brand/rentme-logo.png";
-const SIGN_OFF = "RentMe. Find it. Rent it. Love it.";
+const SIGN_OFF = "Vallo. Find it. Rent it. Love it.";
 
 /* ------------------------------------------------------------------------- *
  * Primitives. Each one is the auth-side twin of a block in render.ts, with the
@@ -287,7 +287,7 @@ function fallbackLink(href) {
 /**
  * The band of plain facts, on the templates where it belongs.
  *
- * NOT a promise band. It used to be headed "How RentMe protects you" and to
+ * NOT a promise band. It used to be headed "How Vallo protects you" and to
  * claim every listing carried a verified host, which is not true: verification
  * is a ladder most listers have not climbed, and an email is the one surface
  * with no corrective. What is here now is what this platform can actually
@@ -315,8 +315,8 @@ function factBand(title, lines) {
  * The lockup and the purpose line.
  *
  * The mark is an image carrying no words and its alt is EMPTY on purpose: the
- * wordmark beside it is live text. With images blocked a reader sees "RentMe"
- * once, in brand blue, rather than "RentMe RentMe" or a broken image icon where
+ * wordmark beside it is live text. With images blocked a reader sees "Vallo"
+ * once, in brand blue, rather than "Vallo Vallo" or a broken image icon where
  * the brand should be. The purpose line beneath says what this particular email
  * is for, which is the one piece of hierarchy an auth message needs that a
  * transactional one does not: the reader did not ask for this and has half a
@@ -329,7 +329,7 @@ function masthead(purpose) {
                       <img src="${LOGO}" width="${LOGO_SIZE}" height="${LOGO_SIZE}" alt="" style="display:block;width:${LOGO_SIZE}px;height:${LOGO_SIZE}px;border:0;outline:none;text-decoration:none;" />
                     </td>
                     <td style="vertical-align:middle;">
-                      <span class="rm-brand" style="font-family:${FONT_SANS};font-size:23px;line-height:28px;font-weight:700;letter-spacing:-0.025em;color:${GLOW};">RentMe</span>
+                      <span class="rm-brand" style="font-family:${FONT_SANS};font-size:23px;line-height:28px;font-weight:700;letter-spacing:-0.025em;color:${GLOW};">Vallo</span>
                     </td>
                   </tr>
                 </table>
@@ -380,7 +380,7 @@ function shell({ preheader, purpose, body, facts, footnote }) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <meta name="supported-color-schemes" content="light dark" />
-    <title>RentMe</title>
+    <title>Vallo</title>
     <style>${DARK_STYLE}
     </style>
   </head>
@@ -456,28 +456,28 @@ ${
  * These are the same three claims `lib/email/messages.ts` makes in the welcome,
  * because they are the ones this platform can stand behind. There is no
  * guarantee here, no promise about money and no claim that anything has been
- * verified: verification on RentMe is a ladder, it is visible on a profile, and
+ * verified: verification on Vallo is a ladder, it is visible on a profile, and
  * most listers have not climbed it.
  */
 const FACTS_MARKETPLACE = {
   title: "Worth knowing before you start",
   lines: [
-    "Every listing was put up by a real person on RentMe. Nothing is imported from an outside feed, so there is always somebody to message.",
+    "Every listing was put up by a real person on Vallo. Nothing is imported from an outside feed, so there is always somebody to message.",
     "The rent is rarely the whole number. Caution deposit, agency, legal, agreement and service charge are normal here, so plan around the total move-in cost.",
-    "Keep chats and payments inside RentMe, and pay only after you have inspected a place in person.",
+    "Keep chats and payments inside Vallo, and pay only after you have inspected a place in person.",
   ],
 };
 
 const templates = {
-  // Confirm signup: the first email anybody gets from RentMe. Its job is to
+  // Confirm signup: the first email anybody gets from Vallo. Its job is to
   // confirm an address, and its second job is to be obviously real.
   "confirmation.html": {
-    preheader: "Confirm this address and your RentMe account is ready.",
+    preheader: "Confirm this address and your Vallo account is ready.",
     purpose: "Confirm your email",
     body:
       heading("Confirm your email address") +
       lede(
-        "You are one step from a RentMe account. Confirm this address and you can search, message a lister and save the places you like.",
+        "You are one step from a Vallo account. Confirm this address and you can search, message a lister and save the places you like.",
       ) +
       gap(28) +
       cta("Confirm my email", "{{ .ConfirmationURL }}") +
@@ -494,13 +494,13 @@ const templates = {
   // the way, and one security line rather than a band, because the reader is
   // mid sign-in and wants to be finished.
   "magic-link.html": {
-    preheader: "Your single-use RentMe sign-in link is ready.",
-    purpose: "Sign in to RentMe",
+    preheader: "Your single-use Vallo sign-in link is ready.",
+    purpose: "Sign in to Vallo",
     body:
       heading("Here is your sign-in link") +
-      lede("No password needed. Open this and you are back into RentMe.") +
+      lede("No password needed. Open this and you are back into Vallo.") +
       gap(28) +
-      cta("Sign in to RentMe", "{{ .ConfirmationURL }}") +
+      cta("Sign in to Vallo", "{{ .ConfirmationURL }}") +
       gap(28) +
       codeBox("Or enter this code") +
       gap(24) +
@@ -510,7 +510,7 @@ const templates = {
       gap(24) +
       notePanel({
         title: "Nobody should ever ask you for this",
-        text: "RentMe will never ask you for this link, this code or your password. Not by phone, not by message, not by email. If somebody does, they are not us.",
+        text: "Vallo will never ask you for this link, this code or your password. Not by phone, not by message, not by email. If somebody does, they are not us.",
       }) +
       gap(24) +
       fallbackLink("{{ .ConfirmationURL }}"),
@@ -522,7 +522,7 @@ const templates = {
   // doing nothing is safe. No facts band: the only job is getting somebody back
   // in without worrying them.
   "recovery.html": {
-    preheader: "A way back into your RentMe account.",
+    preheader: "A way back into your Vallo account.",
     purpose: "Password reset",
     body:
       heading("Set a new password") +
@@ -548,12 +548,12 @@ const templates = {
   // approving it, so both addresses are shown, and the emphasis is on
   // authorising rather than on welcoming.
   "email-change.html": {
-    preheader: "Approve the email address change on your RentMe account.",
+    preheader: "Approve the email address change on your Vallo account.",
     purpose: "Security confirmation",
     body:
       heading("Confirm your new email address") +
       lede(
-        "A request was made to move your RentMe account to a new address. Check both below, then approve the change.",
+        "A request was made to move your Vallo account to a new address. Check both below, then approve the change.",
       ) +
       gap(26) +
       detailPanel([
@@ -565,7 +565,7 @@ const templates = {
       gap(26) +
       notePanel({
         title: "If you did not request this",
-        text: "Do not open the link. Your address stays as it is until the change is approved. Sign in, change your password, and contact RentMe support if anything still looks wrong.",
+        text: "Do not open the link. Your address stays as it is until the change is approved. Sign in, change your password, and contact Vallo support if anything still looks wrong.",
       }) +
       gap(24) +
       fallbackLink("{{ .ConfirmationURL }}"),
@@ -574,15 +574,15 @@ const templates = {
   },
 
   // Invite: an offer rather than an instruction. Somebody already inside
-  // RentMe put this reader's name forward, and the copy is warm about it
+  // Vallo put this reader's name forward, and the copy is warm about it
   // without promising them anything.
   "invite.html": {
-    preheader: "Somebody has invited you to join RentMe.",
+    preheader: "Somebody has invited you to join Vallo.",
     purpose: "Your invitation",
     body:
-      heading("You have been invited to RentMe") +
+      heading("You have been invited to Vallo") +
       lede(
-        "RentMe is a Nigerian property marketplace for renting, buying and selling, and for short stays. Accept below and your account is set up in a moment.",
+        "Vallo is a Nigerian property marketplace for renting, buying and selling, and for short stays. Accept below and your account is set up in a moment.",
       ) +
       gap(26) +
       cta("Accept your invitation", "{{ .ConfirmationURL }}") +

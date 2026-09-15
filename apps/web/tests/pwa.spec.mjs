@@ -2,7 +2,7 @@
  * PWA and offline shell checks.
  *
  * Self-contained Playwright script: no runner, no config. Proves the three
- * pieces an installable RentMe needs, at the size the audience actually holds
+ * pieces an installable Vallo needs, at the size the audience actually holds
  * the phone. Run with the server already up:
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/pwa.spec.mjs
@@ -51,8 +51,8 @@ try {
   check("manifest body is valid JSON", manifest !== null && typeof manifest === "object");
 
   if (manifest) {
-    check("name is RentMe", manifest.name === "RentMe");
-    check("short_name is RentMe", manifest.short_name === "RentMe");
+    check("name is Vallo", manifest.name === "Vallo");
+    check("short_name is Vallo", manifest.short_name === "Vallo");
     check("description is present", typeof manifest.description === "string" && manifest.description.length > 20);
     check("start_url is /home", manifest.start_url === "/home");
     check("scope is /", manifest.scope === "/");

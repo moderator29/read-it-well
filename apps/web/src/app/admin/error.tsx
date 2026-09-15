@@ -29,7 +29,7 @@ export default function AdminError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[rentme] admin route error", error);
+    console.error("[vallo] admin route error", error);
   }, [error]);
 
   return (

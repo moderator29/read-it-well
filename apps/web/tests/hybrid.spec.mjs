@@ -42,7 +42,7 @@ async function partnerMarkers() {
   const body = await page.locator("body").innerText();
   return {
     tags,
-    // The standalone tag word, not the word inside "RentMe partner agent".
+    // The standalone tag word, not the word inside "Vallo partner agent".
     tagWord: /(^|\n)\s*Partner\s*($|\n)/.test(body),
     attribution: /Powered by Google/i.test(body),
     partnerIds: await page.locator("a[href*='/listing/partner-']").count(),
@@ -133,7 +133,7 @@ try {
   check("no partner listing links on rent", rent.partnerIds === 0);
   check(
     "safety copy still on rent",
-    /keep every chat and payment inside RentMe/i.test(rent.body),
+    /keep every chat and payment inside Vallo/i.test(rent.body),
   );
   check("rent market still has no Reserve control", !/\bReserve\b/.test(rent.body));
 

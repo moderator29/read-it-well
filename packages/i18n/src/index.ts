@@ -31,7 +31,7 @@ export function isLocale(value: string | undefined | null): value is Locale {
 /**
  * The locale a browser is asking for, or null if it is asking for none we ship.
  *
- * This is the whole of RentMe's knowledge of `Accept-Language`. The parsing
+ * This is the whole of Vallo's knowledge of `Accept-Language`. The parsing
  * lives in `negotiate.ts` and knows nothing about this platform; this line is
  * the only place the supported list meets it, so there is exactly one answer to
  * "which languages do we negotiate over" and it is `LOCALES`.

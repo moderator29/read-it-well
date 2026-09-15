@@ -125,7 +125,7 @@ export async function getAgentReviews(locale: Locale): Promise<AgentReviewsRead>
       listingTitle: titles.get(row.listing_id) ?? "Your listing",
       rating: row.rating,
       body: row.body,
-      author: row.author_label ?? "RentMe guest",
+      author: row.author_label ?? "Vallo guest",
       when: formatDate(new Date(row.created_at), locale),
       createdAt: row.created_at,
       response: answers.get(row.id) ?? null,

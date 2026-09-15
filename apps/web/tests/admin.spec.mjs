@@ -72,7 +72,7 @@ try {
   );
   check("the page is not blank", bodyText.trim().length > 40);
   check("a sign in route is offered", (await page.locator('a[href^="/sign-in"]').count()) > 0);
-  check("the brand logo renders", (await page.locator('a[aria-label="RentMe home"]').count()) > 0);
+  check("the brand logo renders", (await page.locator('a[aria-label="Vallo home"]').count()) > 0);
 
   check(
     "the console rail is absent",

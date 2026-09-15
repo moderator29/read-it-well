@@ -8,7 +8,7 @@ import { CHAPTERS, CHAPTER_INDEX } from "./chapters";
 export const metadata: Metadata = {
   title: "Documentation",
   description:
-    "The full RentMe documentation: finding a place, the power and water filters, booking, the wallet, Around, agent mode, trust and safety, and your rights under the NDPA.",
+    "The full Vallo documentation: finding a place, the power and water filters, booking, the wallet, Around, agent mode, trust and safety, and your rights under the NDPA.",
 };
 
 /**
@@ -37,7 +37,7 @@ export default function DocsHomePage() {
           </span>
           Documentation
         </span>
-        <h1 className="nf-h1 mt-heading max-w-[18ch]">How RentMe works, in full</h1>
+        <h1 className="nf-h1 mt-heading max-w-[18ch]">How Vallo works, in full</h1>
         <p className="mt-group max-w-[62ch] text-[var(--nf-content-secondary)]">
           Every part of the platform written out plainly: how to find a place, what the
           light and water rows on a listing actually tell you, how a booking holds your

@@ -360,11 +360,11 @@ export function PostCard({
       <div className="flex items-center gap-2">
         {isSystem ? (
           <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-2.5 py-1 text-[0.66rem] font-bold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
-            RentMe
+            Vallo
           </span>
         ) : isBot ? (
           <span className="inline-flex items-center gap-1.5 rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-3 py-1 text-[0.7rem] font-bold text-[var(--nf-content-on-brand)]">
-            RentMe AI
+            Vallo AI
           </span>
         ) : (
           <>
@@ -631,8 +631,8 @@ function ListingBlock({ listing }: { listing: PostListing }) {
 
 /** What a screen reader hears before the card's contents. */
 function describe(post: PostView): string {
-  if (post.authorKind === "SYSTEM") return "Posted by RentMe";
-  if (post.authorKind === "BOT") return "Answered by the RentMe assistant";
+  if (post.authorKind === "SYSTEM") return "Posted by Vallo";
+  if (post.authorKind === "BOT") return "Answered by the Vallo assistant";
   const who = post.author?.displayLabel ?? post.author?.handle ?? "someone";
   return post.author?.isAgent ? `Posted by ${who}, an agent` : `Posted by ${who}`;
 }

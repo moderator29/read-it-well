@@ -37,7 +37,7 @@ export const ADMIN_UNCONFIGURED_MESSAGE =
 export const ADMIN_SIGNED_OUT_MESSAGE = "Sign in with your operations account to continue.";
 
 export const ADMIN_FORBIDDEN_MESSAGE =
-  "This area is for the RentMe operations team. Your account does not carry that role.";
+  "This area is for the Vallo operations team. Your account does not carry that role.";
 
 export async function requireAdmin(): Promise<AdminAccess> {
   const session = await resolveSession();

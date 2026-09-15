@@ -85,7 +85,7 @@ export async function recoverFundingByReference(
 
   if (result.outcome === "not_ours") {
     return fail(
-      "That is not a RentMe wallet funding reference. Funding references look like rm-fund- followed by a uuid.",
+      "That is not a Vallo wallet funding reference. Funding references look like rm-fund- followed by a uuid.",
       { reference: "That is not a wallet funding reference." },
     );
   }
@@ -97,7 +97,7 @@ export async function recoverFundingByReference(
   if (result.outcome === "unmatched") {
     const amount = result.amountMinor === null ? "" : ` of ${nairaExact(result.amountMinor)}`;
     return fail(
-      `That charge${amount} succeeded but cannot be matched to a RentMe account (${result.reason}). It is recorded as unmatched in the audit log. Find the account and credit it deliberately.`,
+      `That charge${amount} succeeded but cannot be matched to a Vallo account (${result.reason}). It is recorded as unmatched in the audit log. Find the account and credit it deliberately.`,
     );
   }
   if (result.outcome === "unavailable") {

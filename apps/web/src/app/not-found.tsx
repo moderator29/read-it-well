@@ -51,7 +51,7 @@ export default async function NotFound() {
       </div>
 
       <div className="relative z-10">
-        <Link href="/" aria-label="RentMe home" className="nf-tap inline-flex">
+        <Link href="/" aria-label="Vallo home" className="nf-tap inline-flex">
           <LogoMark size={64} />
         </Link>
 

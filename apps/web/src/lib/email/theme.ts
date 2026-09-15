@@ -1,5 +1,5 @@
 /**
- * The RentMe email theme: one palette, one set of measurements, two consumers.
+ * The Vallo email theme: one palette, one set of measurements, two consumers.
  *
  * WHY THIS FILE IS THE ONE PLACE RAW HEX IS CORRECT.
  *
@@ -148,4 +148,4 @@ export const PAD_X = 40;
 export const LOGO_SIZE = 40;
 
 /** The one sign-off, in both renderings and in all five auth templates. */
-export const SIGN_OFF = "RentMe. Find it. Rent it. Love it.";
+export const SIGN_OFF = "Vallo. Find it. Rent it. Love it.";

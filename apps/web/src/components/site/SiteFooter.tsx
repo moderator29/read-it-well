@@ -84,7 +84,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
         {/* Brand block and link columns */}
         <div className="grid grid-cols-2 gap-x-block gap-y-block md:grid-cols-[1.6fr_repeat(4,1fr)]">
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" aria-label="RentMe home" className="nf-tap inline-flex">
+            <Link href="/" aria-label="Vallo home" className="nf-tap inline-flex">
               <Logo size={40} wordSize={21} />
             </Link>
             <p className="nf-body-sm mt-heading max-w-[28ch] font-medium text-[var(--nf-content-secondary)]">
@@ -123,7 +123,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
         {/* Copyright line */}
         <div className="nf-hairline nf-caption mt-section-tight flex flex-col gap-inline pt-heading sm:flex-row sm:items-center sm:justify-between">
           <p>
-            <span className="nf-numeric">{year}</span> RentMe. {t.landing.footer.rights}
+            <span className="nf-numeric">{year}</span> Vallo. {t.landing.footer.rights}
           </p>
           <p className="font-medium">
             {t.landing.hero.line1} {t.landing.hero.line2} {t.landing.hero.line3}

@@ -29,7 +29,7 @@ export default function AgentError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[rentme] agent route error", error);
+    console.error("[vallo] agent route error", error);
   }, [error]);
 
   return (

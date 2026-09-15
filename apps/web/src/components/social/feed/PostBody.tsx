@@ -38,8 +38,8 @@ import { BOT_HANDLE } from "@/lib/social/bot-schema";
  * against the database first would be one query per card to prevent an outcome
  * that is already a designed page.
  *
- * **`@rentme` is the exception and it is not a link.** No account can ever hold
- * it: `private.validate_social_handle` refuses any handle containing `rentme`
+ * **`@vallo` is the exception and it is not a link.** No account can ever hold
+ * it: `private.validate_social_handle` refuses any handle containing `vallo`
  * outright, so a link would land somebody on a page offering them a name the
  * database will then refuse. It renders as a mark instead, which is also what it
  * is: the summon that brings the assistant into a thread.

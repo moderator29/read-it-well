@@ -30,7 +30,7 @@ export default function SiteError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[rentme] site route error", error);
+    console.error("[vallo] site route error", error);
   }, [error]);
 
   return (

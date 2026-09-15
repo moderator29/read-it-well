@@ -21,7 +21,7 @@ const API_URL = "https://api.resend.com/emails";
 const REQUEST_TIMEOUT_MS = 10_000;
 
 /** The sender used when EMAIL_FROM is not set. */
-const DEFAULT_FROM = "RentMe <hello@rentme.ng>";
+const DEFAULT_FROM = "Vallo <hello@rentme.ng>";
 
 /** Deliberately forgiving: one @, a dot in the domain, no whitespace. */
 const ADDRESS_RE = /^[^\s@]+@[^\s@.]+\.[^\s@]+$/;
@@ -77,7 +77,7 @@ export function isEmailConfigured(): boolean {
   return apiKey().length > 0;
 }
 
-/** The From address: EMAIL_FROM when set, otherwise the RentMe default. */
+/** The From address: EMAIL_FROM when set, otherwise the Vallo default. */
 export function emailFrom(): string {
   const configured = (process.env.EMAIL_FROM ?? "").trim();
   return configured.length > 0 ? configured : DEFAULT_FROM;

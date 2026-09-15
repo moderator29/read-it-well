@@ -7,7 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * How you want to get in. One row, and nothing else on the screen.
  *
  * It was three. Google and Apple sat under email behind their own brand marks
- * and both were disabled, because neither provider is switched on and RentMe
+ * and both were disabled, because neither provider is switched on and Vallo
  * does not offer third-party sign in. Two dead controls and an apology are
  * worse than an empty space, so all three are gone and email is simply the way
  * in.
@@ -94,7 +94,7 @@ export function AuthChoices({
           Google's four-colour mark and Apple's, and both were dark by default:
           neither provider is enabled, so the honest state of the screen was two
           disabled buttons and a line of small print explaining that they did
-          not work. RentMe does not offer third-party sign in, so the buttons,
+          not work. Vallo does not offer third-party sign in, so the buttons,
           their brand marks, and the apology under them are all gone.
 
           The server actions themselves are the lead's to retire, along with the

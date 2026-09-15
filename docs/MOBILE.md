@@ -95,7 +95,7 @@ npm run sync:versions -- --help    # the full release procedure
 ```
 
 One source of truth: `version` in `apps/web/package.json`. The build number
-comes from `RENTME_BUILD` in the environment, which CI already has
+comes from `VALLO_BUILD` in the environment, which CI already has
 (`$PROJECT_BUILD_NUMBER` on Codemagic, `$GITHUB_RUN_NUMBER` on Actions). The
 script refuses to move a `versionCode` backwards, which is the mistake Play
 rejects an upload for.

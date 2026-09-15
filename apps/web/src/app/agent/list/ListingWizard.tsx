@@ -1625,7 +1625,7 @@ export function ListingWizard({
               This is the choice the whole product turns on and until now the
               wizard never asked it: a person with a flat to sell had to price
               it per night. The two cards are deliberately the same size and
-              equally weighted, because RentMe is a marketplace for renting AND
+              equally weighted, because Vallo is a marketplace for renting AND
               buying and leaning the layout toward one of them would quietly
               tell half the listers they are in the wrong place.
             */}

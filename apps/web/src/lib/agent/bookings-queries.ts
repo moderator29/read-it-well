@@ -88,7 +88,7 @@ export type HostBookingBoard = {
 };
 
 /** Enough of a name to address someone by, when the service key is absent. */
-const FALLBACK_GUEST_NAME = "RentMe guest";
+const FALLBACK_GUEST_NAME = "Vallo guest";
 
 /** A listing whose title we could not read alongside the booking. */
 const FALLBACK_LISTING_TITLE = "Your listing";

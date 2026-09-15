@@ -81,7 +81,7 @@ export function PayoutAccounts({
       </h2>
       <p className="mt-1 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
         Add the bank account your settled earnings should reach. We confirm the
-        name with the bank before saving it, and RentMe takes nothing for holding
+        name with the bank before saving it, and Vallo takes nothing for holding
         or moving it.
       </p>
 

@@ -450,7 +450,7 @@ async function payWithWalletWork(
 }
 
 /**
- * Pay a booking from the guest's own RentMe wallet.
+ * Pay a booking from the guest's own Vallo wallet.
  *
  * The spendable balance is re-checked server side and then again inside the
  * database function under a row lock, so two taps racing each other cannot both

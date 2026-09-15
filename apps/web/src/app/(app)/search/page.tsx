@@ -605,7 +605,7 @@ export default async function SearchPage({
              * and with the copy a tier larger, and it draws nothing at all.
              *
              * TWO BUTTONS BECAME ONE AND A QUIET LINK. On the bare-catalogue
-             * branch this offered "List your place" and "How RentMe works" as
+             * branch this offered "List your place" and "How Vallo works" as
              * two filled peers, which is two primary actions on a screen whose
              * whole state is that it has nothing to show. Listing a place is
              * the one that changes anything; the explanation is a text link
@@ -664,7 +664,7 @@ export default async function SearchPage({
                   </span>
                 ) : !narrowed && !query.q ? (
                   <Link href="/docs" className="nf-link-quiet nf-body text-[var(--nf-content-link)]">
-                    How RentMe works
+                    How Vallo works
                   </Link>
                 ) : undefined
               }

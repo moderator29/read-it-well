@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
 import { AssistantChat } from "@/components/app/assistant/AssistantChat";
 
-export const metadata: Metadata = { title: "RentMe AI" };
+export const metadata: Metadata = { title: "Vallo AI" };
 
 /**
  * AI Assistant destination.

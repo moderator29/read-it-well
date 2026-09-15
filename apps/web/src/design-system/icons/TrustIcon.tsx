@@ -9,7 +9,7 @@
  * mark either. It used to carry thirty hardcoded hex values: Apple's App Store
  * gradient, Google Play's four brand ramps, and a `#fff` ink painted on top of
  * them. Both store marks are gone with the "Available on the App Store and
- * Play Store" claim they illustrated, because RentMe is on neither store, and
+ * Play Store" claim they illustrated, because Vallo is on neither store, and
  * with them went the only reason this file ever needed a colour it could not
  * theme.
  *
@@ -122,7 +122,7 @@ function Glyph({ name }: { name: TrustIconName }) {
      * The owner asked for the real store marks. The official artwork is Apple's
      * and Google's own badge lockups: trademarked, licensed only for linking to
      * a live store listing, and not something this repository can fetch or
-     * should carry as a copied path. RentMe is on neither store yet, so there
+     * should carry as a copied path. Vallo is on neither store yet, so there
      * is nothing to link to either.
      *
      * What this draws is the universally read SHAPE, the way a cart glyph

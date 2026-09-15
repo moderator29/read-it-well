@@ -132,7 +132,7 @@ export function FabDock({
                     ? "Choose where this belongs"
                     : chosen
                       ? `Around ${chosen.name}, ${chosen.city}`
-                      : "Everyone on RentMe"}
+                      : "Everyone on Vallo"}
                 </p>
               </div>
               <button
@@ -160,7 +160,7 @@ export function FabDock({
                     }}
                     data-testid="post-to-everyone"
                   >
-                    <span className="nf-fab__place-name">Everyone on RentMe</span>
+                    <span className="nf-fab__place-name">Everyone on Vallo</span>
                     <span className="nf-fab__place-city">Seen in every feed</span>
                   </button>
                 </li>

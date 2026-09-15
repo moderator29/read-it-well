@@ -29,7 +29,7 @@ import type {
  * Public reads see PUBLISHED listings only, which is enforced by RLS rather
  * than by this file: the policy is the authority, the query simply asks for
  * what it needs. Every listing that comes back was listed on this platform by
- * a person on this platform, so it carries source "rentme". There is no other
+ * a person on this platform, so it carries source "vallo". There is no other
  * source and there is not going to be one.
  *
  * Money stays integer kobo end to end. Which of the three money stories a row
@@ -359,7 +359,7 @@ const KIND_BY_PROPERTY_TYPE: Record<string, ListingKind> = {
    *
    * The category used to be filled by a Google Places feed, which meant no
    * verified badge, nobody to message and no way to hold anybody a table. The
-   * feed is gone. A restaurant on RentMe is now what every other listing is:
+   * feed is gone. A restaurant on Vallo is now what every other listing is:
    * a real place put up by a real person, with an owner to talk to and a
    * reservation that this platform actually holds.
    *
@@ -756,7 +756,7 @@ function mapRow(
     ...(row.total_floors === null ? {} : { totalFloors: row.total_floors }),
     ...(row.physically_inspected_at ? { inspectedAt: row.physically_inspected_at } : {}),
     ...(row.address_verified_at ? { addressVerifiedAt: row.address_verified_at } : {}),
-    source: "rentme",
+    source: "vallo",
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
     utilities: {

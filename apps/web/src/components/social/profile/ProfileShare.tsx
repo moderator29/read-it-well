@@ -8,7 +8,7 @@ import { POST_COPY } from "@/lib/social/posts-schema";
  * Share, floating on the cover beside the `…`.
  *
  * **Why this position is not a bookmark, settled here so it is not reopened.**
- * The reference board draws a bookmark in this corner. On RentMe a bookmark
+ * The reference board draws a bookmark in this corner. On Vallo a bookmark
  * already means one exact thing and has meant it since the day `saved_items`
  * shipped: keep this FLAT so I can find it again. The same glyph on a post is
  * a `post_reactions` row with the mark `SAVE`. Neither of those is a person.

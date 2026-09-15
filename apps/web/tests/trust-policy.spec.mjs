@@ -207,7 +207,7 @@ check(
 );
 check(
   "the admin queue can name the topic the person actually chose",
-  clock.labelForSafety === "Someone asked me to pay outside RentMe",
+  clock.labelForSafety === "Someone asked me to pay outside Vallo",
 );
 check(
   "an unrecognised stored topic renders as itself rather than blank",
@@ -227,7 +227,7 @@ check(
 );
 check(
   "the no-fees sentence is the one the safety centre prints",
-  clock.noFees === "RentMe charges no fees. Not to book, not to list, not to be paid.",
+  clock.noFees === "Vallo charges no fees. Not to book, not to list, not to be paid.",
 );
 check("four things we never ask for", clock.neverAsk === 4);
 

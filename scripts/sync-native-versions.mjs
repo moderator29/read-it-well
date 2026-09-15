@@ -39,9 +39,9 @@
  * parallel release branch and it lies the moment somebody builds twice without
  * committing. Continuous integration already holds a monotonic number:
  *
- *     RENTME_BUILD=$BUILD_NUMBER          # generic
- *     RENTME_BUILD=$PROJECT_BUILD_NUMBER  # Codemagic
- *     RENTME_BUILD=$GITHUB_RUN_NUMBER     # GitHub Actions
+ *     VALLO_BUILD=$BUILD_NUMBER          # generic
+ *     VALLO_BUILD=$PROJECT_BUILD_NUMBER  # Codemagic
+ *     VALLO_BUILD=$GITHUB_RUN_NUMBER     # GitHub Actions
  *
  * Unset, it is 0, which is right for the first build of a version and for every
  * local build that is never going to be uploaded.
@@ -50,7 +50,7 @@
  *
  *  1. Decide the marketing version and set it in `apps/web/package.json`.
  *     Semver, and the number a person will read. Nothing else changes.
- *  2. `RENTME_BUILD=<ci build number> npm run sync:versions` from the
+ *  2. `VALLO_BUILD=<ci build number> npm run sync:versions` from the
  *     repository root. It prints the before and after for all four values.
  *  3. Commit the result. The two native files are a record of what was built,
  *     which is what makes it possible to answer "which commit is that crash
@@ -62,7 +62,7 @@
  *     the artefact comes out unsigned on purpose. iOS needs the Associated
  *     Domains capability on the App ID, see `ios/App/App/App.entitlements`.
  *  6. If the store rejects the submission and a second attempt is needed with
- *     no code change, raise RENTME_BUILD and run step 2 again. Do not touch
+ *     no code change, raise VALLO_BUILD and run step 2 again. Do not touch
  *     the marketing version.
  *
  * `npm run sync:versions -- --check` writes nothing and exits non-zero when the
@@ -145,12 +145,12 @@ const patch = Number(semver[3]);
  * because the failure is an upload rejected for a reason that does not name the
  * arithmetic.
  */
-const rawBuild = (process.env.RENTME_BUILD ?? "0").trim();
+const rawBuild = (process.env.VALLO_BUILD ?? "0").trim();
 if (!/^\d+$/.test(rawBuild)) {
-  fail(`RENTME_BUILD is "${rawBuild}". It has to be a whole number, or unset for 0.`);
+  fail(`VALLO_BUILD is "${rawBuild}". It has to be a whole number, or unset for 0.`);
 }
 const build = Number(rawBuild);
-if (build > 999) fail(`RENTME_BUILD is ${build}. The build slot holds 0 to 999.`);
+if (build > 999) fail(`VALLO_BUILD is ${build}. The build slot holds 0 to 999.`);
 if (minor > 99 || patch > 99) {
   fail(`version ${marketingVersion} exceeds the two digits this encoding gives minor and patch.`);
 }
@@ -235,7 +235,7 @@ for (const [label, was, now] of rows) {
 }
 process.stdout.write(
   `\n  source        apps/web/package.json version ${marketingVersion}\n` +
-    `  build slot    RENTME_BUILD=${build}${process.env.RENTME_BUILD ? "" : " (unset, defaulted)"}\n`,
+    `  build slot    VALLO_BUILD=${build}${process.env.VALLO_BUILD ? "" : " (unset, defaulted)"}\n`,
 );
 
 if (checkOnly) {

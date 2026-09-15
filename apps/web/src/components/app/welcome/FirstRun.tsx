@@ -46,7 +46,7 @@ export function FirstRun({
    *
    * It was a full-bleed pitch shown to somebody who had just finished a
    * four-group sign-up form. They have already decided; a carousel explaining
-   * what RentMe is arrives one screen too late to persuade anybody and one
+   * what Vallo is arrives one screen too late to persuade anybody and one
    * screen too early to be useful, and it stood between finishing sign-up and
    * using the product.
    *
@@ -56,7 +56,7 @@ export function FirstRun({
    *
    * ONE THING FROM IT SURVIVES, AND IT HAD TO. Card three carried the only
    * safety sentence in the whole first run: never send money to anybody outside
-   * RentMe. That is the single most valuable thing we say to a new account, it
+   * Vallo. That is the single most valuable thing we say to a new account, it
    * is what the note above this component argued was worth showing twice, and
    * deleting it with the carousel would have been the cosmetic change quietly
    * removing the protective one. It sits under the question instead, where the
@@ -71,7 +71,7 @@ export function FirstRun({
   return (
     <div className="relative z-10 w-full max-w-[32rem]">
       <div className="nf-rise flex flex-col items-center text-center">
-        <LogoMark size={40} title="RentMe" />
+        <LogoMark size={40} title="Vallo" />
         <h1 className="nf-h2 mt-4">{t.interests.question}</h1>
         <p className="mt-2 max-w-[26rem] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.interests.screenSubtitle}. {t.interests.note}

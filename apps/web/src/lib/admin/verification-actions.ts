@@ -115,7 +115,7 @@ export async function recordVerificationCheck(
         user_id: agent.user_id,
         kind: "agent",
         title: climbed
-          ? `You are now ${TIER_NAME[now].toLowerCase()} on RentMe`
+          ? `You are now ${TIER_NAME[now].toLowerCase()} on Vallo`
           : "Your verification level has changed",
         body: climbed
           ? `${VERIFICATION_LADDER[kind].label} passed. Guests looking at your listings can see how far you have been checked.`

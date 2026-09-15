@@ -15,7 +15,7 @@ import { TextField } from "@/components/ui/Field";
  * Help and support, AI first.
  *
  * The card opens a real support conversation: replies stream token by token
- * from /api/support, where a grounded agent answers from RentMe's canonical
+ * from /api/support, where a grounded agent answers from Vallo's canonical
  * help notes and, for a signed-in person, from their own bookings and wallet
  * read under their own Row Level Security. When it should stop trying it files
  * a real support ticket and hands back the NF-SUP reference the database gave,
@@ -53,7 +53,7 @@ const NAME_KEY = "nf_profile_name";
 const EMAIL_KEY = "nf_profile_email";
 
 const GREETING =
-  "Hello, I am RentMe's support agent. Ask me anything about your bookings, payments, the wallet, listing a property, verification or cancellations. If you are signed in I can look at your own bookings and wallet, and I bring in a person whenever that is the right answer.";
+  "Hello, I am Vallo's support agent. Ask me anything about your bookings, payments, the wallet, listing a property, verification or cancellations. If you are signed in I can look at your own bookings and wallet, and I bring in a person whenever that is the right answer.";
 
 const STARTERS = [
   "Where is my booking?",

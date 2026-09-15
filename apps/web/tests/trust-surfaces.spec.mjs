@@ -84,11 +84,11 @@ async function run(theme) {
 
     check(
       "the no-fees sentence is on the page in full",
-      /RentMe charges no fees\. Not to book, not to list, not to be paid\./.test(safety),
+      /Vallo charges no fees\. Not to book, not to list, not to be paid\./.test(safety),
     );
     check(
       "it says nobody should ever ask you to pay outside the platform",
-      /pay outside it|pay outside RentMe/i.test(safety),
+      /pay outside it|pay outside Vallo/i.test(safety),
     );
     check(
       "the four things we never ask for are all named",
@@ -97,7 +97,7 @@ async function run(theme) {
         /WhatsApp/i.test(safety) &&
         /holding fee/i.test(safety),
     );
-    check("how paying works is explained", /How paying on RentMe works/i.test(safety));
+    check("how paying works is explained", /How paying on Vallo works/i.test(safety));
     check("how inspections work is explained", /How inspections work/i.test(safety));
     check(
       "message, inspect, then pay is stated as the order",
@@ -106,7 +106,7 @@ async function run(theme) {
     check("how to report is explained", /How to report something/i.test(safety));
     check(
       "the already-paid-outside case is not left silent",
-      /already paid someone outside RentMe/i.test(safety) && /Tell your bank/i.test(safety),
+      /already paid someone outside Vallo/i.test(safety) && /Tell your bank/i.test(safety),
     );
     check(
       "and it does not promise to recover that money",
@@ -139,7 +139,7 @@ async function run(theme) {
     );
     check(
       "off-platform payment is named as the most serious standard",
-      /Asking anyone to pay outside RentMe/i.test(standards),
+      /Asking anyone to pay outside Vallo/i.test(standards),
     );
     check(
       "the scanner is described as holding, never banning",
@@ -209,7 +209,7 @@ async function run(theme) {
     check(`and the safety topic is already chosen (${topic})`, topic === "safety");
     check(
       "the option is worded as the thing that happened",
-      /Someone asked me to pay outside RentMe/i.test(
+      /Someone asked me to pay outside Vallo/i.test(
         await page.locator("body").innerText(),
       ),
     );
@@ -227,11 +227,11 @@ async function run(theme) {
     );
     check(
       "and it says plainly that there are no fees",
-      /RentMe charges no fees at all/i.test(help),
+      /Vallo charges no fees at all/i.test(help),
     );
     check(
       "the unbuilt escrow promise is gone",
-      !/held securely by RentMe/i.test(help) && !/money is held until after check-in/i.test(help),
+      !/held securely by Vallo/i.test(help) && !/money is held until after check-in/i.test(help),
     );
     check(
       "the refund schedule matches the cancellation page",

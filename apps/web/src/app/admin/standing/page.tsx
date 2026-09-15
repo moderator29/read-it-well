@@ -36,7 +36,7 @@ export default async function AdminStandingPage() {
       <div className="nf-console">
         <ui.QueueHeader
           title={t.admin.nav.standing.label}
-          lede="Badges RentMe grants by hand, and the record of who granted them."
+          lede="Badges Vallo grants by hand, and the record of who granted them."
         />
         <ui.QueueUnavailable />
       </div>
@@ -47,7 +47,7 @@ export default async function AdminStandingPage() {
     <div className="nf-console">
       <ui.QueueHeader
         title={t.admin.nav.standing.label}
-        lede="Badges RentMe grants by hand, and the record of who granted them."
+        lede="Badges Vallo grants by hand, and the record of who granted them."
         count={read.grants.filter((g) => !g.revoked).length}
       />
       <StandingDesk grants={read.grants} manualBadges={read.manualBadges} />

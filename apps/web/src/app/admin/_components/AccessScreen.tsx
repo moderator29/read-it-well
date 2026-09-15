@@ -29,7 +29,7 @@ export function AccessScreen({
       ? {
           title: a.unconfiguredTitle,
           body: a.unconfiguredBody,
-          action: { href: "/", label: a.backToRentMe },
+          action: { href: "/", label: a.backToVallo },
         }
       : state === "signed-out"
         ? {

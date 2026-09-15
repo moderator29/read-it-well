@@ -23,8 +23,8 @@ const NAVY = "#010118";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "RentMe",
-    short_name: "RentMe",
+    name: "Vallo",
+    short_name: "Vallo",
     description:
       "Find, book and manage homes, hotels, shortlets and experiences across Nigeria. Verified listings, a naira wallet, and an assistant that understands what you actually want.",
     lang: "en-NG",

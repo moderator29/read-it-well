@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export const dynamic = "force-dynamic";
 
 /**
- * One stay, in full, and the only place on RentMe where a paid stay can be
+ * One stay, in full, and the only place on Vallo where a paid stay can be
  * cancelled and the money returned.
  *
  * Everything an operator needs to make that decision is on this page before

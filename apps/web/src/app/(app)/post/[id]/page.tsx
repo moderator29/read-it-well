@@ -20,7 +20,7 @@ export async function generateMetadata({
   if (!thread) return { title: "Post" };
   const who =
     thread.root.author?.displayLabel ??
-    (thread.root.author?.handle ? `@${thread.root.author.handle}` : "RentMe");
+    (thread.root.author?.handle ? `@${thread.root.author.handle}` : "Vallo");
   return {
     title: `${who} on Around`,
     description: thread.root.body?.slice(0, 160) ?? undefined,

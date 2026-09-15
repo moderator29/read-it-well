@@ -11,7 +11,7 @@ import { fill, type AdminCommon } from "./copy";
  * render its whole list on the server and only hand the decision controls to
  * the browser. Everything here reuses the platform's own glass, chip and badge
  * classes rather than inventing an admin look, because the console is part of
- * RentMe, not a separate product.
+ * Vallo, not a separate product.
  *
  * The pieces are handed out by `adminUi(t, locale)` rather than exported one by
  * one. Every one of them carries copy, and a page that had to thread "Not

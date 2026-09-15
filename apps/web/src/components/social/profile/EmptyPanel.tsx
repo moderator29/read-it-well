@@ -18,7 +18,7 @@ import { EmptyState } from "@/components/app/Screen";
  * IT IS NOW THE PLATFORM'S EMPTY STATE, NOT THE SOCIAL LAYER'S.
  *
  * This kept the social layer internally consistent and, in doing so, kept it
- * looking like a different application bolted onto the side of RentMe: a
+ * looking like a different application bolted onto the side of Vallo: a
  * `nf-social-card` wrapper, an 80px object and a 1.05rem heading, against the
  * property side's card wrapper, 64px object and `nf-h3`. Two products, one
  * account.

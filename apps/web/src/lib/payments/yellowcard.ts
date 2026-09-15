@@ -10,7 +10,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
  * ===========================================================================
  *
  * The obvious way to "accept crypto" is to show a USDT address and watch the
- * chain. RentMe must not do that, and the reason is not squeamishness:
+ * chain. Vallo must not do that, and the reason is not squeamishness:
  *
  *  - IT MAKES US A CUSTODIAN. A private key we hold is somebody else's money
  *    we hold, with no bank, no insurance and no recovery. One leaked key is

@@ -1,7 +1,7 @@
 /**
  * Support knowledge base.
  *
- * The answers SupportChat gives instantly, grounded in how RentMe actually
+ * The answers SupportChat gives instantly, grounded in how Vallo actually
  * works today. Client-safe on purpose: matching runs on the device so common
  * questions cost no network round trip. Anything outside this store is
  * escalated to the human team as a real support ticket.
@@ -52,19 +52,19 @@ export const SUPPORT_FAQ: FaqEntry[] = [
       "landlord",
     ],
     answer:
-      "Annual rentals work as message, inspect, then pay. Message the agent inside RentMe, arrange to inspect the property in person, and pay only after you have seen it. Keep every chat and payment inside RentMe so the record protects you.",
+      "Annual rentals work as message, inspect, then pay. Message the agent inside Vallo, arrange to inspect the property in person, and pay only after you have seen it. Keep every chat and payment inside Vallo so the record protects you.",
   },
   {
     id: "payments",
     keywords: ["pay", "card", "transfer", "naira", "ngn", "checkout", "paystack"],
     answer:
-      "Payments are made in naira, either from your RentMe wallet balance or with a bank card at checkout. For annual rentals, pay only after inspecting the property, and always pay inside RentMe. Every payment shows in Wallet with its own reference.",
+      "Payments are made in naira, either from your Vallo wallet balance or with a bank card at checkout. For annual rentals, pay only after inspecting the property, and always pay inside Vallo. Every payment shows in Wallet with its own reference.",
   },
   {
     id: "charges",
-    keywords: [CHARGE_WORD, "charge", "commission", "cost to use", "hidden", "how much does rentme"],
+    keywords: [CHARGE_WORD, "charge", "commission", "cost to use", "hidden", "how much does vallo"],
     answer:
-      "RentMe charges nothing to use. Searching, booking, messaging agents and the wallet all cost you nothing extra; the price you see on a listing is the price you pay.",
+      "Vallo charges nothing to use. Searching, booking, messaging agents and the wallet all cost you nothing extra; the price you see on a listing is the price you pay.",
   },
   {
     id: "wallet",
@@ -76,13 +76,13 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "verified-badge",
     keywords: ["verif", "badge", "trust", "kyc", "identity", "real listing", "genuine"],
     answer:
-      "The blue verified badge means the person behind the listing has passed ID and address checks on RentMe. Every listing on RentMe was put up by a real person here, so the badge is about how far up the verification ladder that person has climbed, never about where the listing came from.",
+      "The blue verified badge means the person behind the listing has passed ID and address checks on Vallo. Every listing on Vallo was put up by a real person here, so the badge is about how far up the verification ladder that person has climbed, never about where the listing came from.",
   },
   {
     id: "where-listings-come-from",
     keywords: ["partner", "third party", "feed", "where do listings come from", "real listing", "scrape"],
     answer:
-      "Every listing on RentMe was put up by somebody on RentMe. We import nothing from outside feeds, so there is always a real person behind a listing: somebody to message, somebody to inspect the place with, and somebody accountable if it is not as described.",
+      "Every listing on Vallo was put up by somebody on Vallo. We import nothing from outside feeds, so there is always a real person behind a listing: somebody to message, somebody to inspect the place with, and somebody accountable if it is not as described.",
   },
   {
     id: "agents",
@@ -94,13 +94,13 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "languages",
     keywords: ["language", "yoruba", "hausa", "igbo", "pidgin", "translate"],
     answer:
-      "RentMe speaks English, Pidgin, Hausa, Igbo and Yoruba. Switch language any time from Settings and the whole app follows immediately on this device.",
+      "Vallo speaks English, Pidgin, Hausa, Igbo and Yoruba. Switch language any time from Settings and the whole app follows immediately on this device.",
   },
   {
     id: "cancellations",
     keywords: ["cancel", "call it off", "not as described", "not as listed"],
     answer:
-      "One cancellation schedule covers every stay on RentMe, not a different one for each host. The free-cancellation deadline is 72 hours before check-in: cancel before it and everything you paid comes back to your wallet, cancel inside it and half comes back, and once check-in day has started nothing does. A stay you have not paid for is only a hold on the calendar, so you can call it off from Bookings at any hour for nothing.",
+      "One cancellation schedule covers every stay on Vallo, not a different one for each host. The free-cancellation deadline is 72 hours before check-in: cancel before it and everything you paid comes back to your wallet, cancel inside it and half comes back, and once check-in day has started nothing does. A stay you have not paid for is only a hold on the calendar, so you can call it off from Bookings at any hour for nothing.",
   },
   {
     id: "cancel-a-paid-stay",
@@ -112,7 +112,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "refunds",
     keywords: ["refund", "money back", "my money", "reimburse", "paid twice", "double charge", "reversal"],
     answer:
-      "Refunds go to your RentMe wallet in naira, to the kobo, because that is the fastest route in this market. It is not a store credit: move it to your Nigerian bank account from Wallet whenever you want, or spend it on your next stay. If the host cancelled, the place was not what was listed, or you could not get in, you get everything back whatever the hour.",
+      "Refunds go to your Vallo wallet in naira, to the kobo, because that is the fastest route in this market. It is not a store credit: move it to your Nigerian bank account from Wallet whenever you want, or spend it on your next stay. If the host cancelled, the place was not what was listed, or you could not get in, you get everything back whatever the hour.",
   },
   {
     id: "arrival",
@@ -124,7 +124,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "reviews",
     keywords: ["review", "rating", "rate the", "feedback", "star"],
     answer:
-      "You can review a stay once it is confirmed and the check-out date has passed, from that booking under Bookings, and only once. That is why reviews on RentMe come only from people who actually stayed.",
+      "You can review a stay once it is confirmed and the check-out date has passed, from that booking under Bookings, and only once. That is why reviews on Vallo come only from people who actually stayed.",
   },
   {
     id: "saved",
@@ -154,13 +154,13 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "privacy",
     keywords: ["privacy", "ndpa", "data protection", "my data", "personal data", "gdpr"],
     answer:
-      "RentMe handles personal data under the Nigeria Data Protection Act. We collect only what a feature needs, protect account data with row level security, and you can request a copy or deletion of your data from Settings. The full policy lives on the Privacy page.",
+      "Vallo handles personal data under the Nigeria Data Protection Act. We collect only what a feature needs, protect account data with row level security, and you can request a copy or deletion of your data from Settings. The full policy lives on the Privacy page.",
   },
   {
     id: "messaging-safety",
-    keywords: ["message", "chat with", "scam", "fraud", "account number", "safe", "safety", "outside rentme"],
+    keywords: ["message", "chat with", "scam", "fraud", "account number", "safe", "safety", "outside vallo"],
     answer:
-      "Message agents of approved listings straight from a listing page, with photos if you need them. For your safety, keep chats and payments inside RentMe: the platform watches for account numbers and payment pressure in chat, and you should pay for a rental only after inspecting it. If anyone asks you to pay outside RentMe, report it and a person looks at it within 4 hours.",
+      "Message agents of approved listings straight from a listing page, with photos if you need them. For your safety, keep chats and payments inside Vallo: the platform watches for account numbers and payment pressure in chat, and you should pay for a rental only after inspecting it. If anyone asks you to pay outside Vallo, report it and a person looks at it within 4 hours.",
   },
   {
     id: "report",

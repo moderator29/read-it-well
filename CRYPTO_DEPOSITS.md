@@ -1,6 +1,6 @@
 # Crypto top-ups
 
-RentMe accepts crypto through **Yellow Card**, a licensed pan-African on-ramp
+Vallo accepts crypto through **Yellow Card**, a licensed pan-African on-ramp
 that settles to naira. Nothing in this repository holds a private key, watches a
 chain, or decides an exchange rate.
 
@@ -13,7 +13,7 @@ control, and it defaults to false.
 
 ## 1. Why a provider and not a wallet address
 
-Showing a USDT address and watching the chain would make RentMe three things it
+Showing a USDT address and watching the chain would make Vallo three things it
 must not be:
 
 - **A custodian.** A private key we hold is somebody else's money we hold, with
@@ -39,7 +39,7 @@ This is a **business account application**, not a signup form. Budget days, not
 minutes.
 
 1. Go to **https://yellowcard.io** and open **Business** / **Yellow Card for
-   Business**. Apply for a merchant account for RentMe.
+   Business**. Apply for a merchant account for Vallo.
 2. They will ask for company documents. This is the same wall you have already
    hit with Paystack Transfers, so expect: **CAC certificate**, directors' IDs,
    proof of address, and a description of what the money is for. Say plainly
@@ -54,7 +54,7 @@ minutes.
 5. Set your **webhook URL** in their dashboard to:
 
    ```
-   https://ninjafinds.vercel.app/api/yellowcard/webhook
+   https://vallo.vercel.app/api/yellowcard/webhook
    ```
 
 **Answering your question directly: yes, it is via API.** It is a server-to-

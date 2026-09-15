@@ -103,7 +103,7 @@ export async function getListingReviews(
       id: row.id,
       rating: row.rating,
       body: row.body,
-      author: row.author_label ?? "RentMe guest",
+      author: row.author_label ?? "Vallo guest",
       when: formatDate(new Date(row.created_at), locale),
       response: answers.get(row.id) ?? null,
     }));
@@ -169,7 +169,7 @@ export async function getReviewView(bookingId: string, locale: Locale): Promise<
           id: existing.id,
           rating: existing.rating,
           body: existing.body,
-          author: existing.author_label ?? "RentMe guest",
+          author: existing.author_label ?? "Vallo guest",
           when: formatDate(new Date(existing.created_at), locale),
           // The guest's own review screen shows what they wrote, not the
           // conversation around it. The host's answer belongs on the listing.

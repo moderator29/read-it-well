@@ -402,7 +402,7 @@ export default async function ListingDetailPage({
     aboutParagraphs.push(
       `The rent is quoted for a full year and agreed directly with the agent.${
         listing.verified
-          ? " The agent and this property were checked by RentMe before the listing went live."
+          ? " The agent and this property were checked by Vallo before the listing went live."
           : ""
       }`,
     );
@@ -428,7 +428,7 @@ export default async function ListingDetailPage({
       );
     }
     if (listing.verified) {
-      closing.push("The agent and this property were checked by RentMe before it went live.");
+      closing.push("The agent and this property were checked by Vallo before it went live.");
     }
     if (closing.length > 0) aboutParagraphs.push(closing.join(" "));
   }
@@ -610,7 +610,7 @@ export default async function ListingDetailPage({
   if (listing.instantBook && isBookable) {
     marks.push({ icon: "sparkle", label: "Instant Book" });
   }
-  if (listing.inspectedAt) marks.push({ icon: "home", label: "Inspected by RentMe" });
+  if (listing.inspectedAt) marks.push({ icon: "home", label: "Inspected by Vallo" });
   if (listing.addressVerifiedAt) marks.push({ icon: "location", label: "Address checked" });
   if (listing.negotiable) marks.push({ icon: "chat-bubble", label: "Price negotiable" });
 
@@ -1019,7 +1019,7 @@ function RestaurantPanel({
       )}
 
       <p className={`mt-2.5 ${TYPE.body}`}>
-        Listed on RentMe by the person who runs it. Message them to ask about a
+        Listed on Vallo by the person who runs it. Message them to ask about a
         table, a large party or anything the page does not answer.
       </p>
 

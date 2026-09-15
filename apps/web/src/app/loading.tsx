@@ -9,7 +9,7 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
  * on the platform to render - it awaits `getPlatformStats`, the featured
  * carousel and the reviews band before it produces a single pixel. It was also
  * the only page on the platform a stranger ever sees first, and it had no
- * loading state at all: a tap on a link to RentMe left the previous site on
+ * loading state at all: a tap on a link to Vallo left the previous site on
  * screen for the whole round trip.
  *
  * As a ROOT boundary it is also the fallback for any segment that has not got a
@@ -24,7 +24,7 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
  */
 export default function LoadingRoot() {
   return (
-    <LoadingShell label="Loading RentMe" className="nf-shell py-14 sm:py-20">
+    <LoadingShell label="Loading Vallo" className="nf-shell py-14 sm:py-20">
       <div className="max-w-2xl">
         {/* Three display lines, which is what the hero is. */}
         <Skeleton width="min(18rem, 80%)" height="3.25rem" radius="sm" />

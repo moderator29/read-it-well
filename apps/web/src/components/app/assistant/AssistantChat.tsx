@@ -30,7 +30,7 @@ import {
 import { Button } from "@/components/ui/Button";
 
 /**
- * RentMe AI chat surface.
+ * Vallo AI chat surface.
  *
  * A full assistant page in the shape people know from the big chat products:
  * a conversation column with pinned composer, plus its own side navigation.
@@ -429,7 +429,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
   return (
     <div className="flex h-full min-h-0 w-full flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 lg:px-8">
       <PageHeader
-        title="RentMe AI"
+        title="Vallo AI"
         subtitle="Beta"
         actions={
           <button
@@ -555,7 +555,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
                 </span>
                 <div
                   className="nf-card rounded-2xl rounded-bl-md px-4 py-3.5"
-                  aria-label="RentMe AI is typing"
+                  aria-label="Vallo AI is typing"
                 >
                   <span className="flex items-center gap-1.5" aria-hidden="true">
                     {[0, 1, 2].map((i) => (
@@ -580,7 +580,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
             className="flex items-center gap-2.5 border-t border-[var(--nf-border-subtle)] pt-3"
           >
             <label htmlFor="assistant-input" className="sr-only">
-              Message RentMe AI
+              Message Vallo AI
             </label>
             <input
               id="assistant-input"
@@ -588,7 +588,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
               type="text"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Ask RentMe AI anything"
+              placeholder="Ask Vallo AI anything"
               autoComplete="off"
               enterKeyHint="send"
               className="nf-field min-w-0 flex-1"

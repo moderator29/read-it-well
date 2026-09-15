@@ -11,7 +11,7 @@ import { TrustIcon, type TrustIconName } from "@/design-system/icons/TrustIcon";
 import { HowItWorks } from "@/components/site/landing/HowItWorks";
 import { PopularDestinations } from "@/components/site/landing/PopularDestinations";
 import { AgentsBand } from "@/components/site/landing/AgentsBand";
-import { WhyRentMe } from "@/components/site/landing/WhyRentMe";
+import { WhyVallo } from "@/components/site/landing/WhyVallo";
 import { VoicesBand } from "@/components/site/landing/VoicesBand";
 import { FeaturedCarousel } from "@/components/site/landing/FeaturedCarousel";
 import { MoodRow } from "@/components/site/landing/MoodRow";
@@ -57,13 +57,13 @@ export default async function LandingPage() {
     /*
      * Back at the owner's instruction, having been removed for a session.
      *
-     * I took it out because RentMe is on neither store yet and the badges read
+     * I took it out because Vallo is on neither store yet and the badges read
      * as a download that does not exist. The owner has asked for it back twice,
      * and the native shell is genuinely built: Capacitor is configured, the
      * bundle identifier is registered, the launcher icons exist at every
      * density and `docs/MOBILE_READINESS.md` prices what remains. The apps are
      * a submission away rather than a plan, so "Available on" is a statement
-     * about where RentMe is going that he is entitled to make about his own
+     * about where Vallo is going that he is entitled to make about his own
      * company.
      *
      * The line worth holding: it says "Available on" beside the store names.
@@ -345,7 +345,7 @@ export default async function LandingPage() {
           THE NATIONWIDE MAP IS GONE.
 
           "All 36 states. One lit map. From Lagos to Maiduguri, every covered
-          city glows on the RentMe grid." It was a rendered illustration of a
+          city glows on the Vallo grid." It was a rendered illustration of a
           country lit end to end, on a platform whose catalogue is six cities,
           under a heading making the coverage claim this page has just spent a
           commit correcting everywhere else. The picture was the loudest version
@@ -358,12 +358,12 @@ export default async function LandingPage() {
 
         <AgentsBand t={t} />
 
-        <WhyRentMe t={t} />
+        <WhyVallo t={t} />
 
         {/*
           Real guest voices, or nothing at all.
 
-          Placed after WhyRentMe deliberately: that section is the platform
+          Placed after WhyVallo deliberately: that section is the platform
           making its own case, and this is other people answering it. Renders
           null until a real review exists, so the page simply does not have a
           testimonials section rather than having an empty or invented one.
@@ -424,15 +424,15 @@ export default async function LandingPage() {
               ["Is my payment safe?", "Yes. Payments are processed by a licensed Nigerian payment provider, and your card details never touch our servers. You are never charged before you confirm."],
               ["Can I list my property?", "Yes. Apply in about ten minutes from the Become an Agent page. Every application is reviewed before listings go live."],
               ["Which languages are supported?", "English, Yoruba, Hausa and Igbo, switchable at any time from the top bar."],
-              ["Where does RentMe operate?", "All 36 states and the FCT from day one, with the deepest coverage growing city by city."],
+              ["Where does Vallo operate?", "All 36 states and the FCT from day one, with the deepest coverage growing city by city."],
               ["How do I get help?", "The AI assistant answers instantly inside the app, and our support team is one message away."],
               ["How do payments work before launch?", "Card payments switch on at public launch. Until then you can browse, save favourites and shortlist places, and no money changes hands. When payments open they run in naira through a licensed Nigerian payment provider."],
-              ["Is there a booking fee?", "No. There are no booking fees on RentMe right now. The price you see on a listing is the price you pay, with any charges shown in full before you confirm."],
+              ["Is there a booking fee?", "No. There are no booking fees on Vallo right now. The price you see on a listing is the price you pay, with any charges shown in full before you confirm."],
               ["How do agents get verified?", "Every agent submits a government issued ID and proof that they own or manage the property. Our team reviews each application by hand, and only approved agents can publish listings."],
               ["Can I pay in instalments?", "Not yet. Bookings are paid in full for now. Instalment payments are on our roadmap, and we will announce them the moment they are ready rather than promise a date."],
               ["What happens after I book?", "You get an instant confirmation with the address, check in details and the host's contact, and the booking appears in your account. Reminders arrive as your date approaches."],
               ["How do I contact a host?", "Once your booking is confirmed you can message the host directly from the booking page, and the AI assistant can help draft questions in any of our four languages."],
-              ["Is my data safe under NDPA?", "Yes. RentMe is built to comply with the Nigeria Data Protection Act. Your data is encrypted in transit and at rest, is never sold, and you can request a copy or deletion at any time."],
+              ["Is my data safe under NDPA?", "Yes. Vallo is built to comply with the Nigeria Data Protection Act. Your data is encrypted in transit and at rest, is never sold, and you can request a copy or deletion at any time."],
             ].map(([q, a]) => (
               <Reveal key={q}>
                 <details className="nf-card group p-0">

@@ -170,7 +170,7 @@ export type PublicProfileState =
       handle: string;
       canClaim: boolean;
       signedIn: boolean;
-      /** A name the platform keeps for itself, such as anything with `rentme`
+      /** A name the platform keeps for itself, such as anything with `vallo`
           in it. Never offered, and said plainly rather than silently withheld. */
       official: boolean;
     }
@@ -263,7 +263,7 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
       handle,
       /* A name the platform keeps for itself is never offered. The database
          refuses it with RM002, so offering it here would walk somebody into a
-         refusal, and `@rentme` is a name this product now writes into threads
+         refusal, and `@vallo` is a name this product now writes into threads
          itself. */
       canClaim: Boolean(viewerId) && !viewerHasHandle && !isOfficialHandle(handle),
       official: isOfficialHandle(handle),

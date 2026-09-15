@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * @rentme in the replies: the shapes, the words and the arithmetic.
+ * @vallo in the replies: the shapes, the words and the arithmetic.
  *
  * Client safe on purpose and it imports nothing but zod. A card has to be able
  * to recognise the bot's name in a body of text, and a server action has to be
@@ -14,12 +14,12 @@ import { z } from "zod";
 /**
  * The assistant's name, and it is not a person.
  *
- * `private.validate_social_handle` refuses any handle containing `rentme`, so
- * nobody can ever hold this one and `/u/rentme` is not somewhere to send
+ * `private.validate_social_handle` refuses any handle containing `vallo`, so
+ * nobody can ever hold this one and `/u/vallo` is not somewhere to send
  * anybody. The card renders it as a mark rather than as a link for exactly that
  * reason.
  */
-export const BOT_HANDLE = "rentme";
+export const BOT_HANDLE = "vallo";
 
 /** Does this body summon the assistant? Same rule the renderer highlights. */
 export function mentionsBot(body: string): boolean {
@@ -123,7 +123,7 @@ export const BOT_COPY = {
  */
 export function sourceNote(listings: number, areaName: string | null): string {
   const place = areaName ? ` around ${areaName}` : "";
-  if (listings === 0) return `Answered from what is published on RentMe${place}. No listings cited.`;
+  if (listings === 0) return `Answered from what is published on Vallo${place}. No listings cited.`;
   return listings === 1
     ? `Answered from 1 published listing${place}.`
     : `Answered from ${listings} published listings${place}.`;

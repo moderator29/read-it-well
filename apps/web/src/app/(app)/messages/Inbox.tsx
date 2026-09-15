@@ -228,7 +228,7 @@ export function Inbox({
         capability the product does not have.
 
         It is not removed, it is pointed at the truth. Every conversation on
-        RentMe starts from a property, because the thread is with the agent
+        Vallo starts from a property, because the thread is with the agent
         FOR that property; there is no freeform compose and there should not
         be one. So the control now goes where a person would actually start a
         new conversation, and its label says so.

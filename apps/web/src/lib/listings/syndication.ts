@@ -9,7 +9,7 @@ import type { ListingSearchFilter } from "./types";
  * THE INCIDENT THIS PREVENTS, STATED PLAINLY. Forty two example listings are
  * in the catalogue because the catalogue is otherwise empty. They describe
  * properties that DO NOT EXIST. An example listing crawled by Google is a
- * fabricated property advertisement published under RentMe's name, with a
+ * fabricated property advertisement published under Vallo's name, with a
  * price and a location on it. Structured data makes that advertisement
  * eligible for a rich result with the price attached, and an Open Graph card
  * makes it a shareable advertisement in a WhatsApp thread. None of those
@@ -74,7 +74,7 @@ export const SYNDICATION_FILTER: ListingSearchFilter = { excludeDemo: true };
 
 /** The agreed sentence. "example" is the sanctioned word; see `types.ts`. */
 export const EXAMPLE_STATEMENT =
-  "This is an example listing. No such property is available. RentMe has not verified anything on this page.";
+  "This is an example listing. No such property is available. Vallo has not verified anything on this page.";
 
 /**
  * The same fact, at the length a person will actually read.
@@ -252,13 +252,13 @@ export function listingMetadata(listing: Listing | null, origin: string): Metada
       robots: { index: false, follow: false },
       openGraph: {
         type: "website",
-        title: "An example listing on RentMe",
+        title: "An example listing on Vallo",
         description: EXAMPLE_STATEMENT,
         url: listingUrl(listing, origin),
       },
       twitter: {
         card: "summary",
-        title: "An example listing on RentMe",
+        title: "An example listing on Vallo",
         description: EXAMPLE_STATEMENT,
       },
     };
@@ -267,8 +267,8 @@ export function listingMetadata(listing: Listing | null, origin: string): Metada
   const minor = askingMinor(listing);
   const description =
     minor > 0
-      ? `${listing.title} in ${place}. Listed on RentMe.`
-      : `${listing.title} in ${place}. Listed on RentMe. Ask the lister for the price.`;
+      ? `${listing.title} in ${place}. Listed on Vallo.`
+      : `${listing.title} in ${place}. Listed on Vallo. Ask the lister for the price.`;
   const url = listingUrl(listing, origin);
 
   return {

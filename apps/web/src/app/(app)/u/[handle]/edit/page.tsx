@@ -81,7 +81,7 @@ export default async function EditSocialProfilePage({
       {editor.state === "claiming" && (
         <>
           <p className="mb-3 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-            @{handle} is free. Take it and this becomes your address on RentMe.
+            @{handle} is free. Take it and this becomes your address on Vallo.
           </p>
           <ProfileEditor profile={null} initialHandle={handle} areas={editor.areas} />
         </>

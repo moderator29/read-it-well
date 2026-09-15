@@ -6,7 +6,7 @@ import { TERMS_SECTIONS as sections } from "@/lib/legal/terms";
 export const metadata: Metadata = {
   title: "Terms of service",
   description:
-    "The rules for using RentMe: accounts, bookings, payments held until after inspection or check-in, refunds, agent listings and acceptable use.",
+    "The rules for using Vallo: accounts, bookings, payments held until after inspection or check-in, refunds, agent listings and acceptable use.",
 };
 
 /**
@@ -32,7 +32,7 @@ export default function TermsPage() {
           <h1 className="nf-h1 mx-auto mt-heading max-w-[16ch]">Terms of service</h1>
           <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
             The rules of the platform, in plain language: what you can expect from
-            RentMe, and what RentMe expects from you.
+            Vallo, and what Vallo expects from you.
           </p>
           <p className="nf-chip mx-auto mt-heading">Last updated: 28 July 2026</p>
         </div>

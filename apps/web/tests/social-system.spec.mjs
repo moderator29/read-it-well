@@ -74,7 +74,7 @@ const AGENT_ID = "dddd0000-0000-4000-8000-000000000001";
    rather than paraphrased, so a wording change in the database that nobody
    carried into the product fails here rather than reading oddly in production. */
 const AGENT_BODY =
-  "Adaeze Homes (@adaeze_homes) is listing around Yaba. RentMe checked who they are " +
+  "Adaeze Homes (@adaeze_homes) is listing around Yaba. Vallo checked who they are " +
   "before the first one went up. Message them here, arrange the inspection, and pay " +
   "after you have stood inside the place.";
 const STAY_BODY =
@@ -87,7 +87,7 @@ const OPENING_BODY =
   "and what a one bedroom really costs.";
 const SAFETY_BODY =
   "Never send money for a place you have not stood inside. Message the agent, arrange " +
-  "the inspection, see it, and pay after that. RentMe takes no fee at any point.";
+  "the inspection, see it, and pay after that. Vallo takes no fee at any point.";
 
 const ago = (minutes) => new Date(Date.now() - minutes * 60_000).toISOString();
 
@@ -352,7 +352,7 @@ async function run(theme) {
       (await page.evaluate(() => document.documentElement.dataset.theme ?? "dark")) === theme,
     );
 
-    const platform = page.locator('article[aria-label="Posted by RentMe"]');
+    const platform = page.locator('article[aria-label="Posted by Vallo"]');
     const mounted = (await platform.count()) > 0;
 
     if (mounted) {
@@ -411,7 +411,7 @@ async function run(theme) {
          and the whole SYSTEM variant rendered as an ordinary post. Nothing said
          so: both files read correctly on their own. */
       const material = await page.evaluate(() => {
-        const system = document.querySelector('article[aria-label="Posted by RentMe"]');
+        const system = document.querySelector('article[aria-label="Posted by Vallo"]');
         const person = document.querySelector('article[aria-label^="Posted by @"], article[aria-label="Posted by Tunde"]');
         if (!system) return null;
         const cs = getComputedStyle(system);

@@ -293,7 +293,7 @@ const DATA = {
  */
 const MONEY_RULE =
   "Never send money for a place you have not stood inside. Message the agent, " +
-  "arrange the inspection, see it, and pay after that. RentMe takes no fee at any " +
+  "arrange the inspection, see it, and pay after that. Vallo takes no fee at any " +
   "point, so anybody asking you to pay to view is not us. If a message asks you for " +
   "an account number, report it and a person will read it.";
 
@@ -769,7 +769,7 @@ try {
     check("two entries stand in the room", (await systemCards.count()) === 2);
     check(
       "the platform signs them, in its own name",
-      (await systemCards.first().locator("text=RentMe").count()) >= 1,
+      (await systemCards.first().locator("text=Vallo").count()) >= 1,
     );
     check(
       "the newest is the one that names the place",

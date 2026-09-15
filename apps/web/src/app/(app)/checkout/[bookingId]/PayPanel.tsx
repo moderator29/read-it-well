@@ -139,7 +139,7 @@ export function PayPanel({ view }: { view: CheckoutView }) {
             </ButtonLink>
           </>
         }
-        footnote="Paid inside RentMe, recorded to the kobo."
+        footnote="Paid inside Vallo, recorded to the kobo."
       />
     );
   }
@@ -165,7 +165,7 @@ export function PayPanel({ view }: { view: CheckoutView }) {
           <Option
             icon="card-lock"
             title="Pay by card"
-            body="A secure page in naira, then straight back here. Your card details never touch RentMe."
+            body="A secure page in naira, then straight back here. Your card details never touch Vallo."
             action={
               <Button
                 variant="primary"
@@ -197,7 +197,7 @@ export function PayPanel({ view }: { view: CheckoutView }) {
         {view.walletCovers ? (
           <Option
             icon="wallet-secure"
-            title="Pay from your RentMe wallet"
+            title="Pay from your Vallo wallet"
             body={`Your wallet holds ${view.walletBalanceDisplay}. Paying from it confirms this stay straight away.`}
             action={
               <Button
@@ -221,7 +221,7 @@ export function PayPanel({ view }: { view: CheckoutView }) {
         ) : (
           <Option
             icon="wallet-secure"
-            title="Pay from your RentMe wallet"
+            title="Pay from your Vallo wallet"
             body={`Your wallet holds ${view.walletBalanceDisplay}, and this stay comes to ${view.totalDisplay}.`}
             note="Add money to your wallet first, or pay by card."
             action={
@@ -238,7 +238,7 @@ export function PayPanel({ view }: { view: CheckoutView }) {
           <BrandIcon name="shield-check" fill tile={false} />
         </span>
         <span>
-          Money moves inside RentMe, so the stay and the payment stay attached to each other. Keep
+          Money moves inside Vallo, so the stay and the payment stay attached to each other. Keep
           every conversation and every payment on the platform.
         </span>
       </p>

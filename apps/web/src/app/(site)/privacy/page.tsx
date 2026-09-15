@@ -6,7 +6,7 @@ import { PRIVACY_SECTIONS as sections } from "@/lib/legal/privacy";
 export const metadata: Metadata = {
   title: "Privacy policy",
   description:
-    "How RentMe collects, uses, protects and shares personal data, and your rights under the Nigeria Data Protection Act 2023.",
+    "How Vallo collects, uses, protects and shares personal data, and your rights under the Nigeria Data Protection Act 2023.",
 };
 
 /**
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
           </span>
           <h1 className="nf-h1 mx-auto mt-heading max-w-[16ch]">Privacy policy</h1>
           <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
-            How RentMe collects, uses and protects your personal data, and the
+            How Vallo collects, uses and protects your personal data, and the
             rights the Nigeria Data Protection Act 2023 gives you over it.
           </p>
           <p className="nf-chip mx-auto mt-heading">Last updated: 28 July 2026</p>

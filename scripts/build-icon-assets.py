@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Build the NaijaFinds icon and brand assets from the supplied artwork.
+Build the Vallo icon and brand assets from the supplied artwork.
 
 Two jobs:
 

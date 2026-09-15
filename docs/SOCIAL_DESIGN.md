@@ -67,7 +67,7 @@ The binding corrections:
    this product carries a luminous gradient ring on the border box while the fill
    sits on the padding box, brightest at the upper left, matching the light
    direction of the commissioned icon family. Post cards use it. That is what
-   makes the feed read as RentMe rather than as a clone, and it is already built.
+   makes the feed read as Vallo rather than as a clone, and it is already built.
 2. **The reaction marks are an original geometric family**, drawn on a 24 grid
    from three primitives and nothing else: a stroke, a node, a gap. No outline
    heart, no speech bubble, no two-arrow recycle, no eye. Section 7.4's reasoning
@@ -120,7 +120,7 @@ fresh session off to rebuild a subsystem.**
 These four are load-bearing and I would not touch them.
 
 - **Place-rooted inversion.** You do not follow strangers, you open a place.
-  RentMe owns place with verified homes inside it. No global network can copy
+  Vallo owns place with verified homes inside it. No global network can copy
   this without our inventory. Everything else serves it.
 - **The utility wedge.** Is there light, is there water, is the road passable,
   is it safe. Four questions that govern a Nigerian day, no structural answer
@@ -304,7 +304,7 @@ not a land grab, which is also the only way moderation stays possible.
 `updated_at`.
 - `handle` lowercase only, `check (handle ~ '^[a-z][a-z0-9_]{2,19}$')`,
   a reserved-word list enforced in the database, and a handle that resembles a
-  RentMe official name or an approved agent's registered business name is
+  Vallo official name or an approved agent's registered business name is
   refused at the database level, not in a form.
 - `bio` and `link` pass the fraud scanner on write. A bio is the oldest place
   in the world to hide a phone number and an off-platform payment ask.
@@ -646,7 +646,7 @@ No dead ends, no gibberish. Named here so none of them is discovered late.
   that ends is a state change a sighted user sees and a screen reader user
   otherwise walks off.
 - Node shape has a text equivalent: every card names its author kind in its
-  accessible label ("Posted by RentMe", "Answered by the RentMe assistant").
+  accessible label ("Posted by Vallo", "Answered by the Vallo assistant").
 - Marks meet the 44px touch target the icon buttons already meet, which chips
   currently do not (R-121).
 
@@ -756,7 +756,7 @@ Said plainly so the owner can overrule any of it.
 
 ## 10. The AI in the comments
 
-Summoned by `@rentme` in any post or reply. Visibly a machine, never
+Summoned by `@vallo` in any post or reply. Visibly a machine, never
 impersonating a person, always on a diamond node.
 
 **A reply is a row in `posts` with `author_kind = 'BOT'` and `author_id null`.**
@@ -810,7 +810,7 @@ are the ones that do not.
    sale and charges no guest and no agent for using the platform. Section 6's
    agreement column is what makes it worth paying for.
 2. **A power signal on the listing.** A listing in an area with a verified
-   record carries it. That is the strongest reason to trust a RentMe listing
+   record carries it. That is the strongest reason to trust a Vallo listing
    over a WhatsApp one, and it costs nobody anything.
 3. **Conversation to booking.** The AI hands back real listings, the supply
    rail sits on every area page, and the area to listing to reserve funnel is
@@ -818,7 +818,7 @@ are the ones that do not.
    platform and it is free.
 4. **Supply acquisition.** An agent whose new listing becomes a system entry in
    the area it sits in gets reach for listing well. That is the cheapest supply
-   pitch RentMe has, and it is earned rather than sold.
+   pitch Vallo has, and it is earned rather than sold.
 
 No guest is charged a fee on a stay. The zero-fee rule is untouched.
 

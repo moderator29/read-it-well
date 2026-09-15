@@ -34,7 +34,7 @@ None of this is aspiration. It is in the tree today.
 | Reduced motion | Token collapse | Honoured platform-wide |
 | Self-hosted faces | `public/fonts` | Seven immutable woff2 files, `max-age=31536000`, preloaded per locale |
 
-An installed home-screen RentMe on a mid-range Android already behaves like an
+An installed home-screen Vallo on a mid-range Android already behaves like an
 app: its own icon, its own splash colour, no browser chrome, and a designed
 answer when the network drops. For the audience this platform is built for,
 often on a metered data bundle, that is real reach rather than decoration.

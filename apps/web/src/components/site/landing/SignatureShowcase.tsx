@@ -66,7 +66,7 @@ export function VillaShowcase() {
           <div className="relative flex min-h-[240px] items-center justify-center p-6 sm:min-h-[320px] sm:p-8">
             <Image
               src="/brand/rentme-city.png"
-              alt="The neon RentMe city island"
+              alt="The neon Vallo city island"
               width={1536}
               height={888}
               sizes="(max-width: 1024px) 90vw, 46vw"
@@ -89,18 +89,18 @@ export function CoverageMap() {
             All 36 states. One lit map.
           </h2>
           <p className="mx-auto mt-2 max-w-[52ch] text-[var(--nf-content-secondary)]">
-            From Lagos to Maiduguri, every covered city glows on the RentMe grid. Tap the map
+            From Lagos to Maiduguri, every covered city glows on the Vallo grid. Tap the map
             to explore by location.
           </p>
         </div>
         <Link
           href={gatedHref("/search?view=map")}
-          aria-label="Open the RentMe coverage map"
+          aria-label="Open the Vallo coverage map"
           className="nf-card nf-card--interactive block overflow-hidden p-0"
         >
           <Image
             src="/brand/rentme-map.png"
-            alt="The RentMe map of Nigeria with lit city markers"
+            alt="The Vallo map of Nigeria with lit city markers"
             width={1536}
             height={1024}
             sizes="(max-width: 1024px) 100vw, 1080px"
@@ -149,7 +149,7 @@ export function AssistantShowcase() {
           <div className="relative order-last min-h-[240px] sm:min-h-[340px] lg:order-first lg:min-h-0">
             <Image
               src="/brand/rentme-assistant.png"
-              alt="The RentMe assistant"
+              alt="The Vallo assistant"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover"
@@ -161,7 +161,7 @@ export function AssistantShowcase() {
           </div>
 
           <div className="flex flex-col items-start justify-center p-6 sm:p-10 lg:p-12">
-            <span className="nf-overline">RentMe AI</span>
+            <span className="nf-overline">Vallo AI</span>
             <h2 id="nf-assistant-title" className="nf-h1 mt-2">
               Ask in plain words. <span className="nf-gradient-text">Get real property.</span>
             </h2>

@@ -28,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * host works as well as where a guest does. There is one preference document
  * per account; this is a second door to it, not a second copy.
  *
- * The trading identity is deliberately read-only. It is the name RentMe
+ * The trading identity is deliberately read-only. It is the name Vallo
  * verified, it appears on every listing and every thread, and letting an
  * approved host rewrite it after approval would make the verified badge mean
  * nothing. The page says that plainly and gives the route to change it.
@@ -155,7 +155,7 @@ export default async function Page() {
             </div>
           </dl>
           <p className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-            This is the name RentMe checked and the name on every one of your
+            This is the name Vallo checked and the name on every one of your
             listings, so it is not something to change on your own. Write to
             support and we will change it with you.
           </p>
@@ -169,7 +169,7 @@ export default async function Page() {
           <p className="nf-overline">Everything else</p>
           <p className="mt-2.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
             Theme, language, privacy, security and account deletion are one account
-            wide, so they live on your RentMe settings page rather than being kept
+            wide, so they live on your Vallo settings page rather than being kept
             in two places.
           </p>
           <Link href="/settings" className="nf-btn nf-btn--glass nf-btn--sm mt-4">

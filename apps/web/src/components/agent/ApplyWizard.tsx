@@ -544,7 +544,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
             </p>
           )}
           <p className="text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
-            These files are stored privately and are only ever seen by the RentMe team reviewing
+            These files are stored privately and are only ever seen by the Vallo team reviewing
             your application. They are never shown on your public profile.
           </p>
         </fieldset>

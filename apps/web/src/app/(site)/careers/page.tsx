@@ -8,7 +8,7 @@ import { SUPPORT_HREF, SUPPORT_IS_EMAIL, SUPPORT_LABEL } from "@/lib/support-ema
 export const metadata: Metadata = {
   title: "Careers",
   description:
-    "Help build the platform Nigerians use to find, book and live. See how we work at RentMe and send a speculative application.",
+    "Help build the platform Nigerians use to find, book and live. See how we work at Vallo and send a speculative application.",
 };
 
 /**
@@ -17,8 +17,8 @@ export const metadata: Metadata = {
  * Culture first, then an honest empty state for open roles: there are none
  * listed yet, so instead of fake vacancies the page invites speculative
  * applications through the one support channel and says exactly what to send.
- * It used to name careers@naijafinds.com, a mailbox on a domain this platform
- * no longer uses, so every application sent to it went nowhere while the
+ * It used to name careers@vallo.com, a mailbox on a dead working
+ * name's domain, so every application sent to it went nowhere while the
  * sender believed they had applied.
  */
 export default function CareersPage() {
@@ -61,7 +61,7 @@ export default function CareersPage() {
             <span className="inline-grid h-4 w-4 place-items-center">
               <BrandIcon name="reviews" fill />
             </span>
-            Careers at RentMe
+            Careers at Vallo
           </span>
           <h1 className="nf-h1 mx-auto mt-heading max-w-[18ch]">
             Build the way Nigeria books
@@ -114,7 +114,7 @@ export default function CareersPage() {
               <ul className="mt-inline space-y-inline text-[0.875rem] text-[var(--nf-content-secondary)]">
                 <li className="flex items-start gap-inline">
                   <UiIcon name="arrow-right" size={16} className="mt-inline-tight shrink-0 text-[var(--nf-brand-primary)]" />
-                  A short note on what you would improve about RentMe
+                  A short note on what you would improve about Vallo
                 </li>
                 <li className="flex items-start gap-inline">
                   <UiIcon name="arrow-right" size={16} className="mt-inline-tight shrink-0 text-[var(--nf-brand-primary)]" />
@@ -164,7 +164,7 @@ export default function CareersPage() {
         <Reveal as="section" className="mt-section">
           <div className="nf-card p-card text-center-lg">
             <p className="text-[0.9375rem] text-[var(--nf-content-secondary)]">
-              Not looking for a job, but want to earn on RentMe?
+              Not looking for a job, but want to earn on Vallo?
             </p>
             <div className="mt-group flex justify-center">
               <ButtonLink href="/agents" variant="secondary">

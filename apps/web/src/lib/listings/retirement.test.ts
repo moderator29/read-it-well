@@ -95,7 +95,7 @@ describe("and the collection comes down on it", () => {
       removal,
       `The example collection was due out on ${EXAMPLE_COLLECTION_RETIREMENT}, ` +
         `${Math.abs(daysUntilRetirement())} days ago, and no migration in this tree removes it. ` +
-        "Forty two properties that do not exist are still published under RentMe's name. " +
+        "Forty two properties that do not exist are still published under Vallo's name. " +
         "Write the migration that deletes them, or move the date and say in that " +
         "migration's header what changed. Do not delete this spec.",
     ).not.toBeNull();

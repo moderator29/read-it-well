@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
  *
  * The chrome is the platform's own: glass header, stroked navigation glyphs,
  * the rail at lg and above, a scrollable tab strip on phones, and a back
- * button that follows real history the way every other RentMe surface does.
+ * button that follows real history the way every other Vallo surface does.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const t = getDictionary(await getLocale());

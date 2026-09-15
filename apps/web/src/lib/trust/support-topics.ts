@@ -36,7 +36,7 @@ export const DEFAULT_SUPPORT_TOPIC: SupportTopic = "booking";
  * this queue exists for.
  */
 export const SUPPORT_TOPIC_LABEL: Record<SupportTopic, string> = {
-  safety: "Someone asked me to pay outside RentMe",
+  safety: "Someone asked me to pay outside Vallo",
   booking: "A booking",
   payment: "A payment or refund",
   listing: "Listing a property",

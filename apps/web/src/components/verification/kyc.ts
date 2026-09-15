@@ -251,7 +251,7 @@ export const CONSENTS: readonly Consent[] = [
   },
   {
     id: "processing",
-    label: "RentMe may process my details for identity and fraud checks",
+    label: "Vallo may process my details for identity and fraud checks",
     detail:
       "Your name, date of birth and document numbers are checked against identity and sanctions databases through a processor. Your documents are not sold, and not used for anything else.",
   },

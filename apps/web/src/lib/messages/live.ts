@@ -77,7 +77,7 @@ export type LiveThreadData = {
   messages: LiveThreadMessage[];
 };
 
-const FALLBACK_NAME = "RentMe member";
+const FALLBACK_NAME = "Vallo member";
 
 /** Deterministic 0..5 hue index from an id, for the placeholder tile. */
 function hueOf(id: string): number {

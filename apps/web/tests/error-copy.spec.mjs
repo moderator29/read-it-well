@@ -234,7 +234,7 @@ for (const [message, { where, read }] of messages) {
   /* `${SUPPORT_EMAIL}` is an interpolation slot, not shouting. It is stripped
      before the test rather than added to the allowed list, because the next
      one will have a different name. */
-  const spoken = message.replace(/\$\{[^}]*\}/g, "").replace(/RentMe|SMS|BVN|NIN|PDF/g, "");
+  const spoken = message.replace(/\$\{[^}]*\}/g, "").replace(/Vallo|SMS|BVN|NIN|PDF/g, "");
   if (/[A-Z]{4,}/.test(spoken)) {
     shouting.push(`${message}   (${where})`);
   }

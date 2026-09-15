@@ -8,7 +8,7 @@ import type { StatusTone as Tone } from "@/components/ui/StatusPill";
  * The response commitment a queue row is under, as a chip.
  *
  * /standards publishes three numbers: four hours for anything about being asked
- * to pay outside RentMe or about somebody being unsafe, one day for the rest of
+ * to pay outside Vallo or about somebody being unsafe, one day for the rest of
  * the safety work, three days for judgement calls. Those numbers are only worth
  * something if the shift working the queue is shown the same clock, so both
  * sides import `RESPONSE_COMMITMENTS` from `lib/trust/standards.ts` and neither

@@ -118,7 +118,7 @@ try {
     check(
       "safety disclaimer renders",
       rentalText.includes(
-        "For your safety, keep every chat and payment inside RentMe. Deals made outside the platform are not protected by us. Pay only after you have inspected the property.",
+        "For your safety, keep every chat and payment inside Vallo. Deals made outside the platform are not protected by us. Pay only after you have inspected the property.",
       ),
     );
     check("no Reserve control on a rental", !rentalText.includes("Reserve"));

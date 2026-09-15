@@ -1,4 +1,4 @@
-# RentMe Icon System
+# Vallo Icon System
 
 **Two tiers, each with one job, plus one landing-only mark set that is not a
 tier. Never mix them.**

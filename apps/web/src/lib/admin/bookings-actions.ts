@@ -5,7 +5,7 @@
  *
  * /cancellations tells a guest, in plain words, that a paid stay is cancelled
  * by a person rather than by a button, that the published schedule is applied
- * exactly as written, that the money returns to their RentMe wallet, and that
+ * exactly as written, that the money returns to their Vallo wallet, and that
  * they get the amount and the reason in writing. Until this file existed there
  * was no surface on which any person at support could do it, so the published
  * policy and the console disagreed. This is the console's half of that promise.

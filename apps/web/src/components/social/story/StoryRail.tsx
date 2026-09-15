@@ -127,7 +127,7 @@ export function StoryRail({
       ) : (
         <div className="nf-story-rail__updates">
           <p>
-            Everything that happens to you on RentMe lands in one place: somebody
+            Everything that happens to you on Vallo lands in one place: somebody
             following you, replying to you, naming you in a post, liking or
             reposting what you wrote, and every decision we make about it.
           </p>

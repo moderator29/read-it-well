@@ -1,5 +1,5 @@
 /*
- * The RentMe material. Glass, the elevation scale, the stride ring, the card,
+ * The Vallo material. Glass, the elevation scale, the stride ring, the card,
  * the icon tile and the confirmation moment. Everything else in the platform is
  * built on top of what is in this file.
  *
@@ -15,7 +15,7 @@
  * anyone reading the markup will assume.
  */
 @layer components {
-  /* ----------------------------------------------------- RentMe Material */
+  /* ----------------------------------------------------- Vallo Material */
 
   /*
    * Glass depth: floating nav, overlays, controls.
