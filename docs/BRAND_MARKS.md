@@ -177,3 +177,68 @@ line saying what happens next, and at most two actions.
 
 Build the shared component once and let it take the mark by name. **Do not build
 a bespoke success screen per flow**, which is what the product does today.
+
+---
+
+## 7. Every place money moves, and what the person sees while they wait
+
+Added 15 September 2026. HANDOFF 02 section 24 calls pending "the most neglected
+state in this product and the most anxious one for the user", and asks for every
+place money moves with what the user sees while they wait. This is that list,
+read from the code rather than from memory.
+
+**The finding is not that pending states are missing. It is that they are
+inconsistent, and that the worst one is on the screen carrying the most money.**
+
+| Where | Action | What the person sees while it happens | Verdict |
+| --- | --- | --- | --- |
+| Wallet, fund | `fundWallet` | Button spinner **plus** a `role="status" aria-live="polite"` region | Good |
+| Wallet, crypto top up | `startCryptoDeposit` | Button spinner plus a live region | Good |
+| Wallet, withdraw | `withdraw` | Button spinner, a live region, and a sentence saying the withdrawal shows as pending until the bank confirms it | **Best in the product. This is the pattern** |
+| Wallet, transfer to a user | `transferToUser` | Button spinner plus a live region | Good |
+| Return from Paystack | `verifyFunding` | A banner with a live region and "Checking with the payment service. This takes a moment." | Good |
+| **Checkout, pay by card** | `card-starting`, `card-redirecting` | **A `loading` prop on a button. No sentence, no amount, no live region** | **Worst, and it is the largest amount of money on the platform** |
+| **Checkout, pay from wallet** | `wallet-paying` | **A `loading` prop on a button. Nothing else** | **Worst** |
+| Agent application | submitted | A status page, no in-flight state | Weak |
+| Listing submitted for review | `SUBMITTED` to `UNDER_REVIEW` | A status pill, no consequence line | Weak |
+
+### The three things missing from every one of them
+
+Even the good ones. This is where the marks in section 3 earn their place.
+
+1. **A mark.** Every pending state in this product is a spinner. A spinner is
+   the absence of a design. `payment-pending`, `seal-pending` and
+   `hourglass-blue` in section 3 exist for exactly this and none is used yet.
+2. **The amount.** A person who has just sent 850,000 naira wants to see
+   850,000 naira on the screen that says it is going. Only the withdraw sheet
+   does.
+3. **The consequence, which is the line that removes fear.** "This usually takes
+   a few seconds. If it takes longer, your money has not moved and nothing is
+   lost." Only the withdraw sheet has anything like it, and it is the one people
+   are least anxious about, because withdrawing is money coming back.
+
+### One defect found and fixed while writing this
+
+`PayPanel.tsx` painted the payment FAILURE branch in `--nf-state-warning`, which
+resolves to `--nf-cyan-400`, which is this product's PENDING colour:
+`--nf-status-pending` is defined as that same token. **A declined payment was
+drawn in the pending colour**, on the one screen where the difference decides
+whether somebody believes their rent money is gone. `--nf-state-error` existed,
+resolves to rose and was reachable from nowhere on that path.
+
+That is the same mistake the design system notes record about stars borrowing
+the warning token to obtain a gold: a state token reused for the colour it
+happens to be, rather than for the state it means.
+
+It is now rose, with the cross glyph rather than a bell. **The missing pending
+sentence and the missing mark are not fixed**, because those need the shared
+confirmation component rather than another bespoke branch, and building a tenth
+bespoke success screen is the thing section 24.3 says not to do.
+
+### And the marks that are already right
+
+Check section 2 before commissioning anything. `user-verified.png` is already
+the blue scalloped rosette with a white tick, which is precisely the mark the
+founder's reference screenshot rendered in orange. **It does not need
+replacing.** The reference's anatomy is worth taking; its execution is
+everything this brand is not.

@@ -150,12 +150,31 @@ export function PayPanel({ view }: { view: CheckoutView }) {
         How would you like to pay?
       </h2>
 
+      {/*
+        A FAILED PAYMENT IS ROSE, NOT CYAN, AND IT IS NOT A BELL.
+
+        This branch used to paint `--nf-state-warning` with a `bell` glyph.
+        `--nf-state-warning` resolves to `--nf-cyan-400`, and cyan is this
+        product's PENDING colour: `--nf-status-pending` is defined as that exact
+        token. So a declined payment was drawn in the same colour as a payment
+        still going through, on the one screen where the difference decides
+        whether somebody thinks their rent money is gone.
+
+        `--nf-state-error` already existed, resolves to rose, and was reachable
+        from nowhere on this path. That is the same failure the design system
+        notes record about stars borrowing the warning token to obtain a gold:
+        a state token reused for the colour it happens to be.
+
+        The glyph moves with it. A bell announces; it does not report a failure. `close` is the cross mark and
+        is the strongest failure signal the 60-glyph UiIcon set actually carries:
+        there is no `alert` glyph, which was checked rather than assumed.
+      */}
       {phase.kind === "error" && (
         <p
           role="alert"
-          className="nf-card mt-3 flex items-start gap-2.5 p-3.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+          className="nf-card mt-3 flex items-start gap-2.5 p-3.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-error)]"
         >
-          <UiIcon name="bell" size={16} className="mt-0.5 shrink-0" />
+          <UiIcon name="close" size={16} className="mt-0.5 shrink-0" />
           <span>{phase.message}</span>
         </p>
       )}
