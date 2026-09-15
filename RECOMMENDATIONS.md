@@ -75,16 +75,20 @@ transaction. **That gap is the whole job.**
 
 ---
 
-## 3. The escrow release model, and why move-in is the wrong trigger
+## 3. Escrow: the diagnosis holds, the cure did not survive review
 
 This was asked directly: is releasing when the buyer moves in right, and is it
-fair to the agent? **It is not, and the reason is worth stating precisely
-because it decides the schema.**
+fair to the agent?
 
-Three things are wrong with a single release on move-in.
+**No, and the reasons are worth stating precisely because they decide the
+schema.** Everything in this first block stands. The model that was first
+proposed to replace it did not, and the rest of this section is that argument,
+kept visible rather than quietly swapped, because the founder decides.
 
-**Move-in is not an event the platform can observe.** Nobody taps a button when
-they carry a mattress through a door. A trigger the system cannot see becomes a
+### 3.1 Why move-in is the wrong trigger. This part is settled
+
+**Move-in is not an event the platform can observe.** Nobody taps a button
+carrying a mattress through a door. A trigger the system cannot see becomes a
 trigger somebody has to claim, and whoever claims it controls the money.
 
 **It puts all the timing risk on one side.** The agent has done their work when
@@ -98,102 +102,308 @@ rent, caution deposit, agency fee and legal or agreement fees. Each is earned
 at a different moment by a different party. A single release date is wrong for
 at least three of them whatever date is chosen.
 
-### The model to build instead
+### 3.2 The three-leg custody model, and why it was rejected on re-audit
 
-**Milestone escrow, with dual confirmation and an auto-release timer.** This is
-the shape Airbnb, Escrow.com and every freelance marketplace converged on, and
-they converged on it for the reason above.
+The first proposal was milestone escrow: the agency and legal fees released to
+the agent on confirmed key handover, the first rent after a 72 hour objection
+window, and the caution deposit held for the whole tenancy and split against a
+documented check-out.
 
-| Leg | Released to | On what trigger | Held how long |
-| --- | --- | --- | --- |
-| **Agency fee**, legal and agreement fees | The agent | Key handover confirmed | Released same day |
-| **First rent** | The landlord, through the agent's payout | Key handover confirmed, plus a 72 hour objection window | 72 hours |
-| **Caution deposit** | Held, then split at the end | End of tenancy, against a documented check-out | The whole tenancy |
+**It was re-audited against the migrations and it fails on five counts.** Each
+was verified in the files rather than argued from memory.
 
-**The trigger is key handover, confirmed by both parties, not move-in.** The
-agent marks handover. The tenant confirms, or raises a dispute, within 72
-hours. **Silence auto-releases.** That timer is the single most important
-protection the agent has, and without it a tenant who simply never taps the
-button holds the agent's income hostage for free.
+**One escrow row is one amount, and nothing groups three legs.**
+`public.escrow_purpose` has exactly four values: `rent_deposit`, `first_rent`,
+`purchase_deposit`, `purchase_balance`. There is no agency fee, no legal fee,
+no agreement fee. `escrows` has `amount_minor` with a positive check, one
+payer, one payee, no parent id and no tenancy id. Three legs would be three
+unrelated rows sharing only a nullable `listing_id`.
 
-**The agent's fee is not held behind the tenant's objection window.** If a
-tenant disputes, the dispute is funded out of the held rent and the caution
-deposit, not out of work the agent has already done. Conflating the two is what
-makes escrow feel like a tax to the supply side.
+**There is no partial settlement anywhere.** `private.escrow_settle` moves
+`amount_minor` entirely in one direction and writes one wallet entry. There is
+no `PARTIALLY_RELEASED` state among the eight. **So "the caution deposit is
+split against a documented check-out" is not a policy this database can express
+at all**: the deposit can go 100 per cent to one party or 100 per cent to the
+other, including through the admin ruling path, which calls the same
+all-or-nothing function.
 
-**The caution deposit is the only leg that genuinely needs long escrow**, and
-it is also the one Nigerian tenants most often lose. Holding it properly, with
-a documented check-in and check-out condition record, is the strongest single
-trust feature available to this platform and no competitor in this market
-offers it.
+**A latent trigger would settle every leg on one viewing.**
+`private.escrow_inspection_is_a_signal` loops over EVERY escrow where
+`payer_id = new.user_id and listing_id = new.listing_id` in state `HELD` or
+`RELEASE_REQUESTED` with `payer_confirmed_at is null`, stamps the confirmation
+on all of them, and settles each one where the payee has already confirmed.
+Under a three-leg design **one in-chat inspection confirmation would confirm
+the tenant's side of the agency fee, the first rent and the twelve-month
+caution deposit at once**, and release every leg the agent had already
+confirmed. The leg meant to be held for a year would settle on the day of the
+viewing. That is `G-3` and it must be fixed before any multi-leg escrow exists,
+whatever else is decided.
 
-### For a sale, this model does not apply and must not be copied
+**The window cannot be set.** `public.escrow_hold` hardcodes
+`hold_days integer := 21` and takes no window argument, so a 72 hour leg cannot
+be opened through the service-role path today. Only `escrow_fund_from_wallet`
+accepts `p_hold_days`, in whole days, clamped 1 to 180.
 
-A sale releases on **title transfer**, which in Nigeria means Governor's
-Consent and takes months, not on move-in or on handover. And the platform
-should **not hold a full purchase price**: that is a large regulated liability
-for a company whose objects clause deliberately omits every payment word.
+**The commission is applied to every release unconditionally.**
+`escrow_settle` calls `private.compute_fee('commission', ...)` on every
+settlement. It is zero today, so "the platform takes nothing" is true by
+accident and becomes false the day a rate is switched on.
 
-The defensible version is: **escrow the deposit only, and route the balance
-through a solicitor's client account.** Say so plainly rather than implying the
-platform is holding millions.
+### 3.3 The three objections that matter more than the schema
 
-### The constraint that governs all of this
+**The landlord is not on the platform, and the table hides it.** There is no
+landlord entity anywhere in the schema. `escrows.payee_id` is one
+`auth.users` id. So "the first rent releases to the landlord" means, in the
+database, that **Vallo holds a tenant's annual rent and then pays it to the
+agent.** That is not escrow protecting anybody from the agent; it is Vallo
+delivering millions to an agent under Vallo's brand, on Vallo's instruction,
+where the landlord is not a user, cannot dispute, and never agreed to it. If
+the agent absconds, Vallo is the party that paid them.
 
-**Holding client funds between two parties is regulated by the CBN.** Whether
-this company may operate any of it is an open question the owner has not had
-answered, and the memorandum filed at the Commission omits payment and escrow
-wording on purpose. **Build the mechanism, keep it behind a flag, and promise
-nothing to a user until there is a legal answer as well as a flow.** That is
-`V-1` in the thirty and it is a decision before it is a build.
+**The caution deposit leg is the proudest part of it and the one that should
+not be built.** It converts the platform from a few days of float into twelve
+months of custody on every tenancy, which is exactly the shape a regulator
+reads as deposit taking. It puts a three-person company in the middle of a
+dispute about the state of a wall, with no surveyor and no site visit. And it
+raises a question nobody asked: over twelve months on half a million naira,
+**who gets the interest?** If Vallo keeps it, Vallo is earning on user money
+while telling users in five places that it charges nothing.
+
+**The funding leg is unusable at Nigerian rent sizes.** Escrow debits the
+payer's Vallo wallet, so the tenant must first move the entire move-in cost
+into a Vallo balance through Paystack. For an annual rent that is three to five
+million naira, through card and transfer limits, over days, into a company with
+one million naira of share capital. The first real escrow this platform ever
+holds will not be a hundred and fifty thousand.
+
+Three more, briefly. **When the agent is the landlord**, which is common, two
+legs release to the same wallet on the same trigger and the model's central
+distinction stops meaning anything. **On a renewal** there is no handover, no
+keys and no agency fee, so the trigger never fires, while last year's deposit
+is still held and there is no `HELD` to `HELD` transition to re-date it. **And
+72 hours is the wrong shape, not just the wrong number**: the objections it
+catches are instant ones, and the ones that actually cost a tenant money, the
+borehole, the generator, the roof in the first rain, surface over a fortnight.
+Note the hard limit: **there is no transition out of `RELEASED`**, so whatever
+window is chosen is absolute and a late dispute has no mechanism at all.
+
+### 3.4 The regulatory finding, which is the most important paragraph here
+
+**As first written, the proposal describes a regulated activity.** Receiving
+funds from a payer, holding them in the platform's own name, and disbursing to
+a third party on a condition is third-party fund custody, which in Nigeria sits
+under the CBN's payment service provider regime. That is the same
+classification that cost the objects clause: the CAC portal read payment and
+escrow wording as a regulated payments business and demanded 500,000,000 naira
+of share capital.
+
+**And the wallet may already have crossed that line.** `fundWallet` takes naira
+through Paystack into a Vallo-controlled balance, `wallet_entry_kind` carries
+`transfer_in` and `transfer_out` so users can move value to each other, and
+withdrawals go out to bank accounts. That is stored value with peer-to-peer
+transfer and it is in the code today. **So the question for the solicitor is
+about the wallet, with escrow as the aggravating factor. Asking only about
+escrow gets an answer to the wrong question.**
+
+### 3.5 What to build instead, ranked
+
+**1. The verified handover record, and build this one now. This is `G-1`.**
+Vallo holds no naira and holds the **evidence** instead: a dual-signed,
+timestamped handover object carrying photographs, meter readings, an inventory,
+the tenancy agreement and both parties' verified identities, with a matching
+check-out record at the end of the term. Zero CBN exposure, no licence, no
+float, no dispute queue over money, and buildable on top of
+`inspection_requests`. **It beats escrow at the caution-deposit problem**,
+because that fight is always about proof and never about custody: the tenant's
+real grievance is not "the platform did not hold my deposit", it is "I cannot
+prove the crack was already there". It is also the only version that works when
+the landlord has no account, because evidence does not require them to be a
+party to anything. No competitor in this market has it.
+
+**2. Partner-held funds, when money must be held.** The money never touches a
+Vallo account. The payer funds a dedicated account at a licensed institution, a
+virtual account through Paystack, Flutterwave or Monnify, and Vallo is the
+instruction layer that tells the partner when the condition is met. Vallo acts
+as an agent of a licensed provider rather than as a deposit taker. The user's
+trust benefit is identical, because what they care about is that the agent
+cannot take the money and disappear, not whose balance sheet it rests on. And
+the copy becomes "held by [named licensed partner]", which is **true**, and
+therefore shippable under the rule that escrow is promised nowhere.
+
+**3. Delayed settlement with no hold.** The payer pays the agent through the
+processor and Vallo controls only when the settlement instruction fires. The
+funds sit with the provider in its regulated capacity throughout.
+
+**4. A solicitor's client account, for sales only.** Established, regulated,
+and the company already has a solicitor. Right for a ninety million naira
+transaction, absurd for a nine hundred thousand naira room.
+
+### 3.6 The amendment, as two decisions taken separately
+
+**Now, no flag needed:** build the handover and check-out evidence record with
+no money in it, fix `escrow_inspection_is_a_signal` before it can ever misfire,
+and keep every existing refusal in the copy exactly as it stands.
+
+**Later, and only after a legal answer:** when escrow is turned on, turn on
+**one** leg, the agency fee, against a licensed partner's account rather than
+Vallo's own. **Never hold a year's rent. Never hold a caution deposit for a
+tenancy. Never hold a purchase balance**, and document `purchase_balance` as
+never-to-be-used, because leaving it in the enum is an open door to the thing
+this section says not to do.
+
+**On the sale half:** title transfer as the trigger is right and the
+solicitor's client account is right. But "escrow the deposit only" on a ninety
+million naira duplex is a nine million naira hold, which is not a small
+liability.
+
+### 3.7 One mechanism worth stealing, which neither version had
+
+The state of the art for releasing on an unobservable milestone is not dual
+confirmation. Dual confirmation is table stakes and its failure mode is
+deadlock, which is why every serious implementation pairs it with a timer, as
+this schema already does. The real mechanism is **positive-signal
+substitution**: stop asking about the milestone and key the release to a
+different event the platform *can* observe. Uber does not ask whether you
+arrived, it watches the GPS. Airbnb releases about twenty-four hours after
+**scheduled** check-in rather than after a guest confirmation, because the
+scheduled time is observable and the confirmation is not.
+
+**Vallo already has the observable signal and is not using it.**
+`inspection_requests.slot_at` is an agreed, timestamped, dual-visible
+appointment. Keying anything to "`slot_at` plus N days unless disputed" is
+strictly better than keying it to a confirmation tap that, in a market where
+most people are on a phone with patchy data and no habit of confirming
+anything, will simply not happen.
 
 ---
 
-## 4. The inspection fee, and how to make it safe
+## 4. The inspection fee: do not charge, and here is the better trade
 
 Also asked directly: can an agent set an inspection fee, paid at the property?
 
-**The instinct is right and the mechanism as described is the exact shape of
-the most common property fraud in Nigeria.** "Pay ₦5,000 inspection fee before
-I show you the flat" is the scam, almost word for word, and cash at the gate
-leaves the platform no record, no recourse and no evidence.
+**The read of the fraud pattern is right and the instinct to invert it is
+right.** "Pay ₦5,000 before I show you the flat" is the scam almost word for
+word, and cash at the gate leaves no record, no recourse and no evidence. The
+need underneath is real too: agents spend transport and hours, and no-shows
+cost them.
 
-The legitimate need underneath it is real: agents spend transport and hours on
-viewings, and no-shows cost them. So the answer is not no. The answer is to
-invert where the money sits.
+**But the fee, in any held form, is the wrong answer, and re-audit found three
+reasons that were missed first time round.**
 
-### The design
+### 4.1 It breaks a rule the founder already wrote
 
-| Rule | Why |
-| --- | --- |
-| **Declared on the listing, before a viewing is requested** | A fee that appears in a chat is a scam by definition. The message trigger should flag one |
-| **Paid through Vallo, never in cash at the property** | This is the inversion. Cash at the gate is the fraud; a held fee is the protection |
-| **Released to the agent only after the inspection is confirmed** | Dual confirmation, same as the handover trigger above |
-| **Refunded automatically if the agent does not show** | Makes the fee a promise by the agent, not only by the visitor |
-| **Capped platform-wide at a small figure** | So it can never become the product. It is friction control, not revenue |
-| **Credited in full against the transaction** | The visitor who rents pays nothing extra. This is what stops fee farming |
-| **Only for verified agents above a verification rung** | A brand new unverified account cannot charge to show a property |
+`docs/PRODUCT.md` line 80: **"Never charge a member to look, save, message or
+enquire. Fees attach to transactions and to supply-side services."**
 
-**Credited against the transaction is the clause that makes this honest.** It
-turns the fee from income into a refundable commitment deposit, which removes
-the incentive to list properties purely to collect viewing fees, which is the
-failure mode that would otherwise arrive within a month.
+An inspection fee is a charge to look. The first version of this proposal never
+cited that line and therefore never argued against it. **That is a decision for
+the founder to take explicitly and in writing, not one to arrive at by
+implication inside a feature spec.**
 
-### It also fixes a contradiction that exists today
+### 4.2 It makes a clause written this session false
 
-The safety centre currently tells a renter to "never pay an inspection fee, a
-holding fee or an agency fee to anybody", with no qualifier, while `listings`
-itemises `agency_fee_minor` and `legal_fee_minor` in the move-in cost the
-product rule says the card should lead with. That is `A1-026` and it is one of
-the thirty.
+`apps/web/src/lib/legal/terms.tsx` now says, in bold: **"We do not hold your
+money in escrow, and you should not treat a payment made here as protected by
+us holding it."** That clause replaced a promise of escrow that no guest's
+money has ever moved through, and it is the most carefully argued paragraph in
+the terms.
 
-The corrected line is stronger, not weaker: **never pay an inspection fee
-outside Vallo.** It gives the reader a rule they can actually follow, and it
-makes the platform the safe place to do the thing they were going to do anyway.
+A held inspection fee makes it false. **Holding five thousand naira is the same
+regulated activity as holding five million. It is only cheaper to get wrong.**
 
-**The platform still charges nothing.** The whole fee goes to the agent and is
-credited back to the visitor on a completed transaction. No part of it is
-Vallo's, and the copy must never imply otherwise.
+### 4.3 "Credited against the transaction" cannot be computed
+
+This was named as the clause that makes the design honest, and **there is no
+object that links a viewing to a tenancy.** No tenancy table, no rental
+transaction, and `bookings` is a stay object with dates that a rental never
+creates.
+
+A visitor views four flats from three agents, pays four fees, and rents the
+third. **Credited against what, by whom, out of whose money?** The agents who
+showed flats one, two and four did real work and will not be refunding
+anything. So at scale the honest description is not "a refundable commitment
+deposit". It is "the platform took money from a renter to look at properties
+and gave some of it back on one of them", which is the business the platform
+says it is not in, arrived at by arithmetic rather than by anybody's bad faith.
+
+### 4.4 And the gate protects the wrong noun
+
+Nothing in the schema establishes that an agent **controls** the property they
+listed. `agent_verification_checks` has four rungs, `identity`, `address`,
+`payout` and `in_person`, and every one is about the *person*. There is no
+ownership document, no landlord mandate, no title reference.
+
+So a fully verified agent with a real bank account in their own verified name
+can list an address they walked past and collect five thousand naira a viewing
+from twenty people before enough of them complain. **The gate keeps out new
+accounts; the fraud it names does not need a new account.**
+
+### 4.5 It also fails the platform's own dark pattern test, at scale
+
+**Breakage.** Every refundable-deposit business finds its economics in the
+unclaimed portion. Here the platform keeps nothing, which sounds like immunity
+and is worse: the breakage accrues to **the agent**, whose financially best
+outcome becomes a viewing that does *not* convert. That incentive points
+directly away from the visitor and it is manufactured by the design.
+
+**Urgency.** A price on looking is raw material for "fee waived today" and
+"three people have paid to view this flat". The rules forbid manufactured
+urgency and fake scarcity. The fee does not create those; it hands every agent
+on the platform the lever, and levers get pulled.
+
+### 4.6 The amendment: ship the commitment without the money. This is `G-2`
+
+Nobody good charges for the viewing. They charge for the **commitment**, they
+never take custody, and they make it reversible by whoever bears the risk. The
+card mechanism is an **authorisation with delayed capture**, the OpenTable
+no-show hold. An authorisation is not custody: no money moves, nothing enters
+the platform's balance, there is nothing to refund, no licence question arises,
+and it cannot be farmed because the agent only receives anything if the visitor
+fails to attend.
+
+**It only half transfers to Nigeria.** Pre-authorisation exists on cards
+through Paystack, but the dominant rail here is bank transfer and a transfer
+cannot be authorised and then voided. That is the honest answer rather than a
+recommendation.
+
+**The version that transfers fully is not monetary at all.** Make the
+commitment reputational:
+
+- Confirmed slots with an agreed `slot_at`, which already exists.
+- **Symmetric no-show records, visible to both sides.** `inspection_requests`
+  is already shaped for this: it has no delete policy at all and `WITHDRAWN` is
+  the only exit, and the migration header says plainly that this is what stops a
+  pattern of no-shows being invisible.
+- A rate limit on how many open viewing requests one visitor may hold.
+- **The agent's own no-show rate on their profile**, which is supply-side
+  discipline nobody in this market currently faces.
+
+In a low-trust, cash-heavy, annual-transaction market, **reputation is the
+currency that actually clears, and it costs nothing to hold.**
+
+Then measure no-shows for three months. If the data says money is needed, the
+second-best design is a card authorisation voided on attendance, never a
+captured and held fee, gated on the `payout` rung **and** on a property-control
+document that does not exist yet and would have to be built first.
+
+### 4.7 The copy fix, which is worth doing on its own
+
+`app/(site)/safety/page.tsx` line 65 tells a renter to "never pay an inspection
+fee, a holding fee or an agency fee to anybody", unqualified, while
+`listings` itemises `agency_fee_minor` with a column comment reading "the
+agent's commission in kobo, paid by the incoming tenant", and
+`ListingMoveIn.tsx` renders it.
+
+**The contradiction is real and it is one sentence in one file, not a
+product-wide problem.** Four other surfaces already qualify it correctly, in
+`standards`, `help`, `docs/chapters` and `lib/trust/standards.ts`, each saying
+a fee presented **as ours** is a lie. The fix is to match them: **never pay an
+inspection fee, a holding fee or an agency fee outside Vallo.** That is
+`A1-026`, it is one line, and it gives the reader a rule they can follow.
+
+**Note what this means for the fee proposal**: those four surfaces say there is
+no such fee *payable to Vallo*. The moment a fee is paid through Vallo and
+held, all five sentences need rewriting, not one.
 
 ---
 
@@ -214,11 +424,11 @@ notification the event deserves, and a test proving it.
 
 | | # | Id | What | Effort | Why it is in the thirty |
 | --- | ---: | --- | --- | --- | --- |
-| [ ] | 1 | `V-1` | The escrow release model: milestones, not move-in | Decision | See section 3 |
-| [ ] | 2 | `V-2` | The inspection fee, made safe: held, credited, capped | Decision | See section 4 |
+| [ ] | 1 | `G-1` | The handover evidence record. No money in it | Decision, then M | See section 3 |
+| [ ] | 2 | `G-2` | Commitment without money: slots, symmetric no-show records | Decision, then M | See section 4 |
 | [ ] | 3 | `A1-001` | Build the rent money path. A tenancy cannot be paid for | XL | The whole product |
-| [ ] | 4 | `E-2` | Add COMPLETED to booking_status so anything can release | M | Gates V-1 and A1-002 |
-| [ ] | 5 | `A1-002` | Let a renter or a buyer leave a review | L | The only scalable trust signal |
+| [ ] | 4 | `G-3` | Fix `escrow_inspection_is_a_signal` before any multi-leg escrow exists | S | A latent settle-everything bug |
+| [ ] | 5 | `A1-002` | Let a renter or a buyer leave a review | L | The only scalable trust signal. Needs a tenancy record, not `booking_status` |
 
 ### B. Money safety. Cheap, dangerous, and none of it should wait
 
@@ -830,7 +1040,7 @@ was the previous RECOMMENDATIONS.md, and `git show` on any commit before
 | `CASE-1` | A funding was paid for and the wallet showed zero | OPEN |  |
 | `N-6` | There is still no Buy or Sell anywhere in the navigation | OPEN |  |
 | `P-8` | A sale listing must be a different page, and nothing decides what it says | NEW |  |
-| `E-1` | Escrow has just started, in the right place. Nothing is promised yet | OPEN | **SUBSTANTIALLY WRONG as written.** Escrow is not zero percent built. `public.escrows` has an eight-state machine enforced by a trigger, three locking movement functions, an hourly timeout sweep and an admin screen. What is true is narrower: nothing routes a guest payment into it. Superseded by `V-1`. |
+| `E-1` | Escrow has just started, in the right place. Nothing is promised yet | OPEN | **SUBSTANTIALLY WRONG as written.** Escrow is not zero percent built. `public.escrows` has an eight-state machine enforced by a trigger, three locking movement functions, an hourly timeout sweep and an admin screen. What is true is narrower: nothing routes a guest payment into it. Superseded by `G-1`. |
 | `E-2` | Add `COMPLETED` to `booking_status`. Escrow is being built around its absence | OPEN |  |
 | `E-3` | The state machine | NEW |  |
 | `E-7` | Who holds the money is a regulatory question, not an engineering one | OPEN |  |
