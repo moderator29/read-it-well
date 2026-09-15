@@ -69,7 +69,7 @@ const SYSTEM_PROMPT = [
   /*
    * THE ESCROW SENTENCE IS GONE FROM HERE, AND IT MUST NOT COME BACK YET.
    *
-   * This line used to say "Money moves through escrow held by Vallo rather
+   * This line used to say "Money moves through escrow held by RentMe rather
    * than straight to a stranger". Every word of that is a claim about how this
    * platform handles somebody's money, made to somebody deciding whether to
    * part with it, and none of it was safe to say.

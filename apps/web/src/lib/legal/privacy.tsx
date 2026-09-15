@@ -96,7 +96,7 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <ul>
         <li>To create and run your account and show the platform in your language.</li>
-        <li>To process bookings, hold and release payments, and pay agents out.</li>
+        <li>To process bookings, take payments, issue refunds and pay people out.</li>
         <li>To verify agent identities and keep fraudulent listings off the platform.</li>
         <li>To carry messages between guests and agents about listings and bookings.</li>
         <li>To answer support requests and investigate reports and disputes.</li>

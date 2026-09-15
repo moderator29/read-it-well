@@ -3,7 +3,7 @@
  * legal documents and must never differ between them.
  *
  * Until 14 September 2026 the privacy notice and the terms both named
- * **Vallo**. Vallo is a dead working name and was never a legal person: it
+ * **RentMe**. RentMe is a dead working name and was never a legal person: it
  * had no registered office, no RC number and nobody who could be served. A
  * privacy notice that misidentifies the controller is a defective notice under
  * the Nigeria Data Protection Act 2023, and the controller's identity is the
@@ -17,7 +17,7 @@
  *                     invoices, the bank. Never in product UI
  *   Vallo             the product. Every user-facing string, the app stores,
  *                     the domain. Never as the contracting party
- *   Vallo, Vallo  dead. Nowhere, in anything new
+ *   RentMe, NaijaFinds  dead. Nowhere, in anything new
  *
  * WHY SOME OF THESE ARE NULL. Three of the particulars the Act wants do not
  * exist yet: the RC number is with the Corporate Affairs Commission, the NDPC

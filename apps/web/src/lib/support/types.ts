@@ -8,7 +8,7 @@
  * The route speaks Server-Sent Events, one JSON object per `data:` line:
  *   text     an incremental slice of the agent's reply
  *   actions  quick actions the person can take, because a real surface exists
- *   ticket   the real NF-SUP reference of a ticket the agent just filed
+ *   ticket   the real VAL-SUP reference of a ticket the agent just filed
  *   error    a friendly, already-worded failure the UI can show verbatim
  *   done     the turn is complete
  */

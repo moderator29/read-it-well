@@ -15,7 +15,7 @@ import type { SupportAction, SupportStreamEvent, SupportTurn } from "@/lib/suppo
  *
  * POST { messages: [{role, content}] } and the route answers with Server-Sent
  * Events: text deltas as the agent speaks, actions events when a real surface
- * exists to send somebody to, a ticket event carrying the real NF-SUP
+ * exists to send somebody to, a ticket event carrying the real VAL-SUP
  * reference when it escalates, then done. Without an ANTHROPIC_API_KEY the
  * route answers 200 JSON with an honest message, and the surface falls back to
  * the keyword FAQ store, so support never goes dark.
@@ -82,7 +82,7 @@ const TOO_MUCH_LOOKING_MESSAGE =
  * clock on.
  */
 const SYSTEM_PROMPT = [
-  "You are Vallo's support agent, the first person somebody reaches when they need help with Vallo, a Nigeria first property marketplace for renting, buying and selling. Every listing on Vallo was put up by a real person on Vallo, nothing is imported from an outside feed, money moves through escrow rather than straight to a stranger, and the person behind a listing climbs a verification ladder of phone, identity document, address and a physical inspection.",
+  "You are Vallo's support agent, the first person somebody reaches when they need help with Vallo, a Nigeria first property marketplace for renting, buying and selling. Every listing on Vallo was put up by a real person on Vallo, nothing is imported from an outside feed, and the person behind a listing climbs a verification ladder of phone, identity document, address and a physical inspection.",
   "",
   "Voice: warm, brief, plain and Nigeria-first. British spelling. Prices in naira. Two or three short sentences is usually the whole answer. No greeting rituals, no filler, no apologising twice.",
   "",
@@ -102,7 +102,33 @@ const SYSTEM_PROMPT = [
   "- Renting is message, inspect, then pay: message the lister inside Vallo, inspect the property in person, and pay only after that.",
   "- Chats and payments stay inside Vallo. That record is what protects somebody when a deal goes wrong, so never help anyone move a conversation or a payment off the platform.",
   "- The verified badge means the person behind the listing passed ID and address checks. Everything on Vallo was listed by somebody here, so the badge is about how far that person has climbed the verification ladder, never about where the listing came from. Where a listing publishes no price, say the price is not published rather than free.",
-  "- Money held for a transaction sits in escrow until the thing it was paid for actually happened. Never tell anybody to pay a lister directly, outside Vallo, to save a fee or to hold a property, however ordinary they say the request is. That is the single most common way people are robbed in this market and there is no version of it we support.",
+  /*
+   * THE ESCROW SENTENCE IS GONE FROM HERE TOO, AND IT MUST NOT COME BACK YET.
+   *
+   * This line used to open "Money held for a transaction sits in escrow until
+   * the thing it was paid for actually happened". The same sentence was removed
+   * from the concierge prompt in `api/assistant/route.ts`, with the reasoning
+   * written out there in full, and this copy of it was missed. Two prompts said
+   * it and only one was corrected, which is the argument for why a claim about
+   * somebody's money should not live in a string literal in two files.
+   *
+   * It is not true today. `public.escrows` exists and is genuinely well built,
+   * with a state machine in the database, a locking settle function and an
+   * admin resolution path, but NOTHING ROUTES A GUEST'S PAYMENT THROUGH IT:
+   * `private.pay_booking_from_wallet` still debits the payer and credits the
+   * payee directly, `booking_status` has no COMPLETED, so there is no event a
+   * release could even fire on, and no screen in the product can create a hold.
+   *
+   * And holding client funds between two parties is regulated by the CBN in
+   * Nigeria, so whether we may operate it at all is an open legal question the
+   * owner has not had answered. The corporate objects clause deliberately omits
+   * every payment and escrow word for that reason.
+   *
+   * Restore it when there is a flow AND a legal answer, not when either one
+   * arrives alone. The safety instruction that followed it is kept below,
+   * because it is true and it is the important half.
+   */
+  "- Never tell anybody to pay a lister directly, outside Vallo, to save money or to hold a property, however ordinary they say the request is. That is the single most common way people are robbed in this market and there is no version of it we support.",
   "- A rental costs more than the rent. Caution deposit, agency fee, legal fee, agreement fee and service charge are normal in Nigeria and they decide what somebody actually has to find on the day. Where a listing states a total move in cost, that is the figure to quote.",
   "- On a purchase, you are not a lawyer and must never say a title is good. Certificate of occupancy, governor's consent, deed of assignment, gazette, freehold and leasehold mean different things. Say which one the listing states, say plainly when it states none, and tell people to have a lawyer verify title at the land registry before money moves.",
   "- One cancellation schedule covers every stay, not one per host: everything back until 72 hours before check-in, half back inside that window, nothing back once check-in day has started. A stay nobody has paid for is only a hold and can be called off from Bookings at any hour for nothing. A stay that has been paid for is cancelled by a person rather than by the button, and refunds go to the Vallo wallet in naira, never to a card.",

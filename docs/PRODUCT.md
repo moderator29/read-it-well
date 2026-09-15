@@ -31,11 +31,12 @@ and an inspection can mean anything.
 dropped, the `hybrid_hotels` and `hybrid_restaurants` flags are deleted, and
 6,043 lines of provider code are gone.
 
-The product was Vallo, a discovery, stay, food and experience platform. It
-is Vallo. The parts of Vallo that survive do so because a Nigerian looking
-for a place to live also eats, travels and stays, and because a hotelier or a
-restaurateur listing their own venue is a supplier like any other. What does not
-survive is anybody else's inventory.
+The product began as NaijaFinds, a discovery, stay, food and experience
+platform, became RentMe, and is now Vallo. Both earlier names are dead and
+appear nowhere in the product. The parts of the original scope that survive do
+so because a Nigerian looking for a place to live also eats, travels and stays,
+and because a hotelier or a restaurateur listing their own venue is a supplier
+like any other. What does not survive is anybody else's inventory.
 
 ## 2. What it offers
 

@@ -18,7 +18,7 @@ import { TextField } from "@/components/ui/Field";
  * from /api/support, where a grounded agent answers from Vallo's canonical
  * help notes and, for a signed-in person, from their own bookings and wallet
  * read under their own Row Level Security. When it should stop trying it files
- * a real support ticket and hands back the NF-SUP reference the database gave,
+ * a real support ticket and hands back the VAL-SUP reference the database gave,
  * which lands in this thread as a receipt.
  *
  * Two promises the surface keeps whatever happens. Talk to a person is visible
@@ -621,7 +621,7 @@ function TicketReceipt({ reference }: { reference: string }) {
 
 /**
  * Escalation card. Collects a name and an email and nothing else, validates
- * both, files the ticket through the server action, and shows the real NF-SUP
+ * both, files the ticket through the server action, and shows the real VAL-SUP
  * reference the database returned. When the platform cannot file yet, the
  * action's honest message is shown instead of pretending a ticket exists.
  */

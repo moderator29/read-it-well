@@ -26,7 +26,7 @@ import { SUPPORT_TOPICS } from "../trust/support-topics";
  *
  * The escalation path out of SupportChat lands here: validate the little the
  * user gave us (name and email only, plus their question), generate a
- * human-readable NF-SUP reference, and persist the ticket. Signed-in users
+ * human-readable VAL-SUP reference, and persist the ticket. Signed-in users
  * insert under their own RLS policy so the ticket belongs to them; anonymous
  * visitors are filed through the service role, because the tickets table has
  * no anonymous insert policy by design. When Supabase is not configured the
@@ -72,7 +72,7 @@ const PAUSED_MESSAGE =
   "Ticket filing is paused for a moment of maintenance. Your question is kept in this conversation; please try again shortly.";
 
 function makeReference(): string {
-  return `NF-SUP-${String(randomInt(0, 100_000)).padStart(5, "0")}`;
+  return `VAL-SUP-${String(randomInt(0, 100_000)).padStart(5, "0")}`;
 }
 
 /**
@@ -250,7 +250,7 @@ const contactSchema = z.object({
  * nothing had been sent and to email support instead. That was true, and it
  * was also a finished write path sitting one import away: `fileSupportTicket`
  * has handled anonymous visitors through the service role since support
- * shipped. Now the form files a ticket with a real NF-SUP reference, the
+ * shipped. Now the form files a ticket with a real VAL-SUP reference, the
  * acknowledgement email goes to the address on the form, and the reference is
  * shown so the visitor can quote it.
  *

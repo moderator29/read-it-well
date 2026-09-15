@@ -8,7 +8,7 @@
  * apologised for already existed: fileSupportTicket has filed anonymous tickets
  * through the service role since support shipped. The form now posts to a
  * validated server action, is rate limited by address before anything is
- * written, and hands back the NF-SUP reference.
+ * written, and hands back the VAL-SUP reference.
  *
  * This sandbox has no route to the Supabase host, so the action cannot reach
  * the tickets table and answers with its honest unavailable state. What a
@@ -112,7 +112,7 @@ async function run(theme) {
       "and so is a message too short to act on",
       /at least a sentence/i.test(afterInvalid),
     );
-    check("nothing was claimed to have been sent", !/NF-SUP-/.test(afterInvalid));
+    check("nothing was claimed to have been sent", !/VAL-SUP-/.test(afterInvalid));
 
     /* A valid submission. In this sandbox it cannot reach the database, so the
        right outcome is either a real reference or an honest refusal that keeps
@@ -126,7 +126,7 @@ async function run(theme) {
     await page.waitForTimeout(ACTION_WAIT);
 
     const afterValid = await page.locator("body").innerText();
-    const filed = /NF-SUP-\d{5}/.test(afterValid);
+    const filed = /VAL-SUP-\d{5}/.test(afterValid);
     const refused = await page.locator('[role="alert"]').count();
     check(
       `the submission is answered, either filed or honestly refused (filed=${filed})`,

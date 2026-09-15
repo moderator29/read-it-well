@@ -74,7 +74,7 @@ export const handleSchema = z
  *
  * `private.validate_social_handle` refuses any handle containing `vallo` or
  * `vallo` outright, with SQLSTATE RM002. This is that same rule, said
- * before the round trip rather than after it, because `/u/vallo` used to offer
+ * before the round trip rather than after it, because `/u/rentme` used to offer
  * a visitor a "Claim @vallo" button that walked them into a refusal, and
  * `@vallo` is now a name the product itself uses in every thread.
  *

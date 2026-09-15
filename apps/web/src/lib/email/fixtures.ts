@@ -291,7 +291,7 @@ export const EVERY_MESSAGE: NamedMessage[] = [
     name: "supportTicketFiled",
     message: messages.supportTicketFiled({
       name: "Ada",
-      reference: "NF-SUP-4K2P",
+      reference: "VAL-SUP-4K2P",
       topic: "wallet",
       body: "My withdrawal has not arrived after two working days.",
     }),

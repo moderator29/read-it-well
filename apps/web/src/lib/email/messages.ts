@@ -232,7 +232,7 @@ export function welcome(data: WelcomeData): EmailMessage {
             "Search by area, then filter on the total move-in cost rather than the rent.",
             "Message the lister inside Vallo and ask your questions in writing.",
             "Inspect the property in person before any money moves.",
-            "Pay through Vallo, so the money is held until the tenancy is real.",
+            "Pay through Vallo, so there is a record of what you paid, to whom and when. Never send money outside the platform, whatever the reason given.",
           ]),
           button("Start searching", appUrl("/search")),
           note(
@@ -264,7 +264,7 @@ export function welcome(data: WelcomeData): EmailMessage {
             "Search by area and filter on the title you are willing to accept.",
             "Message the seller inside Vallo and keep every answer in writing.",
             "Inspect the property, and have a lawyer verify title at the registry.",
-            "Pay through Vallo, so the money is held until the transaction completes.",
+            "Pay through Vallo, so there is a record of what you paid, to whom and when. Never send money outside the platform, whatever the reason given.",
           ]),
           button("Browse property for sale", appUrl("/search")),
           note(
@@ -386,7 +386,7 @@ export function welcome(data: WelcomeData): EmailMessage {
             "Every listing was put up by a real person on Vallo. Nothing is imported from an outside feed, so there is always somebody to message, somebody to inspect the place with, and somebody accountable for what a listing says.",
           ),
           paragraph(
-            "Money you pay through Vallo is held until the thing it was paid for has happened, and the person behind a listing climbs a verification ladder you can see: phone, identity document, address, then a physical inspection.",
+            "Pay inside Vallo and there is a record of what you paid, to whom and when, which is what we can act on when something goes wrong. The person behind a listing climbs a verification ladder you can see: phone, identity document, address, then a physical inspection.",
           ),
           bullets([
             "Looking for somewhere: start with search and filter on the total move-in cost.",

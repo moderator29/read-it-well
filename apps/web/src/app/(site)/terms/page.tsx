@@ -6,16 +6,20 @@ import { TERMS_SECTIONS as sections } from "@/lib/legal/terms";
 export const metadata: Metadata = {
   title: "Terms of service",
   description:
-    "The rules for using Vallo: accounts, bookings, payments held until after inspection or check-in, refunds, agent listings and acceptable use.",
+    "The rules for using Vallo: accounts, payments, refunds, what a verified badge means, listing a property, the wallet and acceptable use.",
 };
 
 /**
  * Terms of service.
  *
  * A structured, honest document for the Nigerian context. It describes how the
- * platform actually works (payments held until after check-in or inspection,
- * free listing, commission on completed bookings) without inventing corporate
- * details that do not exist yet.
+ * platform actually works, without inventing corporate details that do not
+ * exist yet and without promising mechanisms that are not reachable.
+ *
+ * This description used to say "payments held until after check-in or
+ * inspection". It was removed along with the clause it described: see the
+ * header of `lib/legal/terms.tsx` for why a holding promise cannot stand in
+ * this document today.
  */
 export default function TermsPage() {
   return (

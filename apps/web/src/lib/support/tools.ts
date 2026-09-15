@@ -193,7 +193,7 @@ export const SUPPORT_TOOLS = [
   {
     name: "my_tickets",
     description:
-      "Read the support tickets the signed-in caller has already filed: reference, subject, status, when it was filed and whether the team has replied. Use it whenever they ask what happened to a ticket, quote an NF-SUP reference, or say nobody has come back to them. Returns unavailable when nobody is signed in.",
+      "Read the support tickets the signed-in caller has already filed: reference, subject, status, when it was filed and whether the team has replied. Use it whenever they ask what happened to a ticket, quote an VAL-SUP reference, or say nobody has come back to them. Returns unavailable when nobody is signed in.",
     input_schema: {
       type: "object",
       properties: {},
@@ -223,7 +223,7 @@ export const SUPPORT_TOOLS = [
   {
     name: "file_ticket",
     description:
-      "Hand the matter to the human support team by filing a real support ticket, and return its NF-SUP reference and the response time it is now under. Call this when the person asks for a human, or when the matter is money lost, safety, fraud, or an account they cannot get into, or when you genuinely cannot answer. For a signed-out caller you must have their name and email first: ask for both in the conversation, or point them at the Talk to a person control. Never say a ticket exists unless this tool returned a reference.",
+      "Hand the matter to the human support team by filing a real support ticket, and return its VAL-SUP reference and the response time it is now under. Call this when the person asks for a human, or when the matter is money lost, safety, fraud, or an account they cannot get into, or when you genuinely cannot answer. For a signed-out caller you must have their name and email first: ask for both in the conversation, or point them at the Talk to a person control. Never say a ticket exists unless this tool returned a reference.",
     input_schema: {
       type: "object",
       properties: {

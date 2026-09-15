@@ -133,7 +133,7 @@ const LISTING = { id: "l-1", title: "Sea view flat", area: "Lekki", city: "Lagos
 
 beforeEach(() => {
   fileSupportTicket.mockReset();
-  fileSupportTicket.mockResolvedValue({ ok: true, data: { reference: "NF-SUP-00042" } });
+  fileSupportTicket.mockResolvedValue({ ok: true, data: { reference: "VAL-SUP-00042" } });
   // Fixed so "today" and the refund schedule's clock are the same in every run.
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-08-07T09:00:00Z"));
@@ -541,7 +541,7 @@ describe("my_tickets", () => {
           data: [
             {
               id: "t-1",
-              reference: "NF-SUP-00042",
+              reference: "VAL-SUP-00042",
               topic: "safety",
               status: "open",
               created_at: "2026-08-06T10:00:00Z",
@@ -556,7 +556,7 @@ describe("my_tickets", () => {
     );
     const out = await runSupportTool("my_tickets", {}, session);
     const ticket = rows(record(out.result).tickets)[0] ?? {};
-    expect(ticket.reference).toBe("NF-SUP-00042");
+    expect(ticket.reference).toBe("VAL-SUP-00042");
     expect(ticket.answeredBySupport).toBe(true);
     expect(ticket.answeredWithin).toBe("Within 4 hours");
     expect(String(ticket.about)).toMatch(/pay outside Vallo/i);
@@ -570,7 +570,7 @@ describe("my_tickets", () => {
           data: [
             {
               id: "t-1",
-              reference: "NF-SUP-00043",
+              reference: "VAL-SUP-00043",
               topic: "booking",
               status: "open",
               created_at: "2026-08-06T10:00:00Z",
@@ -707,7 +707,7 @@ describe("file_ticket", () => {
     const filed = record(fileSupportTicket.mock.calls[0]?.[0]);
     expect(filed.email).toBe("ada@example.com");
     expect(filed.name).toBe("Ada Obi");
-    expect(out.reference).toBe("NF-SUP-00042");
+    expect(out.reference).toBe("VAL-SUP-00042");
     expect(record(out.result).answeredWithin).toBe("Within 1 day");
   });
 

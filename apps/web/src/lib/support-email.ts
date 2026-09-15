@@ -1,12 +1,12 @@
 /**
  * The one way to reach a person, and the one place that decides what it is.
  *
- * This module used to hand out `support@vallo.ng`. **That mailbox does not
+ * This module used to hand out `support@rentme.ng`. **That mailbox does not
  * exist.** Six surfaces printed it as a live link, and two of them were
  * Privacy and Terms, which is where somebody goes to exercise a data right
  * under the NDPA. A wrong domain sends mail to the wrong place; an address
  * with no mailbox behind it sends it nowhere, silently, and the person who
- * wrote it believes they have asked. That is worse than the vallo.com
+ * wrote it believes they have asked. That is worse than the naijafinds.com
  * split this file was originally written to fix.
  *
  * So the module hands out a **channel** rather than an address.

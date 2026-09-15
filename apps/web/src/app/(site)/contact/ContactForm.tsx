@@ -21,7 +21,7 @@ import {
  * the write path it apologised for already existed: `fileSupportTicket` has
  * filed anonymous tickets through the service role since support shipped.
  *
- * So it files a real ticket now. The visitor gets an NF-SUP reference on the
+ * So it files a real ticket now. The visitor gets a VAL-SUP reference on the
  * screen and the same reference by email, and support gets a row in the queue
  * they already work from. Every failure still names the support address, so a
  * paused queue, a missing key or a rate limit leaves a person with somewhere

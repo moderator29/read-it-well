@@ -22,7 +22,7 @@ export const metadata: Metadata = {
  *
  * The support email is the hero object, with a plain response-time promise
  * next to it. The form below files a real support ticket and hands back its
- * NF-SUP reference, and the help centre is offered first for the questions
+ * VAL-SUP reference, and the help centre is offered first for the questions
  * that already have written answers.
  */
 
@@ -66,7 +66,7 @@ export default async function ContactPage({
         <Reveal as="section" className="mt-section">
           <div className="nf-card p-card text-center-lg">
             {/*
-              The hero used to be a large mailto to support@vallo.ng, a
+              The hero used to be a large mailto to support@rentme.ng, a
               mailbox that does not exist, sitting directly above a form that
               works. It offered a dead route in the largest type on the page
               and the live one underneath it in the smallest.
