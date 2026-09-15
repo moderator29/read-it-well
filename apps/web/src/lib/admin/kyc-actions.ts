@@ -47,8 +47,30 @@ export async function reviewKycDocument(input: {
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   try {
+    /*
+     * NO acting_admin ARGUMENT, AND THAT IS THE POINT.
+     *
+     * Migration 20260809054243 moved this out of the private schema, because
+     * PostgREST exposes public only and a console calling private.* got
+     * PGRST202. The public wrapper deliberately takes ONE ARGUMENT FEWER: the
+     * acting admin is auth.uid(), never something the caller states, because
+     * "a function that let the caller name which admin was acting would put
+     * the name on the audit entry under the caller's control, and an audit
+     * trail somebody can write their colleague's name into is not an audit
+     * trail".
+     *
+     * This call site kept passing it for 37 days. PostgREST resolves an RPC by
+     * ARGUMENT NAME, so every call resolved nothing, returned PGRST202, and
+     * this action answered "service down". No admin could approve or reject a
+     * verification document in that window, so no agent could be verified, so
+     * the supply side of the marketplace could not start. Typecheck did not
+     * catch it and nothing else looks at these call sites.
+     *
+     * If you are adding an argument here, check the wrapper's signature in
+     * supabase/migrations first, not the generated types, which nothing
+     * regenerates automatically.
+     */
     const { data, error } = await access.supabase.rpc("review_kyc_document", {
-      acting_admin: access.user.id,
       p_document: parsed.data.documentId,
       p_approve: parsed.data.approve,
       /* An approval carries no reason, and the function's argument is not

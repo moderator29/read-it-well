@@ -134,8 +134,14 @@ export async function setFeeRate(input: {
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   try {
+    /*
+     * NO acting_admin ARGUMENT. Same defect and same reason as the one written
+     * out in lib/admin/kyc-actions.ts: migration 20260809054243 gave the public
+     * wrapper one argument fewer so the actor comes from auth.uid() and cannot
+     * be named by the caller, and this call site was never updated. Every call
+     * resolved nothing and this action answered "service down".
+     */
     const { data, error } = await access.supabase.rpc("set_fee_rate", {
-      acting_admin: access.user.id,
       p_kind: parsed.data.kind,
       p_basis_points: parsed.data.basisPoints,
       p_flat_minor: parsed.data.flatMinor,

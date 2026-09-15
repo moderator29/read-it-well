@@ -8,7 +8,8 @@
     "start": "next start -p 3000",
     "lint": "eslint . && node scripts/check-css-tokens.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prebuild": "node ../../scripts/build-scene-manifest.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.1",
