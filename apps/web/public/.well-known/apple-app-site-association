@@ -2,7 +2,7 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID.ng.rentme.app"],
+        "appIDs": ["PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID.ng.vallo.app"],
         "components": [
           {
             "/": "/auth/*",
@@ -34,7 +34,7 @@
           },
           {
             "/": "/u/*",
-            "comment": "A member profile. The product tells people their address is rentme.ng/u/handle, so it has to open here."
+            "comment": "A member profile. The product tells people their address is vallo.ng/u/handle, so it has to open here."
           },
           {
             "/": "/post/*",

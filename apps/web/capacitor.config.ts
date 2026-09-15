@@ -61,7 +61,7 @@ const config: CapacitorConfig = {
    * match the bundle identifier registered in the Apple Developer portal and in
    * the Play Console. Change it now if it is going to change at all.
    */
-  appId: "ng.rentme.app",
+  appId: "ng.vallo.app",
 
   /* What appears under the icon on a home screen. Kept to one word for the
      same reason `short_name` in the web manifest is: a launcher truncates. */

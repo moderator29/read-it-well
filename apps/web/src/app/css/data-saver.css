@@ -18,14 +18,18 @@
  *   /       1,585KB, of which 1,429KB is imagery
  *   /search 1,517KB, of which 1,360KB is imagery
  *
- * Two files are nearly all of it. `vallo-city.png` is 2,149KB and
- * `vallo-bg.png` is 1,343KB, both served raw out of /public because they are
- * background artwork and the brief is explicit that the supplied artwork is
- * the canonical visual source and must be used as an image rather than
- * recreated in CSS. That is the right call and it is not in question here.
- * What is in question is whether somebody paying by the megabyte on a 2g link
- * in Onitsha should be sent three and a half megabytes of scenery before they
- * can read a price, and the answer is no.
+ * **THOSE MEASUREMENTS ARE HISTORICAL AND THE FILES BEHIND THEM ARE GONE.**
+ * Two files were nearly all of it: `vallo-city.png` at 2,149KB and
+ * `vallo-bg.png` at 1,343KB, both RentMe-era renders served raw out of
+ * /public. They were removed along with the rest of that art set, so the
+ * numbers above are now the record of what this rule set was built against
+ * rather than what a reader downloads today. **Re-measure before quoting
+ * them.**
+ *
+ * The rules are kept, and kept working, for two reasons. Supplied artwork is
+ * coming back into these same slots, and when it does this is what stops it
+ * being sent to somebody on a 2g link in Onitsha before they can read a
+ * price. And the rule set covers more than those two files.
  *
  * A background image on an element that is never painted is never fetched, so
  * these rules do not hide the artwork, they stop it existing. That only works

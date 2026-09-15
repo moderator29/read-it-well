@@ -102,7 +102,7 @@ export default async function BookingsPage({
   return (
     <div className="mx-auto max-w-2xl">
       <div className="relative">
-        <PageScene art="/brand/story-booking.png" />
+        <PageScene art="calendar-check" />
       <PageHeader title={t.nav.bookings} />
       </div>
 

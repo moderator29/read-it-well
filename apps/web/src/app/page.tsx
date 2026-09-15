@@ -21,6 +21,9 @@ import { AssistantShowcase } from "@/components/site/landing/SignatureShowcase";
 import { StoryRail } from "@/components/site/landing/StoryRail";
 import { gatedHref } from "@/lib/site/gated-href";
 
+/** The supplied landing hero artwork. Null until the founder sends one. See docs/IMAGERY.md section 5. */
+const HERO_ARTWORK: string | null = null;
+
 const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"];
 
 export default async function LandingPage() {
@@ -98,24 +101,38 @@ export default async function LandingPage() {
           </div>
 
           {/*
-           * The villa is the hero's atmosphere, not a picture in a frame: a
-           * large masked still dissolving into the canvas behind the text, so
-           * the scene and the platform read as one surface. Its edges never
-           * print; the mask fades it out in every direction.
+           * THE HERO ARTWORK SLOT, AND IT IS EMPTY ON PURPOSE.
+           *
+           * This held `/brand/vallo-villa.png`, a 2.3MB RentMe-era render that
+           * was simultaneously the landing hero AND the stand-in for four
+           * listing kinds in `MediaFrame`. The first thing a stranger saw was
+           * the same picture as a listing card for a terrace.
+           *
+           * Set `HERO_ARTWORK` below to a path and this paints again, masked
+           * and floating exactly as before. The container, the float animation
+           * and the mask are all still here and unchanged.
+           *
+           * With no artwork the hero is type on the ambient canvas, which is
+           * the strongest thing on this page anyway and is what a reader is
+           * actually here for. It is not a hole waiting to be filled.
+           *
+           * `docs/IMAGERY.md` section 5 is the brief.
            */}
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
-            <div className="nf-float-slow absolute right-[-18%] top-[-2%] w-[95%] max-w-[560px] sm:right-[-8%] sm:w-[70%] lg:right-[-4%] lg:top-[-12%] lg:w-[58%] lg:max-w-[900px]">
-              <Image
-                src="/brand/vallo-villa.png"
-                alt=""
-                width={1536}
-                height={1024}
-                priority
-                sizes="(max-width: 640px) 95vw, (max-width: 1024px) 70vw, 58vw"
-                className="nf-hero-scene h-auto w-full"
-              />
+          {HERO_ARTWORK ? (
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
+              <div className="nf-float-slow absolute right-[-18%] top-[-2%] w-[95%] max-w-[560px] sm:right-[-8%] sm:w-[70%] lg:right-[-4%] lg:top-[-12%] lg:w-[58%] lg:max-w-[900px]">
+                <Image
+                  src={HERO_ARTWORK}
+                  alt=""
+                  width={1536}
+                  height={1024}
+                  priority
+                  sizes="(max-width: 640px) 95vw, (max-width: 1024px) 70vw, 58vw"
+                  className="nf-hero-scene h-auto w-full"
+                />
+              </div>
             </div>
-          </div>
+          ) : null}
 
           <div className="nf-shell relative z-10">
             <div className="max-w-2xl">

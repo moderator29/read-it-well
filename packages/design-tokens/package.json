@@ -2,7 +2,7 @@
   "name": "@vallo/design-tokens",
   "version": "0.1.0",
   "private": true,
-  "description": "Single source of truth for NaijaFinds colour, type, space, radius, elevation, material and motion tokens.",
+  "description": "Single source of truth for Vallo colour, type, space, radius, elevation, material and motion tokens.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {

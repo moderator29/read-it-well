@@ -1,4 +1,4 @@
-package ng.rentme.app;
+package ng.vallo.app;
 
 import com.getcapacitor.BridgeActivity;
 

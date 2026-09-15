@@ -30,10 +30,10 @@ if (hasReleaseKeystore) {
 }
 
 android {
-    namespace = "ng.rentme.app"
+    namespace = "ng.vallo.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "ng.rentme.app"
+        applicationId "ng.vallo.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         /*

@@ -51,7 +51,7 @@ export default async function RentPage({
   return (
     <>
       <div className="relative">
-        <PageScene art="/brand/story-search.png" />
+        <PageScene art="home-search" />
       <PageHeader title={t.nav.rent} />
       </div>
 
@@ -76,7 +76,7 @@ export default async function RentPage({
         </div>
 
         <SceneBanner
-          art="/brand/story-shield.png"
+          art="shield-home"
           alt="The Vallo shield mark with a verification check"
           stage="paper"
           title="Every rental here is checked"

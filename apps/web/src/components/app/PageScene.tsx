@@ -1,12 +1,26 @@
-import Image from "next/image";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 
 /**
  * Page scene anchor.
  *
- * A commissioned scene dissolved into the canvas behind a page's opening
- * lines, the same treatment the landing hero gets. It carries the platform's
- * identity through the app itself: Bookings, Wallet, Saved and the rest stop
- * being generic lists and start looking like rooms in one building.
+ * A commissioned brand object dissolved into the canvas behind a page's
+ * opening lines. It carries the platform's identity through the app itself:
+ * Bookings, Wallet, Saved and the rest stop being generic lists and start
+ * looking like rooms in one building.
+ *
+ * IT TAKES A BRAND OBJECT NAME NOW, NOT AN IMAGE PATH.
+ *
+ * It used to take `art`, a path into `/brand/story-*.png`: eight large scene
+ * renders from the RentMe era. Two of them, `story-verified` and
+ * `story-world`, had the old RentMe R-and-house logo MODELLED INTO THE
+ * ARTWORK, so the dead brand was shipping on Saved and on the trust strip long
+ * after every string had been renamed. A logo baked into a PNG survives a name
+ * sweep, which is the lesson worth keeping from this.
+ *
+ * They are replaced by the 87 commissioned brand objects, which are already in
+ * the repository, already on brand, already the platform's own visual language,
+ * and roughly a hundredth of the weight: the eight scenes were 6.6MB between
+ * them. Nothing here is a stand-in awaiting a better file.
  *
  * Purely decorative and pointer-transparent, sized so it never competes with
  * the content sitting in front of it.
@@ -31,7 +45,8 @@ export function PageScene({
   art,
   className,
 }: {
-  art: string;
+  /** A commissioned brand object. See `BrandIconName` for the 87 available. */
+  art: BrandIconName;
   className?: string;
 }) {
   return (
@@ -42,14 +57,7 @@ export function PageScene({
       <div
         className={`absolute right-[-14%] top-[-22%] w-[62%] max-w-[300px] sm:right-[-6%] sm:w-[46%] sm:max-w-[380px] ${className ?? ""}`}
       >
-        <Image
-          src={art}
-          alt=""
-          width={900}
-          height={900}
-          sizes="(max-width: 640px) 62vw, 380px"
-          className="nf-page-scene h-auto w-full"
-        />
+        <BrandIcon name={art} fill className="nf-page-scene h-auto w-full" />
       </div>
     </div>
   );

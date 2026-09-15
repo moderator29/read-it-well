@@ -76,15 +76,13 @@ import { SCENE_PHOTOGRAPHS } from "@/lib/listings/scene-photographs.generated";
  * WHAT MADE THIS HARD AND HOW IT IS SOLVED. Stock photography cannot be fetched
  * from this environment at all - the network policy answers 403 to every image
  * host - and a photograph of somebody else's building placed on a listing would
- * be a claim about that property we cannot make anyway. But two genuine
- * architectural images are already in this repository and already ours:
- * `vallo-villa.png`, which opens the landing page, and `vallo-city.png`.
+ * be a claim about that property we cannot make anyway.
  *
- * So a listing with no photograph of its own gets one of those two, chosen by
- * what kind of place it is: the villa for anything somebody lives in, the city
- * for a block, a hotel or an office floor. LAND KEEPS THE DRAWING, because a
- * plot has nothing built on it and putting a house on it would be the picture
- * contradicting the listing.
+ * Two RentMe-era renders used to fill the gap, one for anything lived in and
+ * one for a block. THEY ARE GONE, with the rest of that art set, and every
+ * scene falls through to the drawing until real photography is dropped in.
+ * LAND KEEPS THE DRAWING PERMANENTLY, because a plot has nothing built on it
+ * and putting a house on it would be the picture contradicting the listing.
  *
  * TWENTY CARDS DO NOT LOOK IDENTICAL. The listing's own hue drives the crop, so
  * neighbouring cards frame the same building differently, and a brand-tinted
@@ -126,14 +124,40 @@ import { SCENE_PHOTOGRAPHS } from "@/lib/listings/scene-photographs.generated";
  *   Upgrade the image quality; do not remove the mark.
  */
 const STAND_IN: Record<Scene, string | null> = {
-  house: "/brand/vallo-villa.png",
-  villa: "/brand/vallo-villa.png",
-  terrace: "/brand/vallo-villa.png",
-  shortlet: "/brand/vallo-villa.png",
-  flats: "/brand/vallo-city.png",
-  tower: "/brand/vallo-city.png",
-  hotel: "/brand/vallo-city.png",
-  shop: "/brand/vallo-city.png",
+  /*
+   * ALL NULL, AND THAT IS NOT A REGRESSION.
+   *
+   * Eight of these pointed at two RentMe-era renders: `vallo-villa.png` for
+   * anything lived in and `vallo-city.png` for a block, a hotel or an office
+   * floor. 4.5MB between them, and the same two pictures behind twenty cards.
+   * The villa was ALSO the landing hero and the city was ALSO the product home
+   * hero, so the first thing a stranger saw was the same image as a listing
+   * card for a terrace.
+   *
+   * With every entry null, each scene falls through to the DRAWN scene below,
+   * which already exists for all nine kinds and was built precisely so a
+   * bungalow in Bodija, a plot in Epe and an office floor on the Island are
+   * three different pictures rather than three copies of one skyline. The
+   * drawing varies its sky angle, sun position and lit windows by the
+   * listing's own hue, so a grid still does not repeat.
+   *
+   * So this is the honest state, not an empty one: nothing here is a hole, and
+   * the product looks like a product with no photographs yet, which is exactly
+   * what it is while the catalogue is empty.
+   *
+   * **Real photography arrives through `SCENE_PHOTOGRAPHS`, not through here.**
+   * Drop a file into `public/brand/scenes/` under the scene's name and the next
+   * build wires it, per the note above. `docs/IMAGERY.md` names a specific,
+   * correctly licensed image for each one.
+   */
+  house: null,
+  villa: null,
+  terrace: null,
+  shortlet: null,
+  flats: null,
+  tower: null,
+  hotel: null,
+  shop: null,
   /* Nothing is built here, so nothing built is shown. */
   land: null,
 };

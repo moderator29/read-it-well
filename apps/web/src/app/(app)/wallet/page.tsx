@@ -76,7 +76,7 @@ export default async function WalletPage({
   return (
     <div className="mx-auto max-w-2xl">
       <div className="relative">
-        <PageScene art="/brand/story-wallet.png" />
+        <PageScene art="wallet-secure" />
         {/*
           Settings live at the TOP of the wallet, beside its title, which is
           where a user looks for them. The trust strip that used to sit at the

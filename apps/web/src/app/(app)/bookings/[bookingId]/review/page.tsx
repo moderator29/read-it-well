@@ -244,7 +244,7 @@ function Shell({
   return (
     <div className="mx-auto max-w-2xl">
       <div className="relative">
-        <PageScene art="/brand/story-booking.png" />
+        <PageScene art="calendar-check" />
         <PageHeader title="Review your stay" subtitle={subtitle} fallback="/bookings" />
       </div>
       {children}

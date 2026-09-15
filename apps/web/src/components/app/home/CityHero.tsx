@@ -107,6 +107,33 @@ export function placePins(areas: HomeArea[]): PlacedPin[] {
   return pins;
 }
 
+/**
+ * The supplied photograph for this hero, when one exists.
+ *
+ * **THIS IS THE SLOT. Put a path here and the hero paints it.** Nothing else
+ * needs to change: the container, the scrim, the ratio and the type are all
+ * below and are unaffected.
+ *
+ * It was `/brand/vallo-city.png`, a 2.1MB RentMe-era render that was also
+ * doing duty as the stand-in for four listing kinds in `MediaFrame`. So the
+ * most important image on the product home was the same picture as a listing
+ * card for an office floor, and it was the single heaviest asset on the
+ * platform.
+ *
+ * **Null is the correct value today and the hero is designed for it.** With no
+ * artwork the container keeps its navy artwork ground, its brand border and
+ * its glow, which reads as a deliberate dark panel rather than as a picture
+ * that failed to load. That is the rule for every state on this platform: a
+ * surface with nothing in it is still designed.
+ *
+ * `docs/IMAGERY.md` section 5 is the brief for what belongs here, and it is
+ * the highest-value single image in the product: an elevated Nigerian city at
+ * dusk, warm lights coming on, residential rather than a business district,
+ * able to hold legible white type across the middle third under a heavy scrim.
+ * Re-encode to AVIF and give it a narrower 390px crop before it ships.
+ */
+const CITY_HERO_ARTWORK: string | null = null;
+
 export function CityHero({
   cityLabel,
   contextLabel,
@@ -123,15 +150,20 @@ export function CityHero({
     <section aria-label={`Places open in ${cityLabel || "Nigeria"}`}>
       <div
         className="relative isolate overflow-hidden rounded-[var(--nf-radius-2xl)] border border-[var(--nf-border-brand)] shadow-[var(--nf-glow-brand)]"
-        /* The hook data-saver.css turns off. 2.1MB of artwork, and a reader
-           on a 2g link needs the prices under it far more than the scenery. */
+        /* The hook data-saver.css turns off. Kept for the supplied artwork
+           below: a reader on a 2g link needs the prices under this far more
+           than the scenery. */
         data-artwork="city"
-        style={{
-          backgroundImage: "url('/brand/vallo-city.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center 62%",
-          backgroundColor: "var(--nf-surface-artwork)",
-        }}
+        style={
+          CITY_HERO_ARTWORK
+            ? {
+                backgroundImage: `url('${CITY_HERO_ARTWORK}')`,
+                backgroundSize: "cover",
+                backgroundPosition: "center 62%",
+                backgroundColor: "var(--nf-surface-artwork)",
+              }
+            : { backgroundColor: "var(--nf-surface-artwork)" }
+        }
       >
         {/*
           The artwork is a night scene in both themes, so this card keeps the

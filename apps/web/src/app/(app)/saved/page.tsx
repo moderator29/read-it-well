@@ -43,7 +43,7 @@ export default async function SavedPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="relative">
-        <PageScene art="/brand/story-world.png" />
+        <PageScene art="globe-pin" />
       <PageHeader title={t.nav.saved} />
       </div>
       <SavedBoard items={items} />

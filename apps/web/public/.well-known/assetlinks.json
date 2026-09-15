@@ -3,7 +3,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "ng.rentme.app",
+      "package_name": "ng.vallo.app",
       "sha256_cert_fingerprints": [
         "PLACEHOLDER_REPLACE_WITH_PLAY_APP_SIGNING_SHA256_SEE_ANDROIDMANIFEST_XML",
         "PLACEHOLDER_REPLACE_WITH_UPLOAD_KEY_SHA256_SEE_ANDROIDMANIFEST_XML"

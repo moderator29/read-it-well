@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
@@ -64,13 +63,12 @@ export function VillaShowcase() {
           </div>
 
           <div className="relative flex min-h-[240px] items-center justify-center p-6 sm:min-h-[320px] sm:p-8">
-            <Image
-              src="/brand/vallo-city.png"
-              alt="The neon Vallo city island"
-              width={1536}
-              height={888}
-              sizes="(max-width: 1024px) 90vw, 46vw"
-              className="h-auto w-full max-w-[580px] drop-shadow-[0_30px_60px_rgba(12,57,239,0.45)]"
+            {/* The RentMe city render stood here, 2.1MB. The commissioned
+                object is ours, on brand, and a hundredth of the weight. */}
+            <BrandIcon
+              name="cluster-home"
+              size={320}
+              className="h-auto w-full max-w-[420px]"
             />
           </div>
         </div>
@@ -98,14 +96,13 @@ export function CoverageMap() {
           aria-label="Open the Vallo coverage map"
           className="nf-card nf-card--interactive block overflow-hidden p-0"
         >
-          <Image
-            src="/brand/vallo-map.png"
-            alt="The Vallo map of Nigeria with lit city markers"
-            width={1536}
-            height={1024}
-            sizes="(max-width: 1024px) 100vw, 1080px"
-            className="h-auto w-full"
-          />
+          {/* The RentMe map render stood here, 1.8MB, and it was decorative:
+              it showed lit markers on a Nigeria that did not correspond to any
+              row in `areas`. The object states the same idea without claiming
+              coverage the catalogue does not have. */}
+          <div className="grid aspect-[3/2] w-full place-items-center bg-[var(--nf-surface-artwork)]">
+            <BrandIcon name="map-route" size={240} label="Vallo coverage" />
+          </div>
         </Link>
       </Reveal>
     </section>
@@ -147,13 +144,14 @@ export function AssistantShowcase() {
       <Reveal>
         <div className="nf-card overflow-hidden p-0 lg:grid lg:grid-cols-[1fr_1.02fr]">
           <div className="relative order-last min-h-[240px] sm:min-h-[340px] lg:order-first lg:min-h-0">
-            <Image
-              src="/brand/vallo-assistant.png"
-              alt="The Vallo assistant"
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
+            {/* The RentMe assistant render stood here, 1.9MB. Replaced with
+                the commissioned bot object on the brand ground. */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 grid place-items-center bg-[var(--nf-surface-artwork)]"
+            >
+              <BrandIcon name="bot-chat" size={220} />
+            </div>
             <div
               aria-hidden="true"
               className="absolute inset-0 bg-gradient-to-t from-[rgb(1_1_24_/_0.55)] via-transparent to-transparent lg:bg-gradient-to-l lg:from-[rgb(1_1_24_/_0.6)] lg:via-transparent lg:to-transparent"

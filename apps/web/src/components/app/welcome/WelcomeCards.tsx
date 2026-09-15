@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Dictionary } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 
 /**
  * The way in. Three full-bleed slides.
@@ -42,8 +43,17 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  */
 
 type Slide = {
-  /** A real photograph. There is no illustration in this component. */
-  src: string;
+  /**
+   * A supplied photograph, when one exists. **This is the slot.**
+   *
+   * It held three RentMe-era renders, 6.3MB between them, on the first screen
+   * a new member ever sees. Null paints the designed ground below instead,
+   * which is a finished state rather than a gap: the brand object, the scrim
+   * and the type all still work, and the card reads as a lit panel.
+   */
+  src: string | null;
+  /** The commissioned brand object shown when there is no photograph. */
+  art: BrandIconName;
   title: string;
   body: string;
   /** Which part of the image to hold on to as the frame narrows. */
@@ -60,9 +70,9 @@ export function WelcomeCards({
 }) {
   const w = t.welcomeCards;
   const slides: Slide[] = [
-    { src: "/brand/vallo-villa.png", title: w.one.title, body: w.one.body, position: "center" },
-    { src: "/brand/vallo-city.png", title: w.two.title, body: w.two.body, position: "center" },
-    { src: "/brand/vallo-map.png", title: w.three.title, body: w.three.body, position: "center" },
+    { src: null, art: "home-search", title: w.one.title, body: w.one.body, position: "center" },
+    { src: null, art: "map-spot", title: w.two.title, body: w.two.body, position: "center" },
+    { src: null, art: "globe-pin", title: w.three.title, body: w.three.body, position: "center" },
   ];
 
   const track = useRef<HTMLDivElement>(null);
@@ -122,17 +132,28 @@ export function WelcomeCards({
             aria-hidden={i !== index ? true : undefined}
             className="relative w-full shrink-0 snap-center overflow-hidden"
           >
-            <Image
-              src={slide.src}
-              alt=""
-              fill
-              /* The first slide is the largest paint on the screen and it is
-                 above the fold by definition, so it is not lazy. */
-              priority={i === 0}
-              sizes="100vw"
-              className="object-cover"
-              style={{ objectPosition: slide.position }}
-            />
+            {slide.src ? (
+              <Image
+                src={slide.src}
+                alt=""
+                fill
+                /* The first slide is the largest paint on the screen and it is
+                   above the fold by definition, so it is not lazy. */
+                priority={i === 0}
+                sizes="100vw"
+                className="object-cover"
+                style={{ objectPosition: slide.position }}
+              />
+            ) : (
+              /* The designed ground. Not a placeholder: the brand object is the
+                 platform's own language and this card is finished as it is. */
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 grid place-items-center bg-[var(--nf-surface-artwork)]"
+              >
+                <BrandIcon name={slide.art} size={200} priority={i === 0} />
+              </div>
+            )}
 
             {/* The scrim. Theme independent on purpose: what is under it is a
                 photograph in both themes, which is the one case where a dark

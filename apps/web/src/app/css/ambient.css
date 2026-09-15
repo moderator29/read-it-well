@@ -22,7 +22,22 @@
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
-    background: var(--nf-canvas-base) url("/brand/vallo-bg.png") center bottom / cover no-repeat;
+    /*
+     * THE SUPPLIED WAVE ARTWORK STOOD HERE AND IS GONE.
+     *
+     * It was `/brand/vallo-bg.png`, a RentMe-era render, 1,343KB, fetched on
+     * every one of the 97 pages and painted twice: once here and once mirrored
+     * on the span below. On the stated target, a mid-range Android on a
+     * Nigerian mobile network, it was most of the wait before anything settled.
+     *
+     * The brand rule that supplied artwork is canonical and must be used as an
+     * image rather than recreated in CSS still stands, and nothing here
+     * recreates it. The ground is the canvas token and the drifting colour
+     * blooms below are unchanged: they were always CSS and they are what keeps
+     * the canvas alive. **Put a new file back on this line and the mirrored
+     * span below to restore the treatment exactly.**
+     */
+    background: var(--nf-canvas-base);
     isolation: isolate;
   }
   /*
@@ -37,7 +52,7 @@
     pointer-events: none;
   }
   .nf-ambient > span:nth-child(1) {
-    background: url("/brand/vallo-bg.png") center bottom / cover no-repeat;
+    /* The mirrored half of the artwork above. Restore both lines together. */
     transform: scaleY(-1) scaleX(-1);
     /*
      * 0.3, down from 0.8.

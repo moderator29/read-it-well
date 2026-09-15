@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>RentMe</string>
+        <string>Vallo</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -88,7 +88,7 @@
 		review question with no answer.
 	-->
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>RentMe centres the search map on where you are when you tap the locate button, so you can see homes and places near you without typing an address. Your position is used on this device only and is never sent to RentMe.</string>
+	<string>Vallo centres the search map on where you are when you tap the locate button, so you can see homes and places near you without typing an address. Your position is used on this device only and is never sent to Vallo.</string>
 	<!--
 		Read when the person picks an existing image or document from the file
 		inputs behind listing photos, profile pictures, message attachments and
@@ -96,7 +96,7 @@
 		library, so `NSPhotoLibraryAddUsageDescription` is absent.
 	-->
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>RentMe opens your photos when you choose one to upload, so you can add pictures to a listing, set your profile picture, send a photo in a message, or supply an agent verification document. Only the files you pick are read.</string>
+	<string>Vallo opens your photos when you choose one to upload, so you can add pictures to a listing, set your profile picture, send a photo in a message, or supply an agent verification document. Only the files you pick are read.</string>
 	<!--
 		The camera, and why it is present when the permission inventory calls it
 		unused.
@@ -123,7 +123,7 @@
 		Safari holding the permission instead of us.
 	-->
 	<key>NSCameraUsageDescription</key>
-	<string>RentMe opens your camera only when you choose "Take Photo" while adding a picture, so you can photograph a place you are listing, a document that verifies you as an agent, or something you want to send in a message. Nothing is captured until you tap the shutter, and RentMe never records video or opens the camera on its own.</string>
+	<string>Vallo opens your camera only when you choose "Take Photo" while adding a picture, so you can photograph a place you are listing, a document that verifies you as an agent, or something you want to send in a message. Nothing is captured until you tap the shutter, and Vallo never records video or opens the camera on its own.</string>
 	<!--
 		DELIBERATELY ABSENT, and each one is a decision rather than an omission.
 

@@ -41,7 +41,7 @@ export default async function InboxPage() {
       return (
         <div className="mx-auto max-w-2xl">
           <div className="relative">
-            <PageScene art="/brand/story-assistant.png" />
+            <PageScene art="bot-chat" />
             <PageHeader title="Inbox" />
           </div>
           <p className="nf-card nf-body p-card sm:p-cell text-center text-[var(--nf-content-muted)]">
@@ -76,7 +76,7 @@ export default async function InboxPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="relative">
-        <PageScene art="/brand/story-assistant.png" />
+        <PageScene art="bot-chat" />
         <PageHeader title="Inbox" />
       </div>
       <InboxEmpty

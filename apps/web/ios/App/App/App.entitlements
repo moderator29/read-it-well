@@ -17,7 +17,7 @@
 	repository.
 
 	1. Apple Developer portal, Certificates Identifiers and Profiles, the App ID
-	   `ng.rentme.app`. Tick Associated Domains, save, and let the provisioning
+	   `ng.vallo.app`. Tick Associated Domains, save, and let the provisioning
 	   profiles regenerate.
 	2. Xcode, the App target, Signing and Capabilities, the plus button,
 	   Associated Domains. Xcode finds this file at `App/App.entitlements`,
@@ -26,7 +26,7 @@
 	3. Publish `apps/web/public/.well-known/apple-app-site-association` on the
 	   live origin with the real Team ID in it. That file carries an obvious
 	   placeholder today, `PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID`, and the
-	   whole `appIDs` entry has to read `<TeamID>.ng.rentme.app`.
+	   whole `appIDs` entry has to read `<TeamID>.ng.vallo.app`.
 
 	   The Team ID is ten alphanumeric characters and there are two places to
 	   read it. Apple Developer, Membership details, the field named Team ID.
@@ -41,14 +41,14 @@
 	Apple caches the association file through its own CDN, so check what Apple
 	actually has rather than what the server returns, at
 
-	    https://app-site-association.cdn-apple.com/a/v1/rentme.ng
+	    https://app-site-association.cdn-apple.com/a/v1/vallo.ng
 
 	and expect a device to take up to a day to pick up a change. During
 	development, the `applinks:` entries can be suffixed with
 	`?mode=developer` to bypass the CDN, which is the only sane way to test a
 	change to the file.
 
-	The two domains are `rentme.ng` and `www.rentme.ng`, matching the Android
+	The two domains are `vallo.ng` and `www.vallo.ng`, matching the Android
 	manifest's verified hosts and the domain this repository defaults to in
 	`src/lib/email/render.ts`. If `NEXT_PUBLIC_SITE_URL` ends up somewhere else,
 	these change with it, because an associated domain is an exact host and not
@@ -57,8 +57,8 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:rentme.ng</string>
-		<string>applinks:www.rentme.ng</string>
+		<string>applinks:vallo.ng</string>
+		<string>applinks:www.vallo.ng</string>
 	</array>
 </dict>
 </plist>

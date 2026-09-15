@@ -16,7 +16,7 @@
             shell's data directory holds the WebView cookie store, and that
             store holds the Supabase session cookie the middleware refreshes on
             every navigation, so leaving backup on means an authenticated
-            RentMe session, with a wallet behind it, travelling through a cloud
+            Vallo session, with a wallet behind it, travelling through a cloud
             backup and landing on a second handset. There is nothing in here
             worth restoring: the account lives on the server and signing in
             again takes seconds.
@@ -58,7 +58,7 @@
                 back to the browser. That failure is invisible unless somebody
                 goes looking, so verify it deliberately after the first release:
 
-                    adb shell pm get-app-links ng.rentme.app
+                    adb shell pm get-app-links ng.vallo.app
 
                 and read the state beside each host. Anything other than
                 `verified` almost always means the fingerprint in
@@ -90,7 +90,7 @@
                 a file that was never filled in fails verification loudly rather
                 than looking plausible.
 
-                Hosts are `rentme.ng` and `www.rentme.ng` because that is the
+                Hosts are `vallo.ng` and `www.vallo.ng` because that is the
                 domain this repository defaults to everywhere, in
                 `src/lib/email/render.ts` and in the profile share copy. If the
                 owner sets `NEXT_PUBLIC_SITE_URL` to anything else, these two
@@ -119,8 +119,8 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="rentme.ng" />
-                <data android:scheme="https" android:host="www.rentme.ng" />
+                <data android:scheme="https" android:host="vallo.ng" />
+                <data android:scheme="https" android:host="www.vallo.ng" />
                 <data android:pathPrefix="/listing/" />
                 <data android:pathPrefix="/around/" />
                 <data android:pathPrefix="/u/" />

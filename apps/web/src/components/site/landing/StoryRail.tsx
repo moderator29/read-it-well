@@ -9,22 +9,61 @@ import { gatedHref } from "@/lib/site/gated-href";
 /**
  * The story rail.
  *
- * Six commissioned character scenes, each carrying one promise of the
- * platform: the assistant, smart search, protected payment, the whole
- * ecosystem, the rent market and round the clock support. They scroll
+ * Eight panels, each carrying one promise of the platform: the assistant,
+ * smart search, protected payment, the whole ecosystem, the rent market and
+ * round the clock support. They scroll
  * horizontally with native snap on phones and glass paging controls on
  * desktop, so the landing page tells its story as a sequence of large,
  * cinematic panels instead of another wall of text.
  *
  * Each panel is a real link into the surface it describes, so the rail is
- * navigation, not decoration. The artwork is rendered on a studio white
- * stage that reads as a lit product shot in daylight and as a luminous
- * plinth at night.
+ * navigation, not decoration. The artwork sits on a studio stage that reads as
+ * a lit product shot in daylight and as a luminous plinth at night.
+ *
+ * ------------------------------------------------------------------------
+ * THE RENTME SCENES ARE GONE FROM HERE
+ * ------------------------------------------------------------------------
+ *
+ * This rail used to paint eight `/brand/story-*.png` renders, 6.6MB between
+ * them, on the first screen a stranger sees. Two of them had the OLD RENTME
+ * R-AND-HOUSE LOGO MODELLED INTO THE ARTWORK, so the dead brand was still
+ * being served from the landing page after every string in the tree had been
+ * renamed. **A logo baked into a PNG survives a name sweep.** That is the
+ * lesson worth carrying: an image is not searchable, so image assets need
+ * their own pass and a rename is not one.
+ *
+ * Each panel now paints one of the 87 commissioned brand objects, which are
+ * already ours, already on brand, and roughly a hundredth of the weight. The
+ * mask on `.nf-story-art` dissolves their white studio ground into the paper
+ * stage, which is the treatment that ground was lit for.
+ *
+ * **These are not stand-ins.** They are the platform's own visual language and
+ * the rail is complete as it stands. When supplied photography arrives, set
+ * `photo` on a story and that panel paints it instead, one at a time, with no
+ * other edit.
  */
 
 type Story = {
-  art: string;
-  /** The ground the scene was lit on, so its stage can match it exactly. */
+  /** A commissioned brand object. One of the 87 in `BrandIconName`. */
+  art: BrandIconName;
+  /**
+   * A supplied photograph for this panel, when one exists.
+   *
+   * **This is the slot for the founder's own artwork.** Set it to a path under
+   * `/brand/` and the panel paints that instead of the brand object, with no
+   * other change. Leave it out and the panel uses the object, which is on
+   * brand and is not a placeholder waiting to be replaced.
+   */
+  photo?: string;
+  /**
+   * The ground the artwork was lit on, so its stage matches it exactly.
+   *
+   * Every one of the 87 brand objects is lit on a white studio ground, so
+   * every panel using one is `paper`. Four panels were `night`, for four of
+   * the removed RentMe scenes that were rendered on black; a white-ground
+   * object on a night stage shows its own square as a bright box. Supplied
+   * photography lit on dark can set `night` again.
+   */
   stage: "paper" | "night";
   alt: string;
   overline: string;
@@ -37,7 +76,7 @@ type Story = {
 
 const STORIES: Story[] = [
   {
-    art: "/brand/story-assistant.png",
+    art: "bot-chat",
     stage: "paper",
     alt: "The Vallo assistant surrounded by floating glass app cards",
     overline: "Vallo AI",
@@ -51,7 +90,7 @@ const STORIES: Story[] = [
     ],
   },
   {
-    art: "/brand/story-search.png",
+    art: "home-search",
     stage: "paper",
     alt: "A magnifier over the Vallo house mark with a verification check",
     overline: "Smart search",
@@ -65,8 +104,8 @@ const STORIES: Story[] = [
     ],
   },
   {
-    art: "/brand/story-explore.png",
-    stage: "night",
+    art: "map-spot",
+    stage: "paper",
     alt: "A glowing map pin over a neon city map",
     overline: "Explore nearby",
     title: "See what is around you, live on the map",
@@ -79,8 +118,8 @@ const STORIES: Story[] = [
     ],
   },
   {
-    art: "/brand/story-verified.png",
-    stage: "night",
+    art: "shield-check",
+    stage: "paper",
     alt: "A neon shield holding a house, with a verification check",
     overline: "Trust and safety",
     title: "Inspect first. Pay only when you are sure",
@@ -93,8 +132,8 @@ const STORIES: Story[] = [
     ],
   },
   {
-    art: "/brand/story-wallet.png",
-    stage: "night",
+    art: "wallet-secure",
+    stage: "paper",
     alt: "A neon wallet guarded by a shield and padlock",
     overline: "Secure payments",
     title: "One naira wallet, recorded to the kobo",
@@ -107,8 +146,8 @@ const STORIES: Story[] = [
     ],
   },
   {
-    art: "/brand/story-booking.png",
-    stage: "night",
+    art: "calendar-check",
+    stage: "paper",
     alt: "A neon booking calendar with a house key and a confirmation check",
     overline: "Easy booking",
     title: "From the first tap to the keys in your hand",
@@ -121,7 +160,7 @@ const STORIES: Story[] = [
     ],
   },
   {
-    art: "/brand/story-world.png",
+    art: "globe-pin",
     stage: "paper",
     alt: "The Vallo world: the house mark surrounded by map, keys, calendar, wallet and shield",
     overline: "One platform",
@@ -135,7 +174,7 @@ const STORIES: Story[] = [
     ],
   },
   {
-    art: "/brand/story-shield.png",
+    art: "shield-home",
     stage: "paper",
     alt: "The Vallo shield mark with a verification check",
     overline: "The rent market",
@@ -190,14 +229,23 @@ export function StoryRail() {
                 <div
                   className={`nf-story-stage--${s.stage} relative flex aspect-[4/3] items-center justify-center overflow-hidden p-4 sm:p-6`}
                 >
-                  <Image
-                    src={s.art}
-                    alt={s.alt}
-                    width={1254}
-                    height={1254}
-                    sizes="(max-width: 640px) 85vw, (max-width: 1024px) 62vw, 480px"
-                    className="nf-story-art h-full w-auto max-w-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                  />
+                  {s.photo ? (
+                    <Image
+                      src={s.photo}
+                      alt={s.alt}
+                      width={1254}
+                      height={1254}
+                      sizes="(max-width: 640px) 85vw, (max-width: 1024px) 62vw, 480px"
+                      className="nf-story-art h-full w-auto max-w-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                    />
+                  ) : (
+                    <BrandIcon
+                      name={s.art}
+                      label={s.alt}
+                      fill
+                      className="nf-story-art h-full w-auto max-w-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                    />
+                  )}
                 </div>
 
                 <div className="flex flex-1 flex-col p-5 sm:p-6">
