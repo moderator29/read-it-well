@@ -1,6 +1,6 @@
 "use client";
 
-import { DEFAULT_LOCALE, formatNumber, type Locale } from "@naijafinds/i18n";
+import { DEFAULT_LOCALE, formatNumber, type Locale } from "@vallo/i18n";
 import Link from "next/link";
 import Image from "next/image";
 import { AuthGate } from "@/components/auth/AuthGate";

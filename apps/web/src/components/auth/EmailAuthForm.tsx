@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import type { AuthFormState } from "@/lib/auth/actions";
 import { HEAR_ABOUT_OPTIONS } from "@/lib/auth/signup-options";
 import { PlaceFields, type PlaceValues } from "@/components/app/place/PlaceFields";

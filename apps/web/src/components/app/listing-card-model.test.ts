@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getDictionary } from "@naijafinds/i18n";
+import { getDictionary } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { cardFacts, cardUtility } from "./listing-card-model";
 

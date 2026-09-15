@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { NONCE_HEADER } from "@/lib/security/csp";
-import { getDictionary, type Dictionary, type Locale, formatRating } from "@naijafinds/i18n";
+import { getDictionary, type Dictionary, type Locale, formatRating } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import {
@@ -20,7 +20,7 @@ import {
   type PricePeriod,
   type RentPeriod,
 } from "@/lib/listings/pricing";
-import { formatNumber } from "@naijafinds/i18n";
+import { formatNumber } from "@vallo/i18n";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";

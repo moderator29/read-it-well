@@ -5,7 +5,7 @@ import {
   localeFromAcceptLanguage,
   matchAcceptLanguage,
   parseAcceptLanguage,
-} from "@naijafinds/i18n";
+} from "@vallo/i18n";
 
 /**
  * `Accept-Language` negotiation.

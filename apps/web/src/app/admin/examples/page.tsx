@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { formatMoney, getDictionary } from "@naijafinds/i18n";
+import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getExamplesConsole, isOverdue, lagosToday } from "@/lib/admin/examples-queries";
 import { adminUi, type AdminUi } from "../_components/ui";

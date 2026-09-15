@@ -14,7 +14,7 @@
  * theme.
  *
  * WHY TOKENS AND NOT THE PALETTE MIRROR. The four remaining ramps read from
- * `@naijafinds/design-tokens`' semantic layer, as `var(--nf-...)` strings
+ * `@vallo/design-tokens`' semantic layer, as `var(--nf-...)` strings
  * dropped into SVG gradient stops. That is a deliberate change from the
  * palette mirror they used before: a palette entry is one fixed hex, so a tile
  * built from it is the same tile in daylight as at midnight, and the owner
@@ -27,7 +27,7 @@
  * `--nf-content-on-brand`, which is exactly the token for ink that sits on
  * brand colour rather than on a surface.
  */
-import { token } from "@naijafinds/design-tokens";
+import { token } from "@vallo/design-tokens";
 
 export type TrustIconName =
   | "globe"

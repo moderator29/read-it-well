@@ -1,4 +1,4 @@
-import { formatDate, formatMoney } from "@naijafinds/i18n";
+import { formatDate, formatMoney } from "@vallo/i18n";
 
 import {
   DARK,

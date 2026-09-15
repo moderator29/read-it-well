@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Locale } from "@naijafinds/i18n";
+import type { Locale } from "@vallo/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";

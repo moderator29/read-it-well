@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatDate, type Locale } from "@naijafinds/i18n";
+import { formatDate, type Locale } from "@vallo/i18n";
 import { getAgentContext } from "./listings-queries";
 
 /**

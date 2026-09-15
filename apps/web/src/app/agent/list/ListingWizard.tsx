@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatDate, formatMoney, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
 import { MomentScreen } from "@/components/app/MomentScreen";

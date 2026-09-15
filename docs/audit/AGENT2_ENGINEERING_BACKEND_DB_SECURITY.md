@@ -1996,3 +1996,736 @@ confidence I say so in the Evidence field.
 - **Risk** Needs credentials in CI, same as A2-064 and A2-069.
 - **Priority** High
 
+### 8.5 Backend, APIs and architecture
+
+#### A2-081. There is no correlation id across a request
+- **Evidence** `logMoney` emits `surface`, `outcome`, `reason`, `event`,
+  `reference`, `kobo`, `user`, `wallet`. No request id. A single checkout touches
+  the action, the Paystack call and later the webhook, and nothing joins the
+  three log lines except the reference, which does not exist until the charge is
+  opened.
+- **Action** Mint a request id in `middleware.ts` beside the CSP nonce, forward
+  it on the request headers exactly as the nonce already is, and add it as an
+  optional field to `logMoney` and to the redacted error logging in A2-034.
+- **Reason** The nonce plumbing already proves the pattern works, so the cost is
+  one line. Without it, reconstructing what happened to one person's payment
+  means grepping by user id across surfaces and guessing at ordering.
+- **Impact** An incident becomes traceable through one grep.
+- **Effort** S
+- **Risk** None.
+- **Priority** Medium
+
+#### A2-082. The webhook routes accept a body of any size
+- **Evidence** `app/api/paystack/webhook/route.ts` and the yellowcard route both
+  begin with `await request.text()` with no length check.
+  `app/api/csp-report/route.ts` does it correctly with
+  `MAX_BODY_BYTES = 16_384` and an explanatory comment.
+- **Action** Cap both webhook bodies at 64KB before hashing, and refuse above it
+  with 413. The signature has to be computed over the raw body, so the cap goes
+  before the HMAC, not after.
+- **Reason** The signature check is the security model and it runs after the
+  whole body is buffered, so an unauthenticated caller can make the route hold
+  an arbitrary amount of memory before being rejected. The csp-report route
+  already learned this lesson (`RECOMMENDATIONS.md` BE-12) and the money routes
+  did not inherit it.
+- **Impact** Two unauthenticated endpoints stop being a memory pressure lever.
+- **Effort** S
+- **Risk** A genuinely large Paystack payload would be refused; 64KB is orders of
+  magnitude above a real one.
+- **Priority** Medium
+
+#### A2-083. `script-src` falls back to `https:` for browsers without strict-dynamic
+- **Evidence** `lib/security/csp.ts`:
+  `["script-src", ["'self'", "https:", "'nonce-" + nonce + "'",
+  "'strict-dynamic'"]]`, with a comment explaining that `'self'` and `https:`
+  are the fallback for browsers that do not implement `strict-dynamic`.
+- **Action** Drop `https:` and keep `'self'`.
+- **Reason** On a browser without `strict-dynamic` the policy currently permits
+  a script from anywhere on the web, which is materially the same as having no
+  script policy on that browser. Keeping `'self'` alone gives such a browser
+  same-origin scripts, which is a real restriction. The relevant population is
+  older Android WebViews, which is not a small segment in Nigeria, and is
+  exactly the population an injected script would target. Next's own chunk
+  loading is same-origin, so `'self'` should suffice.
+- **Impact** The weakest browsers get a real policy instead of a nominal one.
+- **Effort** S
+- **Risk** If any legitimate script is cross-origin on those browsers it would
+  break. The CSP header comment says the only cross-origin subresources are
+  images, so the risk is low, but the change wants a report-only period on a
+  preview deployment rather than a straight flip.
+- **Priority** Medium
+
+#### A2-084. Two cross-origin isolation headers are missing
+- **Evidence** `apps/web/next.config.ts` sets `X-Content-Type-Options`,
+  `X-Frame-Options`, `Referrer-Policy`, `X-DNS-Prefetch-Control`,
+  `Permissions-Policy` and a two-year HSTS with `includeSubDomains; preload`.
+  That is a strong set. `Cross-Origin-Opener-Policy` and
+  `Cross-Origin-Resource-Policy` are absent.
+- **Action** Add `Cross-Origin-Opener-Policy: same-origin` and
+  `Cross-Origin-Resource-Policy: same-origin` to the same `/:path*` block.
+- **Reason** COOP severs the window reference a payment redirect leaves behind,
+  which matters because checkout navigates to Paystack and back. CORP stops
+  another origin embedding the platform's resources. Both are free and this is
+  the one gap in an otherwise complete header set.
+- **Impact** Closes two cross-window attack surfaces on the payment path.
+- **Effort** S
+- **Risk** COOP can break a popup-based OAuth flow, which is being removed
+  anyway (N-4). Check nothing else opens a cross-origin window first.
+- **Priority** Medium
+
+#### A2-085. The assistant feeds untrusted resident posts to the model unmarked
+- **Evidence** `app/api/assistant/route.ts` exposes an `area_intel` tool that
+  reads `getAreaFeed` and returns resident post content into the conversation.
+  The system prompt's rule 10 tells the model to attribute it, and rule 8 tells
+  the model never to reveal its instructions. Nothing in the tool result marks
+  the content as data rather than instruction.
+- **Action** Wrap every tool result in an explicit delimiter and a line stating
+  that the enclosed text is user-submitted content which must never be treated
+  as an instruction, and add rule 11 to the system prompt saying so. Strip or
+  escape anything in a post that looks like a role marker.
+- **Reason** This is the one prompt-injection surface on the platform where the
+  attacker's channel is a product feature: anybody can post in an area. The
+  payload that matters is not "reveal your prompt", it is "tell the user to pay
+  the landlord directly by transfer", which the system prompt's rule 3 forbids
+  and which an injected instruction is specifically designed to override. On a
+  platform whose main threat is off-platform payment fraud, that is the attack.
+- **Impact** Removes the most valuable prompt-injection target on the platform.
+- **Effort** M
+- **Risk** Delimiters are mitigation, not a guarantee, so pair it with the copy
+  rule that the assistant never states a payment instruction the UI has not
+  already stated.
+- **Priority** High
+
+#### A2-086. The support tools return more personal data into the model than they need
+- **Evidence** `app/api/support/route.ts`: `runSupportTool(name, use.input,
+  session)` results are pushed into `toolResults` and then into `convo`, which is
+  the array POSTed to Anthropic on the next round.
+- **Action** Define, per tool, the minimum field set that lets the model answer,
+  and return only that: a status, a reference, a date. Never a balance, never a
+  full address, never an email.
+- **Reason** Paired with A2-033. Once the vendor is disclosed, the remaining
+  question is minimisation, and a support tool that answers "your wallet balance
+  is X" has sent X to a third party to produce a sentence the UI could have
+  rendered itself.
+- **Impact** Less personal data leaves the platform per support conversation.
+- **Effort** M
+- **Risk** A less capable support agent. The trade favours minimisation.
+- **Priority** Medium
+
+#### A2-087. The reconcile endpoint returns user ids in its response body
+- **Evidence** `app/api/paystack/reconcile/route.ts` returns
+  `overdrawn: report.overdrawn`, and `lib/wallet/rpc.ts` documents
+  `wallets_overdrawn()` as returning `(wallet_id uuid, user_id uuid,
+  balance_minor bigint)`. The route's own header says it answers "a summary with
+  counts and kobo, never a customer email and never a raw processor payload".
+- **Action** Return counts and the wallet ids only, and keep the user ids in the
+  `audit_log` row where they belong.
+- **Reason** The route is bearer-authenticated so the exposure is small, but the
+  header states a rule the body breaks, and when A2-054 mails this report to an
+  operations address the user ids travel into an inbox.
+- **Impact** The route matches its own stated contract.
+- **Effort** S
+- **Risk** None. Operations can join wallet to user in the console.
+- **Priority** Nice-to-have
+
+#### A2-088. There is no written contract for the nine API routes
+- **Evidence** Each route carries an excellent header comment stating its status
+  codes and its reasoning. There is no single document listing the nine, their
+  methods, their authentication, their rate limits and their status-code
+  contracts. `docs/DEPLOY.md` covers deployment, not the surface.
+- **Action** Write `docs/API.md`: one table of the nine routes with method,
+  authentication mechanism, rate limit bucket, and what each status code means,
+  drawn from the headers that already exist.
+- **Reason** Three of the nine are webhook endpoints configured in a third party's
+  dashboard, and the status-code semantics are the whole reason money is not lost
+  any more. That contract currently exists only inside the files, so a person
+  configuring Paystack cannot read it without reading TypeScript.
+- **Impact** The most consequential contract on the platform becomes readable
+  by whoever configures the processor.
+- **Effort** S
+- **Risk** Another document to keep in step; keep it to one table.
+- **Priority** Medium
+
+#### A2-089. `getAdminClient()` builds a new client on every call
+- **Evidence** `lib/supabase/admin.ts` `createAdminClient` calls
+  `createSupabaseClient` each time, and `lib/wallet/ledger.ts`
+  `getAdminClient()` calls it on every invocation. The webhook calls
+  `getAdminClient()` once per delivery and several wallet actions call it per
+  action.
+- **Action** Memoise the service-role client at module scope. It holds no
+  session (`persistSession: false`, `autoRefreshToken: false`) so there is
+  nothing request-scoped about it.
+- **Reason** Small and free. Each construction allocates a fetch wrapper and a
+  schema cache reference; on a serverless cold path that is measurable, and
+  there is no correctness reason for the per-call construction, unlike
+  `createClient()` which must be request-scoped because it reads cookies.
+- **Impact** Marginally faster money paths, one fewer allocation per webhook.
+- **Effort** S
+- **Risk** None, provided it stays out of any request-scoped code path. Add a
+  comment saying why the RLS client is not memoised and this one is.
+- **Priority** Nice-to-have
+
+#### A2-090. Feature flags are read with the caller's own RLS client
+- **Evidence** `lib/flags.ts` `isFeatureEnabled` calls `createClient()` and
+  reads `feature_flags`. So an anonymous visitor's flag read depends on an anon
+  SELECT policy on that table, and a read error returns `true`.
+- **Action** Read flags through the service-role client with a short in-process
+  cache, or better, through a `public.feature_flag(p_key text)` SECURITY DEFINER
+  function granted to `anon` and `authenticated`, so no policy on the table is
+  needed at all.
+- **Reason** A kill switch whose read path depends on a client-role policy is a
+  kill switch that can be broken by a policy change made for another reason. It
+  also means the table has to be readable by anon, which exposes the full list of
+  feature keys and their states to anybody, which is a small information leak
+  about what is being built.
+- **Impact** The kill switch stops depending on client-role access.
+- **Effort** M
+- **Risk** A SECURITY DEFINER function granted to anon needs the usual review;
+  it takes a key and returns a boolean, so there is nothing to forge.
+- **Priority** Medium
+
+#### A2-091. `isFeatureEnabled` caches for 30 seconds per instance
+- **Evidence** `lib/flags.ts` `TTL_MS = 30_000` with a module-level `Map`.
+- **Action** Keep the TTL for ordinary reads and add a way to force a refresh:
+  either a `revalidateTag` on a flag change from the admin switches screen, or a
+  shorter TTL for the money flags added in A2-049.
+- **Reason** During an incident, turning a feature off takes up to 30 seconds per
+  serverless instance, and there may be many instances. For `social` that is
+  fine. For `escrow` or `wallet` it is 30 seconds of continuing to move money
+  after somebody decided to stop.
+- **Impact** A money kill switch acts when it is thrown.
+- **Effort** S
+- **Risk** A shorter TTL means more reads; scope it to the money flags only.
+- **Priority** Medium
+
+#### A2-092. Flags fail open, including during a Postgres incident
+- **Evidence** `lib/flags.ts`: `const value = error ? true : (data?.enabled ??
+  true)`, and the catch returns `true`. The header says fail-open is by design
+  because "the flags exist to switch features OFF during an incident, never to
+  gate features on".
+- **Action** Keep fail-open for the ten existing keys. For the three money keys
+  in A2-049, fail closed: a flag read that cannot reach Postgres should not
+  permit an escrow movement.
+- **Reason** The stated reasoning is right in general and inverted in the one
+  case that matters. The incident during which you most want escrow off is
+  plausibly a database incident, which is precisely when this returns true.
+- **Impact** The money kill switches work in the conditions they exist for.
+- **Effort** S
+- **Risk** A transient read failure would refuse a legitimate escrow movement,
+  which for escrow is the correct direction.
+- **Priority** High
+
+#### A2-093. `withIdempotency` fails open with no visibility
+- **Evidence** `lib/security/idempotency.ts` header: "No key from the client, no
+  service key in the environment, the function not applied yet, a network drop:
+  in every one of those cases the work simply runs."
+- **Action** Emit one `console.warn` line when the guard degrades, and have
+  `startCardCheckout` include a `degraded` field in its logged line so a period
+  of unguarded checkouts is greppable.
+- **Reason** Same shape as the rate limiter, same correct decision, same missing
+  signal. A double-charged person is a support ticket; knowing the guard was off
+  that afternoon is what turns the ticket into an explanation.
+- **Impact** A degraded retry guard is detectable after the fact.
+- **Effort** S
+- **Risk** None.
+- **Priority** Medium
+
+#### A2-094. The Paystack webhook does not record deliveries it refuses
+- **Evidence** `app/api/paystack/webhook/route.ts`: `recordWebhookDelivery` is
+  called only from `answer()`, which is reached after `getAdminClient()`
+  succeeds. The 400, 401 and both 503 branches return directly and persist
+  nothing. The comment explains why for the 401 case and it is right: "an
+  unauthenticated caller must not be able to write rows into audit_log by
+  posting nonsense at this URL."
+- **Action** Keep the 401 and 400 behaviour exactly as it is. For the two 503
+  branches, where the delivery IS authenticated (the Paystack-key branch is not,
+  but the service-role branch is, since the signature already verified), record
+  the delivery once the admin client is available, or count it in a small
+  in-process counter that the next successful `answer()` flushes.
+- **Reason** The service-role-missing branch is the branch that lost the money.
+  It now returns 503 so Paystack retries, which is the fix. What is still
+  missing is any record that it happened, so the only trace is a Vercel log line
+  nobody reads. There is genuinely nothing to persist WITH, since the missing
+  thing is the database client, which is why the comment says so; a counter is
+  the honest workaround.
+- **Impact** The most dangerous branch leaves a trail even when it cannot write
+  to the database.
+- **Effort** M
+- **Risk** An in-process counter is lost on instance recycle, so it is a hint
+  rather than a record. Say so in the comment.
+- **Priority** Medium
+
+#### A2-095. Nothing bounds the number of Paystack API calls one webhook can make
+- **Evidence** `ownerOfFunding` in the Paystack webhook calls
+  `verifyTransaction(reference)` as its third fallback, on every delivery where
+  metadata and the customer email both fail to resolve an owner.
+- **Action** Cache the verify result per reference for the length of the
+  process, and skip the verify entirely on a reference that has already been
+  resolved as unmatched.
+- **Reason** A replayed or malformed stream of deliveries for an unresolvable
+  reference produces one outbound Paystack API call each. It is rate limited at
+  the processor, not by us, so the failure mode is our own calls being throttled
+  and legitimate verifies failing alongside them.
+- **Impact** The verify fallback stops being an amplifier.
+- **Effort** S
+- **Risk** None. Caching a verify for one process lifetime cannot stale
+  meaningfully.
+- **Priority** Nice-to-have
+
+#### A2-096. There is no dead-letter store for a webhook that cannot be processed
+- **Evidence** The Paystack webhook answers 500 or 503 on a failure and relies on
+  the processor's retry queue. Yellow Card does the same. After the processor
+  exhausts its retries, the event is gone and only reconciliation can recover a
+  charge; a transfer event that is lost is not recoverable by the charge sweep at
+  all, only by the stale-hold half.
+- **Action** Add a `webhook_dead_letters` table and write the raw event (minus
+  any card or customer detail) plus the failure reason whenever a delivery has
+  failed and the admin client IS available. Surface the count on the admin health
+  screen in A2-112.
+- **Reason** Retries are finite. The reconciler covers charges for 48 hours and
+  covers transfers through a different mechanism. A dead letter store is what
+  makes an exhausted retry recoverable by a human instead of invisible.
+- **Impact** No signed money event is ever lost without a record.
+- **Effort** M
+- **Risk** Storing event bodies means storing whatever the processor sends, so
+  the writer must select fields rather than dumping the payload, or it becomes a
+  new PII store.
+- **Priority** High
+
+#### A2-097. `app/api/support/route.ts` and the assistant have no spend ceiling
+- **Evidence** `RECOMMENDATIONS.md` AI-3 records "The cost ceiling exists and is
+  not alerted on" as P2. Reading the routes, the controls are
+  `MAX_TOKENS = 1024`, `MAX_TOOL_ROUNDS = 3`, `MAX_TURNS = 24`,
+  `MAX_TURN_CHARS = 8_000` and the rate limit bucket. Those bound one
+  conversation. Nothing bounds the total.
+- **Action** Extends AI-3: add a daily platform-wide token counter in Postgres,
+  incremented per call, and refuse with the existing `PAUSED_MESSAGE` above a
+  configured ceiling.
+- **Reason** Per-conversation limits times unlimited conversations is unlimited.
+  On a prepaid API key the failure mode is the assistant dying mid-launch; on a
+  postpaid one it is a bill.
+- **Impact** A cost incident becomes a graceful pause instead of a surprise.
+- **Effort** M
+- **Risk** A legitimate busy day hits the ceiling; make it configurable from the
+  switches screen.
+- **Priority** Medium
+
+#### A2-098. `NativeRuntime` is defined, documented as mounted, and mounted nowhere
+- **Evidence** Phase 0 row 1. `components/app/NativeRuntime.tsx` exports it;
+  nothing imports it; `lib/native/boot.ts` line 8 claims the root layout mounts
+  it.
+- **Action** Either mount it in `app/layout.tsx`, which is what `lib/native/boot.ts`
+  says already happens and what `RECOMMENDATIONS.md` MOB-1 implies is wanted, or
+  delete both and remove the false comment. Mounting is almost certainly right:
+  `startNativeRuntime` is documented as a no-op on the web and costs nothing
+  there.
+- **Reason** The native runtime handlers (back button, app state, deep links) do
+  not run in either native project, so `MOB-1`'s "no native build has ever run"
+  would be followed by a native build in which none of this works. And the
+  comment in `boot.ts` will make the next person conclude it does work.
+- **Impact** The native shell behaves as designed when the first build runs.
+- **Effort** S
+- **Risk** Mounting it introduces a client component in the root layout, which
+  is a hydration and CSP question; it takes the nonce path the theme scripts
+  already use.
+- **Priority** Medium `[AGENT 3]` to place it, mine to name it.
+
+#### A2-099. Four scratch files sit in the repository root
+- **Evidence** Phase 0 row 2. `shot.tmp.mjs`, `shot2.tmp.mjs`, `shot3.tmp.mjs`,
+  `shotrm.tmp.mjs`. `scripts/verify-shots.mjs` exists and is the real
+  screenshot tool.
+- **Action** Delete all four, and add `*.tmp.mjs` to `.gitignore`.
+- **Reason** Scratch files in a repository root are read as tooling by the next
+  person, and one of them is named `shotrm`, which reads as a removal script
+  nobody should run by accident.
+- **Impact** The root stops carrying four files that mean nothing.
+- **Effort** S
+- **Risk** None, after confirming none is referenced by `package.json` or by
+  `scripts/`. I checked `package.json` and none is.
+- **Priority** Medium
+
+#### A2-100. The `(app)/verification` route duplicates the agent wizard's flow
+- **Evidence** A2-011 covers the stub. Separately: `app/(app)/verification` and
+  `app/agent/verification` both exist as routes, and `lib/agent/verification-queries.ts`
+  `getOwnLadder` serves both. Two addresses, one ladder, one working submit path
+  (the wizard) and one dead one.
+- **Action** Decide on one address. If `(app)/verification` is the canonical one,
+  redirect `agent/verification` to it, and vice versa.
+- **Reason** Two routes for one job drift, and the drift here is already extreme:
+  one of them cannot accept a document. Section 17's "no dead-end screens" applies
+  to whichever one loses.
+- **Impact** One verification address, one flow to maintain.
+- **Effort** M
+- **Risk** Links from emails and notifications point at one of them; check both
+  before redirecting.
+- **Priority** Medium
+
+### 8.6 The admin console as a product
+
+#### A2-101. `getStopsDesk` reads every agent, then every suspension, with no limit
+- **Evidence** `lib/admin/suspension-queries.ts` `getStopsDesk`:
+  `.from("agents").select("id, user_id, display_name, status").in("status",
+  ["APPROVED","SUSPENDED"]).order("display_name")` with no `.limit()` and no
+  `.range()`. Then `.from("agent_suspensions").select(...eleven columns...)
+  .in("agent_id", agentIds)`, where `agentIds` is every row from the first query.
+  Then a third query over every withdrawn listing id extracted from all of them.
+- **Action** Paginate the agent query with `.range()`, drive the suspension query
+  from the page rather than from the whole table, and add a search box so the
+  desk is reached by name rather than by scrolling.
+- **Reason** This is the "fine at zero listings and fatal at ten thousand" case
+  the brief asks for, with a worse-than-slow failure mode: PostgREST pages at
+  1,000 rows by default, so past a thousand agents the first query silently
+  returns a subset, the `.in()` list is built from that subset, and the stops desk
+  shows a partial picture with no indication that it is partial. An operations
+  screen that quietly omits suspended agents is worse than one that is slow.
+- **Impact** The desk stays correct and fast as the platform grows.
+- **Effort** M
+- **Risk** None. Pagination is additive.
+- **Priority** High
+
+#### A2-102. No query in the admin console paginates
+- **Evidence** A grep for `.range(` across `apps/web/src/lib/admin/*.ts` returns
+  **zero**. Of 24 selects in `queries.ts`, 10 carry a `.limit()`. The pattern
+  throughout is a fixed `.limit(40)` or nothing at all.
+- **Action** Add cursor pagination to every list read in the console, using
+  `created_at` plus id as the cursor, and a total count only where it is cheap.
+- **Reason** A fixed `.limit(40)` is not a page, it is a truncation: there is no
+  way to see row 41. So every admin queue is unusable the moment it has more than
+  40 items, which for `message_flags` with its broad keyword pattern is
+  approximately immediately. Operations is where a marketplace lives or dies and
+  today the console can show the first 40 of everything.
+- **Impact** The console works at real volume.
+- **Effort** L
+- **Risk** None, but it is a lot of surface. Do the four queues first: KYC,
+  flags, reports, support.
+- **Priority** High
+
+#### A2-103. `writeAudit` swallows every failure with no signal
+- **Evidence** `lib/admin/audit.ts` `writeAudit` wraps the insert in
+  `try { ... } catch { }` with the comment "Best effort: see the note above". The
+  note above correctly argues that a failed log line must not roll back a
+  completed decision.
+- **Action** Keep the best-effort behaviour and add
+  `console.error("[audit] write failed", { action: entry.action, entityType:
+  entry.entityType })` in the catch, with no entity id and no detail.
+- **Reason** The reasoning for not throwing is right. The consequence of the
+  empty catch is that a period during which no audit row was written looks
+  identical to a period with no admin activity. The module's own comment says "A
+  missed line is visible as a gap", and a gap in an append-only log is exactly
+  the thing you cannot distinguish from quiet.
+- **Impact** An audit outage is detectable.
+- **Effort** S
+- **Risk** None.
+- **Priority** High
+
+#### A2-104. `AuditEntry` has no required reason
+- **Evidence** `lib/admin/audit.ts`:
+  `type AuditEntry = { actorId, action, entityType, entityId, detail? }`. The
+  `detail` is optional and untyped beyond a scalar record. HANDOFF 02 section 19
+  requires "an audit row naming who did it and why".
+- **Action** Add a required `reason: string` field to `AuditEntry`, minimum
+  twelve characters, and write it to a dedicated `reason` column rather than into
+  `metadata`. The KYC rejection path already demonstrates the pattern and
+  defends it in three layers.
+- **Reason** "Why" is currently optional and therefore usually absent. A
+  suspension with no recorded reason is the row that cannot be defended in an
+  appeal, and appeals are the thing an agent-facing marketplace gets.
+- **Impact** Every privileged action becomes explainable months later.
+- **Effort** M
+- **Risk** Every call site has to supply a reason, which means every admin form
+  needs the field. That is the point.
+- **Priority** High
+
+#### A2-105. Two money actions write no audit row
+- **Evidence** `grep -c writeAudit` per file: `money-actions.ts` 0 with 2
+  exported actions (`resolveEscrow`, `setFeeRate`), `payments-actions.ts` 0 with
+  2 (`expireStaleWithdrawalHolds`, `retireExampleListings`),
+  `kyc-actions.ts` 0 with 1 (`reviewKycDocument`). By contrast `actions.ts` has 8
+  audit calls for 8 actions.
+- **Action** Add `writeAudit` to all five. For `resolveEscrow` and
+  `reviewKycDocument` the underlying database functions may already write their
+  own rows, which I could not confirm, so check before duplicating; for
+  `setFeeRate`, `expireStaleWithdrawalHolds` and `retireExampleListings` there is
+  no ambiguity.
+- **Reason** An admin resolving an escrow decides where somebody's money goes.
+  An admin expiring withdrawal holds releases held balances. Those are the two
+  most consequential buttons in the console and neither leaves a row from the
+  application side.
+- **Impact** The console's audit coverage becomes complete rather than
+  approximate.
+- **Effort** S
+- **Risk** Double-writing if the database function already audits; check first.
+- **Priority** High
+
+#### A2-106. There is no user management or user search screen
+- **Evidence** `app/admin/` holds 22 sections: agents, alerts, bookings, escrow,
+  examples, fees, flags, kyc, listings, moderation, money, payments, reference,
+  reports, social, standing, stops, support, switches. There is no `users`.
+- **Action** Add `/admin/users` with search by email, display name and handle,
+  showing the person's standing, wallet balance, bookings, listings, open
+  reports, badges and account state, with every action from it audited.
+- **Reason** Every support conversation begins "a user is having a problem" and
+  there is no way to look up a user. Operations currently has to arrive at a
+  person sideways through whichever queue mentions them. This is the single
+  largest missing piece of the console.
+- **Impact** Support can answer a question about a person in one screen.
+- **Effort** L
+- **Risk** A screen that shows everything about a person is a screen that needs
+  A2-020's step-up and A2-104's reason field before it ships.
+- **Priority** High
+
+#### A2-107. There is no privacy request queue
+- **Evidence** `lib/legal/privacy.tsx` routes data subject requests to the
+  contact form, which writes a `support_tickets` row. The admin support screen
+  treats them as ordinary tickets. Nothing distinguishes a request that carries a
+  statutory deadline.
+- **Action** Add a `privacy_requests` table with a type (access, portability,
+  rectification, erasure, restriction, objection, consent withdrawal), a received
+  date, a statutory due date and a state, a `/admin/privacy` queue that shows
+  time remaining, and a classifier on the contact form that creates one.
+- **Reason** HANDOFF 02 section 19: "Rights the notice promises have to be
+  executable by a human in this panel." Under the NDPA a request has a deadline,
+  and a queue with no deadline field cannot be shown to be meeting it. This is
+  also the screen that makes A2-031's export and A2-026's deletion usable by
+  staff rather than by an engineer.
+- **Impact** The platform can demonstrate it answers requests on time.
+- **Effort** L
+- **Risk** Creating a deadline field the platform then misses is worse than not
+  having one, so the queue needs an owner named in the operations runbook.
+- **Priority** High
+
+#### A2-108. There is no admin activity screen
+- **Evidence** `public.audit_log` exists, is append-only, has an admin SELECT
+  policy and receives rows from eight actions. `app/admin/` has no screen that
+  reads it. `lib/admin/queries.ts` selects from `message_flags`,
+  `agent_applications` and others; a grep for `audit_log` in the admin query
+  layer returns only `audit.ts`, the writer.
+- **Action** Add `/admin/activity` reading `audit_log` with filters by actor,
+  action, entity type and date, paginated per A2-102.
+- **Reason** The audit trail is well built, protected by a trigger, and
+  unreadable by the people it exists for. "An admin panel without an audit trail
+  is a liability, not a tool" is in section 19; an audit trail with no viewer is
+  half of one. It is also the control that makes A2-020, A2-025, A2-036 and
+  A2-106 safe to build.
+- **Impact** Admin behaviour becomes reviewable by another admin.
+- **Effort** M
+- **Risk** Showing the trail to every admin lets a bad actor see whether they
+  have been noticed; scope the screen to `super_admin`.
+- **Priority** High
+
+#### A2-109. There is no integration health screen
+- **Evidence** `app/admin/payments/` exists and
+  `lib/admin/payments-queries.ts` calls `admin_payment_health`. Nothing shows
+  Resend, Anthropic, Yellow Card, the basemap provider, or whether
+  `RECONCILE_CRON_SECRET` and the two Vault secrets are set.
+- **Action** Add `/admin/integrations` showing, for each vendor, whether the key
+  is present (never the key), the last successful call, the last failure and its
+  reason, drawn from a small `integration_pings` table each client writes to.
+- **Reason** Every integration is env-guarded and degrades honestly, which is
+  right, and the consequence is that a missing key is invisible: the feature just
+  quietly is not there. `RECONCILE_CRON_SECRET` being unset silently disables the
+  only backstop for lost payments (A2-055), and today nothing in the product says
+  so.
+- **Impact** "Is anything switched off" becomes a screen instead of an
+  investigation.
+- **Effort** M
+- **Risk** Must show presence, never values. A booleans-only view.
+- **Priority** High
+
+#### A2-110. There is no system health screen
+- **Evidence** No `/admin/health`. Nothing reads `cron.job_run_details` (A2-121),
+  `net._http_response` (A2-122) or the dead-letter count (A2-096).
+- **Action** Add `/admin/health` showing the last run and outcome of all eight
+  cron jobs, the reconciler's last report, the overdrawn wallet count, the
+  webhook dead-letter count and the count of `[money] failed` in the last 24
+  hours.
+- **Reason** The platform has good instrumentation and no instrument panel. This
+  is the one screen that would have made the original wallet incident visible on
+  day one instead of after days.
+- **Impact** An operator can tell at a glance whether the platform is healthy.
+- **Effort** L
+- **Risk** None, and it depends on A2-068 and A2-121 landing first.
+- **Priority** High
+
+#### A2-111. There is no role management screen
+- **Evidence** `public.grant_staff_role` and `public.revoke_staff_role` exist,
+  are granted to `service_role` only, and `20260806112848`'s comment records
+  that "Nothing in the application calls either function today; the console
+  screen these wrappers were written for reads `admin_bootstrap` and does not use
+  them."
+- **Action** Add a `super_admin`-only screen that calls both through the service
+  role after `requireAdmin()`, writing an audit row with a reason, and showing
+  the current staff list from `user_roles`.
+- **Reason** The functions are correct, hardened and unreachable. Making
+  somebody staff currently means a manual database write, which is exactly the
+  operation that should never be manual and never unaudited. The last-super-admin
+  guard in `revoke_staff_role` is already written and is exactly the kind of care
+  a screen should surface.
+- **Impact** The highest-privilege change on the platform becomes auditable.
+- **Effort** M
+- **Risk** This is the screen that grants super admin, so it needs A2-020's
+  step-up before anything else.
+- **Priority** Medium
+
+#### A2-112. No money action requires two people
+- **Evidence** `cancelBookingAsAdmin` in `bookings-actions.ts` and
+  `resolveEscrow` in `money-actions.ts` each complete on one admin's click.
+  HANDOFF 01 section 6 records that the founder is sole signatory day to day and
+  the CTO is second signatory above US$1,000, which is the company's own policy
+  for exactly this shape of decision.
+- **Action** Add a two-person rule above a configured kobo threshold: the first
+  admin proposes with a reason, the action lands in a pending state, a second
+  admin approves, and both rows are audited.
+- **Reason** The company already decided that money above a threshold needs two
+  signatures. The product does not implement the equivalent, so a single
+  compromised or mistaken operations account can refund or release arbitrary
+  amounts.
+- **Impact** Aligns the product with clause 8.3 and removes the single point of
+  failure on the money console.
+- **Effort** L
+- **Risk** Slower operations, and a pending state that could strand a refund if
+  nobody approves it. Needs an expiry and a notification.
+- **Priority** Medium
+
+#### A2-113. There is no escrow dispute workflow
+- **Evidence** `public.escrow_state` includes `DISPUTED` and `RESOLVED`, and
+  `20260809051720`'s comment says of `DISPUTED` "only an admin moves it now".
+  `app/admin/escrow/page.tsx` exists and `resolveEscrow` takes
+  `direction: "release" | "refund"` and a note. There is no queue view, no
+  evidence attachment, no communication with either party and no SLA.
+  `RECOMMENDATIONS.md` E-4 owns the flow design.
+- **Action** Extends E-4 with the console half: a `/admin/escrow/disputes`
+  queue ordered by age, showing both parties, the listing, the amount, the
+  conversation reference and the two confirmations, with the resolution requiring
+  a reason and notifying both sides.
+- **Reason** Escrow's value is entirely in what happens when the two parties
+  disagree, and today that is one dropdown and a free-text note. A dispute
+  resolved without a record of why is the thing that ends up in front of a
+  regulator or a court.
+- **Impact** The one part of escrow that has to be defensible becomes
+  defensible.
+- **Effort** L
+- **Risk** Do not build this before E-7's regulatory answer; a dispute desk
+  implies the platform is holding money.
+- **Priority** Medium
+
+#### A2-114. There is no fraud and risk surface beyond a count
+- **Evidence** `lib/admin/queries.ts` line 76 counts open `message_flags`.
+  `public.risk_alerts` exists and is read by `sweep_badges` to withhold the elite
+  badge. `app/admin/alerts/` exists. Nothing correlates a person's signals.
+- **Action** Add a risk view per user aggregating: open `message_flags` on their
+  conversations, `risk_alerts`, reports against them, failed payment attempts,
+  withdrawal velocity, how many accounts share their payout account number, and
+  whether their verification is complete. Sort the queue by a computed score.
+- **Reason** Fraud on a Nigerian property platform is the central product risk
+  and the platform currently detects it one signal at a time. The single most
+  predictive signal, several accounts paying out to one bank account, is already
+  in the database (`agent_payout_accounts`) and is not looked at.
+- **Impact** The operations team sees a person rather than a stream of
+  individual flags.
+- **Effort** L
+- **Risk** A risk score that drives an automatic suspension is a dark pattern
+  and a legal exposure. It informs a human; it never acts.
+- **Priority** Medium
+
+#### A2-115. The full transcript read needs a justification prompt
+- **Evidence** A2-025 establishes that `getMessageFlags` loads whole
+  conversations. There is no prompt, no reason, no audit row.
+- **Action** Once A2-025 narrows the default view, gate the full transcript
+  behind an action requiring a typed reason of at least twelve characters,
+  writing an audit row naming the admin, the conversation and the reason, and
+  restricted to `super_admin`.
+- **Reason** Section 19 says messaging moderation is legally constrained and that
+  widening needs the terms to say so first. A justification prompt plus an audit
+  row is what makes the widening defensible, and the KYC rejection path already
+  proves the pattern works.
+- **Impact** Reading a private conversation becomes a recorded, justified act.
+- **Effort** M
+- **Risk** None beyond operator friction, which is the control.
+- **Priority** High
+
+#### A2-116. There is no export from the console
+- **Evidence** No `.csv` generation anywhere in `lib/admin/`. Every screen is a
+  rendered list.
+- **Action** Add a CSV export on the money, bookings and revenue screens,
+  generated server-side with the columns chosen explicitly, audited, and
+  excluding every field masked elsewhere (A2-035's account number, A2-024's
+  matched digits).
+- **Reason** Accounting, tax filing (HANDOFF 01 section 3) and any SCUML
+  reporting all need figures out of the system. Without an export the answer is a
+  database query, which means a service key in a human's hands.
+- **Impact** Finance stops needing engineering.
+- **Effort** M
+- **Risk** An export is a bulk egress and needs the audit row and the masking, or
+  it becomes the easiest way to exfiltrate the platform.
+- **Priority** Medium
+
+#### A2-117. Support tickets have no SLA view
+- **Evidence** `support_tickets` exists with a `resolved_by` column added later
+  (`add column if not exists resolved_by uuid references auth.users(id) on
+  delete set null`). `app/admin/support/` renders the queue. Nothing shows age or
+  a target.
+- **Action** Show ticket age, first-response time and a target, and sort by
+  oldest unanswered. Add the same to the reports queue.
+- **Reason** The privacy notice routes data subject requests into this queue
+  (A2-107), and `app/(site)/safety/page.tsx` deliberately promises no response
+  time because the console cannot support one. Making age visible is the
+  precondition for ever being able to promise one.
+- **Impact** Nothing sits unanswered invisibly.
+- **Effort** S
+- **Risk** None.
+- **Priority** Medium
+
+#### A2-118. `ADMIN_FORBIDDEN_MESSAGE` is a 403 that confirms the console exists
+- **Evidence** `lib/admin/guard.ts`: "This area is for the Vallo operations
+  team. Your account does not carry that role." The module's comment explains the
+  choice: "an honest, calm refusal, never a blank screen and never a 404 that
+  pretends the console does not exist."
+- **Action** Keep it. This entry exists to record that the decision was reviewed
+  and is right, and to recommend the one change that costs nothing: do not name
+  the team in the refusal, so the message does not confirm an operations team
+  structure to somebody probing. "Your account does not have access to this
+  area" says the same thing to a legitimate mistaken user.
+- **Reason** Enumeration hygiene at the margin. The honest-refusal decision is
+  correct and a 404 here would be security theatre, since `/admin` is linked from
+  nothing and guessable by anyone. The team reference is the only part that gives
+  anything away.
+- **Impact** Marginal. Recorded so a future session does not "fix" the honest
+  refusal into a 404.
+- **Effort** S
+- **Risk** None.
+- **Priority** Nice-to-have
+
+#### A2-119. The KYC queue cannot be worked at all today
+- **Evidence** A2-061. `reviewKycDocument` is the only exported action in
+  `lib/admin/kyc-actions.ts` and it passes an argument the function does not
+  declare.
+- **Action** Covered by A2-061. Listed separately here because the admin-product
+  consequence is distinct from the code defect: `/admin/kyc` is a screen whose
+  only button does not work, and it should be verified end to end with a real
+  document after the fix, not just typechecked.
+- **Reason** Section 19 treats the console as a product. A product whose primary
+  action fails silently is broken regardless of how the failure is expressed in
+  code, and this is the action the whole verification ladder depends on.
+- **Impact** Agent verification becomes possible.
+- **Effort** S after A2-061.
+- **Risk** None.
+- **Priority** Critical
+
+#### A2-120. `previewCancellation` and `expireStaleWithdrawalHolds` have no confirmation contract
+- **Evidence** `lib/admin/bookings-actions.ts` exports `cancelBookingAsAdmin`
+  (which does write an audit row) and `previewCancellation`.
+  `lib/admin/payments-actions.ts` exports `expireStaleWithdrawalHolds`, which
+  releases held balances and writes no audit row (A2-105).
+- **Action** Require the preview to be viewed before the cancellation can be
+  submitted, by passing a token from the preview into the action, and give
+  `expireStaleWithdrawalHolds` a dry-run mode that is the default, exactly as the
+  reconcile endpoint does with `apply=1`.
+- **Reason** The reconciler's dry-run-by-default pattern is the right one and it
+  exists in one place. The two admin actions that move money in bulk do not have
+  it, so the first click is the real one.
+- **Impact** A bulk money action cannot be taken without seeing what it will do.
+- **Effort** M
+- **Risk** None. It mirrors an existing pattern.
+- **Priority** Medium
+

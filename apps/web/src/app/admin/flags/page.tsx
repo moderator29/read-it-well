@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary, type Dictionary } from "@naijafinds/i18n";
+import { getDictionary, type Dictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getMessageFlags, type FlagView, type PartyRole } from "@/lib/admin/queries";

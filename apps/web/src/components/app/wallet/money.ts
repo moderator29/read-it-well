@@ -1,4 +1,4 @@
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n";
 
 /**
  * Kobo-exact money display.

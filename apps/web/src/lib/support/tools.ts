@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatMoney } from "@naijafinds/i18n";
+import { formatMoney } from "@vallo/i18n";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession, type SessionState } from "../actions/session";
 import { lagosToday } from "../bookings/schema";

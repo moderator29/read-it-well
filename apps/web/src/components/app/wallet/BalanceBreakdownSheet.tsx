@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Locale } from "@naijafinds/i18n";
+import type { Locale } from "@vallo/i18n";
 import { Sheet } from "@/components/ui/Sheet";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";

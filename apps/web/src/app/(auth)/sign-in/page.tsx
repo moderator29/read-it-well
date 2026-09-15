@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@naijafinds/i18n";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getProviderStates } from "@/lib/auth/providers";
 import { AuthChoices } from "@/components/auth/AuthChoices";

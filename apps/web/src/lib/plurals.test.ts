@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LOCALES, formatParty, getDictionary, intlTag, plural, type Locale } from "@naijafinds/i18n";
+import { LOCALES, formatParty, getDictionary, intlTag, plural, type Locale } from "@vallo/i18n";
 
 /**
  * Counted nouns, in all four languages.

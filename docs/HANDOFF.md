@@ -132,7 +132,7 @@ older one, and everything below is current as of this handoff.
    a payment processor takes something, label it honestly as the processor's.
 10. Money is **integer kobo** (bigint) everywhere. `Math.round(naira*100)` only
     at the input boundary. Display only through `formatMoney` from
-    `@naijafinds/i18n`. Never float money. Never divide by 100 yourself.
+    `@vallo/i18n`. Never float money. Never divide by 100 yourself.
 11. **RENT is message, inspect, then pay.** No Reserve button on a rental.
 12. **All inventory is first party.** Everything on Vallo was listed on Vallo.
     No Google Places, no LiteAPI, no external feed. The verified badge, the

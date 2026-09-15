@@ -1,4 +1,4 @@
-import type { Dictionary, Locale } from "@naijafinds/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n";
 import { getListingRepository } from "@/lib/listings/repository";
 import { ListingCard } from "@/components/app/ListingCard";
 import { UiIcon } from "@/design-system/icons/UiIcon";

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatMoney, formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
+import { formatMoney, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import { CategoryRail } from "@/components/app/search/CategoryRail";
 import { RealMap } from "@/components/app/search/RealMap";
 import { ActiveFilters } from "@/components/app/filters/ActiveFilters";

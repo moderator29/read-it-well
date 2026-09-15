@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
 
   // Workspace packages ship raw TypeScript, so Next compiles them in place.
-  transpilePackages: ["@naijafinds/design-tokens", "@naijafinds/i18n"],
+  transpilePackages: ["@vallo/design-tokens", "@vallo/i18n"],
 
   // Three image sources, all explicitly allowed through the optimiser and
   // nothing else: the seed catalogue's Unsplash photography, the Supabase

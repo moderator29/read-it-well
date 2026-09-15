@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n";
 import { CANCELLATION_REASONS, type CancellationReason } from "@/lib/trust/cancellation";
 import { cancelBookingAsAdmin, previewCancellation } from "@/lib/admin/bookings-actions";
 import { recordVerificationCheck } from "@/lib/admin/verification-actions";

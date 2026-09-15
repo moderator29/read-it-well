@@ -1,4 +1,4 @@
-import { getDictionary } from "@naijafinds/i18n";
+import { getDictionary } from "@vallo/i18n";
 import { getListingRepository } from "@/lib/listings/repository";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { getLocale } from "@/lib/locale";

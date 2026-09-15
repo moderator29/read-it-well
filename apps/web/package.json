@@ -1,5 +1,5 @@
 {
-  "name": "@naijafinds/web",
+  "name": "@vallo/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -17,8 +17,8 @@
     "@capacitor/keyboard": "^8.0.5",
     "@capacitor/splash-screen": "^8.0.2",
     "@capacitor/status-bar": "^8.0.3",
-    "@naijafinds/design-tokens": "*",
-    "@naijafinds/i18n": "*",
+    "@vallo/design-tokens": "*",
+    "@vallo/i18n": "*",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.9",
     "@types/leaflet": "^1.9.21",

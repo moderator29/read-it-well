@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatDate, type Locale } from "@naijafinds/i18n";
+import { formatDate, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { AuthGate } from "@/components/auth/AuthGate";

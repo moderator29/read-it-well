@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { formatMoney } from "@naijafinds/i18n";
+import { formatMoney } from "@vallo/i18n";
 import { WALLET_BANKS } from "./banks";
 
 /**

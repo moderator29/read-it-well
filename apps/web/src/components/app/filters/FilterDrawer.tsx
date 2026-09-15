@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { formatMoney, formatNumber, type Locale } from "@naijafinds/i18n";
+import { formatMoney, formatNumber, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { hasBackupPower, matchesFacts, type ListingFacts } from "@/lib/listings/filter";
 import { WATER_SOURCES, type ListingKind, type WaterSupply } from "@/lib/listings/types";

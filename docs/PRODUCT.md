@@ -298,7 +298,7 @@ example content must say what it is in plain words and must never carry a trust
 signal.
 
 Money is always **integer kobo**, a bigint, and only `formatMoney` from
-`@naijafinds/i18n` turns it into naira on screen. Never float money. Never
+`@vallo/i18n` turns it into naira on screen. Never float money. Never
 divide by 100 by hand. Percentages are integer basis points for the same reason.
 
 British spelling in documentation and product copy. **Zero em dashes anywhere.**

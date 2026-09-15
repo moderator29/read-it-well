@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { formatNumber } from "@naijafinds/i18n";
+import { formatNumber } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import Link from "next/link";
 import { notFound } from "next/navigation";

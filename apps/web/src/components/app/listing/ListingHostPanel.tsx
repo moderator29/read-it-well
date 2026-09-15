@@ -1,4 +1,4 @@
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";

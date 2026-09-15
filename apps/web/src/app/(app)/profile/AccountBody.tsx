@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatNumber, type Locale } from "@naijafinds/i18n";
+import { formatNumber, type Locale } from "@vallo/i18n";
 import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import type { PostView } from "@/components/social/feed/PostCard";
 import { EmptyState } from "@/components/app/Screen";

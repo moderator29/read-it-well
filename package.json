@@ -1,17 +1,17 @@
 {
-  "name": "naijafinds",
+  "name": "vallo",
   "private": true,
   "version": "0.1.0",
-  "description": "NaijaFinds. Nigeria-first discovery, stay, food and experience platform.",
+  "description": "Vallo. Nigeria-first property marketplace for renting, buying and selling.",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace @naijafinds/web",
-    "build": "npm run build --workspace @naijafinds/web",
-    "start": "npm run start --workspace @naijafinds/web",
-    "lint": "npm run lint --workspace @naijafinds/web",
+    "dev": "npm run dev --workspace @vallo/web",
+    "build": "npm run build --workspace @vallo/web",
+    "start": "npm run start --workspace @vallo/web",
+    "lint": "npm run lint --workspace @vallo/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "sync:versions": "node scripts/sync-native-versions.mjs"

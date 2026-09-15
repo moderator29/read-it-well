@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { ADMIN_NAV, ADMIN_NAV_GROUPS, type AdminDestination } from "./nav";

@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import type { AuthFormState } from "@/lib/auth/actions";
 import { requestPasswordReset } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/Button";

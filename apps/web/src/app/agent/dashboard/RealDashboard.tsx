@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatDate, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { AgentNumbers, ListingStatus } from "@/lib/agent/listings-queries";

@@ -32,7 +32,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
-import { formatMoney } from "@naijafinds/i18n";
+import { formatMoney } from "@vallo/i18n";
 import {
   fail,
   formDataToObject,

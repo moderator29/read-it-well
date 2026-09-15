@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import { AppRail } from "./AppRail";
 import { MobileTabBar, showsTabBar } from "./MobileTabBar";
 import { Logo } from "@/design-system/brand/Logo";

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { formatRating, type Locale } from "@naijafinds/i18n";
+import { formatRating, type Locale } from "@vallo/i18n";
 import type {
   AssistantListingItem,
   AssistantStreamEvent,

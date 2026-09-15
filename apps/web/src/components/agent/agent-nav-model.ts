@@ -1,4 +1,4 @@
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import type { NavSection } from "@/components/app/nav-model";
 
 /**

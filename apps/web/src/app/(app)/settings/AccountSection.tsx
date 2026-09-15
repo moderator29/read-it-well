@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { deleteAccountAction, signOut } from "@/lib/profile/actions";
 import { DELETE_CONFIRM_PHRASE } from "@/lib/profile/schema";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import type { ActionResult } from "@/lib/actions/envelope";
 
 /**

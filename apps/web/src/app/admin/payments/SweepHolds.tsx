@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { expireStaleWithdrawalHolds } from "@/lib/admin/payments-actions";
 import type { StaleHold } from "@/lib/admin/payments-queries";

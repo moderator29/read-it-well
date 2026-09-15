@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getDictionary } from "@naijafinds/i18n";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { ApplyWizard, type SetupRole } from "@/components/agent/ApplyWizard";
 import { ROLE_COPY } from "@/components/roles/roles";

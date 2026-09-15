@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { formatDate, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { StatusPill, toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
 import { fill, type AdminCommon } from "./copy";

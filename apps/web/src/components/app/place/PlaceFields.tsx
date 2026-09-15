@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChoicePicker, type ChoiceGroup } from "./ChoicePicker";
 import { fetchLocalGovernments, fetchOccupations } from "@/lib/places/actions";
 import { groupOccupations, type StateOption } from "@/lib/places/reference";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 
 /**
  * Country, state, local government, and what you do.

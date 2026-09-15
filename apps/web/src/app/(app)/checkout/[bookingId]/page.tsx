@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary, plural } from "@naijafinds/i18n";
+import { getDictionary, plural } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getCheckoutView } from "@/lib/bookings/checkout-view";
 import { isBookingReference } from "@/lib/payments/references";

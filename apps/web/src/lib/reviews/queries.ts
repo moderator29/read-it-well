@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatDate, type Locale } from "@naijafinds/i18n";
+import { formatDate, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
 import { lagosToday } from "../bookings/schema";
 import { getListingRepository } from "../listings/repository";

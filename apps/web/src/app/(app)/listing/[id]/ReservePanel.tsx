@@ -2,7 +2,7 @@
 
 import { useActionState, useId, useState, useMemo } from "react";
 import Link from "next/link";
-import { getDictionary, plural, type Locale } from "@naijafinds/i18n";
+import { getDictionary, plural, type Locale } from "@vallo/i18n";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";

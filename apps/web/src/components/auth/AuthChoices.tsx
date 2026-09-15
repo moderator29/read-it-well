@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import type { ProviderId, ProviderState } from "@/lib/auth/providers";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 

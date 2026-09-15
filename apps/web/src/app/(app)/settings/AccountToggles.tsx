@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import { RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { updateSettings } from "@/lib/profile/actions";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import type { ResolvedProfileSettings, SettingsPatch } from "@/lib/profile/schema";
 
 /**

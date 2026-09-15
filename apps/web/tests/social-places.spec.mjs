@@ -21,7 +21,7 @@
  *   node apps/web/tests/social-places.spec.mjs --serve     # stand-in only
  *   NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54331 \
  *   NEXT_PUBLIC_SUPABASE_ANON_KEY=standin \
- *   NEXT_DIST_DIR=.next-a2places npm run build --workspace @naijafinds/web
+ *   NEXT_DIST_DIR=.next-a2places npm run build --workspace @vallo/web
  *   cd apps/web && NEXT_DIST_DIR=.next-a2places npx next start -p 3232
  *   node apps/web/tests/social-places.spec.mjs
  *
@@ -635,7 +635,7 @@ try {
         "  read the reference tables, so the screen half did not run and nothing\n" +
         "  below is counted. Build against the stand-in to prove it:\n" +
         `    NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:${STANDIN_PORT} NEXT_PUBLIC_SUPABASE_ANON_KEY=standin \\\n` +
-        "    NEXT_DIST_DIR=.next-a2places npm run build --workspace @naijafinds/web\n",
+        "    NEXT_DIST_DIR=.next-a2places npm run build --workspace @vallo/web\n",
     );
   } else {
     check("37 containers, one per state and the FCT", stateCount === 37);

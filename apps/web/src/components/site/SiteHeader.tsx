@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
-import type { Dictionary, Locale } from "@naijafinds/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";

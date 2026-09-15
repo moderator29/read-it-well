@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { LOCALES, localeMeta, type Locale } from "@naijafinds/i18n";
+import { LOCALES, localeMeta, type Locale } from "@vallo/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary, formatDate } from "@naijafinds/i18n";
+import { getDictionary, formatDate } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readMyApplication } from "@/lib/agent/application-status";
 import { PageHeader } from "@/components/app/PageHeader";

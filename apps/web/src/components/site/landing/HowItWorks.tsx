@@ -1,4 +1,4 @@
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Words } from "@/components/site/Words";

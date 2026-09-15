@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Locale } from "@naijafinds/i18n";
-import { formatDate } from "@naijafinds/i18n";
+import type { Locale } from "@vallo/i18n";
+import { formatDate } from "@vallo/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
 import type { WalletEntry } from "@/lib/wallet/types";

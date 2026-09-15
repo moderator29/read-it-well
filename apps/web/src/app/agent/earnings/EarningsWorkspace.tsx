@@ -1,4 +1,4 @@
-import { formatDate, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { fill } from "../_copy";
 import type { AgentEarnings } from "@/lib/agent/earnings-queries";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";

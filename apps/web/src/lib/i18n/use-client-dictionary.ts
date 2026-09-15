@@ -8,7 +8,7 @@ import {
   localeFromAcceptLanguage,
   type Dictionary,
   type Locale,
-} from "@naijafinds/i18n";
+} from "@vallo/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 
 /**
@@ -33,7 +33,7 @@ import { LOCALE_COOKIE } from "@/lib/locale.constants";
  * the wrong trade.
  *
  * It is safe because `getDictionary` is a pure function over static objects.
- * `@naijafinds/i18n` imports nothing server-only, and the locale itself lives
+ * `@vallo/i18n` imports nothing server-only, and the locale itself lives
  * in a plain cookie whose name was split into `locale.constants.ts` precisely
  * so the client could read it (`LanguageSwitcher` already writes it there).
  *

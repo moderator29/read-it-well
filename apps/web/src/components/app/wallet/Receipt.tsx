@@ -1,4 +1,4 @@
-import { formatDate, type Locale } from "@naijafinds/i18n";
+import { formatDate, type Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";

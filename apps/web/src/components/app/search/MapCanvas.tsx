@@ -2,7 +2,7 @@
 
 import { tileProvider, warnIfNonCommercialTiles } from "@/lib/maps/tiles";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n";
 import "leaflet/dist/leaflet.css";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";

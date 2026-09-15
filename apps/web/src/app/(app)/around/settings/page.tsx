@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatNumber, getDictionary, type Locale } from "@naijafinds/i18n";
+import { formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getLocale } from "@/lib/locale";

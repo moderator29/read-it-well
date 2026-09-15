@@ -10,7 +10,7 @@ import {
   skipInterests,
   type InterestsSaved,
 } from "@/lib/interests/actions";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import { PROPERTY_TYPES, type PropertyType } from "@/lib/interests/schema";
 
 /**

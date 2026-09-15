@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { type Locale, formatRating } from "@naijafinds/i18n";
+import { type Locale, formatRating } from "@vallo/i18n";
 import { getListingRepository } from "@/lib/listings/repository";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";

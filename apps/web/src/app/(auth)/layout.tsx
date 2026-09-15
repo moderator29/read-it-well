@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getDictionary } from "@naijafinds/i18n";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { LogoLockup } from "@/design-system/brand/Logo";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";

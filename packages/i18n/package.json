@@ -1,5 +1,5 @@
 {
-  "name": "@naijafinds/i18n",
+  "name": "@vallo/i18n",
   "version": "0.1.0",
   "private": true,
   "description": "Translation keys and locale dictionaries for English, Yoruba, Hausa and Igbo.",

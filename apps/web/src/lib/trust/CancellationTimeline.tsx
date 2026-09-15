@@ -1,4 +1,4 @@
-import type { Locale } from "@naijafinds/i18n";
+import type { Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { CANCELLATION_STOPS, FULL_REFUND_HOURS, refundAtStop } from "./cancellation";
 

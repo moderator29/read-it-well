@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Locale } from "@naijafinds/i18n";
+import type { Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { verifyFunding } from "@/lib/wallet/actions";
 import { Button } from "@/components/ui/Button";

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { formatMoney, getDictionary } from "@naijafinds/i18n";
+import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getPaymentHealth, STALE_HOLD_MINUTES } from "@/lib/admin/payments-queries";
 import { adminUi } from "../_components/ui";

@@ -147,8 +147,8 @@ it, in the same change.
 1. **Import the repository.** Vercel detects the monorepo. Set **Root
    Directory** to `apps/web`. Framework preset: Next.js.
 2. **Build command**: leave the default (`next build`). Install command:
-   leave the default; npm workspaces resolve `@naijafinds/design-tokens` and
-   `@naijafinds/i18n` from the repository root, and both are listed in
+   leave the default; npm workspaces resolve `@vallo/design-tokens` and
+   `@vallo/i18n` from the repository root, and both are listed in
    `transpilePackages` so they compile in place.
 3. **Node version**: 20.9 or newer, per the `engines` field in the root
    `package.json`.

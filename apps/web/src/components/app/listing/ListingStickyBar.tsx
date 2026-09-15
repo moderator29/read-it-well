@@ -1,6 +1,6 @@
 "use client";
 
-import { getDictionary, plural, type Locale } from "@naijafinds/i18n";
+import { getDictionary, plural, type Locale } from "@vallo/i18n";
 import { useStayDatesOptional } from "./StayDates";
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";

@@ -1,4 +1,4 @@
-import type { Locale } from "@naijafinds/i18n";
+import type { Locale } from "@vallo/i18n";
 import { getPlatformReviews } from "@/lib/reviews/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Reveal } from "@/components/site/Reveal";

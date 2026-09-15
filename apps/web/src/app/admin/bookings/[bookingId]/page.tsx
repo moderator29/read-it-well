@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatMoney, formatParty, getDictionary, plural } from "@naijafinds/i18n";
+import { formatMoney, formatParty, getDictionary, plural } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { lagosToday } from "@/lib/bookings/schema";
 import { getBookingDetail } from "@/lib/admin/bookings-queries";

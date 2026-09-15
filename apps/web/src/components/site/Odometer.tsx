@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { formatNumber, DEFAULT_LOCALE, type Locale } from "@naijafinds/i18n";
+import { formatNumber, DEFAULT_LOCALE, type Locale } from "@vallo/i18n";
 
 /**
  * Odometer number.

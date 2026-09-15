@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { formatMoney, getDictionary } from "@naijafinds/i18n";
+import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getFeeConsole, type FeeRateView } from "@/lib/admin/money-queries";
 import { getRevenueSummary, REVENUE_WINDOW_DAYS } from "@/lib/admin/revenue-queries";

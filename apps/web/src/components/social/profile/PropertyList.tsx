@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatMoney } from "@naijafinds/i18n";
+import { formatMoney } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { PropertyCard } from "@/lib/social/profile-tabs-queries";
 

@@ -1,4 +1,4 @@
-import { type Locale } from "@naijafinds/i18n";
+import { type Locale } from "@vallo/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";

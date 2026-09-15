@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatRating, formatNumber, type Locale } from "@naijafinds/i18n";
+import { formatRating, formatNumber, type Locale } from "@vallo/i18n";
 import type { AgentReview, AgentReviewsSummary } from "@/lib/agent/reviews-queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";

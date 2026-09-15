@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatMoney, getDictionary, plural, type Locale } from "@naijafinds/i18n";
+import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
 import { isPaystackConfigured } from "../payments/paystack";
 

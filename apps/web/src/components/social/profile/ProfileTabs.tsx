@@ -13,7 +13,7 @@ import { ActivityList } from "./ActivityList";
 import { StoryGrid } from "../story/StoryGrid";
 import { EmptyPanel } from "./EmptyPanel";
 import type { TabKey } from "@/lib/social/profile-tabs-schema";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 
 /**
  * The tabs, and what is under them.

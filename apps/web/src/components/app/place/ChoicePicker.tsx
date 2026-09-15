@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TextField } from "@/components/ui/Field";
 import { matchesSearch } from "@/lib/places/reference";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 
 /**
  * One choice out of a very long list, without a very long list.

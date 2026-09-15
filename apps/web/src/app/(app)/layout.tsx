@@ -1,4 +1,4 @@
-import { getDictionary, type Locale } from "@naijafinds/i18n";
+import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getShellIdentity } from "@/lib/app/shell-queries";
 import { AppShell } from "@/components/app/AppShell";

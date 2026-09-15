@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { formatMoney } from "@naijafinds/i18n";
+import { formatMoney } from "@vallo/i18n";
 import { getListingRepository } from "@/lib/listings/repository";
 import { listOpenAreas } from "@/lib/social/areas-queries";
 import { getAreaFeed } from "@/lib/social/posts-queries";

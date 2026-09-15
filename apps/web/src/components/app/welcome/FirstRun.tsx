@@ -1,4 +1,4 @@
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { InterestChoices } from "./InterestChoices";
 import type { ComponentProps } from "react";

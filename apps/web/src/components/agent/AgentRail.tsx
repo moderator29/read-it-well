@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import type { AgentProfile } from "@/lib/agent/types";
 import { Logo } from "@/design-system/brand/Logo";
 import { ModeSwitcher } from "./ModeSwitcher";

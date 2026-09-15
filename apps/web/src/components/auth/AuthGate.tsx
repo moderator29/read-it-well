@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import { ButtonLink } from "@/components/ui/Button";
 import { authHref, returnHref, type GatedAction } from "./auth-intent";
 

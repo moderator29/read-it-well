@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { type Dictionary, type Locale } from "@naijafinds/i18n";
+import { type Dictionary, type Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
@@ -79,7 +79,7 @@ import { cardFacts, cardUtility } from "./listing-card-model";
  * is wrong by a factor of ten. Three things guarantee it here. The price owns
  * its own row with no sibling to compete for width. It carries `whitespace-
  * nowrap`, so it can never wrap mid-figure. And `glance` abbreviates
- * deliberately at a threshold owned by `@naijafinds/i18n`, so a yearly rent
+ * deliberately at a threshold owned by `@vallo/i18n`, so a yearly rent
  * reads ₦4.5m by choice while a nightly rate keeps its full ₦95,000.
  *
  * BOTH THEMES, ONE STRUCTURE. Nothing here is drawn differently in light and

@@ -5,7 +5,7 @@ import {
   isLocale,
   localeFromAcceptLanguage,
   type Locale,
-} from "@naijafinds/i18n";
+} from "@vallo/i18n";
 import { LOCALE_COOKIE } from "./locale.constants";
 
 export { LOCALE_COOKIE };
@@ -25,7 +25,7 @@ export { LOCALE_COOKIE };
  *    three of the four translations unreachable without a manual switch.
  * 3. English, which the brief sets as the platform default.
  *
- * The negotiation itself is `localeFromAcceptLanguage` in `@naijafinds/i18n`,
+ * The negotiation itself is `localeFromAcceptLanguage` in `@vallo/i18n`,
  * which is a pure function of the header string and the supported list. It is
  * there rather than here so it can be unit tested without a request; this
  * module cannot be imported outside one, because `next/headers` throws.

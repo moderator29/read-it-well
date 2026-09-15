@@ -10,7 +10,7 @@ Read-only on the codebase. This file is the only thing I wrote.
 1. Zero em dashes anywhere. Commas, colons, full stops, brackets.
 2. British spelling in docs and product copy.
 3. Money is integer kobo as bigint. `Math.round(naira * 100)` only at the input
-   boundary. Display through `formatMoney` from `@naijafinds/i18n`. Never float,
+   boundary. Display through `formatMoney` from `@vallo/i18n`. Never float,
    never hand-divide by 100. Percentages are integer basis points.
 4. Every server action returns the `ActionResult` envelope. Sessions come from
    `resolveSession()`.
@@ -1174,7 +1174,7 @@ breaking it. It may be intentional; nothing says so.
 **A3-052. `packages/design-tokens/src/index.ts` has one consumer and 192 lines.**
 *Evidence:* the only import of the package's JS entry anywhere in
 `apps/web/src` or `packages/*/src` is
-`design-system/icons/TrustIcon.tsx: import { token } from "@naijafinds/design-tokens"`.
+`design-system/icons/TrustIcon.tsx: import { token } from "@vallo/design-tokens"`.
 `palette`, `iconRamp`, `iridescentRamp`, `duration` and `easing` have **zero**
 consumers, verified by grepping each name individually.
 *Action:* delete `iconRamp`, `iridescentRamp`, `duration` and `easing`. Keep
@@ -1643,7 +1643,7 @@ sheet opened at.
 *Evidence:* `Amount.tsx`: `const major = minorUnits / 100;` then a direct
 `new Intl.NumberFormat(...).formatToParts`.
 *Action:* add `formatMoneyParts(minorUnits, locale, options)` to
-`@naijafinds/i18n` and have `Amount` consume it.
+`@vallo/i18n` and have `Amount` consume it.
 *Reason:* rule 3 says display only through `formatMoney` and never divide by 100
 by hand. `Amount`'s reason for going direct (it needs the parts, not a string) is
 genuine, and the correct answer is to move the parts API into i18n rather than to
@@ -2173,3 +2173,429 @@ across all 97 routes.
 currently stops it coming back.
 *Impact:* a regression that only a screenshot catches becomes a test failure.
 *Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+### 9.8 The small things
+
+**A3-136. The home search control is 140px tall at 390px with the CTA inside the field's border.**
+*Evidence:* measured with Playwright at 390px: the shell
+(`(app)/home/page.tsx`, `className="nf-card nf-card--live nf-focus-well flex min-w-0 flex-1 flex-col gap-inline p-inline sm:flex-row sm:items-center"`)
+renders 290x140 and contains a 212x50 input plus a full-width "Search" button.
+**I first read this as a wrap bug and it is not:** `flex-col sm:flex-row` makes
+the stack deliberate below the `sm` breakpoint.
+*Action:* keep the stack, move the button outside the shell's border, or replace
+it with an icon-only submit inside the field. Either way the bordered, glowing
+shell should contain the field and not the primary action.
+*Reason:* a filled primary CTA inside a field's own border makes the whole 140px
+block read as one control, so the tap target for "type here" is ambiguous with
+the tap target for "go". At 390px this is the largest single element above the
+fold on the signed-out home screen.
+*Impact:* the most-used control in the product reads as one field and one button.
+*Effort:* S. *Risk:* low, needs a screenshot at 390 and at `sm`.
+*Priority:* **Medium**
+
+**A3-137. Two of five category tiles are effectively invisible at 390px.**
+*Evidence:* measured at 390px: five `.nf-cat` tiles at x = 20, 140, 260, 380 and
+500, each 96 wide. The viewport is 390, so tile four shows **10 pixels** and tile
+five shows none. The row is a `nf-snap-x` scroller, so they are reachable.
+*Action:* offset the row so tile four peeks by 30 to 40px, which is the standard
+carousel affordance, or drop to a two-row grid at this width.
+*Reason:* a 10px sliver is not a discoverable affordance. Forty percent of the
+product's top-level taxonomy is hidden on the default phone width on the signed-in
+home screen.
+*Impact:* every category is discoverable without a guess.
+*Effort:* S. *Risk:* low. *Priority:* **Medium**
+
+**A3-138. The dock splits into a tab bar and a detached island.**
+*Evidence:* measured at 390px: `.nf-dockrow` spans x 16 to 374 and contains
+`.nf-tabbar` at x 50 to 275 and `.nf-dock-island` at x 284 to 340, a separate
+56x56 bordered box. In the screenshot the profile control reads as a fifth item
+that has fallen out of the bar.
+*Action:* one container. If the profile item is deliberately distinct, carry that
+by its content, not by putting it in its own box beside the bar.
+*Reason:* "an island tab bar" is one of the four things
+`docs/archive/ui-audit/00-reference-brief.md` asked for and is named in the
+handoff as a direct cause of visual clutter that is still being removed. This is
+the last one still standing.
+*Impact:* the most persistent chrome on the phone reads as one object.
+*Effort:* M. *Risk:* medium, it is the primary navigation.
+*Priority:* **Medium**
+
+**A3-139. The ambient artwork's tiled watermarks show through content screens.**
+*Evidence:* the `/home` and `/settings` dark screenshots both show faint repeated
+house-and-letter marks at roughly (45,648), (363,648), (30,805) and (350,805) in
+CSS pixels, behind the category row, behind the settings cards, and behind the
+dock.
+*Action:* on `(app)` routes with dense content, mask the ambient layer above the
+fold, or reduce the base layer's opacity there. The landing can keep it at full
+strength.
+*Reason:* repeated logo marks behind a settings list is noise, and on a list of
+toggles the eye is already working. The artwork is canonical and stays; where it
+sits relative to content is a layout decision, not an artwork one.
+*Impact:* content screens get a quiet ground.
+*Effort:* S. *Risk:* low, it is the signature canvas.
+*Priority:* **[TRACK A overlap] Medium**
+
+**A3-140. The category tiles render as three large white squares on the dark canvas.**
+*Evidence:* the `/home` and `/` dark screenshots. Each `.nf-cat__glyph` is 76 CSS
+px of near-white plate (`--nf-icon-ground: #F5F7FD`) at full opacity, and three or
+four of them sit in a row directly under a heading.
+*Action:* see A3-072. At this size, in a row, the plates dominate everything else
+on screen including the primary CTA.
+*Reason:* a row of high-contrast white squares on navy is the loudest possible
+arrangement and it is being used for a secondary navigation row.
+*Impact:* the visual hierarchy of the home screen inverts back the right way up.
+*Effort:* M. *Risk:* medium. *Priority:* **Medium**
+
+**A3-141. The light theme carries a coloured glow under the primary button.**
+*Evidence:* the `/wallet` light screenshot: a visible blue bloom under the
+"Sign in" button.
+*Action:* replace the glow with a neutral elevation shadow under
+`:root[data-theme="light"]`.
+*Reason:* rule 7 says light is a designed paper twin with brand blue on active,
+focus and CTA. The blue fill is right; a blue *bloom* on paper is a night-theme
+material carried over, and it is the closest thing in the light theme to the
+blue-tinted greys the rule forbids.
+*Impact:* the paper twin stops borrowing the night theme's light.
+*Effort:* S. *Risk:* low. *Priority:* **Medium**
+
+**A3-142. The light canvas is a gradient where the rule asks for flat.**
+*Evidence:* the `/wallet` and `/settings` light screenshots show a vertical
+gradient from roughly `#F7F8FA` at the top to a slightly darker value at the foot.
+*Action:* confirm this is deliberate and documented, or flatten it.
+*Reason:* rule 7 says "flat neutral canvas". It is close to flat and it is not
+flat, and the difference matters because the rule was written after a light theme
+that was too clever.
+*Impact:* the light theme matches its own specification.
+*Effort:* XS. *Risk:* none. *Priority:* **Nice-to-have**
+
+**A3-143. Three consecutive settings rows read "Not set" with no prompt.**
+*Evidence:* the `/settings` dark screenshot: "Local government", "State" and
+"What you do" all show "Not set" in muted grey with a chevron.
+*Action:* one line under the group explaining what setting them does, and a
+single "Set these up" action rather than three separate journeys.
+*Reason:* three blanks in a row is an empty state, and it is not designed as one.
+Rule 10 of section 12 says every state is designed including empty.
+*Impact:* a group that currently reads as incomplete reads as an invitation.
+*Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+**A3-144. The greeting says "Good evening" with no name and no fallback design.**
+*Evidence:* the `/home` dark screenshot, signed out: "Good evening," then
+"Welcome to RentMe".
+*Action:* for a signed-out visitor drop the greeting line entirely; a comma
+ending a clause with nothing after it reads as a missing variable.
+*Reason:* "Good evening," followed by a generic welcome is the visual grammar of
+a template that failed to interpolate a name, which is the opposite of the
+impression it is trying to make.
+*Impact:* the first line of the app stops looking unfinished.
+*Effort:* XS. *Risk:* none. *Priority:* **Medium**
+
+**A3-145. The error digest is shown with no way to send it.**
+*Evidence:* `(app)/error.tsx` renders
+`<span className="nf-numeric">Reference {error.digest}</span>`.
+*Action:* make it selectable and add a copy control, or a "Report this" link that
+pre-fills support with the digest.
+*Reason:* the digest exists so support can find the server log. A user who cannot
+copy it cannot give it to support, so it is a string that helps nobody.
+*Impact:* a crash becomes reportable. *Effort:* S. *Risk:* none.
+*Priority:* **Medium**
+
+**A3-146. `console.error` is the observability layer.**
+*Evidence:* `(app)/error.tsx`: `console.error("[rentme] app route error", error)`
+with the comment "Console until observability lands".
+*Action:* nothing in my scope, but note that every client-side crash is currently
+invisible to the team.
+*Reason:* the confirmation and failure work in section 24 cannot be validated
+without knowing which failures actually happen.
+*Impact:* the failure states get prioritised by frequency rather than by guess.
+*Effort:* M. *Risk:* low. *Priority:* **[AGENT 2] Medium**
+
+**A3-147. `nf-numeric` exists and money in confirmations does not use it.**
+*Evidence:* `error.tsx` uses `nf-numeric` for a digest. `Amount` sets tabular
+figures itself. `PayPanel` interpolates `view.totalDisplay` into prose with
+neither.
+*Action:* one rule: every figure the user might compare or read back is tabular.
+*Reason:* `Amount`'s own header explains why ("a column of prices visibly jitters
+as values change") and then half the money in the product is outside `Amount`.
+*Impact:* figures line up everywhere. *Effort:* S. *Risk:* none.
+*Priority:* **Nice-to-have**
+
+**A3-148. No label is truncated anywhere I checked, and there is a spec for it.**
+*Evidence:* `Receipt.tsx` uses `break-all` on the reference with a comment
+explaining why an ellipsis would make the receipt useless.
+`apps/web/tests/truncation.spec.mjs` exists.
+*Action:* nothing. Cited as a strength and as the pattern to hold.
+*Reason:* the scar tissue rule "never truncate a label" is being followed and is
+under test, which is the model the confirmation vocabulary needs.
+*Impact:* none. *Effort:* none. *Risk:* none.
+*Priority:* **Nice-to-have** (documentation value)
+
+**A3-149. The dock is 62px tall and sits 6px from the bottom inset.**
+*Evidence:* measured: `.nf-dockrow` `bottom-[calc(0.35rem+env(safe-area-inset-bottom))]`,
+height 62 at y 776 in an 844 viewport.
+*Action:* verify on a device with a home indicator that 0.35rem clears it. The
+calculation is correct; I could not test it on hardware.
+*Reason:* 5.6px above the safe-area inset is the tightest margin in the product
+and the dock is permanently on screen.
+*Impact:* the dock is comfortable on a notched device.
+*Effort:* S to check. *Risk:* none. *Priority:* **Nice-to-have**
+
+**A3-150. `--nf-radius-control` is 14px and the buttons in the screenshots read closer to 18px.**
+*Evidence:* `tokens.css` `--nf-radius-control: 14px` with a comment recording
+that the owner asked for rectangles across the platform. The `Sign up`, `Search`
+and `Sign in` buttons in my screenshots read noticeably rounder than 14px at
+390px.
+*Action:* measure the computed `border-radius` on `.nf-btn` and confirm it reads
+the control token rather than a Tailwind class or a `--nf-radius-lg`.
+*I did not measure this*, so it is a check, not a finding.
+*Reason:* if the buttons are not on `--nf-radius-control`, the token that exists
+to make one change move every control is not connected to the controls.
+*Impact:* the corner of everything you press is one decision.
+*Effort:* XS to check. *Risk:* none. *Priority:* **Medium**
+
+**A3-151. `.nf-card` is nested inside `.nf-card` in places and the stylesheet knows.**
+*Evidence:* `utilities.css` carries a comment in capitals: "IT EXISTS BECAUSE
+THESE WERE `.nf-card`, INSIDE AN `.nf-card`." `nf-card` appears in 205 files.
+*Action:* a Playwright assertion that no `.nf-card` has a `.nf-card` ancestor.
+*Reason:* the `BrandIcon` header names nested chrome as "the single largest
+reason the product reads as choked". One class fixed one instance; nothing stops
+the next.
+*Impact:* the nesting cannot come back.
+*Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+**A3-152. The CSP blocks `style-src-elem` to `'self'` and the dev server logs three violations per page.**
+*Evidence:* my probe captured, on all five routes:
+"Refused to apply inline style because it violates the following Content Security
+Policy directive: `style-src-elem 'self'`". The header is
+`style-src 'self' 'unsafe-inline'; style-src-elem 'self'`, so inline style
+**attributes** are allowed (which is what `StatusPill` and `MomentScreen` rely
+on) and inline `<style>` **elements** are not.
+*Action:* Agent 2 owns `lib/security/csp.ts`. The frontend consequence to check
+is whether anything in production inserts a `<style>` element at runtime;
+`next/font` and any third-party widget would.
+*Reason:* if `style-src-attr` is ever tightened to match, every `StatusPill` on
+the platform renders unpainted, which is exactly the invisible-pill failure the
+component was built to make unreachable.
+*Impact:* the status vocabulary cannot be switched off by a security change.
+*Effort:* S to verify. *Risk:* none.
+*Priority:* **[AGENT 2] Medium**
+
+**A3-153. The CSP allows `images.unsplash.com`.**
+*Evidence:* `lib/security/csp.ts` lists it in `img-src`. Grepping
+`apps/web/src` for `unsplash` finds it nowhere else, so nothing uses it.
+*Action:* remove the entry.
+*Reason:* ADR-013 is first-party inventory only. An allowlist entry for a stock
+photography host is a door left open on a rule the company has committed to.
+*Impact:* the CSP matches the ADR.
+*Effort:* XS. *Risk:* none. *Priority:* **[AGENT 2] Medium**
+
+**A3-154. `editNotLive` is a banned string in user-facing copy.**
+*Evidence:* `lib/social/posts-schema.ts`:
+`editNotLive: "This post is not live, so there is nothing to change on it."`
+"not live" is on the rule 13 ban list. It is the **only** hit I found for any of
+the six banned strings in rendered copy across the whole tree; every other match
+is a code comment, a test or an identifier.
+*Action:* "This post is a draft, so there is nothing to change on it yet."
+*Reason:* rule 13, and five specs enforce the neighbouring cases.
+*Impact:* the ban list goes to zero.
+*Effort:* XS. *Risk:* none. *Priority:* **[AGENT 1] Medium**
+
+**A3-155. The banned-copy specs check different lists.**
+*Evidence:* `around-feed.spec.mjs` checks `["demo", "coming soon", "lorem"]`.
+`error-copy.spec.mjs` checks `/\b(demo|sample|preview)\b/i`.
+`example-notice.test.ts` checks `["demo", "sample", "preview", "not live"]`.
+`shell.test.ts` checks all six. No two agree.
+*Action:* one exported constant, `BANNED_UI_COPY`, imported by every spec, and
+one new spec that sweeps the rendered text of all 97 routes against it.
+*Reason:* four partial lists is why `editNotLive` survived: the spec that covers
+that surface checks three of the six words and "not live" is not one of them.
+*Impact:* the rule is enforced once, everywhere.
+*Effort:* M. *Risk:* none. *Priority:* **High**
+
+**A3-156. `admin/fees/page.tsx` renders a percentage from basis points.**
+*Evidence:* `admin/fees/page.tsx`: `parts.push(`${rate.basisPoints / 100}%`)`.
+Basis points are integers as the rule requires, and the division is a display
+conversion.
+*Action:* Agent 2's call on whether the fee machinery should exist at all. The
+frontend line to hold is that the checkout copy is correct today:
+`view.platformTakesNothing` renders "Vallo adds nothing of its own to this total.
+Every naira goes to the stay."
+*Reason:* rule 8 says copy must never mention a platform fee as a thing that is
+charged. The guest-facing copy honours it; the admin surface exists.
+*Impact:* the rule stays held as the fee machinery evolves.
+*Effort:* none here. *Risk:* none. *Priority:* **[AGENT 2] Medium**
+
+**A3-157. `MomentScreen` lives in `components/app` and is the platform's confirmation.**
+*Evidence:* `admin/error.tsx` and `agent/error.tsx` both import
+`@/components/app/MomentScreen`.
+*Action:* `ResultSheet` goes in `components/ui`, per section 7.1.
+*Reason:* the admin panel importing from the personal-mode component folder is
+how a "tidy up the app components" change breaks the admin error boundary.
+*Impact:* the folder boundary means something.
+*Effort:* XS as part of the ResultSheet work. *Risk:* none.
+*Priority:* **Nice-to-have**
+
+**A3-158. `Screen.tsx` exports `TYPE` and `ICON` and is imported by components in three different folders.**
+*Evidence:* `Receipt.tsx` (wallet), `KycBanner.tsx` (agent) and
+`RequestInspection.tsx` (inspections) all import from `@/components/app/Screen`.
+*Action:* move `TYPE` and `ICON` to `components/ui/typography.ts` as part of
+A3-096.
+*Reason:* the best typographic vocabulary in the product is buried in a
+personal-mode screen component.
+*Impact:* it becomes discoverable, which is the first condition for adoption.
+*Effort:* S. *Risk:* low. *Priority:* **Medium**
+
+**A3-159. There is no styleguide route assertion for the confirmation states.**
+*Evidence:* `(site)/styleguide/page.tsx` exists and imports `StatusPill` and
+`Skeleton`, and `styleguide.spec.mjs` covers it.
+*Action:* add every `ResultSheet` state to the styleguide, and assert each one
+renders in both themes at 390px.
+*Reason:* the styleguide is the cheapest place to catch the next colour drift and
+it does not currently contain the thing most likely to drift.
+*Impact:* a screenshot of the whole confirmation vocabulary, on one page, in one
+run. *Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+**A3-160. `AiAssistantBanner` reasons about "the visual grammar of a demo".**
+*Evidence:* `AiAssistantBanner.tsx`: "year's rent through it, a generated robot
+is the visual grammar of a demo."
+*Action:* nothing. Cited because it is the right instinct written down, and it is
+the sentence the confirmation work should be measured against: a generic tick is
+the visual grammar of a demo in exactly the same way.
+*Reason:* documentation value.
+*Impact:* none. *Effort:* none. *Risk:* none.
+*Priority:* **Nice-to-have**
+
+### 9.9 Tests and QA
+
+**A3-161. There are zero component tests.**
+*Evidence:* `vitest.config.ts` sets `include: ["src/**/*.test.ts"]`, note the
+`.ts` and not `.tsx`, and its header states "nothing in this suite renders a
+component or calls a client hook". 44 test files, 1,415 tests, all of them
+server-module logic. 183 components.
+*Action:* a second vitest project with `jsdom` and `@testing-library/react`,
+scoped to `components/ui/**`, covering the twelve primitives and `ResultSheet`.
+*Reason:* the config's reasoning is correct for server modules and does not
+extend to primitives. `Sheet`'s detent maths, `snapUiIconSize`'s ties-to-larger
+rule, `toneForStatus`'s mapping and `Button`'s loading behaviour are all pure
+logic that a browser spec proves slowly and a unit test proves in a millisecond.
+*Impact:* the design system gets a safety net at the layer where a change affects
+everything.
+*Effort:* M. *Risk:* low, additive. *Priority:* **High**
+
+**A3-162. `toneForStatus` has no test.**
+*Evidence:* no test file exists for `components/ui/StatusPill`.
+*Action:* a table test asserting every status the platform produces maps to the
+intended tone, including the uppercase and lowercase forms it normalises.
+*Reason:* it is the single mapping that decides what colour every state on the
+platform is, it has four documented severity rules, and A3-011 and A3-012 are two
+mistakes in it that a test would have caught at review.
+*Impact:* the status vocabulary cannot drift silently.
+*Effort:* S. *Risk:* none. *Priority:* **High**
+
+**A3-163. The design tokens package has no test at all.**
+*Evidence:* no `.test.ts` under `packages/design-tokens`.
+*Action:* a test that parses `tokens.css` and asserts: no token is declared twice
+inside one selector block (which catches A3-046), `palette` in `index.ts` matches
+layer 1 exactly (which catches the drift the file's own comments record twice),
+and no hex in the file matches an orange, amber, gold, violet or magenta hue
+range.
+*Reason:* the two most expensive token bugs in this repository's history are a
+silent duplicate and a silent drift, and both are trivially detectable.
+*Impact:* the brand cannot drift without a red test.
+*Effort:* M. *Risk:* none. *Priority:* **High**
+
+**A3-164. `build-icon-vectors.mjs --check` fails and nothing runs it.**
+*Evidence:* it exits 1 with 60 drifted vectors. `apps/web/package.json`'s `lint`
+script runs `eslint . && node scripts/check-css-tokens.mjs` and not this one, and
+it lives at the repository root rather than under `apps/web`.
+*Action:* add it to the root `lint` or to CI.
+*Reason:* a check that exists, works and nobody runs is the same as no check.
+*Impact:* the vectors stay in step. *Effort:* XS. *Risk:* the check fails
+today, so it lands after A3-068. *Priority:* **Medium**
+
+**A3-165. 82 Playwright specs exist and I ran none of them.**
+*Evidence:* `apps/web/tests/*.spec.mjs`, 82 files. They are standalone node specs
+needing a server on port 3210; the server runs here, the database does not.
+*Action:* nothing to fix. Stated so nobody reads this report as evidence that the
+Playwright suite passes.
+*Reason:* honesty about coverage.
+*Impact:* none. *Effort:* none. *Risk:* none.
+*Priority:* **Nice-to-have**
+
+**A3-166. Nothing tests the ONE LAW's sixth step for the confirmation states.**
+*Evidence:* the ONE LAW requires "a Playwright test proving all of it" and lists
+"the notification or email the event deserves" as step five. There is no spec
+named for a success, pending or failure screen. The closest are
+`error-copy.spec.mjs`, `polish-overlays-copy-status.spec.mjs` and
+`wallet.spec.mjs`.
+*Action:* `confirmation.spec.mjs`, asserting that for each of the four states the
+rendered result carries a mark, a verdict of four words or fewer, a consequence
+sentence, at most two actions, and the correct live-region role.
+*Reason:* the part of the product people screenshot has no spec of its own.
+*Impact:* the confirmation vocabulary is enforced rather than agreed.
+*Effort:* M. *Risk:* none. *Priority:* **High**
+
+**A3-167. No spec asserts the reduced-motion contract.**
+*Evidence:* no spec name suggests it; `light-and-water.spec.mjs` covers themes.
+*Action:* a spec that sets `prefers-reduced-motion: reduce`, then sets
+`data-reduce-motion="1"`, and asserts that in both cases every computed
+`animation-duration` and `transition-duration` on the page is at or below 1ms.
+*Reason:* A3-102 is a control that has been shipped broken and nothing would have
+told anybody.
+*Impact:* the accessibility promise is machine-checked.
+*Effort:* M. *Risk:* none. *Priority:* **High**
+
+**A3-168. No spec asserts theme parity of the state colours.**
+*Evidence:* `light-and-water.spec.mjs` exists and I did not read it, so I do not
+know what it covers.
+*Action:* assert that every `--nf-state-*` and `--nf-status-*` token resolves to
+a different value in the two themes and that neither value falls in a warm hue
+range.
+*Reason:* `tokens.css` records that `--nf-state-warning` "used to be a burnt
+orange" in the light theme and that `--nf-state-info` was "the one state colour
+the daylight contrast pass missed entirely". Both were caught by a human reading
+the file.
+*Impact:* the light theme cannot quietly reacquire a warm hue.
+*Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+**A3-169. `icons-and-targets.spec.mjs` exists and a 26x48 button survives.**
+*Evidence:* the spec file is present; my probe found a 26x48 button on four
+routes.
+*Action:* read the spec, find out whether it covers that control, and extend it
+to sweep every route rather than a named list.
+*Reason:* either the spec does not cover the route or it does not cover unlabelled
+buttons. Both are worth knowing. *I did not read the spec.*
+*Impact:* the tap-target floor is actually held.
+*Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+**A3-170. No spec asserts `scrollWidth === clientWidth`.**
+*Evidence:* I verified the property holds on five routes with my own probe and
+found no spec by that name.
+*Action:* see A3-135.
+*Reason:* the phantom-scroll bug cost real time and the fix is currently held by
+nothing but care.
+*Impact:* a regression becomes a test failure.
+*Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+**A3-171. The vitest suite runs in 6 seconds and covers no UI.**
+*Evidence:* `44 passed (44)`, `1415 passed (1415)`, `Duration 6.09s`.
+*Action:* this is the budget A3-161 should fit inside. A primitives suite of a
+few hundred tests should keep the whole run under fifteen seconds.
+*Reason:* the reason nobody writes UI tests here is that the only UI test costs a
+browser. A fast jsdom lane removes the excuse.
+*Impact:* UI tests become cheap enough to write.
+*Effort:* none, it is a constraint on A3-161. *Risk:* none.
+*Priority:* **Medium**
+
+**A3-172. Two test files are named for banned words.**
+*Evidence:* `lib/listings/demo.test.ts` and
+`components/app/listing/example-notice.test.ts`, plus
+`api/assistant/example-listings.test.ts`.
+*Action:* rename `demo.test.ts` to `example-listings.test.ts` or similar, and
+align the `isDemo` and `is_demo` identifiers with the "Example" vocabulary the UI
+already uses.
+*Reason:* the UI copy is correct everywhere and the code underneath calls the
+same thing "demo". The next person to write a string will reach for the word the
+variable uses.
+*Impact:* the vocabulary is consistent from the database to the screen.
+*Effort:* M, it touches a column name so Agent 2 would own the data half.
+*Risk:* low. *Priority:* **Nice-to-have**

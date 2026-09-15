@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cancel } from "@/lib/bookings/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { getDictionary, plural, type Locale } from "@naijafinds/i18n";
+import { getDictionary, plural, type Locale } from "@vallo/i18n";
 import type { BookingGroups, BookingView } from "@/lib/bookings/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";

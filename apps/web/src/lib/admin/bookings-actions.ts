@@ -35,7 +35,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { formatMoney } from "@naijafinds/i18n";
+import { formatMoney } from "@vallo/i18n";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { bestEffortEmail, sendMessage } from "../email/client";
 import { bookingRefunded } from "../email/messages";

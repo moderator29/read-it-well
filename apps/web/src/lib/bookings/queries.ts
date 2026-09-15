@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
 import { getListingRepository } from "../listings/repository";
 import type { Listing } from "../listings/types";

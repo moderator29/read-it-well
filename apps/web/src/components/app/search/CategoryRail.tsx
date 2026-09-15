@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatNumber, type Locale } from "@naijafinds/i18n";
+import { formatNumber, type Locale } from "@vallo/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { toSearchHref, type DiscoveryQuery } from "@/lib/listings/search-params";
 import type { ListingKind } from "@/lib/listings/types";

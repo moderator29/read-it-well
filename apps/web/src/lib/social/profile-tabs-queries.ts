@@ -17,7 +17,7 @@ import "server-only";
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { DEFAULT_LOCALE, intlTag, type Locale } from "@naijafinds/i18n";
+import { DEFAULT_LOCALE, intlTag, type Locale } from "@vallo/i18n";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";

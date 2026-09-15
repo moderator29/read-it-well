@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { formatNumber, type Locale } from "@naijafinds/i18n";
+import { formatNumber, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Odometer } from "@/components/site/Odometer";
 import type { BalanceBreakdown, WalletEntry } from "@/lib/wallet/types";

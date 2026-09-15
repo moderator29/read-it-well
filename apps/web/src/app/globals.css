@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@naijafinds/design-tokens/tokens.css";
+@import "@vallo/design-tokens/tokens.css";
 
 /*
  * The social layer's own styles, kept in their own file rather than appended

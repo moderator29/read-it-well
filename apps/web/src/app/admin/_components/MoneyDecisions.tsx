@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Locale } from "@naijafinds/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { resolveEscrow, setFeeRate } from "@/lib/admin/money-actions";
 import { reviewKycDocument } from "@/lib/admin/kyc-actions";

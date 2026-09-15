@@ -5,7 +5,7 @@ import {
   formatRating,
   type Dictionary,
   type Locale,
-} from "@naijafinds/i18n";
+} from "@vallo/i18n";
 import { fill } from "../_copy";
 import type {
   AgentAnalytics,

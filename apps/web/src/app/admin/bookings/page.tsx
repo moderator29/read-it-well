@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatMoney, getDictionary, plural, type Locale } from "@naijafinds/i18n";
+import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getBookingBoard, type AdminBookingRow } from "@/lib/admin/bookings-queries";
 import { fill, type AdminCopy } from "../_components/copy";

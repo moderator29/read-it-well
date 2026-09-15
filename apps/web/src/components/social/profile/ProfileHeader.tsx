@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatNumber, type Dictionary, type Locale } from "@naijafinds/i18n";
+import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { BackChevron } from "./BackChevron";

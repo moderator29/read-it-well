@@ -45,7 +45,7 @@
  */
 
 import { revalidatePath } from "next/cache";
-import { formatMoney } from "@naijafinds/i18n";
+import { formatMoney } from "@vallo/i18n";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { createAdminClient } from "../supabase/admin";

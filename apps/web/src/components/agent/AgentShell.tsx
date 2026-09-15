@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Dictionary, Locale } from "@naijafinds/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n";
 import type { AgentProfile } from "@/lib/agent/types";
 import { AgentRail } from "./AgentRail";
 import { AgentMobileNav } from "./AgentMobileNav";

@@ -1,4 +1,4 @@
-import { formatNumber, type Dictionary, type Locale, formatRating } from "@naijafinds/i18n";
+import { formatNumber, type Dictionary, type Locale, formatRating } from "@vallo/i18n";
 import type { ListingReview } from "@/lib/reviews/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";

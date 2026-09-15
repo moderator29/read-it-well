@@ -830,14 +830,14 @@ core loop. Nothing else.
 - **Risk.** None.
 - **Priority.** Nice-to-have
 
-#### A1-045. Nothing connects an area page to the listings in that area, so supply is not content
-- **Evidence.** `grep -n "Listing\|listing\|supply\|rail" app/(app)/around/[slug]/page.tsx` returns nothing. `docs/SOCIAL_DESIGN.md` section 3 designs a system entry "A stay went live. Real `ListingCard` inline" fired by a listing reaching `PUBLISHED` in that area, and section 11 item 3 calls the area to listing funnel "the highest intent traffic on the platform". `RECOMMENDATIONS.md` O-5 records the absence at P1; this entry is the specific design.
-- **Action.** Two pieces. A supply rail on every area page showing published listings in that local government, which is a read the repository can already answer. And the system entry: a trigger writing a `posts` row with `author_kind = 'SYSTEM'` when a listing publishes in an area, with the listing card rendered inline, capped at one in four entries once the area has human posts, exactly as section 3 specifies.
-- **Reason.** A person reading about Yaba is the highest-intent property reader the platform will ever have, and the page shows them no property. The system entry also solves the supply-acquisition pitch for free: an agent who lists well gets reach in the area, earned rather than sold, which is the cheapest supply pitch available and does not break rule 8.
-- **Impact.** The social layer starts paying for itself in bookings. Agents get a reason to list in areas that have readers. The cold-start room is never empty.
+#### A1-045. CORRECTED. The system entry for a published listing is built; the area page has no persistent supply rail
+- **Evidence.** I filed this believing nothing connected an area to its listings, on the strength of a grep of `app/(app)/around/[slug]/page.tsx`. I then read the migrations and **the system entry exists**: `supabase/migrations/20260804132431_a_published_listing_speaks_in_its_area.sql` defines `private.announce_published_listing()` and the trigger `listings_announce_after_publish after insert or update of status on public.listings`, with `listings_retire_announcement` as its counterpart. `areas_open_entries_insert` and `agents_retire_announcements` exist too, so at least three of the six system entries in `docs/SOCIAL_DESIGN.md` section 3 are live. What is actually missing is narrower: the area page's imports are `Feed`, `listStories`, `getPlaceReviews`, `listMyAreas`, `JoinButton`, `ModeratorApply` and `AroundFab`, and there is no `ListingCard` and no repository read. So a listing appears in the area timeline on the day it publishes and is scrolled past for ever after.
+- **Action.** Add a persistent supply rail to the area page reading published listings in that local government, above or beside the feed. The feed is chronological and a catalogue is not: a person arriving at Around Yaba today wants the flats available now, not the flat announced three weeks ago.
+- **Reason.** A person reading about an area is the highest-intent property reader the platform will ever have, and today what they can see depends entirely on when they arrived. `docs/SOCIAL_DESIGN.md` section 11 item 3 calls the area to listing funnel "the highest intent traffic on the platform"; the announcement gets it in front of people once and the rail would keep it there.
+- **Impact.** Sustained area-to-listing conversion rather than a one-day spike per listing. `RECOMMENDATIONS.md` O-5 is broader than this and this is the specific missing half.
 - **Effort.** M
-- **Risk.** Low. The one-in-four cap matters: an area feed that becomes a listings wall stops being a conversation.
-- **Priority.** High
+- **Risk.** Low. The rail must not dominate the page: an area that becomes a listings wall stops being a conversation, which is the reason the one-in-four cap exists for the system entries.
+- **Priority.** Medium
 
 #### A1-046. All 18 posts are SYSTEM-authored and there is no path from reading the feed to writing in it for somebody who has joined nothing
 - **Evidence.** `docs/PRODUCT.md` section 9: "posts 18 (all author_kind SYSTEM)". `app/(app)/around/page.tsx` state 2 handles "Signed in with none joined, or signed out entirely" by showing `getEverywhereFeed` "under a line saying plainly that these places are not yours yet and one control that goes and picks them". `AroundFab` renders nothing when there is nothing behind it. `RECOMMENDATIONS.md` O-2 records the SYSTEM-only state at P1.
@@ -1279,4 +1279,250 @@ recommendations because the brief asked for what does not exist yet.
 - **Impact.** A growth surface aimed at the segment with the highest willingness to transact and the worst current alternatives.
 - **Effort.** M
 - **Risk.** Medium. It must not promise the remote features before they exist, which is the hard part and is why it should be written after A1-064.
+- **Priority.** Medium
+
+---
+
+### Group H. Documentation accuracy against the code
+
+I own `docs/*.md` accuracy. The rule that outranks the documents is that the code
+is right, so each entry below names where the document is wrong rather than where
+the code is.
+
+#### A1-091. `docs/PRODUCT.md` says `/agents` is an open supplier pitch and the route does not exist
+- **Evidence.** `docs/PRODUCT.md` section 4 lists as "Open to anybody: ... and `/agents` as the supplier pitch", and as behind a session "the exact paths `/agents/apply`, `/agents/status` and `/styleguide`". `middleware.ts` `PRODUCT_PATHS` is `new Set(["/styleguide"])` and its comment says "The two agent addresses that used to be listed here are gone with the `/agents` tree". `next.config` `redirects()` sends all three `/agents` paths under `/profile`.
+- **Action.** Correct section 4 to describe the redirects and the fact that there is no public supplier page. Then build one, which is A1-022.
+- **Reason.** The access-rule section is the document a reader consults to answer "what can a stranger see", and it names a public page that has not existed for some time. A document that is wrong about the gate is worse than no document about the gate.
+- **Impact.** The access rule reads true.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** Medium
+
+#### A1-092. `docs/PRODUCT.md` says the hybrid flags are deleted and `lib/flags.ts` still declares them
+- **Evidence.** `docs/PRODUCT.md` section 1: "the `hybrid_hotels` and `hybrid_restaurants` flags are deleted". `lib/flags.ts` `FeatureKey` includes `"hybrid_hotels"` and `"hybrid_restaurants"`, and all four locale files carry labels and consequences for both (A1-039).
+- **Action.** Remove them from the union and the locales, then the document is right. Do not correct the document to match the code here, because the code is the thing that is wrong relative to ADR-013.
+- **Reason.** This is the one case in my sweep where the document is right and the code has not caught up, which is worth naming explicitly so nobody "corrects" the document.
+- **Impact.** ADR-013 lands in the last place it has not.
+- **Effort.** S
+- **Risk.** Low, and see A1-039 about live rows.
+- **Priority.** Medium
+
+#### A1-093. `docs/PRODUCT.md` describes rent as ending in "then pay", which the code refuses
+- **Evidence.** Section 2, the Rent row: "Annual tenancy. Message the agent, inspect the property, then pay." A1-001 shows `lib/bookings/actions.ts` refuses a rental with `RENTAL_MESSAGE` and `RentalPanel.tsx` renders no payment control.
+- **Action.** Mark the Rent row's money column NOT BUILT in the same way the Buy and sell row already is, and say what the path actually ends at today. The document's own rule is that where it describes something the code does not do, it is marked NOT BUILT.
+- **Reason.** This is the most consequential inaccuracy in the documentation, because it is the line every future session reads to understand the primary market, and it implies the loop closes.
+- **Impact.** The largest gap in the platform becomes visible in the document that is meant to make gaps visible.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** High
+
+#### A1-094. `docs/PRODUCT.md` section 10 lists ten known divergences and does not list the ones in this group
+- **Evidence.** Section 10's table names OAuth, `ListingKind`, `listing_intent`, Buy and sell, PostGIS, `listing_videos`, bucket limits, the money write path, escrow kinds and the npm scope. It does not name the rent payment gap, the `/agents` route, the hybrid flags, or the fact that `experience` is linked from the landing page.
+- **Action.** Add them. The section is well designed precisely because it keeps the divergence list short and visible rather than scattered, and it is only useful if it is complete.
+- **Reason.** A divergence list that is missing the largest divergence trains readers to think the list is decorative.
+- **Impact.** The list does its job.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** Medium
+
+#### A1-095. The brand sweep has corrupted two sentences in `docs/PRODUCT.md` by replacing both dead names with Vallo
+- **Evidence.** `docs/PRODUCT.md` as it stands now reads: "The product was Vallo, a discovery, stay, food and experience platform. It is Vallo. The parts of Vallo that survive do so because..." The original told the history: it named NaijaFinds as what the product was and RentMe as what it became. A mechanical replacement of both names with Vallo has turned a three-sentence history into a tautology.
+- **Action.** `[TRACK A]` Rewrite the paragraph rather than substituting. Something like: the product began as a discovery, stay, food and experience platform. It is now Vallo, a property marketplace. The parts of the original that survive do so because a Nigerian looking for a place to live also eats, travels and stays.
+- **Reason.** This is the predictable failure mode of a 190-file name sweep and it is worth flagging early, because the same pattern will have hit every other place a document explained the history, and a sentence that reads "the product was Vallo and it is Vallo" is the kind of thing a reader notices and distrusts the whole document for.
+- **Impact.** The history survives the rename. It also flags the sweep pattern so Track A can grep for other instances rather than discovering them one at a time.
+- **Effort.** S
+- **Risk.** None. **This is Track A's file and I have not touched it.**
+- **Priority.** High
+
+#### A1-096. `docs/BADGES.md` defines three badges against mechanisms that do not exist
+- **Evidence.** See A1-043. Helpful marks and link-ups appear nowhere in the codebase; `post_mark` is `LIKE | SAVE`.
+- **Action.** Either add the note to `docs/BADGES.md` that three criteria are not yet expressible, in the same honest style `KNOWN_GAPS.md` uses for the other four, or redefine them. Do not leave the specification reading as though the sweep can satisfy them.
+- **Reason.** `KNOWN_GAPS.md` names four badge data gaps and gets credit for honesty; these three are the ones it missed, which means the badge documentation is currently more optimistic than the gaps file.
+- **Impact.** The two documents agree and both are honest.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** Medium
+
+#### A1-097. `docs/SOCIAL_DESIGN.md` reads as a description of a built system and its central mechanism has no table
+- **Evidence.** Section 6 is written in the present tense about `area_utility_state`, `area_utility_daily`, `agreement` and `utility_weight` decay: "the recompute runs in a trigger on insert, synchronous and bounded, so the live state never waits on a job." Only `area_members.utility_weight` exists (A1-041). The brief given to me says "docs/SOCIAL_DESIGN.md explains the five ways the shape moved from the original plan. Do not propose building it", which is true of the feed, the profiles and the stories and is not true of the utility record.
+- **Action.** Add one line at the top of section 6 saying it is a design that is not built, in the same way the amendment at the top of the file already flags a redirection. The danger is specific: a future agent reading this file will be told the social layer is built, will read section 6 in the present tense, and will not build the one thing in the document that most needs building.
+- **Reason.** This nearly happened to me. I read the brief's instruction that the social layer ships, read section 6, and only found the gap because I grepped the generated types for `area_utility` on a hunch. The document is the trap the brief warns about, one level down.
+- **Impact.** The wedge stops being invisible.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** High
+
+#### A1-098. `docs/SOCIAL_DESIGN.md` section 7.8 claims accessibility is answered
+- **Evidence.** The heading is "Accessibility, answered rather than mentioned". I did not read the section in full and I did not test any social surface for accessibility. Nothing in `apps/web/tests` that I saw is an accessibility spec, and my section 3 states plainly that I tested none.
+- **Action.** Either run the tests that would justify the claim, or downgrade the heading to a specification. A design document may specify accessibility; it cannot certify it.
+- **Reason.** `HANDOFF_01` section 7.3 lists four words that must be true when used. "Answered" is the same category of claim and it is being made on behalf of untested code.
+- **Impact.** The document claims what has been established and no more.
+- **Effort.** S to reword, M to test.
+- **Risk.** None. **I did not read section 7.8's contents**, so it may contain a caveat I have not seen.
+- **Priority.** Medium
+
+#### A1-099. `lib/saved/actions.ts` and `app/(app)/saved/page.tsx` both carry a comment describing behaviour that does not exist
+- **Evidence.** `lib/saved/actions.ts` header: "The tap is not lost: the client has already written the save locally and re-plays it once the account exists." `app/(app)/saved/page.tsx`: "places hearted before signing in, and every catalogue place, ride along from the device mirror so nothing a guest tapped is ever quietly dropped." A1-007 and A1-008 show that a signed-out heart on a platform listing is refused outright and that nothing replays anything.
+- **Action.** Fix the behaviour (A1-007, A1-008) and the comments become true. If the behaviour is not fixed, correct both comments.
+- **Reason.** This codebase's comments are its best asset and are treated by every reader, including me, as authoritative. I believed these two on first read and only found the truth by reading the client. A wrong comment in a codebase this well commented costs more than a wrong comment anywhere else.
+- **Impact.** The comments stay trustworthy.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** Medium
+
+#### A1-100. `/saved` is behind a session, so the entire signed-out device-save system has no screen
+- **Evidence.** `saved` is in `middleware.ts` `PRODUCT_SEGMENTS`, so a signed-out request to `/saved` redirects to `/sign-in`. `lib/saved/local.ts` exists specifically so that "Signed-out taps land here too, which is why a save is never lost while the sign-in prompt is on screen", and `SAVED_COOKIE` is read server-side by `app/(app)/saved/page.tsx`, which a signed-out person cannot reach.
+- **Action.** Decide which half is right. Either open `/saved` to a signed-out reader so the device mirror has a screen, which is coherent with browsing being open and is what makes A1-007 worth doing, or accept that device saves only serve signed-in users on catalogue rows and simplify accordingly.
+- **Reason.** A whole subsystem exists to serve a user who cannot reach the only page that renders it. That is not a bug in either half; it is two correct decisions that were made separately.
+- **Impact.** The save system becomes coherent, and a signed-out visitor gets somewhere to keep a shortlist, which is the strongest reason they would come back before registering.
+- **Effort.** S
+- **Risk.** Low. An open `/saved` reads a cookie, so it must be uncacheable, which `RECOMMENDATIONS.md` BE-10 already discusses for the public surfaces.
+- **Priority.** High
+
+---
+
+### Group I. Copy, the four locales, and the small things that make a platform feel finished
+
+#### A1-101. The first two sentences a new user reads promise buying and selling, which are not built
+- **Evidence.** `app/(auth)/start/StartCarousel.tsx` `SLIDES[0].body`: "Rent, buy or sell property across Nigeria. Shortlets, flats, land, shops and offices, all in one place." The comment directly above `SLIDES` says: "Both claims are true today and neither needs a lawyer... The intro to a product is exactly where an untrue sentence does the most damage, because it is the first one read." `docs/PRODUCT.md` section 2 marks Buy and sell as SCHEMA BUILT, UI NOT BUILT.
+- **Action.** Change the first slide to what is true today: rent a place or book a stay, across Nigeria, from the person who actually has it. Put buy back when P-8 lands.
+- **Reason.** The file states the principle and then breaks it in the string underneath. A person who taps through this intro, registers, and finds no way to buy anything has been mis-sold in the two sentences that were supposed to be the honest ones.
+- **Impact.** The intro is true. It is also a better intro, because "the person who actually has it" is the differentiator and "buy or sell" is a category claim anybody can make.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** High
+
+#### A1-102. The intro carousel and every auth screen title are hardcoded English
+- **Evidence.** `StartCarousel.tsx` `SLIDES` are English literals in a client component. `(auth)/sign-in/page.tsx` `NOTICES` is a five-entry English record. Every `(auth)` page's `metadata.title` is an English literal: "Create your account", "Sign in", "Reset your password", "Choose a new password", "Enter your confirmation code", "Welcome to Vallo".
+- **Action.** Move the slides and the notices into `t.auth`, which already exists and has `resetExpiredTitle`, `resetExpiredLead` and `resetSend`, so the section is the right home. Titles need `generateMetadata` rather than a static export, which `app/admin/switches/page.tsx` already demonstrates.
+- **Reason.** The funnel is the one place where a language mismatch costs a conversion rather than a nicety. A person who switched the site to Hausa and then meets an English registration flow reasonably concludes the language switch was cosmetic.
+- **Impact.** The funnel works in four languages, which is where the four-language claim earns its keep.
+- **Effort.** M
+- **Risk.** Low.
+- **Priority.** High
+
+#### A1-103. The sign-in notice for an unconfigured platform is the "platform keys" string in the highest-traffic possible place
+- **Evidence.** `app/(auth)/sign-in/page.tsx:24`: `unconfigured: "Accounts switch on the moment the platform keys land."` This is the message a person sees on the sign-in screen during an outage.
+- **Action.** Covered by A1-020's single honest outage sentence. Named separately because this is the one instance a paying user is most likely to meet, and because "Accounts switch on" tells them their account may not exist, which is a much worse thing to hear than "we cannot reach our systems".
+- **Reason.** During an outage, the sign-in screen is where everybody goes. Telling them accounts are not switched on yet turns an outage into a belief that the product is not real.
+- **Impact.** The worst-case message in the worst-case moment stops being alarming.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** High
+
+#### A1-104. "Owner" is used for an agent on the intro carousel
+- **Evidence.** `StartCarousel.tsx` `SLIDES[1].body`: "so there is always an owner to message". `docs/PRODUCT.md` section 7 gives Agent and bans Host, landlord, vendor and seller. Owner is not in the banned list and is the same category of synonym, and it is also inaccurate: `docs/PRODUCT.md` says an agent "lists property", not that they own it. `next.config` also redirects `/agents` to `?switch=owner`, so the word is load-bearing internally.
+- **Action.** Say agent. Add `owner` and `landlord` to the S-4 synonym spec's banned list for copy, with `?switch=owner` allow-listed as a URL parameter.
+- **Reason.** An agent who manages a flat is not its owner, and telling a renter there is "always an owner to message" is a claim about who they are talking to that the platform cannot make.
+- **Impact.** One vocabulary, and one fewer inaccurate claim about who is on the other end.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** Medium
+
+#### A1-105. Six `(app)` routes fall through to a loading skeleton that draws the marketing landing page
+- **Evidence.** `app/(app)` has no group-level `loading.tsx` (`ls app/(app)/loading.tsx` fails). `(app)/wallet/transactions`, `(app)/wallet/transactions/[id]`, `(app)/settings/devices`, `(app)/profile/setup`, `(app)/profile/setup/[role]` and `(app)/profile/application` have no local one. `app/loading.tsx` draws "a headline block, a paragraph, the search bar at its real 48px, and the four feature cards", and its own comment claims "`(app)`, `(auth)` and `(site)` keep the skeletons that mirror their screens and nothing here overrides them", which is true of `(auth)` and `(site)` and false of `(app)`.
+- **Action.** Add `app/(app)/loading.tsx` using the existing `ScreenSkeleton` family, which the other `(app)` routes already use. One file fixes all six. Correct the comment in `app/loading.tsx`.
+- **Reason.** Navigating from the wallet to its transaction history currently flashes a skeleton of a search bar and four marketing cards, outside the app shell, which reads as having been logged out. That is the same class of defect as the 404 pointing at `/` that the owner hit and complained about.
+- **Impact.** Six routes stop flashing the wrong product. One file.
+- **Effort.** S
+- **Risk.** None. `[AGENT 3]` owns the skeleton components; the missing boundary is the finding.
+- **Priority.** Medium
+
+#### A1-106. The 404 page offers no search
+- **Evidence.** `app/not-found.tsx` renders decorative floating objects, a session-aware "back to home" and, from what I read of the first 40 lines plus the imports, `ButtonLink` destinations. There is no `TextField` and no search form.
+- **Action.** Put the search box on the 404. Somebody who mistyped a listing URL or followed a dead link from a WhatsApp message is looking for a property, and the most useful thing to offer them is the ability to look for it.
+- **Reason.** A 404 on a marketplace is a person with intent and no destination. Offering them a link home is polite; offering them a search is useful.
+- **Impact.** Dead links convert instead of bouncing. Given that listings can be unpublished, a shared listing link going 404 is a normal event rather than an error case.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** Medium
+
+#### A1-107. Ninety `metadata.title` values across the app are hardcoded English
+- **Evidence.** `grep -rn "title: \"" app | grep -v "t\."` returns 90 lines including every `(site)` page, every `(auth)` page, `Search`, `Saved`, `Inbox`, `Notifications`, `Around`, `People`, `Write a story`, `Vallo AI` and the whole admin console. `app/admin/switches/page.tsx` shows the correct pattern with `generateMetadata` reading `t.admin.switches.title`.
+- **Action.** Convert the user-facing ones to `generateMetadata`. The admin console can wait, since an admin reading a tab title in English is not a product failure; the `(app)` and `(site)` ones are what a person sees in their tab bar, their history and their bookmarks.
+- **Reason.** A page title is what a person sees in their browser history and on a shared bookmark, and on a phone it is what the app switcher shows. Ninety English titles in a four-language product is the localisation gap at its most visible and cheapest to fix.
+- **Impact.** History, tabs and bookmarks read in the reader's language.
+- **Effort.** M. It is 90 files, each a small change.
+- **Risk.** Low. `generateMetadata` makes a page dynamic if it reads cookies, and `getLocale` does, so this interacts with `RECOMMENDATIONS.md` BE-10 about public surfaces being cacheable. Do the `(app)` set first, which is dynamic anyway.
+- **Priority.** Medium
+
+#### A1-108. The dictionary has no section for the transaction path, so the gap is structural rather than accidental
+- **Evidence.** `en.ts` top-level keys are `counts`, `reserve`, `meta`, `welcomeCards`, `common`, `nav`, `social`, `socialProfile`, `landing`, `auth`, `signUp`, `pickers`, `interests`, `settings`, `home`, `agent`, `agentListings`, `agentBookings`, `agentEarnings`, `agentAnalytics`, `admin`, `a11y`. There is no `search`, `listing`, `saved`, `wallet`, `messages`, `bookings`, `checkout`, `notifications`, `assistant`, `stories`, `safety`, `help` or `docs`. The agent workspace has four dedicated sections and the guest transaction path has none.
+- **Action.** Decide the dictionary's shape before adding to it, because the current shape encodes the gap: the supplier side is thoroughly localised and the demand side is not. Add `search`, `listing`, `saved`, `messages` and `notifications` as sections and move the existing screen strings in. `reserve` already exists as a partial and shows the pattern.
+- **Reason.** This is the root cause of most of the localisation findings in this report. It is not that somebody forgot to translate a screen; it is that the dictionary was never given a home for those screens, so every new string on them defaults to an English literal. Fixing individual strings without fixing the shape means the next string is English too.
+- **Impact.** Localisation stops being a per-string decision and becomes the default.
+- **Effort.** L
+- **Risk.** Low, and it is a large mechanical change across four files that TypeScript will police, which is the good kind of large change.
+- **Priority.** High
+
+#### A1-109. `KIND_NOUN` is the product's category vocabulary and it is English only
+- **Evidence.** `lib/listings/search-params.ts:56-67` defines eleven nouns as English literals with a `one` and a `many` form, and `kindLabel` capitalises the plural. `en.ts` separately has `interests.markets` and `agentListings.propertyTypes` with localised labels for the same enum, and `admin.propertyType` for a third copy.
+- **Action.** Three copies of ten property-type labels is two too many. Pick the dictionary as the source, derive the rest, and give `KIND_NOUN` its plural forms through `Intl.PluralRules` the way `counts` already does.
+- **Reason.** Every filter chip, every result count sentence and the stated-intent line on `/search` reads from `KIND_NOUN`, so the discovery surface's nouns are English while the same nouns in the agent wizard and the admin console are translated. It is also three places a new property type has to be named.
+- **Impact.** One vocabulary for the ten markets, in four languages, in one place.
+- **Effort.** M
+- **Risk.** Low. Yorùbá and Igbo have one plural category, which is already handled for `counts`.
+- **Priority.** Medium
+
+#### A1-110. Zero em dashes and zero banned words in my scope, and the specs that keep it that way exist
+- **Evidence.** `grep -rln "—" app components lib packages/i18n/src` returns one file, `lib/email/shell.test.ts`, which is a guard that must contain the character. `grep -rniE '"[^"]*\b(coming soon|not live|lorem ipsum)\b'` returns one file, `components/app/listing/example-notice.test.ts`, which is the spec's banned list. Five specs enforce it per `RECOMMENDATIONS.md` S-4.
+- **Action.** Nothing. Extend the specs per A1-020 and A1-104 to cover the synonym half and the soft "coming soon" variants, which S-4 already prescribes.
+- **Reason.** Recorded as a positive with evidence, because two house rules are genuinely and measurably held, and the mechanism that holds them is the model for holding the others.
+- **Impact.** None needed.
+- **Effort.** None.
+- **Risk.** None.
+- **Priority.** Nice-to-have
+
+#### A1-111. 390px discipline is real and measurable in my scope
+- **Evidence.** `grep -rn "min-w-\[\|w-\[[0-9]{3,}px\]\|minWidth"` across `(app)/search`, `(app)/around`, `(app)/saved`, `(app)/u` and all of `(site)` returns exactly two hits, `docs/DocsSidebar.tsx:44` and `docs/OnThisPage.tsx:33`, both behind `lg:` and `xl:` prefixes where a fixed sidebar is correct.
+- **Action.** Nothing in my scope. Recorded so the rating in section 5 can be read as evidenced rather than assumed, and so `[AGENT 3]` knows this half is clean.
+- **Reason.** Rule 6 is held. Worth stating because most codebases fail this and this one does not.
+- **Impact.** None needed.
+- **Effort.** None.
+- **Risk.** None. **I did not render anything at 390px**, so this is a source-level check for fixed widths only, not a visual verification.
+- **Priority.** Nice-to-have
+
+#### A1-112. Filter results have no live region, so a screen reader user is not told the count changed
+- **Evidence.** `grep -rc "aria-live" app components` lists roughly 20 files and `app/(app)/search/page.tsx` is not among them; the `(app)/around` files are. The filter drawer applies by navigation (`toSearchHref` writes the address bar), so the page re-renders and the count changes with no announcement.
+- **Action.** Wrap the result count in a polite live region. One attribute.
+- **Reason.** Applying a filter and being told nothing is the difference between a usable and an unusable discovery surface for a screen reader user. The page already does the hard accessibility work elsewhere, including `aria-current` on the sort options, which the comment at :485 calls out.
+- **Impact.** The core discovery interaction becomes announceable.
+- **Effort.** S
+- **Risk.** Low. A live region that fires on every keystroke is worse than none, so it must be on the count and not on the results.
+- **Priority.** Medium
+
+#### A1-113. The landing page's facts band prints four numbers and two of them are not counts
+- **Evidence.** `app/page.tsx`: `[{ big: "36 + FCT" }, { big: "4" }, { big: "₦" }, { big: "24/7" }]`, rendered in `nf-numeric` with a gradient, with the caption below being the only thing saying what the number counts. "₦" is a currency symbol standing in for a price claim and "24/7" is an availability claim about the assistant.
+- **Action.** Either make all four real counts, which requires `getPlatformStats` to have something to count, or drop the two that are not numbers. A band of four large figures where two are symbols reads as a band of statistics, which invites the reader to believe the other two are measured.
+- **Reason.** `KNOWN_GAPS.md` records that `getPlatformStats()` returns null on purpose because "Publishing invented inventory counts is misleading advertising", and that decision is right. Dressing a currency symbol as a statistic in the same visual treatment undoes some of the good that decision did.
+- **Impact.** The numbers band says only things that are numbers.
+- **Effort.** S
+- **Risk.** None. `[AGENT 3]` owns the band's visual treatment.
+- **Priority.** Nice-to-have
+
+#### A1-114. The landing page's app store row says "Available on" for stores the app is not on
+- **Evidence.** `app/page.tsx` `trust` array, last entry: `{ icons: ["app-store", "play-store"], ...t.landing.trust.stores }`, with a long comment recording that it was removed once, that the owner asked for it back twice, that the line worth holding is "Available on" rather than a link, and that "a badge that opens a 404 is where a claim becomes a broken promise". `RECOMMENDATIONS.md` MOB-1 records that no native build has ever run.
+- **Action.** The owner has decided this twice and I am not relitigating it. One narrow point for him rather than a change: an app store reviewer who sees "Available on the App Store" on the marketing site of an app that is not yet on the App Store may read it as a misleading claim, and guideline arguments are already delicate per MOB-2. Worth a sentence to whoever files the submission.
+- **Reason.** Raising a genuine concern once, plainly, then leaving it, per section 27. The concern is submission risk, not honesty: the current wording is defensible.
+- **Impact.** One fewer thing for a reviewer to query.
+- **Effort.** None.
+- **Risk.** None.
+- **Priority.** Nice-to-have
+
+#### A1-115. The landing page's secondary call to action sends a stranger to documentation
+- **Evidence.** `app/page.tsx`, the final CTA: primary is `/start`, secondary is `/docs` with the comment "This said 'Browse without an account' and pointed at /search. The product is behind a session now, so it was an offer the next click refused. The docs are the honest version of the same invitation." The premise is stale for the same reason as A1-003: `/search` is open.
+- **Action.** Restore "Browse without an account" pointing at `/search`. Keep `/docs` linked from the header, where it already is.
+- **Reason.** The second-most-prominent button on the front door offers a stranger 2,216 lines of English documentation instead of the catalogue. It was the right call when the product was gated and it is the wrong one now.
+- **Impact.** The front door's second button leads to the product.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** High
+
+#### A1-116. `docs` is a top-level marketing destination and a stranger has no reason to want it
+- **Evidence.** `SiteHeader.tsx:34` and `SiteFooter.tsx:66` both link `/docs`, it is in the sitemap, and `chapters.tsx` is 2,216 lines. The final CTA points at it (A1-115).
+- **Action.** Keep the page and demote the link. A first-time visitor wants inventory, safety and price; documentation is what they want on visit three, or what an agent wants before applying. Put the agent-relevant chapters behind the new supplier page in A1-022 instead.
+- **Reason.** Three of the platform's most prominent links point at documentation. That is an unusual allocation of a front door for a marketplace, and it reflects the period when the product was gated and documentation was the only thing a stranger could see.
+- **Impact.** The navigation reflects what visitors want.
+- **Effort.** S
+- **Risk.** Low. Do not remove the page; it is genuinely good and it is the honest answer for a reader who wants depth.
 - **Priority.** Medium

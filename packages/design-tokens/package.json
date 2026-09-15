@@ -1,5 +1,5 @@
 {
-  "name": "@naijafinds/design-tokens",
+  "name": "@vallo/design-tokens",
   "version": "0.1.0",
   "private": true,
   "description": "Single source of truth for NaijaFinds colour, type, space, radius, elevation, material and motion tokens.",

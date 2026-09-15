@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { formatMoney, getDictionary, type Locale } from "@naijafinds/i18n";
+import { formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingSubmissions, type ListingReviewView } from "@/lib/admin/queries";
 import { ListingDecision } from "../_components/AdminActions";

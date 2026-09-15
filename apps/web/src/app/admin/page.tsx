@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getDictionary } from "@naijafinds/i18n";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getQueueCounts } from "@/lib/admin/queries";

@@ -10,7 +10,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { SUPPORT_HREF, SUPPORT_IS_EMAIL } from "@/lib/support-email";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
-import type { Locale } from "@naijafinds/i18n";
+import type { Locale } from "@vallo/i18n";
 
 /**
  * Marketing side navigation, for phones.

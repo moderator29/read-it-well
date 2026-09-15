@@ -10,7 +10,7 @@ import {
   plural,
   type Dictionary,
   type Locale,
-} from "@naijafinds/i18n";
+} from "@vallo/i18n";
 import { fill } from "../_copy";
 import { acceptBooking, declineBooking } from "@/lib/agent/bookings-actions";
 import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-schema";

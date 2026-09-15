@@ -31,7 +31,7 @@
  *   node apps/web/tests/social-system.spec.mjs --serve
  *   NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54331 \
  *   NEXT_PUBLIC_SUPABASE_ANON_KEY=standin \
- *   NEXT_DIST_DIR=.next-a2system npm run build --workspace @naijafinds/web
+ *   NEXT_DIST_DIR=.next-a2system npm run build --workspace @vallo/web
  *   cd apps/web && NEXT_DIST_DIR=.next-a2system npx next start -p 3232
  *
  * Against any other build the render section says plainly that it did not run
@@ -450,7 +450,7 @@ async function run(theme) {
         "  ....    the place did not mount, so the render checks did not run.\n" +
           "          Build against the stand-in to prove the entries on screen:\n" +
           `          NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:${STANDIN_PORT} NEXT_PUBLIC_SUPABASE_ANON_KEY=standin \\\n` +
-          "            NEXT_DIST_DIR=.next-a2system npm run build --workspace @naijafinds/web",
+          "            NEXT_DIST_DIR=.next-a2system npm run build --workspace @vallo/web",
       );
       const text = await page.locator("body").innerText();
       check("the page is a designed state, not an error", !/Application error|stack/i.test(text));

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@naijafinds/i18n";
+import type { Dictionary } from "@vallo/i18n";
 import { MODE_COOKIE, type Mode } from "@/lib/mode.constants";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 

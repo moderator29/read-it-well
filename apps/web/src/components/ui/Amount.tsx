@@ -1,4 +1,4 @@
-import { intlTag, isGlanceCompact, type Locale } from "@naijafinds/i18n";
+import { intlTag, isGlanceCompact, type Locale } from "@vallo/i18n";
 
 /**
  * Money, set the way the reference set sets money.
@@ -55,7 +55,7 @@ export type AmountProps = {
    * comparing against the card below it, but a rental at ₦4,500,000 a year is
    * written ₦4.5m by every Nigerian who has ever advertised one.
    *
-   * One threshold, owned by `@naijafinds/i18n`, so a search page mixing nightly
+   * One threshold, owned by `@vallo/i18n`, so a search page mixing nightly
    * stays and yearly rents gets both right with no per-card decision anywhere.
    */
   glance?: boolean;

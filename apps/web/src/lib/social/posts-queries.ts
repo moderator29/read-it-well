@@ -16,7 +16,7 @@ import "server-only";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";
-import { formatMoney } from "@naijafinds/i18n";
+import { formatMoney } from "@vallo/i18n";
 import type { PostListing, PostView } from "@/components/social/feed/PostCard";
 import { EDIT_WINDOW_MINUTES } from "./posts-schema";
 import { listingPhotoUrl, readMediaFor, type SignedMedia } from "./posts-media";

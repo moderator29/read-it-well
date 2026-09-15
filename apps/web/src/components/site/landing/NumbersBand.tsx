@@ -1,7 +1,7 @@
 import { Reveal } from "@/components/site/Reveal";
 import { Odometer } from "@/components/site/Odometer";
 import { getPlatformStats } from "@/lib/platform-stats";
-import { type Locale } from "@naijafinds/i18n";
+import { type Locale } from "@vallo/i18n";
 
 /**
  * Numbers band.

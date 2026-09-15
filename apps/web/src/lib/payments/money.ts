@@ -1,4 +1,4 @@
-import { formatMoney } from "@naijafinds/i18n";
+import { formatMoney } from "@vallo/i18n";
 
 /**
  * Kobo-exact naira for server copy.
