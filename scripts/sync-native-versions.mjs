@@ -55,7 +55,7 @@
  *  3. Commit the result. The two native files are a record of what was built,
  *     which is what makes it possible to answer "which commit is that crash
  *     in" from a store console six weeks later.
- *  4. `CAPACITOR_SERVER_URL=https://rentme.ng npx cap sync` from `apps/web`.
+ *  4. `CAPACITOR_SERVER_URL=https://vallo.ng npx cap sync` from `apps/web`.
  *     The origin has to be in the environment of the shell that runs the sync,
  *     for the reason `capacitor.config.ts` gives.
  *  5. Build and upload. Android needs `android/keystore.properties` present or

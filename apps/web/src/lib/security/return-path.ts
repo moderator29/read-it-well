@@ -8,7 +8,7 @@
  *
  * Returned as a path, never a URL, and re-checked on the way out. A `next`
  * parameter that accepts an absolute address is an open redirect: an attacker
- * sends `/sign-in?next=https://rentme.ng.evil.example` and the sign-in page
+ * sends `/sign-in?next=https://vallo.ng.evil.example` and the sign-in page
  * somebody trusted hands them to somebody else. The two leading-slash cases
  * matter as much as the scheme, because `//evil.example` is protocol-relative
  * and a browser reads it as a host.
@@ -30,9 +30,9 @@
  *
  * Measured, not assumed:
  *
- *     new URL("/\t/evil.example", "https://rentme.ng")  ->  https://evil.example/
- *     new URL("/\n/evil.example", "https://rentme.ng")  ->  https://evil.example/
- *     new URL("/\r/evil.example", "https://rentme.ng")  ->  https://evil.example/
+ *     new URL("/\t/evil.example", "https://vallo.ng")  ->  https://evil.example/
+ *     new URL("/\n/evil.example", "https://vallo.ng")  ->  https://evil.example/
+ *     new URL("/\r/evil.example", "https://vallo.ng")  ->  https://evil.example/
  *
  * The rest of the C0 range is refused with them. None of it has any business in
  * a path this application generates, the cost of refusing it is nothing, and

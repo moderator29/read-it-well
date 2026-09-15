@@ -1182,3 +1182,817 @@ confidence I say so in the Evidence field.
 - **Risk** None.
 - **Priority** Medium
 
+### 8.3 Money, wallet and the ledger
+
+#### A2-041. `withdraw()` falls back to an explicitly unlocked money path
+- **Evidence** `lib/wallet/actions.ts`, the `else` branch after
+  `held.outcome === "ok"`. It logs
+  `reason: "atomic_hold_unavailable_using_unlocked_path"` and then does three
+  separate round trips: `ensureWalletId`, `availableBalanceMinor`, and
+  `postEntry` of a PENDING withdrawal debit. The comment says it "goes the day
+  `public.hold_wallet_withdrawal` lands". That function is defined in
+  `supabase/migrations/20260809080815_the_locking_money_paths_get_a_public_door.sql`,
+  which is 37 days old, so the comment is stale. I could not confirm the
+  migration is applied live.
+- **Action** Delete the fallback. On `missing`, refuse the withdrawal with the
+  same honest message `transferToUser` already uses for that case, and log
+  `unconfigured`.
+- **Reason** This is the exact race the handoff names: two taps on a slow
+  Nigerian connection both read the same balance, both find it sufficient, both
+  post a hold, and the platform initiates two Paystack transfers against one
+  balance. `transferToUser` already refuses rather than falling back, and the
+  reasoning in `lib/wallet/rpc.ts` says money must move inside the lock. The
+  withdrawal path is the one that disagrees with its own module's contract.
+- **Impact** Removes the only unlocked money-moving path in the codebase.
+- **Effort** S
+- **Risk** If `hold_wallet_withdrawal` is genuinely not applied, withdrawals
+  stop. That is the correct outcome and it is loud, whereas the current outcome
+  is quiet and racy. Confirm the function is applied before deleting, which
+  needs live database access this session did not have.
+- **Priority** Critical
+
+#### A2-042. `isMissing()` classifies ordinary errors as a missing function
+- **Evidence** `lib/wallet/rpc.ts`:
+  ```
+  const UNDEFINED_FUNCTION_CODES = new Set(["PGRST202", "42883"]);
+  function isMissing(error) {
+    if (error.code && UNDEFINED_FUNCTION_CODES.has(error.code)) return true;
+    const message = (error.message ?? "").toLowerCase();
+    return message.includes("could not find the function")
+      || message.includes("does not exist")
+      || message.includes("schema cache");
+  }
+  ```
+- **Action** Match on `PGRST202` alone. Drop `42883` and all three message
+  heuristics. Everything else becomes `failed`, which every caller already
+  handles by refusing.
+- **Reason** `does not exist` appears in the message of `42P01` (relation does
+  not exist), `42703` (column does not exist) and several role and type errors.
+  `42883` is raised when a function called INSIDE the locking function is
+  missing, which is precisely the failure the badge-sweep gotcha describes and
+  is not the same as the wrapper being absent. So a structural error inside
+  `hold_wallet_withdrawal` is reported as "not applied yet" and silently
+  downgrades the withdrawal to the unlocked path in A2-041. A money path that
+  changes its safety guarantees based on a substring match is the most dangerous
+  pattern in this file.
+- **Impact** A real database error stops being mistaken for an undeployed
+  function.
+- **Effort** S
+- **Risk** During a genuine deployment gap the callers refuse instead of falling
+  back, which is the intended behaviour once A2-041 lands.
+- **Priority** Critical
+
+#### A2-043. `labelTransferLegs` writes a ledger status while claiming not to
+- **Evidence** `lib/wallet/actions.ts` `labelTransferLegs` is documented as
+  "display-only" and "it moves no money". It calls
+  `setEntryStatus(admin, ref, "COMPLETED", { note })`, and `setEntryStatus` in
+  `lib/wallet/ledger.ts` issues
+  `.update({ status, metadata: merged }).eq("reference", reference)`. So a
+  function described as cosmetic sets a wallet entry to COMPLETED,
+  unconditionally, outside any lock, after the transfer RPC has returned, and it
+  runs on the `duplicate` branch too.
+- **Action** Split `setEntryStatus` into `setEntryStatus` and
+  `mergeEntryMetadata`, and have `labelTransferLegs` call only the second.
+- **Reason** A COMPLETED wallet entry is money in somebody's derived balance. A
+  helper that can create one must not be described as, or trusted as, display
+  only. Today if the transfer function ever left a leg PENDING, this would
+  complete it with no balance check at all.
+- **Impact** The one function allowed to be best-effort stops being able to move
+  money.
+- **Effort** S
+- **Risk** None. The transfer RPC already sets the statuses it intends.
+- **Priority** High
+
+#### A2-044. `availableBalanceMinor` pulls every pending debit row and sums in Node
+- **Evidence** `lib/wallet/ledger.ts` `availableBalanceMinor`: reads
+  `wallet_balances.balance_minor`, then
+  `.from("wallet_entries").select("amount_minor").eq("wallet_id", walletId)
+  .eq("status", "PENDING").eq("direction", "debit")` with no limit, then sums in
+  a `for` loop.
+- **Action** Replace with a single `private.wallet_available_minor(p_wallet
+  uuid)` that computes settled minus pending debits in one statement, exposed
+  through a `public` wrapper granted to `service_role` only. The logic already
+  exists inside `hold_wallet_withdrawal`; this is the read-only twin.
+- **Reason** Two problems, one silent. PostgREST pages at 1,000 rows by default,
+  so a wallet with more than 1,000 PENDING debits returns a partial set, the
+  loop understates the held amount, and the function reports MORE spendable
+  balance than exists. That is an overdraft with no error. And it is two round
+  trips where one statement would do, on the hottest read in the wallet.
+- **Impact** Removes a silent over-reporting failure from the function that
+  prices every spend.
+- **Effort** M
+- **Risk** The new function must be the one the locking paths already agree
+  with, so write it by copying the expression out of
+  `hold_wallet_withdrawal` rather than by reimplementing it.
+- **Priority** High
+
+#### A2-045. `net_settlement_minor` is not tied to the parts it should follow from
+- **Evidence** `supabase/migrations/20260728152358_bookings_payments.sql`
+  creates `ledger_entries` with `constraint ledger_balances_chk check
+  (gross_minor = platform_fee_minor + agent_share_minor + processor_fee_minor)`.
+  `net_settlement_minor` is in the table and in neither that constraint nor any
+  later one. `20260805102702` replaced the five sign checks with
+  `ledger_entries_sign_chk`, which constrains its sign and not its value. From
+  the migration files, not verified live.
+- **Action** Add `constraint ledger_net_chk check (net_settlement_minor =
+  gross_minor - processor_fee_minor - platform_fee_minor)`, or whatever the
+  intended identity is, after confirming it against
+  `lib/bookings/settlement.ts`.
+- **Reason** The conservation rule is enforced for three of the four
+  decompositions and not the fourth, and the fourth is the one the revenue
+  reports sum. A bug could write a net that does not follow from the parts, and
+  `ledger_balances_chk` would pass.
+- **Impact** The whole row becomes internally consistent by construction.
+- **Effort** S
+- **Risk** If any existing row violates the identity, the constraint fails to
+  add; check first with a read-only query, which needs live access.
+- **Priority** High
+
+#### A2-046. No money surface is rate limited
+- **Evidence** A grep of every `consume({` and `throttle(` call site returns
+  eleven buckets: `map_bounds`, `support_ticket`, `contact_form`,
+  `reservation_create`, `signup_email_probe`, `sign_in`, `sign_up`,
+  `password_reset_ip`, `password_reset_email`, `social_follow`,
+  `social_profile_update`, `social_handle_claim`, `conversation_new`, `report`,
+  and the assistant and support buckets. **None of `fundWallet`, `withdraw`,
+  `transferToUser`, `payBookingFromWallet` or the pot actions is in that list.**
+  `RECOMMENDATIONS.md` W-2 records this as P0 and it is still open.
+- **Action** Add `wallet_fund` (10 an hour per user), `wallet_withdraw` (5 an
+  hour), `wallet_transfer` (20 an hour) and `booking_pay` (10 an hour), all
+  keyed on `subjectForUser`, all with `failClosed` from A2-006.
+- **Reason** Extends W-2 with the specific buckets and numbers. Without them, a
+  scripted caller can open unlimited Paystack charges (each a real API call and
+  a real fee), enumerate transfer recipients by email at machine speed (W-4's
+  oracle, at scale), and hammer the locking functions.
+- **Impact** The money surfaces get the protection every other write path
+  already has.
+- **Effort** S, because the limiter already exists and is durable.
+- **Risk** A legitimate person retrying a dropped submit on a bad connection
+  must not be refused, so the windows are hours and the ceilings generous.
+- **Priority** Critical
+
+#### A2-047. Reserve has no idempotency guard
+- **Evidence** `lib/security/idempotency.ts` `withIdempotency` is imported in
+  exactly one file, `lib/bookings/checkout.ts`, where it wraps
+  `booking.card_checkout` and the wallet payment. A grep for it in
+  `lib/reservations/actions.ts` returns nothing, and that file has no
+  `idempotencyKey` in its schema.
+- **Action** Wrap the reserve action in `withIdempotency` with scope
+  `reservation.create`, and add a unique constraint on
+  `(guest_id, listing_id, check_in, check_out)` for non-cancelled rows so the
+  database is the real guard, as `RECOMMENDATIONS.md` R-27 asks.
+- **Reason** The module's own header names the failure: "Nigerian mobile networks
+  drop mid-request as a matter of routine, and a person whose Reserve or Withdraw
+  tap appears to fail will tap again." Reserve holds calendar nights, so a double
+  tap takes the same dates twice and the stale-hold sweep then releases them on
+  two different clocks.
+- **Impact** A dropped connection stops producing two holds on one property.
+- **Effort** M
+- **Risk** The unique constraint is the load-bearing half and needs care about
+  what "active" means for a cancelled reservation.
+- **Priority** High
+
+#### A2-048. `setEntryStatus` read-then-writes metadata with no lock
+- **Evidence** `lib/wallet/ledger.ts` `setEntryStatus` with `extraMetadata`:
+  a `select("metadata")`, a spread merge in Node, then an `update`.
+- **Action** Do the merge in Postgres with `metadata = metadata || $1::jsonb` in
+  a single statement.
+- **Reason** Two concurrent settlements against the same reference lose one
+  side's metadata. It is display data today, so the consequence is a missing
+  caption, but the pattern is the same read-then-write the whole wallet design
+  exists to avoid and it will be copied.
+- **Impact** One round trip instead of two, and no lost update.
+- **Effort** S
+- **Risk** None.
+- **Priority** Medium
+
+#### A2-049. Escrow, savings pots and crypto have no feature flag
+- **Evidence** `lib/flags.ts` `FeatureKey` is a closed union:
+  `bookings, wallet, messaging, assistant, support, agent_listings,
+  hybrid_hotels, hybrid_restaurants, social, events`. There is no `escrow`,
+  `savings`, `crypto` or `sale`.
+- **Action** Add `escrow`, `savings` and `crypto` keys and check them at the top
+  of `lib/wallet/escrow.ts`, `lib/wallet/pot-actions.ts` and the crypto deposit
+  action.
+- **Reason** The flags exist to switch a feature off during an incident, and the
+  three newest money features are the three most likely to need it. Today the
+  only way to stop escrow is a deploy.
+- **Impact** A money incident can be contained in seconds rather than in a
+  build.
+- **Effort** S
+- **Risk** Fail-open means a flag read failure leaves them on; see A2-127.
+- **Priority** High
+
+#### A2-050. The four escrow functions live in `public`, not `private`
+- **Evidence** `20260809053537` defines `public.escrow_hold`,
+  `public.escrow_release`, `public.escrow_refund` and `public.escrow_open` as
+  `security definer set search_path = public`, with EXECUTE revoked from
+  `public, anon, authenticated` and granted to `service_role`. Every other
+  SECURITY DEFINER money function on the platform is `private.*` with a thin
+  `public` wrapper (`20260809080815` exists precisely to add those wrappers).
+- **Action** Move the bodies to `private.escrow_*` and leave thin `public`
+  wrappers, matching `hold_wallet_withdrawal` and `transfer_between_wallets`.
+- **Reason** The grants are correct today, so this is not a hole: it is the one
+  place the platform's own convention is broken, and the convention exists
+  because a `public` SECURITY DEFINER function is one accidental
+  `grant execute ... to authenticated` away from being reachable. That exact
+  accident is what `20260806112848` was written to undo.
+- **Impact** One consistent rule for where privileged bodies live.
+- **Effort** M
+- **Risk** A rename of a SECURITY DEFINER function used by a live path; do it
+  with the wrapper in place first so nothing breaks between the two steps. Not a
+  revoke, so not on the stop list.
+- **Priority** Medium
+
+#### A2-051. `escrows` blocks account deletion for settled escrows too
+- **Evidence** `20260809051720` lines 98 and 99:
+  `payer_id uuid not null references auth.users(id) on delete restrict` and the
+  same for `payee_id`. The migration's comment justifies it for "money in
+  flight" and the constraint does not distinguish flight from settlement.
+  `RELEASED`, `REFUNDED` and `RESOLVED` are terminal per the same file.
+- **Action** Keep the restrict, and have A2-026's `prepare_account_deletion`
+  refuse only when a non-terminal escrow exists, and for terminal ones replace
+  the party reference with a retained tombstone before the delete.
+- **Reason** The reasoning in the migration is right and the implementation is
+  wider than the reasoning. A person who completed one escrow purchase two years
+  ago can never delete their account.
+- **Impact** The restrict protects live money and stops being a permanent bar.
+- **Effort** M, and it is part of A2-026.
+- **Risk** Any change to an escrow party reference is a change to a financial
+  record and needs the founder.
+- **Priority** High
+
+#### A2-052. There is no ceiling on a single funding, withdrawal or transfer
+- **Evidence** `lib/wallet/schema.ts` bounds the amount but I found no
+  platform-level maximum, and the database columns are
+  `amount_minor bigint not null check (amount_minor > 0)`.
+  `parseWebhook` in `lib/payments/yellowcard.ts` accepts anything up to
+  `Number.MAX_SAFE_INTEGER` kobo.
+- **Action** Add a configured per-transaction ceiling and a per-day-per-user
+  total, enforced in the locking functions so it cannot be bypassed, and refuse
+  above it with a message naming the limit and the route to raise it.
+- **Reason** Two reasons and they point the same way. A malformed provider event
+  could credit an absurd amount, and there is nothing to catch it before the
+  reconciler's next hourly run. And a Nigerian property platform with no
+  transaction ceiling is an AML finding waiting to happen, given SCUML applies
+  (HANDOFF 01 section 3).
+- **Impact** A bug or an abuse is bounded instead of unbounded.
+- **Effort** M
+- **Risk** A genuine high-value purchase gets refused, so the ceiling needs a
+  raise path in the console rather than being hard-coded.
+- **Priority** High
+
+#### A2-053. A booking charge is settled for whatever the processor reports
+- **Evidence** `app/api/paystack/webhook/route.ts`
+  `handleBookingChargeSuccess` takes `data.amount` from the signed payload and
+  passes it to `settleBookingCharge` as `amountMinor`. There is no comparison
+  against the booking's own total.
+- **Action** In `settleBookingCharge`, compare the settled amount against the
+  booking total and, on a mismatch, settle nothing, write a
+  `wallet.booking.charge_mismatch` audit row, and return an outcome the webhook
+  answers 200 to with a loud log line for a human.
+- **Reason** The amount is authentic because Paystack signed it, so this is not
+  a forgery risk. It is a correctness risk: a charge initialised at the wrong
+  amount, or a partial payment, currently confirms a booking for less than its
+  price and nothing notices. The funding path already refuses a non-positive
+  amount; the booking path should refuse a wrong one.
+- **Impact** A booking is confirmed only when it has actually been paid for.
+- **Effort** M
+- **Risk** A legitimate rounding difference from the processor would block a
+  settlement, so allow an exact match only and investigate any mismatch rather
+  than tolerating a band.
+- **Priority** High
+
+#### A2-054. `wallets_overdrawn()` exists and nothing pages on it
+- **Evidence** `lib/wallet/rpc.ts`'s contract block says
+  `public.wallets_overdrawn()` is "a pass-through to private.wallets_overdrawn,
+  which already exists and which nothing has ever called. A wallet below zero is
+  a ledger that has lost an argument with itself and it must page somebody."
+  `lib/wallet/reconciliation.ts` now calls it, and the reconciler reports it in
+  a JSON body and an `audit_log` row. Nothing reads either.
+- **Action** Have the reconciler, when `report.overdrawn.length > 0`, send an
+  email to the operations address through the existing `sendMessage` and write a
+  `risk_alerts` row, so it lands in a queue a human already looks at.
+- **Reason** The module itself says it must page somebody and it does not. An
+  overdrawn wallet means the ledger's arithmetic has failed, which is the single
+  most serious condition the platform can be in.
+- **Impact** The most serious money condition becomes visible within an hour.
+- **Effort** S
+- **Risk** Alert noise if the check is wrong; it returns nothing today on an
+  empty database so the first non-empty result is meaningful.
+- **Priority** Critical
+
+#### A2-055. The reconciler is inert until two Vault secrets exist
+- **Evidence** `20260809093843` `private.request_money_reconciliation()` reads
+  `rentme_site_url` and `rentme_reconcile_secret` from `vault.decrypted_secrets`
+  and returns `{"status":"unconfigured"}` with no request when either is absent.
+  The migration's own footer records that state as verified after applying. The
+  hourly job `rentme_reconcile_payments` therefore runs and does nothing.
+- **Action** Founder action: set both Vault secrets, and set
+  `RECONCILE_CRON_SECRET` on Vercel to the same value. Then run the endpoint once
+  by hand without `apply=1`, read the report, and leave the schedule to it.
+- **Reason** This is the only backstop for the failure that cost real money. It
+  is built, it is scheduled, and it is switched off. The environment is the
+  founder's per HANDOFF 01 section 6, so this is a handoff item rather than an
+  engineering one, but it belongs at the top of the list because everything
+  else in the money path assumes it runs.
+- **Impact** A lost credit gets recovered automatically for 48 hours instead of
+  never.
+- **Effort** S, and it is not mine to do.
+- **Risk** The first run with `apply=1` writes wallet entries, which is why the
+  dry run comes first.
+- **Priority** Critical
+
+#### A2-056. `recordMoneyAudit` failures are invisible
+- **Evidence** `lib/wallet/audit.ts` (155 lines) is the money audit writer used
+  by every webhook branch and every wallet action. Like `lib/admin/audit.ts` it
+  is best effort.
+- **Action** On a failed audit insert, emit one `logMoney({ outcome: "failed",
+  reason: "audit_write_failed" })` line so the gap is greppable on the same
+  channel as everything else.
+- **Reason** The money audit rows are what a reconciliation conversation joins
+  on. A silent gap in them is indistinguishable from a transaction that never
+  happened, which is the precise ambiguity the whole `[money]` channel was built
+  to remove.
+- **Impact** A missing audit row announces itself.
+- **Effort** S
+- **Risk** None.
+- **Priority** High
+
+#### A2-057. There is no velocity or destination-change control on withdrawals
+- **Evidence** `withdraw` in `lib/wallet/actions.ts` resolves the account name
+  through the bank on every attempt, which is good, and applies no limit on how
+  many different destination accounts a wallet may pay out to, or how quickly.
+- **Action** Refuse a withdrawal to an account added in the last hour, and
+  notify the owner by email whenever a new payout destination is used for the
+  first time.
+- **Reason** The standard account-takeover pattern is: get in, add a new payout
+  account, drain. A cooling-off period plus a notification breaks it and costs a
+  legitimate person one hour once.
+- **Impact** The window between compromise and loss widens from seconds to an
+  hour, which is long enough for A2-014's email to be read.
+- **Effort** M
+- **Risk** A person in a genuine hurry is delayed; the copy has to explain why.
+- **Priority** High
+
+#### A2-058. The fee console can introduce a non-zero fee with no extra gate
+- **Evidence** `lib/admin/money-actions.ts` `setFeeRate` requires only
+  `requireAdmin()` (admin or super_admin) and a note of at least eight
+  characters. `public.set_fee_rate` re-checks `admin` or `super_admin`. Nothing
+  distinguishes setting a rate to zero from setting it above zero.
+- **Action** Require `super_admin` for any rate above zero basis points or above
+  zero flat kobo, keep plain `admin` for a rate of zero, and have the screen say
+  which it is doing.
+- **Reason** Rule 8: the platform charges nothing today. The engine correctly
+  exists and is correctly zero, and `RECOMMENDATIONS.md` FEE-3 makes disclosure
+  P0 the moment a rate becomes non-zero. A single admin being able to start
+  charging every user, with an eight-character note, is a governance gap rather
+  than a security one, and it is cheap to close. Note this action is currently
+  broken anyway: see A2-062.
+- **Impact** Starting to charge becomes a deliberate act by the most privileged
+  role.
+- **Effort** S
+- **Risk** None.
+- **Priority** Medium
+
+#### A2-059. `escrow_purpose` cannot express a nightly stay or an inspection fee
+- **Evidence** `20260809051720` creates
+  `create type public.escrow_purpose as enum ('rent_deposit', 'first_rent',
+  'purchase_deposit', 'purchase_balance')`. The migration argues well that four
+  values represent four genuinely different promises. The platform also sells
+  shortlets and arranges inspections.
+- **Action** Before escrow reaches a user, decide whether a shortlet stay and an
+  inspection fee are escrow purposes. If they are, add the values now, in their
+  own migration, before any row exists.
+- **Reason** The same file records that "Postgres has no DROP VALUE. Adding to an
+  enum is a one-way door". Adding a value to an empty enum is free; adding it
+  after the state machine, the constraints and the functions all switch on it is
+  a coordinated change across a dozen places. The cheapest moment to decide is
+  now.
+- **Impact** Avoids a one-way door being walked through with two of the
+  platform's markets unrepresented.
+- **Effort** S to add, M to decide.
+- **Risk** Adding a value nobody needs is clutter and cannot be undone, so the
+  decision matters more than the migration.
+- **Priority** Medium
+
+#### A2-060. The crypto deposit path attributes money by an echoed email
+- **Evidence** `app/api/yellowcard/webhook/route.ts`:
+  `const user = event.email ? await findUserByEmail(event.email) : null`, and
+  `parseWebhook` reads `row["customerEmail"]`. The route's comment explains this
+  mirrors the card path deliberately.
+- **Action** Carry the user id in the collection's own metadata when
+  `startCryptoDeposit` opens it, and resolve from that first, falling back to the
+  email exactly as `ownerOfFunding` does in the Paystack route.
+- **Reason** The card path has three fallbacks in a documented order because the
+  author learned metadata alone is unreliable. The crypto path has one, and it is
+  the least reliable of the three. A completed, signed, correctly shaped credit
+  that cannot be attributed answers 500 forever, which is better than crediting
+  the wrong wallet and worse than crediting the right one.
+- **Impact** Fewer unattributable crypto credits sitting in a retry queue.
+- **Effort** S
+- **Risk** None. The email fallback stays.
+- **Priority** Medium
+
+### 8.4 Database: correctness, schema and scale
+
+#### A2-061. `reviewKycDocument` passes an argument the function does not declare
+- **Evidence** Three sources agree.
+  `lib/admin/kyc-actions.ts`:
+  `access.supabase.rpc("review_kyc_document", { acting_admin: access.user.id,
+  p_document, p_approve, p_reason })`.
+  `lib/supabase/database.types.ts` line 3677:
+  `review_kyc_document: { Args: { p_approve: boolean; p_document: string;
+  p_reason: string }; Returns: Json }`.
+  `20260809054243_the_console_needs_a_door_it_can_actually_knock_on.sql` line
+  52 defines `public.review_kyc_document(p_document uuid, p_approve boolean,
+  p_reason text)` and line 83 grants EXECUTE on that signature to
+  `authenticated`. The migration's own header explains that the wrapper "takes
+  one argument fewer, because the acting admin is auth.uid() rather than
+  something the caller states", which was the right change. The call site was not
+  updated. My RPC cross-check script found exactly two such mismatches across all
+  24 `.rpc()` call sites, and `npm run typecheck` passes, so the type system does
+  not catch it.
+- **Action** Delete the `acting_admin` line from the call. Add the build check in
+  A2-063 so the class cannot recur.
+- **Reason** PostgREST resolves an RPC by the set of named parameters in the
+  body, so a body carrying a fourth name matches no overload and returns
+  PGRST202. `reviewKycDocument` then returns `SERVICE_DOWN`. **If that is right,
+  an admin cannot approve or reject a single verification document, so no agent
+  can be verified, so the agent onboarding loop does not close and the
+  verification ladder cannot be climbed.** I could not probe it live, so the
+  chain of evidence is the code, the generated types and the grant, and the
+  conclusion is high confidence rather than verified. It is one HTTP call to
+  settle and it should be settled first.
+- **Impact** The operations team's core job starts working.
+- **Effort** S
+- **Risk** None. Removing a parameter the function does not accept cannot break
+  a call that currently succeeds.
+- **Priority** Critical
+
+#### A2-062. `setFeeRate` has the identical defect
+- **Evidence** `lib/admin/money-actions.ts`:
+  `access.supabase.rpc("set_fee_rate", { acting_admin: access.user.id, p_kind,
+  p_basis_points, p_flat_minor, p_effective_from, p_note })`.
+  `database.types.ts` line 3689 declares five args and no `acting_admin`.
+  `20260809054243` line 22 defines the five-argument wrapper and line 81 grants
+  it. Same migration, same refactor, same missed call site.
+- **Action** Delete the `acting_admin` line.
+- **Reason** The fee console cannot record a rate change. The user impact is
+  lower than A2-061 because every rate must be zero anyway (Rule 8), but the
+  screen reports "service down" for an action that should work, and the day a
+  rate genuinely needs setting is not the day to discover this.
+- **Impact** The fee screen tells the truth.
+- **Effort** S
+- **Risk** None.
+- **Priority** High
+
+#### A2-063. Nothing checks an RPC call against the function's real signature
+- **Evidence** A2-061 and A2-062 both typecheck clean. The `Args` type in
+  `database.types.ts` is correct and the supabase-js `rpc` generic does not
+  apply an excess-property check to it, so a wrong argument name is a runtime
+  404 that no local command catches.
+- **Action** Add a node script, `scripts/check-rpc-args.mjs`, that parses every
+  `.rpc("name", { ... })` call site and asserts each key exists in that
+  function's `Args` in `database.types.ts`. Wire it into `npm run lint` and into
+  the CI job in A2-141. I wrote a working version of this in the scratchpad while
+  auditing; it found both defects in under a second and produced no false
+  positives on the other 22 call sites.
+- **Reason** This is the highest-leverage single check available to this
+  codebase. Two console screens were silently dead for 37 days and the type
+  system reported nothing. The check is cheap and total.
+- **Impact** A whole class of silent breakage becomes impossible to merge.
+- **Effort** S
+- **Risk** The parser needs to handle single-line and multi-line `Args` shapes;
+  mine missed four single-line entries on the first pass, which is worth knowing
+  when writing it properly.
+- **Priority** Critical
+
+#### A2-064. `database.types.ts` is generated by hand and can lag the schema
+- **Evidence** `lib/wallet/rpc.ts`'s header explains that the money wrappers are
+  called untyped "because they land with Agent B's migrations and are therefore
+  absent from the generated database types until the types are regenerated".
+  `RECOMMENDATIONS.md` P-5 asks for generation in CI and is open.
+- **Action** Extends P-5: generate the types in CI and fail the build on a diff,
+  and once that holds, delete the untyped escape hatch in `lib/wallet/rpc.ts`
+  and `lib/security/service-rpc.ts` so the money functions are typed like
+  everything else.
+- **Reason** Two untyped seams exist solely because the types lag. Closing the
+  lag closes the seams, and the seams are on the money path.
+- **Impact** The money RPCs get the same compile-time protection as the rest.
+- **Effort** M
+- **Risk** Generating types in CI needs database credentials in CI, which is a
+  decision about where a service key lives; use the anon-visible introspection
+  path if one suffices.
+- **Priority** High
+
+#### A2-065. Six foreign keys added on 9 August have no covering index
+- **Evidence** My FK check over all 167 migration files found 147 foreign key
+  columns and six where no index has that column first. Each confirmed by hand
+  against the creating migration:
+  `escrows.release_requested_by`, `escrows.disputed_by` and
+  `escrows.resolved_by` (`20260809051720`; the file creates eight indexes on
+  `escrows` and none on these three), `platform_revenue.listing_id` and
+  `platform_revenue.rate_id` (`20260809084522` creates only
+  `platform_revenue_source_idx` and `platform_revenue_escrow_idx`), and
+  `fee_rates.created_by` (`20260809051502` creates only
+  `fee_rates_kind_effective_idx`). All six are `references auth.users` or
+  `references public.listings`/`fee_rates` and all six were added two days after
+  `docs/DATABASE_AUDIT.md` recorded `admin_bootstrap.added_by` as "the only one
+  missing". From the migration files, not verified live.
+- **Action** Add the six indexes in one migration and mirror it into
+  `supabase/migrations/`.
+- **Reason** `docs/HANDOFF.md` section 6 requires a covering index on every
+  foreign key, and `DATABASE_AUDIT.md` explains why it matters more than the
+  rule: five of these six point at `auth.users`, so the sequential scan happens
+  inside the account-deletion transaction while it holds a lock. That is the
+  same reasoning that made `admin_bootstrap.added_by` worth fixing, and A2-026
+  is about to make account deletion actually run.
+- **Impact** Account deletion and escrow reads stay fast as the tables grow.
+- **Effort** S
+- **Risk** None. Adding an index is additive.
+- **Priority** High
+
+#### A2-066. `platform_revenue` is a fourth zero-policy table and is not on the do-not-fix list
+- **Evidence** My RLS check found three tables with RLS enabled and no policy:
+  `rate_limits`, `idempotency_records` and `platform_revenue`.
+  `docs/DATABASE_AUDIT.md` clears three by name (`idempotency_records`,
+  `places_cache`, `rate_limits`) and its section 4 warns a future reader not to
+  add policies to those three. `platform_revenue` was created on 9 August, after
+  that document was written, and `20260809084853`'s first line confirms the
+  zero-policy state is deliberate, with `public.admin_revenue_summary` as the
+  only read path (correctly authorising off `auth.uid()`, which I checked).
+- **Action** `docs/DATABASE_AUDIT.md` is not in my write scope. Recommend the
+  lead add `platform_revenue` to the do-not-fix list in section 4, with the
+  reason: the absence of a policy is the control, and the read path is
+  `admin_revenue_summary`.
+- **Reason** The document's own section 4 exists because "a future reader running
+  the linter will see the same list and reasonably try to clear it". A fourth
+  table has joined the list and the document does not know.
+- **Impact** Stops a future session handing every signed-in user a read of
+  platform revenue in the name of clearing an advisory.
+- **Effort** S
+- **Risk** None.
+- **Priority** Medium
+
+#### A2-067. `anon` lacks EXECUTE on `can_see_listing_access`, which is a latent 42501
+- **Evidence** `20260804160509_light_water_and_getting_through_the_gate.sql`:
+  `revoke execute on function private.can_see_listing_access(uuid) from public;
+  grant execute on function private.can_see_listing_access(uuid) to
+  authenticated;` and the SELECT policy on `public.listing_access` is
+  `using (private.can_see_listing_access(listing_id))`. I checked whether the
+  landmine fires today and **it does not**: `lib/listings/access-queries.ts`
+  `readListingAccess` returns null for a signed-out caller before touching the
+  table, and `hasConfirmedBooking` in the listing page takes a `userId`. So this
+  is latent, not live.
+- **Action** Grant `anon` EXECUTE on `private.can_see_listing_access(uuid)`.
+- **Reason** This is the exact shape the brief warns about: "one non-public row
+  breaks the entire anonymous catalogue read with 42501, and it would have worked
+  right up until the first agent saved a draft". The function returns false for
+  `anon` on every branch (`owns_listing` finds nothing for a null uid,
+  `has_role(null, ...)` is false, the bookings existence check matches nothing),
+  so the grant leaks nothing and is not a policy widening. It changes the failure
+  mode from an error to zero rows, which is what the rest of the platform already
+  does. The day somebody embeds `listing_access(...)` in a public listing select,
+  as `lib/agent/listings-queries.ts` line 242 already does for the agent
+  console, the anonymous listing page would 42501 with no obvious cause.
+- **Impact** Removes a landmine that would present as a total failure of the
+  public catalogue for a reason nobody would guess.
+- **Effort** S
+- **Risk** Very low, and I checked the function body rather than assuming: every
+  branch is false for `anon`. A grant is reversible, unlike a revoke.
+- **Priority** High
+
+#### A2-068. `sweep_badges()` returns a count that nothing reads
+- **Evidence** `20260804163804`: the function computes
+  `after_count - before_count` and returns it. The cron entry is
+  `select private.sweep_badges()`. `cron.job_run_details` records the outcome and
+  nothing reads it (Phase 0 row 3, and the brief).
+- **Action** Have the job write its return value into a small
+  `private.job_runs(job_name, ran_at, result jsonb)` table, and have every other
+  scheduled function do the same.
+- **Reason** Eight jobs run and the only record of what any of them did is a
+  table nobody queries. A count of badges awarded is exactly the number that
+  reveals the sweep has been silently returning zero.
+- **Impact** Every scheduled job becomes answerable without dashboard access.
+- **Effort** M
+- **Risk** One more write per job run, which is negligible.
+- **Priority** High
+
+#### A2-069. There is no functional probe harness for database functions
+- **Evidence** `docs/HANDOFF_02_PLATFORM.md` section 18 lists this as the first
+  gotcha, with two worked examples: a rate limiter that raised 42702 on every
+  call after a clean DDL apply, and `min(uuid)` raising 42883 on the badge
+  sweep's first run. `20260804163804`'s header says "Create a function and you
+  have proved nothing. Run it." Nothing in the repository runs one.
+- **Action** Add `supabase/probes/` holding one SQL file per privileged
+  function that calls it inside a transaction with representative arguments and
+  rolls back, plus a `scripts/run-probes.mjs` that executes them and reports.
+  Start with the eleven money and admin functions.
+- **Reason** The project has hit this failure five times by its own count. A
+  probe suite is the only thing that turns "applied" into "works", and A2-061 is
+  the application-side twin of the same problem.
+- **Impact** A migration that applies cleanly and does not work stops reaching
+  production.
+- **Effort** L
+- **Risk** Needs database credentials to run, so it belongs beside the type
+  generation in A2-064.
+- **Priority** High
+
+#### A2-070. The agent application reference exposes a dead brand
+- **Evidence** `20260728152104_agents_core.sql`:
+  `reference text not null unique default ('NF-AGT-' ||
+  lpad(nextval('public.agent_ref_seq')::text, 5, '0'))`. NF is NaijaFinds. The
+  reference is shown to the applicant and quoted in support conversations.
+- **Action** Change the default to a Vallo prefix in a new migration for future
+  rows, and leave existing rows alone so no reference anybody has been given
+  stops resolving.
+- **Reason** `RECOMMENDATIONS.md` RN-3 correctly rules that payment reference
+  prefixes and cron job names must never change, because the payment prefixes are
+  a contract with Paystack's historical data and the webhook routes on them.
+  This one is different: it is not a contract with any third party, it is
+  generated fresh for each application, and it is read by a user. Named
+  separately so the RN-3 rule is not applied to it by reflex.
+- **Impact** New applicants do not receive a reference carrying a name the
+  company abandoned.
+- **Effort** S
+- **Risk** Two prefixes in the table at once, which support has to recognise.
+  Document it.
+- **Priority** Medium `[TRACK A]` by subject, mine by mechanism.
+
+#### A2-071. The elite badge code and label carry a dead brand
+- **Evidence** `20260804105502_social_safety_bot_badges.sql` line 201 seeds
+  `('rentme_elite', 'RentMe Elite', 'Every agent badge, and no open trust flag
+  for ninety days.', 'AGENT', 'house-sparkle', 5, false)`. The code is referenced
+  four times in `20260804163804` and once in `20260804121638`.
+- **Action** Update the `name` column to the Vallo equivalent in a new
+  migration. Leave the `code` alone: it is a key referenced by the sweep and by
+  `user_badges.badge_code`, and renaming it is a coordinated change for no user
+  benefit.
+- **Reason** The `name` is what a user reads on an agent's profile. The `code` is
+  an identifier and falls under RN-3's rule. Separating the two is the whole
+  point of this entry.
+- **Impact** The highest badge on the platform stops naming the wrong company.
+- **Effort** S
+- **Risk** None for the name.
+- **Priority** Medium `[TRACK A]` by subject, mine by mechanism.
+
+#### A2-072. Two database functions send notifications naming the dead brand
+- **Evidence** `20260806112848`: `private.grant_staff_role` calls
+  `private.notify(... 'You are now a RentMe super administrator' ...)` and
+  `private.revoke_staff_role` sends 'Your RentMe console access has ended'.
+  These strings are inside function bodies, so a repository-wide text rename of
+  `.tsx` and `.ts` files will not reach them and neither will Track A's sweep.
+- **Action** Reissue both functions with the corrected strings in a new
+  migration, mirrored into `supabase/migrations/`.
+- **Reason** A rename that misses the database is a rename that reappears the
+  first time somebody is made an administrator. Flagged here specifically
+  because it is invisible to the tooling Track A is using.
+- **Impact** One less place the old name can surface after the rename is
+  declared done.
+- **Effort** S
+- **Risk** `create or replace function` on a SECURITY DEFINER function with no
+  signature change is safe. Do not rename parameters (the handoff's gotcha:
+  `create or replace` cannot, a DROP is required), and nothing here needs to.
+- **Priority** Medium `[TRACK A]` by subject, mine by mechanism.
+
+#### A2-073. The open-work queues have no partial indexes
+- **Evidence** `message_flags` has `message_flags_status_idx on
+  public.message_flags (status)` and `agent_applications` is queried by
+  `status in ('SUBMITTED','UNDER_REVIEW', ...)` in the admin console. A full
+  index on a low-cardinality status column is mostly dead weight once the closed
+  rows outnumber the open ones by a thousand to one.
+- **Action** Add partial indexes for the queue reads: `... (created_at desc)
+  where status = 'open'` on `message_flags`, and the equivalent on
+  `agent_applications`, `reports` and `support_tickets`.
+- **Reason** Every one of these tables grows monotonically and is read only for
+  its open tail. Cheap now, and the alternative later is an index rebuild on a
+  live table. From the migration files, not verified live, and not measured.
+- **Impact** Admin queue reads stay constant-time as history accumulates.
+- **Effort** S
+- **Risk** None. Additive.
+- **Priority** Medium
+
+#### A2-074. `notifications`, `message_flags` and `audit_log` grow without bound
+- **Evidence** No purge job touches any of them (the eight cron jobs are listed
+  in section 4). `audit_log` is append-only by trigger, which is correct, and
+  therefore grows for ever.
+- **Action** For `notifications`, delete read rows older than 90 days. For
+  `message_flags`, apply the retention decided in A2-030. For `audit_log`, do not
+  delete: partition by month once it is large, and state the retention period in
+  `docs/RETENTION_SCHEDULE.md` with the regulatory basis.
+- **Reason** Three tables on a per-event write path with no ceiling. The first two
+  are also personal data, so they are an A2-030 item as well as a scalability
+  one. `audit_log` must not be purged, which is exactly why it needs a stated
+  plan rather than a default.
+- **Impact** Storage and index sizes stay predictable.
+- **Effort** M
+- **Risk** Deleting notifications is a data-losing change; the audit log is not
+  to be touched.
+- **Priority** Medium
+
+#### A2-075. No role has a `statement_timeout`
+- **Evidence** No migration sets `alter role ... set statement_timeout`. A grep
+  for `statement_timeout` across `supabase/migrations/` returns nothing.
+- **Action** Set a `statement_timeout` per role: a few seconds for
+  `authenticated` and `anon`, longer for `service_role`, and longer still for the
+  cron role. Put it in a migration so it is recorded rather than configured by
+  hand.
+- **Reason** A single pathological query from a signed-in user, or one of the
+  unbounded admin reads in A2-101, can hold a connection for as long as Postgres
+  will let it. A timeout is the cheapest availability control a Postgres
+  application has and this one has none.
+- **Impact** One slow query stops being able to exhaust the connection pool.
+- **Effort** S
+- **Risk** Too tight a timeout kills a legitimate report; the admin reads in
+  A2-101 should be fixed first or they will start failing.
+- **Priority** High
+
+#### A2-076. `currency` is a free text column defaulting to NGN
+- **Evidence** `wallets.currency text not null default 'NGN'`,
+  `wallet_entries` inherits the wallet's, `escrows.currency text not null
+  default 'NGN'`. No check constraint restricts the value.
+- **Action** Add `check (currency = 'NGN')` for now, and change it to an enum
+  the day a second currency is real.
+- **Reason** The entire money layer assumes kobo. A row with a different
+  currency string would be summed into a naira balance by
+  `private.wallet_balance` with no error. Constraining it to the one value the
+  code actually supports is the honest expression of the current design and it
+  is free.
+- **Impact** A multi-currency bug becomes impossible rather than silent.
+- **Effort** S
+- **Risk** If any row already holds something else the constraint fails to add.
+  Check first, which needs live access.
+- **Priority** Medium
+
+#### A2-077. `amount_minor` has a lower bound and no upper bound
+- **Evidence** `wallet_entries.amount_minor bigint not null check (amount_minor
+  > 0)`. `escrows.amount_minor bigint not null` with no check at all in the
+  columns I read.
+- **Action** Add an upper bound check to both, at whatever the A2-052 ceiling
+  is, times a safety factor.
+- **Reason** A bigint holds 92 quadrillion kobo. A bug or a bad provider event
+  producing an absurd amount would be accepted by the database and would then
+  have to be reversed with a contra row rather than refused. Refusing is
+  cheaper.
+- **Impact** The database becomes the last line of defence on amount sanity,
+  which is where the other money invariants already live.
+- **Effort** S
+- **Risk** None if the bound is generous.
+- **Priority** Medium
+
+#### A2-078. Nothing in the database enforces that the platform fee is zero
+- **Evidence** `ledger_entries.platform_fee_minor bigint not null default 0`
+  with a sign check only. `fee_rates` exists with `basis_points` and
+  `flat_minor` columns and `set_fee_rate` writes them. Rule 8 lives in the
+  documentation and in the fact that no rate has been set.
+- **Action** Add a check constraint `platform_fee_minor = 0` on
+  `ledger_entries`, with a comment naming Rule 8 and saying it is to be dropped
+  deliberately, in its own migration, on the day a rate becomes non-zero.
+- **Reason** The strongest invariants on this platform are the ones the database
+  holds. "The platform charges nothing" is currently the weakest kind of rule:
+  a convention. A constraint makes accidentally charging somebody impossible and
+  makes deciding to charge them a visible, reviewable act.
+- **Impact** Rule 8 becomes structural.
+- **Effort** S
+- **Risk** The day the decision changes, the constraint has to be dropped, which
+  is the feature not the bug. If any existing row is non-zero it fails to add.
+- **Priority** High
+
+#### A2-079. There are no down migrations and no idempotency guarantee
+- **Evidence** 167 files in `supabase/migrations/`. Some use `if not exists` and
+  `drop policy if exists` and re-run safely; `20260809051007` cannot re-run
+  safely by construction (`alter type ... add value` is guarded, but the
+  surrounding ordering is not), and most `create table` statements are
+  unguarded. No file has a matching down migration.
+- **Action** Do not retrofit down migrations, which would be busy work on a
+  live database. Instead write `supabase/README.md` (which exists, and I did not
+  read it) or a section in `docs/DEPLOY.md` stating the forward-only policy
+  explicitly, and add a rule that every new migration is written to be
+  re-runnable.
+- **Reason** Forward-only is a legitimate and common choice. The problem is that
+  it is currently implicit, so the next session has no way to know whether
+  re-running a migration is safe, and finds out by doing it.
+- **Impact** The migration contract is written down.
+- **Effort** S
+- **Risk** None.
+- **Priority** Medium
+
+#### A2-080. The repository cannot prove it matches the database
+- **Evidence** `RECOMMENDATIONS.md` T-10 records that the mirror drifted twice
+  and is repaired, and T-4 records eight cosmetic filename mismatches. **I could
+  not check either, because `list_migrations` is unreachable (section 2).** So
+  today the honest position is that nobody in this session can say whether the
+  167 files match what is applied.
+- **Action** Add a `scripts/check-migration-mirror.mjs` that reads
+  `supabase_migrations.schema_migrations` and diffs it against the filenames,
+  and run it in CI. That turns T-10's residual into a mechanical check instead
+  of a periodic manual audit.
+- **Reason** Every database finding in this report carries the caveat "from the
+  migration files, not verified live", and that caveat is only acceptable
+  because the mirror is believed good. A believed mirror is not a mirror.
+- **Impact** The repository stops being able to lie about the database silently.
+- **Effort** M
+- **Risk** Needs credentials in CI, same as A2-064 and A2-069.
+- **Priority** High
+

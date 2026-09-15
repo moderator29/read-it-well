@@ -49,10 +49,10 @@ beforeEach(() => {
 
 describe("the sitemap builder", () => {
   it("carries every public page and no product page", () => {
-    const urls = buildSitemap("https://rentme.ng", []).map((entry) => entry.url);
+    const urls = buildSitemap("https://vallo.ng", []).map((entry) => entry.url);
 
-    expect(urls).toContain("https://rentme.ng");
-    expect(urls).toContain("https://rentme.ng/search");
+    expect(urls).toContain("https://vallo.ng");
+    expect(urls).toContain("https://vallo.ng/search");
     for (const page of PUBLIC_PAGES) {
       expect(urls.length).toBeGreaterThan(0);
       expect(page.path.startsWith("/")).toBe(true);
@@ -65,20 +65,20 @@ describe("the sitemap builder", () => {
   });
 
   it("drops an example listing and keeps a real one", () => {
-    const urls = buildSitemap("https://rentme.ng", [
+    const urls = buildSitemap("https://vallo.ng", [
       { id: "real-1", isDemo: false },
       { id: "example-1", isDemo: true },
     ]).map((entry) => entry.url);
 
-    expect(urls).toContain("https://rentme.ng/listing/real-1");
-    expect(urls).not.toContain("https://rentme.ng/listing/example-1");
+    expect(urls).toContain("https://vallo.ng/listing/real-1");
+    expect(urls).not.toContain("https://vallo.ng/listing/example-1");
   });
 
   it("does not double the slash on an origin that ends in one", () => {
-    const urls = buildSitemap("https://rentme.ng/", [{ id: "real-1", isDemo: false }]).map(
+    const urls = buildSitemap("https://vallo.ng/", [{ id: "real-1", isDemo: false }]).map(
       (entry) => entry.url,
     );
-    expect(urls).toContain("https://rentme.ng/listing/real-1");
+    expect(urls).toContain("https://vallo.ng/listing/real-1");
     expect(urls.some((url) => url.includes("//listing"))).toBe(false);
   });
 });

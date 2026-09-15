@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { PostGlyph } from "@/components/social/feed/PostGlyph";
 import { POST_COPY } from "@/lib/social/posts-schema";
+import { displayHost } from "@/lib/brand-domain";
 
 /**
  * Share, floating on the cover beside the `…`.
@@ -59,7 +60,7 @@ export function ProfileShare({
     /* No share sheet and no clipboard, which is an old browser on a hotel wifi
        rather than a hypothetical. The address is the thing being shared, so
        say it rather than failing silently. */
-    setNotice(`The address is rentme.ng/u/${handle}`);
+    setNotice(`The address is ${displayHost()}/u/${handle}`);
   };
 
   return (

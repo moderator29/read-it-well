@@ -11,7 +11,7 @@ import { looksNative } from "./platform";
  * asked before any plugin is touched, and that every listener started has a
  * teardown that runs.
  *
- * THE WEBSITE MUST NOT CHANGE AT ALL. The same bundle serves rentme.ng in a
+ * THE WEBSITE MUST NOT CHANGE AT ALL. The same bundle serves vallo.ng in a
  * phone browser and the shell on a device, and a visitor to the website pays
  * for exactly one thing here: the handful of bytes in `platform.ts`, which
  * reads a global and imports nothing. Every plugin, and every module that

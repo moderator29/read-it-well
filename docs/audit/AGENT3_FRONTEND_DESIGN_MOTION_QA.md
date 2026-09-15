@@ -1734,3 +1734,442 @@ people work in the social layer at once by the file's own account.
 *Impact:* removes the largest remaining merge-accident surface.
 *Effort:* M. *Risk:* medium, it is a cascade change.
 *Priority:* **[AGENT 1 overlap] Medium**
+
+**A3-101. There are two switch implementations and two segmented implementations.**
+*Evidence:* `components/ui/Switch.tsx` renders Tailwind utilities and its own
+knob. `components/app/account/rows.tsx` renders `className="nf-switch nf-tap"`
+with `<span className="nf-switch__knob">`, styled in `settings-rows.css`.
+Separately, `components/ui/Segmented.tsx` uses `.nf-segmented` and
+`rows.tsx` uses `.nf-segment`, **two class names one letter apart** with two
+sets of rules.
+*Action:* one switch, one segmented control. The CSS-driven pair in
+`settings-rows.css` is the better-looking of each; move the material there and
+have the `ui` components render those classes.
+*Reason:* `Button`'s header records that twelve button implementations produced
+"seven different heights and seven different disabled opacities". This is the same
+failure, mid-formation, on two controls, and `.nf-segment` versus `.nf-segmented`
+is a class name collision waiting to be edited by the wrong person.
+*Impact:* toggles and segmented controls look and behave the same everywhere.
+*Effort:* M. *Risk:* medium, touches the settings screens.
+*Priority:* **High**
+
+### 9.5 Motion
+
+**A3-102. The in-app "Reduce motion" setting is wired to nothing.**
+*Evidence:* `settings-store.ts` `applyReduceMotion` sets
+`document.documentElement.dataset.reduceMotion = "1"` and writes
+`nf_reduce_motion`. `SettingsGroups.tsx` mirrors it. Grepping
+`data-reduce-motion` across all 25 stylesheets and `tokens.css` returns
+**zero matches**. The only consumer in the whole tree is
+`lib/native/keyboard.ts`. The row's own copy (`en.ts`, `reduceMotionSub`) says it
+"Calms entrance animations and hover movement across the app."
+*Action:* make every `@media (prefers-reduced-motion: reduce)` block in the
+platform a two-headed selector that also matches
+`:root[data-reduce-motion="1"]`. The cleanest version is to move the duration
+collapse in `tokens.css` under both conditions, since most motion already reads
+its duration from a token.
+*Reason:* a designed accessibility control that persists, shows as on, and does
+nothing is worse than not offering it. Somebody with a vestibular disorder turns
+it on, the interface keeps moving, and they conclude the product is broken or
+that they imagined the problem.
+*Impact:* the setting does what it says on 25 stylesheets at once.
+*Effort:* M. *Risk:* low. *Priority:* **High**
+
+**A3-103. `Reveal` ships `opacity: 0` in the server HTML.**
+*Evidence:* `animation.css` `.nf-reveal { opacity: 0; transform: translateY(22px); }`
+and `.nf-reveal[data-shown="true"] { opacity: 1 }`. `Reveal.tsx` initialises
+`const [shown, setShown] = useState(false)` and only flips it in a `useEffect`.
+There are **112** `<Reveal>` call sites. The `@supports (animation-timeline: view())`
+branch sets `opacity: 1` immediately, which rescues Chrome 115 and later.
+*Action:* render `data-shown="true"` on the server and have the client set it to
+false only when it is about to animate; or move the hidden state behind
+`@supports` and `@starting-style` so it never exists without JS.
+*Reason:* on any engine without scroll-driven animation, which today includes
+Firefox and older Safari, **every Reveal-wrapped block is invisible until React
+hydrates.** On a mid-range Android on a Nigerian network that is the whole
+above-the-fold content, blank, for as long as hydration takes. It is the same
+family as the 56%-opacity bug the `data-instant` flag was added to fix, one step
+earlier in the timeline.
+*Impact:* content paints when the HTML arrives, not when the JavaScript does.
+This is the largest single perceived-speed win available in my scope.
+*Effort:* M. *Risk:* medium, it changes the first paint of 112 blocks and needs
+screenshots.
+*Priority:* **High**
+
+**A3-104. `Reveal` reads `prefers-reduced-motion` once and never listens.**
+*Evidence:* `Reveal.tsx`:
+`const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;`
+inside a `useEffect` with an empty dependency array, no `addEventListener`.
+*Action:* subscribe to the media query, and also read
+`documentElement.dataset.reduceMotion` per A3-102.
+*Reason:* a user who turns the OS setting on mid-session keeps the animation
+until they reload, and a user who turns the in-app setting on never gets it at
+all.
+*Impact:* the preference is honoured live.
+*Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+**A3-105. `will-change` is set permanently on 112 reveal blocks.**
+*Evidence:* `animation.css` `.nf-reveal { will-change: opacity, transform }`, with
+`will-change: auto` restored only on `[data-shown="true"]`.
+*Action:* the current design is close to right. Confirm that the
+`animation-timeline` branch also clears it, because in that branch
+`data-shown` may never be set to true by the observer path.
+*Reason:* a permanently promoted compositor layer per reveal block is real memory
+on the target device, and the target device is the whole point of section 23.3.
+*Impact:* lower memory on mid-range Android.
+*Effort:* S. *Risk:* low. *Priority:* **Medium**
+
+**A3-106. `side-nav.css` has three transitions and no reduced-motion handling.**
+*Evidence:* per-file tally: `side-nav.css` `prefers-reduced-motion` = 0,
+`transition:` = 3.
+*Action:* add the block, or better, land A3-102 which collapses durations
+globally and makes most per-file blocks unnecessary.
+*Reason:* the navigation drawer is the one piece of motion a user cannot avoid.
+*Impact:* the drawer stops moving for somebody who asked it not to.
+*Effort:* XS. *Risk:* none. *Priority:* **Medium**
+
+**A3-107. `social-feed.css` has twelve transitions and one reduced-motion block.**
+*Evidence:* per-file tally: `prefers-reduced-motion` = 1, `transition:` = 12,
+`animation:` = 2.
+*Action:* as A3-106.
+*Reason:* the feed is the most-scrolled surface in the social layer.
+*Impact:* the feed honours the preference.
+*Effort:* S. *Risk:* none. *Priority:* **[AGENT 1 overlap] Medium**
+
+**A3-108. `utilities.css` has six transitions and one reduced-motion block; `chrome.css` has ten and four.**
+*Evidence:* per-file tally as above.
+*Action:* as A3-106.
+*Reason:* `chrome.css` is the header, the rail and the dock, which move on every
+navigation.
+*Impact:* the chrome stops moving.
+*Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+**A3-109. Reduced motion removes the animation without substituting a signal in several places.**
+*Evidence:* `animation.css`'s reduced-motion block sets
+`.nf-reveal { opacity: 1; transform: none; transition: none }`, which is correct
+because the content simply appears. `chips.css` `.nf-moment__badge` has a
+reduced-motion rule; `.nf-moment__glow` does not, so under reduced motion the
+success mark appears with no entrance and no compensating emphasis.
+*Action:* under reduced motion, cross-fade the state colour into the mark's halo
+over 200ms instead of deleting the entrance, per section 7.5.
+*Reason:* the brief is explicit: "the interface still communicates state change
+without the animation, not that the animation is removed and the user is left
+guessing".
+*Impact:* the confirmation still lands for somebody who cannot take movement.
+*Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+**A3-110. The ambient canvas runs four animated layers forever on every page.**
+*Evidence:* `ambient.css`: `span:nth-child(2)` `nf-drift-a 16s infinite`,
+`nth-child(3)` `nf-drift-b 21s infinite`, both with `will-change: transform, opacity`,
+plus the pointer bloom and the mirrored artwork span.
+*Action:* pause the drift when the document is hidden
+(`visibilitychange`), and stop it entirely on the low-end device tier the file's
+own comment says it already collapses for. Verify that tier actually fires.
+*Reason:* two permanently promoted 62vmax layers animating forever is the kind of
+cost that does not show in a Lighthouse score and does show in battery and thermal
+throttling on the target device.
+*Impact:* lower sustained CPU and GPU on a phone that is already struggling.
+*Effort:* S. *Risk:* low. *Priority:* **Medium**
+
+**A3-111. The mirrored artwork span paints the same 1.3MB image a second time.**
+*Evidence:* `ambient.css`: `.nf-ambient` sets
+`background: var(--nf-canvas-base) url("/brand/rentme-bg.png") center bottom / cover`
+and `.nf-ambient > span:nth-child(1)` sets the **same URL** again with
+`transform: scaleY(-1) scaleX(-1)` and a mask.
+*Action:* one painted layer, mirrored with a pseudo-element on the same node, or
+accept the second paint and confirm the cost with a trace.
+*Reason:* one fetch, two full-viewport `cover` decodes and paints of a 1,343KB
+image, with a mask on one of them. On the target device this is measurable.
+*Impact:* roughly halves the ambient layer's paint cost.
+*Effort:* S. *Risk:* medium, it is the signature background.
+*Priority:* **Medium**
+
+**A3-112. The confirmation mark bounces on failure.**
+*Evidence:* `MomentScreen.tsx` passes `state="confirmed"` unconditionally;
+`chips.css` `.nf-moment__badge { animation: nf-moment-badge-in 0.5s }`
+unconditionally.
+*Action:* see A3-026. Listed again here because it is a motion decision, not only
+a component one: failure arrives, it does not celebrate.
+*Reason:* motion carries meaning or it is decoration, and section 14 says
+decoration that distracts is a regression.
+*Impact:* the product stops looking pleased about a crash.
+*Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+### 9.6 Accessibility
+
+**A3-113. The settings row glyph is centred against multi-line rows.**
+*Evidence:* `settings-rows.css` `.nf-srow { align-items: center }`. Confirmed in
+the `/settings` dark screenshot at 390px: on "Reduce motion" and "Use less data",
+whose descriptions run to three and four lines, the leading glyph sits beside the
+**second line of the description** rather than beside the title, while on the
+single-line rows it sits beside the title.
+*Action:* `align-items: flex-start` on `.nf-srow` with an optical
+`margin-block-start` on `.nf-srow__icon` to align to the label's cap height, and
+`align-self: flex-start` on the trailing control.
+*Reason:* two rows in the same card anchor their glyph to two different things.
+It is the most visible "misaligned icon" in the product and it is on the settings
+screen, which is where people go when something is already wrong.
+*Impact:* the glyph column reads as a rail on every row, which is what the
+divider inset comment says it is meant to be.
+*Effort:* S. *Risk:* low, needs a screenshot in both themes.
+*Priority:* **Medium**
+
+**A3-114. The toggle floats mid-row on a four-line row.**
+*Evidence:* the same rows in the same screenshot. The switch is vertically centred
+against a four-line block, so it is roughly 30px below the title it controls.
+*Action:* as A3-113.
+*Reason:* the control and the thing it controls should be on the same line, which
+is what every native settings app does.
+*Impact:* the association between label and control is immediate.
+*Effort:* XS once A3-113 lands. *Risk:* none.
+*Priority:* **Medium**
+
+**A3-115. A 26x48 button appears on four of the five routes I probed.**
+*Evidence:* my Playwright probe reported `{"t":"BUTTON","txt":"","w":26,"h":48}`
+on `/home`, `/wallet`, `/settings` and `/search`. Twenty-six CSS pixels wide.
+*Action:* find it (it is unlabelled, so it is likely the header drawer trigger or
+a rail collapse control) and take it to 44x44.
+*Reason:* WCAG 2.5.8 sets 24 as the absolute floor and the platform's own
+`buttons.css` sets 44 and went to the trouble of a `::before` to hold it. This
+control is on nearly every screen and is 2px above the legal minimum.
+*Impact:* a control on every screen becomes reliably tappable.
+*Effort:* S. *Risk:* low. *Priority:* **High**
+
+**A3-116. Four settings controls are 50x30.**
+*Evidence:* my probe on `/settings` reported four buttons at 50x30 and 49x30.
+These are the switches.
+*Action:* a `::before` hit area exactly as `.nf-btn--sm` uses, which
+`settings-rows.css` already knows how to do for `.nf-switch`.
+*Reason:* 30px tall on the most-used control in the settings screen.
+*Impact:* switches stop being missed. *Effort:* S. *Risk:* none.
+*Priority:* **Medium**
+
+**A3-117. "View all", "Sign in" and "Choose your city" are 22 to 26px tall.**
+*Evidence:* my probe: `{"A","View all",82,22}`, `{"A","Sign in",52,26}`,
+`{"A","Choose your city",189,26}` on `/home`.
+*Action:* pad them to a 44px target without changing the drawn text.
+*Reason:* these are navigation, not inline prose links, and 22px is a
+thumb-and-a-half miss on a phone.
+*Impact:* the section-level navigation becomes reliable.
+*Effort:* S. *Risk:* low. *Priority:* **Medium**
+
+**A3-118. There is no `role="status"` on the checkout pending path.**
+*Evidence:* `PayPanel.tsx` has none at all. `PaymentReturn.tsx` and
+`FundingVerifier.tsx` both have one and are the correct model.
+*Action:* per A3-003 and A3-027.
+*Reason:* two of the three money-settling screens announce themselves and the
+third, the one where the user actively spends, does not.
+*Impact:* parity on the money path.
+*Effort:* S. *Risk:* none. *Priority:* **High**
+
+**A3-119. The theme never follows a live OS change for a user on "system".**
+*Evidence:* `settings-store.ts` `applyTheme` evaluates
+`window.matchMedia("(prefers-color-scheme: light)").matches` once per call and
+registers no listener. The before-paint script in `layout.tsx` runs once.
+*Action:* a `change` listener on the media query while the stored choice is
+`system`.
+*Reason:* "system" is an explicit stored choice, which is correct under rule 7,
+and it currently means "the OS theme at the moment you last loaded a page".
+*Impact:* the one theme option that promises to follow the OS actually does.
+*Effort:* S. *Risk:* low. *Priority:* **Medium**
+
+**A3-120. `applyTextSize` scales the root font size and nothing tests the layout at L.**
+*Evidence:* `settings-store.ts` sets
+`document.documentElement.style.fontSize` to `106.25%` for L and `93.75%` for S.
+With 995 raw `rem`-based font sizes and a mixture of `rem` and pixel geometry,
+the two do not scale together.
+*Action:* screenshot the five densest screens at text size L, at 390px, in dark.
+*Reason:* an accessibility feature that breaks the layout is a feature nobody
+uses twice. *I did not test this*, so this is a check to run rather than a
+confirmed defect.
+*Impact:* the text-size control is safe to recommend to somebody who needs it.
+*Effort:* S to check. *Risk:* none.
+*Priority:* **Medium**
+
+**A3-121. Twelve `next/image` elements carry `alt=""`.**
+*Evidence:* an `alt=""` count across the `<Image` call sites.
+*Action:* audit each. A decorative image with `alt=""` and `aria-hidden` is
+correct; a listing photograph with `alt=""` is not.
+*Reason:* `LogoMark` correctly uses `alt=""` with `aria-hidden` on the twin that
+is hidden by CSS, so some of these twelve are right. I did not check which.
+*Impact:* content images are described.
+*Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+**A3-122. `iconOnly` requires an `aria-label` by convention only.**
+*Evidence:* `Button.tsx`, the `iconOnly` comment: "That pairing is a convention
+here rather than a type constraint; expressing it in the type would need a
+discriminated union across both Button and ButtonLink."
+*Action:* write the discriminated union. It is roughly twenty lines and it makes
+an unlabelled icon button a compile error.
+*Reason:* the comment correctly identifies the risk and then declines to remove
+it. An icon-only control with no label is invisible to a screen reader, and the
+platform has many.
+*Impact:* the class of bug becomes unreachable.
+*Effort:* S. *Risk:* low, may surface existing violations, which is the point.
+*Priority:* **Medium**
+
+**A3-123. The wallet headline orphans a word at 390px.**
+*Evidence:* the `/wallet` screenshots in both themes: "Your wallet is behind your
+sign" on line one, "in" alone on line two.
+*Action:* `text-wrap: balance` on every display and heading class in
+`typography.css`, and `text-wrap: pretty` on body copy.
+*Reason:* a two-letter orphan under a six-word line is the single most visible
+typographic error a phone screen can make, and it is on the wallet.
+*Impact:* every heading in the product wraps sensibly at every width, from one
+declaration.
+*Effort:* XS. *Risk:* low, `text-wrap: balance` has a cost above about six lines
+and headings are short.
+*Priority:* **High**
+
+**A3-124. Empty-state body copy is centred over five lines.**
+*Evidence:* the `/wallet` screenshots: five centred lines of body text.
+*Action:* keep the heading centred, left-align the body, and cap it at 44ch.
+*Reason:* centred text gives the eye no fixed return point, and the cost grows
+with every line. Five lines is well past where it hurts.
+*Impact:* every empty state on the platform becomes easier to read.
+*Effort:* S. *Risk:* low. *Priority:* **Medium**
+
+**A3-125. Two stacked CTAs render at different widths.**
+*Evidence:* the `/wallet` screenshots: "Sign in" is roughly 200px wide and
+"Explore places" roughly 320px, stacked and centred.
+*Action:* `full` on both, or a shared `min-width`.
+*Reason:* two stacked actions at two widths reads as unresolved, and the primary
+being the narrower of the two inverts the visual hierarchy.
+*Impact:* the empty state's actions read as a pair.
+*Effort:* XS. *Risk:* none. *Priority:* **Medium**
+
+**A3-126. A settings gear sits on a wallet the visitor cannot open.**
+*Evidence:* the signed-out `/wallet` screenshots show a `PageHeader` with a back
+control and a trailing gear, above the "Your wallet is behind your sign in"
+empty state.
+*Action:* drop the trailing action when the page is in its signed-out state.
+*Reason:* an affordance on a screen with no content behind it is either a dead
+end or a second sign-in prompt, and rule 10 of section 12 says no dead ends.
+*Impact:* the signed-out wallet offers exactly two things to do, both of which
+work.
+*Effort:* XS. *Risk:* none. *Priority:* **Medium**
+
+**A3-127. Two headers stack to 260px before any content at 390px.**
+*Evidence:* the `/wallet` and `/settings` screenshots. The site header (drawer,
+logo, Sign in, Sign up) is roughly 130 CSS px and the `PageHeader` roughly
+another 130, on an 844px viewport. That is 31% of the screen.
+*Action:* on `(app)` routes for a signed-out visitor, collapse the two into one:
+the back control, the page title, and a single "Sign in" action.
+*Reason:* the two headers repeat the brand mark and offer overlapping actions,
+and they push the actual content below the midpoint of the phone.
+*Impact:* roughly a third of the viewport returned to content on every app screen
+a visitor sees before signing in.
+*Effort:* M. *Risk:* medium, it is the global chrome.
+*Priority:* **High**
+
+### 9.7 Performance
+
+**A3-128. One 1,343KB PNG is on every page in the product, painted twice, outside `next/image`.**
+*Evidence:* my network probe at 390px measured 1,475KB of images on `/` and
+1,364KB on `/home`, of which `/brand/rentme-bg.png` is 1,343KB in both.
+`ls -la` confirms 1,343KB on disk. `ambient.css` paints it on `.nf-ambient` and
+again on `span:nth-child(1)`.
+*Action:* three things, in order. Export AVIF and WebP variants and serve them
+with `image-set()`, which typically takes a render like this under 200KB. Export a
+mobile crop at 828px wide rather than serving the desktop asset to a 390px
+screen. Then reconsider whether the top mirror needs the full-resolution source
+at `opacity: 0.3` behind a mask.
+*Reason:* on the target network, a mid-range Android on Nigerian mobile data at
+roughly 400Kbps, 1.3MB is about 27 seconds before the decorative background
+finishes. Section 23.3 says performance is retention and that a heavy hero image
+is the reason somebody never sees the second screen. This is that image, and it is
+on all 97 pages.
+*Impact:* the single largest available speed win in the product, on every route.
+*Effort:* M. *Risk:* low. Section 12 rule 6 says the supplied artwork is canonical
+and must be used as an image rather than recreated in CSS; re-encoding the same
+artwork honours that completely.
+*Priority:* **Critical** (a user on the target network is blocked from the core
+loop by load time alone)
+
+**A3-129. `public/brand/` is 25MB and six further PNGs exceed 800KB.**
+*Evidence:* `du -sh apps/web/public/brand/` is 25M. `rentme-villa.png` 2,270KB,
+`rentme-city.png` 2,149KB, `rentme-assistant.png` 1,862KB, `rentme-map.png`
+1,749KB, `ai-banner.png` 1,509KB, and seven `story-*.png` between 616KB and
+936KB.
+*Action:* a build step that emits AVIF and WebP for everything in `public/brand/`
+and a lint that fails on a new PNG over 300KB.
+*Reason:* `rentme-city.png` at 2.1MB is on the home screen's city card by the
+data-saver file's own account. These are the largest assets in the product and
+none of them goes through `next/image` because they are backgrounds.
+*Impact:* the image budget stops being unbounded.
+*Effort:* M. *Risk:* low. *Priority:* **[TRACK A overlap] High**
+
+**A3-130. 157KB of fonts load on every page.**
+*Evidence:* my network probe measured `font=157KB` on both `/` and `/home`.
+*Action:* verify the ten preloaded faces are all painted on a first view. The
+`fonts.css` header says a previous sweep found four of ten were never painted and
+that Poppins 500 and 800 were removed; check whether the ten that remain are
+still ten and still all used.
+*Reason:* 157KB of font before a price is visible, on the target network, is
+roughly three seconds. The reasoning in `fonts.css` is excellent and the number
+should be re-measured against it.
+*Impact:* a faster first meaningful paint.
+*Effort:* S to measure. *Risk:* none. *Priority:* **Medium**
+
+**A3-131. `LogoMark` renders two `<Image>` elements and hides one in CSS.**
+*Evidence:* `Logo.tsx` returns both `/brand/rentme-logo.png` and
+`/brand/rentme-logo-ink.png` with `.nf-logo-on-dark` and `.nf-logo-on-light`.
+My probe found the ink twin present in the DOM at 0x0 on every route. **It was
+not fetched** in my network measurement, so Chrome elides it; I am not claiming a
+download cost.
+*Action:* render one `<Image>` and swap the source with a CSS `background-image`
+on a theme-conditional class, or move the two-form logo behind a `<picture>`
+driven by the theme attribute.
+*Reason:* two DOM nodes per logo across every header, rail, footer and auth screen
+is layout and paint work for an element that is hidden, and the behaviour depends
+on a browser optimisation rather than on the markup being right. Both source PNGs
+are also 710KB and 677KB on disk, which matters the moment one of them is
+requested.
+*Impact:* half the logo DOM, and no dependence on a fetch optimisation.
+*Effort:* S. *Risk:* low. *Priority:* **[TRACK A overlap] Medium**
+
+**A3-132. The `Save-Data` path is thoughtful and I could not verify it fires.**
+*Evidence:* `data-saver.css` is 119 lines of correct reasoning and the mechanism
+(a background image on an unpainted element is never fetched) is the right one.
+`lib/save-data.ts` exists. `tests/save-data.spec.mjs` exists.
+*Action:* run `save-data.spec.mjs` against a server and confirm the flag lands
+from both the `Save-Data` header and `navigator.connection`.
+*Reason:* section 23.3 says explicitly "there is a `save-data.ts` in the tree
+already, which is the right instinct; verify it is actually honoured". **I did not
+verify it.** I read the CSS and it is correct if the attribute is set.
+*Impact:* confidence that the 1.3MB is genuinely skipped for the people who need
+it skipped.
+*Effort:* S. *Risk:* none. *Priority:* **High**
+
+**A3-133. The data-saver path only helps people who already know their link is bad.**
+*Evidence:* `data-saver.css` fires on `Save-Data: on` or a `navigator.connection`
+effective type of 2g.
+*Action:* also serve the light variants by default and upgrade, rather than
+serving the heavy ones by default and downgrading. A 3g connection, which is the
+common case, gets the full 3.5MB today.
+*Reason:* the file's own measurements are `/home` at 3,676KB and `/` at 1,585KB
+with an empty catalogue. Somebody on a normal Nigerian 3g link is not
+`effectiveType: "2g"` and gets all of it.
+*Impact:* the median user gets the fast experience rather than the slow one.
+*Effort:* M. *Risk:* low. *Priority:* **High**
+
+**A3-134. A `pin-map` icon requests the 3840px variant.**
+*Evidence:* my probe found
+`/_next/image?url=%2Fbrand%2Ficons%2Fpin-map.png&w=3840&q=75` on `/`.
+*Action:* see A3-075, which is the same root cause.
+*Reason:* the largest available variant of an icon, on the landing page, at 0x0.
+*Impact:* removes a wasted request from the first screen.
+*Effort:* S. *Risk:* none. *Priority:* **Medium**
+
+**A3-135. No horizontal scroll at 390px on the five routes I probed, and it should stay that way.**
+*Evidence:* `document.documentElement.scrollWidth` equals `clientWidth` at 390 on
+`/`, `/home`, `/wallet`, `/settings` and `/search`. Elements do overflow the
+viewport box (a `nf-float-slow` decoration to 460, a category tile to 476, a
+market tile to 428) and every one of them is inside a container carrying
+`overflow: clip` or `overflow: auto`, which is exactly the documented fix.
+*Action:* add the `scrollWidth === clientWidth` assertion to a Playwright spec
+across all 97 routes.
+*Reason:* the 29px phantom-scroll bug cost real time, the fix held, and nothing
+currently stops it coming back.
+*Impact:* a regression that only a screenshot catches becomes a test failure.
+*Effort:* S. *Risk:* none. *Priority:* **Medium**

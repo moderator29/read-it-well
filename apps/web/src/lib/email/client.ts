@@ -1,4 +1,5 @@
 import "server-only";
+import { BRAND_DOMAIN } from "@/lib/brand-domain";
 
 /**
  * Resend client. Server-only, typed, no SDK.
@@ -21,7 +22,7 @@ const API_URL = "https://api.resend.com/emails";
 const REQUEST_TIMEOUT_MS = 10_000;
 
 /** The sender used when EMAIL_FROM is not set. */
-const DEFAULT_FROM = "Vallo <hello@rentme.ng>";
+const DEFAULT_FROM = `Vallo <hello@${BRAND_DOMAIN}>`;
 
 /** Deliberately forgiving: one @, a dot in the domain, no whitespace. */
 const ADDRESS_RE = /^[^\s@]+@[^\s@.]+\.[^\s@]+$/;

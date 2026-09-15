@@ -14,6 +14,7 @@ import {
   unmuteTarget,
 } from "@/lib/social/posts-actions";
 import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
+import { displayHost } from "@/lib/brand-domain";
 
 /**
  * The `…` on a person's page. The sibling of the one on every card.
@@ -133,7 +134,7 @@ export function ProfileMenu({
       setNotice(POST_COPY.copied);
       return;
     }
-    setNotice(`The address is rentme.ng/u/${handle}`);
+    setNotice(`The address is ${displayHost()}/u/${handle}`);
   };
 
   const requireSignIn = () => {

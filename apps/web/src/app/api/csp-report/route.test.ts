@@ -20,14 +20,14 @@ import { POST } from "./route";
  */
 
 function report(blocked: string, directive = "img-src"): Request {
-  return new Request("https://rentme.ng/api/csp-report", {
+  return new Request("https://vallo.ng/api/csp-report", {
     method: "POST",
     headers: { "content-type": "application/csp-report" },
     body: JSON.stringify({
       "csp-report": {
         "effective-directive": directive,
         "blocked-uri": blocked,
-        "document-uri": "https://rentme.ng/listing/abc",
+        "document-uri": "https://vallo.ng/listing/abc",
         disposition: "report",
       },
     }),
@@ -48,7 +48,7 @@ describe("csp report endpoint", () => {
   it("acknowledges every report with 204, including malformed input", async () => {
     expect((await POST(report("https://evil.example/x.png"))).status).toBe(204);
 
-    const malformed = new Request("https://rentme.ng/api/csp-report", {
+    const malformed = new Request("https://vallo.ng/api/csp-report", {
       method: "POST",
       body: "not json at all",
     });
@@ -101,7 +101,7 @@ describe("csp report endpoint", () => {
   });
 
   it("drops a body larger than the ceiling without reading it", async () => {
-    const huge = new Request("https://rentme.ng/api/csp-report", {
+    const huge = new Request("https://vallo.ng/api/csp-report", {
       method: "POST",
       headers: { "content-length": String(64 * 1024) },
       body: JSON.stringify({

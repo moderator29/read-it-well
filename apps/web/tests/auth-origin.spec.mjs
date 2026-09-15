@@ -85,8 +85,8 @@ console.log("\nThe host the reader is actually on");
 
 check(
   "a real deployment gets its own https origin",
-  originFor({ "x-forwarded-host": "rentme.ng", "x-forwarded-proto": "https" }) ===
-    "https://rentme.ng",
+  originFor({ "x-forwarded-host": "vallo.ng", "x-forwarded-proto": "https" }) ===
+    "https://vallo.ng",
 );
 check(
   "a Vercel preview gets the preview host, not the production one",
@@ -98,14 +98,14 @@ check(
 check(
   "the request wins over a stale NEXT_PUBLIC_SITE_URL",
   originFor(
-    { "x-forwarded-host": "rentme.ng", "x-forwarded-proto": "https" },
+    { "x-forwarded-host": "vallo.ng", "x-forwarded-proto": "https" },
     { NEXT_PUBLIC_SITE_URL: "http://localhost:3000" },
-  ) === "https://rentme.ng",
+  ) === "https://vallo.ng",
   ["this is the exact failure: an env var saying localhost while a phone is on the real host"],
 );
 check(
   "plain host is read when there is no proxy in front",
-  originFor({ host: "rentme.ng" }) === "https://rentme.ng",
+  originFor({ host: "vallo.ng" }) === "https://vallo.ng",
 );
 check(
   "localhost is still http, because locally it is",
@@ -113,12 +113,12 @@ check(
 );
 check(
   "a proxy listing several schemes is read as the first one",
-  originFor({ "x-forwarded-host": "rentme.ng", "x-forwarded-proto": "https,http" }) ===
-    "https://rentme.ng",
+  originFor({ "x-forwarded-host": "vallo.ng", "x-forwarded-proto": "https,http" }) ===
+    "https://vallo.ng",
 );
 check(
   "no request at all falls back to the configured URL",
-  originFor({}, { NEXT_PUBLIC_SITE_URL: "https://rentme.ng" }) === "https://rentme.ng",
+  originFor({}, { NEXT_PUBLIC_SITE_URL: "https://vallo.ng" }) === "https://vallo.ng",
 );
 
 console.log("\nWhat the auth actions use");

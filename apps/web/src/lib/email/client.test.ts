@@ -123,9 +123,9 @@ describe("the text alternative reaches the wire", () => {
   it("speaks the REST API's snake_case for a reply address", async () => {
     // The SDK takes replyTo; the REST endpoint takes reply_to and silently
     // ignores anything else, so a wrong key here loses replies with no error.
-    await sendMessage("ada@example.com", MESSAGE, { replyTo: "support@rentme.ng" });
+    await sendMessage("ada@example.com", MESSAGE, { replyTo: "support@vallo.ng" });
     const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string);
-    expect(body.reply_to).toBe("support@rentme.ng");
+    expect(body.reply_to).toBe("support@vallo.ng");
   });
 });
 
@@ -208,11 +208,11 @@ describe("nothing private is written to the logs", () => {
 
 describe("the sender", () => {
   it("defaults to the Vallo address when EMAIL_FROM is unset", () => {
-    expect(emailFrom()).toBe("Vallo <hello@rentme.ng>");
+    expect(emailFrom()).toBe("Vallo <hello@vallo.ng>");
   });
 
   it("honours EMAIL_FROM when it is set", () => {
-    vi.stubEnv(FROM, "Vallo <no-reply@rentme.ng>");
-    expect(emailFrom()).toBe("Vallo <no-reply@rentme.ng>");
+    vi.stubEnv(FROM, "Vallo <no-reply@vallo.ng>");
+    expect(emailFrom()).toBe("Vallo <no-reply@vallo.ng>");
   });
 });

@@ -1,7 +1,7 @@
 /**
  * The one way to reach a person, and the one place that decides what it is.
  *
- * This module used to hand out `support@rentme.ng`. **That mailbox does not
+ * This module used to hand out `support@vallo.ng`. **That mailbox does not
  * exist.** Six surfaces printed it as a live link, and two of them were
  * Privacy and Terms, which is where somebody goes to exercise a data right
  * under the NDPA. A wrong domain sends mail to the wrong place; an address
@@ -36,7 +36,7 @@ export const SUPPORT_HREF: string = SUPPORT_EMAIL ? `mailto:${SUPPORT_EMAIL}` : 
 /**
  * What the link says.
  *
- * Reads as a sentence either way: "write to support@rentme.ng" and "write to
+ * Reads as a sentence either way: "write to support@vallo.ng" and "write to
  * us through the contact form" both work where they are used, so no caller has
  * to branch on which world it is in.
  */
@@ -48,7 +48,7 @@ export const SUPPORT_LABEL: string = SUPPORT_EMAIL ?? "the contact form";
  */
 export const SUPPORT_SENTENCE: string = SUPPORT_EMAIL
   ? `email ${SUPPORT_EMAIL}`
-  : "open the contact form at rentme.ng/contact";
+  : "open the contact form at vallo.ng/contact";
 
 /**
  * Kept as a named export because five surfaces already import it, and because

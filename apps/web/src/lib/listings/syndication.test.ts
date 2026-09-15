@@ -23,7 +23,7 @@ import type { Listing } from "./types";
  * proving four different things.
  */
 
-const ORIGIN = "https://rentme.ng";
+const ORIGIN = "https://vallo.ng";
 
 function listing(over: Partial<Listing> = {}): Listing {
   return {

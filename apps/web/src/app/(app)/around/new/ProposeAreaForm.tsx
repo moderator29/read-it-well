@@ -13,6 +13,7 @@ import {
   slugifyArea,
   type AreaKind,
 } from "@/lib/social/areas-schema";
+import { displayHost } from "@/lib/brand-domain";
 
 /**
  * Suggest a place.
@@ -201,7 +202,7 @@ export function ProposeAreaForm({
         <p className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-3 py-2 text-xs text-[var(--nf-content-muted)]">
           Its address will be{" "}
           <span className="nf-numeric text-[var(--nf-content-secondary)]">
-            rentme.ng/around/{slug}
+            {displayHost()}/around/{slug}
           </span>
         </p>
       ) : null}

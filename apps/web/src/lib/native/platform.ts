@@ -4,7 +4,7 @@
  * Am I the native shell, or am I the website?
  *
  * EVERY OTHER FILE IN THIS FOLDER DEPENDS ON THIS ANSWER BEING RIGHT, AND ON
- * IT COSTING THE WEBSITE NOTHING. The same bundle serves rentme.ng in a
+ * IT COSTING THE WEBSITE NOTHING. The same bundle serves vallo.ng in a
  * browser and the Capacitor shell on a phone, and the website must not change
  * at all: no extra bytes fetched, no plugin registered, no listener bound, no
  * global touched. So the first gate reads a value the native runtime injected

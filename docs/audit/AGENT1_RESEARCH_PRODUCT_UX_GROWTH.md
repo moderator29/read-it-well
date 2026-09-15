@@ -1133,3 +1133,150 @@ exist.
 - **Effort.** M. `KIND_NOUN` has 11 entries used in several places, so it is more than a string move.
 - **Risk.** Low. A counted noun in Yorùbá and Igbo has one plural category, which `Intl.PluralRules` and the existing `counts` block already handle.
 - **Priority.** Medium
+
+---
+
+### Group F. Notifications and the reasons to come back
+
+Every one of the eight `notification_kind` values is reactive: something happened
+to you. There is no proactive kind, so the platform can only ever speak when a
+user has already acted. That is the structural reason retention potential scores
+26. The entries below are ordered by how honest they are, not by how loud, because
+rule 12 rules out the loud ones.
+
+#### A1-077. Five of the eight notification kinds have no preference control
+- **Evidence.** `notification_kind` is `booking, message, wallet, listing, agent, support, system, social`. `app/(app)/settings/AccountToggles.tsx:80` `NotifyKey` is `"bookings" | "messages" | "wallet" | "marketing"`. So `listing`, `agent`, `support`, `system` and `social` have no switch. `marketing` has a switch and is not a `notification_kind`, so it governs email only. I initially assumed none of the toggles were honoured; `lib/email/recipients.ts` `emailMuted` reads them correctly and `tests/notification-preferences.spec.mjs` records that `private.notify` consults the same document proven against live Postgres, so **the four that exist work properly**.
+- **Action.** Add a `social` switch, which is the one people will want most once Around is busy, and a `listing` switch, which becomes essential the moment saved-search alerts exist (A1-015). `support` and `system` are arguably always-deliver like `wallet`, and if so the card should say that in the same honest way `walletSub` already does.
+- **Reason.** An unmutable notification channel is the fastest route to an uninstall, and the social layer is the channel most likely to become noisy. Getting the control in before the volume arrives is much cheaper than after.
+- **Impact.** People keep notifications on, because they can turn the noisy part off.
+- **Effort.** S
+- **Risk.** Low. The pattern is proven; this is adding rows to an existing card and keys to an existing document.
+- **Priority.** Medium
+
+#### A1-078. There is no tenancy record, so there is no renewal date, no receipt store and no expiry reminder
+- **Evidence.** No `tenancies` table in the 73 tables in `database.types.ts`. `listings.minimum_tenancy_months` and `available_from` exist on the listing, not on an agreement. A1-001 establishes there is no rent transaction to create one from.
+- **Action.** Part of A1-001, and the reason A1-001 matters beyond the payment. A tenancy row with `starts_on`, `ends_on`, `rent_period` and the paid breakdown gives the platform: a receipt a tenant can produce, a renewal date, and the sixty-day reminder section 23.1 asks for, which arrives with what is currently available in the same area at the same budget.
+- **Reason.** This is the mechanism that turns a one-search product into an annual relationship, and it is the single highest-value retention idea available because it is both useful and unarguably honest. A Nigerian tenant currently keeps their rent receipts in a WhatsApp thread with their agent and has no reminder at all that their tenancy is ending until the agent asks for money.
+- **Impact.** One transaction becomes a yearly cycle. It also produces the platform's best possible re-engagement moment: a person who needs to decide something, contacted sixty days before they need to decide it, with the information they need to decide.
+- **Effort.** L, on top of A1-001.
+- **Risk.** Low once A1-001 exists. The reminder must be informational, once, with an off switch: a countdown to somebody's housing running out would be the ugliest possible dark pattern and it is easy to slip into.
+- **Priority.** High
+
+#### A1-079. The wallet is a checkout, not a habit
+- **Evidence.** `wallets` and `wallet_entries` exist with an append-only ledger. `SAVINGS_POTS.md` is 90 lines of partly-applied design. `wallet_entry_kind` carries the three escrow kinds and no savings kind that I saw. `app/(app)/wallet/page.tsx` is a balance and a transactions list.
+- **Action.** The smallest honest version of the savings idea: a named goal with a target and a manual top-up. No interest, no lock, no automation, no promise. A person saving toward a two-million-naira move-in cost can see how far they have got, and that is a reason to open the app on a day they are not searching.
+- **Reason.** Section 23.1 names the wallet as a habit rather than a checkout, and it is right: money that lives in the product is a reason to return that has nothing to do with searching. It also solves a real Nigerian problem, which is that annual rent has to be saved for in a lump and most people do it in an account they can raid.
+- **Impact.** A daily-to-weekly return mechanism. It also increases the chance the platform is where the rent is eventually paid from, which is A1-001's conversion.
+- **Effort.** L
+- **Risk.** High and it is regulatory, not technical. A named savings product with a target reads like a deposit-taking product, and `HANDOFF_01` section 4.7 already requires a disclaimer that a wallet balance is not a bank deposit and not insured. This is on the surface-it-first list in section 27: it is financially consequential and touches SCUML. **Do not build it without that answer.** `[AGENT 2]` and the founder own that decision.
+- **Priority.** Future
+
+#### A1-080. No notification is ever batched or summarised, so volume will become noise
+- **Evidence.** `notifications` rows are written per event by triggers. There is no digest, no daily roll-up and no frequency preference. The four preference keys are on and off only.
+- **Action.** Before the saved-search alerts in A1-015 ship, add a frequency to the preference document: immediately, daily, or off. Default the `listing` kind to daily and leave `message` and `wallet` immediate, because those are time-sensitive and the others are not.
+- **Reason.** The saved-search alert is the most valuable notification the platform can send and also the easiest to turn into spam, because a single brief can match ten listings on the day a city's supply lands. One notification saying six places matched your Yaba search is useful; six notifications is an uninstall.
+- **Impact.** The retention mechanism survives its own success.
+- **Effort.** M
+- **Risk.** Low, and it is much cheaper to do before the alerts exist than after.
+- **Priority.** Medium
+
+#### A1-081. Nothing tells a person what they missed, so a return visit does not reward itself
+- **Evidence.** `notifications` carries `read_at`. `app/(app)/notifications/page.tsx` groups by day with realtime arrivals. There is no since-you-were-last-here summary anywhere, and `profiles` has no last-seen column that I found.
+- **Action.** On `/home`, one line for a returning person: what changed since their last visit, drawn from real events only. Two new places matched your search. The flat you saved dropped in price. Your inspection is on Thursday. Nothing invented, nothing if nothing happened.
+- **Reason.** The reward for opening an app is finding out something you did not know. Today a returning user has to go and look in four places to discover whether anything happened, and mostly nothing has, which teaches them not to look.
+- **Impact.** The second visit pays for itself, which is the whole of retention.
+- **Effort.** M
+- **Risk.** Low, and there is one trap: if nothing happened, say nothing happened. Filling the line with a prompt to do something is the manufactured-engagement pattern rule 12 rejects.
+- **Priority.** High
+
+#### A1-082. There is no push notification path, which is correct today and is the ceiling on everything above
+- **Evidence.** `RECOMMENDATIONS.md` MOB-4 records that push is not wired and says that is the right order. `docs/MOBILE_READINESS.md` covers permissions.
+- **Action.** Nothing yet. Recorded here so the sequencing is explicit: A1-015, A1-016, A1-060 and A1-078 all produce notifications that a person will only see if they open the app, until push exists. Push should land after there is something worth pushing and not before, which is MOB-4's point, but it is the multiplier on every retention entry in this group.
+- **Reason.** Recorded so that nobody reads the retention section and concludes the mechanisms are enough on their own. On the target device, a notification nobody sees is a notification nobody acted on.
+- **Impact.** Sequencing clarity.
+- **Effort.** None here.
+- **Risk.** None here. `[AGENT 2]` and MOB-4 own the work.
+- **Priority.** Future
+
+#### A1-083. Badges are awarded nightly and nothing tells the person they earned one
+- **Evidence.** `private.sweep_badges` runs nightly per ADR-014 and `RECOMMENDATIONS.md` V-3 marks badges DONE. `user_badges` holds `granted_at`, `granted_by` and `reason`. `notification_kind` has no badge value; the nearest is `system`. I did not find a notification write in the sweep, and I could not read the function body because it is in the database rather than the repository.
+- **Action.** Write a notification when a badge is granted, naming the badge and what earned it. If the sweep already does this, this entry is void and I could not check it.
+- **Reason.** Earned standing is only a retention mechanism if the person finds out they earned it. A badge that appears silently on a profile nobody visits is a row in a table.
+- **Impact.** The one existing earned-standing system starts producing return visits.
+- **Effort.** S
+- **Risk.** Low. **I did not verify whether the sweep already notifies**; check before building. `[AGENT 2]` owns the function.
+- **Priority.** Medium
+
+#### A1-084. There is no referral or invite mechanism, and the social layer has the graph for one
+- **Evidence.** `follows` exists. `area_members` exists. `docs/SOCIAL_DESIGN.md` section 6 designs an invite mechanism for residency ("an invite accepted from an existing weighted resident, capped at three invites per resident per 90 days"), which does not exist because the utility record does not (A1-041). There is no referral code, no invite link and no attribution column anywhere.
+- **Action.** The honest version, which is not a rewarded referral: let a person invite somebody to an area, and let an agent invite a landlord whose property they manage. Attribute it so the platform knows where growth came from. Do not pay for referrals while there is no fee revenue to pay from and no fraud defence against self-referral.
+- **Reason.** Growth in this market happens by WhatsApp recommendation, and the platform currently has no way to know when it happened or to make it one tap. The residency invite is also the mechanism that makes the utility record trustworthy, so building it serves two purposes.
+- **Impact.** Measurable word-of-mouth. A supply-side invite path that reaches landlords, who are the people agents already know and the platform cannot reach.
+- **Effort.** M
+- **Risk.** Medium. Any invite mechanism is a spam vector and needs the existing `rate_limits` table and a cap, which section 6 already specifies at three per 90 days.
+- **Priority.** Medium
+
+#### A1-085. Recently viewed is collected and never used for anything
+- **Evidence.** `lib/search/memory.ts` keeps "the last few places opened" in `localStorage` with a validator and pruning. I found no surface that renders it: `grep` for the recently-viewed reader outside that module was not something I ran, so **I have not confirmed it is unused**, only that the server cannot see it because it is not a cookie.
+- **Action.** Check whether anything renders it. If not, either render it as a rail on `/home` and `/search` or stop collecting it. If something does render it, this entry is void.
+- **Reason.** Storing behaviour that nothing reads is cost with no benefit and, once it is on the account rather than the device, personal data with no purpose.
+- **Impact.** Either a useful rail or one fewer thing stored.
+- **Effort.** S
+- **Risk.** None. **Unverified**: confirm the reader first.
+- **Priority.** Nice-to-have
+
+---
+
+### Group G. The diaspora, which is the clearest differentiation and is at zero
+
+The platform has a CGO in the UK. `grep -rniE "diaspora|abroad|overseas|remittance"`
+across `app`, `lib`, `components` and the locale files returns nothing that serves
+a person outside Nigeria: two code comments about a diaspora guest's timezone, a
+USD display toggle on the wallet gated behind `NEXT_PUBLIC_NGN_USD_RATE`, and the
+Yellow Card crypto path. Everything below is absence, which I am filing as
+recommendations because the brief asked for what does not exist yet.
+
+#### A1-086. A person outside Nigeria cannot store a phone number
+- **Evidence.** `lib/phone.ts` hardcodes Nigeria throughout: `:77` and `:123` and `:155` all strip a leading `234`, `:91` and `:141` return `` `+234${national}` ``, `:146` says "with no country code because the field states `+234` beside it", and `:167` formats for reading back as `+234 ...`. `lib/profile/schema.ts:56` validates `PHONE_SHAPE_RE` with a ten-digit minimum. A `+44` number cannot be stored or displayed.
+- **Action.** Store E.164 with a country, and default the picker to Nigeria. Keep the Nigerian carrier detection, which is genuinely useful, and treat a non-Nigerian number as valid without a carrier.
+- **Reason.** The company's growth officer is in Huddersfield and the market he owns cannot give the platform a contactable number. It is also the first field in the agent application, so a Nigerian abroad who wants to list a property they own at home is blocked at step one.
+- **Impact.** The diaspora becomes representable. Agents who live abroad and let property at home become possible, and that is a real supply segment.
+- **Effort.** M
+- **Risk.** Low. Any stored Nigerian numbers stay valid; the migration is additive. `[AGENT 2]` owns the validation module's server side.
+- **Priority.** High
+
+#### A1-087. Nothing anywhere asks whether a person is outside Nigeria, so nothing can be shaped for them
+- **Evidence.** No column, no setting and no onboarding question expresses location outside Nigeria. `/settings/place` is backed by 774 Nigerian local governments. `social_profiles` has `state_code` and `lga_code`, both Nigerian.
+- **Action.** One question, in first run or settings: are you in Nigeria or abroad. It changes what the product should offer: a remote inspection (A1-064), a nominated viewer (A1-065), payment from outside (A1-088), and a different set of fears to answer.
+- **Reason.** A diaspora renter's problems are not a subset of a local renter's, they are different problems: they cannot view, they cannot easily pay, they do not know whether the agent exists, and they are the single most defrauded group in this market precisely because distance makes verification impossible. Serving them requires knowing who they are.
+- **Impact.** The most differentiated segment becomes addressable. It is also the segment with the most money and the least served.
+- **Effort.** S
+- **Risk.** Low. It is personal data and needs a basis; the basis is obvious and one sentence, which is the test `HANDOFF_01` section 4.4 sets.
+- **Priority.** High
+
+#### A1-088. There is no way to pay from outside Nigeria
+- **Evidence.** `app/api/paystack/webhook/route.test.ts:242` constructs a non-NGN charge as a case to reject, and `lib/wallet/reconciliation.test.ts:183` does the same with USD. The wallet is naira, integer kobo, by design and correctly. `lib/payments/yellowcard.ts` exists as a crypto funding path whose comment explains why a raw USDT address is the wrong answer.
+- **Action.** Do not add a second currency to the ledger; that would be the wrong fix and the ledger is right. The question is how a card issued outside Nigeria funds a naira wallet. That is a processor question and a compliance question before it is an engineering one. Yellow Card is already integrated and may be most of the answer for the crypto-comfortable minority; for everybody else it needs a processor that accepts an international card and settles in naira.
+- **Reason.** Section 23.1 names paying from outside as one of the four diaspora problems. Today somebody in London who finds a flat for their mother in Abuja has to send money to a relative, which is the exact unprotected transfer the platform exists to replace.
+- **Impact.** The diaspora can transact. It is also the highest-value transaction segment: a diaspora renter pays a year up front more often than a local one.
+- **Effort.** XL
+- **Risk.** High, and it is on the surface-it-first list: it adds a paid vendor, it is financially consequential, and it has SCUML implications. **Do not start it without the founder's decision.** Recorded here because it is the gating constraint on the whole diaspora thesis.
+- **Priority.** Future
+
+#### A1-089. Every date and time in the product assumes the reader is in Nigeria
+- **Evidence.** `lagosToday()` in `lib/bookings/schema.ts` is used in `lib/reviews/actions.ts` and the booking validation. `KNOWN_GAPS.md` records that `ReservePanel.tsx` uses an `en-GB` date formatter. `app/(app)/listing/[id]/ReserveTable.tsx:34` comments that "a diaspora guest booking dinner for their family should not" be confused by the timezone, so the problem is known in one place. No timezone preference exists.
+- **Action.** Keep West Africa Time as the platform's authoritative clock, which is correct because the property is in Nigeria, and label it wherever a time is shown to somebody who might not be in it. An inspection at "10:00" means nothing to a person in London; "10:00 Lagos time" means everything.
+- **Reason.** A missed viewing because of a one-hour or five-hour offset is the most avoidable failure in the product, and the offset is exactly the bug that cost a day on the CAC portal per `HANDOFF_01` section 8 item 5. The lesson is already written down.
+- **Impact.** Nobody misses an appointment because of a timezone. One label, everywhere a time appears.
+- **Effort.** S
+- **Risk.** Low.
+- **Priority.** Medium
+
+#### A1-090. There is no surface that answers a diaspora renter's actual questions
+- **Evidence.** `app/(site)/help/page.tsx` categories are "Booking a stay", "Payments and refunds", "Listing your property", "Verification and trust". Nothing addresses viewing from abroad, paying from abroad, or trusting an agent you will never meet.
+- **Action.** One page, and make it the diaspora landing surface: how a remote inspection works (A1-064), how to nominate somebody to view (A1-065), what the verification ladder actually proves about an agent (A1-032), and what the platform can and cannot guarantee. Written for somebody in London or Houston who has been burned or knows somebody who has.
+- **Reason.** This is the most shareable page the platform could publish, into the most concentrated and most-defrauded audience it has, where the CGO already has reach. It is also a page that can exist before any of the features it describes are finished, as long as it only describes what is real.
+- **Impact.** A growth surface aimed at the segment with the highest willingness to transact and the worst current alternatives.
+- **Effort.** M
+- **Risk.** Medium. It must not promise the remote features before they exist, which is the hard part and is why it should be written after A1-064.
+- **Priority.** Medium

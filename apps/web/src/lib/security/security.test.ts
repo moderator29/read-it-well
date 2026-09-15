@@ -50,7 +50,7 @@ describe("safeReturnPath", () => {
   it("the stripped-control bypass really did resolve off-origin", () => {
     // The reason the rule above exists, stated as an executable fact.
     for (const control of ["\t", "\n", "\r"]) {
-      expect(new URL(`/${control}/evil.example`, "https://rentme.ng").origin).toBe(
+      expect(new URL(`/${control}/evil.example`, "https://vallo.ng").origin).toBe(
         "https://evil.example",
       );
     }

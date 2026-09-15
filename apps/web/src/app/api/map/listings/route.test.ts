@@ -46,7 +46,7 @@ const { GET } = await import("./route");
 const LAGOS = "west=3.38&south=6.41&east=3.52&north=6.47";
 
 function get(query: string): Request {
-  return new Request(`https://rentme.ng/api/map/listings?${query}`);
+  return new Request(`https://vallo.ng/api/map/listings?${query}`);
 }
 
 describe("map viewport endpoint", () => {

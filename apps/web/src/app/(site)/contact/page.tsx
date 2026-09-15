@@ -66,7 +66,7 @@ export default async function ContactPage({
         <Reveal as="section" className="mt-section">
           <div className="nf-card p-card text-center-lg">
             {/*
-              The hero used to be a large mailto to support@rentme.ng, a
+              The hero used to be a large mailto to support@vallo.ng, a
               mailbox that does not exist, sitting directly above a form that
               works. It offered a dead route in the largest type on the page
               and the live one underneath it in the smallest.

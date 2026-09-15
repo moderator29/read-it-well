@@ -32,7 +32,7 @@ that in full and `MOBILE_READINESS.md` section 2 has the evidence.
 ## 2. The one variable that decides whether a build works
 
 ```bash
-export CAPACITOR_SERVER_URL="https://rentme.ng"    # the production origin
+export CAPACITOR_SERVER_URL="https://vallo.ng"    # the production origin
 ```
 
 `capacitor.config.ts` reads it when `npx cap sync` runs. Set it in the shell
@@ -52,7 +52,7 @@ npm install
 npm run build                       # the web build, still the source of truth
 
 cd apps/web
-CAPACITOR_SERVER_URL="https://rentme.ng" npx cap sync
+CAPACITOR_SERVER_URL="https://vallo.ng" npx cap sync
 ```
 
 `cap sync` copies `native-shell/` into both projects, writes the resolved

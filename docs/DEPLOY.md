@@ -67,7 +67,7 @@ nobody re-adds a key on the strength of having seen it here once.
 | `NEXT_PUBLIC_SUPABASE_URL` | The whole Supabase layer switches off. Every client is env-guarded, so nothing crashes: discovery returns **nothing** and every screen draws its designed empty state, sign-in and sign-up render as honest disabled states. The seed catalogue this row used to promise as a fallback was deleted, deliberately, and an honest absence replaced it (ADR-005). Nothing writes to a database. | Supabase dashboard, Project Settings, API. Already known for this project: `https://uccixoonmbhrnyczyigt.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same as above. The URL alone is not enough; `isSupabaseConfigured()` requires both, and the auth middleware becomes a pass-through. | Supabase dashboard, Project Settings, API, "anon public" key |
 | `SUPABASE_SERVICE_ROLE_KEY` (SERVER ONLY) | **Set this first, and verify it.** Every path that must bypass RLS legitimately stops working, and the worst one does so silently: the Paystack webhook answers HTTP 200 with `{received:false}` and no log (`app/api/paystack/webhook/route.ts:242-243`), so Paystack never retries and a funding that was paid for is lost permanently. The redirect verify path takes the same branch. This is the most probable cause of the reported wallet failure: `RECOMMENDATIONS.md` W-1. Also affected: booking `confirm`, and anonymous support escalation (there is deliberately no anon insert policy on `support_tickets`). Signed-in user paths under their own RLS keep working. | Supabase dashboard, Project Settings, API, "service_role" key. Treat as a root password |
-| `NEXT_PUBLIC_SITE_URL` | Absolute URLs fall back to `http://localhost:3000`. Consequences: Open Graph and canonical URLs in page metadata point at localhost, Paystack callback URLs built by the wallet actions point at localhost, and rendered email links point at localhost. This is the single most commonly forgotten variable and the damage is invisible until someone shares a link. | Your own production URL, for example `https://rentme.ng`. No trailing slash |
+| `NEXT_PUBLIC_SITE_URL` | Absolute URLs fall back to `http://localhost:3000`. Consequences: Open Graph and canonical URLs in page metadata point at localhost, Paystack callback URLs built by the wallet actions point at localhost, and rendered email links point at localhost. This is the single most commonly forgotten variable and the damage is invisible until someone shares a link. | Your own production URL, for example `https://vallo.ng`. No trailing slash |
 
 ### 2.2 Required per feature
 
@@ -78,7 +78,7 @@ nobody re-adds a key on the strength of having seen it here once.
 | `ASSISTANT_MODEL` | Optional. Falls back to the default model pinned in `app/api/assistant/route.ts`. Only set this to move the assistant to a different model deliberately. | Not a secret. A model identifier |
 | `SUPPORT_MODEL` | Optional. The same, for the support escalation summariser in `app/api/support/route.ts`. Falls back to its own pinned default. | Not a secret. A model identifier |
 | `RESEND_API_KEY` (SERVER ONLY) | `isEmailConfigured()` returns false, `sendEmail` returns `{sent: false, reason: "unconfigured"}` and nothing leaves the process. Every event that would have emailed still fires its in-app notification, so users are not left uninformed, only un-emailed. Email and password sign-in is unaffected: Supabase issues that session itself. | https://resend.com/api-keys. The sending domain must be verified in Resend first, or Resend rejects the send |
-| `EMAIL_FROM` | Optional. Defaults to `Vallo <hello@rentme.ng>`. If that domain is not the one verified in Resend, every send is rejected, so set this to match the verified domain. | Your verified sending address |
+| `EMAIL_FROM` | Optional. Defaults to `Vallo <hello@vallo.ng>`. If that domain is not the one verified in Resend, every send is rejected, so set this to match the verified domain. | Your verified sending address |
 | `NF_DATA_SOURCE` | Optional. Selects the repository implementation for listings, agents and messages. Leave unset for the default. Setting it to `api` throws on the agent repository, which is not implemented. | Not a secret |
 | `NEXT_PUBLIC_AUTH_PROVIDERS` | **Leave unset, permanently.** Email and password only, by owner decision. Section 4.2 says why, and `RECOMMENDATIONS.md` N-4 removes the code. | Do not set |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | All six "contact support" surfaces point at `/contact` instead of a `mailto:`. That is a working channel, not a fallback: the form writes a real `support_tickets` row under RLS and the reply notifies the sender. Set this only once the mailbox genuinely receives mail, because an address that bounces fails silently while the person who wrote believes they have asked. | Your own mailbox, once it exists |
@@ -204,14 +204,14 @@ dashboard for project `uccixoonmbhrnyczyigt`.
 
 **Authentication, URL Configuration.**
 
-- **Site URL**: your production URL, for example `https://rentme.ng`. This is
+- **Site URL**: your production URL, for example `https://vallo.ng`. This is
   what `{{ .SiteURL }}` expands to inside the email templates, so the logo in
   every auth email resolves from here. Get it wrong and every auth email shows
   a broken image.
 - **Redirect URLs**: add every origin that will ever complete an auth flow.
   Supabase rejects a redirect that is not on this list, and the failure looks
   like a silent bounce back to sign-in:
-  - `https://rentme.ng/**`
+  - `https://vallo.ng/**`
   - `https://<your-project>.vercel.app/**` for preview deploys
   - `http://localhost:3000/**` and `http://localhost:3210/**` for local work
     (3210 is the port the Playwright specs and the screenshot harness expect)
@@ -245,7 +245,7 @@ fill in:
   transactional mail, so using it for auth mail keeps one sending domain and
   one reputation to manage.)
 - Sender email and sender name: an address on the domain you verified in
-  Resend, for example `hello@rentme.ng` and `Vallo`.
+  Resend, for example `hello@vallo.ng` and `Vallo`.
 
 Then **Authentication, Email Templates**, and paste each file from
 `supabase/templates/` into the matching template. All five, or the ones you
@@ -327,7 +327,7 @@ month, which is the first point at which the performance list means anything.
    Webhooks**, Webhook URL:
 
    ```
-   https://rentme.ng/api/paystack/webhook
+   https://vallo.ng/api/paystack/webhook
    ```
 
    Substitute your real production domain. This **must** be the live HTTPS URL
@@ -458,7 +458,7 @@ Then, by eye:
 
 Against the real production URL, on a real Android phone if possible.
 
-1. `https://rentme.ng/manifest.webmanifest` returns JSON with `"name":
+1. `https://vallo.ng/manifest.webmanifest` returns JSON with `"name":
    "Vallo"` and `"start_url": "/home"`.
 2. Chrome on Android offers "Install app" or "Add to Home screen". Install it.
    The home-screen icon shows the house-and-R mark on navy, not a screenshot of

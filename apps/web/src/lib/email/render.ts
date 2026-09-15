@@ -14,6 +14,7 @@ import {
   SIGN_OFF,
   SKY,
 } from "./theme";
+import { BRAND_ORIGIN } from "@/lib/brand-domain";
 
 /**
  * The Vallo transactional email shell.
@@ -76,7 +77,7 @@ import {
  */
 
 /** The site the emails link back to. Absolute, no trailing slash. */
-const DEFAULT_SITE_URL = "https://rentme.ng";
+const DEFAULT_SITE_URL = BRAND_ORIGIN;
 
 export function siteUrl(): string {
   const configured = (process.env.NEXT_PUBLIC_SITE_URL ?? "").trim();

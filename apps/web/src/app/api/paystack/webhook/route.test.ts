@@ -81,7 +81,7 @@ const AMOUNT_MINOR = 2_500_000;
 const ADMIN = { from: () => ({}) };
 
 function delivery(body: unknown, signature = "a-valid-looking-signature"): Request {
-  return new Request("https://rentme.ng/api/paystack/webhook", {
+  return new Request("https://vallo.ng/api/paystack/webhook", {
     method: "POST",
     headers: { "x-paystack-signature": signature, "content-type": "application/json" },
     body: typeof body === "string" ? body : JSON.stringify(body),
