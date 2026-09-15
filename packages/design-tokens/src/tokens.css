@@ -215,6 +215,24 @@
    *
    * These are the values the city card had inline nine times over: rgb(1 1 24)
    * at four alphas, three different pale blues, and one bare #010118.
+   *
+   * `--nf-surface-artwork` NOW HAS A LIGHT VALUE, AND THE REASON IS A BUG.
+   *
+   * It was defined here and nowhere else, so it computed to #010118 on both
+   * themes. That was harmless for as long as every surface using it was
+   * covered by a full-bleed photograph: the token was the ground BEHIND a
+   * render, never a visible surface.
+   *
+   * On 15 September 2026 the RentMe artwork was deleted and two surfaces began
+   * painting this token directly with a brand object on top of it: the
+   * assistant panel on the landing page and all three first-run slides. The
+   * brand objects carry `mix-blend-mode: multiply`, so on a near-black ground
+   * they vanish. The paper theme gained a black rectangle on the first screen
+   * a stranger sees.
+   *
+   * The light value below is the paper equivalent of the same studio ground,
+   * matching the sweep the story stage already uses, so an object composited
+   * on it reads exactly as it does on a white card.
    */
   --nf-surface-artwork: #010118;
   --nf-overlay-artwork: rgb(1 1 24 / 0.78);
@@ -984,6 +1002,17 @@
   /* Multiply is the identity against white, so a brand object needs no plate
      at all on paper: it simply sits on the page. */
   --nf-icon-ground: transparent;
+
+  /*
+   * The artwork ground, in daylight. See the long note beside the night value.
+   *
+   * Without this the token stayed #010118 on paper, and the moment a surface
+   * painted it directly rather than using it behind a photograph, the light
+   * theme got a near-black panel with an invisible multiply-blended object on
+   * it. The pale end matches the story stage so the two treatments agree.
+   */
+  --nf-surface-artwork: #F4F6FA;
+  --nf-overlay-artwork: rgb(244 246 250 / 0.82);
 
   /*
    * Daylight glass. Same four ingredients as the night theme, tuned for paper:

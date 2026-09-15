@@ -235,15 +235,45 @@
    * opening lines: masked in every direction, low contrast, and drifting, so
    * it belongs to the surface rather than sitting on it.
    */
+  /*
+   * THE BLEND MODE IS OVERRIDDEN HERE, AND WITHOUT IT THIS PAINTS NOTHING.
+   *
+   * This treatment was tuned for the eight `story-*.png` scene renders, which
+   * were full-colour artwork on a dark ground. Those were deleted on
+   * 15 September 2026 and `PageScene` now draws one of the 87 commissioned
+   * brand objects, which are soft matte white clay on a white studio plinth.
+   *
+   * That artwork does not survive the same treatment. `.nf-brand-icon` carries
+   * `mix-blend-mode: multiply`, which exists to remove the white plinth on the
+   * night theme. Multiply a mostly-white object against the navy canvas and
+   * almost nothing is left; the remaining 0.4 opacity and the mask finished the
+   * job. Measured on Bookings, Wallet, Saved and Messages, the element rendered
+   * at its correct 220x220 and its centre pixel was within a few values of the
+   * canvas beside it. **The flourish had silently gone from six surfaces.**
+   *
+   * So the two themes need opposite treatments, which is the whole reason this
+   * block exists rather than one opacity:
+   *
+   *   NIGHT. Multiply is turned off and the opacity drops a long way. A white
+   *   object at low opacity over navy is a soft pale ghost, and the radial mask
+   *   already fades its edges, so no square can show. This is the flourish the
+   *   scene renders used to give, made out of the artwork that exists now.
+   *
+   *   DAY. Multiply is kept, because against white it is the identity and it is
+   *   what makes the plinth disappear. The opacity RISES, because on paper only
+   *   the blue parts of the object carry and at 0.3 they carried nothing.
+   */
   .nf-page-scene {
-    opacity: 0.4;
+    mix-blend-mode: normal;
+    opacity: 0.16;
     filter: saturate(1.1);
     -webkit-mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
     mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
     animation: nf-scene-live 20s var(--nf-ease-standard) infinite;
   }
   :root[data-theme="light"] .nf-page-scene {
-    opacity: 0.3;
+    mix-blend-mode: multiply;
+    opacity: 0.5;
   }
   /*
    * The one hole in an otherwise thorough reduced-motion story. Duration

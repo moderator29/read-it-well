@@ -378,6 +378,23 @@
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
+    /*
+     * THE FIRST CARD WAS CLIPPED BY ITS OWN GUTTER AT REST.
+     *
+     * Every rail using this is laid out `-mx-gutter px-gutter`, so it bleeds to
+     * the screen edge and then pads its contents back in. The children are
+     * `scroll-snap-align: start`, and a snap start aligns to the scrollport's
+     * edge rather than to its padding box, so on load the browser snapped the
+     * gutter away: measured `scrollLeft` of 20 on the landing carousel with
+     * nothing having touched it. The first card lost its left rounded corner
+     * and sat flush to the screen edge while the heading above it was indented.
+     *
+     * `scroll-padding-inline-start` moves the snap line in to meet the padding.
+     * It reads `--nf-pad-shell`, the same token `px-gutter` resolves to through
+     * `--spacing-gutter` in theme.css, so the padding and the snap line cannot
+     * drift apart.
+     */
+    scroll-padding-inline-start: var(--nf-pad-shell);
   }
   .nf-snap-x::-webkit-scrollbar {
     display: none;

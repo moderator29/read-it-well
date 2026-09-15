@@ -310,6 +310,21 @@
     pointer-events: none;
     z-index: 0;
   }
+  /*
+   * THE OPACITY HERE IS A TRAP AND IT IS WHY THE HERO NO LONGER USES THIS.
+   *
+   * `opacity` creates an isolated stacking group. A brand object carries
+   * `mix-blend-mode: multiply` so its white studio plate can be removed
+   * against the canvas; inside an opacity group the multiply happens against
+   * the group's own backdrop instead, and the whole thing then composites at
+   * half strength. What lands is a grey translucent SQUARE with a murky object
+   * in it, rather than an object floating on the canvas.
+   *
+   * It was invisible while a large render filled the same area. If this class
+   * is used again, take the object to full opacity at a smaller size, or use
+   * the approach in `.nf-page-scene`, which turns multiply off on the night
+   * theme rather than wrapping it in a group.
+   */
   .nf-icon-field > span {
     position: absolute;
     opacity: 0.5;

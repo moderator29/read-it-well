@@ -87,18 +87,25 @@ export default async function LandingPage() {
           <div className="nf-aurora" aria-hidden="true" />
           <div className="nf-grid-veil" aria-hidden="true" />
 
-          {/* Floating category objects drifting in the hero air. Decorative. */}
-          <div className="nf-icon-field" aria-hidden="true">
-            <span className="left-[4%] top-[64%] h-13 w-13 sm:h-13 sm:w-13">
-              <BrandIcon name="wallet-secure" fill />
-            </span>
-            <span className="left-[46%] top-[8%] hidden h-14 w-14 sm:block">
-              <BrandIcon name="pin-map" fill />
-            </span>
-            <span className="right-[6%] top-[56%] h-13 w-13 sm:h-13 sm:w-13 lg:right-[40%] lg:top-[74%]">
-              <BrandIcon name="keys-home" fill />
-            </span>
-          </div>
+          {/*
+           * THE FLOATING ICON FIELD STOOD HERE AND IS GONE.
+           *
+           * Three brand objects drifted in the hero air behind the villa render.
+           * They worked while the render filled that half of the hero. With the
+           * render gone they became the only things in it, and they do not
+           * survive being looked at: `.nf-icon-field > span` carries
+           * `opacity: 0.5`, and opacity creates an ISOLATED GROUP, so each
+           * object multiplied correctly against its own white plate and then the
+           * whole group composited at half strength over the navy. The result
+           * was a grey translucent square with a murky object inside it,
+           * bleeding off both edges. Under a screenshot the right-hand one was a
+           * dirty smudge and the left one read as an empty grey chip.
+           *
+           * The hero is type on the ambient canvas now and it is stronger for
+           * it. The aurora and the grid veil above still carry the upper page.
+           * `.nf-icon-field` is left in ambient.css for any surface that wants
+           * it, with the opacity trap written down there.
+           */}
 
           {/*
            * THE HERO ARTWORK SLOT, AND IT IS EMPTY ON PURPOSE.

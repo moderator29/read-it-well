@@ -152,10 +152,19 @@ export function AssistantShowcase() {
             >
               <BrandIcon name="bot-chat" size={220} />
             </div>
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-t from-[rgb(1_1_24_/_0.55)] via-transparent to-transparent lg:bg-gradient-to-l lg:from-[rgb(1_1_24_/_0.6)] lg:via-transparent lg:to-transparent"
-            />
+            {/*
+              THE SCRIM STOOD HERE AND IS GONE, and it had to go with the
+              photograph rather than after it.
+
+              It was a raw `rgb(1 1 24 / 0.55)` gradient, the one
+              `nf/no-raw-colour` error in this file, and the lint message names
+              exactly what it did: "a literal cannot follow the theme, and this
+              is how dark-only treatments reach daylight". Its job was to darken
+              the foot of a full-bleed photograph so the type beside it could be
+              read. There is no photograph now, the object sits on the artwork
+              ground in its own grid cell, and the type is in the next cell, so
+              the scrim was darkening nothing and blackening the light theme.
+            */}
           </div>
 
           <div className="flex flex-col items-start justify-center p-6 sm:p-10 lg:p-12">
