@@ -314,6 +314,65 @@ platform. Contents assessed in section 2.
 
 ---
 
+## 6b. The deletes did not happen, and why
+
+**This section was added after the attempt. Nothing in the register above has
+been carried out: all fourteen branches still exist on the remote.**
+
+`docs/BRANCH_AUDIT.md` was committed and pushed first, as section 5 says, and
+then every delete was refused:
+
+```
+$ git push origin --delete claude/greeting-4np7sj
+error: RPC failed; HTTP 403 curl 22 The requested URL returned error: 403
+```
+
+The same 403 for all three fully merged branches, which are the safest deletes
+available: each is an ancestor of `main` and contributes nothing `main` does not
+already have. **The refusal is the environment, not the branches.** The git
+proxy in this session permits pushing a branch and refuses deleting a ref, and
+the GitHub tooling available here has `create_branch` and `list_branches` but no
+delete-branch operation at all. There is no third route.
+
+**So the branches are not deleted and this file does not claim they are.** The
+analysis stands, the SHAs are recorded, and the verdicts are ready to act on.
+
+### To carry it out, from a machine with normal push rights
+
+```
+git fetch origin --prune
+
+# The three that are fully merged. Nothing can be lost.
+git push origin --delete claude/greeting-4np7sj
+git push origin --delete claude/rentme-data-sourcing-arch-birz8q
+git push origin --delete claude/rentme-polish-pass-p4808t
+
+# The ten from the pre-restart history. Section 2 is the evidence.
+git push origin --delete claude/master-autonomous-engineering-os-c4guqi
+git push origin --delete claude/platform-premium-ui-audit-vtpvtc
+git push origin --delete claude/rentme-social-and-polish
+git push origin --delete fix/main-social-regressions
+git push origin --delete claude/rentme-social-design-je796y
+git push origin --delete primitives-wip
+git push origin --delete integration/rentme-next
+git push origin --delete claude/rentme-loop-closure-pb0ird
+git push origin --delete claude/repo-cleanup-1spitz
+git push origin --delete feat/naijafinds-brand-system
+
+# And this one only once Track A is on main, which makes it fully merged.
+git push origin --delete claude/rentme-v2-platform-audit-xuvg0a
+```
+
+They can also be deleted from the repository's Branches page on GitHub, which
+is the same operation through a different door.
+
+**To undo any one of them**, take its head SHA from section 4 and run
+`git push origin <sha>:refs/heads/<branch-name>`. That is what the SHAs are for
+and it is why this file was written before anything was attempted rather than
+after.
+
+---
+
 ## 7. Going forward
 
 **One working branch at a time.** Fourteen branches accumulated because each
