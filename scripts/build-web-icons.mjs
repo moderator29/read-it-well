@@ -71,6 +71,30 @@ const WORDMARK_FLOOR = 48;
 /** Share of a maskable canvas the tile may occupy. Android crops up to 20 per cent. */
 const MASKABLE_SCALE = 0.72;
 
+/**
+ * The Android long-press shortcut icons, and why they are generated here now.
+ *
+ * These three were missed by the brand sweep and by the first version of this
+ * script, and they were the worst offenders on the platform: `shortcut-wallet`
+ * was a PURPLE tile with a CORAL wallet, `shortcut-search` was purple, and
+ * `shortcut-bookings` was violet with BAKED-IN ENGLISH TEXT on a document. All
+ * three are banned hues under the brand rules, all three are declared live in
+ * `app/manifest.ts`, and all three appear in the Android long-press menu.
+ *
+ * They survived because `pwa.spec.mjs` checks that a manifest icon returns 200
+ * and never looks at what is in it, and because a hue scan of the app icons
+ * would not reach `public/pwa/shortcut-*`. They are generated from the
+ * commissioned brand objects now, so they cannot drift again.
+ */
+const SHORTCUTS = [
+  { name: "shortcut-search", object: "home-search" },
+  { name: "shortcut-bookings", object: "calendar-check" },
+  { name: "shortcut-wallet", object: "wallet-secure" },
+];
+
+/** Where the 87 commissioned objects live. */
+const OBJECTS = path.join(BRAND, "icons");
+
 const flat = (image) => image.flatten({ background: NAVY });
 
 async function square(size, { source = TILE, inset = 0 } = {}) {
@@ -112,6 +136,33 @@ written.push(await write("apple-touch-icon.png", await square(180)));
 written.push(
   await write("icon-maskable-512.png", await square(512, { inset: 1 - MASKABLE_SCALE })),
 );
+
+/*
+ * The three shortcut icons. 96px is the size the manifest declares and the size
+ * Android actually reads.
+ *
+ * THESE ARE THE ONE PLACE A WHITE GROUND IS RIGHT, and it is worth saying why,
+ * because everything else in this file is composed on navy on purpose. The 87
+ * commissioned objects are lit on a white studio ground and are opaque, so
+ * there is no alpha to recover and compositing one on navy leaves a white
+ * square inside a navy border, which reads as a mistake rather than a design.
+ * A shortcut also appears inside the launcher's own long-press menu rather
+ * than on the home screen, where a light tile sits correctly beside the
+ * system's own entries. So the object is rendered full bleed on the ground it
+ * was lit on.
+ *
+ * The app icon, the maskable icon and the favicon all stay navy. Those are the
+ * ones a person sees on a home screen and in a browser tab.
+ */
+for (const { name, object } of SHORTCUTS) {
+  const source = path.join(OBJECTS, `${object}.png`);
+  const art = await sharp(source)
+    .resize(96, 96, { kernel: "lanczos3" })
+    .flatten({ background: { r: 255, g: 255, b: 255, alpha: 1 } })
+    .png()
+    .toBuffer();
+  written.push(await write(`${name}.png`, art));
+}
 
 /*
  * The favicon. A single 32px frame rather than a multi-size .ico: every browser

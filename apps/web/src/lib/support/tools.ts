@@ -193,7 +193,7 @@ export const SUPPORT_TOOLS = [
   {
     name: "my_tickets",
     description:
-      "Read the support tickets the signed-in caller has already filed: reference, subject, status, when it was filed and whether the team has replied. Use it whenever they ask what happened to a ticket, quote an VAL-SUP reference, or say nobody has come back to them. Returns unavailable when nobody is signed in.",
+      "Read the support tickets the signed-in caller has already filed: reference, subject, status, when it was filed and whether the team has replied. Use it whenever they ask what happened to a ticket, quote a VAL-SUP reference, or say nobody has come back to them. Returns unavailable when nobody is signed in.",
     input_schema: {
       type: "object",
       properties: {},

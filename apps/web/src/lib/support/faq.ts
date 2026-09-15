@@ -170,7 +170,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
   },
   {
     id: "tickets",
-    keywords: ["ticket", "nf-sup", "reference", "my case", "still waiting", "no reply"],
+    keywords: ["ticket", "val-sup", "reference", "my case", "still waiting", "no reply"],
     answer:
       "When something goes past what I can answer, I file a ticket and hand you its VAL-SUP reference. Replies come by email, and to the bell tab as well when you are signed in. Quote that reference if you write to us again about the same thing, and if you were signed in when it was filed I can look up where it stands.",
   },

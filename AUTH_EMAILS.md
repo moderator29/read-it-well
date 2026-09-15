@@ -62,8 +62,20 @@ cannot be translated and does not reflow on a phone. So the image carries
 atmosphere and the words carry meaning, which is the same rule the in-app email
 shell already follows.
 
-`https://YOUR-DOMAIN/brand/vallo-villa.png` is already in the deployment and is
-the image used below. Replace `YOUR-DOMAIN` throughout with the real host.
+**THERE IS NO BANNER IMAGE ANY MORE AND THE TEMPLATES BELOW DO NOT CARRY ONE.**
+This document used to point at `/brand/vallo-villa.png` and tell the deployer it
+was already in the deployment. That file was one of fourteen RentMe-era renders
+deleted on 15 September 2026, so anybody following the old instruction shipped a
+broken banner in every confirm-sign-up email.
+
+The templates are text on the brand ground, which is the treatment the in-app
+email shell already uses and the one that survives an image being blocked, which
+many mail clients do by default. When supplied artwork arrives, put the path
+back into the commented slot in each template and replace `YOUR-DOMAIN`
+throughout with the real host.
+
+The logo lockup in the header is `/brand/vallo-mark.png`, which does exist and
+is what the five generated templates in `supabase/templates/` use.
 
 ---
 
@@ -89,12 +101,9 @@ Subject: `Your Vallo code is {{ .Token }}`
               </td>
             </tr>
 
-            <!-- The banner. Atmosphere only: every word is real text below it. -->
-            <tr>
-              <td style="padding:0;">
-                <img src="https://YOUR-DOMAIN/brand/vallo-villa.png" width="560" alt="" style="display:block;width:100%;max-width:560px;height:auto;border:0;" />
-              </td>
-            </tr>
+            <!-- THE BANNER SLOT. Empty by design: see the note above. Drop an
+                 <img> back in here when supplied artwork exists. Atmosphere
+                 only, because every word is real text below it. -->
 
             <tr>
               <td style="padding:28px;">

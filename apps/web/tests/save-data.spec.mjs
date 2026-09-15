@@ -31,8 +31,26 @@ import { chromium } from "playwright-core";
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const EXECUTABLE_PATH = "/opt/pw-browsers/chromium";
 
-/* The two files this item is about. */
-const HEAVY = ["vallo-city.png", "vallo-bg.png"];
+/*
+ * The heavy artwork this rule set exists for.
+ *
+ * IT IS EMPTY, AND THAT IS THE CURRENT TRUTH RATHER THAN A DISABLED TEST.
+ * This was `["vallo-city.png", "vallo-bg.png"]`, 2,149KB and 1,343KB, fetched
+ * on every page. Both were RentMe-era renders and both were deleted with the
+ * rest of that art set on 15 September 2026, so the spec was asserting that two
+ * files which no longer exist are served.
+ *
+ * The data-saver rules are deliberately kept, because supplied artwork is
+ * coming back into the same slots and this is what stops it being sent to
+ * somebody on a 2g link before they can read a price. **Put the filenames back
+ * in this array when that artwork lands** and the assertions below start
+ * meaning something again.
+ *
+ * Until then the checks that depend on heavy artwork are skipped explicitly and
+ * announced, rather than passing vacuously or being deleted. A test that quietly
+ * asserts nothing is worse than one that says it is waiting.
+ */
+const HEAVY = [];
 
 let failures = 0;
 function check(name, condition, detail) {
@@ -106,11 +124,15 @@ try {
   console.log("\nAn ordinary visit to /home");
   const plain = await weigh("/home", null);
   check("the flag is not set", plain.flag === null, [`data-save-data: ${plain.flag}`]);
-  check(
-    "the artwork is served, because this is the designed product",
-    plain.heavy.length === HEAVY.length,
-    [`fetched: ${plain.heavy.join(", ") || "nothing"}`],
-  );
+  if (HEAVY.length === 0) {
+    console.log("  skipped the artwork checks: no heavy artwork ships today. See HEAVY above.");
+  } else {
+    check(
+      "the artwork is served, because this is the designed product",
+      plain.heavy.length === HEAVY.length,
+      [`fetched: ${plain.heavy.join(", ") || "nothing"}`],
+    );
+  }
   console.log(`          ${Math.round(plain.imageBytes / 1024)}KB of imagery`);
 
   for (const [signal, label] of [
