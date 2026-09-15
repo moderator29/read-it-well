@@ -65,7 +65,7 @@ export function VillaShowcase() {
 
           <div className="relative flex min-h-[240px] items-center justify-center p-6 sm:min-h-[320px] sm:p-8">
             <Image
-              src="/brand/rentme-city.png"
+              src="/brand/vallo-city.png"
               alt="The neon Vallo city island"
               width={1536}
               height={888}
@@ -99,7 +99,7 @@ export function CoverageMap() {
           className="nf-card nf-card--interactive block overflow-hidden p-0"
         >
           <Image
-            src="/brand/rentme-map.png"
+            src="/brand/vallo-map.png"
             alt="The Vallo map of Nigeria with lit city markers"
             width={1536}
             height={1024}
@@ -148,7 +148,7 @@ export function AssistantShowcase() {
         <div className="nf-card overflow-hidden p-0 lg:grid lg:grid-cols-[1fr_1.02fr]">
           <div className="relative order-last min-h-[240px] sm:min-h-[340px] lg:order-first lg:min-h-0">
             <Image
-              src="/brand/rentme-assistant.png"
+              src="/brand/vallo-assistant.png"
               alt="The Vallo assistant"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"

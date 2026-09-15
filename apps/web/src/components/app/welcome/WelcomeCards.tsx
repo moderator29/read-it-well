@@ -60,9 +60,9 @@ export function WelcomeCards({
 }) {
   const w = t.welcomeCards;
   const slides: Slide[] = [
-    { src: "/brand/rentme-villa.png", title: w.one.title, body: w.one.body, position: "center" },
-    { src: "/brand/rentme-city.png", title: w.two.title, body: w.two.body, position: "center" },
-    { src: "/brand/rentme-map.png", title: w.three.title, body: w.three.body, position: "center" },
+    { src: "/brand/vallo-villa.png", title: w.one.title, body: w.one.body, position: "center" },
+    { src: "/brand/vallo-city.png", title: w.two.title, body: w.two.body, position: "center" },
+    { src: "/brand/vallo-map.png", title: w.three.title, body: w.three.body, position: "center" },
   ];
 
   const track = useRef<HTMLDivElement>(null);

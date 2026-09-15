@@ -262,9 +262,9 @@ skip send Supabase's unbranded defaults:
 The templates are generated, not hand-edited. To change one, edit
 `scripts/build-auth-emails.mjs` and run `node scripts/build-auth-emails.mjs`,
 then paste again. Each template loads the logo from
-`{{ .SiteURL }}/brand/rentme-logo.png`, which is why section 4.1 has to be
+`{{ .SiteURL }}/brand/vallo-mark.png`, which is why section 4.1 has to be
 right first. (`supabase/README.md` still refers to `/brand/mark.png`; the
-generated templates use `/brand/rentme-logo.png`, which is the file that
+generated templates use `/brand/vallo-mark.png`, which is the file that
 actually exists.)
 
 ### 4.5 Storage buckets
@@ -373,7 +373,7 @@ worker is the one artefact that can outlive a bad deploy on a user's phone.
   Shortcuts (long-press the home-screen icon) go to `/search`, `/bookings` and
   `/wallet`.
 - **Icons**: `apps/web/public/pwa/`, generated from the canonical brand cutout
-  `/brand/rentme-logo.png`, cropped to the house-and-R mark and centred on the
+  `/brand/vallo-mark.png`, cropped to the house-and-R mark and centred on the
   brand navy. 192, 512, a maskable 512 held inside the 80 per cent safe zone,
   a 180 Apple touch icon, and three 96px shortcut icons. All small, because
   data is expensive.

@@ -106,7 +106,7 @@ export default async function LandingPage() {
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
             <div className="nf-float-slow absolute right-[-18%] top-[-2%] w-[95%] max-w-[560px] sm:right-[-8%] sm:w-[70%] lg:right-[-4%] lg:top-[-12%] lg:w-[58%] lg:max-w-[900px]">
               <Image
-                src="/brand/rentme-villa.png"
+                src="/brand/vallo-villa.png"
                 alt=""
                 width={1536}
                 height={1024}

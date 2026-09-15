@@ -62,7 +62,7 @@ cannot be translated and does not reflow on a phone. So the image carries
 atmosphere and the words carry meaning, which is the same rule the in-app email
 shell already follows.
 
-`https://YOUR-DOMAIN/brand/rentme-villa.png` is already in the deployment and is
+`https://YOUR-DOMAIN/brand/vallo-villa.png` is already in the deployment and is
 the image used below. Replace `YOUR-DOMAIN` throughout with the real host.
 
 ---
@@ -85,14 +85,14 @@ Subject: `Your Vallo code is {{ .Token }}`
             <!-- Wordmark. Small, on paper, above the band. -->
             <tr>
               <td style="padding:20px 28px 16px;">
-                <img src="https://YOUR-DOMAIN/brand/rentme-logo.png" width="34" height="34" alt="Vallo" style="display:block;border:0;" />
+                <img src="https://YOUR-DOMAIN/brand/vallo-mark.png" width="34" height="34" alt="Vallo" style="display:block;border:0;" />
               </td>
             </tr>
 
             <!-- The banner. Atmosphere only: every word is real text below it. -->
             <tr>
               <td style="padding:0;">
-                <img src="https://YOUR-DOMAIN/brand/rentme-villa.png" width="560" alt="" style="display:block;width:100%;max-width:560px;height:auto;border:0;" />
+                <img src="https://YOUR-DOMAIN/brand/vallo-villa.png" width="560" alt="" style="display:block;width:100%;max-width:560px;height:auto;border:0;" />
               </td>
             </tr>
 

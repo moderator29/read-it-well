@@ -170,16 +170,17 @@
   :root[data-theme="light"] .nf-hero-scene {
     opacity: 0.85;
   }
-  /* Mark variants: neon on the night theme, ink on paper. */
-  .nf-logo-on-light {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-logo-on-dark {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-logo-on-light {
-    display: inline-block;
-  }
+  /*
+   * `.nf-logo-on-dark` AND `.nf-logo-on-light` STOOD HERE AND ARE GONE.
+   *
+   * They swapped a neon mark for an ink recolour on paper, which worked while
+   * the mark was flat blue shapes. The Vallo mark is a photographic render of a
+   * glass object and cannot be recoloured by a filter, so `Logo.tsx` now ships
+   * one asset that carries its own navy ground and reads correctly on both
+   * themes. Nothing references these classes any more and a rule matching
+   * nothing is worse than no rule: it invites somebody to add the class back
+   * and wonder why the swap does not happen.
+   */
   :root[data-theme="light"] .nf-grain {
     opacity: 0.015;
   }

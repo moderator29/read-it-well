@@ -22,7 +22,7 @@
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
-    background: var(--nf-canvas-base) url("/brand/rentme-bg.png") center bottom / cover no-repeat;
+    background: var(--nf-canvas-base) url("/brand/vallo-bg.png") center bottom / cover no-repeat;
     isolation: isolate;
   }
   /*
@@ -37,7 +37,7 @@
     pointer-events: none;
   }
   .nf-ambient > span:nth-child(1) {
-    background: url("/brand/rentme-bg.png") center bottom / cover no-repeat;
+    background: url("/brand/vallo-bg.png") center bottom / cover no-repeat;
     transform: scaleY(-1) scaleX(-1);
     /*
      * 0.3, down from 0.8.

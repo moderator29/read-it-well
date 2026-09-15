@@ -119,8 +119,12 @@ older one, and everything below is current as of this handoff.
 6. The supplied background artwork is the canonical visual source. Use
    `background-image`. Do not recreate it with CSS gradients.
 7. Scene artwork rule: never cut the background out of a supplied scene.
-8. Logo: `/brand/rentme-logo.png` is the transparent cutout;
-   `rentme-logo-ink.png` is the ink recolour CSS swaps in for light.
+8. Logo: `/brand/vallo-logo.png` is the full supplied render, the lockup;
+   `vallo-icon.png` is the glass tile that feeds every icon; `vallo-mark.png`
+   is the towers and swoosh alone; `vallo-wordmark.png` is the rendered word.
+   There is no ink variant: the new mark is a photographic glass render and an
+   ink version of it is a new render, not a filter. One mark serves both
+   themes. `docs/BRAND_MARKS.md` carries the prompt for a proper ink re-render.
 
 ### 2.2 Product
 

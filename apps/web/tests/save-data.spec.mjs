@@ -8,8 +8,8 @@
  * The number that made this urgent, measured before anything was changed, at
  * 390px, with an EMPTY catalogue and therefore not one listing photograph:
  * /home was 3,676KB, of which 3,520KB was imagery. Two raw files out of
- * /public are nearly all of it, `rentme-city.png` at 2,149KB and
- * `rentme-bg.png` at 1,343KB. That is background artwork, it is canonical, and
+ * /public are nearly all of it, `vallo-city.png` at 2,149KB and
+ * `vallo-bg.png` at 1,343KB. That is background artwork, it is canonical, and
  * it stays. Whether somebody on a 2g link is sent three and a half megabytes
  * of scenery before they can read a price is a different question.
  *
@@ -32,7 +32,7 @@ const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const EXECUTABLE_PATH = "/opt/pw-browsers/chromium";
 
 /* The two files this item is about. */
-const HEAVY = ["rentme-city.png", "rentme-bg.png"];
+const HEAVY = ["vallo-city.png", "vallo-bg.png"];
 
 let failures = 0;
 function check(name, condition, detail) {

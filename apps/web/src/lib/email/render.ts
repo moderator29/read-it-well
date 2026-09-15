@@ -464,7 +464,7 @@ export function compose(options: ComposeOptions): Composed {
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="vertical-align:middle;padding-right:12px;">
-                      <img src="${siteUrl()}/brand/rentme-logo.png" width="${LOGO_SIZE}" height="${LOGO_SIZE}" alt="" style="display:block;width:${LOGO_SIZE}px;height:${LOGO_SIZE}px;border:0;outline:none;text-decoration:none;" />
+                      <img src="${siteUrl()}/brand/vallo-mark.png" width="${LOGO_SIZE}" height="${LOGO_SIZE}" alt="" style="display:block;width:${LOGO_SIZE}px;height:${LOGO_SIZE}px;border:0;outline:none;text-decoration:none;" />
                     </td>
                     <td style="vertical-align:middle;">
                       <span class="rm-brand" style="font-family:${FONT_SANS};font-size:23px;line-height:28px;font-weight:700;letter-spacing:-0.025em;color:${GLOW};">Vallo</span>

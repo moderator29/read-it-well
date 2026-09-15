@@ -136,7 +136,7 @@ const MAX_WIDTH = 600;
 const PAD_X = 40;
 const LOGO_SIZE = 40;
 
-const LOGO = "{{ .SiteURL }}/brand/rentme-logo.png";
+const LOGO = "{{ .SiteURL }}/brand/vallo-mark.png";
 const SIGN_OFF = "Vallo. Find it. Rent it. Love it.";
 
 /* ------------------------------------------------------------------------- *

@@ -77,7 +77,7 @@ import type { ListingKind } from "@/lib/listings/types";
  * host - and a photograph of somebody else's building placed on a listing would
  * be a claim about that property we cannot make anyway. But two genuine
  * architectural images are already in this repository and already ours:
- * `rentme-villa.png`, which opens the landing page, and `rentme-city.png`.
+ * `vallo-villa.png`, which opens the landing page, and `vallo-city.png`.
  *
  * So a listing with no photograph of its own gets one of those two, chosen by
  * what kind of place it is: the villa for anything somebody lives in, the city
@@ -96,14 +96,14 @@ import type { ListingKind } from "@/lib/listings/types";
  * painted on top of this by every call site and none of this is reached.
  */
 const STAND_IN: Record<Scene, string | null> = {
-  house: "/brand/rentme-villa.png",
-  villa: "/brand/rentme-villa.png",
-  terrace: "/brand/rentme-villa.png",
-  shortlet: "/brand/rentme-villa.png",
-  flats: "/brand/rentme-city.png",
-  tower: "/brand/rentme-city.png",
-  hotel: "/brand/rentme-city.png",
-  shop: "/brand/rentme-city.png",
+  house: "/brand/vallo-villa.png",
+  villa: "/brand/vallo-villa.png",
+  terrace: "/brand/vallo-villa.png",
+  shortlet: "/brand/vallo-villa.png",
+  flats: "/brand/vallo-city.png",
+  tower: "/brand/vallo-city.png",
+  hotel: "/brand/vallo-city.png",
+  shop: "/brand/vallo-city.png",
   /* Nothing is built here, so nothing built is shown. */
   land: null,
 };

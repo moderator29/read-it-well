@@ -127,7 +127,7 @@ export function CityHero({
            on a 2g link needs the prices under it far more than the scenery. */
         data-artwork="city"
         style={{
-          backgroundImage: "url('/brand/rentme-city.png')",
+          backgroundImage: "url('/brand/vallo-city.png')",
           backgroundSize: "cover",
           backgroundPosition: "center 62%",
           backgroundColor: "var(--nf-surface-artwork)",

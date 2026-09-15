@@ -18,8 +18,8 @@
  *   /       1,585KB, of which 1,429KB is imagery
  *   /search 1,517KB, of which 1,360KB is imagery
  *
- * Two files are nearly all of it. `rentme-city.png` is 2,149KB and
- * `rentme-bg.png` is 1,343KB, both served raw out of /public because they are
+ * Two files are nearly all of it. `vallo-city.png` is 2,149KB and
+ * `vallo-bg.png` is 1,343KB, both served raw out of /public because they are
  * background artwork and the brief is explicit that the supplied artwork is
  * the canonical visual source and must be used as an image rather than
  * recreated in CSS. That is the right call and it is not in question here.

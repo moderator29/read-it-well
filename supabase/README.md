@@ -51,8 +51,8 @@ Only variables Supabase actually provides are used. Do not add others.
 
 ### Dependencies
 
-- The lockup image resolves from `{{ .SiteURL }}/brand/rentme-logo.png`, so the
-  transparent cutout at `apps/web/public/brand/rentme-logo.png` must be served at
+- The lockup image resolves from `{{ .SiteURL }}/brand/vallo-mark.png`, so the
+  transparent cutout at `apps/web/public/brand/vallo-mark.png` must be served at
   the deployed site URL. It is the only remote image in these emails: the
   gradient wordmark beside it is styled text, so the lockup still reads when
   images are blocked, which is the default in many clients. The larger artwork
