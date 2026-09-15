@@ -2729,3 +2729,937 @@ confidence I say so in the Evidence field.
 - **Risk** None. It mirrors an existing pattern.
 - **Priority** Medium
 
+### 8.7 Observability, operations and reliability
+
+#### A2-121. Nothing reads `cron.job_run_details`
+- **Evidence** Eight jobs are scheduled across the migrations (listed in section
+  4). A grep for `job_run_details` across the repository returns nothing. The
+  brief names this as a real gap and `RECOMMENDATIONS.md` T-3 records the jobs as
+  a correction without adding the monitoring. I could not read the table.
+- **Action** Add `private.check_cron_health()` scheduled hourly: for each of the
+  eight jobs, read the most recent `cron.job_run_details` row and, where the
+  status is not `succeeded` or the job has not run within twice its interval,
+  insert a `risk_alerts` row and send one email through the existing
+  `sendMessage`. Surface the same data on the A2-110 health screen.
+- **Reason** Two of the eight jobs move money-adjacent state
+  (`release_stale_holds`, `escrow_sweep_timeouts`) and one is the reconciler. A
+  job that has been failing for a month is indistinguishable from a job that has
+  nothing to do, which is the exact ambiguity that cost the platform a payment
+  the first time.
+- **Impact** A silently dead scheduled job announces itself within two
+  intervals.
+- **Effort** M
+- **Risk** An alert loop if the alerter itself fails; keep the alert write
+  idempotent per job per day.
+- **Priority** Critical
+
+#### A2-122. Nothing reads `net._http_response`
+- **Evidence** `20260809093843` `private.request_money_reconciliation()` calls
+  `extensions.net.http_get` and returns `{"status":"requested", "request_id":
+  ...}`. Its own comment says "The response is not waited for. pg_net is
+  asynchronous by design: the reply lands in net._http_response, which is where a
+  failure is read from afterwards." A grep for `_http_response` across the
+  repository returns nothing.
+- **Action** Extend A2-121's health function to also read `net._http_response`
+  for the reconciler's request ids and alert on any non-2xx or timeout.
+- **Reason** The reconciler is the backstop for lost money and its invocation is
+  fire-and-forget over HTTP. A wrong `RECONCILE_CRON_SECRET` produces a 401 that
+  nothing sees, so the job appears to run hourly for ever while recovering
+  nothing. The migration correctly identifies where the answer lands and nobody
+  went and read it.
+- **Impact** A misconfigured reconciler is visible within an hour instead of
+  never.
+- **Effort** S once A2-121 exists.
+- **Risk** `net._http_response` is pruned by pg_net on its own schedule, so read
+  it promptly rather than retrospectively.
+- **Priority** Critical
+
+#### A2-123. Nothing alerts on a `[money] failed` line
+- **Evidence** `lib/payments/observability.ts` is built for exactly this:
+  `console.error` for `failed`, `console.warn` for `rejected` and
+  `unconfigured`, `console.info` for the rest, with a closed outcome vocabulary
+  and a stable snake_case reason so, in the module's own words, it can be
+  "grepped and alerted on". No alert exists. There is no error tracking service
+  configured; `apps/web/.env.example` records that the SENTRY_DSN variables were
+  removed because nothing reads them.
+- **Action** Add a log drain from Vercel to somewhere that can match
+  `[money] failed` and `[money] unconfigured` and notify. If no vendor is to be
+  added, the cheaper path is a pg_cron job that reads the
+  `webhook_deliveries` table the webhook already writes and alerts on any
+  `outcome = 'failed'` in the last hour.
+- **Reason** The instrumentation is genuinely excellent and completely passive.
+  A platform that can describe its own failure perfectly and tell nobody has
+  bought half the control.
+- **Impact** The `[money]` channel starts doing the job it was built for.
+- **Effort** M for the drain, S for the database-side alternative.
+- **Risk** A vendor is a privacy notice change first (A2-032), which is the
+  argument for the database-side path.
+- **Priority** Critical
+
+#### A2-124. There is no error tracking of any kind
+- **Evidence** `app/error.tsx` logs to the console. `apps/web/.env.example`
+  documents that `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` were removed from the
+  root template because nothing reads them. `RECOMMENDATIONS.md` PERF-6 records
+  "Nothing measures anything in production" as P2.
+- **Action** Before adding a vendor, decide the privacy question (A2-032,
+  A2-034): any error tracker receives stack traces and possibly request data. If
+  one is added, it must have the A2-034 redactor in front of it and must be
+  named in the notice. A cheaper first step is an `app_errors` table written by
+  `app/error.tsx` through a server action, carrying the digest and a redacted
+  message only.
+- **Reason** Today the only way to know the application threw is to read Vercel's
+  log viewer. PERF-6 is right to call this P2 for performance and wrong for
+  correctness: a route that throws for one user in fifty is invisible.
+- **Impact** Errors become countable.
+- **Effort** M
+- **Risk** An error store is a PII risk; the redactor is not optional here.
+- **Priority** High
+
+#### A2-125. There is no uptime check on the webhook endpoint
+- **Evidence** No monitoring configuration anywhere in the repository. No
+  `vercel.json`.
+- **Action** Add a `GET` handler to `/api/paystack/webhook` returning 200 with
+  `{ ok: true, configured: boolean }` and no secrets, and point an external
+  uptime check at it. The `configured` boolean should report whether both
+  `PAYSTACK_SECRET_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are present, which is the
+  precise condition that lost the money.
+- **Reason** The 503 fix means a missing key now produces retries instead of lost
+  credits. What it does not produce is a notification. A health endpoint that
+  says "I could not process a payment right now" is the cheapest possible version
+  of A2-123.
+- **Impact** The most important endpoint on the platform gets a heartbeat.
+- **Effort** S
+- **Risk** The endpoint must not reveal which key is missing or any value, only a
+  boolean.
+- **Priority** High
+
+#### A2-126. There is no incident runbook that anybody is pointed at
+- **Evidence** `docs/DEPLOY.md` is 573 lines and is a deploy runbook.
+  `docs/HANDOFF.md` carries the working contract. There is no document saying
+  what to do when a payment is lost, a key is leaked, a cron job has been failing
+  for a week, or a wallet is overdrawn.
+- **Action** Write `docs/INCIDENTS.md` with one section per scenario, each
+  naming the detection signal, the first action, the person to tell and the
+  rollback. Start with the five the platform has already met or nearly met:
+  service role key missing, Paystack webhook not delivering, wallet overdrawn,
+  cron job failing, service role key leaked.
+- **Reason** The wallet incident is documented as a case study in
+  `RECOMMENDATIONS.md` section 0 and the lesson is encoded in the code. It is not
+  encoded in a procedure, so the next incident of a different shape starts from
+  nothing.
+- **Impact** An incident has a first step.
+- **Effort** M
+- **Risk** None.
+- **Priority** High
+
+#### A2-127. There is no procedure for a leaked service role key
+- **Evidence** HANDOFF 01 section 6: "If a key is ever exposed, rotating it is
+  the first action and telling the founder is the second, in that order, and
+  neither is optional." No document says how to rotate it, what breaks during the
+  rotation, or in what order the two places (Vercel environment, Supabase Vault)
+  are updated.
+- **Action** A section in `docs/INCIDENTS.md`: rotate in the Supabase dashboard,
+  update `SUPABASE_SERVICE_ROLE_KEY` on Vercel, redeploy, confirm the webhook
+  health endpoint reports configured, then run the reconciler dry to catch
+  anything missed in the gap. Note explicitly that during the gap the webhook
+  answers 503 and Paystack retries, so nothing is lost, which is worth knowing
+  before somebody panics.
+- **Reason** The policy exists and the procedure does not, and the gap between
+  them is where the panic happens. The reassuring fact (the 503 makes a rotation
+  safe) is the single most useful sentence in the whole runbook and nobody has
+  written it down.
+- **Impact** A key rotation stops being frightening.
+- **Effort** S
+- **Risk** None.
+- **Priority** High
+
+#### A2-128. Backup and recovery are undocumented and untested
+- **Evidence** HANDOFF 01 section 4.8: "Backup. What happens to copies. Supabase
+  managed. Not documented anywhere." `docs/DEPLOY.md` does not cover restore.
+  Nothing in the repository states the point-in-time-recovery window on the
+  current Supabase plan.
+- **Action** Record in `docs/DEPLOY.md`: the plan's backup frequency and PITR
+  window, what a restore would and would not recover (storage objects are backed
+  up separately from Postgres), and the fact that a restore loses everything
+  after the restore point including wallet entries. Then do one restore drill to
+  a branch and write down how long it took.
+- **Reason** Untested backups are a belief. On a platform holding a ledger, the
+  question is not "do backups exist" but "what does a restore do to the ledger's
+  agreement with Paystack", and nobody has asked it. That answer is also the
+  input to the A2-126 runbook.
+- **Impact** Recovery becomes a known quantity.
+- **Effort** M
+- **Risk** A restore drill on a branch costs money, which is on the stop list, so
+  it goes to the founder.
+- **Priority** High
+
+#### A2-129. There is no staging environment
+- **Evidence** `docs/HANDOFF_02_PLATFORM.md` section 18 records the sandbox
+  cannot reach the Supabase host and that pages therefore render signed-out
+  locally. There is one Supabase project. Vercel deploys from `main`.
+- **Action** Not a recommendation to build one, which costs money. A
+  recommendation to write down the consequence: every migration is applied to
+  production first, and every database function's first real run is in
+  production. That is the root cause of the five "applied cleanly, failed on
+  first call" incidents the handoff counts. The mitigation available for free is
+  A2-069's probe suite plus a Supabase branch for the duration of a risky
+  migration only.
+- **Reason** The handoff treats the five failures as a discipline problem
+  ("Create a function and you have proved nothing. Run it."). It is partly an
+  environment problem, and naming that is more useful than repeating the
+  discipline instruction a sixth time.
+- **Impact** The real constraint is recorded, so the mitigation is chosen
+  deliberately.
+- **Effort** S to document.
+- **Risk** None.
+- **Priority** Medium
+
+#### A2-130. `docs/DATABASE_AUDIT.md` is stale on its own headline finding
+- **Evidence** The document states `admin_bootstrap.added_by` was "the only one
+  missing" as of 7 August. A2-065 finds six more added on 9 August. The document
+  also predates `platform_revenue` (A2-066) and the escrow subsystem.
+- **Action** Not mine to edit. Recommend the lead add a dated note to
+  `docs/DATABASE_AUDIT.md` saying the findings are as of 7 August 2026 and that
+  the schema changed materially on 9 and 12 August, and re-run both advisors once
+  the database is reachable again.
+- **Reason** The document's authority is what makes its do-not-fix list work, and
+  a stale claim in the strongest section ("Verified live: the index exists")
+  erodes that. Under the rule that the database outranks the document, this
+  document needs a date on it.
+- **Impact** The do-not-fix list keeps its authority.
+- **Effort** S
+- **Risk** None.
+- **Priority** Medium
+
+#### A2-131. The eight cron jobs are all scheduled in UTC with no note of the offset at each site
+- **Evidence** `20260804184423` gets this right and says so: "03:10 Lagos, which
+  is 02:10 UTC". `20260804163732` schedules `'20 2 * * *'` with no such note.
+  `20260807131002` schedules `'0 6 * * *'` for a daily note, which is 07:00
+  Lagos. `20260809052049` uses `'17 * * * *'` and `20260809093843` uses
+  `'47 * * * *'`, both hourly so the offset does not matter.
+- **Action** Add the Lagos time in a comment beside every non-hourly schedule,
+  and check that the daily note at 07:00 Lagos and the completed-stay
+  announcement at 06:20 Lagos are the intended local times.
+- **Reason** The handoff names this as a gotcha and one migration already
+  demonstrates the fix. The two user-visible jobs (the daily note and the stay
+  announcement) are the ones where a one-hour error is noticeable, because they
+  post content and send notifications at a time of day somebody chose.
+- **Impact** The scheduled times mean what whoever set them intended.
+- **Effort** S
+- **Risk** None for the comment. Changing a schedule needs the intent confirmed.
+- **Priority** Medium
+
+#### A2-132. Nothing measures the webhook's own latency
+- **Evidence** `RECOMMENDATIONS.md` BE-11 records "The webhook and the
+  reconciler are the only routes that must never be slow, and neither is
+  measured" as open P1. Confirmed: `logMoney` has no duration field.
+- **Action** Extends BE-11: add an optional `ms` field to `MoneyLogFields` and
+  set it in `answer()` and in the reconcile route from a timestamp taken at
+  entry.
+- **Reason** Paystack times out a webhook delivery and retries it. A delivery
+  that is slow enough to time out but fast enough to complete produces a double
+  processing attempt, which idempotency handles, and a delivery log that looks
+  like a failure. Knowing the duration is how you tell those apart.
+- **Impact** Timeout-driven retries become explicable.
+- **Effort** S
+- **Risk** None.
+- **Priority** Medium
+
+### 8.8 Integrations
+
+#### A2-133. The Yellow Card webhook never checks the currency
+- **Evidence** `lib/payments/yellowcard.ts` `parseWebhook` reads `sequenceId`,
+  `amount`, `status` and `customerEmail`, and returns
+  `{ reference, amountMinor, status, email }`. There is no currency field in
+  `CryptoWebhookEvent` and no check. The route then hardcodes
+  `currency: "NGN"` in `recordWebhookDelivery`. By contrast the Paystack route
+  refuses with `currency_not_ngn` in both its funding and booking branches.
+- **Action** Read the currency from the payload, refuse anything that is not NGN
+  with a 200 and a `rejected` log line, and carry the real value into
+  `recordWebhookDelivery`.
+- **Reason** `amountMinor = Math.round(amount * 100)` treats the number as naira
+  whatever the provider meant. A settlement reported in USD would credit ₦100 for
+  $100, which is off by roughly a factor of 1,500 in the user's favour and is
+  real money out of the company. The card path already has this guard; the crypto
+  path does not, and crypto is the path most likely to report in a second
+  currency.
+- **Impact** Closes a direct financial loss path on the newest money integration.
+- **Effort** S
+- **Risk** None. Refusing an unexpected currency is strictly safer than crediting
+  it.
+- **Priority** Critical
+
+#### A2-134. The Yellow Card signature fallback is almost certainly dead
+- **Evidence** `app/api/yellowcard/webhook/route.ts`:
+  `request.headers.get("x-yc-signature") ?? request.headers.get("authorization")
+  ?? ""`, then `verifyWebhookSignature` does
+  `Buffer.from(signature, "base64")`. If Yellow Card sends
+  `Authorization: Bearer <token>`, base64-decoding that string produces garbage
+  and the length check fails. `lib/payments/yellowcard.ts` carries an explicit
+  banner: "THE PROVIDER SEAM. Confirm these two against live docs when keys
+  arrive."
+- **Action** When the keys arrive, confirm the header name and the signature
+  encoding against Yellow Card's live documentation before enabling the
+  integration, and delete whichever fallback is wrong. Do not leave both.
+- **Reason** The seam is honestly labelled, which is the right way to ship an
+  unverifiable integration. The risk is that the fallback reads as a working
+  alternative and somebody concludes the signature check has two supported
+  shapes when it has one and a half.
+- **Impact** The crypto on-ramp's only security control is known to work before
+  it takes money.
+- **Effort** S
+- **Risk** Enabling the integration without doing this means either a webhook
+  that rejects everything or, worse, a signature scheme misread.
+- **Priority** High
+
+#### A2-135. There is no vendor inventory
+- **Evidence** `docs/ENVIRONMENT.md` (138 lines) lists credentials and what
+  breaks without each, which is the operational half. Nothing lists the vendors
+  as vendors: what data each receives, where it processes, what the contractual
+  position is, and what happens if it goes away.
+- **Action** Write `docs/VENDORS.md`: one row per vendor (Supabase, Vercel,
+  Paystack, Yellow Card, Resend, Anthropic, CARTO or MapTiler) with the data
+  received, the processing location, whether it is named in the privacy notice,
+  and the switch-off consequence.
+- **Reason** HANDOFF 01 section 7.1 asks ten questions of every feature, of which
+  two are "what does it cost to run, and does that scale" and "if we had to
+  switch it off tomorrow, what breaks". Neither is answerable for any vendor
+  today. It is also the input to A2-032's notice update and to
+  `RECOMMENDATIONS.md` M-1's CARTO licence problem.
+- **Impact** The vendor questions become answerable, including the licensing one.
+- **Effort** S
+- **Risk** None.
+- **Priority** High
+
+#### A2-136. Nothing confirms a transactional email was delivered
+- **Evidence** `RECOMMENDATIONS.md` EM-2 records this as open P1. Reading
+  `lib/email/client.ts` usage: `sendMessage` returns `{ sent, reason }` and
+  `bestEffortEmail` swallows a failure by design, which is correct for a receipt
+  after the money has moved. The auth hook correctly returns 502 so Supabase
+  retries, and its comment explains why that one is different.
+- **Action** Extends EM-2 with the specific mechanism: add a Resend webhook
+  endpoint that records delivered, bounced and complained events against the
+  message, and surface bounces on the A2-109 integrations screen. A bounced
+  verification code is the one email failure that silently blocks a sign-up.
+- **Reason** EM-2 names the gap; the delivery webhook is the only way to close
+  it, and it also gives the platform a bounce list, without which repeated sends
+  to a dead address damage the sending domain's reputation and eventually the
+  codes stop arriving for everybody.
+- **Impact** A person who never received their code becomes visible.
+- **Effort** M
+- **Risk** Another webhook to secure; it takes the same signature treatment as
+  the other three.
+- **Priority** High
+
+#### A2-137. There is no webhook secret rotation procedure
+- **Evidence** Three signed endpoints. The auth hook explicitly supports rotation
+  (`webhook-signature` is parsed as a space-separated list so "any one matching
+  is a pass", with the comment saying so). Paystack's signature is derived from
+  `PAYSTACK_SECRET_KEY`, so rotating the key rotates the signature.
+  `RECONCILE_CRON_SECRET` exists in two places (Vercel and Supabase Vault) that
+  must agree. No document says how to rotate any of them.
+- **Action** A section in `docs/INCIDENTS.md` per secret: the order of
+  operations, whether there is a dual-accept window (there is for the auth hook,
+  there is not for `RECONCILE_CRON_SECRET`), and what fails during the gap.
+- **Reason** `RECONCILE_CRON_SECRET` is the interesting one: it has no dual-accept
+  window, so rotating it means the hourly job 401s until both sides are updated,
+  and nothing reads the 401 (A2-122). A rotation done in the wrong order
+  silently disables the reconciler.
+- **Impact** A rotation does not accidentally switch off the money backstop.
+- **Effort** S
+- **Risk** None.
+- **Priority** Medium
+
+#### A2-138. The auth email hook has no rate limit
+- **Evidence** `app/api/auth/email-hook/route.ts` verifies the signature and
+  then sends. No `consume` call. The upstream rate limits are Supabase's own auth
+  throttles plus the `sign_up` and `password_reset_*` buckets in
+  `lib/auth/actions.ts`.
+- **Action** Add a `consume` on `subjectForEmail(to)` with a ceiling of, say, ten
+  an hour, after the signature verifies. Answer 200 rather than 502 when
+  throttled, so Supabase does not retry a deliberate refusal.
+- **Reason** The application-side buckets cover the flows the application starts.
+  A code triggered by any other path, including the Supabase dashboard or a flow
+  added later, reaches this route with no ceiling, and the route sends email to
+  whatever address is in the signed body. Defence in depth on the one endpoint
+  whose failure mode is our sending domain's reputation.
+- **Impact** One address cannot be mailed without bound by any path.
+- **Effort** S
+- **Risk** Throttling a legitimate resend; ten an hour is far above any human's
+  need.
+- **Priority** Medium
+
+#### A2-139. The platform has no SMS channel
+- **Evidence** `apps/web/.env.example`'s sibling note records that
+  `TERMII_API_KEY` was removed from the root template because nothing reads it.
+  The verification ladder's first rung is phone
+  (`app/api/assistant/route.ts`'s system prompt: "phone, then identity document,
+  then address"). A grep for any SMS provider in `lib/` returns nothing.
+- **Action** Not a recommendation to add a vendor now. A recommendation to
+  record the decision: the first rung of the verification ladder is phone
+  verification, which requires SMS, which does not exist, so the ladder's first
+  rung cannot currently be climbed. Either the rung is satisfied some other way
+  (a call, a WhatsApp link) or the ladder's first step is aspirational and the
+  assistant should not describe it.
+- **Reason** The assistant tells users where somebody stands on a four-rung
+  ladder whose first rung has no implementation. That is a trust claim without a
+  mechanism, which is the pattern Rule 11 exists to prevent. Also a Nigerian
+  market reality: SMS is the channel that reaches everybody.
+- **Impact** The verification ladder's description matches what can be done.
+- **Effort** S to decide, L to build.
+- **Risk** Adding an SMS vendor is a privacy notice change first (A2-032) and
+  costs money, so it is a founder decision.
+- **Priority** Medium
+
+#### A2-140. Basemap tiles come from a provider with a licence problem and no fallback health check
+- **Evidence** `lib/security/csp.ts` `IMAGE_HOSTS` lists
+  `https://basemaps.cartocdn.com` and `https://api.maptiler.com`, with the
+  comment "which one is drawn depends on whether NEXT_PUBLIC_MAPTILER_KEY is set
+  at runtime". `RECOMMENDATIONS.md` M-1 records that CARTO tiles are
+  non-commercial only and is open P0.
+- **Action** Extends M-1 with the operational half: the fallback is silent, so a
+  deployment with no MapTiler key serves CARTO tiles and nobody knows. Surface
+  which provider is live on the A2-109 integrations screen, and make the absence
+  of the key a visible warning rather than a silent downgrade to a licence the
+  company may not use.
+- **Reason** M-1 owns the licence decision. What is mine is that the current
+  design makes the non-compliant path the default and invisible, so the licence
+  exposure grows quietly with traffic.
+- **Impact** The licence position becomes visible to whoever is responsible for
+  it.
+- **Effort** S
+- **Risk** None.
+- **Priority** Medium
+
+### 8.9 Developer experience, testing and deployment
+
+#### A2-141. Nothing runs automatically, and the minimum job list is short
+- **Evidence** Confirmed twice: `ls -a .github` returns "No such file or
+  directory", and `.git/hooks/` contains no non-sample hook.
+  `RECOMMENDATIONS.md` T-1 records this as open P0 and re-verified.
+- **Action** Extends T-1 with the specific job list, in this order because each
+  is cheap and each has already caught a real defect in this repository:
+  1. `npm run typecheck` (passes today)
+  2. `npm run lint`
+  3. `node scripts/check-rpc-args.mjs` (A2-063, would have caught A2-061 and
+     A2-062)
+  4. `node scripts/check-migration-mirror.mjs` (A2-080)
+  5. `npm run test` from `apps/web`, never from the root (T-2's trap)
+  6. `npm run build`
+  7. a grep asserting `Icon3D` appears in no source file (A2-143)
+  8. a grep asserting no em dash outside `docs/archive/` (T-6)
+- **Reason** T-1 says nothing runs. This says what to run first, chosen by which
+  checks would have prevented defects actually present in the tree today rather
+  than by convention.
+- **Impact** Two dead admin screens, a drifted migration mirror and a silent
+  test failure all become merge-blocking.
+- **Effort** M
+- **Risk** A CI that fails on pre-existing problems gets switched off, which the
+  eslint config header already warns about. Add the jobs in the order above,
+  fixing as each is added.
+- **Priority** Critical
+
+#### A2-142. There is no pre-commit hook of any kind
+- **Evidence** `.git/hooks/` holds only the samples git ships.
+- **Action** Add a `scripts/install-hooks.mjs` and a `prepare` script in
+  `package.json` that installs a pre-commit hook running the two greps from
+  A2-141 (Icon3D, em dash) and `npm run typecheck` on staged files only. Keep it
+  fast; anything slower than a few seconds gets bypassed with `--no-verify`.
+- **Reason** The rules refer to "the pre-commit grep for Icon3D" as though it
+  exists. It does not. A rule that names a mechanism that is absent is worse than
+  a rule with no mechanism, because everybody assumes it is being checked.
+- **Impact** The two cheapest invariants get checked before a commit exists.
+- **Effort** S
+- **Risk** Hooks are local and not everybody installs them, which is why A2-141
+  is the real control and this is the fast feedback.
+- **Priority** High
+
+#### A2-143. The `Icon3D` grep the rules describe returns two hits
+- **Evidence** `grep -rn "Icon3D" apps/web/src scripts/` returns exactly two
+  lines, both comments: `design-system/icons/BrandIcon.tsx` line 9 ("Icon3D family
+  on every surface where an object is being represented") and
+  `app/(site)/styleguide/page.tsx` line 316 ("Icon3D is retired and must not
+  appear anywhere"). The component itself is gone.
+- **Action** Reword both comments so they do not contain the token, for example
+  "the retired three-dimensional icon family", and then add the grep to A2-141
+  and A2-142 asserting zero hits.
+- **Reason** The rule says the grep must return empty. It cannot, because the two
+  sentences documenting the deletion contain the word. That is a good problem and
+  it has a two-minute fix, after which the grep becomes a real check rather than
+  one that always fails and is therefore always ignored.
+- **Impact** A stated invariant becomes mechanically checkable.
+- **Effort** S
+- **Risk** None. The component is genuinely deleted; this is about the guard, not
+  the code. `[AGENT 3]` owns the design system files, so the reword is theirs and
+  the grep is mine.
+- **Priority** Medium
+
+#### A2-144. `npm run test` from the root is a known trap and nothing warns
+- **Evidence** `package.json` root: `"test": "npm run test --workspaces
+  --if-present"`. `RECOMMENDATIONS.md` T-2 records that vitest must run from
+  `apps/web` because "the root resolves a different config and the run appears to
+  fail", and that the `apps/web/tests/*.spec.mjs` files are standalone node specs
+  needing a server on port 3210.
+- **Action** Extends T-2: add a root `pretest` script that prints the one-line
+  warning, or better, change the root `test` script to `npm run test --workspace
+  @naijafinds/web` so the correct invocation is the default and the trap
+  disappears.
+- **Reason** T-2 documents the trap and leaves the trap in place. A trap
+  documented in a 4,657-line file is a trap. Changing the default costs one line.
+- **Impact** The obvious command does the right thing.
+- **Effort** S
+- **Risk** Loses the other workspaces' tests from the root command; they have
+  none today (`--if-present`), so nothing is lost now and the script needs
+  revisiting if they gain some.
+- **Priority** Medium
+
+#### A2-145. There are no tests for any RLS policy
+- **Evidence** 8 vitest files across `apps/web`, covering money references,
+  metadata parsing, escrow client logic, reconciliation, sessions, CSP, anon
+  columns and locale. A grep for `probe_as` returns nothing in the app;
+  `RECOMMENDATIONS.md` V-4 records `private.probe_as` as dropped (done). So the
+  one mechanism that existed for testing a policy as a role has been removed.
+- **Action** Add a `supabase/probes/rls/` suite (beside A2-069's function probes)
+  that, for each sensitive table, runs `set local role authenticated` with a
+  known JWT claim inside a rolled-back transaction and asserts the row counts a
+  given user should and should not see. Prioritise `listing_access`,
+  `agent_documents`, `agent_applications`, `message_flags`, `wallet_entries`,
+  `escrows`, `messages`.
+- **Reason** The RLS posture is the platform's strongest control and it is
+  entirely untested. `DATABASE_AUDIT.md` records 239 multiple-permissive-policy
+  warnings deliberately left alone because "the risk here is not a slow query, it
+  is a policy rewrite getting one row visibility wrong". That is exactly right,
+  and a test suite is what would make such a rewrite possible later.
+- **Reason continues** It is also the only way to verify the A2-067 grant is safe
+  rather than argued.
+- **Impact** The strongest control becomes provable and therefore changeable.
+- **Effort** L
+- **Risk** Needs credentials and a rolled-back transaction discipline; a probe
+  that forgets to roll back writes to production.
+- **Priority** High
+
+#### A2-146. There is no load test and no stated capacity target
+- **Evidence** No load test anywhere. `docs/DATABASE_AUDIT.md` section 3: "The
+  database is empty. Both linters were run against a schema with no data in it."
+  Every performance recommendation in `RECOMMENDATIONS.md` section 25 reasons
+  from the code.
+- **Action** Write down a target (say 10,000 listings, 50,000 users, 500
+  concurrent readers), then seed a Supabase branch to that shape and run the
+  catalogue, map and admin reads against it. The seed script is reusable and is
+  also what A2-102's pagination needs to be tested against.
+- **Reason** Every scalability finding in this report, including my own A2-101
+  and A2-044, is reasoned rather than measured, and I say so. A one-off seeded
+  branch converts a dozen arguments into a dozen numbers, and it is the only way
+  to make the 274 performance advisories mean anything, which
+  `DATABASE_AUDIT.md` section 3 explicitly asks for.
+- **Impact** Performance work gets prioritised by measurement instead of by
+  reading.
+- **Effort** L
+- **Risk** A branch costs money, so it is a founder decision.
+- **Priority** Medium
+
+#### A2-147. There is no seed or fixture for a local database
+- **Evidence** `supabase/` holds `README.md`, `migrations/` and `templates/`.
+  There is no `seed.sql`. The sandbox cannot reach the remote host, so a
+  developer without network access to Supabase has no data at all, which is why
+  "pages render signed-out or fallback states locally".
+- **Action** Add `supabase/seed.sql` creating a handful of users, agents,
+  listings, bookings and wallet entries, enough that a local stack renders a
+  populated product.
+- **Reason** The handoff repeatedly warns that a screenshot is the only thing
+  that catches certain classes of defect ("an entire workspace once rendered
+  orange and only a screenshot caught it"), and a screenshot of an empty product
+  catches none of them. A seed file is the precondition for the visual checking
+  the standard asks for.
+- **Impact** Local development can see the product.
+- **Effort** M
+- **Risk** Seed data must never resemble the demo-listing problem
+  `RECOMMENDATIONS.md` DEMO-1 to DEMO-4 govern; it stays local and never reaches
+  a deployed database.
+- **Priority** Medium
+
+#### A2-148. The eslint config allows `console.warn` and `console.error` with any argument
+- **Evidence** `apps/web/eslint.config.mjs` `rules` block; the
+  `observability.ts` comment says "The project's no-console rule allows warn and
+  error only". So `console.error("x", errorObject)` passes, which is exactly the
+  pattern in `app/error.tsx` (A2-038).
+- **Action** Add a custom rule in `apps/web/eslint-rules/` (which already holds
+  two custom rules, so the pattern exists) forbidding a non-string-literal second
+  argument to `console.error` and `console.warn`.
+- **Reason** The prohibition on logging a NIN or an account number (HANDOFF 01
+  4.4) is only breakable in practice by logging an object you did not inspect.
+  One rule closes the practical path. The repository already demonstrates it can
+  write custom eslint rules.
+- **Impact** The standing prohibition gains a mechanical guard.
+- **Effort** M
+- **Risk** Some legitimate logging becomes more verbose; that is the cost of the
+  guard.
+- **Priority** Medium
+
+#### A2-149. `supabase/README.md` was not checked against reality by this audit
+- **Evidence** The file exists. I did not read it, and I say so in section 3.
+  Given `docs/DATABASE_AUDIT.md` is stale on its headline finding (A2-130) and
+  `lib/native/boot.ts` carries a false claim about a mount that does not exist
+  (A2-098), the base rate of stale internal documentation in this repository is
+  not low.
+- **Action** Read it against the current migration set and correct it, or delete
+  it if `docs/DEPLOY.md` and `docs/DATABASE_AUDIT.md` cover the ground.
+- **Reason** Filed as an honest gap in my own coverage rather than as a finding.
+  Two of the three internal documents I did check against the code were wrong in
+  a load-bearing way, so the one I did not check deserves a look.
+- **Impact** One fewer document that might be lying.
+- **Effort** S
+- **Risk** None.
+- **Priority** Nice-to-have
+
+#### A2-150. There is no ADR for escrow, and `ARCHITECTURE_DECISIONS.md` predates it
+- **Evidence** `ARCHITECTURE_DECISIONS.md` is 393 lines and ADR-013 is cited in
+  the brief for first-party inventory. The escrow subsystem landed on 9 August
+  with its reasoning distributed across seven migration headers, which are
+  excellent and are not where a reader looks for a decision.
+  `RECOMMENDATIONS.md` E-7 records that who holds the money is an open regulatory
+  question.
+- **Action** Add an ADR recording the escrow decisions already made: one ledger
+  rather than a shadow balance table, the state machine in the database rather
+  than only in TypeScript, dual confirmation as the common path, amounts read
+  from the escrow row rather than from the caller, and the open question E-7
+  names. Cite the migrations rather than restating them.
+- **Reason** The handoff says "READ BEFORE PROPOSING A REWRITE" of
+  `ARCHITECTURE_DECISIONS.md`. A reader who does that today learns nothing about
+  escrow, and escrow is the subsystem most likely to be misunderstood, most
+  likely to be rewritten by somebody who thinks it does not exist (the brief
+  itself says it is zero percent built), and most consequential to get wrong.
+- **Impact** The newest and most sensitive subsystem stops being invisible to the
+  document that exists to prevent rewrites.
+- **Effort** S
+- **Risk** None.
+- **Priority** High
+
+#### A2-151. `lib/security/service-rpc.ts` and `lib/wallet/rpc.ts` duplicate the same untyped seam
+- **Evidence** `lib/wallet/rpc.ts`'s header says it "mirrors
+  lib/security/service-rpc.ts, which does the same thing for the abuse controls".
+  Two modules, two `RpcCaller` casts, two `isMissing`-style classifications, two
+  fail-open conventions.
+- **Action** Once A2-064 generates types in CI, delete both and call the typed
+  client directly. Until then, extract the shared parts into one module so
+  A2-042's `isMissing` fix applies in one place rather than two.
+- **Reason** A2-042 is a bug in the classification logic. If that logic exists
+  twice, the fix has to be applied twice, and the second copy is the one that
+  gets missed. The duplication is documented and accepted, which is how it
+  persists.
+- **Impact** One classification, one fail-open policy, one place to fix.
+- **Effort** M
+- **Risk** Touching both money and security seams at once; do it after A2-042
+  lands in the money copy.
+- **Priority** Medium
+
+#### A2-152. `docs/ENVIRONMENT.md` does not list `SUPABASE_AUTH_HOOK_SECRET` or the two Vault secrets
+- **Evidence** `docs/ENVIRONMENT.md` is 138 lines and is described as "every
+  credential the code reads". `app/api/auth/email-hook/route.ts` reads
+  `process.env.SUPABASE_AUTH_HOOK_SECRET`. `20260809093843` reads
+  `rentme_site_url` and `rentme_reconcile_secret` from Supabase Vault, which is
+  not an environment variable at all and therefore falls outside the document's
+  stated scope while being exactly the kind of thing an operator needs to know
+  about. I did not verify whether the hook secret is listed; I did verify the
+  route reads it.
+- **Action** Add a Vault section to `docs/ENVIRONMENT.md` covering both secrets
+  and what is inert without them (A2-055), and confirm every
+  `process.env.*` read in the codebase appears in the document. A grep-based
+  check would make that mechanical.
+- **Reason** The document's value is that it is exhaustive. Two secrets that live
+  in Vault rather than in the environment are the two that silently disable the
+  money backstop, and an operator reading the credential document would not learn
+  they exist.
+- **Impact** The credential inventory covers everything that gates a capability.
+- **Effort** S
+- **Risk** None.
+- **Priority** High
+
+#### A2-153. `package.json` has no formatter and no `format` script
+- **Evidence** Root `package.json` scripts: `dev`, `build`, `start`, `lint`,
+  `typecheck`, `test`, `sync:versions`. No `format`. The eslint config header
+  notes "there is no stylelint and no `tailwind.config`".
+- **Action** Add prettier with a minimal config and a `format` script, and run it
+  as a check in A2-141 rather than as a write step, so formatting never causes a
+  merge conflict with the lead's 190-file rename.
+- **Reason** Small, and it is the difference between a diff that shows what
+  changed and a diff that shows what changed plus whitespace. With three agents
+  and a lead touching the same tree, that matters more than usual.
+- **Impact** Diffs stay readable.
+- **Effort** S
+- **Risk** A repository-wide format now would collide catastrophically with Track
+  A. Add the config and the check, and run the write step only after Track A
+  lands.
+- **Priority** Nice-to-have
+
+#### A2-154. `apps/web/tsconfig.json` carries dead `include` entries
+- **Evidence** `RECOMMENDATIONS.md` PERF-4 records ten dead entries as open P2.
+  I did not re-verify the count.
+- **Action** Extends PERF-4 only to note that typecheck passes today, so the dead
+  entries are cosmetic rather than functional, and they can be cleaned in the
+  same pass as A2-153 without risk.
+- **Reason** Filed to close the loop: PERF-4 is real and its priority is right,
+  and knowing typecheck is clean means nobody needs to treat it as urgent.
+- **Impact** Marginal.
+- **Effort** S
+- **Risk** Removing an include that is load-bearing breaks the build; verify with
+  a typecheck, which takes under a minute.
+- **Priority** Nice-to-have
+
+#### A2-155. There is no dependency update or advisory policy
+- **Evidence** `RECOMMENDATIONS.md` SEC-2 records two high-severity npm
+  advisories as lint-time only, open P2. Root `package.json` carries
+  `overrides` for `sharp` and `postcss`, which is evidence of ad hoc advisory
+  response. No policy document, no `npm audit` in any check.
+- **Action** Add `npm audit --audit-level=high` to A2-141's job list as a
+  non-blocking report first, and write a two-line policy in `docs/DEPLOY.md`:
+  production-path advisories are fixed before the next deploy, lint-time and
+  build-time advisories are recorded and batched.
+- **Reason** SEC-2's judgement (lint-time only, therefore P2) is correct and is
+  exactly the judgement that has to be made each time. Making it a stated rule
+  means the next person makes it the same way instead of either panicking or
+  ignoring it.
+- **Impact** Advisories get a consistent answer.
+- **Effort** S
+- **Risk** A noisy audit report that nobody reads; non-blocking at first, with
+  the level set high.
+- **Priority** Medium
+
+#### A2-156. Nothing checks that the two signed-out gates agree
+- **Evidence** `RECOMMENDATIONS.md` T-9 records "Two places draw the signed-out
+  line and nothing checks they agree" as open P1. Confirmed: `middleware.ts`
+  `PRODUCT_SEGMENTS` draws it for whole routes and the file's own comment says
+  "That line is drawn in two places and they have to agree. Here, for whole
+  routes. And in the client gate, for the individual controls on a page a
+  stranger is allowed to read."
+- **Action** Extends T-9 with the concrete test: a node spec that, for each
+  segment in `PRODUCT_SEGMENTS`, requests the route signed out against a running
+  build and asserts a redirect to `/sign-in`, and for each public route asserts a
+  200 with no sign-in wall. Add `verification` to the set first (A2-005) so the
+  test encodes the corrected line.
+- **Reason** T-9 names the risk. The test is cheap because the middleware already
+  exposes the set as a single constant, so the spec can import it rather than
+  restate it, which is what makes it stay true.
+- **Impact** The most consequential access boundary on the platform gets a
+  regression test.
+- **Effort** M
+- **Risk** Needs a running server on port 3210, so it is a node spec rather than
+  a vitest suite (T-2).
+- **Priority** High
+
+#### A2-157. `lib/security/anon-columns.test.ts` exists and its scope is not stated anywhere
+- **Evidence** The file is one of the 8 vitest files. `RECOMMENDATIONS.md` SEC-7
+  records "Two column exposures that need a design decision, not a grant" as
+  open P2. I did not read the test.
+- **Action** Read it, and record in SEC-7 which columns it covers and which it
+  does not, so the two open exposures are distinguishable from the ones already
+  guarded.
+- **Reason** Filed as an honest gap in my coverage. A test named
+  `anon-columns` is precisely the guard that SEC-7's open items need, and nobody
+  has said whether it already covers them. A guard whose scope is unknown is not
+  a guard you can rely on.
+- **Impact** SEC-7 becomes actionable.
+- **Effort** S
+- **Risk** None.
+- **Priority** Nice-to-have
+
+---
+
+## 9. The five questions, answered plainly
+
+### Where are we now
+
+Further along than the brief thinks, and less safe than the code reads.
+
+Two of the four "largest open P0s" in my brief are closed. Signed-out browsing
+works. The webhook that lost real money now answers 503 and retries. Escrow has a
+schema, an eight-state machine enforced by a trigger, three locking movement
+functions, an hourly timeout sweep, a TypeScript layer with tests and an admin
+screen. The database is genuinely strong: RLS on all 77 tables, definer functions
+in a private schema, a conservation constraint on the ledger that survived a
+migration which dropped five of its siblings, unique-reference idempotency, and
+an escalation closed in `20260806112848` with the probe output quoted in the
+migration.
+
+What is not right is the layer above it. The application code around the strong
+database has three defects that each break something a user or an operator
+depends on: two admin actions pass an argument the database stopped taking 37
+days ago, so the KYC queue cannot record a decision and no agent can be verified;
+`/reset-password` accepts any session and revokes none, so a stolen cookie is a
+permanent takeover; and account deletion cannot complete for anyone who has ever
+had a wallet, made a booking or been party to an escrow.
+
+And privacy is the weakest dimension by a distance. The retention schedule is
+enforced by nothing. Rejected applicants' identity documents sit in storage
+indefinitely, and deleting an account orphans the files while destroying the row
+that said whose they were. `private.scan_message()` writes bank account numbers
+into a table in plain text and the admin screen loads them beside up to 400
+messages of the surrounding private conversation, which the terms do not
+disclose.
+
+### What is holding us back
+
+**Nothing runs by itself.** That is the single sentence. There is no `.github/`
+directory, no git hook, no alerting, nothing reading `cron.job_run_details`,
+nothing reading `net._http_response`, and the reconciler that recovers lost
+payments is switched off pending two Vault secrets. The platform has excellent
+instrumentation and no instrument panel, and excellent invariants with nothing
+checking they still hold.
+
+The consequence is visible in the tree right now. `20260809054243` was a correct,
+well-argued refactor. It broke two console screens. They have been broken for 37
+days, typecheck passes, and nobody knew. That is not a discipline failure; it is
+the predictable result of having no mechanical check. A twelve-line script found
+it in under a second.
+
+The second thing holding us back is that the good decisions are recorded in
+migration headers rather than in the documents people read.
+`ARCHITECTURE_DECISIONS.md` says nothing about escrow, which is why my own brief
+told me escrow was zero percent built.
+
+### What are the biggest risks
+
+1. **A stolen session becomes a permanent account takeover.** A2-001 and A2-002.
+   Two small changes.
+2. **Bank account numbers in a plain-text column, read beside whole private
+   conversations by every admin, undisclosed in the terms.** A2-024 and A2-025.
+   This is the finding that would do the most damage if it became public,
+   because it is simultaneously a prohibition broken, an NDPA minimisation
+   failure and a promise not made to users.
+3. **Withdrawals can silently downgrade to an unlocked read-then-write path.**
+   A2-041 and A2-042. `isMissing()` treats any error containing "does not
+   exist" as a missing function, so a real error inside the locking function
+   routes the withdrawal through the racy fallback. Two taps, two holds, one
+   balance.
+4. **Identity documents outliving both the decision and the person.** A2-028 and
+   A2-029. Deleting an account currently makes the platform less able to honour
+   a deletion request, which is the worst possible ordering.
+5. **Nothing tells anybody the platform broke.** A2-121, A2-122, A2-123. The
+   original wallet incident took days to notice with the old code; with the new
+   code it would take exactly as long, because the fix made the failure
+   retryable rather than visible.
+
+### What are the biggest opportunities
+
+**An operations console that is actually a product.** The console is already 22
+sections with one authorisation door, an append-only audit log protected by a
+trigger, and mandatory reasons enforced in three layers on the path that needed
+it. What it lacks is the four things that would make it the best operations tool
+in this market: a user search (A2-106), an audit viewer (A2-108), a system health
+screen (A2-110) and a risk view that correlates a person's signals rather than
+listing flags one at a time (A2-114). Nigerian property platforms lose to fraud.
+The platform already stores the single most predictive signal, several accounts
+paying out to one bank account, in `agent_payout_accounts`, and nothing looks at
+it. That is a genuine differentiator sitting in the schema.
+
+**The database as the place invariants live.** This codebase is already unusually
+good at this and could go further cheaply. `platform_fee_minor = 0` as a check
+constraint (A2-078) makes Rule 8 structural rather than conventional.
+`currency = 'NGN'` (A2-076) makes the kobo assumption explicit. A functional
+probe suite (A2-069) and an RLS test suite (A2-145) would turn the strongest
+control on the platform from argued into proven, which is also what would make
+the 239 deliberately-left permissive policies safe to consolidate later.
+
+**A twelve-line script that prevents a whole class of outage.** A2-063. It caught
+two dead console screens in a second, with no false positives on the other 22
+call sites. Nothing else in this report has that ratio.
+
+### What would move Vallo to 100
+
+In order, and the first four are days rather than weeks.
+
+1. **Fix the two RPC call sites and add the check that catches them** (A2-061,
+   A2-062, A2-063). The KYC queue starts working and the class cannot recur.
+2. **Close the session-takeover path** (A2-001, A2-002, A2-014). Recovery-only
+   password reset, revoke other sessions, send the notification.
+3. **Switch the reconciler on and make the scheduler observable** (A2-055,
+   A2-121, A2-122, A2-123). The money backstop starts running and the platform
+   gains the ability to notice its own failure.
+4. **Redact the flagged digits and narrow the transcript read** (A2-024,
+   A2-025, A2-115). The standing prohibition stops being broken and staff read
+   what they need rather than everything.
+5. **Build the pre-delete settlement and purge, then the retention job**
+   (A2-026, A2-028, A2-029, A2-030). Deletion works, documents stop outliving
+   their basis, and the notice and the database start agreeing.
+6. **Turn the fallback off and tighten the classification** (A2-041, A2-042).
+   The last unlocked money path goes.
+7. **Add CI with the eight-job list** (A2-141). Everything above stays fixed.
+8. **Then the console as a product** (A2-106 through A2-114) and the proof layer
+   (A2-069, A2-145, A2-146).
+
+The honest summary for the founder: the hard part is done and it is better than
+it needed to be. What is missing is mostly the boring part, and the boring part
+is the part that keeps the hard part working.
+
+---
+
+## 10. Count by priority
+
+| Priority | Count |
+|---|---:|
+| **Critical** | 21 |
+| **High** | 68 |
+| **Medium** | 58 |
+| **Nice-to-have** | 10 |
+| **Total** | **157** |
+
+Counted mechanically from the `Priority` field of every `A2-NNN` entry. 157
+unique ids, no duplicates, no gaps.
+
+### The 21 Critical entries
+
+Critical here means what the brief says it means: a user loses money, loses data,
+is exposed, or is blocked from the core loop. Nothing else.
+
+| Id | What |
+|---|---|
+| A2-001 | `/reset-password` accepts any session, so a stolen cookie is a takeover |
+| A2-002 | A password change revokes no other session |
+| A2-021 | The welcome emails promise escrow, which does not exist (Rule 11) |
+| A2-024 | `message_flags.matched` stores bank account numbers in plain text |
+| A2-025 | The admin flags screen loads whole private conversations |
+| A2-026 | Account deletion cannot complete for most real users |
+| A2-028 | Identity documents survive account deletion as orphans |
+| A2-029 | Nothing purges documents for a rejected application |
+| A2-041 | `withdraw()` falls back to an unlocked money path |
+| A2-042 | `isMissing()` classifies ordinary errors as a missing function |
+| A2-046 | No money surface is rate limited (extends W-2) |
+| A2-054 | `wallets_overdrawn()` exists and nothing pages on it |
+| A2-055 | The reconciler is inert until two Vault secrets exist |
+| A2-061 | `reviewKycDocument` passes an argument the function does not declare |
+| A2-063 | Nothing checks an RPC call against the function's real signature |
+| A2-119 | The KYC queue cannot be worked at all today |
+| A2-121 | Nothing reads `cron.job_run_details` |
+| A2-122 | Nothing reads `net._http_response` |
+| A2-123 | Nothing alerts on a `[money] failed` line |
+| A2-133 | The Yellow Card webhook never checks the currency |
+| A2-141 | Nothing runs automatically (extends T-1) |
+
+### Entries tagged to another owner
+
+| Tag | Ids |
+|---|---|
+| `[TRACK A]` by subject | A2-022, A2-070, A2-071, A2-072. A2-021 is Track A's files and is tagged Critical here because a rename will not fix an escrow promise. A2-032, A2-037 and A2-038 need Track A for the wording and me for the substance. |
+| `[AGENT 3]` | A2-098 (placing `NativeRuntime` in the layout), A2-143 (the two design-system comments containing `Icon3D`) |
+| Founder only | A2-004 (leaked-password protection), A2-055 (Vault secrets), A2-128 (restore drill), A2-146 (seeded branch), and every data-losing migration: A2-024, A2-026, A2-029, A2-030 |
+
+### Verification status of the database claims
+
+Every entry touching the schema, a function, a policy, a grant, an index or a
+cron job is derived from `supabase/migrations/` and was **not verified live**,
+because the Supabase MCP tools cannot reach project `uccixoonmbhrnyczyigt` from
+this session (section 2). Three entries would change if a live probe contradicted
+the files:
+
+- **A2-061 and A2-062** rest on the generated types and the grant in
+  `20260809054243` matching the applied function. One HTTP call settles both.
+- **A2-041** depends on whether `public.hold_wallet_withdrawal` is applied. If it
+  is, the unlocked branch is unreachable today and the priority drops from
+  Critical to High, but A2-042 keeps it reachable in principle so the fallback
+  still goes.
+- **A2-065** assumes no index was added outside a mirrored migration.
+
+Nothing in this report uses the words "verified", "tested" or "confirmed" except
+where I ran the thing and read its output: `npm run typecheck`, my two analysis
+scripts, and the greps quoted inline. The word "compliant" is not used as a
+claim. For NDPC, today, the honest answer is not yet.

@@ -2599,3 +2599,344 @@ variable uses.
 *Impact:* the vocabulary is consistent from the database to the screen.
 *Effort:* M, it touches a column name so Agent 2 would own the data half.
 *Risk:* low. *Priority:* **Nice-to-have**
+
+---
+
+## 10. The design system audit: what disagrees with what
+
+Token by token where I could get one.
+
+### 10.1 Colour. The one system that holds
+
+**Verdict: the strongest layer in the repository.** I ran
+`node apps/web/scripts/check-css-tokens.mjs` and it reports zero layer-1
+references under `src/app/css`, across nineteen partials. There is no orange,
+amber, gold, magenta or violet anywhere in `tokens.css`; I read the palette
+block and the light block in full. The anchors named in rule 9 are all present and
+correct: `--nf-ink-950: #010118`, `--nf-electric-400: #0C39EF`,
+`--nf-electric-700: #000F98`, `--nf-electric-500: #0010E0`,
+`--nf-electric-600: #0010D0`, `--nf-surface-canvas: #000010`.
+
+The disagreements:
+
+| What | Says one thing | Says another | Ref |
+| --- | --- | --- | --- |
+| `--nf-media-wall` and 4 siblings | lifted values at lines 273-277 | old values at 291-295, **and the second wins** | A3-046 |
+| `--nf-state-info` | the palette is one blue family | `#38BDF8`, Tailwind `sky-400` | A3-047 |
+| `--nf-crimson-400` | a distinct red | identical to `--nf-rose-400` | A3-048 |
+| Layer 1 is the palette | the file header | nine painted values live only in layer 2 | A3-050 |
+| `--nf-canvas-bloom-1/2/3` | the ambient blooms | `ambient.css` writes raw `rgb()` instead | A3-054 |
+| `index.ts` `palette` | mirrors layer 1 | one consumer, four dead exports, `slate` is Tailwind | A3-052, A3-053 |
+| stylesheets | no raw colour | 343 raw literals, counted not enforced | A3-055 |
+| `--nf-status-verified` | verified is brand blue | `KycStatus` paints it emerald | A3-009 |
+| `--nf-status-pending` | pending is cyan | `KycBanner` paints it sky, `ListingWizard` paints it emerald | A3-008, A3-007 |
+| `--nf-state-error` | failure is rose | nine failure surfaces paint cyan | A3-001, A3-002 |
+
+### 10.2 Type. The system with no authority
+
+**Verdict: this is the gap.** Eleven tokens exist, `--nf-text-display` down to
+`--nf-text-overline`. 995 raw font-size escapes across the TSX tree, in more than
+forty distinct values, plus at least three competing class vocabularies
+(`nf-h1`/`nf-body`/`nf-body-sm`, `TYPE.rowTitle`/`TYPE.rowMeta` from `Screen.tsx`,
+and raw `text-[...]`).
+
+| Value | Uses | Is it a token? |
+| --- | ---: | --- |
+| `text-[0.8125rem]` | 266 | **yes**, `--nf-text-caption` exactly |
+| `text-[0.875rem]` | 168 | no |
+| `text-[0.75rem]` | 166 | no |
+| `text-[0.9375rem]` | 123 | no, and `--nf-text-body-sm` at 0.90625rem is unused |
+| `text-[0.6875rem]` | 42 | no |
+| `text-[1rem]` | 37 | **yes**, `--nf-text-body` |
+| `text-[1.0625rem]` | 30 | **yes**, `--nf-text-body-lg` |
+| `text-[1.25rem]` | 15 | **yes**, `--nf-text-h4` |
+| everything else | ~148 | no, 30+ further values |
+
+348 of the 995 are a token restated as a literal. The rest are off the scale.
+`Sheet.tsx`, the primitive every sheet on the platform inherits its heading from,
+is one of them. See A3-057, A3-058, A3-089, A3-096.
+
+### 10.3 Space. Well designed, not verified
+
+`--nf-space-0` to `--nf-space-5xl`, eleven steps on a geometric ladder with a 4px
+base, plus a second set of named rhythm intervals. The `nf/no-raw-spacing`
+ESLint rule exists. **I did not run ESLint**, so I cannot tell you whether the
+spacing scale is at zero the way colour is. The token file records 4,115 raw
+Tailwind spacing uses at the time the scale was written; I did not re-measure.
+
+### 10.4 Radius. Mostly held
+
+275 of 279 bracket escapes reference a token. Against that: 79 `rounded-full`,
+29 Tailwind radius keywords, and 4 genuinely raw values. `--nf-radius-circle`
+exists, has 21 CSS consumers and **zero** TSX consumers. `--nf-radius-control` at
+14px is the "corner of anything you press" token and I did not verify that
+`.nf-btn` actually reads it. See A3-059, A3-060, A3-061, A3-150.
+
+### 10.5 Elevation and shadow. The best-reasoned part of the file
+
+Six rungs, each with an ambient layer, a direct layer and its own rim highlight,
+with a written explanation of why black shadows measure 1.003:1 on this canvas and
+depth therefore comes from the rim and the border. Four legacy names remain as
+aliases pointing at real rungs. No disagreements found.
+
+### 10.6 Glass. Specified strictly, and I did not audit adoption
+
+`tokens.css` states that glass is four ingredients and "a surface carrying fewer
+than four of these is not glass and must not use these tokens", and records that
+the previous set shipped two of four so 28 sticky headers read as flat
+translucent panels. **I did not audit whether the 705 lines of `glass.css` now
+carry all four on every glass surface.** The daylight variants are present and
+reasoned.
+
+### 10.7 Components. Adoption is the problem, not design
+
+| Primitive | Consumer files | Verdict |
+| --- | ---: | --- |
+| `Skeleton` | 44 | healthy |
+| `Amount` | 23 | healthy |
+| `Field` | 20 | healthy |
+| `StatusPill` | 19 call sites in 21 files | healthy, two mapping bugs |
+| `Sheet` | 17 | healthy, single detent default |
+| `Chip` | 10 | thin |
+| `Progress` | 5 | thin |
+| `Switch` | 3 | **and a second implementation in `settings-rows.css`** |
+| `Segmented` | 2 | **and a second implementation, `.nf-segment` vs `.nf-segmented`** |
+| `Table` | 2 | thin |
+| `ActionBar` | 1 | not a primitive |
+| `Button` | many | healthy, six variants paint five |
+| **`Card`** | **does not exist** | **`nf-card` in 205 files** |
+
+### 10.8 Icons. The docs and the code have separated
+
+| Fact | `ICON_SYSTEM.md` says | The code says |
+| --- | --- | --- |
+| `UI_ICON_SIZES` | 12, 16, 20, 24, 28, 32 | **16, 20, 24, 28, 32, 40** |
+| `UI_ICON_STROKE_PX` | 1.4 | **1.5** |
+| UiIcon glyph count | 40 | **60** |
+| Checked-in vectors | 40, verified by `--check` | 40 files for 60 glyphs, and **all 60 drift** |
+| BrandIcon object count | 57 | **87** |
+| BrandIcon props | 6 | **9** (`tile`, `state`, `index` undocumented) |
+
+There is no `strokeWidth` prop and no `ramp` prop, so both hard rules hold.
+`Icon3D` and `Icon` do not exist; `design-system/icons/` contains exactly three
+files. `TrustIcon` has one consumer and is not exported for general use. All 18
+status marks named in the brief exist on disk.
+
+### 10.9 Motion
+
+Durations and easings are tokenised and collapse to 1ms under
+`prefers-reduced-motion`, which is the right mechanism. The cascade trap is fixed
+for the scroll reveal via `data-instant`. Four stylesheets have transitions with
+little or no reduced-motion handling, and **the in-app reduce-motion setting is
+connected to nothing at all**.
+
+---
+
+## 11. The test inventory
+
+### 11.1 What exists
+
+| Suite | Count | Runs | Covers |
+| --- | ---: | --- | --- |
+| Vitest, `src/**/*.test.ts` | 44 files, 1,415 tests | **I ran it: all pass in 6.09s** | server modules: payments references, yellowcard mapping, wallet reconciliation, escrow shape, listing pricing, category, syndication, retirement, bounds, selects, free text, security, anon columns, cache memo, email client and shells, agent analytics queries, KYC logic, accept-language, sitemap, auth intent, roles, reservations schema, inspections types, listing card model, example notice, assistant example listings, undo window |
+| Playwright, `tests/*.spec.mjs` | 82 files | **I did not run them** | routes, copy, overlays, icons and targets, truncation, skeletons, save-data, CSP, fonts, money and numbers, i18n, back labels, dead ends, map keyboard, the social layer, admin, agent, wallet, checkout, messages |
+| `check-css-tokens.mjs` | 1 checker | **I ran it: passes** | layer-1 leakage in stylesheets |
+| `build-icon-vectors.mjs --check` | 1 checker | **I ran it: fails, exit 1** | SVG vectors against `UiIcon.tsx` |
+
+### 11.2 What it does not cover
+
+- **Zero component tests.** `vitest.config.ts` includes `.ts` only and its header
+  says nothing in the suite renders a component. 183 components, none rendered in
+  a unit test. (A3-161)
+- **`toneForStatus` is untested**, and it is the single function deciding what
+  colour every state on the platform is. (A3-162)
+- **`snapUiIconSize` is untested**, including its ties-to-larger behaviour, which
+  is what makes 61 call sites render a size they did not ask for. (A3-069)
+- **`Sheet`'s detent maths is untested**: the velocity projection, the nearest
+  detent selection and the 0.12vh dismiss threshold are all pure functions inside
+  a component nothing unit-tests.
+- **The design tokens package has no test at all**, so the duplicate declaration
+  in A3-046 and the historical `palette` drift were both invisible. (A3-163)
+- **Nothing tests reduced motion**, which is why a control shipped wired to
+  nothing. (A3-167)
+- **Nothing tests the confirmation states.** No spec is named for success,
+  pending or failure. (A3-166)
+- **Nothing tests `scrollWidth === clientWidth`**, so the phantom-scroll fix is
+  held by care alone. (A3-170)
+- **`build-icon-vectors.mjs --check` is not in any script or CI**, and it fails.
+  (A3-164)
+- **The banned-copy rule is enforced by four specs checking four different
+  lists**, which is how `editNotLive` survived. (A3-155)
+
+### 11.3 Which of the ONE LAW's six steps is untested across my scope
+
+The law: a UI action, a validated server action, a database write that survives
+RLS, the UI showing the new reality after a reload, the notification or email the
+event deserves, and a Playwright test proving all of it.
+
+Steps two, three and five are Agent 2's. Of the three in my scope:
+
+- **Step 1, a UI action a real person can take.** Well covered by the 82
+  Playwright specs at the route level. Not covered at the component level at all.
+- **Step 4, the UI showing the new reality after a reload.** This is the weakest.
+  The confirmation states are the UI showing the new reality, and they are the
+  part with no spec. `PayPanel`'s success is a client state swap that no reload
+  reproduces, so "after a reload" is untested for the wallet payment path.
+- **Step 6, a Playwright test proving all of it.** 82 specs exist. I did not run
+  them and cannot say what fraction of the six-step loop any of them closes.
+
+### 11.4 Where a spec asserts something no longer true
+
+I found one, and it is a checker rather than a spec: `build-icon-vectors.mjs`
+`--check` is documented in `ICON_SYSTEM.md` as the thing that keeps the vectors
+in step, and it has been failing with all 60 sources drifted. Nothing runs it, so
+nothing noticed.
+
+I did not read the 82 Playwright specs closely enough to find stale assertions in
+them, and I did not run them, so I cannot report on that honestly. Given
+`ICON_SYSTEM.md` has four wrong facts and `BRAND_MARKS.md` lists a mark to
+commission that already exists, I would expect the specs to carry some too.
+
+---
+
+## 12. The five questions
+
+### Where are we now
+
+A frontend with an unusually good foundation and an unusually uneven surface.
+The token layer, the elevation ladder, the `Sheet`, the `Button`, the loading
+coverage and the `Receipt` are work that would pass at a company with a design
+systems team. Sitting on top of them are 995 raw font sizes, four primitives with
+three consumers or fewer, no `Card` component for the 205 files that draw cards,
+two switch implementations, two segmented implementations, an accessibility
+setting wired to nothing, and a confirmation system that is forty hand-rolled
+treatments and one colour meaning five things. **Sixty-four out of a hundred**, and
+the number is held down by the confirmation system and by one 1.3MB image.
+
+### What is holding us back
+
+Enforcement, and nothing else. Every problem in this report was already
+understood by whoever wrote the comment above it. The colour rule got a lint rule
+and it is at literally zero violations across nineteen stylesheets. Type, geometry,
+primitive adoption, the confirmation vocabulary and the reduced-motion contract
+got careful prose and no rule, and each of them is somewhere between forty and a
+thousand violations. This codebase does not have a knowledge problem. It has a
+ratchet problem.
+
+The second thing holding it back is that the component library was built inward
+from the rare cases. `ActionBar` has one consumer. `Card` does not exist. Nobody
+sets out to do that; it happens when components are built when somebody notices a
+duplicate rather than when somebody counts.
+
+### The biggest risks
+
+1. **A user cannot tell a declined payment from a payment in progress.** Both are
+   cyan, on the same screen, in the same flow. That is the risk that costs money
+   and trust in the same second, and it is why A3-002 is Critical.
+2. **Load time on the target network.** 1.3MB of background on all 97 pages,
+   3.5MB on `/home` by the data-saver file's own measurement, with the mitigation
+   gated behind `Save-Data` or a 2g connection. Somebody on Nigerian 3g is not
+   2g and gets all of it. Every retention idea in the roadmap is worth nothing if
+   the app takes nine seconds to open.
+3. **Content is invisible until hydration on Safari and Firefox.** 112 `Reveal`
+   blocks ship `opacity: 0` in the server HTML. This is a first-paint failure on
+   engines a meaningful share of Nigerian iPhone users are on.
+4. **The reduce-motion setting lies.** It is small in engineering terms and it is
+   the kind of thing that ends up in a screenshot with the caption "this does
+   nothing".
+5. **Type has no ratchet, so the 995 becomes 1,400.** Each of those is a person
+   making a reasonable local decision. Without a rule the number only goes up, and
+   every one of them is a screen that will not quite match the screen beside it.
+
+### The biggest opportunities
+
+1. **Build `ResultSheet` and put every flow through it.** It is one component,
+   roughly two days of work with the migration, and it changes the part of the
+   product people screenshot and send to a friend. Nothing else in my scope has
+   that ratio. Section 7 is the whole specification.
+2. **Commission the twenty marks in section 8.** The platform has 87 commissioned
+   3D objects and the one place they would matter most, the moment money lands,
+   has none of them. `user-verified.png` already is the reference screenshot's
+   orange rosette done in the brand. The product is one render away from a
+   confirmation screen no competitor in this market can copy.
+3. **Re-encode `rentme-bg.png`.** One file, AVIF plus a mobile crop, likely 1.3MB
+   to under 200KB, on every page in the product.
+4. **Build `Card`, then write `nf/no-raw-type`.** Those two together are the
+   difference between a product that is consistent by care and one that is
+   consistent by construction.
+5. **A jsdom vitest lane.** The whole suite runs in six seconds and covers no UI.
+   A primitives lane would make UI tests cheap enough that people write them,
+   which is the only durable answer to the ratchet problem.
+
+### What would move Vallo to 100
+
+Four things, in order.
+
+**One: the confirmation language, built once and enforced by a spec.** Four
+states, one component, one mark per state from the brand set, a required
+consequence line, at most two actions, correct live regions, correct behaviour
+under reduced motion. Then a Playwright spec that fails if a `role="alert"` is
+ever cyan again. This is the single largest gap between what Vallo is and what
+the brief describes, and it is the part a user will screenshot.
+
+**Two: enforcement parity.** Colour has a rule and is at zero. Give type, radius
+and primitive adoption the same treatment, ratcheted from today's numbers so
+nothing fails on a clean checkout and nothing can get worse. The repository has
+already proved this works, once, on the hardest of the four.
+
+**Three: performance as a designed constraint rather than a mitigation.** Serve
+light by default and upgrade, instead of serving heavy by default and
+downgrading. Re-encode every asset in `public/brand/`. Lint a size ceiling. Ship
+the content in the HTML rather than behind hydration. The target is a mid-range
+Android on Nigerian mobile data and the product is currently designed for the
+machine it was built on.
+
+**Four: the accessibility promises have to be true.** A reduce-motion switch that
+works, `color-scheme` and `accent-color` set so the dark theme survives contact
+with native controls, a live region on the money path, 44px on the control that is
+currently 26px, and no 11px error text. None of these trades against beauty. The
+reduce-motion fix is three selectors. The `color-scheme` fix is two lines and it
+stops the dark theme breaking at every scrollbar and every autofilled field.
+
+Do those four and the ratings in section 5 move from a range of 52 to 76 into a
+range of 85 to 92. The remaining distance to 100 is signed-in polish I could not
+see from here, and it needs somebody with a working database and a phone.
+
+---
+
+## 13. Counts
+
+**172 recommendations.** 166 written entries, one of which (A3-032) groups seven
+brand marks under a single entry because the evidence, action, reason and risk
+are identical for all seven.
+
+| Priority | Count |
+| --- | ---: |
+| **Critical** | **4** |
+| **High** | **41** |
+| **Medium** | **104** |
+| **Nice-to-have** | **23** |
+| **Total** | **172** |
+
+The four Critical, and why each one qualifies under the rule that Critical means a
+user loses money, loses data, is exposed, or is blocked from the core loop:
+
+- **A3-002.** A declined payment is painted the pending colour. A user who cannot
+  tell a decline from a wait will either abandon or pay twice somewhere else.
+- **A3-003.** Pending on the money path is a bare button spinner. A user holding a
+  year's rent mid-transfer is given no information at all.
+- **A3-005.** A failed settlement says "Payment check" with no verdict, no rose,
+  no reference, no retry and no route to support. The user's money is
+  unaccounted for and there is nowhere to go.
+- **A3-128.** 1,343KB of background art on all 97 pages, painted twice, outside
+  `next/image`. On the stated target network that is roughly 27 seconds before the
+  page settles, which blocks the core loop for the user the product is for.
+
+By area: confirmation system 45, design tokens 20, icon system 13, components and
+primitives 23, motion 11, accessibility 15, performance 8, small things 25, tests
+and QA 12. Cross-tagged: 8 to **[TRACK A]**, 4 to **[AGENT 2]**, 3 to **[AGENT 1]**.
+
+Nothing here is padding. Where I could not evidence something I said so in section
+3 rather than writing it up as a finding, and four entries (A3-097, A3-148,
+A3-160, A3-165) are deliberately marked Nice-to-have with no action because their
+value is as a worked example or as a statement of what I did not do.

@@ -855,7 +855,7 @@ core loop. Nothing else.
 - **Impact.** Every profile share becomes a recruitment surface. For agents it is a business card they can paste anywhere.
 - **Effort.** S
 - **Risk.** Low, and it interacts with A1-005: a person who has opted out of discoverability should get a minimal card, not a rich one.
-- **Priority.ance** Medium
+- **Priority.** Medium
 
 #### A1-048. A shared post produces no image even when the post has one
 - **Evidence.** `app/(app)/post/[id]/page.tsx:13-28`: title and description only. `post_media` exists as a table. No `openGraph`, no `twitter`.
@@ -1465,7 +1465,7 @@ the code is.
 - **Priority.** Medium
 
 #### A1-110. Zero em dashes and zero banned words in my scope, and the specs that keep it that way exist
-- **Evidence.** `grep -rln "—" app components lib packages/i18n/src` returns one file, `lib/email/shell.test.ts`, which is a guard that must contain the character. `grep -rniE '"[^"]*\b(coming soon|not live|lorem ipsum)\b'` returns one file, `components/app/listing/example-notice.test.ts`, which is the spec's banned list. Five specs enforce it per `RECOMMENDATIONS.md` S-4.
+- **Evidence.** A recursive grep for the em dash character across `app`, `components`, `lib` and `packages/i18n/src` returns one file, `lib/email/shell.test.ts`, which is a guard that must contain the character. `grep -rniE '"[^"]*\b(coming soon|not live|lorem ipsum)\b'` returns one file, `components/app/listing/example-notice.test.ts`, which is the spec's banned list. Five specs enforce it per `RECOMMENDATIONS.md` S-4.
 - **Action.** Nothing. Extend the specs per A1-020 and A1-104 to cover the synonym half and the soft "coming soon" variants, which S-4 already prescribes.
 - **Reason.** Recorded as a positive with evidence, because two house rules are genuinely and measurably held, and the mechanism that holds them is the model for holding the others.
 - **Impact.** None needed.
@@ -1526,3 +1526,671 @@ the code is.
 - **Effort.** S
 - **Risk.** Low. Do not remove the page; it is genuinely good and it is the honest answer for a reader who wants depth.
 - **Priority.** Medium
+
+---
+
+### Group J. Claims the trust pages make that the code does not support
+
+The safety and standards pages are the best-written surfaces in the product and
+each carries a header comment promising that nothing on it describes a control
+that does not exist. Four claims do.
+
+#### A1-117. Listing text is not scanned, and two documents say it is
+- **Evidence.** `app/(site)/standards/page.tsx` `ENFORCEMENT[0]`: "Every message, post, story, listing description, review and profile is scanned as it is written." `docs/PRODUCT.md` section 6: "A database trigger flags ten digit account numbers and payment keywords in messages, listing text, reviews and posts into an admin queue." I enumerated every `create trigger` in `supabase/migrations`: the scan triggers are `messages_scan_after_insert`, `reviews_scan_after_insert`, `reviews_scan_after_write`, `review_responses_scan`, `social_profiles_scan`, `posts_scan`, `stories_scan`, `story_comments_scan` and `events_scan`. **There is no `listings_scan`.** `grep -rniE "scan|flagText|accountNumber|risk_alert" lib/agent/listings-actions.ts lib/security/*.ts` finds nothing either, so it is not done in application code on submit.
+- **Action.** Add the trigger. `private.scan_message()` and `private.scan_review()` are the templates and the listing fields to cover are the title, the description and any free-text amenity note. Then the two documents are true.
+- **Reason.** A listing description is the single best place on this platform to publish an account number, because it reaches every reader at once rather than one person in a thread, and admin approval is the only thing standing in front of it. The scanner was built for exactly this pattern and the highest-reach surface is the one it does not read. The standards page stating otherwise means nobody has been looking for the gap.
+- **Impact.** The highest-reach text surface gains the defence every lower-reach one already has. Two published claims become true.
+- **Effort.** S. The function and the queue both exist.
+- **Risk.** Low. A scan that holds a listing needs to interact correctly with the approval workflow so a held listing is not silently stuck; `[AGENT 2]` owns the trigger and the admin queue.
+- **Priority.** High
+
+#### A1-118. The standards page says duplicate and stolen photographs are checked before publication and nothing checks them
+- **Evidence.** `NOT_ALLOWED[2]`: "Duplicate and stolen photographs are checked before a listing is published." `grep -rniE "phash|image.hash|perceptual|duplicate.photo|reverse.image|dhash"` across `apps/web/src` and `supabase/migrations` returns **nothing**. `RECOMMENDATIONS.md` MED-3 records that image handling has real gaps.
+- **Action.** Either soften the claim to what is true, which is that a person looks at every listing before it publishes and that stolen photographs are grounds for removal, or build a perceptual hash on upload and compare against existing listing photos. The hash is the better answer and is not expensive: it is one column and one comparison, and it catches the most common listing fraud in this market, which is advertising somebody else's flat.
+- **Reason.** Stolen photographs are how a property that does not exist gets listed, and the page promises a check that does not happen. If a renter loses money to a listing with stolen photographs, the platform has published a statement that it checked.
+- **Impact.** Either an honest page or a real defence. The hash also catches the duplicate-listing case that `gradeForReportCategory` already has a category for.
+- **Effort.** S to reword, M to build.
+- **Risk.** Low. A perceptual hash has false positives, so it is a queue signal and not an automatic rejection, which is consistent with "A person decides, always".
+- **Priority.** High
+
+#### A1-119. The standards page forbids gaming a utility record that does not exist
+- **Evidence.** `NOT_ALLOWED[5]`: "Fake accounts and manufactured reputation... reviews written for a stay that did not happen, and utility reports filed about a place you are selling in." A1-041 establishes there is no utility table, no reporting surface and no state. The page's header comment says "Nothing here describes a control that does not exist."
+- **Action.** Remove the utility clause until A1-041 lands, then put it back verbatim because it is the right rule.
+- **Reason.** A rule about a feature nobody can use is a small thing on its own. It matters because it is in a list a reader uses to work out what this platform is, and a reader who goes looking for utility reports and cannot find them learns that the page describes intentions.
+- **Impact.** The rules describe the product.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** Medium
+
+#### A1-120. The contact form publishes a third, different response commitment that contradicts the other two
+- **Evidence.** `app/(site)/contact/ContactForm.tsx`, the filed state: "We reply within one business day, Monday to Saturday." `lib/trust/standards.ts` `RESPONSE_COMMITMENTS` publishes 4 hours for urgent, 24 for standard and 72 for routine, and its header comment says the numbers live in one place because "A stated response time is only worth anything if the console that has to keep it reads the same number the public page prints." The safety page's "Report someone" button points at `/contact?topic=safety`, and `gradeForReportCategory` puts `off_platform_payment`, `scam` and `unsafe` on the four-hour clock.
+- **Action.** Read the commitment from `RESPONSE_COMMITMENTS` using the chosen topic, exactly as the admin queue does. A safety report should say four hours; a routine question should say three days.
+- **Reason.** The person most likely to use this form is somebody who has just been asked to pay outside the platform, arriving from the safety page's own report button, and the platform tells them one business day when its published commitment for that case is four hours. That is the one place where under-promising costs trust, because it reads as "this is not urgent to us".
+- **Impact.** The three published numbers become one number. The mechanism to do it already exists and is already used by the console.
+- **Effort.** S
+- **Risk.** None. It makes the form's promise stricter, which is why the alert in A1-030 matters.
+- **Priority.** High
+
+#### A1-121. The support reference shown to every user starts with NF, and RN-3's do-not-touch list does not mention it
+- **Evidence.** `lib/support/actions.ts:75` returns `` `NF-SUP-${...}` ``. It is printed on the contact form's success screen, emailed to the person, and quoted by the support bot in `lib/support/faq.ts:175`: "I file a ticket and hand you its NF-SUP reference." `RECOMMENDATIONS.md` RN-3 lists the identifiers the rename must not touch as the `nf_` cookies, the `rentme-*` cron names, the migration filenames and the `rm-fund-`, `rm-wd-`, `rm-book-` payment prefixes, and it does not mention `NF-SUP`.
+- **Action.** `[TRACK A]` This is a user-facing identifier with no external contract, unlike the payment prefixes, so it should be renamed. Existing references would need to keep resolving, which is a lookup concern rather than a generation one. Add it to RN-2's sequence so it is not missed.
+- **Reason.** Every support interaction hands a person a reference beginning with the initials of a dead company. It is also the string a person quotes back, so it outlives the rename in inboxes.
+- **Impact.** The rename reaches the identifier a user is most likely to write down.
+- **Effort.** S
+- **Risk.** Low, and existing references must keep working, so generate the new prefix and accept both on lookup.
+- **Priority.** Medium
+
+#### A1-122. The cancellation policy covers every stay and nothing covers a rental
+- **Evidence.** `app/(site)/cancellations/page.tsx` description: "One cancellation schedule for every stay on Vallo", and the body: "Not one policy per host. The same three steps apply to every stay on..." `lib/trust/cancellation.ts` is built on `FULL_REFUND_HOURS = 72` relative to check-in, which a tenancy does not have. There is no rental equivalent anywhere.
+- **Action.** Once A1-001 exists, write the rental equivalent and hold it to the same standard: policy as data, one definition, read by the public page and the engine. The questions it has to answer are what happens if a renter pays move-in costs and the agent withdraws, what happens if the renter withdraws, and what happens if the property is not as inspected.
+- **Reason.** The money at stake in a rental move-in is an order of magnitude larger than a night's stay, and it is the transaction with no published policy. The page's "for every stay" phrasing is accurate but a reader will hear it as universal, so the gap is invisible.
+- **Impact.** The largest transaction on the platform gains a published rule.
+- **Effort.** M, after A1-001.
+- **Risk.** Medium. Refund rules on a tenancy have legal consequence and belong with the solicitor per `HANDOFF_01` section 2, not with an engineer choosing basis points.
+- **Priority.** High
+
+#### A1-123. The safety page's four never-ask items do not include the two newest impersonation routes
+- **Evidence.** `lib/trust/standards.ts` `NEVER_ASK` covers an account number, a transfer to hold a place, a password or one-time code, and payment on WhatsApp or cash at the gate. It does not mention somebody claiming to be Vallo support, or a link sent by message.
+- **Action.** Add two. First: we never contact you first asking you to act, and anybody claiming to be support in a message or a call is not us unless you started the conversation from the app. Second: we never send you a link to sign in; you sign in from the app or from the site you typed.
+- **Reason.** Once the platform has users, support impersonation is the next attack, and it is the one that harvests credentials rather than a single payment. The page already gets the payment attacks exactly right; the identity attacks are the ones it has not met yet.
+- **Impact.** The one page a person reads before they are attacked covers the attack they will actually face.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** Medium
+
+#### A1-124. There is no way to verify that a message claiming to be from Vallo is from Vallo
+- **Evidence.** `notification_kind` includes `support`, and `support_tickets` and `support_ticket_messages` exist with notification triggers, so real support messages arrive in the app. There is nothing that lets a person check a claim made outside the app, and `NEVER_ASK` tells them to disbelieve such a claim without giving them a way to test it.
+- **Action.** One line in the account: every genuine message from us appears here, and this list is the only place it does. Then the safety advice becomes checkable rather than a rule to remember.
+- **Reason.** "Anyone who does is not us" asks a person to make a judgement under pressure. "Check your Vallo inbox, and if it is not there it is not us" asks them to look at a screen. The second works when somebody is frightened and the first does not.
+- **Impact.** The impersonation defence becomes a two-second check.
+- **Effort.** S
+- **Risk.** Low, and the claim must be true: it means transactional email should always have a matching in-app row.
+- **Priority.** Medium
+
+---
+
+### Group K. Discovery, search and the map, remaining items
+
+#### A1-125. There is no filter for the two structured columns that most distinguish a Nigerian property listing from a foreign one, beyond a boolean
+- **Evidence.** `DiscoveryQuery` has `powerBackup: boolean` and `powerBandA: boolean` and `waterSupply: WaterSupply[]`. The schema carries `power_grid` as a five-value enum (`BAND_A, MOSTLY_ON, PATCHY, RARELY, NONE`), `power_backup` as a five-value enum (`NONE, GENERATOR, INVERTER, SOLAR, GENERATOR_INVERTER`) and `power_backup_hours`. So a five-value grid quality collapses into "is it Band A", and a five-value backup type collapses into "is there any".
+- **Action.** Let the reader filter on grid quality as a floor ("at least mostly on") and on backup type, since a generator and solar are very different propositions to live with. `power_backup_hours` should be a floor too.
+- **Reason.** The platform collected the right data at a level of detail no competitor has and then reduced it to two yes-or-no questions at the point of use. Somebody who cannot live with a generator's noise and cost, or who needs solar because they work from home, cannot express that.
+- **Impact.** The best-designed columns in the schema become the best filters in the market.
+- **Effort.** M
+- **Risk.** Low. The partial indexes `listings_power_idx` and `listings_water_idx` exist and are on `status = 'PUBLISHED'`, so the predicates stay cheap.
+- **Priority.** Medium
+
+#### A1-126. The map has no way to filter by rent or sale despite the database function accepting it
+- **Evidence.** `listings_in_bounds` in `database.types.ts:3597-3623` takes `p_intent` of type `listing_intent`, along with `p_bedrooms`, `p_property_type`, `p_min_price_minor` and `p_max_price_minor`. `DiscoveryQuery` has no `intent` (A1-011), so nothing can pass it.
+- **Action.** Part of A1-011. Named separately because the map is the half where the plumbing already exists, so the map gains rent and sale filtering for free once the URL contract does.
+- **Reason.** A buyer looking at a map of a city wants to see properties for sale, and the function is already able to answer that question.
+- **Impact.** The map's existing capability becomes reachable.
+- **Effort.** S, after A1-011.
+- **Risk.** Low. `[AGENT 2]` owns the route and `[AGENT 3]` the map component.
+- **Priority.** Medium
+
+#### A1-127. Search has no way to express "near this place", which is how people actually look for property in a Nigerian city
+- **Evidence.** `DiscoveryQuery` has a free-text `q` and a category. `CITY_COORDS` in `app/(app)/search/page.tsx:139` holds "Real coordinates for the covered cities". `listings_in_bounds` answers a viewport question. There is no radius, no landmark and no "near my office" concept.
+- **Action.** Let a search anchor on a place and a distance. The 774 local governments are already seeded, so the cheapest version needs no new data: search within this local government and the ones adjacent to it. A commute anchor ("within 30 minutes of Victoria Island") is the version people actually want and is much harder, so it should wait.
+- **Reason.** Nobody in Lagos searches by local government; they search by "near the office" or "on this side of the bridge". A free-text field and a city dropdown cannot express the constraint that actually decides a rental.
+- **Impact.** Search matches how the decision is made. It is also the feature that makes the map more than a picture.
+- **Effort.** L
+- **Risk.** Medium, and it depends on `RECOMMENDATIONS.md` M-3: listings have no enforced coordinates today, so a distance search would silently exclude every listing without a pin. M-3 has to land first.
+- **Priority.** Medium
+
+#### A1-128. Sorting cannot express the only ordering a renter actually wants, which is best value
+- **Evidence.** `SORTS` in `search-params.ts:46` is `recommended`, `top-rated`, `price-asc`, `price-desc`. `byVerification` is the tiebreaker at equal relevance and is well argued. Nothing combines price with the structured quality columns.
+- **Action.** Add one sort that ranks on the facts the platform holds and competitors do not: move-in cost against bedrooms, power and water. Do not call it "best value", which is a claim; call it what it is, for example "Most for the money", and state the inputs on the screen so it is not a black box.
+- **Reason.** "Recommended" is an ordering a reader cannot inspect and `price-asc` finds the cheapest rather than the best. The platform is the only one in this market holding structured power and water data, and an ordering that uses it is the most visible possible demonstration of why its data is better.
+- **Impact.** The differentiating columns decide the default order rather than sitting in a drawer.
+- **Effort.** M
+- **Risk.** Medium. Any composite ranking is a judgement the platform is making on a reader's behalf, so it must be inspectable and must never be the default without the reader choosing it. Rule 12 territory: a ranking nobody can inspect is a ranking that can be sold, and selling it would break rule 8.
+- **Priority.** Medium
+
+#### A1-129. Nothing counts a view of a listing, so an agent cannot tell a good listing from an unseen one
+- **Evidence.** `RECOMMENDATIONS.md` P-10 records this at P1 and `KNOWN_GAPS.md` explains that `post_views` belongs to the social feed and keys on `posts.id` so it cannot be joined to a listing.
+- **Action.** P-10 owns the work. The product point I am adding: the number an agent most needs is not views, it is views against enquiries. A listing with two hundred views and no messages has a price or a photograph problem and the agent can fix it; a listing with no views has a title or a place problem. Without the pair, an agent cannot tell which.
+- **Reason.** This is the feedback loop that makes an agent better at listing, which improves the catalogue, which is the platform's own interest. It is also the most retentive thing an agent console can show, because it changes daily.
+- **Impact.** Agents improve their own listings. Supply quality rises without moderation.
+- **Effort.** L, per P-10.
+- **Risk.** Medium. A view count needs a bot filter and a retention policy, which P-10 already names, and a published view count is also a dark-pattern risk: an invented or inflated one is explicitly banned by rule 12.
+- **Priority.** Medium
+
+#### A1-130. A shared search is a link and nothing offers to share it
+- **Evidence.** `toSearchHref` puts the whole request in the address bar, and the page comment says "A filtered hunt is therefore a link, the back button walks it backwards, and a reload lands on the same results." That is excellent architecture. There is no share control on `/search`.
+- **Action.** One share control on the results header, using `navigator.share` with a clipboard fallback, the same pattern `ListingActions.share()` already implements.
+- **Reason.** House hunting in Nigeria is done by a household, not a person: a couple, or a person and their parent, or a group of students. The platform has already done the hard work of making a search shareable and does not offer it.
+- **Impact.** Every search becomes a recruitment surface, sent to somebody who is not yet a user, with real inventory behind it.
+- **Effort.** S
+- **Risk.** Low. The shared URL must not carry anything personal, and `toSearchHref` only serialises filter state, so it does not.
+- **Priority.** Medium
+
+#### A1-131. A shared listing carries no message, so the person receiving it does not know why
+- **Evidence.** `ListingActions.share()` calls `navigator.share({ title, url })`.
+- **Action.** Compose the share text: the title, the place, the total move-in cost, and the verification tier. Four facts, one line, and it is the one line that decides whether the recipient taps.
+- **Reason.** A bare URL in a WhatsApp group gets scrolled past. A line reading "3 bed in Yaba, 2.4m to move in, agent fully verified" gets a reply. The platform holds all four facts.
+- **Impact.** Shares convert. It is also the cheapest possible demonstration of the move-in-cost differentiator, delivered to somebody who has never seen the product.
+- **Effort.** S
+- **Risk.** Low. It must not share a price for a listing where the price is not published, which `priceLine` in the assistant route already handles correctly and can be reused.
+- **Priority.** High
+
+#### A1-132. There is no way to ask to be told when a specific listing becomes available
+- **Evidence.** `listings.available_from` exists. `sale_status` has `under_offer`. Nothing lets a person register interest in a listing that is not currently takeable, and the only expression of interest is a save, which notifies nobody.
+- **Action.** On a listing that is let, under offer, or available from a future date, offer to tell the person if it becomes available. It writes a row, it notifies on a status change, and it tells the agent how many people are waiting, which is genuinely useful information for them.
+- **Reason.** A person who finds the right flat and cannot have it is the highest-intent user the platform will ever hold, and today they leave with nothing. This is also honest by construction: nothing is invented and the notification only fires on a real status change.
+- **Impact.** Demand capture at the point of maximum intent. Agents learn which properties are in demand, which is a reason to open the console.
+- **Effort.** M
+- **Risk.** Medium, and this is the entry closest to the dark-pattern line, so the rule has to be strict: the platform may never show a waiting-list count to a prospective renter, because "nine other people are waiting" is manufactured urgency whether or not it is true. The count goes to the agent only.
+- **Priority.** Medium
+
+#### A1-133. `/rent` exists as a top-level route and I did not audit it
+- **Evidence.** `app/(app)/rent/page.tsx` is in the tree, is public per `middleware.ts`, is in the sitemap, and emits `robots: { index: false, follow: false }` (A1-006). I read its metadata block and nothing else.
+- **Action.** Somebody should audit it. It is the landing surface for the platform's primary market, it is public, and it is in the sitemap, which makes it the most important page in my scope that I did not read.
+- **Reason.** Stated because a quiet skip is worse than a stated one. Given what A1-001 found about the rent market, the page that introduces that market deserves a read by somebody who has the budget for it.
+- **Impact.** Coverage of a gap in this audit.
+- **Effort.** S to read.
+- **Risk.** None.
+- **Priority.** Medium
+
+---
+
+### Group L. Remaining small things, each with its evidence
+
+#### A1-134. The hero's primary button and the header's Explore link point at different places
+- **Evidence.** `app/page.tsx:151` `ButtonLink href={gatedHref("/search")}` renders `t.landing.hero.searchLabel`. `components/site/SiteHeader.tsx:33` links `/search` with `t.nav.explore`. Same destination, two behaviours, 200 pixels apart.
+- **Action.** Covered by A1-003. Named separately because it is the specific observable inconsistency a person would notice: the small link works and the big button does not.
+- **Reason.** Two controls on one screen that promise the same thing and behave differently is the clearest possible signal that nobody has used the page.
+- **Impact.** One behaviour.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** Medium
+
+#### A1-135. The landing page's city chips are a hardcoded array while the rest of the page is data-driven
+- **Evidence.** `app/page.tsx:24`: `const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"]`. `CITY_COORDS` in `app/(app)/search/page.tsx` is a second hardcoded list of covered cities. `states` (37 rows) and `local_governments` (774 rows) are seeded.
+- **Action.** Derive the chips from where inventory actually is, and fall back to the current five when there is none. Two hardcoded city lists in two files will disagree the first time one is edited.
+- **Reason.** The chips are a coverage claim in the same category as the one A1-025 corrects, and they will be wrong in the specific direction that matters: still showing Enugu after the catalogue has filled up in Ibadan and Abeokuta.
+- **Impact.** The front door points at where the properties are.
+- **Effort.** S
+- **Risk.** Low. With an empty catalogue there is nothing to derive from, so the fallback is doing the work today and that is fine.
+- **Priority.** Nice-to-have
+
+#### A1-136. The welcome screen's redirect condition can strand somebody who skipped
+- **Evidence.** `app/welcome/page.tsx`: `if ((intent.asked || intent.interests.length > 0) && intent.welcomeSeen) redirect("/home")`. So somebody who saw the cards but has not been asked, or who was asked but has not seen the cards, stays on the screen. The comment says "Anybody who reaches the form has an empty `interests` and has never been asked", which the condition does not quite guarantee.
+- **Action.** Read the two halves separately and show only the half that is outstanding, which `FirstRun`'s `showCards={!intent.welcomeSeen}` prop suggests was the intent. I did not read `FirstRun`, so this may already be handled inside it.
+- **Reason.** A first-run screen that reappears is the most annoying possible bug, because it happens once per person and they cannot report it.
+- **Impact.** First run happens once.
+- **Effort.** S
+- **Risk.** None. **Unverified**: I did not read `components/app/welcome/FirstRun.tsx`, so check there first.
+- **Priority.** Nice-to-have
+
+#### A1-137. There is no explanation anywhere of why the catalogue is empty
+- **Evidence.** `docs/PRODUCT.md` section 9 records zero listings and calls the empty discovery surfaces "correct rather than broken". `RECOMMENDATIONS.md` VIBE-5 says the empty state is the product right now and is being designed as an accident, and DEMO-3 asks for the honest ways to make an empty platform feel alive.
+- **Action.** Say it, once, in the empty state, in the platform's own voice: every property here was put up by a real person who was checked first, we are opening area by area, and here is how to be told when this one opens. That last clause is A1-075.
+- **Reason.** An empty marketplace with no explanation reads as a broken marketplace. An empty marketplace that explains that it is empty because it refuses to list anything it has not checked is making its strongest argument at its weakest moment, and that is the only version of this that works.
+- **Impact.** The platform's current worst state becomes the place it makes its best case.
+- **Effort.** S
+- **Risk.** Low, and the wording must not use any banned word: no "coming soon", no "launching".
+- **Priority.** High
+
+#### A1-138. `/u` tells a person places switch on shortly, and the people directory has nothing to do with places
+- **Evidence.** `app/(app)/u/page.tsx:53-57`: `title="People switch on shortly"`, `body="The platform keys are not in place yet, so nobody's page can be read from here."`, `primary={{ href: "/around", label: "Go to Around" }}`.
+- **Action.** Covered by A1-020 for the copy. The additional point: the only way out of this screen is Around, which is also unreadable in the same condition, so the escape hatch leads to the same wall.
+- **Reason.** A dead end whose exit is another dead end is the specific thing the no-dead-ends rule exists to prevent, and it appears in at least three of the fifteen unconfigured states.
+- **Impact.** An outage leaves people somewhere they can actually use.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** Medium
+
+#### A1-139. The story composer is called "Write a story" and a story is defined as a picture post
+- **Evidence.** `app/(app)/stories/new/page.tsx` sets `metadata.title` to "Write a story" and `PageHeader title="Write a story"`. `docs/PRODUCT.md` section 7: "**Story** | A picture post that expires".
+- **Action.** Call it what it is. "Add a story" or "Post a story" both work and neither implies typing.
+- **Reason.** A person who taps "Write a story" expecting a text box and meets a camera has been misdirected by one word, and it is the word on the button.
+- **Impact.** The control describes itself.
+- **Effort.** S
+- **Risk.** None. **I did not read `StoryComposer`**, so if it does accept text this entry is void.
+- **Priority.** Nice-to-have
+
+#### A1-140. There is no way to report a listing without leaving the listing
+- **Evidence.** The safety page says "Every listing carries a report control". I did not read the listing screen and cannot confirm the control's placement; `[AGENT 3]` owns it. What I can evidence is that `REPORT_CATEGORY_ORDER` and `REPORT_CATEGORY_COPY` exist in `lib/reports/schema.ts` and are rendered on the safety page, so the vocabulary is shared.
+- **Action.** Confirm the control exists on the listing and that it carries the listing id into the report. If it does, this entry is void.
+- **Reason.** Stated as an unverified item rather than skipped. The claim is published on the safety page, and a published claim about a control's existence is worth one check.
+- **Impact.** Coverage.
+- **Effort.** S to check.
+- **Risk.** None. **Unverified.**
+- **Priority.** Nice-to-have
+
+#### A1-141. The assistant's price string bypasses the locale, so a price in the chat groups its digits differently from the same price on a card
+- **Evidence.** `app/api/assistant/route.ts:253-255` `priceLine` calls `formatMoney(l.priceMinor)` with no locale argument. `packages/i18n/src/index.ts:83` defaults `currency = "NGN"` and, from the signature shape at :156, locale is a parameter with a default. `app/(app)/assistant/page.tsx` reads `getLocale()` specifically so that "a rating or a price in the assistant's result cards must group its digits the same way as the same figure on the search page", and then the server formats the price without it.
+- **Action.** Pass the locale into `priceLine`. It arrives with A1-017's request body change.
+- **Reason.** The page comment states the requirement and the server breaks it. It is small and it is the exact class of inconsistency that makes a product feel assembled rather than designed.
+- **Impact.** One number formatting rule.
+- **Effort.** S
+- **Risk.** None. **I did not read `formatMoney`'s full signature**, so confirm the parameter order.
+- **Priority.** Nice-to-have
+
+#### A1-142. `formatMoney` is called with a bare amount in at least one server path, so the default locale decides
+- **Evidence.** As A1-141. I checked one call site and did not sweep for others. `KNOWN_GAPS.md` records that two counts in the social layer are formatted with a hardcoded `en-NG` and that the measurement says leave them, which is a different issue.
+- **Action.** Sweep for `formatMoney(` calls with a single argument and decide each one. A server path that has no reader has no locale and should say so; a path that has one should pass it.
+- **Reason.** Money formatting is the one thing on a property platform that a reader will notice is wrong, and a default that silently wins is how it drifts.
+- **Impact.** Consistent money everywhere.
+- **Effort.** S
+- **Risk.** None.
+- **Priority.** Nice-to-have
+
+#### A1-143. The offline page is precached and the offline experience is otherwise nothing
+- **Evidence.** `app/offline/page.tsx` is honest and well built: it uses a plain `img` so the optimiser cannot mint a URL the cache lacks, and its comment says "RentMe never answers a question about money, messages or bookings from an old copy, so this screen says that plainly rather than implying more works offline than really does." That decision is right. What does not exist is any offline read of the things that could safely be cached.
+- **Action.** Cache the shortlist and the last search results, read-only, clearly marked with when they were last fetched. Never cache money, messages or a booking, which the comment correctly refuses.
+- **Reason.** On the target network a person loses connectivity mid-session routinely, and the difference between an app that shows the flat you were looking at and one that shows a connection screen is the difference between a product that feels built for Nigeria and one that does not. The line the comment draws is the right line; there is room on the safe side of it.
+- **Impact.** The product works on the network it is for.
+- **Effort.** L
+- **Risk.** Medium. A stale price shown without a timestamp is worse than no price, so the staleness has to be on the screen, not in the cache policy.
+- **Priority.** Medium
+
+#### A1-144. There is no way for a person to export or see what the platform holds about them
+- **Evidence.** `HANDOFF_01` section 4.8 lists "User control: What a user can see, change, export, delete" with "Rights are stated. The export path is not built" and section 4.2 records that the rights channel correctly routes to the contact form. `/settings` offers appearance, language, notifications, privacy, interests, place and devices.
+- **Action.** A "Your data" screen listing the categories the platform holds, in the privacy notice's own vocabulary, with a request-a-copy control that files a support ticket. The by-hand fulfilment is legitimate and is what the privacy notice already promises; the missing piece is the door.
+- **Reason.** It is a stated right with no route in the product, and the landing FAQ tells people they can request a copy (A1-031). Under the Act the obligation exists whether or not the screen does, so the screen is the cheap part.
+- **Impact.** A stated right becomes exercisable. `[AGENT 2]` owns the fulfilment side.
+- **Effort.** M
+- **Risk.** Low. A request-a-copy control creates an obligation with a clock, so the queue has to be watched, which is A1-030's alert again.
+- **Priority.** Medium
+
+#### A1-145. Account deletion exists as code and has no audited user experience
+- **Evidence.** `HANDOFF_01` section 4.3: "Account deletion that actually deletes, or that anonymises and says so precisely. There is deletion code in `lib/profile/actions.ts`. Nobody has audited what it leaves behind." `en.ts:840` carries deletion copy: "Bookings already made stay on record with the host, as the law requires, but are no longer linked to you here."
+- **Action.** `[AGENT 2]` owns what the code leaves behind. The product half, which is mine: that one sentence is the only thing a person is told, and it is not enough. Before deleting, show them what will be removed, what will be kept and why, what happens to their wallet balance, what happens to their posts and reviews, and whether they can come back. Deleting an account holding money is the single highest-stakes irreversible action in the product.
+- **Reason.** A person deleting an account with a naira balance in it needs to know where the money goes before they tap, and today the copy does not say. That is a route to a person losing money, which is the Critical definition, and the only reason I am not marking it Critical is that I did not read the deletion code and cannot state that the balance is lost.
+- **Impact.** An irreversible action becomes an informed one.
+- **Effort.** M
+- **Risk.** Low to improve. **Unverified**: I did not read `lib/profile/actions.ts`; the wallet question needs answering before the copy is written.
+- **Priority.** High
+
+#### A1-146. The notification preference card is the best-executed small thing in my scope and its pattern is not reused
+- **Evidence.** `lib/email/recipients.ts` enforces the preference at recipient resolution rather than at each send site, with the reasoning stated: "There are nine send sites and there will be more, and a rule that has to be remembered at every one of them is a rule that will be forgotten at one." `tests/notification-preferences.spec.mjs` records that `private.notify` consults the same document, proven against live Postgres, and that the wallet row was rewritten because it "no longer promises what it cannot keep".
+- **Action.** Nothing to fix. Reuse the pattern for A1-004: a privacy preference should be enforced at the read that would expose the data, not at each render site, for exactly the reason this file gives.
+- **Reason.** Recorded as a positive with evidence, and as the answer to the defect in A1-004. The codebase already knows how to make a preference real; the privacy one was built differently.
+- **Impact.** A1-004 has a proven pattern to follow.
+- **Effort.** None.
+- **Risk.** None.
+- **Priority.** Nice-to-have
+
+#### A1-147. The intent-tuning gate is exactly right and is worth protecting
+- **Evidence.** `app/(app)/search/page.tsx:234`: `const statedIntent = hasOwnRequest(query) ? [] : tuning.interests`, with the comment at :209 explaining that `hasOwnRequest` is the gate and that if the address bar carries anything, the reader's own request wins over the stored preference.
+- **Action.** Nothing. Add a spec asserting that a query with any parameter set disables intent tuning, so the rule survives a refactor. `tests/intent-tune.spec.mjs` exists and may already do this, which I did not check.
+- **Reason.** Recorded as a positive. This is the decision most personalisation systems get wrong: a stored preference overriding an explicit request. Getting it right is worth naming so nobody "improves" it.
+- **Impact.** A correct rule stays correct.
+- **Effort.** S
+- **Risk.** None. **Unverified**: the spec may already exist.
+- **Priority.** Nice-to-have
+
+#### A1-148. The sitemap's exclusion of profiles and posts is a decision and should be revisited once there are people
+- **Evidence.** `app/sitemap.ts`: "`/u/[handle]` and `/post/[id]` are public and are deliberately absent. Both are somebody's own content rather than inventory, both need their own enumeration and their own opt-out, and neither is what a property marketplace is found for."
+- **Action.** Revisit once A1-005 gives profiles an opt-out, which is the condition the comment itself names. An agent's profile with their listings on it is inventory by another name and is a page worth being found on. A member's is not.
+- **Reason.** The reasoning is sound and the condition is stated. Recording it so the decision is revisited deliberately rather than forgotten, since the blocker is a feature this report already asks for.
+- **Impact.** Agent profiles become discoverable once the privacy control exists.
+- **Effort.** S, after A1-005.
+- **Risk.** Low. Only agent profiles, only with consent.
+- **Priority.** Nice-to-have
+
+#### A1-149. The example-listing share card is the right answer and it should be the model for the sale market too
+- **Evidence.** `lib/listings/syndication.ts:238-264`: an example listing's Open Graph card "carries no property title, no place and no price. A card that named the property would advertise it in every thread the link is pasted into, which is the same fabricated advertisement the crawler rule exists to prevent, only travelling by hand instead of by robot."
+- **Action.** Nothing to fix. When the sale page is built under P-8, apply the same reasoning to any listing whose `sale_status` is `sold`: a sold property's share card should not advertise a property that is gone.
+- **Reason.** Recorded as a positive and as a pattern to extend. It is the clearest demonstration in the codebase of thinking one step past the obvious requirement.
+- **Impact.** The reasoning carries into the sale market.
+- **Effort.** S, later.
+- **Risk.** None.
+- **Priority.** Nice-to-have
+
+#### A1-150. The four-hour urgent commitment has no path from the app, only from the public site
+- **Evidence.** The safety page's "Report someone" button points at `/contact?topic=safety`, which is a `(site)` page. `middleware.ts` does not gate `(site)`, so a signed-in person can reach it, but nothing in the `(app)` shell routes there: `/safety` is not linked from the app navigation that I read.
+- **Action.** Put a route to the safety centre and the report path in the app, not only on the marketing site. A person being defrauded is inside the app, in a conversation, not browsing the footer.
+- **Reason.** The trust surfaces are on the marketing site, which is where somebody deciding whether to join reads them. The person who needs them most is already a user and is somewhere else.
+- **Impact.** The safety path is reachable from where the danger is.
+- **Effort.** S
+- **Risk.** None. **Unverified**: I read `SiteHeader` and `SiteFooter` but not `AppShell`'s navigation, so a link may exist.
+- **Priority.** Medium
+
+#### A1-151. Nothing in the product explains what happens to a listing between submission and publication
+- **Evidence.** `listing_status` has eight values including `SUBMITTED`, `UNDER_REVIEW` and `MORE_INFO_REQUIRED`. `RESPONSE_COMMITMENTS.routine` is 72 hours and covers "Agent applications, verification documents, appeals". `app/(site)/help/page.tsx` says "once approved you can publish listings from the agent dashboard" and does not say how long approval takes or what `MORE_INFO_REQUIRED` means.
+- **Action.** State it on the supplier page in A1-022 and in the agent workspace: what each state means, how long it takes, and what happens when more information is needed. The states are well designed and the agent cannot see what they mean.
+- **Reason.** An agent whose first listing sits in `UNDER_REVIEW` with no stated timescale assumes it has been ignored, and an agent who loses confidence in the review queue stops listing. Supply is the constraint and this is a supply-retention defect.
+- **Impact.** Agents wait patiently because they know what they are waiting for.
+- **Effort.** S
+- **Risk.** None. `[AGENT 2]` owns the workspace screen; this is the content.
+- **Priority.** Medium
+
+#### A1-152. `experience` should be removed from `ListingKind` rather than added to the database
+- **Evidence.** `RECOMMENDATIONS.md` P-4 records that `ListingKind` carries `experience` and `property_type` does not, and asks for them to agree without saying which way. `KIND_NOUN` and `KIND_ORDER` in `search-params.ts` both include it, the landing page links to it (A1-013), and the root Open Graph description advertises it.
+- **Action.** Resolve P-4 by deleting `experience` from the union, not by adding it to the enum. An experiences market is a fifth market on a platform that cannot transact in three of its existing four, and `docs/PRODUCT.md` section 1 already records that what survived from the original product survived because a person looking for somewhere to live also eats and travels. An experience is not that.
+- **Reason.** P-4 leaves the direction open and the cheap answer is to add the enum value, which would commit the platform to a market nobody has designed, priced or moderated. Recording the recommendation so the decision is made rather than defaulted.
+- **Impact.** One fewer market to build, and `experience` stops appearing in copy and links.
+- **Effort.** S
+- **Risk.** Low. It is the owner's call whether experiences are ever a market, so this is a recommendation and not a decision I should make alone.
+- **Priority.** Medium
+
+---
+
+## 7. The retention thesis
+
+**The honest starting point is that there is no reason to open Vallo a second
+time today, and that is a structural fact rather than a missing feature.** Every
+one of the eight `notification_kind` values is reactive. The platform can only
+speak when a person has already acted, and the only action a person can complete
+is a nightly booking, which is a once-a-year event for most Nigerians and a
+never event for the market the company is named after. `saved_searches` has no
+writer. Nothing watches a saved listing. There is no tenancy, so there is no
+renewal. The verification ladder never expires, so there is no standing to
+maintain. The wallet is a checkout screen. This is why I scored retention
+potential at 26: not because the assets are weak, but because nothing has been
+connected to them.
+
+**The first thing to be clear about is that a property search is a two to eight
+week project, and the platform currently treats it as a session.** Before
+anybody worries about the year-round relationship, there is a much nearer
+problem: a person hunting for a flat in Lagos opens four or five apps and
+WhatsApp groups over six weeks, and the one they open most is the one that
+remembers what they are doing. Vallo forgets. A signed-out visitor cannot save a
+listing at all (A1-007). A signed-in one gets a flat list with no notes and no
+comparison (A1-053, A1-054). A search cannot be saved (A1-015). Recently viewed
+lives on one device (A1-052). So on visit two, the platform looks exactly as it
+did on visit one, which teaches a person that opening it tells them nothing new.
+The cheapest retention work available is not a new feature, it is making the
+product remember the search that is already happening. That is A1-007, A1-008,
+A1-015, A1-053 and A1-074, and every one of them is small or medium.
+
+**The second thing is that the tenancy is the product and the platform does not
+have one.** This is why A1-001 sits at the top of the recommendations: it is a
+Critical product gap in its own right, and it is also the gate on every
+durable retention mechanism. A tenancy row with a start date, an end date and a
+paid breakdown gives the platform three things it cannot otherwise have. A
+receipt, which a Nigerian tenant currently keeps in a WhatsApp thread and loses
+when they change phone. A renewal date, which is the only annual contact point
+in the whole relationship and is a moment when the person genuinely needs to
+decide something. And an expiry reminder sixty days out, arriving with what is
+available now at the same budget in the same area, which is the single
+highest-value message this platform will ever send anybody. A one-search product
+becomes an annual cycle, and it does so without a single manipulative
+mechanic: the message exists because the tenancy exists and the date is real.
+
+**The third thing is that the platform is sitting on the best retention idea in
+this market and has not built it.** `docs/SOCIAL_DESIGN.md` section 6 designs a
+resident-reported utility record with weighted reporters, conflict-of-interest
+penalties and a published agreement score, and calls it the whole wedge and "the
+entry people come back for". `grep -c "area_utility"` against the generated types
+returns zero. Two supporting columns exist on `area_members` and there is nothing
+behind them. I want to be direct about why this matters more than anything else
+in this section. Power is the thing everybody in Lagos talks about every single
+day. A product that tells you whether the light is on around Gbagada, sourced
+from people who live there, is a product people open in the morning. It has
+nothing to do with moving house, which is exactly what makes it a retention
+engine rather than a search tool. It produces a listing signal no competitor can
+fabricate, because you cannot fake 212 residents agreeing for 90 days. And per
+section 11 it is the only monetisation path that respects rule 8: an
+estate-level power history sold to a developer charges no member and no agent.
+It is XL effort and it is gameable if built carelessly, and section 6 already
+contains the six defences. It should be built, in three Lagos areas, with the
+conflict-of-interest weighting and the daily cross-area cap in version one.
+
+**The fourth thing is that agents are the half of the market with a daily
+reason to open the app, and serving them serves everything else.** A renter's
+need is episodic and an agent's is continuous: they have enquiries to answer,
+viewings to arrange, listings to improve and money to track. That is a product
+somebody opens every working day. It is also the product that produces
+inventory, and with no inventory none of the renter-facing retention ideas have
+anything to retain anybody with. Three things in my scope would move this most.
+A public supplier page, because the supply funnel currently consists of a button
+that asks a stranger to register before telling them anything (A1-022, Critical).
+An honest payout story, because the current one promises automatic payment after
+a completed stay and `booking_status` has no COMPLETED (A1-021). And the
+views-against-enquiries pair, because it is the feedback loop that makes an
+agent better at listing, which improves the catalogue without any moderation
+(A1-129). An agent who can see that a listing got two hundred views and no
+messages can fix the price; an agent who can see nothing blames the platform.
+
+**The fifth thing is the diaspora, and it is at zero.** The company has a growth
+officer in the UK and `grep -rniE "diaspora|abroad|overseas|remittance"` across
+the whole application returns two code comments about timezones. A person in
+Huddersfield cannot store their phone number (A1-086, and `lib/phone.ts`
+hardcodes `+234` in five places). Nothing asks whether they are outside Nigeria
+(A1-087). There is no remote inspection (A1-064) and no way to nominate somebody
+to view on their behalf (A1-065). Paying from outside is a processor and
+compliance question the founder has to answer (A1-088). This is the segment with
+the most money, the worst alternatives and the highest fraud exposure, and the
+thing they need is not a feature but a chain: know who they are, let them see the
+property through somebody else's eyes, let somebody they trust stand in the room,
+and let them pay without wiring money to a relative. A recorded, timestamped
+video walkthrough attached to an inspection record is a genuinely new product in
+this market and costs the platform nothing but storage. I would sequence the
+diaspora work after the tenancy and before the utility record, because it needs
+less than the utility record and is worth more than almost anything else on the
+list.
+
+**The sixth thing is that trust is the retention mechanism, and this is the part
+that is most nearly built.** The alternative to this platform is a WhatsApp group
+where people get defrauded, and every mechanism that makes a person feel safer
+transacting is a reason they come back rather than go back to the group. The
+platform already has a four-rung verification ladder with a written meaning per
+rung, a scanner on eight tables, a report queue with a published clock, an
+immutable audit line and an inspection state machine. What is missing is that
+almost none of it is visible to the person it protects. The ladder reaches a
+listing card as one boolean (A1-032). A person who reports a fraud cannot see
+what happened to their report (A1-035). An inspection produces no record of
+whether the property matched (A1-062). Nobody can check whether a message
+claiming to be from Vallo is (A1-124). Making the existing trust machinery
+visible is mostly small work and it is the highest-leverage retention spend in
+the whole report, because trust is the only thing this platform has that the
+WhatsApp group cannot copy.
+
+**The seventh thing is the one place I would refuse to go.** Several obvious
+retention mechanics are available and all of them are banned by rule 12, and I
+want to name them so nobody reaches for them later. A waiting-list count shown
+to a prospective renter ("nine other people are waiting") is manufactured
+urgency whether or not it is true, which is why A1-132 sends that count to the
+agent only. A view count on a listing invites inflation and the platform's own
+history includes fabricated ratings. A streak, a daily check-in reward, or a
+notification designed to produce a session rather than to tell somebody
+something are all the same mechanic wearing different clothes. The test I applied
+to every entry in section 6 was the one the handoff sets: if it only works
+because the user is confused, it is out. The reason this matters commercially
+rather than only ethically is that this platform's entire pitch is that it is the
+trustworthy place to do a transaction people currently get defrauded in. A
+manipulative pattern here costs more than it earns anywhere.
+
+**The eighth thing is that performance is retention and I did not measure it.**
+Section 23.3 is right that every idea above is worthless if the app takes nine
+seconds to open on a mid-range Android phone on a Nigerian network. I ran no
+measurement, so I cannot tell you where that stands. I can say that the
+architecture shows the right instincts everywhere I looked: the view preference
+is a cookie so the first paint is correct, `/u` is a GET form so a people search
+costs no JavaScript, the filters are links so nothing hydrates to navigate,
+`save-data` is plumbed, and PERF-1 records home going from 3.6MB to 28KB under
+Save-Data. If those instincts hold under measurement, performance is not the
+constraint. Somebody should measure it.
+
+### The ranked list
+
+Ranked by return per unit of effort, not by size. The first five are all small
+or medium.
+
+1. **Let a signed-out visitor save, and promote those saves on sign-up.** A1-007, A1-008, A1-100. S each. The lowest-commitment step in the funnel is currently a wall.
+2. **Open the front door.** A1-003, A1-115. S. Sixteen links on the landing page refuse to show a stranger a property the middleware would happily show.
+3. **Save the search and alert on a match.** A1-015, A1-075, A1-080. L in total, and it is the most cited retention mechanism in the property category for a reason. Its side effect is that an empty catalogue becomes a demand-signal waiting list.
+4. **Make the existing trust machinery visible.** A1-032, A1-035, A1-062, A1-124. M in total. The platform already built the hard part.
+5. **A public supplier page.** A1-022. M, Critical. Without inventory nothing else retains anybody.
+6. **Watch the shortlist and give it notes and comparison.** A1-016, A1-053, A1-054. M. Turns a list into the place the decision is made.
+7. **Finish the inspection into a real workflow.** A1-059, A1-060, A1-061, A1-062. S to M each. Four small pieces that together make the inspection the differentiator section 21 says it should be, and A1-061 is a duty of care as much as a feature.
+8. **The tenancy, and everything it unlocks.** A1-001, A1-078, A1-002, A1-122. XL, Critical. The single largest piece of product work on the platform and the gate on the annual relationship.
+9. **The diaspora chain.** A1-086, A1-087, A1-064, A1-065, then A1-088 once the founder has answered the processor question. M to XL. The clearest differentiation available.
+10. **The utility record.** A1-041. XL. The highest ceiling of anything in this report and the only monetisation path that respects rule 8. Three Lagos areas, section 6's defences intact.
+11. **Verification as a status people maintain.** A1-033. L. Do it after A1-032, because there is no point expiring a rung nobody can see.
+12. **The wallet as a habit.** A1-079. L, Future, and gated on a regulatory answer the founder owns. Do not build it before that answer.
+
+---
+
+## 8. The five questions, in plain language
+
+### Where are we now
+
+Vallo is a very well engineered product that cannot complete its primary
+transaction. The nightly-stay loop works end to end. Renting, which is the market
+the company is named for, can be searched, messaged and inspected and cannot be
+paid for. Buying cannot be rendered at all. Reviews are impossible outside
+nightly stays. The public site refuses to show a stranger a property. Four
+languages ship and the transaction path speaks one. The craft is
+unusually high: the comments, the refusal to fabricate, the money discipline and
+the empty-state design are better than most funded companies manage. The
+completeness is that of a prototype in three of its four markets.
+
+### What is holding us back
+
+Three things, in order.
+
+The rent transaction, because it is the market, and because every retention
+mechanism worth building needs a tenancy record that only it can create.
+
+The last connecting piece, repeatedly. This is the pattern across my whole scope:
+`saved_searches` with no writer, `events` with no query, a verification ladder
+that reaches a card as a boolean, a utility record with two columns and no table,
+a supplier page with eight links and no page, an inspection with a time and no
+address, a privacy switch nothing reads. None of these is a hard engineering
+problem. Each is a decision that was made, built most of the way, and left one
+step short. There are enough of them that the product feels unfinished
+everywhere while being nearly finished almost everywhere.
+
+The distance between the documents and the code. I nearly missed the largest
+finding in this report because `docs/PRODUCT.md` says the rent path ends in "then
+pay". I nearly missed the second largest because `docs/SOCIAL_DESIGN.md` section
+6 describes the utility record in the present tense. The handoff's rule that the
+code outranks the document is correct and it is load-bearing, and it means the
+documents are currently costing reading time rather than saving it.
+
+### What are the biggest risks
+
+**Publishing a promise the product cannot keep.** I found nine: NDPA compliance
+as a fact, automatic payouts after a completed stay the enum cannot record, "pay
+on Vallo" for a rental with no payment path, a four-hour response commitment
+with no on-call, duplicate photograph checking that does not exist, listing text
+scanning that does not exist, a privacy switch nothing reads, a data export with
+no route, and a "Become an agent page" that is not a page. Each one individually
+is survivable. Together they establish a pattern, and the pattern is the risk:
+this platform's only asset is being believed.
+
+**The safety page contradicting the product.** It tells a renter never to pay an
+agency fee to anybody, and the listing model itemises an agency fee. The first
+time a renter notices, the page stops working, and that page is the whole
+argument against the WhatsApp group.
+
+**Launching the rent market before it can transact.** The brand, the landing
+page, the safety centre and the primary route are all built around renting. If
+traffic arrives before A1-001 lands, every renter who gets as far as wanting to
+pay leaves the platform to do it, which is the exact transaction the product
+exists to protect and the exact one where people get defrauded.
+
+**Supply never arriving.** There is no public page pitching to agents, the payout
+story is aspirational, and there is no feedback loop that makes an agent better at
+listing. Agents bring the inventory and the funnel that reaches them does not
+exist.
+
+**Building the utility record carelessly.** It is the highest-ceiling idea on the
+platform and a gamed version of it would mean publishing numbers an agent wrote
+about their own estate, under the platform's name, as a trust signal. That would
+be worse than not having it.
+
+### What are the biggest opportunities
+
+**The tenancy as an annual relationship.** Nobody in this market holds a
+renter's agreement, receipts and renewal date. Whoever does owns the customer for
+the length of their tenancy rather than for the length of a search.
+
+**The true cost of moving in.** The platform already collects `agency_fee_minor`,
+`legal_fee_minor`, `agreement_fee_minor`, `caution_deposit_minor` and
+`total_move_in_cost_minor` as indexed columns, and the product rule already says
+the card should lead with the total. It cannot currently be filtered or sorted on
+and nothing explains what the lines mean. Every competitor leads with the rent
+and buries the fees. This is the differentiator, it is already in the database,
+and it is one filter and one sort away from being real.
+
+**The utility record.** Detailed above. The only idea in the report with both a
+daily-return mechanism and a revenue path that respects rule 8.
+
+**The diaspora.** Highest value per transaction, worst current alternatives, a
+growth officer already in the market, and a product surface at zero. A recorded
+remote inspection plus a nominated local viewer plus a way to pay is a product
+nobody offers.
+
+**Power and water as structured data.** Five-value enums plus backup hours plus
+prepaid meter plus estate access, on partial indexes, with nobody else in the
+market holding any of it. Currently exposed as two yes-or-no filters.
+
+**The inspection as the transaction.** Section 21 is right that the fraud happens
+between first contact and first payment. The state machine is built. Add the
+address, the reminder, the tell-somebody-where-you-are-going control and the
+as-described question, and the inspection becomes the reason to use Vallo rather
+than a form inside it.
+
+### What would move Vallo from its current state to 100 out of 100
+
+Not more features. In order:
+
+**Close the rent loop.** Tenancy offer, itemised move-in payment through the
+existing shared settlement path, a receipt, a renewal date. Until this exists the
+platform is a listings site with excellent hygiene.
+
+**Make every published claim true.** Nine of them are listed above and every fix
+is small. Then add the specs that keep them true, in the same way the em dash and
+banned-word specs already work: those two rules are held because something checks
+them, and every rule in this report that is broken is broken because nothing does.
+
+**Finish the last connecting piece, forty times.** Write to `saved_searches`.
+Surface the ladder's tier. Scan listing text. Add the `(app)` loading boundary.
+Promote local saves. Read `hideActivity`. Put a supply rail on the area page. Send
+the locale to the assistant. None of these is a day's work and together they are
+the difference between a product that feels nearly finished and one that feels
+finished.
+
+**Localise the transaction path, not just the shell.** Give the dictionary a home
+for search, listing, saved, messages and notifications, and localise the safety
+centre first. The four-language claim is currently cosmetic on every screen where
+money is involved.
+
+**Build the two things nobody else can.** The utility record and the diaspora
+chain. Everything else in this report makes Vallo a good property platform. These
+two make it the one people wish already existed.
+
+**Measure what I did not.** Performance on a mid-range Android on a Nigerian
+network, accessibility with a real screen reader, and both themes at 390px. I
+checked the source and not the product, and a rating built on source is a rating
+with a ceiling.
+
+---
+
+## 9. Count by priority
+
+| Priority | Count |
+| --- | --- |
+| Critical | 5 |
+| High | 57 |
+| Medium | 66 |
+| Nice-to-have | 21 |
+| Future | 3 |
+| **Total** | **152** |
+
+The five Critical entries: **A1-001** the rent market cannot transact, **A1-002**
+no renter or buyer can leave a review, **A1-003** the landing page refuses to show
+a stranger a property, **A1-004** a privacy switch nothing reads, **A1-022** there
+is no public page pitching to agents.
+
+**On the count.** The brief asked for at least 150 and said inventing filler to
+reach a number is the one way to fail. The sweep produced 152 and I stopped
+because I ran out of things I could evidence, not because I hit the target. Six
+of the 152 are recorded as positives with little or no work attached (A1-040,
+A1-110, A1-111, A1-146, A1-147, A1-149) because the brief asked for brutal
+honesty, and a report that lists only faults is not an honest account of this
+codebase. Nine entries are explicitly marked **Unverified** and say what I did not
+check: A1-076 and A1-045 are corrections where my first conclusion was wrong and
+the entry records both the wrong version and the right one, because that is more
+useful to the next reader than a clean entry would be. Twelve entries build
+explicitly on existing `RECOMMENDATIONS.md` entries rather than duplicating them,
+and each names the entry it builds on so the queues can be merged: S-4, N-1, N-2,
+N-3, N-6, P-2, P-4, P-6, P-8, P-9, P-10, O-4, O-5, V-1, V-3, V-6, V-7, E-2, E-3,
+LG-1, LG-4, MED-1, MED-2, MED-3, MOB-1, MOB-2, MOB-4, RN-2, RN-3, T-9, BE-10,
+VIBE-5, DEMO-3, AI-1, AI-4, PERF-1, KYC-6, FEE-2, M-3.
