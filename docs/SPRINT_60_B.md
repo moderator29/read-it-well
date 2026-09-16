@@ -78,12 +78,24 @@ duplicated inside the material itself.
    304 before the sprint and 208 this morning. `check-css-tokens` counts them
    and does not yet enforce them.
 7. **987 arbitrary font sizes migrate to the ten step scale.** 45 distinct
-   `text-[…rem]` values. L-90
+   `text-[…rem]` values. L-90. Measured again on 16 September: 979, of which
+   five are in owner A's scope and all five are correct (an iOS zoom threshold
+   and four em-relative sub-parts). The other 974 belong to owners B and L, so
+   this is not the material owner's item to finish. See the correction under
+   item 9: the rule meant to hold it at zero does not exist yet.
 8. **2,635 raw spacing steps migrate to the eleven step ladder.** L-138
 9. **Then the design-system lint rules become errors.** This is the close of
    items 6, 7 and 8 rather than a job of its own, and `eslint.config.mjs`
    says so in its own header. Until it lands, none of the three stays fixed.
    L-135
+   **Correction, 16 September.** This item and item 7 both assumed three
+   design-system rules. There are two. `apps/web/eslint-rules/` holds
+   `no-raw-colour.mjs` and `no-raw-spacing.mjs`, the config registers those two,
+   and **`nf/no-arbitrary-font-size` has never existed**, so the 979 arbitrary
+   font sizes item 7 counts have nothing watching them and cannot be held at
+   zero once cleared. Writing the rule is now the first item of owner A's
+   second block. Verified by reading the rules directory and the config, not
+   inferred from the warning output.
 10. **`.nf-overline` stops being 11.5px uppercase in muted ink.** At that size,
     that tracking and that contrast it is the least readable text in the
     product, and it labels most sections on the landing page. L-96
