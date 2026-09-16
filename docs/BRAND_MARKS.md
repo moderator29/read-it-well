@@ -44,8 +44,8 @@ together or the set reads as two sets.
 Ten unique sheets, in `assets/brand-sheets/`. Twelve were supplied and two were
 byte-for-byte duplicates, confirmed by checksum before deletion.
 
-**210 objects, all sliced, keyed to alpha and named.** 140 are delivered as
-files in `apps/web/public/brand/glass/`: 104 objects at 256px, 24 light twins,
+**210 objects, all sliced, keyed to alpha and named.** 139 are delivered as
+files in `apps/web/public/brand/glass/`: 103 objects at 256px, 24 light twins,
 and 12 wide hero scenes at source resolution. 3.3MB in total, against 6.5MB for
 the 87 clay objects still live in `apps/web/public/brand/icons/`.
 
@@ -79,13 +79,13 @@ as the transparent part, so on a dark ground it inverts.
 So a mark that must work in both themes needs **two files, not one recolouring**,
 and the two share a name: `glass/<name>.png` and `glass/light/<name>.png`.
 
-**Only the 24 transaction marks have a twin today.** For the other 80 objects the
-answer is not 80 more files. **The dark artwork on a navy chip in daylight was
+**Only the 24 transaction marks have a twin today.** For the other 79 objects the
+answer is not 79 more files. **The dark artwork on a navy chip in daylight was
 tested and is better than the bare object on white**, and it is the most premium
 the set looks anywhere. `--nf-icon-ground` is already the flat plate `BrandIcon`
 draws behind an untiled object, and it already resolves to `transparent` in the
 light theme because the clay artwork needs nothing there. Pointing it at the base
-navy solves 80 objects with one token.
+navy solves 79 objects with one token.
 
 Commission the light pass of the remaining six sheets only for the places an
 object must sit bare on paper with no chip allowed: **email, print, and a

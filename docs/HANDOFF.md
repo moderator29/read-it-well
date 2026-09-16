@@ -129,7 +129,7 @@ older one, and everything below is current as of this handoff.
    ink version of it is a new render, not a filter. One mark serves both
    themes.
 9. **The content objects are glass now, not clay.** As of 16 September 2026,
-   `apps/web/public/brand/glass/` holds 104 objects, 24 light twins and 12 wide
+   `apps/web/public/brand/glass/` holds 103 objects, 24 light twins and 12 wide
    hero scenes, cut from ten sheets the founder supplied. They are in the LOGO's
    language: a transparent object lit from inside, electric blue, rendered on
    black, with a bloom that is part of the mark rather than decoration around it.

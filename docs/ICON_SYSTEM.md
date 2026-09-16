@@ -15,7 +15,7 @@ is defined nowhere in the codebase.
 `apps/web/public/brand/icons/*.png`.
 
 **A replacement set exists and is not wired up.** As of 16 September 2026,
-`apps/web/public/brand/glass/` holds 104 glass objects, 24 light twins and 12
+`apps/web/public/brand/glass/` holds 103 glass objects, 24 light twins and 12
 hero scenes, cut from ten sheets the founder supplied, in the logo's own
 language rather than the clay one. **Nothing points at it yet.** The inventory
 below is still what the product draws. `docs/BRAND_MARKS.md` describes the glass

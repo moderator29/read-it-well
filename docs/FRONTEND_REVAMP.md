@@ -17,8 +17,48 @@ recommendations here are a separate set with their own prefixes.
 Written after the work below, so it reflects what was found rather than what was
 expected.
 
-*(Filled in at the end of this document, once the audit sections below have been
-read. See section 8.)*
+**Three ratings, from three people who looked at different halves of it, and they
+agree.** 31/100 for the landing page, 42/100 for the property card, 38/100 for
+discovery, 55/100 for auth (agent one). 6/10 for the visual product overall
+(agent three). Agent two declined to give the in-app product a single number
+because it could not see a signed-in screen, and said so rather than inventing
+one.
+
+**The one sentence.** The engineering underneath this is genuinely strong and the
+surface inherits almost none of it: a token system with an eleven step space
+ladder, a six rung elevation ladder and a ten step type scale sits underneath 987
+arbitrary font sizes and 2,635 raw spacing steps, so the product looks like a
+design system nobody was allowed to use.
+
+**293 recommendations** were produced: 150 on the look and the landing page, 76
+on money and operator surfaces, 67 on the public and discovery product. They are
+sections 5, 6 and 7. Section 9 is the fifty to do first.
+
+**Five things make this read as an AI-generated app**, and all three agents
+independently landed on overlapping answers. The lead's summary of the union:
+
+1. **The logo is not a logo, it is a crop with no alpha channel.** Every brand
+   asset in the product is an opaque rectangle. The header paints a navy square
+   with a mark inside it; in the light theme the wordmark is a black slab. This
+   is the founder's own "make the logo more visible" complaint, and the cause is
+   the asset rather than the size.
+2. **Content-free superlatives in a grid.** "AI Assistant / Smart help 24/7",
+   "Verified Listings / Trusted and secure", "Best Prices / Save more", "Easy
+   Booking / Fast and simple", in a two by two. Two of the four are claims the
+   database refutes.
+3. **Fabricated numbers with a rising chart behind them.** `PULSE = [3,5,4,7,...]`
+   is a hardcoded growth line and `"17+"` verified listings is a literal, under a
+   heading that says "the same real numbers". The true number is zero.
+4. **Eighteen bands and 10,862px on a phone**, roughly thirteen screens. A
+   landing page that says everything says nothing.
+5. **Six layers of glass around a 24px icon, 423 times.** `.nf-card` carries a
+   radial bloom, a three stop fill, a four stop gradient border, a backdrop blur,
+   an inset rim and an elevation shadow, in one declaration. The landing page
+   paints forty of them, so it has forty individually glowing corners.
+
+**And the single worst thing found is not a visual defect at all.** The wallet
+tells a user their money is held in escrow. The terms of service say it is not.
+Section 6 has it.
 
 ---
 
@@ -49,8 +89,8 @@ light artwork that do not exist, not seven.
 | `7EE388E5` | 6 | Hero scenes: the assistant, trips, schedule |
 | `8DBE517E` | 6 | Hero scenes: property, reach, growth, trust, app, support |
 
-**210 objects.** All 210 are sliced, keyed to alpha and named. 140 are delivered
-as files: 104 objects, 24 light twins, 12 hero scenes, **3.3MB in total against
+**210 objects.** All 210 are sliced, keyed to alpha and named. 139 are delivered
+as files: 103 objects, 24 light twins, 12 hero scenes, **3.3MB in total against
 6.5MB for the 87 objects in `brand/icons` today.**
 
 ### 2.2 The sheets are three passes over one vocabulary, not three vocabularies
@@ -359,7 +399,7 @@ dark card, `#F4F5F7` light canvas, `#FFFFFF` light card.
 No `invert()`, no `hue-rotate()`, no opacity change gets from one of these to the
 other, because the difference is which parts of the object are transparent.
 
-**And only 24 of the 104 objects have a twin.** So the recommendation is three
+**And only 24 of the 103 objects have a twin.** So the recommendation is three
 parts, and the middle one is the important one:
 
 1. **Use the twins for the 24 that have them.** They share their names with their
@@ -367,15 +407,15 @@ parts, and the middle one is the important one:
    prefix and a single line: `/brand/glass/light/${name}.png` against
    `/brand/glass/${name}.png`. No lookup table, no second inventory.
 
-2. **For the other 80, put the object on a navy chip in daylight.** This was
+2. **For the other 79, put the object on a navy chip in daylight.** This was
    tested rather than assumed, and it is in `docs/img/glass-in-daylight.png`: the
    dark artwork on `#010118` on a white card is not a workaround, **it is better
    than the bare object on white**, and it is the most premium the set looks
    anywhere. The mechanism already exists. `--nf-icon-ground` is the flat plate
    `BrandIcon` draws behind an untiled object; it resolves to `transparent` in
    the light theme today because the current clay artwork needs nothing there.
-   Change that one token to the base navy and 80 objects are solved. **One token,
-   not 80 files.**
+   Change that one token to the base navy and 79 objects are solved. **One token,
+   not 79 files.**
 
 3. **Commission the light pass of the remaining six sheets** only for the places
    an object must sit bare on paper with no chip allowed: email, print, and a
@@ -399,7 +439,7 @@ scripts/slice-icon-sheets.mjs   measure the geometry, cut
 scripts/cut-icon-ground.mjs     key out the ground, recover the glow
 scripts/icon-manifest.mjs       what all 210 are, and which drawing wins
 scripts/name-icon-objects.mjs   write the named set and the report
-apps/web/public/brand/glass/    104 objects, 256px
+apps/web/public/brand/glass/    103 objects, 256px
 apps/web/public/brand/glass/light/   24 light twins
 apps/web/public/brand/glass/hero/    12 wide scenes, source resolution
 apps/web/public/brand/icons/    the 87 clay objects, UNTOUCHED and still live
@@ -1987,3 +2027,799 @@ across four conditions on a full-page scroll (baseline, reveal blur off, all
 every frosted surface in the product buys nothing measurable. **Do not remove
 glass for speed.** The agent asks for this to be re-measured on a production
 build before anyone acts on it, which is the right caveat.
+
+---
+
+## 7. Agent three: the look, the landing page and the logo
+
+**Scope:** the brand surface and the visual language platform-wide, plus the
+landing page as a piece of art direction, and the logo's prominence. Launched
+after the founder asked, in their own words, to "make the logo more visible,
+upgrade the looks and entire view on the landing page ... widen every single
+layer and vibe, premium glass, clean buttons, legendary Apple iPhone style".
+
+**What the lead re-checked before committing this, and it is the founder's own
+complaint answered.**
+
+The agent's first finding is that **the logo is not a logo, it is a crop**.
+Verified, and the measurements are exact. `apps/web/public/brand/vallo-mark.png`
+is 640x640, **three channels, no alpha**, and its top-left pixel is
+`rgb(73, 126, 249)`, which is bright blue. **Every brand asset in the product is
+an opaque rectangle**: `vallo-icon.png`, `vallo-logo.png` and `vallo-wordmark.png`
+all report `hasAlpha: false` as well.
+
+So the header does not paint a mark, **it paints a navy square with a mark inside
+it**, with a hard rectangular edge against whatever it sits on. In the light
+theme the wordmark is a **black slab**. `docs/img/logo-has-no-alpha.png` is that,
+photographed on a dark card and a white card.
+
+**And the fix is a technique this session has already built and proved.** The
+same luminance-keyed alpha with unpremultiply that cut 210 glass objects out of
+black works on the logo, because it is the same artwork family: additive light on
+a dark ground. `docs/img/logo-mark-routes.png` shows three states of the mark: as
+it ships, the same crop keyed, and re-derived from the tile and keyed.
+
+The honest reading of that image, which is more careful than the finding:
+
+- **The wordmark is an immediate win.** Keyed, it goes from a black slab to clean
+  glass letters that work on both themes. That one is ready.
+- **The mark cannot be fixed by keying alone, because the defect is the crop.**
+  Keying removes the hard edge and leaves a corner artefact where the crop caught
+  the tile's own bloom. The mark needs re-deriving from `vallo-icon.png`, which
+  holds the whole mark with room around it, and then keying. The lead's first
+  attempt at that region clipped the swoosh, which is why it is a recommendation
+  with a proven route rather than a committed asset: **choosing the crop is a
+  design decision and the founder should see it.**
+- **On a light ground the keyed mark reads pale**, exactly as the icons do, and
+  the answer is the same one: a navy chip, or a proper ink render. See section
+  2.8.
+
+**Also verified:** `openGraph` in `app/layout.tsx:67` has a title, a description
+and a `siteName` and **no `images` key**, and there is no `opengraph-image`,
+`twitter-image` or static OG file anywhere under `app/`. Every Vallo link pasted
+into WhatsApp renders as a blank grey rectangle. One thing the agent did not say
+and the lead noticed while checking it: that same block still describes the
+product as "homes, hotels, restaurants, experiences and more", which is the
+travel-app description `PRODUCT.md` retired.
+
+Read first: `docs/HANDOFF_03_FRONTEND.md` in full, `docs/HANDOFF.md` sections 1 and 2.1, `packages/design-tokens/src/tokens.css` (all 1,221 lines), `apps/web/src/app/css/*.css` (6,566 lines). Screenshots taken against the dev server already running on port 3210, in both themes, at 390px and 1440px, saved to `/tmp/claude-0/-home-user-read-it-well/0bd2d0e0-b049-5184-9760-e5c9e40e5011/scratchpad/agent3/`. Live counts re-verified against Supabase `uccixoonmbhrnyczyigt`: 64 listings, **0 listing_photos**, 0 reviews, 6 profiles of which **1** has an avatar, 1 agent.
+
+No file in the repository was edited, created or deleted. No git command was run. No write SQL was run.
+
+---
+
+#### A. RATING
+
+**6 / 10.**
+
+The foundation is genuinely 8 out of 10 work and the application of it is 4 out of 10: a beautifully argued token system with an eleven step space ladder, a six rung elevation ladder and a ten step type scale sits underneath 987 arbitrary font sizes, 2,635 raw spacing steps and a brand mark that is a bad square crop of a tile with no alpha channel, so the product looks like a design system nobody was allowed to use.
+
+---
+
+#### B. THE FIVE THINGS THAT MAKE THIS LOOK LIKE AN AI-GENERATED APP
+
+**1. The logo is not a logo. It is a crop.**
+`apps/web/public/brand/vallo-mark.png` is 640x640, **three channels, no alpha**, and its top-left pixel is `rgb(73,126,249)`, bright blue. It is a square crop taken out of the middle of the tile: the towers are clipped at the top, the orbital swoosh is cut off at both sides, and blue bleeds to all four edges. `Logo.tsx:57` paints it at 33px on a phone and 46px at desktop, where it reads as a small blue smudge with a hard rectangular edge. In the light theme (`hdr-light-390.png`) it reads as a **black square**, indistinguishable from a broken image placeholder. This is the whole of the founder's "make the logo more visible" complaint and the cause is the asset, not the size.
+
+**2. Every card is a gradient on a gradient, 423 times.**
+`apps/web/src/app/css/glass.css:291-362`. `.nf-card` carries, in one declaration: a radial brand bloom, a three stop linear gradient fill, a **four stop gradient border** whose first stop is `rgb(92 124 255 / 0.82)`, a `backdrop-filter: blur(14px) saturate(140%)`, an inset rim and an elevation shadow. Six layers. `.nf-card--interactive` (glass.css:372-404) adds a pointer-tracking radial and a three layer hover shadow including `0 0 28px rgb(12 57 239 / 0.22)`. There are 423 `nf-card` call sites; the landing page alone paints over forty of them, so the page has over forty individually glowing top-left corners. HANDOFF_03 section 2.4 says it in the founder's own terms: "a screen where twelve things glow is a screen where the eye has nowhere to rest".
+
+**3. The design system exists and nothing obeys it.**
+987 arbitrary `text-[…rem]` literals across 45 distinct values in `apps/web/src`, against a ten step named scale in `tokens.css:852-862` and named classes in `typography.css`. 2,635 raw Tailwind spacing steps against the eleven step ladder at `tokens.css:680-691`. 279 arbitrary `rounded-[…]`, four of them raw values off the scale (`1.25rem`, `2.2rem`, `2.75rem`, `3px`). 79 uses of `rounded-full` after the owner asked for rectangles and `--nf-radius-control: 14px` was created for exactly that. Worst of all, **two radius scales share names**: Tailwind's `rounded-xl` is 12px, our `--nf-radius-xl` is 22px, and both are in use (21 call sites on the Tailwind one). `apps/web/eslint.config.mjs:26-31` admits in its own header that lint has never run on this repository and that the design-system rules are warnings.
+
+**4. The dead slogan is still the headline.**
+"Find it. Rent it. Love it." is the hero `h1` (`packages/i18n/src/locales/en.ts:250-252`, painted at `page.tsx:148-153`), the footer tagline (`en.ts:327`), the footer bottom-right line **again** (`SiteFooter.tsx:127`), the auth screen subtitle, the page title and the OG title (`layout.tsx:50` and `:68`), the About h1 (`about/page.tsx:61`), and the email sign-off (`lib/email/theme.ts:151`). It appears three times on the landing page alone. **"Real Estate reimagined!" appears nowhere in the codebase.**
+
+**5. Vallo shares as a blank grey rectangle.**
+`apps/web/src/app/layout.tsx:67-74`: `openGraph` has a title, a description and a siteName and **no `images` key**. There is no `opengraph-image.tsx`, no `twitter-image.tsx` and no static OG file anywhere under `apps/web/src/app`. Every link pasted into WhatsApp, which is the channel this product will actually be shared on in Nigeria, renders with no logo, no mark, no colour. The single highest-leverage place the logo could appear is empty.
+
+---
+
+#### C. RECOMMENDATIONS
+
+Format: `ID | Priority | Surface | What is wrong | What to do | Effort`
+
+##### THE LOGO AND THE MARK
+
+**L-1 | CRITICAL | Brand asset** | `public/brand/vallo-mark.png` is 640x640 with three channels and no alpha, and its edge pixels are `rgb(73,126,249)`: it is a crop of the tile, not a mark, so at header size it is a blue rectangle. | Commission or cut a true mark: the five towers plus the swoosh, **alpha channel, centred, 12% optical padding, 1024x1024**, named `vallo-mark.png`. Keep `vallo-logo.png` as the tile lockup. Until it exists, the header should use the tile at a tile radius rather than a raw square. | M
+
+**L-2 | CRITICAL | Header, `SiteHeader.tsx:43`** | The mark paints as a hard-edged square with no radius and no containment, so it reads as an unstyled image, not a brand. | Wrap in a tile: `border-radius: var(--nf-radius-md)` (14px) at 46px, `overflow: hidden`, `box-shadow: var(--nf-elev-1-rim)`. At 390px the tile is 34px with `--nf-radius-sm` (10px). Add a new `--nf-logo-tile-radius` alias so header, footer, auth and email agree. | S
+
+**L-3 | CRITICAL | Light theme, header** | In light the mark is a near-black square on white (`hdr-light-390.png`); `light.css:174-181` says the ink twin was deliberately deleted and never replaced. | Commission the light twin of the mark, the same way `C0F67033` is the light twin of the transaction set: frosted blue-white glass towers on transparent. Until then, on `[data-theme="light"]` set the mark inside a `--nf-surface-canvas` tile at `--nf-radius-md` with `box-shadow: var(--nf-elev-1)`, so it reads as an app icon rather than a black blot. | M
+
+**L-4 | CRITICAL | Share previews, `layout.tsx:67`** | No `openGraph.images` and no `opengraph-image` route anywhere in `src/app`. | Add `apps/web/src/app/opengraph-image.tsx` at 1200x630: `--nf-surface-canvas` ground, `vallo-logo.png` lockup at 220px centred-left, "Real Estate reimagined!" in Poppins 700 at 64px, a single `--nf-gradient-cta` underline. Add a matching `twitter-image.tsx`. | M
+
+**L-5 | HIGH | Logo size scale, platform** | The mark is called at ten different sizes: 30, 34, 36, 38, 40, 44, 46, 56, 64, 104 (`FeedMasthead.tsx:47`, `AppShell.tsx:299`, `AgentShell.tsx:57`, `admin/layout.tsx:76,92`, `MobileMenu.tsx:101`, `SiteFooter.tsx:88`, `error.tsx:47`, `not-found.tsx:55`, `(auth)/layout.tsx:44`). | Four sizes only, added as tokens: `--nf-logo-xs: 28px` (dense rails), `--nf-logo-sm: 36px` (app chrome), `--nf-logo-md: 48px` (marketing header, footer), `--nf-logo-lg: 120px` (auth, splash, error). Make `size` on `Logo`/`LogoMark` accept only those four. | S
+
+**L-6 | HIGH | Header, `SiteHeader.tsx:43`** | The wordmark is live Inter at weight 800 (`chrome.css:21-25`) and the supplied `vallo-wordmark.png` is a chrome geometric face with a distinctive V and a ringed O. Two different wordmarks in one brand. | Either redraw the live wordmark in Poppins 700 with `letter-spacing: -0.04em` to sit closer to the artwork, or accept the artwork as canonical and set `.nf-logo__word { font-family: var(--nf-font-display); font-weight: 700; letter-spacing: -0.04em; }`. Do not keep Inter 800. | S
+
+**L-7 | HIGH | Header at 1440, `SiteHeader.tsx:43`** | Mark 46px in a 73px bar with a 21px wordmark: the lockup occupies 108px of a 1376px bar, about 8% of the width, and loses to the blue Sign up button on the right. | Mark to 48px, wordmark to 24px, and reduce the Sign up button from `--nf-brand-primary` fill to `nf-btn--glass` on the marketing header so the brightest blue object in the bar is the mark. At 390px: mark 36px, wordmark 19px. | S
+
+**L-8 | HIGH | Footer, `SiteFooter.tsx:88`** | The footer logo is 40px, smaller than the header's 46px, in the one place where a brand signature is expected to be the largest thing. | Footer lockup at `--nf-logo-lg` (120px) using `LogoLockup`, left aligned, with "Real Estate reimagined!" at `--nf-text-body-lg` directly under it. At 390px: 88px, centred. | S
+
+**L-9 | HIGH | Landing hero, `page.tsx:145-186`** | The hero contains no logo at all. The only mark on the first screen is 33px in the bar. | Add the lockup above the headline: `LogoLockup size={96}` at 1440, 72px at 390, with 24px (`--nf-gap-heading`) below it to the headline. This alone answers most of "make the logo more visible". | S
+
+**L-10 | HIGH | Email, `lib/email/render.ts:468`** | The email header paints `vallo-mark.png`, a 122KB 640x640 PNG, at 40px, with `alt=""`, so a blocked-image client shows an empty 40px box and no brand at all. | Serve a purpose-built `public/brand/email-mark.png` at 80x80 (2x of 40), under 8KB, and set `alt="Vallo"`. Raise `LOGO_SIZE` to 44 to match the header tile. | S
+
+**L-11 | HIGH | Auth, `(auth)/layout.tsx:44`** | The 104px lockup is the best logo treatment in the product, and the line under it is the dead slogan. | Keep the lockup, raise to 120px, and replace the sub-line with "Real Estate reimagined!" at `--nf-text-body-lg` in `--nf-content-secondary`. | S
+
+**L-12 | HIGH | 404, `not-found.tsx:55`** | `LogoMark size={64}` renders the cropped tile at 64px directly above a 96px "404" numeral, so the biggest brand object on the page is beaten by an error code. | Lockup at 96px, the numeral down to `--nf-text-h1`, and the verdict line up to `--nf-text-h2`. | S
+
+**L-13 | MEDIUM | Error page, `error.tsx:47`** | `LogoMark size={56}`, a third size for the same job as `not-found.tsx:55` (64). | Both to `--nf-logo-lg`. | S
+
+**L-14 | MEDIUM | PWA, `app/manifest.ts:41-60`** | Icons are correct and the maskable safe zone is documented, but there is **no `screenshots` array**, so the Android install prompt shows a bare list entry with no visual. | Add three `screenshots` entries at 1080x1920 (`form_factor: "narrow"`) showing the hero, search and a listing, plus one 1920x1080 wide. | M
+
+**L-15 | MEDIUM | Splash, `assets/splash.png`** | 2732x2732 for both light and dark; not verified against the current mark, and `capacitor.config.ts:105-108` sets `#010118` behind it. | Regenerate both splash assets from `vallo-logo.png` at 30% of the short edge, centred, on `#010118` (dark) and `#F4F5F7` (light). Confirm the light splash exists and is not the dark one renamed. | S
+
+**L-16 | MEDIUM | `design-system/brand/Logo.tsx:69-90`** | `LogoLockup` has one call site (`(auth)/layout.tsx:44`) despite being the only form that reads as a brand. | Use it on the landing hero (L-9), the footer (L-8), the 404 (L-12), the error page, `FirstRun.tsx:74` and `AccessScreen.tsx:50`. | S
+
+**L-17 | MEDIUM | `public/brand/vallo-wordmark.png`** | 790x180 chrome wordmark, referenced by nothing in the tree. | Use it in the OG image (L-4) and in the email footer, where a rendered wordmark is correct because there is no live type control. | S
+
+**L-18 | MEDIUM | Empty states, platform** | With `listing_photos = 0` and `reviews = 0`, every empty state in the product is on screen right now and none of them carries the mark. | Every empty state gets a 64px brand object (not the logo, which would be a brand stamp on a failure) on `--nf-icon-ground`, one `--nf-text-h3` line and one `--nf-body-sm` line. The logo belongs in the footer of the shell, not in the empty state. | M
+
+**L-19 | LOW | `AgentShell.tsx:57`, `FeedMasthead.tsx:47`** | `LogoMark size={30}`, below the 32px floor where a busy render becomes noise. | `--nf-logo-xs` (28px) as a plain tile, or drop the mark and keep the wordmark alone in these dense rails. | S
+
+**L-20 | LOW | `admin/layout.tsx:76` and `:92`** | Two sizes of logo, 38 and 30, inside one shell. | One size per shell. Rail 36, collapsed rail 28. | S
+
+**L-21 | MEDIUM | Favicon** | `favicon.ico` declared at 16/32/48 from the tile, which at 16px is a blue blur because the artwork is a photographic render. | Draw a dedicated 16px and 32px favicon: the swoosh alone, two colours, no gradient. A render never survives 16px. | S
+
+**L-22 | LOW | `Logo.tsx:41` `responsive`** | `clamp(33px, 6vw, 46px)`: 6vw is 23px at 390 and 86px at 1440, so the clamp is pinned at both ends and the middle term never fires. | Use two explicit sizes at the breakpoint rather than a clamp that never interpolates, or fix the middle term to `3.2vw`. | S
+
+##### THE LANDING PAGE, STRUCTURE AND RHYTHM
+
+**L-23 | CRITICAL | `page.tsx:86-503`** | Twenty sections and a document height of **10,862px at 390px**, about thirteen screens. Three of them are number bands showing overlapping figures (`page.tsx:265` facts, `PlatformConsole.tsx:26`, `NumbersBand.tsx:53`) and two render null (`FeaturedCarousel.tsx:27` and `VoicesBand.tsx:31`). | Cut to nine sections: hero, proof strip, what Vallo does (the twelve glass scenes), how it works, live catalogue, become an agent, assistant, FAQ, CTA. Target under 6,000px at 390. | L
+
+**L-24 | CRITICAL | `page.tsx:145`** | `max-w-2xl` (672px) inside a 1376px shell, so at 1440 the hero uses 49% of the page and the right half is empty navy. Measured: `h1` width 672px, shell width 1376px. | Two column hero from 1024px: `grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr)`, headline column capped at `--nf-measure-display: 18ch`, right column holding a hero glass scene at 420px. At 390px it collapses to one column, scene above headline at 220px. | M
+
+**L-25 | CRITICAL | Section rhythm, platform** | Five different vertical rhythms on one page: `py-section` (48 to 96) at `HowItWorks.tsx:50`, `AgentsBand.tsx:34`, `WhyVallo.tsx:55`; `py-10 sm:py-14` (40 to 56) at `MoodRow.tsx:27`, `NumbersBand.tsx:53`, `PopularDestinations.tsx:28`, `page.tsx:337`; `pt-16 sm:pt-20` (64 to 80) at `SignatureShowcase.tsx:16,82,143`; `py-16 sm:py-20` at `page.tsx:296`; `pt-4` (16px) at `page.tsx:265` and `PlatformConsole.tsx:26`; `pt-14` at `page.tsx:442`; `py-16 sm:pt-20` at `page.tsx:475`. | Delete every one. `py-section` (`--nf-gap-section`, clamp 48 to 96) on all of them, no exceptions, and remove the ad hoc classes in the same commit. | M
+
+**L-26 | HIGH | `page.tsx:265` and `PlatformConsole.tsx:26`** | `pt-4` (16px) glues the facts band to the section above it and the console to the facts band, so three blocks read as one undifferentiated slab (see `d14-1600.png`). | Both take `py-section`. If they are meant to be one section, wrap them in one `<section py-section>` with `--nf-gap-block` (32px) between them. | S
+
+**L-27 | HIGH | Shell width, `utilities.css:123-128` and `tokens.css:1011`** | `--nf-content-max: 1440px` with a 32px gutter means at a 1440px viewport the shell is the whole viewport. `styleguide` shows a token row stretched to 1376px with the label at the far left and 1,200px of nothing to its right. | Two widths. Keep `--nf-content-max: 1440px` for full-bleed rails and media grids. Add `--nf-content-read: 1120px` and use it for every section whose content is text plus cards, so at 1440 there is a real 160px margin either side and the page reads as composed rather than stretched. | M
+
+**L-28 | HIGH | Measure, platform** | There is no measure token. Call sites hand-write `max-w-[42ch]` (`page.tsx:168`), `max-w-[46ch]` (`page.tsx:305`), `max-w-[52ch]` (`page.tsx:340,444`), `max-w-[20ch]`, `max-w-[18ch]`, `max-w-[16ch]`, `max-w-[28ch]`, `max-w-[34ch]`. Eight answers. | Three tokens: `--nf-measure-display: 18ch`, `--nf-measure-lede: 46ch`, `--nf-measure-body: 68ch`. Replace all eight. | S
+
+**L-29 | HIGH | Gutter at 390px, `tokens.css:768`** | `--nf-pad-shell` is `clamp(1.25rem, 0.75rem + 2vw, 2rem)`, measured at exactly 20px at 390px. With `--nf-radius-xl` (22px) cards inside it, the corner of a card sits 20px from the screen edge and reads tight. | 24px at 390. Change to `clamp(1.5rem, 0.9rem + 2vw, 2.5rem)`: 24px at 390, 40px at 1440. Wider at both ends, which is exactly the founder's "widen every single layer". | S
+
+**L-30 | HIGH | Heading-to-overline gap, landing** | Four answers for one relationship: `mt-row` (`HowItWorks.tsx:53`, `AgentsBand.tsx:40`), `mt-3` (`MoodRow.tsx:30`, `PopularDestinations.tsx:31`, `page.tsx:301`), `mt-2` (`StoryRail.tsx:202`, `SignatureShowcase.tsx:86,172`), `mt-heading`. | `--nf-gap-row` (12px) everywhere, via `mt-row`. Delete `mt-2` and `mt-3` from the landing tree. | S
+
+**L-31 | HIGH | `page.tsx:197`** | Feature row uses `mt-10` (40px), a raw step that is not on the ladder (the ladder has 32 and 48, not 40). | `mt-block` (`--nf-gap-block`, 32px) at 390, `--nf-gap-section-tight` (48px) from 768. | S
+
+**L-32 | MEDIUM | `page.tsx:475`** | `py-16 sm:pt-20`: the `sm:` only overrides the top, so the CTA is 80px top and 64px bottom on desktop and symmetric on a phone. Asymmetry by accident. | `py-section`. | S
+
+**L-33 | MEDIUM | `page.tsx:442`** | FAQ has `pt-14` and no bottom padding, so its last row butts into the CTA's top padding. | `py-section`. | S
+
+**L-34 | MEDIUM | Card padding, landing** | Five answers: `p-4 sm:p-5` (`page.tsx:206`), `p-5` (`page.tsx:320`), `p-5 sm:p-6` (`page.tsx:310`, `StoryRail.tsx:251`), `px-4 py-4 sm:px-5 sm:py-5` (`page.tsx:272`), `px-5 py-5` (`page.tsx:411`), `px-4 py-6 sm:py-7` (`NumbersBand.tsx:56`). | Two: `p-card` (`--nf-pad-card`, 24px) for every ordinary card and `p-card-lg` (clamp 32 to 64) for the one card a section is built around. Both tokens already exist at `tokens.css:769-770` and are used almost nowhere. | M
+
+**L-35 | MEDIUM | `page.tsx:200`** | Feature grid gap is `gap-3 sm:gap-4` (12 to 16px) for cards with 22px radii, so adjacent corners nearly touch. | `gap-group` (16px) at 390, `gap-block` (32px) from 1024. A 22px corner needs at least 16px of air. | S
+
+##### THE HERO
+
+**L-36 | CRITICAL | `page.tsx:148-153`** | The hero headline is the dead slogan, painted as three stacked one-word lines, the third in gradient text. At 1440 it is 73.6px Poppins in three short lines occupying the left half. | Replace with the live brief: line 1 "Real estate," line 2 "reimagined." in `--nf-gradient-text`, and keep the exclamation mark out of the headline where it reads cheap; put "Real Estate reimagined!" verbatim under the lockup as the strapline. Subtitle stays as `en.ts:258`. | S
+
+**L-37 | CRITICAL | Hero, 390px, `page.tsx:86`** | `pt-6` gives 24px between a 61px header and a 33px display headline, so the brand and the headline collide at the top of the phone. | `pt-block` (32px) at 390, `pt-section-tight` (48px) from 640, `pt-section` from 1024. State it as one token: add `--nf-pad-hero: clamp(2rem, 1rem + 4vw, 6rem)`. | S
+
+**L-38 | CRITICAL | Hero imagery, `page.tsx:25`** | `HERO_ARTWORK = null`, and with `listing_photos = 0` there is no photography anywhere on this platform, so the hero is type on an empty field. This is the single biggest art direction gap. | **The hero must not attempt property photography, because there is none and a stock house would be a lie.** Paint `public/brand/glass/hero/hero-property.png` at 420px on desktop, 220px at 390px, right of the headline, on the ambient canvas with a `--nf-glass-floor` reflection under it. It is a glass villa with a location pin lit in electric blue on a glowing podium: it is the logo's own language at hero scale, it is honest (it is an illustration, not a claim about a listing), and it has a real alpha channel. | M
+
+**L-39 | HIGH | Hero scene sizing, `public/brand/glass/hero/`** | The twelve scenes are 512x512 or 557x470. At 420px CSS on a 2x screen they are being upscaled 1.6x and will go soft. | Either cap the hero scene at **260px CSS** (2x safe) or commission 1024px re-renders of the twelve. Recommend the re-render: this is the hero. At 390px, 220px CSS is inside the safe range at 2x. | S to commission
+
+**L-40 | HIGH | Hero CTA, `page.tsx:175`** | One `nf-btn--lg` measured at 64px tall, 350px wide at 390px, carrying `nf-breathe`, a looping pulse animation. A full-width pulsing 64px blue slab reads as a mobile advertisement, not a product. | Two buttons side by side at `size="md"` (56px): "Explore homes" primary and "How Vallo works" glass. Remove `nf-breathe` from both; the only breathing object on the page should be the hero scene. At 390px they stack with `gap-group` (16px) and both go `full`. | S
+
+**L-41 | HIGH | Hero chips, `page.tsx:187-196`** | Five city chips, each 44px tall with a 13px label, each carrying `box-shadow: 0 0 10px rgb(12 57 239 / 0.16), inset 0 0 10px rgb(12 57 239 / 0.07)` and a `rgb(12 57 239 / 0.35)` border (`chips.css:19-36`), so five glowing pills sit directly under the primary CTA and compete with it. Confirmed at `hdr-dark-390.png`. | Drop the glow on non-active chips entirely: `border: 1px solid var(--nf-border-default)`, `background: var(--nf-glass-fill-thin)`, `box-shadow: none`. Reserve the glow for `[aria-pressed="true"]`. Label up to `--nf-text-body-sm` (14.5px) so a 44px box holds 14.5px type rather than 13px. | S
+
+**L-42 | HIGH | Hero, light theme** | `light.css:161-169` sets `display: none` on `.nf-ambient::after`, `.nf-aurora` and `.nf-grid-veil`. The light hero is therefore a plain grey page with black type and one blue button (`hdr-light-390.png`). Zero brand presence above the fold in the theme half the world will open by habit. | Give light its own hero ground: a very soft `--nf-brand-primary` at 4% radial from top-right, a 1px `--nf-border-subtle` grid veil at 30% opacity, and the same glass hero scene inside a **navy stage panel** (see L-92) so the glass object stays lit. | M
+
+**L-43 | MEDIUM | `page.tsx:88-89`** | `.nf-aurora` and `.nf-grid-veil` are mounted as two separate absolutely positioned divs inside the hero, on top of the page-level `.nf-ambient` fixed layer, so three ambient systems stack in the hero. | One. Keep `.nf-ambient` at the root and delete the two hero-local layers; if the hero needs more light, raise `--nf-canvas-bloom-1` opacity in the hero's scope. | S
+
+**L-44 | MEDIUM | `page.tsx:168`** | Hero subtitle is `text-[var(--nf-text-body-lg)]` written as an arbitrary value with `leading-relaxed` bolted on, when `.nf-lede` (`typography.css:69-73`) already sets exactly this with its own line height. | `className="nf-lede"`. Same for `page.tsx:305`. | S
+
+**L-45 | MEDIUM | Feature row, `page.tsx:203-221`** | Four cards, each holding a 56px `BrandIcon` on `--nf-icon-ground: #F5F7FD`, so the navy hero ends in four bright white squares (`hdr-dark-1440.png`). | These four claims ("AI Assistant", "Verified Listings", "Best Prices", "Easy Booking") are generic and they are not the hero's job. Replace with a single trust strip: one row, `--nf-text-body-sm`, "64 listings live", "Naira only", "No booking fees", "4 languages", separated by `--nf-divider` hairlines, no icons, no cards. | M
+
+##### THE STORY RAIL AND THE TWELVE GLASS SCENES
+
+**L-46 | CRITICAL | `StoryRail.tsx:226-248`** | Each panel is a 4:3 `nf-story-stage--paper` panel (`motion.css:483-489`) painted `#FBFCFD` to `#F1F3F7`: a **bright near-white block 330x250 at 390px**, holding a matte white clay object whose ground is dissolved by a radial mask (`motion.css:496-499`). Eight of them in a row on a navy page is the loudest thing in the product and it reads as stock 3D illustration (`d14-700.png`, `p39-800.png`). | Replace all eight with the twelve glass hero scenes. They have a real alpha channel, so **delete `nf-story-stage--paper`, delete the `nf-story-art` radial mask and delete `mix-blend-mode: multiply`**. The object sits directly on `--nf-surface-canvas` with a `--nf-glass-floor` reflection. One layer instead of four. | M
+
+**L-47 | CRITICAL | `StoryRail.tsx:260-272`** | Inside each card, each "point" is an `.nf-chip` (44px min-height, glowing border) containing a **40px `BrandIcon` on a white plate**. Card, inside chip, inside icon ground: three nested containers with three separate materials around one label. | Delete the chips. The two points become two rows of `--nf-text-body-sm` with a 16px `UiIcon` and `--nf-gap-inline` (8px), on the card ground, separated by `--nf-gap-row` (12px). This is the single clearest "fewer layers done better" win on the page. | S
+
+**L-48 | HIGH | `StoryRail.tsx:221`** | Panel is `w-[85vw] max-w-[420px]` at 390 and `lg:w-[30rem]`, and the card measures **634px tall**. At 390px one card is 75% of the viewport height and there are eight. | Four panels, not eight, and the panel becomes `aspect-[3/4]` with a fixed 420px height at 390. Twelve scenes exist; use four here and the other eight elsewhere (L-50). | M
+
+**L-49 | HIGH | `StoryRail.tsx` rail bleed** | The rail starts at the shell gutter on the left and runs full bleed right, so the fourth card is cut mid-word ("Inspect first", "How we protect") with no fade (`d14-700.png`). | Add a right-edge mask: `mask-image: linear-gradient(to right, #000 calc(100% - 64px), transparent)` at widths above 1024, and keep the snap. The next card should be softly cut, never hard-clipped. `utilities.css:131` already documents this intention for `.nf-scroll-x` and the rail does not use it. | S
+
+**L-50 | HIGH | The twelve scenes, placement** | They are not wired up anywhere. Nothing in the tree references `public/brand/glass/`. | Order and placement, all twelve, at `--nf-scene-lg: 280px` desktop and `--nf-scene-sm: 180px` at 390: **hero** `hero-property` (L-38). **Story rail, four panels at 280px**: `hero-assistant-chat` "Ask in plain words", `hero-map-stay` "See what is around you", `hero-protected` "Checked by a person", `hero-trip` "From search to keys". **Become an agent**: `hero-growth` at 240px, right of the copy. **Assistant showcase**: `hero-assistant-home` at 320px, replacing the current 3D bot. **Coverage**: `hero-globe` at 240px. **Support**: `hero-support` at 180px in the FAQ header. **Booking**: `hero-schedule` at 180px in "How it works" step 2. Hold `hero-app`, `hero-assistant` and `hero-property` variants back for the app store screenshots and the OG image. **At 390px every one of these drops to 180px and moves above its copy, never beside it.** | M
+
+**L-51 | HIGH | Light theme and the glass scenes** | All twelve are lit for black. On `#F4F5F7` they will be a pale blue wireframe with almost no contrast. `HANDOFF_03` section 4.4 calls this the real design question. | **The container answer, not the recolour answer.** Every scene sits inside a `.nf-stage` panel: `background: linear-gradient(160deg, #010118, #000020)`, `border-radius: var(--nf-radius-2xl)` (32px), `border: 1px solid var(--nf-glass-border)`, `box-shadow: var(--nf-elev-2)`. The panel is navy in **both** themes, so the object is always correctly lit and the light theme gains a deliberate dark plate rather than a washed-out object. This also means one asset set rather than twenty-four light twins. Recommend commissioning light twins only for the transaction set, where the mark appears inline in a receipt and cannot carry a dark plate. | M
+
+**L-52 | MEDIUM | `motion.css:438-444`** | `.nf-story-art` runs `nf-art-breathe` 12s infinite on every visible panel. Eight simultaneous infinite transform animations on the landing page. | Keep the breathe on **one** object only, the hero scene, and delete it from the rail. An infinite loop on eight objects is ambient noise; on one it is a focal point. | S
+
+**L-53 | MEDIUM | `StoryRail.tsx:213`** | The rail's paging arrows render at the top right of the section and, because the section above has no bottom padding, they float into the next section's air (`d14-1600.png`). | Move the arrows inline with the heading row at `align-items: end`, and give the section `py-section`. | S
+
+**L-54 | MEDIUM | `StoryRail.tsx:254`** | Card title is `nf-h3` with `text-[1.0625rem] sm:text-[1.1875rem]` overriding the class it just applied, so the type scale is declared and then contradicted on the same element. | `nf-h3` alone. If 17px is wanted, that is `--nf-text-body-lg` and the element is not an h3. | S
+
+##### GLASS, SURFACES AND ELEVATION
+
+**L-55 | CRITICAL | `glass.css:325-330`** | `.nf-card`'s gradient border starts at `rgb(92 124 255 / 0.82)`: a near-opaque bright blue at the top-left corner of every one of 423 cards. | Drop the first stop to `rgb(92 124 255 / 0.28)` and the second to `rgb(12 57 239 / 0.18)`, and end the ramp at 34% rather than 68%, so the lit edge is a short corner catch rather than a quarter of the perimeter. The rim and the elevation shadow already carry the depth. | S
+
+**L-56 | CRITICAL | `glass.css:349-350`** | `.nf-card` carries `backdrop-filter: blur(14px) saturate(140%)` on all 423 instances. With forty on the landing page, that is forty composited blur passes on a mid-range Android on a Lagos network, which `HANDOFF_03` section 2.3 explicitly forbids. | **Delete the backdrop filter from `.nf-card`.** A card sits on a fixed canvas, not over moving content, so there is nothing behind it to blur. Glass belongs on the chrome bars, sheets and the tab bar, which already have it. This is the single biggest paint-cost win available. | S
+
+**L-57 | HIGH | `glass.css:378-384`** | `.nf-card--interactive:hover` writes a bespoke three layer shadow including `0 0 28px rgb(12 57 239 / 0.22)`, bypassing the elevation ladder it sits next to. | `box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2)` and nothing else. `.nf-card.nf-elev--hoverable:hover` at `glass.css:363-365` already does exactly this; the two rules disagree about the same interaction. | S
+
+**L-58 | HIGH | `glass.css:386-404`** | The cursor-tracking radial `::after` adds a fourth material to every interactive card and costs a delegated pointermove listener across the whole page. | Keep it on exactly one surface: the CTA panel (`page.tsx:479`). Delete it from `.nf-card--interactive`. A light that follows the cursor on forty cards is forty lights. | S
+
+**L-59 | HIGH | `glass.css:509-582`** | `.nf-icon-tile` in the dark theme carries: a radial gradient, a linear gradient, a four stop gradient border, `inset 0 1px 0 rgb(255 255 255 / 0.95)`, `0 0 0 1px rgb(12 57 239 / 0.2)`, `0 10px 26px -12px rgb(12 57 239 / 0.75)`, `0 0 20px -8px rgb(12 57 239 / 0.5)`, a `::before` inner well with two more insets, a 3D perspective transform, a `translateZ(10px)` on the child and a hover scale. **Ten layers around a 24px icon.** | Three layers: `background: var(--nf-glass-fill)`, `border: 1px solid var(--nf-glass-border)`, `box-shadow: var(--nf-elev-1-rim)`. Delete the perspective, the translateZ, the inner well and three of the four shadows. It has only three call sites, so this is cheap and it is the exact thing the founder described. | S
+
+**L-60 | HIGH | `glass.css:462-469`** | `.nf-brand-icon` uses `mix-blend-mode: multiply` against `--nf-icon-ground: #F5F7FD` (`tokens.css:325`), so every brand object on the dark theme sits on a near-white plate. This is why the navy page is dotted with white squares (`d14-2500.png`, `hdr-dark-390.png`). | This is the migration to the new glass set. Until it lands, soften the ground: `--nf-icon-ground: color-mix(in oklab, var(--nf-mist-200) 82%, var(--nf-surface-elevated))` and give `.nf-brand-icon-ground` `border-radius: var(--nf-radius-md)` rather than `26%`, so the plate reads as a deliberate tile rather than a cut-out. Once the glass objects are wired, delete `mix-blend-mode`, delete `--nf-icon-ground` and delete `.nf-brand-icon-ground` outright. | M
+
+**L-61 | HIGH | Radius consistency, landing** | On one page: `.nf-card` 22px (`glass.css:339`), `.nf-glass` 18px (measured on the MoodRow tiles), `.nf-btn` 14px, `.nf-chip` 14px, `.nf-brand-icon-ground` 26% of its own box, `.nf-icon-tile` 30%, `.nf-scene-chip` 18px. Seven radii visible at once. | Three, and derive them: container 22px (`--nf-radius-xl`), control 14px (`--nf-radius-control`), inner 10px (`--nf-radius-sm`). Everything nested inside a 22px container takes 10px, which is the correct nested-radius relationship (parent minus padding). Delete the percentage radii: a percentage radius on a non-square box draws an ellipse. | M
+
+**L-62 | HIGH | `glass.css:139` vs `chrome.css:481`** | Two chrome bar implementations. `.nf-glass--chrome` tints with `--nf-surface-canvas` at 84% and blurs at `--nf-glass-blur`; `.nf-site-bar` tints at 93% and blurs at `--nf-glass-blur-strong`. The marketing header uses the second, the app uses the first, so the two halves of the product have visibly different chrome. | One. `.nf-glass--chrome` for both, at 88% and `--nf-glass-blur-strong`. Delete `.nf-site-bar`. | S
+
+**L-63 | HIGH | `page.tsx:407-437` trust strip** | Five cells inside one `nf-card` with hand-computed border classes across five conditional expressions (`page.tsx:415-422`) to fake a grid divider. At 1440 the five cells are 275px each with `TrustIcon size={34}`, and two of them carry two icons. | Use `.nf-cells` with `--nf-pad-cell` (32px) and a single `--nf-divider` hairline, and delete the five-way conditional. Drop to four cells: the app store pair is a claim about an unshipped app and it is the weakest of the five. | M
+
+**L-64 | MEDIUM | `glass.css:100-113`** | `.nf-glass--thin` and `.nf-glass--strong` change fill and blur but `--thin` does **not** change the shadow, so a thin glass panel carries the full `--nf-glass-shadow`: a light material with a heavy shadow. | Add `box-shadow: inset 0 1px 0 var(--nf-glass-rim), var(--nf-elev-1)` to `--thin`. Blur, fill and shadow move together, which is what the comment at `glass.css:99` already says. | S
+
+**L-65 | MEDIUM | `page.tsx:479`** | The CTA card is `nf-card nf-card--live` and mounts a second `.nf-aurora` at `opacity-60` inside itself, so the page's final panel carries card gradient, card gradient border, live variant, plus an aurora. | Keep `nf-card--live`, delete the nested aurora. If the CTA needs more light, that is what `--nf-elev-3` and a stronger rim are for. | S
+
+**L-66 | MEDIUM | `tokens.css:449-455`** | `--nf-glass-shadow` is two layers and `--nf-glass-shadow-lifted` is two layers, but `--nf-elev-5` is three and `--nf-elev-3` is three including an upward highlight. Two parallel shadow systems. | Make the glass shadows aliases: `--nf-glass-shadow: var(--nf-elev-2)`, `--nf-glass-shadow-lifted: var(--nf-elev-3)`. One ladder. | S
+
+**L-67 | MEDIUM | `tokens.css:593-595`** | `--nf-shadow-card`, `--nf-shadow-lifted` and `--nf-shadow-float` are documented as legacy aliases to be migrated and are still referenced from `light.css:22,32` and elsewhere. | Finish the migration and delete the three aliases, or the ladder has two names for every rung permanently. | S
+
+**L-68 | MEDIUM | `glass.css:272`** | `.nf-stride` exists with its own brand-bloom shadow stack and is a fourth elevation idea alongside the ladder, the glass shadows and the legacy aliases. | Fold into `--nf-elev-2` plus a brand rim variable, or delete. | S
+
+**L-69 | LOW | `glass.css:93`** | `.nf-glass::before` runs at `opacity: 0.85` on top of an already translucent specular gradient, which is two opacity controls for one highlight. | Bake the 0.85 into `--nf-glass-specular`'s stops and set `opacity: 1`. An opacity on a pseudo creates an isolated group, which `page.tsx:95-106` documents as having already caused one visible bug. | S
+
+##### BUTTONS AND CONTROLS
+
+**L-70 | CRITICAL | `components/ui/Button.tsx:43-50`** | Six public variants map to five implementations: `secondary` and `glass` both resolve to `nf-btn--glass`. Two names, one button. | Delete the `glass` variant name. `secondary` is the honest name for a bordered translucent button. Six variants become five. | S
+
+**L-71 | CRITICAL | `buttons.css:284-295`** | `.nf-btn--glass` has `background: rgb(255 255 255 / 0.04)`, a 1.5px border and `box-shadow: none`, and **no backdrop filter**. It is called glass and it is not glass by the four-ingredient definition set out at `tokens.css:417-427`. Measured on the landing CTA: `box-shadow: none`, `background: rgba(255,255,255,0.04)`. | Either make it glass (`backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate))`, `background: var(--nf-glass-fill-thin)`, `box-shadow: inset 0 1px 0 var(--nf-glass-rim)`) or rename it `--outline`. Recommend making it glass: the secondary button next to the primary is exactly where the material should be visible. | S
+
+**L-72 | HIGH | `buttons.css:286, 297, 200, 254`** | Four button variants use `border: 1.5px`. A 1.5px border on a device pixel ratio of 1 renders as an inconsistent 1 or 2px edge and makes the button height 3px larger than the token says (the comment at `buttons.css:143-148` documents this having already caused a 44px target to measure 42). | `1px` everywhere, and add `--nf-border-width: 1px` and `--nf-border-width-strong: 2px` as tokens. No half pixels. | S
+
+**L-73 | HIGH | `buttons.css:302-306`** | `.nf-btn--lg` is `min-height: 4rem` (64px) at `--nf-text-body-lg` (17px). At 390px the hero CTA measures 64 by 350, which is a banner, not a button. | 56px. Change `--lg` to `min-height: 3.5rem` and `--md` to `min-height: 3rem` (48px), `--sm` stays 44px. That gives 44 / 48 / 56, which is the iOS ladder, and the 44px floor is still honoured. Keep the `::before` hit-area trick at `buttons.css:139-151`. | S
+
+**L-74 | HIGH | `buttons.css:198-201`** | `.nf-btn--primary` is `background: var(--nf-gradient-cta)` plus `border: 1.5px solid rgb(12 57 239 / 0.6)` plus `box-shadow: 0 0 12px rgb(12 57 239 / 0.35)` plus a `::after` sheen plus a `::after` ripple on hover and press. The glow is permanently on, not a state. | Resting: gradient, 1px `rgb(12 57 239 / 0.45)` border, `inset 0 1px 0 rgb(255 255 255 / 0.22)`, **no outer glow**. Hover and focus: add `0 0 20px color-mix(in oklab, var(--nf-electric-400) 40%, transparent)`. HANDOFF_03 section 2.4: "Focus, active and selected states are where the glow belongs. They are moments." | S
+
+**L-75 | HIGH | `buttons.css:203-223`** | The signature ripple is a `linear-gradient(115deg, …)` band at `rgb(255 255 255 / 0.32)` sweeping the button over 650ms on hover and 480ms on press. 650ms is twice the length of anything else in the motion system (`--nf-duration-slow` is 380ms) and it is a decorative effect on the most-used control. | 260ms on press only, at `rgb(255 255 255 / 0.18)`. Delete the hover ripple. Apple's rule: motion is short and physical, not a light show. | S
+
+**L-76 | HIGH | Raw colour, `buttons.css`** | Nine raw `rgb(12 57 239 / …)` literals in `buttons.css` alone (lines 200, 201, 225, 229, 233, 289, 292), plus `rgb(92 124 255 / 0.45)` at 291 and `rgb(255 255 255 / …)` at 65, 286, 287. The file's own project rule is `nf/no-raw-colour`. | Add `--nf-brand-edge: color-mix(in oklab, var(--nf-electric-400) 45%, transparent)`, `--nf-brand-glow-rest`, `--nf-brand-glow-hover`, `--nf-brand-glow-press` and reference those. | S
+
+**L-77 | HIGH | `chips.css:19-36`** | `.nf-chip` is 44px tall with `--nf-text-caption` (13px) type, a brand border, an outer glow and an inner glow. The chip both shouts and is unreadable. | `min-height: 44px` stays, label to `--nf-text-body-sm` (14.5px), `border: 1px solid var(--nf-border-default)`, `background: var(--nf-glass-fill-thin)`, `box-shadow: none`. Active state keeps the brand border and gains `box-shadow: 0 0 14px var(--nf-brand-glow-rest)`. | S
+
+**L-78 | HIGH | `chips.css:38-62`** | Interactive chips get a `::after` hit-area overlay to reach 44px, but `.nf-chip` already sets `min-height: 44px` on line 22, so the overlay is papering over nothing and the comment at line 37 describes a 36.6px paint that no longer exists. | Delete the `::after` on `a.nf-chip`, `button.nf-chip`, `label.nf-chip`, or reduce the painted chip to 36px and keep the overlay. Do not keep both. | S
+
+**L-79 | HIGH | Disabled state, `buttons.css:90-96`** | One disabled recipe, `opacity: 0.38`, applied to a gradient-filled primary. At 38% a `#0010E0` fill on `#000010` becomes almost invisible and a disabled primary reads as a missing button rather than a refused one. | Disabled primary: `background: var(--nf-interactive-disabled)`, `color: var(--nf-content-muted)`, `border-color: var(--nf-border-subtle)`, `opacity: 1`. A disabled control should be *visible* and *inert*, not faded away. Verify the label clears 3:1. | S
+
+**L-80 | HIGH | Loading state, `buttons.css:180-186`** | `data-loading="true"` sets `cursor: progress` and dims the label to 0.7 and nothing else in CSS; the spinner is supplied by the component. There is no visual difference between loading and a slightly transparent button. | Add a 2px indeterminate progress line at the bottom inside edge, `background: var(--nf-content-on-brand)`, animating `translateX` over `--nf-duration-deliberate`, and keep the label at full opacity so the width never appears to change. | S
+
+**L-81 | MEDIUM | `Button.tsx:66`** | `ICON_SIZE = { sm: 20, md: 24, lg: 24 }`: the lg button is 64px tall and its icon is the same 24px as the 56px button. | With the new 44/48/56 ladder: `{ sm: 16, md: 20, lg: 24 }`. All three are on the `UiIcon` scale. | S
+
+**L-82 | MEDIUM | Focus, `base.css:116-131`** | The global focus ring is correct and measured, but `.nf-btn--primary` sets `overflow: hidden` (`buttons.css:199`) for the ripple, and an `outline-offset` ring on an `overflow: hidden` element still draws, so this is fine, but the primary's own `0 0 12px` glow sits in the same place as the ring and muddies it. | Once L-74 removes the resting glow this resolves itself. Verify by tabbing to the hero CTA in both themes and confirming the ring is the only ring. I did not test this. | S
+
+**L-83 | MEDIUM | `buttons.css:158-175`** | `.nf-btn--icon` sets `aspect-ratio: 1` and then three separate `min-width` rules restate the same numbers as the heights. If a height changes, four places must change. | `min-width: inherit` is not available, so derive: set `--nf-btn-h` per size class and use it for both `min-height` and `min-width`. One number per size. | S
+
+**L-84 | MEDIUM | `buttons.css:78-81`** | Press is `transform: scale(0.965)` on every button. On a 350px wide hero CTA that is a 12px shrink, which reads as rubbery. | Scale by size: `--sm` 0.97, `--md` 0.975, `--lg` 0.985. A big object moves less. This is the Apple physicality point exactly. | S
+
+**L-85 | MEDIUM | `page.tsx:487`** | The CTA's secondary button is `variant="secondary"` at `size="lg"`, so it renders `nf-btn--glass` at `rgba(255,255,255,0.04)` on a `nf-card--live` panel: measured `box-shadow: none`, and in the screenshot it is nearly invisible against the card (`p39-9600.png`). | Fix via L-71, and on a card ground use `--nf-glass-fill` (7.5%) not `-thin`, with `border-color: var(--nf-border-strong)`. | S
+
+**L-86 | MEDIUM | `page.tsx:459-468` FAQ** | The disclosure marker is a literal `+` character rotated 45 degrees on open (`page.tsx:464`). A text plus sign is not a control glyph; its optical weight and baseline differ per font. | `UiIcon name="plus" size={20}` rotating to a cross, or a chevron rotating 180. | S
+
+**L-87 | MEDIUM | `page.tsx:462`** | FAQ summary rows are `px-5 py-4` on an `nf-card` with `p-0`, so twelve cards each 2.5px apart (`space-y-2.5`, another off-ladder value). | One `.nf-cells` group with `--nf-divider` hairlines between rows and `--nf-pad-cell` inside, rather than twelve separate gradient-bordered cards. Twelve cards with twelve glowing corners for a FAQ is the clearest case of a container that should not exist. | M
+
+**L-88 | LOW | `buttons.css:270-282`** | `.nf-btn--danger-quiet` and `.nf-btn--ghost` both exist and both are quiet variants, and `dangerQuiet` has a `::after { content: none }` that `--danger` also has. | Keep `danger-quiet`, it carries real meaning. Audit whether `ghost` earns its place beside `secondary`; if secondary becomes real glass (L-71), ghost is the only borderless option and does. | S
+
+**L-89 | LOW | `utilities.css` skip link** | Measured `border-radius: 0px 0px 14px`, a three-value shorthand leaving the top corners square and the bottom-left square. | `border-radius: 0 0 var(--nf-radius-control) var(--nf-radius-control)`. | S
+
+##### TYPE, THE APPLE STANDARD
+
+**L-90 | CRITICAL | 987 arbitrary font sizes, `apps/web/src`** | 45 distinct `text-[…rem]` values against a ten step scale. On the landing tree alone: 40 uses across 14 values including `0.72rem`, `1.45rem`, `1.6rem`, `1.7rem`, `2.1rem`, none of which is on the scale. | Migrate to the named classes in `typography.css` (`nf-display`, `nf-h1`..`nf-h4`, `nf-lede`, `nf-body`, `nf-body-sm`, `nf-caption`, `nf-overline`), then flip `nf/no-raw-spacing` and the size half of `nf/no-raw-colour` from warning to error in `eslint.config.mjs`. Nothing else in this list holds without this one. | L
+
+**L-91 | HIGH | `tokens.css:852`** | `--nf-text-display` is `clamp(1.95rem, 1.1rem + 4vw, 4.6rem)`. Measured: **73.6px at 1440** for a three-word headline, and 33.2px at 390. 73.6px is larger than Apple uses for any marketing headline at that width (their equivalent is 56 to 64px) and it forces the three-line stack. | `clamp(2.25rem, 1.4rem + 2.8vw, 4rem)`: 36px at 390, 64px at 1440. Bigger on the phone where it matters, calmer on desktop. | S
+
+**L-92 | HIGH | `typography.css:17-22`** | `.nf-display` is `line-height: 0.98` with `letter-spacing: -0.035em`. At 33px on a phone, 0.98 means descenders in "Rent it." touch the ascenders of the line below; measured line-height 32.5px against a 33.2px font size. | `line-height: 1.04` and tighten tracking with size rather than fixing it: add `--nf-tracking-display-sm: -0.02em` below 640px. Optical tracking is size-dependent; a single value is a phone problem or a desktop problem, never neither. | S
+
+**L-93 | HIGH | `tokens.css:854-857`** | `--nf-text-h1` tops at 2.5rem (40px) and `--nf-text-h2` at 1.85rem (29.6px), so there is a 10px gap between h1 and h2 but a 73.6px gap between display and h1. The scale has a hole in the middle. | Add `--nf-text-h0: clamp(1.75rem, 1.2rem + 2.2vw, 3rem)` for section headings on a marketing page, which is what every `nf-h1` on the landing page actually is. There is exactly one h1 on a page; the other nine "nf-h1" uses are section headings. | S
+
+**L-94 | HIGH | Heading formula, landing** | The two-tone gradient headline is used **eight times** on one page: `page.tsx:151` (hero), `StoryRail.tsx:203`, `HowItWorks.tsx:53`, `MoodRow.tsx:30`, `PopularDestinations.tsx:31`, `WhyVallo.tsx:57`, `SignatureShowcase.tsx:172`, plus the facts band numerals at `page.tsx:275`. Half of each heading is white and half is blue, every single time. | **Twice on the page.** The hero, and the final CTA. Everywhere else the heading is `--nf-content-primary` in full. A device used eight times is not a signature, it is a template. | S
+
+**L-95 | MEDIUM | `tokens.css:858-862`** | `--nf-text-body-sm` is `0.90625rem` (14.5px) and `--nf-text-caption` is `0.8125rem` (13px). Three-decimal rem values do not land on whole pixels at any common root size and produce sub-pixel baselines. | `0.875rem` (14px) and `0.8125rem` (13px) is the honest pair, or move the whole scale to a 4px-derived set: 40 / 32 / 24 / 20 / 17 / 15 / 13 / 11. | S
+
+**L-96 | MEDIUM | `typography.css:93-99`** | `.nf-overline` is 11.5px uppercase at `letter-spacing: 0.14em` in `--nf-content-muted` (`#8E9CC4`). At 11.5px, tracked, in the AA-floor ink, it is the least readable text in the product and it appears above eleven sections. | 12px, `letter-spacing: 0.1em`, `--nf-content-subtle` (`#B4C0E0`, which measures 11.47:1 per `tokens.css:118`). And use it on **every** section or none: `page.tsx:339` ("Everything, in one place") and `page.tsx:444` ("Questions, answered") have no overline while nine siblings do. | S
+
+**L-97 | MEDIUM | `chrome.css:22-23`** | The wordmark is Inter at weight 800 with `-0.03em`. Poppins, the display face, only ships 600 and 700 (`fonts.css:85-127`), so the brand name is set in the body face at a weight the display face cannot match. | See L-6. If Poppins 700 is chosen, the wordmark and every display heading are the same face, which is the whole point of having a display face. | S
+
+**L-98 | MEDIUM | `page.tsx:275`** | The facts band numerals are `font-[family-name:var(--nf-font-display)] text-[1.45rem] sm:text-[1.8rem]`, an inline font-family arbitrary value plus two off-scale sizes, for what is a statistic. | `nf-h2` with `.nf-numeric`. Numerals in a stat tile want tabular figures, which `--nf-font-numeric` exists for at `tokens.css:818` and nothing uses. | S
+
+**L-99 | LOW | `tokens.css:816`** | `--nf-font-display` lists Poppins then Inter as a per-glyph fallback, and the comment explains why. Correct. But `--nf-font-numeric` is defined as Inter and referenced nowhere. | Either wire it to `.nf-numeric` with `font-variant-numeric: tabular-nums` or delete it. An unreferenced token is a lie about what the system does. | S
+
+**L-100 | LOW | Line length, `page.tsx:467`** | FAQ answers run the full card width. At 1440 with the shell at 1376px that is roughly 160 characters per line. | `--nf-measure-body` (68ch) on every paragraph in a full-width card. | S
+
+##### MOTION
+
+**L-101 | HIGH | `ambient.css:150-172`** | `.nf-ambient::after` is a full-viewport conic gradient rotating 360 degrees on a 20 second infinite loop behind every page in the product, at 0.16 opacity. The comment admits it made the dark theme read as a screensaver at 0.45. | It still rotates. Make it static and rely on the three drifting blooms for life, or slow to 90s. A layer whose only justification is "it stops the blooms banding" should not be animated at all; a static conic does the same job for free. | S
+
+**L-102 | HIGH | `page.tsx:175, 485` `nf-breathe`** | Two infinite pulse animations on the two primary CTAs. Combined with `nf-art-breathe` on eight rail objects and `nf-hero-scene` and the rotating aurora, the landing page runs twelve or more simultaneous infinite animations. | One infinite animation per page, maximum, and it belongs on the hero object. Delete `nf-breathe` from both CTAs. | S
+
+**L-103 | HIGH | `motion.css:446-454`** | `.nf-hero-scene` animates `filter: saturate() brightness()` on an 18s loop. Animating `filter` forces a repaint of the composited layer every frame, unlike transform and opacity. | Transform and opacity only. Drop the filter half of the keyframes. | S
+
+**L-104 | MEDIUM | `animation.css:131-200`** | `.nf-reveal` runs a CSS `view()` scroll timeline path *and* an IntersectionObserver path, with a `data-instant` escape hatch documented as fixing a real bug where the two fought. | Pick one. The observer path is the one that works everywhere and it already handles reduced motion and above-the-fold correctly. Delete the `view()` timeline block. | M
+
+**L-105 | MEDIUM | `glass.css:601-608`** | `.nf-card--interactive:hover .nf-icon-tile` scales 1.04 and lifts 2px, on top of the card lifting 1px, on top of the tile's own perspective tilt. Three transforms on one hover. | One: the card lifts. | S
+
+**L-106 | MEDIUM | `tokens.css:762-766`** | Four easing curves, of which `--nf-ease-spring` (`cubic-bezier(0.34, 1.56, 0.64, 1)`) overshoots by 56%. Used on the segmented capsule (`buttons.css:355`). | Keep, but cap the overshoot: `cubic-bezier(0.34, 1.28, 0.64, 1)`. 56% overshoot on a 240ms move reads as bouncy, which is the opposite of premium. | S
+
+**L-107 | MEDIUM | `StoryRail.tsx:238`** | Hover scales the artwork `1.04` over `duration-700`. 700ms is off the duration scale entirely (`--nf-duration-deliberate` is 620ms). | `var(--nf-duration-base)` (240ms). A hover response longer than 300ms reads as lag. | S
+
+**L-108 | LOW | `glass.css:435-446`** | `.nf-gallery-kenburns` runs a 20s infinite pan on the listing lead photo. With `listing_photos = 0` this animates a placeholder. | Gate on a real photo existing. Animating a stand-in is animating a lie. | S
+
+##### LIGHT THEME
+
+**L-109 | CRITICAL | `light.css:20-27`** | `:root[data-theme="light"] .nf-card` is flat white with a `rgb(18 21 26 / 0.09)` hairline and `--nf-shadow-card`. Correct in isolation, but it removes the brand entirely: the light landing page is white cards on grey with blue text and nothing else (`f-light-1440.png`). | Keep the flat white card. Add brand back at the section level, not the card level: a `--nf-surface-secondary` band behind alternate sections, and the navy stage panels from L-51 carrying the glass objects. The light theme should have three or four deliberate dark plates on it, which is how a paper product carries a dark brand. | M
+
+**L-110 | HIGH | `light.css:164-169`** | `.nf-aurora` and `.nf-grid-veil` are `display: none` in light, so the light theme has no ambient system at all and the hero is a blank sheet. | Light gets its own: `--nf-canvas-base: #F7F8FB`, one bloom at `color-mix(in oklab, var(--nf-electric-400) 5%, transparent)` from the top right, and a grid veil at `rgb(18 21 26 / 0.035)`. Quiet, but present. | M
+
+**L-111 | HIGH | `light.css:41-47`** | Light chips are `#FFFFFF` with a `rgb(18 21 26 / 0.12)` border and `--nf-content-primary` ink: identical to a light card. A chip and a card are the same object in daylight. | Chip in light: `background: var(--nf-surface-secondary)` (the grey), border `--nf-border-subtle`. The chip should be *recessed* on paper and *raised* at night, which is correct material behaviour in both. | S
+
+**L-112 | MEDIUM | `light.css:292-296`** | `:root[data-theme="light"] .nf-card .nf-glass` exists, meaning glass nested inside a card is a real pattern the light theme has had to patch. Nested glass is exactly what HANDOFF_03 section 2.3 forbids. | Find the call sites and remove the nesting rather than styling it. A glass panel inside a card is two floating surfaces, one of which is not floating. | M
+
+**L-113 | MEDIUM | `light.css:371-378`** | Two rules matching escaped Tailwind class names (`.bg-white\/5`, `.border-white\/10`) to repair dark-only utilities stranded on white. | These are patches over 40-odd call sites that wrote raw white overlays. Replace the call sites with `--nf-interactive-hover` and `--nf-border-subtle`, then delete both rules. A stylesheet that matches utility class names is a stylesheet that will break silently. | M
+
+**L-114 | MEDIUM | Light theme, `motion.css:483-489`** | `.nf-story-stage--paper` is `#FBFCFD` to `#F1F3F7` in **both** themes, so in light it is a near-invisible panel and the card loses its top half entirely. | Resolved by L-46 and L-51: delete the stage, use a navy plate. | S
+
+**L-115 | LOW | `tokens.css:1004`** | `--nf-icon-ground: transparent` in light, relying on `mix-blend-mode: multiply` being identity against white. It is identity against pure white only; the light card is `#FFFFFF` but the light canvas is `#F4F5F7`, so an untiled object on the canvas multiplies slightly dark. | Once L-60 lands this is moot. Until then set it to `#FFFFFF`. | S
+
+##### OTHER SURFACES
+
+**L-116 | CRITICAL | `not-found.tsx`** | The floating icon field is live on the 404 and its objects render as **grey translucent squares with murky contents, overlapping the buttons**. Two of them sit on top of "Explore instead" (`404-390.png`). `page.tsx:95-106` documents this exact `.nf-icon-field > span { opacity: 0.5 }` isolation-group trap as the reason it was removed from the hero, and it was not removed here. | Delete `.nf-icon-field` from `not-found.tsx` and from `ambient.css` entirely. The trap is written down and the class is still shipping the bug on the one page a stranger hits when something has already gone wrong. | S
+
+**L-117 | HIGH | `(auth)/sign-in`** | "This sign in method is not configured yet." renders as 13px muted text under the only button on the screen (`auth-390.png`), so the first-run experience reads as broken software. | If the method is unconfigured, do not paint the button. Paint the configured methods only, and if none is configured, a single `nf-card` with the mark, "Sign in is opening soon" and a mail link. Never show a control and then apologise for it. | S
+
+**L-118 | HIGH | `(auth)/layout.tsx:44`** | The 104px lockup renders with a visible hard rectangular edge against the auth background because the asset is opaque RGB on near-black and the auth ground is a lighter blue radial. | Same fix as L-2: give the lockup a tile with `--nf-radius-2xl` (32px) and `overflow: hidden`, so the asset's own square becomes a deliberate rounded tile rather than a visible seam. | S
+
+**L-119 | HIGH | Sticky header height, `SiteHeader.tsx:41`** | `h-[60px] sm:h-[72px]` written as arbitrary values, while `--nf-header-height: 76px` exists at `tokens.css:1010` and is obeyed by neither. Measured: 61px and 73px. | `height: var(--nf-header-height-sm)` (56px) and `var(--nf-header-height)` (72px), both tokens, and delete the unused 76. | S
+
+**L-120 | MEDIUM | `SiteFooter.tsx:82`** | The footer is `bg-[var(--nf-surface-primary)]` with a `nf-hairline` top, which on the dark theme is `#000020` against a `#000010` canvas: a 1.09:1 difference, mathematically invisible per the note at `tokens.css:28-30`. The footer has no visible boundary. | Give the footer a real edge: `border-top: 1px solid var(--nf-border-default)` plus `box-shadow: inset 0 1px 0 var(--nf-glass-rim)`. Depth on this canvas comes from the rim, which the token file says explicitly and the footer does not do. | S
+
+**L-121 | MEDIUM | `SiteFooter.tsx:127`** | The footer prints the dead slogan a second time, bottom right, beside the copyright. | Delete. The strapline belongs once, under the lockup (L-8), and it should be "Real Estate reimagined!". | S
+
+**L-122 | MEDIUM | `SiteFooter.tsx:90-92`** | Two taglines stacked under the logo: `t.landing.footer.tagline` then `t.landing.vision.title`, both 28 to 34ch, both in different inks. | One line. The strapline. Delete the vision title from the footer. | S
+
+**L-123 | MEDIUM | Footer at 390 (`p39-9600.png`)** | Four link columns become a 2x2 grid with 44px rows, so the footer alone is roughly 900px of the 10,862px page. | Collapse Product / Company / Support / Legal into four `<details>` accordions at 390px, closed by default, with the brand block and the strapline visible. Expands to four columns from 768px. | M
+
+**L-124 | MEDIUM | `AgentsBand.tsx:34`** | At 1440 the band is a single 1376px-wide card with copy ending at x=533 and a three-item list starting at x=778, leaving a 245px empty trough down the middle (`d14-4300.png`). | Constrain to `--nf-content-read` (1120px) and make it `grid-template-columns: 1fr 1fr` with `gap: var(--nf-space-4xl)`. Put `hero-growth` at 240px in the right column above the list. | S
+
+**L-125 | MEDIUM | `AgentsBand.tsx` list icons** | The three bullets use a calendar glyph for "Free to list, with no upfront fees", a shield for "A checked badge", and a **right arrow** for "Payouts straight to your own bank account". An arrow is a direction, not a bullet. | Three semantically correct `UiIcon`s at size 20, or no icons at all and a `--nf-divider` between rows. A wrong icon is worse than none. | S
+
+**L-126 | MEDIUM | `page.tsx:265-289` facts band vs `PlatformConsole.tsx` vs `NumbersBand.tsx`** | Three statistics blocks showing "36 + FCT", "4", "24/7" between them, two of them within 200px of each other. | One. Keep `PlatformConsole` (it is the most honest, it reads from real counts) and delete the other two sections. | M
+
+**L-127 | MEDIUM | `page.tsx:337-358` categories** | Five category cards, each with a 56 to 64px `BrandIcon` on a white plate, centred, in a 5-up grid at 1440 and 2-up at 390. Five more white squares. | Replace the plates with 32px `UiIcon` glyphs in `--nf-content-secondary` and let the label carry the card. A category tile does not need a 3D object; it needs to be tappable and scannable. | M
+
+**L-128 | MEDIUM | `MoodRow.tsx:27`** | Six mood tiles at `.nf-glass` (18px radius) sitting beside the category cards at `.nf-card` (22px radius), two sections apart, same page. | One material for a tile grid. `.nf-card` at 22px. | S
+
+**L-129 | MEDIUM | `FeaturedCarousel.tsx:27`** | `if (listings.length === 0) return null`. With 64 listings live and 0 photos the section either shows photoless cards or vanishes; on my run at both widths the section was absent. | This is Agent 1's call on content, but visually: a landing page that silently loses a section depending on data has a hole in its rhythm. If it renders, it must render at a fixed height with a designed no-photo card; if it cannot, the section should not be in the page. | S
+
+**L-130 | MEDIUM | `VoicesBand.tsx:31`** | Same pattern, `reviews = 0`, so the testimonials section is absent. | Correct behaviour, and it means the page as designed and the page as shipped are different pages. Design the nine-section page against the real data (L-23). | S
+
+**L-131 | LOW | `page.tsx:411`** | Trust strip cell padding is `px-5 py-5`, a fifth card-padding answer on the page. | `--nf-pad-cell` (32px). | S
+
+**L-132 | LOW | `NumbersBand.tsx:56`** | `px-4 py-6 sm:py-7`: `py-7` is 28px, which is not on the ladder. | `--nf-pad-card`. | S
+
+**L-133 | LOW | `page.tsx:456`** | `space-y-2.5` between FAQ cards: 10px, not on the ladder. | Resolved by L-87. | S
+
+**L-134 | LOW | `page.tsx:281`** | `text-[0.72rem]` (11.5px) for the facts band captions, below the `--nf-text-overline` floor, in `--nf-content-muted`. Four locales at four lengths in an 11.5px muted ink. | `--nf-text-caption` (13px) in `--nf-content-subtle`. | S
+
+##### PLATFORM DISCIPLINE
+
+**L-135 | CRITICAL | `eslint.config.mjs:26-31`** | The config's own header records that lint has never run on this repository and that the design rules are warnings to avoid three thousand failures. Two years of drift are the result. | Ratchet: set `nf/no-raw-spacing` and `nf/no-raw-colour` to `error` for `apps/web/src/components/site/**` and `apps/web/src/design-system/**` today, and add one directory per week. A warning nobody sees is not a rule. | M
+
+**L-136 | HIGH | Radius namespace collision, platform** | Tailwind's `rounded-xl` is 12px and `--nf-radius-xl` is 22px; both are in use (21 `rounded-xl`, 12 `rounded-2xl`, 6 `rounded-lg`, 2 `rounded-md`). A reader cannot tell which scale a class belongs to. | Add a Tailwind theme mapping so `rounded-sm/md/lg/xl/2xl` resolve to the `--nf-radius-*` values, making the two scales one. Then `rounded-xl` means 22px everywhere and the 279 arbitrary `rounded-[var(--nf-radius-*)]` escapes collapse to plain utilities. | M
+
+**L-137 | HIGH | 79 `rounded-full`, platform** | The owner asked for rectangles and `--nf-radius-control: 14px` was created for exactly that (`tokens.css:627` and the comment above it), and 79 elements are still full capsules. | Audit all 79. Legitimate: avatars, progress caps, sheet grips, status dots. Everything else, including every remaining pill button, chip and tab, goes to `--nf-radius-control`. | M
+
+**L-138 | MEDIUM | 2,635 raw spacing steps, platform** | Against an eleven step ladder whose 50-line comment explains that four thousand spacing decisions taken against fifty three answers is why the product feels choked. | Codemod the common mappings (`p-4`→`p-card-sm`, `p-6`→`p-card`, `gap-3`→`gap-row`, `gap-4`→`gap-group`, `mt-6`→`mt-heading`, `mt-8`→`mt-block`) and hand-resolve the rest. This is the mechanical half of "widen every single layer". | L
+
+**L-139 | MEDIUM | `tokens.css:1010`** | `--nf-rail-width: 264px`, `--nf-header-height: 76px`, `--nf-content-max: 1440px` are the only three layout tokens, and two of the three are ignored by their own consumers. | Add the layout set: `--nf-content-read`, `--nf-header-height-sm`, `--nf-pad-hero`, `--nf-scene-lg`, `--nf-scene-sm`, `--nf-measure-*`, `--nf-border-width*`, `--nf-logo-*`. Every recommendation above that proposes a new value names the token it needs. | M
+
+**L-140 | MEDIUM | `tokens.css:456-461`** | `--nf-glass-specular` is a three-stop gradient at 152 degrees; `--nf-card`'s own top highlight is at 160 degrees; `.nf-btn::after` is at 180. Three light sources on one screen. | One light source, upper left, one angle: 152 degrees, everywhere. Material honesty is the Apple point: if the light comes from the upper left it comes from the upper left on every object. | S
+
+**L-141 | LOW | `tokens.css:294` and `:312`** | `--nf-media-glass` is `rgb(255 226 158 / 0.88)`, a **warm amber**, defined twice. The brand rule forbids amber by name. | It is a media placeholder illustration colour, not chrome, but it is the only warm value in the palette and it will leak. Replace with `rgb(214 229 255 / 0.88)`. | S
+
+**L-142 | LOW | `glass.css:423-433`** | `.nf-hairline` is a separate divider primitive alongside `--nf-divider` and `--nf-border-subtle`. Three names for a 1px line. | Keep `.nf-hairline` as the class and make it read `--nf-divider`. Delete the third path. | S
+
+**L-143 | LOW | `symbols.css` (163 lines)** | A whole stylesheet for a symbol system, alongside `UiIcon`, `BrandIcon` and `TrustIcon`. `TrustIcon` is a **third icon tier** and `docs/ICON_SYSTEM.md` allows two. | Fold `TrustIcon` into `UiIcon` (the globe, shield, chip and africa marks are stroked glyphs) or into `BrandIcon` (if they are objects). Do not keep three. The landing page currently mixes `TrustIcon size={34}` (`page.tsx:411`) with `UiIcon` and `BrandIcon` in adjacent sections. | M
+
+**L-144 | LOW | `page.tsx:411`** | `TrustIcon size={34}`. 34 is not on the `UiIcon` scale (12/16/20/24/28/32) and not a `BrandIcon` size. | 32. | S
+
+**L-145 | MEDIUM | Performance, landing** | The page runs 40+ `backdrop-filter` cards (L-56), a rotating full-viewport conic (L-101), 8 infinite artwork loops (L-52), 2 CTA pulses (L-102) and a pointermove listener driving per-card radials (L-58), on a page whose stated target is a mid-range Android on a Nigerian network. | Every one of those five has a recommendation above. Together they are the difference between a page that feels expensive and one that stutters. **I did not measure paint time; this is a structural read, not a benchmark.** | M
+
+**L-146 | LOW | `data-saver.css:100`** | `:root[data-save-data="on"] .nf-story-art` handling exists, which is good, and there is no save-data path for the new glass scenes. | When the scenes are wired, add them to the same rule and serve a 96px version under save-data. | S
+
+**L-147 | LOW | `next.config.ts` / images** | The mark is served through `/_next/image?url=%2Fbrand%2Fvallo-mark.png&w=96&q=75` at every header render: a 640px source downscaled to 96 at quality 75 for a logo. Quality 75 on a glowing render introduces banding in the glow. | `quality={90}` on `LogoMark` and `LogoLockup`, and pre-size the asset (L-1) so the resize is 2x rather than 14x. | S
+
+**L-148 | LOW | `page.tsx:129-140`** | The `HERO_ARTWORK` slot, its float animation, its mask and its sizes attribute are all still in the tree behind a `null` constant, alongside roughly 120 lines of comment explaining what used to be there. | Once the glass hero scene lands (L-38), delete the dead slot. The comments are excellent history and belong in `docs/IMAGERY.md`, not in the render path of the most important page. | S
+
+**L-149 | MEDIUM | `docs/BRAND_MARKS.md`** | Still instructs new marks to match the matte clay set, which `HANDOFF_03` section 1.2 says is now wrong. | Rewrite as the glass system before any new artwork is commissioned, or the next set will be clay again. | M
+
+**L-150 | MEDIUM | Both themes, everything above** | Every recommendation in this list was judged in both themes where a screenshot exists. Six of them (L-42, L-51, L-109, L-110, L-111, L-114) are light-theme-specific and the rest apply to both. | When any of these is implemented, screenshot both themes at 390 and 1440 before calling it done. A finding that only works in dark is half a finding. | S
+
+---
+
+#### D. THE LANDING PAGE, SECTION BY SECTION
+
+The page is `apps/web/src/app/page.tsx`, 503 lines, twenty sections, plus header and footer. Measured height: **8,734px at 1440, 10,862px at 390**. Two sections render null against live data.
+
+##### The header (`SiteHeader.tsx`)
+
+**Now.** 61px at 390, 73px at 1440. A 33 to 46px cropped-tile mark, an Inter 800 wordmark, three links, a theme toggle, a language pill, a quiet Sign in and a filled blue Sign up. `nf-site-bar` tints the canvas at 93% with a strong blur, which is correct and it is the best piece of chrome in the product.
+
+**Wrong.** The brand occupies about 8% of the bar at 1440 and loses to the Sign up fill, which is the brightest object in the header. The mark is a crop with a hard square edge, and in light it is a black block. Height is written as arbitrary pixels while `--nf-header-height` exists and says 76.
+
+**Should be.** 72px bar at desktop, 56px at 390. Mark 48px inside a 14px-radius tile, wordmark 24px in Poppins 700 at `-0.04em`. Sign up becomes a glass secondary on the marketing header so the only saturated blue above the fold is the mark and the hero CTA. At 390: mark 36px, wordmark 19px, Sign up stays filled because it is the only action.
+
+##### The hero (`page.tsx:86-196`)
+
+**Now.** Type on the ambient canvas. Three stacked words, "Find it. / Rent it. / Love it.", the third in `--nf-gradient-text`, at 73.6px on desktop and 33.2px at 390. A 42ch subtitle. One 64px pulsing primary button. Five glowing city chips. `HERO_ARTWORK` is null so there is no image. At 1440 the whole hero occupies the left 672px of a 1376px shell and the right half is empty navy (`hdr-dark-1440.png`). In light it is a plain sheet with black type (`hdr-light-390.png`).
+
+**Wrong.** The headline is the dead brand. The logo is not present. Half the desktop hero is empty. The CTA is a pulsing banner. Five chips glow harder than the heading. The light hero has zero brand identity. The whole thing is 24px below the header at 390.
+
+**Should be.**
+
+- Two column grid from 1024px, `minmax(0, 1.05fr) minmax(0, 0.95fr)`, shell constrained to `--nf-content-read` (1120px) so the composition is a composition and not a stretch.
+- **Left column:** `LogoLockup size={96}` on its own line. 24px (`--nf-gap-heading`) below it, the headline: "Real estate," / "reimagined." on two lines, `--nf-text-display` retuned to top out at 64px, the second line in `--nf-gradient-text`. 16px below, "Real Estate reimagined!" is *not* repeated; instead the lede from `en.ts:258`, "Rent, buy or sell property in Nigeria. Every place here was listed by a real person on Vallo.", at `--nf-measure-lede` (46ch). 32px below, two buttons at 56px: "Explore homes" primary, "How Vallo works" glass. 24px below, the five city chips, de-glowed, at 14.5px.
+- **Right column:** `hero-property.png` at 420px (or 280px until 2x re-renders exist), on the ambient canvas, with a soft `--nf-glass-floor` ellipse reflection beneath it and the one permitted infinite breathe animation. No stage panel in dark; a navy stage panel in light.
+- **At 390px:** one column. Lockup 72px centred-left, headline 36px, the scene **above** the headline at 180px so it is the first thing seen and the fold still reaches the CTA. Section top padding 32px, gutter 24px.
+- **Light theme:** the scene sits in the navy stage panel (L-51), the canvas gets a 5% brand bloom top-right, and the grid veil returns at 3.5%.
+
+**Four-second read.** Right now a stranger reads "Find it. Rent it. Love it." and learns nothing about what this is. After the change they read a glass building object and the word "reimagined" beside a lockup, and they know it is property, it is premium, and it is Nigerian before they scroll.
+
+##### The feature row (`page.tsx:197-221`)
+
+**Now.** Four cards, 2-up at 390 and 4-up at 1440, each with a 56px matte white 3D object on a near-white plate. "AI Assistant / Smart help, 24/7", "Verified Listings / Trusted and secure", "Best Prices / Save more", "Easy Booking / Fast and simple".
+
+**Wrong.** Four bright white squares terminate the navy hero (`hdr-dark-1440.png`). The claims are the four most generic claims any app makes; "Best Prices" and "Save more" are unprovable and "Easy Booking" is a category, not a benefit. Card gap is 12px against a 22px radius.
+
+**Should be.** Delete the cards. One trust strip directly under the hero, full width of `--nf-content-read`, `--nf-text-body-sm`, four facts separated by `--nf-divider`: "64 places live", "Priced in naira", "No booking fees", "EN / YO / HA / IG". No cards, no icons, no glow, 48px tall. It is the honest version of the same reassurance and it takes a sixth of the space. At 390 it becomes a two-line 2x2 grid with 12px gaps.
+
+##### The story rail (`StoryRail.tsx`, mounted `page.tsx:224`)
+
+**Now.** Eight 420 to 480px panels, each 634px tall, horizontally snapped. Each panel is a 4:3 near-white stage holding a masked matte clay object, then an overline, a title, a paragraph, two chip-wrapped points each containing another 40px white-plated object, and a link. At 390 one card is 75% of the viewport (`p39-800.png`). The fourth card is hard-clipped at the right edge at 1440 (`d14-700.png`).
+
+**Wrong.** This is the loudest, cheapest-looking element in the product. Four bright pale blocks in a row on a navy page reads as stock 3D illustration, which is precisely the "AI slop" the brief names. Three nested containers around each two-word label. Eight simultaneous breathe animations. Eight panels is four too many.
+
+**Should be.** Four panels, not eight, using the glass scenes: `hero-assistant-chat`, `hero-map-stay`, `hero-protected`, `hero-trip`. The panel becomes a 3:4 card, 420px tall at 390 and 480px at desktop. The scene sits on the card ground at 280px (180px at 390) with **no stage, no mask, no blend mode**: real alpha, one layer. Overline, title at `nf-h3`, a 46ch paragraph, and the two points as plain rows with a 16px `UiIcon` and `--nf-gap-inline`, no chips. The rail gets a 64px right-edge mask so the next panel is softly cut. One panel's scene breathes; the rest are still.
+
+**Should it stay a carousel?** At 390, yes: four panels is a natural swipe and the rail already has snap, containment and arrows. At 1280 and above, no: four panels fit as a static 4-up grid with `--nf-gap-block`, and a carousel that does not need to scroll is a control that does nothing. Make it `grid` from 1280 and a rail below it.
+
+##### How it works (`HowItWorks.tsx`, `page.tsx:252`)
+
+**Now.** One 1376px-wide card, 150px tall, three columns with vertical dividers, each a numbered step ("01 Find it." / "02 Rent it." / "03 Love it.") with a 16px `UiIcon` and one line of copy (`d14-1600.png`). Heading "How it **works**" with the gradient half.
+
+**Wrong.** A 1376 by 150 strip is a letterbox, not a section. The three steps are the dead slogan a third time. The gradient heading is the eighth use of the formula.
+
+**Should be.** Constrain to `--nf-content-read`. Three real cells at `--nf-pad-cell` (32px) with a `--nf-divider` between, each carrying a 120px glass scene above the step: `hero-map-stay` (search), `hero-schedule` (book), `hero-trip` (move in). Rename the steps: "Search", "Book", "Move in". Heading in full `--nf-content-primary`, no gradient. At 390 it stacks to three rows with the scene at 96px inline-left.
+
+##### Featured this week (`FeaturedCarousel.tsx`, `page.tsx:255`)
+
+**Now.** Absent. Returns null at line 27 when the listing set is empty, and it did not render on either of my runs.
+
+**Wrong, visually.** A page whose section list changes with the data has no fixed rhythm, and this is the only place a stranger would see an actual property.
+
+**Should be.** This is Agent 1's content call, but the art direction answer: with `listing_photos = 0`, a photoless card must be a **designed** object, not a grey box. A card with `--nf-surface-secondary` fill, a 64px `BrandIcon` for the property type centred in the media frame, and the price and the area at full weight. The section then never disappears and the absence of photography reads as a style rather than a gap.
+
+##### The three numbers sections (`page.tsx:265`, `PlatformConsole.tsx`, `NumbersBand.tsx:53`)
+
+**Now.** The facts band shows 36 + FCT / 4 / ₦ / 24/7 in four gradient-numeral cards, 16px below the section above it. The console, 16px below that, shows 36 + FCT / 17+ / 4 / 24/7 in a card with a sparkline. `NumbersBand`, eleven sections later, shows 4 / 24/7 again (`d14-1600.png`).
+
+**Wrong.** The same four numbers three times, two of them within 200px of each other, and the middle one is glued to both neighbours by `pt-4`. The "₦" as a statistic is not a statistic.
+
+**Should be.** Keep `PlatformConsole` alone, at `py-section`, constrained to `--nf-content-read`. Delete the facts band and `NumbersBand` entirely. Four real numbers, read from the database, with the sparkline: places live, cities, languages, response time.
+
+##### Vision and mission (`page.tsx:296-335`)
+
+**Now.** A two column section: left has an overline, "Nigeria at your fingertips. Africa next." at `nf-h1`, a 46ch paragraph and a mission card; right has a 2x2 grid of four cards each with a 64px white-plated object (`d14-2500.png`).
+
+**Wrong.** Left column ends at x=633 and the right grid starts at x=673, so the two halves touch while the section as a whole is stretched to 1376. Four more white plates. The left column's card-inside-a-section is a container that the vertical rhythm should be carrying instead.
+
+**Should be.** Constrain to `--nf-content-read`, `gap: var(--nf-space-4xl)` (96px) between the columns. Delete the mission card and let the mission sit as a second paragraph with `--nf-gap-block` above it, which is exactly the "fewer containers" mechanism documented at `tokens.css:706-715`. The four right-hand cards keep their cards but lose the plates: 24px `UiIcon` in `--nf-brand-secondary`, not a 64px object.
+
+##### Categories, moods, destinations (`page.tsx:337`, `MoodRow.tsx`, `PopularDestinations.tsx`)
+
+**Now.** Three consecutive tile-grid sections, each `py-10 sm:py-14`, each with a two-tone gradient heading, and three different tile materials: `.nf-card` (22px) for categories, `.nf-glass` (18px) for moods, `.nf-card` again for destinations. Fifteen white-plated objects between them.
+
+**Wrong.** Three near-identical grids in a row is the moment a visitor stops reading. Two radii and two materials for the same job.
+
+**Should be.** **One section.** A single "Start anywhere" band with a segmented control (`.nf-segmented` already exists and is well built) switching between Type / Mood / City, and one grid underneath it. `.nf-card` at 22px, 32px `UiIcon` glyphs, no plates. That collapses three sections and about 1,000px into one and it makes the page feel like software rather than a brochure.
+
+##### Become an agent (`AgentsBand.tsx`)
+
+**Now.** A 1376 by 420 card, copy left ending at x=533, a three-row list starting at x=778 with hairline dividers, a 245px empty trough between them (`d14-4300.png`). One primary button and one arrow link. Bullet glyphs are a calendar, a shield and an arrow.
+
+**Wrong.** The trough. The arrow-as-bullet. The card is the only full-bleed card on the page and it does not need to be.
+
+**Should be.** `--nf-content-read`, two equal columns, 96px gap. Right column gets `hero-growth` at 240px above the three rows. Correct glyphs: `tag` for free to list, `shield-check` for the badge, `wallet` for payouts. At 390 the scene goes to 180px above the copy and the rows become a plain list.
+
+##### The assistant showcase (`SignatureShowcase.tsx:143`)
+
+**Now.** A wide panel with a 3D bot object left and a chat mock right (`f-dark-1440.png`).
+
+**Should be.** `hero-assistant-home.png` at 320px replaces the clay bot. The chat mock keeps its glass, and it is one of the two places on the page where `.nf-glass` genuinely earns its place, because the mock is a floating surface over artwork. Constrain to `--nf-content-read`.
+
+##### The trust strip (`page.tsx:407-437`)
+
+**Now.** Five cells in one card, borders drawn by a five-way conditional expression, `TrustIcon size={34}`, one cell holding two icons and claiming "Available on App Store & Play Store".
+
+**Wrong.** The border logic is unmaintainable. 34 is on no icon scale. The store cell is a claim about an unshipped app, and while `page.tsx:62-77` argues carefully that "Available on" is defensible, it is still the weakest cell and it dilutes the four that are true.
+
+**Should be.** `.nf-cells` with one `--nf-divider` rule and `--nf-pad-cell`. Four cells, 32px icons: languages, security, assistant, Nigeria. The store line moves to the footer as a text line.
+
+##### FAQ (`page.tsx:442-473`)
+
+**Now.** Twelve `<details>` each wrapped in its own `nf-card` with `p-0`, spaced 10px apart, disclosure marker a rotating `+` character. Lines run to roughly 160 characters at 1440.
+
+**Wrong.** Twelve gradient-bordered cards with twelve glowing corners for a FAQ. Twelve is too many for a landing page.
+
+**Should be.** Six questions, one `.nf-cells` group, `--nf-divider` between rows, `--nf-pad-cell` inside, a `UiIcon` chevron, answers at `--nf-measure-body` (68ch). The other six move to `/help`. Put `hero-support` at 180px beside the heading.
+
+##### The CTA (`page.tsx:475-499`)
+
+**Now.** A centred `nf-card--live` panel with a nested aurora at 60% opacity, a 20ch heading, a 52ch line, and two 64px buttons of which the secondary is nearly invisible (`p39-9600.png`).
+
+**Should be.** Keep the panel; this is the one place a live gradient earns its place. Delete the nested aurora and let `--nf-elev-3` plus a strong rim carry it. Buttons to 56px. The secondary becomes real glass so it is legible. Put the lockup at 72px above the heading, so the page opens and closes with the mark. Heading: "Real Estate reimagined!" verbatim. This is where the slogan belongs, as the closing line, not as the hero headline.
+
+##### The footer (`SiteFooter.tsx`)
+
+**Now.** 40px logo, two stacked taglines, four link columns, a hairline that is invisible on the dark canvas, and the dead slogan printed a second time bottom right. At 390 it is a 2x2 column grid roughly 900px tall.
+
+**Should be.** `LogoLockup` at 120px (88px at 390), one strapline under it: "Real Estate reimagined!". A visible top edge: `border-top: 1px solid var(--nf-border-default)` plus `inset 0 1px 0 var(--nf-glass-rim)`, because depth on this canvas comes from the rim and not from a 1.09:1 fill change. Four columns from 768px, four accordions at 390. The bottom row keeps the copyright and the company name and nothing else.
+
+##### The resulting page
+
+Hero, trust strip, story rail (4), how it works, live catalogue, start anywhere, become an agent, assistant, FAQ, CTA. **Ten blocks, one rhythm (`py-section`), one container width for reading and one for rails, ten glass scenes placed once each, two gradient headings, one infinite animation, one glow.** Roughly 5,400px at 390 instead of 10,862.
+
+---
+
+#### E. THE LOGO: EVERY PLACE IT APPEARS, AND EVERY PLACE IT DOES NOT
+
+##### Where it appears today
+
+| Where | File:line | Form and size | Verdict |
+|---|---|---|---|
+| Marketing header | `SiteHeader.tsx:43` | `Logo` mark 46 / word 21, responsive | **Poor.** Cropped tile, hard square edge, 8% of the bar, loses to the Sign up fill. Black block in light. |
+| Marketing footer | `SiteFooter.tsx:88` | `Logo` mark 40 / word 21 | **Poor.** Smaller than the header, and followed by two competing taglines. |
+| Mobile menu | `MobileMenu.tsx:101` | `Logo` 40 / 19 | Adequate. Third size for the same chrome. |
+| Auth screens | `(auth)/layout.tsx:44` | `LogoLockup` 104 | **Best in product.** Ruined by the dead slogan under it and a visible square seam. |
+| App shell header | `AppShell.tsx:299` | `Logo` 34 / 17 | Weak. The mark is unreadable at 34. |
+| App rail | `AppRail.tsx:104` | `Logo` 34 / 17 responsive | Weak, same reason. |
+| Agent rail | `AgentRail.tsx:41` | `Logo` 34 / 17 | Weak. |
+| Agent mobile nav | `AgentMobileNav.tsx:97` | `Logo` 36 / 18 | Fourth chrome size. |
+| Agent shell | `AgentShell.tsx:57` | `LogoMark` 30 | **Poor.** A photographic render at 30px is a blue dot. |
+| Admin rail | `admin/layout.tsx:76` | `Logo` 38 / 19 | Fifth chrome size. |
+| Admin collapsed | `admin/layout.tsx:92` | `LogoMark` 30 | Poor, same as above. |
+| Admin access screen | `AccessScreen.tsx:50` | `Logo` 40 / 20 | Should be the lockup; this is a full-page moment. |
+| Social feed masthead | `FeedMasthead.tsx:47` | `LogoMark` 30 | Poor. |
+| First run | `FirstRun.tsx:74` | `LogoMark` 40 | Should be the lockup; first run is the strongest brand moment in the product. |
+| Auth verifying | `Verifying.tsx:132`, `VerifyingPanel.tsx:44` | `LogoMark` 44 | Adequate. |
+| 404 | `not-found.tsx:55` | `LogoMark` 64 | **Poor.** Beaten by a 96px "404" and surrounded by broken floating icons. |
+| Error | `error.tsx:47` | `LogoMark` 56 | Poor. Tenth distinct size. |
+| Signature showcase | `SignatureShowcase.tsx:20` | `LogoMark` | Adequate. |
+| Email header | `lib/email/render.ts:468` | `vallo-mark.png` at 40, `alt=""` | **Poor.** 122KB over the wire for 40px, empty alt, dark tile on a white card. |
+| Favicon | `layout.tsx:104-112` | `favicon.ico` 16/32/48 from the tile | **Poor.** A photographic render does not survive 16px. |
+| PWA icons | `manifest.ts:41-60`, `public/pwa/` | 192, 512, maskable 512, apple 180 | **Good.** The safe zone is documented and the set is complete. |
+| Native splash | `assets/splash.png`, `splash-dark.png` | 2732x2732 | Unverified against the current mark. |
+| Theme colour | `layout.tsx:129-132` | `#010118` / `#F4F5F7` | **Good.** |
+
+##### Where it should appear and does not
+
+1. **The Open Graph image.** No `openGraph.images`, no `opengraph-image.tsx`, no `twitter-image.tsx`. Every WhatsApp share is a blank card. **This is the single largest missed logo surface in the product.** (L-4)
+2. **The landing hero.** No logo above the fold except the 33px header mark. (L-9)
+3. **The landing CTA panel.** The page never closes with the mark. (L-16)
+4. **The footer, at brand size.** 40px is a chrome size, not a signature. (L-8)
+5. **PWA install screenshots.** `manifest.ts` has no `screenshots` array, so the Android install sheet shows no visual at all. (L-14)
+6. **App store screenshots.** Nothing in the tree; `hero-app.png` exists and is drawn for this. (L-50)
+7. **Empty states.** With zero photos and zero reviews, every empty state is live and none carries brand. (L-18)
+8. **Email footer.** The rendered `vallo-wordmark.png` is the correct asset for a surface with no live type control and it is used nowhere. (L-17)
+9. **A true 16px favicon.** (L-21)
+10. **A light-theme mark.** `light.css:174-181` records that the ink twin was deleted and the replacement was never commissioned. (L-3)
+
+##### Where a lockup is used where a mark belongs, or the reverse
+
+- **Mark where a lockup belongs:** `not-found.tsx:55`, `error.tsx:47`, `FirstRun.tsx:74`, `AccessScreen.tsx:50`, `SiteFooter.tsx:88`. All five are full-page or section-owning moments where the wordmark should be part of the object.
+- **Lockup where a mark belongs:** none currently, and that is because the lockup has exactly one call site.
+- **Mark used below its legible floor:** `AgentShell.tsx:57`, `admin/layout.tsx:92`, `FeedMasthead.tsx:47`, all at 30px. A photographic glass render has a hard floor around 36px. Below that it must be a flat two-colour redraw of the swoosh, which does not exist and should be commissioned as `vallo-mark-flat.svg`.
+
+---
+
+#### F. TOP 15, RANKED
+
+1. **L-1, the mark is a crop with no alpha.** Everything else about logo visibility is downstream of this. `vallo-mark.png` is 640x640, three channels, edge pixel `rgb(73,126,249)`, towers clipped, swoosh cut. It cannot be made to read at header size by any CSS.
+2. **L-4, no Open Graph image.** The highest-leverage brand surface in the product is empty, and in a WhatsApp-first market that is the first impression for most visitors, not the landing page.
+3. **L-36 + L-121, the dead slogan is the headline.** "Find it. Rent it. Love it." appears three times on the landing page, in the page title, in the OG title and in every email. "Real Estate reimagined!" appears nowhere. This is free to fix and it is the founder's own brief.
+4. **L-55 + L-56, `.nf-card`'s gradient border and backdrop filter, 423 times.** Forty glowing corners and forty blur passes on one page. Deleting the blur and softening the border is two lines and it is most of "premium glass is fewer layers done better".
+5. **L-46 + L-47, the story rail's white stages and nested chips.** The loudest, cheapest-looking thing in the product, and the twelve glass scenes that replace it already exist with real alpha.
+6. **L-24 + L-27, the hero uses half the desktop page.** 672px of content in a 1376px shell, with everything else stretched to full width. Two container widths fixes the whole platform, not just this page.
+7. **L-23, twenty sections and 10,862px at 390.** A landing page that says everything says nothing, and this one says the same four numbers three times.
+8. **L-116, the 404's floating icon field overlaps the buttons.** The exact bug documented at `page.tsx:95-106` as the reason it was removed from the hero, still live on the page a stranger sees when something has gone wrong.
+9. **L-90 + L-135, 987 arbitrary font sizes and lint as a warning.** Nothing else in this list stays fixed until the scale is enforced.
+10. **L-25, five section rhythms on one page.** `--nf-gap-section` exists, is correct, and is obeyed by five of sixteen sections. This is the cheapest single change that makes the page feel designed.
+11. **L-38 + L-50, wire the twelve glass scenes.** With zero property photographs the only honest art direction is the brand's own objects, and the new set is drawn in the logo's exact language.
+12. **L-59, ten layers around a 24px icon.** Three call sites, one rule, and it is the founder's complaint word for word.
+13. **L-42 + L-109 + L-110, the light theme has no brand.** Light is half the users and right now it is an unbranded white SaaS page with the logo rendering as a black square.
+14. **L-70 to L-74, the button set.** Six variants for five implementations, a "glass" variant with no glass, 1.5px borders, a 64px primary and a permanent glow. Buttons are the most-touched surface in the product.
+15. **L-136 + L-137, the radius namespace collision and 79 remaining pills.** Two scales sharing five names is a trap that will keep producing wrong corners, and the owner asked for rectangles.
+
+---
+
+#### G. WHAT I COULD NOT CHECK
+
+- **Paint performance.** I did not run a performance trace, a Lighthouse pass or a CPU-throttled profile. L-56, L-101 and L-145 are structural reads of the CSS, not measurements. Nothing here should be reported as measured.
+- **Focus rings in practice.** I read `base.css:93-131` and it is well reasoned, and I did not tab through a single screen to confirm the ring is visible over the primary button's glow. L-82 is unverified.
+- **Contrast ratios beyond the primary button.** I computed white on `#0010E0` at 9.77:1 and white on `#0C39EF` at 7.37:1 by hand. Every other ratio quoted in this report is quoted from the comments in `tokens.css`, which appear carefully measured but which I did not re-measure.
+- **Light theme beyond the landing page and the header.** I screenshotted the landing page and the header in light. The auth screens, the 404, the app shell, the agent console and the admin panel were captured in dark only.
+- **The app, agent and admin shells.** Agent 2 owns them. I looked only at their logo call sites.
+- **The native shells.** `android/` and `ios/` splash assets were listed and sized, not rendered. L-15 is a recommendation to verify, not a finding that they are wrong.
+- **Email rendering.** I read `lib/email/render.ts` and `theme.ts`. I did not render an email in any client.
+- **The live Vercel deployment.** `HANDOFF_03` section 3.3 warns the old address may still show RentMe branding. I audited the working tree on this branch only and made no claim about what is deployed.
+- **The other 94 glass objects** under `public/brand/glass/`. I inspected the twelve hero scenes and the directory listing. The 24 light twins were not opened.
+- **Whether `FeaturedCarousel` would render with a different data state.** It returned null on both my runs; I did not trace why past `line 27`.
+- **The `(site)` marketing pages other than the landing page and `/about`** (terms, privacy, help, docs, careers, contact, standards, safety, cancellations). Not screenshotted. The shell width finding (L-27) almost certainly applies to all of them, since they all use `.nf-shell`, but I did not confirm it page by page.
+---
+
+## 8. The lead's verification pass
+
+**Two passes on everything, and an agent's confident wrong finding costs more
+than a missing one.** So every claim below was opened in the file before it was
+allowed into this document. This section says which, because a reader is entitled
+to know which sentences carry a second signature and which carry one.
+
+### 8.1 Verified true, by reading the code
+
+| Claim | Where | Verdict |
+| --- | --- | --- |
+| `/rent` renders the error boundary | `SceneBanner.tsx:27` types `art: string` and passes it to `next/image` as `src`; `(app)/rent/page.tsx:79` passes `art="shield-home"`, which is a `BrandIcon` name and not a path | **True.** The primary market's own page is down and the route still answers 200, so no status monitor would catch it |
+| The wallet promises escrow and the terms deny it | `wallet/BalanceBreakdownSheet.tsx` renders "Escrow moves money out of it and holds it until both sides are done" and "You have paid this into escrow. It comes back if the deal does not happen"; `lib/legal/terms.tsx` says Vallo does not hold your money in escrow | **True, and it is the most serious thing in this document** |
+| Warning and pending are the same colour | `tokens.css:339` `--nf-state-warning: var(--nf-cyan-400)`; `tokens.css:403` `--nf-status-pending: var(--nf-state-warning)` | **True, and stronger than reported.** They are not two tokens that resemble each other, they are one value under two names. The error banner on forgot-password, reset-password, email sign-in and verify-code all draw a failure in the pending tone |
+| "17+ Verified listings" is a hardcoded literal | `PlatformConsole.tsx:17`, under a heading reading "the same real numbers" | **True.** The true number is zero |
+| The card does not show the move-in total | No occurrence of `moveIn` in `ListingCard.tsx` or `listing-card-model.ts` | **True.** `PRODUCT.md` calls it the product rule |
+| `PERIOD_SUFFIX_SHORT.sale` is an empty string | `pricing.ts:141` | **True** |
+| `ProductFrame` is dead | Defined at `ProductFrame.tsx:41`, imported nowhere | **True** |
+| The manifest is declared twice | `apps/web/public/manifest.webmanifest` and `apps/web/src/app/manifest.ts` both exist | **True.** Next refuses both |
+| There is no Open Graph image | No `opengraph-image` or `twitter-image` anywhere under `app/` | **True** |
+| `ActionBar` is used once | One call site, `ListingStickyBar.tsx:100`. The only other match is a comment in `AppShell.tsx` | **True** |
+| The brand glow is not a token | `rgb(12 57 239 / ...)` written by hand across four stylesheets | **True**, and it is the prerequisite for anything described as "premium glass" |
+| The logo assets have no alpha | `vallo-mark.png` is 640x640, three channels, `hasAlpha: false`, top-left pixel `rgb(73, 126, 249)`. `vallo-icon.png`, `vallo-logo.png` and `vallo-wordmark.png` are all three-channel too | **True of all four.** Photographed in `docs/img/logo-has-no-alpha.png` |
+| There is no Open Graph image | `openGraph` at `layout.tsx:67` has no `images` key, and no `opengraph-image` or `twitter-image` exists | **True.** And the description in that same block still says "homes, hotels, restaurants, experiences and more", which is the travel-app description `PRODUCT.md` retired |
+
+### 8.2 Where an agent was right and the lead was wrong
+
+**The slogan inventory.** Section 3 of this document, first draft, said the
+retired slogan lived in six places and that five of them bypassed `packages/i18n`.
+That came from grepping the English string, and it missed half the problem. The
+three words are an i18n key, `landing.hero.line1/2/3`; the auth shell and the
+footer reach it through that key; it is translated into Yorùbá, Hausa and Igbo;
+and **it is reused as the three how-it-works step titles**, so changing the
+slogan without giving `HowItWorks` its own titles makes the product explain
+itself by saying "Real Estate reimagined!" three times. Section 3 is the
+corrected version and it is the agent's count, not the lead's.
+
+### 8.3 Reported and NOT independently verified
+
+Said plainly rather than left for somebody to discover.
+
+- **"31 of 77 landing links force sign-up."** Measured by the agent against the
+  rendered page. A source grep does not reproduce it, because those links are not
+  written as literals in the landing components, so the number is neither
+  confirmed nor contradicted here. The underlying claim, that a signed-out
+  visitor cannot reach a property from the landing page, is the part worth
+  checking first, and it should be checked by clicking rather than by grepping.
+- **Every measurement taken from a running page**: the 10,862px landing height,
+  the 18 bands, the 59 elements with a live `backdrop-filter`, the 68 running
+  animations, the 1,134 DOM nodes, the four-condition frame timing at 6x CPU
+  throttling. These were taken on a dev build on localhost. The element counts
+  and the asset weights are real; the timings are not production numbers and the
+  agent says so.
+- **Everything behind a login.** Agent two could not see a single signed-in
+  screen, and all nineteen admin destinations render one access screen. Its
+  confirmation, admin and agent-console findings are reasoned from source.
+- **The listing detail page, the map and the filter drawer** were read and never
+  rendered by agent one.
+- **Agent three took no performance measurement**, and says so: its findings on
+  blur cost and paint layers are structural reads of the CSS. Agent two's
+  throttled frame timing is the only measurement of that kind in this document,
+  and **it came back the other way**: removing every frosted surface moved the
+  median frame by 0.1ms. Do not remove glass for speed.
+- **Agent three's count of 987 arbitrary font sizes and 2,635 raw spacing steps**
+  was not re-counted by the lead. The mechanism is not in doubt, since
+  `apps/web/eslint.config.mjs` admits in its own header that the design-system
+  rules are warnings and that lint has never run on this repository.
+
+### 8.4 The one thing that would most improve the next session
+
+**One seeded environment with credentials.** Both agents named it independently.
+Roughly a third of this product, by surface area, has never been looked at by
+anybody doing this work, because there is no way in. Everything else on the list
+below is cheaper than that and worth less.
+
+---
+
+## 9. The fifty to do first
+
+Ranked. **Nothing below has been started**, per the brief.
+
+The order is: things that are broken or dishonest, then things that make it look
+cheap, then the work that unlocks the rest. Where two agents found the same thing
+from different sides, both ids are given.
+
+### Tier one: broken, or saying something untrue. Fifteen items
+
+| # | What | Where | Cost | Why it is first |
+| ---: | --- | --- | --- | --- |
+| 1 | **`/rent` renders the error boundary.** Type `SceneBanner`'s `art` prop as `BrandIconName` and render `<BrandIcon>` | `SceneBanner.tsx:27`, `(app)/rent/page.tsx:79` | S | The primary market's own page is down, it is linked from the landing grid, the footer, the story rail and the sitemap, and it still answers HTTP 200 so no monitor sees it |
+| 2 | **The wallet promises escrow and the terms deny it.** Delete the escrow copy | `wallet/BalanceBreakdownSheet.tsx` | S | The product contradicts its own contract about where somebody's rent money is. One hour, and it is the only item here with legal weight |
+| 3 | **Delete `PlatformConsole`** and its `"17+"` verified listings under a heading saying "the same real numbers" | `landing/PlatformConsole.tsx:17` | S | The true number is zero, enforced by a check constraint. `VoicesBand` on the same page refuses to invent testimonials and explains why. The page holds the strictest and the laxest honesty standards in the product |
+| 4 | **Re-derive the mark from the tile and key it to alpha**, and key the wordmark | `public/brand/vallo-*.png` | M | The founder's own complaint. Every brand asset is an opaque rectangle; the header paints a navy square and the light-theme wordmark is a black slab. The technique is built and proved, see section 2.3 |
+| 5 | **Add an Open Graph image and a Twitter card**, and fix the description while there | `app/opengraph-image.tsx`, `layout.tsx:67` | S | In a WhatsApp-first market this is the first impression for most visitors, and it is currently a blank grey rectangle |
+| 6 | **The card payment failure stops saying "Payment check" in grey.** Verdict, mark, amount, "your card has not been charged", retry, help, `role="alert"` | F2-016 | M | The worst surface in the product, on the card money path |
+| 7 | **The three checkout pending states stop being a spinner in a button.** Mark, amount, consequence, live region | F2-017 | M | The most anxious second in the product, on the largest amounts |
+| 8 | **Move the eight failure surfaces off `--nf-state-warning`**, which is the pending colour | F2-024, `tokens.css:339` and `:403` | S | A declined payment and a failed sign in are painted the colour that means "still working on it" |
+| 9 | **A signed-out visitor cannot reach a property from the landing page** | F1-002 | S | A marketplace whose funnel has no floor. Verify by clicking before doing anything else, see section 8.3 |
+| 10 | **Delete the duplicate manifest** | `public/manifest.webmanifest` against `app/manifest.ts` | S | Next refuses both and the URL returns 500, so the PWA does not install, on a product whose stated audience is mid-range Android |
+| 11 | **Link Terms and Privacy on the account creation screen** | F1-070 | S | An unlinked consent statement on the screen where somebody creates an account |
+| 12 | **Stop deriving the market pill and `isBookable` from `kind`** | F1-050 | M | 12 sale listings are mislabelled today, and 32 yearly tenancies are one flag away from showing a nightly Reserve button |
+| 13 | **Put the move-in total on the card** | F1-030 | M | `PRODUCT.md` calls it the product rule and the differentiator, the landing page advertises it twice, and `ListingCard.tsx` contains no reference to it |
+| 14 | **The 404's floating icon field overlaps its own buttons** | L-116 | S | The exact bug documented at `page.tsx:95` as the reason it was removed from the hero, still live on the page a stranger sees when something has gone wrong |
+| 15 | **Fix the collapsed anchor at `/admin`** | F2-049 | S | Measured 32px wide and 101px tall across both themes and four viewports. The console's front door is visibly broken |
+
+### Tier two: it looks cheap. Fifteen items
+
+| # | What | Where | Cost | Why |
+| ---: | --- | --- | --- | --- |
+| 16 | **Take the backdrop blur off `.nf-card` and soften its four-stop gradient border** | L-55, L-56, F1-089 | M | 423 call sites. The landing page has forty individually glowing corners; `/safety` has 30 glass surfaces, 29 of them reading cards. Premium glass is fewer layers done better |
+| 17 | **Ten layers around a 24px icon, at three call sites** | L-59 | S | The founder's complaint word for word, and the cheapest instance of it |
+| 18 | **Promote the ~60 hand-written brand-glow literals into a glow scale** | F2-036 | M | **A prerequisite, not a recommendation.** Nothing called "lit from within" can be applied or undone centrally until it exists, and the light theme currently fires the dark theme's glow on a primary button hover |
+| 19 | **Two container widths, applied platform-wide** | L-24, L-27 | M | The hero uses 672px of a 1376px shell while everything else stretches full width. This is most of "widen every single layer" |
+| 20 | **One section rhythm.** `--nf-gap-section` exists, is correct, and is obeyed by five of sixteen sections | L-25 | S | The cheapest single change that makes the page feel designed |
+| 21 | **Cut the landing page to seven sections** | L-23, F1-003, F1-015 | L | Eighteen bands and 10,862px at 390px. The two agents proposed the same seven independently |
+| 22 | **Replace `StoryRail`'s white stages and nested chips** | L-46, L-47, F1-017 | L | The loudest, cheapest-looking thing in the product: a pale slab punched into the navy in dark, invisible in light, eight panels behind a gesture, seven of them gated to sign-up |
+| 23 | **Wire the twelve glass hero scenes** into the landing sections | L-38, L-50, section 2.7 | M | With zero property photographs, the only honest art direction is the brand's own objects, and they are drawn in the logo's exact language. They also retire 6.6MB of masked story renders |
+| 24 | **Stop stacking two headers on every non-tab screen** | F2-042 | M | 116px of chrome before the wallet balance, and above `lg` the top bar is empty by the shell's own admission and still costs 64px and a blur. No iPhone app does this |
+| 25 | **Pin the pay action in `ActionBar`** | F2-019 | M | The component exists, does exactly this, names checkout in its own docstring as the screen that lacks it, and is used in one place on the whole platform. The money decision currently scrolls away |
+| 26 | **Rebuild the button set** | L-70 to L-74 | M | Six variants for five implementations, a "glass" variant with no glass, 1.5px borders, a 64px primary and a permanent glow. The most-touched surface in the product |
+| 27 | **Give the light theme a brand** | L-42, L-109, L-110 | M | Light is half the users and is currently an unbranded white page with the logo rendering as a black square |
+| 28 | **Resolve the radius namespace collision**, and the 79 remaining pills | L-136, L-137 | M | Tailwind's `rounded-xl` is 12px and `--nf-radius-xl` is 22px, both in use. Two scales sharing five names will keep producing wrong corners. The owner asked for rectangles |
+| 29 | **Route horizontal padding and gaps through the named scale** | F2-076 | M | The vertical rhythm is obeyed and the horizontal one is abandoned, which is exactly why the money and operator screens read cramped side to side and airy top to bottom |
+| 30 | **Remove the 39 truncations** | F2-007, F2-048, F2-058, F2-059, F2-062, F2-065, F1-036, F1-037 | S | The biggest widening win is not more gutter, it is letting content occupy the width it already has. The pay button's label overflows its pill by 24px at rent-sized amounts |
+
+### Tier three: the work that unlocks the rest. Twenty items
+
+| # | What | Where | Cost | Why |
+| ---: | --- | --- | --- | --- |
+| 31 | **The `BrandIcon` swap.** `icons` becomes `glass`, the multiply blend goes, `--nf-icon-ground` goes on dark | section 2.10 | M | One template literal, 124 call sites, 8 names to substitute first. Everything in the visual direction assumes it |
+| 32 | **Make deleting `--nf-icon-ground` the acceptance test** for that swap | F2-033 | S | If a glass object still needs a plate behind it, the cutout is wrong. It is a test, not a task |
+| 33 | **Point `--nf-icon-ground` at the base navy in the light theme** | section 2.8 | S | One token, 79 objects, and it was tested rather than assumed: the dark artwork on a navy chip in daylight is better than the bare object on white |
+| 34 | **Build `ResultSheet`, one component driven by state** | F2 section 6, HANDOFF 02 section 24 | L | The artwork is no longer the blocker, the component is. Forty three confirmation states today, each bespoke. The spec is written and the marks exist |
+| 35 | **Split "nothing has ever arrived here" from "you have cleared everything"** on all seventeen queues | F2-056 | M | The console congratulates the operator nineteen times for work that never existed |
+| 36 | **One shared queue frame:** search, a status filter bound to the real enum, a date range, pagination | F2-055 | L | Nineteen destinations, one search box, zero filters. **Do this before widening the console**, or more air makes it worse |
+| 37 | **Retire the slogan properly**, in all ten places, and give `HowItWorks` its own three titles | section 3, F1-024, L-36, L-121 | M | It is an i18n key reused as three step titles and translated into three languages. Not a find and replace |
+| 38 | **Say "For sale" on a sale card** | F1-031 | S | `PERIOD_SUFFIX_SHORT.sale` is an empty string, so a sale and a rental are indistinguishable side by side |
+| 39 | **Put the save heart on the card** | F1-032 | M | The map dock card has one and the grid card does not, and the `/saved` empty state instructs an action that does not exist |
+| 40 | **Stop empty states rendering under the floating tab bar** | F1-053 | S | Two of them, on discovery surfaces |
+| 41 | **`REFUNDED` stops being rose**, and the eleven enum values falling silently to neutral get tones | F2-028, F2-029 | S | A refund currently reads as a failure, and three social moderation states render identically grey |
+| 42 | **The wallet's error banner becomes an alert** rather than a hint, and the bank lookup failure stops being cyan | F2-010, F2-011 | S | A failed withdrawal is styled identically to a tip |
+| 43 | **Give `MORE_INFO_REQUIRED` a screen**, and stop the rejection's "try again" looping back to the rejection | F2-067, F2-068 | M | The supply-side funnel dead-ends on the two states where the applicant must act, in a product with one agent |
+| 44 | **Turn the design-system lint rules from warnings into errors**, after the bulk migration | L-90, L-135 | L | 987 arbitrary font sizes and 2,635 raw spacing steps. The config's own header says it is a deliberate floor. Nothing above stays fixed until this closes |
+| 45 | **Rewrite the landing FAQ**, five items, in the locale files | F1-012 | M | Twelve items, hardcoded English, on a page that should be seven sections |
+| 46 | **Commission two objects:** `homes-sparkle` and `house-sparkle` | section 2.6 | S | The only two of the 87 in live use with no glass equivalent anywhere on the ten sheets |
+| 47 | **Delete the 33 clay objects nothing draws**, 2.82MB | section 2.6 | S | Do it as part of item 31 rather than separately |
+| 48 | **One photograph per scene**, eight files | `docs/IMAGERY.md` | M | All 64 listings carry zero photographs, so `MediaFrame` has no fallback path, it has the only path. The shortlist and the wiring are both already done |
+| 49 | **The move-in ledger as a surface of its own**, leading with the total and comparing to the area median | F1 section 8 | L | The one idea in this document that is a moat rather than a fix. The columns exist, the median is one query, and nobody in this market prints the number people actually pay |
+| 50 | **One seeded environment with credentials** | | S | Roughly a third of this product by surface area has never been looked at by anybody doing this work, because there is no way in. Both agents named it independently, and it is the cheapest item here |
+
+### What is deliberately not in the fifty
+
+**Escrow.** Three separate findings touch it and the answer to all three is to stop
+mentioning it, not to build it. `RECOMMENDATIONS.md` section 7 holds that work.
+
+**Anything requiring a design decision the founder has not made**, in particular
+the mark's new crop, the seven-section landing order, and whether the slogan
+keeps its exclamation mark in-product.
+
+**Removing glass for speed.** It was measured and it buys nothing.
