@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { EmptyActions } from "@/components/app/EmptyActions";
 
 /**
  * A designed state, with a way onward.
@@ -33,19 +32,21 @@ export function ProfileNotice({
       <p className="mx-auto mt-2 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
         {body}
       </p>
-      {(primary || secondary) && (
-        <div className="mt-5 flex flex-col items-stretch gap-2 sm:flex-row sm:justify-center">
-          {primary && (
-            <Link href={primary.href} className="nf-btn nf-btn--primary">
-              {primary.label}
-              <UiIcon name="arrow-right" size={15} />
-            </Link>
-          )}
-          {secondary && (
-            <Link href={secondary.href} className="nf-btn nf-btn--ghost">
-              {secondary.label}
-            </Link>
-          )}
+      {primary && (
+        /*
+          ONE ACTION TREATMENT, THE SAME ONE THE REST OF THE PRODUCT USES.
+          This was a hand-rolled pair: stacked on a phone, side by side and
+          centred from `sm` up, at intrinsic width. That is a fourth arrangement
+          of the same two buttons, on screens a tap away from `/around`, which
+          uses `EmptyActions`. Stacked, full width, primary then quiet,
+          everywhere.
+
+          `primary` gates the whole block now. A lone secondary was reachable in
+          the type and would have rendered a quiet ghost button as the only
+          thing to do, which reads as the action nobody wanted you to take.
+        */
+        <div className="mt-5 flex justify-center">
+          <EmptyActions primary={primary} {...(secondary ? { secondary } : {})} />
         </div>
       )}
     </section>

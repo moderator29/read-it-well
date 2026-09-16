@@ -498,7 +498,7 @@
     background:
       radial-gradient(70% 50% at 50% 100%, var(--nf-glow-2) 0%, transparent 70%),
       var(--nf-story-stage);
-    border-bottom: 1px solid color-mix(in oklab, var(--nf-brand-secondary) 28%, transparent);
+    border-bottom: 1px solid var(--nf-border-on-stage);
   }
   /*
    * THE FEATHER MASK IS GONE. It existed to dissolve the clay artwork's opaque
@@ -519,9 +519,20 @@
     border-color: color-mix(in oklab, var(--nf-brand-secondary) 28%, transparent);
   }
 
-  /* Anchored headings clear the sticky header instead of hiding under it. */
+  /*
+   * Anchored headings clear the sticky header instead of hiding under it.
+   *
+   * It was `5.5rem`, which is 88 pixels, which is the 76px header plus 12px of
+   * air, arrived at by measuring the header once and typing the answer. That
+   * made `--nf-header-height` a token with no consumer anywhere in the product:
+   * it stated the height and this rule, the one thing that actually depends on
+   * it, could not see it. The day somebody makes the bar taller, every anchored
+   * heading on the site lands underneath it and nothing fails.
+   *
+   * Same 88 pixels, said as what it is: the bar, plus one row of air.
+   */
   [id^="nf-"] {
-    scroll-margin-top: 5.5rem;
+    scroll-margin-top: calc(var(--nf-header-height) + var(--nf-gap-row));
   }
 
   /* ------------------------------------------------ landing motion system */

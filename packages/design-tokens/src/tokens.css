@@ -472,7 +472,10 @@
 
   /* Mask stops. A mask reads the ALPHA channel and throws the colour away, so
      these are not colours at all: they are "keep all of it" and "keep half of
-     it", and writing them as black was always a spelling rather than a choice. */
+     it", and writing them as black was always a spelling rather than a choice.
+     TWO VALUES BECAME ONE: the two fade-out masks in ambient.css sat at 0.55
+     and 0.5, which is the same instruction typed twice, five per cent apart, in
+     a ramp where neither end is a visible edge. Both take 0.5. */
   --nf-mask-opaque: rgb(0 0 0);
   --nf-mask-mid: rgb(0 0 0 / 0.5);
 
@@ -491,11 +494,30 @@
   --nf-well-fill: linear-gradient(180deg, rgb(0 3 32 / 0.55), rgb(0 1 16 / 0.7));
   --nf-well-fill-deep: linear-gradient(180deg, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.68));
 
-  /* The counterpart of --nf-content-inverse, which has existed in both themes
-     from the start with no surface to sit on. */
+  /*
+   * The counterpart of --nf-content-inverse, which has existed in both themes
+   * from the start with no surface to sit on.
+   *
+   * STATED PLAINLY BECAUSE IT LOOKS LIKE DEAD CODE AND IS NOT: the only rule
+   * reading these three is the daylight dock, so the NIGHT values below have no
+   * consumer today. They are here under this file's own standing rule - a token
+   * in one theme block and not the other is a token that will be wrong in the
+   * other - which exists so the next inverse surface is correct by default
+   * rather than by somebody remembering. The same is true in reverse of the
+   * daylight `--nf-well-fill` pair further down.
+   */
   --nf-surface-inverse: rgb(244 245 247 / 0.92);
   --nf-content-on-inverse: rgb(18 21 26 / 0.7);
   --nf-wash-on-inverse: rgb(18 21 26 / 0.13);
+
+  /*
+   * The top rim of a bar that is dark in BOTH themes, so the rim is white in
+   * both and this is not a wash. The dock is canvas-tinted glass at night and
+   * `--nf-surface-inverse` in daylight, and it is the same near-black object
+   * either way; `--nf-wash-2` would have handed it an ink highlight on paper,
+   * which on a near-black bar is no highlight at all.
+   */
+  --nf-rim-on-inverse: rgb(255 255 255 / 0.06);
 
   --nf-content-on-paper: rgb(18 21 26);
   --nf-content-on-paper-secondary: rgb(18 21 26 / 0.82);
@@ -513,8 +535,14 @@
   --nf-canvas-bloom-deep-ink: #1230B3;
 
   /* The story stage: a near-black panel that is the same panel in both themes,
-     because a paper product carries its dark brand on it. */
+     because a paper product carries its dark brand on it. Its hairline is
+     theme-independent for the same reason and cannot read `--nf-brand-secondary`
+     to get there: that token resolves through `--nf-electric-300`, which daylight
+     re-answers with a deeper blue, so the one border on the platform that sits on
+     a fixed dark ground would have been the one border that changed with the
+     theme. This is the night value, stated once. */
   --nf-story-stage: linear-gradient(180deg, #05060F 0%, #01010A 100%);
+  --nf-border-on-stage: rgb(92 124 255 / 0.28);
 
   /* The map pin's ground, deliberately dark in both themes for the same reason
      the media overlays are: what is under it is a map, not the page. */
@@ -1324,10 +1352,50 @@
    */
   --nf-tracking-overline: 0.1em;
 
-  /* Layout */
+  /* ---------------------------------------------------------------------
+   * LAYOUT, AND THE MEASURE.
+   *
+   * There were three tokens here and two of them were ignored by their own
+   * consumers: `--nf-content-max` had `.nf-shell` reading it and `.nf-console`
+   * writing `90rem`, which is the same 1440 pixels spelled differently in the
+   * same file, and `--nf-header-height` had no consumer at all while the anchor
+   * offset in motion.css wrote `5.5rem` to clear a header it could not see.
+   * A layout token nothing reads is a comment with a colon in it.
+   * ------------------------------------------------------------------ */
   --nf-rail-width: 264px;
   --nf-header-height: 76px;
   --nf-content-max: 1440px;
+
+  /*
+   * THE MEASURE. Three answers to how wide a line of text may be.
+   *
+   * There were twenty-six. Counted across `apps/web/src`: 125 `max-w-[..ch]`
+   * call sites at 16, 18, 20, 22, 24, 26, 28, 32, 34, 36, 38, 40, 42, 44, 46,
+   * 48, 50, 52, 54, 56, 58, 60, 62, 68, 70 and 76 characters. Nobody chose
+   * between twenty-six measures; each site chose once, alone, and the result is
+   * that two paragraphs of the same kind on two screens wrap differently and
+   * neither is wrong by any rule that exists.
+   *
+   * They fall into three clumps, which is the useful part: 16 to 28 is a
+   * headline held to two or three words a line, 32 to 48 is a standfirst under
+   * one, and 50 to 76 is running prose. So three names, and the values are the
+   * ones the finding proposes rather than the arithmetic centres.
+   *
+   * ONE THING FOR WHOEVER MIGRATES, because it will be the first thing they
+   * hit: `52ch` is the single most common value in the tree, 22 uses, and it
+   * sits between `lede` and `body`. Read a few of them before deciding. If they
+   * are genuinely a fourth kind of column rather than a body measure typed
+   * narrow, add the rung here and say what it is for. Do not leave 52 where it
+   * is because it is hard to place; that is how there came to be twenty-six.
+   *
+   * The call sites are in the app and site trees, which this workstream does
+   * not own, so these three land here unread for now. That is deliberate and it
+   * is the split the sprint asked for: the scale is the design system's, the
+   * migration is the surfaces'.
+   */
+  --nf-measure-display: 18ch;
+  --nf-measure-lede: 46ch;
+  --nf-measure-body: 68ch;
 }
 
 /*
@@ -1476,7 +1544,12 @@
   --nf-shade-3: rgb(18 21 26 / 0.18);
 
   /* The well on paper is an inset grey rather than a black trough: cutting a
-     near-black channel into a white card reads as a hole punched in it. */
+     near-black channel into a white card reads as a hole punched in it.
+     All four rules that read the well - the chip, the icon button, the sunken
+     panel and the action circle's ring - carry a daylight override that
+     replaces the background outright, so these two have no consumer today.
+     Same reasoning as the inverse set in the night block: a token answered in
+     one theme and not the other is the next bug, not the current one. */
   --nf-well-fill: linear-gradient(180deg, rgb(18 21 26 / 0.07), rgb(18 21 26 / 0.03));
   --nf-well-fill-deep: linear-gradient(180deg, rgb(18 21 26 / 0.1), rgb(18 21 26 / 0.05));
 

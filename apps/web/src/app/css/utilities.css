@@ -84,10 +84,22 @@
    * 90rem is the console measure. Wide enough that the rail, the list and a
    * card's own detail all fit at once; bounded so a 4K monitor does not
    * stretch a row to a metre of unreadable line length.
+   *
+   * AND 90rem IS 1440px, WHICH IS `--nf-content-max`, WHICH `.nf-shell` TWELVE
+   * RULES DOWN ALREADY READS. Two rules in one file, both capping the page
+   * width, one naming the token and one writing the number out in a different
+   * unit. They have agreed the whole time by coincidence: the console rule
+   * predates the token, and nothing would have said a word if somebody had
+   * widened the shell and left the console behind, because there is no test for
+   * "these two numbers are meant to be the same number".
+   *
+   * If the console ever genuinely needs to be wider than the rest of the
+   * product, that is a second token with a reason written beside it, not a
+   * literal here.
    */
   .nf-console {
     width: 100%;
-    max-width: 90rem;
+    max-width: var(--nf-content-max);
     margin-inline: auto;
   }
 

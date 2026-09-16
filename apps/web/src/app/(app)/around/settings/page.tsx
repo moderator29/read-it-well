@@ -13,8 +13,8 @@ import {
   type AreaSummary,
 } from "@/lib/social/areas-queries";
 import { AREA_COPY, AREA_KIND_LABEL, type AreaStatus } from "@/lib/social/areas-schema";
+import { AROUND_UNCONFIGURED } from "../copy";
 import { getPlaceTree } from "@/lib/social/place-tree";
-import { PLACE_COPY } from "@/lib/social/places-schema";
 import { PlacePicker } from "@/components/social/PlacePicker";
 import { AroundFab } from "@/components/social/AroundFab";
 import { JoinButton } from "../JoinButton";
@@ -135,7 +135,7 @@ export default async function AroundManagePage({
              missing. */
           data-testid="around-settings-unconfigured"
         >
-          {PLACE_COPY.unconfigured}
+          {AROUND_UNCONFIGURED.settingsBody}
         </p>
       ) : (
         <PlacePicker

@@ -195,13 +195,10 @@
   /*
    * Scroll reveal. Hidden state lifts and fades; shown state settles.
    *
-   * `will-change` is scoped to the hidden state only, never held past it: a
-   * permanent `will-change: transform` on the settled element would leave
-   * every one of these wrappers a live CSS containing block, which silently
-   * traps any `position: fixed` descendant (a full-page drawer, a dialog)
-   * to this box instead of the viewport. That was a real bug, not a
-   * hypothetical one: the wallet's Add money drawer rendered as a sliver
-   * clipped to its trigger row because of exactly this.
+   * Two properties, both of them ones the compositor animates on its own. The
+   * long note under the rules is why there is no `will-change` here any more,
+   * and why the version of this comment that explained how carefully it was
+   * scoped was describing a hint that should not have been in the file at all.
    */
   .nf-reveal {
     opacity: 0;
@@ -209,12 +206,77 @@
     transition:
       opacity var(--nf-duration-entrance) var(--nf-ease-entrance),
       transform var(--nf-duration-entrance) var(--nf-ease-entrance);
-    will-change: opacity, transform;
   }
   .nf-reveal[data-shown="true"] {
     opacity: 1;
     transform: none;
-    will-change: auto;
+  }
+
+  /*
+   * `will-change` IS GONE FROM BOTH RULES, and the note above this block, which
+   * explains at length how carefully it was scoped, is the argument for
+   * deleting it rather than against.
+   *
+   * It was there to promote the wrapper to its own compositor layer for the
+   * entrance. Opacity and transform are the two properties the compositor
+   * already animates without being asked; the hint buys a layer that would have
+   * been created anyway, and it buys it for every reveal on the page at once
+   * rather than for the two or three that are moving. On /settings that is
+   * twelve live layers held for as long as the reader is above them.
+   *
+   * And the cost was never theoretical. A promoted element is a CSS containing
+   * block, so every `position: fixed` descendant anchors to the wrapper instead
+   * of the viewport. That is the wallet's Add money drawer rendering as a
+   * sliver clipped to its trigger row, which is written up two comments above
+   * as a bug that was fixed by scoping the hint. Scoping narrowed the window;
+   * it did not close it, because the hidden state is precisely when a reveal
+   * still contains interactive content.
+   */
+
+  /*
+   * CONTENT THAT ONLY EXISTS IF SOMETHING FIRES IS CONTENT THAT SOMETIMES DOES
+   * NOT EXIST.
+   *
+   * The hidden state above is the DEFAULT, so a reveal is invisible until an
+   * IntersectionObserver in `components/site/Reveal.tsx` says otherwise. Where
+   * nothing can say otherwise, the page is blank: /settings is twelve stacked
+   * reveals over 3,900 pixels, and everything below the first screen is at
+   * opacity 0 with no observer coming.
+   *
+   * Two of those cases are answerable from here and both are answered.
+   *
+   * `scripting: none` is the reader with JavaScript off or blocked. There is no
+   * observer, there never will be, and the entrance is not worth a blank page.
+   *
+   * PRINT IS THE SAME ARGUMENT AS REDUCED MOTION. A printed page has no scroll
+   * and no viewport to enter, so every reveal on it is permanently mid-flight;
+   * printing a settings page today gives you the header and four feet of white.
+   * Paper gets the content, exactly as a reader who asked for no motion does.
+   *
+   * WHAT IS NOT FIXED HERE, because the file is not this workstream's: the
+   * third case, a browser that runs scripts but whose observer never fires -
+   * a stubbed WebView, an automated capture, a hydration that failed. The
+   * finding's own remedy is to render at `opacity: 1` and have JavaScript set
+   * `data-shown="false"` on mount, so the hidden state requires JavaScript
+   * rather than the visible one. That is a change to `Reveal.tsx`. This
+   * stylesheet cannot make it, because the server already emits
+   * `data-shown="false"` and CSS cannot tell that apart from the client saying
+   * it.
+   */
+  @media (scripting: none) {
+    .nf-reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+  @media print {
+    .nf-reveal,
+    .nf-reveal[data-shown="false"] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
   }
   /*
    * THERE WAS A SECOND REVEAL PATH AND IT IS GONE.

@@ -17,6 +17,15 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+/*
+ * The document vocabulary, still English and still local.
+ *
+ * These are NOT the F2-060 fault. That finding is about surfaces printing a raw
+ * column value at an operator; these are written words somebody chose, and both
+ * lookups already fall back rather than printing the column. They do belong in
+ * the dictionary, and the keys are listed in the sprint report with the rest,
+ * but moving them is a `packages/i18n` change and not this owner's to make.
+ */
 const KIND_LABEL: Record<string, string> = {
   identity: "Government issued ID",
   address: "Proof of address",
@@ -215,7 +224,15 @@ function SubjectCard({
                   {SUBTYPE_LABEL[doc.subtype] ?? doc.subtype}
                 </span>
               )}
-              <ui.StatusChip label={doc.reviewStatus} tone={toneForReview(doc.reviewStatus)} />
+              {/* NOT `label={doc.reviewStatus}`, which printed raw lower-case
+                  `pending`, `approved`, `rejected` at an operator. Not the
+                  shared `statusLabel` either: its lower-case `pending` reads
+                  "Awaiting reply", which is a support ticket's word and says
+                  the wrong thing about a document nobody has looked at yet. */}
+              <ui.StatusChip
+                label={ui.columnLabel("kycReview", doc.reviewStatus)}
+                tone={toneForReview(doc.reviewStatus)}
+              />
               {doc.isResubmission && (
                 <span className="nf-badge">Sent again after a rejection</span>
               )}

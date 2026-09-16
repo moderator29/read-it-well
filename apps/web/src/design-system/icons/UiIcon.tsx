@@ -7,8 +7,26 @@
  * dense UI needs a different instrument.
  *
  * These are crisp stroked glyphs on a 24 grid. They inherit `currentColor`, so
- * they take the colour of whatever they sit beside, and they stay legible at
- * 12px where a rendered 3D object cannot.
+ * they take the colour of whatever they sit beside, and they hold a real line
+ * at 16px where a rendered 3D object cannot.
+ *
+ * THIS PARAGRAPH SAID 12px AND THE SCALE TWO HUNDRED LINES DOWN SAYS 16.
+ *
+ * It was written when 12 was the floor, and it survived the change that removed
+ * that step because a prose sentence is not something a compiler checks. See
+ * the note beside `UI_ICON_SIZES`: at 12px a stroked glyph on a 24 grid renders
+ * a 0.7 CSS pixel line, which is a smudge, and that is the reason the step went
+ * rather than an oversight to be restored. Saying "legible at 12px" at the top
+ * of the file that deleted 12px is how a scale grows a seventh step back.
+ *
+ * THE TWO DOCUMENTS ARE THE OTHER HALF OF THIS AND THEY ARE STILL WRONG.
+ * `docs/ICON_SYSTEM.md` and `docs/HANDOFF.md` rule 18 both state the scale as
+ * "12, 16, 20, 24, 28, 32" and the weight as 1.4. The scale is
+ * [16, 20, 24, 28, 32, 40] and `UI_ICON_STROKE_PX` is 1.5. Checked rather than
+ * assumed, in both directions: the code carries the argument for each of those
+ * changes written out beside it, the documents carry only the old numbers, and
+ * 40 exists because empty states and role rows use it. The code is right. The
+ * documents are stale and are not this workstream's to edit.
  */
 
 export type UiIconName =
@@ -676,8 +694,11 @@ export function snapUiIconSize(size: number): UiIconSize {
  *
  * Numbers are what the grid is defined in, but a call site reads better saying
  * what it means than restating the arithmetic, and a name cannot drift the way
- * a literal can. These are six of the seven steps above under the names the
- * rest of the platform uses; nothing here is a size the scale does not have.
+ * a literal can. These are ALL SIX steps above under the names the rest of the
+ * platform uses; nothing here is a size the scale does not have, and no step of
+ * the scale is missing a name. It said "six of the seven" while the scale had
+ * six, which is the same stale-by-one-edit fault as the 12px line at the top of
+ * the file: the seventh was 12, and it left.
  */
 export const ICON_SIZE = { xs: 16, sm: 20, md: 24, lg: 28, xl: 32, display: 40 } as const;
 export type IconSize = keyof typeof ICON_SIZE;

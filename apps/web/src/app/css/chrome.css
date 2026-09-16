@@ -418,7 +418,9 @@
     backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
     box-shadow:
       0 12px 32px -10px var(--nf-shade-3),
-      inset 0 1px 0 var(--nf-wash-2);
+      /* The rim, not a wash: this bar is dark in daylight too. See the note
+         beside --nf-rim-on-inverse. */
+      inset 0 1px 0 var(--nf-rim-on-inverse);
   }
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .nf-dock {

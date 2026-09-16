@@ -102,20 +102,51 @@ export function queueNarrowed(query: QueueQuery): boolean {
   return Boolean(query.q || query.status || query.from || query.to);
 }
 
+/**
+ * What an empty queue says when it is empty BECAUSE of the filter.
+ *
+ * "No reports yet" under a status chip is a false statement: there may be
+ * hundreds, none of them dismissed. A narrowed empty queue is a result and has
+ * to read as one.
+ *
+ * ENGLISH, AND IT SHOULD NOT STAY THAT WAY. `t.admin.common` has no keys for
+ * this pair; `t.admin.bookings` has its own, which is why the one queue that
+ * already had a search box reads correctly in four languages and the other
+ * eighteen would not. Stated once here rather than eighteen times, so the
+ * dictionary work is one key pair rather than eighteen. The exact keys are in
+ * the sprint report.
+ */
+export const QUEUE_NO_MATCH = {
+  title: "Nothing matched that",
+  body: "No row in this queue matches what you have narrowed to. Clear the filters to see everything again.",
+} as const;
+
+/**
+ * The same, for the search field itself.
+ *
+ * `QueueFilters` already writes "From", "To", "Apply" and "Clear" in English
+ * because the console's shared furniture has no keys for them, so a default
+ * here changes nothing about how translated the frame is and removes eighteen
+ * opportunities for a queue to be dropped in with no label at all. A queue with
+ * its own keys, like bookings, still passes them and still wins.
+ */
+const DEFAULT_SEARCH_LABEL = "Search";
+const DEFAULT_SEARCH_PLACEHOLDER = "Search this queue";
+
 export function QueueFilters({
   base,
   query,
   statuses,
-  searchLabel,
-  searchPlaceholder,
+  searchLabel = DEFAULT_SEARCH_LABEL,
+  searchPlaceholder = DEFAULT_SEARCH_PLACEHOLDER,
 }: {
   /** The queue's own path, e.g. "/admin/bookings". */
   base: string;
   query: QueueQuery;
   /** The real enum for THIS queue. Omit where the queue has no status. */
   statuses?: readonly QueueStatusOption[];
-  searchLabel: string;
-  searchPlaceholder: string;
+  searchLabel?: string;
+  searchPlaceholder?: string;
 }) {
   const narrowed = queueNarrowed(query);
 

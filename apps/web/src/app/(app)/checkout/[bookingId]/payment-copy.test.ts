@@ -40,6 +40,8 @@ describe("vettedFailureSentence", () => {
       "not_pending",
       "insufficient",
       "PGRST204",
+      "duplicate key value violates unique constraint 23505",
+      "23P01",
       "TypeError: cannot read properties of undefined",
       "line one\nline two",
       '{"message":"refused"}',

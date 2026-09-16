@@ -183,15 +183,44 @@
    * of the quietest, the two inactive segments draw nothing at all, and the
    * whole row is shorter than the three chips it replaces.
    */
+  /*
+   * THREE OF THESE FIVE DECLARATIONS WERE DOING NOTHING, and the track this
+   * rule exists to draw was not being drawn.
+   *
+   * `--nf-surface-glass` and `--nf-blur-sm` do not exist. There is no such
+   * token in `packages/design-tokens/src/tokens.css` and there never has been;
+   * the glass fill is `--nf-glass-fill` and the blur ladder is
+   * `--nf-glass-blur-thin | -blur | -blur-strong`. A `var()` with no fallback
+   * and no definition makes the whole declaration invalid at computed-value
+   * time, which for `background` means the initial value, so the segmented
+   * track painted TRANSPARENT and the backdrop filter was dropped entirely.
+   *
+   * That is the whole point of the comment above this rule - "one track, three
+   * equal segments, and the live one carries a solid brand pill that moves
+   * along the track" - and there was no track. Three bare labels and a pill.
+   * Nothing reported it: CSS does not warn on an unknown custom property, the
+   * stylesheet parses, the page renders, and the only symptom is a control that
+   * looks slightly wrong to somebody who was not expecting it to look right.
+   *
+   * Found while auditing this file for raw colour literals rather than by
+   * looking for it. `--thin` is the correct rung: this is a small inline track
+   * sitting on a card, not a sheet floating over the page, and the fill and the
+   * blur move together by the rule in glass.css.
+   *
+   * The two hand-written spacing values below are left alone: they are a 2px
+   * gutter and a 3px inset inside a 38px control, which is drawn geometry
+   * rather than rhythm, and changing them is a visual decision that is not this
+   * change's to take.
+   */
   .nf-feedtabs {
     display: flex;
     gap: 0.125rem;
     padding: 0.1875rem;
     border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-surface-glass);
-    backdrop-filter: blur(var(--nf-blur-sm));
-    -webkit-backdrop-filter: blur(var(--nf-blur-sm));
+    background: var(--nf-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
+    backdrop-filter: blur(var(--nf-glass-blur-thin));
   }
 
   .nf-badge {

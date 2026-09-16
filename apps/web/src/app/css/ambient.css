@@ -276,14 +276,16 @@
    * and the canvas is the right owner of it because it is behind everything
    * rather than attached to one card.
    *
-   * The ring stays exactly as it is drawn: a conic gradient starting at 142
-   * degrees, which is the platform's own light direction, so a hero container
-   * still reads as edge-lit. It is lit by a light that is in a place, rather
-   * than by a light that is going round.
+   * The ring stays exactly as it is drawn: a conic gradient starting at the
+   * platform's own light direction, so a hero container still reads as
+   * edge-lit. It is lit by a light that is in a place, rather than by a light
+   * that is going round.
    *
-   * THAT DIRECTION IS 152, NOT 142. This comment claimed 142 was the platform
-   * angle while the glass specular was cut at 152, and one of the two had to be
-   * wrong; the artwork settles it. The literal stays a literal because an
+   * THAT DIRECTION IS 152, AND THIS PARAGRAPH USED TO SAY 142. It asserted that
+   * 142 was the platform angle while the glass specular was cut at 152, and one
+   * of the two had to be wrong; the artwork settles it, because the icons were
+   * rendered with the light at 152 and that is the one thing here that cannot
+   * be re-angled by editing a number. The literal stays a literal because an
    * `@property` initial value has to be computationally independent and may not
    * read `var(--nf-light-angle)`. Keep it in step by hand, and keep the
    * keyframe exactly 360 degrees further on so a full turn lands back on the

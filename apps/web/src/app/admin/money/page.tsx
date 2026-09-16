@@ -50,7 +50,10 @@ export default async function AdminMoneyPage() {
       <li className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-[var(--nf-border-subtle)] py-2.5">
         <span className="min-w-0">
           <span className="block text-[0.875rem] text-[var(--nf-content-primary)]">
-            {entry.note ?? entry.kind.replace(/_/g, " ")}
+            {/* Same column-keyed lookup as the status chip beside it, rather
+                than a second hand-rolled `replace(/_/g, " ")` that would print
+                "escrow hold" in lower case beside a properly named status. */}
+            {entry.note ?? ui.columnLabel("walletEntryKind", entry.kind)}
             {entry.ownerName ? ` · ${entry.ownerName}` : ""}
           </span>
           {/* THE REFERENCE IS NEVER CLIPPED. It is the only string an operator
@@ -63,7 +66,23 @@ export default async function AdminMoneyPage() {
           </span>
         </span>
         <span className="flex shrink-0 items-baseline gap-3">
-          <ui.StatusChip label={entry.status} status={entry.status} />
+          {/*
+            NOT `label={entry.status}`. That printed `PENDING`, `COMPLETED`,
+            `FAILED` and `REVERSED` in shouting capitals on the money screen,
+            which is the column, not a word for a person.
+
+            And not the bare `status={entry.status}` either, which would have
+            fallen through to `statusLabel` and `t.admin.common.status`, where
+            `PENDING` reads "Requested". That is right for a booking and wrong
+            for a wallet entry, where PENDING means the money has not settled.
+            `columnLabel` is keyed by column as well as by value for exactly
+            this collision. `status` is still passed, because the TONE is
+            shared across every queue and only the word is per-column.
+          */}
+          <ui.StatusChip
+            label={ui.columnLabel("walletEntryStatus", entry.status)}
+            status={entry.status}
+          />
           <span className="nf-numeric text-[0.875rem] font-semibold">
             {outgoing ? "-" : "+"}
             {formatMoney(entry.amountMinor, locale)}

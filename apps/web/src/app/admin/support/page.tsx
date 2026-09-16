@@ -7,6 +7,16 @@ import { getSupportTickets, getTicketThread, type TicketView } from "@/lib/admin
 import { TicketReply, TicketStatusControl } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
+import {
+  QUEUE_NO_MATCH,
+  QueueFilters,
+  QueuePager,
+  queueNarrowed,
+  readQueueQuery,
+  type QueueStatusOption,
+} from "../_components/QueueFilters";
+import { Constants } from "@/lib/supabase/database.types";
 import { dueChip } from "../_components/due";
 import { gradeForTopic, supportTopicLabel } from "@/lib/trust/support-topics";
 
@@ -88,6 +98,14 @@ function TicketRow({
   );
 }
 
+/** `support_ticket_status` is `open, pending, resolved, closed`, from the enum. */
+function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
+  return Constants.public.Enums.support_ticket_status.map((value) => ({
+    value,
+    label: ui.statusLabel(value),
+  }));
+}
+
 export default async function AdminSupportPage({
   searchParams,
 }: {
@@ -103,7 +121,19 @@ export default async function AdminSupportPage({
   const raw = params.ticket;
   const selectedId = typeof raw === "string" ? raw : null;
 
-  const tickets = await getSupportTickets();
+  /* The shared queue frame. The search takes a reference or an email address,
+     which are the two things somebody on the phone can read out. `?ticket=` is
+     the open thread and is deliberately NOT carried by the filter links: a
+     narrowed queue is a different question from an open ticket, and keeping the
+     thread pinned above a list it is no longer in reads as a mistake. */
+  const query = readQueueQuery(params);
+  const tickets = await getSupportTickets({
+    ...(query.q ? { q: query.q } : {}),
+    ...(query.status ? { status: query.status } : {}),
+    ...(query.from ? { from: query.from } : {}),
+    ...(query.to ? { to: query.to } : {}),
+    ...(query.offset ? { offset: query.offset } : {}),
+  });
 
   if (tickets.state !== "ok") {
     return (
@@ -114,17 +144,24 @@ export default async function AdminSupportPage({
     );
   }
 
+  const rows = tickets.data.rows;
   const selected = selectedId
-    ? (tickets.data.find((ticket) => ticket.id === selectedId) ?? null)
+    ? (rows.find((ticket) => ticket.id === selectedId) ?? null)
     : null;
   const thread = selected ? await getTicketThread(selected.id) : null;
 
-  const open = tickets.data.filter(
+  const open = rows.filter(
     (ticket) => ticket.status === "open" || ticket.status === "pending",
   );
-  const closed = tickets.data.filter(
+  const closed = rows.filter(
     (ticket) => ticket.status === "resolved" || ticket.status === "closed",
   );
+  /* A page past the first counts as narrowed for the empty copy. Landing on
+     page three of a queue that has run out is a RESULT; "nothing has ever
+     arrived here" would be a flat lie told to somebody looking at rows they
+     have just paged past. `queueNarrowed` itself deliberately ignores the
+     offset, because the Clear control is about the filters. */
+  const narrowed = queueNarrowed(query) || (query.offset ?? 0) > 0;
 
   return (
     <div className="nf-console">
@@ -204,8 +241,14 @@ export default async function AdminSupportPage({
         </section>
       )}
 
+      <QueueFilters base="/admin/support" query={query} statuses={statusFilters(ui)} />
+
       {open.length === 0 && closed.length === 0 ? (
-        <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
+        <ui.QueueEmpty
+          title={narrowed ? QUEUE_NO_MATCH.title : copy.emptyTitle}
+          body={narrowed ? QUEUE_NO_MATCH.body : copy.emptyBody}
+          everHadRows={narrowed}
+        />
       ) : (
         <>
           <h2 className="nf-h3 mb-3 text-[1rem]">
@@ -247,6 +290,14 @@ export default async function AdminSupportPage({
           )}
         </>
       )}
+
+      <QueuePager
+        base="/admin/support"
+        query={query}
+        pageSize={QUEUE_PAGE_SIZE}
+        full={tickets.data.full}
+        count={rows.length}
+      />
     </div>
   );
 }

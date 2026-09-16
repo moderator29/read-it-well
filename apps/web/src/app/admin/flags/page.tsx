@@ -6,6 +6,16 @@ import { getMessageFlags, type FlagView, type PartyRole } from "@/lib/admin/quer
 import { FlagDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
+import {
+  QUEUE_NO_MATCH,
+  QueueFilters,
+  QueuePager,
+  queueNarrowed,
+  readQueueQuery,
+  type QueueStatusOption,
+} from "../_components/QueueFilters";
+import { Constants } from "@/lib/supabase/database.types";
 import { dueChip } from "../_components/due";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -163,14 +173,36 @@ function FlagCard({
   );
 }
 
-export default async function AdminFlagsPage() {
+/** `message_flag_status` is `open, reviewed`, read from the generated enum. */
+function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
+  return Constants.public.Enums.message_flag_status.map((value) => ({
+    value,
+    label: ui.statusLabel(value),
+  }));
+}
+
+export default async function AdminFlagsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const copy = t.admin.flags;
   const common = t.admin.common;
   const ui = adminUi(t, locale);
 
-  const flags = await getMessageFlags();
+  /* The shared queue frame. The search is over what the safety scan matched,
+     which is what an operator is chasing when they come back to a flag. */
+  const params = await searchParams;
+  const query = readQueueQuery(params);
+  const flags = await getMessageFlags({
+    ...(query.q ? { q: query.q } : {}),
+    ...(query.status ? { status: query.status } : {}),
+    ...(query.from ? { from: query.from } : {}),
+    ...(query.to ? { to: query.to } : {}),
+    ...(query.offset ? { offset: query.offset } : {}),
+  });
 
   if (flags.state !== "ok") {
     return (
@@ -181,16 +213,29 @@ export default async function AdminFlagsPage() {
     );
   }
 
-  const open = flags.data.filter((flag) => flag.status === "open");
-  const reviewed = flags.data.filter((flag) => flag.status !== "open");
+  const rows = flags.data.rows;
+  const open = rows.filter((flag) => flag.status === "open");
+  const reviewed = rows.filter((flag) => flag.status !== "open");
+  /* A page past the first counts as narrowed for the empty copy. Landing on
+     page three of a queue that has run out is a RESULT; "nothing has ever
+     arrived here" would be a flat lie told to somebody looking at rows they
+     have just paged past. `queueNarrowed` itself deliberately ignores the
+     offset, because the Clear control is about the filters. */
+  const narrowed = queueNarrowed(query) || (query.offset ?? 0) > 0;
 
   return (
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
-      {open.length === 0 ? (
-        <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
-      ) : (
+      <QueueFilters base="/admin/flags" query={query} statuses={statusFilters(ui)} />
+
+      {rows.length === 0 ? (
+        <ui.QueueEmpty
+          title={narrowed ? QUEUE_NO_MATCH.title : copy.emptyTitle}
+          body={narrowed ? QUEUE_NO_MATCH.body : copy.emptyBody}
+          everHadRows={narrowed}
+        />
+      ) : open.length === 0 ? null : (
         <ul className="nf-queue-list">
           {open.map((flag) => (
             <FlagCard
@@ -222,6 +267,14 @@ export default async function AdminFlagsPage() {
           </ul>
         </section>
       )}
+
+      <QueuePager
+        base="/admin/flags"
+        query={query}
+        pageSize={QUEUE_PAGE_SIZE}
+        full={flags.data.full}
+        count={rows.length}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 
 /**
@@ -45,6 +45,40 @@ import { useOverlay } from "@/lib/ui/use-overlay";
 const FOCUSABLE =
   'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
+/**
+ * THE HEIGHT OF WHAT THE PERSON CAN ACTUALLY SEE, which is not `innerHeight`.
+ *
+ * `window.innerHeight` is the LAYOUT viewport. On iOS and on Android Chrome the
+ * software keyboard does not change it: it slides a panel over the bottom of
+ * the page and the number stays exactly what it was. `visualViewport.height` is
+ * the part still visible above the keyboard, and it is the number every
+ * calculation in this file wants.
+ *
+ * The detents are fractions of "the screen", and the dismissal threshold is the
+ * lowest detent plus twelve per cent of "the screen". With a keyboard up and
+ * `innerHeight` in hand, both are computed against a viewport that is roughly
+ * half hidden, so the threshold sits well below the visible area: the sheet
+ * cannot be dragged far enough to reach it, and drag-to-dismiss stops working
+ * at the moment a finger is already near the bottom of the screen.
+ *
+ * The wallet's withdraw and transfer drawers are a form sheet with a focused
+ * amount field, which means the keyboard is up for the whole of the
+ * interaction. This is not an edge case on those two screens, it is the only
+ * case.
+ *
+ * `innerHeight` stays as the fallback because `visualViewport` is absent in
+ * jsdom and in older WebViews, and on a desktop browser the two agree.
+ *
+ * NOT VERIFIED ON A REAL DEVICE. The finding this closes says the same thing
+ * about itself, and nothing in this session ran on a phone with a keyboard up.
+ * What is verified is that the arithmetic now reads the visible height where a
+ * visible height exists.
+ */
+function viewportHeight(): number {
+  if (typeof window === "undefined") return 0;
+  return window.visualViewport?.height ?? window.innerHeight;
+}
+
 export function Sheet({
   open,
   onOpenChange,
@@ -56,6 +90,7 @@ export function Sheet({
   detents = [0.92],
   /** Hides the visible title while keeping it as the accessible name. */
   hideTitle = false,
+  initialFocus,
   footer,
   children,
 }: {
@@ -64,6 +99,12 @@ export function Sheet({
   title: string;
   detents?: number[];
   hideTitle?: boolean;
+  /**
+   * What the keyboard lands on when the sheet opens. Defaults to the first
+   * focusable node, which is very often the wrong one. See the note on the
+   * focus effect below.
+   */
+  initialFocus?: RefObject<HTMLElement | null>;
   footer?: ReactNode;
   children: ReactNode;
 }) {
@@ -112,14 +153,32 @@ export function Sheet({
     };
   }, [open]);
 
+  /*
+   * The detents as a stable primitive, and this is not tidiness.
+   *
+   * `detents` is a prop with an ARRAY DEFAULT, so an unspecified one is a fresh
+   * `[0.92]` on every render and a specified one is usually an inline literal at
+   * the call site, which is also fresh every render. Anything memoised on it is
+   * therefore memoised on nothing.
+   *
+   * That was harmless while `heights` was only called from `onPointerUp`. It
+   * stopped being harmless the moment the visual-viewport effect below took it
+   * as a dependency: `setOffset` and `setDragging` re-render on every
+   * pointermove, so the effect would have removed and re-added two listeners on
+   * every frame of every drag. A string of the sorted values compares by value,
+   * so `heights` is stable while the detents are, and the subscription happens
+   * once per open.
+   */
+  const detentKey = [...detents].sort((a, b) => a - b).join(",");
+
   const heights = useCallback(() => {
-    const vh = typeof window === "undefined" ? 0 : window.innerHeight;
-    const sorted = [...detents].sort((a, b) => a - b);
+    const vh = viewportHeight();
+    const sorted = detentKey ? detentKey.split(",").map(Number) : [];
     const tallest = sorted[sorted.length - 1] ?? 0.92;
     // Offset 0 is the tallest detent. A shorter detent sits further DOWN, so
     // its offset is the difference in height, in pixels.
     return { vh, offsets: sorted.map((d) => (tallest - d) * vh).sort((a, b) => a - b) };
-  }, [detents]);
+  }, [detentKey]);
 
   /* Escape, the Tab trap, the counted scroll lock and the focus return, from
      the one shared implementation. `autoFocus` is off because the effect below
@@ -146,9 +205,71 @@ export function Sheet({
     setOffset(0);
     const node = sheetRef.current;
     if (!node) return;
-    const first = node.querySelector<HTMLElement>(FOCUSABLE);
-    (first ?? node).focus({ preventScroll: true });
-  }, [open]);
+    /*
+     * FIRST FOCUS IS THE SHEET'S OPENING SENTENCE, and the default was reading
+     * out the exit.
+     *
+     * `querySelector(FOCUSABLE)` returns the first focusable node in DOM order,
+     * and in every drawer on this platform that is the Close button, because
+     * Close sits in the header and the header comes first. So opening "Add
+     * money" put the keyboard on Close, and a screen reader said "Add money to
+     * your wallet, dialog" and then "Close, button": the sheet announces what
+     * it is for and then offers to go away.
+     *
+     * `initialFocus` lets the call site name the node instead. For a form sheet
+     * it is the first field; for a result sheet it is the primary action. The
+     * default is unchanged, because a sheet that has not thought about it is
+     * still better off trapping focus somewhere inside itself than leaving it
+     * on the page behind.
+     *
+     * The ref may be attached to a node that has not rendered, or to one that
+     * is disabled while a request is in flight, so this checks the node is
+     * still focusable before using it rather than focusing nothing.
+     */
+    const wanted = initialFocus?.current;
+    const target =
+      wanted && node.contains(wanted) && !wanted.hasAttribute("disabled")
+        ? wanted
+        : (node.querySelector<HTMLElement>(FOCUSABLE) ?? node);
+    target.focus({ preventScroll: true });
+  }, [open, initialFocus]);
+
+  /*
+   * THE KEYBOARD CHANGES THE VIEWPORT UNDER A SETTLED SHEET.
+   *
+   * `heights()` reads the visible height every time it is called, so a drag
+   * that starts after the keyboard is already up is computed correctly. What it
+   * cannot fix on its own is a sheet that settled at a detent BEFORE the
+   * keyboard appeared: its offset is a pixel value derived from the old height,
+   * and it stays there while the viewport shrinks around it, so a half-height
+   * sheet becomes a nearly-full one or slides most of the way off the bottom.
+   *
+   * On a focused field that is the ordinary sequence: the sheet opens, it
+   * settles, the field takes focus, the keyboard comes up.
+   *
+   * So it re-settles to the nearest detent for the new height. `scroll` is
+   * listened for as well as `resize` because iOS fires only `scroll` when the
+   * visual viewport is panned rather than resized, and the offsets move either
+   * way. Nothing here runs when the sheet is closed or while a finger is down:
+   * re-settling mid-drag would fight the drag.
+   */
+  useEffect(() => {
+    const vv = typeof window === "undefined" ? null : window.visualViewport;
+    if (!open || !vv) return;
+    const resettle = () => {
+      if (drag.current) return;
+      const { offsets } = heights();
+      setOffset((current) =>
+        offsets.reduce((best, o) => (Math.abs(o - current) < Math.abs(best - current) ? o : best), 0),
+      );
+    };
+    vv.addEventListener("resize", resettle);
+    vv.addEventListener("scroll", resettle);
+    return () => {
+      vv.removeEventListener("resize", resettle);
+      vv.removeEventListener("scroll", resettle);
+    };
+  }, [open, heights]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);

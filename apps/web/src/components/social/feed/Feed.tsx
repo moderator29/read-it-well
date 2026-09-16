@@ -28,7 +28,17 @@ import {
   toggleMark,
   toggleRepost,
 } from "@/lib/social/posts-actions";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
+
+/**
+ * The heading when a caller has not given one.
+ *
+ * True of every branch that reaches it: the message under it says WHY the
+ * timeline is empty, and this says what is empty. Never "nothing found", which
+ * is a shrug rather than a sentence.
+ */
+const DEFAULT_EMPTY_TITLE = "Nothing here yet";
 
 /**
  * The feed.
@@ -50,6 +60,9 @@ export function Feed({
   signedIn,
   areaName,
   emptyMessage,
+  emptyTitle,
+  emptyAction,
+  emptyIcon = "chat-duo",
   district,
 }: {
   initial: PostView[];
@@ -78,6 +91,27 @@ export function Feed({
   areaId?: string;
   areaName?: string;
   emptyMessage: string;
+  /**
+   * The heading over `emptyMessage`, and the way onward under it.
+   *
+   * -------------------------------------------------------------------------
+   * TWO EMPTY-STATE ANATOMIES ON TWO SCREENS OF THE SAME FEATURE.
+   *
+   * `/u` draws an empty state as a mark, a heading and an action, through
+   * `ProfileNotice`. This one was a bordered paragraph in muted ink: no mark,
+   * no heading, and nothing at all to do next. The two sit one tap apart and
+   * were answering the same question in two shapes, and the shape with no
+   * action is the one that leaves somebody at a dead end.
+   *
+   * `ProfileNotice` is the /u shape and it is what this uses now. Optional so
+   * the three profile call sites keep a heading that suits a profile rather
+   * than inheriting a feed's.
+   */
+  emptyTitle?: string;
+  emptyAction?: { href: string; label: string };
+  /** The mark. Defaults to the one that means "a conversation", which is what
+      an empty timeline is short of. A profile tab passes its own. */
+  emptyIcon?: BrandIconName;
   /** Present only on a district feed. Absent on a profile, where the header
       and the chip row would be answering a question nobody asked. */
   district?: {
@@ -373,11 +407,15 @@ export function Feed({
       ) : null}
 
       {chip !== "stories" && chip !== "reviews" && shown.length === 0 ? (
-        <div className="nf-card nf-post p-6 text-center">
-          <p className="text-sm leading-relaxed text-[var(--nf-content-muted)]">
-            {emptyMessage}
-          </p>
-        </div>
+        /* One empty-state anatomy across `/around` and `/u`. See `emptyTitle`
+           above: this was a bordered paragraph with no mark, no heading and
+           nothing to do, one tap from a screen that had all three. */
+        <EmptyPanel
+          icon={emptyIcon}
+          title={emptyTitle ?? DEFAULT_EMPTY_TITLE}
+          body={emptyMessage}
+          {...(emptyAction ? { action: emptyAction } : {})}
+        />
       ) : null}
 
       {(chip === "stories" || chip === "reviews" ? [] : shown).map((post) => (

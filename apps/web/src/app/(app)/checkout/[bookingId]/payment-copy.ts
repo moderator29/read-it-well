@@ -81,6 +81,18 @@ const NOT_PROSE: RegExp[] = [
   /\bhttps?:\/\//i, //             a URL
   /\b[A-Za-z]+Error\b/, //         TypeError, PaystackError, AuthApiError
   /\bPGRST\d/, //                  a PostgREST code
+  /*
+   * A SQLSTATE, which `tests/checkout.spec.mjs` bans by name: it lists 23505
+   * and 23P01 among the strings that must never reach this screen. Five
+   * characters, all digits or two digits and three alphanumerics.
+   *
+   * SAFE AGAINST MONEY, and that was the thing to check before adding it. Every
+   * figure this surface produces goes through `formatMoney`, which is
+   * `Intl.NumberFormat`, which groups thousands in all four of our locales, so
+   * an amount is never an unbroken five-digit run: ₦95,000.00 is "95" and "000"
+   * to this pattern and neither matches.
+   */
+  /\b\d{5}\b|\b\d{2}[A-Z][0-9A-Z]{2}\b/,
   /[a-f0-9]{8}-[a-f0-9]{4}-/i, //  a uuid, which is an id we do not explain
   /^[^\s]+$/, //                   one token: `not_pending`, `insufficient`
   /\b(supabase|postgres|rls|jwt|env|undefined|null)\b/i,

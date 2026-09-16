@@ -5,6 +5,16 @@ import { getRiskAlerts, type AlertView } from "@/lib/admin/queries";
 import { AlertResolve } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
+import {
+  QUEUE_NO_MATCH,
+  QueueFilters,
+  QueuePager,
+  queueNarrowed,
+  readQueueQuery,
+  type QueueStatusOption,
+} from "../_components/QueueFilters";
+import { Constants } from "@/lib/supabase/database.types";
 /* `Tone` moved out of the admin console and into the shared StatusPill when
    the four copies of it were collapsed into one. Same type, one home. */
 import type { StatusTone } from "@/components/ui/StatusPill";
@@ -95,14 +105,37 @@ function AlertCard({
   );
 }
 
-export default async function AdminAlertsPage() {
+/** `alert_status` is `open, resolved`, read from the generated enum. */
+function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
+  return Constants.public.Enums.alert_status.map((value) => ({
+    value,
+    label: ui.statusLabel(value),
+  }));
+}
+
+export default async function AdminAlertsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const copy = t.admin.alerts;
   const common = t.admin.common;
   const ui = adminUi(t, locale);
 
-  const alerts = await getRiskAlerts();
+  /* The shared queue frame. This page read the newest fifty alerts and printed
+     all of them, so the fifty-first did not exist for an operator and there was
+     no way to ask for the open ones from a particular week. */
+  const params = await searchParams;
+  const query = readQueueQuery(params);
+  const alerts = await getRiskAlerts({
+    ...(query.q ? { q: query.q } : {}),
+    ...(query.status ? { status: query.status } : {}),
+    ...(query.from ? { from: query.from } : {}),
+    ...(query.to ? { to: query.to } : {}),
+    ...(query.offset ? { offset: query.offset } : {}),
+  });
 
   if (alerts.state !== "ok") {
     return (
@@ -113,33 +146,58 @@ export default async function AdminAlertsPage() {
     );
   }
 
-  const open = alerts.data.filter((alert) => alert.status === "open");
-  const resolved = alerts.data.filter((alert) => alert.status !== "open");
+  const rows = alerts.data.rows;
+  const open = rows.filter((alert) => alert.status === "open");
+  const resolved = rows.filter((alert) => alert.status !== "open");
+  /* A page past the first counts as narrowed for the empty copy. Landing on
+     page three of a queue that has run out is a RESULT; "nothing has ever
+     arrived here" would be a flat lie told to somebody looking at rows they
+     have just paged past. `queueNarrowed` itself deliberately ignores the
+     offset, because the Clear control is about the filters. */
+  const narrowed = queueNarrowed(query) || (query.offset ?? 0) > 0;
 
   return (
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
-      {open.length === 0 ? (
-        <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
+      <QueueFilters base="/admin/alerts" query={query} statuses={statusFilters(ui)} />
+
+      {rows.length === 0 ? (
+        <ui.QueueEmpty
+          title={narrowed ? QUEUE_NO_MATCH.title : copy.emptyTitle}
+          body={narrowed ? QUEUE_NO_MATCH.body : copy.emptyBody}
+          everHadRows={narrowed}
+        />
       ) : (
-        <ul className="nf-queue-list">
-          {open.map((alert) => (
-            <AlertCard key={alert.id} alert={alert} copy={copy} common={common} ui={ui} />
-          ))}
-        </ul>
+        <>
+          {open.length > 0 && (
+            <ul className="nf-queue-list">
+              {open.map((alert) => (
+                <AlertCard key={alert.id} alert={alert} copy={copy} common={common} ui={ui} />
+              ))}
+            </ul>
+          )}
+
+          {resolved.length > 0 && (
+            <section className="mt-8">
+              <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyResolved}</h2>
+              <ul className="nf-queue-list">
+                {resolved.map((alert) => (
+                  <AlertCard key={alert.id} alert={alert} copy={copy} common={common} ui={ui} />
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
       )}
 
-      {resolved.length > 0 && (
-        <section className="mt-8">
-          <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyResolved}</h2>
-          <ul className="nf-queue-list">
-            {resolved.map((alert) => (
-              <AlertCard key={alert.id} alert={alert} copy={copy} common={common} ui={ui} />
-            ))}
-          </ul>
-        </section>
-      )}
+      <QueuePager
+        base="/admin/alerts"
+        query={query}
+        pageSize={QUEUE_PAGE_SIZE}
+        full={alerts.data.full}
+        count={rows.length}
+      />
     </div>
   );
 }

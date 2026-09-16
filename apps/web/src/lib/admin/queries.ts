@@ -2,8 +2,16 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "../supabase/admin";
-import type { Database } from "../supabase/database.types";
+import { Constants, type Database } from "../supabase/database.types";
 import { requireAdmin } from "./guard";
+import {
+  lagosDayEnd,
+  lagosDayStart,
+  pageRange,
+  pickStatus,
+  takePage,
+  type AdminQueueFilter,
+} from "./queue-filter";
 import {
   PERIOD_SUFFIX,
   headlinePeriod,
@@ -149,22 +157,47 @@ export type FlagView = {
   context: FlagContextLine[];
 };
 
-export async function getMessageFlags(): Promise<AdminRead<FlagView[]>> {
+/**
+ * Message flags, narrowed by the console's shared queue frame.
+ *
+ * The search is over `matched`, which is the fragment the safety scan actually
+ * caught - an account number, a payment word - because that is what an operator
+ * is chasing when they come back to this queue a second time.
+ *
+ * `full` is computed BEFORE the null-message rows are dropped. A flag whose
+ * message has since been deleted is a row the database returned and the page
+ * cannot draw; counting it towards the page is what keeps Next honest, because
+ * the next page really does start after it.
+ */
+export async function getMessageFlags(
+  filter?: AdminQueueFilter,
+): Promise<AdminRead<{ rows: FlagView[]; full: boolean }>> {
   const admin = await adminClient();
   if (!admin) return UNAVAILABLE;
 
+  const term = (filter?.q ?? "").trim();
+  const status = pickStatus(Constants.public.Enums.message_flag_status, filter?.status);
+  const page = pageRange(filter);
+
   try {
-    const { data, error } = await admin
+    let select = admin
       .from("message_flags")
       .select(
         "id, reason, matched, status, created_at, message_id, messages ( id, body, sender_id, conversation_id, created_at )",
-      )
+      );
+    if (term.length > 0) select = select.ilike("matched", `%${term}%`);
+    if (status) select = select.eq("status", status);
+    if (filter?.from) select = select.gte("created_at", lagosDayStart(filter.from));
+    if (filter?.to) select = select.lte("created_at", lagosDayEnd(filter.to));
+
+    const { data, error } = await select
       .order("created_at", { ascending: false })
-      .limit(40);
+      .range(page.from, page.to);
     if (error) return UNAVAILABLE;
 
-    const rows = (data ?? []).filter((row) => row.messages !== null);
-    if (rows.length === 0) return { state: "ok", data: [] };
+    const { rows: page1, full } = takePage(data ?? []);
+    const rows = page1.filter((row) => row.messages !== null);
+    if (rows.length === 0) return { state: "ok", data: { rows: [], full } };
 
     const conversationIds = [...new Set(rows.map((row) => row.messages!.conversation_id))];
 
@@ -226,7 +259,7 @@ export async function getMessageFlags(): Promise<AdminRead<FlagView[]>> {
       };
     });
 
-    return { state: "ok", data: views };
+    return { state: "ok", data: { rows: views, full } };
   } catch {
     return UNAVAILABLE;
   }
@@ -252,21 +285,42 @@ export type AlertView = {
   resolvedByName: string | null;
 };
 
-export async function getRiskAlerts(): Promise<AdminRead<AlertView[]>> {
+/**
+ * Risk alerts, narrowed by the console's shared queue frame.
+ *
+ * Same change as `getReports` and for the same reason: this read the newest
+ * fifty and printed all of them, so the fifty-first alert did not exist as far
+ * as an operator was concerned, and there was no way to ask the screen for the
+ * open high-severity ones. The search is over `title`, which is the sentence an
+ * alert is recognised by.
+ */
+export async function getRiskAlerts(
+  filter?: AdminQueueFilter,
+): Promise<AdminRead<{ rows: AlertView[]; full: boolean }>> {
   const admin = await adminClient();
   if (!admin) return UNAVAILABLE;
 
+  const term = (filter?.q ?? "").trim();
+  const status = pickStatus(Constants.public.Enums.alert_status, filter?.status);
+  const page = pageRange(filter);
+
   try {
-    const { data, error } = await admin
+    let select = admin
       .from("risk_alerts")
       .select(
         "id, severity, status, title, description, entity_type, entity_id, created_at, resolved_at, resolved_by",
-      )
+      );
+    if (term.length > 0) select = select.ilike("title", `%${term}%`);
+    if (status) select = select.eq("status", status);
+    if (filter?.from) select = select.gte("created_at", lagosDayStart(filter.from));
+    if (filter?.to) select = select.lte("created_at", lagosDayEnd(filter.to));
+
+    const { data, error } = await select
       .order("created_at", { ascending: false })
-      .limit(50);
+      .range(page.from, page.to);
     if (error) return UNAVAILABLE;
 
-    const rows = data ?? [];
+    const { rows, full } = takePage(data ?? []);
 
     // One extra read for every distinct resolver, not one per row. The list is
     // capped at fifty, so this is at most one small IN query.
@@ -286,18 +340,21 @@ export async function getRiskAlerts(): Promise<AdminRead<AlertView[]>> {
 
     return {
       state: "ok",
-      data: rows.map((row) => ({
-        id: row.id,
-        severity: row.severity,
-        status: row.status,
-        title: row.title,
-        description: row.description,
-        entityType: row.entity_type,
-        entityId: row.entity_id,
-        createdAt: row.created_at,
-        resolvedAt: row.resolved_at,
-        resolvedByName: row.resolved_by ? (resolvers.get(row.resolved_by) ?? null) : null,
-      })),
+      data: {
+        full,
+        rows: rows.map((row) => ({
+          id: row.id,
+          severity: row.severity,
+          status: row.status,
+          title: row.title,
+          description: row.description,
+          entityType: row.entity_type,
+          entityId: row.entity_id,
+          createdAt: row.created_at,
+          resolvedAt: row.resolved_at,
+          resolvedByName: row.resolved_by ? (resolvers.get(row.resolved_by) ?? null) : null,
+        })),
+      },
     };
   } catch {
     return UNAVAILABLE;
@@ -325,21 +382,50 @@ export type ReportView = {
   resolvedByName: string | null;
 };
 
-export async function getReports(): Promise<AdminRead<ReportView[]>> {
+/**
+ * Reports, narrowed by the console's shared queue frame.
+ *
+ * ---------------------------------------------------------------------------
+ * THIS QUEUE COULD NOT BE SEARCHED, FILTERED OR PAGED THROUGH.
+ *
+ * It read the newest fifty rows and printed all of them, which is fine at zero
+ * rows and is the whole of the console's problem at a thousand: a reviewer
+ * asked "what did we do about the payment reports last Tuesday" had no way to
+ * ask the screen that, and the fifty-first report did not exist as far as the
+ * console was concerned. The narrowing is in the query rather than over the
+ * rows it returned, so the page cap applies to what matched.
+ *
+ * The search is over `reason`, which is the reporter's own words, because that
+ * is the field a reviewer remembers a report by. Not the id: an id is how you
+ * find a row you already have, and a reviewer looking for a row does not.
+ */
+export async function getReports(
+  filter?: AdminQueueFilter,
+): Promise<AdminRead<{ rows: ReportView[]; full: boolean }>> {
   const admin = await adminClient();
   if (!admin) return UNAVAILABLE;
 
+  const term = (filter?.q ?? "").trim();
+  const status = pickStatus(Constants.public.Enums.report_status, filter?.status);
+  const page = pageRange(filter);
+
   try {
-    const { data, error } = await admin
+    let select = admin
       .from("reports")
       .select(
         "id, reporter_id, target_type, target_id, category, reason, status, created_at, resolved_at, resolved_by",
-      )
+      );
+    if (term.length > 0) select = select.ilike("reason", `%${term}%`);
+    if (status) select = select.eq("status", status);
+    if (filter?.from) select = select.gte("created_at", lagosDayStart(filter.from));
+    if (filter?.to) select = select.lte("created_at", lagosDayEnd(filter.to));
+
+    const { data, error } = await select
       .order("created_at", { ascending: false })
-      .limit(50);
+      .range(page.from, page.to);
     if (error) return UNAVAILABLE;
 
-    const rows = data ?? [];
+    const { rows, full } = takePage(data ?? []);
     // Reporters and resolvers in one read: both are display names off the same
     // table, and two round trips for one map would be two round trips wasted.
     const peopleIds = [
@@ -362,18 +448,21 @@ export async function getReports(): Promise<AdminRead<ReportView[]>> {
 
     return {
       state: "ok",
-      data: rows.map((row) => ({
-        id: row.id,
-        reporterName: names.get(row.reporter_id) ?? "A Vallo member",
-        targetType: row.target_type,
-        targetId: row.target_id,
-        category: row.category,
-        reason: row.reason,
-        status: row.status,
-        createdAt: row.created_at,
-        resolvedAt: row.resolved_at,
-        resolvedByName: row.resolved_by ? (names.get(row.resolved_by) ?? null) : null,
-      })),
+      data: {
+        full,
+        rows: rows.map((row) => ({
+          id: row.id,
+          reporterName: names.get(row.reporter_id) ?? "A Vallo member",
+          targetType: row.target_type,
+          targetId: row.target_id,
+          category: row.category,
+          reason: row.reason,
+          status: row.status,
+          createdAt: row.created_at,
+          resolvedAt: row.resolved_at,
+          resolvedByName: row.resolved_by ? (names.get(row.resolved_by) ?? null) : null,
+        })),
+      },
     };
   } catch {
     return UNAVAILABLE;
@@ -824,35 +913,64 @@ export type TicketView = {
   replyCount: number;
 };
 
-export async function getSupportTickets(): Promise<AdminRead<TicketView[]>> {
+/**
+ * Support tickets, narrowed by the console's shared queue frame.
+ *
+ * The search is over the reference and the email address, joined with `.or()`,
+ * because those are the two things a person on the phone can read out. The term
+ * is stripped of the characters PostgREST's `or` grammar treats as structure -
+ * a comma would split one condition into two, a bracket would open a group -
+ * before it is interpolated, so a search for "a,b" looks for "ab" rather than
+ * producing a filter the database rejects.
+ */
+export async function getSupportTickets(
+  filter?: AdminQueueFilter,
+): Promise<AdminRead<{ rows: TicketView[]; full: boolean }>> {
   const admin = await adminClient();
   if (!admin) return UNAVAILABLE;
 
+  const term = (filter?.q ?? "").replace(/[,()*"\\]/g, "").trim();
+  const status = pickStatus(Constants.public.Enums.support_ticket_status, filter?.status);
+  const page = pageRange(filter);
+
   try {
-    const { data, error } = await admin
+    let select = admin
       .from("support_tickets")
       .select(
         "id, reference, name, email, topic, body, status, user_id, created_at, updated_at, support_ticket_messages ( id )",
-      )
+      );
+    if (term.length > 0) {
+      select = select.or(`reference.ilike.%${term}%,email.ilike.%${term}%`);
+    }
+    if (status) select = select.eq("status", status);
+    if (filter?.from) select = select.gte("created_at", lagosDayStart(filter.from));
+    if (filter?.to) select = select.lte("created_at", lagosDayEnd(filter.to));
+
+    const { data, error } = await select
       .order("created_at", { ascending: false })
-      .limit(50);
+      .range(page.from, page.to);
     if (error) return UNAVAILABLE;
+
+    const { rows, full } = takePage(data ?? []);
 
     return {
       state: "ok",
-      data: (data ?? []).map((row) => ({
-        id: row.id,
-        reference: row.reference,
-        name: row.name,
-        email: row.email,
-        topic: row.topic,
-        body: row.body,
-        status: row.status,
-        hasAccount: row.user_id !== null,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-        replyCount: row.support_ticket_messages.length,
-      })),
+      data: {
+        full,
+        rows: rows.map((row) => ({
+          id: row.id,
+          reference: row.reference,
+          name: row.name,
+          email: row.email,
+          topic: row.topic,
+          body: row.body,
+          status: row.status,
+          hasAccount: row.user_id !== null,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          replyCount: row.support_ticket_messages.length,
+        })),
+      },
     };
   } catch {
     return UNAVAILABLE;

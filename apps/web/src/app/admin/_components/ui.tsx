@@ -53,10 +53,7 @@ import { fill, type AdminCommon } from "./copy";
  * on an empty-queue panel and a checklist row, where the meaning is "this is
  * fine" / "this needs a look" and no status is being reported at all.
  */
-const SUCCESS_WASH: CSSProperties = {
-  background: "var(--nf-state-success-surface)",
-  color: "var(--nf-state-success)",
-};
+const SUCCESS_INK: CSSProperties = { color: "var(--nf-state-success)" };
 
 /*
  * `WARNING_WASH` IS GONE, AND ITS ABSENCE IS THE POINT.
@@ -72,15 +69,33 @@ const SUCCESS_WASH: CSSProperties = {
  */
 
 /** Nothing has happened here. Not good news, not bad news, not a state. */
-const NEUTRAL_WASH: CSSProperties = {
-  background: "var(--nf-surface-inset)",
-  color: "var(--nf-content-muted)",
-};
+const NEUTRAL_INK: CSSProperties = { color: "var(--nf-content-muted)" };
 
-const DANGER_WASH: CSSProperties = {
-  background: "var(--nf-state-error-surface)",
-  color: "var(--nf-state-error)",
-};
+const DANGER_INK: CSSProperties = { color: "var(--nf-state-error)" };
+
+/*
+ * THE TINTED PLATES ARE GONE, AND THAT IS FOUR OF THE FIVE THE STANDARD BANS.
+ *
+ * Each of these glyphs sat in a `grid place-items-center rounded-full` disc
+ * filled with a state wash. `docs/ICON_SYSTEM.md` records that a tinted tile
+ * behind a glyph came from the retired reference brief and is not part of this
+ * system, citing `RECOMMENDATIONS.md` D-2 and D-5, and it is worse than
+ * decoration in the light theme: a soft brand tint on white reads as lavender,
+ * which is a hue family this brand has banned by name.
+ *
+ * The argument for the plate was that it stops a lone glyph floating in the
+ * middle of an empty panel, which is a real problem and a box is the wrong
+ * answer to it. `ComingSoon.tsx` had already arrived at the right one: what
+ * stops an object floating is its SIZE and the air around it. So the panel
+ * glyphs went up a rung to 40, which is the top of `UI_ICON_SIZES` and exists
+ * for exactly this, and the washes become ink.
+ *
+ * The checklist row's glyph went UP as well, from 14 to 20. Fourteen is not on
+ * the scale at all - the rungs are 16, 20, 24, 28, 32, 40 - and it was only
+ * that small because it had to fit inside a 24px disc. With the disc gone there
+ * is nothing to fit inside, and a tick that decides whether an agent is
+ * admitted can afford to be legible.
+ */
 
 /** What a metric tile is telling you. Not a status; a temperature. */
 export type StatTone = "neutral" | "warning" | "danger" | "success";
@@ -115,6 +130,13 @@ export function adminUi(t: Dictionary, locale: Locale) {
   // which arrive as plain strings, so the lookup is widened deliberately and
   // falls back to the raw value rather than to a blank chip.
   const statusNames = c.status as Record<string, string | undefined>;
+  /* The per-column vocabulary, if the dictionary has grown one yet. Widened
+     through `unknown` by exactly this one optional branch, so a typo in a
+     column name stays a lookup miss rather than becoming a type error the day
+     the keys land, and nothing else about the dictionary is loosened. */
+  const columnWords = (c as unknown as {
+    columns?: Record<string, Record<string, string | undefined> | undefined>;
+  }).columns;
 
   /**
    * Lagos time, always, so the server and the browser never disagree on a
@@ -158,6 +180,48 @@ export function adminUi(t: Dictionary, locale: Locale) {
   /** Human wording for the canonical machine values. */
   function statusLabel(status: string): string {
     return statusNames[status] ?? status;
+  }
+
+  /**
+   * A value from a column that is not `status`, named for a person.
+   *
+   * -------------------------------------------------------------------------
+   * FOUR CONSOLE SURFACES WERE PRINTING THE DATABASE AT THE OPERATOR.
+   *
+   * `label={entry.status}` put `PENDING`, `COMPLETED`, `FAILED` and `REVERSED`
+   * on the money screen in shouting capitals. `label={doc.reviewStatus}` put
+   * raw lower-case `pending`, `approved`, `rejected` on the identity queue.
+   * `label={report.targetType}` and `label={report.category.replace(/_/g," ")}`
+   * put `listing` and `off platform payment` on the reports queue. The console
+   * is part of Vallo by its own file header and it was showing somebody the
+   * schema.
+   *
+   * WHY NOT JUST DROP THE `label` AND LET `statusLabel` ANSWER, which is what
+   * F2-060 proposes. Because `t.admin.common.status` is a single flat map keyed
+   * by bare value, and the values collide across columns. `PENDING` in that map
+   * reads "Requested", which is right for a booking and wrong for a wallet
+   * entry, where it means the money has not settled. Dropping the label would
+   * have replaced four shouting-caps chips with one confidently mistranslated
+   * one, on the money screen. A value only means something inside its own
+   * column, so the lookup is keyed by column as well as by value.
+   *
+   * THE DICTIONARY BRANCH DOES NOT EXIST YET AND THIS DOES NOT WAIT FOR IT.
+   * `packages/i18n` is another owner's, so this reads `t.admin.common.columns`
+   * if it is there and otherwise makes the raw value readable: underscores to
+   * spaces, one capital at the front, the rest lower case. `PENDING` becomes
+   * "Pending" and `off_platform_payment` becomes "Off platform payment", which
+   * is not translation and is not pretending to be. It is strictly better than
+   * the column, it is honest about being English, and it costs nothing to
+   * remove: the moment the keys land, every one of these chips speaks four
+   * languages with no change here. The exact keys are in the sprint report.
+   */
+  function columnLabel(column: string, value: string | null | undefined): string {
+    if (!value) return c.notRecorded;
+    const translated = columnWords?.[column]?.[value];
+    if (translated) return translated;
+    const spaced = value.replace(/_/g, " ").trim();
+    if (spaced.length === 0) return c.notRecorded;
+    return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
   }
 
   function StatusChip({
@@ -327,10 +391,10 @@ export function adminUi(t: Dictionary, locale: Locale) {
     return (
       <div className="nf-card p-card-lg text-center">
         <span
-          className="mx-auto grid h-14 w-14 place-items-center rounded-full"
-          style={everHadRows ? SUCCESS_WASH : NEUTRAL_WASH}
+          className="mx-auto flex justify-center"
+          style={everHadRows ? SUCCESS_INK : NEUTRAL_INK}
         >
-          <UiIcon name={everHadRows ? "verified" : "history"} size={28} />
+          <UiIcon name={everHadRows ? "verified" : "history"} size={40} />
         </span>
         <p className="nf-h4 mt-group">{title}</p>
         <p className="nf-body mx-auto mt-row max-w-[48ch] text-content-2">{body}</p>
@@ -352,14 +416,13 @@ export function adminUi(t: Dictionary, locale: Locale) {
         and `--nf-state-warning` is the same token `--nf-status-pending` is
         defined as, so a queue that could not load was drawn in the colour that
         means "in flight" with a glyph that means "you have a notification".
-        `DANGER_WASH` was already in this file and was used by one component.
+        The rose is now ink rather than a wash, for the reason written above
+        the tone constants: the plate itself was the retired brief's, not this
+        system's.
       */
       <div className="nf-card p-card-lg text-center">
-        <span
-          className="mx-auto grid h-14 w-14 place-items-center rounded-full"
-          style={DANGER_WASH}
-        >
-          <UiIcon name="close" size={28} />
+        <span className="mx-auto flex justify-center" style={DANGER_INK}>
+          <UiIcon name="close" size={40} />
         </span>
         <p className="nf-h4 mt-group">{c.unavailableTitle}</p>
         <p className="nf-body mx-auto mt-row max-w-[48ch] text-content-2">{c.unavailableBody}</p>
@@ -377,11 +440,8 @@ export function adminUi(t: Dictionary, locale: Locale) {
   function QueueAlarm({ title, body }: { title: string; body: string }) {
     return (
       <div className="nf-card p-card-lg text-center">
-        <span
-          className="mx-auto grid h-14 w-14 place-items-center rounded-full"
-          style={DANGER_WASH}
-        >
-          <UiIcon name="shield-stop" size={28} />
+        <span className="mx-auto flex justify-center" style={DANGER_INK}>
+          <UiIcon name="shield-stop" size={40} />
         </span>
         <p className="nf-h4 mt-group">{title}</p>
         <p className="nf-body mx-auto mt-row max-w-[48ch] text-content-2">{body}</p>
@@ -423,10 +483,10 @@ export function adminUi(t: Dictionary, locale: Locale) {
             colour said neither. */}
         <span
           aria-hidden="true"
-          className="grid h-6 w-6 shrink-0 place-items-center rounded-full"
-          style={pass ? SUCCESS_WASH : DANGER_WASH}
+          className="flex shrink-0"
+          style={pass ? SUCCESS_INK : DANGER_INK}
         >
-          <UiIcon name={pass ? "verified" : "close"} size={14} />
+          <UiIcon name={pass ? "verified" : "close"} size={20} />
         </span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className="nf-body-sm block font-semibold text-content">{label}</span>
@@ -445,6 +505,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
     when,
     day,
     statusLabel,
+    columnLabel,
     StatusChip,
     QueueHeader,
     Section,

@@ -11,7 +11,7 @@ import {
   getJoinedFeed,
 } from "@/lib/social/posts-queries";
 import { POST_COPY } from "@/lib/social/posts-schema";
-import { PLACE_COPY } from "@/lib/social/places-schema";
+import { AROUND_UNCONFIGURED } from "./copy";
 import { Feed } from "@/components/social/feed/Feed";
 import {
   FeedMasthead,
@@ -144,7 +144,7 @@ export default async function AroundPage({
      Saying any of them would be inventing an answer, which is the one thing
      an empty state must never do. */
   const emptyMessage = unconfigured
-    ? PLACE_COPY.unconfigured
+    ? AROUND_UNCONFIGURED.feedBody
     : selected
       ? signedIn
         ? POST_COPY.emptyFeed
@@ -237,6 +237,18 @@ export default async function AroundPage({
           areaId={selected && selected.status === "ACTIVE" ? selected.id : undefined}
           areaName={selected?.name}
           emptyMessage={emptyMessage}
+          /* ONE EMPTY-STATE ANATOMY, AND THIS SCREEN DID NOT HAVE IT. This was
+             a bordered paragraph in muted ink with no mark, no heading and
+             nothing to do next, one tap from `/u`, which has all three. The
+             heading names what is empty, the message says why, and the action
+             is the one thing that would fill it: with no keys there is nothing
+             that would, so there is no button. */
+          {...(unconfigured
+            ? { emptyTitle: AROUND_UNCONFIGURED.feedTitle, emptyIcon: "home-search" as const }
+            : {
+                emptyTitle: selected ? `Nothing in ${selected.name} yet` : "Nothing here yet",
+                emptyAction: { href: "/around/settings", label: "Find places to join" },
+              })}
         />
         {feed.ended && feed.posts.length > 0 ? (
           <p

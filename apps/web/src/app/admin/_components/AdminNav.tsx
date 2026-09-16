@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Chip, ChipRow } from "@/components/ui/Chip";
+import { Chip } from "@/components/ui/Chip";
 import { ADMIN_NAV, ADMIN_NAV_GROUPS, type AdminDestination } from "./nav";
 
 type NavCopy = Dictionary["admin"]["nav"];
@@ -12,13 +13,12 @@ type NavCopy = Dictionary["admin"]["nav"];
 /**
  * Console navigation, one definition, two form factors.
  *
- * On desktop it is a banded rail; below lg the same destinations become a
- * scrollable tab strip pinned under the header, which is the only pattern that
- * keeps nineteen targets at thumb size on a 390px screen. The strip is flat
- * because a single scrolling row has nowhere to put a heading, and it reads
- * `ADMIN_NAV`, which is derived from the bands rather than written beside them.
- * The queue counts ride along as badges so an operator can see where the work
- * is without opening anything.
+ * On desktop it is a banded rail. Below lg the same five bands live behind one
+ * control that says where you are and how much work is waiting, and open out as
+ * wrapping chips rather than a sideways scroller. Both forms read
+ * `ADMIN_NAV_GROUPS`, so the order `nav.ts` argues for is the order both of them
+ * show. The queue counts ride along as badges so an operator can see where the
+ * work is without opening anything.
  *
  * The labels arrive from the layout, which is where the locale is resolved: a
  * client component never reads the dictionary itself.
@@ -146,39 +146,109 @@ export function AdminTabs({
   navLabel: string;
 }) {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  const current = ADMIN_NAV.find((item) => isActive(pathname, item.href));
+  const waiting = ADMIN_NAV.reduce((total, item) => total + (counts[item.key] ?? 0), 0);
 
   return (
     /*
-      The tab strip is a chip rail, so it is the shared one.
-      `!py-1.5` used to force the chip's height back DOWN, which is the tell
-      that somebody had tried to fix the touch target by inflating the box and
-      then had to undo it to keep the strip reading as a strip. `Chip` settles
-      that argument: it paints at its own height and grows only its hit region,
-      so every destination is 44pt to tap on a 390px screen without the rail
-      getting any taller.
+      THE PHONE GOT A SCROLLER AND THE DESKTOP GOT THE THINKING.
+
+      `nav.ts` spends several paragraphs arguing an order - safety, then supply,
+      then people, then money, then settings - and the rail makes that visible
+      as five bands. Below lg the same nineteen destinations were a single flat
+      `ChipRow` over `ADMIN_NAV`, bands discarded, so reaching Switches meant
+      swiping past eighteen chips with nothing on screen saying how many more
+      there were or what order they were in. By this file's own account the
+      console is used on a phone at eleven at night.
+
+      ONE CONTROL THAT OPENS THE MAP, rather than a rail you drag through. Shut,
+      it is a single row saying where you are and how much work is waiting
+      anywhere, which is the two things an operator wants at a glance and is
+      less vertical space than the scroller it replaces. Open, it is the rail's
+      own five bands with their own headings, and the chips WRAP rather than
+      scrolling sideways, so every destination is on screen at 390px at once.
+      A person cannot choose a destination they cannot see.
+
+      WHY A BUTTON AND STATE RATHER THAN `<details>`. A native disclosure needs
+      no JavaScript and was the first attempt, and it stays open after a tap:
+      client navigation keeps the DOM, so every destination you chose left the
+      whole map hanging over the page you had just asked for. This component was
+      already a client component for `usePathname`, so the state costs nothing
+      that was not already being paid.
     */
     <nav
       aria-label={navLabel}
       className="-mx-4 border-b border-[var(--nf-border-subtle)] px-4 py-2 lg:hidden"
     >
-      <ChipRow bleed={false} snap={false}>
-        {ADMIN_NAV.map((item) => {
-          const count = counts[item.key] ?? 0;
-          return (
-            <Chip
-              key={item.key}
-              behaviour="link"
-              href={item.href}
-              selected={isActive(pathname, item.href)}
-              size="sm"
-              icon={item.icon}
-              {...(count > 0 ? { count } : null)}
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="admin-sections"
+        onClick={() => setOpen((was) => !was)}
+        className="flex w-full items-center gap-inline rounded-[var(--nf-radius-md)] px-row py-inline text-left text-[0.875rem] font-medium text-[var(--nf-content-primary)]"
+      >
+        <UiIcon name={current?.icon ?? "grid"} size={20} className="shrink-0" />
+        {/* The label does not clip, for the same reason the rail's does not. */}
+        <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+          {current ? labelFor(current, labels) : navLabel}
+        </span>
+        {waiting > 0 && (
+          /* Everything waiting anywhere in the console, in the attention
+             colour, so a shut control still answers "is there work". Cyan
+             rather than brand blue for the same reason the rail's badge is:
+             a work-waiting count means attention, not brand. */
+          <span className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-1.5 text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
+            {waiting}
+          </span>
+        )}
+        <UiIcon
+          name="chevron-down"
+          size={16}
+          className={`shrink-0 transition-transform${open ? " rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        /* The tap closes the map on its way through, so choosing a destination
+           does not leave the whole console hanging over the page it opened. */
+        <div id="admin-sections" className="pb-inline pt-inline" onClick={() => setOpen(false)}>
+          {ADMIN_NAV_GROUPS.map((group) => (
+            <div
+              key={group.key}
+              role="group"
+              {...(group.heading ? { "aria-labelledby": `admin-tabs-${group.key}` } : null)}
+              className="mt-row first:mt-0"
             >
-              {shortFor(item, labels)}
-            </Chip>
-          );
-        })}
-      </ChipRow>
+              {group.heading && (
+                <p id={`admin-tabs-${group.key}`} className="nf-overline mb-inline-tight">
+                  {group.heading}
+                </p>
+              )}
+              <ul className="flex flex-wrap gap-inline-tight">
+                {group.items.map((item) => {
+                  const count = counts[item.key] ?? 0;
+                  return (
+                    <li key={item.key}>
+                      <Chip
+                        behaviour="link"
+                        href={item.href}
+                        selected={isActive(pathname, item.href)}
+                        size="sm"
+                        icon={item.icon}
+                        {...(count > 0 ? { count } : null)}
+                      >
+                        {shortFor(item, labels)}
+                      </Chip>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
     </nav>
   );
 }

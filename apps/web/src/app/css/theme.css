@@ -126,6 +126,20 @@
   --radius-xl: var(--nf-radius-xl);
   --radius-2xl: var(--nf-radius-2xl);
 
+  /*
+   * THE MEASURE, bridged so `max-w-measure-lede` resolves.
+   *
+   * These go in the CONTAINER namespace rather than the spacing one, and the
+   * long note below this block is why: `max-w-<name>` resolves from
+   * `--spacing-<name>` first, so a spacing rung called `lede` would make
+   * `max-w-lede` 46 pixels instead of 46 characters and nothing would report
+   * it. Nothing in the spacing scale is called `measure-*`, and nothing should
+   * be.
+   */
+  --container-measure-display: var(--nf-measure-display);
+  --container-measure-lede: var(--nf-measure-lede);
+  --container-measure-body: var(--nf-measure-body);
+
   --font-sans: var(--nf-font-sans);
 }
 

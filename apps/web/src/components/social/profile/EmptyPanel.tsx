@@ -1,6 +1,6 @@
-import Link from "next/link";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { EmptyState } from "@/components/app/Screen";
+import { EmptyActions } from "@/components/app/EmptyActions";
 
 /**
  * A tab with nothing in it, designed.
@@ -46,13 +46,13 @@ export function EmptyPanel({
       icon={icon}
       title={title}
       body={body}
-      action={
-        action && (
-          <Link href={action.href} className="nf-btn nf-btn--primary nf-btn--md">
-            {action.label}
-          </Link>
-        )
-      }
+      /* THE ACTION GOES THROUGH `EmptyActions` LIKE EVERY OTHER ONE. It was a
+         hand-rolled `nf-btn` at intrinsic width, which is the third of the
+         three treatments F2-073 counted across the product's empty states: at
+         390px an intrinsic-width button in a centred column reads as a chip
+         somebody forgot to style. One shape, stacked and full width, wherever
+         an empty state offers a way onward. */
+      action={action && <EmptyActions primary={action} />}
     />
   );
 }

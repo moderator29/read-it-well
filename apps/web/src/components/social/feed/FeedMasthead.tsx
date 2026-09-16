@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
-import { LogoMark } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /** The three feeds, in the order every product of this shape puts them. */
@@ -21,10 +20,23 @@ export function isFeedTab(value: string | undefined | null): value is FeedTab {
  * product. And the widest, highest-contrast control on a reading surface
  * pointed away from the reading.
  *
- * So: the mark in the centre, small, because a masthead is an identity and not
- * a banner; filters on the left where a thumb reaches without crossing the
- * screen; the way to settings on the right. Two icon buttons and a logo, which
- * is what the top of a feed is in every product that has one.
+ * So: filters on the left where a thumb reaches without crossing the screen,
+ * the screen's own name in the centre, and the way to settings on the right.
+ *
+ * ---------------------------------------------------------------------------
+ * AND THE MARK IN THE CENTRE WAS A SECOND VALLO MARK.
+ *
+ * It was a `LogoMark` at 30px, and on a phone `AppShell` already draws the logo
+ * in the header about a hundred pixels directly above it. One screen, two
+ * marks, one under the other. `AppShell`'s own comment states the rule it was
+ * breaking: "repeating a logo twice on one screen is noise", which is exactly
+ * why the shell hides its wordmark above lg, where the rail carries it.
+ *
+ * The centre is not left empty, because a row of two icon buttons with a hole
+ * between them is not a masthead. It carries the screen's NAME, which is the
+ * one thing the chrome above does not say: the shell's header is the product
+ * and this line is the page. It is also a real `h1`, so this screen finally has
+ * a heading; it had none, and the name was `sr-only` text beside a picture.
  *
  * A server component. Every control is a link, so none of it ships as
  * JavaScript.
@@ -41,12 +53,15 @@ export function FeedMasthead({ t }: { t: Dictionary }) {
         <UiIcon name="sliders" size={18} />
       </Link>
 
-      {/* The identity, not a heading. `sr-only` carries the name the screen is
-          called so a screen reader is not handed a bare image. */}
-      <span className="flex min-w-0 flex-1 items-center justify-center">
-        <LogoMark size={30} />
-        <span className="sr-only">{t.social.feedName}</span>
-      </span>
+      {/* `t.nav.around`, WHICH IS THE PAGE'S NAME, and not `t.social.feedName`,
+          which is "Vallo feed". Putting the product's name here would be the
+          same duplication as the mark it replaced, one word instead of one
+          picture. This is the word the rail and the tab bar already use for
+          this destination, so the chrome and the heading agree. No truncation:
+          a heading that clips is a heading nobody can read. */}
+      <h1 className="nf-h4 min-w-0 flex-1 text-center [overflow-wrap:anywhere]">
+        {t.nav.around}
+      </h1>
 
       <Link
         href="/around/settings"

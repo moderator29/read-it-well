@@ -40,12 +40,18 @@ export const dynamic = "force-dynamic";
  * is not recomputed here: a second implementation would eventually disagree
  * with the badge on the agent's own listings.
  */
-export default async function VerificationPage() {
+export default async function VerificationPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ resubmit?: string | string[] }>;
+}) {
   const context = await getAgentContext();
   const ladder = await getOwnLadder(context);
+  const params = await searchParams;
+  const asked = Array.isArray(params.resubmit) ? params.resubmit[0] : params.resubmit;
 
   /*
-   * Which of the three status surfaces applies, if any.
+   * Which status surface applies, if any.
    *
    * A FAILED RUNG WINS over a pending one. Somebody with one rejected document
    * and three still in the queue needs to know about the rejected one today;
@@ -55,7 +61,20 @@ export default async function VerificationPage() {
   let status: KycStatusView | null = null;
   if (ladder.state === "ok") {
     const failed = Object.values(ladder.ladder.rungs).find((rung) => rung.status === "failed");
-    if (failed) {
+    const agentStatus = context.state === "agent" ? context.agent.status : null;
+
+    if (agentStatus === "SUSPENDED") {
+      /* A SUSPENSION OUTRANKS EVERYTHING BELOW IT, including a failed rung.
+         A stopped account cannot be fixed by replacing a document, so showing
+         the rejection first would send somebody through a whole resubmission
+         that could not have worked. */
+      status = {
+        state: "suspended",
+        reason:
+          failed?.note ??
+          "Our team stopped this account. The reason was not recorded here, so they will have to tell you what it was.",
+      };
+    } else if (failed) {
       status = {
         state: "rejected",
         /* The reviewer's own words, in full. A rung recorded without a note is
@@ -66,18 +85,84 @@ export default async function VerificationPage() {
           "The reviewer did not record a reason. Send the documents again and our team will look at them within one working day.",
         fix: "Replace the document that was refused and send it again. Everything you have already had approved stays approved.",
       };
+    } else if (agentStatus === "MORE_INFO_REQUIRED") {
+      /*
+       * THE ONE STATE THAT REQUIRES THE APPLICANT, AND IT HAD NO SCREEN.
+       *
+       * This branch used to fall through to `status = null`, which dropped
+       * somebody into a blank `KycFlow` with nothing saying what had been asked
+       * for. It is checked BEFORE the tier, because a tier above zero and a
+       * request outstanding can both be true: an agent can be verified on one
+       * rung and still be blocked on another, and the outstanding request is
+       * the news.
+       *
+       * The request is the reviewer's own note where the ladder carries one.
+       * There is no other in-scope source: the application's own review note
+       * would have to come through `lib/agent/verification-queries.ts`, which
+       * belongs to another owner. Where there is no note the copy says so
+       * rather than inventing a request nobody made, and sends them to a
+       * person, which is the same discipline the rejection already uses.
+       */
+      const asking = Object.values(ladder.ladder.rungs).find((rung) => rung.note);
+      status = {
+        state: "more_info",
+        request:
+          asking?.note ??
+          "A reviewer has asked for something more before they can finish checking this account. What they asked for was not recorded here, so our team will have to tell you.",
+        fix: "Send the document again through the steps below. Anything already approved stays approved.",
+      };
     } else if (ladder.ladder.tier > 0) {
       status = { state: "approved" };
     } else if (
-      context.state === "agent" &&
-      /* The three application states that mean "a person is looking at this".
-         Spelled from `agent_application_status` rather than guessed: DRAFT and
-         MORE_INFO_REQUIRED are deliberately NOT here, because in both of those
-         the ball is with the applicant and telling them to wait would be wrong. */
-      (context.agent.status === "SUBMITTED" || context.agent.status === "UNDER_REVIEW")
+      /* The application states that mean "a person is looking at this".
+         Spelled from `agent_application_status` rather than guessed: DRAFT is
+         deliberately not here, because the ball is with the applicant and
+         telling them to wait would be wrong. */
+      agentStatus === "SUBMITTED" ||
+      agentStatus === "UNDER_REVIEW"
     ) {
       status = { state: "pending" };
     }
+  }
+
+  /*
+   * `?resubmit=1` IS HONOURED ONLY WHERE THE APPLICANT CAN ACT.
+   *
+   * The rejection's one action pointed at `/verification`, and this page
+   * renders `KycStatus` whenever a rung has failed, so the recovery link landed
+   * on the screen it was recovering from. It was a loop.
+   *
+   * It is honoured on `rejected` and `more_info` and nowhere else. An approved
+   * agent pasting the link does not get dropped back into an identity flow, and
+   * a suspended one does not get a form that cannot lift a suspension.
+   */
+  const resubmitting =
+    asked === "1" && (status?.state === "rejected" || status?.state === "more_info");
+  const whatWasSaid =
+    status?.state === "rejected"
+      ? status.reason
+      : status?.state === "more_info"
+        ? status.request
+        : null;
+
+  if (resubmitting) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <PageHeader title="Verification" fallback="/verification" />
+        {/* The reviewer's words travel INTO the flow. Somebody re-photographing
+            a document should not have to remember, from the screen before, which
+            one was refused and why. */}
+        {whatWasSaid && (
+          <p className="nf-card mb-block p-card text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <span className="block font-semibold text-[var(--nf-content-primary)]">
+              What the reviewer said
+            </span>
+            <span className="mt-inline-tight block">{whatWasSaid}</span>
+          </p>
+        )}
+        <KycFlow submit={submitVerification} />
+      </div>
+    );
   }
 
   return (
