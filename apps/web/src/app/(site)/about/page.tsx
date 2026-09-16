@@ -58,7 +58,11 @@ export default function AboutPage() {
             </span>
             About Vallo
           </span>
-          <h1 className="nf-h1 mx-auto mt-heading max-w-[16ch]">Find it. Rent it. Love it.</h1>
+          {/* The about page says what the company does; the slogan lives beside
+              the logo, not here. See PRODUCT.md section 7. */}
+          <h1 className="nf-h1 mx-auto mt-heading max-w-[24ch]">
+            Rent, buy or sell property, with the fear taken out.
+          </h1>
           <p className="mx-auto mt-group max-w-[56ch] text-[var(--nf-content-secondary)]">
             Vallo is a Nigeria-first platform for discovering and booking places to
             stay, eat and explore. We bring verified homes, hotels, restaurants and

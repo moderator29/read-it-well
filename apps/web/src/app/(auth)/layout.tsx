@@ -42,8 +42,11 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           className="nf-rise flex flex-col items-center"
         >
           <LogoLockup size={104} priority />
-          <span className="mt-1 text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
-            {t.landing.hero.line1} {t.landing.hero.line2} {t.landing.hero.line3}
+          {/* The slogan rides under the lockup, letter-spaced and quiet. This
+              is one of the few places it belongs: beside the logo, never as a
+              headline. See PRODUCT.md section 7. */}
+          <span className="mt-1 text-center text-[0.8125rem] font-medium tracking-[0.08em] text-[var(--nf-content-muted)]">
+            {t.landing.slogan}
           </span>
         </Link>
 

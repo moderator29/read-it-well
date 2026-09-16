@@ -246,85 +246,118 @@ export const en = {
 
   landing: {
     navHome: "Home",
+    /*
+     * The slogan, and it is deliberately not translated. "Real Estate
+     * reimagined!" is the founder's positioning line and it works like the
+     * wordmark: one form, every locale, the way Nike never translates Just Do
+     * It. It sits beside the logo and in metadata, never as a headline, and
+     * the exclamation mark is part of it as written.
+     */
+    slogan: "Real Estate reimagined!",
+    /*
+     * The property card's own words. Small on purpose: a card is read at a
+     * glance and every one of these is one or two words on a 390px grid cell.
+     * `market` is the label that finally separates a sale from a tenancy from
+     * a stay, which the card could not say at all before it existed.
+     */
+    card: {
+      moveIn: "to move in",
+      rent: "Rent",
+      noPhotos: "No photographs yet",
+      market: { rent: "To rent", sale: "For sale", night: "Per night", head: "Per head" },
+    },
     hero: {
-      line1: "Find it.",
-      line2: "Rent it.",
-      line3: "Love it.",
-      /* Nigeria first, and the three verbs the marketplace actually supports.
-         The line this replaced described "homes, hotels, restaurants,
-         experiences and more", which read as a travel app and never once said
-         rent, buy or sell. */
+      /*
+       * The headline is THE OFFER, not the slogan. "Find it. Rent it. Love
+       * it." stood here for a year and it is why the first four seconds of
+       * this product taught a visitor nothing: a slogan as an h1 says the
+       * company likes itself. These two lines say what you can do and what
+       * makes doing it here different, which is the whole argument of
+       * PRODUCT.md section 1 in eleven words.
+       */
+      title1: "Rent, buy or sell.",
+      title2: "The move-in total, printed.",
       subtitle:
-        "Rent, buy or sell property in Nigeria. Every place here was listed by a real person on Vallo.",
+        "Every place on Vallo was listed by a real person, with the light, the water and the gate answered before you visit.",
       searchPlaceholder: "Where do you want to go?",
-      searchLabel: "Search destinations across Nigeria",
+      searchLabel: "Start exploring",
       popularLabel: "Popular right now",
     },
-    vision: {
-      overline: "Our vision",
-      title: "Nigeria at your fingertips. Africa next.",
-      body: "Vallo is the trusted place to rent, buy and let property in Nigeria, and then across the continent. One account, one wallet, one assistant, made for how Africa actually moves.",
-      missionOverline: "Our mission",
-      missionTitle: "Make finding and booking anything effortless and safe.",
-      missionBody: "Honest prices in naira with the move-in total spelled out, agents checked by hand, real reviews from real tenancies, and an assistant that understands what you want.",
-      points: {
-        verified: { title: "Checked by a person", body: "The verified tick goes on a listing once we have checked the agent behind it, by hand." },
-        naira: { title: "Priced in naira", body: "Clear totals, no surprises, no hidden charges." },
-        everywhere: { title: "Built for all 36 states", body: "Every state and local government is in the system, and we open cities as agents arrive in them." },
-        assistant: { title: "AI that helps", body: "Ask in plain words and get real places back." },
+    /*
+     * The three steps. These had no keys of their own: HowItWorks borrowed
+     * hero.line1/2/3 as its step titles, so the how-it-works section was
+     * whatever the slogan happened to be. Changing the slogan without giving
+     * these their own words would have made the product explain itself by
+     * saying the slogan three times.
+     */
+    how: {
+      overline: "How it works",
+      title: "Three steps, and the keys are yours",
+      step1: {
+        title: "Search",
+        body: "Rent, buy, shortlet, land and commercial, in one search, with the full move-in total on every price.",
+      },
+      step2: {
+        title: "Inspect",
+        body: "Message the agent inside Vallo, see the place in person, and pay only after you have stood in it.",
+      },
+      step3: {
+        title: "Move in",
+        body: "Agreement, payments and messages, kept in one account you can show anyone, for as long as you live there.",
       },
     },
-    stats: {
-      hotels: "Hotels",
-      apartments: "Apartments",
-      restaurants: "Restaurants",
+    /*
+     * The move-in truth band: the product argument, stated once, plainly.
+     * Every competitor leads with the rent and buries the rest. Vallo prints
+     * the number somebody actually pays at the door.
+     */
+    truth: {
+      overline: "The honest number",
+      title: "The rent is not the price. We print the price.",
+      body: "A two million naira rent can cost three and a half million at the door once caution, service, agency and legal are added. Every Vallo listing carries the whole figure, added up in front of you, before you fall in love with the place.",
+      ledgerTitle: "What moving in actually costs",
+      statedNote: "Stated by the lister as the whole figure, checked against the parts.",
     },
-    features: {
-      ai: { title: "AI Assistant", body: "Smart help, 24/7" },
-      verified: { title: "Verified Listings", body: "Trusted and secure" },
-      prices: { title: "Best Prices", body: "Save more" },
-      booking: { title: "Easy Booking", body: "Fast and simple" },
+    /*
+     * The standard band: the five answers a Nigerian renter needs that no
+     * other platform structures, plus the two promises the product is built
+     * on. Power, water and the gate are real columns on every listing.
+     */
+    standard: {
+      overline: "The Vallo standard",
+      title: "Questions other platforms make you ask, answered on every listing",
+      points: {
+        power: { title: "The light", body: "Grid band and backup, stated per listing, not discovered after you move." },
+        water: { title: "The water", body: "Borehole, treated mains or tanker, on the listing." },
+        gate: { title: "The gate", body: "Estate access and security, answered before you visit." },
+        checked: { title: "Checked by a person", body: "The verified tick appears only after a person has checked the agent, by hand, and it shows the date." },
+        inside: { title: "Everything inside Vallo", body: "Chat, viewing and payment stay on the platform, so there is a record if anything goes wrong." },
+      },
     },
-    trust: {
-      multiLanguage: { title: "Multi-language", body: "EN / YO / HA / IG" },
-      secure: { title: "Secure & Trusted", body: "Your safety is our priority" },
-      ai: { title: "AI Powered", body: "Smarter experiences" },
-      africa: { title: "Made for Africa", body: "Built with love ❤️" },
-      stores: { title: "Coming to", body: "App Store and Play Store" },
-      /* `stores` CAME BACK, at the owner's instruction, and it says something
-         different from what it said the first time.
-         
-         It was removed because it read "Available on / App Store & Play Store"
-         beside Apple's and Google's real badge artwork, on a platform that is
-         on neither store. That was the right call about the CLAIM, and it took
-         a wanted row off the page to fix it.
-         
-         The row is back and the claim is true: "Coming to", which is a
-         statement about intention, is one the owner is entitled to make and one
-         a visitor cannot be misled by. The marks beside it are our own drawings
-         of the two shapes rather than the licensed lockups, for the reasons in
-         TrustIcon, and neither is a link, because there is nothing yet to link
-         to. When there is, the copy and the artwork change together. */
-    },
-    categories: {
-      title: "Everything, in one place",
-      /* Counted nothing. It said "Five ways to discover Nigeria" while the
-         category tiles offered eleven, so the sentence was wrong the day it
-         shipped and got wronger with every tile added. It states no number
-         now, which is the only version that cannot go stale. */
-      subtitle: "Every kind of place a person can list here. One account, one wallet, one assistant.",
+    vision: {
+      overline: "Why Vallo exists",
+      title: "Renting in Nigeria runs on trust that does not exist yet. We are building it.",
+      body: "Fake listings, fees invented at the door, agents nobody checked, rent handed over in cash with no record. Everyone knows the stories because everyone has one. Vallo is the version where the person is real, the price is whole, and the paper trail belongs to you.",
+      missionOverline: "The mission",
+      missionTitle: "Real estate, with the fear taken out.",
+      missionBody: "Every agent checked by hand before they can list. Every price carried to the door. Every conversation, viewing and payment inside one account. That is the whole product, and nothing ships that breaks it.",
+      points: {
+        verified: { title: "Checked by a person", body: "The verified tick goes on a listing once we have checked the agent behind it, by hand." },
+        naira: { title: "Priced in naira", body: "Whole figures, printed in full, never a rate that hides the rest." },
+        everywhere: { title: "Built for all 36 states", body: "Every state and local government is in the system, and we open cities as agents arrive in them." },
+        assistant: { title: "An assistant that speaks yours", body: "Ask in English, Yorùbá, Hausa or Igbo and get real places back." },
+      },
     },
     cta: {
-      title: "Ready to find your next place?",
-      /* "Join thousands discovering stays, food and experiences" was a
-         membership claim we cannot support and a description of a product we
-         are not. This says what an account actually gets you. */
-      subtitle: "Create an account to save places, message whoever listed them, and rent or buy in one place.",
+      title: "Your next place is on here",
+      subtitle: "Create a free account to see every listing, save the ones that fit, and talk to the person who listed them.",
       action: "Get started free",
-      secondary: "See how it works",
+      secondary: "Become an agent",
     },
     footer: {
-      tagline: "Find it. Rent it. Love it. Around Nigeria.",
+      /* The slogan, not a summary. One form in every locale, per the note on
+         `landing.slogan`. */
+      tagline: "Real Estate reimagined!",
       rights: "All rights reserved.",
       product: "Product",
       company: "Company",

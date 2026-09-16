@@ -39,19 +39,30 @@ import { Words } from "@/components/site/Words";
  * short line under it. The longer sentences did not move anywhere clever, they
  * were deleted: a step that needs a paragraph is not a step.
  */
+/*
+ * THE STEP TITLES HAVE THEIR OWN KEYS NOW, AND THEY NEVER DID BEFORE.
+ *
+ * These three titles were `t.landing.hero.line1/2/3`: the slogan, borrowed as
+ * an ordered list. It read fine only because the slogan happened to be three
+ * verbs. The day the slogan changed, this section would have explained the
+ * product by saying "Real Estate reimagined!" three times, so the steps got
+ * their own words, in all four languages: Search, Inspect, Move in. The bodies
+ * moved into the dictionary with them, because a step's sentence was the one
+ * piece of copy on this band that was not translatable.
+ */
 export function HowItWorks({ t }: { t: Dictionary }) {
   const steps: { icon: UiIconName; title: string; body: string }[] = [
-    { icon: "search", title: t.landing.hero.line1, body: "Rent, buy, shortlet, land and commercial, in one search." },
-    { icon: "calendar-booking", title: t.landing.hero.line2, body: "Naira totals in full, paid safely, before anything is confirmed." },
-    { icon: "key", title: t.landing.hero.line3, body: "Agreement, payments and messages, all in one account." },
+    { icon: "search", ...t.landing.how.step1 },
+    { icon: "calendar-booking", ...t.landing.how.step2 },
+    { icon: "key", ...t.landing.how.step3 },
   ];
 
   return (
     <section className="nf-shell py-section">
       <Reveal className="mb-block max-w-[52ch]">
-        <span className="nf-overline">Three steps</span>
+        <span className="nf-overline">{t.landing.how.overline}</span>
         <h2 className="nf-h1 mt-row">
-          <Words text="How it works" accentFrom={2} />
+          <Words text={t.landing.how.title} accentFrom={2} />
         </h2>
       </Reveal>
 

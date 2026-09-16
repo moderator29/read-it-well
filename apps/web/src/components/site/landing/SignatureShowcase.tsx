@@ -1,113 +1,18 @@
-import Link from "next/link";
+import Image from "next/image";
 import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { LogoMark } from "@/design-system/brand/Logo";
 import { gatedHref } from "@/lib/site/gated-href";
 
-/**
- * The signature landing showcases, built around the three commissioned
- * artworks: the neon villa, the lit map of Nigeria, and the assistant
- * hologram. Copy is the owner's canonical wording for these panels.
+/*
+ * `VillaShowcase` AND `CoverageMap` STOOD HERE AND ARE DELETED.
+ *
+ * Neither was imported anywhere, and each carried a line this repository has
+ * spent two days removing from live surfaces: the villa panel's headline was
+ * the retired slogan, and the coverage panel said "All 36 states. One lit
+ * map." over a catalogue that lives in five cities. Dead code is where retired
+ * copy hides from a sweep, so they go rather than wait to be rediscovered by
+ * the next person who needs a section and imports the first export they find.
  */
-
-export function VillaShowcase() {
-  return (
-    <section className="nf-shell pt-16 sm:pt-20" aria-labelledby="nf-villa-title">
-      <Reveal>
-        <div className="nf-card overflow-hidden p-0 lg:grid lg:grid-cols-[1.02fr_1fr]">
-          <div className="flex flex-col items-start justify-center p-6 sm:p-10 lg:p-12">
-            <LogoMark
-              size={52}
-              className="mb-5 rounded-2xl shadow-[0_0_24px_rgb(12_57_239/0.35)] ring-1 ring-[var(--nf-border-subtle)]"
-            />
-            <h2 id="nf-villa-title" className="nf-h1">
-              Find it. Rent it. <span className="nf-gradient-text">Love it.</span>
-            </h2>
-            <p className="mt-3 max-w-[46ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)]">
-              The smartest way to discover and rent properties across Nigeria.
-            </p>
-
-            <ul className="mt-7 space-y-5">
-              <li className="flex items-center gap-4">
-                <span className="h-16 w-16 shrink-0">
-                  <BrandIcon name="home-search" fill />
-                </span>
-                <span>
-                  <span className="block font-semibold text-[var(--nf-content-primary)]">
-                    Smart Search
-                  </span>
-                  <span className="block text-[0.875rem] text-[var(--nf-content-muted)]">
-                    Find the perfect place fast.
-                  </span>
-                </span>
-              </li>
-              <li className="flex items-center gap-4">
-                <span className="h-16 w-16 shrink-0">
-                  <BrandIcon name="shield-check" fill />
-                </span>
-                <span>
-                  <span className="block font-semibold text-[var(--nf-content-primary)]">
-                    Verified Listings
-                  </span>
-                  <span className="block text-[0.875rem] text-[var(--nf-content-muted)]">
-                    Trusted properties, always.
-                  </span>
-                </span>
-              </li>
-            </ul>
-
-            <ButtonLink href={gatedHref("/search")} variant="primary" size="lg" className="mt-8">
-              Explore Properties
-            </ButtonLink>
-          </div>
-
-          <div className="relative flex min-h-[240px] items-center justify-center p-6 sm:min-h-[320px] sm:p-8">
-            {/* The RentMe city render stood here, 2.1MB. The commissioned
-                object is ours, on brand, and a hundredth of the weight. */}
-            <BrandIcon
-              name="cluster-home"
-              size={320}
-              className="h-auto w-full max-w-[420px]"
-            />
-          </div>
-        </div>
-      </Reveal>
-    </section>
-  );
-}
-
-export function CoverageMap() {
-  return (
-    <section className="nf-shell pt-16 sm:pt-20" aria-labelledby="nf-coverage-title">
-      <Reveal>
-        <div className="mb-6 text-center sm:mb-8">
-          <span className="nf-overline">Nationwide</span>
-          <h2 id="nf-coverage-title" className="nf-h2 mt-2">
-            All 36 states. One lit map.
-          </h2>
-          <p className="mx-auto mt-2 max-w-[52ch] text-[var(--nf-content-secondary)]">
-            From Lagos to Maiduguri, every covered city glows on the Vallo grid. Tap the map
-            to explore by location.
-          </p>
-        </div>
-        <Link
-          href={gatedHref("/search?view=map")}
-          aria-label="Open the Vallo coverage map"
-          className="nf-card nf-card--interactive block overflow-hidden p-0"
-        >
-          {/* The RentMe map render stood here, 1.8MB, and it was decorative:
-              it showed lit markers on a Nigeria that did not correspond to any
-              row in `areas`. The object states the same idea without claiming
-              coverage the catalogue does not have. */}
-          <div className="grid aspect-[3/2] w-full place-items-center bg-[var(--nf-surface-artwork)]">
-            <BrandIcon name="map-route" size={240} label="Vallo coverage" />
-          </div>
-        </Link>
-      </Reveal>
-    </section>
-  );
-}
 
 /**
  * The assistant, shown doing the thing it actually does.
@@ -140,7 +45,7 @@ export function CoverageMap() {
  */
 export function AssistantShowcase() {
   return (
-    <section className="nf-shell pt-16 sm:pt-20" aria-labelledby="nf-assistant-title">
+    <section className="nf-shell py-section" aria-labelledby="nf-assistant-title">
       <Reveal>
         <div className="nf-card overflow-hidden p-0 lg:grid lg:grid-cols-[1fr_1.02fr]">
           <div className="relative order-last min-h-[240px] sm:min-h-[340px] lg:order-first lg:min-h-0">
@@ -150,7 +55,19 @@ export function AssistantShowcase() {
               aria-hidden="true"
               className="absolute inset-0 grid place-items-center bg-[var(--nf-surface-artwork)]"
             >
-              <BrandIcon name="bot-chat" size={220} />
+              {/* The commissioned hero scene: the assistant holding a listing
+                  card, on its own lit plinth. A scene, not an icon, which is
+                  why it is an Image from `glass/hero` rather than a BrandIcon:
+                  the icon set must never carry hero artwork, or a call site
+                  will one day paint this at 24px. */}
+              <Image
+                src="/brand/glass/hero/hero-assistant.png"
+                alt=""
+                width={557}
+                height={470}
+                sizes="(max-width: 1024px) 320px, 460px"
+                className="nf-float-slow h-auto w-full max-w-[460px]"
+              />
             </div>
             {/*
               THE SCRIM STOOD HERE AND IS GONE, and it had to go with the
@@ -167,9 +84,9 @@ export function AssistantShowcase() {
             */}
           </div>
 
-          <div className="flex flex-col items-start justify-center p-6 sm:p-10 lg:p-12">
+          <div className="flex flex-col items-start justify-center p-card-lg lg:p-2xl">
             <span className="nf-overline">Vallo AI</span>
-            <h2 id="nf-assistant-title" className="nf-h1 mt-2">
+            <h2 id="nf-assistant-title" className="nf-h1 mt-row">
               Ask in plain words. <span className="nf-gradient-text">Get real property.</span>
             </h2>
             <p className="mt-row max-w-[46ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)]">

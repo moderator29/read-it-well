@@ -125,9 +125,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
           <p>
             <span className="nf-numeric">{year}</span> Vallo. {t.landing.footer.rights}
           </p>
-          <p className="font-medium">
-            {t.landing.hero.line1} {t.landing.hero.line2} {t.landing.hero.line3}
-          </p>
+          <p className="font-medium">{t.landing.slogan}</p>
         </div>
       </div>
     </footer>
