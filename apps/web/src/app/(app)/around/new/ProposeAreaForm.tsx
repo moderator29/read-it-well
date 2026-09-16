@@ -52,8 +52,12 @@ export function ProposeAreaForm({
   if (done) {
     return (
       <div className="nf-card p-lg text-center">
-        <div className="mx-auto mb-md flex h-12 w-12 items-center justify-center rounded-full bg-[var(--nf-state-success-surface)]">
-          <UiIcon name="verified" size={22} className="text-[var(--nf-state-success)]" />
+        {/* No plate, and the glyph was off the scale as well as inside a box:
+            22 is not a rung, and `UI_ICON_SIZES` tops out at 40, which is the
+            size an object on its own is meant to be. See the note on
+            `StopsDesk`'s empty state for the rest of the argument. */}
+        <div className="mx-auto mb-md flex justify-center">
+          <UiIcon name="verified" size={40} className="text-[var(--nf-state-success)]" />
         </div>
         <h2 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
           Thank you. We have it.

@@ -113,6 +113,20 @@ function dimensionsOf(url: string): Promise<{ width?: number; height?: number }>
 
 type RetryPayload = { kind: "text"; body: string } | { kind: "image"; file: File };
 
+/**
+ * What the retry button is called, for somebody who cannot see which bubble it
+ * sits under. Words where there are words, and an honest noun where there are
+ * not.
+ */
+function retryLabel(message: { body?: string | null; imageUrl?: string | null }): string {
+  const words = (message.body ?? "").trim();
+  if (words.length > 0) {
+    const short = words.length > 40 ? `${words.slice(0, 40).trimEnd()}…` : words;
+    return `Retry sending: ${short}`;
+  }
+  return message.imageUrl ? "Retry sending your photo" : "Retry sending this message";
+}
+
 export function ThreadView({
   live,
   conversationId,
@@ -529,9 +543,23 @@ export function ThreadView({
               {m.state === "failed" && (
                 <p className="mt-inline-tight flex items-center gap-xs nf-caption text-[var(--nf-state-error)]">
                   Not sent.
+                  {/*
+                    THE RETRY CARRIES WHICH MESSAGE IT RETRIES.
+                    Visibly it does not need to: it sits under the bubble and
+                    the eye pairs them. To a screen reader it did, and did not
+                    have it. A thread where three sends failed announced three
+                    buttons all called "Retry", in a list, with nothing saying
+                    which was which - so the one reader who cannot see the
+                    pairing was the one reader who had to guess. The name is
+                    built from the message's own words, cut short because an
+                    accessible name is read out whole and a 900-character
+                    message is not a button label. An image has no words, so it
+                    says so rather than announcing an empty quotation.
+                  */}
                   <button
                     type="button"
                     onClick={() => retry(m.id)}
+                    aria-label={retryLabel(m)}
                     className="font-semibold underline underline-offset-2"
                   >
                     Retry

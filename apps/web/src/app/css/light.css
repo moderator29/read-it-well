@@ -419,12 +419,24 @@
    * exactly the failure it exists to prevent, in the theme half the users are
    * in.
    *
-   * SO IT STAYS, AND HERE IS HOW TO CLOSE IT IN ONE PASS: render the app in the
-   * light theme with `document.querySelectorAll('.nf-card .nf-glass')` in the
-   * console on the wallet, saved, search and listing routes. Empty on all four
-   * means the nesting is gone and this rule goes with it. That is one browser
-   * session, which this workstream does not have, rather than an afternoon of
-   * reading component trees.
+   * THAT CHECK HAS SINCE BEEN RUN, AND THE QUESTION IS NARROWER THAN IT WAS.
+   *
+   * `document.querySelectorAll('.nf-card .nf-glass')` returned EMPTY on ten
+   * public routes, in both themes. That is real evidence and it is better than
+   * the static read above, which could only say "not visibly nested in the
+   * source".
+   *
+   * It is still not the whole answer. `/wallet` and `/saved` are behind a login
+   * that nobody on this work has, and those are two of the four surfaces the
+   * enumeration above singles out - `SavedBoard`'s glass save button is the
+   * closest thing in the tree to the pattern this rule exists for, and it is on
+   * one of the two that could not be reached.
+   *
+   * So the unknown has changed shape rather than gone. It was eleven elements
+   * in compositions nobody could rule out; it is now TWO NAMED SIGNED-IN
+   * SURFACES. Whoever next has a session that can log in: open `/wallet` and
+   * `/saved` in the light theme, run the same one-liner, and if both are empty
+   * this rule goes. Nothing else needs checking.
    */
   :root[data-theme="light"] .nf-card .nf-glass {
     background: var(--nf-surface-inset);

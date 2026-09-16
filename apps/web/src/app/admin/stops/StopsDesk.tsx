@@ -10,7 +10,6 @@ import {
 import type { AgentStanding, StopRecord } from "@/lib/admin/suspension-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ICON } from "@/components/app/Screen";
 
 /**
  * The stops desk.
@@ -386,14 +385,22 @@ export function StopsDesk({
           /* An empty state draws no container anywhere else in the product, and
              the message here is that there is nothing to see. */
           <div className="mt-heading p-card text-center">
+            {/*
+              NO PLATE. The last hand-built tinted disc in this owner's scope,
+              and the same one `admin/_components/ui.tsx` lost four of:
+              `docs/ICON_SYSTEM.md` records that a tinted tile behind a glyph
+              came from the retired reference brief and is not part of this
+              system, and on the light theme a soft wash on white reads as a
+              hue this brand has banned by name. What stops a lone object
+              floating is its SIZE and the air around it, not a box, so the
+              glyph goes up to 40 - the top of `UI_ICON_SIZES`, which exists for
+              exactly this - and the wash becomes ink.
+            */}
             <span
-              className="mx-auto grid h-12 w-12 place-items-center rounded-full"
-              style={{
-                background: "var(--nf-status-approved-surface)",
-                color: "var(--nf-status-approved)",
-              }}
+              className="mx-auto flex justify-center"
+              style={{ color: "var(--nf-status-approved)" }}
             >
-              <UiIcon name="verified" size={ICON.row} />
+              <UiIcon name="verified" size={40} />
             </span>
             <p className="mt-heading nf-body font-semibold text-[var(--nf-content-primary)]">
               Nobody is stopped

@@ -114,6 +114,23 @@ export default async function SettingsPage({
   const shown = new Set(matching.map((entry) => entry.id));
   const show = (id: string): boolean => shown.has(id);
 
+  /*
+   * THE STAGGER GOES WHILE A SEARCH IS ON, and this is a fault the search
+   * itself introduced.
+   *
+   * The twelve sections fade in on a ladder of delays up to 360ms, which is
+   * right when twelve of them arrive in order down a long page. Under a query
+   * it is not: the delays are keyed to a section's position in the FULL list,
+   * so a search matching only About left the reader looking at an empty screen
+   * for a third of a second before its one result appeared. A person who has
+   * just typed a word is waiting on an answer, not watching an entrance.
+   *
+   * Zero rather than a shorter ladder, because the ladder's whole argument is
+   * that things arrive in the order the eye reads them, and a filtered list has
+   * no such order to express.
+   */
+  const stagger = (ms: number): number => (searching ? 0 : ms);
+
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader title={t.nav.settings} />
@@ -178,7 +195,7 @@ export default async function SettingsPage({
         )}
         {show("settings-place") && (
           <section id="settings-place" className="scroll-mt-28">
-            <Reveal delay={60}>
+            <Reveal delay={stagger(60)}>
               {/* WHAT YOU CAME FOR IS A ROW OF THIS GROUP NOW, not a card of
                   its own. It was a labelled surface wrapped around one link,
                   which is the container F2-071 measures and the same argument
@@ -205,7 +222,7 @@ export default async function SettingsPage({
         )}
         {show("settings-notifications") && (
           <section id="settings-notifications" className="scroll-mt-28">
-            <Reveal delay={80}>
+            <Reveal delay={stagger(80)}>
               {signedIn ? (
                 <AccountNotificationsCard t={t} initial={account.settings.notifications} />
               ) : (
@@ -216,7 +233,7 @@ export default async function SettingsPage({
         )}
         {show("settings-privacy") && (
           <section id="settings-privacy" className="scroll-mt-28">
-            <Reveal delay={120}>
+            <Reveal delay={stagger(120)}>
               {signedIn ? (
                 <AccountPrivacyCard
                   t={t}
@@ -231,14 +248,14 @@ export default async function SettingsPage({
         )}
         {show("settings-search") && (
           <section id="settings-search" className="scroll-mt-28">
-            <Reveal delay={160}>
+            <Reveal delay={stagger(160)}>
               <SearchCard t={t} />
             </Reveal>
           </section>
         )}
         {show("settings-security") && (
           <section id="settings-security" className="scroll-mt-28">
-            <Reveal delay={200}>
+            <Reveal delay={stagger(200)}>
               {/* WHERE YOU ARE SIGNED IN IS A ROW OF THIS GROUP NOW. It was a
                   118px card holding one link and its own heading, which F2-071
                   names as the clearest example of what makes this screen four
@@ -255,14 +272,14 @@ export default async function SettingsPage({
         )}
         {show("settings-data") && (
           <section id="settings-data" className="scroll-mt-28">
-            <Reveal delay={240}>
+            <Reveal delay={stagger(240)}>
               <DataCard t={t} />
             </Reveal>
           </section>
         )}
         {show("settings-account") && (
           <section id="settings-account" className="scroll-mt-28">
-            <Reveal delay={280}>
+            <Reveal delay={stagger(280)}>
               <AccountSection
                 t={t}
                 state={account.state}
@@ -273,7 +290,7 @@ export default async function SettingsPage({
         )}
         {show("settings-help") && (
           <section id="settings-help" className="scroll-mt-28">
-            <Reveal delay={320}>
+            <Reveal delay={stagger(320)}>
               <SupportChat />
             </Reveal>
           </section>
@@ -281,7 +298,7 @@ export default async function SettingsPage({
 
         {show("settings-about") && (
           <section id="settings-about" className="scroll-mt-28">
-            <Reveal delay={360}>
+            <Reveal delay={stagger(360)}>
               {/* About used to end on "full terms and the privacy policy publish
                   with the launch release". Both have been live at /terms and
                   /privacy for some time, so the sentence was telling somebody
